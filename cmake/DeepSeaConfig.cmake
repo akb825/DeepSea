@@ -8,7 +8,7 @@ if (NOT DeepSea_FIND_COMPONENTS)
 	return()
 endif()
 
-get_filename_component(_DeepSea_InstallPrefix "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+get_filename_component(_DeepSea_InstallPrefix ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE)
 
 include(CMakeFindDependencyMacro)
 set(_DeepSea_NOTFOUND_MESSAGE)
