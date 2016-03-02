@@ -13,4 +13,4 @@ Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea
 
     find_package(DeepSea MODULES Core Math Graphics)
 
-Libraries and include directories can be found through the `DEEPSEA_MODULE_LIBRARIES` and `DEEPSEA_MODULE_NCLUDE_DIRS` CMake variables. For example: `DEEPSEA_CORE_LIBRARIES` and `DEEPSEA_CORE_INCLUDE_DIRS`.
+Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_NCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`.
