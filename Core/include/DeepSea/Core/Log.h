@@ -27,12 +27,12 @@ extern "C"
  */
 typedef enum dsLog_Level
 {
-	dsLog_Level_Trace,	///< A trace message for status updates.
-	dsLog_Level_Debug,	///< A debug message.
-	dsLog_Level_Info,	///< An info message.
+	dsLog_Level_Trace,		///< A trace message for status updates.
+	dsLog_Level_Debug,		///< A debug message.
+	dsLog_Level_Info,		///< An info message.
 	dsLog_Level_Warning,	///< A warning message that could indicate a problem.
-	dsLog_Level_Error,	///< An error message that indicates a problem.
-	dsLog_Level_Fatal	///< A fatal message that indicates execution cannot continue.
+	dsLog_Level_Error,		///< An error message that indicates a problem.
+	dsLog_Level_Fatal		///< A fatal message that indicates execution cannot continue.
 } dsLog_Level;
 
 /**
