@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(DeepSea)
+
+set(DEEPSEA_SHARED OFF CACHE STRING "Build DeepSea using shared libraries.")
+
+if (DEEPSEA_SHARED)
+	set(DEEPSEA_LIB SHARED)
+else()
+	set(DEEPSEA_LIB STATIC)
+endif()
+
+set(DEEPSEA_MAJOR_VERSION 0)
+set(DEEPSEA_MINOR_VERSION 0)
+set(DEEPSEA_PATCH_VERSION 1)
+set(DEEPSEA_VERSION ${DEEPSEA_MAJOR_VERSION}.${DEEPSEA_MINOR_VERSION}.${DEEPSEA_PATCH_VERSION})
+
+include(cmake/config.cmake)
+include(cmake/install.cmake)
+
+add_subdirectory(Core)
+
+install_master_config()
