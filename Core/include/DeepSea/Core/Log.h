@@ -37,6 +37,7 @@ typedef enum dsLog_Level
 
 /**
  * @brief Type of the logging function.
+ * @remark This may be called across multiple threads.
  * @param userData User data for the logging function.
  * @param level The level of the message.
  * @param tag The tag for the message.
@@ -51,6 +52,7 @@ typedef void (*dsLog_FunctionType)(void* userData, dsLog_Level level, const char
 /**
  * @brief Sets the logging function.
  * @param userData The user data for the logging function.
+ * @param function The function to send the log messages to.
  */
 DS_CORE_EXPORT void dsLog_setFunction(void* userData, dsLog_FunctionType function);
 

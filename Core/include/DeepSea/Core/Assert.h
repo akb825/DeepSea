@@ -8,10 +8,7 @@
  */
 
 /**
- * @brief Asserts that a condition is true.
- *
- * The condition is only evaluated when asserts are enabled.
- * @param x The expression to assert on.
+ * @brief Define for when asserts are enabled.
  */
 #ifdef NDEBUG
 #define DS_ASSERTS_ENABLED 0
@@ -19,6 +16,12 @@
 #define DS_ASSERTS_ENABLED 1
 #endif
 
+/**
+ * @brief Asserts that a condition is true.
+ *
+ * The condition is only evaluated when asserts are enabled.
+ * @param x The expression to assert on.
+ */
 #define DS_ASSERT(x) assert(x)
 
 /**

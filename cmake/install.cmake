@@ -67,7 +67,10 @@ function(install_library)
 
 	set(configPath ${CMAKE_CURRENT_BINARY_DIR}/DeepSea/${moduleName}Config.cmake)
 	file(WRITE ${configPath}
-		"${dependencies}\ninclude(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake")
+		"${dependencies}\n"
+		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake\n"
+		"get_target_property(DEEPSEA_${moduleUpper}_LIBRARIES ${ARGS_TARGET} INTERFACE_LINK_LIBRARIES)\n"
+		"get_target_property(DEEPSEA_${moduleUpper}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
 
 	set(configPackageDir lib/cmake/DeepSea)
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
