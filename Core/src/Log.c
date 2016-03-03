@@ -22,13 +22,23 @@ static const char* logLevelStrings[] =
 	"fatal"
 };
 
-static void defaultLog(dsLogLevel level, const char* tag, const char* file,
+void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
 {
+	DS_ASSERT(level >= dsLogLevel_Trace && level <= dsLogLevel_Fatal);
+#ifdef NDEBUG
+	if (level < dsLogLevel_Info)
+		return;
+#else
+	if (level < dsLogLevel_Debug)
+		return;
+#endif
+
 #if DS_WINDOWS
 	char buffer[DS_LOG_MAX_LENGTH];
 	FILE* dest;
 	int length;
+
 	if (level < dsLogLevel_Warning)
 	{
 		dest = stdout;
@@ -83,10 +93,11 @@ void dsLog_clearFunction()
 void dsLog_message(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
 {
+	DS_ASSERT(level >= dsLogLevel_Trace && level <= dsLogLevel_Fatal);
 	if (gFunction)
 		gFunction(gUserData, level, tag, file, line, function, message);
 	else
-		defaultLog(level, tag, file, line, function, message);
+		dsLog_defaultPrint(level, tag, file, line, function, message);
 }
 
 void dsLog_messagef(dsLogLevel level, const char* tag, const char* file,

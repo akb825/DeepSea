@@ -8,3 +8,5 @@ target_link_libraries(deepsea_core PUBLIC
 
 install_library(TARGET deepsea_core MODULE Core)
 set(DEEPSEA_DOC_PROJECTS ${DEEPSEA_DOC_PROJECTS} Core PARENT_SCOPE)
+
+add_subdirectory(test)

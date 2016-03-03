@@ -12,5 +12,7 @@ else()
 	endif()
 
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror ${otherCFlags}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${otherCXXFlags}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -std=c++11 ${otherCXXFlags}")
 endif()
+
+enable_testing()
