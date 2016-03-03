@@ -25,15 +25,15 @@ extern "C"
 /**
  * @brief The level of the log message.
  */
-typedef enum dsLog_Level
+typedef enum dsLogLevel
 {
-	dsLog_Level_Trace,		///< A trace message for status updates.
-	dsLog_Level_Debug,		///< A debug message.
-	dsLog_Level_Info,		///< An info message.
-	dsLog_Level_Warning,	///< A warning message that could indicate a problem.
-	dsLog_Level_Error,		///< An error message that indicates a problem.
-	dsLog_Level_Fatal		///< A fatal message that indicates execution cannot continue.
-} dsLog_Level;
+	dsLogLevel_Trace,		///< A trace message for status updates.
+	dsLogLevel_Debug,		///< A debug message.
+	dsLogLevel_Info,		///< An info message.
+	dsLogLevel_Warning,	///< A warning message that could indicate a problem.
+	dsLogLevel_Error,		///< An error message that indicates a problem.
+	dsLogLevel_Fatal		///< A fatal message that indicates execution cannot continue.
+} dsLogLevel;
 
 /**
  * @brief Type of the logging function.
@@ -46,7 +46,7 @@ typedef enum dsLog_Level
  * @param function The function for the message.
  * @param message The log message.
  */
-typedef void (*dsLog_FunctionType)(void* userData, dsLog_Level level, const char* tag,
+typedef void (*dsLog_FunctionType)(void* userData, dsLogLevel level, const char* tag,
 	const char* file, unsigned int line, const char* function, const char* message);
 
 /**
@@ -82,7 +82,7 @@ DS_CORE_EXPORT void dsLog_clearFunction();
  * @param function The function for the message.
  * @param message The log message.
  */
-DS_CORE_EXPORT void dsLog_message(dsLog_Level level, const char* tag, const char* file,
+DS_CORE_EXPORT void dsLog_message(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message);
 
 /**
@@ -94,7 +94,7 @@ DS_CORE_EXPORT void dsLog_message(dsLog_Level level, const char* tag, const char
  * @param function The function for the message.
  * @param message The log message.
  */
-DS_CORE_EXPORT void dsLog_messagef(dsLog_Level level, const char* tag, const char* file,
+DS_CORE_EXPORT void dsLog_messagef(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message, ...);
 
 /**
@@ -107,7 +107,7 @@ DS_CORE_EXPORT void dsLog_messagef(dsLog_Level level, const char* tag, const cha
  * @param message The log message.
  * @param args The formatting arguments.
  */
-DS_CORE_EXPORT void dsLog_vmessagef(dsLog_Level level, const char* tag, const char* file,
+DS_CORE_EXPORT void dsLog_vmessagef(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message, va_list args);
 
 #ifdef __cplusplus

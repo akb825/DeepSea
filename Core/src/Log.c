@@ -22,14 +22,14 @@ static const char* logLevelStrings[] =
 	"fatal"
 };
 
-static void defaultLog(dsLog_Level level, const char* tag, const char* file,
+static void defaultLog(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
 {
 #if DS_WINDOWS
 	char buffer[DS_LOG_MAX_LENGTH];
 	FILE* dest;
 	int length;
-	if (level < dsLog_Level_Warning)
+	if (level < dsLogLevel_Warning)
 	{
 		dest = stdout;
 		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s: %s - %s\n", logLevelStrings[level],
@@ -48,7 +48,7 @@ static void defaultLog(dsLog_Level level, const char* tag, const char* file,
 	fwrite(buffer, sizeof(char), strlen(buffer), dest);
 	OutputDebugStringA(buffer);
 #else
-	if (level < dsLog_Level_Warning)
+	if (level < dsLogLevel_Warning)
 		fprintf(stdout, "%s: %s - %s\n", logLevelStrings[level], tag, message);
 	else
 	{
@@ -80,7 +80,7 @@ void dsLog_clearFunction()
 	gFunction = NULL;
 }
 
-void dsLog_message(dsLog_Level level, const char* tag, const char* file,
+void dsLog_message(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
 {
 	if (gFunction)
@@ -89,7 +89,7 @@ void dsLog_message(dsLog_Level level, const char* tag, const char* file,
 		defaultLog(level, tag, file, line, function, message);
 }
 
-void dsLog_messagef(dsLog_Level level, const char* tag, const char* file,
+void dsLog_messagef(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message, ...)
 {
 	va_list args;
@@ -98,7 +98,7 @@ void dsLog_messagef(dsLog_Level level, const char* tag, const char* file,
 	va_end(args);
 }
 
-void dsLog_vmessagef(dsLog_Level level, const char* tag, const char* file,
+void dsLog_vmessagef(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message, va_list args)
 {
 	char buffer[DS_LOG_MAX_LENGTH];

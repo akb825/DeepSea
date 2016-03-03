@@ -7,3 +7,4 @@ target_link_libraries(deepsea_core PUBLIC
 	${CMAKE_THREAD_LIBS_INIT})
 
 install_library(TARGET deepsea_core MODULE Core)
+set(DEEPSEA_DOC_PROJECTS ${DEEPSEA_DOC_PROJECTS} Core PARENT_SCOPE)
