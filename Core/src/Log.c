@@ -1,5 +1,6 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Assert.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -25,12 +26,13 @@ static const char* logLevelStrings[] =
 void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
 {
-	DS_ASSERT(level >= dsLogLevel_Trace && level <= dsLogLevel_Fatal);
-#ifdef NDEBUG
-	if (level < dsLogLevel_Info)
+	// Use standard assert here since DS_ASSERT relies on the output.
+	assert(level >= dsLogLevel_Trace && level <= dsLogLevel_Fatal);
+#if DS_DEBUG
+	if (level < dsLogLevel_Debug)
 		return;
 #else
-	if (level < dsLogLevel_Debug)
+	if (level < dsLogLevel_Info)
 		return;
 #endif
 
@@ -47,11 +49,11 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	}
 	else
 	{
-		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s(%u) : %s() %s: %s - %s\n", file, line,
+		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s(%u) : %s(): %s: %s - %s\n", file, line,
 			function, logLevelStrings[level], tag, message);
 	}
 
-	DS_ASSERT(length >= 0);
+	assert(length >= 0);
 	if (length < 0)
 		return;
 
@@ -62,7 +64,7 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 		fprintf(stdout, "%s: %s - %s\n", logLevelStrings[level], tag, message);
 	else
 	{
-		fprintf(stderr, "%s:%u %s() %s: %s - %s\n", file, line, function, logLevelStrings[level],
+		fprintf(stderr, "%s:%u %s(): %s: %s - %s\n", file, line, function, logLevelStrings[level],
 			tag, message);
 	}
 #endif

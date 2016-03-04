@@ -33,3 +33,20 @@
 #ifndef DS_APPLE
 #	define DS_APPLE 0
 #endif
+
+/**
+ * @brief Define for whether or not this is a debug build.
+ */
+#ifdef NDEBUG
+#define DS_DEBUG 0
+#else
+#define DS_DEBUG 1
+#endif
+
+/**
+ * @brief Macro for an unused variable.
+ *
+ * This can be used to work around compiler warnings.
+ * @param x The unused variable.
+ */
+#define DS_UNUSED(x) (void)(&x)
