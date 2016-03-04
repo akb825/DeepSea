@@ -16,7 +16,7 @@ set(outputFile ${CMAKE_CURRENT_BINARY_DIR}/html/index.html)
 add_custom_command(OUTPUT ${outputFile}
 	COMMAND ${DOXYGEN_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-	DEPENDS ${dependencies} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+	DEPENDS ${dependencies} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile ${rootDir}/README.md
 	COMMENT "Generating API documentation with Doxygen" VERBATIM)
 add_custom_target(doc ALL DEPENDS ${outputFile})
 
