@@ -1,6 +1,4 @@
-find_package(Doxygen)
 if (NOT DOXYGEN_FOUND)
-	message("Doxygon not installed. Skipping documentation.")
 	return()
 endif()
 

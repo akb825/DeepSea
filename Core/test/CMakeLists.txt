@@ -1,4 +1,6 @@
-find_package(GTest)
+if (NOT GTEST_FOUND)
+	return()
+endif()
 
 file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(deepsea_core_test ${sources})

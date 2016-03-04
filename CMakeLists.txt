@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(DeepSea)
 
+find_package(Doxygen QUIET)
+find_package(GTest QUIET)
+if (NOT DOXYGEN_FOUND)
+	message("Doxygon not installed. Skipping documentation.")
+endif()
+if (NOT GTEST_FOUND)
+	message("GTest not installed. Skipping tests.")
+endif()
+
 set(DEEPSEA_SHARED OFF CACHE STRING "Build DeepSea using shared libraries.")
 
 if (DEEPSEA_SHARED)
