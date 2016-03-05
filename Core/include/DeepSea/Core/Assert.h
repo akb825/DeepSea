@@ -59,5 +59,11 @@
 #if DS_ASSERTS_ENABLED
 #define DS_VERIFY(x) DS_ASSERT(x)
 #else
-#define DS_VERIFY(x) (x)
+#define DS_VERIFY(x) (void)(x)
 #endif
+
+/**
+ * @brief Asserts at compile time that a condition is true.
+ * @param x The expression to assert on.
+ */
+#define DS_STATIC_ASSERT(x) typedef char static_assertion_failed[(x) ? 1 : -1]
