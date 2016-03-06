@@ -17,7 +17,12 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Export.h>
 #include <stdint.h>
+
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -128,40 +133,70 @@ extern "C"
 #define DS_ATOMIC_FETCH_ADD64(xPtr, value) \
 	__atomic_fetch_add((int64_t*)(xPtr), (int64_t)(value), __ATOMIC_SEQ_CST)
 
-#elif defined(_MSVC_VER)
+#elif defined(_MSC_VER)
+
+#if DS_64BIT
+#define DS_INTERLOCKED_OR64_IMPL _InterlockedOr64
+#define DS_INTERLOCKED_EXCHANGE64_IMPL _InterlockedExchange64
+#define DS_INTERLOCKED_COMPARE_EXCHANGE64_IMPL _InterlockedCompareExchange64
+#define DS_INTERLOCKED_EXCHANGE_ADD64_IMPL _InterlockedExchangeAdd64
+#else
+#define DS_INTERLOCKED_OR64_IMPL dsAtomic_interlockedOr64Impl
+#define DS_INTERLOCKED_EXCHANGE64_IMPL dsAtomic_interlockedExchange64Impl
+#define DS_INTERLOCKED_COMPARE_EXCHANGE64_IMPL dsAtomic_interlockedCompareExchange64Impl
+#define DS_INTERLOCKED_EXCHANGE_ADD64_IMPL dsAtomic_interlockedExchangeAdd64Impl
+
+DS_CORE_EXPORT __int64 dsAtomic_interlockedOr64Impl(__int64* xPtr, __int64 value);
+DS_CORE_EXPORT __int64 dsAtomic_interlockedExchange64Impl(__int64* xPtr, __int64 value);
+DS_CORE_EXPORT __int64 dsAtomic_interlockedCompareExchange64Impl(__int64* xPtr, __int64 value,
+	__int64 expected);
+DS_CORE_EXPORT __int64 dsAtomic_interlockedExchangeAdd64Impl(__int64* xPtr, __int64 value);
+#endif
 
 #define DS_ATOMIC_LOAD32(xPtr, returnPtr) \
 	(void)(*(long*)(returnPtr) = _InterlockedOr((long*)(xPtr), 0))
 
 #define DS_ATOMIC_LOAD64(xPtr, returnPtr) \
-	(void)(*(long lont**)(returnPtr) = _InterlockedOr64((long long*)(xPtr), 0))
+	(void)(*(__int64*)(returnPtr) = DS_INTERLOCKED_OR64_IMPL((__int64*)(xPtr), 0))
 
 #define DS_ATOMIC_STORE32(xPtr, valuePtr) \
 	(void)_InterlockedExchange((long*)(xPtr), *(long*)(valuePtr))
 
 #define DS_ATOMIC_STORE64(xPtr, valuePtr) \
-	(void)_InterlockedExchange64((long long*)(xPtr), *(long long*)(valuePtr))
+	(void)DS_INTERLOCKED_EXCHANGE64_IMPL((__int64*)(xPtr), *(__int64*)(valuePtr))
 
-#define DS_ATOMIC_EXCHANGE32(xPtr, valuePtr, returnPtr)
-	(void)(*(long*)(returnPtr) = _InterlockedExchange((long*)(xPtr), *(long*)(valuePtr))
+#define DS_ATOMIC_EXCHANGE32(xPtr, valuePtr, returnPtr) \
+	(void)(*(long*)(returnPtr) = _InterlockedExchange((long*)(xPtr), *(long*)(valuePtr)))
 
 #define DS_ATOMIC_EXCHANGE64(xPtr, valuePtr, returnPtr) \
-	(void)(*(long long*)(returnPtr) = _InterlockedExchange64((long long*)(xPtr), \
-		*(long long*)(valuePtr))
+	(void)(*(__int64*)(returnPtr) = DS_INTERLOCKED_EXCHANGE64_IMPL((__int64*)(xPtr), \
+		*(__int64*)(valuePtr)))
+
+inline int dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* valuePtr)
+{
+	long expected = *expectedPtr;
+	*expectedPtr = _InterlockedCompareExchange(xPtr, *valuePtr, *expectedPtr);
+	return *expectedPtr == expected;
+}
 
 #define DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak) \
-	((*(long*)(expectedPtr) = _InterlockedCompareExchange((long*)(xPtr), *(long*)(expectedPtr), \
-		*(long*)(valuePtr))) == *(long*)(valuePtr))
+	dsAtomic_compareExchange32Impl((long*)(xPtr), (long*)(expectedPtr), (long*)(valuePtr))
+
+inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, __int64* valuePtr)
+{
+	__int64 expected = *expectedPtr;
+	*expectedPtr = DS_INTERLOCKED_COMPARE_EXCHANGE64_IMPL(xPtr, *valuePtr, *expectedPtr);
+	return *expectedPtr == expected;
+}
 
 #define DS_ATOMIC_COMPARE_EXCHANGE64(xPtr, expectedPtr, valuePtr, weak) \
-	((*(long long*)(expectedPtr) = _InterlockedCompareExchange64((long long*)(xPtr), \
-		*(long long*)(expectedPtr), *(long long*)(valuePtr))) == *(long long*)(valuePtr))
+	dsAtomic_compareExchange64Impl((__int64*)(xPtr), (__int64*)(expectedPtr), (__int64*)(valuePtr))
 
 #define DS_ATOMIC_FETCH_ADD32(xPtr, value) \
 	_InterlockedExchangeAdd((long*)(xPtr), (long)(value))
 
 #define DS_ATOMIC_FETCH_ADD64(xPtr, value) \
-	_InterlockedExchangeAdd64((long long*)(xPtr), (long long)(value))
+	DS_INTERLOCKED_EXCHANGE_ADD64_IMPL((__int64*)(xPtr), (__int64)(value))
 
 #else
 
@@ -214,7 +249,7 @@ extern "C"
  * @return The value of the atomic value before the add. This will be returned as a void*.
  */
 #define DS_ATOMIC_FETCH_ADDPTR(xPtr, value) \
-	(void*)DS_ATOMIC_FETCH_ADD64(xPtr, (value)*sizeof(**(xPtr)))
+	(void*)DS_ATOMIC_FETCH_ADD64(xPtr, (value)*(int64_t)sizeof(**(xPtr)))
 
 #else
 
@@ -229,7 +264,7 @@ extern "C"
 	DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak)
 
 #define DS_ATOMIC_FETCH_ADDPTR(xPtr, value) \
-	(void*)DS_ATOMIC_FETCH_ADD32(xPtr, (value)*sizeof(**(xPtr)))
+	(void*)DS_ATOMIC_FETCH_ADD32(xPtr, (value)*(int32_t)sizeof(**(xPtr)))
 
 #endif
 

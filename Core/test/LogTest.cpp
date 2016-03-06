@@ -44,6 +44,9 @@ public:
 		message.file = file;
 		message.line = line;
 		message.function = function;
+		std::size_t scope = message.function.find_last_of(':');
+		if (scope != std::string::npos)
+			message.function = message.function.substr(scope + 1);
 		message.message = messageStr;
 
 		LogTest* self = (LogTest*)userData;

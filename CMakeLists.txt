@@ -10,7 +10,7 @@ if (NOT GTEST_FOUND)
 	message("GTest not installed. Skipping tests.")
 endif()
 
-set(DEEPSEA_SHARED OFF CACHE STRING "Build DeepSea using shared libraries.")
+set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
 
 if (DEEPSEA_SHARED)
 	set(DEEPSEA_LIB SHARED)

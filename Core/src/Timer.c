@@ -20,7 +20,7 @@
 #include <stdbool.h>
 
 #if DS_WINDOWS
-#include WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #elif DS_APPLE
 #include <mach/mach.h>

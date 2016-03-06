@@ -21,7 +21,7 @@
 #include <stdbool.h>
 
 #if DS_WINDOWS
-#include WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <string.h>
 #endif
