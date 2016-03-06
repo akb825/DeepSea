@@ -51,6 +51,15 @@
 #endif
 
 /**
+ * @brief Macro defined to whether or not the system is 64-bit.
+ */
+#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__) || defined(__arm64__)
+#define DS_64BIT 1
+#else
+#define DS_64BIT 0
+#endif
+
+/**
  * @brief Define for whether or not this is a debug build.
  */
 #ifdef NDEBUG
