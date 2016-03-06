@@ -37,3 +37,9 @@ Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea
 
 Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_NCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`.
 
+# Modules
+
+DeepSea contains the following modules:
+
+* [Core](Core/README.md)
+
