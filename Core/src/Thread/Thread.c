@@ -41,7 +41,7 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	if (!handle)
 		return false;
 
-	thread->thread = (uint64_t)handle;
+	thread->thread = handle;
 
 #else
 
@@ -187,7 +187,7 @@ bool dsThread_detach(dsThread* thread)
 
 #if DS_WINDOWS
 
-	if (!thread.thread)
+	if (!thread->thread)
 		return false;
 	CloseHandle(thread->thread);
 	thread->thread = 0;
@@ -208,14 +208,14 @@ bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 
 #if DS_WINDOWS
 
-	if (!thread.thread)
-		return dsThread_invalidId();
+	if (!thread->thread)
+		return false;
 
 	if (WaitForSingleObject(thread->thread, INFINITE) == WAIT_FAILED)
 		return false;
 
 	if (returnVal)
-		DS_VERIFY(GetExitCodeThread(thread->thread, (DWORD*)returnVal)));
+		DS_VERIFY(GetExitCodeThread(thread->thread, (DWORD*)returnVal));
 
 	CloseHandle(thread->thread);
 	thread->thread = 0;

@@ -222,7 +222,7 @@ inline void* dsGenericAllocator_realloc(dsGenericAllocator* allocator, void* ptr
 inline bool dsGenericAllocator_free(dsGenericAllocator* allocator, void* ptr)
 {
 	if (!allocator || !allocator->freeFunc)
-		return NULL;
+		return false;
 	return allocator->freeFunc(allocator, ptr);
 }
 

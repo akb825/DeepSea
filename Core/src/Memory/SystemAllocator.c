@@ -62,7 +62,7 @@ void* dsSystemAllocator_alignedAlloc(dsGenericAllocator* allocator, size_t align
 		return NULL;
 
 #if DS_WINDOWS
-	void* ptr = __aligned_malloc(size, alignment);
+	void* ptr = _aligned_malloc(size, alignment);
 #elif DS_APPLE
 
 	if (alignment != 1 && alignment != 2 && alignment != 4 && alignment != 8 && alignment != 16)

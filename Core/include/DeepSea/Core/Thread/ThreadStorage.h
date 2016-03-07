@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if !DS_WINDOWS
 #include <sys/types.h>
