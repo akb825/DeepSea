@@ -27,7 +27,7 @@
 #endif
 
 static void* gUserData;
-static dsLog_FunctionType gFunction;
+static dsLogFunction gFunction;
 
 static const char* logLevelStrings[] =
 {
@@ -86,7 +86,7 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 #endif
 }
 
-void dsLog_setFunction(void* userData, dsLog_FunctionType function)
+void dsLog_setFunction(void* userData, dsLogFunction function)
 {
 	gUserData = userData;
 	gFunction = function;
@@ -97,7 +97,7 @@ void* dsLog_getUserData()
 	return gUserData;
 }
 
-void* dsLog_getFunction()
+dsLogFunction dsLog_getFunction()
 {
 	return gFunction;
 }

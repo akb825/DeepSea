@@ -32,17 +32,17 @@ extern "C"
 /**
  * @brief Structure that holds the system data for a timer.
  */
-typedef struct
+typedef struct dsTimer
 {
 	/** Implementation specific scale. */
 	double scale;
 } dsTimer;
 
 /**
- * @brief Initializes a timer.
- * @param timer The timer to initialize.
+ * @brief Creates a timer.
+ * @return The timer.
  */
-DS_CORE_EXPORT void dsTimer_initialize(dsTimer* timer);
+DS_CORE_EXPORT dsTimer dsTimer_create();
 
 /**
  * @brief Gets the current time in seconds.
@@ -53,7 +53,7 @@ DS_CORE_EXPORT void dsTimer_initialize(dsTimer* timer);
  * @param timer The timer.
  * @return The current time in seconds.
  */
-DS_CORE_EXPORT double dsTimer_getTime(dsTimer* timer);
+DS_CORE_EXPORT double dsTimer_getTime(dsTimer timer);
 
 #ifdef __cplusplus
 }

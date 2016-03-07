@@ -38,61 +38,60 @@ extern "C"
 
 /**
  * @brief Atomically loads a 32-bit value.
- * @param xPtr A pointer to the atomic value to load.
- * @param returnPtr A pointer to the value to load to.
+ * @param[in] xPtr A pointer to the atomic value to load.
+ * @param[out] returnPtr A pointer to the value to load to.
  */
 #define DS_ATOMIC_LOAD32(xPtr, returnPtr) \
 	__atomic_load((int32_t*)(xPtr), (int32_t*)(returnPtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically loads a 64-bit value.
- * @param xPtr A pointer to the atomic value to load.
- * @param returnPtr A pointer to the value to load to.
+ * @param[in] xPtr A pointer to the atomic value to load.
+ * @param[out] returnPtr A pointer to the value to load to.
  */
 #define DS_ATOMIC_LOAD64(xPtr, returnPtr) \
 	__atomic_load((int64_t*)(xPtr), (int64_t*)(returnPtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically stores a 32-bit value.
- * @param xPtr A pointer to the atomic value to store to.
- * @param valuePtr A pointer to the value to store.
+ * @param[out] xPtr A pointer to the atomic value to store to.
+ * @param[in] valuePtr A pointer to the value to store.
  */
 #define DS_ATOMIC_STORE32(xPtr, valuePtr) \
 	__atomic_store((int32_t*)(xPtr), (int32_t*)(valuePtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically stores a 64-bit value.
- * @param xPtr A pointer to the atomic value to store to.
- * @param valuePtr A pointer to the value to store.
+ * @param[out] xPtr A pointer to the atomic value to store to.
+ * @param[in] valuePtr A pointer to the value to store.
  */
 #define DS_ATOMIC_STORE64(xPtr, valuePtr) \
 	__atomic_store((int64_t*)(xPtr), (int64_t*)(valuePtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically exchanges a 32-bit value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param valuePtr A pointer to the new value to set.
- * @param returnPtr A pointer to store the original value.
+ * @param[out] xPtr A pointer to the atomic value to exchange with.
+ * @param[in] valuePtr A pointer to the new value to set.
+ * @param[out] returnPtr A pointer to store the original value.
  */
 #define DS_ATOMIC_EXCHANGE32(xPtr, valuePtr, returnPtr) \
 	__atomic_exchange((int32_t*)(xPtr), (int32_t*)(valuePtr),(int32_t*)(returnPtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically exchanges a 64-bit value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param valuePtr A pointer to the new value to set.
- * @param returnPtr A pointer to store the original value.
- * @return The original value.
+ * @param[out] xPtr A pointer to the atomic value to exchange with.
+ * @param[in] valuePtr A pointer to the new value to set.
+ * @param[out] returnPtr A pointer to store the original value.
  */
 #define DS_ATOMIC_EXCHANGE64(xPtr, valuePtr, returnPtr) \
 	__atomic_exchange((int64_t*)(xPtr), (int64_t*)(valuePtr),(int64_t*)(returnPtr), __ATOMIC_SEQ_CST)
 
 /**
  * @brief Atomically exchanges a 32-bit value if atomic value matches the expected value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param expectedPtr A pointer to the expected value. This will be populated with the current value
- * of xPtr if the comparison fails.
- * @param valuePtr A pointer to the new value to set.
+ * @param[inout] xPtr A pointer to the atomic value to exchange with.
+ * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
+ * current value of xPtr if the comparison fails.
+ * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
  * improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
@@ -103,10 +102,10 @@ extern "C"
 
 /**
  * @brief Atomically exchanges a 64-bit value if atomic value matches the expected value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param expectedPtr A pointer to the expected value. This will be populated with the current value
- * of xPtr if the comparison fails.
- * @param valuePtr A pointer to the new value to set.
+ * @param[inout] xPtr A pointer to the atomic value to exchange with.
+ * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
+ * current value of xPtr if the comparison fails.
+ * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
  * improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
@@ -117,7 +116,7 @@ extern "C"
 
 /**
  * @brief Atomically fetches a 32-bit value and adds to it.
- * @param xPtr A pointer to the atomic value to add to.
+ * @param[inout] xPtr A pointer to the atomic value to add to.
  * @param value The value to add to the atomic value.
  * @return The value of the atomic value before the add.
  */
@@ -126,7 +125,7 @@ extern "C"
 
 /**
  * @brief Atomically fetches a v64-bit alue and adds to it.
- * @param xPtr A pointer to the atomic value to add to.
+ * @param[inout] xPtr A pointer to the atomic value to add to.
  * @param value The value to add to the atomic value.
  * @return The value of the atomic value before the add.
  */
@@ -208,33 +207,33 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
 
 /**
  * @brief Atomically loads a pointer value.
- * @param xPtr A pointer to the atomic value to load.
- * @param returnPtr A pointer to the value to load to.
+ * @param[in] xPtr A pointer to the atomic value to load.
+ * @param[out] returnPtr A pointer to the value to load to.
  */
 #define DS_ATOMIC_LOADPTR(xPtr, returnPtr) DS_ATOMIC_LOAD64(xPtr, returnPtr)
 
 /**
  * @brief Atomically stores a pointer value.
- * @param xPtr A pointer to the atomic value to store to.
- * @param valuePtr A pointer to the value to store.
+ * @param[out] xPtr A pointer to the atomic value to store to.
+ * @param[in] valuePtr A pointer to the value to store.
  */
 #define DS_ATOMIC_STOREPTR(xPtr, valuePtr) DS_ATOMIC_STORE64(xPtr, valuePtr)
 
 /**
  * @brief Atomically exchanges a pointer value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param valuePtr A pointer to the new value to set.
- * @param returnPtr A pointer to store the original value.
+ * @param[out] xPtr A pointer to the atomic value to exchange with.
+ * @param[in] valuePtr A pointer to the new value to set.
+ * @param[out] returnPtr A pointer to store the original value.
  */
 #define DS_ATOMIC_EXCHANGEPTR(xPtr, valuePtr, returnPtr) \
 	DS_ATOMIC_EXCHANGE64(xPtr, valuePtr, returnPtr)
 
 /**
  * @brief Atomically exchanges a pointer value if atomic value matches the expected value.
- * @param xPtr A pointer to the atomic value to exchange with.
- * @param expectedPtr A pointer to the expected value. This will be populated with the current value
- * of xPtr if the comparison fails.
- * @param valuePtr A pointer to the new value to set.
+ * @param[inout] xPtr A pointer to the atomic value to exchange with.
+ * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
+ * current value of xPtr if the comparison fails.
+ * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
  * improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
@@ -244,7 +243,7 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
 
 /**
  * @brief Atomically fetches a pointer value and adds to it.
- * @param xPtr A pointer to the atomic value to add to.
+ * @param[inout] xPtr A pointer to the atomic value to add to.
  * @param value The value to add to the atomic value.
  * @return The value of the atomic value before the add. This will be returned as a void*.
  */

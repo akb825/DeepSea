@@ -61,7 +61,7 @@ typedef enum dsLogLevel
  * @param function The function for the message.
  * @param message The log message.
  */
-typedef void (*dsLog_FunctionType)(void* userData, dsLogLevel level, const char* tag,
+typedef void (*dsLogFunction)(void* userData, dsLogLevel level, const char* tag,
 	const char* file, unsigned int line, const char* function, const char* message);
 
 /**
@@ -88,7 +88,7 @@ DS_CORE_EXPORT void dsLog_defaultPrint(dsLogLevel level, const char* tag, const 
  * @param userData The user data for the logging function.
  * @param function The function to send the log messages to.
  */
-DS_CORE_EXPORT void dsLog_setFunction(void* userData, dsLog_FunctionType function);
+DS_CORE_EXPORT void dsLog_setFunction(void* userData, dsLogFunction function);
 
 /**
  * @brief Gets the logging user data.
@@ -100,7 +100,7 @@ DS_CORE_EXPORT void* dsLog_getUserData();
  * @brief Gets the logging function.
  * @return The user data.
  */
-DS_CORE_EXPORT void* dsLog_getFunction();
+DS_CORE_EXPORT dsLogFunction dsLog_getFunction();
 
 /**
  * @brief Clears the function.

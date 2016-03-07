@@ -29,40 +29,41 @@
 #include <time.h>
 #endif
 
-void dsTimer_initialize(dsTimer* timer)
+dsTimer dsTimer_initialize()
 {
-	DS_ASSERT(timer);
+	dsTimer timer;
 
 #if DS_WINDOWS
 
 	LARGE_INTEGER frequency;
 	QueryPerformanceFrequency(&frequency);
-	timer->scale = 1.0/frequency.QuadPart;
+	timer.scale = 1.0/frequency.QuadPart;
 
 #elif DS_APPLE
 
 	mach_timebase_info_data_t timebaseInfo;
 	DEBUG_VERIFY(mach_timebase_info(&timebaseInfo) == KERN_SUCCESS);
-	timer->scale = (double)timebaseInfo.number/timebaseInfo.denom;
+	timer.scale = (double)timebaseInfo.number/timebaseInfo.denom;
 
-#else
-	DS_UNUSED(timer);
 #endif
+
+	return timer;
 }
 
-double dsTimer_getTime(dsTimer* timer)
+double dsTimer_getTime(dsTimer timer)
 {
-	DS_ASSERT(timer);
 
 #if DS_WINDOWS
 
+	DS_ASSERT(timer.scale > 0);
 	LARGE_INTEGER value;
 	QueryPerformanceCounter(&value);
-	return value.QuadPart*timer->scale;
+	return value.QuadPart*timer.scale;
 
 #elif DS_APPLE
 
-	return mach_absolute_time()*timer->scale;
+	DS_ASSERT(timer.scale > 0);
+	return mach_absolute_time()*timer.scale;
 
 #else
 
