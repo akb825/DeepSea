@@ -17,12 +17,18 @@
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Memory.h>
 #include "MutexImpl.h"
 #include <stdlib.h>
 
 unsigned int dsMutex_sizeof()
 {
 	return sizeof(dsMutex);
+}
+
+unsigned int dsMutex_fullAllocSize()
+{
+	return DS_ALIGNED_SIZE(sizeof(dsMutex));
 }
 
 dsMutex* dsMutex_create(dsAllocator* allocator)

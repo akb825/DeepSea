@@ -41,10 +41,16 @@ typedef struct dsAllocator dsAllocator;
 typedef struct dsMutex dsMutex;
 
 /**
- * @brief Gets the size of a dsMutex.
+ * @brief Gets the size of dsMutex.
  * @return The size of dsMutex.
  */
 DS_CORE_EXPORT unsigned int dsMutex_sizeof();
+
+/**
+ * @brief Gets the full allocated size of dsMutex.
+ * @return The full allocated size of dsMutex.
+ */
+DS_CORE_EXPORT unsigned int dsMutex_fullAllocSize();
 
 /**
  * @brief Creates a mutex.

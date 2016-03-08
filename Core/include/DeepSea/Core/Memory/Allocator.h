@@ -28,10 +28,6 @@ extern "C"
 /**
  * @file
  * @brief Structure that defines a memory allocator.
- *
- * The base memory allocator only supports allocating and deallocating an object. Most systems
- * should use dsAllocator rather than the more general dsGeneralAllocator. This allows objects to be
- * created with special-purpose allocators based on how memory is managed by the system managers.
  */
 
 /**
@@ -45,6 +41,8 @@ typedef struct dsAllocator dsAllocator;
 
 /**
  * @brief Function for allocating from the allocator.
+ *
+ * The allocated memory must be at least 16-byte aligned.
  *
  * This should update the size for the allocator.
  *
@@ -86,6 +84,9 @@ struct dsAllocator
 
 /**
  * @brief Allocates memory from the allocator.
+ *
+ * The alignment of the returned pointer must be at least 16-byte aligned.
+ *
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.

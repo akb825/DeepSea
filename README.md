@@ -41,5 +41,5 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](Core/README.md)
+* [Core](Core/README.md): Core functionality including logging, debugging, memory managment, threading, and IO.
 

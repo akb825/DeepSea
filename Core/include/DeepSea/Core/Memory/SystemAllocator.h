@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <DeepSea/Core/Memory/GeneralAllocator.h>
+#include <DeepSea/Core/Memory/Allocator.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -27,21 +27,21 @@ extern "C"
 
 /**
  * @file
- * @brief Implementation of dsGeneralAllocator that uses the system allocator. (usually malloc)
+ * @brief Implementation of dsAllocator that uses the system allocator. (usually malloc)
  */
 
 /**
  * @brief Structure for a system allocator.
  *
- * This is effectively a subclass of dsGeneralAllocator and a pointer to dsSystemAllocator can be
- * freely cast between the two types.
+ * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
+ * cast between the two types.
  */
 typedef struct dsSystemAllocator
 {
 	/**
 	 * @brief The general allocator.
 	 */
-	dsGeneralAllocator generalAllocator;
+	dsAllocator generalAllocator;
 } dsSystemAllocator;
 
 /**
@@ -58,26 +58,6 @@ DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator);
  * @return The allocated memory or NULL if an error occured.
  */
 DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size);
-
-/**
- * @brief Allocates aligned memory from the system allocator.
- * @param allocator The allocator to allocate from.
- * @param alignment The alignement of the pointer.
- * @param size The size to allocate.
- * @return The allocated memory or NULL if an error occured.
- */
-DS_CORE_EXPORT void* dsSystemAllocator_alignedAlloc(dsSystemAllocator* allocator, size_t alignment,
-	size_t size);
-
-/**
- * @brief Reallocates memory from the system allocator with the same semantics as realloc().
- * @param allocator The allocator to allocate from.
- * @param ptr The original memory pointer.
- * @param size The new size.
- * @return The allocated memory or NULL if an error occured.
- */
-DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr,
-	size_t size);
 
 /**
  * @brief Frees memory from the system allocator.

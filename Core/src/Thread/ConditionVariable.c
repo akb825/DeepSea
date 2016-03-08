@@ -17,6 +17,7 @@
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Memory.h>
 #include "MutexImpl.h"
 #include <errno.h>
 
@@ -33,6 +34,11 @@ struct dsConditionVariable
 unsigned int dsConditionVariable_sizeof()
 {
 	return sizeof(dsConditionVariable);
+}
+
+unsigned int dsConditionVariable_fullAllocSize()
+{
+	return DS_ALIGNED_SIZE(sizeof(dsConditionVariable));
 }
 
 dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator)

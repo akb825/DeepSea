@@ -15,7 +15,9 @@
  */
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/Memory/Memory.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #if DS_APPLE
 #include <malloc/malloc.h>
@@ -43,10 +45,6 @@ bool dsSystemAllocator_initialize(dsSystemAllocator* allocator)
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
 	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
 
-	((dsGeneralAllocator*)allocator)->alignedAllocFunc =
-		(dsGeneralAllocatorAlignedAllocFunction)&dsSystemAllocator_alignedAlloc;
-	((dsGeneralAllocator*)allocator)->reallocFunc =
-		(dsGeneralAllocatorReallocFunction)&dsSystemAllocator_realloc;
 	return true;
 }
 
@@ -55,48 +53,14 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 	if (!allocator)
 		return NULL;
 
-	void* ptr = malloc(size);
-	if (!ptr)
-		return NULL;
-
-	((dsAllocator*)allocator)->size += getMallocSize(ptr);
-	return ptr;
-}
-
-void* dsSystemAllocator_alignedAlloc(dsSystemAllocator* allocator, size_t alignment,
-	size_t size)
-{
-	if (!allocator)
-		return NULL;
-
+	void* ptr;
 #if DS_WINDOWS
-	void* ptr = _aligned_malloc(size, alignment);
+	ptr = _aligned_malloc(size, DS_ALLOC_ALIGNMENT);
 #elif DS_APPLE
-
-	if (alignment != 1 && alignment != 2 && alignment != 4 && alignment != 8 && alignment != 16)
-		return NULL;
-	void* ptr = malloc(size);
-
+	ptr = malloc(size);
 #else
-	void* ptr = aligned_alloc(alignment, size);
+	ptr = aligned_alloc(16, DS_ALIGNED_SIZE(size));
 #endif
-
-	if (!ptr)
-		return NULL;
-
-	((dsAllocator*)allocator)->size += getMallocSize(ptr);
-	return ptr;
-}
-
-void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr,
-	size_t size)
-{
-	if (!allocator)
-		return NULL;
-
-	if (ptr)
-		((dsAllocator*)allocator)->size -= getMallocSize(ptr);
-	ptr = realloc(ptr, size);
 
 	if (!ptr)
 		return NULL;

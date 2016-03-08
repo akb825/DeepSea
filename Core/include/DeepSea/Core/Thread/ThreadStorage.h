@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Macro to declare a static or global variable to use thread-local storage.
  */
-#ifdef __MSVC_VER
+#ifdef _MSC_VER
 #define DS_THREAD_LOCAL __declspec(thread)
 #else
 #define DS_THREAD_LOCAL __thread
