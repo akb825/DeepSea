@@ -15,7 +15,6 @@
  */
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
-#include <DeepSea/Core/Memory/GenericAllocator.h>
 #include <stdlib.h>
 
 #if DS_APPLE
@@ -35,14 +34,23 @@ static size_t getMallocSize(void* ptr)
 #endif
 }
 
-bool dsSystemAllocator_initialize(dsGenericAllocator* allocator)
+bool dsSystemAllocator_initialize(dsSystemAllocator* allocator)
 {
-	return dsGenericAllocator_initialize(allocator, NULL, &dsSystemAllocator_alloc,
-		&dsSystemAllocator_alignedAlloc, &dsSystemAllocator_realloc,
-		&dsSystemAllocator_free, &dsSystemAllocator_destroy);
+	if (!allocator)
+		return false;
+
+	((dsAllocator*)allocator)->size = 0;
+	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
+	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
+
+	((dsGeneralAllocator*)allocator)->alignedAllocFunc =
+		(dsGeneralAllocatorAlignedAllocFunction)&dsSystemAllocator_alignedAlloc;
+	((dsGeneralAllocator*)allocator)->reallocFunc =
+		(dsGeneralAllocatorReallocFunction)&dsSystemAllocator_realloc;
+	return true;
 }
 
-void* dsSystemAllocator_alloc(dsGenericAllocator* allocator, size_t size)
+void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 {
 	if (!allocator)
 		return NULL;
@@ -51,11 +59,11 @@ void* dsSystemAllocator_alloc(dsGenericAllocator* allocator, size_t size)
 	if (!ptr)
 		return NULL;
 
-	allocator->size += getMallocSize(ptr);
+	((dsAllocator*)allocator)->size += getMallocSize(ptr);
 	return ptr;
 }
 
-void* dsSystemAllocator_alignedAlloc(dsGenericAllocator* allocator, size_t alignment,
+void* dsSystemAllocator_alignedAlloc(dsSystemAllocator* allocator, size_t alignment,
 	size_t size)
 {
 	if (!allocator)
@@ -76,39 +84,34 @@ void* dsSystemAllocator_alignedAlloc(dsGenericAllocator* allocator, size_t align
 	if (!ptr)
 		return NULL;
 
-	allocator->size += getMallocSize(ptr);
+	((dsAllocator*)allocator)->size += getMallocSize(ptr);
 	return ptr;
 }
 
-void* dsSystemAllocator_realloc(dsGenericAllocator* allocator, void* ptr,
+void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr,
 	size_t size)
 {
 	if (!allocator)
 		return NULL;
 
 	if (ptr)
-		allocator->size -= getMallocSize(ptr);
+		((dsAllocator*)allocator)->size -= getMallocSize(ptr);
 	ptr = realloc(ptr, size);
 
 	if (!ptr)
 		return NULL;
 
-	allocator->size += getMallocSize(ptr);
+	((dsAllocator*)allocator)->size += getMallocSize(ptr);
 	return ptr;
 }
 
-bool dsSystemAllocator_free(dsGenericAllocator* allocator, void* ptr)
+bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr)
 {
 	if (!allocator)
 		return false;
 
 	if (ptr)
-		allocator->size -= getMallocSize(ptr);
+		((dsAllocator*)allocator)->size -= getMallocSize(ptr);
 	free(ptr);
 	return true;
-}
-
-void dsSystemAllocator_destroy(void* userData)
-{
-	DS_UNUSED(userData);
 }

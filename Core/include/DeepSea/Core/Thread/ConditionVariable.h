@@ -31,9 +31,9 @@ extern "C"
  */
 
 /**
- * @see dsGenericAllocator
+ * @see dsAllocator
  */
-typedef struct dsGenericAllocator dsGenericAllocator;
+typedef struct dsAllocator dsAllocator;
 
 /**
  * @brief Type of a condition variable.
@@ -56,11 +56,17 @@ typedef enum dsConditionVariableResult
 } dsConditionVariableResult;
 
 /**
+ * @brief Gets the size of a dsConditionVariable.
+ * @return The size of dsConditionVariable.
+ */
+DS_CORE_EXPORT unsigned int dsConditionVariable_sizeof();
+
+/**
  * @brief Creates a condition variable.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
  * @return The condition variable, or NULL if it couldn't be created.
  */
-DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsGenericAllocator* allocator);
+DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator);
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne() or

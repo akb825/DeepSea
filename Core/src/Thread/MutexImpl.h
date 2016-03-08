@@ -24,7 +24,7 @@
 #include <pthread.h>
 #endif
 
-typedef struct dsGenericAllocator dsGenericAllocator;
+typedef struct dsAllocator dsAllocator;
 
 struct dsMutex
 {
@@ -33,5 +33,5 @@ struct dsMutex
 #else
 	pthread_mutex_t mutex;
 #endif
-	dsGenericAllocator* allocator;
+	dsAllocator* allocator;
 };

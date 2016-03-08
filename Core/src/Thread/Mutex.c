@@ -16,15 +16,20 @@
 
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Memory/GenericAllocator.h>
+#include <DeepSea/Core/Memory/Allocator.h>
 #include "MutexImpl.h"
 #include <stdlib.h>
 
-dsMutex* dsMutex_create(dsGenericAllocator* allocator)
+unsigned int dsMutex_sizeof()
+{
+	return sizeof(dsMutex);
+}
+
+dsMutex* dsMutex_create(dsAllocator* allocator)
 {
 	dsMutex* mutex;
 	if (allocator)
-		mutex = (dsMutex*)dsGenericAllocator_alloc(allocator, sizeof(dsMutex));
+		mutex = (dsMutex*)dsAllocator_alloc(allocator, sizeof(dsMutex));
 	else
 		mutex = (dsMutex*)malloc(sizeof(dsMutex));
 
@@ -38,7 +43,7 @@ dsMutex* dsMutex_create(dsGenericAllocator* allocator)
 	if (pthread_mutex_init(&mutex->mutex, NULL) != 0)
 	{
 		if (allocator)
-			dsGenericAllocator_free(allocator, mutex);
+			dsAllocator_free(allocator, mutex);
 		else
 			free(mutex);
 		return NULL;
@@ -94,7 +99,7 @@ void dsMutex_destroy(dsMutex* mutex)
 		return;
 
 	if (mutex->allocator)
-		DS_VERIFY(dsGenericAllocator_free(mutex->allocator, mutex));
+		DS_VERIFY(dsAllocator_free(mutex->allocator, mutex));
 	else
 		free(mutex);
 }

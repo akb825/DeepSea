@@ -18,8 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include <DeepSea/Core/Memory/GeneralAllocator.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,20 +27,29 @@ extern "C"
 
 /**
  * @file
- * @brief Implementation of dsGenericAllocator that uses the system allocator. (usually malloc)
+ * @brief Implementation of dsGeneralAllocator that uses the system allocator. (usually malloc)
  */
 
 /**
- * @see dsGenericAllocator
+ * @brief Structure for a system allocator.
+ *
+ * This is effectively a subclass of dsGeneralAllocator and a pointer to dsSystemAllocator can be
+ * freely cast between the two types.
  */
-typedef struct dsGenericAllocator dsGenericAllocator;
+typedef struct dsSystemAllocator
+{
+	/**
+	 * @brief The general allocator.
+	 */
+	dsGeneralAllocator generalAllocator;
+} dsSystemAllocator;
 
 /**
  * @brief Initializes the system system allocator.
  * @param[out] allocator The allocator to initialize.
- * @return True if the allocator is valid.
+ * @return False if allocator is null.
  */
-DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsGenericAllocator* allocator);
+DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator);
 
 /**
  * @brief Allocates memory from the system allocator.
@@ -49,7 +57,7 @@ DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsGenericAllocator* allocator);
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsGenericAllocator* allocator, size_t size);
+DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size);
 
 /**
  * @brief Allocates aligned memory from the system allocator.
@@ -58,7 +66,7 @@ DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsGenericAllocator* allocator, size
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_alignedAlloc(dsGenericAllocator* allocator, size_t alignment,
+DS_CORE_EXPORT void* dsSystemAllocator_alignedAlloc(dsSystemAllocator* allocator, size_t alignment,
 	size_t size);
 
 /**
@@ -68,7 +76,7 @@ DS_CORE_EXPORT void* dsSystemAllocator_alignedAlloc(dsGenericAllocator* allocato
  * @param size The new size.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsGenericAllocator* allocator, void* ptr,
+DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr,
 	size_t size);
 
 /**
@@ -77,13 +85,7 @@ DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsGenericAllocator* allocator, vo
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.
  */
-DS_CORE_EXPORT bool dsSystemAllocator_free(dsGenericAllocator* allocator, void* ptr);
-
-/**
- * @brief Destroys a system allocator.
- * @param userData The user data for the allocator.
- */
-DS_CORE_EXPORT void dsSystemAllocator_destroy(void* userData);
+DS_CORE_EXPORT bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr);
 
 #ifdef __cplusplus
 }

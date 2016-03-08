@@ -31,9 +31,9 @@ extern "C"
  */
 
 /**
- * @see dsGenericAllocator
+ * @see dsAllocator
  */
-typedef struct dsGenericAllocator dsGenericAllocator;
+typedef struct dsAllocator dsAllocator;
 
 /**
  * @brief Type of a mutex.
@@ -41,11 +41,17 @@ typedef struct dsGenericAllocator dsGenericAllocator;
 typedef struct dsMutex dsMutex;
 
 /**
+ * @brief Gets the size of a dsMutex.
+ * @return The size of dsMutex.
+ */
+DS_CORE_EXPORT unsigned int dsMutex_sizeof();
+
+/**
  * @brief Creates a mutex.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
  * @return The mutex, or NULL if it couldn't be created.
  */
-DS_CORE_EXPORT dsMutex* dsMutex_create(dsGenericAllocator* allocator);
+DS_CORE_EXPORT dsMutex* dsMutex_create(dsAllocator* allocator);
 
 /**
  * @brief Locks the mutex if it isn't already locked.

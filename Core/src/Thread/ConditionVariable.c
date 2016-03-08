@@ -16,7 +16,7 @@
 
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Memory/GenericAllocator.h>
+#include <DeepSea/Core/Memory/Allocator.h>
 #include "MutexImpl.h"
 #include <errno.h>
 
@@ -27,15 +27,20 @@ struct dsConditionVariable
 #else
 	pthread_cond_t condition;
 #endif
-	dsGenericAllocator* allocator;
+	dsAllocator* allocator;
 };
 
-dsConditionVariable* dsConditionVariable_create(dsGenericAllocator* allocator)
+unsigned int dsConditionVariable_sizeof()
+{
+	return sizeof(dsConditionVariable);
+}
+
+dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator)
 {
 	dsConditionVariable* condition;
 	if (allocator)
 	{
-		condition = (dsConditionVariable*)dsGenericAllocator_alloc(allocator,
+		condition = (dsConditionVariable*)dsAllocator_alloc(allocator,
 			sizeof(dsConditionVariable));
 	}
 	else
@@ -51,7 +56,7 @@ dsConditionVariable* dsConditionVariable_create(dsGenericAllocator* allocator)
 	if (pthread_cond_init(&condition->condition, NULL) != 0)
 	{
 		if (allocator)
-			dsGenericAllocator_free(allocator, condition);
+			dsAllocator_free(allocator, condition);
 		else
 			free(condition);
 		return NULL;
@@ -142,7 +147,7 @@ void dsConditionVariable_destroy(dsConditionVariable* condition)
 		return;
 
 	if (condition->allocator)
-		DS_VERIFY(dsGenericAllocator_free(condition->allocator, condition));
+		DS_VERIFY(dsAllocator_free(condition->allocator, condition));
 	else
 		free(condition);
 }
