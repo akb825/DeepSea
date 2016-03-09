@@ -28,7 +28,7 @@
 static size_t getMallocSize(void* ptr)
 {
 #if DS_WINDOWS
-	return _msize(ptr);
+	return _aligned_msize(ptr, DS_ALLOC_ALIGNMENT, 0);
 #elif DS_APPLE
 	return malloc_size(ptr);
 #else
@@ -75,6 +75,10 @@ bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr)
 
 	if (ptr)
 		((dsAllocator*)allocator)->size -= getMallocSize(ptr);
+#if DS_WINDOWS
+	_aligned_free(ptr);
+#else
 	free(ptr);
+#endif
 	return true;
 }

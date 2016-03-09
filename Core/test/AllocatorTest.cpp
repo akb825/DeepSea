@@ -36,5 +36,5 @@ TEST(Allocator, NoFree)
 	void* ptr = dsAllocator_alloc(allocator, 100);
 	ASSERT_NE(nullptr, ptr);
 	EXPECT_FALSE(dsAllocator_free(allocator, ptr));
-	free(ptr);
+	EXPECT_TRUE(dsSystemAllocator_free(&systemAllocator, ptr));
 }
