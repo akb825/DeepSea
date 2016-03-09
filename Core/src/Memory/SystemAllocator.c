@@ -44,7 +44,6 @@ bool dsSystemAllocator_initialize(dsSystemAllocator* allocator)
 	((dsAllocator*)allocator)->size = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
 	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
-
 	return true;
 }
 

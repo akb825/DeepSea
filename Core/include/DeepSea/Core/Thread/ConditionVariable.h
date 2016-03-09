@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -29,31 +29,6 @@ extern "C"
  * @file
  * @brief Functions to create and manage condition variables.
  */
-
-/**
- * @see dsAllocator
- */
-typedef struct dsAllocator dsAllocator;
-
-/**
- * @brief Type of a condition variable.
- */
-typedef struct dsConditionVariable dsConditionVariable;
-
-/**
- * @see dsMutex
- */
-typedef struct dsMutex dsMutex;
-
-/**
- * @brief Result of a condition variable wait.
- */
-typedef enum dsConditionVariableResult
-{
-	dsConditionVariableResult_Success,	///< The conditon variable was notified.
-	dsConditionVariableResult_Error,	///< There was an error when waiting.
-	dsConditionVariableResult_Timeout	///< The wait timed out.
-} dsConditionVariableResult;
 
 /**
  * @brief Gets the size of dsConditionVariable.

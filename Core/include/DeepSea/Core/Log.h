@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Types.h>
 #include <DeepSea/Core/Export.h>
 #include <stdarg.h>
 
@@ -36,33 +37,6 @@ extern "C"
  * @brief The maximum length of a formatted log message, including the null terminator.
  */
 #define DS_LOG_MAX_LENGTH 1024
-
-/**
- * @brief The level of the log message.
- */
-typedef enum dsLogLevel
-{
-	dsLogLevel_Trace,	///< A trace message for status updates.
-	dsLogLevel_Debug,	///< A debug message.
-	dsLogLevel_Info,	///< An info message.
-	dsLogLevel_Warning,	///< A warning message that could indicate a problem.
-	dsLogLevel_Error,	///< An error message that indicates a problem.
-	dsLogLevel_Fatal	///< A fatal message that indicates execution cannot continue.
-} dsLogLevel;
-
-/**
- * @brief Type of the logging function.
- * @remark This may be called across multiple threads.
- * @param userData User data for the logging function.
- * @param level The level of the message.
- * @param tag The tag for the message.
- * @param file The file for the message.
- * @param line The line for the message.
- * @param function The function for the message.
- * @param message The log message.
- */
-typedef void (*dsLogFunction)(void* userData, dsLogLevel level, const char* tag,
-	const char* file, unsigned int line, const char* function, const char* message);
 
 /**
  * @brief Default log printing function, which will be called when the logging function is NULL.

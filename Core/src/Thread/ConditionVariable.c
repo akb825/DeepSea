@@ -29,6 +29,7 @@ struct dsConditionVariable
 	pthread_cond_t condition;
 #endif
 	dsAllocator* allocator;
+	bool shouldFree;
 };
 
 unsigned int dsConditionVariable_sizeof()
@@ -70,7 +71,8 @@ dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator)
 
 #endif
 
-	condition->allocator = allocator;
+	condition->allocator = allocator && allocator->freeFunc ? allocator : NULL;
+	condition->shouldFree = !allocator || allocator->freeFunc;
 	return condition;
 }
 
@@ -149,7 +151,7 @@ bool dsConditionVariable_notifyAll(dsConditionVariable* condition)
 
 void dsConditionVariable_destroy(dsConditionVariable* condition)
 {
-	if (!condition)
+	if (!condition || !condition->shouldFree)
 		return;
 
 	if (condition->allocator)

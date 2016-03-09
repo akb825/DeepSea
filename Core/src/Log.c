@@ -18,7 +18,6 @@
 #include <DeepSea/Core/Assert.h>
 #include <assert.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN

@@ -18,12 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
-#include <stdint.h>
-
-#if !DS_WINDOWS
-#include <sys/types.h>
-#endif
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -38,24 +33,11 @@ extern "C"
 /**
  * @brief Macro to declare a static or global variable to use thread-local storage.
  */
-#ifdef _MSC_VER
+#if DS_WINDOWS
 #define DS_THREAD_LOCAL __declspec(thread)
 #else
 #define DS_THREAD_LOCAL __thread
 #endif
-
-/**
- * @brief Structure that holds thread-local storage.
- */
-typedef struct dsThreadStorage
-{
-	/** Internal */
-#if DS_WINDOWS
-	uint32_t storage;
-#else
-	pthread_key_t storage;
-#endif
-} dsThreadStorage;
 
 /**
  * @brief Creates thread-local storage.

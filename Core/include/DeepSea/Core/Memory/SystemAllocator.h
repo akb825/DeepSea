@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -29,20 +29,6 @@ extern "C"
  * @file
  * @brief Implementation of dsAllocator that uses the system allocator. (usually malloc)
  */
-
-/**
- * @brief Structure for a system allocator.
- *
- * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
- * cast between the two types.
- */
-typedef struct dsSystemAllocator
-{
-	/**
-	 * @brief The general allocator.
-	 */
-	dsAllocator generalAllocator;
-} dsSystemAllocator;
 
 /**
  * @brief Initializes the system system allocator.

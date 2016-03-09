@@ -18,12 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
-#include <stdint.h>
-
-#if !DS_WINDOWS
-#include <sys/types.h>
-#endif
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -34,50 +29,6 @@ extern "C"
  * @file
  * @brief Functions to create and manage threads.
  */
-
-/**
- * @brief Type of a thread ID.
- */
-typedef struct dsThreadId
-{
-	/** Internal */
-#if DS_WINDOWS
-	uint32_t threadId;
-#else
-	pthread_t threadId;
-#endif
-} dsThreadId;
-
-/**
- * @brief Structure that holds the reference for a thread.
- */
-typedef struct dsThread
-{
-	/** Internal */
-#if DS_WINDOWS
-	void* thread;
-#else
-	pthread_t thread;
-#endif
-} dsThread;
-
-/**
- * @brief Type of the thread return type.
- *
- * While this will be larger on some platforms, it is only guaranteed to be 32-bits.
- */
-#if DS_WINDOWS
-typedef int32_t dsThreadReturnType;
-#else
-typedef intptr_t dsThreadReturnType;
-#endif
-
-/**
- * @brief Function that is called at the beginning of a thread.
- * @param userData User data for the thread.
- * @return The exit code for the thread.
- */
-typedef dsThreadReturnType (*dsThreadFunction)(void* userData);
 
 /**
  * @brief Creates a thread.

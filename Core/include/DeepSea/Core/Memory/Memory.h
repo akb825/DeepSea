@@ -39,7 +39,7 @@ extern "C"
  * @brief Attributes a type to use a specific alignment.
  * @param x The alignment to use. This will most commonly be 16.
  */
-#ifdef _MSC_VER
+#if DS_WINDOWS
 #define DS_ALIGN(x) __declspec(align(x))
 #else
 #define DS_ALIGN(x) __attribute__((aligned(x)))

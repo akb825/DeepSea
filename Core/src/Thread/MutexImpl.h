@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Types.h>
+
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -23,8 +26,6 @@
 #define __USE_GNU
 #include <pthread.h>
 #endif
-
-typedef struct dsAllocator dsAllocator;
 
 struct dsMutex
 {
@@ -34,4 +35,5 @@ struct dsMutex
 	pthread_mutex_t mutex;
 #endif
 	dsAllocator* allocator;
+	bool shouldFree;
 };

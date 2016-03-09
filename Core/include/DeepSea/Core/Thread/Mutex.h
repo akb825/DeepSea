@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -29,16 +29,6 @@ extern "C"
  * @file
  * @brief Functions to create and manage mutexes.
  */
-
-/**
- * @see dsAllocator
- */
-typedef struct dsAllocator dsAllocator;
-
-/**
- * @brief Type of a mutex.
- */
-typedef struct dsMutex dsMutex;
 
 /**
  * @brief Gets the size of dsMutex.

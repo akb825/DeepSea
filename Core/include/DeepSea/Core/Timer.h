@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Export.h>
-#include <stdint.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,15 +28,6 @@ extern "C"
  * @file
  * @brief Function to get a high resolution time in seconds.
  */
-
-/**
- * @brief Structure that holds the system data for a timer.
- */
-typedef struct dsTimer
-{
-	/** Implementation specific scale. */
-	double scale;
-} dsTimer;
 
 /**
  * @brief Creates a timer.

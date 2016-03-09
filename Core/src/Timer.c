@@ -16,8 +16,6 @@
 
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Config.h>
-#include <stdbool.h>
 
 #if DS_WINDOWS
 #define WIN32_LEAN_AND_MEAN

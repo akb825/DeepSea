@@ -57,7 +57,8 @@ dsMutex* dsMutex_create(dsAllocator* allocator)
 
 #endif
 
-	mutex->allocator = allocator;
+	mutex->allocator = allocator && allocator->freeFunc ? allocator : NULL;
+	mutex->shouldFree = !allocator || allocator->freeFunc;
 	return mutex;
 }
 
@@ -101,7 +102,7 @@ bool dsMutex_unlock(dsMutex* mutex)
 
 void dsMutex_destroy(dsMutex* mutex)
 {
-	if (!mutex)
+	if (!mutex || !mutex->shouldFree)
 		return;
 
 	if (mutex->allocator)

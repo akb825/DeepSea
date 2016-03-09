@@ -18,8 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Export.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -33,15 +32,6 @@ extern "C"
  * A spinlock is useful for synchronizationo of very small operations. If an operation may take a
  * long time to complete, or if a ConditionVariable is needed, use Mutex instead.
  */
-
-/**
- * @brief Structure that holds the state of a spinlock.
- */
-typedef struct dsSpinlock
-{
-	/** Internal */
-	uint32_t counter;
-} dsSpinlock;
 
 /**
  * @brief Initializes a spinlock.
