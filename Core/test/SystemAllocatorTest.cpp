@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <gtest/gtest.h>
 
@@ -30,16 +31,19 @@ TEST(SystemAllocator, Allocation)
 	void* ptr1 = dsAllocator_alloc(allocator, 11);
 	size_t size1 = allocator->size;
 	EXPECT_NE(nullptr, ptr1);
+	EXPECT_EQ(0, (uintptr_t)ptr1 % 16);
 	EXPECT_LE(10U, size1);
 
 	void* ptr2 = dsAllocator_alloc(allocator, 101);
 	size_t size2 = allocator->size;
 	EXPECT_NE(nullptr, ptr2);
+	EXPECT_EQ(0, (uintptr_t)ptr2 % 16);
 	EXPECT_LE(112U, size2);
 
 	void* ptr3 = dsAllocator_alloc(allocator, 1003);
 	size_t size3 = allocator->size;
 	EXPECT_NE(nullptr, ptr3);
+	EXPECT_EQ(0, (uintptr_t)ptr3 % 16);
 	EXPECT_LE(1113U, size3);
 
 	EXPECT_TRUE(dsAllocator_free(allocator, ptr3));
@@ -64,16 +68,19 @@ TEST(SystemAllocator, DirectAllocation)
 	void* ptr1 = dsSystemAllocator_alloc(&systemAllocator, 11);
 	size_t size1 = allocator->size;
 	EXPECT_NE(nullptr, ptr1);
+	EXPECT_EQ(0, (uintptr_t)ptr1 % 16);
 	EXPECT_LE(10U, size1);
 
 	void* ptr2 = dsSystemAllocator_alloc(&systemAllocator, 101);
 	size_t size2 = allocator->size;
 	EXPECT_NE(nullptr, ptr2);
+	EXPECT_EQ(0, (uintptr_t)ptr2 % 16);
 	EXPECT_LE(112U, size2);
 
 	void* ptr3 = dsSystemAllocator_alloc(&systemAllocator, 1003);
 	size_t size3 = allocator->size;
 	EXPECT_NE(nullptr, ptr3);
+	EXPECT_EQ(0, (uintptr_t)ptr3 % 16);
 	EXPECT_LE(1113U, size3);
 
 	EXPECT_TRUE(dsSystemAllocator_free(&systemAllocator, ptr3));
