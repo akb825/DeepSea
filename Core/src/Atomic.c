@@ -16,7 +16,7 @@
 
 #include <DeepSea/Core/Atomic.h>
 
-#if defined(_MSC_VER) && !DS_64BIT
+#if DS_MSC && !DS_64BIT
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

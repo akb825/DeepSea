@@ -34,7 +34,7 @@ extern "C"
  * @brief Macros for atomic operations.
  */
 
-#if defined(__GNUC__) || defined(__clang__)
+#if DS_GCC || DS_CLANG
 
 /**
  * @brief Atomically loads a 32-bit value.
@@ -132,7 +132,7 @@ extern "C"
 #define DS_ATOMIC_FETCH_ADD64(xPtr, value) \
 	__atomic_fetch_add((int64_t*)(xPtr), (int64_t)(value), __ATOMIC_SEQ_CST)
 
-#elif defined(_MSC_VER)
+#elif DS_MSC
 
 #if DS_64BIT
 #define DS_INTERLOCKED_OR64_IMPL _InterlockedOr64

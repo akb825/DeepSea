@@ -39,10 +39,12 @@ extern "C"
  * @brief Attributes a type to use a specific alignment.
  * @param x The alignment to use. This will most commonly be 16.
  */
-#if DS_WINDOWS
-#define DS_ALIGN(x) __declspec(align(x))
+#if DS_GCC || DS_CLANG
+#	define DS_ALIGN(x) __attribute__((aligned(x)))
+#elif DS_MSC
+#	define DS_ALIGN(x) __declspec(align(x))
 #else
-#define DS_ALIGN(x) __attribute__((aligned(x)))
+#error Need to provide alignment implementation for this compiler.
 #endif
 
 /**

@@ -33,10 +33,12 @@ extern "C"
 /**
  * @brief Macro to declare a static or global variable to use thread-local storage.
  */
-#if DS_WINDOWS
-#define DS_THREAD_LOCAL __declspec(thread)
+#if DS_GCC || DS_CLANG
+#	define DS_THREAD_LOCAL __thread
+#elif DS_MSC
+#	define DS_THREAD_LOCAL __declspec(thread)
 #else
-#define DS_THREAD_LOCAL __thread
+#error Need to provide thread local implementation for this compiler.
 #endif
 
 /**

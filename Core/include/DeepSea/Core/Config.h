@@ -29,25 +29,57 @@
 #	define DS_APPLE
 #endif
 
+#if defined(_MSC_VER)
+#	define DS_MSC 1
+#elif defined(__clang__)
+#	define DS_CLANG 1
+#elif defined(__GNUC__)
+#	define DS_GCC 1
+#else
+#error Unknown compiler.
+#endif
+
 /**
- * @brief Define for whether or not the platform is Windows.
+ * @brief Define for whether the platform is Windows.
  */
 #ifndef DS_WINDOWS
 #	define DS_WINDOWS 0
 #endif
 
 /**
- * @brief Define for whether or not the platform is Linux.
+ * @brief Define for whether the platform is Linux.
  */
 #ifndef DS_LINUX
 #	define DS_LINUX 0
 #endif
 
 /**
- * @brief Define for whether or not the platform is Apple.
+ * @brief Define for whether the platform is Apple.
  */
 #ifndef DS_APPLE
 #	define DS_APPLE 0
+#endif
+
+/**
+ * @brief Define for whether the compler is Microsoft's C compiler.
+ */
+#ifndef DS_MSC
+#	define DS_MSC 0
+#endif
+
+/**
+ * @brief Define for whether the compiler is LLVM clang.
+ */
+#ifndef DS_CLANG
+#	define DS_CLANG 0
+#endif
+
+/**
+ * @def DS_GCC
+ * @brief Define for whether the compiler is GCC.
+ */
+#ifndef DS_GCC
+#	define DS_GCC 0
 #endif
 
 /**
