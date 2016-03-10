@@ -22,7 +22,7 @@
 namespace
 {
 
-#if DS_WINDOWS
+#if DS_MSC
 #pragma warning(push)
 #pragma warning(disable: 4302 4311)
 #endif
@@ -32,7 +32,7 @@ dsThreadReturnType getReturnValue(void* data)
 	return (dsThreadReturnType)data;
 }
 
-#if DS_WINDOWS
+#if DS_MSC
 #pragma warning(pop)
 #endif
 
