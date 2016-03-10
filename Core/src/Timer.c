@@ -27,7 +27,7 @@
 #include <time.h>
 #endif
 
-dsTimer dsTimer_initialize()
+dsTimer dsTimer_create()
 {
 	dsTimer timer;
 
@@ -43,6 +43,8 @@ dsTimer dsTimer_initialize()
 	DEBUG_VERIFY(mach_timebase_info(&timebaseInfo) == KERN_SUCCESS);
 	timer.scale = (double)timebaseInfo.number/timebaseInfo.denom;
 
+#else
+	timer.scale = 0;
 #endif
 
 	return timer;

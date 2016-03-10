@@ -43,3 +43,11 @@ DeepSea contains the following modules:
 
 * [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and IO. See Core for general notes about the object and memory model used throughout all modules.
 
+The directory structure of the include files is:
+
+	DeepSea/<ModuleName>/[Subdirectory/]Header.h
+
+For example:
+
+	#include <DeepSea/Core/Config.h>
+	#include <DeepSea/Core/Thread/Thread.h>

@@ -28,10 +28,20 @@
 #include <unistd.h>
 #endif
 
+inline static bool isThreadSet(dsThread thread)
+{
+#if DS_WINDOWS
+	return thread.thread != NULL;
+#else
+	static dsThread zeroThread;
+	return memcmp(&thread, &zeroThread, sizeof(dsThread)) != 0;
+#endif
+}
+
 bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
 	unsigned int stackSize)
 {
-	if (!thread)
+	if (!thread || !function)
 		return false;
 
 #if DS_WINDOWS
@@ -106,6 +116,8 @@ bool dsThread_setThisThreadName(const char* name)
 	}
 #pragma warning(pop)
 
+	return true;
+
 #elif DS_APPLE
 	return pthread_setname_np(name) == 0;
 #elif DS_LINUX
@@ -114,8 +126,6 @@ bool dsThread_setThisThreadName(const char* name)
 	DS_UNUSED(name);
 	return false;
 #endif
-
-	return true;
 }
 
 void dsThread_exit(dsThreadReturnType returnVal)
@@ -167,7 +177,13 @@ bool dsThread_equal(dsThreadId thread1, dsThreadId thread2)
 #if DS_WINDOWS
 	return thread1.threadId == thread2.threadId;
 #else
+	bool thread1Set = isThreadSet(*(dsThread*)&thread1);
+	bool thread2Set = isThreadSet(*(dsThread*)&thread2);
+	if (!thread1Set || !thread2Set)
+		return thread1Set == thread2Set;
+
 	return pthread_equal(thread1.threadId, thread2.threadId);
+
 #endif
 }
 
@@ -182,16 +198,12 @@ void dsThread_sleep(unsigned int milliseconds)
 
 bool dsThread_detach(dsThread* thread)
 {
-	if (!thread)
+	if (!thread || !isThreadSet(*thread))
 		return false;
 
 #if DS_WINDOWS
-
-	if (!thread->thread)
-		return false;
 	CloseHandle(thread->thread);
 	thread->thread = 0;
-
 #else
 	if (pthread_detach(thread->thread) != 0)
 		return false;
@@ -203,13 +215,10 @@ bool dsThread_detach(dsThread* thread)
 
 bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 {
-	if (!thread)
+	if (!thread || !isThreadSet(*thread))
 		return false;
 
 #if DS_WINDOWS
-
-	if (!thread->thread)
-		return false;
 
 	if (WaitForSingleObject(thread->thread, INFINITE) == WAIT_FAILED)
 		return false;
