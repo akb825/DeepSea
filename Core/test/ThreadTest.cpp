@@ -22,14 +22,28 @@
 namespace
 {
 
-dsThreadReturnType simpleThread(void* data)
+#if DS_WINDOWS
+#pragma warning(push)
+#pragma warning(disable: 4302 4311)
+#endif
+
+dsThreadReturnType getReturnValue(void* data)
 {
 	return (dsThreadReturnType)data;
 }
 
+#if DS_WINDOWS
+#pragma warning(pop)
+#endif
+
+dsThreadReturnType simpleThread(void* data)
+{
+	return getReturnValue(data);
+}
+
 dsThreadReturnType exitThread(void* data)
 {
-	dsThread_exit((dsThreadReturnType)data);
+	dsThread_exit(getReturnValue(data));
 	EXPECT_TRUE(false);
 	return 0;
 }
