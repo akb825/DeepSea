@@ -1,6 +1,6 @@
 # Introduction
 
-DeepSea is a game engine written in C.
+DeepSea is a game engine written in C. It is designed to be modular, allowing only pieces of the engine to be taken. For example, you can only take the Graphics module (and dependencies) without compiling the other modules.
 
 # Dependencies
 
@@ -41,5 +41,5 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](Core/README.md): Core functionality including logging, debugging, memory managment, threading, and IO.
+* [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and IO. See Core for general notes about the object and memory model used throughout all modules.
 
