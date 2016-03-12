@@ -73,7 +73,10 @@ DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_timedWait(
 	dsConditionVariable* condition, dsMutex* mutex, unsigned int milliseconds);
 
 /**
- * @brief Notifies a single thread waiting on the condition variable to continue.
+ * @brief Notifies at least one thread waiting on the condition variable to continue.
+ *
+ * It is possible that more than one thread will be notified.
+ *
  * @param condition The condition variable to notify.
  * @return False if an error occured.
  */

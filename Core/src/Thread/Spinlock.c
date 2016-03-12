@@ -15,30 +15,52 @@
  */
 
 #include <DeepSea/Core/Thread/Spinlock.h>
-#include <DeepSea/Core/Assert.h>
+
+#if DS_WINDOWS
 #include <DeepSea/Core/Atomic.h>
+#else
+#include <pthread.h>
+#include <string.h>
+#endif
 
 bool dsSpinlock_initialize(dsSpinlock* spinlock)
 {
 	if (!spinlock)
 		return false;
 
+#if DS_WINDOWS
+
 	uint32_t counter = 0;
 	DS_ATOMIC_STORE32(&spinlock->counter, &counter);
 	return true;
+
+#else
+	return pthread_spin_init(&spinlock->spinlock, PTHREAD_PROCESS_PRIVATE) == 0;
+#endif
 }
 
 bool dsSpinlock_tryLock(dsSpinlock* spinlock)
 {
-	DS_ASSERT(spinlock);
+	if (!spinlock)
+		return false;
+
+#if DS_WINDOWS
+
 	uint32_t expected = 0;
 	uint32_t value = 1;
 	return DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
+
+#else
+	return pthread_spin_trylock(&spinlock->spinlock) == 0;
+#endif
 }
 
-void dsSpinlock_lock(dsSpinlock* spinlock)
+bool dsSpinlock_lock(dsSpinlock* spinlock)
 {
-	DS_ASSERT(spinlock);
+	if (!spinlock)
+		return false;
+
+#if DS_WINDOWS
 
 	uint32_t expected;
 	uint32_t value = 1;
@@ -46,12 +68,39 @@ void dsSpinlock_lock(dsSpinlock* spinlock)
 	{
 		expected = 0;
 	} while (!DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, true));
+
+	return true;
+
+#else
+	return pthread_spin_lock(&spinlock->spinlock) == 0;
+#endif
 }
 
-void dsSpinlock_unlock(dsSpinlock* spinlock)
+bool dsSpinlock_unlock(dsSpinlock* spinlock)
 {
-	DS_ASSERT(spinlock);
+	if (!spinlock)
+		return false;
+
+#if DS_WINDOWS
+
 	uint32_t expected = 1;
 	uint32_t value = 0;
-	DS_VERIFY(DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false));
+	return DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
+
+#else
+	return pthread_spin_unlock(&spinlock->spinlock) == 0;
+#endif
+}
+
+void dsSpinlock_destroy(dsSpinlock* spinlock)
+{
+	if (!spinlock)
+		return;
+
+#if DS_WINDOWS
+	uint32_t counter = 0;
+	DS_ATOMIC_STORE32(&spinlock->counter, &counter);
+#else
+	pthread_spin_destroy(&spinlock->spinlock);
+#endif
 }

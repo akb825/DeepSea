@@ -43,21 +43,29 @@ DS_CORE_EXPORT bool dsSpinlock_initialize(dsSpinlock* spinlock);
 /**
  * @brief Locks the spinlock if it isn't already locked.
  * @param spinlock The spinlock to lock.
- * @return True if the spinlock was locked.
+ * @return False if the spinlock is NULL.
  */
 DS_CORE_EXPORT bool dsSpinlock_tryLock(dsSpinlock* spinlock);
 
 /**
  * @brief Locks a spinlock, blocking until it can be aquired.
  * @param spinlock The spinlock to lock.
+ * @return False if spinlock is NULL.
  */
-DS_CORE_EXPORT void dsSpinlock_lock(dsSpinlock* spinlock);
+DS_CORE_EXPORT bool dsSpinlock_lock(dsSpinlock* spinlock);
 
 /**
  * @brief Unlocks a spinlock.
  * @param spinlock The spinlock to unlock.
+ * @return False if spinlock wasn't previously locked or is NULL.
  */
-DS_CORE_EXPORT void dsSpinlock_unlock(dsSpinlock* spinlock);
+DS_CORE_EXPORT bool dsSpinlock_unlock(dsSpinlock* spinlock);
+
+/**
+ * @brief Destroys a spinlock.
+ * @param[inout] spinlock The spinlock to destroy.
+ */
+DS_CORE_EXPORT void dsSpinlock_destroy(dsSpinlock* spinlock);
 
 #ifdef __cplusplus
 }

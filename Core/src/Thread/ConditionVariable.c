@@ -21,6 +21,10 @@
 #include "MutexImpl.h"
 #include <errno.h>
 
+#if !DS_WINDOWS
+#include <sys/time.h>
+#endif
+
 struct dsConditionVariable
 {
 #if DS_WINDOWS
@@ -112,6 +116,13 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	struct timespec time;
 	time.tv_sec = milliseconds/1000;
 	time.tv_nsec = (milliseconds % 1000)*1000000;
+
+	struct timeval curTime;
+	DS_VERIFY(gettimeofday(&curTime, NULL) == 0);
+	time.tv_nsec += curTime.tv_usec*1000;
+	time.tv_sec += curTime.tv_sec + time.tv_nsec/1000000000;
+	time.tv_nsec = time.tv_nsec % 1000000000;
+
 	int retVal = pthread_cond_timedwait(&condition->condition, &mutex->mutex, &time);
 	if (retVal == ETIMEDOUT)
 		return dsConditionVariableResult_Timeout;

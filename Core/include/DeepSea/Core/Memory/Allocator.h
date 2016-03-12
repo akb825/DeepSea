@@ -38,7 +38,7 @@ extern "C"
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.
  */
-void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
 
 /**
  * @brief Frees memory from the allocator.
@@ -46,7 +46,7 @@ void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.
  */
-bool dsAllocator_free(dsAllocator* allocator, void* ptr);
+inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
 
 inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 {

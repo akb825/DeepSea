@@ -66,7 +66,11 @@ typedef struct dsMutex dsMutex;
 typedef struct dsSpinlock
 {
 	/** Internal */
+#if DS_WINDOWS
 	uint32_t counter;
+#else
+	pthread_spinlock_t spinlock;
+#endif
 } dsSpinlock;
 
 /**

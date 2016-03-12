@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Thread/ConditionVariable.h>
+#include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
-#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Timer.h>
 #include <gtest/gtest.h>
 
@@ -56,18 +57,22 @@ dsThreadReturnType namedThread(void* data)
 
 struct ThreadIdData
 {
-	uint32_t ready;
 	dsThreadId threadId;
+	dsConditionVariable* condition;
+	dsMutex* mutex;
+	bool ready;
 };
 
 dsThreadReturnType threadId(void* data)
 {
 	ThreadIdData* threadIdData = (ThreadIdData*)data;
-	uint32_t ready;
-	do
+	EXPECT_TRUE(dsMutex_lock(threadIdData->mutex));
+	while (!threadIdData->ready)
 	{
-		DS_ATOMIC_LOAD32(&threadIdData->ready, &ready);
-	} while (!ready);
+		EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(
+			threadIdData->condition, threadIdData->mutex));
+	}
+	EXPECT_TRUE(dsMutex_unlock(threadIdData->mutex));
 
 	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadId(), threadIdData->threadId));
 	return 0;
@@ -153,24 +158,40 @@ TEST(Thread, ThreadId)
 	EXPECT_FALSE(dsThread_equal(dsThread_invalidId(), dsThread_thisThreadId()));
 	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadId(), dsThread_thisThreadId()));
 
+	dsConditionVariable* condition = dsConditionVariable_create(nullptr);
+	ASSERT_NE(nullptr, condition);
+	dsMutex* mutex = dsMutex_create(nullptr);
+	ASSERT_NE(nullptr, mutex);
+
 	dsThread thread1, thread2, thread3;
 	ThreadIdData data1 = {}, data2 = {}, data3 = {};
-	uint32_t ready = true;
+
+	data1.condition = condition;
+	data1.mutex = mutex;
+	data2.condition = condition;
+	data2.mutex = mutex;
+	data3.condition = condition;
+	data3.mutex = mutex;
 
 	EXPECT_TRUE(dsThread_create(&thread1, &threadId, &data1, 0));
 	EXPECT_TRUE(dsThread_create(&thread2, &threadId, &data2, 0));
 	EXPECT_TRUE(dsThread_create(&thread3, &threadId, &data3, 0));
 
 	data1.threadId = dsThread_getId(thread1);
-	DS_ATOMIC_STORE32(&data1.ready, &ready);
 	data2.threadId = dsThread_getId(thread2);
-	DS_ATOMIC_STORE32(&data2.ready, &ready);
 	data3.threadId = dsThread_getId(thread3);
-	DS_ATOMIC_STORE32(&data3.ready, &ready);
+
+	EXPECT_TRUE(dsMutex_lock(mutex));
+	data1.ready = data2.ready = data3.ready = true;
+	EXPECT_TRUE(dsConditionVariable_notifyAll(condition));
+	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsThread_join(&thread1, NULL));
 	EXPECT_TRUE(dsThread_join(&thread2, NULL));
 	EXPECT_TRUE(dsThread_join(&thread3, NULL));
+
+	dsConditionVariable_destroy(condition);
+	dsMutex_destroy(mutex);
 }
 
 TEST(Thread, DISABLED_Sleep)
