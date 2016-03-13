@@ -11,6 +11,10 @@ if (NOT GTEST_FOUND)
 endif()
 
 set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
+set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
+	"Root folder for the DeepSea projects. Usefull when embedding in other projects")
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (DEEPSEA_SHARED)
 	set(DEEPSEA_LIB SHARED)

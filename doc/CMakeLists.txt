@@ -22,4 +22,6 @@ add_custom_command(OUTPUT ${outputFile}
 	COMMENT "Generating API documentation with Doxygen" VERBATIM)
 add_custom_target(doc ALL DEPENDS ${outputFile})
 
+set_folder(doc "")
+
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc/DeepSea)
