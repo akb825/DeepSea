@@ -1,4 +1,4 @@
-if (NOT DOXYGEN_FOUND)
+if (NOT DOXYGEN_FOUND OR NOT DEEPSEA_BUILD_DOCS)
 	return()
 endif()
 

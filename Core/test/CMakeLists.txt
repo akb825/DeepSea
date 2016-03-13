@@ -1,4 +1,4 @@
-if (NOT GTEST_FOUND)
+if (NOT GTEST_FOUND OR NOT DEEPSEA_BUILD_TESTS)
 	return()
 endif()
 

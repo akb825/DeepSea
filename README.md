@@ -28,8 +28,20 @@ Building is done with CMake. To build a release build, execute the following com
 
 The following options may be used when running cmake:
 
+## Compile Options:
+
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in Debug or Release. This should always be specified.
-* `-DDEEPSEA_SHARED=ON`: Build with shared libraries. Default is to build with static libraries.
+* `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
+* `-DDEEPSEA_SHARED=ON|OFF`: Set to ON to build with shared libraries, OFF to build with static libraries. Default is OFF.
+
+## Enabled Builds
+
+* `-DDEEPSEA_BUILD_TESTS=ON|OFF`: Set to ON to build the unit tests. gtest must also be found in order to build the unit tests. Defaults to ON.
+* `-DDEEPSEA_BUILD_DOCS=ON|OFF`: Set to ON to build the documentation. doxygen must also be found in order to build the documentation. Defaults to ON.
+
+## Miscellaneous Options:
+
+* `-DDEEPSEA_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding DeepSea in another project. Defaults to DeepSea.
 
 Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea` directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 
