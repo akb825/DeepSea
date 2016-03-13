@@ -162,13 +162,13 @@ TEST(ConditionVariable, DISABLED_TimedWait)
 	ASSERT_NE(nullptr, mutex);
 
 	dsTimer timer = dsTimer_create();
-	double startTime = dsTimer_getTime(timer);
+	double startTime = dsTimer_time(timer);
 	EXPECT_TRUE(dsMutex_lock(mutex));
 	EXPECT_EQ(dsConditionVariableResult_Timeout, dsConditionVariable_timedWait(condition, mutex,
 		1150));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
-	double endTime = dsTimer_getTime(timer);
+	double endTime = dsTimer_time(timer);
 	// Give a generous error due to scheduling quantums.
 	EXPECT_NEAR(1150, (endTime - startTime)*1000, 20);
 

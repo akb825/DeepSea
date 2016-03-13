@@ -197,9 +197,9 @@ TEST(Thread, ThreadId)
 TEST(Thread, DISABLED_Sleep)
 {
 	dsTimer timer = dsTimer_create();
-	double startTime = dsTimer_getTime(timer);
+	double startTime = dsTimer_time(timer);
 	dsThread_sleep(150);
-	double endTime = dsTimer_getTime(timer);
+	double endTime = dsTimer_time(timer);
 	// Give a generous error due to scheduling quantums.
 	EXPECT_NEAR(150, (endTime - startTime)*1000, 20);
 }

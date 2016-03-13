@@ -44,7 +44,7 @@ DS_CORE_EXPORT dsTimer dsTimer_create();
  * @param timer The timer.
  * @return The current time in seconds.
  */
-DS_CORE_EXPORT double dsTimer_getTime(dsTimer timer);
+DS_CORE_EXPORT double dsTimer_time(dsTimer timer);
 
 #ifdef __cplusplus
 }

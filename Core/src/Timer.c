@@ -50,7 +50,7 @@ dsTimer dsTimer_create()
 	return timer;
 }
 
-double dsTimer_getTime(dsTimer timer)
+double dsTimer_time(dsTimer timer)
 {
 
 #if DS_WINDOWS
