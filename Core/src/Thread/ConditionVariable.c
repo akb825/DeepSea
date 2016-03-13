@@ -103,11 +103,10 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 
 #if DS_WINDOWS
 
-	BOOL retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, milliseconds);
-	if (retVal == ERROR_TIMEOUT)
-		return dsConditionVariableResult_Timeout;
-	else if (retVal)
+	if (SleepConditionVariableCS(&condition->condition, &mutex->mutex, milliseconds))
 		return dsConditionVariableResult_Success;
+	else if (GetLastError() == ERROR_TIMEOUT)
+		return dsConditionVariableResult_Timeout;
 	else
 		return dsConditionVariableResult_Error;
 

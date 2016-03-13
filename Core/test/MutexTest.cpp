@@ -88,7 +88,8 @@ TEST(Mutex, TryLock)
 	dsMutex* mutex = dsMutex_create(nullptr);
 	ASSERT_NE(nullptr, mutex);
 	EXPECT_TRUE(dsMutex_tryLock(mutex));
-	EXPECT_FALSE(dsMutex_tryLock(mutex));
+	// NOTE: On Windows, this will return true if the current thread owns the lock.
+	dsMutex_tryLock(mutex);
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 	EXPECT_TRUE(dsMutex_tryLock(mutex));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
