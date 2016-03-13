@@ -33,7 +33,7 @@ extern "C"
 /**
  * @brief Initializes the system system allocator.
  * @param[out] allocator The allocator to initialize.
- * @return False if allocator is null.
+ * @return False if allocator is NULL.
  */
 DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator);
 

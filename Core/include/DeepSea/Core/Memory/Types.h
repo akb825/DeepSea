@@ -96,10 +96,37 @@ struct dsAllocator
 typedef struct dsSystemAllocator
 {
 	/**
-	 * @brief The general allocator.
+	 * @brief The base allocator.
 	 */
-	dsAllocator generalAllocator;
+	dsAllocator allocator;
 } dsSystemAllocator;
+
+/**
+ * @brief Structure for a buffer allocator.
+ *
+ * A buffer is pre-allocated, then memory is taken from it sequentially. Memory is never freed back
+ * to the buffer.
+ *
+ * The size member of dsAllocator will be used for the offset of the next memory allocated from the
+ * buffer.
+ */
+typedef struct dsBufferAllocator
+{
+	/**
+	 * @brief The base allocator.
+	 */
+	dsAllocator allocator;
+
+	/**
+	 * @brief The buffer that memory is taken from.
+	 */
+	void* buffer;
+
+	/**
+	 * @brief The full size of the buffer.
+	 */
+	size_t bufferSize;
+} dsBufferAllocator;
 
 #ifdef __cplusplus
 }
