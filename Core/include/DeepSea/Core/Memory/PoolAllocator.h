@@ -71,6 +71,16 @@ DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t si
 DS_CORE_EXPORT bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr);
 
 /**
+ * @brief Resets the pool allocator to be empty.
+ *
+ * This should only be used when no destruction is needed for the contents.
+ *
+ * @param allocator The allocator to reset.
+ * @return True if the allocator is valid.
+ */
+DS_CORE_EXPORT bool dsPoolAllocator_reset(dsPoolAllocator* allocator);
+
+/**
  * @brief Validates the consistency of the allocator.
  *
  * This can help make sure that there were no buffer overruns

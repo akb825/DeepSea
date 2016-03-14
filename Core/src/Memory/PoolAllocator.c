@@ -151,6 +151,23 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 	return true;
 }
 
+bool dsPoolAllocator_reset(dsPoolAllocator* allocator)
+{
+	if (!allocator || !allocator->buffer || !allocator->chunkCount ||
+		allocator->bufferSize != allocator->chunkCount*allocator->chunkSize)
+	{
+		return false;
+	}
+	
+	((dsAllocator*)allocator)->size = 0;
+
+	allocator->head = 0;
+	allocator->freeCount = allocator->chunkCount;
+	allocator->initializedCount = 0;
+	*(size_t*)allocator->buffer = DS_NONE;
+	return true;
+}
+
 bool dsPoolAllocator_validate(dsPoolAllocator* allocator)
 {
 	if (!allocator || !allocator->buffer)
