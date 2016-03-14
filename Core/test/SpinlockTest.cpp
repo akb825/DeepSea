@@ -67,6 +67,7 @@ TEST(Spinlock, TryLock)
 	EXPECT_TRUE(dsSpinlock_unlock(&spinlock));
 	EXPECT_TRUE(dsSpinlock_tryLock(&spinlock));
 	EXPECT_TRUE(dsSpinlock_unlock(&spinlock));
+	dsSpinlock_destroy(&spinlock);
 }
 
 TEST(Spinlock, Contention)
@@ -85,4 +86,5 @@ TEST(Spinlock, Contention)
 		EXPECT_TRUE(dsThread_join(threads + i, nullptr));
 
 	EXPECT_EQ(threadCount, threadData.executed);
+	dsSpinlock_destroy(&threadData.spinlock);
 }

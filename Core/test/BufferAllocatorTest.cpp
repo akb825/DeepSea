@@ -36,8 +36,9 @@ TEST(BufferAllocator, Initialize)
 {
 	const unsigned int bufferSize = 100;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
+
 	dsBufferAllocator allocator;
-	EXPECT_FALSE(dsBufferAllocator_initialize(nullptr, nullptr, 0));
+	EXPECT_FALSE(dsBufferAllocator_initialize(nullptr, buffer, bufferSize));
 	EXPECT_FALSE(dsBufferAllocator_initialize(&allocator, buffer, 0));
 	EXPECT_FALSE(dsBufferAllocator_initialize(&allocator, buffer + 1, bufferSize));
 	EXPECT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
@@ -49,6 +50,7 @@ TEST(BufferAllocator, Allocate)
 {
 	const unsigned int bufferSize = 100;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
+
 	dsBufferAllocator allocator;
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
 	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 0));

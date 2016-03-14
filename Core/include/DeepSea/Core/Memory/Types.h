@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Thread/Types.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -104,6 +105,9 @@ typedef struct dsSystemAllocator
 /**
  * @brief Structure for a buffer allocator.
  *
+ * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
+ * cast between the two types.
+ *
  * A buffer is pre-allocated, then memory is taken from it sequentially. Memory is never freed back
  * to the buffer.
  *
@@ -127,6 +131,64 @@ typedef struct dsBufferAllocator
 	 */
 	size_t bufferSize;
 } dsBufferAllocator;
+
+/**
+ * @brief Structure for a pool allocator.
+ *
+ * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
+ * cast between the two types.
+ *
+ * This allocates fixed chunks from a pool of memory.
+ *
+ * @remark Manually changing the values in this structure can cause bad memory access.
+ */
+typedef struct dsPoolAllocator
+{
+	/**
+	 * @brief The base allocator.
+	 */
+	dsAllocator allocator;
+
+	/**
+	 * @brief The buffer that memory is taken from.
+	 */
+	void* buffer;
+
+	/**
+	 * @brief The full size of the buffer.
+	 */
+	size_t bufferSize;
+
+	/**
+	 * @brief The size of a chunk.
+	 */
+	size_t chunkSize;
+
+	/**
+	 * @brief The number of available chunks.
+	 */
+	size_t chunkCount;
+
+	/**
+	 * @brief Index of the head chunk.
+	 */
+	size_t head;
+
+	/**
+	 * @brief The number of free chunks.
+	 */
+	size_t freeCount;
+
+	/**
+	 * @brief The number of initialized chunks.
+	 */
+	size_t initializedCount;
+
+	/**
+	 * @brief Lock used to protect allocation.
+	 */
+	dsSpinlock lock;
+} dsPoolAllocator;
 
 #ifdef __cplusplus
 }

@@ -34,7 +34,7 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 
 void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size)
 {
-	if (!allocator || size == 0)
+	if (!allocator || !size)
 		return NULL;
 
 	// Use atomic operations to allow for thread safety.
