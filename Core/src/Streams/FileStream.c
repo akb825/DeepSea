@@ -111,5 +111,6 @@ bool dsFileStream_close(dsFileStream* stream)
 		return false;
 
 	fclose(stream->file);
+	stream->file = NULL;
 	return true;
 }
