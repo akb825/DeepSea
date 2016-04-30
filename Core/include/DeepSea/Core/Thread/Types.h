@@ -50,9 +50,9 @@ typedef struct dsConditionVariable dsConditionVariable;
  */
 typedef enum dsConditionVariableResult
 {
-	dsConditionVariableResult_Success,	///< The conditon variable was notified.
-	dsConditionVariableResult_Error,	///< There was an error when waiting.
-	dsConditionVariableResult_Timeout	///< The wait timed out.
+	dsConditionVariableResult_Success, ///< The conditon variable was notified.
+	dsConditionVariableResult_Error,   ///< There was an error when waiting.
+	dsConditionVariableResult_Timeout  ///< The wait timed out.
 } dsConditionVariableResult;
 
 /**
