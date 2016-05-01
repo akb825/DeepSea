@@ -491,7 +491,7 @@ typedef struct dsVector4f
 		 */
 		float values[4];
 	};
-} dsVector4f DS_ALIGN(16);
+} DS_ALIGN(16) dsVector4f;
 
 /**
  * @brief Structure for a 4D vector holding doubles.
