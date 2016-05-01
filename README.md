@@ -15,7 +15,7 @@ The following software is required to build DeepSea:
 DeepSea has been built for and tested on the following platforms:
 
 * Linux
-* Windows
+* Windows (requires Visual Studio 2015 or later)
 
 # Building
 
@@ -53,7 +53,8 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and IO. See Core for general notes about the object and memory model used throughout all modules.
+* [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
+* [Math](Math/README.md): (Required) Math structures and functions used throughout DeepSea.
 
 The directory structure of the include files is:
 

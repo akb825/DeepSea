@@ -5,7 +5,7 @@ DeepSea Core contains the core functionality for DeepSea. This includes:
 * Asserts
 * Logging
 * Threads
-* IO
+* Streams
 * Memory management
 
 # Memory, object sizes, and alignment

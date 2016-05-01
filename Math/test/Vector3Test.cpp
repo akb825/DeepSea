@@ -1,0 +1,61 @@
+/*
+ * Copyright 2016 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Math/Vector3.h>
+#include <gtest/gtest.h>
+
+template <typename T>
+struct Vector3TypeSelector;
+
+template <>
+struct Vector3TypeSelector<float> {typedef dsVector3f Type;};
+
+template <>
+struct Vector3TypeSelector<double> {typedef dsVector3d Type;};
+
+template <>
+struct Vector3TypeSelector<int> {typedef dsVector3i Type;};
+
+template <typename T>
+class Vector3Test : public testing::Test
+{
+};
+
+typedef testing::Types<float, double, int> Vector3Types;
+TYPED_TEST_CASE(Vector3Test, Vector3Types);
+
+TYPED_TEST(Vector3Test, Initialize)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type vector = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7};
+
+	EXPECT_EQ((TypeParam)-2.3, vector.x);
+	EXPECT_EQ((TypeParam)4.5, vector.y);
+	EXPECT_EQ((TypeParam)-6.7, vector.z);
+
+	EXPECT_EQ((TypeParam)-2.3, vector.s);
+	EXPECT_EQ((TypeParam)4.5, vector.t);
+	EXPECT_EQ((TypeParam)-6.7, vector.p);
+
+	EXPECT_EQ((TypeParam)-2.3, vector.r);
+	EXPECT_EQ((TypeParam)4.5, vector.g);
+	EXPECT_EQ((TypeParam)-6.7, vector.b);
+
+	EXPECT_EQ((TypeParam)-2.3, vector.values[0]);
+	EXPECT_EQ((TypeParam)4.5, vector.values[1]);
+	EXPECT_EQ((TypeParam)-6.7, vector.values[2]);
+}
