@@ -45,6 +45,20 @@ extern "C"
  */
 #define dsMax(x, y) ((x) > (y) ? (x) : (y))
 
+/**
+ * @brief Takes the second power of a value.
+ * @param x The value.
+ * @return The second power of x.
+ */
+#define dsPow2(x) ((x)*(x))
+
+/**
+ * @brief Takes the third power of a value.
+ * @param x The value.
+ * @return The third power of x.
+ */
+#define dsPow3(x) ((x)*(x)*(x))
+
 #ifdef __cplusplus
 }
 #endif

@@ -40,3 +40,13 @@ TEST(Core, MaxFloat)
 	EXPECT_EQ(3.2f, dsMax(-0.5f, 3.2f));
 	EXPECT_EQ(3.2f, dsMax(3.2f, -0.5f));
 }
+
+TEST(Core, Pow2)
+{
+	EXPECT_EQ(3.2f*3.2f, dsPow2(3.2f));
+}
+
+TEST(Core, Pow3)
+{
+	EXPECT_EQ(3.2f*3.2f*3.2f, dsPow3(3.2f));
+}

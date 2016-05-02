@@ -500,8 +500,6 @@ typedef struct dsVector4f
  * colors channels (r, g, b, a), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
- *
- * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
  */
 typedef struct dsVector4d
 {
@@ -588,8 +586,6 @@ typedef struct dsVector4d
  * colors channels (r, g, b, a), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
- *
- * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
  */
 typedef struct dsVector4i
 {
