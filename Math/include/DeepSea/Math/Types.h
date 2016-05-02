@@ -798,6 +798,17 @@ typedef struct dsMatrix44d
 	};
 } dsMatrix44d;
 
+/**
+ * @brief Structure that holds a half float.
+ */
+typedef struct dsHalfFloat
+{
+	/**
+	 * @brief The data for the half float.
+	 */
+	uint16_t data;
+} dsHalfFloat;
+
 #ifdef __cplusplus
 }
 #endif

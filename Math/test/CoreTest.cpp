@@ -50,3 +50,17 @@ TEST(Core, Pow3)
 {
 	EXPECT_EQ(3.2f*3.2f*3.2f, dsPow3(3.2f));
 }
+
+TEST(Core, Clamp)
+{
+	EXPECT_EQ(-0.5f, dsClamp(-1.0f, -0.5f, 3.2f));
+	EXPECT_EQ(3.2f, dsClamp(4.0f, -0.5f, 3.2f));
+	EXPECT_EQ(2.3f, dsClamp(2.3f, -0.5f, 3.2f));
+}
+
+TEST(Core, Lerp)
+{
+	EXPECT_EQ(-0.5f, dsLerp(-0.5f, 3.2f, 0.0f));
+	EXPECT_EQ(3.2f, dsLerp(-0.5f, 3.2f, 1.0f));
+	EXPECT_EQ(0.61f, dsLerp(-0.5f, 3.2f, 0.3f));
+}

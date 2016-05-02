@@ -59,6 +59,23 @@ extern "C"
  */
 #define dsPow3(x) ((x)*(x)*(x))
 
+/**
+ * @brief Clamps a value between a minimum and maximum value.
+ * @param x The value to clamp.
+ * @param min The minimum value.
+ * @param max The maximum value.
+ * @return The clamped value.
+ */
+#define dsClamp(x, min, max) dsMin(dsMax(x, min), max)
+
+/**
+ * @brief Linearly interpolates between two values.
+ * @param x The first value.
+ * @param y The second value.
+ * @param t The interpolation value between x and y.
+ */
+#define dsLerp(x, y, t) ((x) + (t)*((y) - (x)))
+
 #ifdef __cplusplus
 }
 #endif
