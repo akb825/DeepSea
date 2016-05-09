@@ -67,6 +67,6 @@ TEST(Core, Lerp)
 
 TEST(Core, DegreesRadians)
 {
-	EXPECT_FLOAT_EQ(M_PI, dsDegreesToRadians(180));
-	EXPECT_FLOAT_EQ(180, dsRadiansToDegrees(M_PI));
+	EXPECT_DOUBLE_EQ(M_PI, dsDegreesToRadians(180));
+	EXPECT_DOUBLE_EQ(180, dsRadiansToDegrees(M_PI));
 }

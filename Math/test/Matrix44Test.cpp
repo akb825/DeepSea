@@ -43,8 +43,8 @@ struct Matrix44TypeSelector<double>
 
 const float Matrix44TypeSelector<float>::epsilon = 1e-5f;
 const float Matrix44TypeSelector<float>::inverseEpsilon = 1e-3f;
-const double Matrix44TypeSelector<double>::epsilon = 1e-12;
-const double Matrix44TypeSelector<double>::inverseEpsilon = 1e-7;
+const double Matrix44TypeSelector<double>::epsilon = 1e-13;
+const double Matrix44TypeSelector<double>::inverseEpsilon = 1e-11;
 
 template <typename T>
 class Matrix44Test : public testing::Test
@@ -254,6 +254,7 @@ TYPED_TEST(Matrix44Test, Transform)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix =
 	{
@@ -268,10 +269,10 @@ TYPED_TEST(Matrix44Test, Transform)
 
 	dsMatrix44_transform(result, matrix, vector);
 
-	EXPECT_FLOAT_EQ((TypeParam)82.68, result.values[0]);
-	EXPECT_FLOAT_EQ((TypeParam)-55.84, result.values[1]);
-	EXPECT_FLOAT_EQ((TypeParam)17.16, result.values[2]);
-	EXPECT_FLOAT_EQ((TypeParam)22.88, result.values[3]);
+	EXPECT_NEAR((TypeParam)82.68, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)-55.84, result.values[1], epsilon);
+	EXPECT_NEAR((TypeParam)17.16, result.values[2], epsilon);
+	EXPECT_NEAR((TypeParam)22.88, result.values[3], epsilon);
 }
 
 TYPED_TEST(Matrix44Test, Transpose)
@@ -390,6 +391,7 @@ TYPED_TEST(Matrix44Test, Invert)
 TYPED_TEST(Matrix44Test, MakeRotate)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type rotateX;
 	dsMatrix44_makeRotate(&rotateX, (TypeParam)dsDegreesToRadians(30), 0, 0);
@@ -400,13 +402,13 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	EXPECT_EQ(0, rotateX.values[0][3]);
 
 	EXPECT_EQ(0, rotateX.values[1][0]);
-	EXPECT_FLOAT_EQ((TypeParam)0.866025403784439, rotateX.values[1][1]);
-	EXPECT_FLOAT_EQ((TypeParam)0.5, rotateX.values[1][2]);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[1][1], epsilon);
+	EXPECT_NEAR((TypeParam)0.5, rotateX.values[1][2], epsilon);
 	EXPECT_EQ(0, rotateX.values[1][3]);
 
 	EXPECT_EQ(0, rotateX.values[2][0]);
-	EXPECT_FLOAT_EQ((TypeParam)-0.5, rotateX.values[2][1]);
-	EXPECT_FLOAT_EQ((TypeParam)0.866025403784439, rotateX.values[2][2]);
+	EXPECT_NEAR((TypeParam)-0.5, rotateX.values[2][1], epsilon);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[2][2], epsilon);
 	EXPECT_EQ(0, rotateX.values[2][3]);
 
 	EXPECT_EQ(0, rotateX.values[3][0]);
@@ -417,9 +419,9 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	Matrix44Type rotateY;
 	dsMatrix44_makeRotate(&rotateY, 0, (TypeParam)dsDegreesToRadians(-15), 0);
 
-	EXPECT_FLOAT_EQ((TypeParam)0.9659258262890683, rotateY.values[0][0]);
+	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[0][0], epsilon);
 	EXPECT_EQ(0, rotateY.values[0][1]);
-	EXPECT_FLOAT_EQ((TypeParam)0.2588190451025208, rotateY.values[0][2]);
+	EXPECT_NEAR((TypeParam)0.2588190451025208, rotateY.values[0][2], epsilon);
 	EXPECT_EQ(0, rotateY.values[0][3]);
 
 	EXPECT_EQ(0, rotateY.values[1][0]);
@@ -427,9 +429,9 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	EXPECT_EQ(0, rotateY.values[1][2]);
 	EXPECT_EQ(0, rotateY.values[1][3]);
 
-	EXPECT_FLOAT_EQ((TypeParam)-0.2588190451025208, rotateY.values[2][0]);
+	EXPECT_NEAR((TypeParam)-0.2588190451025208, rotateY.values[2][0], epsilon);
 	EXPECT_EQ(0, rotateY.values[2][1]);
-	EXPECT_FLOAT_EQ((TypeParam)0.9659258262890683, rotateY.values[2][2]);
+	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[2][2], epsilon);
 	EXPECT_EQ(0, rotateY.values[2][3]);
 
 	EXPECT_EQ(0, rotateY.values[3][0]);
@@ -440,13 +442,13 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	Matrix44Type rotateZ;
 	dsMatrix44_makeRotate(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadians(60));
 
-	EXPECT_FLOAT_EQ((TypeParam)0.5, rotateZ.values[0][0]);
-	EXPECT_FLOAT_EQ((TypeParam)0.866025403784439, rotateZ.values[0][1]);
+	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[0][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateZ.values[0][1], epsilon);
 	EXPECT_EQ(0, rotateZ.values[0][2]);
 	EXPECT_EQ(0, rotateZ.values[0][3]);
 
-	EXPECT_FLOAT_EQ((TypeParam)-0.866025403784439, rotateZ.values[1][0]);
-	EXPECT_FLOAT_EQ((TypeParam)0.5, rotateZ.values[1][1]);
+	EXPECT_NEAR((TypeParam)-0.866025403784439, rotateZ.values[1][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[1][1], epsilon);
 	EXPECT_EQ(0, rotateZ.values[1][2]);
 	EXPECT_EQ(0, rotateZ.values[1][3]);
 
@@ -468,25 +470,25 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	dsMatrix44_makeRotate(&rotateXYZ, (TypeParam)dsDegreesToRadians(30),
 		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
 
-	EXPECT_FLOAT_EQ(result.values[0][0], rotateXYZ.values[0][0]);
-	EXPECT_FLOAT_EQ(result.values[0][1], rotateXYZ.values[0][1]);
-	EXPECT_FLOAT_EQ(result.values[0][2], rotateXYZ.values[0][2]);
-	EXPECT_FLOAT_EQ(result.values[0][3], rotateXYZ.values[0][3]);
+	EXPECT_NEAR(result.values[0][0], rotateXYZ.values[0][0], epsilon);
+	EXPECT_NEAR(result.values[0][1], rotateXYZ.values[0][1], epsilon);
+	EXPECT_NEAR(result.values[0][2], rotateXYZ.values[0][2], epsilon);
+	EXPECT_NEAR(result.values[0][3], rotateXYZ.values[0][3], epsilon);
 
-	EXPECT_FLOAT_EQ(result.values[1][0], rotateXYZ.values[1][0]);
-	EXPECT_FLOAT_EQ(result.values[1][1], rotateXYZ.values[1][1]);
-	EXPECT_FLOAT_EQ(result.values[1][2], rotateXYZ.values[1][2]);
-	EXPECT_FLOAT_EQ(result.values[1][3], rotateXYZ.values[1][3]);
+	EXPECT_NEAR(result.values[1][0], rotateXYZ.values[1][0], epsilon);
+	EXPECT_NEAR(result.values[1][1], rotateXYZ.values[1][1], epsilon);
+	EXPECT_NEAR(result.values[1][2], rotateXYZ.values[1][2], epsilon);
+	EXPECT_NEAR(result.values[1][3], rotateXYZ.values[1][3], epsilon);
 
-	EXPECT_FLOAT_EQ(result.values[2][0], rotateXYZ.values[2][0]);
-	EXPECT_FLOAT_EQ(result.values[2][1], rotateXYZ.values[2][1]);
-	EXPECT_FLOAT_EQ(result.values[2][2], rotateXYZ.values[2][2]);
-	EXPECT_FLOAT_EQ(result.values[2][3], rotateXYZ.values[2][3]);
+	EXPECT_NEAR(result.values[2][0], rotateXYZ.values[2][0], epsilon);
+	EXPECT_NEAR(result.values[2][1], rotateXYZ.values[2][1], epsilon);
+	EXPECT_NEAR(result.values[2][2], rotateXYZ.values[2][2], epsilon);
+	EXPECT_NEAR(result.values[2][3], rotateXYZ.values[2][3], epsilon);
 
-	EXPECT_FLOAT_EQ(result.values[3][0], rotateXYZ.values[3][0]);
-	EXPECT_FLOAT_EQ(result.values[3][1], rotateXYZ.values[3][1]);
-	EXPECT_FLOAT_EQ(result.values[3][2], rotateXYZ.values[3][2]);
-	EXPECT_FLOAT_EQ(result.values[3][3], rotateXYZ.values[3][3]);
+	EXPECT_NEAR(result.values[3][0], rotateXYZ.values[3][0], epsilon);
+	EXPECT_NEAR(result.values[3][1], rotateXYZ.values[3][1], epsilon);
+	EXPECT_NEAR(result.values[3][2], rotateXYZ.values[3][2], epsilon);
+	EXPECT_NEAR(result.values[3][3], rotateXYZ.values[3][3], epsilon);
 }
 
 TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)

@@ -247,9 +247,9 @@ void dsMatrix44d_invert(dsMatrix44d* result, dsMatrix44d* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	float det = dsMatrix44_determinant(*a);
+	double det = dsMatrix44_determinant(*a);
 	DS_ASSERT(det != 0);
-	float invDet = 1/det;
+	double invDet = 1/det;
 
 	dsMatrix44_invertImpl(*result, *a, invDet);
 }

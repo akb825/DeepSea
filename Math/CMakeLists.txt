@@ -11,6 +11,7 @@ endif()
 target_link_libraries(deepsea_math PUBLIC
 	deepsea_core
 	${MATH_LIB})
+target_compile_definitions(deepsea_math PUBLIC _USE_MATH_DEFINES)
 	
 set_folder(deepsea_math libs)
 setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src

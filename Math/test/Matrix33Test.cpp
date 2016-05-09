@@ -156,6 +156,7 @@ TYPED_TEST(Matrix33Test, Identity)
 TYPED_TEST(Matrix33Test, Multiply)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix1 =
 	{
@@ -174,23 +175,24 @@ TYPED_TEST(Matrix33Test, Multiply)
 	Matrix33Type result;
 	dsMatrix33_mul(result, matrix1, matrix2);
 
-	EXPECT_FLOAT_EQ((TypeParam)-33.96, result.values[0][0]);
-	EXPECT_FLOAT_EQ((TypeParam)55.08, result.values[0][1]);
-	EXPECT_FLOAT_EQ((TypeParam)-41.0, result.values[0][2]);
+	EXPECT_NEAR((TypeParam)-33.96, result.values[0][0], epsilon);
+	EXPECT_NEAR((TypeParam)55.08, result.values[0][1], epsilon);
+	EXPECT_NEAR((TypeParam)-41.0, result.values[0][2], epsilon);
 
-	EXPECT_FLOAT_EQ((TypeParam)68.72, result.values[1][0]);
-	EXPECT_FLOAT_EQ((TypeParam)-109.2, result.values[1][1]);
-	EXPECT_FLOAT_EQ((TypeParam)41.88, result.values[1][2]);
+	EXPECT_NEAR((TypeParam)68.72, result.values[1][0], epsilon);
+	EXPECT_NEAR((TypeParam)-109.2, result.values[1][1], epsilon);
+	EXPECT_NEAR((TypeParam)41.88, result.values[1][2], epsilon);
 
-	EXPECT_FLOAT_EQ((TypeParam)-53.98, result.values[2][0]);
-	EXPECT_FLOAT_EQ((TypeParam)89.62, result.values[2][1]);
-	EXPECT_FLOAT_EQ((TypeParam)-65.86, result.values[2][2]);
+	EXPECT_NEAR((TypeParam)-53.98, result.values[2][0], epsilon);
+	EXPECT_NEAR((TypeParam)89.62, result.values[2][1], epsilon);
+	EXPECT_NEAR((TypeParam)-65.86, result.values[2][2], epsilon);
 }
 
 TYPED_TEST(Matrix33Test, Transform)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
 	typedef typename Matrix33TypeSelector<TypeParam>::VectorType Vector3Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix =
 	{
@@ -204,9 +206,9 @@ TYPED_TEST(Matrix33Test, Transform)
 
 	dsMatrix33_transform(result, matrix, vector);
 
-	EXPECT_FLOAT_EQ((TypeParam)-31.76, result.values[0]);
-	EXPECT_FLOAT_EQ((TypeParam)35.72, result.values[1]);
-	EXPECT_FLOAT_EQ((TypeParam)-52.88, result.values[2]);
+	EXPECT_NEAR((TypeParam)-31.76, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)35.72, result.values[1], epsilon);
+	EXPECT_NEAR((TypeParam)-52.88, result.values[2], epsilon);
 }
 
 TYPED_TEST(Matrix33Test, Transpose)
@@ -297,16 +299,17 @@ TYPED_TEST(Matrix33Test, Invert)
 TYPED_TEST(Matrix33Test, MakeRotate)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix;
 	dsMatrix33_makeRotate(&matrix, (TypeParam)dsDegreesToRadians(30));
 
-	EXPECT_FLOAT_EQ((TypeParam)0.866025403784439, matrix.values[0][0]);
-	EXPECT_FLOAT_EQ((TypeParam)0.5, matrix.values[0][1]);
+	EXPECT_NEAR((TypeParam)0.866025403784439, matrix.values[0][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.5, matrix.values[0][1], epsilon);
 	EXPECT_EQ(0, matrix.values[0][2]);
 
-	EXPECT_FLOAT_EQ((TypeParam)-0.5, matrix.values[1][0]);
-	EXPECT_FLOAT_EQ((TypeParam)0.866025403784439, matrix.values[1][1]);
+	EXPECT_NEAR((TypeParam)-0.5, matrix.values[1][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.866025403784439, matrix.values[1][1], epsilon);
 	EXPECT_EQ(0, matrix.values[1][2]);
 
 	EXPECT_EQ(0, matrix.values[2][0]);
@@ -357,6 +360,7 @@ TYPED_TEST(Matrix33Test, MakeScale)
 TYPED_TEST(Matrix33Test, FastInvert)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotate;
 	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
@@ -373,22 +377,23 @@ TYPED_TEST(Matrix33Test, FastInvert)
 	Matrix33Type result;
 	dsMatrix33_mul(result, inverse, matrix);
 
-	EXPECT_FLOAT_EQ(1, result.values[0][0]);
-	EXPECT_FLOAT_EQ(0, result.values[0][1]);
-	EXPECT_FLOAT_EQ(0, result.values[0][2]);
+	EXPECT_NEAR(1, result.values[0][0], epsilon);
+	EXPECT_NEAR(0, result.values[0][1], epsilon);
+	EXPECT_NEAR(0, result.values[0][2], epsilon);
 
-	EXPECT_FLOAT_EQ(0, result.values[1][0]);
-	EXPECT_FLOAT_EQ(1, result.values[1][1]);
-	EXPECT_FLOAT_EQ(0, result.values[1][2]);
+	EXPECT_NEAR(0, result.values[1][0], epsilon);
+	EXPECT_NEAR(1, result.values[1][1], epsilon);
+	EXPECT_NEAR(0, result.values[1][2], epsilon);
 
-	EXPECT_FLOAT_EQ(0, result.values[2][0]);
-	EXPECT_FLOAT_EQ(0, result.values[2][1]);
-	EXPECT_FLOAT_EQ(1, result.values[2][2]);
+	EXPECT_NEAR(0, result.values[2][0], epsilon);
+	EXPECT_NEAR(0, result.values[2][1], epsilon);
+	EXPECT_NEAR(1, result.values[2][2], epsilon);
 }
 
 TYPED_TEST(Matrix33Test, AffineInvert)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type rotate;
 	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
@@ -411,15 +416,15 @@ TYPED_TEST(Matrix33Test, AffineInvert)
 	Matrix33Type result;
 	dsMatrix33_mul(result, inverse, matrix);
 
-	EXPECT_FLOAT_EQ(1, result.values[0][0]);
-	EXPECT_FLOAT_EQ(0, result.values[0][1]);
-	EXPECT_FLOAT_EQ(0, result.values[0][2]);
+	EXPECT_NEAR(1, result.values[0][0], epsilon);
+	EXPECT_NEAR(0, result.values[0][1], epsilon);
+	EXPECT_NEAR(0, result.values[0][2], epsilon);
 
-	EXPECT_FLOAT_EQ(0, result.values[1][0]);
-	EXPECT_FLOAT_EQ(1, result.values[1][1]);
-	EXPECT_FLOAT_EQ(0, result.values[1][2]);
+	EXPECT_NEAR(0, result.values[1][0], epsilon);
+	EXPECT_NEAR(1, result.values[1][1], epsilon);
+	EXPECT_NEAR(0, result.values[1][2], epsilon);
 
-	EXPECT_FLOAT_EQ(0, result.values[2][0]);
-	EXPECT_FLOAT_EQ(0, result.values[2][1]);
-	EXPECT_FLOAT_EQ(1, result.values[2][2]);
+	EXPECT_NEAR(0, result.values[2][0], epsilon);
+	EXPECT_NEAR(0, result.values[2][1], epsilon);
+	EXPECT_NEAR(1, result.values[2][2], epsilon);
 }
