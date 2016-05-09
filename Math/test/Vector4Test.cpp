@@ -46,32 +46,32 @@ class Vector4FloatTest : public Vector4Test<T>
 using Vector4FloatTypes = testing::Types<float, double>;
 TYPED_TEST_CASE(Vector4FloatTest, Vector4FloatTypes);
 
-float dsVector4_len(dsVector4f* a)
+inline float dsVector4_len(dsVector4f* a)
 {
 	return dsVector4f_len(a);
 }
 
-double dsVector4_len(dsVector4d* a)
+inline double dsVector4_len(dsVector4d* a)
 {
 	return dsVector4d_len(a);
 }
 
-float dsVector4_dist(dsVector4f* a, dsVector4f* b)
+inline float dsVector4_dist(dsVector4f* a, dsVector4f* b)
 {
 	return dsVector4f_dist(a, b);
 }
 
-double dsVector4_dist(dsVector4d* a, dsVector4d* b)
+inline double dsVector4_dist(dsVector4d* a, dsVector4d* b)
 {
 	return dsVector4d_dist(a, b);
 }
 
-void dsVector4_normalize(dsVector4f* result, dsVector4f* a)
+inline void dsVector4_normalize(dsVector4f* result, dsVector4f* a)
 {
 	dsVector4f_normalize(result, a);
 }
 
-void dsVector4_normalize(dsVector4d* result, dsVector4d* a)
+inline void dsVector4_normalize(dsVector4d* result, dsVector4d* a)
 {
 	dsVector4d_normalize(result, a);
 }

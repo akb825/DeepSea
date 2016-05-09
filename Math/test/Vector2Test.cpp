@@ -46,32 +46,32 @@ class Vector2FloatTest : public Vector2Test<T>
 using Vector2FloatTypes = testing::Types<float, double>;
 TYPED_TEST_CASE(Vector2FloatTest, Vector2FloatTypes);
 
-float dsVector2_len(dsVector2f* a)
+inline float dsVector2_len(dsVector2f* a)
 {
 	return dsVector2f_len(a);
 }
 
-double dsVector2_len(dsVector2d* a)
+inline double dsVector2_len(dsVector2d* a)
 {
 	return dsVector2d_len(a);
 }
 
-float dsVector2_dist(dsVector2f* a, dsVector2f* b)
+inline float dsVector2_dist(dsVector2f* a, dsVector2f* b)
 {
 	return dsVector2f_dist(a, b);
 }
 
-double dsVector2_dist(dsVector2d* a, dsVector2d* b)
+inline double dsVector2_dist(dsVector2d* a, dsVector2d* b)
 {
 	return dsVector2d_dist(a, b);
 }
 
-void dsVector2_normalize(dsVector2f* result, dsVector2f* a)
+inline void dsVector2_normalize(dsVector2f* result, dsVector2f* a)
 {
 	dsVector2f_normalize(result, a);
 }
 
-void dsVector2_normalize(dsVector2d* result, dsVector2d* a)
+inline void dsVector2_normalize(dsVector2d* result, dsVector2d* a)
 {
 	dsVector2d_normalize(result, a);
 }

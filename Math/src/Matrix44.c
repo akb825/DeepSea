@@ -17,48 +17,127 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include "Matrix33Impl.h"
-#include <DeepSea/Core/Assert.h>
 
 #define dsMatrix44_invertImpl(result, a, invDet) \
 	do \
 	{ \
-		(result).values[0][0] = dsMatrix33_determinantImpl(a, 1, 2, 3, 1, 2, 3)*invDet; \
-		(result).values[0][1] = dsMatrix33_determinantImpl(a, 1, 2, 3, 0, 2, 3)*invDet; \
-		(result).values[0][2] = dsMatrix33_determinantImpl(a, 1, 2, 3, 0, 1, 3)*invDet; \
-		(result).values[0][3] = dsMatrix33_determinantImpl(a, 1, 2, 3, 0, 1, 2)*invDet; \
+		(result).values[0][0] = ((a).values[1][1]*(a).values[2][2]*(a).values[3][3] + \
+								 (a).values[2][1]*(a).values[3][2]*(a).values[1][3] + \
+								 (a).values[3][1]*(a).values[1][2]*(a).values[2][3] - \
+								 (a).values[1][1]*(a).values[3][2]*(a).values[2][3] - \
+								 (a).values[2][1]*(a).values[1][2]*(a).values[3][3] - \
+								 (a).values[3][1]*(a).values[2][2]*(a).values[1][3])*invDet; \
+		(result).values[0][1] = ((a).values[0][1]*(a).values[3][2]*(a).values[2][3] + \
+								 (a).values[2][1]*(a).values[0][2]*(a).values[3][3] + \
+								 (a).values[3][1]*(a).values[2][2]*(a).values[0][3] - \
+								 (a).values[0][1]*(a).values[2][2]*(a).values[3][3] - \
+								 (a).values[2][1]*(a).values[3][2]*(a).values[0][3] - \
+								 (a).values[3][1]*(a).values[0][2]*(a).values[2][3])*invDet; \
+		(result).values[0][2] = ((a).values[0][1]*(a).values[1][2]*(a).values[3][3] + \
+								 (a).values[1][1]*(a).values[3][2]*(a).values[0][3] + \
+								 (a).values[3][1]*(a).values[0][2]*(a).values[1][3] - \
+								 (a).values[0][1]*(a).values[3][2]*(a).values[1][3] - \
+								 (a).values[1][1]*(a).values[0][2]*(a).values[3][3] - \
+								 (a).values[3][1]*(a).values[1][2]*(a).values[0][3])*invDet; \
+		(result).values[0][3] = ((a).values[0][1]*(a).values[2][2]*(a).values[1][3] + \
+								 (a).values[1][1]*(a).values[0][2]*(a).values[2][3] + \
+								 (a).values[2][1]*(a).values[1][2]*(a).values[0][3] - \
+								 (a).values[0][1]*(a).values[1][2]*(a).values[2][3] - \
+								 (a).values[1][1]*(a).values[2][2]*(a).values[0][3] - \
+								 (a).values[2][1]*(a).values[0][2]*(a).values[1][3])*invDet; \
 		\
-		(result).values[1][0] = dsMatrix33_determinantImpl(a, 0, 2, 3, 1, 2, 3)*invDet; \
-		(result).values[1][1] = dsMatrix33_determinantImpl(a, 0, 2, 3, 0, 2, 3)*invDet; \
-		(result).values[1][2] = dsMatrix33_determinantImpl(a, 0, 2, 3, 0, 1, 3)*invDet; \
-		(result).values[1][3] = dsMatrix33_determinantImpl(a, 0, 2, 3, 0, 1, 2)*invDet; \
+		(result).values[1][0] = ((a).values[1][0]*(a).values[3][2]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[1][2]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[2][2]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[2][2]*(a).values[3][3] - \
+								 (a).values[2][0]*(a).values[3][2]*(a).values[1][3] - \
+								 (a).values[3][0]*(a).values[1][2]*(a).values[2][3])*invDet; \
+		(result).values[1][1] = ((a).values[0][0]*(a).values[2][2]*(a).values[3][3] + \
+								 (a).values[2][0]*(a).values[3][2]*(a).values[0][3] + \
+								 (a).values[3][0]*(a).values[0][2]*(a).values[2][3] - \
+								 (a).values[0][0]*(a).values[3][2]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[0][2]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[2][2]*(a).values[0][3])*invDet; \
+		(result).values[1][2] = ((a).values[0][0]*(a).values[3][2]*(a).values[1][3] + \
+								 (a).values[1][0]*(a).values[0][2]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[1][2]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[1][2]*(a).values[3][3] - \
+								 (a).values[1][0]*(a).values[3][2]*(a).values[0][3] - \
+								 (a).values[3][0]*(a).values[0][2]*(a).values[1][3])*invDet; \
+		(result).values[1][3] = ((a).values[0][0]*(a).values[1][2]*(a).values[2][3] + \
+								 (a).values[1][0]*(a).values[2][2]*(a).values[0][3] + \
+								 (a).values[2][0]*(a).values[0][2]*(a).values[1][3] - \
+								 (a).values[0][0]*(a).values[2][2]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[0][2]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[1][2]*(a).values[0][3])*invDet; \
 		\
-		(result).values[2][0] = dsMatrix33_determinantImpl(a, 0, 1, 3, 1, 2, 3)*invDet; \
-		(result).values[2][1] = dsMatrix33_determinantImpl(a, 0, 1, 3, 0, 2, 3)*invDet; \
-		(result).values[2][2] = dsMatrix33_determinantImpl(a, 0, 1, 3, 0, 1, 3)*invDet; \
-		(result).values[2][3] = dsMatrix33_determinantImpl(a, 0, 1, 3, 0, 1, 2)*invDet; \
+		(result).values[2][0] = ((a).values[1][0]*(a).values[2][1]*(a).values[3][3] + \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[1][3] + \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[2][3] - \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[2][3] - \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[1][3])*invDet; \
+		(result).values[2][1] = ((a).values[0][0]*(a).values[3][1]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[3][3] + \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[2][1]*(a).values[3][3] - \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[0][3] - \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[2][3])*invDet; \
+		(result).values[2][2] = ((a).values[0][0]*(a).values[1][1]*(a).values[3][3] + \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[0][3] + \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[1][3] - \
+								 (a).values[0][0]*(a).values[3][1]*(a).values[1][3] - \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[3][3] - \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[0][3])*invDet; \
+		(result).values[2][3] = ((a).values[0][0]*(a).values[2][1]*(a).values[1][3] + \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[2][3] + \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[0][3] - \
+								 (a).values[0][0]*(a).values[1][1]*(a).values[2][3] - \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[0][3] - \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[1][3])*invDet; \
 		\
-		(result).values[3][0] = dsMatrix33_determinantImpl(a, 0, 1, 2, 1, 2, 3)*invDet; \
-		(result).values[3][1] = dsMatrix33_determinantImpl(a, 0, 1, 2, 0, 2, 3)*invDet; \
-		(result).values[3][2] = dsMatrix33_determinantImpl(a, 0, 1, 2, 0, 1, 3)*invDet; \
-		(result).values[3][3] = dsMatrix33_determinantImpl(a, 0, 1, 2, 0, 1, 2)*invDet; \
+		(result).values[3][0] = ((a).values[1][0]*(a).values[3][1]*(a).values[2][2] + \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[3][2] + \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[1][2] - \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[3][2] - \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[1][2] - \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[2][2])*invDet; \
+		(result).values[3][1] = ((a).values[0][0]*(a).values[2][1]*(a).values[3][2] + \
+								 (a).values[2][0]*(a).values[3][1]*(a).values[0][2] + \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[2][2] - \
+								 (a).values[0][0]*(a).values[3][1]*(a).values[2][2] - \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[3][2] - \
+								 (a).values[3][0]*(a).values[2][1]*(a).values[0][2])*invDet; \
+		(result).values[3][2] = ((a).values[0][0]*(a).values[3][1]*(a).values[1][2] + \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[3][2] + \
+								 (a).values[3][0]*(a).values[1][1]*(a).values[0][2] - \
+								 (a).values[0][0]*(a).values[1][1]*(a).values[3][2] - \
+								 (a).values[1][0]*(a).values[3][1]*(a).values[0][2] - \
+								 (a).values[3][0]*(a).values[0][1]*(a).values[1][2])*invDet; \
+		(result).values[3][3] = ((a).values[0][0]*(a).values[1][1]*(a).values[2][2] + \
+								 (a).values[1][0]*(a).values[2][1]*(a).values[0][2] + \
+								 (a).values[2][0]*(a).values[0][1]*(a).values[1][2] - \
+								 (a).values[0][0]*(a).values[2][1]*(a).values[1][2] - \
+								 (a).values[1][0]*(a).values[0][1]*(a).values[2][2] - \
+								 (a).values[2][0]*(a).values[1][1]*(a).values[0][2])*invDet; \
 	} while (0)
 
 #define dsMatrix44_makeRotateImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \
 	{ \
-		(result).values[0][0] = (cosY); \
-		(result).values[0][1] = (sinX)*(sinZ); \
-		(result).values[0][2] = -(cosZ)*(sinX); \
+		(result).values[0][0] = (cosY)*(cosZ); \
+		(result).values[0][1] = (cosY)*(sinZ); \
+		(result).values[0][2] = -(sinY); \
 		(result).values[0][3] = 0; \
 		\
-		(result).values[1][0] = (sinY)*(sinZ); \
-		(result).values[1][1] = (cosX)*(cosZ) - (cosY)*(sinX)*(sinZ); \
-		(result).values[1][2] = (cosZ)*(sinX) + (cosX)*(cosY)*(sinZ); \
+		(result).values[1][0] = (sinX)*(sinY)*(cosZ) - (cosX)*(sinZ); \
+		(result).values[1][1] = (cosX)*(cosZ) + (sinX)*(sinY)*(sinZ); \
+		(result).values[1][2] = (sinX)*(cosY); \
 		(result).values[1][3] = 0; \
 		\
-		(result).values[2][0] = (cosZ)*(sinY); \
-		(result).values[2][1] = -(cosX)*(sinZ) - (cosY)*(cosZ)*(sinX); \
-		(result).values[2][2] = (cosX)*(cosY)*(cosZ) - (sinX)*(sinZ); \
+		(result).values[2][0] = (sinX)*(sinZ) + (cosX)*(sinY)*(cosZ); \
+		(result).values[2][1] = (cosX)*(sinY)*(sinZ) - (sinX)*(cosZ); \
+		(result).values[2][2] = (cosX)*(cosY); \
 		(result).values[2][3] = 0; \
 		\
 		(result).values[3][0] = 0; \
@@ -114,9 +193,12 @@ void dsMatrix44f_affineInvert(dsMatrix44f* result, dsMatrix44f* a)
 	result->values[1][3] = 0;
 	result->values[2][3] = 0;
 
-	result->values[3][0] = -a->values[3][0];
-	result->values[3][1] = -a->values[3][1];
-	result->values[3][2] = -a->values[3][2];
+	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
+		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
+	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
+		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
+	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
+		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
 	result->values[3][3] = 1;
 }
 
@@ -137,9 +219,12 @@ void dsMatrix44d_affineInvert(dsMatrix44d* result, dsMatrix44d* a)
 	result->values[1][3] = 0;
 	result->values[2][3] = 0;
 
-	result->values[3][0] = -a->values[3][0];
-	result->values[3][1] = -a->values[3][1];
-	result->values[3][2] = -a->values[3][2];
+	result->values[3][0] = -a->values[3][0]*result->values[0][0] -
+		a->values[3][1]*result->values[1][0] - a->values[3][2]*result->values[2][0];
+	result->values[3][1] = -a->values[3][0]*result->values[0][1] -
+		a->values[3][1]*result->values[1][1] - a->values[3][2]*result->values[2][1];
+	result->values[3][2] = -a->values[3][0]*result->values[0][2] -
+		a->values[3][1]*result->values[1][2] - a->values[3][2]*result->values[2][2];
 	result->values[3][3] = 1;
 }
 
@@ -229,7 +314,7 @@ void dsMatrix44f_makeTranslate(dsMatrix44f* result, float x, float y, float z)
 	result->values[0][0] = 1;
 	result->values[0][1] = 0;
 	result->values[0][2] = 0;
-	result->values[0][2] = 0;
+	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 1;
@@ -253,7 +338,7 @@ void dsMatrix44d_makeTranslate(dsMatrix44d* result, double x, double y, double z
 	result->values[0][0] = 1;
 	result->values[0][1] = 0;
 	result->values[0][2] = 0;
-	result->values[0][2] = 0;
+	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
 	result->values[1][1] = 1;
@@ -277,7 +362,7 @@ void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y, float z)
 	result->values[0][0] = x;
 	result->values[0][1] = 0;
 	result->values[0][2] = 0;
-	result->values[0][2] = 0;
+	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
 	result->values[1][1] = y;
@@ -301,7 +386,7 @@ void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
 	result->values[0][0] = x;
 	result->values[0][1] = 0;
 	result->values[0][2] = 0;
-	result->values[0][2] = 0;
+	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
 	result->values[1][1] = y;

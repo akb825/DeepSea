@@ -76,6 +76,30 @@ extern "C"
  */
 #define dsLerp(x, y, t) ((x) + (t)*((y) - (x)))
 
+/**
+ * @brief Converts degrees to radians.
+ * @param degrees The angle in degrees.
+ * @return The angle in radians.
+ */
+inline double dsDegreesToRadians(double degrees);
+
+/**
+ * @brief Converts radians to degrees.
+ * @param radians The angle in radians.
+ * @return The angle in degrees.
+ */
+inline double dsRadiansToDegrees(double radians);
+
+inline double dsDegreesToRadians(double degrees)
+{
+	return degrees*M_PI/180;
+}
+
+inline double dsRadiansToDegrees(double radians)
+{
+	return radians*180/M_PI;
+}
+
 #ifdef __cplusplus
 }
 #endif

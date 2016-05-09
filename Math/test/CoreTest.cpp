@@ -64,3 +64,9 @@ TEST(Core, Lerp)
 	EXPECT_EQ(3.2f, dsLerp(-0.5f, 3.2f, 1.0f));
 	EXPECT_EQ(0.61f, dsLerp(-0.5f, 3.2f, 0.3f));
 }
+
+TEST(Core, DegreesRadians)
+{
+	EXPECT_FLOAT_EQ(M_PI, dsDegreesToRadians(180));
+	EXPECT_FLOAT_EQ(180, dsRadiansToDegrees(M_PI));
+}

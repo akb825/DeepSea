@@ -17,7 +17,6 @@
 #include <DeepSea/Math/Matrix33.h>
 
 #include "Matrix33Impl.h"
-#include <DeepSea/Core/Assert.h>
 
 void dsMatrix33f_affineInvert(dsMatrix33f* result, dsMatrix33f* a)
 {
@@ -25,21 +24,23 @@ void dsMatrix33f_affineInvert(dsMatrix33f* result, dsMatrix33f* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	float upperDet = result->values[0][0]*result->values[1][1] -
-		result->values[1][0]*result->values[0][1];
+	float upperDet = a->values[0][0]*a->values[1][1] -
+		a->values[1][0]*a->values[0][1];
 	DS_ASSERT(upperDet != 0);
 	float invUpperDet = 1/upperDet;
 
-	result->values[0][0] = result->values[1][1]*invUpperDet;
-	result->values[0][1] = -result->values[0][1]*invUpperDet;
+	result->values[0][0] = a->values[1][1]*invUpperDet;
+	result->values[0][1] = -a->values[0][1]*invUpperDet;
 	result->values[0][2] = 0;
 
-	result->values[1][0] = -result->values[1][0]*invUpperDet;
-	result->values[1][1] = -result->values[0][0]*invUpperDet;
+	result->values[1][0] = -a->values[1][0]*invUpperDet;
+	result->values[1][1] = a->values[0][0]*invUpperDet;
 	result->values[1][2] = 0;
 
-	result->values[2][0] = result->values[2][0]*invUpperDet;
-	result->values[2][1] = result->values[2][1]*invUpperDet;
+	result->values[2][0] = -a->values[2][0]*result->values[0][0] -
+		a->values[2][1]*result->values[1][0];
+	result->values[2][1] = -a->values[2][0]*result->values[0][1] -
+		a->values[2][1]*result->values[1][1];
 	result->values[2][2] = 1;
 }
 
@@ -49,21 +50,23 @@ void dsMatrix33d_affineInvert(dsMatrix33d* result, dsMatrix33d* a)
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	double upperDet = result->values[0][0]*result->values[1][1] -
-		result->values[1][0]*result->values[0][1];
+	double upperDet = a->values[0][0]*a->values[1][1] -
+		a->values[1][0]*a->values[0][1];
 	DS_ASSERT(upperDet != 0);
 	double invUpperDet = 1/upperDet;
 
-	result->values[0][0] = result->values[1][1]*invUpperDet;
-	result->values[0][1] = -result->values[0][1]*invUpperDet;
+	result->values[0][0] = a->values[1][1]*invUpperDet;
+	result->values[0][1] = -a->values[0][1]*invUpperDet;
 	result->values[0][2] = 0;
 
-	result->values[1][0] = -result->values[1][0]*invUpperDet;
-	result->values[1][1] = -result->values[0][0]*invUpperDet;
+	result->values[1][0] = -a->values[1][0]*invUpperDet;
+	result->values[1][1] = a->values[0][0]*invUpperDet;
 	result->values[1][2] = 0;
 
-	result->values[2][0] = result->values[2][0]*invUpperDet;
-	result->values[2][1] = result->values[2][1]*invUpperDet;
+	result->values[2][0] = -a->values[2][0]*result->values[0][0] -
+		a->values[2][1]*result->values[1][0];
+	result->values[2][1] = -a->values[2][0]*result->values[0][1] -
+		a->values[2][1]*result->values[1][1];
 	result->values[2][2] = 1;
 }
 

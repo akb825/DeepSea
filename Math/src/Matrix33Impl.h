@@ -21,22 +21,22 @@
 	{ \
 		(result).values[0][0] = ((mat).values[1][1]*(mat).values[2][2] - \
 			(mat).values[1][2]*(mat).values[2][1])*invDet; \
-		(result).values[0][1] = ((mat).values[1][0]*(mat).values[2][2] - \
-			(mat).values[1][2]*(mat).values[2][0])*invDet; \
-		(result).values[0][2] = ((mat).values[1][0]*(mat).values[2][1] - \
-			(mat).values[1][1]*(mat).values[2][0])*invDet; \
+		(result).values[0][1] = ((mat).values[0][2]*(mat).values[2][1] - \
+			(mat).values[0][1]*(mat).values[2][2])*invDet; \
+		(result).values[0][2] = ((mat).values[0][1]*(mat).values[1][2] - \
+			(mat).values[0][2]*(mat).values[1][1])*invDet; \
 		\
-		(result).values[1][0] = ((mat).values[0][1]*(mat).values[2][2] - \
-			(mat).values[0][2]*(mat).values[2][1])*invDet; \
+		(result).values[1][0] = ((mat).values[1][2]*(mat).values[2][0] - \
+			(mat).values[1][0]*(mat).values[2][2])*invDet; \
 		(result).values[1][1] = ((mat).values[0][0]*(mat).values[2][2] - \
 			(mat).values[0][2]*(mat).values[2][0])*invDet; \
-		(result).values[1][2] = ((mat).values[0][0]*(mat).values[2][1] - \
-			(mat).values[0][1]*(mat).values[2][0])*invDet; \
+		(result).values[1][2] = ((mat).values[0][2]*(mat).values[1][0] - \
+			(mat).values[0][0]*(mat).values[1][2])*invDet; \
 		\
-		(result).values[2][0] = ((mat).values[0][1]*(mat).values[1][2] - \
-			(mat).values[0][2]*(mat).values[1][1])*invDet; \
-		(result).values[2][1] = ((mat).values[0][0]*(mat).values[1][2] - \
-			(mat).values[0][2]*(mat).values[1][0])*invDet; \
+		(result).values[2][0] = ((mat).values[1][0]*(mat).values[2][1] - \
+			(mat).values[1][1]*(mat).values[2][0])*invDet; \
+		(result).values[2][1] = ((mat).values[0][1]*(mat).values[2][0] - \
+			(mat).values[0][0]*(mat).values[2][1])*invDet; \
 		(result).values[2][2] = ((mat).values[0][0]*(mat).values[1][1] - \
 			(mat).values[0][1]*(mat).values[1][0])*invDet; \
 	} while (0)

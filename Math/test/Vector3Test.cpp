@@ -46,32 +46,32 @@ class Vector3FloatTest : public Vector3Test<T>
 using Vector3FloatTypes = testing::Types<float, double>;
 TYPED_TEST_CASE(Vector3FloatTest, Vector3FloatTypes);
 
-float dsVector3_len(dsVector3f* a)
+inline float dsVector3_len(dsVector3f* a)
 {
 	return dsVector3f_len(a);
 }
 
-double dsVector3_len(dsVector3d* a)
+inline double dsVector3_len(dsVector3d* a)
 {
 	return dsVector3d_len(a);
 }
 
-float dsVector3_dist(dsVector3f* a, dsVector3f* b)
+inline float dsVector3_dist(dsVector3f* a, dsVector3f* b)
 {
 	return dsVector3f_dist(a, b);
 }
 
-double dsVector3_dist(dsVector3d* a, dsVector3d* b)
+inline double dsVector3_dist(dsVector3d* a, dsVector3d* b)
 {
 	return dsVector3d_dist(a, b);
 }
 
-void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
+inline void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
 {
 	dsVector3f_normalize(result, a);
 }
 
-void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
+inline void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
 {
 	dsVector3d_normalize(result, a);
 }

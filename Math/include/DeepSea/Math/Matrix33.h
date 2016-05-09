@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Types.h>
@@ -41,6 +42,26 @@ extern "C"
  */
 
 /**
+ * @brief Sets a matrix to be identity.
+ * @param result The matrix to hold
+ */
+#define dsMatrix33_identity(result) \
+	do \
+	{ \
+		(result).values[0][0] = 1; \
+		(result).values[0][1] = 0; \
+		(result).values[0][2] = 0; \
+		\
+		(result).values[1][0] = 0; \
+		(result).values[1][1] = 1; \
+		(result).values[1][2] = 0; \
+		\
+		(result).values[2][0] = 0; \
+		(result).values[2][1] = 0; \
+		(result).values[2][2] = 1; \
+	} while (0)
+
+/**
  * @brief Multiplies two matrices.
  * @param result The result of a*b. This may NOT be the same as a or b.
  * @param a The first matrix.
@@ -49,6 +70,9 @@ extern "C"
 #define dsMatrix33_mul(result, a, b) \
 	do \
 	{ \
+		DS_ASSERT(&(result) != &(a)); \
+		DS_ASSERT(&(result) != &(b)); \
+		\
 		(result).values[0][0] = (a).values[0][0]*(b).values[0][0] + \
 								(a).values[1][0]*(b).values[0][1] + \
 								(a).values[2][0]*(b).values[0][2]; \
@@ -89,35 +113,16 @@ extern "C"
 #define dsMatrix33_transform(result, mat, vec) \
 	do \
 	{ \
-		(result).values[0] = (mat)[0][0]*(vec)[0] + \
-							 (mat)[0][1]*(vec)[1] + \
-							 (mat)[0][2]*(vec)[2]; \
-		(result).values[1] = (mat)[1][0]*(vec)[0] + \
-							 (mat)[1][1]*(vec)[1] + \
-							 (mat)[1][2]*(vec)[2]; \
-		(result).values[2] = (mat)[2][0]*(vec)[0] + \
-							 (mat)[2][1]*(vec)[1] + \
-							 (mat)[2][2]*(vec)[2]; \
-	} while (0)
-
-/**
- * @brief Sets a matrix to be identity.
- * @param result The matrix to hold
- */
-#define dsMatrix33_identity(result) \
-	do \
-	{ \
-		(result).value[0][0] = 1; \
-		(result).value[0][1] = 0; \
-		(result).value[0][2] = 0; \
-		\
-		(result).value[1][0] = 0; \
-		(result).value[1][1] = 1; \
-		(result).value[1][2] = 0; \
-		\
-		(result).value[2][0] = 0; \
-		(result).value[2][1] = 0; \
-		(result).value[2][2] = 1; \
+		DS_ASSERT(&(result) != &(vec)); \
+		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
+							 (mat).values[0][1]*(vec).values[1] + \
+							 (mat).values[0][2]*(vec).values[2]; \
+		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
+							 (mat).values[1][1]*(vec).values[1] + \
+							 (mat).values[1][2]*(vec).values[2]; \
+		(result).values[2] = (mat).values[2][0]*(vec).values[0] + \
+							 (mat).values[2][1]*(vec).values[1] + \
+							 (mat).values[2][2]*(vec).values[2]; \
 	} while (0)
 
 /**
@@ -128,17 +133,19 @@ extern "C"
 #define dsMatrix33_transpose(result, a) \
 	do \
 	{ \
-		(result).value[0][0] = (a)[0][0]; \
-		(result).value[0][1] = (a)[1][0]; \
-		(result).value[0][2] = (a)[2][0]; \
+		DS_ASSERT(&(result) != &(a)); \
 		\
-		(result).value[1][0] = (a)[0][1]; \
-		(result).value[1][1] = (a)[1][1]; \
-		(result).value[1][2] = (a)[2][1]; \
+		(result).values[0][0] = (a).values[0][0]; \
+		(result).values[0][1] = (a).values[1][0]; \
+		(result).values[0][2] = (a).values[2][0]; \
 		\
-		(result).value[2][0] = (a)[0][2]; \
-		(result).value[2][1] = (a)[1][2]; \
-		(result).value[2][2] = (a)[2][2]; \
+		(result).values[1][0] = (a).values[0][1]; \
+		(result).values[1][1] = (a).values[1][1]; \
+		(result).values[1][2] = (a).values[2][1]; \
+		\
+		(result).values[2][0] = (a).values[0][2]; \
+		(result).values[2][1] = (a).values[1][2]; \
+		(result).values[2][2] = (a).values[2][2]; \
 	} while (0)
 
 /**
@@ -156,17 +163,21 @@ extern "C"
 #define dsMatrix33_fastInvert(result, a) \
 	do \
 	{ \
-		(result).value[0][0] = (a)[0][0]; \
-		(result).value[0][1] = (a)[1][0]; \
-		(result).value[0][2] = 0; \
+		DS_ASSERT(&(result) != &(a)); \
 		\
-		(result).value[1][0] = (a)[0][1]; \
-		(result).value[1][1] = (a)[1][1]; \
-		(result).value[1][2] = 0; \
+		(result).values[0][0] = (a).values[0][0]; \
+		(result).values[0][1] = (a).values[1][0]; \
+		(result).values[0][2] = 0; \
 		\
-		(result).value[2][0] = -(a)[2][0]; \
-		(result).value[2][1] = -(a)[2][1]; \
-		(result).value[2][2] = 1; \
+		(result).values[1][0] = (a).values[0][1]; \
+		(result).values[1][1] = (a).values[1][1]; \
+		(result).values[1][2] = 0; \
+		\
+		(result).values[2][0] = -(a).values[2][0]*(result).values[0][0] - \
+			(a).values[2][1]*(result).values[1][0]; \
+		(result).values[2][1] = -(a).values[2][0]*(result).values[0][1] - \
+			(a).values[2][1]*(result).values[1][1]; \
+		(result).values[2][2] = 1; \
 	} \
 	while (0)
 
