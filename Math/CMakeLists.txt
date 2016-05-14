@@ -4,7 +4,7 @@ file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
 add_library(deepsea_math ${DEEPSEA_LIB} ${sources})
 
 find_library(MATH_LIB m)
-if (${MATH_LIB} STREQUAL MATH_LIB-NOTFOUND)
+if (NOT MATH_LIB)
 	set(MATH_LIB "")
 endif()
 
