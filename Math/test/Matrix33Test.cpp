@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Vector3.h>
 #include <gtest/gtest.h>
 
 template <typename T>
@@ -77,6 +78,28 @@ inline void dsMatrix33_makeRotate(dsMatrix33d* result, double angle)
 	dsMatrix33d_makeRotate(result, angle);
 }
 
+inline void dsMatrix33_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
+{
+	dsMatrix33f_makeRotate3D(result, x, y, z);
+}
+
+inline void dsMatrix33_makeRotate3D(dsMatrix33d* result, double x, double y, double z)
+{
+	dsMatrix33d_makeRotate3D(result, x, y, z);
+}
+
+inline void dsMatrix33_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
+	float angle)
+{
+	dsMatrix33f_makeRotate3DAxisAngle(result, axis, angle);
+}
+
+inline void dsMatrix33_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
+	double angle)
+{
+	dsMatrix33d_makeRotate3DAxisAngle(result, axis, angle);
+}
+
 inline void dsMatrix33_makeTranslate(dsMatrix33f* result, float x, float y)
 {
 	dsMatrix33f_makeTranslate(result, x, y);
@@ -95,6 +118,26 @@ inline void dsMatrix33_makeScale(dsMatrix33f* result, float x, float y)
 inline void dsMatrix33_makeScale(dsMatrix33d* result, double x, double y)
 {
 	dsMatrix33d_makeScale(result, x, y);
+}
+
+inline void dsMatrix33_makeScale3D(dsMatrix33f* result, float x, float y, float z)
+{
+	dsMatrix33f_makeScale3D(result, x, y, z);
+}
+
+inline void dsMatrix33_makeScale3D(dsMatrix33d* result, double x, double y, double z)
+{
+	dsMatrix33d_makeScale3D(result, x, y, z);
+}
+
+inline void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
+{
+	dsVector3f_normalize(result, a);
+}
+
+inline void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
+{
+	dsVector3d_normalize(result, a);
 }
 
 TYPED_TEST(Matrix33Test, Initialize)
@@ -317,6 +360,103 @@ TYPED_TEST(Matrix33Test, MakeRotate)
 	EXPECT_EQ(1, matrix.values[2][2]);
 }
 
+TYPED_TEST(Matrix33Test, MakeRotate3D)
+{
+	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
+
+	Matrix33Type rotateX;
+	dsMatrix33_makeRotate3D(&rotateX, (TypeParam)dsDegreesToRadians(30), 0, 0);
+
+	EXPECT_EQ(1, rotateX.values[0][0]);
+	EXPECT_EQ(0, rotateX.values[0][1]);
+	EXPECT_EQ(0, rotateX.values[0][2]);
+
+	EXPECT_EQ(0, rotateX.values[1][0]);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[1][1], epsilon);
+	EXPECT_NEAR((TypeParam)0.5, rotateX.values[1][2], epsilon);
+
+	EXPECT_EQ(0, rotateX.values[2][0]);
+	EXPECT_NEAR((TypeParam)-0.5, rotateX.values[2][1], epsilon);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[2][2], epsilon);
+
+	Matrix33Type rotateY;
+	dsMatrix33_makeRotate3D(&rotateY, 0, (TypeParam)dsDegreesToRadians(-15), 0);
+
+	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[0][0], epsilon);
+	EXPECT_EQ(0, rotateY.values[0][1]);
+	EXPECT_NEAR((TypeParam)0.2588190451025208, rotateY.values[0][2], epsilon);
+
+	EXPECT_EQ(0, rotateY.values[1][0]);
+	EXPECT_EQ(1, rotateY.values[1][1]);
+	EXPECT_EQ(0, rotateY.values[1][2]);
+
+	EXPECT_NEAR((TypeParam)-0.2588190451025208, rotateY.values[2][0], epsilon);
+	EXPECT_EQ(0, rotateY.values[2][1]);
+	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[2][2], epsilon);
+
+	Matrix33Type rotateZ;
+	dsMatrix33_makeRotate3D(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadians(60));
+
+	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[0][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.866025403784439, rotateZ.values[0][1], epsilon);
+	EXPECT_EQ(0, rotateZ.values[0][2]);
+
+	EXPECT_NEAR((TypeParam)-0.866025403784439, rotateZ.values[1][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[1][1], epsilon);
+	EXPECT_EQ(0, rotateZ.values[1][2]);
+
+	EXPECT_EQ(0, rotateZ.values[2][0]);
+	EXPECT_EQ(0, rotateZ.values[2][1]);
+	EXPECT_EQ(1, rotateZ.values[2][2]);
+
+	Matrix33Type temp, result;
+	dsMatrix33_mul(temp, rotateY, rotateX);
+	dsMatrix33_mul(result, rotateZ, temp);
+
+	Matrix33Type rotateXYZ;
+	dsMatrix33_makeRotate3D(&rotateXYZ, (TypeParam)dsDegreesToRadians(30),
+		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+
+	EXPECT_NEAR(result.values[0][0], rotateXYZ.values[0][0], epsilon);
+	EXPECT_NEAR(result.values[0][1], rotateXYZ.values[0][1], epsilon);
+	EXPECT_NEAR(result.values[0][2], rotateXYZ.values[0][2], epsilon);
+
+	EXPECT_NEAR(result.values[1][0], rotateXYZ.values[1][0], epsilon);
+	EXPECT_NEAR(result.values[1][1], rotateXYZ.values[1][1], epsilon);
+	EXPECT_NEAR(result.values[1][2], rotateXYZ.values[1][2], epsilon);
+
+	EXPECT_NEAR(result.values[2][0], rotateXYZ.values[2][0], epsilon);
+	EXPECT_NEAR(result.values[2][1], rotateXYZ.values[2][1], epsilon);
+	EXPECT_NEAR(result.values[2][2], rotateXYZ.values[2][2], epsilon);
+}
+
+TYPED_TEST(Matrix33Test, MakeRotateAxisAngle)
+{
+	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	typedef typename Matrix33TypeSelector<TypeParam>::VectorType Vector3Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
+
+	Vector3Type axis = {(TypeParam)-0.289967871131, (TypeParam)0.0171578621971,
+		(TypeParam)0.51473586591302};
+	dsVector3_normalize(&axis, &axis);
+	Matrix33Type matrix;
+	dsMatrix33_makeRotate3DAxisAngle(&matrix, &axis,
+		(TypeParam)dsDegreesToRadians(17.188733853924894));
+
+	EXPECT_NEAR((TypeParam)0.96608673169969, matrix.values[0][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.25673182392846, matrix.values[0][1], epsilon);
+	EXPECT_NEAR((TypeParam)-0.02766220194012, matrix.values[0][2], epsilon);
+
+	EXPECT_NEAR((TypeParam)-0.25800404198456, matrix.values[1][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.95537412871306, matrix.values[1][1], epsilon);
+	EXPECT_NEAR((TypeParam)-0.14385474794174, matrix.values[1][2], epsilon);
+
+	EXPECT_NEAR((TypeParam)-0.01050433974302, matrix.values[2][0], epsilon);
+	EXPECT_NEAR((TypeParam)0.14611312318926, matrix.values[2][1], epsilon);
+	EXPECT_NEAR((TypeParam)0.98921211783846, matrix.values[2][2], epsilon);
+}
+
 TYPED_TEST(Matrix33Test, MakeTranslate)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
@@ -355,6 +495,26 @@ TYPED_TEST(Matrix33Test, MakeScale)
 	EXPECT_EQ(0, matrix.values[2][0]);
 	EXPECT_EQ(0, matrix.values[2][1]);
 	EXPECT_EQ(1, matrix.values[2][2]);
+}
+
+TYPED_TEST(Matrix33Test, MakeScale3D)
+{
+	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+
+	Matrix33Type matrix;
+	dsMatrix33_makeScale3D(&matrix, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
+
+	EXPECT_EQ((TypeParam)1.2, matrix.values[0][0]);
+	EXPECT_EQ(0, matrix.values[0][1]);
+	EXPECT_EQ(0, matrix.values[0][2]);
+
+	EXPECT_EQ(0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)-3.4, matrix.values[1][1]);
+	EXPECT_EQ(0, matrix.values[1][2]);
+
+	EXPECT_EQ(0, matrix.values[2][0]);
+	EXPECT_EQ(0, matrix.values[2][1]);
+	EXPECT_EQ((TypeParam)5.6, matrix.values[2][2]);
 }
 
 TYPED_TEST(Matrix33Test, FastInvert)

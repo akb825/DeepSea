@@ -258,6 +258,9 @@ extern "C"
 
 /**
  * @brief Inverts an affine matrix.
+ *
+ * An affine matrix will be a 3D transformation matrix that preserves parallel planes.
+ *
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
@@ -297,12 +300,7 @@ DS_MATH_EXPORT void dsMatrix44d_makeRotate(dsMatrix44d* result, double x, double
 DS_MATH_EXPORT void dsMatrix44f_makeRotateAxisAngle(dsMatrix44f* result, const dsVector3f* axis,
 	float angle);
 
-/**
- * @brief Makes a rotation matrix.
- * @param result The matrix for the result.
- * @param axis The axis to rotate around. This should be a unit vector.
- * @param angle The angle to rotate in radians.
- */
+/** @copydoc dsMatrix44f_makeRotateAxisAngle() */
 DS_MATH_EXPORT void dsMatrix44d_makeRotateAxisAngle(dsMatrix44d* result, const dsVector3d* axis,
 	double angle);
 

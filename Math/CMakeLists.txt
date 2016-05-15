@@ -1,5 +1,3 @@
-find_package(Threads)
-
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
 add_library(deepsea_math ${DEEPSEA_LIB} ${sources})
 
@@ -15,7 +13,7 @@ target_compile_definitions(deepsea_math PUBLIC _USE_MATH_DEFINES)
 	
 set_folder(deepsea_math libs)
 setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-	INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/MATH
+	INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/Math
 	FILES ${sources})
 
 install_library(TARGET deepsea_math MODULE Math DEPENDENCIES Core)

@@ -183,6 +183,9 @@ extern "C"
 
 /**
  * @brief Inverts an affine matrix.
+ *
+ * An affine matrix will be a 2D transformation matrix that preserves parallel lines.
+ *
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
@@ -202,7 +205,7 @@ DS_MATH_EXPORT void dsMatrix33f_invert(dsMatrix33f* result, dsMatrix33f* a);
 DS_MATH_EXPORT void dsMatrix33d_invert(dsMatrix33d* result, dsMatrix33d* a);
 
 /**
- * @brief Makes a rotation matrix.
+ * @brief Makes a 2D rotation matrix.
  * @param result The matrix for the result.
  * @param angle The angle to rotate by in radians.
  */
@@ -210,6 +213,31 @@ DS_MATH_EXPORT void dsMatrix33f_makeRotate(dsMatrix33f* result, float angle);
 
 /** @copydoc dsMatrix33f_makeRotate() */
 DS_MATH_EXPORT void dsMatrix33d_makeRotate(dsMatrix33d* result, double angle);
+
+/**
+ * @brief Makes a 3D rotation matrix.
+ * @param result The matrix for the result.
+ * @param x The angle around the x axis in radians.
+ * @param y The angle around the y axis in radians.
+ * @param z The angle around the z axis in radians.
+ */
+DS_MATH_EXPORT void dsMatrix33f_makeRotate3D(dsMatrix33f* result, float x, float y, float z);
+
+/** @copydoc dsMatrix33f_makeRotate3D() */
+DS_MATH_EXPORT void dsMatrix33d_makeRotate3D(dsMatrix33d* result, double x, double y, double z);
+
+/**
+ * @brief Makes a 3D rotation matrix.
+ * @param result The matrix for the result.
+ * @param axis The axis to rotate around. This should be a unit vector.
+ * @param angle The angle to rotate in radians.
+ */
+DS_MATH_EXPORT void dsMatrix33f_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
+	float angle);
+
+/** @copydoc dsMatrix33f_makeRotate3DAxisAngle() */
+DS_MATH_EXPORT void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
+	double angle);
 
 /**
  * @brief Makes a translation matrix.
@@ -223,7 +251,7 @@ DS_MATH_EXPORT void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, floa
 DS_MATH_EXPORT void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, double y);
 
 /**
- * @brief Makes a scale matrix.
+ * @brief Makes a 2D scale matrix.
  * @param result The matrix for the result.
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
@@ -232,6 +260,18 @@ DS_MATH_EXPORT void dsMatrix33f_makeScale(dsMatrix33f* result, float x, float y)
 
 /** @copydoc dsMatrix33f_makeScale() */
 DS_MATH_EXPORT void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y);
+
+/**
+ * @brief Makes a 3D scale matrix.
+ * @param result The matrix for the result.
+ * @param x The scale in the x axis.
+ * @param y The scale in the y axis.
+ * @param z The scale in the z axis.
+ */
+DS_MATH_EXPORT void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z);
+
+/** @copydoc dsMatrix33f_makeScale3D() */
+DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
 /** @cond */
 #define dsMatrix33_determinantImpl(a, i0, i1, i2, j0, j1, j2) \

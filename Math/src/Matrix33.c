@@ -18,6 +18,44 @@
 
 #include "Matrix33Impl.h"
 
+#define dsMatrix33_makeRotate3DImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
+	do \
+	{ \
+		(result).values[0][0] = (cosY)*(cosZ); \
+		(result).values[0][1] = (cosY)*(sinZ); \
+		(result).values[0][2] = -(sinY); \
+		\
+		(result).values[1][0] = (sinX)*(sinY)*(cosZ) - (cosX)*(sinZ); \
+		(result).values[1][1] = (cosX)*(cosZ) + (sinX)*(sinY)*(sinZ); \
+		(result).values[1][2] = (sinX)*(cosY); \
+		\
+		(result).values[2][0] = (sinX)*(sinZ) + (cosX)*(sinY)*(cosZ); \
+		(result).values[2][1] = (cosX)*(sinY)*(sinZ) - (sinX)*(cosZ); \
+		(result).values[2][2] = (cosX)*(cosY); \
+	} while (0)
+
+#define dsMatrix33_makeRotate3DAxisAngleImpl(result, axis, cosAngle, sinAngle, invCosAngle) \
+	do \
+	{ \
+		(result).values[0][0] = (invCosAngle)*(axis).values[0]*(axis).values[0] + (cosAngle); \
+		(result).values[0][1] = (invCosAngle)*(axis).values[0]*(axis).values[1] + \
+			(axis).values[2]*(sinAngle); \
+		(result).values[0][2] = (invCosAngle)*(axis).values[0]*(axis).values[2] - \
+			(axis).values[1]*(sinAngle); \
+		\
+		(result).values[1][0] = (invCosAngle)*(axis).values[0]*(axis).values[1] - \
+			(axis).values[2]*(sinAngle); \
+		(result).values[1][1] = (invCosAngle)*(axis).values[1]*(axis).values[1] + (cosAngle); \
+		(result).values[1][2] = (invCosAngle)*(axis).values[1]*(axis).values[2] + \
+			(axis).values[0]*(sinAngle); \
+		\
+		(result).values[2][0] = (invCosAngle)*(axis).values[0]*(axis).values[2] + \
+			(axis).values[1]*(sinAngle); \
+		(result).values[2][1] = (invCosAngle)*(axis).values[1]*(axis).values[2] - \
+			(axis).values[0]*(sinAngle); \
+		(result).values[2][2] = (invCosAngle)*(axis).values[2]*(axis).values[2] + (cosAngle); \
+	} while (0)
+
 void dsMatrix33f_affineInvert(dsMatrix33f* result, dsMatrix33f* a)
 {
 	DS_ASSERT(result);
@@ -132,6 +170,60 @@ void dsMatrix33d_makeRotate(dsMatrix33d* result, double angle)
 	result->values[2][2] = 1;
 }
 
+void dsMatrix33f_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
+{
+	DS_ASSERT(result);
+
+	float cosX = cosf(x);
+	float sinX = sinf(x);
+	float cosY = cosf(y);
+	float sinY = sinf(y);
+	float cosZ = cosf(z);
+	float sinZ = sinf(z);
+
+	dsMatrix33_makeRotate3DImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+}
+
+void dsMatrix33d_makeRotate3D(dsMatrix33d* result, double x, double y, double z)
+{
+	DS_ASSERT(result);
+
+	double cosX = cos(x);
+	double sinX = sin(x);
+	double cosY = cos(y);
+	double sinY = sin(y);
+	double cosZ = cos(z);
+	double sinZ = sin(z);
+
+	dsMatrix33_makeRotate3DImpl(*result, cosX, sinX, cosY, sinY, cosZ, sinZ);
+}
+
+void dsMatrix33f_makeRotate3DAxisAngle(dsMatrix33f* result, const dsVector3f* axis,
+	float angle)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(axis);
+
+	float cosAngle = cosf(angle);
+	float sinAngle = sinf(angle);
+	float invCosAngle = 1 - cosAngle;
+
+	dsMatrix33_makeRotate3DAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
+}
+
+void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const dsVector3d* axis,
+	double angle)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(axis);
+
+	double cosAngle = cos(angle);
+	double sinAngle = sin(angle);
+	double invCosAngle = 1 - cosAngle;
+
+	dsMatrix33_makeRotate3DAxisAngleImpl(*result, *axis, cosAngle, sinAngle, invCosAngle);
+}
+
 void dsMatrix33f_makeTranslate(dsMatrix33f* result, float x, float y)
 {
 	DS_ASSERT(result);
@@ -194,4 +286,36 @@ void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double y)
 	result->values[2][0] = 0;
 	result->values[2][1] = 0;
 	result->values[2][2] = 1;
+}
+
+void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float y, float z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
+}
+
+void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z)
+{
+	DS_ASSERT(result);
+	result->values[0][0] = x;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = y;
+	result->values[1][2] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	result->values[2][2] = z;
 }
