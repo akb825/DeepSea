@@ -1,0 +1,259 @@
+/*
+ * Copyright 2016 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Math/Types.h>
+
+// Workaround for system headers included before this file that #define half the English language.
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * @file
+ * @brief Includes all of the types used in the DeepSea/Geometry library.
+ */
+
+/**
+ * @brief Structure for 2D axis-aligned bounding box using floats.
+ */
+typedef struct dsAlignedBox2f
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector2f min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector2f max;
+} dsAlignedBox2f;
+
+/**
+ * @brief Structure for 2D axis-aligned bounding box using doubles.
+ */
+typedef struct dsAlignedBox2d
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector2d min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector2d max;
+} dsAlignedBox2d;
+
+/**
+ * @brief Structure for 2D axis-aligned bounding box using ints.
+ */
+typedef struct dsAlignedBox2i
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector2i min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector2i max;
+} dsAlignedBox2i;
+
+/**
+ * @brief Structure for 3D axis-aligned bounding box using floats.
+ */
+typedef struct dsAlignedBox3f
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector3f min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector3f max;
+} dsAlignedBox3f;
+
+/**
+ * @brief Structure for 3D axis-aligned bounding box using doubles.
+ */
+typedef struct dsAlignedBox3d
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector3d min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector3d max;
+} dsAlignedBox3d;
+
+/**
+ * @brief Structure for 3D axis-aligned bounding box using ints.
+ */
+typedef struct dsAlignedBox3i
+{
+	/**
+	 * @brief Minimum values for the box.
+	 */
+	dsVector3i min;
+
+	/**
+	 * @brief Maximum values for the box.
+	 */
+	dsVector3i max;
+} dsAlignedBox3i;
+
+/**
+ * @brief Structure for a 2D oriented bounding box using floats.
+ */
+typedef struct dsOrientedBox2f
+{
+	/**
+	 * @brief Transform from world space to the local space of the box.
+	 *
+	 * In its local space, the box is axis aligned with a min of (-1, -1) and max of (1, 1).
+	 */
+	dsMatrix33f transform;
+} dsOrientedBox2f;
+
+/**
+ * @brief Structure for a 2D oriented bounding box using doubles.
+ */
+typedef struct dsOrientedBox2d
+{
+	/**
+	 * @brief Transform from world space to the local space of the box.
+	 *
+	 * In its local space, the box is axis aligned with a min of (-1, -1) and max of (1, 1).
+	 */
+	dsMatrix33d transform;
+} dsOrientedBox2d;
+
+/**
+ * @brief Structure for a 3D oriented bounding box using floats.
+ */
+typedef struct dsOrientedBox3f
+{
+	/**
+	 * @brief Transform from world space to the local space of the box.
+	 *
+	 * In its local space, the box is axis aligned with a min of (-1, -1, -1) and max of (1, 1, 1).
+	 */
+	dsMatrix44f transform;
+} dsOrientedBox3f;
+
+/**
+ * @brief Structure for a 3D oriented bounding box using doubles.
+ */
+typedef struct dsOrientedBox3d
+{
+	/**
+	 * @brief Transform from world space to the local space of the box.
+	 *
+	 * In its local space, the box is axis aligned with a min of (-1, -1, -1) and max of (1, 1, 1).
+	 */
+	dsMatrix44d transform;
+} dsOrientedBox3d;
+
+/**
+ * @brief Structure for a plane using floats.
+ */
+typedef struct dsPlane3f
+{
+	/**
+	 * @brief The normal of the plane.
+	 */
+	dsVector3f n;
+
+	/**
+	 * @brief The distane from the origin along the normal to the plane.
+	 */
+	float d;
+} dsPlane3f;
+
+/**
+ * @brief Structure for a plane using doubles.
+ */
+typedef struct dsPlane3d
+{
+	/**
+	 * @brief The normal of the plane.
+	 */
+	dsVector3d n;
+
+	/**
+	 * @brief The distane from the origin along the normal to the plane.
+	 */
+	double d;
+} dsPlane3d;
+
+/**
+ * @brief Enum for the planes within a frustum.
+ */
+typedef enum dsFrustumPlanes
+{
+	dsFrustumPlanes_Near,   ///< The near plane.
+	dsFrustumPlanes_Far,    ///< The far plane.
+	dsFrustumPlanes_Left,   ///< The left plane.
+	dsFrustumPlanes_Right,  ///< The right plane.
+	dsFrustumPlanes_Top,    ///< The top plane.
+	dsFrustumPlanes_Bottom, ///< The bottom plane.
+	dsFrustumPlanes_Count   ///< The number of planes.
+} dsFrustumPlanes;
+
+/**
+ * @brief Structure for a frustum using floats.
+ */
+typedef struct dsFrustum3f
+{
+	/**
+	 * @brief The planes for the frustum.
+	 */
+	dsPlane3f planes[dsFrustumPlanes_Count];
+} dsFrustum3f;
+
+/**
+ * @brief Structure for a frustum using doubles.
+ */
+typedef struct dsFrustum3d
+{
+	/**
+	 * @brief The planes for the frustum.
+	 */
+	dsPlane3d planes[dsFrustumPlanes_Count];
+} dsFrustum3d;
+
+#ifdef __cplusplus
+}
+#endif

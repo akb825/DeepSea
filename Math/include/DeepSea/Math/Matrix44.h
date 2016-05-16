@@ -32,14 +32,12 @@ extern "C"
  * @file
  * @brief Macros and functions for manipulating dsMatrix44* structures.
  *
- * The macros are type-agnostic, allowing to be used with any dsVector2* type. All parameters are
- * by value.
+ * The macros are type-agnostic, allowing to be used with any dsMatrix44* type. All parameters are
+ * by value. Unlike most of the vector macros, it is NOT safe to have the result be the same as one
+ * of the parameters.
  *
- * Unlike most of the vector macros, it is NOT safe to have the result be the same as one of the
- * parameters.
- *
- * The functions have different versions for the supported Vector2 types. These are used when
- * different underlying math functions are required based on the primitive type.
+ * The functions have different versions for the supported Matrix44 types. These are used when the
+ * implementation cannot be practically done within a macro.
  */
 
 /**

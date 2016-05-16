@@ -30,14 +30,15 @@ The following options may be used when running cmake:
 
 ## Compile Options:
 
-* `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in Debug or Release. This should always be specified.
+* `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
-* `-DDEEPSEA_SHARED=ON|OFF`: Set to ON to build with shared libraries, OFF to build with static libraries. Default is OFF.
+* `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
 
 ## Enabled Builds
 
-* `-DDEEPSEA_BUILD_TESTS=ON|OFF`: Set to ON to build the unit tests. gtest must also be found in order to build the unit tests. Defaults to ON.
-* `-DDEEPSEA_BUILD_DOCS=ON|OFF`: Set to ON to build the documentation. doxygen must also be found in order to build the documentation. Defaults to ON.
+* `-DDEEPSEA_BUILD_TESTS=ON|OFF`: Set to `ON` to build the unit tests. `gtest` must also be found in order to build the unit tests. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_DOCS=ON|OFF`: Set to `ON` to build the documentation. `doxygen` must also be found in order to build the documentation. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_GRAPHICS=ON|OFF`: Set to `ON` to build the libraries related to graphics. Defaults to `ON`.
 
 ## Miscellaneous Options:
 
@@ -55,6 +56,7 @@ DeepSea contains the following modules:
 
 * [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
 * [Math](Math/README.md): (Required) Math structures and functions used throughout DeepSea.
+* [Geometry](Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
 
 The directory structure of the include files is:
 

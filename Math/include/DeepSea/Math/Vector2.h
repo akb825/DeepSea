@@ -31,12 +31,10 @@ extern "C"
  * @brief Macros and functions for manipulating dsVector2* structures.
  *
  * The macros are type-agnostic, allowing to be used with any dsVector2* type. All parameters are
- * by value.
+ * by value. In all cases, it is safe to have the result be the same as one of the parameters.
  *
- * In all cases, it is safe to have the result be the same as one of the parameters.
- *
- * The functions have different versions for the supported Vector2 types. These are used when
- * different underlying math functions are required based on the primitive type.
+ * The functions have different versions for the supported Vector2 types. These are used when the
+ * implementation cannot be practically done within a macro.
  */
 
 /**

@@ -8,6 +8,8 @@ set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
 set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 
+set(DEEPSEA_BUILD_GRAPHICS ON CACHE BOOL "Build graphics libraries.")
+
 # Misc options.
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects")
@@ -42,8 +44,16 @@ set(DEEPSEA_VERSION ${DEEPSEA_MAJOR_VERSION}.${DEEPSEA_MINOR_VERSION}.${DEEPSEA_
 include(cmake/config.cmake)
 include(cmake/install.cmake)
 
+# Required libraries.
 add_subdirectory(Core)
 add_subdirectory(Math)
+
+# Graphics libraries
+if (DEEPSEA_BUILD_GRAPHICS)
+	add_subdirectory(Geometry)
+endif()
+
+# Documentation. (populated by built libraries)
 add_subdirectory(doc)
 
 install_master_config()
