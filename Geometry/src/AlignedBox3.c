@@ -55,7 +55,7 @@ void dsAlignedBox3i_makeInvalid(dsAlignedBox3i* result)
 	result->max.z = INT_MIN;
 }
 
-float dsAlignedBox3f_distance2ToPoint(const dsAlignedBox3f* box, const dsVector3f* point)
+float dsAlignedBox3f_dist2(const dsAlignedBox3f* box, const dsVector3f* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -73,7 +73,7 @@ float dsAlignedBox3f_distance2ToPoint(const dsAlignedBox3f* box, const dsVector3
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }
 
-double dsAlignedBox3d_distance2ToPoint(const dsAlignedBox3d* box, const dsVector3d* point)
+double dsAlignedBox3d_dist2(const dsAlignedBox3d* box, const dsVector3d* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -91,7 +91,7 @@ double dsAlignedBox3d_distance2ToPoint(const dsAlignedBox3d* box, const dsVector
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }
 
-int dsAlignedBox3i_distance2ToPoint(const dsAlignedBox3i* box, const dsVector3i* point)
+int dsAlignedBox3i_dist2(const dsAlignedBox3i* box, const dsVector3i* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -109,27 +109,27 @@ int dsAlignedBox3i_distance2ToPoint(const dsAlignedBox3i* box, const dsVector3i*
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }
 
-float dsAlignedBox3f_distanceToPoint(const dsAlignedBox3f* box, const dsVector3f* point)
+float dsAlignedBox3f_dist(const dsAlignedBox3f* box, const dsVector3f* point)
 {
-	float distance2 = dsAlignedBox3f_distance2ToPoint(box, point);
+	float distance2 = dsAlignedBox3f_dist2(box, point);
 	if (distance2 <= 0)
 		return distance2;
 
 	return sqrtf(distance2);
 }
 
-double dsAlignedBox3d_distanceToPoint(const dsAlignedBox3d* box, const dsVector3d* point)
+double dsAlignedBox3d_dist(const dsAlignedBox3d* box, const dsVector3d* point)
 {
-	double distance2 = dsAlignedBox3d_distance2ToPoint(box, point);
+	double distance2 = dsAlignedBox3d_dist2(box, point);
 	if (distance2 <= 0)
 		return distance2;
 
 	return sqrt(distance2);
 }
 
-double dsAlignedBox3i_distanceToPoint(const dsAlignedBox3i* box, const dsVector3i* point)
+double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point)
 {
-	int distance2 = dsAlignedBox3i_distance2ToPoint(box, point);
+	int distance2 = dsAlignedBox3i_dist2(box, point);
 	if (distance2 <= 0)
 		return distance2;
 

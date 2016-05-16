@@ -204,16 +204,13 @@ DS_GEOMETRY_EXPORT void dsAlignedBox3i_makeInvalid(dsAlignedBox3i* result);
  * @return The squared distance from box to point. If the point is within the box, 0 will be
  * returned. If the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox3f_distance2ToPoint(const dsAlignedBox3f* box,
-	const dsVector3f* point);
+DS_GEOMETRY_EXPORT float dsAlignedBox3f_dist2(const dsAlignedBox3f* box, const dsVector3f* point);
 
-/** @copydoc dsAlignedBox3f_distance2ToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox3d_distance2ToPoint(const dsAlignedBox3d* box,
-	const dsVector3d* point);
+/** @copydoc dsAlignedBox3f_dist2() */
+DS_GEOMETRY_EXPORT double dsAlignedBox3d_dist2(const dsAlignedBox3d* box, const dsVector3d* point);
 
-/** @copydoc dsAlignedBox3f_distance2ToPoint() */
-DS_GEOMETRY_EXPORT int dsAlignedBox3i_distance2ToPoint(const dsAlignedBox3i* box,
-	const dsVector3i* point);
+/** @copydoc dsAlignedBox3f_dist2() */
+DS_GEOMETRY_EXPORT int dsAlignedBox3i_dist2(const dsAlignedBox3i* box, const dsVector3i* point);
 
 /**
  * @brief Computes the distance from a box to a point.
@@ -222,16 +219,13 @@ DS_GEOMETRY_EXPORT int dsAlignedBox3i_distance2ToPoint(const dsAlignedBox3i* box
  * @return The distance from box to point. If the point is within the box, 0 will be returned. If
  * the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox3f_distanceToPoint(const dsAlignedBox3f* box,
-	const dsVector3f* point);
+DS_GEOMETRY_EXPORT float dsAlignedBox3f_dist(const dsAlignedBox3f* box, const dsVector3f* point);
 
-/** @copydoc dsAlignedBox3f_distanceToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox3d_distanceToPoint(const dsAlignedBox3d* box,
-	const dsVector3d* point);
+/** @copydoc dsAlignedBox3f_dist() */
+DS_GEOMETRY_EXPORT double dsAlignedBox3d_dist(const dsAlignedBox3d* box, const dsVector3d* point);
 
-/** @copydoc dsAlignedBox3f_distanceToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox3i_distanceToPoint(const dsAlignedBox3i* box,
-	const dsVector3i* point);
+/** @copydoc dsAlignedBox3f_dist() */
+DS_GEOMETRY_EXPORT double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point);
 
 #ifdef __cplusplus
 }

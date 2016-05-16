@@ -209,15 +209,15 @@ DS_GEOMETRY_EXPORT int dsAlignedBox2i_distance2ToPoint(const dsAlignedBox2i* box
  * @return The distance from box to point. If the point is within the box, 0 will be returned. If
  * the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox2f_distanceToPoint(const dsAlignedBox2f* box,
+DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist(const dsAlignedBox2f* box,
 	const dsVector2f* point);
 
-/** @copydoc dsAlignedBox2f_distanceToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2d_distanceToPoint(const dsAlignedBox2d* box,
+/** @copydoc dsAlignedBox2f_dist() */
+DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist(const dsAlignedBox2d* box,
 	const dsVector2d* point);
 
-/** @copydoc dsAlignedBox2f_distanceToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2i_distanceToPoint(const dsAlignedBox2i* box,
+/** @copydoc dsAlignedBox2f_dist() */
+DS_GEOMETRY_EXPORT double dsAlignedBox2i_dist(const dsAlignedBox2i* box,
 	const dsVector2i* point);
 
 #ifdef __cplusplus
