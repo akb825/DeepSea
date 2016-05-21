@@ -715,6 +715,48 @@ typedef struct dsVector3f dsColor3f;
 typedef struct dsVector4f dsColor4f;
 
 /**
+ * @brief Structure for a 2x2 matrix of floats.
+ *
+ * This can be accessed as an array of columns or a 2D array of values.
+ */
+typedef struct dsMatrix22f
+{
+	union
+	{
+		/**
+		 * @brief The columns of the matrix.
+		 */
+		dsVector2f columns[2];
+
+		/**
+		 * @brief The values of the matrix.
+		 */
+		float values[2][2];
+	};
+} dsMatrix22f;
+
+/**
+ * @brief Structure for a 2x2 matrix of doubles.
+ *
+ * This can be accessed as an array of columns or a 2D array of values.
+ */
+typedef struct dsMatrix22d
+{
+	union
+	{
+		/**
+		 * @brief The columns of the matrix.
+		 */
+		dsVector2d columns[2];
+
+		/**
+		 * @brief The values of the matrix.
+		 */
+		double values[2][2];
+	};
+} dsMatrix22d;
+
+/**
  * @brief Structure for a 3x3 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.

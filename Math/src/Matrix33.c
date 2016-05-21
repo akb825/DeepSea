@@ -17,6 +17,7 @@
 #include <DeepSea/Math/Matrix33.h>
 
 #include "Matrix33Impl.h"
+#include <DeepSea/Math/Core.h>
 
 #define dsMatrix33_makeRotate3DImpl(result, cosX, sinX, cosY, sinY, cosZ, sinZ) \
 	do \

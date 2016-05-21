@@ -17,6 +17,7 @@
 #include <DeepSea/Math/Matrix44.h>
 
 #include "Matrix33Impl.h"
+#include <DeepSea/Math/Core.h>
 
 #define dsMatrix44_invertImpl(result, a, invDet) \
 	do \
