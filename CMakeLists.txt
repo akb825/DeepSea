@@ -11,8 +11,10 @@ set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 set(DEEPSEA_BUILD_GRAPHICS ON CACHE BOOL "Build graphics libraries.")
 
 # Misc options.
+set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
+	"Folder for placing the cmake exports while building. Useful when embedding in other projects.")
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
-	"Root folder for the DeepSea projects. Usefull when embedding in other projects")
+	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 	
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)

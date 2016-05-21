@@ -63,20 +63,20 @@ function(install_library)
 	install(FILES ${exportPath} DESTINATION include/DeepSea/${ARGS_MODULE} COMPONENT dev)
 
 	include(CMakePackageConfigHelpers)
-	set(versionPath ${CMAKE_CURRENT_BINARY_DIR}/DeepSea/${moduleName}Version.cmake)
+	set(versionPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Version.cmake)
 	write_basic_package_version_file(${versionPath}
 		VERSION ${DEEPSEA_VERSION}
 		COMPATIBILITY AnyNewerVersion)
 
 	export(EXPORT ${moduleName}Targets
-		FILE ${CMAKE_CURRENT_BINARY_DIR}/DeepSea/${moduleName}Targets.cmake)
+		FILE ${DEEPSEA_EXPORTS_DIR}/${moduleName}Targets.cmake)
 
 	set(dependencies "include(CMakeFindDependencyMacro)")
 	foreach (dependency ${ARGS_DEPENDENCIES})
 		set(dependencies "${dependencies}\nfind_dependency(DeepSea${dependency} ${DEEPSEA_VERSION})")
 	endforeach()
 
-	set(configPath ${CMAKE_CURRENT_BINARY_DIR}/DeepSea/${moduleName}Config.cmake)
+	set(configPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Config.cmake)
 	file(WRITE ${configPath}
 		"${dependencies}\n"
 		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake\n"
@@ -91,11 +91,13 @@ endfunction()
 
 function(install_master_config)
 	include(CMakePackageConfigHelpers)
-	set(versionPath ${CMAKE_CURRENT_BINARY_DIR}/DeepSea/DeepSeaVersion.cmake)
+	set(versionPath ${DEEPSEA_EXPORTS_DIR}/DeepSeaVersion.cmake)
 	write_basic_package_version_file(${versionPath}
 		VERSION ${DEEPSEA_VERSION}
 		COMPATIBILITY AnyNewerVersion)
 
+	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake
+		DESTINATION ${DEEPSEA_EXPORTS_DIR})
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake ${versionPath}
 		DESTINATION lib/cmake/DeepSea COMPONENT dev)
 endfunction()
