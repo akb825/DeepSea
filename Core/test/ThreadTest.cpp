@@ -82,16 +82,16 @@ dsThreadReturnType threadId(void* data)
 
 TEST(Thread, Join)
 {
-	EXPECT_FALSE(dsThread_create(nullptr, nullptr, nullptr, 0));
+	EXPECT_FALSE(dsThread_create(nullptr, nullptr, nullptr, 0, nullptr));
 
 	dsThread thread1, thread2, thread3, thread4;
 	dsThreadReturnType ret1, ret2, ret3;
 
-	EXPECT_FALSE(dsThread_create(&thread1, nullptr, nullptr, 0));
-	EXPECT_TRUE(dsThread_create(&thread1, &simpleThread, (void*)1, 0));
-	EXPECT_TRUE(dsThread_create(&thread2, &simpleThread, (void*)2, 0));
-	EXPECT_TRUE(dsThread_create(&thread3, &simpleThread, (void*)3, 0));
-	EXPECT_TRUE(dsThread_create(&thread4, &simpleThread, (void*)4, 0));
+	EXPECT_FALSE(dsThread_create(&thread1, nullptr, nullptr, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread1, &simpleThread, (void*)1, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread2, &simpleThread, (void*)2, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread3, &simpleThread, (void*)3, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread4, &simpleThread, (void*)4, 0, nullptr));
 
 	EXPECT_TRUE(dsThread_join(&thread1, &ret1));
 	EXPECT_EQ(1, ret1);
@@ -114,7 +114,7 @@ TEST(Thread, Join)
 TEST(Thread, Detach)
 {
 	dsThread thread;
-	EXPECT_TRUE(dsThread_create(&thread, &simpleThread, (void*)1, 0));
+	EXPECT_TRUE(dsThread_create(&thread, &simpleThread, (void*)1, 0, nullptr));
 	EXPECT_TRUE(dsThread_detach(&thread));
 	EXPECT_FALSE(dsThread_detach(&thread));
 	EXPECT_FALSE(dsThread_join(&thread, NULL));
@@ -126,9 +126,9 @@ TEST(Thread, ExitThread)
 	dsThread thread1, thread2, thread3;
 	dsThreadReturnType ret1, ret2, ret3;
 
-	EXPECT_TRUE(dsThread_create(&thread1, &exitThread, (void*)1, 0));
-	EXPECT_TRUE(dsThread_create(&thread2, &exitThread, (void*)2, 0));
-	EXPECT_TRUE(dsThread_create(&thread3, &exitThread, (void*)3, 0));
+	EXPECT_TRUE(dsThread_create(&thread1, &exitThread, (void*)1, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread2, &exitThread, (void*)2, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread3, &exitThread, (void*)3, 0, nullptr));
 
 	EXPECT_TRUE(dsThread_join(&thread1, &ret1));
 	EXPECT_EQ(1, ret1);
@@ -142,9 +142,9 @@ TEST(Thread, NameThread)
 {
 	dsThread thread1, thread2, thread3;
 
-	EXPECT_TRUE(dsThread_create(&thread1, &namedThread, (void*)"Thread 1", 0));
-	EXPECT_TRUE(dsThread_create(&thread2, &namedThread, (void*)"Thread 2", 0));
-	EXPECT_TRUE(dsThread_create(&thread3, &namedThread, (void*)"Thread 3", 0));
+	EXPECT_TRUE(dsThread_create(&thread1, &namedThread, (void*)"Thread 1", 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread2, &namedThread, (void*)"Thread 2", 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread3, &namedThread, (void*)"Thread 3", 0, nullptr));
 
 	EXPECT_TRUE(dsThread_join(&thread1, NULL));
 	EXPECT_TRUE(dsThread_join(&thread2, NULL));
@@ -158,9 +158,9 @@ TEST(Thread, ThreadId)
 	EXPECT_FALSE(dsThread_equal(dsThread_invalidId(), dsThread_thisThreadId()));
 	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadId(), dsThread_thisThreadId()));
 
-	dsConditionVariable* condition = dsConditionVariable_create(nullptr);
+	dsConditionVariable* condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, condition);
-	dsMutex* mutex = dsMutex_create(nullptr);
+	dsMutex* mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, mutex);
 
 	dsThread thread1, thread2, thread3;
@@ -173,9 +173,9 @@ TEST(Thread, ThreadId)
 	data3.condition = condition;
 	data3.mutex = mutex;
 
-	EXPECT_TRUE(dsThread_create(&thread1, &threadId, &data1, 0));
-	EXPECT_TRUE(dsThread_create(&thread2, &threadId, &data2, 0));
-	EXPECT_TRUE(dsThread_create(&thread3, &threadId, &data3, 0));
+	EXPECT_TRUE(dsThread_create(&thread1, &threadId, &data1, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread2, &threadId, &data2, 0, nullptr));
+	EXPECT_TRUE(dsThread_create(&thread3, &threadId, &data3, 0, nullptr));
 
 	data1.threadId = dsThread_getId(thread1);
 	data2.threadId = dsThread_getId(thread2);

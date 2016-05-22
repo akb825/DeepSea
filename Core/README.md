@@ -7,6 +7,7 @@ DeepSea Core contains the core functionality for DeepSea. This includes:
 * Threads
 * Streams
 * Memory management
+* Hooks for profiling
 
 # Memory, object sizes, and alignment
 

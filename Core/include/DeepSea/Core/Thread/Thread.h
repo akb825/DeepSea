@@ -36,13 +36,19 @@ extern "C"
  * @param function The function to call.
  * @param userData The user data to pass to the function.
  * @param stackSize The size of the thread's stack. Set to 0 for the default size.
+ * @param name The name of the thread. This should be a string constant. If NULL, will be set to
+ * "Thread".
  * @return True if the thread was created.
  */
 DS_CORE_EXPORT bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
-	unsigned int stackSize);
+	unsigned int stackSize, const char* name);
 
 /**
  * @brief Sets the name of this thread.
+ *
+ * This is automatically called as part of dsThread_create(), but is useful when using threads
+ * created by other libraries.
+ *
  * @param name The name of the thread.
  * @return True if the name was set.
  */
@@ -83,6 +89,9 @@ DS_CORE_EXPORT bool dsThread_equal(dsThreadId thread1, dsThreadId thread2);
 
 /**
  * @brief Sleeps the current threads.
+ *
+ * This will automatically profile the time spent sleeping.
+ *
  * @param milliseconds The number of milliseconds to sleep for.
  */
 DS_CORE_EXPORT void dsThread_sleep(unsigned int milliseconds);
@@ -91,6 +100,7 @@ DS_CORE_EXPORT void dsThread_sleep(unsigned int milliseconds);
  * @brief Detaches a thread.
  *
  * Once a thread is detached, it will continue executing in the background.
+ *
  * @param[inout] thread The thread to detach. The content will be cleared.
  * @return True if the thread was detached.
  */
@@ -98,6 +108,9 @@ DS_CORE_EXPORT bool dsThread_detach(dsThread* thread);
 
 /**
  * @brief Joins a thread, waiting for it to complete.
+ *
+ * This will automatically profile the time spent waiting to join with the thread.
+ *
  * @param[inout] thread The thread to detach. The content will be cleared.
  * @param[out] returnVal Pointer to recieve the return value of the thread. This may be NULL.
  * @return True if the thread was joined.

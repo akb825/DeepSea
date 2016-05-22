@@ -28,6 +28,9 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manage condition variables.
+ *
+ * Condition variables are automatically profiled, profiling the time that is spent waiting on the
+ * condition.
  */
 
 /**
@@ -45,9 +48,12 @@ DS_CORE_EXPORT unsigned int dsConditionVariable_fullAllocSize();
 /**
  * @brief Creates a condition variable.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
+ * @param name The name of the condition variable, used for profiling. This should be a string
+ * constant. If NULL, will be set to "Condition".
  * @return The condition variable, or NULL if it couldn't be created.
  */
-DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator);
+DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator,
+	const char* name);
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne() or

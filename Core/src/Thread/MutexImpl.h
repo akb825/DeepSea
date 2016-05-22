@@ -34,6 +34,7 @@ struct dsMutex
 #else
 	pthread_mutex_t mutex;
 #endif
+	const char* name;
 	dsAllocator* allocator;
 	bool shouldFree;
 };

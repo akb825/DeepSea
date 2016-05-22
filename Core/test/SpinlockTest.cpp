@@ -80,7 +80,7 @@ TEST(Spinlock, Contention)
 	const unsigned int threadCount = 100;
 	dsThread threads[100];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		EXPECT_TRUE(dsThread_join(threads + i, nullptr));

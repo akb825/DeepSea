@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include "MutexImpl.h"
@@ -32,6 +33,7 @@ struct dsConditionVariable
 #else
 	pthread_cond_t condition;
 #endif
+	const char* name;
 	dsAllocator* allocator;
 	bool shouldFree;
 };
@@ -46,7 +48,7 @@ unsigned int dsConditionVariable_fullAllocSize()
 	return DS_ALIGNED_SIZE(sizeof(dsConditionVariable));
 }
 
-dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator)
+dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator, const char* name)
 {
 	dsConditionVariable* condition;
 	if (allocator)
@@ -75,6 +77,7 @@ dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator)
 
 #endif
 
+	condition->name = name ? name : "Condition";
 	condition->allocator = allocator && allocator->freeFunc ? allocator : NULL;
 	condition->shouldFree = !allocator || allocator->freeFunc;
 	return condition;
@@ -86,13 +89,18 @@ dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* conditio
 	if (!condition || !mutex)
 		return dsConditionVariableResult_Error;
 
+	DS_PROFILE_LOCK_END();
+	DS_PROFILE_WAIT_START(condition->name);
+
 #if DS_WINDOWS
 	BOOL retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, INFINITE);
-	return retVal ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
 #else
 	int retVal = pthread_cond_wait(&condition->condition, &mutex->mutex);
-	return retVal == 0 ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
 #endif
+
+	DS_PROFILE_WAIT_END();
+	DS_PROFILE_LOCK_START(mutex->name);
+	return retVal == 0 ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
 }
 
 dsConditionVariableResult dsConditionVariable_timedWait(
@@ -101,14 +109,18 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	if (!condition || !mutex)
 		return dsConditionVariableResult_Error;
 
+	DS_PROFILE_LOCK_END();
+	DS_PROFILE_WAIT_START(condition->name);
+
+	dsConditionVariableResult result;
 #if DS_WINDOWS
 
 	if (SleepConditionVariableCS(&condition->condition, &mutex->mutex, milliseconds))
-		return dsConditionVariableResult_Success;
+		result = dsConditionVariableResult_Success;
 	else if (GetLastError() == ERROR_TIMEOUT)
-		return dsConditionVariableResult_Timeout;
+		result = dsConditionVariableResult_Timeout;
 	else
-		return dsConditionVariableResult_Error;
+		result = dsConditionVariableResult_Error;
 
 #else
 
@@ -124,13 +136,17 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 
 	int retVal = pthread_cond_timedwait(&condition->condition, &mutex->mutex, &time);
 	if (retVal == ETIMEDOUT)
-		return dsConditionVariableResult_Timeout;
+		result = dsConditionVariableResult_Timeout;
 	else if (retVal == 0)
-		return dsConditionVariableResult_Success;
+		result = dsConditionVariableResult_Success;
 	else
-		return dsConditionVariableResult_Error;
+		result = dsConditionVariableResult_Error;
 
 #endif
+
+	DS_PROFILE_WAIT_END();
+	DS_PROFILE_LOCK_START(mutex->name);
+	return result;
 }
 
 bool dsConditionVariable_notifyOne(dsConditionVariable* condition)

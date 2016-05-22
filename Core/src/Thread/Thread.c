@@ -17,6 +17,7 @@
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <string.h>
 
 #if DS_WINDOWS
@@ -34,20 +35,35 @@ inline static bool isThreadSet(dsThread thread)
 	return thread.thread != NULL;
 #else
 	static dsThread zeroThread;
-	return memcmp(&thread, &zeroThread, sizeof(dsThread)) != 0;
+	return memcmp(&thread.thread, &zeroThread.thread, sizeof(zeroThread.thread)) != 0;
 #endif
 }
 
+static dsThreadReturnType threadWrapperFunc(void* data)
+{
+	dsThread* thread = (dsThread*)data;
+	DS_ASSERT(thread);
+	DS_ASSERT(thread->name);
+	DS_ASSERT(thread->function);
+
+	dsThread_setThisThreadName(thread->name);
+	return thread->function(thread->userData);
+}
+
 bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
-	unsigned int stackSize)
+	unsigned int stackSize, const char* name)
 {
 	if (!thread || !function)
 		return false;
 
+	thread->name = name ? name : "Thread";
+	thread->userData = userData;
+	thread->function = function;
+
 #if DS_WINDOWS
 
-	HANDLE handle = CreateThread(NULL, stackSize, (LPTHREAD_START_ROUTINE)function, userData, 0,
-		NULL);
+	HANDLE handle = CreateThread(NULL, stackSize, (LPTHREAD_START_ROUTINE)&threadWrapperFunc,
+		thread, 0, NULL);
 	if (!handle)
 		return false;
 
@@ -68,7 +84,8 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	}
 
 	pthread_t handle;
-	bool success = pthread_create(&handle, &attributes, (void* (*)(void*))function, userData) == 0;
+	bool success = pthread_create(&handle, &attributes, (void* (*)(void*))&threadWrapperFunc,
+		thread) == 0;
 	DS_VERIFY(pthread_attr_destroy(&attributes) == 0);
 
 	if (!success)
@@ -218,22 +235,33 @@ bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 	if (!thread || !isThreadSet(*thread))
 		return false;
 
+	DS_ASSERT(thread->name);
+	DS_PROFILE_WAIT_START(thread->name);
+
+	bool result;
+
 #if DS_WINDOWS
 
-	if (WaitForSingleObject(thread->thread, INFINITE) == WAIT_FAILED)
-		return false;
+	result = WaitForSingleObject(thread->thread, INFINITE) != WAIT_FAILED;
 
-	if (returnVal)
-		DS_VERIFY(GetExitCodeThread(thread->thread, (DWORD*)returnVal));
+	if (!result)
+	{
+		if (returnVal)
+			DS_VERIFY(GetExitCodeThread(thread->thread, (DWORD*)returnVal));
 
-	CloseHandle(thread->thread);
-	thread->thread = 0;
+		CloseHandle(thread->thread);
+		thread->thread = 0;
+	}
 
 #else
-	if (pthread_join(thread->thread, (void**)returnVal) != 0)
-		return false;
-	memset(&thread->thread, 0, sizeof(thread->thread));
+
+	result = pthread_join(thread->thread, (void**)returnVal) == 0;
+
+	if (result)
+		memset(&thread->thread, 0, sizeof(thread->thread));
+
 #endif
 
-	return true;
+	DS_PROFILE_WAIT_END();
+	return result;
 }

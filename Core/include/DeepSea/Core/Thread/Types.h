@@ -87,19 +87,6 @@ typedef struct dsThreadId
 } dsThreadId;
 
 /**
- * @brief Structure that holds the reference for a thread.
- */
-typedef struct dsThread
-{
-	/** Internal */
-#if DS_WINDOWS
-	void* thread;
-#else
-	pthread_t thread;
-#endif
-} dsThread;
-
-/**
  * @brief Type of the thread return type.
  *
  * While this will be larger on some platforms, it is only guaranteed to be 32-bits.
@@ -119,6 +106,34 @@ typedef intptr_t dsThreadReturnType;
  * @return The exit code for the thread.
  */
 typedef dsThreadReturnType (*dsThreadFunction)(void* userData);
+
+/**
+ * @brief Structure that holds the reference for a thread.
+ */
+typedef struct dsThread
+{
+	/** Internal */
+#if DS_WINDOWS
+	void* thread;
+#else
+	pthread_t thread;
+#endif
+
+	/**
+	 * @brief The name of the thread.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The user data passed to the function.
+	 */
+	void* userData;
+
+	/**
+	 * @brief The function called for the thread.
+	 */
+	dsThreadFunction function;
+} dsThread;
 
 /**
  * @brief Structure that holds thread-local storage.

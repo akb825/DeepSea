@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
 #include <DeepSea/Core/Export.h>
+#include <DeepSea/Core/Types.h>
 #include <stdarg.h>
 
 #ifdef __cplusplus

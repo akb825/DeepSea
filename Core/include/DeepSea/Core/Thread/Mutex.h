@@ -28,6 +28,9 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manage mutexes.
+ *
+ * Mutex functions are automatically profiled, profiling the time that is spent waiting to lock
+ * and when the mutex is locked.
  */
 
 /**
@@ -45,9 +48,11 @@ DS_CORE_EXPORT unsigned int dsMutex_fullAllocSize();
 /**
  * @brief Creates a mutex.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
+ * @param name The name of the mutex, used for profiling. This should be a string constant.
+ * If NULL, will be set to "Mutex".
  * @return The mutex, or NULL if it couldn't be created.
  */
-DS_CORE_EXPORT dsMutex* dsMutex_create(dsAllocator* allocator);
+DS_CORE_EXPORT dsMutex* dsMutex_create(dsAllocator* allocator, const char* name);
 
 /**
  * @brief Locks the mutex if it isn't already locked.

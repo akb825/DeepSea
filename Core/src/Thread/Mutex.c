@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include "MutexImpl.h"
@@ -31,7 +32,7 @@ unsigned int dsMutex_fullAllocSize()
 	return DS_ALIGNED_SIZE(sizeof(dsMutex));
 }
 
-dsMutex* dsMutex_create(dsAllocator* allocator)
+dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 {
 	dsMutex* mutex;
 	if (allocator)
@@ -57,6 +58,7 @@ dsMutex* dsMutex_create(dsAllocator* allocator)
 
 #endif
 
+	mutex->name = name ? name : "Mutex";
 	mutex->allocator = allocator && allocator->freeFunc ? allocator : NULL;
 	mutex->shouldFree = !allocator || allocator->freeFunc;
 	return mutex;
@@ -67,11 +69,18 @@ bool dsMutex_tryLock(dsMutex* mutex)
 	if (!mutex)
 		return false;
 
+	bool retVal;
 #if DS_WINDOWS
-	return TryEnterCriticalSection(&mutex->mutex);
+	retVal = TryEnterCriticalSection(&mutex->mutex);
 #else
-	return pthread_mutex_trylock(&mutex->mutex) == 0;
+	retVal = pthread_mutex_trylock(&mutex->mutex) == 0;
 #endif
+
+	if (retVal)
+	{
+		DS_PROFILE_LOCK_START(mutex->name);
+	}
+	return retVal;
 }
 
 bool dsMutex_lock(dsMutex* mutex)
@@ -79,12 +88,22 @@ bool dsMutex_lock(dsMutex* mutex)
 	if (!mutex)
 		return false;
 
+	DS_PROFILE_WAIT_START(mutex->name);
+
+	bool retVal;
 #if DS_WINDOWS
 	EnterCriticalSection(&mutex->mutex);
-	return true;
+	retVal = true;
 #else
-	return pthread_mutex_lock(&mutex->mutex) == 0;
+	retVal = pthread_mutex_lock(&mutex->mutex) == 0;
 #endif
+
+	DS_PROFILE_WAIT_END();
+	if (retVal)
+	{
+		DS_PROFILE_LOCK_START(mutex->name);
+	}
+	return retVal;
 }
 
 bool dsMutex_unlock(dsMutex* mutex)
@@ -92,12 +111,19 @@ bool dsMutex_unlock(dsMutex* mutex)
 	if (!mutex)
 		return false;
 
+	bool retVal;
 #if DS_WINDOWS
 	LeaveCriticalSection(&mutex->mutex);
-	return true;
+	retVal = true;
 #else
-	return pthread_mutex_unlock(&mutex->mutex) == 0;
+	retVal = pthread_mutex_unlock(&mutex->mutex) == 0;
 #endif
+
+	if (retVal)
+	{
+		DS_PROFILE_LOCK_END();
+	}
+	return retVal;
 }
 
 void dsMutex_destroy(dsMutex* mutex)

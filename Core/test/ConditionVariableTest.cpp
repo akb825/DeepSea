@@ -55,14 +55,14 @@ dsThreadReturnType threadFunc(void* data)
 TEST(ConditionVariable, CreateEmptyAllocator)
 {
 	dsAllocator allocator = {};
-	EXPECT_EQ(nullptr, dsConditionVariable_create(&allocator));
+	EXPECT_EQ(nullptr, dsConditionVariable_create(&allocator, nullptr));
 }
 
 TEST(ConditionVariable, CreateAllocator)
 {
 	dsSystemAllocator allocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
-	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator);
+	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, condition);
 	dsConditionVariable_destroy(condition);
 }
@@ -72,7 +72,7 @@ TEST(ConditionVariable, CreateAllocatorNoFree)
 	dsSystemAllocator allocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
 	((dsAllocator*)&allocator)->freeFunc = nullptr;
-	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator);
+	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, condition);
 	dsConditionVariable_destroy(condition);
 	dsSystemAllocator_free(&allocator, condition);
@@ -88,9 +88,9 @@ TEST(ConditionVariable, Null)
 TEST(ConditionVariable, NotifyAll)
 {
 	ThreadData threadData;
-	threadData.condition = dsConditionVariable_create(nullptr);
+	threadData.condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, threadData.condition);
-	threadData.mutex = dsMutex_create(nullptr);
+	threadData.mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, threadData.mutex);
 	threadData.ready = false;
 	threadData.executed = 0;
@@ -98,7 +98,7 @@ TEST(ConditionVariable, NotifyAll)
 	const unsigned int threadCount = 10;
 	dsThread threads[threadCount];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	EXPECT_TRUE(dsMutex_lock(threadData.mutex));
 	EXPECT_EQ(0, threadData.executed);
@@ -118,9 +118,9 @@ TEST(ConditionVariable, NotifyAll)
 TEST(ConditionVariable, NotifyOne)
 {
 	ThreadData threadData;
-	threadData.condition = dsConditionVariable_create(nullptr);
+	threadData.condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, threadData.condition);
-	threadData.mutex = dsMutex_create(nullptr);
+	threadData.mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, threadData.mutex);
 	threadData.ready = false;
 	threadData.executed = 0;
@@ -128,7 +128,7 @@ TEST(ConditionVariable, NotifyOne)
 	const unsigned int threadCount = 5;
 	dsThread threads[threadCount];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	EXPECT_TRUE(dsMutex_lock(threadData.mutex));
 	EXPECT_EQ(0, threadData.executed);
@@ -156,9 +156,9 @@ TEST(ConditionVariable, NotifyOne)
 
 TEST(ConditionVariable, DISABLED_TimedWait)
 {
-	dsConditionVariable* condition = dsConditionVariable_create(nullptr);
+	dsConditionVariable* condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, condition);
-	dsMutex* mutex = dsMutex_create(nullptr);
+	dsMutex* mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, mutex);
 
 	dsTimer timer = dsTimer_create();

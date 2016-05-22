@@ -53,14 +53,14 @@ dsThreadReturnType threadFunc(void* data)
 TEST(Mutex, CreateEmptyAllocator)
 {
 	dsAllocator allocator = {};
-	EXPECT_EQ(nullptr, dsMutex_create(&allocator));
+	EXPECT_EQ(nullptr, dsMutex_create(&allocator, nullptr));
 }
 
 TEST(Mutex, CreateAllocator)
 {
 	dsSystemAllocator allocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
-	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator);
+	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, mutex);
 	dsMutex_destroy(mutex);
 }
@@ -70,7 +70,7 @@ TEST(Mutex, CreateAllocatorNoFree)
 	dsSystemAllocator allocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
 	((dsAllocator*)&allocator)->freeFunc = nullptr;
-	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator);
+	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, mutex);
 	dsMutex_destroy(mutex);
 	dsSystemAllocator_free(&allocator, mutex);
@@ -85,7 +85,7 @@ TEST(Mutex, Null)
 
 TEST(Mutex, TryLock)
 {
-	dsMutex* mutex = dsMutex_create(nullptr);
+	dsMutex* mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, mutex);
 	EXPECT_TRUE(dsMutex_tryLock(mutex));
 	// NOTE: On Windows, this will return true if the current thread owns the lock.
@@ -99,7 +99,7 @@ TEST(Mutex, TryLock)
 TEST(Mutex, Contention)
 {
 	ThreadData threadData;
-	threadData.mutex = dsMutex_create(nullptr);
+	threadData.mutex = dsMutex_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, threadData.mutex);
 	threadData.counter = 0;
 	threadData.executed = 0;
@@ -107,7 +107,7 @@ TEST(Mutex, Contention)
 	const unsigned int threadCount = 100;
 	dsThread threads[100];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		EXPECT_TRUE(dsThread_join(threads + i, nullptr));

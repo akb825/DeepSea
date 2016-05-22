@@ -33,6 +33,7 @@ The following options may be used when running cmake:
 * `-DCMAKE_BUILD_TYPE=Debug|Release`: Building in `Debug` or `Release`. This should always be specified.
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
 * `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
+* `-DDEEPSEA_PROFILING=ON|OFF`: Set to `ON` to enable profiling of the code, `OFF` to compile out all profiling macros. Default is `ON`.
 
 ## Enabled Builds
 

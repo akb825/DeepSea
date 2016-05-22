@@ -284,7 +284,7 @@ TEST(PoolAllocator, ThreadAlloc)
 
 	dsThread threads[threadCount];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &allocator, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &allocator, 0, nullptr));
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		EXPECT_TRUE(dsThread_join(threads + i, NULL));
@@ -306,7 +306,7 @@ TEST(PoolAllocator, ThreadAllocWithPause)
 
 	dsThread threads[threadCount];
 	for (unsigned int i = 0; i < threadCount; ++i)
-		EXPECT_TRUE(dsThread_create(threads + i, &pauseThreadFunc, &allocator, 0));
+		EXPECT_TRUE(dsThread_create(threads + i, &pauseThreadFunc, &allocator, 0, nullptr));
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		EXPECT_TRUE(dsThread_join(threads + i, NULL));

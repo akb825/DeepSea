@@ -3,6 +3,7 @@ project(DeepSea)
 	
 # Build options
 set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
+set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 
 # Options for disabling portions of the build.
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
