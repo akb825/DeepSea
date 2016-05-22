@@ -142,7 +142,7 @@ TEST(ConditionVariable, NotifyOne)
 		EXPECT_TRUE(dsConditionVariable_notifyOne(threadData.condition));
 		executed = threadData.executed;
 		EXPECT_TRUE(dsMutex_unlock(threadData.mutex));
-		dsThread_sleep(1);
+		dsThread_sleep(1, nullptr);
 	} while (executed != threadCount);
 
 	for (unsigned int i = 0; i < threadCount; ++i)

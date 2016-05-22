@@ -25,7 +25,7 @@ namespace
 
 dsThreadReturnType threadFunc(void* data)
 {
-	dsThread_sleep(1);
+	dsThread_sleep(1, nullptr);
 	void* ptr = dsAllocator_alloc((dsAllocator*)data, 14);
 	EXPECT_NE(nullptr, ptr);
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)data, ptr));
@@ -34,10 +34,10 @@ dsThreadReturnType threadFunc(void* data)
 
 dsThreadReturnType pauseThreadFunc(void* data)
 {
-	dsThread_sleep(1);
+	dsThread_sleep(1, nullptr);
 	void* ptr = dsAllocator_alloc((dsAllocator*)data, 14);
 	EXPECT_NE(nullptr, ptr);
-	dsThread_sleep(1);
+	dsThread_sleep(1, nullptr);
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)data, ptr));
 	return 0;
 }

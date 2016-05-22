@@ -25,7 +25,7 @@ namespace
 
 dsThreadReturnType threadFunc(void* data)
 {
-	dsThread_sleep(1);
+	dsThread_sleep(1, nullptr);
 	EXPECT_NE(nullptr, dsAllocator_alloc((dsAllocator*)data, 16));
 	return 0;
 }

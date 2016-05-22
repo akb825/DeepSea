@@ -109,12 +109,12 @@ void dsProfile_push(dsProfileType type, const char* name, const char* file, cons
 	gPushFunc(gUserData, type, name, file, function, line);
 }
 
-void dsProfile_pop(const char* file, const char* function, unsigned int line)
+void dsProfile_pop(dsProfileType type, const char* file, const char* function, unsigned int line)
 {
 	if (!gPopFunc)
 		return;
 
-	gPopFunc(gUserData, file, function, line);
+	gPopFunc(gUserData, type, file, function, line);
 }
 
 void dsProfile_stat(const char* category, const char* name, double value,

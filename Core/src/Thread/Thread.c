@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <string.h>
@@ -26,6 +27,7 @@
 #else
 #define __USE_GNU
 #include <pthread.h>
+#include <sched.h>
 #include <unistd.h>
 #endif
 
@@ -46,8 +48,16 @@ static dsThreadReturnType threadWrapperFunc(void* data)
 	DS_ASSERT(thread->name);
 	DS_ASSERT(thread->function);
 
-	dsThread_setThisThreadName(thread->name);
-	return thread->function(thread->userData);
+	// Grab the necessary parts out of the thread, then mark it as started so it can be detached.
+	const char* name = thread->name;
+	dsThreadFunction function = thread->function;
+	void* userData = thread->userData;
+
+	int32_t started = true;
+	DS_ATOMIC_STORE32(&thread->started, &started);
+
+	dsThread_setThisThreadName(name);
+	return function(userData);
 }
 
 bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
@@ -59,6 +69,7 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	thread->name = name ? name : "Thread";
 	thread->userData = userData;
 	thread->function = function;
+	thread->started = false;
 
 #if DS_WINDOWS
 
@@ -204,19 +215,44 @@ bool dsThread_equal(dsThreadId thread1, dsThreadId thread2)
 #endif
 }
 
-void dsThread_sleep(unsigned int milliseconds)
+void dsThread_yield()
 {
+#if DS_WINDOWS
+	SwitchToThread();
+#else
+	sched_yield();
+#endif
+}
+
+void dsThread_sleep(unsigned int milliseconds, const char* name)
+{
+	DS_PROFILE_WAIT_START(name ? name : "Sleep");
+
 #if DS_WINDOWS
 	Sleep(milliseconds);
 #else
 	usleep(((useconds_t)milliseconds)*1000);
 #endif
+
+	DS_PROFILE_WAIT_END();
 }
 
 bool dsThread_detach(dsThread* thread)
 {
 	if (!thread || !isThreadSet(*thread))
 		return false;
+
+	// Make sure that the thread has already started. This prevents the dsThread instance from being
+	// destroyed too soon.
+	int32_t started;
+	do
+	{
+		DS_ATOMIC_LOAD32(&thread->started, &started);
+		if (started)
+			break;
+
+		dsThread_yield();
+	} while (true);
 
 #if DS_WINDOWS
 	CloseHandle(thread->thread);

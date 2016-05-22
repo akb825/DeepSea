@@ -88,13 +88,19 @@ DS_CORE_EXPORT dsThreadId dsThread_invalidId();
 DS_CORE_EXPORT bool dsThread_equal(dsThreadId thread1, dsThreadId thread2);
 
 /**
+ * @brief Yields this thread to allow other threads to continue.
+ */
+DS_CORE_EXPORT void dsThread_yield();
+
+/**
  * @brief Sleeps the current threads.
  *
  * This will automatically profile the time spent sleeping.
  *
  * @param milliseconds The number of milliseconds to sleep for.
+ * @param name The name used for profiling the sleep. If NULL, will be set to "Sleep".
  */
-DS_CORE_EXPORT void dsThread_sleep(unsigned int milliseconds);
+DS_CORE_EXPORT void dsThread_sleep(unsigned int milliseconds, const char* name);
 
 /**
  * @brief Detaches a thread.

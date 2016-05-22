@@ -57,7 +57,7 @@ extern "C"
 #define DS_PROFILE_FUNC_RETURN_VOID() \
 	do \
 	{ \
-		dsProfile_pop(__FILE__, __FUNCTION__, __LINE__); \
+		dsProfile_pop(dsProfileType_Function, __FILE__, __FUNCTION__, __LINE__); \
 		return; \
 	} while(0)
 
@@ -68,7 +68,7 @@ extern "C"
 #define DS_PROFILE_FUNC_RETURN(retVal) \
 	do \
 	{ \
-		dsProfile_pop(__FILE__, __FUNCTION__, __LINE__); \
+		dsProfile_pop(dsProfileType_Function, __FILE__, __FUNCTION__, __LINE__); \
 		return retVal; \
 	} while(0)
 
@@ -82,7 +82,7 @@ extern "C"
 /**
  * @brief Profiles the end of a scope.
  */
-#define DS_PROFILE_SCOPE_END() dsProfile_pop(__FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_SCOPE_END() dsProfile_pop(dsProfileType_Scope, __FILE__,  __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles the start of a wait.
@@ -94,7 +94,7 @@ extern "C"
 /**
  * @brief Profiles the end of a wait.
  */
-#define DS_PROFILE_WAIT_END() dsProfile_pop(__FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_WAIT_END() dsProfile_pop(dsProfileType_Wait, __FILE__,  __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles the start of a lock.
@@ -106,7 +106,7 @@ extern "C"
 /**
  * @brief Profiles the end of a lock.
  */
-#define DS_PROFILE_LOCK_END() dsProfile_pop(__FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_LOCK_END() dsProfile_pop(dsProfileType_Lock, __FILE__,  __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles a statistic.
@@ -123,9 +123,11 @@ extern "C"
 #define DS_PROFILE_FUNC_START() do {} while(0)
 #define DS_PROFILE_FUNC_RETURN_VOID() return
 #define DS_PROFILE_FUNC_RETURN(retVal) return retVal
-#define DS_PROFILE_SCOPE_START() do {} while(0)
+#define DS_PROFILE_SCOPE_START(name) do {} while(0)
 #define DS_PROFILE_SCOPE_END() do {} while(0)
-#define DS_PROFILE_LOCK_START() do {} while(0)
+#define DS_PROFILE_WAIT_START(name) do {} while(0)
+#define DS_PROFILE_WAIT_END() do {} while(0)
+#define DS_PROFILE_LOCK_START(name) do {} while(0)
 #define DS_PROFILE_LOCK_END() do {} while(0)
 #define DS_PROFILE_STAT(category, name, value) do {} while(0)
 #endif
@@ -228,11 +230,13 @@ DS_CORE_EXPORT void dsProfile_push(dsProfileType type, const char* name, const c
 
 /**
  * @brief Pops a profile scope.
+ * @param type What is being profiled.
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-DS_CORE_EXPORT void dsProfile_pop(const char* file, const char* function, unsigned int line);
+DS_CORE_EXPORT void dsProfile_pop(dsProfileType type, const char* file, const char* function,
+	unsigned int line);
 
 /**
  * @brief Profiles a statistic.

@@ -112,7 +112,9 @@ typedef dsThreadReturnType (*dsThreadFunction)(void* userData);
  */
 typedef struct dsThread
 {
-	/** Internal */
+	/**
+	 * @brief The internal thread handle.
+	 */
 #if DS_WINDOWS
 	void* thread;
 #else
@@ -133,6 +135,11 @@ typedef struct dsThread
 	 * @brief The function called for the thread.
 	 */
 	dsThreadFunction function;
+
+	/**
+	 * @brief Whether or not the thread has started.
+	 */
+	int32_t started;
 } dsThread;
 
 /**

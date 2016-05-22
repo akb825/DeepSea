@@ -34,7 +34,7 @@ struct ThreadData
 dsThreadReturnType threadFunc(void* data)
 {
 	ThreadData* threadData = (ThreadData*)data;
-	dsThread_sleep(1);
+	dsThread_sleep(1, nullptr);
 
 	EXPECT_TRUE(dsMutex_lock(threadData->mutex));
 

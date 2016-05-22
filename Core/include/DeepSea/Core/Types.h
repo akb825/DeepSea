@@ -96,12 +96,13 @@ typedef void (*dsProfilePushFunction)(void* userData, dsProfileType type, const 
  * @brief Type for the function popping a profile scope.
  * @remark This may be called across multiple threads.
  * @param userData User data for the profiling functions.
+ * @param type What is being profiled.
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-typedef void (*dsProfilePopFunction)(void* userData, const char* file, const char* function,
-	unsigned int line);
+typedef void (*dsProfilePopFunction)(void* userData, dsProfileType type, const char* file,
+	const char* function, unsigned int line);
 
 /**
  * @brief Type for the function profiling a statistic.
