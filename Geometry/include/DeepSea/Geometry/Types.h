@@ -140,11 +140,19 @@ typedef struct dsAlignedBox3i
 typedef struct dsOrientedBox2f
 {
 	/**
-	 * @brief Transform from world space to the local space of the box.
-	 *
-	 * In its local space, the box is axis aligned with a min of (-1, -1) and max of (1, 1).
+	 * @brief The orientation of the box
 	 */
-	dsMatrix33f transform;
+	dsMatrix22f orientation;
+
+	/**
+	 * @brief The position of the box.
+	 */
+	dsVector2f position;
+
+	/**
+	 * @brief The width and height of the box.
+	 */
+	dsVector2f extents;
 } dsOrientedBox2f;
 
 /**
@@ -153,11 +161,19 @@ typedef struct dsOrientedBox2f
 typedef struct dsOrientedBox2d
 {
 	/**
-	 * @brief Transform from world space to the local space of the box.
-	 *
-	 * In its local space, the box is axis aligned with a min of (-1, -1) and max of (1, 1).
+	 * @brief The orientation of the box
 	 */
-	dsMatrix33d transform;
+	dsMatrix22d orientation;
+
+	/**
+	 * @brief The position of the box.
+	 */
+	dsVector2d position;
+
+	/**
+	 * @brief The width and height of the box.
+	 */
+	dsVector2d extents;
 } dsOrientedBox2d;
 
 /**
@@ -166,11 +182,19 @@ typedef struct dsOrientedBox2d
 typedef struct dsOrientedBox3f
 {
 	/**
-	 * @brief Transform from world space to the local space of the box.
-	 *
-	 * In its local space, the box is axis aligned with a min of (-1, -1, -1) and max of (1, 1, 1).
+	 * @brief The orientation of the box
 	 */
-	dsMatrix44f transform;
+	dsMatrix33f orientation;
+
+	/**
+	 * @brief The position of the box.
+	 */
+	dsVector3f position;
+
+	/**
+	 * @brief The width and height of the box.
+	 */
+	dsVector3f extents;
 } dsOrientedBox3f;
 
 /**
@@ -179,11 +203,19 @@ typedef struct dsOrientedBox3f
 typedef struct dsOrientedBox3d
 {
 	/**
-	 * @brief Transform from world space to the local space of the box.
-	 *
-	 * In its local space, the box is axis aligned with a min of (-1, -1, -1) and max of (1, 1, 1).
+	 * @brief The orientation of the box
 	 */
-	dsMatrix44d transform;
+	dsMatrix33d orientation;
+
+	/**
+	 * @brief The position of the box.
+	 */
+	dsVector3d position;
+
+	/**
+	 * @brief The width and height of the box.
+	 */
+	dsVector3d extents;
 } dsOrientedBox3d;
 
 /**
