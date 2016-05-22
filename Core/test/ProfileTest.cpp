@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
@@ -150,14 +149,11 @@ struct ThreadData
 {
 	dsMutex* mutex;
 	dsConditionVariable* condition;
-	int32_t started;
 };
 
 dsThreadReturnType threadFunc(void* userData)
 {
 	ThreadData* threadData = (ThreadData*)userData;
-	int32_t started = true;
-	DS_ATOMIC_STORE32(&threadData->started, &started);
 	EXPECT_TRUE(dsMutex_lock(threadData->mutex));
 	EXPECT_TRUE(dsConditionVariable_notifyAll(threadData->condition));
 	EXPECT_TRUE(dsMutex_unlock(threadData->mutex));
@@ -330,20 +326,9 @@ TEST(Profile, ThreadTypes)
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
-	ThreadData threadData = {mutex, condition, false};
+	ThreadData threadData = {mutex, condition};
 	dsThread thread;
 	EXPECT_TRUE(dsThread_create(&thread, &threadFunc, &threadData, 0, nullptr));
-
-	do
-	{
-		int32_t started;
-		DS_ATOMIC_LOAD32(&threadData.started, &started);
-		if (started)
-			break;
-
-		dsThread_yield();
-	} while (true);
-
 	EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(condition, mutex));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
@@ -375,17 +360,34 @@ TEST(Profile, ThreadTypes)
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
-	EXPECT_EQ("Mutex", info.push[3].name);
-	EXPECT_NE(std::string::npos, info.push[3].file.find("Mutex.c"));
-	EXPECT_EQ("dsMutex_lock", info.push[3].function);
-	EXPECT_NE(0, info.push[3].line);
+	if (info.push[3].name == "TestMutex")
+	{
+		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ("Mutex", info.push[3].name);
+		EXPECT_NE(std::string::npos, info.push[3].file.find("Mutex.c"));
+		EXPECT_EQ("dsMutex_lock", info.push[3].function);
+		EXPECT_NE(0, info.push[3].line);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
-	EXPECT_EQ("Condition", info.push[4].name);
-	EXPECT_NE(std::string::npos, info.push[4].file.find("ConditionVariable.c"));
-	EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
-	EXPECT_NE(0, info.push[4].line);
+		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ("Condition", info.push[4].name);
+		EXPECT_NE(std::string::npos, info.push[4].file.find("ConditionVariable.c"));
+		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
+		EXPECT_NE(0, info.push[4].line);
+	}
+	else
+	{
+		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ("Condition", info.push[3].name);
+		EXPECT_NE(std::string::npos, info.push[3].file.find("ConditionVariable.c"));
+		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
+		EXPECT_NE(0, info.push[3].line);
+
+		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ("Mutex", info.push[4].name);
+		EXPECT_NE(std::string::npos, info.push[4].file.find("Mutex.c"));
+		EXPECT_EQ("dsMutex_lock", info.push[4].function);
+		EXPECT_NE(0, info.push[3].line);
+	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
 	EXPECT_EQ("Mutex", info.push[5].name);
@@ -472,20 +474,9 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
-	ThreadData threadData = {mutex, condition, false};
+	ThreadData threadData = {mutex, condition};
 	dsThread thread;
 	EXPECT_TRUE(dsThread_create(&thread, &threadFunc, &threadData, 0, "TestThread"));
-
-	do
-	{
-		int32_t started;
-		DS_ATOMIC_LOAD32(&threadData.started, &started);
-		if (started)
-			break;
-
-		dsThread_yield();
-	} while (true);
-
 	EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(condition, mutex));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
@@ -517,17 +508,34 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
-	EXPECT_EQ("TestMutex", info.push[3].name);
-	EXPECT_NE(std::string::npos, info.push[3].file.find("Mutex.c"));
-	EXPECT_EQ("dsMutex_lock", info.push[3].function);
-	EXPECT_NE(0, info.push[3].line);
+	if (info.push[3].name == "TestMutex")
+	{
+		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ("TestMutex", info.push[3].name);
+		EXPECT_NE(std::string::npos, info.push[3].file.find("Mutex.c"));
+		EXPECT_EQ("dsMutex_lock", info.push[3].function);
+		EXPECT_NE(0, info.push[3].line);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
-	EXPECT_EQ("TestCondition", info.push[4].name);
-	EXPECT_NE(std::string::npos, info.push[4].file.find("ConditionVariable.c"));
-	EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
-	EXPECT_NE(0, info.push[4].line);
+		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ("TestCondition", info.push[4].name);
+		EXPECT_NE(std::string::npos, info.push[4].file.find("ConditionVariable.c"));
+		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
+		EXPECT_NE(0, info.push[4].line);
+	}
+	else
+	{
+		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ("TestCondition", info.push[3].name);
+		EXPECT_NE(std::string::npos, info.push[3].file.find("ConditionVariable.c"));
+		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
+		EXPECT_NE(0, info.push[3].line);
+
+		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ("TestMutex", info.push[4].name);
+		EXPECT_NE(std::string::npos, info.push[4].file.find("Mutex.c"));
+		EXPECT_EQ("dsMutex_lock", info.push[4].function);
+		EXPECT_NE(0, info.push[3].line);
+	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
 	EXPECT_EQ("TestMutex", info.push[5].name);
