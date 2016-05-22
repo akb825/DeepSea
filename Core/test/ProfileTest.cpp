@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
@@ -111,9 +112,7 @@ void profilePush(void* userData, dsProfileType type, const char* name, const cha
 	const char* function, unsigned int line)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	// The calls to sleep here will cause inconsistent ordering.
-	if (strcmp(function, "dsThread_sleep") != 0)
-		((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line);
+	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line);
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
@@ -121,9 +120,7 @@ void profilePop(void* userData, dsProfileType type, const char* file, const char
 	unsigned int line)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	// The calls to sleep here will cause inconsistent ordering.
-	if (strcmp(function, "dsThread_sleep") != 0)
-		((ProfileInfo*)userData)->pop.emplace_back(type, file, function, line);
+	((ProfileInfo*)userData)->pop.emplace_back(type, file, function, line);
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
@@ -145,7 +142,7 @@ void voidFunction()
 
 int intFunction(int retVal)
 {
-	DS_PROFILE_FUNC_START();
+	DS_PROFILE_FUNC_START_NAME("Custom Function");
 	DS_PROFILE_FUNC_RETURN(retVal);
 }
 
@@ -153,11 +150,14 @@ struct ThreadData
 {
 	dsMutex* mutex;
 	dsConditionVariable* condition;
+	int32_t started;
 };
 
 dsThreadReturnType threadFunc(void* userData)
 {
 	ThreadData* threadData = (ThreadData*)userData;
+	int32_t started = true;
+	DS_ATOMIC_STORE32(&threadData->started, &started);
 	EXPECT_TRUE(dsMutex_lock(threadData->mutex));
 	EXPECT_TRUE(dsConditionVariable_notifyAll(threadData->condition));
 	EXPECT_TRUE(dsMutex_unlock(threadData->mutex));
@@ -243,69 +243,69 @@ TEST(Profile, Macros)
 
 	ASSERT_EQ(1U, info.startFrame.size());
 	EXPECT_NE(std::string::npos, info.startFrame[0].file.find(fileName));
-	EXPECT_EQ(functionName, info.startFrame[0].function);
+	EXPECT_NE(std::string::npos, info.startFrame[0].function.find(functionName));
 	EXPECT_NE(0, info.startFrame[0].line);
 
 	ASSERT_EQ(1U, info.endFrame.size());
 	EXPECT_NE(std::string::npos, info.endFrame[0].file.find(fileName));
-	EXPECT_EQ(functionName, info.endFrame[0].function);
+	EXPECT_NE(std::string::npos, info.endFrame[0].function.find(functionName));
 	EXPECT_NE(0, info.endFrame[0].line);
 
 	ASSERT_EQ(5U, info.push.size());
 	EXPECT_EQ(dsProfileType_Function, info.push[0].type);
-	EXPECT_EQ("voidFunction", info.push[0].name);
+	EXPECT_NE(std::string::npos, info.push[0].name.find("voidFunction"));
 	EXPECT_NE(std::string::npos, info.push[0].file.find(fileName));
-	EXPECT_EQ("voidFunction", info.push[0].function);
+	EXPECT_NE(std::string::npos, info.push[0].function.find("voidFunction"));
 	EXPECT_NE(0, info.push[0].line);
 
 	EXPECT_EQ(dsProfileType_Function, info.push[1].type);
-	EXPECT_EQ("intFunction", info.push[1].name);
+	EXPECT_EQ("Custom Function", info.push[1].name);
 	EXPECT_NE(std::string::npos, info.push[1].file.find(fileName));
-	EXPECT_EQ("intFunction", info.push[1].function);
+	EXPECT_NE(std::string::npos, info.push[1].function.find("intFunction"));
 	EXPECT_NE(0, info.push[1].line);
 
 	EXPECT_EQ(dsProfileType_Scope, info.push[2].type);
 	EXPECT_EQ("Scope", info.push[2].name);
 	EXPECT_NE(std::string::npos, info.push[2].file.find(fileName));
-	EXPECT_EQ(functionName, info.push[2].function);
+	EXPECT_NE(std::string::npos, info.push[2].function.find(functionName));
 	EXPECT_NE(0, info.push[2].line);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
 	EXPECT_EQ("Wait", info.push[3].name);
 	EXPECT_NE(std::string::npos, info.push[3].file.find(fileName));
-	EXPECT_EQ(functionName, info.push[3].function);
+	EXPECT_NE(std::string::npos, info.push[3].function.find(functionName));
 	EXPECT_NE(0, info.push[3].line);
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[4].type);
 	EXPECT_EQ("Lock", info.push[4].name);
 	EXPECT_NE(std::string::npos, info.push[4].file.find(fileName));
-	EXPECT_EQ(functionName, info.push[4].function);
+	EXPECT_NE(std::string::npos, info.push[4].function.find(functionName));
 	EXPECT_NE(0, info.push[4].line);
 
 	ASSERT_EQ(5U, info.pop.size());
 	EXPECT_EQ(dsProfileType_Function, info.pop[0].type);
 	EXPECT_NE(std::string::npos, info.pop[0].file.find(fileName));
-	EXPECT_EQ("voidFunction", info.pop[0].function);
+	EXPECT_NE(std::string::npos, info.pop[0].function.find("voidFunction"));
 	EXPECT_NE(0, info.pop[0].line);
 
 	EXPECT_EQ(dsProfileType_Function, info.pop[1].type);
 	EXPECT_NE(std::string::npos, info.pop[1].file.find(fileName));
-	EXPECT_EQ("intFunction", info.pop[1].function);
+	EXPECT_NE(std::string::npos, info.pop[1].function.find("intFunction"));
 	EXPECT_NE(0, info.pop[1].line);
 
 	EXPECT_EQ(dsProfileType_Scope, info.pop[2].type);
 	EXPECT_NE(std::string::npos, info.pop[2].file.find(fileName));
-	EXPECT_EQ(functionName, info.pop[2].function);
+	EXPECT_NE(std::string::npos, info.pop[2].function.find(functionName));
 	EXPECT_NE(0, info.pop[2].line);
 
 	EXPECT_EQ(dsProfileType_Wait, info.pop[3].type);
 	EXPECT_NE(std::string::npos, info.pop[3].file.find(fileName));
-	EXPECT_EQ(functionName, info.pop[3].function);
+	EXPECT_NE(std::string::npos, info.pop[3].function.find(functionName));
 	EXPECT_NE(0, info.pop[3].line);
 
 	EXPECT_EQ(dsProfileType_Lock, info.pop[4].type);
 	EXPECT_NE(std::string::npos, info.pop[4].file.find(fileName));
-	EXPECT_EQ(functionName, info.pop[4].function);
+	EXPECT_NE(std::string::npos, info.pop[4].function.find(functionName));
 	EXPECT_NE(0, info.pop[4].line);
 
 	ASSERT_EQ(1U, info.stat.size());
@@ -313,7 +313,7 @@ TEST(Profile, Macros)
 	EXPECT_EQ("Name", info.stat[0].name);
 	EXPECT_EQ(10, info.stat[0].value);
 	EXPECT_NE(std::string::npos, info.stat[0].file.find(fileName));
-	EXPECT_EQ(functionName, info.stat[0].function);
+	EXPECT_NE(std::string::npos, info.stat[0].function.find(functionName));
 	EXPECT_NE(0, info.stat[0].line);
 }
 
@@ -330,14 +330,25 @@ TEST(Profile, ThreadTypes)
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
-	ThreadData threadData = {mutex, condition};
+	ThreadData threadData = {mutex, condition, false};
 	dsThread thread;
 	EXPECT_TRUE(dsThread_create(&thread, &threadFunc, &threadData, 0, nullptr));
-	dsThread_sleep(1, nullptr);
+
+	do
+	{
+		int32_t started;
+		DS_ATOMIC_LOAD32(&threadData.started, &started);
+		if (started)
+			break;
+
+		dsThread_yield();
+	} while (true);
+
 	EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(condition, mutex));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsThread_join(&thread, nullptr));
+	dsThread_sleep(1, nullptr);
 
 	dsMutex_destroy(mutex);
 	dsConditionVariable_destroy(condition);
@@ -345,7 +356,7 @@ TEST(Profile, ThreadTypes)
 	dsProfile_clearFunctions();
 
 	// push
-	ASSERT_EQ(8U, info.push.size());
+	ASSERT_EQ(9U, info.push.size());
 	EXPECT_EQ(dsProfileType_Lock, info.push[0].type);
 	EXPECT_EQ("Mutex", info.push[0].name);
 	EXPECT_NE(std::string::npos, info.push[0].file.find("Mutex.c"));
@@ -394,8 +405,14 @@ TEST(Profile, ThreadTypes)
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
 
+	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
+	EXPECT_EQ("Sleep", info.push[8].name);
+	EXPECT_NE(std::string::npos, info.push[8].file.find("Thread.c"));
+	EXPECT_EQ("dsThread_sleep", info.push[8].function);
+	EXPECT_NE(0, info.push[8].line);
+
 	// pop
-	ASSERT_EQ(8U, info.pop.size());
+	ASSERT_EQ(9U, info.pop.size());
 	EXPECT_EQ(dsProfileType_Lock, info.pop[0].type);
 	EXPECT_NE(std::string::npos, info.pop[0].file.find("Mutex.c"));
 	EXPECT_EQ("dsMutex_unlock", info.pop[0].function);
@@ -435,6 +452,11 @@ TEST(Profile, ThreadTypes)
 	EXPECT_NE(std::string::npos, info.pop[7].file.find("Thread.c"));
 	EXPECT_EQ("dsThread_join", info.pop[7].function);
 	EXPECT_NE(0, info.pop[7].line);
+
+	EXPECT_EQ(dsProfileType_Wait, info.pop[8].type);
+	EXPECT_NE(std::string::npos, info.pop[8].file.find("Thread.c"));
+	EXPECT_EQ("dsThread_sleep", info.pop[8].function);
+	EXPECT_NE(0, info.pop[8].line);
 }
 
 TEST(Profile, ThreadTypesNamed)
@@ -450,14 +472,25 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
-	ThreadData threadData = {mutex, condition};
+	ThreadData threadData = {mutex, condition, false};
 	dsThread thread;
 	EXPECT_TRUE(dsThread_create(&thread, &threadFunc, &threadData, 0, "TestThread"));
-	dsThread_sleep(1, nullptr);
+
+	do
+	{
+		int32_t started;
+		DS_ATOMIC_LOAD32(&threadData.started, &started);
+		if (started)
+			break;
+
+		dsThread_yield();
+	} while (true);
+
 	EXPECT_EQ(dsConditionVariableResult_Success, dsConditionVariable_wait(condition, mutex));
 	EXPECT_TRUE(dsMutex_unlock(mutex));
 
 	EXPECT_TRUE(dsThread_join(&thread, nullptr));
+	dsThread_sleep(1, "TestSleep");
 
 	dsMutex_destroy(mutex);
 	dsConditionVariable_destroy(condition);
@@ -465,7 +498,7 @@ TEST(Profile, ThreadTypesNamed)
 	dsProfile_clearFunctions();
 
 	// push
-	ASSERT_EQ(8U, info.push.size());
+	ASSERT_EQ(9U, info.push.size());
 	EXPECT_EQ(dsProfileType_Lock, info.push[0].type);
 	EXPECT_EQ("TestMutex", info.push[0].name);
 	EXPECT_NE(std::string::npos, info.push[0].file.find("Mutex.c"));
@@ -514,8 +547,14 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
 
+	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
+	EXPECT_EQ("TestSleep", info.push[8].name);
+	EXPECT_NE(std::string::npos, info.push[8].file.find("Thread.c"));
+	EXPECT_EQ("dsThread_sleep", info.push[8].function);
+	EXPECT_NE(0, info.push[8].line);
+
 	// pop
-	ASSERT_EQ(8U, info.pop.size());
+	ASSERT_EQ(9U, info.pop.size());
 	EXPECT_EQ(dsProfileType_Lock, info.pop[0].type);
 	EXPECT_NE(std::string::npos, info.pop[0].file.find("Mutex.c"));
 	EXPECT_EQ("dsMutex_unlock", info.pop[0].function);
@@ -555,6 +594,11 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_NE(std::string::npos, info.pop[7].file.find("Thread.c"));
 	EXPECT_EQ("dsThread_join", info.pop[7].function);
 	EXPECT_NE(0, info.pop[7].line);
+
+	EXPECT_EQ(dsProfileType_Wait, info.pop[8].type);
+	EXPECT_NE(std::string::npos, info.pop[8].file.find("Thread.c"));
+	EXPECT_EQ("dsThread_sleep", info.pop[8].function);
+	EXPECT_NE(0, info.pop[8].line);
 }
 
 #endif // DS_PROFILING_ENABLED

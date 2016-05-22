@@ -93,14 +93,14 @@ dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* conditio
 	DS_PROFILE_WAIT_START(condition->name);
 
 #if DS_WINDOWS
-	BOOL retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, INFINITE);
+	bool retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, INFINITE);
 #else
-	int retVal = pthread_cond_wait(&condition->condition, &mutex->mutex);
+	bool retVal = pthread_cond_wait(&condition->condition, &mutex->mutex) == 0;
 #endif
 
 	DS_PROFILE_WAIT_END();
 	DS_PROFILE_LOCK_START(mutex->name);
-	return retVal == 0 ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
+	return retVal ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
 }
 
 dsConditionVariableResult dsConditionVariable_timedWait(

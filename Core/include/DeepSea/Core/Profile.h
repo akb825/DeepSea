@@ -52,6 +52,13 @@ extern "C"
 	__FILE__, __FUNCTION__, __LINE__)
 
 /**
+ * @brief Profiles the start of a function with a custon name.
+ * @param name The custom function name.
+ */
+#define DS_PROFILE_FUNC_START_NAME(name) dsProfile_push(dsProfileType_Function, name,  __FILE__, \
+	__FUNCTION__, __LINE__)
+
+/**
  * @brief Returns void from a profiled function.
  */
 #define DS_PROFILE_FUNC_RETURN_VOID() \
@@ -121,6 +128,7 @@ extern "C"
 #define DS_PROFILE_FRAME_START() do {} while(0)
 #define DS_PROFILE_FRAME_END() do {} while(0)
 #define DS_PROFILE_FUNC_START() do {} while(0)
+#define DS_PROFILE_FUNC_START_NAME(name) do {} while(0)
 #define DS_PROFILE_FUNC_RETURN_VOID() return
 #define DS_PROFILE_FUNC_RETURN(retVal) return retVal
 #define DS_PROFILE_SCOPE_START(name) do {} while(0)

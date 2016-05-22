@@ -244,9 +244,9 @@ bool dsThread_detach(dsThread* thread)
 
 	// Make sure that the thread has already started. This prevents the dsThread instance from being
 	// destroyed too soon.
-	int32_t started;
 	do
 	{
+		int32_t started;
 		DS_ATOMIC_LOAD32(&thread->started, &started);
 		if (started)
 			break;
@@ -280,7 +280,7 @@ bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 
 	result = WaitForSingleObject(thread->thread, INFINITE) != WAIT_FAILED;
 
-	if (!result)
+	if (result)
 	{
 		if (returnVal)
 			DS_VERIFY(GetExitCodeThread(thread->thread, (DWORD*)returnVal));

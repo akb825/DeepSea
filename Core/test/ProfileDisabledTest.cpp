@@ -124,7 +124,7 @@ void voidFunction()
 
 int intFunction(int retVal)
 {
-	DS_PROFILE_FUNC_START();
+	DS_PROFILE_FUNC_START_NAME("Custom Function");
 	DS_PROFILE_FUNC_RETURN(retVal);
 }
 
