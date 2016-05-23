@@ -129,8 +129,8 @@ extern "C"
 #define dsAlignedBox2_center(result, box) \
 	do \
 	{ \
-		(result)->x = ((box)->min.x + (box)->max.x)/2; \
-		(result)->y = ((box)->min.y + (box)->max.y)/2; \
+		(result).x = ((box).min.x + (box).max.x)/2; \
+		(result).y = ((box).min.y + (box).max.y)/2; \
 	} while (0)
 
 /**
@@ -144,8 +144,8 @@ extern "C"
 #define dsAlignedBox2_extents(result, box) \
 	do \
 	{ \
-		(result)->x = (box)->max.x - (box)->min.x; \
-		(result)->y = (box)->max.y - (box)->min.y; \
+		(result).x = (box).max.x - (box).min.x; \
+		(result).y = (box).max.y - (box).min.y; \
 	} while (0)
 
 /**
@@ -191,15 +191,15 @@ DS_GEOMETRY_EXPORT void dsAlignedBox2i_makeInvalid(dsAlignedBox2i* result);
  * @return The squared distance from box to point. If the point is within the box, 0 will be
  * returned. If the box is invalid, -1 will be returned.
  */
-DS_GEOMETRY_EXPORT float dsAlignedBox2f_distance2ToPoint(const dsAlignedBox2f* box,
+DS_GEOMETRY_EXPORT float dsAlignedBox2f_dist2(const dsAlignedBox2f* box,
 	const dsVector2f* point);
 
-/** @copydoc dsAlignedBox2f_distance2ToPoint() */
-DS_GEOMETRY_EXPORT double dsAlignedBox2d_distance2ToPoint(const dsAlignedBox2d* box,
+/** @copydoc dsAlignedBox2f_dist2() */
+DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist2(const dsAlignedBox2d* box,
 	const dsVector2d* point);
 
-/** @copydoc dsAlignedBox2f_distance2ToPoint() */
-DS_GEOMETRY_EXPORT int dsAlignedBox2i_distance2ToPoint(const dsAlignedBox2i* box,
+/** @copydoc dsAlignedBox2f_dist2() */
+DS_GEOMETRY_EXPORT int dsAlignedBox2i_dist2(const dsAlignedBox2i* box,
 	const dsVector2i* point);
 
 /**

@@ -67,8 +67,8 @@ extern "C"
 #define dsMatrix33_mul(result, a, b) \
 	do \
 	{ \
-		DS_ASSERT(&(result) != &(a)); \
-		DS_ASSERT(&(result) != &(b)); \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
+		DS_ASSERT(&(result) != (const void*)&(b)); \
 		\
 		(result).values[0][0] = (a).values[0][0]*(b).values[0][0] + \
 								(a).values[1][0]*(b).values[0][1] + \
@@ -110,7 +110,7 @@ extern "C"
 #define dsMatrix33_transform(result, mat, vec) \
 	do \
 	{ \
-		DS_ASSERT(&(result) != &(vec)); \
+		DS_ASSERT(&(result) != (const void*)&(vec)); \
 		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
 							 (mat).values[0][1]*(vec).values[1] + \
 							 (mat).values[0][2]*(vec).values[2]; \
@@ -130,7 +130,7 @@ extern "C"
 #define dsMatrix33_transpose(result, a) \
 	do \
 	{ \
-		DS_ASSERT(&(result) != &(a)); \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
 		\
 		(result).values[0][0] = (a).values[0][0]; \
 		(result).values[0][1] = (a).values[1][0]; \
@@ -160,7 +160,7 @@ extern "C"
 #define dsMatrix33_fastInvert(result, a) \
 	do \
 	{ \
-		DS_ASSERT(&(result) != &(a)); \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
 		\
 		(result).values[0][0] = (a).values[0][0]; \
 		(result).values[0][1] = (a).values[1][0]; \

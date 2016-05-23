@@ -140,19 +140,21 @@ typedef struct dsAlignedBox3i
 typedef struct dsOrientedBox2f
 {
 	/**
-	 * @brief The orientation of the box
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation.
 	 */
 	dsMatrix22f orientation;
 
 	/**
-	 * @brief The position of the box.
+	 * @brief The center of the box.
 	 */
-	dsVector2f position;
+	dsVector2f center;
 
 	/**
-	 * @brief The width and height of the box.
+	 * @brief The half width and height of the box.
 	 */
-	dsVector2f extents;
+	dsVector2f halfExtents;
 } dsOrientedBox2f;
 
 /**
@@ -161,19 +163,21 @@ typedef struct dsOrientedBox2f
 typedef struct dsOrientedBox2d
 {
 	/**
-	 * @brief The orientation of the box
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation.
 	 */
 	dsMatrix22d orientation;
 
 	/**
-	 * @brief The position of the box.
+	 * @brief The center of the box.
 	 */
-	dsVector2d position;
+	dsVector2d center;
 
 	/**
-	 * @brief The width and height of the box.
+	 * @brief The half width and height of the box.
 	 */
-	dsVector2d extents;
+	dsVector2d halfExtents;
 } dsOrientedBox2d;
 
 /**
@@ -182,19 +186,21 @@ typedef struct dsOrientedBox2d
 typedef struct dsOrientedBox3f
 {
 	/**
-	 * @brief The orientation of the box
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation.
 	 */
 	dsMatrix33f orientation;
 
 	/**
-	 * @brief The position of the box.
+	 * @brief The center of the box.
 	 */
-	dsVector3f position;
+	dsVector3f center;
 
 	/**
-	 * @brief The width and height of the box.
+	 * @brief The half width, height, and depth of the box.
 	 */
-	dsVector3f extents;
+	dsVector3f halfExtents;
 } dsOrientedBox3f;
 
 /**
@@ -203,19 +209,21 @@ typedef struct dsOrientedBox3f
 typedef struct dsOrientedBox3d
 {
 	/**
-	 * @brief The orientation of the box
+	 * @brief The orientation of the box.
+	 *
+	 * This must contain only a rotation.
 	 */
 	dsMatrix33d orientation;
 
 	/**
-	 * @brief The position of the box.
+	 * @brief The center of the box.
 	 */
-	dsVector3d position;
+	dsVector3d center;
 
 	/**
-	 * @brief The width and height of the box.
+	 * @brief The half width, height, and depth of the box.
 	 */
-	dsVector3d extents;
+	dsVector3d halfExtents;
 } dsOrientedBox3d;
 
 /**

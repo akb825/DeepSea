@@ -139,9 +139,9 @@ extern "C"
 #define dsAlignedBox3_center(result, box) \
 	do \
 	{ \
-		(result)->x = ((box)->min.x + (box)->max.x)/2; \
-		(result)->y = ((box)->min.y + (box)->max.y)/2; \
-		(result)->z = ((box)->min.z + (box)->max.z)/2; \
+		(result).x = ((box).min.x + (box).max.x)/2; \
+		(result).y = ((box).min.y + (box).max.y)/2; \
+		(result).z = ((box).min.z + (box).max.z)/2; \
 	} while (0)
 
 /**
@@ -155,9 +155,9 @@ extern "C"
 #define dsAlignedBox3_extents(result, box) \
 	do \
 	{ \
-		(result)->x = (box)->max.x - (box)->min.x; \
-		(result)->y = (box)->max.y - (box)->min.y; \
-		(result)->z = (box)->max.z - (box)->min.z; \
+		(result).x = (box).max.x - (box).min.x; \
+		(result).y = (box).max.y - (box).min.y; \
+		(result).z = (box).max.z - (box).min.z; \
 	} while (0)
 
 /**
