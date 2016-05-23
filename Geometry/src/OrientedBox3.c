@@ -357,55 +357,85 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 
 	// Use separating axis theorem.
 	// Test axes of box.
-	{
-		dsVector3f otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(otherBoxCorners, otherBox);
+	dsVector3f otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsOrientedBox3f_corners(otherBoxCorners, otherBox);
 
-		for (unsigned int i = 0; i < 3; ++i)
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		float boxMin = box->center.values[i] - box->halfExtents.values[i];
+		float boxMax = box->center.values[i] + box->halfExtents.values[i];
+
+		float otherBoxMin = FLT_MAX;
+		float otherBoxMax = -FLT_MAX;
+		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
 		{
-			float boxMin = box->center.values[i] - box->halfExtents.values[i];
-			float boxMax = box->center.values[i] + box->halfExtents.values[i];
+			float projectedPoint = dsVector3_dot(box->orientation.columns[i],
+				otherBoxCorners[j]);
+			otherBoxMin = dsMin(otherBoxMin, projectedPoint);
+			otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+		}
+
+		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		{
+			return false;
+		}
+	}
+
+	// Test axes of other box.
+	dsVector3f boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsOrientedBox3f_corners(boxCorners, box);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		float boxMin = FLT_MAX;
+		float boxMax = -FLT_MAX;
+		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		{
+			float projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
+				boxCorners[j]);
+			boxMin = dsMin(boxMin, projectedPoint);
+			boxMax = dsMax(boxMax, projectedPoint);
+		}
+
+		float otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
+		float otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
+
+		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		{
+			return false;
+		}
+	}
+
+	// Test the permutations of the pairs of edges of each box.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			dsVector3f axis;
+			dsVector3_cross(axis, box->orientation.columns[i], otherBox->orientation.columns[j]);
+
+			float boxMin = FLT_MAX;
+			float boxMax = -FLT_MAX;
+			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			{
+				float projectedPoint = dsVector3_dot(axis, boxCorners[k]);
+				boxMin = dsMin(boxMin, projectedPoint);
+				boxMax = dsMax(boxMax, projectedPoint);
+			}
 
 			float otherBoxMin = FLT_MAX;
 			float otherBoxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
 			{
-				float projectedPoint = dsVector3_dot(box->orientation.columns[i],
-					otherBoxCorners[j]);
+				float projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
 				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
 				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
 			}
 
 			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	// Test axes of other box.
-	{
-		dsVector3f boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
-		dsOrientedBox3f_corners(boxCorners, box);
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			float boxMin = FLT_MAX;
-			float boxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
-			{
-				float projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-					boxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			float otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-			float otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			     (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
 			{
 				return false;
 			}
@@ -425,55 +455,85 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 
 	// Use separating axis theorem.
 	// Test axes of box.
-	{
-		dsVector3d otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
-		dsOrientedBox3d_corners(otherBoxCorners, otherBox);
+	dsVector3d otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsOrientedBox3d_corners(otherBoxCorners, otherBox);
 
-		for (unsigned int i = 0; i < 3; ++i)
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		double boxMin = box->center.values[i] - box->halfExtents.values[i];
+		double boxMax = box->center.values[i] + box->halfExtents.values[i];
+
+		double otherBoxMin = DBL_MAX;
+		double otherBoxMax = -DBL_MAX;
+		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
 		{
-			double boxMin = box->center.values[i] - box->halfExtents.values[i];
-			double boxMax = box->center.values[i] + box->halfExtents.values[i];
+			double projectedPoint = dsVector3_dot(box->orientation.columns[i],
+				otherBoxCorners[j]);
+			otherBoxMin = dsMin(otherBoxMin, projectedPoint);
+			otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+		}
+
+		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		{
+			return false;
+		}
+	}
+
+	// Test axes of other box.
+	dsVector3d boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsOrientedBox3d_corners(boxCorners, box);
+
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		double boxMin = DBL_MAX;
+		double boxMax = -DBL_MAX;
+		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		{
+			double projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
+				boxCorners[j]);
+			boxMin = dsMin(boxMin, projectedPoint);
+			boxMax = dsMax(boxMax, projectedPoint);
+		}
+
+		double otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
+		double otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
+
+		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		{
+			return false;
+		}
+	}
+
+	// Test the permutations of the pairs of edges of each box.
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			dsVector3d axis;
+			dsVector3_cross(axis, box->orientation.columns[i], otherBox->orientation.columns[j]);
+
+			double boxMin = DBL_MAX;
+			double boxMax = -DBL_MAX;
+			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			{
+				double projectedPoint = dsVector3_dot(axis, boxCorners[k]);
+				boxMin = dsMin(boxMin, projectedPoint);
+				boxMax = dsMax(boxMax, projectedPoint);
+			}
 
 			double otherBoxMin = DBL_MAX;
 			double otherBoxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
 			{
-				double projectedPoint = dsVector3_dot(box->orientation.columns[i],
-					otherBoxCorners[j]);
+				double projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
 				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
 				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
 			}
 
 			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
-			{
-				return false;
-			}
-		}
-	}
-
-	// Test axes of other box.
-	{
-		dsVector3d boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
-		dsOrientedBox3d_corners(boxCorners, box);
-
-		for (unsigned int i = 0; i < 3; ++i)
-		{
-			double boxMin = DBL_MAX;
-			double boxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
-			{
-				double projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-					boxCorners[j]);
-				boxMin = dsMin(boxMin, projectedPoint);
-				boxMax = dsMax(boxMax, projectedPoint);
-			}
-
-			double otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-			double otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
-
-			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			      (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
 			{
 				return false;
 			}
