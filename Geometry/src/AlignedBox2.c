@@ -61,7 +61,9 @@ float dsAlignedBox2f_dist2(const dsAlignedBox2f* box, const dsVector2f* point)
 		return 0;
 
 	float dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	float dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 
 	return dsPow2(dx) + dsPow2(dy);
 }
@@ -78,7 +80,9 @@ double dsAlignedBox2d_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
 		return 0;
 
 	double dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	double dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 
 	return dsPow2(dx) + dsPow2(dy);
 }
@@ -95,7 +99,9 @@ int dsAlignedBox2i_dist2(const dsAlignedBox2i* box, const dsVector2i* point)
 		return 0;
 
 	int dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	int dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 
 	return dsPow2(dx) + dsPow2(dy);
 }

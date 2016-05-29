@@ -46,7 +46,7 @@ extern "C"
  * @return True if the box is valid.
  */
 #define dsAlignedBox2_isValid(box) \
-	((box).min.x <= (box).max.x || (box).min.y <= (box).max.y)
+	((box).min.x <= (box).max.x && (box).min.y <= (box).max.y)
 
 /**
  * @brief Adds a point to the box.
@@ -93,7 +93,7 @@ extern "C"
  * @return True if box contains otherBox.
  */
 #define dsAlignedBox2_containsBox(box, otherBox) \
-	((box).min.x <= (otherBox).min.x && (box).min.y <= (otherBox).max.y && \
+	((box).min.x <= (otherBox).min.x && (box).min.y <= (otherBox).min.y && \
 	 (box).max.x >= (otherBox).max.x && (box).max.y >= (otherBox).max.y)
 
 /**
@@ -112,7 +112,7 @@ extern "C"
  * @param a The first box to intersect.
  * @param b The second box to intersect.
  */
-#define dsAlginedBox2_intersect(result, a, b) \
+#define dsAlignedBox2_intersect(result, a, b) \
 	do \
 	{ \
 		(result).min.x = dsMax((a).min.x, (b).min.x); \
@@ -150,21 +150,23 @@ extern "C"
 
 /**
  * @brief Computes the closest point to the box.
- * @param[out] result The closest point. This will be the same as point if it is within box or box
- * is invalid.
+ * @param[out] result The closest point.
  * @param box The box to compute the closest point on.
  * @param point The point to check.
  */
 #define dsAlignedBox2_closestPoint(result, box, point) \
 	do \
 	{ \
-		if (!dsAlignedBox2_isValid(box) || dsAlignedBox2_containsPoint(box, point)) \
-			(result) = (point); \
-		else \
+		if (dsAlignedBox2_isValid(box)) \
 		{ \
-			(result).x = dsMax((box).min.x - (point).x, (point).x - (box).max.x); \
-			(result).y = dsMax((box).min.y - (point).y, (point).y - (box).max.y); \
+			(result).x = dsMax((box).min.x, (point).x); \
+			(result).x = dsMin((box).max.x, (result).x); \
+			\
+			(result).y = dsMax((box).min.y, (point).y); \
+			(result).y = dsMin((box).max.y, (result).y); \
 		} \
+		else \
+			(result) = (point); \
 	} while (0)
 
 /**

@@ -67,8 +67,11 @@ float dsAlignedBox3f_dist2(const dsAlignedBox3f* box, const dsVector3f* point)
 		return 0;
 
 	float dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	float dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 	float dz = dsMax(box->min.z - point->z, point->z - box->max.z);
+	dz = dsMax(dz, 0);
 
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }
@@ -85,8 +88,11 @@ double dsAlignedBox3d_dist2(const dsAlignedBox3d* box, const dsVector3d* point)
 		return 0;
 
 	double dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	double dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 	double dz = dsMax(box->min.z - point->z, point->z - box->max.z);
+	dz = dsMax(dz, 0);
 
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }
@@ -103,8 +109,11 @@ int dsAlignedBox3i_dist2(const dsAlignedBox3i* box, const dsVector3i* point)
 		return 0;
 
 	int dx = dsMax(box->min.x - point->x, point->x - box->max.x);
+	dx = dsMax(dx, 0);
 	int dy = dsMax(box->min.y - point->y, point->y - box->max.y);
+	dy = dsMax(dy, 0);
 	int dz = dsMax(box->min.z - point->z, point->z - box->max.z);
+	dz = dsMax(dz, 0);
 
 	return dsPow2(dx) + dsPow2(dy) + dsPow2(dz);
 }

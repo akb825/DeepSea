@@ -36,8 +36,8 @@ extern "C"
  * @param function The function to call.
  * @param userData The user data to pass to the function.
  * @param stackSize The size of the thread's stack. Set to 0 for the default size.
- * @param name The name of the thread. This should be a string constant. If NULL, will be set to
- * "Thread".
+ * @param name The name of the thread, used for profiling. The lifetime of the string should exceed
+ * the lifetime of the thread, such as with a string constant. If NULL, will be set to "Thread".
  * @return True if the thread was created.
  */
 DS_CORE_EXPORT bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,

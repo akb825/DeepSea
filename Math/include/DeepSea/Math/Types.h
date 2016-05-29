@@ -35,6 +35,8 @@ extern "C"
  *
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
  */
 typedef struct dsVector2f
 {
@@ -89,6 +91,8 @@ typedef struct dsVector2f
  *
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
  */
 typedef struct dsVector2d
 {
@@ -143,6 +147,8 @@ typedef struct dsVector2d
  *
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
  */
 typedef struct dsVector2i
 {
@@ -199,6 +205,8 @@ typedef struct dsVector2i
  * channels (r, g, b), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
  */
 typedef struct dsVector3f
 {
@@ -270,6 +278,8 @@ typedef struct dsVector3f
  * channels (r, g, b), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
  */
 typedef struct dsVector3d
 {
@@ -341,6 +351,8 @@ typedef struct dsVector3d
  * channels (r, g, b), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
  */
 typedef struct dsVector3i
 {
@@ -414,6 +426,8 @@ typedef struct dsVector3i
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
  */
 typedef struct dsVector4f
 {
@@ -500,6 +514,8 @@ typedef struct dsVector4f
  * colors channels (r, g, b, a), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
  */
 typedef struct dsVector4d
 {
@@ -586,6 +602,8 @@ typedef struct dsVector4d
  * colors channels (r, g, b, a), or an array of values.
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
  */
 typedef struct dsVector4i
 {
@@ -668,7 +686,9 @@ typedef struct dsVector4i
 /**
  * @brief Structure for a color.
  *
- * This contains 8 byte color components for red, green, blue, and alpha..
+ * This contains 8 byte color components for red, green, blue, and alpha.
+ *
+ * @remark When bracket initializing, use three brackets. (i.e. {{{r, g, b, a}}})
  */
 typedef struct dsColor
 {

@@ -48,8 +48,9 @@ DS_CORE_EXPORT unsigned int dsConditionVariable_fullAllocSize();
 /**
  * @brief Creates a condition variable.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
- * @param name The name of the condition variable, used for profiling. This should be a string
- * constant. If NULL, will be set to "Condition".
+ * @param name The name of the condition variable, used for profiling. The lifetime of the string
+ * should exceed the lifetime of the condition variable, such as with a string constant. If NULL,
+ * will be set to "Condition".
  * @return The condition variable, or NULL if it couldn't be created.
  */
 DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator,

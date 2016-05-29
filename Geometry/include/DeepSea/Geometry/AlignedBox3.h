@@ -46,7 +46,7 @@ extern "C"
  * @return True if the box is valid.
  */
 #define dsAlignedBox3_isValid(box) \
-	((box).min.x <= (box).max.x || (box).min.y <= (box).max.y || (box).min.z <= (box).max.z)
+	((box).min.x <= (box).max.x && (box).min.y <= (box).max.y && (box).min.z <= (box).max.z)
 
 /**
  * @brief Adds a point to the box.
@@ -97,10 +97,10 @@ extern "C"
  * @return True if box contains otherBox.
  */
 #define dsAlignedBox3_containsBox(box, otherBox) \
-	((box).min.x <= (otherBox).min.x && (box).min.y <= (otherBox).max.y && \
-		(box).min.z <= (otherBox).max.z && \
+	((box).min.x <= (otherBox).min.x && (box).min.y <= (otherBox).min.y && \
+		(box).min.z <= (otherBox).min.z && \
 	 (box).max.x >= (otherBox).max.x && (box).max.y >= (otherBox).max.y && \
-		(box).max.z >= (otherBox).max.z &&)
+		(box).max.z >= (otherBox).max.z)
 
 /**
  * @brief Checks if a box intersects with another box.
@@ -120,7 +120,7 @@ extern "C"
  * @param a The first box to intersect.
  * @param b The second box to intersect.
  */
-#define dsAlginedBox3_intersect(result, a, b) \
+#define dsAlignedBox3_intersect(result, a, b) \
 	do \
 	{ \
 		(result).min.x = dsMax((a).min.x, (b).min.x); \
@@ -162,22 +162,26 @@ extern "C"
 
 /**
  * @brief Computes the closest point to the box.
- * @param[out] result The closest point. This will be the same as point if it is within box or box
- * is invalid.
+ * @param[out] result The closest point.
  * @param box The box to compute the closest point on.
  * @param point The point to check.
  */
 #define dsAlignedBox3_closestPoint(result, box, point) \
 	do \
 	{ \
-		if (!dsAlignedBox3_isValid(box) || dsAlignedBox3_containsPoint(box, point)) \
-			(result) = (point); \
-		else \
+		if (dsAlignedBox3_isValid(box)) \
 		{ \
-			(result).x = dsMax((box).min.x - (point).x, (point).x - (box).max.x); \
-			(result).y = dsMax((box).min.y - (point).y, (point).y - (box).max.y); \
-			(result).z = dsMax((box).min.z - (point).z, (point).z - (box).max.z); \
+			(result).x = dsMax((box).min.x, (point).x); \
+			(result).x = dsMin((box).max.x, (result).x); \
+			\
+			(result).y = dsMax((box).min.y, (point).y); \
+			(result).y = dsMin((box).max.y, (result).y); \
+			\
+			(result).z = dsMax((box).min.z, (point).z); \
+			(result).z = dsMin((box).max.z, (result).z); \
 		} \
+		else \
+			(result) = (point); \
 	} while (0)
 
 /**
