@@ -69,12 +69,12 @@ inline float dsAlignedBox2_dist2(const dsAlignedBox2f* box, const dsVector2f* po
 	return dsAlignedBox2f_dist2(box, point);
 }
 
-inline float dsAlignedBox2_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
+inline double dsAlignedBox2_dist2(const dsAlignedBox2d* box, const dsVector2d* point)
 {
 	return dsAlignedBox2d_dist2(box, point);
 }
 
-inline float dsAlignedBox2_dist2(const dsAlignedBox2i* box, const dsVector2i* point)
+inline int dsAlignedBox2_dist2(const dsAlignedBox2i* box, const dsVector2i* point)
 {
 	return dsAlignedBox2i_dist2(box, point);
 }
@@ -84,12 +84,12 @@ inline float dsAlignedBox2_dist(const dsAlignedBox2f* box, const dsVector2f* poi
 	return dsAlignedBox2f_dist(box, point);
 }
 
-inline float dsAlignedBox2_dist(const dsAlignedBox2d* box, const dsVector2d* point)
+inline double dsAlignedBox2_dist(const dsAlignedBox2d* box, const dsVector2d* point)
 {
 	return dsAlignedBox2d_dist(box, point);
 }
 
-inline float dsAlignedBox2_dist(const dsAlignedBox2i* box, const dsVector2i* point)
+inline double dsAlignedBox2_dist(const dsAlignedBox2i* box, const dsVector2i* point)
 {
 	return dsAlignedBox2i_dist(box, point);
 }

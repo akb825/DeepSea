@@ -52,7 +52,7 @@ extern "C"
  * @return True if the box is valid.
  */
 #define dsOrientedBox3_isValid(box) \
-	((box).halfExtents.x < 0 || (box).halfExtents.y < 0 || (box).halfExtents.z < 0)
+	((box).halfExtents.x < 0 && (box).halfExtents.y < 0 && (box).halfExtents.z < 0)
 
 /**
  * @brief Makes an oriented box from an aligned box.
