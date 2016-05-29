@@ -30,13 +30,11 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 		return false;
 
 	dsVector4f center = {{{box->center.x, box->center.y, box->center.z, 1}}};
-	dsVector4f halfExtents = {{{box->halfExtents.x, box->center.y, box->center.z, 0}}};
 
 	dsMatrix33f newOrientation;
 	dsVector4f newCenter;
-	dsVector4f newHalfExtents;
 
-	// Macro will work correctly for treating a 3x3 matrix as a 2x2 matrix.
+	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
 	dsMatrix33_mul(newOrientation, box->orientation, *transform);
 
 	// Extract scales to apply to the extent.
@@ -45,7 +43,6 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	float scaleZ = dsVector3f_len(&newOrientation.columns[2]);
 
 	dsMatrix44_transform(newCenter, *transform, center);
-	dsMatrix44_transform(newHalfExtents, *transform, halfExtents);
 
 	float invScaleX = 1/scaleX;
 	float invScaleY = 1/scaleY;
@@ -58,9 +55,9 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	box->center.y = newCenter.y;
 	box->center.z = newCenter.z;
 
-	box->halfExtents.x = newHalfExtents.x*scaleX;
-	box->halfExtents.y = newHalfExtents.y*scaleY;
-	box->halfExtents.z = newHalfExtents.z*scaleZ;
+	box->halfExtents.x *= scaleX;
+	box->halfExtents.y *= scaleY;
+	box->halfExtents.z *= scaleZ;
 
 	return true;
 }
@@ -74,13 +71,11 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 		return false;
 
 	dsVector4d center = {{{box->center.x, box->center.y, box->center.z, 1}}};
-	dsVector4d halfExtents = {{{box->halfExtents.x, box->center.y, box->center.z, 0}}};
 
 	dsMatrix33d newOrientation;
 	dsVector4d newCenter;
-	dsVector4d newHalfExtents;
 
-	// Macro will work correctly for treating a 3x3 matrix as a 2x2 matrix.
+	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
 	dsMatrix33_mul(newOrientation, box->orientation, *transform);
 
 	// Extract scales to apply to the extent.
@@ -89,7 +84,6 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 	double scaleZ = dsVector3d_len(&newOrientation.columns[2]);
 
 	dsMatrix44_transform(newCenter, *transform, center);
-	dsMatrix44_transform(newHalfExtents, *transform, halfExtents);
 
 	double invScaleX = 1/scaleX;
 	double invScaleY = 1/scaleY;
@@ -102,9 +96,9 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 	box->center.y = newCenter.y;
 	box->center.z = newCenter.z;
 
-	box->halfExtents.x = newHalfExtents.x*scaleX;
-	box->halfExtents.y = newHalfExtents.y*scaleY;
-	box->halfExtents.z = newHalfExtents.z*scaleZ;
+	box->halfExtents.x *= scaleX;
+	box->halfExtents.y *= scaleY;
+	box->halfExtents.z *= scaleZ;
 
 	return true;
 }
@@ -120,15 +114,22 @@ void dsOrientedBox3f_addPoint(dsOrientedBox3f* box, const dsVector3f* point)
 		dsVector3f centeredPoint;
 		dsVector3_sub(centeredPoint, *point, box->center);
 		dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
-		dsVector3_add(localPoint, localPoint, box->center);
 
-		dsAlignedBox3f localBox;
-		dsVector3_sub(localBox.min, box->center, box->halfExtents);
-		dsVector3_add(localBox.max, box->center, box->halfExtents);
+		dsAlignedBox3f localBox =
+		{
+			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
+			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+		};
 
 		dsAlignedBox3_addPoint(localBox, localPoint);
 
-		dsAlignedBox3_center(box->center, localBox);
+		dsVector3f localCenterOffset, centerOffset;
+		dsMatrix33f localToWorld;
+		dsMatrix33_transpose(localToWorld, box->orientation);
+		dsAlignedBox3_center(localCenterOffset, localBox);
+		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsVector3_add(box->center, box->center, centerOffset);
+
 		dsAlignedBox3_extents(box->halfExtents, localBox);
 		dsVector3_scale(box->halfExtents, box->halfExtents, 0.5f);
 	}
@@ -152,15 +153,22 @@ void dsOrientedBox3d_addPoint(dsOrientedBox3d* box, const dsVector3d* point)
 		dsVector3d centeredPoint;
 		dsVector3_sub(centeredPoint, *point, box->center);
 		dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
-		dsVector3_add(localPoint, localPoint, box->center);
 
-		dsAlignedBox3d localBox;
-		dsVector3_sub(localBox.min, box->center, box->halfExtents);
-		dsVector3_add(localBox.max, box->center, box->halfExtents);
+		dsAlignedBox3d localBox =
+		{
+			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
+			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+		};
 
 		dsAlignedBox3_addPoint(localBox, localPoint);
 
-		dsAlignedBox3_center(box->center, localBox);
+		dsVector3d localCenterOffset, centerOffset;
+		dsMatrix33d localToWorld;
+		dsMatrix33_transpose(localToWorld, box->orientation);
+		dsAlignedBox3_center(localCenterOffset, localBox);
+		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsVector3_add(box->center, box->center, centerOffset);
+
 		dsAlignedBox3_extents(box->halfExtents, localBox);
 		dsVector3_scale(box->halfExtents, box->halfExtents, 0.5);
 	}
@@ -183,9 +191,11 @@ bool dsOrientedBox3f_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBo
 
 	if (dsOrientedBox3_isValid(*box))
 	{
-		dsAlignedBox3f localBox;
-		dsVector3_sub(localBox.min, box->center, box->halfExtents);
-		dsVector3_add(localBox.max, box->center, box->halfExtents);
+		dsAlignedBox3f localBox =
+		{
+			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
+			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+		};
 
 		dsVector3f corners[DS_ORIENTED_BOX3_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox3f_corners(corners, otherBox));
@@ -195,12 +205,17 @@ bool dsOrientedBox3f_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBo
 			dsVector3f centeredPoint;
 			dsVector3_sub(centeredPoint, corners[i], box->center);
 			dsMatrix33_transform(localCorner, box->orientation, centeredPoint);
-			dsVector3_add(localCorner, localCorner, box->center);
 
 			dsAlignedBox3_addPoint(localBox, localCorner);
 		}
 
-		dsAlignedBox3_center(box->center, localBox);
+		dsVector3f localCenterOffset, centerOffset;
+		dsMatrix33f localToWorld;
+		dsMatrix33_transpose(localToWorld, box->orientation);
+		dsAlignedBox3_center(localCenterOffset, localBox);
+		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsVector3_add(box->center, box->center, centerOffset);
+
 		dsAlignedBox3_extents(box->halfExtents, localBox);
 		dsVector3_scale(box->halfExtents, box->halfExtents, 0.5f);
 	}
@@ -220,9 +235,11 @@ bool dsOrientedBox3d_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBo
 
 	if (dsOrientedBox3_isValid(*box))
 	{
-		dsAlignedBox3d localBox;
-		dsVector3_sub(localBox.min, box->center, box->halfExtents);
-		dsVector3_add(localBox.max, box->center, box->halfExtents);
+		dsAlignedBox3d localBox =
+		{
+			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
+			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+		};
 
 		dsVector3d corners[DS_ORIENTED_BOX3_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox3d_corners(corners, otherBox));
@@ -232,14 +249,19 @@ bool dsOrientedBox3d_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBo
 			dsVector3d centeredPoint;
 			dsVector3_sub(centeredPoint, corners[i], box->center);
 			dsMatrix33_transform(localCorner, box->orientation, centeredPoint);
-			dsVector3_add(localCorner, localCorner, box->center);
 
 			dsAlignedBox3_addPoint(localBox, localCorner);
 		}
 
-		dsAlignedBox3_center(box->center, localBox);
+		dsVector3d localCenterOffset, centerOffset;
+		dsMatrix33d localToWorld;
+		dsMatrix33_transpose(localToWorld, box->orientation);
+		dsAlignedBox3_center(localCenterOffset, localBox);
+		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsVector3_add(box->center, box->center, centerOffset);
+
 		dsAlignedBox3_extents(box->halfExtents, localBox);
-		dsVector3_scale(box->halfExtents, box->halfExtents, 0.5f);
+		dsVector3_scale(box->halfExtents, box->halfExtents, 0.5);
 	}
 	else
 		*box = *otherBox;
@@ -255,43 +277,45 @@ bool dsOrientedBox3f_corners(dsVector3f corners[], const dsOrientedBox3f* box)
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	corners[0].x = box->center.x - box->halfExtents.x;
-	corners[0].y = box->center.y - box->halfExtents.y;
-	corners[0].z = box->center.z - box->halfExtents.z;
+	corners[0].x = -box->halfExtents.x;
+	corners[0].y = -box->halfExtents.y;
+	corners[0].z = -box->halfExtents.z;
 
-	corners[1].x = box->center.x + box->halfExtents.x;
-	corners[1].y = box->center.y - box->halfExtents.y;
-	corners[1].z = box->center.z - box->halfExtents.z;
+	corners[1].x = box->halfExtents.x;
+	corners[1].y = -box->halfExtents.y;
+	corners[1].z = -box->halfExtents.z;
 
-	corners[2].x = box->center.x - box->halfExtents.x;
-	corners[2].y = box->center.y + box->halfExtents.y;
-	corners[2].z = box->center.z - box->halfExtents.z;
+	corners[2].x = -box->halfExtents.x;
+	corners[2].y = box->halfExtents.y;
+	corners[2].z = -box->halfExtents.z;
 
-	corners[3].x = box->center.x + box->halfExtents.x;
-	corners[3].y = box->center.y + box->halfExtents.y;
-	corners[3].z = box->center.z - box->halfExtents.z;
+	corners[3].x = box->halfExtents.x;
+	corners[3].y = box->halfExtents.y;
+	corners[3].z = -box->halfExtents.z;
 
-	corners[4].x = box->center.x - box->halfExtents.x;
-	corners[4].y = box->center.y - box->halfExtents.y;
-	corners[4].z = box->center.z + box->halfExtents.z;
+	corners[4].x = -box->halfExtents.x;
+	corners[4].y = -box->halfExtents.y;
+	corners[4].z = box->halfExtents.z;
 
-	corners[5].x = box->center.x + box->halfExtents.x;
-	corners[5].y = box->center.y - box->halfExtents.y;
-	corners[5].z = box->center.z + box->halfExtents.z;
+	corners[5].x = box->halfExtents.x;
+	corners[5].y = -box->halfExtents.y;
+	corners[5].z = box->halfExtents.z;
 
-	corners[6].x = box->center.x - box->halfExtents.x;
-	corners[6].y = box->center.y + box->halfExtents.y;
-	corners[6].z = box->center.z + box->halfExtents.z;
+	corners[6].x = -box->halfExtents.x;
+	corners[6].y = box->halfExtents.y;
+	corners[6].z = box->halfExtents.z;
 
-	corners[7].x = box->center.x + box->halfExtents.x;
-	corners[7].y = box->center.y + box->halfExtents.y;
-	corners[7].z = box->center.z + box->halfExtents.z;
+	corners[7].x = box->halfExtents.x;
+	corners[7].y = box->halfExtents.y;
+	corners[7].z = box->halfExtents.z;
 
+	dsMatrix33f localToWorld;
+	dsMatrix33_transpose(localToWorld, box->orientation);
 	for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
 	{
-		dsVector3f localPoint;
-		dsMatrix33_transform(localPoint, box->orientation, corners[i]);
-		dsVector3_add(corners[i], localPoint, box->center);
+		dsVector3f worldOffset;
+		dsMatrix33_transform(worldOffset, localToWorld, corners[i]);
+		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
 	return true;
@@ -305,43 +329,45 @@ bool dsOrientedBox3d_corners(dsVector3d corners[], const dsOrientedBox3d* box)
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	corners[0].x = box->center.x - box->halfExtents.x;
-	corners[0].y = box->center.y - box->halfExtents.y;
-	corners[0].z = box->center.z - box->halfExtents.z;
+	corners[0].x = -box->halfExtents.x;
+	corners[0].y = -box->halfExtents.y;
+	corners[0].z = -box->halfExtents.z;
 
-	corners[1].x = box->center.x + box->halfExtents.x;
-	corners[1].y = box->center.y - box->halfExtents.y;
-	corners[1].z = box->center.z - box->halfExtents.z;
+	corners[1].x = box->halfExtents.x;
+	corners[1].y = -box->halfExtents.y;
+	corners[1].z = -box->halfExtents.z;
 
-	corners[2].x = box->center.x - box->halfExtents.x;
-	corners[2].y = box->center.y + box->halfExtents.y;
-	corners[2].z = box->center.z - box->halfExtents.z;
+	corners[2].x = -box->halfExtents.x;
+	corners[2].y = box->halfExtents.y;
+	corners[2].z = -box->halfExtents.z;
 
-	corners[3].x = box->center.x + box->halfExtents.x;
-	corners[3].y = box->center.y + box->halfExtents.y;
-	corners[3].z = box->center.z - box->halfExtents.z;
+	corners[3].x = box->halfExtents.x;
+	corners[3].y = box->halfExtents.y;
+	corners[3].z = -box->halfExtents.z;
 
-	corners[4].x = box->center.x - box->halfExtents.x;
-	corners[4].y = box->center.y - box->halfExtents.y;
-	corners[4].z = box->center.z + box->halfExtents.z;
+	corners[4].x = -box->halfExtents.x;
+	corners[4].y = -box->halfExtents.y;
+	corners[4].z = box->halfExtents.z;
 
-	corners[5].x = box->center.x + box->halfExtents.x;
-	corners[5].y = box->center.y - box->halfExtents.y;
-	corners[5].z = box->center.z + box->halfExtents.z;
+	corners[5].x = box->halfExtents.x;
+	corners[5].y = -box->halfExtents.y;
+	corners[5].z = box->halfExtents.z;
 
-	corners[6].x = box->center.x - box->halfExtents.x;
-	corners[6].y = box->center.y + box->halfExtents.y;
-	corners[6].z = box->center.z + box->halfExtents.z;
+	corners[6].x = -box->halfExtents.x;
+	corners[6].y = box->halfExtents.y;
+	corners[6].z = box->halfExtents.z;
 
-	corners[7].x = box->center.x + box->halfExtents.x;
-	corners[7].y = box->center.y + box->halfExtents.y;
-	corners[7].z = box->center.z + box->halfExtents.z;
+	corners[7].x = box->halfExtents.x;
+	corners[7].y = box->halfExtents.y;
+	corners[7].z = box->halfExtents.z;
 
+	dsMatrix33d localToWorld;
+	dsMatrix33_transpose(localToWorld, box->orientation);
 	for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
 	{
-		dsVector3d localPoint;
-		dsMatrix33_transform(localPoint, box->orientation, corners[i]);
-		dsVector3_add(corners[i], localPoint, box->center);
+		dsVector3d worldOffset;
+		dsMatrix33_transform(worldOffset, localToWorld, corners[i]);
+		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
 	return true;

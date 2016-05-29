@@ -738,6 +738,9 @@ typedef struct dsVector4f dsColor4f;
  * @brief Structure for a 2x2 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix22f
 {
@@ -759,6 +762,9 @@ typedef struct dsMatrix22f
  * @brief Structure for a 2x2 matrix of doubles.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix22d
 {
@@ -780,6 +786,9 @@ typedef struct dsMatrix22d
  * @brief Structure for a 3x3 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix33f
 {
@@ -801,6 +810,9 @@ typedef struct dsMatrix33f
  * @brief Structure for a 3x3 matrix of doubles.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix33d
 {
@@ -822,6 +834,9 @@ typedef struct dsMatrix33d
  * @brief Structure for a 4x4 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix44f
 {
@@ -843,6 +858,9 @@ typedef struct dsMatrix44f
  * @brief Structure for a 4x4 matrix of doubles.
  *
  * This can be accessed as an array of columns or a 2D array of values.
+ *
+ * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
+ * which also require thre brackets.
  */
 typedef struct dsMatrix44d
 {

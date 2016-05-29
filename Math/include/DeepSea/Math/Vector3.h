@@ -157,10 +157,10 @@ extern "C"
  * @param a The first vector.
  * @return The length.
  */
-inline float dsVector3f_len(dsVector3f* a);
+inline float dsVector3f_len(const dsVector3f* a);
 
 /** @copydoc dsVector3f_len() */
-inline double dsVector3d_len(dsVector3d* a);
+inline double dsVector3d_len(const dsVector3d* a);
 
 /**
  * @brief Gets the distance between two vectors.
@@ -168,48 +168,48 @@ inline double dsVector3d_len(dsVector3d* a);
  * @param b The second vector.
  * @return The length.
  */
-inline float dsVector3f_dist(dsVector3f* a, dsVector3f* b);
+inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
 
 /** @copydoc dsVector3f_dist() */
-inline double dsVector3d_dist(dsVector3d* a, dsVector3d* b);
+inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
 
 /**
  * @brief Normalizes a vector.
- * @param result The normalized vector.
+ * @param[out] result The normalized vector.
  * @param a The vector to normalize.
  */
-inline void dsVector3f_normalize(dsVector3f* result, dsVector3f* a);
+inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
 
 /** @copydoc dsVector3f_normalize() */
-inline void dsVector3d_normalize(dsVector3d* result, dsVector3d* a);
+inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
 
-inline float dsVector3f_len(dsVector3f* a)
+inline float dsVector3f_len(const dsVector3f* a)
 {
 	DS_ASSERT(a);
 	return sqrtf(dsVector3_len2(*a));
 }
 
-inline double dsVector3d_len(dsVector3d* a)
+inline double dsVector3d_len(const dsVector3d* a)
 {
 	DS_ASSERT(a);
 	return sqrt(dsVector3_len2(*a));
 }
 
-inline float dsVector3f_dist(dsVector3f* a, dsVector3f* b)
+inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 	return sqrtf(dsVector3_dist2(*a, *b));
 }
 
-inline double dsVector3d_dist(dsVector3d* a, dsVector3d* b)
+inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
 	return sqrt(dsVector3_dist2(*a, *b));
 }
 
-inline void dsVector3f_normalize(dsVector3f* result, dsVector3f* a)
+inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -218,7 +218,7 @@ inline void dsVector3f_normalize(dsVector3f* result, dsVector3f* a)
 	dsVector3_scale(*result, *a, 1/length);
 }
 
-inline void dsVector3d_normalize(dsVector3d* result, dsVector3d* a)
+inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
