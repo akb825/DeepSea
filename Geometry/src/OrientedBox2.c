@@ -29,7 +29,7 @@ bool dsOrientedBox2f_transform(dsOrientedBox2f* box, const dsMatrix33f* transfor
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	dsVector3f center = {{{box->center.x, box->center.y, 1}}};
+	dsVector3f center = {{box->center.x, box->center.y, 1}};
 
 	dsMatrix22f newOrientation;
 	dsVector3f newCenter;
@@ -65,7 +65,7 @@ bool dsOrientedBox2d_transform(dsOrientedBox2d* box, const dsMatrix33d* transfor
 	if (!dsOrientedBox2_isValid(*box))
 		return false;
 
-	dsVector3d center = {{{box->center.x, box->center.y, 1}}};
+	dsVector3d center = {{box->center.x, box->center.y, 1}};
 
 	dsMatrix22d newOrientation;
 	dsVector3d newCenter;
@@ -107,17 +107,15 @@ void dsOrientedBox2f_addPoint(dsOrientedBox2f* box, const dsVector2f* point)
 
 		dsAlignedBox2f localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y}}},
-			{{{box->halfExtents.x, box->halfExtents.y}}}
+			{{-box->halfExtents.x, -box->halfExtents.y}},
+			{{box->halfExtents.x, box->halfExtents.y}}
 		};
 
 		dsAlignedBox2_addPoint(localBox, localPoint);
 
 		dsVector2f localCenterOffset, centerOffset;
-		dsMatrix22f localToWorld;
-		dsMatrix22_transpose(localToWorld, box->orientation);
 		dsAlignedBox2_center(localCenterOffset, localBox);
-		dsMatrix22_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix22_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector2_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox2_extents(box->halfExtents, localBox);
@@ -145,17 +143,15 @@ void dsOrientedBox2d_addPoint(dsOrientedBox2d* box, const dsVector2d* point)
 
 		dsAlignedBox2d localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y}}},
-			{{{box->halfExtents.x, box->halfExtents.y}}}
+			{{-box->halfExtents.x, -box->halfExtents.y}},
+			{{box->halfExtents.x, box->halfExtents.y}}
 		};
 
 		dsAlignedBox2_addPoint(localBox, localPoint);
 
 		dsVector2d localCenterOffset, centerOffset;
-		dsMatrix22d localToWorld;
-		dsMatrix22_transpose(localToWorld, box->orientation);
 		dsAlignedBox2_center(localCenterOffset, localBox);
-		dsMatrix22_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix22_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector2_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox2_extents(box->halfExtents, localBox);
@@ -181,13 +177,13 @@ bool dsOrientedBox2f_addBox(dsOrientedBox2f* box, const dsOrientedBox2f* otherBo
 	{
 		dsAlignedBox2f localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y}}},
-			{{{box->halfExtents.x, box->halfExtents.y}}}
+			{{-box->halfExtents.x, -box->halfExtents.y}},
+			{{box->halfExtents.x, box->halfExtents.y}}
 		};
 
-		dsVector2f corners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2f corners[DS_BOX2_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox2f_corners(corners, otherBox));
-		for (unsigned int i = 0; i < DS_ORIENTED_BOX2_CORNER_COUNT; ++i)
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 		{
 			dsVector2f localCorner;
 			dsVector2f centeredPoint;
@@ -198,10 +194,8 @@ bool dsOrientedBox2f_addBox(dsOrientedBox2f* box, const dsOrientedBox2f* otherBo
 		}
 
 		dsVector2f localCenterOffset, centerOffset;
-		dsMatrix22f localToWorld;
-		dsMatrix22_transpose(localToWorld, box->orientation);
 		dsAlignedBox2_center(localCenterOffset, localBox);
-		dsMatrix22_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix22_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector2_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox2_extents(box->halfExtents, localBox);
@@ -225,13 +219,13 @@ bool dsOrientedBox2d_addBox(dsOrientedBox2d* box, const dsOrientedBox2d* otherBo
 	{
 		dsAlignedBox2d localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y}}},
-			{{{box->halfExtents.x, box->halfExtents.y}}}
+			{{-box->halfExtents.x, -box->halfExtents.y}},
+			{{box->halfExtents.x, box->halfExtents.y}}
 		};
 
-		dsVector2d corners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2d corners[DS_BOX2_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox2d_corners(corners, otherBox));
-		for (unsigned int i = 0; i < DS_ORIENTED_BOX2_CORNER_COUNT; ++i)
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 		{
 			dsVector2d localCorner;
 			dsVector2d centeredPoint;
@@ -242,10 +236,8 @@ bool dsOrientedBox2d_addBox(dsOrientedBox2d* box, const dsOrientedBox2d* otherBo
 		}
 
 		dsVector2d localCenterOffset, centerOffset;
-		dsMatrix22d localToWorld;
-		dsMatrix22_transpose(localToWorld, box->orientation);
 		dsAlignedBox2_center(localCenterOffset, localBox);
-		dsMatrix22_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix22_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector2_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox2_extents(box->halfExtents, localBox);
@@ -268,21 +260,19 @@ bool dsOrientedBox2f_corners(dsVector2f corners[], const dsOrientedBox2f* box)
 	corners[0].x = -box->halfExtents.x;
 	corners[0].y = -box->halfExtents.y;
 
-	corners[1].x = box->halfExtents.x;
-	corners[1].y = -box->halfExtents.y;
+	corners[1].x = -box->halfExtents.x;
+	corners[1].y = box->halfExtents.y;
 
-	corners[2].x = -box->halfExtents.x;
-	corners[2].y = box->halfExtents.y;
+	corners[2].x = box->halfExtents.x;
+	corners[2].y = -box->halfExtents.y;
 
 	corners[3].x = box->halfExtents.x;
 	corners[3].y = box->halfExtents.y;
 
-	dsMatrix22f localToWorld;
-	dsMatrix22_transpose(localToWorld, box->orientation);
-	for (unsigned int i = 0; i < DS_ORIENTED_BOX2_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 	{
 		dsVector2f worldOffset;
-		dsMatrix22_transform(worldOffset, localToWorld, corners[i]);
+		dsMatrix22_transformTransposed(worldOffset, box->orientation, corners[i]);
 		dsVector2_add(corners[i], worldOffset, box->center);
 	}
 
@@ -300,21 +290,19 @@ bool dsOrientedBox2d_corners(dsVector2d corners[], const dsOrientedBox2d* box)
 	corners[0].x = -box->halfExtents.x;
 	corners[0].y = -box->halfExtents.y;
 
-	corners[1].x = box->halfExtents.x;
-	corners[1].y = -box->halfExtents.y;
+	corners[1].x = -box->halfExtents.x;
+	corners[1].y = box->halfExtents.y;
 
-	corners[2].x = -box->halfExtents.x;
-	corners[2].y = box->halfExtents.y;
+	corners[2].x = box->halfExtents.x;
+	corners[2].y = -box->halfExtents.y;
 
 	corners[3].x = box->halfExtents.x;
 	corners[3].y = box->halfExtents.y;
 
-	dsMatrix22d localToWorld;
-	dsMatrix22_transpose(localToWorld, box->orientation);
-	for (unsigned int i = 0; i < DS_ORIENTED_BOX2_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 	{
 		dsVector2d worldOffset;
-		dsMatrix22_transform(worldOffset, localToWorld, corners[i]);
+		dsMatrix22_transformTransposed(worldOffset, box->orientation, corners[i]);
 		dsVector2_add(corners[i], worldOffset, box->center);
 	}
 
@@ -332,17 +320,21 @@ bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box, const dsOrientedBox2
 	// Use separating axis theorem.
 	// Test axes of box.
 	{
-		dsVector2f otherBoxCorners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2f otherBoxCorners[DS_BOX2_CORNER_COUNT];
 		dsOrientedBox2f_corners(otherBoxCorners, otherBox);
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		{
+			dsVector2_sub(otherBoxCorners[i], otherBoxCorners[i], box->center);
+		}
 
 		for (unsigned int i = 0; i < 2; ++i)
 		{
-			float boxMin = box->center.values[i] - box->halfExtents.values[i];
-			float boxMax = box->center.values[i] + box->halfExtents.values[i];
+			float boxMin = -box->halfExtents.values[i];
+			float boxMax = box->halfExtents.values[i];
 
 			float otherBoxMin = FLT_MAX;
 			float otherBoxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX2_CORNER_COUNT; ++j)
+			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
 			{
 				float projectedPoint = dsVector2_dot(box->orientation.columns[i],
 					otherBoxCorners[j]);
@@ -360,14 +352,18 @@ bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box, const dsOrientedBox2
 
 	// Test axes of other box.
 	{
-		dsVector2f boxCorners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2f boxCorners[DS_BOX2_CORNER_COUNT];
 		dsOrientedBox2f_corners(boxCorners, box);
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		{
+			dsVector2_sub(boxCorners[i], boxCorners[i], otherBox->center);
+		}
 
 		for (unsigned int i = 0; i < 2; ++i)
 		{
 			float boxMin = FLT_MAX;
 			float boxMax = -FLT_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX2_CORNER_COUNT; ++j)
+			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
 			{
 				float projectedPoint = dsVector2_dot(otherBox->orientation.columns[i],
 					boxCorners[j]);
@@ -375,8 +371,8 @@ bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box, const dsOrientedBox2
 				boxMax = dsMax(boxMax, projectedPoint);
 			}
 
-			float otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-			float otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
+			float otherBoxMin = -otherBox->halfExtents.values[i];
+			float otherBoxMax = otherBox->halfExtents.values[i];
 
 			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
 				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
@@ -400,17 +396,21 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 	// Use separating axis theorem.
 	// Test axes of box.
 	{
-		dsVector2d otherBoxCorners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2d otherBoxCorners[DS_BOX2_CORNER_COUNT];
 		dsOrientedBox2d_corners(otherBoxCorners, otherBox);
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		{
+			dsVector2_sub(otherBoxCorners[i], otherBoxCorners[i], box->center);
+		}
 
 		for (unsigned int i = 0; i < 2; ++i)
 		{
-			double boxMin = box->center.values[i] - box->halfExtents.values[i];
-			double boxMax = box->center.values[i] + box->halfExtents.values[i];
+			double boxMin = -box->halfExtents.values[i];
+			double boxMax = box->halfExtents.values[i];
 
 			double otherBoxMin = DBL_MAX;
 			double otherBoxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX2_CORNER_COUNT; ++j)
+			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
 			{
 				double projectedPoint = dsVector2_dot(box->orientation.columns[i],
 					otherBoxCorners[j]);
@@ -428,14 +428,18 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 
 	// Test axes of other box.
 	{
-		dsVector2d boxCorners[DS_ORIENTED_BOX2_CORNER_COUNT];
+		dsVector2d boxCorners[DS_BOX2_CORNER_COUNT];
 		dsOrientedBox2d_corners(boxCorners, box);
+		for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+		{
+			dsVector2_sub(boxCorners[i], boxCorners[i], otherBox->center);
+		}
 
 		for (unsigned int i = 0; i < 2; ++i)
 		{
 			double boxMin = DBL_MAX;
 			double boxMax = -DBL_MAX;
-			for (unsigned int j = 0; j < DS_ORIENTED_BOX2_CORNER_COUNT; ++j)
+			for (unsigned int j = 0; j < DS_BOX2_CORNER_COUNT; ++j)
 			{
 				double projectedPoint = dsVector2_dot(otherBox->orientation.columns[i],
 					boxCorners[j]);
@@ -443,8 +447,8 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 				boxMax = dsMax(boxMax, projectedPoint);
 			}
 
-			double otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-			double otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
+			double otherBoxMin = -otherBox->halfExtents.values[i];
+			double otherBoxMax = otherBox->halfExtents.values[i];
 
 			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
 				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
@@ -457,6 +461,64 @@ bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box, const dsOrientedBox2
 	return true;
 }
 
+bool dsOrientedBox2f_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,
+	const dsVector2f* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox2_isValid(*box))
+		return false;
+
+	dsAlignedBox2f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
+
+	dsVector2f localPoint;
+	dsVector2f centeredPoint;
+	dsVector2_sub(centeredPoint, *point, box->center);
+	dsMatrix22_transform(localPoint, box->orientation, centeredPoint);
+
+	dsVector2f localResult;
+	dsAlignedBox2_closestPoint(localResult, localBox, localPoint);
+	dsMatrix22_transformTransposed(*result, box->orientation, localResult);
+	dsVector2_add(*result, *result, box->center);
+
+	return true;
+}
+
+bool dsOrientedBox2d_closestPoint(dsVector2d* result, const dsOrientedBox2d* box,
+	const dsVector2d* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox2_isValid(*box))
+		return false;
+
+	dsAlignedBox2d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
+
+	dsVector2d localPoint;
+	dsVector2d centeredPoint;
+	dsVector2_sub(centeredPoint, *point, box->center);
+	dsMatrix22_transform(localPoint, box->orientation, centeredPoint);
+
+	dsVector2d localResult;
+	dsAlignedBox2_closestPoint(localResult, localBox, localPoint);
+	dsMatrix22_transformTransposed(*result, box->orientation, localResult);
+	dsVector2_add(*result, *result, box->center);
+
+	return true;
+}
+
 float dsOrientedBox2f_dist2(const dsOrientedBox2f* box, const dsVector2f* point)
 {
 	DS_ASSERT(box);
@@ -465,17 +527,18 @@ float dsOrientedBox2f_dist2(const dsOrientedBox2f* box, const dsVector2f* point)
 	if (!dsOrientedBox2_isValid(*box))
 		return -1;
 
-	dsAlignedBox2f localBox;
-	dsVector2_sub(localBox.min, box->center, box->halfExtents);
-	dsVector2_add(localBox.max, box->center, box->halfExtents);
+	dsAlignedBox2f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
 
 	dsVector2f localPoint;
 	dsVector2f centeredPoint;
 	dsVector2_sub(centeredPoint, *point, box->center);
 	dsMatrix22_transform(localPoint, box->orientation, centeredPoint);
-	dsVector2_add(localPoint, localPoint, box->center);
 
-	return dsAlignedBox2f_dist2(&localBox, point);
+	return dsAlignedBox2f_dist2(&localBox, &localPoint);
 }
 
 double dsOrientedBox2d_dist2(const dsOrientedBox2d* box, const dsVector2d* point)
@@ -486,17 +549,18 @@ double dsOrientedBox2d_dist2(const dsOrientedBox2d* box, const dsVector2d* point
 	if (!dsOrientedBox2_isValid(*box))
 		return -1;
 
-	dsAlignedBox2d localBox;
-	dsVector2_sub(localBox.min, box->center, box->halfExtents);
-	dsVector2_add(localBox.max, box->center, box->halfExtents);
+	dsAlignedBox2d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y}},
+		{{box->halfExtents.x, box->halfExtents.y}}
+	};
 
 	dsVector2d localPoint;
 	dsVector2d centeredPoint;
 	dsVector2_sub(centeredPoint, *point, box->center);
 	dsMatrix22_transform(localPoint, box->orientation, centeredPoint);
-	dsVector2_add(localPoint, localPoint, box->center);
 
-	return dsAlignedBox2d_dist2(&localBox, point);
+	return dsAlignedBox2d_dist2(&localBox, &localPoint);
 }
 
 float dsOrientedBox2f_dist(const dsOrientedBox2f* box, const dsVector2f* point)

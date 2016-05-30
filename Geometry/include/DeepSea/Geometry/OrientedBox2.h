@@ -39,11 +39,6 @@ extern "C"
  */
 
 /**
- * @brief The number of corners in a dsOrientedBox2.
- */
-#define DS_ORIENTED_BOX2_CORNER_COUNT 4
-
-/**
  * @brief Returns whether or not a box is valid.
  *
  * A box is invalid if any of the extents are negative.
@@ -126,11 +121,11 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2d_addBox(dsOrientedBox2d* box,
  * @param box The box to extract the corners from.
  * @return False if box is empty.
  */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_corners(dsVector2f corners[DS_ORIENTED_BOX2_CORNER_COUNT],
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT],
 	const dsOrientedBox2f* box);
 
 /** @copydoc dsOrientedBox2f_corners() */
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_corners(dsVector2d corners[DS_ORIENTED_BOX2_CORNER_COUNT],
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT],
 	const dsOrientedBox2d* box);
 
 /**
@@ -145,6 +140,20 @@ DS_GEOMETRY_EXPORT bool dsOrientedBox2f_intersects(const dsOrientedBox2f* box,
 /** @copydoc dsOrientedBox2f_intersects() */
 DS_GEOMETRY_EXPORT bool dsOrientedBox2d_intersects(const dsOrientedBox2d* box,
 	const dsOrientedBox2d* otherBox);
+
+/**
+ * @brief Computes the closest point to the box.
+ * @param[out] result The closest point.
+ * @param box The box to compute the closest point on.
+ * @param point The point to check.
+ * @return False if the box is invalid.
+ */
+DS_GEOMETRY_EXPORT bool dsOrientedBox2f_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,
+	const dsVector2f* point);
+
+/** @copydoc dsOrientedBox2f_closestPoint() */
+DS_GEOMETRY_EXPORT bool dsOrientedBox2d_closestPoint(dsVector2d* result, const dsOrientedBox2d* box,
+	const dsVector2d* point);
 
 /**
  * @brief Computes the squared distance from a box to a point.

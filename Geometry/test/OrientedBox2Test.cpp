@@ -104,6 +104,18 @@ inline bool dsOrientedBox2_intersects(const dsOrientedBox2d* box, const dsOrient
 	return dsOrientedBox2d_intersects(box, otherBox);
 }
 
+inline bool dsOrientedBox2_closestPoint(dsVector2f* result, const dsOrientedBox2f* box,
+	const dsVector2f* point)
+{
+	return dsOrientedBox2f_closestPoint(result, box, point);
+}
+
+inline bool dsOrientedBox2_closestPoint(dsVector2d* result, const dsOrientedBox2d* box,
+	const dsVector2d* point)
+{
+	return dsOrientedBox2d_closestPoint(result, box, point);
+}
+
 inline float dsOrientedBox2_dist2(const dsOrientedBox2f* box, const dsVector2f* otherBox)
 {
 	return dsOrientedBox2f_dist2(box, otherBox);
@@ -112,6 +124,16 @@ inline float dsOrientedBox2_dist2(const dsOrientedBox2f* box, const dsVector2f* 
 inline double dsOrientedBox2_dist2(const dsOrientedBox2d* box, const dsVector2d* otherBox)
 {
 	return dsOrientedBox2d_dist2(box, otherBox);
+}
+
+inline float dsOrientedBox2_dist(const dsOrientedBox2f* box, const dsVector2f* otherBox)
+{
+	return dsOrientedBox2f_dist(box, otherBox);
+}
+
+inline double dsOrientedBox2_dist(const dsOrientedBox2d* box, const dsVector2d* otherBox)
+{
+	return dsOrientedBox2d_dist(box, otherBox);
 }
 
 inline void dsMatrix33_makeRotate(dsMatrix33f* result, float angle)
@@ -150,8 +172,8 @@ TYPED_TEST(OrientedBox2Test, Initialize)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{1, 0}}}, {{{0, 1}}} }}},
-		{{{1, 2}}}, {{{3, 4}}}
+		{{ {1, 0}, {0, 1} }},
+		{{1, 2}}, {{3, 4}}
 	};
 
 	EXPECT_EQ(1, box.orientation.values[0][0]);
@@ -172,8 +194,8 @@ TYPED_TEST(OrientedBox2Test, IsValid)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{1, 0}}}, {{{0, 1}}} }}},
-		{{{1, 2}}}, {{{3, 4}}}
+		{{ {1, 0}, {0, 1} }},
+		{{1, 2}}, {{3, 4}}
 	};
 
 	EXPECT_TRUE(dsOrientedBox2_isValid(box));
@@ -193,8 +215,8 @@ TYPED_TEST(OrientedBox2Test, FromAlignedBox)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{0, 1}}}, {{{1, 0}}} }}},
-		{{{4, 3}}}, {{{2, 1}}}
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
 	};
 
 	AlignedBox2Type alignedBox = {{0, 1}, {2, 5}};
@@ -218,9 +240,11 @@ TYPED_TEST(OrientedBox2Test, MakeInvalid)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{1, 0}}}, {{{0, 1}}} }}},
-		{{{1, 2}}}, {{{3, 4}}}
+		{{ {1, 0}, {0, 1} }},
+		{{1, 2}}, {{3, 4}}
 	};
+
+	EXPECT_TRUE(dsOrientedBox2_isValid(box));
 
 	dsOrientedBox2_makeInvalid(box);
 	EXPECT_FALSE(dsOrientedBox2_isValid(box));
@@ -235,8 +259,8 @@ TYPED_TEST(OrientedBox2Test, Transform)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{0, 1}}}, {{{-1, 0}}} }}},
-		{{{4, 3}}}, {{{2, 1}}}
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
 	};
 
 	Matrix33Type rotate, translate, scale, temp, transform;
@@ -254,11 +278,11 @@ TYPED_TEST(OrientedBox2Test, Transform)
 
 	EXPECT_TRUE(dsOrientedBox2_transform(&box, &transform));
 
-	EXPECT_NEAR((TypeParam)-0.5, box.orientation.values[0][0], epsilon);
-	EXPECT_NEAR((TypeParam)0.866025403784439, box.orientation.values[0][1], epsilon);
+	EXPECT_NEAR(-rotate.values[0][1], box.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(rotate.values[1][1], box.orientation.values[0][1], epsilon);
 
-	EXPECT_NEAR((TypeParam)-0.866025403784439, box.orientation.values[1][0], epsilon);
-	EXPECT_NEAR((TypeParam)-0.5, box.orientation.values[1][1], epsilon);
+	EXPECT_NEAR(-rotate.values[0][0], box.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(rotate.values[1][0], box.orientation.values[1][1], epsilon);
 
 	EXPECT_NEAR(center.x, box.center.x, epsilon);
 	EXPECT_NEAR(center.y, box.center.y, epsilon);
@@ -275,8 +299,8 @@ TYPED_TEST(OrientedBox2Test, AddPoint)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{0, 1}}}, {{{-1, 0}}} }}},
-		{{{4, 3}}}, {{{2, 1}}}
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
 	};
 
 	Vector2Type point1 = {4, 3};
@@ -324,21 +348,21 @@ TYPED_TEST(OrientedBox2Test, Corners)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{0, 1}}}, {{{-1, 0}}} }}},
-		{{{4, 3}}}, {{{2, 1}}}
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
 	};
 
-	Vector2Type corners[DS_ORIENTED_BOX2_CORNER_COUNT];
+	Vector2Type corners[DS_BOX2_CORNER_COUNT];
 	EXPECT_TRUE(dsOrientedBox2_corners(corners, &box));
 
 	EXPECT_NEAR(5, corners[0].x, epsilon);
 	EXPECT_NEAR(1, corners[0].y, epsilon);
 
-	EXPECT_NEAR(5, corners[1].x, epsilon);
-	EXPECT_NEAR(5, corners[1].y, epsilon);
+	EXPECT_NEAR(3, corners[1].x, epsilon);
+	EXPECT_NEAR(1, corners[1].y, epsilon);
 
-	EXPECT_NEAR(3, corners[2].x, epsilon);
-	EXPECT_NEAR(1, corners[2].y, epsilon);
+	EXPECT_NEAR(5, corners[2].x, epsilon);
+	EXPECT_NEAR(5, corners[2].y, epsilon);
 
 	EXPECT_NEAR(3, corners[3].x, epsilon);
 	EXPECT_NEAR(5, corners[3].y, epsilon);
@@ -353,14 +377,14 @@ TYPED_TEST(OrientedBox2Test, AddBox)
 
 	OrientedBox2Type box =
 	{
-		{{{ {{{0, 1}}}, {{{-1, 0}}} }}},
-		{{{4, 3}}}, {{{2, 1}}}
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
 	};
 
 	OrientedBox2Type otherBox =
 	{
-		{{{ {{{1, 0}}}, {{{0, 1}}} }}},
-		{{{1, 2}}}, {{{3, 4}}}
+		{{ {1, 0}, {0, 1} }},
+		{{1, 2}}, {{3, 4}}
 	};
 
 	Matrix33Type rotate, translate, scale, temp, transform;
@@ -374,17 +398,168 @@ TYPED_TEST(OrientedBox2Test, AddBox)
 
 	dsOrientedBox2_transform(&otherBox, &transform);
 
-	Vector2Type otherBoxCorners[DS_ORIENTED_BOX2_CORNER_COUNT];
+	Vector2Type otherBoxCorners[DS_BOX2_CORNER_COUNT];
 	EXPECT_TRUE(dsOrientedBox2_corners(otherBoxCorners, &otherBox));
 
 	OrientedBox2Type addPointsBox = box;
 	dsOrientedBox2_addBox(&box, &otherBox);
 
-	for (unsigned int i = 0; i < DS_ORIENTED_BOX2_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
 		dsOrientedBox2_addPoint(&addPointsBox, otherBoxCorners + i);
 
 	EXPECT_NEAR(addPointsBox.center.x, box.center.x, epsilon);
 	EXPECT_NEAR(addPointsBox.center.y, box.center.y, epsilon);
 	EXPECT_NEAR(addPointsBox.halfExtents.x, box.halfExtents.x, epsilon);
 	EXPECT_NEAR(addPointsBox.halfExtents.y, box.halfExtents.y, epsilon);
+}
+
+TYPED_TEST(OrientedBox2Test, Intersects)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	OrientedBox2Type otherBox =
+	{
+		{{ {1, 0}, {0, 1} }},
+		{{0, 0}}, {{2, 1}}
+	};
+
+	Matrix33Type rotate;
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsOrientedBox2_transform(&otherBox, &rotate);
+
+	otherBox.center.x = 4;
+	otherBox.center.y = 3;
+	EXPECT_TRUE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 2;
+	otherBox.center.y = 3;
+	EXPECT_TRUE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 5;
+	otherBox.center.y = 3;
+	EXPECT_TRUE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 4;
+	otherBox.center.y = 2;
+	EXPECT_TRUE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 4;
+	otherBox.center.y = 4;
+	EXPECT_TRUE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 0;
+	otherBox.center.y = 3;
+	EXPECT_FALSE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 8;
+	otherBox.center.y = 3;
+	EXPECT_FALSE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 4;
+	otherBox.center.y = -1;
+	EXPECT_FALSE(dsOrientedBox2_intersects(&box, &otherBox));
+
+	otherBox.center.x = 4;
+	otherBox.center.y = 7;
+	EXPECT_FALSE(dsOrientedBox2_intersects(&box, &otherBox));
+}
+
+TYPED_TEST(OrientedBox2Test, ClosestPoint)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type point1 = {3, 2};
+	Vector2Type point2 = {2, 3};
+	Vector2Type point3 = {4, 0};
+	Vector2Type point4 = {6, 3};
+	Vector2Type point5 = {4, 6};
+
+	Vector2Type closest;
+	dsOrientedBox2_closestPoint(&closest, &box, &box.center);
+	EXPECT_EQ(box.center.x, closest.x);
+	EXPECT_EQ(box.center.y, closest.y);
+
+	dsOrientedBox2_closestPoint(&closest, &box, &point1);
+	EXPECT_EQ(3, closest.x);
+	EXPECT_EQ(2, closest.y);
+
+	dsOrientedBox2_closestPoint(&closest, &box, &point2);
+	EXPECT_EQ(3, closest.x);
+	EXPECT_EQ(3, closest.y);
+
+	dsOrientedBox2_closestPoint(&closest, &box, &point3);
+	EXPECT_EQ(4, closest.x);
+	EXPECT_EQ(1, closest.y);
+
+	dsOrientedBox2_closestPoint(&closest, &box, &point4);
+	EXPECT_EQ(5, closest.x);
+	EXPECT_EQ(3, closest.y);
+
+	dsOrientedBox2_closestPoint(&closest, &box, &point5);
+	EXPECT_EQ(4, closest.x);
+	EXPECT_EQ(5, closest.y);
+}
+
+TYPED_TEST(OrientedBox2Test, Dist2)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type point1 = {3, 2};
+	Vector2Type point2 = {2, 3};
+	Vector2Type point3 = {4, -1};
+	Vector2Type point4 = {6, 3};
+	Vector2Type point5 = {4, 7};
+
+	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &box.center));
+	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &point1));
+	EXPECT_EQ(1, dsOrientedBox2_dist2(&box, &point2));
+	EXPECT_EQ(4, dsOrientedBox2_dist2(&box, &point3));
+	EXPECT_EQ(1, dsOrientedBox2_dist2(&box, &point4));
+	EXPECT_EQ(4, dsOrientedBox2_dist2(&box, &point5));
+}
+
+TYPED_TEST(OrientedBox2Test, Dist)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type point1 = {3, 2};
+	Vector2Type point2 = {2, 3};
+	Vector2Type point3 = {4, -1};
+	Vector2Type point4 = {6, 3};
+	Vector2Type point5 = {4, 7};
+
+	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox2_dist(&box, &box.center));
+	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox2_dist(&box, &point1));
+	EXPECT_FLOAT_EQ(1.0f, (float)dsOrientedBox2_dist(&box, &point2));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox2_dist(&box, &point3));
+	EXPECT_FLOAT_EQ(1.0f, (float)dsOrientedBox2_dist(&box, &point4));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox2_dist(&box, &point5));
 }

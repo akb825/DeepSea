@@ -506,6 +506,49 @@ TYPED_TEST(AlignedBox3Test, Extents)
 	EXPECT_EQ(6, extents.z);
 }
 
+TYPED_TEST(AlignedBox3Test, Corners)
+{
+	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
+	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
+
+	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+
+	Vector3Type corners[DS_BOX3_CORNER_COUNT];
+	dsAlignedBox3_corners(corners, box);
+
+	EXPECT_EQ(0, corners[0].x);
+	EXPECT_EQ(1, corners[0].y);
+	EXPECT_EQ(2, corners[0].z);
+
+	EXPECT_EQ(0, corners[1].x);
+	EXPECT_EQ(1, corners[1].y);
+	EXPECT_EQ(5, corners[1].z);
+
+	EXPECT_EQ(0, corners[2].x);
+	EXPECT_EQ(4, corners[2].y);
+	EXPECT_EQ(2, corners[2].z);
+
+	EXPECT_EQ(0, corners[3].x);
+	EXPECT_EQ(4, corners[3].y);
+	EXPECT_EQ(5, corners[3].z);
+
+	EXPECT_EQ(3, corners[4].x);
+	EXPECT_EQ(1, corners[4].y);
+	EXPECT_EQ(2, corners[4].z);
+
+	EXPECT_EQ(3, corners[5].x);
+	EXPECT_EQ(1, corners[5].y);
+	EXPECT_EQ(5, corners[5].z);
+
+	EXPECT_EQ(3, corners[6].x);
+	EXPECT_EQ(4, corners[6].y);
+	EXPECT_EQ(2, corners[6].z);
+
+	EXPECT_EQ(3, corners[7].x);
+	EXPECT_EQ(4, corners[7].y);
+	EXPECT_EQ(5, corners[7].z);
+}
+
 TYPED_TEST(AlignedBox3Test, ClosestPoint)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
@@ -590,8 +633,8 @@ TYPED_TEST(AlignedBox3Test, Dist2)
 	Vector3Type point3 = {1, -2, 3};
 	Vector3Type point4 = {1, 2, -3};
 	Vector3Type point5 = {4, 2, 3};
-	Vector3Type point6 = {1, 5, 3};
-	Vector3Type point7 = {1, 2, 6};
+	Vector3Type point6 = {1, 6, 3};
+	Vector3Type point7 = {1, 2, 8};
 
 	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.min));
 	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.max));
@@ -600,8 +643,8 @@ TYPED_TEST(AlignedBox3Test, Dist2)
 	EXPECT_EQ(9, dsAlignedBox3_dist2(&box, &point3));
 	EXPECT_EQ(25, dsAlignedBox3_dist2(&box, &point4));
 	EXPECT_EQ(1, dsAlignedBox3_dist2(&box, &point5));
-	EXPECT_EQ(1, dsAlignedBox3_dist2(&box, &point6));
-	EXPECT_EQ(1, dsAlignedBox3_dist2(&box, &point7));
+	EXPECT_EQ(4, dsAlignedBox3_dist2(&box, &point6));
+	EXPECT_EQ(9, dsAlignedBox3_dist2(&box, &point7));
 }
 
 TYPED_TEST(AlignedBox3Test, Dist)
@@ -616,8 +659,8 @@ TYPED_TEST(AlignedBox3Test, Dist)
 	Vector3Type point3 = {1, -2, 3};
 	Vector3Type point4 = {1, 2, -3};
 	Vector3Type point5 = {4, 2, 3};
-	Vector3Type point6 = {1, 5, 3};
-	Vector3Type point7 = {1, 2, 6};
+	Vector3Type point6 = {1, 6, 3};
+	Vector3Type point7 = {1, 2, 8};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox3_dist(&box, &box.min));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox3_dist(&box, &box.max));
@@ -626,6 +669,6 @@ TYPED_TEST(AlignedBox3Test, Dist)
 	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox3_dist(&box, &point3));
 	EXPECT_FLOAT_EQ(5.0f, (float)dsAlignedBox3_dist(&box, &point4));
 	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox3_dist(&box, &point5));
-	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox3_dist(&box, &point6));
-	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox3_dist(&box, &point7));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsAlignedBox3_dist(&box, &point6));
+	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox3_dist(&box, &point7));
 }

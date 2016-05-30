@@ -384,6 +384,29 @@ TYPED_TEST(AlignedBox2Test, Extents)
 	EXPECT_EQ(5, extents.y);
 }
 
+TYPED_TEST(AlignedBox2Test, Corners)
+{
+	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
+	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+
+	AlignedBox2Type box = {{0, 1}, {4, 6}};
+	Vector2Type corners[DS_BOX2_CORNER_COUNT];
+
+	dsAlignedBox2_corners(corners, box);
+
+	EXPECT_EQ(0, corners[0].x);
+	EXPECT_EQ(1, corners[0].y);
+
+	EXPECT_EQ(0, corners[1].x);
+	EXPECT_EQ(6, corners[1].y);
+
+	EXPECT_EQ(4, corners[2].x);
+	EXPECT_EQ(1, corners[2].y);
+
+	EXPECT_EQ(4, corners[3].x);
+	EXPECT_EQ(6, corners[3].y);
+}
+
 TYPED_TEST(AlignedBox2Test, ClosestPoint)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
@@ -448,7 +471,7 @@ TYPED_TEST(AlignedBox2Test, Dist2)
 	Vector2Type point2 = {-1, 2};
 	Vector2Type point3 = {1, -2};
 	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 4};
+	Vector2Type point5 = {1, 5};
 
 	EXPECT_EQ(0, dsAlignedBox2_dist2(&box, &box.min));
 	EXPECT_EQ(0, dsAlignedBox2_dist2(&box, &box.max));
@@ -456,7 +479,7 @@ TYPED_TEST(AlignedBox2Test, Dist2)
 	EXPECT_EQ(1, dsAlignedBox2_dist2(&box, &point2));
 	EXPECT_EQ(9, dsAlignedBox2_dist2(&box, &point3));
 	EXPECT_EQ(1, dsAlignedBox2_dist2(&box, &point4));
-	EXPECT_EQ(1, dsAlignedBox2_dist2(&box, &point5));
+	EXPECT_EQ(4, dsAlignedBox2_dist2(&box, &point5));
 }
 
 TYPED_TEST(AlignedBox2Test, Dist)
@@ -470,7 +493,7 @@ TYPED_TEST(AlignedBox2Test, Dist)
 	Vector2Type point2 = {-1, 2};
 	Vector2Type point3 = {1, -2};
 	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 4};
+	Vector2Type point5 = {1, 5};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox2_dist(&box, &box.min));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox2_dist(&box, &box.max));
@@ -478,5 +501,5 @@ TYPED_TEST(AlignedBox2Test, Dist)
 	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox2_dist(&box, &point2));
 	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox2_dist(&box, &point3));
 	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox2_dist(&box, &point4));
-	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox2_dist(&box, &point5));
+	EXPECT_FLOAT_EQ(2.0f, (float)dsAlignedBox2_dist(&box, &point5));
 }

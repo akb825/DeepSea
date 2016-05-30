@@ -77,7 +77,7 @@ extern "C"
 
 /**
  * @brief Transforms a vector with a matrix.
- * @param result The result of mat*vec. This may NOT be the same as vec.
+ * @param result The result of vec*mat. This may NOT be the same as vec.
  * @param mat The matrix to transform with.
  * @param vec The vector to transform.
  */
@@ -88,6 +88,22 @@ extern "C"
 		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
 							 (mat).values[0][1]*(vec).values[1]; \
 		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
+							 (mat).values[1][1]*(vec).values[1]; \
+	} while (0)
+
+/**
+ * @brief Transforms a vector with a transposed matrix.
+ * @param result The result of mat*vec. This may NOT be the same as vec.
+ * @param mat The matrix to transform with.
+ * @param vec The vector to transform.
+ */
+#define dsMatrix22_transformTransposed(result, mat, vec) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(vec)); \
+		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
+							 (mat).values[1][0]*(vec).values[1]; \
+		(result).values[1] = (mat).values[0][1]*(vec).values[0] + \
 							 (mat).values[1][1]*(vec).values[1]; \
 	} while (0)
 

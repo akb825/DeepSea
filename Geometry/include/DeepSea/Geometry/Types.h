@@ -39,6 +39,16 @@ extern "C"
  */
 
 /**
+ * @brief The number of corners for a 2D box.
+ */
+#define DS_BOX2_CORNER_COUNT 4
+
+/**
+ * @brief The number of corners for a 3D box.
+ */
+#define DS_BOX3_CORNER_COUNT 8
+
+/**
  * @brief Structure for 2D axis-aligned bounding box using floats.
  */
 typedef struct dsAlignedBox2f

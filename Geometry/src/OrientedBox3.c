@@ -29,7 +29,7 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	dsVector4f center = {{{box->center.x, box->center.y, box->center.z, 1}}};
+	dsVector4f center = {{box->center.x, box->center.y, box->center.z, 1}};
 
 	dsMatrix33f newOrientation;
 	dsVector4f newCenter;
@@ -70,7 +70,7 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 	if (!dsOrientedBox3_isValid(*box))
 		return false;
 
-	dsVector4d center = {{{box->center.x, box->center.y, box->center.z, 1}}};
+	dsVector4d center = {{box->center.x, box->center.y, box->center.z, 1}};
 
 	dsMatrix33d newOrientation;
 	dsVector4d newCenter;
@@ -117,17 +117,15 @@ void dsOrientedBox3f_addPoint(dsOrientedBox3f* box, const dsVector3f* point)
 
 		dsAlignedBox3f localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
-			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+			{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+			{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
 		};
 
 		dsAlignedBox3_addPoint(localBox, localPoint);
 
 		dsVector3f localCenterOffset, centerOffset;
-		dsMatrix33f localToWorld;
-		dsMatrix33_transpose(localToWorld, box->orientation);
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -156,17 +154,15 @@ void dsOrientedBox3d_addPoint(dsOrientedBox3d* box, const dsVector3d* point)
 
 		dsAlignedBox3d localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
-			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+			{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+			{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
 		};
 
 		dsAlignedBox3_addPoint(localBox, localPoint);
 
 		dsVector3d localCenterOffset, centerOffset;
-		dsMatrix33d localToWorld;
-		dsMatrix33_transpose(localToWorld, box->orientation);
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -193,13 +189,13 @@ bool dsOrientedBox3f_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBo
 	{
 		dsAlignedBox3f localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
-			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+			{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+			{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
 		};
 
-		dsVector3f corners[DS_ORIENTED_BOX3_CORNER_COUNT];
+		dsVector3f corners[DS_BOX3_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox3f_corners(corners, otherBox));
-		for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
 			dsVector3f localCorner;
 			dsVector3f centeredPoint;
@@ -210,10 +206,8 @@ bool dsOrientedBox3f_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBo
 		}
 
 		dsVector3f localCenterOffset, centerOffset;
-		dsMatrix33f localToWorld;
-		dsMatrix33_transpose(localToWorld, box->orientation);
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -237,13 +231,13 @@ bool dsOrientedBox3d_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBo
 	{
 		dsAlignedBox3d localBox =
 		{
-			{{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}}},
-			{{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}}
+			{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+			{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
 		};
 
-		dsVector3d corners[DS_ORIENTED_BOX3_CORNER_COUNT];
+		dsVector3d corners[DS_BOX3_CORNER_COUNT];
 		DS_VERIFY(dsOrientedBox3d_corners(corners, otherBox));
-		for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
 			dsVector3d localCorner;
 			dsVector3d centeredPoint;
@@ -254,10 +248,8 @@ bool dsOrientedBox3d_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBo
 		}
 
 		dsVector3d localCenterOffset, centerOffset;
-		dsMatrix33d localToWorld;
-		dsMatrix33_transpose(localToWorld, box->orientation);
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transform(centerOffset, localToWorld, localCenterOffset);
+		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -281,40 +273,38 @@ bool dsOrientedBox3f_corners(dsVector3f corners[], const dsOrientedBox3f* box)
 	corners[0].y = -box->halfExtents.y;
 	corners[0].z = -box->halfExtents.z;
 
-	corners[1].x = box->halfExtents.x;
+	corners[1].x = -box->halfExtents.x;
 	corners[1].y = -box->halfExtents.y;
-	corners[1].z = -box->halfExtents.z;
+	corners[1].z = box->halfExtents.z;
 
 	corners[2].x = -box->halfExtents.x;
 	corners[2].y = box->halfExtents.y;
 	corners[2].z = -box->halfExtents.z;
 
-	corners[3].x = box->halfExtents.x;
+	corners[3].x = -box->halfExtents.x;
 	corners[3].y = box->halfExtents.y;
-	corners[3].z = -box->halfExtents.z;
+	corners[3].z = box->halfExtents.z;
 
-	corners[4].x = -box->halfExtents.x;
+	corners[4].x = box->halfExtents.x;
 	corners[4].y = -box->halfExtents.y;
-	corners[4].z = box->halfExtents.z;
+	corners[4].z = -box->halfExtents.z;
 
 	corners[5].x = box->halfExtents.x;
 	corners[5].y = -box->halfExtents.y;
 	corners[5].z = box->halfExtents.z;
 
-	corners[6].x = -box->halfExtents.x;
+	corners[6].x = box->halfExtents.x;
 	corners[6].y = box->halfExtents.y;
-	corners[6].z = box->halfExtents.z;
+	corners[6].z = -box->halfExtents.z;
 
 	corners[7].x = box->halfExtents.x;
 	corners[7].y = box->halfExtents.y;
 	corners[7].z = box->halfExtents.z;
 
-	dsMatrix33f localToWorld;
-	dsMatrix33_transpose(localToWorld, box->orientation);
-	for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		dsVector3f worldOffset;
-		dsMatrix33_transform(worldOffset, localToWorld, corners[i]);
+		dsMatrix33_transformTransposed(worldOffset, box->orientation, corners[i]);
 		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
@@ -333,40 +323,38 @@ bool dsOrientedBox3d_corners(dsVector3d corners[], const dsOrientedBox3d* box)
 	corners[0].y = -box->halfExtents.y;
 	corners[0].z = -box->halfExtents.z;
 
-	corners[1].x = box->halfExtents.x;
+	corners[1].x = -box->halfExtents.x;
 	corners[1].y = -box->halfExtents.y;
-	corners[1].z = -box->halfExtents.z;
+	corners[1].z = box->halfExtents.z;
 
 	corners[2].x = -box->halfExtents.x;
 	corners[2].y = box->halfExtents.y;
 	corners[2].z = -box->halfExtents.z;
 
-	corners[3].x = box->halfExtents.x;
+	corners[3].x = -box->halfExtents.x;
 	corners[3].y = box->halfExtents.y;
-	corners[3].z = -box->halfExtents.z;
+	corners[3].z = box->halfExtents.z;
 
-	corners[4].x = -box->halfExtents.x;
+	corners[4].x = box->halfExtents.x;
 	corners[4].y = -box->halfExtents.y;
-	corners[4].z = box->halfExtents.z;
+	corners[4].z = -box->halfExtents.z;
 
 	corners[5].x = box->halfExtents.x;
 	corners[5].y = -box->halfExtents.y;
 	corners[5].z = box->halfExtents.z;
 
-	corners[6].x = -box->halfExtents.x;
+	corners[6].x = box->halfExtents.x;
 	corners[6].y = box->halfExtents.y;
-	corners[6].z = box->halfExtents.z;
+	corners[6].z = -box->halfExtents.z;
 
 	corners[7].x = box->halfExtents.x;
 	corners[7].y = box->halfExtents.y;
 	corners[7].z = box->halfExtents.z;
 
-	dsMatrix33d localToWorld;
-	dsMatrix33_transpose(localToWorld, box->orientation);
-	for (unsigned int i = 0; i < DS_ORIENTED_BOX3_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		dsVector3d worldOffset;
-		dsMatrix33_transform(worldOffset, localToWorld, corners[i]);
+		dsMatrix33_transformTransposed(worldOffset, box->orientation, corners[i]);
 		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
@@ -382,55 +370,71 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 		return false;
 
 	// Use separating axis theorem.
-	// Test axes of box.
-	dsVector3f otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsVector3f otherBoxCorners[DS_BOX3_CORNER_COUNT];
 	dsOrientedBox3f_corners(otherBoxCorners, otherBox);
 
-	for (unsigned int i = 0; i < 3; ++i)
+	// Test axes of box.
 	{
-		float boxMin = box->center.values[i] - box->halfExtents.values[i];
-		float boxMax = box->center.values[i] + box->halfExtents.values[i];
-
-		float otherBoxMin = FLT_MAX;
-		float otherBoxMax = -FLT_MAX;
-		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		dsVector3f centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
-			float projectedPoint = dsVector3_dot(box->orientation.columns[i],
-				otherBoxCorners[j]);
-			otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-			otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+			dsVector3_sub(centeredOtherBoxCorners[i], otherBoxCorners[i], box->center);
 		}
 
-		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		for (unsigned int i = 0; i < 3; ++i)
 		{
-			return false;
+			float boxMin = -box->halfExtents.values[i];
+			float boxMax = box->halfExtents.values[i];
+
+			float otherBoxMin = FLT_MAX;
+			float otherBoxMax = -FLT_MAX;
+			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
+			{
+				float projectedPoint = dsVector3_dot(box->orientation.columns[i],
+					centeredOtherBoxCorners[j]);
+				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
+				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+			}
+
+			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			{
+				return false;
+			}
 		}
 	}
 
-	// Test axes of other box.
-	dsVector3f boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsVector3f boxCorners[DS_BOX3_CORNER_COUNT];
 	dsOrientedBox3f_corners(boxCorners, box);
 
-	for (unsigned int i = 0; i < 3; ++i)
+	// Test axes of other box.
 	{
-		float boxMin = FLT_MAX;
-		float boxMax = -FLT_MAX;
-		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		dsVector3f centeredBoxCorners[DS_BOX3_CORNER_COUNT];
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
-			float projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-				boxCorners[j]);
-			boxMin = dsMin(boxMin, projectedPoint);
-			boxMax = dsMax(boxMax, projectedPoint);
+			dsVector3_sub(centeredBoxCorners[i], boxCorners[i], otherBox->center);
 		}
 
-		float otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-		float otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
-
-		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		for (unsigned int i = 0; i < 3; ++i)
 		{
-			return false;
+			float boxMin = FLT_MAX;
+			float boxMax = -FLT_MAX;
+			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
+			{
+				float projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
+					centeredBoxCorners[j]);
+				boxMin = dsMin(boxMin, projectedPoint);
+				boxMax = dsMax(boxMax, projectedPoint);
+			}
+
+			float otherBoxMin = -otherBox->halfExtents.values[i];
+			float otherBoxMax = otherBox->halfExtents.values[i];
+
+			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -444,7 +448,7 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 
 			float boxMin = FLT_MAX;
 			float boxMax = -FLT_MAX;
-			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
 			{
 				float projectedPoint = dsVector3_dot(axis, boxCorners[k]);
 				boxMin = dsMin(boxMin, projectedPoint);
@@ -453,7 +457,7 @@ bool dsOrientedBox3f_intersects(const dsOrientedBox3f* box, const dsOrientedBox3
 
 			float otherBoxMin = FLT_MAX;
 			float otherBoxMax = -FLT_MAX;
-			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
 			{
 				float projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
 				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
@@ -480,55 +484,72 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 		return false;
 
 	// Use separating axis theorem.
-	// Test axes of box.
-	dsVector3d otherBoxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsVector3d otherBoxCorners[DS_BOX3_CORNER_COUNT];
 	dsOrientedBox3d_corners(otherBoxCorners, otherBox);
 
-	for (unsigned int i = 0; i < 3; ++i)
+	// Test axes of box.
 	{
-		double boxMin = box->center.values[i] - box->halfExtents.values[i];
-		double boxMax = box->center.values[i] + box->halfExtents.values[i];
-
-		double otherBoxMin = DBL_MAX;
-		double otherBoxMax = -DBL_MAX;
-		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		dsVector3f centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
-			double projectedPoint = dsVector3_dot(box->orientation.columns[i],
-				otherBoxCorners[j]);
-			otherBoxMin = dsMin(otherBoxMin, projectedPoint);
-			otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+			dsVector3_sub(centeredOtherBoxCorners[i], otherBoxCorners[i], box->center);
 		}
 
-		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		for (unsigned int i = 0; i < 3; ++i)
 		{
-			return false;
+			double boxMin = -box->halfExtents.values[i];
+			double boxMax = box->halfExtents.values[i];
+
+			double otherBoxMin = DBL_MAX;
+			double otherBoxMax = -DBL_MAX;
+			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
+			{
+				double projectedPoint = dsVector3_dot(box->orientation.columns[i],
+					centeredOtherBoxCorners[j]);
+				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
+				otherBoxMax = dsMax(otherBoxMax, projectedPoint);
+			}
+
+			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			{
+				return false;
+			}
 		}
 	}
 
 	// Test axes of other box.
-	dsVector3d boxCorners[DS_ORIENTED_BOX3_CORNER_COUNT];
+	dsVector3d boxCorners[DS_BOX3_CORNER_COUNT];
 	dsOrientedBox3d_corners(boxCorners, box);
 
-	for (unsigned int i = 0; i < 3; ++i)
+	// Test axes of other box.
 	{
-		double boxMin = DBL_MAX;
-		double boxMax = -DBL_MAX;
-		for (unsigned int j = 0; j < DS_ORIENTED_BOX3_CORNER_COUNT; ++j)
+		dsVector3f centeredBoxCorners[DS_BOX3_CORNER_COUNT];
+		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
-			double projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
-				boxCorners[j]);
-			boxMin = dsMin(boxMin, projectedPoint);
-			boxMax = dsMax(boxMax, projectedPoint);
+			dsVector3_sub(centeredBoxCorners[i], boxCorners[i], otherBox->center);
 		}
 
-		double otherBoxMin = otherBox->center.values[i] - otherBox->halfExtents.values[i];
-		double otherBoxMax = otherBox->center.values[i] + otherBox->halfExtents.values[i];
-
-		if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
-			  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+		for (unsigned int i = 0; i < 3; ++i)
 		{
-			return false;
+			double boxMin = DBL_MAX;
+			double boxMax = -DBL_MAX;
+			for (unsigned int j = 0; j < DS_BOX3_CORNER_COUNT; ++j)
+			{
+				double projectedPoint = dsVector3_dot(otherBox->orientation.columns[i],
+					centeredBoxCorners[j]);
+				boxMin = dsMin(boxMin, projectedPoint);
+				boxMax = dsMax(boxMax, projectedPoint);
+			}
+
+			double otherBoxMin = -otherBox->halfExtents.values[i];
+			double otherBoxMax = otherBox->halfExtents.values[i];
+
+			if (!((boxMin >= otherBoxMin && boxMin <= otherBoxMax) ||
+				  (otherBoxMin >= boxMin && otherBoxMin <= boxMax)))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -542,7 +563,7 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 
 			double boxMin = DBL_MAX;
 			double boxMax = -DBL_MAX;
-			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
 			{
 				double projectedPoint = dsVector3_dot(axis, boxCorners[k]);
 				boxMin = dsMin(boxMin, projectedPoint);
@@ -551,7 +572,7 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 
 			double otherBoxMin = DBL_MAX;
 			double otherBoxMax = -DBL_MAX;
-			for (unsigned int k = 0; k < DS_ORIENTED_BOX3_CORNER_COUNT; ++k)
+			for (unsigned int k = 0; k < DS_BOX3_CORNER_COUNT; ++k)
 			{
 				double projectedPoint = dsVector3_dot(axis, otherBoxCorners[k]);
 				otherBoxMin = dsMin(otherBoxMin, projectedPoint);
@@ -569,6 +590,64 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 	return true;
 }
 
+bool dsOrientedBox3f_closestPoint(dsVector3f* result, const dsOrientedBox3f* box,
+	const dsVector3f* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox3_isValid(*box))
+		return false;
+
+	dsAlignedBox3f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
+
+	dsVector3f localPoint;
+	dsVector3f centeredPoint;
+	dsVector3_sub(centeredPoint, *point, box->center);
+	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+
+	dsVector3f localResult;
+	dsAlignedBox3_closestPoint(localResult, localBox, localPoint);
+	dsMatrix33_transformTransposed(*result, box->orientation, localResult);
+	dsVector3_add(*result, *result, box->center);
+
+	return true;
+}
+
+bool dsOrientedBox3d_closestPoint(dsVector3d* result, const dsOrientedBox3d* box,
+	const dsVector3d* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+
+	if (!dsOrientedBox3_isValid(*box))
+		return false;
+
+	dsAlignedBox3d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
+
+	dsVector3d localPoint;
+	dsVector3d centeredPoint;
+	dsVector3_sub(centeredPoint, *point, box->center);
+	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+
+	dsVector3d localResult;
+	dsAlignedBox3_closestPoint(localResult, localBox, localPoint);
+	dsMatrix33_transformTransposed(*result, box->orientation, localResult);
+	dsVector3_add(*result, *result, box->center);
+
+	return true;
+}
+
 float dsOrientedBox3f_dist2(const dsOrientedBox3f* box, const dsVector3f* point)
 {
 	DS_ASSERT(box);
@@ -577,17 +656,18 @@ float dsOrientedBox3f_dist2(const dsOrientedBox3f* box, const dsVector3f* point)
 	if (!dsOrientedBox3_isValid(*box))
 		return -1;
 
-	dsAlignedBox3f localBox;
-	dsVector3_sub(localBox.min, box->center, box->halfExtents);
-	dsVector3_add(localBox.max, box->center, box->halfExtents);
+	dsAlignedBox3f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
 
 	dsVector3f localPoint;
 	dsVector3f centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
 	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
-	dsVector3_add(localPoint, localPoint, box->center);
 
-	return dsAlignedBox3f_dist2(&localBox, point);
+	return dsAlignedBox3f_dist2(&localBox, &localPoint);
 }
 
 double dsOrientedBox3d_dist2(const dsOrientedBox3d* box, const dsVector3d* point)
@@ -598,17 +678,18 @@ double dsOrientedBox3d_dist2(const dsOrientedBox3d* box, const dsVector3d* point
 	if (!dsOrientedBox3_isValid(*box))
 		return -1;
 
-	dsAlignedBox3d localBox;
-	dsVector3_sub(localBox.min, box->center, box->halfExtents);
-	dsVector3_add(localBox.max, box->center, box->halfExtents);
+	dsAlignedBox3d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
 
 	dsVector3d localPoint;
 	dsVector3d centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
 	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
-	dsVector3_add(localPoint, localPoint, box->center);
 
-	return dsAlignedBox3d_dist2(&localBox, point);
+	return dsAlignedBox3d_dist2(&localBox, &localPoint);
 }
 
 float dsOrientedBox3f_dist(const dsOrientedBox3f* box, const dsVector3f* point)

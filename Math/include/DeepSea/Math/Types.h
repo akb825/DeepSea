@@ -36,53 +36,50 @@ extern "C"
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
  */
-typedef struct dsVector2f
+typedef union dsVector2f
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	float values[2];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			float x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			float y;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			float s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			float t;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			float r;
-
-			/**
-			 * @brief The green component.
-			 */
-			float g;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		float x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		float values[2];
+		float y;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		float s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		float t;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		float r;
+
+		/**
+		 * @brief The green component.
+		 */
+		float g;
 	};
 } dsVector2f;
 
@@ -92,53 +89,50 @@ typedef struct dsVector2f
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
  */
-typedef struct dsVector2d
+typedef union dsVector2d
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	double values[2];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			double x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			double y;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			double s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			double t;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			double r;
-
-			/**
-			 * @brief The green component.
-			 */
-			double g;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		double x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		double values[2];
+		double y;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		double s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		double t;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		double r;
+
+		/**
+		 * @brief The green component.
+		 */
+		double g;
 	};
 } dsVector2d;
 
@@ -148,53 +142,50 @@ typedef struct dsVector2d
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
  * channels (r, g), or an array of values.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
  */
-typedef struct dsVector2i
+typedef union dsVector2i
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	int values[2];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			int x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			int y;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			int s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			int t;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			int r;
-
-			/**
-			 * @brief The green component.
-			 */
-			int g;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		int x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		int values[2];
+		int y;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		int s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		int t;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		int r;
+
+		/**
+		 * @brief The green component.
+		 */
+		int g;
 	};
 } dsVector2i;
 
@@ -206,68 +197,65 @@ typedef struct dsVector2i
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
  */
-typedef struct dsVector3f
+typedef union dsVector3f
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	float values[3];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			float x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			float y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			float z;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			float s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			float t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			float p;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			float r;
-
-			/**
-			 * @brief The green component.
-			 */
-			float g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			float b;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		float x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		float values[3];
+		float y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		float z;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		float s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		float t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		float p;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		float r;
+
+		/**
+		 * @brief The green component.
+		 */
+		float g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		float b;
 	};
 } dsVector3f;
 
@@ -279,68 +267,65 @@ typedef struct dsVector3f
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
  */
-typedef struct dsVector3d
+typedef union dsVector3d
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	double values[3];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			double x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			double y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			double z;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			double s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			double t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			double p;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			double r;
-
-			/**
-			 * @brief The green component.
-			 */
-			double g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			double b;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		double x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		double values[3];
+		double y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		double z;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		double s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		double t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		double p;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		double r;
+
+		/**
+		 * @brief The green component.
+		 */
+		double g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		double b;
 	};
 } dsVector3d;
 
@@ -352,68 +337,65 @@ typedef struct dsVector3d
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
  */
-typedef struct dsVector3i
+typedef union dsVector3i
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	int values[3];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			int x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			int y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			int z;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			int s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			int t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			int p;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			int r;
-
-			/**
-			 * @brief The green component.
-			 */
-			int g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			int b;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		int x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		int values[3];
+		int y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		int z;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		int s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		int t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		int p;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		int r;
+
+		/**
+		 * @brief The green component.
+		 */
+		int g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		int b;
 	};
 } dsVector3i;
 
@@ -427,83 +409,80 @@ typedef struct dsVector3i
  *
  * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
  */
-typedef struct dsVector4f
+typedef union dsVector4f
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	float values[4];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			float x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			float y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			float z;
-
-			/**
-			 * @brief The w coordinate.
-			 */
-			float w;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			float s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			float t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			float p;
-
-			/**
-			 * @brief The q coordinate.
-			 */
-			float q;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			float r;
-
-			/**
-			 * @brief The green component.
-			 */
-			float g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			float b;
-
-			/**
-			 * @brief The alpha component.
-			 */
-			float a;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		float x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		float values[4];
+		float y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		float z;
+
+		/**
+		 * @brief The w coordinate.
+		 */
+		float w;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		float s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		float t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		float p;
+
+		/**
+		 * @brief The q coordinate.
+		 */
+		float q;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		float r;
+
+		/**
+		 * @brief The green component.
+		 */
+		float g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		float b;
+
+		/**
+		 * @brief The alpha component.
+		 */
+		float a;
 	};
 } DS_ALIGN(16) dsVector4f;
 
@@ -515,83 +494,80 @@ typedef struct dsVector4f
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
  */
-typedef struct dsVector4d
+typedef union dsVector4d
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	double values[4];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			double x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			double y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			double z;
-
-			/**
-			 * @brief The w coordinate.
-			 */
-			double w;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			double s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			double t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			double p;
-
-			/**
-			 * @brief The q coordinate.
-			 */
-			double q;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			double r;
-
-			/**
-			 * @brief The green component.
-			 */
-			double g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			double b;
-
-			/**
-			 * @brief The alpha component.
-			 */
-			double a;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		double x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		double values[4];
+		double y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		double z;
+
+		/**
+		 * @brief The w coordinate.
+		 */
+		double w;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		double s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		double t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		double p;
+
+		/**
+		 * @brief The q coordinate.
+		 */
+		double q;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		double r;
+
+		/**
+		 * @brief The green component.
+		 */
+		double g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		double b;
+
+		/**
+		 * @brief The alpha component.
+		 */
+		double a;
 	};
 } dsVector4d;
 
@@ -603,83 +579,80 @@ typedef struct dsVector4d
  *
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{x, y, z, w}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
  */
-typedef struct dsVector4i
+typedef union dsVector4i
 {
-	union
+	/**
+	* @brief Array of the vector values.
+	*/
+	int values[4];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The x coordinate.
-			 */
-			int x;
-
-			/**
-			 * @brief The y coordinate.
-			 */
-			int y;
-
-			/**
-			 * @brief The z coordinate.
-			 */
-			int z;
-
-			/**
-			 * @brief The w coordinate.
-			 */
-			int w;
-		};
-		struct
-		{
-			/**
-			 * @brief The s coordinate.
-			 */
-			int s;
-
-			/**
-			 * @brief The t coordinate.
-			 */
-			int t;
-
-			/**
-			 * @brief The p coordinate. (often referred to as r)
-			 */
-			int p;
-
-			/**
-			 * @brief The q coordinate.
-			 */
-			int q;
-		};
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			int r;
-
-			/**
-			 * @brief The green component.
-			 */
-			int g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			int b;
-
-			/**
-			 * @brief The alpha component.
-			 */
-			int a;
-		};
+		/**
+		 * @brief The x coordinate.
+		 */
+		int x;
 
 		/**
-		 * @brief Array of the vector values.
+		 * @brief The y coordinate.
 		 */
-		int values[4];
+		int y;
+
+		/**
+		 * @brief The z coordinate.
+		 */
+		int z;
+
+		/**
+		 * @brief The w coordinate.
+		 */
+		int w;
+	};
+	struct
+	{
+		/**
+		 * @brief The s coordinate.
+		 */
+		int s;
+
+		/**
+		 * @brief The t coordinate.
+		 */
+		int t;
+
+		/**
+		 * @brief The p coordinate. (often referred to as r)
+		 */
+		int p;
+
+		/**
+		 * @brief The q coordinate.
+		 */
+		int q;
+	};
+	struct
+	{
+		/**
+		 * @brief The red component.
+		 */
+		int r;
+
+		/**
+		 * @brief The green component.
+		 */
+		int g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		int b;
+
+		/**
+		 * @brief The alpha component.
+		 */
+		int a;
 	};
 } dsVector4i;
 
@@ -688,74 +661,68 @@ typedef struct dsVector4i
  *
  * This contains 8 byte color components for red, green, blue, and alpha.
  *
- * @remark When bracket initializing, use three brackets. (i.e. {{{r, g, b, a}}})
+ * @remark When bracket initializing, use two brackets. (i.e. {{r, g, b, a}})
  */
-typedef struct dsColor
+typedef union dsColor
 {
-	union
+	/**
+	* @brief Array of the color values.
+	*/
+	uint8_t values[4];
+
+	struct
 	{
-		struct
-		{
-			/**
-			 * @brief The red component.
-			 */
-			uint8_t r;
-
-			/**
-			 * @brief The green component.
-			 */
-			uint8_t g;
-
-			/**
-			 * @brief The blue component.
-			 */
-			uint8_t b;
-
-			/**
-			 * @brief The alpha component.
-			 */
-			uint8_t a;
-		};
+		/**
+		 * @brief The red component.
+		 */
+		uint8_t r;
 
 		/**
-		 * @brief Array of the color values.
+		 * @brief The green component.
 		 */
-		uint8_t values[4];
+		uint8_t g;
+
+		/**
+		 * @brief The blue component.
+		 */
+		uint8_t b;
+
+		/**
+		 * @brief The alpha component.
+		 */
+		uint8_t a;
 	};
 } dsColor;
 
 /**
  * @brief Typedef for a 3-component floating point color.
  */
-typedef struct dsVector3f dsColor3f;
+typedef union dsVector3f dsColor3f;
 
 /**
  * @brief Typedef for a 4-component floating point color.
  */
-typedef struct dsVector4f dsColor4f;
+typedef union dsVector4f dsColor4f;
 
 /**
  * @brief Structure for a 2x2 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0}, {x1, y1} }})
  */
-typedef struct dsMatrix22f
+typedef union dsMatrix22f
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector2f columns[2];
+	/**
+	* @brief The values of the matrix.
+	*/
+	float values[2][2];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		float values[2][2];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector2f columns[2];
 } dsMatrix22f;
 
 /**
@@ -763,23 +730,20 @@ typedef struct dsMatrix22f
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0}, {x1, y1} }})
  */
-typedef struct dsMatrix22d
+typedef union dsMatrix22d
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector2d columns[2];
+	/**
+	* @brief The values of the matrix.
+	*/
+	double values[2][2];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		double values[2][2];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector2d columns[2];
 } dsMatrix22d;
 
 /**
@@ -787,23 +751,20 @@ typedef struct dsMatrix22d
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
  */
-typedef struct dsMatrix33f
+typedef union dsMatrix33f
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector3f columns[3];
+	/**
+	* @brief The values of the matrix.
+	*/
+	float values[3][3];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		float values[3][3];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector3f columns[3];
 } dsMatrix33f;
 
 /**
@@ -811,23 +772,20 @@ typedef struct dsMatrix33f
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
  */
-typedef struct dsMatrix33d
+typedef union dsMatrix33d
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector3d columns[3];
+	/**
+	* @brief The values of the matrix.
+	*/
+	double values[3][3];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		double values[3][3];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector3d columns[3];
 } dsMatrix33d;
 
 /**
@@ -835,23 +793,20 @@ typedef struct dsMatrix33d
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
  */
-typedef struct dsMatrix44f
+typedef union dsMatrix44f
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector4f columns[4];
+	/**
+	* @brief The values of the matrix.
+	*/
+	float values[4][4];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		float values[4][4];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector4f columns[4];
 } dsMatrix44f;
 
 /**
@@ -859,23 +814,20 @@ typedef struct dsMatrix44f
  *
  * This can be accessed as an array of columns or a 2D array of values.
  *
- * @remark When bracket initializing, there must be 3 brackets around the list of vectors, each of
- * which also require thre brackets.
+ * @remark When bracket initializing, there must be two brackets around the list of column vectors.
+ * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
  */
-typedef struct dsMatrix44d
+typedef union dsMatrix44d
 {
-	union
-	{
-		/**
-		 * @brief The columns of the matrix.
-		 */
-		dsVector4d columns[4];
+	/**
+	* @brief The values of the matrix.
+	*/
+	double values[4][4];
 
-		/**
-		 * @brief The values of the matrix.
-		 */
-		double values[4][4];
-	};
+	/**
+	 * @brief The columns of the matrix.
+	 */
+	dsVector4d columns[4];
 } dsMatrix44d;
 
 /**

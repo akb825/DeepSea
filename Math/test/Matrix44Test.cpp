@@ -275,6 +275,31 @@ TYPED_TEST(Matrix44Test, Transform)
 	EXPECT_NEAR((TypeParam)22.88, result.values[3], epsilon);
 }
 
+TYPED_TEST(Matrix44Test, TransformTransposed)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Matrix44Type matrix =
+	{
+		(TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7, (TypeParam)4.5,
+		(TypeParam)2.3, (TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7,
+		(TypeParam)-4.5, (TypeParam)2.3, (TypeParam)0.1, (TypeParam)-8.9,
+		(TypeParam)6.7, (TypeParam)-4.5, (TypeParam)-2.3, (TypeParam)0.1
+	};
+
+	Vector4Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6};
+	Vector4Type result;
+
+	dsMatrix44_transformTransposed(result, matrix, vector);
+
+	EXPECT_NEAR((TypeParam)82.68, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)-55.84, result.values[1], epsilon);
+	EXPECT_NEAR((TypeParam)17.16, result.values[2], epsilon);
+	EXPECT_NEAR((TypeParam)22.88, result.values[3], epsilon);
+}
+
 TYPED_TEST(Matrix44Test, Transpose)
 {
 	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;

@@ -254,6 +254,29 @@ TYPED_TEST(Matrix33Test, Transform)
 	EXPECT_NEAR((TypeParam)-52.88, result.values[2], epsilon);
 }
 
+TYPED_TEST(Matrix33Test, TransformTransposed)
+{
+	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	typedef typename Matrix33TypeSelector<TypeParam>::VectorType Vector3Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
+
+	Matrix33Type matrix =
+	{
+		(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3,
+		(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5,
+		(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7
+	};
+
+	Vector3Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4};
+	Vector3Type result;
+
+	dsMatrix33_transformTransposed(result, matrix, vector);
+
+	EXPECT_NEAR((TypeParam)-31.76, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)35.72, result.values[1], epsilon);
+	EXPECT_NEAR((TypeParam)-52.88, result.values[2], epsilon);
+}
+
 TYPED_TEST(Matrix33Test, Transpose)
 {
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;

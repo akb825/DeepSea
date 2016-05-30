@@ -103,7 +103,7 @@ extern "C"
 
 /**
  * @brief Transforms a vector with a matrix.
- * @param result The result of mat*vec. This may NOT be the same as vec.
+ * @param result The result of vec*mat. This may NOT be the same as vec.
  * @param mat The matrix to transform with.
  * @param vec The vector to transform.
  */
@@ -119,6 +119,27 @@ extern "C"
 							 (mat).values[1][2]*(vec).values[2]; \
 		(result).values[2] = (mat).values[2][0]*(vec).values[0] + \
 							 (mat).values[2][1]*(vec).values[1] + \
+							 (mat).values[2][2]*(vec).values[2]; \
+	} while (0)
+
+/**
+ * @brief Transforms a vector with a transposed matrix.
+ * @param result The result of mat*vec. This may NOT be the same as vec.
+ * @param mat The matrix to transform with.
+ * @param vec The vector to transform.
+ */
+#define dsMatrix33_transformTransposed(result, mat, vec) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(vec)); \
+		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
+							 (mat).values[1][0]*(vec).values[1] + \
+							 (mat).values[2][0]*(vec).values[2]; \
+		(result).values[1] = (mat).values[0][1]*(vec).values[0] + \
+							 (mat).values[1][1]*(vec).values[1] + \
+							 (mat).values[2][1]*(vec).values[2]; \
+		(result).values[2] = (mat).values[0][2]*(vec).values[0] + \
+							 (mat).values[1][2]*(vec).values[1] + \
 							 (mat).values[2][2]*(vec).values[2]; \
 	} while (0)
 

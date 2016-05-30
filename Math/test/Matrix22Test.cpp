@@ -157,6 +157,27 @@ TYPED_TEST(Matrix22Test, Transform)
 	EXPECT_NEAR((TypeParam)25.94, result.values[1], epsilon);
 }
 
+TYPED_TEST(Matrix22Test, TransformTransposed)
+{
+	typedef typename Matrix22TypeSelector<TypeParam>::MatrixType Matrix22Type;
+	typedef typename Matrix22TypeSelector<TypeParam>::VectorType Vector2Type;
+	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
+
+	Matrix22Type matrix =
+	{
+		(TypeParam)0.1, (TypeParam)-4.5,
+		(TypeParam)-2.3, (TypeParam)6.7
+	};
+
+	Vector2Type vector = {(TypeParam)-1.0, (TypeParam)3.2};
+	Vector2Type result;
+
+	dsMatrix22_transformTransposed(result, matrix, vector);
+
+	EXPECT_NEAR((TypeParam)-7.46, result.values[0], epsilon);
+	EXPECT_NEAR((TypeParam)25.94, result.values[1], epsilon);
+}
+
 TYPED_TEST(Matrix22Test, Transpose)
 {
 	typedef typename Matrix22TypeSelector<TypeParam>::MatrixType Matrix22Type;

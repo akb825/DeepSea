@@ -161,6 +161,48 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Extracts the corners from an aligned box.
+ * @param[out] corners The corners for the box.
+ * @param box The box to extract the corners from.
+ * @return False if box is empty.
+ */
+#define dsAlignedBox3_corners(corners, box) \
+	do \
+	{ \
+		(corners)[0].x = (box).min.x; \
+		(corners)[0].y = (box).min.y; \
+		(corners)[0].z = (box).min.z; \
+		\
+		(corners)[1].x = (box).min.x; \
+		(corners)[1].y = (box).min.y; \
+		(corners)[1].z = (box).max.z; \
+		\
+		(corners)[2].x = (box).min.x; \
+		(corners)[2].y = (box).max.y; \
+		(corners)[2].z = (box).min.z; \
+		\
+		(corners)[3].x = (box).min.x; \
+		(corners)[3].y = (box).max.y; \
+		(corners)[3].z = (box).max.z; \
+		\
+		(corners)[4].x = (box).max.x; \
+		(corners)[4].y = (box).min.y; \
+		(corners)[4].z = (box).min.z; \
+		\
+		(corners)[5].x = (box).max.x; \
+		(corners)[5].y = (box).min.y; \
+		(corners)[5].z = (box).max.z; \
+		\
+		(corners)[6].x = (box).max.x; \
+		(corners)[6].y = (box).max.y; \
+		(corners)[6].z = (box).min.z; \
+		\
+		(corners)[7].x = (box).max.x; \
+		(corners)[7].y = (box).max.y; \
+		(corners)[7].z = (box).max.z; \
+	} while (0)
+
+/**
  * @brief Computes the closest point to the box.
  * @param[out] result The closest point.
  * @param box The box to compute the closest point on.
