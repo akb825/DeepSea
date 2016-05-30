@@ -46,6 +46,11 @@
 
 #include <DeepSea/Math/Packing.h>
 
+#if DS_MSC
+#pragma warning(push)
+#pragma warning(disable: 4756)
+#endif
+
 typedef union FloatInt
 {
 	float f;
@@ -276,3 +281,7 @@ float dsUnpackHalfFloat(dsHalfFloat x)
 	Result.i = (uint32_t)((s << 31) | (e << 23) | m);
 	return Result.f;
 }
+
+#if DS_MSC
+#pragma warning(pop)
+#endif

@@ -574,9 +574,9 @@ float dsOrientedBox2f_dist(const dsOrientedBox2f* box, const dsVector2f* point)
 
 double dsOrientedBox2d_dist(const dsOrientedBox2d* box, const dsVector2d* point)
 {
-	float distance2 = dsOrientedBox2d_dist2(box, point);
+	double distance2 = dsOrientedBox2d_dist2(box, point);
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrtf(distance2);
+	return sqrt(distance2);
 }

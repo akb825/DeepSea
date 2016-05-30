@@ -489,7 +489,7 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 
 	// Test axes of box.
 	{
-		dsVector3f centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
+		dsVector3d centeredOtherBoxCorners[DS_BOX3_CORNER_COUNT];
 		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
 			dsVector3_sub(centeredOtherBoxCorners[i], otherBoxCorners[i], box->center);
@@ -524,7 +524,7 @@ bool dsOrientedBox3d_intersects(const dsOrientedBox3d* box, const dsOrientedBox3
 
 	// Test axes of other box.
 	{
-		dsVector3f centeredBoxCorners[DS_BOX3_CORNER_COUNT];
+		dsVector3d centeredBoxCorners[DS_BOX3_CORNER_COUNT];
 		for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 		{
 			dsVector3_sub(centeredBoxCorners[i], boxCorners[i], otherBox->center);
@@ -703,9 +703,9 @@ float dsOrientedBox3f_dist(const dsOrientedBox3f* box, const dsVector3f* point)
 
 double dsOrientedBox3d_dist(const dsOrientedBox3d* box, const dsVector3d* point)
 {
-	float distance2 = dsOrientedBox3d_dist2(box, point);
+	double distance2 = dsOrientedBox3d_dist2(box, point);
 	if (distance2 <= 0)
 		return distance2;
 
-	return sqrtf(distance2);
+	return sqrt(distance2);
 }
