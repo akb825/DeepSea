@@ -237,6 +237,16 @@ typedef struct dsOrientedBox3d
 } dsOrientedBox3d;
 
 /**
+ * @brief Enum for the side of a plane.
+ */
+typedef enum dsPlaneSide
+{
+	dsPlaneSide_Inside,    ///< Lies on the inside face of the plane.
+	dsPlaneSide_Outside,   ///< Lies on the outside face of the plane.
+	dsPlaneSide_Intersects ///< Intersects the plane.
+} dsPlaneSide;
+
+/**
  * @brief Structure for a plane using floats.
  */
 typedef struct dsPlane3f
