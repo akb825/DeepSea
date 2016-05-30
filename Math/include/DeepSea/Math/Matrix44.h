@@ -289,20 +289,33 @@ extern "C"
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix44f_affineInvert(dsMatrix44f* result, dsMatrix44f* a);
+DS_MATH_EXPORT void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44d_invert() */
-DS_MATH_EXPORT void dsMatrix44d_affineInvert(dsMatrix44d* result, dsMatrix44d* a);
+DS_MATH_EXPORT void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a);
 
 /**
  * @brief Inverts a matrix.
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix44f_invert(dsMatrix44f* result, dsMatrix44f* a);
+DS_MATH_EXPORT void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a);
 
 /** @copydoc dsMatrix44f_invert() */
-DS_MATH_EXPORT void dsMatrix44d_invert(dsMatrix44d* result, dsMatrix44d* a);
+DS_MATH_EXPORT void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a);
+
+/**
+ * @brief Calculates the inverse-transpose transformation matrix.
+ *
+ * This will take the inverse-transpose of the upper 3x3 matrix and leave the rest untouched.
+ *
+ * @param result The inverse-transposed matrix. This may NOT be the same as a.
+ * @param a The matrix to inverse-transpose.
+ */
+DS_MATH_EXPORT void dsMatrix44f_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a);
+
+/** @copydoc dsMatrix44d_invert() */
+DS_MATH_EXPORT void dsMatrix44d_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a);
 
 /**
  * @brief Makes a rotation matrix.

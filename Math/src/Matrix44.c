@@ -177,7 +177,7 @@
 		(result).values[3][3] = 1; \
 	} while (0)
 
-void dsMatrix44f_affineInvert(dsMatrix44f* result, dsMatrix44f* a)
+void dsMatrix44f_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
 	DS_ASSERT(result);
@@ -203,7 +203,7 @@ void dsMatrix44f_affineInvert(dsMatrix44f* result, dsMatrix44f* a)
 	result->values[3][3] = 1;
 }
 
-void dsMatrix44d_affineInvert(dsMatrix44d* result, dsMatrix44d* a)
+void dsMatrix44d_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
 	DS_ASSERT(result);
@@ -229,7 +229,7 @@ void dsMatrix44d_affineInvert(dsMatrix44d* result, dsMatrix44d* a)
 	result->values[3][3] = 1;
 }
 
-void dsMatrix44f_invert(dsMatrix44f* result, dsMatrix44f* a)
+void dsMatrix44f_invert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -242,7 +242,7 @@ void dsMatrix44f_invert(dsMatrix44f* result, dsMatrix44f* a)
 	dsMatrix44_invertImpl(*result, *a, invDet);
 }
 
-void dsMatrix44d_invert(dsMatrix44d* result, dsMatrix44d* a)
+void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -253,6 +253,56 @@ void dsMatrix44d_invert(dsMatrix44d* result, dsMatrix44d* a)
 	double invDet = 1/det;
 
 	dsMatrix44_invertImpl(*result, *a, invDet);
+}
+
+void dsMatrix44f_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	float upperDet = dsMatrix33_determinant(*a);
+	DS_ASSERT(upperDet != 0);
+	float invUpperDet = 1/upperDet;
+
+	dsMatrix33f temp;
+	dsMatrix33_invertImpl(temp, *a, invUpperDet);
+	dsMatrix33_transpose(*result, temp);
+
+	result->values[0][3] = 0;
+	result->values[1][3] = 0;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = a->values[3][0];
+	result->values[3][1] = a->values[3][1];
+	result->values[3][2] = a->values[3][2];
+	result->values[3][3] = 1;
+}
+
+void dsMatrix44d_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(result != a);
+
+	double upperDet = dsMatrix33_determinant(*a);
+	DS_ASSERT(upperDet != 0);
+	double invUpperDet = 1/upperDet;
+
+	dsMatrix33d temp;
+	dsMatrix33_invertImpl(temp, *a, invUpperDet);
+	dsMatrix33_transpose(*result, temp);
+
+	result->values[0][3] = 0;
+	result->values[1][3] = 0;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = a->values[3][0];
+	result->values[3][1] = a->values[3][1];
+	result->values[3][2] = a->values[3][2];
+	result->values[3][3] = 1;
 }
 
 void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)

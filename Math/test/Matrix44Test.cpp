@@ -54,24 +54,34 @@ class Matrix44Test : public testing::Test
 using Matrix44Types = testing::Types<float, double>;
 TYPED_TEST_CASE(Matrix44Test, Matrix44Types);
 
-inline void dsMatrix44_affineInvert(dsMatrix44f* result, dsMatrix44f* a)
+inline void dsMatrix44_affineInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	dsMatrix44f_affineInvert(result, a);
 }
 
-inline void dsMatrix44_affineInvert(dsMatrix44d* result, dsMatrix44d* a)
+inline void dsMatrix44_affineInvert(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	dsMatrix44d_affineInvert(result, a);
 }
 
-inline void dsMatrix44_invert(dsMatrix44f* result, dsMatrix44f* a)
+inline void dsMatrix44_invert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	dsMatrix44f_invert(result, a);
 }
 
-inline void dsMatrix44_invert(dsMatrix44d* result, dsMatrix44d* a)
+inline void dsMatrix44_invert(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	dsMatrix44d_invert(result, a);
+}
+
+inline void dsMatrix44_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	dsMatrix44f_inverseTranspose(result, a);
+}
+
+inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	dsMatrix44d_inverseTranspose(result, a);
 }
 
 inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -114,12 +124,12 @@ inline void dsMatrix44_makeScale(dsMatrix44d* result, double x, double y, double
 	dsMatrix44d_makeScale(result, x, y, z);
 }
 
-inline void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
+inline void dsVector3_normalize(dsVector3f* result, const dsVector3f* a)
 {
 	dsVector3f_normalize(result, a);
 }
 
-inline void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
+inline void dsVector3_normalize(dsVector3d* result, const dsVector3d* a)
 {
 	dsVector3d_normalize(result, a);
 }
@@ -694,4 +704,56 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 	EXPECT_NEAR(0, result.values[3][1], epsilon);
 	EXPECT_NEAR(0, result.values[3][2], epsilon);
 	EXPECT_NEAR(1, result.values[3][3], epsilon);
+}
+
+TYPED_TEST(Matrix44Test, InverseTranspose)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Matrix44Type rotate;
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
+		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+
+	Matrix44Type translate;
+	dsMatrix44_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
+
+	Matrix44Type scale;
+	dsMatrix44_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
+
+	Matrix44Type temp;
+	dsMatrix44_mul(temp, scale, rotate);
+
+	Matrix44Type matrix;
+	dsMatrix44_mul(matrix, translate, temp);
+
+	Matrix44Type inverseTranspose;
+	dsMatrix44_inverseTranspose(&inverseTranspose, &matrix);
+
+	Matrix44Type inverse, inverseTransposeCheck;
+	dsMatrix44_invert(&inverse, &matrix);
+	dsMatrix44_transpose(inverseTransposeCheck, inverse);
+
+	Matrix44Type result;
+	dsMatrix44_mul(result, inverse, matrix);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
+	EXPECT_NEAR(0, inverseTranspose.values[0][3], epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose.values[1][2], epsilon);
+	EXPECT_NEAR(0, inverseTranspose.values[1][3], epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
+	EXPECT_NEAR(0, inverseTranspose.values[2][3], epsilon);
+
+	EXPECT_NEAR(matrix.values[3][0], inverseTranspose.values[3][0], epsilon);
+	EXPECT_NEAR(matrix.values[3][1], inverseTranspose.values[3][1], epsilon);
+	EXPECT_NEAR(matrix.values[3][2], inverseTranspose.values[3][2], epsilon);
+	EXPECT_NEAR(1, inverseTranspose.values[3][3], epsilon);
 }

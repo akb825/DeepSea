@@ -48,12 +48,12 @@ class Matrix22Test : public testing::Test
 using Matrix22Types = testing::Types<float, double>;
 TYPED_TEST_CASE(Matrix22Test, Matrix22Types);
 
-inline void dsMatrix22_invert(dsMatrix22f* result, dsMatrix22f* a)
+inline void dsMatrix22_invert(dsMatrix22f* result, const dsMatrix22f* a)
 {
 	dsMatrix22f_invert(result, a);
 }
 
-inline void dsMatrix22_invert(dsMatrix22d* result, dsMatrix22d* a)
+inline void dsMatrix22_invert(dsMatrix22d* result, const dsMatrix22d* a)
 {
 	dsMatrix22d_invert(result, a);
 }

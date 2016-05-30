@@ -19,49 +19,107 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/AlignedBox3.h>
 #include <DeepSea/Geometry/OrientedBox3.h>
+#include <DeepSea/Math/Matrix33.h>
+#include <DeepSea/Math/Matrix44.h>
 
-static dsPlaneSide intersectBoxImplf(const dsPlane3f* plane, const dsVector3f* points)
+void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane)
 {
-	bool inside = false, outside = false;
-	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT && (!inside || !outside); ++i)
-	{
-		if (dsVector3_dot(points[i], plane->n) >= plane->d)
-			inside = true;
-		else
-			outside = true;
-	}
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
 
-	if (inside && outside)
-		return dsPlaneSide_Intersects;
-	else if (inside)
-		return dsPlaneSide_Inside;
-	else
-	{
-		DS_ASSERT(outside);
-		return dsPlaneSide_Outside;
-	}
+	float invLength = 1/dsVector3f_len(&plane->n);
+	dsVector3_scale(result->n, plane->n, invLength);
+	result->d = plane->d*invLength;
 }
 
-static dsPlaneSide intersectBoxImpld(const dsPlane3d* plane, const dsVector3d* points)
+void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane)
 {
-	bool inside = false, outside = false;
-	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT && (!inside || !outside); ++i)
-	{
-		if (dsVector3_dot(points[i], plane->n) >= plane->d)
-			inside = true;
-		else
-			outside = true;
-	}
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
 
-	if (inside && outside)
-		return dsPlaneSide_Intersects;
-	else if (inside)
-		return dsPlaneSide_Inside;
-	else
-	{
-		DS_ASSERT(outside);
-		return dsPlaneSide_Outside;
-	}
+	double invLength = 1/dsVector3d_len(&plane->n);
+	dsVector3_scale(result->n, plane->n, invLength);
+	result->d = plane->d*invLength;
+}
+
+void dsPlane3f_transform(dsPlane3f* result, const dsPlane3f* plane, const dsMatrix44f* transform)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsMatrix44f inverseTransposeTransform;
+	dsMatrix44f_inverseTranspose(&inverseTransposeTransform, transform);
+
+	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4f transformedPlaneVec;
+	dsMatrix44_transform(transformedPlaneVec, inverseTransposeTransform, planeVec);
+
+	result->n.x = transformedPlaneVec.x;
+	result->n.y = transformedPlaneVec.y;
+	result->n.z = transformedPlaneVec.z;
+	result->d = transformedPlaneVec.w;
+
+	dsPlane3f_normalize(result, result);
+}
+
+void dsPlane3d_transform(dsPlane3d* result, const dsPlane3d* plane, const dsMatrix44d* transform)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsMatrix44d inverseTransposeTransform;
+	dsMatrix44d_inverseTranspose(&inverseTransposeTransform, transform);
+
+	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4d transformedPlaneVec;
+	dsMatrix44_transform(transformedPlaneVec, inverseTransposeTransform, planeVec);
+
+	result->n.x = transformedPlaneVec.x;
+	result->n.y = transformedPlaneVec.y;
+	result->n.z = transformedPlaneVec.z;
+	result->d = transformedPlaneVec.w;
+
+	dsPlane3d_normalize(result, result);
+}
+
+void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsPlane3f* plane,
+	const dsMatrix44f* transform)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4f transformedPlaneVec;
+	dsMatrix44_transformTransposed(transformedPlaneVec, *transform, planeVec);
+
+	result->n.x = transformedPlaneVec.x;
+	result->n.y = transformedPlaneVec.y;
+	result->n.z = transformedPlaneVec.z;
+	result->d = transformedPlaneVec.w;
+
+	dsPlane3f_normalize(result, result);
+}
+
+void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsPlane3d* plane,
+	const dsMatrix44d* transform)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(plane);
+	DS_ASSERT(transform);
+
+	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4d transformedPlaneVec;
+	dsMatrix44_transformTransposed(transformedPlaneVec, *transform, planeVec);
+
+	result->n.x = transformedPlaneVec.x;
+	result->n.y = transformedPlaneVec.y;
+	result->n.z = transformedPlaneVec.z;
+	result->d = transformedPlaneVec.w;
+
+	dsPlane3d_normalize(result, result);
 }
 
 dsPlaneSide dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
@@ -69,9 +127,49 @@ dsPlaneSide dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAligne
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsAlignedBox3_corners(corners, *box);
-	return intersectBoxImplf(plane, corners);
+	dsVector3f minPoint, maxPoint;
+	if (plane->n.x >= 0)
+	{
+		minPoint.x = box->min.x;
+		maxPoint.x = box->max.x;
+	}
+	else
+	{
+		minPoint.x = box->max.x;
+		maxPoint.x = box->min.x;
+	}
+
+	if (plane->n.y >= 0)
+	{
+		minPoint.y = box->min.y;
+		maxPoint.y = box->max.y;
+	}
+	else
+	{
+		minPoint.y = box->max.y;
+		maxPoint.y = box->min.y;
+	}
+
+	if (plane->n.z >= 0)
+	{
+		minPoint.z = box->min.z;
+		maxPoint.z = box->max.z;
+	}
+	else
+	{
+		minPoint.z = box->max.z;
+		maxPoint.z = box->min.z;
+	}
+
+	float minD = dsVector3_dot(plane->n, minPoint);
+	float maxD = dsVector3_dot(plane->n, maxPoint);
+
+	if (minD >= plane->d)
+		return dsPlaneSide_Inside;
+	else if (maxD < plane->d)
+		return dsPlaneSide_Outside;
+	else
+		return dsPlaneSide_Intersects;
 }
 
 dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
@@ -79,9 +177,49 @@ dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const dsAligne
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3d corners[DS_BOX3_CORNER_COUNT];
-	dsAlignedBox3_corners(corners, *box);
-	return intersectBoxImpld(plane, corners);
+	dsVector3d minPoint, maxPoint;
+	if (plane->n.x >= 0)
+	{
+		minPoint.x = box->min.x;
+		maxPoint.x = box->max.x;
+	}
+	else
+	{
+		minPoint.x = box->max.x;
+		maxPoint.x = box->min.x;
+	}
+
+	if (plane->n.y >= 0)
+	{
+		minPoint.y = box->min.y;
+		maxPoint.y = box->max.y;
+	}
+	else
+	{
+		minPoint.y = box->max.y;
+		maxPoint.y = box->min.y;
+	}
+
+	if (plane->n.z >= 0)
+	{
+		minPoint.z = box->min.z;
+		maxPoint.z = box->max.z;
+	}
+	else
+	{
+		minPoint.z = box->max.z;
+		maxPoint.z = box->min.z;
+	}
+
+	double minD = dsVector3_dot(plane->n, minPoint);
+	double maxD = dsVector3_dot(plane->n, maxPoint);
+
+	if (minD >= plane->d)
+		return dsPlaneSide_Inside;
+	else if (maxD < plane->d)
+		return dsPlaneSide_Outside;
+	else
+		return dsPlaneSide_Intersects;
 }
 
 dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
@@ -89,9 +227,17 @@ dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrien
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3f corners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3f_corners(corners, box);
-	return intersectBoxImplf(plane, corners);
+	dsPlane3f transformedPlane;
+	dsMatrix33_transform(transformedPlane.n, box->orientation, plane->n);
+	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
+
+	dsAlignedBox3f localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
+
+	return dsPlane3f_intersectAlignedBox(&transformedPlane, &localBox);
 }
 
 dsPlaneSide dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
@@ -99,7 +245,15 @@ dsPlaneSide dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrien
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
-	dsVector3d corners[DS_BOX3_CORNER_COUNT];
-	dsOrientedBox3d_corners(corners, box);
-	return intersectBoxImpld(plane, corners);
+	dsPlane3d transformedPlane;
+	dsMatrix33_transform(transformedPlane.n, box->orientation, plane->n);
+	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
+
+	dsAlignedBox3d localBox =
+	{
+		{{-box->halfExtents.x, -box->halfExtents.y, -box->halfExtents.z}},
+		{{box->halfExtents.x, box->halfExtents.y, box->halfExtents.z}}
+	};
+
+	return dsPlane3d_intersectAlignedBox(&transformedPlane, &localBox);
 }

@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Geometry/Plane3.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <gtest/gtest.h>
 
 template <typename T>
@@ -24,19 +25,28 @@ template <>
 struct Plane3TypeSelector<float>
 {
 	typedef dsVector3f Vector3Type;
+	typedef dsVector4f Vector4Type;
 	typedef dsPlane3f Plane3Type;
 	typedef dsAlignedBox3f AlignedBox3Type;
 	typedef dsOrientedBox3f OrientedBox3Type;
+	typedef dsMatrix44f Matrix44Type;
+	static const float epsilon;
 };
 
 template <>
 struct Plane3TypeSelector<double>
 {
 	typedef dsVector3d Vector3Type;
+	typedef dsVector4d Vector4Type;
 	typedef dsPlane3d Plane3Type;
 	typedef dsAlignedBox3d AlignedBox3Type;
 	typedef dsOrientedBox3d OrientedBox3Type;
+	typedef dsMatrix44d Matrix44Type;
+	static const double epsilon;
 };
+
+const float Plane3TypeSelector<float>::epsilon = 1e-4f;
+const double Plane3TypeSelector<double>::epsilon = 1e-13f;
 
 template <typename T>
 class Plane3Test : public testing::Test
@@ -45,6 +55,40 @@ class Plane3Test : public testing::Test
 
 using Plane3Types = testing::Types<float, double>;
 TYPED_TEST_CASE(Plane3Test, Plane3Types);
+
+inline void dsPlane3_normalize(dsPlane3f* result, const dsPlane3f* plane)
+{
+	dsPlane3f_normalize(result, plane);
+}
+
+inline void dsPlane3_normalize(dsPlane3d* result, const dsPlane3d* plane)
+{
+	dsPlane3d_normalize(result, plane);
+}
+
+inline void dsPlane3_transform(dsPlane3f* result, const dsPlane3f* plane,
+	const dsMatrix44f* transform)
+{
+	dsPlane3f_transform(result, plane, transform);
+}
+
+inline void dsPlane3_transform(dsPlane3d* result, const dsPlane3d* plane,
+	const dsMatrix44d* transform)
+{
+	dsPlane3d_transform(result, plane, transform);
+}
+
+inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsPlane3f* plane,
+	const dsMatrix44f* transform)
+{
+	dsPlane3f_transformInverseTranspose(result, plane, transform);
+}
+
+inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsPlane3d* plane,
+	const dsMatrix44d* transform)
+{
+	dsPlane3d_transformInverseTranspose(result, plane, transform);
+}
 
 inline dsPlaneSide dsPlane3_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
 {
@@ -64,6 +108,26 @@ inline dsPlaneSide dsPlane3_intersectOrientedBox(const dsPlane3f* plane, const d
 inline dsPlaneSide dsPlane3_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
 {
 	return dsPlane3d_intersectOrientedBox(plane, box);
+}
+
+inline void dsMatrix44_makeRotate(dsMatrix44f* result, float x, float y, float z)
+{
+	dsMatrix44f_makeRotate(result, x, y, z);
+}
+
+inline void dsMatrix44_makeRotate(dsMatrix44d* result, double x, double y, double z)
+{
+	dsMatrix44d_makeRotate(result, x, y, z);
+}
+
+inline void dsMatrix44_makeTranslate(dsMatrix44f* result, float x, float y, float z)
+{
+	dsMatrix44f_makeTranslate(result, x, y, z);
+}
+
+inline void dsMatrix44_makeTranslate(dsMatrix44d* result, double x, double y, double z)
+{
+	dsMatrix44d_makeTranslate(result, x, y, z);
 }
 
 TYPED_TEST(Plane3Test, FromNormalPoint)
@@ -114,6 +178,47 @@ TYPED_TEST(Plane3Test, DistanceToPoint)
 	EXPECT_EQ(2, dsPlane3_distanceToPoint(plane, point));
 }
 
+TYPED_TEST(Plane3Test, Normalize)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type plane = {{{2, 0, 0}}, 4};
+	dsPlane3_normalize(&plane, &plane);
+	EXPECT_NEAR(1, plane.n.x, epsilon);
+	EXPECT_NEAR(0, plane.n.y, epsilon);
+	EXPECT_NEAR(0, plane.n.z, epsilon);
+	EXPECT_NEAR(2, plane.d, epsilon);
+}
+
+TYPED_TEST(Plane3Test, Transform)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type plane = {{{1, 0, 0}}, 2};
+
+	Matrix44Type rotate, translate, scale, transform;
+
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
+		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
+
+	dsMatrix44_mul(transform, translate, rotate);
+
+	Vector4Type origN = {1, 0, 0, 0};
+	Vector4Type newN;
+	dsMatrix44_transform(newN, transform, origN);
+
+	dsPlane3_transform(&plane, &plane, &transform);
+	EXPECT_NEAR(newN.x, plane.n.x, epsilon);
+	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
+	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
+	EXPECT_NEAR(-1, plane.d, epsilon);
+}
+
 TYPED_TEST(Plane3Test, IntersectAlignedBox)
 {
 	typedef typename Plane3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
@@ -122,6 +227,7 @@ TYPED_TEST(Plane3Test, IntersectAlignedBox)
 	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
+	//Positive normals
 	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
@@ -163,6 +269,52 @@ TYPED_TEST(Plane3Test, IntersectAlignedBox)
 	plane.n.z = 1;
 	plane.d = 6;
 	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -2;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = -3;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = -4;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = 1;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = -1;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -4;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = -5;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = -6;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 }
 
 TYPED_TEST(Plane3Test, IntersectOrientedBox)
@@ -177,6 +329,7 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 	};
 
 	Plane3Type plane = {{{1, 0, 0}}, 5};
+	// Positive normals
 	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
@@ -218,4 +371,50 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 	plane.n.z = 1;
 	plane.d = 8;
 	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	// Negative normals
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -5;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = -5;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = -3;
+	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -3;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = -3;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = 0;
+	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.z = 0;
+	plane.n.x = -1;
+	plane.d = -9;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.x = 0;
+	plane.n.y = -1;
+	plane.d = -7;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+
+	plane.n.y = 0;
+	plane.n.z = -1;
+	plane.d = -8;
+	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 }

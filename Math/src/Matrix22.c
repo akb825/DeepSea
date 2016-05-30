@@ -17,7 +17,7 @@
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Core.h>
 
-void dsMatrix22f_invert(dsMatrix22f* result, dsMatrix22f* a)
+void dsMatrix22f_invert(dsMatrix22f* result, const dsMatrix22f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -34,7 +34,7 @@ void dsMatrix22f_invert(dsMatrix22f* result, dsMatrix22f* a)
 	result->values[1][1] = a->values[0][0]*invDet;
 }
 
-void dsMatrix22d_invert(dsMatrix22d* result, dsMatrix22d* a)
+void dsMatrix22d_invert(dsMatrix22d* result, const dsMatrix22d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);

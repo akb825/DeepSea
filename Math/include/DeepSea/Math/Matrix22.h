@@ -137,10 +137,10 @@ extern "C"
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix22f_invert(dsMatrix22f* result, dsMatrix22f* a);
+DS_MATH_EXPORT void dsMatrix22f_invert(dsMatrix22f* result, const dsMatrix22f* a);
 
 /** @copydoc dsMatrix22f_invert() */
-DS_MATH_EXPORT void dsMatrix22d_invert(dsMatrix22d* result, dsMatrix22d* a);
+DS_MATH_EXPORT void dsMatrix22d_invert(dsMatrix22d* result, const dsMatrix22d* a);
 
 /**
  * @brief Makes a rotation matrix.

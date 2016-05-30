@@ -207,20 +207,33 @@ extern "C"
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix33f_affineInvert(dsMatrix33f* result, dsMatrix33f* a);
+DS_MATH_EXPORT void dsMatrix33f_affineInvert(dsMatrix33f* result, const dsMatrix33f* a);
 
 /** @copydoc dsMatrix33d_invert() */
-DS_MATH_EXPORT void dsMatrix33d_affineInvert(dsMatrix33d* result, dsMatrix33d* a);
+DS_MATH_EXPORT void dsMatrix33d_affineInvert(dsMatrix33d* result, const dsMatrix33d* a);
 
 /**
  * @brief Inverts a matrix.
  * @param result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
-DS_MATH_EXPORT void dsMatrix33f_invert(dsMatrix33f* result, dsMatrix33f* a);
+DS_MATH_EXPORT void dsMatrix33f_invert(dsMatrix33f* result, const dsMatrix33f* a);
 
 /** @copydoc dsMatrix33f_invert() */
-DS_MATH_EXPORT void dsMatrix33d_invert(dsMatrix33d* result, dsMatrix33d* a);
+DS_MATH_EXPORT void dsMatrix33d_invert(dsMatrix33d* result, const dsMatrix33d* a);
+
+/**
+ * @brief Calculates the inverse-transpose transformation matrix.
+ *
+ * This will take the inverse-transpose of the upper 2x2 matrix and leave the rest untouched.
+ *
+ * @param result The inverse-transposed matrix. This may NOT be the same as a.
+ * @param a The matrix to inverse-transpose.
+ */
+DS_MATH_EXPORT void dsMatrix33f_inverseTranspose(dsMatrix33f* result, const dsMatrix33f* a);
+
+/** @copydoc dsMatrix44d_invert() */
+DS_MATH_EXPORT void dsMatrix33d_inverseTranspose(dsMatrix33d* result, const dsMatrix33d* a);
 
 /**
  * @brief Makes a 2D rotation matrix.

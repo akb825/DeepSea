@@ -61,6 +61,42 @@ extern "C"
 	(dsVector3_dot((plane).n, point) - (plane).d)
 
 /**
+ * @brief Normalizes a plane.
+ * @param[out] result The normalized plane.
+ * @param plane The plane to normalize.
+ */
+DS_GEOMETRY_EXPORT void dsPlane3f_normalize(dsPlane3f* result, const dsPlane3f* plane);
+
+/** @copydoc dsPlane3f_normalize() */
+DS_GEOMETRY_EXPORT void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane);
+
+/**
+ * @brief Transforms a plane by a matrix.
+ * @param[out] result The transformed plane.
+ * @param plane The plane to transform.
+ * @param transform The transformation matrix.
+ */
+DS_GEOMETRY_EXPORT void dsPlane3f_transform(dsPlane3f* result, const dsPlane3f* plane,
+	const dsMatrix44f* transform);
+
+/** @copydoc dsPlane3f_transform() */
+DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsPlane3d* plane,
+	const dsMatrix44d* transform);
+
+/**
+ * @brief Transforms a plane by a matrix when the inverse-transpose is already calculated.
+ * @param[out] result The transformed plane.
+ * @param plane The plane to transform.
+ * @param transform The inverse-transpose transformation matrix.
+ */
+DS_GEOMETRY_EXPORT void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
+	const dsPlane3f* plane, const dsMatrix44f* transform);
+
+/** @copydoc dsPlane3f_transform() */
+DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
+	const dsPlane3d* plane, const dsMatrix44d* transform);
+
+/**
  * @brief Intersects a plane with an aligned box.
  * @param plane The plane to intersect with the box.
  * @param box The box to intersect with the plane.

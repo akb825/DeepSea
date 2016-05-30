@@ -48,24 +48,34 @@ class Matrix33Test : public testing::Test
 using Matrix33Types = testing::Types<float, double>;
 TYPED_TEST_CASE(Matrix33Test, Matrix33Types);
 
-inline void dsMatrix33_affineInvert(dsMatrix33f* result, dsMatrix33f* a)
+inline void dsMatrix33_affineInvert(dsMatrix33f* result, const dsMatrix33f* a)
 {
 	dsMatrix33f_affineInvert(result, a);
 }
 
-inline void dsMatrix33_affineInvert(dsMatrix33d* result, dsMatrix33d* a)
+inline void dsMatrix33_affineInvert(dsMatrix33d* result, const dsMatrix33d* a)
 {
 	dsMatrix33d_affineInvert(result, a);
 }
 
-inline void dsMatrix33_invert(dsMatrix33f* result, dsMatrix33f* a)
+inline void dsMatrix33_invert(dsMatrix33f* result, const dsMatrix33f* a)
 {
 	dsMatrix33f_invert(result, a);
 }
 
-inline void dsMatrix33_invert(dsMatrix33d* result, dsMatrix33d* a)
+inline void dsMatrix33_invert(dsMatrix33d* result, const dsMatrix33d* a)
 {
 	dsMatrix33d_invert(result, a);
+}
+
+inline void dsMatrix33_inverseTranspose(dsMatrix33f* result, const dsMatrix33f* a)
+{
+	dsMatrix33f_inverseTranspose(result, a);
+}
+
+inline void dsMatrix33_inverseTranspose(dsMatrix33d* result, const dsMatrix33d* a)
+{
+	dsMatrix33d_inverseTranspose(result, a);
 }
 
 inline void dsMatrix33_makeRotate(dsMatrix33f* result, float angle)
@@ -130,12 +140,12 @@ inline void dsMatrix33_makeScale3D(dsMatrix33d* result, double x, double y, doub
 	dsMatrix33d_makeScale3D(result, x, y, z);
 }
 
-inline void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
+inline void dsVector3_normalize(dsVector3f* result, const dsVector3f* a)
 {
 	dsVector3f_normalize(result, a);
 }
 
-inline void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
+inline void dsVector3_normalize(dsVector3d* result, const dsVector3d* a)
 {
 	dsVector3d_normalize(result, a);
 }
@@ -610,4 +620,44 @@ TYPED_TEST(Matrix33Test, AffineInvert)
 	EXPECT_NEAR(0, result.values[2][0], epsilon);
 	EXPECT_NEAR(0, result.values[2][1], epsilon);
 	EXPECT_NEAR(1, result.values[2][2], epsilon);
+}
+
+TYPED_TEST(Matrix33Test, InverseTranspose)
+{
+	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
+	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
+
+	Matrix33Type rotate;
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+
+	Matrix33Type translate;
+	dsMatrix33_makeTranslate(&translate, (TypeParam)1.2, (TypeParam)-3.4);
+
+	Matrix33Type scale;
+	dsMatrix33_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3);
+
+	Matrix33Type temp;
+	dsMatrix33_mul(temp, scale, rotate);
+
+	Matrix33Type matrix;
+	dsMatrix33_mul(matrix, translate, temp);
+
+	Matrix33Type inverseTranspose;
+	dsMatrix33_inverseTranspose(&inverseTranspose, &matrix);
+
+	Matrix33Type inverse, inverseTransposeCheck;
+	dsMatrix33_invert(&inverse, &matrix);
+	dsMatrix33_transpose(inverseTransposeCheck, inverse);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
+	EXPECT_NEAR(0, inverseTranspose.values[0][2], epsilon);
+
+	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
+	EXPECT_NEAR(0, inverseTranspose.values[1][2], epsilon);
+
+	EXPECT_NEAR(matrix.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_NEAR(matrix.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_NEAR(1, inverseTranspose.values[2][2], epsilon);
 }
