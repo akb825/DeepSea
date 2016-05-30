@@ -23,7 +23,7 @@
 static dsPlaneSide intersectBoxImplf(const dsPlane3f* plane, const dsVector3f* points)
 {
 	bool inside = false, outside = false;
-	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT && (!inside || !outside); ++i)
 	{
 		if (dsVector3_dot(points[i], plane->n) >= plane->d)
 			inside = true;
@@ -45,7 +45,7 @@ static dsPlaneSide intersectBoxImplf(const dsPlane3f* plane, const dsVector3f* p
 static dsPlaneSide intersectBoxImpld(const dsPlane3d* plane, const dsVector3d* points)
 {
 	bool inside = false, outside = false;
-	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
+	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT && (!inside || !outside); ++i)
 	{
 		if (dsVector3_dot(points[i], plane->n) >= plane->d)
 			inside = true;
