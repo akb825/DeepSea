@@ -39,37 +39,37 @@ bool dsProfile_setFunctions(void* userData, dsProfileFrameFunction startFrameFun
 	return true;
 }
 
-void* dsProfile_getUserData()
+void* dsProfile_getUserData(void)
 {
 	return gUserData;
 }
 
-dsProfileFrameFunction dsProfile_getStartFrameFunction()
+dsProfileFrameFunction dsProfile_getStartFrameFunction(void)
 {
 	return gStartFrameFunc;
 }
 
-dsProfileFrameFunction dsProfile_getEndFrameFunction()
+dsProfileFrameFunction dsProfile_getEndFrameFunction(void)
 {
 	return gEndFrameFunc;
 }
 
-dsProfilePushFunction dsProfile_getPushFunction()
+dsProfilePushFunction dsProfile_getPushFunction(void)
 {
 	return gPushFunc;
 }
 
-dsProfilePopFunction dsProfile_getPopFunction()
+dsProfilePopFunction dsProfile_getPopFunction(void)
 {
 	return gPopFunc;
 }
 
-dsProfileStatFunction dsProfile_getStatFunction()
+dsProfileStatFunction dsProfile_getStatFunction(void)
 {
 	return gStatFunc;
 }
 
-void dsProfile_clearFunctions()
+void dsProfile_clearFunctions(void)
 {
 	gUserData = NULL;
 	gStartFrameFunc = NULL;
@@ -79,7 +79,7 @@ void dsProfile_clearFunctions()
 	gStatFunc = NULL;
 }
 
-bool dsProfile_enabled()
+bool dsProfile_enabled(void)
 {
 	return gStartFrameFunc != NULL;
 }

@@ -71,13 +71,13 @@ DS_CORE_EXPORT dsThreadId dsThread_getId(dsThread thread);
  * @brief Gets the ID of this thread.
  * @return The ID of this thread.
  */
-DS_CORE_EXPORT dsThreadId dsThread_thisThreadId();
+DS_CORE_EXPORT dsThreadId dsThread_thisThreadId(void);
 
 /**
  * @brief Returns an invalid thread ID.
  * @return An invalid ID.
  */
-DS_CORE_EXPORT dsThreadId dsThread_invalidId();
+DS_CORE_EXPORT dsThreadId dsThread_invalidId(void);
 
 /**
  * @brief Checks whether or not two threads are equal.
@@ -90,7 +90,7 @@ DS_CORE_EXPORT bool dsThread_equal(dsThreadId thread1, dsThreadId thread2);
 /**
  * @brief Yields this thread to allow other threads to continue.
  */
-DS_CORE_EXPORT void dsThread_yield();
+DS_CORE_EXPORT void dsThread_yield(void);
 
 /**
  * @brief Sleeps the current threads.

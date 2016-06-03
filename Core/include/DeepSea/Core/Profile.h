@@ -161,44 +161,44 @@ DS_CORE_EXPORT bool dsProfile_setFunctions(void* userData, dsProfileFrameFunctio
  * @brief Gets the user data for the profiler.
  * @return The user data.
  */
-DS_CORE_EXPORT void* dsProfile_getUserData();
+DS_CORE_EXPORT void* dsProfile_getUserData(void);
 
 /**
  * @brief Gets the start frame function.
  * @return The start frame function.
  */
-DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getStartFrameFunction();
+DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getStartFrameFunction(void);
 
 /**
  * @brief Gets the end frame function.
  * @return The end frame function.
  */
-DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getEndFrameFunction();
+DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getEndFrameFunction(void);
 
 /**
  * @brief Gets the profile push function.
  * @return The push function.
  */
-DS_CORE_EXPORT dsProfilePushFunction dsProfile_getPushFunction();
+DS_CORE_EXPORT dsProfilePushFunction dsProfile_getPushFunction(void);
 
 /**
  * @brief Gets the profile pop function.
  * @return The pop function.
  */
-DS_CORE_EXPORT dsProfilePopFunction dsProfile_getPopFunction();
+DS_CORE_EXPORT dsProfilePopFunction dsProfile_getPopFunction(void);
 
 /**
  * @brief Gets the profile stat function.
  * @return The stat function.
  */
-DS_CORE_EXPORT dsProfileStatFunction dsProfile_getStatFunction();
+DS_CORE_EXPORT dsProfileStatFunction dsProfile_getStatFunction(void);
 
 /**
  * @brief Clears the functions used by the profiler.
  *
  * All profile operations will be NOPs.
  */
-DS_CORE_EXPORT void dsProfile_clearFunctions();
+DS_CORE_EXPORT void dsProfile_clearFunctions(void);
 
 /**
  * @brief Returns whether or not profiling is enabled.
@@ -207,7 +207,7 @@ DS_CORE_EXPORT void dsProfile_clearFunctions();
  *
  * @return True if profiling is enabled.
  */
-DS_CORE_EXPORT bool dsProfile_enabled();
+DS_CORE_EXPORT bool dsProfile_enabled(void);
 
 /**
  * @brief Marks the start of a frame.

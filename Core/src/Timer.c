@@ -27,7 +27,7 @@
 #include <time.h>
 #endif
 
-dsTimer dsTimer_create()
+dsTimer dsTimer_create(void)
 {
 	dsTimer timer;
 

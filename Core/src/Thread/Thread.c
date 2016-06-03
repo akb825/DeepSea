@@ -181,7 +181,7 @@ dsThreadId dsThread_getId(dsThread thread)
 	return threadId;
 }
 
-dsThreadId dsThread_thisThreadId()
+dsThreadId dsThread_thisThreadId(void)
 {
 	dsThreadId threadId;
 
@@ -194,7 +194,7 @@ dsThreadId dsThread_thisThreadId()
 	return threadId;
 }
 
-dsThreadId dsThread_invalidId()
+dsThreadId dsThread_invalidId(void)
 {
 	static dsThreadId invalidId;
 	return invalidId;
@@ -215,7 +215,7 @@ bool dsThread_equal(dsThreadId thread1, dsThreadId thread2)
 #endif
 }
 
-void dsThread_yield()
+void dsThread_yield(void)
 {
 #if DS_WINDOWS
 	SwitchToThread();

@@ -22,12 +22,12 @@
 #include "MutexImpl.h"
 #include <stdlib.h>
 
-unsigned int dsMutex_sizeof()
+unsigned int dsMutex_sizeof(void)
 {
 	return sizeof(dsMutex);
 }
 
-unsigned int dsMutex_fullAllocSize()
+unsigned int dsMutex_fullAllocSize(void)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsMutex));
 }

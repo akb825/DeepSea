@@ -68,18 +68,18 @@ DS_CORE_EXPORT void dsLog_setFunction(void* userData, dsLogFunction function);
  * @brief Gets the logging user data.
  * @return The user data.
  */
-DS_CORE_EXPORT void* dsLog_getUserData();
+DS_CORE_EXPORT void* dsLog_getUserData(void);
 
 /**
  * @brief Gets the logging function.
  * @return The user data.
  */
-DS_CORE_EXPORT dsLogFunction dsLog_getFunction();
+DS_CORE_EXPORT dsLogFunction dsLog_getFunction(void);
 
 /**
  * @brief Clears the function.
  */
-DS_CORE_EXPORT void dsLog_clearFunction();
+DS_CORE_EXPORT void dsLog_clearFunction(void);
 
 /**
  * @brief Logs a message without formatting.

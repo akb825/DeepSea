@@ -33,7 +33,7 @@ extern "C"
  * @brief Creates a timer.
  * @return The timer.
  */
-DS_CORE_EXPORT dsTimer dsTimer_create();
+DS_CORE_EXPORT dsTimer dsTimer_create(void);
 
 /**
  * @brief Gets the current time in seconds.

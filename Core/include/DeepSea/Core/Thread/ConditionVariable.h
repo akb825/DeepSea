@@ -37,13 +37,13 @@ extern "C"
  * @brief Gets the size of dsConditionVariable.
  * @return The size of dsConditionVariable.
  */
-DS_CORE_EXPORT unsigned int dsConditionVariable_sizeof();
+DS_CORE_EXPORT unsigned int dsConditionVariable_sizeof(void);
 
 /**
  * @brief Gets the full allocated size of dsConditionVariable.
  * @return The full allocated size of dsConditionVariable.
  */
-DS_CORE_EXPORT unsigned int dsConditionVariable_fullAllocSize();
+DS_CORE_EXPORT unsigned int dsConditionVariable_fullAllocSize(void);
 
 /**
  * @brief Creates a condition variable.

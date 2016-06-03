@@ -91,17 +91,17 @@ void dsLog_setFunction(void* userData, dsLogFunction function)
 	gFunction = function;
 }
 
-void* dsLog_getUserData()
+void* dsLog_getUserData(void)
 {
 	return gUserData;
 }
 
-dsLogFunction dsLog_getFunction()
+dsLogFunction dsLog_getFunction(void)
 {
 	return gFunction;
 }
 
-void dsLog_clearFunction()
+void dsLog_clearFunction(void)
 {
 	gUserData = NULL;
 	gFunction = NULL;
