@@ -98,7 +98,7 @@ TYPED_TEST(AlignedBox2Test, Initialize)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 	EXPECT_EQ(0, box.min.x);
 	EXPECT_EQ(1, box.min.y);
 	EXPECT_EQ(2, box.max.x);
@@ -109,7 +109,7 @@ TYPED_TEST(AlignedBox2Test, IsValid)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 0}, {1, 1}};
+	AlignedBox2Type box = {{{0, 0}}, {{1, 1}}};
 	EXPECT_TRUE(dsAlignedBox2_isValid(box));
 
 	box.min.x = 2;
@@ -125,14 +125,14 @@ TYPED_TEST(AlignedBox2Test, AddPoint)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	Vector2Type point1 = {0, 3};
-	Vector2Type point2 = {1, 2};
-	Vector2Type point3 = {-1, 1};
-	Vector2Type point4 = {0, -2};
-	Vector2Type point5 = {3, 1};
-	Vector2Type point6 = {0, 4};
+	Vector2Type point1 = {{0, 3}};
+	Vector2Type point2 = {{1, 2}};
+	Vector2Type point3 = {{-1, 1}};
+	Vector2Type point4 = {{0, -2}};
+	Vector2Type point5 = {{3, 1}};
+	Vector2Type point6 = {{0, 4}};
 
 	dsAlignedBox2_addPoint(box, point1);
 	EXPECT_EQ(0, box.min.x);
@@ -175,13 +175,13 @@ TYPED_TEST(AlignedBox2Test, AddBox)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	AlignedBox2Type box1 = {{1, 1}, {2, 2}};
-	AlignedBox2Type box2 = {{-1, 1}, {2, 2}};
-	AlignedBox2Type box3 = {{1, -2}, {2, 2}};
-	AlignedBox2Type box4 = {{1, 1}, {3, 2}};
-	AlignedBox2Type box5 = {{1, 1}, {2, 4}};
+	AlignedBox2Type box1 = {{{1, 1}}, {{2, 2}}};
+	AlignedBox2Type box2 = {{{-1, 1}}, {{2, 2}}};
+	AlignedBox2Type box3 = {{{1, -2}}, {{2, 2}}};
+	AlignedBox2Type box4 = {{{1, 1}}, {{3, 2}}};
+	AlignedBox2Type box5 = {{{1, 1}}, {{2, 4}}};
 
 	dsAlignedBox2_addBox(box, box1);
 	EXPECT_EQ(0, box.min.x);
@@ -219,13 +219,13 @@ TYPED_TEST(AlignedBox2Test, ContainsPoint)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	Vector2Type point1 = {1, 2};
-	Vector2Type point2 = {-1, 2};
-	Vector2Type point3 = {1, -2};
-	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 4};
+	Vector2Type point1 = {{1, 2}};
+	Vector2Type point2 = {{-1, 2}};
+	Vector2Type point3 = {{1, -2}};
+	Vector2Type point4 = {{3, 2}};
+	Vector2Type point5 = {{1, 4}};
 
 	EXPECT_TRUE(dsAlignedBox2_containsPoint(box, box.min));
 	EXPECT_TRUE(dsAlignedBox2_containsPoint(box, box.max));
@@ -240,17 +240,17 @@ TYPED_TEST(AlignedBox2Test, ContainsBox)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 5}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 5}}};
 
-	AlignedBox2Type box1 = {{1, 2}, {3, 4}};
-	AlignedBox2Type box2 = {{-1, 2}, {3, 4}};
-	AlignedBox2Type box3 = {{1, -2}, {3, 4}};
-	AlignedBox2Type box4 = {{1, 2}, {5, 4}};
-	AlignedBox2Type box5 = {{1, 2}, {3, 6}};
-	AlignedBox2Type box6 = {{-4, 2}, {-2, 4}};
-	AlignedBox2Type box7 = {{6, 2}, {8, 4}};
-	AlignedBox2Type box8 = {{1, -2}, {3, -1}};
-	AlignedBox2Type box9 = {{1, 6}, {3, 7}};
+	AlignedBox2Type box1 = {{{1, 2}}, {{3, 4}}};
+	AlignedBox2Type box2 = {{{-1, 2}}, {{3, 4}}};
+	AlignedBox2Type box3 = {{{1, -2}}, {{3, 4}}};
+	AlignedBox2Type box4 = {{{1, 2}}, {{5, 4}}};
+	AlignedBox2Type box5 = {{{1, 2}}, {{3, 6}}};
+	AlignedBox2Type box6 = {{{-4, 2}}, {{-2, 4}}};
+	AlignedBox2Type box7 = {{{6, 2}}, {{8, 4}}};
+	AlignedBox2Type box8 = {{{1, -2}}, {{3, -1}}};
+	AlignedBox2Type box9 = {{{1, 6}}, {{3, 7}}};
 
 	EXPECT_TRUE(dsAlignedBox2_containsBox(box, box));
 	EXPECT_TRUE(dsAlignedBox2_containsBox(box, box1));
@@ -268,17 +268,17 @@ TYPED_TEST(AlignedBox2Test, Intersects)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 5}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 5}}};
 
-	AlignedBox2Type box1 = {{1, 2}, {3, 4}};
-	AlignedBox2Type box2 = {{-1, 2}, {3, 4}};
-	AlignedBox2Type box3 = {{1, -2}, {3, 4}};
-	AlignedBox2Type box4 = {{1, 2}, {5, 4}};
-	AlignedBox2Type box5 = {{1, 2}, {3, 6}};
-	AlignedBox2Type box6 = {{-4, 2}, {-2, 4}};
-	AlignedBox2Type box7 = {{6, 2}, {8, 4}};
-	AlignedBox2Type box8 = {{1, -2}, {3, -1}};
-	AlignedBox2Type box9 = {{1, 6}, {3, 7}};
+	AlignedBox2Type box1 = {{{1, 2}}, {{3, 4}}};
+	AlignedBox2Type box2 = {{{-1, 2}}, {{3, 4}}};
+	AlignedBox2Type box3 = {{{1, -2}}, {{3, 4}}};
+	AlignedBox2Type box4 = {{{1, 2}}, {{5, 4}}};
+	AlignedBox2Type box5 = {{{1, 2}}, {{3, 6}}};
+	AlignedBox2Type box6 = {{{-4, 2}}, {{-2, 4}}};
+	AlignedBox2Type box7 = {{{6, 2}}, {{8, 4}}};
+	AlignedBox2Type box8 = {{{1, -2}}, {{3, -1}}};
+	AlignedBox2Type box9 = {{{1, 6}}, {{3, 7}}};
 
 	EXPECT_TRUE(dsAlignedBox2_intersects(box, box));
 	EXPECT_TRUE(dsAlignedBox2_intersects(box, box1));
@@ -296,17 +296,17 @@ TYPED_TEST(AlignedBox2Test, Intersect)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 5}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 5}}};
 
-	AlignedBox2Type box1 = {{1, 2}, {3, 4}};
-	AlignedBox2Type box2 = {{-1, 2}, {3, 4}};
-	AlignedBox2Type box3 = {{1, -2}, {3, 4}};
-	AlignedBox2Type box4 = {{1, 2}, {5, 4}};
-	AlignedBox2Type box5 = {{1, 2}, {3, 6}};
-	AlignedBox2Type box6 = {{-4, 2}, {-2, 4}};
-	AlignedBox2Type box7 = {{6, 2}, {8, 4}};
-	AlignedBox2Type box8 = {{1, -2}, {3, -1}};
-	AlignedBox2Type box9 = {{1, 6}, {3, 7}};
+	AlignedBox2Type box1 = {{{1, 2}}, {{3, 4}}};
+	AlignedBox2Type box2 = {{{-1, 2}}, {{3, 4}}};
+	AlignedBox2Type box3 = {{{1, -2}}, {{3, 4}}};
+	AlignedBox2Type box4 = {{{1, 2}}, {{5, 4}}};
+	AlignedBox2Type box5 = {{{1, 2}}, {{3, 6}}};
+	AlignedBox2Type box6 = {{{-4, 2}}, {{-2, 4}}};
+	AlignedBox2Type box7 = {{{6, 2}}, {{8, 4}}};
+	AlignedBox2Type box8 = {{{1, -2}}, {{3, -1}}};
+	AlignedBox2Type box9 = {{{1, 6}}, {{3, 7}}};
 
 	AlignedBox2Type intersection;
 	dsAlignedBox2_intersect(intersection, box, box);
@@ -363,7 +363,7 @@ TYPED_TEST(AlignedBox2Test, Center)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 5}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 5}}};
 
 	Vector2Type center;
 	dsAlignedBox2_center(center, box);
@@ -376,7 +376,7 @@ TYPED_TEST(AlignedBox2Test, Extents)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 6}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 6}}};
 
 	Vector2Type extents;
 	dsAlignedBox2_extents(extents, box);
@@ -389,7 +389,7 @@ TYPED_TEST(AlignedBox2Test, Corners)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {4, 6}};
+	AlignedBox2Type box = {{{0, 1}}, {{4, 6}}};
 	Vector2Type corners[DS_BOX2_CORNER_COUNT];
 
 	dsAlignedBox2_corners(corners, box);
@@ -412,13 +412,13 @@ TYPED_TEST(AlignedBox2Test, ClosestPoint)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	Vector2Type point1 = {1, 2};
-	Vector2Type point2 = {-1, 2};
-	Vector2Type point3 = {1, -2};
-	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 4};
+	Vector2Type point1 = {{1, 2}};
+	Vector2Type point2 = {{-1, 2}};
+	Vector2Type point3 = {{1, -2}};
+	Vector2Type point4 = {{3, 2}};
+	Vector2Type point5 = {{1, 4}};
 
 	Vector2Type closest;
 	dsAlignedBox2_closestPoint(closest, box, box.min);
@@ -454,7 +454,7 @@ TYPED_TEST(AlignedBox2Test, MakeInvalid)
 {
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
 	dsAlignedBox2_makeInvalid(&box);
 	EXPECT_FALSE(dsAlignedBox2_isValid(box));
@@ -465,13 +465,13 @@ TYPED_TEST(AlignedBox2Test, Dist2)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	Vector2Type point1 = {1, 2};
-	Vector2Type point2 = {-1, 2};
-	Vector2Type point3 = {1, -2};
-	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 5};
+	Vector2Type point1 = {{1, 2}};
+	Vector2Type point2 = {{-1, 2}};
+	Vector2Type point3 = {{1, -2}};
+	Vector2Type point4 = {{3, 2}};
+	Vector2Type point5 = {{1, 5}};
 
 	EXPECT_EQ(0, dsAlignedBox2_dist2(&box, &box.min));
 	EXPECT_EQ(0, dsAlignedBox2_dist2(&box, &box.max));
@@ -487,13 +487,13 @@ TYPED_TEST(AlignedBox2Test, Dist)
 	typedef typename AlignedBox2TypeSelector<TypeParam>::AlignedBox2Type AlignedBox2Type;
 	typedef typename AlignedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
 
-	AlignedBox2Type box = {{0, 1}, {2, 3}};
+	AlignedBox2Type box = {{{0, 1}}, {{2, 3}}};
 
-	Vector2Type point1 = {1, 2};
-	Vector2Type point2 = {-1, 2};
-	Vector2Type point3 = {1, -2};
-	Vector2Type point4 = {3, 2};
-	Vector2Type point5 = {1, 5};
+	Vector2Type point1 = {{1, 2}};
+	Vector2Type point2 = {{-1, 2}};
+	Vector2Type point3 = {{1, -2}};
+	Vector2Type point4 = {{3, 2}};
+	Vector2Type point5 = {{1, 5}};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox2_dist(&box, &box.min));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox2_dist(&box, &box.max));

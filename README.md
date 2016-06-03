@@ -14,7 +14,7 @@ The following software is required to build DeepSea:
 
 DeepSea has been built for and tested on the following platforms:
 
-* Linux
+* Linux (GCC and LLVM clang)
 * Windows (requires Visual Studio 2015 or later)
 
 # Building

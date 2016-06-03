@@ -98,7 +98,7 @@ TYPED_TEST(AlignedBox3Test, Initialize)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 	EXPECT_EQ(0, box.min.x);
 	EXPECT_EQ(1, box.min.y);
 	EXPECT_EQ(2, box.min.z);
@@ -111,7 +111,7 @@ TYPED_TEST(AlignedBox3Test, IsValid)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 0, 0}, {1, 1, 1}};
+	AlignedBox3Type box = {{{0, 0, 0}}, {{1, 1, 1}}};
 	EXPECT_TRUE(dsAlignedBox3_isValid(box));
 
 	box.min.x = 2;
@@ -131,16 +131,16 @@ TYPED_TEST(AlignedBox3Test, AddPoint)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	Vector3Type point1 = {0, 4, 2};
-	Vector3Type point2 = {3, 1, 5};
-	Vector3Type point3 = {-1, 1, 2};
-	Vector3Type point4 = {0, -2, 2};
-	Vector3Type point5 = {0, 1, -3};
-	Vector3Type point6 = {4, 1, 2};
-	Vector3Type point7 = {0, 5, 2};
-	Vector3Type point8 = {0, 1, 6};
+	Vector3Type point1 = {{0, 4, 2}};
+	Vector3Type point2 = {{3, 1, 5}};
+	Vector3Type point3 = {{-1, 1, 2}};
+	Vector3Type point4 = {{0, -2, 2}};
+	Vector3Type point5 = {{0, 1, -3}};
+	Vector3Type point6 = {{4, 1, 2}};
+	Vector3Type point7 = {{0, 5, 2}};
+	Vector3Type point8 = {{0, 1, 6}};
 
 	dsAlignedBox3_addPoint(box, point1);
 	EXPECT_EQ(0, box.min.x);
@@ -211,15 +211,15 @@ TYPED_TEST(AlignedBox3Test, AddBox)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	AlignedBox3Type box1 = {{2, 2, 2}, {3, 3, 3}};
-	AlignedBox3Type box2 = {{-1, 1, 3}, {3, 3, 3}};
-	AlignedBox3Type box3 = {{1, -2, 3}, {3, 3, 3}};
-	AlignedBox3Type box4 = {{1, 2, -3}, {3, 3, 3}};
-	AlignedBox3Type box5 = {{1, 2, 3}, {4, 3, 3}};
-	AlignedBox3Type box6 = {{1, 2, 3}, {3, 5, 3}};
-	AlignedBox3Type box7 = {{1, 2, 3}, {3, 3, 6}};
+	AlignedBox3Type box1 = {{{2, 2, 2}}, {{3, 3, 3}}};
+	AlignedBox3Type box2 = {{{-1, 1, 3}}, {{3, 3, 3}}};
+	AlignedBox3Type box3 = {{{1, -2, 3}}, {{3, 3, 3}}};
+	AlignedBox3Type box4 = {{{1, 2, -3}}, {{3, 3, 3}}};
+	AlignedBox3Type box5 = {{{1, 2, 3}}, {{4, 3, 3}}};
+	AlignedBox3Type box6 = {{{1, 2, 3}}, {{3, 5, 3}}};
+	AlignedBox3Type box7 = {{{1, 2, 3}}, {{3, 3, 6}}};
 
 	dsAlignedBox3_addBox(box, box1);
 	EXPECT_EQ(0, box.min.x);
@@ -283,14 +283,14 @@ TYPED_TEST(AlignedBox3Test, ContainsPoint)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	Vector3Type point1 = {1, 2, 3};
-	Vector3Type point2 = {-1, 2, 3};
-	Vector3Type point3 = {1, -2, 3};
-	Vector3Type point4 = {4, 2, 3};
-	Vector3Type point5 = {1, 5, 3};
-	Vector3Type point6 = {1, 2, 6};
+	Vector3Type point1 = {{1, 2, 3}};
+	Vector3Type point2 = {{-1, 2, 3}};
+	Vector3Type point3 = {{1, -2, 3}};
+	Vector3Type point4 = {{4, 2, 3}};
+	Vector3Type point5 = {{1, 5, 3}};
+	Vector3Type point6 = {{1, 2, 6}};
 
 	EXPECT_TRUE(dsAlignedBox3_containsPoint(box, box.min));
 	EXPECT_TRUE(dsAlignedBox3_containsPoint(box, box.max));
@@ -306,21 +306,21 @@ TYPED_TEST(AlignedBox3Test, ContainsBox)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {5, 6, 7}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{5, 6, 7}}};
 
-	AlignedBox3Type box1 = {{1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box2 = {{-1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box3 = {{1, -2, 3}, {4, 5, 6}};
-	AlignedBox3Type box4 = {{1, 2, -3}, {4, 5, 6}};
-	AlignedBox3Type box5 = {{1, 2, 3}, {7, 5, 6}};
-	AlignedBox3Type box6 = {{1, 2, 3}, {4, 8, 6}};
-	AlignedBox3Type box7 = {{1, 2, 3}, {4, 5, 9}};
-	AlignedBox3Type box8 = {{-4, 2, 3}, {-2, 5, 6}};
-	AlignedBox3Type box9 = {{1, -4, 3}, {4, -2, 6}};
-	AlignedBox3Type box10 = {{1, 2, -4}, {4, 5, -2}};
-	AlignedBox3Type box11 = {{8, 2, 3}, {10, 5, 6}};
-	AlignedBox3Type box12 = {{1, 8, 3}, {4, 10, 6}};
-	AlignedBox3Type box13 = {{1, 2, 8}, {4, 5, 10}};
+	AlignedBox3Type box1 = {{{1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box2 = {{{-1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box3 = {{{1, -2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box4 = {{{1, 2, -3}}, {{4, 5, 6}}};
+	AlignedBox3Type box5 = {{{1, 2, 3}}, {{7, 5, 6}}};
+	AlignedBox3Type box6 = {{{1, 2, 3}}, {{4, 8, 6}}};
+	AlignedBox3Type box7 = {{{1, 2, 3}}, {{4, 5, 9}}};
+	AlignedBox3Type box8 = {{{-4, 2, 3}}, {{-2, 5, 6}}};
+	AlignedBox3Type box9 = {{{1, -4, 3}}, {{4, -2, 6}}};
+	AlignedBox3Type box10 = {{{1, 2, -4}}, {{4, 5, -2}}};
+	AlignedBox3Type box11 = {{{8, 2, 3}}, {{10, 5, 6}}};
+	AlignedBox3Type box12 = {{{1, 8, 3}}, {{4, 10, 6}}};
+	AlignedBox3Type box13 = {{{1, 2, 8}}, {{4, 5, 10}}};
 
 	EXPECT_TRUE(dsAlignedBox3_containsBox(box, box));
 	EXPECT_TRUE(dsAlignedBox3_containsBox(box, box1));
@@ -342,21 +342,21 @@ TYPED_TEST(AlignedBox3Test, Intersects)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {5, 6, 7}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{5, 6, 7}}};
 
-	AlignedBox3Type box1 = {{1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box2 = {{-1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box3 = {{1, -2, 3}, {4, 5, 6}};
-	AlignedBox3Type box4 = {{1, 2, -3}, {4, 5, 6}};
-	AlignedBox3Type box5 = {{1, 2, 3}, {7, 5, 6}};
-	AlignedBox3Type box6 = {{1, 2, 3}, {4, 8, 6}};
-	AlignedBox3Type box7 = {{1, 2, 3}, {4, 5, 9}};
-	AlignedBox3Type box8 = {{-4, 2, 3}, {-2, 5, 6}};
-	AlignedBox3Type box9 = {{1, -4, 3}, {4, -2, 6}};
-	AlignedBox3Type box10 = {{1, 2, -4}, {4, 5, -2}};
-	AlignedBox3Type box11 = {{8, 2, 3}, {10, 5, 6}};
-	AlignedBox3Type box12 = {{1, 8, 3}, {4, 10, 6}};
-	AlignedBox3Type box13 = {{1, 2, 8}, {4, 5, 10}};
+	AlignedBox3Type box1 = {{{1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box2 = {{{-1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box3 = {{{1, -2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box4 = {{{1, 2, -3}}, {{4, 5, 6}}};
+	AlignedBox3Type box5 = {{{1, 2, 3}}, {{7, 5, 6}}};
+	AlignedBox3Type box6 = {{{1, 2, 3}}, {{4, 8, 6}}};
+	AlignedBox3Type box7 = {{{1, 2, 3}}, {{4, 5, 9}}};
+	AlignedBox3Type box8 = {{{-4, 2, 3}}, {{-2, 5, 6}}};
+	AlignedBox3Type box9 = {{{1, -4, 3}}, {{4, -2, 6}}};
+	AlignedBox3Type box10 = {{{1, 2, -4}}, {{4, 5, -2}}};
+	AlignedBox3Type box11 = {{{8, 2, 3}}, {{10, 5, 6}}};
+	AlignedBox3Type box12 = {{{1, 8, 3}}, {{4, 10, 6}}};
+	AlignedBox3Type box13 = {{{1, 2, 8}}, {{4, 5, 10}}};
 
 	EXPECT_TRUE(dsAlignedBox3_intersects(box, box));
 	EXPECT_TRUE(dsAlignedBox3_intersects(box, box1));
@@ -378,21 +378,21 @@ TYPED_TEST(AlignedBox3Test, Intersect)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {5, 6, 7}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{5, 6, 7}}};
 
-	AlignedBox3Type box1 = {{1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box2 = {{-1, 2, 3}, {4, 5, 6}};
-	AlignedBox3Type box3 = {{1, -2, 3}, {4, 5, 6}};
-	AlignedBox3Type box4 = {{1, 2, -3}, {4, 5, 6}};
-	AlignedBox3Type box5 = {{1, 2, 3}, {7, 5, 6}};
-	AlignedBox3Type box6 = {{1, 2, 3}, {4, 8, 6}};
-	AlignedBox3Type box7 = {{1, 2, 3}, {4, 5, 9}};
-	AlignedBox3Type box8 = {{-4, 2, 3}, {-2, 5, 6}};
-	AlignedBox3Type box9 = {{1, -4, 3}, {4, -2, 6}};
-	AlignedBox3Type box10 = {{1, 2, -4}, {4, 5, -2}};
-	AlignedBox3Type box11 = {{8, 2, 3}, {10, 5, 6}};
-	AlignedBox3Type box12 = {{1, 8, 3}, {4, 10, 6}};
-	AlignedBox3Type box13 = {{1, 2, 8}, {4, 5, 10}};
+	AlignedBox3Type box1 = {{{1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box2 = {{{-1, 2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box3 = {{{1, -2, 3}}, {{4, 5, 6}}};
+	AlignedBox3Type box4 = {{{1, 2, -3}}, {{4, 5, 6}}};
+	AlignedBox3Type box5 = {{{1, 2, 3}}, {{7, 5, 6}}};
+	AlignedBox3Type box6 = {{{1, 2, 3}}, {{4, 8, 6}}};
+	AlignedBox3Type box7 = {{{1, 2, 3}}, {{4, 5, 9}}};
+	AlignedBox3Type box8 = {{{-4, 2, 3}}, {{-2, 5, 6}}};
+	AlignedBox3Type box9 = {{{1, -4, 3}}, {{4, -2, 6}}};
+	AlignedBox3Type box10 = {{{1, 2, -4}}, {{4, 5, -2}}};
+	AlignedBox3Type box11 = {{{8, 2, 3}}, {{10, 5, 6}}};
+	AlignedBox3Type box12 = {{{1, 8, 3}}, {{4, 10, 6}}};
+	AlignedBox3Type box13 = {{{1, 2, 8}}, {{4, 5, 10}}};
 
 	AlignedBox3Type intersection;
 	dsAlignedBox3_intersect(intersection, box, box);
@@ -483,7 +483,7 @@ TYPED_TEST(AlignedBox3Test, Center)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {4, 5, 6}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{4, 5, 6}}};
 
 	Vector3Type center;
 	dsAlignedBox3_center(center, box);
@@ -497,7 +497,7 @@ TYPED_TEST(AlignedBox3Test, Extents)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 2, 3}, {4, 7, 9}};
+	AlignedBox3Type box = {{{0, 2, 3}}, {{4, 7, 9}}};
 
 	Vector3Type extents;
 	dsAlignedBox3_extents(extents, box);
@@ -511,7 +511,7 @@ TYPED_TEST(AlignedBox3Test, Corners)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
 	Vector3Type corners[DS_BOX3_CORNER_COUNT];
 	dsAlignedBox3_corners(corners, box);
@@ -554,15 +554,15 @@ TYPED_TEST(AlignedBox3Test, ClosestPoint)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	Vector3Type point1 = {1, 2, 3};
-	Vector3Type point2 = {-1, 2, 3};
-	Vector3Type point3 = {1, -2, 3};
-	Vector3Type point4 = {1, 2, -3};
-	Vector3Type point5 = {4, 2, 3};
-	Vector3Type point6 = {1, 5, 3};
-	Vector3Type point7 = {1, 2, 6};
+	Vector3Type point1 = {{1, 2, 3}};
+	Vector3Type point2 = {{-1, 2, 3}};
+	Vector3Type point3 = {{1, -2, 3}};
+	Vector3Type point4 = {{1, 2, -3}};
+	Vector3Type point5 = {{4, 2, 3}};
+	Vector3Type point6 = {{1, 5, 3}};
+	Vector3Type point7 = {{1, 2, 6}};
 
 	Vector3Type closest;
 	dsAlignedBox3_closestPoint(closest, box, box.min);
@@ -615,7 +615,7 @@ TYPED_TEST(AlignedBox3Test, MakeInvalid)
 {
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
 	dsAlignedBox3_makeInvalid(&box);
 	EXPECT_FALSE(dsAlignedBox3_isValid(box));
@@ -626,15 +626,15 @@ TYPED_TEST(AlignedBox3Test, Dist2)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	Vector3Type point1 = {1, 2, 3};
-	Vector3Type point2 = {-1, 2, 3};
-	Vector3Type point3 = {1, -2, 3};
-	Vector3Type point4 = {1, 2, -3};
-	Vector3Type point5 = {4, 2, 3};
-	Vector3Type point6 = {1, 6, 3};
-	Vector3Type point7 = {1, 2, 8};
+	Vector3Type point1 = {{1, 2, 3}};
+	Vector3Type point2 = {{-1, 2, 3}};
+	Vector3Type point3 = {{1, -2, 3}};
+	Vector3Type point4 = {{1, 2, -3}};
+	Vector3Type point5 = {{4, 2, 3}};
+	Vector3Type point6 = {{1, 6, 3}};
+	Vector3Type point7 = {{1, 2, 8}};
 
 	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.min));
 	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.max));
@@ -652,15 +652,15 @@ TYPED_TEST(AlignedBox3Test, Dist)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename AlignedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
-	Vector3Type point1 = {1, 2, 3};
-	Vector3Type point2 = {-1, 2, 3};
-	Vector3Type point3 = {1, -2, 3};
-	Vector3Type point4 = {1, 2, -3};
-	Vector3Type point5 = {4, 2, 3};
-	Vector3Type point6 = {1, 6, 3};
-	Vector3Type point7 = {1, 2, 8};
+	Vector3Type point1 = {{1, 2, 3}};
+	Vector3Type point2 = {{-1, 2, 3}};
+	Vector3Type point3 = {{1, -2, 3}};
+	Vector3Type point4 = {{1, 2, -3}};
+	Vector3Type point5 = {{4, 2, 3}};
+	Vector3Type point6 = {{1, 6, 3}};
+	Vector3Type point7 = {{1, 2, 8}};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox3_dist(&box, &box.min));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsAlignedBox3_dist(&box, &box.max));

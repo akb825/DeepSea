@@ -83,10 +83,10 @@ TYPED_TEST(Matrix22Test, Initialize)
 	typedef typename Matrix22TypeSelector<TypeParam>::MatrixType Matrix22Type;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	EXPECT_EQ((TypeParam)0.1, matrix.values[0][0]);
 	EXPECT_EQ((TypeParam)-2.3, matrix.values[0][1]);
@@ -115,16 +115,16 @@ TYPED_TEST(Matrix22Test, Multiply)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix1 =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix22Type matrix2 =
-	{
-		(TypeParam)-1.0, (TypeParam)3.2,
-		(TypeParam)-5.4, (TypeParam)7.6
-	};
+	{{
+		{(TypeParam)-1.0, (TypeParam)3.2},
+		{(TypeParam)-5.4, (TypeParam)7.6}
+	}};
 
 	Matrix22Type result;
 	dsMatrix22_mul(result, matrix1, matrix2);
@@ -143,12 +143,12 @@ TYPED_TEST(Matrix22Test, Transform)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
-	Vector2Type vector = {(TypeParam)-1.0, (TypeParam)3.2};
+	Vector2Type vector = {{(TypeParam)-1.0, (TypeParam)3.2}};
 	Vector2Type result;
 
 	dsMatrix22_transform(result, matrix, vector);
@@ -164,12 +164,12 @@ TYPED_TEST(Matrix22Test, TransformTransposed)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-4.5,
-		(TypeParam)-2.3, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-4.5},
+		{(TypeParam)-2.3, (TypeParam)6.7}
+	}};
 
-	Vector2Type vector = {(TypeParam)-1.0, (TypeParam)3.2};
+	Vector2Type vector = {{(TypeParam)-1.0, (TypeParam)3.2}};
 	Vector2Type result;
 
 	dsMatrix22_transformTransposed(result, matrix, vector);
@@ -183,10 +183,10 @@ TYPED_TEST(Matrix22Test, Transpose)
 	typedef typename Matrix22TypeSelector<TypeParam>::MatrixType Matrix22Type;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix22Type result;
 	dsMatrix22_transpose(result, matrix);
@@ -204,10 +204,10 @@ TYPED_TEST(Matrix22Test, Determinant)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	EXPECT_NEAR((TypeParam)-9.68, dsMatrix22_determinant(matrix), epsilon);
 }
@@ -218,10 +218,10 @@ TYPED_TEST(Matrix22Test, Invert)
 	TypeParam epsilon = Matrix22TypeSelector<TypeParam>::epsilon;
 
 	Matrix22Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix22Type inverse;
 	dsMatrix22_invert(&inverse, &matrix);

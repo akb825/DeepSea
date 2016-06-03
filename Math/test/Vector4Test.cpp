@@ -80,7 +80,7 @@ TYPED_TEST(Vector4Test, Initialize)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 
 	EXPECT_EQ((TypeParam)-2.3, a.x);
 	EXPECT_EQ((TypeParam)4.5, a.y);
@@ -107,8 +107,8 @@ TYPED_TEST(Vector4Test, Add)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 	Vector4Type result;
 
 	dsVector4_add(result, a, b);
@@ -122,8 +122,8 @@ TYPED_TEST(Vector4Test, Subtract)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 	Vector4Type result;
 
 	dsVector4_sub(result, a, b);
@@ -137,8 +137,8 @@ TYPED_TEST(Vector4Test, Multiply)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 	Vector4Type result;
 
 	dsVector4_mul(result, a, b);
@@ -152,8 +152,8 @@ TYPED_TEST(Vector4Test, Divide)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 	Vector4Type result;
 
 	dsVector4_div(result, a, b);
@@ -167,7 +167,7 @@ TYPED_TEST(Vector4Test, Scale)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type result;
 
 	dsVector4_scale(result, a, (TypeParam)3.2);
@@ -181,8 +181,8 @@ TYPED_TEST(Vector4Test, Dot)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
 	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 +
 			  (TypeParam)4.5*(TypeParam)-5.4 +
@@ -195,7 +195,7 @@ TYPED_TEST(Vector4FloatTest, Length)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 
 	EXPECT_EQ(dsPow2((TypeParam)-2.3) +
 			  dsPow2((TypeParam)4.5) +
@@ -213,8 +213,8 @@ TYPED_TEST(Vector4FloatTest, Distance)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
-	Vector4Type b = {(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
 
 	EXPECT_EQ(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
 			  dsPow2((TypeParam)4.5 - (TypeParam)-5.4) +
@@ -232,7 +232,7 @@ TYPED_TEST(Vector4FloatTest, Normalize)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
 
-	Vector4Type a = {(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9};
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
 	Vector4Type result;
 
 	TypeParam length = dsVector4_len(&a);

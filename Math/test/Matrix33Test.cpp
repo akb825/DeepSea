@@ -155,11 +155,11 @@ TYPED_TEST(Matrix33Test, Initialize)
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	EXPECT_EQ((TypeParam)0.1, matrix.values[0][0]);
 	EXPECT_EQ((TypeParam)-2.3, matrix.values[0][1]);
@@ -212,18 +212,18 @@ TYPED_TEST(Matrix33Test, Multiply)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix1 =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix33Type matrix2 =
-	{
-		(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4,
-		(TypeParam)7.6, (TypeParam)-9.8, (TypeParam)1.0,
-		(TypeParam)-3.2, (TypeParam)5.4, (TypeParam)-7.6
-	};
+	{{
+		{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4},
+		{(TypeParam)7.6, (TypeParam)-9.8, (TypeParam)1.0},
+		{(TypeParam)-3.2, (TypeParam)5.4, (TypeParam)-7.6}
+	}};
 
 	Matrix33Type result;
 	dsMatrix33_mul(result, matrix1, matrix2);
@@ -248,13 +248,13 @@ TYPED_TEST(Matrix33Test, Transform)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
-	Vector3Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4};
+	Vector3Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4}};
 	Vector3Type result;
 
 	dsMatrix33_transform(result, matrix, vector);
@@ -271,13 +271,13 @@ TYPED_TEST(Matrix33Test, TransformTransposed)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3,
-		(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5,
-		(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3},
+		{(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5},
+		{(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7}
+	}};
 
-	Vector3Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4};
+	Vector3Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4}};
 	Vector3Type result;
 
 	dsMatrix33_transformTransposed(result, matrix, vector);
@@ -292,11 +292,11 @@ TYPED_TEST(Matrix33Test, Transpose)
 	typedef typename Matrix33TypeSelector<TypeParam>::MatrixType Matrix33Type;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix33Type result;
 	dsMatrix33_transpose(result, matrix);
@@ -320,11 +320,11 @@ TYPED_TEST(Matrix33Test, Determinant)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	EXPECT_NEAR((TypeParam)-53.24, dsMatrix33_determinant(matrix), epsilon);
 }
@@ -335,11 +335,11 @@ TYPED_TEST(Matrix33Test, Invert)
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
 	Matrix33Type matrix =
-	{
-		(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1,
-		(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7
-	};
+	{{
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+	}};
 
 	Matrix33Type inverse;
 	dsMatrix33_invert(&inverse, &matrix);
@@ -470,8 +470,8 @@ TYPED_TEST(Matrix33Test, MakeRotateAxisAngle)
 	typedef typename Matrix33TypeSelector<TypeParam>::VectorType Vector3Type;
 	TypeParam epsilon = Matrix33TypeSelector<TypeParam>::epsilon;
 
-	Vector3Type axis = {(TypeParam)-0.289967871131, (TypeParam)0.0171578621971,
-		(TypeParam)0.51473586591302};
+	Vector3Type axis = {{(TypeParam)-0.289967871131, (TypeParam)0.0171578621971,
+		(TypeParam)0.51473586591302}};
 	dsVector3_normalize(&axis, &axis);
 	Matrix33Type matrix;
 	dsMatrix33_makeRotate3DAxisAngle(&matrix, &axis,

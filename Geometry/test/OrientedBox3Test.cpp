@@ -230,7 +230,7 @@ TYPED_TEST(OrientedBox3Test, FromAlignedBox)
 		{{6, 5, 4}}, {{3, 2, 1}}
 	};
 
-	AlignedBox3Type alignedBox = {{0, 1, 2}, {4, 7, 10}};
+	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{4, 7, 10}}};
 
 	dsOrientedBox3_fromAlignedBox(box, alignedBox);
 	EXPECT_EQ(1, box.orientation.values[0][0]);
@@ -291,7 +291,7 @@ TYPED_TEST(OrientedBox3Test, Transform)
 	dsMatrix44_mul(temp, rotate, scale);
 	dsMatrix44_mul(transform, translate, temp);
 
-	Vector4Type originalCenter = {box.center.x, box.center.y, box.center.z, 0};
+	Vector4Type originalCenter = {{box.center.x, box.center.y, box.center.z, 0}};
 	Vector4Type center;
 	dsMatrix44_transform(center, transform, originalCenter);
 
@@ -322,7 +322,6 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 {
 	typedef typename OrientedBox3TypeSelector<TypeParam>::OrientedBox3Type OrientedBox3Type;
 	typedef typename OrientedBox3TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox3TypeSelector<TypeParam>::epsilon;
 
 	OrientedBox3Type box =
 	{
@@ -330,13 +329,13 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 		{{6, 5, 4}}, {{3, 2, 1}}
 	};
 
-	Vector3Type point1 = {5, 6, 3};
-	Vector3Type point2 = {1, 6, 3};
-	Vector3Type point3 = {5, 0, 3};
-	Vector3Type point4 = {5, 6, -1};
-	Vector3Type point5 = {9, 6, 3};
-	Vector3Type point6 = {5, 10, 3};
-	Vector3Type point7 = {5, 6, 11};
+	Vector3Type point1 = {{5, 6, 3}};
+	Vector3Type point2 = {{1, 6, 3}};
+	Vector3Type point3 = {{5, 0, 3}};
+	Vector3Type point4 = {{5, 6, -1}};
+	Vector3Type point5 = {{9, 6, 3}};
+	Vector3Type point6 = {{5, 10, 3}};
+	Vector3Type point7 = {{5, 6, 11}};
 
 	dsOrientedBox3_addPoint(&box, &point1);
 	EXPECT_EQ(6, box.center.x);
@@ -674,13 +673,13 @@ TYPED_TEST(OrientedBox3Test, ClosestPoint)
 		{{6, 5, 4}}, {{3, 2, 1}}
 	};
 
-	Vector3Type point1 = {5, 6, 3};
-	Vector3Type point2 = {1, 6, 3};
-	Vector3Type point3 = {5, 0, 3};
-	Vector3Type point4 = {5, 6, -1};
-	Vector3Type point5 = {11, 6, 3};
-	Vector3Type point6 = {5, 10, 3};
-	Vector3Type point7 = {5, 6, 9};
+	Vector3Type point1 = {{5, 6, 3}};
+	Vector3Type point2 = {{1, 6, 3}};
+	Vector3Type point3 = {{5, 0, 3}};
+	Vector3Type point4 = {{5, 6, -1}};
+	Vector3Type point5 = {{11, 6, 3}};
+	Vector3Type point6 = {{5, 10, 3}};
+	Vector3Type point7 = {{5, 6, 9}};
 
 	Vector3Type closest;
 	dsOrientedBox3_closestPoint(&closest, &box, &box.center);
@@ -735,13 +734,13 @@ TYPED_TEST(OrientedBox3Test, Dist2)
 		{{6, 5, 4}}, {{3, 2, 1}}
 	};
 
-	Vector3Type point1 = {5, 6, 3};
-	Vector3Type point2 = {1, 6, 3};
-	Vector3Type point3 = {5, 0, 3};
-	Vector3Type point4 = {5, 6, -1};
-	Vector3Type point5 = {11, 6, 3};
-	Vector3Type point6 = {5, 10, 3};
-	Vector3Type point7 = {5, 6, 9};
+	Vector3Type point1 = {{5, 6, 3}};
+	Vector3Type point2 = {{1, 6, 3}};
+	Vector3Type point3 = {{5, 0, 3}};
+	Vector3Type point4 = {{5, 6, -1}};
+	Vector3Type point5 = {{11, 6, 3}};
+	Vector3Type point6 = {{5, 10, 3}};
+	Vector3Type point7 = {{5, 6, 9}};
 
 	EXPECT_EQ(0, dsOrientedBox3_dist2(&box, &box.center));
 	EXPECT_EQ(0, dsOrientedBox3_dist2(&box, &point1));
@@ -764,13 +763,13 @@ TYPED_TEST(OrientedBox3Test, Dist)
 		{{6, 5, 4}}, {{3, 2, 1}}
 	};
 
-	Vector3Type point1 = {5, 6, 3};
-	Vector3Type point2 = {1, 6, 3};
-	Vector3Type point3 = {5, 0, 3};
-	Vector3Type point4 = {5, 6, -1};
-	Vector3Type point5 = {11, 6, 3};
-	Vector3Type point6 = {5, 10, 3};
-	Vector3Type point7 = {5, 6, 9};
+	Vector3Type point1 = {{5, 6, 3}};
+	Vector3Type point2 = {{1, 6, 3}};
+	Vector3Type point3 = {{5, 0, 3}};
+	Vector3Type point4 = {{5, 6, -1}};
+	Vector3Type point5 = {{11, 6, 3}};
+	Vector3Type point6 = {{5, 10, 3}};
+	Vector3Type point7 = {{5, 6, 9}};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3_dist(&box, &box.center));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox3_dist(&box, &point1));

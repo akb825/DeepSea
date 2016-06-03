@@ -135,10 +135,10 @@ TYPED_TEST(Plane3Test, FromNormalPoint)
 	typedef typename Plane3TypeSelector<TypeParam>::Vector3Type Vector3Type;
 	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
 
-	Vector3Type normal1 = {1, 0, 0};
-	Vector3Type normal2 = {0, 1, 0};
-	Vector3Type normal3 = {0, 0, 1};
-	Vector3Type point = {2, 3, 4};
+	Vector3Type normal1 = {{1, 0, 0}};
+	Vector3Type normal2 = {{0, 1, 0}};
+	Vector3Type normal3 = {{0, 0, 1}};
+	Vector3Type point = {{2, 3, 4}};
 
 	Plane3Type plane;
 	dsPlane3_fromNormalPoint(plane, normal1, point);
@@ -166,7 +166,7 @@ TYPED_TEST(Plane3Test, DistanceToPoint)
 	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
-	Vector3Type point = {2, 3, 4};
+	Vector3Type point = {{2, 3, 4}};
 	EXPECT_EQ(0, dsPlane3_distanceToPoint(plane, point));
 
 	plane.n.x = 0;
@@ -200,7 +200,7 @@ TYPED_TEST(Plane3Test, Transform)
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
 
-	Matrix44Type rotate, translate, scale, transform;
+	Matrix44Type rotate, translate, transform;
 
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
 		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
@@ -208,7 +208,7 @@ TYPED_TEST(Plane3Test, Transform)
 
 	dsMatrix44_mul(transform, translate, rotate);
 
-	Vector4Type origN = {1, 0, 0, 0};
+	Vector4Type origN = {{1, 0, 0, 0}};
 	Vector4Type newN;
 	dsMatrix44_transform(newN, transform, origN);
 
@@ -224,7 +224,7 @@ TYPED_TEST(Plane3Test, IntersectAlignedBox)
 	typedef typename Plane3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
 
-	AlignedBox3Type box = {{0, 1, 2}, {3, 4, 5}};
+	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
 	//Positive normals

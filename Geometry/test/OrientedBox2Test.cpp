@@ -219,7 +219,7 @@ TYPED_TEST(OrientedBox2Test, FromAlignedBox)
 		{{4, 3}}, {{2, 1}}
 	};
 
-	AlignedBox2Type alignedBox = {{0, 1}, {2, 5}};
+	AlignedBox2Type alignedBox = {{{0, 1}}, {{2, 5}}};
 
 	dsOrientedBox2_fromAlignedBox(box, alignedBox);
 	EXPECT_EQ(1, box.orientation.values[0][0]);
@@ -272,7 +272,7 @@ TYPED_TEST(OrientedBox2Test, Transform)
 	dsMatrix33_mul(temp, rotate, scale);
 	dsMatrix33_mul(transform, translate, temp);
 
-	Vector3Type originalCenter = {box.center.x, box.center.y, 0};
+	Vector3Type originalCenter = {{box.center.x, box.center.y, 0}};
 	Vector3Type center;
 	dsMatrix33_transform(center, transform, originalCenter);
 
@@ -303,11 +303,11 @@ TYPED_TEST(OrientedBox2Test, AddPoint)
 		{{4, 3}}, {{2, 1}}
 	};
 
-	Vector2Type point1 = {4, 3};
-	Vector2Type point2 = {0, 3};
-	Vector2Type point3 = {4, -1};
-	Vector2Type point4 = {8, 3};
-	Vector2Type point5 = {4, 7};
+	Vector2Type point1 = {{4, 3}};
+	Vector2Type point2 = {{0, 3}};
+	Vector2Type point3 = {{4, -1}};
+	Vector2Type point4 = {{8, 3}};
+	Vector2Type point5 = {{4, 7}};
 
 	dsOrientedBox2_addPoint(&box, &point1);
 	EXPECT_EQ(4, box.center.x);
@@ -482,11 +482,11 @@ TYPED_TEST(OrientedBox2Test, ClosestPoint)
 		{{4, 3}}, {{2, 1}}
 	};
 
-	Vector2Type point1 = {3, 2};
-	Vector2Type point2 = {2, 3};
-	Vector2Type point3 = {4, 0};
-	Vector2Type point4 = {6, 3};
-	Vector2Type point5 = {4, 6};
+	Vector2Type point1 = {{3, 2}};
+	Vector2Type point2 = {{2, 3}};
+	Vector2Type point3 = {{4, 0}};
+	Vector2Type point4 = {{6, 3}};
+	Vector2Type point5 = {{4, 6}};
 
 	Vector2Type closest;
 	dsOrientedBox2_closestPoint(&closest, &box, &box.center);
@@ -525,11 +525,11 @@ TYPED_TEST(OrientedBox2Test, Dist2)
 		{{4, 3}}, {{2, 1}}
 	};
 
-	Vector2Type point1 = {3, 2};
-	Vector2Type point2 = {2, 3};
-	Vector2Type point3 = {4, -1};
-	Vector2Type point4 = {6, 3};
-	Vector2Type point5 = {4, 7};
+	Vector2Type point1 = {{3, 2}};
+	Vector2Type point2 = {{2, 3}};
+	Vector2Type point3 = {{4, -1}};
+	Vector2Type point4 = {{6, 3}};
+	Vector2Type point5 = {{4, 7}};
 
 	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &box.center));
 	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &point1));
@@ -550,11 +550,11 @@ TYPED_TEST(OrientedBox2Test, Dist)
 		{{4, 3}}, {{2, 1}}
 	};
 
-	Vector2Type point1 = {3, 2};
-	Vector2Type point2 = {2, 3};
-	Vector2Type point3 = {4, -1};
-	Vector2Type point4 = {6, 3};
-	Vector2Type point5 = {4, 7};
+	Vector2Type point1 = {{3, 2}};
+	Vector2Type point2 = {{2, 3}};
+	Vector2Type point3 = {{4, -1}};
+	Vector2Type point4 = {{6, 3}};
+	Vector2Type point5 = {{4, 7}};
 
 	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox2_dist(&box, &box.center));
 	EXPECT_FLOAT_EQ(0.0f, (float)dsOrientedBox2_dist(&box, &point1));

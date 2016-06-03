@@ -139,12 +139,12 @@ TYPED_TEST(Matrix44Test, Initialize)
 	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
+	}};
 
 	EXPECT_EQ((TypeParam)-0.1, matrix.values[0][0]);
 	EXPECT_EQ((TypeParam)2.3, matrix.values[0][1]);
@@ -221,20 +221,20 @@ TYPED_TEST(Matrix44Test, Multiply)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix1 =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
+	}};
 
 	Matrix44Type matrix2 =
-	{
-		(TypeParam)1.0, (TypeParam)-3.2, (TypeParam)-5.4, (TypeParam)7.6,
-		(TypeParam)-9.8, (TypeParam)1.0, (TypeParam)-3.2, (TypeParam)5.4,
-		(TypeParam)7.6, (TypeParam)-9.8, (TypeParam)1.0, (TypeParam)-3.2,
-		(TypeParam)-5.4, (TypeParam)7.6, (TypeParam)9.8, (TypeParam)-1.0
-	};
+	{{
+		{(TypeParam)1.0, (TypeParam)-3.2, (TypeParam)-5.4, (TypeParam)7.6},
+		{(TypeParam)-9.8, (TypeParam)1.0, (TypeParam)-3.2, (TypeParam)5.4},
+		{(TypeParam)7.6, (TypeParam)-9.8, (TypeParam)1.0, (TypeParam)-3.2},
+		{(TypeParam)-5.4, (TypeParam)7.6, (TypeParam)9.8, (TypeParam)-1.0}
+	}};
 
 	Matrix44Type result;
 	dsMatrix44_mul(result, matrix1, matrix2);
@@ -267,14 +267,14 @@ TYPED_TEST(Matrix44Test, Transform)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
+	}};
 
-	Vector4Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6};
+	Vector4Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 	Vector4Type result;
 
 	dsMatrix44_transform(result, matrix, vector);
@@ -292,14 +292,14 @@ TYPED_TEST(Matrix44Test, TransformTransposed)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7, (TypeParam)4.5,
-		(TypeParam)2.3, (TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7,
-		(TypeParam)-4.5, (TypeParam)2.3, (TypeParam)0.1, (TypeParam)-8.9,
-		(TypeParam)6.7, (TypeParam)-4.5, (TypeParam)-2.3, (TypeParam)0.1
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7, (TypeParam)4.5},
+		{(TypeParam)2.3, (TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7},
+		{(TypeParam)-4.5, (TypeParam)2.3, (TypeParam)0.1, (TypeParam)-8.9},
+		{(TypeParam)6.7, (TypeParam)-4.5, (TypeParam)-2.3, (TypeParam)0.1}
+	}};
 
-	Vector4Type vector = {(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6};
+	Vector4Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
 	Vector4Type result;
 
 	dsMatrix44_transformTransposed(result, matrix, vector);
@@ -315,12 +315,12 @@ TYPED_TEST(Matrix44Test, Transpose)
 	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5,
-		(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
+	}};
 
 	Matrix44Type result;
 	dsMatrix44_transpose(result, matrix);
@@ -352,12 +352,12 @@ TYPED_TEST(Matrix44Test, Determinant)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::inverseEpsilon;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4,
-		(TypeParam)-7.6, (TypeParam)9.8, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)1.0
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4},
+		{(TypeParam)-7.6, (TypeParam)9.8, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)1.0}
+	}};
 
 	EXPECT_NEAR((TypeParam)6163.7587, dsMatrix44_determinant(matrix), epsilon);
 }
@@ -368,12 +368,12 @@ TYPED_TEST(Matrix44Test, Invert)
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::inverseEpsilon;
 
 	Matrix44Type matrix =
-	{
-		(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7,
-		(TypeParam)8.9, (TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4,
-		(TypeParam)-7.6, (TypeParam)9.8, (TypeParam)0.1, (TypeParam)-2.3,
-		(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)1.0
-	};
+	{{
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4},
+		{(TypeParam)-7.6, (TypeParam)9.8, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)1.0}
+	}};
 
 	Matrix44Type inverse;
 	dsMatrix44_invert(&inverse, &matrix);
@@ -532,8 +532,8 @@ TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)
 	typedef typename Matrix44TypeSelector<TypeParam>::Vector3Type Vector3Type;
 	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
 
-	Vector3Type axis = {(TypeParam)-0.289967871131, (TypeParam)0.0171578621971,
-		(TypeParam)0.51473586591302};
+	Vector3Type axis = {{(TypeParam)-0.289967871131, (TypeParam)0.0171578621971,
+		(TypeParam)0.51473586591302}};
 	dsVector3_normalize(&axis, &axis);
 	Matrix44Type matrix;
 	dsMatrix44_makeRotateAxisAngle(&matrix, &axis,

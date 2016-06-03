@@ -80,7 +80,7 @@ TYPED_TEST(Vector2Test, Initialize)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 
 	EXPECT_EQ((TypeParam)-2.3, a.x);
 	EXPECT_EQ((TypeParam)4.5, a.y);
@@ -99,8 +99,8 @@ TYPED_TEST(Vector2Test, Add)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_add(result, a, b);
@@ -112,8 +112,8 @@ TYPED_TEST(Vector2Test, Subtract)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_sub(result, a, b);
@@ -125,8 +125,8 @@ TYPED_TEST(Vector2Test, Multiply)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_mul(result, a, b);
@@ -138,8 +138,8 @@ TYPED_TEST(Vector2Test, Divide)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 	Vector2Type result;
 
 	dsVector2_div(result, a, b);
@@ -151,7 +151,7 @@ TYPED_TEST(Vector2Test, Scale)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type result;
 
 	dsVector2_scale(result, a, (TypeParam)3.2);
@@ -163,8 +163,8 @@ TYPED_TEST(Vector2Test, Dot)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 
 	EXPECT_EQ((TypeParam)-2.3*(TypeParam)3.2 +
 			  (TypeParam)4.5*(TypeParam)-5.4,
@@ -175,7 +175,7 @@ TYPED_TEST(Vector2FloatTest, Length)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 
 	EXPECT_EQ(dsPow2((TypeParam)-2.3) +
 			  dsPow2((TypeParam)4.5),
@@ -189,8 +189,8 @@ TYPED_TEST(Vector2FloatTest, Distance)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
-	Vector2Type b = {(TypeParam)3.2, (TypeParam)-5.4};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
 
 	EXPECT_EQ(dsPow2((TypeParam)-2.3 - (TypeParam)3.2) +
 			  dsPow2((TypeParam)4.5 - (TypeParam)-5.4),
@@ -204,7 +204,7 @@ TYPED_TEST(Vector2FloatTest, Normalize)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
-	Vector2Type a = {(TypeParam)-2.3, (TypeParam)4.5};
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
 	Vector2Type result;
 
 	TypeParam length = dsVector2_len(&a);
