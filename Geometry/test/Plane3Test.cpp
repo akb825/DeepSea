@@ -418,3 +418,29 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 	plane.d = -8;
 	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 }
+
+TEST(Plane3, ConvertFloatToDouble)
+{
+	dsPlane3f planef = {{{1, 0, 0}}, 2};
+
+	dsPlane3d planed;
+	dsConvertFloatToDouble(planed, planef);
+
+	EXPECT_FLOAT_EQ(planef.n.x, (float)planed.n.x);
+	EXPECT_FLOAT_EQ(planef.n.y, (float)planed.n.y);
+	EXPECT_FLOAT_EQ(planef.n.z, (float)planed.n.z);
+	EXPECT_FLOAT_EQ(planef.d, (float)planed.d);
+}
+
+TEST(Plane3, ConvertDoubleToFloat)
+{
+	dsPlane3d planed = {{{1, 0, 0}}, 2};
+
+	dsPlane3f planef;
+	dsConvertDoubleToFloat(planef, planed);
+
+	EXPECT_FLOAT_EQ((float)planed.n.x, planef.n.x);
+	EXPECT_FLOAT_EQ((float)planed.n.y, planef.n.y);
+	EXPECT_FLOAT_EQ((float)planed.n.z, planef.n.z);
+	EXPECT_FLOAT_EQ((float)planed.d, planef.d);
+}

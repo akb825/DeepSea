@@ -270,3 +270,39 @@ TYPED_TEST(Matrix22Test, MakeScale)
 	EXPECT_EQ(0, matrix.values[1][0]);
 	EXPECT_EQ((TypeParam)-3.4, matrix.values[1][1]);
 }
+
+TEST(Matrix22, ConvertFloatToDouble)
+{
+	dsMatrix22f matrixf =
+	{{
+		{0.1f, -2.3f},
+		{-4.5f, 6.7f}
+	}};
+
+	dsMatrix22d matrixd;
+	dsConvertFloatToDouble(matrixd, matrixf);
+
+	EXPECT_FLOAT_EQ(matrixf.values[0][0], (float)matrixd.values[0][0]);
+	EXPECT_FLOAT_EQ(matrixf.values[0][1], (float)matrixd.values[0][1]);
+
+	EXPECT_FLOAT_EQ(matrixf.values[1][0], (float)matrixd.values[1][0]);
+	EXPECT_FLOAT_EQ(matrixf.values[1][1], (float)matrixd.values[1][1]);
+}
+
+TEST(Matrix22, ConvertDoubleToFloat)
+{
+	dsMatrix22d matrixd =
+	{{
+		{0.1, -2.3},
+		{-4.5, 6.7}
+	}};
+
+	dsMatrix22f matrixf;
+	dsConvertDoubleToFloat(matrixf, matrixd);
+
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][0], matrixf.values[0][0]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][1], matrixf.values[0][1]);
+
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][0], matrixf.values[1][0]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][1], matrixf.values[1][1]);
+}

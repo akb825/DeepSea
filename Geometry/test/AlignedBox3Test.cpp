@@ -672,3 +672,35 @@ TYPED_TEST(AlignedBox3Test, Dist)
 	EXPECT_FLOAT_EQ(2.0f, (float)dsAlignedBox3_dist(&box, &point6));
 	EXPECT_FLOAT_EQ(3.0f, (float)dsAlignedBox3_dist(&box, &point7));
 }
+
+TEST(AlignedBox3, ConvertFloatToDouble)
+{
+	dsAlignedBox3f boxf = {{{0, 1, 2}}, {{3, 4, 5}}};
+
+	dsAlignedBox3d boxd;
+	dsConvertFloatToDouble(boxd, boxf);
+
+	EXPECT_FLOAT_EQ(boxf.min.x, (float)boxd.min.x);
+	EXPECT_FLOAT_EQ(boxf.min.y, (float)boxd.min.y);
+	EXPECT_FLOAT_EQ(boxf.min.z, (float)boxd.min.z);
+
+	EXPECT_FLOAT_EQ(boxf.max.x, (float)boxd.max.x);
+	EXPECT_FLOAT_EQ(boxf.max.y, (float)boxd.max.y);
+	EXPECT_FLOAT_EQ(boxf.max.z, (float)boxd.max.z);
+}
+
+TEST(AlignedBox3, ConvertDoubleToFloat)
+{
+	dsAlignedBox3d boxd = {{{0, 1, 2}}, {{3, 4, 5}}};
+
+	dsAlignedBox3f boxf;
+	dsConvertDoubleToFloat(boxf, boxd);
+
+	EXPECT_FLOAT_EQ((float)boxd.min.x, boxf.min.x);
+	EXPECT_FLOAT_EQ((float)boxd.min.y, boxf.min.y);
+	EXPECT_FLOAT_EQ((float)boxd.min.z, boxf.min.z);
+
+	EXPECT_FLOAT_EQ((float)boxd.max.x, boxf.max.x);
+	EXPECT_FLOAT_EQ((float)boxd.max.y, boxf.max.y);
+	EXPECT_FLOAT_EQ((float)boxd.max.z, boxf.max.z);
+}

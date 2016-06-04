@@ -503,3 +503,31 @@ TYPED_TEST(AlignedBox2Test, Dist)
 	EXPECT_FLOAT_EQ(1.0f, (float)dsAlignedBox2_dist(&box, &point4));
 	EXPECT_FLOAT_EQ(2.0f, (float)dsAlignedBox2_dist(&box, &point5));
 }
+
+TEST(AlignedBox2, ConvertFloatToDouble)
+{
+	dsAlignedBox2f boxf = {{{0, 1}}, {{2, 3}}};
+
+	dsAlignedBox2d boxd;
+	dsConvertFloatToDouble(boxd, boxf);
+
+	EXPECT_FLOAT_EQ(boxf.min.x, (float)boxd.min.x);
+	EXPECT_FLOAT_EQ(boxf.min.y, (float)boxd.min.y);
+
+	EXPECT_FLOAT_EQ(boxf.max.x, (float)boxd.max.x);
+	EXPECT_FLOAT_EQ(boxf.max.y, (float)boxd.max.y);
+}
+
+TEST(AlignedBox2, ConvertDoubleToFloat)
+{
+	dsAlignedBox2d boxd = {{{0, 1}}, {{2, 3}}};
+
+	dsAlignedBox2f boxf;
+	dsConvertDoubleToFloat(boxf, boxd);
+
+	EXPECT_FLOAT_EQ((float)boxd.min.x, boxf.min.x);
+	EXPECT_FLOAT_EQ((float)boxd.min.y, boxf.min.y);
+
+	EXPECT_FLOAT_EQ((float)boxd.max.x, boxf.max.x);
+	EXPECT_FLOAT_EQ((float)boxd.max.y, boxf.max.y);
+}

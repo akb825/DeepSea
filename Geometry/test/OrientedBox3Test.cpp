@@ -780,3 +780,63 @@ TYPED_TEST(OrientedBox3Test, Dist)
 	EXPECT_FLOAT_EQ(4.0f, (float)dsOrientedBox3_dist(&box, &point6));
 	EXPECT_FLOAT_EQ(2.0f, (float)dsOrientedBox3_dist(&box, &point7));
 }
+
+TEST(OrientedBox3, ConvertFloatToDouble)
+{
+	dsOrientedBox3f boxf =
+	{
+		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
+		{{1, 2, 3}}, {{4, 5, 6}}
+	};
+
+	dsOrientedBox3d boxd;
+	dsConvertFloatToDouble(boxd, boxf);
+
+	EXPECT_FLOAT_EQ(boxf.orientation.values[0][0], (float)boxd.orientation.values[0][0]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[0][1], (float)boxd.orientation.values[0][1]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[0][2], (float)boxd.orientation.values[0][2]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[1][0], (float)boxd.orientation.values[1][0]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[1][1], (float)boxd.orientation.values[1][1]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[1][2], (float)boxd.orientation.values[1][2]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[2][0], (float)boxd.orientation.values[2][0]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[2][1], (float)boxd.orientation.values[2][1]);
+	EXPECT_FLOAT_EQ(boxf.orientation.values[2][2], (float)boxd.orientation.values[2][2]);
+
+	EXPECT_FLOAT_EQ(boxf.center.x, (float)boxd.center.x);
+	EXPECT_FLOAT_EQ(boxf.center.y, (float)boxd.center.y);
+	EXPECT_FLOAT_EQ(boxf.center.z, (float)boxd.center.z);
+
+	EXPECT_FLOAT_EQ(boxf.halfExtents.x, (float)boxd.halfExtents.x);
+	EXPECT_FLOAT_EQ(boxf.halfExtents.y, (float)boxd.halfExtents.y);
+	EXPECT_FLOAT_EQ(boxf.halfExtents.z, (float)boxd.halfExtents.z);
+}
+
+TEST(OrientedBox3, ConvertDoubleToFloat)
+{
+	dsOrientedBox3d boxd =
+	{
+		{{ {1, 0, 0}, {0, 1, 0}, {0, 0, 1} }},
+		{{1, 2, 3}}, {{4, 5, 6}}
+	};
+
+	dsOrientedBox3f boxf;
+	dsConvertDoubleToFloat(boxf, boxd);
+
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[0][0], boxf.orientation.values[0][0]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[0][1], boxf.orientation.values[0][1]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[0][2], boxf.orientation.values[0][2]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[1][0], boxf.orientation.values[1][0]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[1][1], boxf.orientation.values[1][1]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[1][2], boxf.orientation.values[1][2]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[2][0], boxf.orientation.values[2][0]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[2][1], boxf.orientation.values[2][1]);
+	EXPECT_FLOAT_EQ((float)boxd.orientation.values[2][2], boxf.orientation.values[2][2]);
+
+	EXPECT_FLOAT_EQ((float)boxd.center.x, boxf.center.x);
+	EXPECT_FLOAT_EQ((float)boxd.center.y, boxf.center.y);
+	EXPECT_FLOAT_EQ((float)boxd.center.z, boxf.center.z);
+
+	EXPECT_FLOAT_EQ((float)boxd.halfExtents.x, boxf.halfExtents.x);
+	EXPECT_FLOAT_EQ((float)boxd.halfExtents.y, boxf.halfExtents.y);
+	EXPECT_FLOAT_EQ((float)boxd.halfExtents.z, boxf.halfExtents.z);
+}

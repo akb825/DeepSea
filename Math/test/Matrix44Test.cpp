@@ -757,3 +757,61 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	EXPECT_NEAR(matrix.values[3][2], inverseTranspose.values[3][2], epsilon);
 	EXPECT_NEAR(1, inverseTranspose.values[3][3], epsilon);
 }
+
+TEST(Matrix44, ConvertFloatToDouble)
+{
+	dsMatrix44f matrixf =
+	{{
+		{-0.1f, 2.3f, -4.5f, 6.7f},
+		{8.9f, -0.1f, 2.3f, -4.5f},
+		{-6.7f, 8.9f, 0.1f, -2.3f},
+		{4.5f, -6.7f, -8.9f, 0.1f}
+	}};
+
+	dsMatrix44d matrixd;
+	dsConvertFloatToDouble(matrixd, matrixf);
+
+	EXPECT_FLOAT_EQ(matrixf.values[0][0], (float)matrixd.values[0][0]);
+	EXPECT_FLOAT_EQ(matrixf.values[0][1], (float)matrixd.values[0][1]);
+	EXPECT_FLOAT_EQ(matrixf.values[0][2], (float)matrixd.values[0][2]);
+	EXPECT_FLOAT_EQ(matrixf.values[0][3], (float)matrixd.values[0][3]);
+
+	EXPECT_FLOAT_EQ(matrixf.values[1][0], (float)matrixd.values[1][0]);
+	EXPECT_FLOAT_EQ(matrixf.values[1][1], (float)matrixd.values[1][1]);
+	EXPECT_FLOAT_EQ(matrixf.values[1][2], (float)matrixd.values[1][2]);
+	EXPECT_FLOAT_EQ(matrixf.values[1][3], (float)matrixd.values[1][3]);
+
+	EXPECT_FLOAT_EQ(matrixf.values[2][0], (float)matrixd.values[2][0]);
+	EXPECT_FLOAT_EQ(matrixf.values[2][1], (float)matrixd.values[2][1]);
+	EXPECT_FLOAT_EQ(matrixf.values[2][2], (float)matrixd.values[2][2]);
+	EXPECT_FLOAT_EQ(matrixf.values[2][3], (float)matrixd.values[2][3]);
+}
+
+TEST(Matrix44, ConvertDoubleToFloat)
+{
+	dsMatrix44d matrixd =
+	{{
+		{-0.1, 2.3, -4.5, 6.7},
+		{8.9, -0.1, 2.3, -4.5},
+		{-6.7, 8.9, 0.1, -2.3},
+		{4.5, -6.7, -8.9, 0.1}
+	}};
+
+	dsMatrix44f matrixf;
+	dsConvertDoubleToFloat(matrixf, matrixd);
+
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][0], matrixf.values[0][0]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][1], matrixf.values[0][1]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][2], matrixf.values[0][2]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[0][3], matrixf.values[0][3]);
+
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][0], matrixf.values[1][0]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][1], matrixf.values[1][1]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][2], matrixf.values[1][2]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[1][3], matrixf.values[1][3]);
+
+	EXPECT_FLOAT_EQ((float)matrixd.values[2][0], matrixf.values[2][0]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[2][1], matrixf.values[2][1]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[2][2], matrixf.values[2][2]);
+	EXPECT_FLOAT_EQ((float)matrixd.values[2][3], matrixf.values[2][3]);
+}

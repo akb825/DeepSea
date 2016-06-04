@@ -212,3 +212,25 @@ TYPED_TEST(Vector2FloatTest, Normalize)
 	EXPECT_EQ((TypeParam)-2.3*(1/length), result.x);
 	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
 }
+
+TEST(Vector2, ConvertFloatToDouble)
+{
+	dsVector2f vectorf = {{-2.3f, 4.5f}};
+
+	dsVector2d vectord;
+	dsConvertFloatToDouble(vectord, vectorf);
+
+	EXPECT_FLOAT_EQ(vectorf.x, (float)vectord.x);
+	EXPECT_FLOAT_EQ(vectorf.y, (float)vectord.y);
+}
+
+TEST(Vector2, ConvertDoubleToFloat)
+{
+	dsVector2d vectord = {{-2.3, 4.5}};
+
+	dsVector2f vectorf;
+	dsConvertDoubleToFloat(vectorf, vectord);
+
+	EXPECT_FLOAT_EQ((float)vectord.x, vectorf.x);
+	EXPECT_FLOAT_EQ((float)vectord.y, vectorf.y);
+}

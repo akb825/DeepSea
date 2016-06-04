@@ -79,7 +79,14 @@
 #endif
 
 /**
- * @brief Asserts at compile time that a condition is true.
- * @param x The expression to assert on.
- */
-#define DS_STATIC_ASSERT(x) typedef char static_assertion_failed[(x) ? 1 : -1]
+* @brief Asserts at compile time that a condition is true.
+* @param x The expression to assert on.
+* @param message A message to include with the assertion. This must not contain whitespace.
+*/
+#if DS_GCC || DS_CLANG
+#define DS_STATIC_ASSERT(x, message) \
+	typedef __attribute__((unused)) char static_assertion_failed_ ## message[(x) ? 1 : -1]
+#else
+#define DS_STATIC_ASSERT(x, message) \
+	typedef char static_assertion_failed_ ## message[(x) ? 1 : -1]
+#endif

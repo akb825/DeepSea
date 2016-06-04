@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <math.h>
 
 #ifdef __cplusplus
@@ -75,6 +76,48 @@ extern "C"
  * @param t The interpolation value between x and y.
  */
 #define dsLerp(x, y, t) ((x) + (t)*((y) - (x)))
+
+/**
+ * @brief Converts from any structure that contains entirely floats (e.g. dsVector3f, dsMatrix44f)
+ * to any corresponding structure that contains entirely doubles. (e.g. dsVector3d, dsMatrix44d)
+ * @param[out] doubleStruct The double structure to convert to.
+ * @param floatStruct The float struct.
+ */
+#define dsConvertFloatToDouble(doubleStruct, floatStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
+		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
+		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
+			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
+		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((double*)&(doubleStruct))[_dsConvertI] = \
+				(double)((const float*)&(floatStruct))[_dsConvertI]; \
+		} \
+	} while (0)
+
+/**
+ * @brief Converts from any structure that contains entirely doubles (e.g. dsVector3d, dsMatrix44d)
+ * to any corresponding structure that contains entirely floats. (e.g. dsVector3f, dsMatrix44f)
+ * @param[out] floatStruct The float structure to convert to.
+ * @param doubleStruct The double struct.
+ */
+#define dsConvertDoubleToFloat(floatStruct, doubleStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
+		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
+		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
+			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
+		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((float*)&(floatStruct))[_dsConvertI] = \
+				(float)((const double*)&(doubleStruct))[_dsConvertI]; \
+		} \
+	} while (0)
 
 /**
  * @brief Converts degrees to radians.
