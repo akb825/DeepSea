@@ -704,3 +704,67 @@ TEST(AlignedBox3, ConvertDoubleToFloat)
 	EXPECT_FLOAT_EQ((float)boxd.max.y, boxf.max.y);
 	EXPECT_FLOAT_EQ((float)boxd.max.z, boxf.max.z);
 }
+
+TEST(AlignedBox3, ConvertFloatToInt)
+{
+	dsAlignedBox3f boxf = {{{0, 1, 3}}, {{4, 5, 6}}};
+
+	dsAlignedBox3i boxi;
+	dsConvertFloatToInt(boxi, boxf);
+
+	EXPECT_EQ(boxf.min.x, boxi.min.x);
+	EXPECT_EQ(boxf.min.y, boxi.min.y);
+	EXPECT_EQ(boxf.min.z, boxi.min.z);
+
+	EXPECT_EQ(boxf.max.x, boxi.max.x);
+	EXPECT_EQ(boxf.max.y, boxi.max.y);
+	EXPECT_EQ(boxf.max.z, boxi.max.z);
+}
+
+TEST(AlignedBox3, ConvertIntToFloat)
+{
+	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};;
+
+	dsAlignedBox3f boxf;
+	dsConvertIntToFloat(boxf, boxi);
+
+	EXPECT_EQ(boxi.min.x, boxf.min.x);
+	EXPECT_EQ(boxi.min.y, boxf.min.y);
+	EXPECT_EQ(boxi.min.z, boxf.min.z);
+
+	EXPECT_EQ(boxi.max.x, boxf.max.x);
+	EXPECT_EQ(boxi.max.y, boxf.max.y);
+	EXPECT_EQ(boxi.max.z, boxf.max.z);
+}
+
+TEST(AlignedBox3, ConvertDoubleToInt)
+{
+	dsAlignedBox3d boxd = {{{0, 1, 3}}, {{4, 5, 6}}};;
+
+	dsAlignedBox3i boxi;
+	dsConvertDoubleToInt(boxi, boxd);
+
+	EXPECT_EQ(boxd.min.x, boxi.min.x);
+	EXPECT_EQ(boxd.min.y, boxi.min.y);
+	EXPECT_EQ(boxd.min.z, boxi.min.z);
+
+	EXPECT_EQ(boxd.max.x, boxi.max.x);
+	EXPECT_EQ(boxd.max.y, boxi.max.y);
+	EXPECT_EQ(boxd.max.z, boxi.max.z);
+}
+
+TEST(AlignedBox3, ConvertIntToDouble)
+{
+	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};
+
+	dsAlignedBox3d boxd;
+	dsConvertIntToDouble(boxd, boxi);
+
+	EXPECT_EQ(boxi.min.x, boxd.min.x);
+	EXPECT_EQ(boxi.min.y, boxd.min.y);
+	EXPECT_EQ(boxi.min.z, boxd.min.z);
+
+	EXPECT_EQ(boxi.max.x, boxd.max.x);
+	EXPECT_EQ(boxi.max.y, boxd.max.y);
+	EXPECT_EQ(boxi.max.z, boxd.max.z);
+}

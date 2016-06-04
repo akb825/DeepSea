@@ -242,3 +242,81 @@ TYPED_TEST(Vector4FloatTest, Normalize)
 	EXPECT_EQ((TypeParam)-6.7*(1/length), result.z);
 	EXPECT_EQ((TypeParam)8.9*(1/length), result.w);
 }
+
+TEST(Vector4, ConvertFloatToDouble)
+{
+	dsVector4f vectorf = {{-2.3f, 4.5f, -6.7f, 8.9f}};
+
+	dsVector4d vectord;
+	dsConvertFloatToDouble(vectord, vectorf);
+
+	EXPECT_FLOAT_EQ(vectorf.x, (float)vectord.x);
+	EXPECT_FLOAT_EQ(vectorf.y, (float)vectord.y);
+	EXPECT_FLOAT_EQ(vectorf.z, (float)vectord.z);
+	EXPECT_FLOAT_EQ(vectorf.w, (float)vectord.w);
+}
+
+TEST(Vector4, ConvertDoubleToFloat)
+{
+	dsVector4d vectord = {{-2.3, 4.5, -6.7, 8.9}};
+
+	dsVector4f vectorf;
+	dsConvertDoubleToFloat(vectorf, vectord);
+
+	EXPECT_FLOAT_EQ((float)vectord.x, vectorf.x);
+	EXPECT_FLOAT_EQ((float)vectord.y, vectorf.y);
+	EXPECT_FLOAT_EQ((float)vectord.z, vectorf.z);
+	EXPECT_FLOAT_EQ((float)vectord.w, vectorf.w);
+}
+
+TEST(Vector4, ConvertFloatToInt)
+{
+	dsVector4f vectorf = {{-2, 3, -4, 5}};
+
+	dsVector4i vectori;
+	dsConvertFloatToInt(vectori, vectorf);
+
+	EXPECT_EQ(vectorf.x, vectori.x);
+	EXPECT_EQ(vectorf.y, vectori.y);
+	EXPECT_EQ(vectorf.z, vectori.z);
+	EXPECT_EQ(vectorf.w, vectori.w);
+}
+
+TEST(Vector4, ConvertIntToFloat)
+{
+	dsVector4i vectori = {{-2, 3, -4, 5}};
+
+	dsVector4f vectorf;
+	dsConvertIntToFloat(vectorf, vectori);
+
+	EXPECT_EQ(vectori.x, vectorf.x);
+	EXPECT_EQ(vectori.y, vectorf.y);
+	EXPECT_EQ(vectori.z, vectorf.z);
+	EXPECT_EQ(vectori.w, vectorf.w);
+}
+
+TEST(Vector4, ConvertDoubleToInt)
+{
+	dsVector4d vectord = {{-2, 3, -4, 5}};
+
+	dsVector4i vectori;
+	dsConvertDoubleToInt(vectori, vectord);
+
+	EXPECT_EQ(vectord.x, vectori.x);
+	EXPECT_EQ(vectord.y, vectori.y);
+	EXPECT_EQ(vectord.z, vectori.z);
+	EXPECT_EQ(vectord.w, vectori.w);
+}
+
+TEST(Vector4, ConvertIntToDouble)
+{
+	dsVector4i vectori = {{-2, 3, -4, 5}};
+
+	dsVector4d vectord;
+	dsConvertIntToDouble(vectord, vectori);
+
+	EXPECT_EQ(vectori.x, vectord.x);
+	EXPECT_EQ(vectori.y, vectord.y);
+	EXPECT_EQ(vectori.z, vectord.z);
+	EXPECT_EQ(vectori.w, vectord.w);
+}

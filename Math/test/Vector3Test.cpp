@@ -249,3 +249,75 @@ TYPED_TEST(Vector3FloatTest, Normalize)
 	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
 	EXPECT_EQ((TypeParam)-6.7*(1/length), result.z);
 }
+
+TEST(Vector3, ConvertFloatToDouble)
+{
+	dsVector3f vectorf = {{-2.3f, 4.5f, -6.7f}};
+
+	dsVector3d vectord;
+	dsConvertFloatToDouble(vectord, vectorf);
+
+	EXPECT_FLOAT_EQ(vectorf.x, (float)vectord.x);
+	EXPECT_FLOAT_EQ(vectorf.y, (float)vectord.y);
+	EXPECT_FLOAT_EQ(vectorf.z, (float)vectord.z);
+}
+
+TEST(Vector3, ConvertDoubleToFloat)
+{
+	dsVector3d vectord = {{-2.3, 4.5, -6.7}};
+
+	dsVector3f vectorf;
+	dsConvertDoubleToFloat(vectorf, vectord);
+
+	EXPECT_FLOAT_EQ((float)vectord.x, vectorf.x);
+	EXPECT_FLOAT_EQ((float)vectord.y, vectorf.y);
+	EXPECT_FLOAT_EQ((float)vectord.z, vectorf.z);
+}
+
+TEST(Vector3, ConvertFloatToInt)
+{
+	dsVector3f vectorf = {{-2, 3, -4}};
+
+	dsVector3i vectori;
+	dsConvertFloatToInt(vectori, vectorf);
+
+	EXPECT_EQ(vectorf.x, vectori.x);
+	EXPECT_EQ(vectorf.y, vectori.y);
+	EXPECT_EQ(vectorf.z, vectori.z);
+}
+
+TEST(Vector3, ConvertIntToFloat)
+{
+	dsVector3i vectori = {{-2, 3, -4}};
+
+	dsVector3f vectorf;
+	dsConvertIntToFloat(vectorf, vectori);
+
+	EXPECT_EQ(vectori.x, vectorf.x);
+	EXPECT_EQ(vectori.y, vectorf.y);
+	EXPECT_EQ(vectori.z, vectorf.z);
+}
+
+TEST(Vector3, ConvertDoubleToInt)
+{
+	dsVector3d vectord = {{-2, 3, -4}};
+
+	dsVector3i vectori;
+	dsConvertDoubleToInt(vectori, vectord);
+
+	EXPECT_EQ(vectord.x, vectori.x);
+	EXPECT_EQ(vectord.y, vectori.y);
+	EXPECT_EQ(vectord.z, vectori.z);
+}
+
+TEST(Vector3, ConvertIntToDouble)
+{
+	dsVector3i vectori = {{-2, 3, -4}};
+
+	dsVector3d vectord;
+	dsConvertIntToDouble(vectord, vectori);
+
+	EXPECT_EQ(vectori.x, vectord.x);
+	EXPECT_EQ(vectori.y, vectord.y);
+	EXPECT_EQ(vectori.z, vectord.z);
+}

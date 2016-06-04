@@ -120,6 +120,90 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Converts from any structure that contains entirely floats (e.g. dsVector3f)
+ * to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
+ * @param[out] intStruct The int structure to convert to.
+ * @param floatStruct The float struct.
+ */
+#define dsConvertFloatToInt(intStruct, floatStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
+		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
+		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
+			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
+		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((int*)&(intStruct))[_dsConvertI] = \
+				(int)((const float*)&(floatStruct))[_dsConvertI]; \
+		} \
+	} while (0)
+
+/**
+ * @brief Converts from any structure that contains entirely ints (e.g. dsVector3i)
+ * to any corresponding structure that contains entirely floats. (e.g. dsVector3f)
+ * @param[out] floatStruct The float structure to convert to.
+ * @param intStruct The int struct.
+ */
+#define dsConvertIntToFloat(floatStruct, intStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
+		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
+		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
+			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
+		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((float*)&(floatStruct))[_dsConvertI] = \
+				(float)((const int*)&(intStruct))[_dsConvertI]; \
+		} \
+	} while (0)
+
+/**
+ * @brief Converts from any structure that contains entirely doubles (e.g. dsVector3d)
+ * to any corresponding structure that contains entirely ints. (e.g. dsVector3i)
+ * @param[out] intStruct The int structure to convert to.
+ * @param doubleStruct The double struct.
+ */
+#define dsConvertDoubleToInt(intStruct, doubleStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
+		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
+		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
+			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
+		unsigned int _dsConvertLen = sizeof(doubleStruct)/sizeof(double); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((int*)&(intStruct))[_dsConvertI] = \
+				(int)((const double*)&(doubleStruct))[_dsConvertI]; \
+		} \
+	} while (0)
+
+/**
+ * @brief Converts from any structure that contains entirely ints (e.g. dsVector3i)
+ * to any corresponding structure that contains entirely doubles. (e.g. dsVector3f)
+ * @param[out] doubleStruct The double structure to convert to.
+ * @param intStruct The int struct.
+ */
+#define dsConvertIntToDouble(doubleStruct, intStruct) \
+	do \
+	{ \
+		DS_STATIC_ASSERT(sizeof(intStruct) % sizeof(int) == 0, intStruct_must_be_int); \
+		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
+		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
+			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
+		unsigned int _dsConvertLen = sizeof(doubleStruct)/sizeof(double); \
+		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
+		{ \
+			((double*)&(doubleStruct))[_dsConvertI] = \
+				(double)((const int*)&(intStruct))[_dsConvertI]; \
+		} \
+	} while (0)
+
+/**
  * @brief Converts degrees to radians.
  * @param degrees The angle in degrees.
  * @return The angle in radians.
