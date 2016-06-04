@@ -63,14 +63,14 @@ double dsTimer_time(dsTimer timer)
 #elif DS_APPLE
 
 	DS_ASSERT(timer.scale > 0);
-	return mach_absolute_time()*timer.scale;
+	return (double)mach_absolute_time()*timer.scale;
 
 #else
 
 	DS_UNUSED(timer);
 	struct timespec tp;
 	DS_VERIFY(clock_gettime(CLOCK_MONOTONIC, &tp) == 0);
-	return tp.tv_sec + 1e-9*tp.tv_nsec;
+	return (double)tp.tv_sec + 1e-9*(double)tp.tv_nsec;
 
 #endif
 }

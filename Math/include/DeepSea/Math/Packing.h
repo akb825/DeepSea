@@ -139,7 +139,7 @@ inline int32_t dsPackInt32(float x)
 
 inline float dsUnpackInt32(int32_t x)
 {
-	return (float)x/0x7FFFFFFF;
+	return (float)((double)x/0x7FFFFFFF);
 }
 
 inline uint32_t dsPackUInt32(float x)

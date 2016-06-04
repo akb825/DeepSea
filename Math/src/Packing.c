@@ -103,7 +103,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 			// We convert f to a half zero.
 			//
 
-			halfFloat.data = s;
+			halfFloat.data = (uint16_t)s;
 			return halfFloat;
 		}
 
@@ -132,7 +132,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 		// Assemble the half from s, e (zero) and m.
 		//
 
-		halfFloat.data = s | (m >> 13);
+		halfFloat.data = (uint16_t)(s | (m >> 13));
 		return halfFloat;
 	}
 	else if(e == 0xff - (127 - 15))
@@ -144,7 +144,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 			// infinity with the same sign as f.
 			//
 
-			halfFloat.data = s | 0x7c00;
+			halfFloat.data = (uint16_t)(s | 0x7c00);
 			return halfFloat;
 		}
 		else
@@ -160,7 +160,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 
 			m >>= 13;
 
-			halfFloat.data = s | 0x7c00 | m | (m == 0);
+			halfFloat.data = (uint16_t)(s | 0x7c00 | m | (m == 0));
 			return halfFloat;
 		}
 	}
@@ -194,7 +194,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 		{
 			overflow();        // Cause a hardware floating point overflow;
 
-			halfFloat.data = s | 0x7c00;
+			halfFloat.data = (uint16_t)(s | 0x7c00);
 			return halfFloat;
 			// if this returns, the half becomes an
 		}   // infinity with the same sign as f.
@@ -203,7 +203,7 @@ dsHalfFloat dsPackHalfFloat(float x)
 		// Assemble the half from s, e and m.
 		//
 
-		halfFloat.data = s | (e << 10) | (m >> 13);
+		halfFloat.data = (uint16_t)(s | (e << 10) | (m >> 13));
 		return halfFloat;
 	}
 }
