@@ -41,7 +41,7 @@ extern "C"
 
 /**
  * @brief Sets a matrix to be identity.
- * @param[out] result The matrix to hold
+ * @param[out] result The matrix to hold the identity.
  */
 #define dsMatrix44_identity(result) \
 	do \
@@ -365,6 +365,10 @@ DS_MATH_EXPORT void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double 
 
 /**
  * @brief Makes an orthographic projection matrix.
+ *
+ * The matrix is generated assuming looking down the -Z axis. As a result, the near and far plane
+ * distances are negated compared to world space.
+ *
  * @param[out] result The matrix for the result.
  * @param left The left plane.
  * @param right The right plane.

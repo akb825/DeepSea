@@ -40,6 +40,16 @@ extern "C"
 #define DS_BOX3_CORNER_COUNT 8
 
 /**
+ * @brief Enum for the result of an intersection.
+ */
+typedef enum dsIntersectResult
+{
+	dsIntersectResult_Inside,    ///< Lies fully inside the shape boundary.
+	dsIntersectResult_Outside,   ///< Lies fully outside the shape boundary.
+	dsIntersectResult_Intersects ///< Intersects the shape boundary.
+} dsIntersectResult;
+
+/**
  * @brief Structure for 2D axis-aligned bounding box using floats.
  */
 typedef struct dsAlignedBox2f
@@ -232,16 +242,6 @@ typedef struct dsOrientedBox3d
 } dsOrientedBox3d;
 
 /**
- * @brief Enum for the side of a plane.
- */
-typedef enum dsPlaneSide
-{
-	dsPlaneSide_Inside,    ///< Lies on the inside face of the plane.
-	dsPlaneSide_Outside,   ///< Lies on the outside face of the plane.
-	dsPlaneSide_Intersects ///< Intersects the plane.
-} dsPlaneSide;
-
-/**
  * @brief Structure for a plane using floats.
  */
 typedef struct dsPlane3f
@@ -278,12 +278,12 @@ typedef struct dsPlane3d
  */
 typedef enum dsFrustumPlanes
 {
-	dsFrustumPlanes_Near,   ///< The near plane.
-	dsFrustumPlanes_Far,    ///< The far plane.
 	dsFrustumPlanes_Left,   ///< The left plane.
 	dsFrustumPlanes_Right,  ///< The right plane.
-	dsFrustumPlanes_Top,    ///< The top plane.
 	dsFrustumPlanes_Bottom, ///< The bottom plane.
+	dsFrustumPlanes_Top,    ///< The top plane.
+	dsFrustumPlanes_Near,   ///< The near plane.
+	dsFrustumPlanes_Far,    ///< The far plane.
 	dsFrustumPlanes_Count   ///< The number of planes.
 } dsFrustumPlanes;
 

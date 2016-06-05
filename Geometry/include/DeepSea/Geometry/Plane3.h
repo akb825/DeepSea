@@ -97,7 +97,7 @@ DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d
 DS_GEOMETRY_EXPORT void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
 	const dsMatrix44f* transform, const dsPlane3f* plane);
 
-/** @copydoc dsPlane3f_transform() */
+/** @copydoc dsPlane3f_transformInverseTranspose() */
 DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
 	const dsMatrix44d* transform, const dsPlane3d* plane);
 
@@ -107,11 +107,11 @@ DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
  * @param box The box to intersect with the plane.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT dsPlaneSide dsPlane3f_intersectAlignedBox(const dsPlane3f* plane,
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane,
 	const dsAlignedBox3f* box);
 
 /** @copydoc dsPlane3f_intersectAlignedBox() */
-DS_GEOMETRY_EXPORT dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* plane,
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane3d* plane,
 	const dsAlignedBox3d* box);
 
 /**
@@ -120,11 +120,11 @@ DS_GEOMETRY_EXPORT dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* pl
  * @param box The box to intersect with the plane.
  * @return The side of the plane that the box lies.
  */
-DS_GEOMETRY_EXPORT dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane,
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlane3f* plane,
 	const dsOrientedBox3f* box);
 
 /** @copydoc dsPlane3f_intersectOrientedBox() */
-DS_GEOMETRY_EXPORT dsPlaneSide dsPlane3d_intersectOrientedBox(const dsPlane3d* plane,
+DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane,
 	const dsOrientedBox3d* box);
 
 #ifdef __cplusplus

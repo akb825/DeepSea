@@ -90,22 +90,22 @@ inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix
 	dsPlane3d_transformInverseTranspose(result, transform, plane);
 }
 
-inline dsPlaneSide dsPlane3_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
 {
 	return dsPlane3f_intersectAlignedBox(plane, box);
 }
 
-inline dsPlaneSide dsPlane3_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
 {
 	return dsPlane3d_intersectAlignedBox(plane, box);
 }
 
-inline dsPlaneSide dsPlane3_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
 {
 	return dsPlane3f_intersectOrientedBox(plane, box);
 }
 
-inline dsPlaneSide dsPlane3_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
 {
 	return dsPlane3d_intersectOrientedBox(plane, box);
 }
@@ -267,93 +267,93 @@ TYPED_TEST(Plane3Test, IntersectAlignedBox)
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
 	//Positive normals
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 3;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 4;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = 1;
 	plane.d = -1;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 0;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 1;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = 1;
 	plane.d = 4;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 5;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 6;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	// Negative normals
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = -2;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = -3;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = -4;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = 1;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = 0;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = -1;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = -4;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = -5;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = -6;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectAlignedBox(&plane, &box));
 }
 
 TYPED_TEST(Plane3Test, IntersectOrientedBox)
@@ -369,93 +369,93 @@ TYPED_TEST(Plane3Test, IntersectOrientedBox)
 
 	Plane3Type plane = {{{1, 0, 0}}, 5};
 	// Positive normals
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 5;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 3;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = 1;
 	plane.d = 3;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 3;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 0;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = 1;
 	plane.d = 9;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
 	plane.d = 7;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
 	plane.d = 8;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	// Negative normals
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = -5;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = -5;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = -3;
-	EXPECT_EQ(dsPlaneSide_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Intersects, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = -3;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = -3;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = 0;
-	EXPECT_EQ(dsPlaneSide_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Outside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.z = 0;
 	plane.n.x = -1;
 	plane.d = -9;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.x = 0;
 	plane.n.y = -1;
 	plane.d = -7;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 
 	plane.n.y = 0;
 	plane.n.z = -1;
 	plane.d = -8;
-	EXPECT_EQ(dsPlaneSide_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
+	EXPECT_EQ(dsIntersectResult_Inside, dsPlane3_intersectOrientedBox(&plane, &box));
 }
 
 TEST(Plane3, ConvertFloatToDouble)

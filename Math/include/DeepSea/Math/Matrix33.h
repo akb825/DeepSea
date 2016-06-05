@@ -40,7 +40,7 @@ extern "C"
 
 /**
  * @brief Sets a matrix to be identity.
- * @param[out] result The matrix to hold
+ * @param[out] result The matrix to hold the identity.
  */
 #define dsMatrix33_identity(result) \
 	do \

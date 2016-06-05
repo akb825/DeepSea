@@ -122,7 +122,7 @@ void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* t
 	dsPlane3d_normalize(result, result);
 }
 
-dsPlaneSide dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
+dsIntersectResult dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
@@ -164,15 +164,15 @@ dsPlaneSide dsPlane3f_intersectAlignedBox(const dsPlane3f* plane, const dsAligne
 	float minD = dsVector3_dot(plane->n, minPoint);
 	float maxD = dsVector3_dot(plane->n, maxPoint);
 
-	if (minD >= plane->d)
-		return dsPlaneSide_Inside;
+	if (minD > plane->d)
+		return dsIntersectResult_Inside;
 	else if (maxD < plane->d)
-		return dsPlaneSide_Outside;
+		return dsIntersectResult_Outside;
 	else
-		return dsPlaneSide_Intersects;
+		return dsIntersectResult_Intersects;
 }
 
-dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
+dsIntersectResult dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
@@ -214,15 +214,15 @@ dsPlaneSide dsPlane3d_intersectAlignedBox(const dsPlane3d* plane, const dsAligne
 	double minD = dsVector3_dot(plane->n, minPoint);
 	double maxD = dsVector3_dot(plane->n, maxPoint);
 
-	if (minD >= plane->d)
-		return dsPlaneSide_Inside;
+	if (minD > plane->d)
+		return dsIntersectResult_Inside;
 	else if (maxD < plane->d)
-		return dsPlaneSide_Outside;
+		return dsIntersectResult_Outside;
 	else
-		return dsPlaneSide_Intersects;
+		return dsIntersectResult_Intersects;
 }
 
-dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
+dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
@@ -241,7 +241,7 @@ dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrien
 	return dsPlane3f_intersectAlignedBox(&transformedPlane, &localBox);
 }
 
-dsPlaneSide dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
+dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
