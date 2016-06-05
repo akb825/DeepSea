@@ -40,7 +40,7 @@ extern "C"
 
 /**
  * @brief Sets a matrix to be identity.
- * @param result The matrix to hold
+ * @param[out] result The matrix to hold
  */
 #define dsMatrix33_identity(result) \
 	do \
@@ -60,7 +60,7 @@ extern "C"
 
 /**
  * @brief Multiplies two matrices.
- * @param result The result of a*b. This may NOT be the same as a or b.
+ * @param[out] result The result of a*b. This may NOT be the same as a or b.
  * @param a The first matrix.
  * @param b The second matrix.
  */
@@ -103,32 +103,11 @@ extern "C"
 
 /**
  * @brief Transforms a vector with a matrix.
- * @param result The result of vec*mat. This may NOT be the same as vec.
+ * @param[out] result The result of vec*mat. This may NOT be the same as vec.
  * @param mat The matrix to transform with.
  * @param vec The vector to transform.
  */
 #define dsMatrix33_transform(result, mat, vec) \
-	do \
-	{ \
-		DS_ASSERT(&(result) != (const void*)&(vec)); \
-		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
-							 (mat).values[0][1]*(vec).values[1] + \
-							 (mat).values[0][2]*(vec).values[2]; \
-		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
-							 (mat).values[1][1]*(vec).values[1] + \
-							 (mat).values[1][2]*(vec).values[2]; \
-		(result).values[2] = (mat).values[2][0]*(vec).values[0] + \
-							 (mat).values[2][1]*(vec).values[1] + \
-							 (mat).values[2][2]*(vec).values[2]; \
-	} while (0)
-
-/**
- * @brief Transforms a vector with a transposed matrix.
- * @param result The result of mat*vec. This may NOT be the same as vec.
- * @param mat The matrix to transform with.
- * @param vec The vector to transform.
- */
-#define dsMatrix33_transformTransposed(result, mat, vec) \
 	do \
 	{ \
 		DS_ASSERT(&(result) != (const void*)&(vec)); \
@@ -144,8 +123,29 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Transforms a vector with a transposed matrix.
+ * @param[out] result The result of mat*vec. This may NOT be the same as vec.
+ * @param mat The matrix to transform with.
+ * @param vec The vector to transform.
+ */
+#define dsMatrix33_transformTransposed(result, mat, vec) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(vec)); \
+		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
+							 (mat).values[0][1]*(vec).values[1] + \
+							 (mat).values[0][2]*(vec).values[2]; \
+		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
+							 (mat).values[1][1]*(vec).values[1] + \
+							 (mat).values[1][2]*(vec).values[2]; \
+		(result).values[2] = (mat).values[2][0]*(vec).values[0] + \
+							 (mat).values[2][1]*(vec).values[1] + \
+							 (mat).values[2][2]*(vec).values[2]; \
+	} while (0)
+
+/**
  * @brief Transposes a matrix.
- * @param result The transposed matrix. This may NOT be the same as a.
+ * @param[out] result The transposed matrix. This may NOT be the same as a.
  * @param a The matrix to transpose.
  */
 #define dsMatrix33_transpose(result, a) \
@@ -175,7 +175,7 @@ extern "C"
 
 /**
  * @brief Inverts an matrix that only contains a rotation and translation.
- * @param result The inverted matrix. This may NOT be the same as a.
+ * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
 #define dsMatrix33_fastInvert(result, a) \
@@ -204,7 +204,7 @@ extern "C"
  *
  * An affine matrix will be a 2D transformation matrix that preserves parallel lines.
  *
- * @param result The inverted matrix. This may NOT be the same as a.
+ * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT void dsMatrix33f_affineInvert(dsMatrix33f* result, const dsMatrix33f* a);
@@ -214,7 +214,7 @@ DS_MATH_EXPORT void dsMatrix33d_affineInvert(dsMatrix33d* result, const dsMatrix
 
 /**
  * @brief Inverts a matrix.
- * @param result The inverted matrix. This may NOT be the same as a.
+ * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT void dsMatrix33f_invert(dsMatrix33f* result, const dsMatrix33f* a);
@@ -224,10 +224,7 @@ DS_MATH_EXPORT void dsMatrix33d_invert(dsMatrix33d* result, const dsMatrix33d* a
 
 /**
  * @brief Calculates the inverse-transpose transformation matrix.
- *
- * This will take the inverse-transpose of the upper 2x2 matrix and leave the rest untouched.
- *
- * @param result The inverse-transposed matrix. This may NOT be the same as a.
+ * @param[out] result The inverse-transposed matrix. This may NOT be the same as a.
  * @param a The matrix to inverse-transpose.
  */
 DS_MATH_EXPORT void dsMatrix33f_inverseTranspose(dsMatrix33f* result, const dsMatrix33f* a);
@@ -237,7 +234,7 @@ DS_MATH_EXPORT void dsMatrix33d_inverseTranspose(dsMatrix33d* result, const dsMa
 
 /**
  * @brief Makes a 2D rotation matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param angle The angle to rotate by in radians.
  */
 DS_MATH_EXPORT void dsMatrix33f_makeRotate(dsMatrix33f* result, float angle);
@@ -247,7 +244,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeRotate(dsMatrix33d* result, double angle);
 
 /**
  * @brief Makes a 3D rotation matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param x The angle around the x axis in radians.
  * @param y The angle around the y axis in radians.
  * @param z The angle around the z axis in radians.
@@ -259,7 +256,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeRotate3D(dsMatrix33d* result, double x, doub
 
 /**
  * @brief Makes a 3D rotation matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param axis The axis to rotate around. This should be a unit vector.
  * @param angle The angle to rotate in radians.
  */
@@ -272,7 +269,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeRotate3DAxisAngle(dsMatrix33d* result, const
 
 /**
  * @brief Makes a translation matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param x The transition in the x axis.
  * @param y The transition in the y axis.
  */
@@ -283,7 +280,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeTranslate(dsMatrix33d* result, double x, dou
 
 /**
  * @brief Makes a 2D scale matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
  */
@@ -294,7 +291,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeScale(dsMatrix33d* result, double x, double 
 
 /**
  * @brief Makes a 3D scale matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
  * @param z The scale in the z axis.

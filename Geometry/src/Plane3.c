@@ -42,7 +42,7 @@ void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* plane)
 	result->d = plane->d*invLength;
 }
 
-void dsPlane3f_transform(dsPlane3f* result, const dsPlane3f* plane, const dsMatrix44f* transform)
+void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform, const dsPlane3f* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -51,19 +51,19 @@ void dsPlane3f_transform(dsPlane3f* result, const dsPlane3f* plane, const dsMatr
 	dsMatrix44f inverseTransposeTransform;
 	dsMatrix44f_inverseTranspose(&inverseTransposeTransform, transform);
 
-	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4f transformedPlaneVec;
 	dsMatrix44_transform(transformedPlaneVec, inverseTransposeTransform, planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;
 	result->n.z = transformedPlaneVec.z;
-	result->d = transformedPlaneVec.w;
+	result->d = -transformedPlaneVec.w;
 
 	dsPlane3f_normalize(result, result);
 }
 
-void dsPlane3d_transform(dsPlane3d* result, const dsPlane3d* plane, const dsMatrix44d* transform)
+void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform, const dsPlane3d* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
@@ -72,52 +72,52 @@ void dsPlane3d_transform(dsPlane3d* result, const dsPlane3d* plane, const dsMatr
 	dsMatrix44d inverseTransposeTransform;
 	dsMatrix44d_inverseTranspose(&inverseTransposeTransform, transform);
 
-	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4d transformedPlaneVec;
 	dsMatrix44_transform(transformedPlaneVec, inverseTransposeTransform, planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;
 	result->n.z = transformedPlaneVec.z;
-	result->d = transformedPlaneVec.w;
+	result->d = -transformedPlaneVec.w;
 
 	dsPlane3d_normalize(result, result);
 }
 
-void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsPlane3f* plane,
-	const dsMatrix44f* transform)
+void dsPlane3f_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
 	DS_ASSERT(transform);
 
-	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4f planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4f transformedPlaneVec;
-	dsMatrix44_transformTransposed(transformedPlaneVec, *transform, planeVec);
+	dsMatrix44_transform(transformedPlaneVec, *transform, planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;
 	result->n.z = transformedPlaneVec.z;
-	result->d = transformedPlaneVec.w;
+	result->d = -transformedPlaneVec.w;
 
 	dsPlane3f_normalize(result, result);
 }
 
-void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsPlane3d* plane,
-	const dsMatrix44d* transform)
+void dsPlane3d_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(plane);
 	DS_ASSERT(transform);
 
-	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, plane->d}};
+	dsVector4d planeVec = {{plane->n.x, plane->n.y, plane->n.z, -plane->d}};
 	dsVector4d transformedPlaneVec;
-	dsMatrix44_transformTransposed(transformedPlaneVec, *transform, planeVec);
+	dsMatrix44_transform(transformedPlaneVec, *transform, planeVec);
 
 	result->n.x = transformedPlaneVec.x;
 	result->n.y = transformedPlaneVec.y;
 	result->n.z = transformedPlaneVec.z;
-	result->d = transformedPlaneVec.w;
+	result->d = -transformedPlaneVec.w;
 
 	dsPlane3d_normalize(result, result);
 }
@@ -227,8 +227,9 @@ dsPlaneSide dsPlane3f_intersectOrientedBox(const dsPlane3f* plane, const dsOrien
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
+	// Do aligned box calculation in the space of the oriented box.
 	dsPlane3f transformedPlane;
-	dsMatrix33_transform(transformedPlane.n, box->orientation, plane->n);
+	dsMatrix33_transformTransposed(transformedPlane.n, box->orientation, plane->n);
 	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
 
 	dsAlignedBox3f localBox =
@@ -245,8 +246,9 @@ dsPlaneSide dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const dsOrien
 	DS_ASSERT(plane);
 	DS_ASSERT(box);
 
+	// Do aligned box calculation in the space of the oriented box.
 	dsPlane3d transformedPlane;
-	dsMatrix33_transform(transformedPlane.n, box->orientation, plane->n);
+	dsMatrix33_transformTransposed(transformedPlane.n, box->orientation, plane->n);
 	transformedPlane.d = plane->d - dsVector3_dot(plane->n, box->center);
 
 	dsAlignedBox3d localBox =

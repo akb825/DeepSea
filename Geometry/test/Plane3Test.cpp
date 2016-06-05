@@ -66,28 +66,28 @@ inline void dsPlane3_normalize(dsPlane3d* result, const dsPlane3d* plane)
 	dsPlane3d_normalize(result, plane);
 }
 
-inline void dsPlane3_transform(dsPlane3f* result, const dsPlane3f* plane,
-	const dsMatrix44f* transform)
+inline void dsPlane3_transform(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane)
 {
-	dsPlane3f_transform(result, plane, transform);
+	dsPlane3f_transform(result, transform, plane);
 }
 
-inline void dsPlane3_transform(dsPlane3d* result, const dsPlane3d* plane,
-	const dsMatrix44d* transform)
+inline void dsPlane3_transform(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane)
 {
-	dsPlane3d_transform(result, plane, transform);
+	dsPlane3d_transform(result, transform, plane);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsPlane3f* plane,
-	const dsMatrix44f* transform)
+inline void dsPlane3_transformInverseTranspose(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane)
 {
-	dsPlane3f_transformInverseTranspose(result, plane, transform);
+	dsPlane3f_transformInverseTranspose(result, transform, plane);
 }
 
-inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsPlane3d* plane,
-	const dsMatrix44d* transform)
+inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane)
 {
-	dsPlane3d_transformInverseTranspose(result, plane, transform);
+	dsPlane3d_transformInverseTranspose(result, transform, plane);
 }
 
 inline dsPlaneSide dsPlane3_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
@@ -128,6 +128,16 @@ inline void dsMatrix44_makeTranslate(dsMatrix44f* result, float x, float y, floa
 inline void dsMatrix44_makeTranslate(dsMatrix44d* result, double x, double y, double z)
 {
 	dsMatrix44d_makeTranslate(result, x, y, z);
+}
+
+inline void dsMatrix44_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	dsMatrix44f_inverseTranspose(result, a);
+}
+
+inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	dsMatrix44d_inverseTranspose(result, a);
 }
 
 TYPED_TEST(Plane3Test, FromNormalPoint)
@@ -212,11 +222,40 @@ TYPED_TEST(Plane3Test, Transform)
 	Vector4Type newN;
 	dsMatrix44_transform(newN, transform, origN);
 
-	dsPlane3_transform(&plane, &plane, &transform);
+	dsPlane3_transform(&plane, &transform, &plane);
 	EXPECT_NEAR(newN.x, plane.n.x, epsilon);
 	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
 	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
-	EXPECT_NEAR(-1, plane.d, epsilon);
+	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
+}
+
+TYPED_TEST(Plane3Test, TransformInverseTranspose)
+{
+	typedef typename Plane3TypeSelector<TypeParam>::Plane3Type Plane3Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Matrix44Type Matrix44Type;
+	typedef typename Plane3TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Plane3TypeSelector<TypeParam>::epsilon;
+
+	Plane3Type plane = {{{1, 0, 0}}, 2};
+
+	Matrix44Type rotate, translate, transform, inverseTranspose;
+
+	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
+		(TypeParam)dsDegreesToRadians(-15), (TypeParam)dsDegreesToRadians(60));
+	dsMatrix44_makeTranslate(&translate, -3, 5, -1);
+
+	dsMatrix44_mul(transform, translate, rotate);
+	dsMatrix44_inverseTranspose(&inverseTranspose, &transform);
+
+	Vector4Type origN = {{1, 0, 0, 0}};
+	Vector4Type newN;
+	dsMatrix44_transform(newN, transform, origN);
+
+	dsPlane3_transform(&plane, &transform, &plane);
+	EXPECT_NEAR(newN.x, plane.n.x, epsilon);
+	EXPECT_NEAR(newN.y, plane.n.y, epsilon);
+	EXPECT_NEAR(newN.z, plane.n.z, epsilon);
+	EXPECT_NEAR(dsVector3_dot(newN, transform.columns[3]) + 2, plane.d, epsilon);
 }
 
 TYPED_TEST(Plane3Test, IntersectAlignedBox)

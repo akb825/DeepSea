@@ -16,7 +16,9 @@
 
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector3.h>
+#include <DeepSea/Math/Vector4.h>
 #include <gtest/gtest.h>
+#include <cmath>
 
 template <typename T>
 struct Matrix44TypeSelector;
@@ -122,6 +124,42 @@ inline void dsMatrix44_makeScale(dsMatrix44f* result, float x, float y, float z)
 inline void dsMatrix44_makeScale(dsMatrix44d* result, double x, double y, double z)
 {
 	dsMatrix44d_makeScale(result, x, y, z);
+}
+
+inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
+	float top, float near, float far, bool halfDepth)
+{
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, halfDepth);
+}
+
+inline void dsMatrix44_makeOrtho(dsMatrix44d* result, double left, double right, double bottom,
+	double top, double near, double far, bool halfDepth)
+{
+	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, halfDepth);
+}
+
+inline void dsMatrix44_makeFrustum(dsMatrix44f* result, float left, float right, float bottom,
+	float top, float near, float far, bool halfDepth)
+{
+	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far, halfDepth);
+}
+
+inline void dsMatrix44_makeFrustum(dsMatrix44d* result, double left, double right, double bottom,
+	double top, double near, double far, bool halfDepth)
+{
+	dsMatrix44d_makeFrustum(result, left, right, bottom, top, near, far, halfDepth);
+}
+
+inline void dsMatrix44_makePerspective(dsMatrix44f* result, float fovy, float aspect,
+	float near, float far, bool halfDepth)
+{
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, halfDepth);
+}
+
+inline void dsMatrix44_makePerspective(dsMatrix44d* result, double fovy, double aspect,
+	double near, double far, bool halfDepth)
+{
+	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, halfDepth);
 }
 
 inline void dsVector3_normalize(dsVector3f* result, const dsVector3f* a)
@@ -268,10 +306,10 @@ TYPED_TEST(Matrix44Test, Transform)
 
 	Matrix44Type matrix =
 	{{
-		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
-		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
-		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
-		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
+		{(TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7, (TypeParam)4.5},
+		{(TypeParam)2.3, (TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7},
+		{(TypeParam)-4.5, (TypeParam)2.3, (TypeParam)0.1, (TypeParam)-8.9},
+		{(TypeParam)6.7, (TypeParam)-4.5, (TypeParam)-2.3, (TypeParam)0.1}
 	}};
 
 	Vector4Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
@@ -293,10 +331,10 @@ TYPED_TEST(Matrix44Test, TransformTransposed)
 
 	Matrix44Type matrix =
 	{{
-		{(TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7, (TypeParam)4.5},
-		{(TypeParam)2.3, (TypeParam)-0.1, (TypeParam)8.9, (TypeParam)-6.7},
-		{(TypeParam)-4.5, (TypeParam)2.3, (TypeParam)0.1, (TypeParam)-8.9},
-		{(TypeParam)6.7, (TypeParam)-4.5, (TypeParam)-2.3, (TypeParam)0.1}
+		{(TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7},
+		{(TypeParam)8.9, (TypeParam)-0.1, (TypeParam)2.3, (TypeParam)-4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9, (TypeParam)0.1}
 	}};
 
 	Vector4Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
@@ -740,22 +778,155 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
-	EXPECT_NEAR(0, inverseTranspose.values[0][3], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][3], inverseTranspose.values[0][3], epsilon);
 
 	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[1][2], inverseTranspose.values[1][2], epsilon);
-	EXPECT_NEAR(0, inverseTranspose.values[1][3], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][3], inverseTranspose.values[1][3], epsilon);
 
 	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
-	EXPECT_NEAR(0, inverseTranspose.values[2][3], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][3], inverseTranspose.values[2][3], epsilon);
 
-	EXPECT_NEAR(matrix.values[3][0], inverseTranspose.values[3][0], epsilon);
-	EXPECT_NEAR(matrix.values[3][1], inverseTranspose.values[3][1], epsilon);
-	EXPECT_NEAR(matrix.values[3][2], inverseTranspose.values[3][2], epsilon);
-	EXPECT_NEAR(1, inverseTranspose.values[3][3], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[3][0], inverseTranspose.values[3][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[3][1], inverseTranspose.values[3][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[3][2], inverseTranspose.values[3][2], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[3][3], inverseTranspose.values[3][3], epsilon);
+}
+
+TYPED_TEST(Matrix44Test, MakeOrtho)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Matrix44Type matrix;
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true);
+
+	Vector4Type minPoint = {{-2, -4, 6, 1}};
+	Vector4Type maxPoint = {{3, 5, -7, 1}};
+
+	Vector4Type projPoint;
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+}
+
+TYPED_TEST(Matrix44Test, MakeFrustum)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Matrix44Type matrix;
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, true);
+
+	Vector4Type minPoint = {{-2, -4, -1, 1}};
+	Vector4Type maxPoint = {{3*7, 5*7, -7, 1}};
+
+	Vector4Type projPoint;
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, 7, false);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+}
+
+TYPED_TEST(Matrix44Test, MakePerspective)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector4Type Vector4Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	TypeParam fov = (TypeParam)dsDegreesToRadians(30);
+	TypeParam aspect = (TypeParam)1.5;
+	Matrix44Type matrix;
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, true);
+
+	TypeParam halfHeight = std::tan(fov/2);
+	TypeParam halfWidth = aspect*halfHeight;
+
+	Vector4Type minPoint = {{-halfWidth, -halfHeight, -1, 1}};
+	Vector4Type maxPoint = {{halfWidth*7, halfHeight*7, -7, 1}};
+
+	Vector4Type projPoint;
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(0, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, 7, false);
+
+	dsMatrix44_transform(projPoint, matrix, minPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(-1, projPoint.x, epsilon);
+	EXPECT_NEAR(-1, projPoint.y, epsilon);
+	EXPECT_NEAR(-1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_transform(projPoint, matrix, maxPoint);
+	dsVector4_scale(projPoint, projPoint, 1/projPoint.w);
+	EXPECT_NEAR(1, projPoint.x, epsilon);
+	EXPECT_NEAR(1, projPoint.y, epsilon);
+	EXPECT_NEAR(1, projPoint.z, epsilon);
+	EXPECT_NEAR(1, projPoint.w, epsilon);
 }
 
 TEST(Matrix44, ConvertFloatToDouble)

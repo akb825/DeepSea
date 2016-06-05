@@ -35,7 +35,7 @@ bool dsOrientedBox3f_transform(dsOrientedBox3f* box, const dsMatrix44f* transfor
 	dsVector4f newCenter;
 
 	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
-	dsMatrix33_mul(newOrientation, box->orientation, *transform);
+	dsMatrix33_mul(newOrientation, *transform, box->orientation);
 
 	// Extract scales to apply to the extent.
 	float scaleX = dsVector3f_len(&newOrientation.columns[0]);
@@ -76,7 +76,7 @@ bool dsOrientedBox3d_transform(dsOrientedBox3d* box, const dsMatrix44d* transfor
 	dsVector4d newCenter;
 
 	// Macro will work correctly for treating a 4x4 matrix as a 3x3 matrix.
-	dsMatrix33_mul(newOrientation, box->orientation, *transform);
+	dsMatrix33_mul(newOrientation, *transform, box->orientation);
 
 	// Extract scales to apply to the extent.
 	double scaleX = dsVector3d_len(&newOrientation.columns[0]);
@@ -113,7 +113,7 @@ void dsOrientedBox3f_addPoint(dsOrientedBox3f* box, const dsVector3f* point)
 		dsVector3f localPoint;
 		dsVector3f centeredPoint;
 		dsVector3_sub(centeredPoint, *point, box->center);
-		dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+		dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 		dsAlignedBox3f localBox =
 		{
@@ -125,7 +125,7 @@ void dsOrientedBox3f_addPoint(dsOrientedBox3f* box, const dsVector3f* point)
 
 		dsVector3f localCenterOffset, centerOffset;
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
+		dsMatrix33_transform(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -150,7 +150,7 @@ void dsOrientedBox3d_addPoint(dsOrientedBox3d* box, const dsVector3d* point)
 		dsVector3d localPoint;
 		dsVector3d centeredPoint;
 		dsVector3_sub(centeredPoint, *point, box->center);
-		dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+		dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 		dsAlignedBox3d localBox =
 		{
@@ -162,7 +162,7 @@ void dsOrientedBox3d_addPoint(dsOrientedBox3d* box, const dsVector3d* point)
 
 		dsVector3d localCenterOffset, centerOffset;
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
+		dsMatrix33_transform(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -200,14 +200,14 @@ bool dsOrientedBox3f_addBox(dsOrientedBox3f* box, const dsOrientedBox3f* otherBo
 			dsVector3f localCorner;
 			dsVector3f centeredPoint;
 			dsVector3_sub(centeredPoint, corners[i], box->center);
-			dsMatrix33_transform(localCorner, box->orientation, centeredPoint);
+			dsMatrix33_transformTransposed(localCorner, box->orientation, centeredPoint);
 
 			dsAlignedBox3_addPoint(localBox, localCorner);
 		}
 
 		dsVector3f localCenterOffset, centerOffset;
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
+		dsMatrix33_transform(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -242,14 +242,14 @@ bool dsOrientedBox3d_addBox(dsOrientedBox3d* box, const dsOrientedBox3d* otherBo
 			dsVector3d localCorner;
 			dsVector3d centeredPoint;
 			dsVector3_sub(centeredPoint, corners[i], box->center);
-			dsMatrix33_transform(localCorner, box->orientation, centeredPoint);
+			dsMatrix33_transformTransposed(localCorner, box->orientation, centeredPoint);
 
 			dsAlignedBox3_addPoint(localBox, localCorner);
 		}
 
 		dsVector3d localCenterOffset, centerOffset;
 		dsAlignedBox3_center(localCenterOffset, localBox);
-		dsMatrix33_transformTransposed(centerOffset, box->orientation, localCenterOffset);
+		dsMatrix33_transform(centerOffset, box->orientation, localCenterOffset);
 		dsVector3_add(box->center, box->center, centerOffset);
 
 		dsAlignedBox3_extents(box->halfExtents, localBox);
@@ -304,7 +304,7 @@ bool dsOrientedBox3f_corners(dsVector3f corners[], const dsOrientedBox3f* box)
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		dsVector3f worldOffset;
-		dsMatrix33_transformTransposed(worldOffset, box->orientation, corners[i]);
+		dsMatrix33_transform(worldOffset, box->orientation, corners[i]);
 		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
@@ -354,7 +354,7 @@ bool dsOrientedBox3d_corners(dsVector3d corners[], const dsOrientedBox3d* box)
 	for (unsigned int i = 0; i < DS_BOX3_CORNER_COUNT; ++i)
 	{
 		dsVector3d worldOffset;
-		dsMatrix33_transformTransposed(worldOffset, box->orientation, corners[i]);
+		dsMatrix33_transform(worldOffset, box->orientation, corners[i]);
 		dsVector3_add(corners[i], worldOffset, box->center);
 	}
 
@@ -609,11 +609,11 @@ bool dsOrientedBox3f_closestPoint(dsVector3f* result, const dsOrientedBox3f* box
 	dsVector3f localPoint;
 	dsVector3f centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
-	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+	dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 	dsVector3f localResult;
 	dsAlignedBox3_closestPoint(localResult, localBox, localPoint);
-	dsMatrix33_transformTransposed(*result, box->orientation, localResult);
+	dsMatrix33_transform(*result, box->orientation, localResult);
 	dsVector3_add(*result, *result, box->center);
 
 	return true;
@@ -638,11 +638,11 @@ bool dsOrientedBox3d_closestPoint(dsVector3d* result, const dsOrientedBox3d* box
 	dsVector3d localPoint;
 	dsVector3d centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
-	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+	dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 	dsVector3d localResult;
 	dsAlignedBox3_closestPoint(localResult, localBox, localPoint);
-	dsMatrix33_transformTransposed(*result, box->orientation, localResult);
+	dsMatrix33_transform(*result, box->orientation, localResult);
 	dsVector3_add(*result, *result, box->center);
 
 	return true;
@@ -665,7 +665,7 @@ float dsOrientedBox3f_dist2(const dsOrientedBox3f* box, const dsVector3f* point)
 	dsVector3f localPoint;
 	dsVector3f centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
-	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+	dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 	return dsAlignedBox3f_dist2(&localBox, &localPoint);
 }
@@ -687,7 +687,7 @@ double dsOrientedBox3d_dist2(const dsOrientedBox3d* box, const dsVector3d* point
 	dsVector3d localPoint;
 	dsVector3d centeredPoint;
 	dsVector3_sub(centeredPoint, *point, box->center);
-	dsMatrix33_transform(localPoint, box->orientation, centeredPoint);
+	dsMatrix33_transformTransposed(localPoint, box->orientation, centeredPoint);
 
 	return dsAlignedBox3d_dist2(&localBox, &localPoint);
 }

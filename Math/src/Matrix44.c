@@ -257,52 +257,24 @@ void dsMatrix44d_invert(dsMatrix44d* result, const dsMatrix44d* a)
 
 void dsMatrix44f_inverseTranspose(dsMatrix44f* result, const dsMatrix44f* a)
 {
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	float upperDet = dsMatrix33_determinant(*a);
-	DS_ASSERT(upperDet != 0);
-	float invUpperDet = 1/upperDet;
-
-	dsMatrix33f temp;
-	dsMatrix33_invertImpl(temp, *a, invUpperDet);
-	dsMatrix33_transpose(*result, temp);
-
-	result->values[0][3] = 0;
-	result->values[1][3] = 0;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = a->values[3][0];
-	result->values[3][1] = a->values[3][1];
-	result->values[3][2] = a->values[3][2];
-	result->values[3][3] = 1;
+	dsMatrix44f inverse;
+	dsMatrix44f_affineInvert(&inverse, a);
+	dsMatrix44_transpose(*result, inverse);
 }
 
 void dsMatrix44d_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* a)
 {
-	// Macros for 3x3 matrix will work on the upper 3x3 for a 4x4 matrix.
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	DS_ASSERT(result != a);
 
-	double upperDet = dsMatrix33_determinant(*a);
-	DS_ASSERT(upperDet != 0);
-	double invUpperDet = 1/upperDet;
-
-	dsMatrix33d temp;
-	dsMatrix33_invertImpl(temp, *a, invUpperDet);
-	dsMatrix33_transpose(*result, temp);
-
-	result->values[0][3] = 0;
-	result->values[1][3] = 0;
-	result->values[2][3] = 0;
-
-	result->values[3][0] = a->values[3][0];
-	result->values[3][1] = a->values[3][1];
-	result->values[3][2] = a->values[3][2];
-	result->values[3][3] = 1;
+	dsMatrix44d inverse;
+	dsMatrix44d_affineInvert(&inverse, a);
+	dsMatrix44_transpose(*result, inverse);
 }
 
 void dsMatrix44f_makeRotate(dsMatrix44f* result, float x, float y, float z)
@@ -453,4 +425,218 @@ void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
 	result->values[3][1] = 0;
 	result->values[3][2] = 0;
 	result->values[3][3] = 1;
+}
+
+void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
+	float top, float near, float far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(left != right);
+	DS_ASSERT(bottom != top);
+	DS_ASSERT(near != far);
+
+	result->values[0][0] = 2/(right - left);
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 2/(top - bottom);
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	if (halfDepth)
+		result->values[2][2] = 1/(near - far);
+	else
+		result->values[2][2] = 2/(near - far);
+	result->values[2][3] = 0;
+
+	result->values[3][0] = (left + right)/(left - right);
+	result->values[3][1] = (bottom + top)/(bottom - top);
+	if (halfDepth)
+		result->values[3][2] = near/(near - far);
+	else
+		result->values[3][2] = (near + far)/(near - far);
+	result->values[3][3] = 1;
+}
+
+void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, double bottom,
+	double top, double near, double far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(left != right);
+	DS_ASSERT(bottom != top);
+	DS_ASSERT(near != far);
+
+	result->values[0][0] = 2/(right - left);
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 2/(top - bottom);
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	if (halfDepth)
+		result->values[2][2] = 1/(near - far);
+	else
+		result->values[2][2] = 2/(near - far);
+	result->values[2][3] = 0;
+
+	result->values[3][0] = (left + right)/(left - right);
+	result->values[3][1] = (bottom + top)/(bottom - top);
+	if (halfDepth)
+		result->values[3][2] = near/(near - far);
+	else
+		result->values[3][2] = (near + far)/(near - far);
+	result->values[3][3] = 1;
+}
+
+void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float bottom, float top,
+	float near, float far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(left != right);
+	DS_ASSERT(bottom != top);
+	DS_ASSERT(near != far);
+
+	result->values[0][0] = 2*near/(right - left);
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 2*near/(top - bottom);
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = (right + left)/(right - left);
+	result->values[2][1] = (top + bottom)/(top - bottom);
+	if (halfDepth)
+		result->values[2][2] = far/(near - far);
+	else
+		result->values[2][2] = (near + far)/(near - far);
+	result->values[2][3] = -1;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	if (halfDepth)
+		result->values[3][2] = near*far/(near - far);
+	else
+		result->values[3][2] = 2*near*far/(near - far);
+	result->values[3][3] = 0;
+}
+
+void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, double bottom,
+	double top, double near, double far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(left != right);
+	DS_ASSERT(bottom != top);
+	DS_ASSERT(near != far);
+
+	result->values[0][0] = 2*near/(right - left);
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = 2*near/(top - bottom);
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = (right + left)/(right - left);
+	result->values[2][1] = (top + bottom)/(top - bottom);
+	if (halfDepth)
+		result->values[2][2] = far/(near - far);
+	else
+		result->values[2][2] = (near + far)/(near - far);
+	result->values[2][3] = -1;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	if (halfDepth)
+		result->values[3][2] = near*far/(near - far);
+	else
+		result->values[3][2] = 2*near*far/(near - far);
+	result->values[3][3] = 0;
+}
+
+void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, float near,
+	float far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(fovy != 0);
+	DS_ASSERT(aspect != 0);
+
+	float height = 1/tanf(fovy/2);
+	float width = height/aspect;
+
+	result->values[0][0] = width;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = height;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	if (halfDepth)
+		result->values[2][2] = far/(near - far);
+	else
+		result->values[2][2] = (near + far)/(near - far);
+	result->values[2][3] = -1;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	if (halfDepth)
+		result->values[3][2] = near*far/(near - far);
+	else
+		result->values[3][2] = 2*near*far/(near - far);
+	result->values[3][3] = 0;
+}
+
+void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect, double near,
+	double far, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(fovy != 0);
+	DS_ASSERT(aspect != 0);
+
+	double height = 1/tan(fovy/2);
+	double width = height/aspect;
+
+	result->values[0][0] = width;
+	result->values[0][1] = 0;
+	result->values[0][2] = 0;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = 0;
+	result->values[1][1] = height;
+	result->values[1][2] = 0;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = 0;
+	result->values[2][1] = 0;
+	if (halfDepth)
+		result->values[2][2] = far/(near - far);
+	else
+		result->values[2][2] = (near + far)/(near - far);
+	result->values[2][3] = -1;
+
+	result->values[3][0] = 0;
+	result->values[3][1] = 0;
+	if (halfDepth)
+		result->values[3][2] = near*far/(near - far);
+	else
+		result->values[3][2] = 2*near*far/(near - far);
+	result->values[3][3] = 0;
 }

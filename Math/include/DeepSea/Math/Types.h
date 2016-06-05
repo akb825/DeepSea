@@ -25,6 +25,23 @@ extern "C"
 {
 #endif
 
+// Workaround for system headers included before this file that #define half the English language.
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
+#ifdef near
+#undef near
+#endif
+
+#ifdef far
+#undef far
+#endif
+
 /**
  * @file
  * @brief Includes all of the types used in the DeepSea/Math library.

@@ -144,8 +144,8 @@ TYPED_TEST(Matrix22Test, Transform)
 
 	Matrix22Type matrix =
 	{{
-		{(TypeParam)0.1, (TypeParam)-2.3},
-		{(TypeParam)-4.5, (TypeParam)6.7}
+		{(TypeParam)0.1, (TypeParam)-4.5},
+		{(TypeParam)-2.3, (TypeParam)6.7}
 	}};
 
 	Vector2Type vector = {{(TypeParam)-1.0, (TypeParam)3.2}};
@@ -165,8 +165,8 @@ TYPED_TEST(Matrix22Test, TransformTransposed)
 
 	Matrix22Type matrix =
 	{{
-		{(TypeParam)0.1, (TypeParam)-4.5},
-		{(TypeParam)-2.3, (TypeParam)6.7}
+		{(TypeParam)0.1, (TypeParam)-2.3},
+		{(TypeParam)-4.5, (TypeParam)6.7}
 	}};
 
 	Vector2Type vector = {{(TypeParam)-1.0, (TypeParam)3.2}};

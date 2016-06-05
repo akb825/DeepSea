@@ -250,47 +250,6 @@ TYPED_TEST(OrientedBox2Test, MakeInvalid)
 	EXPECT_FALSE(dsOrientedBox2_isValid(box));
 }
 
-TYPED_TEST(OrientedBox2Test, Transform)
-{
-	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
-	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
-	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector3Type Vector3Type;
-	TypeParam epsilon = OrientedBox2TypeSelector<TypeParam>::epsilon;
-
-	OrientedBox2Type box =
-	{
-		{{ {0, 1}, {-1, 0} }},
-		{{4, 3}}, {{2, 1}}
-	};
-
-	Matrix33Type rotate, translate, scale, temp, transform;
-
-	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
-	dsMatrix33_makeTranslate(&translate, -2, 5);
-	dsMatrix33_makeScale(&scale, 7, 8);
-
-	dsMatrix33_mul(temp, rotate, scale);
-	dsMatrix33_mul(transform, translate, temp);
-
-	Vector3Type originalCenter = {{box.center.x, box.center.y, 0}};
-	Vector3Type center;
-	dsMatrix33_transform(center, transform, originalCenter);
-
-	EXPECT_TRUE(dsOrientedBox2_transform(&box, &transform));
-
-	EXPECT_NEAR(-rotate.values[0][1], box.orientation.values[0][0], epsilon);
-	EXPECT_NEAR(rotate.values[1][1], box.orientation.values[0][1], epsilon);
-
-	EXPECT_NEAR(-rotate.values[0][0], box.orientation.values[1][0], epsilon);
-	EXPECT_NEAR(rotate.values[1][0], box.orientation.values[1][1], epsilon);
-
-	EXPECT_NEAR(center.x, box.center.x, epsilon);
-	EXPECT_NEAR(center.y, box.center.y, epsilon);
-
-	EXPECT_NEAR(14, box.halfExtents.x, epsilon);
-	EXPECT_NEAR(8, box.halfExtents.y, epsilon);
-}
-
 TYPED_TEST(OrientedBox2Test, AddPoint)
 {
 	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
@@ -366,6 +325,124 @@ TYPED_TEST(OrientedBox2Test, Corners)
 
 	EXPECT_NEAR(3, corners[3].x, epsilon);
 	EXPECT_NEAR(5, corners[3].y, epsilon);
+}
+
+TYPED_TEST(OrientedBox2Test, Transform)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+	TypeParam epsilon = OrientedBox2TypeSelector<TypeParam>::epsilon;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type corners[DS_BOX2_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox2_corners(corners, &box));
+
+	Matrix33Type rotate, translate, scale, temp, transform;
+
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeTranslate(&translate, -2, 5);
+	dsMatrix33_makeScale(&scale, 7, 8);
+
+	dsMatrix33_mul(temp, rotate, scale);
+	dsMatrix33_mul(transform, translate, temp);
+
+	Vector3Type originalCenter = {{box.center.x, box.center.y, 1}};
+	Vector3Type center;
+	dsMatrix33_transform(center, transform, originalCenter);
+
+	EXPECT_TRUE(dsOrientedBox2_transform(&box, &transform));
+
+	EXPECT_NEAR(rotate.values[1][0], box.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(rotate.values[1][1], box.orientation.values[0][1], epsilon);
+
+	EXPECT_NEAR(-rotate.values[0][0], box.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(-rotate.values[0][1], box.orientation.values[1][1], epsilon);
+
+	EXPECT_NEAR(center.x, box.center.x, epsilon);
+	EXPECT_NEAR(center.y, box.center.y, epsilon);
+
+	EXPECT_NEAR(16, box.halfExtents.x, epsilon);
+	EXPECT_NEAR(7, box.halfExtents.y, epsilon);
+
+	Vector2Type transformedCorners[DS_BOX2_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox2_corners(transformedCorners, &box));
+
+	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+	{
+		Vector3Type curCorner = {{corners[i].x, corners[i].y, 1}};
+		Vector3Type expectedCorner;
+		dsMatrix33_transform(expectedCorner, transform, curCorner);
+
+		EXPECT_NEAR(expectedCorner.x, transformedCorners[i].x, epsilon);
+		EXPECT_NEAR(expectedCorner.y, transformedCorners[i].y, epsilon);
+	}
+}
+
+TYPED_TEST(OrientedBox2Test, TransformIncremental)
+{
+	typedef typename OrientedBox2TypeSelector<TypeParam>::OrientedBox2Type OrientedBox2Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Matrix33Type Matrix33Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	typedef typename OrientedBox2TypeSelector<TypeParam>::Vector2Type Vector2Type;
+	TypeParam epsilon = OrientedBox2TypeSelector<TypeParam>::epsilon;
+
+	OrientedBox2Type box =
+	{
+		{{ {0, 1}, {-1, 0} }},
+		{{4, 3}}, {{2, 1}}
+	};
+
+	Vector2Type corners[DS_BOX2_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox2_corners(corners, &box));
+
+	Matrix33Type rotate, translate, scale, temp, transform;
+
+	dsMatrix33_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30));
+	dsMatrix33_makeTranslate(&translate, -2, 5);
+	dsMatrix33_makeScale(&scale, 7, 8);
+
+	dsMatrix33_mul(temp, rotate, scale);
+	dsMatrix33_mul(transform, translate, temp);
+
+	Vector3Type originalCenter = {{box.center.x, box.center.y, 1}};
+	Vector3Type center;
+	dsMatrix33_transform(center, transform, originalCenter);
+
+	EXPECT_TRUE(dsOrientedBox2_transform(&box, &scale));
+	EXPECT_TRUE(dsOrientedBox2_transform(&box, &rotate));
+	EXPECT_TRUE(dsOrientedBox2_transform(&box, &translate));
+
+	EXPECT_NEAR(rotate.values[1][0], box.orientation.values[0][0], epsilon);
+	EXPECT_NEAR(rotate.values[1][1], box.orientation.values[0][1], epsilon);
+
+	EXPECT_NEAR(-rotate.values[0][0], box.orientation.values[1][0], epsilon);
+	EXPECT_NEAR(-rotate.values[0][1], box.orientation.values[1][1], epsilon);
+
+	EXPECT_NEAR(center.x, box.center.x, epsilon);
+	EXPECT_NEAR(center.y, box.center.y, epsilon);
+
+	EXPECT_NEAR(16, box.halfExtents.x, epsilon);
+	EXPECT_NEAR(7, box.halfExtents.y, epsilon);
+
+	Vector2Type transformedCorners[DS_BOX2_CORNER_COUNT];
+	EXPECT_TRUE(dsOrientedBox2_corners(transformedCorners, &box));
+
+	for (unsigned int i = 0; i < DS_BOX2_CORNER_COUNT; ++i)
+	{
+		Vector3Type curCorner = {{corners[i].x, corners[i].y, 1}};
+		Vector3Type expectedCorner;
+		dsMatrix33_transform(expectedCorner, transform, curCorner);
+
+		EXPECT_NEAR(expectedCorner.x, transformedCorners[i].x, epsilon);
+		EXPECT_NEAR(expectedCorner.y, transformedCorners[i].y, epsilon);
+	}
 }
 
 TYPED_TEST(OrientedBox2Test, AddBox)

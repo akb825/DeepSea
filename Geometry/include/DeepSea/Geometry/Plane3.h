@@ -72,29 +72,34 @@ DS_GEOMETRY_EXPORT void dsPlane3d_normalize(dsPlane3d* result, const dsPlane3d* 
 
 /**
  * @brief Transforms a plane by a matrix.
+ *
+ * In order to do the transformation, this will need to take the inverse-transpose of the matrix.
+ * If the inverse-transpose is already calculated, call dsPlane3_transformInverseTranspose()
+ * instead.
+ *
  * @param[out] result The transformed plane.
- * @param plane The plane to transform.
  * @param transform The transformation matrix.
+ * @param plane The plane to transform.
  */
-DS_GEOMETRY_EXPORT void dsPlane3f_transform(dsPlane3f* result, const dsPlane3f* plane,
-	const dsMatrix44f* transform);
+DS_GEOMETRY_EXPORT void dsPlane3f_transform(dsPlane3f* result, const dsMatrix44f* transform,
+	const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transform() */
-DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsPlane3d* plane,
-	const dsMatrix44d* transform);
+DS_GEOMETRY_EXPORT void dsPlane3d_transform(dsPlane3d* result, const dsMatrix44d* transform,
+	const dsPlane3d* plane);
 
 /**
  * @brief Transforms a plane by a matrix when the inverse-transpose is already calculated.
  * @param[out] result The transformed plane.
- * @param plane The plane to transform.
  * @param transform The inverse-transpose transformation matrix.
+ * @param plane The plane to transform.
  */
 DS_GEOMETRY_EXPORT void dsPlane3f_transformInverseTranspose(dsPlane3f* result,
-	const dsPlane3f* plane, const dsMatrix44f* transform);
+	const dsMatrix44f* transform, const dsPlane3f* plane);
 
 /** @copydoc dsPlane3f_transform() */
 DS_GEOMETRY_EXPORT void dsPlane3d_transformInverseTranspose(dsPlane3d* result,
-	const dsPlane3d* plane, const dsMatrix44d* transform);
+	const dsMatrix44d* transform, const dsPlane3d* plane);
 
 /**
  * @brief Intersects a plane with an aligned box.

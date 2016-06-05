@@ -19,15 +19,6 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Types.h>
 
-// Workaround for system headers included before this file that #define half the English language.
-#ifdef min
-#undef min
-#endif
-
-#ifdef max
-#undef max
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -152,7 +143,8 @@ typedef struct dsOrientedBox2f
 	/**
 	 * @brief The orientation of the box.
 	 *
-	 * This must contain only a rotation.
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
 	 */
 	dsMatrix22f orientation;
 
@@ -175,7 +167,8 @@ typedef struct dsOrientedBox2d
 	/**
 	 * @brief The orientation of the box.
 	 *
-	 * This must contain only a rotation.
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
 	 */
 	dsMatrix22d orientation;
 
@@ -198,7 +191,8 @@ typedef struct dsOrientedBox3f
 	/**
 	 * @brief The orientation of the box.
 	 *
-	 * This must contain only a rotation.
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
 	 */
 	dsMatrix33f orientation;
 
@@ -221,7 +215,8 @@ typedef struct dsOrientedBox3d
 	/**
 	 * @brief The orientation of the box.
 	 *
-	 * This must contain only a rotation.
+	 * This must contain only a rotation. This transforms from local aligned box space to world
+	 * space.
 	 */
 	dsMatrix33d orientation;
 

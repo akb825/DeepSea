@@ -40,7 +40,7 @@ extern "C"
 
 /**
  * @brief Sets a matrix to be identity.
- * @param result The matrix to hold
+ * @param[out] result The matrix to hold
  */
 #define dsMatrix22_identity(result) \
 	do \
@@ -54,7 +54,7 @@ extern "C"
 
 /**
  * @brief Multiplies two matrices.
- * @param result The result of a*b. This may NOT be the same as a or b.
+ * @param[out] result The result of a*b. This may NOT be the same as a or b.
  * @param a The first matrix.
  * @param b The second matrix.
  */
@@ -77,27 +77,11 @@ extern "C"
 
 /**
  * @brief Transforms a vector with a matrix.
- * @param result The result of vec*mat. This may NOT be the same as vec.
+ * @param[out] result The result of mat*vec. This may NOT be the same as vec.
  * @param mat The matrix to transform with.
  * @param vec The vector to transform.
  */
 #define dsMatrix22_transform(result, mat, vec) \
-	do \
-	{ \
-		DS_ASSERT(&(result) != (const void*)&(vec)); \
-		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
-							 (mat).values[0][1]*(vec).values[1]; \
-		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
-							 (mat).values[1][1]*(vec).values[1]; \
-	} while (0)
-
-/**
- * @brief Transforms a vector with a transposed matrix.
- * @param result The result of mat*vec. This may NOT be the same as vec.
- * @param mat The matrix to transform with.
- * @param vec The vector to transform.
- */
-#define dsMatrix22_transformTransposed(result, mat, vec) \
 	do \
 	{ \
 		DS_ASSERT(&(result) != (const void*)&(vec)); \
@@ -108,8 +92,24 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Transforms a vector with a transposed matrix.
+ * @param[out] result The result of vec*mat. This may NOT be the same as vec.
+ * @param mat The matrix to transform with.
+ * @param vec The vector to transform.
+ */
+#define dsMatrix22_transformTransposed(result, mat, vec) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(vec)); \
+		(result).values[0] = (mat).values[0][0]*(vec).values[0] + \
+							 (mat).values[0][1]*(vec).values[1]; \
+		(result).values[1] = (mat).values[1][0]*(vec).values[0] + \
+							 (mat).values[1][1]*(vec).values[1]; \
+	} while (0)
+
+/**
  * @brief Transposes a matrix.
- * @param result The transposed matrix. This may NOT be the same as a.
+ * @param[out] result The transposed matrix. This may NOT be the same as a.
  * @param a The matrix to transpose.
  */
 #define dsMatrix22_transpose(result, a) \
@@ -134,7 +134,7 @@ extern "C"
 
 /**
  * @brief Inverts a matrix.
- * @param result The inverted matrix. This may NOT be the same as a.
+ * @param[out] result The inverted matrix. This may NOT be the same as a.
  * @param a The matrix to invert.
  */
 DS_MATH_EXPORT void dsMatrix22f_invert(dsMatrix22f* result, const dsMatrix22f* a);
@@ -144,7 +144,7 @@ DS_MATH_EXPORT void dsMatrix22d_invert(dsMatrix22d* result, const dsMatrix22d* a
 
 /**
  * @brief Makes a rotation matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param angle The angle to rotate by in radians.
  */
 DS_MATH_EXPORT void dsMatrix22f_makeRotate(dsMatrix22f* result, float angle);
@@ -154,7 +154,7 @@ DS_MATH_EXPORT void dsMatrix22d_makeRotate(dsMatrix22d* result, double angle);
 
 /**
  * @brief Makes a scale matrix.
- * @param result The matrix for the result.
+ * @param[out] result The matrix for the result.
  * @param x The scale in the x axis.
  * @param y The scale in the y axis.
  */

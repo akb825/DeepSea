@@ -249,9 +249,9 @@ TYPED_TEST(Matrix33Test, Transform)
 
 	Matrix33Type matrix =
 	{{
-		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
-		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
-		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
+		{(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3},
+		{(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5},
+		{(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7}
 	}};
 
 	Vector3Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4}};
@@ -272,9 +272,9 @@ TYPED_TEST(Matrix33Test, TransformTransposed)
 
 	Matrix33Type matrix =
 	{{
-		{(TypeParam)0.1, (TypeParam)-6.7, (TypeParam)2.3},
-		{(TypeParam)-2.3, (TypeParam)8.9, (TypeParam)-4.5},
-		{(TypeParam)4.5, (TypeParam)-0.1, (TypeParam)6.7}
+		{(TypeParam)0.1, (TypeParam)-2.3, (TypeParam)4.5},
+		{(TypeParam)-6.7, (TypeParam)8.9, (TypeParam)-0.1},
+		{(TypeParam)2.3, (TypeParam)-4.5, (TypeParam)6.7}
 	}};
 
 	Vector3Type vector = {{(TypeParam)-1.0, (TypeParam)3.2, (TypeParam)-5.4}};
@@ -651,15 +651,15 @@ TYPED_TEST(Matrix33Test, InverseTranspose)
 
 	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
-	EXPECT_NEAR(0, inverseTranspose.values[0][2], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
 
 	EXPECT_NEAR(inverseTransposeCheck.values[1][0], inverseTranspose.values[1][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
-	EXPECT_NEAR(0, inverseTranspose.values[1][2], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[1][1], inverseTranspose.values[1][1], epsilon);
 
-	EXPECT_NEAR(matrix.values[2][0], inverseTranspose.values[2][0], epsilon);
-	EXPECT_NEAR(matrix.values[2][1], inverseTranspose.values[2][1], epsilon);
-	EXPECT_NEAR(1, inverseTranspose.values[2][2], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][0], inverseTranspose.values[2][0], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][1], inverseTranspose.values[2][1], epsilon);
+	EXPECT_NEAR(inverseTransposeCheck.values[2][2], inverseTranspose.values[2][2], epsilon);
 }
 
 TEST(Matrix33, ConvertFloatToDouble)
