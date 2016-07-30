@@ -12,7 +12,7 @@ else()
 		set(otherCXXFlags)
 	endif()
 
-	set(commonFlags "-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing")
+	set(commonFlags "-fPIC -Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags} ${otherCFlags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags} -std=c++11 ${otherCXXFlags}")
 endif()
