@@ -5,6 +5,7 @@ endif()
 set(rootDir ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 set(docSource "\"${rootDir}/README.md\"")
+set(dependencies ${rootDir}/README.md)
 foreach (docProject ${DEEPSEA_DOC_PROJECTS})
 	set(thisDir ${rootDir}/${docProject})
 	set(docSource "${docSource} \"${thisDir}/include\" \"${thisDir}/README.md\"")
