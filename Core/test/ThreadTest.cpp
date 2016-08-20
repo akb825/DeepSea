@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
@@ -82,12 +83,12 @@ dsThreadReturnType threadId(void* data)
 
 TEST(Thread, Join)
 {
-	EXPECT_FALSE(dsThread_create(nullptr, nullptr, nullptr, 0, nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsThread_create(nullptr, nullptr, nullptr, 0, nullptr));
 
 	dsThread thread1, thread2, thread3, thread4;
 	dsThreadReturnType ret1, ret2, ret3;
 
-	EXPECT_FALSE(dsThread_create(&thread1, nullptr, nullptr, 0, nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsThread_create(&thread1, nullptr, nullptr, 0, nullptr));
 	EXPECT_TRUE(dsThread_create(&thread1, &simpleThread, (void*)1, 0, nullptr));
 	EXPECT_TRUE(dsThread_create(&thread2, &simpleThread, (void*)2, 0, nullptr));
 	EXPECT_TRUE(dsThread_create(&thread3, &simpleThread, (void*)3, 0, nullptr));
@@ -116,9 +117,9 @@ TEST(Thread, Detach)
 	dsThread thread;
 	EXPECT_TRUE(dsThread_create(&thread, &simpleThread, (void*)1, 0, nullptr));
 	EXPECT_TRUE(dsThread_detach(&thread));
-	EXPECT_FALSE(dsThread_detach(&thread));
-	EXPECT_FALSE(dsThread_join(&thread, NULL));
-	EXPECT_FALSE(dsThread_detach(NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsThread_detach(&thread));
+	EXPECT_FALSE_ERRNO(EINVAL, dsThread_join(&thread, NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsThread_detach(NULL));
 }
 
 TEST(Thread, ExitThread)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Streams/Stream.h>
 #include <gtest/gtest.h>
 #include <stdlib.h>
@@ -21,20 +22,20 @@
 TEST(Stream, Null)
 {
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsStream_read(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsStream_write(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsStream_tell(NULL));
-	EXPECT_FALSE(dsStream_close(NULL));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_read(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_write(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_tell(NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close(NULL));
 }
 
 TEST(Stream, Empty)
 {
 	dsStream stream = {};
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsStream_read(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsStream_write(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsStream_tell(&stream));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_read(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsStream_write(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsStream_tell(&stream));
 	EXPECT_TRUE(dsStream_close(&stream));
 }

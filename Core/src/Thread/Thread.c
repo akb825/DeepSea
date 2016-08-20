@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <errno.h>
 #include <string.h>
 
 #if DS_WINDOWS
@@ -64,7 +65,10 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	unsigned int stackSize, const char* name)
 {
 	if (!thread || !function)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	thread->name = name ? name : "Thread";
 	thread->userData = userData;
@@ -76,7 +80,21 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	HANDLE handle = CreateThread(NULL, stackSize, (LPTHREAD_START_ROUTINE)&threadWrapperFunc,
 		thread, 0, NULL);
 	if (!handle)
+	{
+		switch (GetLastError())
+		{
+			case ERROR_NOT_ENOUGH_MEMORY:
+				errno = ENOMEM;
+				break;
+			case ERROR_INVALID_PARAMETER:
+				errno = EINVAL;
+				break;
+			default:
+				errno = EAGAIN;
+				break;
+		}
 		return false;
+	}
 
 	thread->thread = handle;
 
@@ -86,21 +104,25 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 	DS_VERIFY(pthread_attr_init(&attributes) == 0);
 	if (stackSize > 0)
 	{
-		if (pthread_attr_setstacksize(&attributes, stackSize) != 0)
+		int errorCode = pthread_attr_setstacksize(&attributes, stackSize);
+		if (errorCode != 0)
 		{
 			DS_LOG_ERROR_F("thread", "Invalid thread stack size: %u", stackSize);
 			DS_VERIFY(pthread_attr_destroy(&attributes) == 0);
+			errno = errorCode;
 			return false;
 		}
 	}
 
 	pthread_t handle;
-	bool success = pthread_create(&handle, &attributes, (void* (*)(void*))&threadWrapperFunc,
-		thread) == 0;
+	int errorCode = pthread_create(&handle, &attributes, (void* (*)(void*))&threadWrapperFunc, thread);
 	DS_VERIFY(pthread_attr_destroy(&attributes) == 0);
 
-	if (!success)
+	if (errorCode != 0)
+	{
+		errno = errorCode;
 		return false;
+	}
 
 	thread->thread = (uint64_t)handle;
 
@@ -149,7 +171,10 @@ bool dsThread_setThisThreadName(const char* name)
 #elif DS_APPLE
 	return pthread_setname_np(name) == 0;
 #elif DS_LINUX
-	return pthread_setname_np(pthread_self(), name) == 0;
+	int errorCode = pthread_setname_np(pthread_self(), name);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #else
 	DS_UNUSED(name);
 	return false;
@@ -240,7 +265,10 @@ void dsThread_sleep(unsigned int milliseconds, const char* name)
 bool dsThread_detach(dsThread* thread)
 {
 	if (!thread || !isThreadSet(*thread))
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	// Make sure that the thread has already started. This prevents the dsThread instance from being
 	// destroyed too soon.
@@ -258,8 +286,12 @@ bool dsThread_detach(dsThread* thread)
 	CloseHandle(thread->thread);
 	thread->thread = 0;
 #else
-	if (pthread_detach(thread->thread) != 0)
+	int errorCode = pthread_detach(thread->thread);
+	if (errorCode != 0)
+	{
+		errno = errorCode;
 		return false;
+	}
 	memset(&thread->thread, 0, sizeof(thread->thread));
 #endif
 
@@ -269,7 +301,10 @@ bool dsThread_detach(dsThread* thread)
 bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 {
 	if (!thread || !isThreadSet(*thread))
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	DS_ASSERT(thread->name);
 	DS_PROFILE_WAIT_START(thread->name);
@@ -288,10 +323,15 @@ bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 		CloseHandle(thread->thread);
 		thread->thread = 0;
 	}
+	else
+		errno = EINVAL;
 
 #else
 
-	result = pthread_join(thread->thread, (void**)returnVal) == 0;
+	int errorCode = pthread_join(thread->thread, (void**)returnVal);
+	if (errorCode != 0)
+		errno = errorCode;
+	result = errorCode == 0;
 
 	if (result)
 		memset(&thread->thread, 0, sizeof(thread->thread));

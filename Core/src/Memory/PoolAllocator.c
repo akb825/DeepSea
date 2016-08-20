@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <errno.h>
 
 #define DS_NONE ((size_t)-1)
 #define DS_BASE_PTR(allocator, index) \
@@ -36,6 +37,7 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 		(uintptr_t)buffer % DS_ALLOC_ALIGNMENT != 0 ||
 		bufferSize != dsPoolAllocator_bufferSize(chunkSize, chunkCount))
 	{
+		errno = EINVAL;
 		return false;
 	}
 
@@ -60,7 +62,10 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size)
 {
 	if (!allocator || !allocator->buffer || !size)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	// Check for tampering.
 	DS_ASSERT(allocator->bufferSize > 0 &&
@@ -69,7 +74,10 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size)
 
 	// Size is above the chunk size.
 	if (size > allocator->chunkSize)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	if (!dsSpinlock_lock(&allocator->lock))
 		return NULL;
@@ -102,6 +110,7 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size)
 	{
 		DS_ASSERT(allocator->head == DS_NONE);
 		DS_ASSERT(allocator->initializedCount == allocator->chunkCount);
+		errno = ENOMEM;
 		retVal = NULL;
 	}
 
@@ -118,7 +127,10 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size)
 bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 {
 	if (!allocator || !allocator->buffer)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	// Check for tampering.
 	DS_ASSERT(allocator->bufferSize > 0 &&
@@ -128,11 +140,17 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 	// Make sure that the pointer is valid.
 	uintptr_t ptrInt = (uintptr_t)ptr;
 	if (ptrInt % allocator->chunkSize != 0)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	size_t index = (size_t)(ptrInt - (uintptr_t)allocator->buffer)/allocator->chunkSize;
 	if (index >= allocator->chunkCount)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	if (!dsSpinlock_lock(&allocator->lock))
 		return false;
@@ -156,6 +174,7 @@ bool dsPoolAllocator_reset(dsPoolAllocator* allocator)
 	if (!allocator || !allocator->buffer || !allocator->chunkCount ||
 		allocator->bufferSize != allocator->chunkCount*allocator->chunkSize)
 	{
+		errno = EINVAL;
 		return false;
 	}
 	

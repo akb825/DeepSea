@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Memory/Types.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -51,14 +52,22 @@ inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
 inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 {
 	if (!allocator || !allocator->allocFunc)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
+
 	return allocator->allocFunc(allocator, size);
 }
 
 inline bool dsAllocator_free(dsAllocator* allocator, void* ptr)
 {
 	if (!allocator || !allocator->freeFunc)
+	{
+		errno = EINVAL;
 		return false;
+	}
+
 	return allocator->freeFunc(allocator, ptr);
 }
 

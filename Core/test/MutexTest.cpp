@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -53,7 +54,7 @@ dsThreadReturnType threadFunc(void* data)
 TEST(Mutex, CreateEmptyAllocator)
 {
 	dsAllocator allocator = {};
-	EXPECT_EQ(nullptr, dsMutex_create(&allocator, nullptr));
+	EXPECT_NULL_ERRNO(EINVAL, dsMutex_create(&allocator, nullptr));
 }
 
 TEST(Mutex, CreateAllocator)
@@ -78,9 +79,9 @@ TEST(Mutex, CreateAllocatorNoFree)
 
 TEST(Mutex, Null)
 {
-	EXPECT_FALSE(dsMutex_lock(nullptr));
-	EXPECT_FALSE(dsMutex_tryLock(nullptr));
-	EXPECT_FALSE(dsMutex_unlock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_lock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_tryLock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_unlock(nullptr));
 }
 
 TEST(Mutex, TryLock)

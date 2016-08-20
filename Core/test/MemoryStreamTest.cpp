@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <gtest/gtest.h>
@@ -22,30 +23,30 @@
 TEST(MemoryStream, Null)
 {
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsMemoryStream_read(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsMemoryStream_write(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsMemoryStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsMemoryStream_tell(NULL));
-	EXPECT_FALSE(dsMemoryStream_close(NULL));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsMemoryStream_read(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsMemoryStream_write(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsMemoryStream_tell(NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_close(NULL));
 }
 
 TEST(MemoryStream, Empty)
 {
 	dsMemoryStream stream = {};
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsMemoryStream_read(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsMemoryStream_write(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsMemoryStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsMemoryStream_tell(&stream));
-	EXPECT_FALSE(dsMemoryStream_close(&stream));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsMemoryStream_read(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsMemoryStream_write(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsMemoryStream_tell(&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_close(&stream));
 }
 
 TEST(MemoryStream, InvalidOpen)
 {
 	dsMemoryStream stream = {};
 	int32_t buffer[2];
-	EXPECT_FALSE(dsMemoryStream_open(NULL, buffer, sizeof(buffer)));
-	EXPECT_FALSE(dsMemoryStream_open(&stream, NULL, sizeof(buffer)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_open(NULL, buffer, sizeof(buffer)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_open(&stream, NULL, sizeof(buffer)));
 }
 
 TEST(MemoryStream, ReadWriteFileFunctions)
@@ -87,7 +88,7 @@ TEST(MemoryStream, ReadWriteFileFunctions)
 	EXPECT_EQ(2, dummyData);
 
 	EXPECT_TRUE(dsMemoryStream_close(&stream));
-	EXPECT_FALSE(dsMemoryStream_close(&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_close(&stream));
 
 	unlink("asdf");
 }
@@ -130,7 +131,7 @@ TEST(MemoryStream, ReadWriteStreamFunctions)
 	EXPECT_EQ(2, dummyData);
 
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
-	EXPECT_FALSE(dsStream_close((dsStream*)&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 
 	unlink("asdf");
 }

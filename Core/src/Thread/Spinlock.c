@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Core/Thread/Spinlock.h>
+#include <errno.h>
 
 #if DS_WINDOWS
 #include <DeepSea/Core/Atomic.h>
@@ -26,7 +27,10 @@
 bool dsSpinlock_initialize(dsSpinlock* spinlock)
 {
 	if (!spinlock)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 
@@ -35,30 +39,45 @@ bool dsSpinlock_initialize(dsSpinlock* spinlock)
 	return true;
 
 #else
-	return pthread_spin_init(&spinlock->spinlock, PTHREAD_PROCESS_PRIVATE) == 0;
+	int errorCode = pthread_spin_init(&spinlock->spinlock, PTHREAD_PROCESS_PRIVATE);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
 bool dsSpinlock_tryLock(dsSpinlock* spinlock)
 {
 	if (!spinlock)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 
 	uint32_t expected = 0;
 	uint32_t value = 1;
-	return DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
+	bool retVal = DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
+	if (!retVal)
+		errno = EBUSY;
+	return retVal;
 
 #else
-	return pthread_spin_trylock(&spinlock->spinlock) == 0;
+	int errorCode = pthread_spin_trylock(&spinlock->spinlock);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
 bool dsSpinlock_lock(dsSpinlock* spinlock)
 {
 	if (!spinlock)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 
@@ -72,14 +91,20 @@ bool dsSpinlock_lock(dsSpinlock* spinlock)
 	return true;
 
 #else
-	return pthread_spin_lock(&spinlock->spinlock) == 0;
+	int errorCode = pthread_spin_lock(&spinlock->spinlock);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
 bool dsSpinlock_unlock(dsSpinlock* spinlock)
 {
 	if (!spinlock)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 
@@ -88,7 +113,10 @@ bool dsSpinlock_unlock(dsSpinlock* spinlock)
 	return DS_ATOMIC_COMPARE_EXCHANGE32(&spinlock->counter, &expected, &value, false);
 
 #else
-	return pthread_spin_unlock(&spinlock->spinlock) == 0;
+	int errorCode = pthread_spin_unlock(&spinlock->spinlock);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 

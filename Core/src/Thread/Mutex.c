@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include "MutexImpl.h"
+#include <errno.h>
 #include <stdlib.h>
 
 unsigned int dsMutex_sizeof(void)
@@ -47,12 +48,14 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 	InitializeCriticalSection(&mutex->mutex);
 #else
 
-	if (pthread_mutex_init(&mutex->mutex, NULL) != 0)
+	int errorCode = pthread_mutex_init(&mutex->mutex, NULL);
+	if (errorCode != 0)
 	{
 		if (allocator)
 			dsAllocator_free(allocator, mutex);
 		else
 			free(mutex);
+		errno = errorCode;
 		return NULL;
 	}
 
@@ -67,13 +70,21 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 bool dsMutex_tryLock(dsMutex* mutex)
 {
 	if (!mutex)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	bool retVal;
 #if DS_WINDOWS
 	retVal = TryEnterCriticalSection(&mutex->mutex);
+	if (!retVal)
+		errno = EBUSY;
 #else
-	retVal = pthread_mutex_trylock(&mutex->mutex) == 0;
+	int errorCode = pthread_mutex_trylock(&mutex->mutex);
+	if (errorCode != 0)
+		errno = errorCode;
+	retVal = errorCode == 0;
 #endif
 
 	if (retVal)
@@ -86,7 +97,10 @@ bool dsMutex_tryLock(dsMutex* mutex)
 bool dsMutex_lock(dsMutex* mutex)
 {
 	if (!mutex)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	DS_PROFILE_WAIT_START(mutex->name);
 
@@ -95,7 +109,10 @@ bool dsMutex_lock(dsMutex* mutex)
 	EnterCriticalSection(&mutex->mutex);
 	retVal = true;
 #else
-	retVal = pthread_mutex_lock(&mutex->mutex) == 0;
+	int errorCode = pthread_mutex_lock(&mutex->mutex);
+	if (errorCode != 0)
+		errno = errorCode;
+	retVal = errorCode == 0;
 #endif
 
 	DS_PROFILE_WAIT_END();
@@ -109,14 +126,20 @@ bool dsMutex_lock(dsMutex* mutex)
 bool dsMutex_unlock(dsMutex* mutex)
 {
 	if (!mutex)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	bool retVal;
 #if DS_WINDOWS
 	LeaveCriticalSection(&mutex->mutex);
 	retVal = true;
 #else
-	retVal = pthread_mutex_unlock(&mutex->mutex) == 0;
+	int errorCode = pthread_mutex_unlock(&mutex->mutex);
+	if (errorCode != 0)
+		errno = errorCode;
+	retVal = errorCode == 0;
 #endif
 
 	if (retVal)

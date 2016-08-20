@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Streams/Types.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -80,7 +81,10 @@ inline bool dsStream_close(dsStream* stream);
 inline size_t dsStream_read(dsStream* stream, void* data, size_t size)
 {
 	if (!stream || !stream->readFunc || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	return stream->readFunc(stream, data, size);
 }
@@ -88,7 +92,10 @@ inline size_t dsStream_read(dsStream* stream, void* data, size_t size)
 inline size_t dsStream_write(dsStream* stream, const void* data, size_t size)
 {
 	if (!stream || !stream->writeFunc || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	return stream->writeFunc(stream, data, size);
 }
@@ -96,7 +103,10 @@ inline size_t dsStream_write(dsStream* stream, const void* data, size_t size)
 inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way)
 {
 	if (!stream || !stream->seekFunc)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	return stream->seekFunc(stream, offset, way);
 }
@@ -104,7 +114,10 @@ inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way)
 inline uint64_t dsStream_tell(dsStream* stream)
 {
 	if (!stream || !stream->tellFunc)
+	{
+		errno = EINVAL;
 		return DS_STREAM_INVALID_POS;
+	}
 
 	return stream->tellFunc(stream);
 }
@@ -120,7 +133,10 @@ inline void dsStream_flush(dsStream* stream)
 inline bool dsStream_close(dsStream* stream)
 {
 	if (!stream)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	if (!stream->closeFunc)
 		return true;

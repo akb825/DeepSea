@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Thread.h>
@@ -55,7 +56,7 @@ dsThreadReturnType threadFunc(void* data)
 TEST(ConditionVariable, CreateEmptyAllocator)
 {
 	dsAllocator allocator = {};
-	EXPECT_EQ(nullptr, dsConditionVariable_create(&allocator, nullptr));
+	EXPECT_NULL_ERRNO(EINVAL, dsConditionVariable_create(&allocator, nullptr));
 }
 
 TEST(ConditionVariable, CreateAllocator)
@@ -80,9 +81,10 @@ TEST(ConditionVariable, CreateAllocatorNoFree)
 
 TEST(ConditionVariable, Null)
 {
-	EXPECT_EQ(dsConditionVariableResult_Error, dsConditionVariable_wait(nullptr, nullptr));
-	EXPECT_FALSE(dsConditionVariable_notifyOne(nullptr));
-	EXPECT_FALSE(dsConditionVariable_notifyAll(nullptr));
+	EXPECT_EQ_ERRNO(EINVAL, dsConditionVariableResult_Error,
+		dsConditionVariable_wait(nullptr, nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsConditionVariable_notifyOne(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsConditionVariable_notifyAll(nullptr));
 }
 
 TEST(ConditionVariable, NotifyAll)

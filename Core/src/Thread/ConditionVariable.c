@@ -87,15 +87,23 @@ dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* conditio
 	dsMutex* mutex)
 {
 	if (!condition || !mutex)
+	{
+		errno = EINVAL;
 		return dsConditionVariableResult_Error;
+	}
 
 	DS_PROFILE_LOCK_END();
 	DS_PROFILE_WAIT_START(condition->name);
 
 #if DS_WINDOWS
 	bool retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, INFINITE);
+	if (!retVal)
+		errno = EINVAL;
 #else
-	bool retVal = pthread_cond_wait(&condition->condition, &mutex->mutex) == 0;
+	int errorCode = pthread_cond_wait(&condition->condition, &mutex->mutex);
+	if (errorCode != 0)
+		errno = errorCode;
+	bool retVal = errorCode == 0;
 #endif
 
 	DS_PROFILE_WAIT_END();
@@ -107,7 +115,10 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	dsConditionVariable* condition, dsMutex* mutex, unsigned int milliseconds)
 {
 	if (!condition || !mutex)
+	{
+		errno = EINVAL;
 		return dsConditionVariableResult_Error;
+	}
 
 	DS_PROFILE_LOCK_END();
 	DS_PROFILE_WAIT_START(condition->name);
@@ -120,7 +131,10 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	else if (GetLastError() == ERROR_TIMEOUT)
 		result = dsConditionVariableResult_Timeout;
 	else
+	{
+		errno = EINVAL;
 		result = dsConditionVariableResult_Error;
+	}
 
 #else
 
@@ -140,7 +154,10 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	else if (retVal == 0)
 		result = dsConditionVariableResult_Success;
 	else
+	{
 		result = dsConditionVariableResult_Error;
+		errno = retVal;
+	}
 
 #endif
 
@@ -152,26 +169,38 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 bool dsConditionVariable_notifyOne(dsConditionVariable* condition)
 {
 	if (!condition)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 	WakeConditionVariable(&condition->condition);
 	return true;
 #else
-	return pthread_cond_signal(&condition->condition) == 0;
+	int errorCode = pthread_cond_signal(&condition->condition);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
 bool dsConditionVariable_notifyAll(dsConditionVariable* condition)
 {
 	if (!condition)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 	WakeAllConditionVariable(&condition->condition);
 	return true;
 #else
-	return pthread_cond_broadcast(&condition->condition) == 0;
+	int errorCode = pthread_cond_broadcast(&condition->condition);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 

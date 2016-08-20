@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <gtest/gtest.h>
@@ -22,32 +23,32 @@
 TEST(FileStream, Null)
 {
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsFileStream_read(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsFileStream_write(NULL, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsFileStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsFileStream_tell(NULL));
-	EXPECT_FALSE(dsFileStream_close(NULL));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsFileStream_read(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsFileStream_write(NULL, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_seek(NULL, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsFileStream_tell(NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_close(NULL));
 }
 
 TEST(FileStream, Empty)
 {
 	dsFileStream stream = {};
 	int32_t dummyData;
-	EXPECT_EQ(0U, dsFileStream_read(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_EQ(0U, dsFileStream_write(&stream, &dummyData, sizeof(dummyData)));
-	EXPECT_FALSE(dsFileStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
-	EXPECT_EQ(DS_STREAM_INVALID_POS, dsFileStream_tell(&stream));
-	EXPECT_FALSE(dsFileStream_close(&stream));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsFileStream_read(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ_ERRNO(EINVAL, 0U, dsFileStream_write(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ_ERRNO(EINVAL, DS_STREAM_INVALID_POS, dsFileStream_tell(&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_close(&stream));
 }
 
 TEST(FileStream, InvalidOpen)
 {
 	dsFileStream stream = {};
-	EXPECT_FALSE(dsFileStream_openPath(NULL, "asdf", "w"));
-	EXPECT_FALSE(dsFileStream_openPath(&stream, NULL, "w"));
-	EXPECT_FALSE(dsFileStream_openPath(&stream, "asdf", NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openPath(NULL, "asdf", "w"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openPath(&stream, NULL, "w"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openPath(&stream, "asdf", NULL));
 
-	EXPECT_FALSE(dsFileStream_openFile(&stream, NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_openFile(&stream, NULL));
 }
 
 TEST(FileStream, ReadWriteFileFunctions)
@@ -86,7 +87,7 @@ TEST(FileStream, ReadWriteFileFunctions)
 	EXPECT_EQ(2, dummyData);
 
 	EXPECT_TRUE(dsFileStream_close(&stream));
-	EXPECT_FALSE(dsFileStream_close(&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_close(&stream));
 
 	unlink("asdf");
 }
@@ -128,7 +129,7 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	EXPECT_EQ(2, dummyData);
 
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
-	EXPECT_FALSE(dsStream_close((dsStream*)&stream));
+	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 
 	unlink("asdf");
 }

@@ -17,11 +17,15 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Atomic.h>
+#include <errno.h>
 
 bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, size_t bufferSize)
 {
 	if (!allocator || !buffer || !bufferSize || (uintptr_t)buffer % DS_ALLOC_ALIGNMENT != 0)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	((dsAllocator*)allocator)->size = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsBufferAllocator_alloc;
@@ -35,7 +39,10 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size)
 {
 	if (!allocator || !size)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	// Use atomic operations to allow for thread safety.
 	// PTR is the same size is size_t.
@@ -45,7 +52,10 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size)
 	{
 		offset = DS_ALIGNED_SIZE(curSize);
 		if (offset + size > allocator->bufferSize)
+		{
+			errno = ENOMEM;
 			return NULL;
+		}
 
 		nextSize = offset + size;
 	}
@@ -57,7 +67,10 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size)
 bool dsBufferAllocator_reset(dsBufferAllocator* allocator)
 {
 	if (!allocator || !allocator->buffer || !allocator->bufferSize)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	((dsAllocator*)allocator)->size = 0;
 	return true;

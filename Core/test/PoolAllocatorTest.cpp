@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
@@ -54,10 +55,12 @@ TEST(PoolAllocator, Initialize)
 	EXPECT_EQ(bufferSize, dsPoolAllocator_bufferSize(chunkSize, chunkCount));
 
 	dsPoolAllocator allocator;
-	EXPECT_FALSE(dsPoolAllocator_initialize(nullptr, chunkSize, chunkCount, buffer, bufferSize));
-	EXPECT_FALSE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer,
+	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_initialize(nullptr, chunkSize, chunkCount, buffer,
+		bufferSize));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer,
 		bufferSize - 1));
-	EXPECT_FALSE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, NULL, bufferSize));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, NULL,
+		bufferSize));
 	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
 
 	EXPECT_EQ(buffer, allocator.buffer);
@@ -83,8 +86,8 @@ TEST(PoolAllocator, AllocateFree)
 	dsPoolAllocator allocator;
 	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
 
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 17));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 17));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr1);
@@ -148,7 +151,7 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(4U, allocator.initializedCount);
 	EXPECT_EQ(4*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
 
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, chunkSize));
+	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, chunkSize));
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr4));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -187,8 +190,8 @@ TEST(PoolAllocator, Reset)
 	dsPoolAllocator allocator;
 	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
 
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 17));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 17));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr1);
@@ -228,7 +231,7 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
 
-	EXPECT_FALSE(dsPoolAllocator_reset(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_reset(nullptr));
 	EXPECT_TRUE(dsPoolAllocator_reset(&allocator));
 	
 	ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);

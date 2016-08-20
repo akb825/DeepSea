@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -39,7 +40,10 @@ static size_t getMallocSize(void* ptr)
 bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, size_t limit)
 {
 	if (!allocator || limit == 0)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	((dsAllocator*)allocator)->size = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
@@ -51,11 +55,17 @@ bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, size_t limit)
 void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 {
 	if (!allocator)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	// Check to see if the size will exceed the limit.
 	if (((dsAllocator*)allocator)->size + size > allocator->limit)
+	{
+		errno = ENOMEM;
 		return NULL;
+	}
 
 	void* ptr;
 #if DS_WINDOWS
@@ -78,6 +88,7 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 #else
 		free(ptr);
 #endif
+		errno = ENOMEM;
 		return NULL;
 	}
 
@@ -88,7 +99,10 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr)
 {
 	if (!allocator)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	if (ptr)
 		((dsAllocator*)allocator)->size -= getMallocSize(ptr);

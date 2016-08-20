@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Core/Profile.h>
+#include <errno.h>
 
 static void* gUserData;
 static dsProfileFrameFunction gStartFrameFunc;
@@ -28,7 +29,10 @@ bool dsProfile_setFunctions(void* userData, dsProfileFrameFunction startFrameFun
 	dsProfilePopFunction popFunc, dsProfileStatFunction statFunc)
 {
 	if (!startFrameFunc || !endFrameFunc || !pushFunc || !popFunc || !statFunc)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	gUserData = userData;
 	gStartFrameFunc = startFrameFunc;

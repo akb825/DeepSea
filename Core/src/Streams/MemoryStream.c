@@ -16,12 +16,16 @@
 
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Assert.h>
+#include <errno.h>
 #include <string.h>
 
 bool dsMemoryStream_open(dsMemoryStream* stream, void* buffer, size_t size)
 {
 	if (!stream || !buffer)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	((dsStream*)stream)->readFunc = (dsStreamReadFunction)&dsMemoryStream_read;
 	((dsStream*)stream)->writeFunc = (dsStreamWriteFunction)&dsMemoryStream_write;
@@ -39,7 +43,10 @@ bool dsMemoryStream_open(dsMemoryStream* stream, void* buffer, size_t size)
 size_t dsMemoryStream_read(dsMemoryStream* stream, void* data, size_t size)
 {
 	if (!stream || !stream->buffer || stream->position >= stream->size || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	size_t remaining = stream->size - stream->position;
 	if (size > remaining)
@@ -54,7 +61,10 @@ size_t dsMemoryStream_read(dsMemoryStream* stream, void* data, size_t size)
 size_t dsMemoryStream_write(dsMemoryStream* stream, const void* data, size_t size)
 {
 	if (!stream || !stream->buffer || stream->position >= stream->size || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	size_t remaining = stream->size - stream->position;
 	if (size > remaining)
@@ -69,7 +79,10 @@ size_t dsMemoryStream_write(dsMemoryStream* stream, const void* data, size_t siz
 bool dsMemoryStream_seek(dsMemoryStream* stream, int64_t offset, dsStreamSeekWay way)
 {
 	if (!stream || !stream->buffer)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	size_t position;
 	switch (way)
@@ -85,11 +98,15 @@ bool dsMemoryStream_seek(dsMemoryStream* stream, int64_t offset, dsStreamSeekWay
 			break;
 		default:
 			DS_ASSERT(false);
+			errno = EINVAL;
 			return false;
 	}
 
 	if (position > stream->size)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	stream->position = position;
 	return true;
@@ -98,7 +115,10 @@ bool dsMemoryStream_seek(dsMemoryStream* stream, int64_t offset, dsStreamSeekWay
 uint64_t dsMemoryStream_tell(dsMemoryStream* stream)
 {
 	if (!stream || !stream->buffer)
+	{
+		errno = EINVAL;
 		return DS_STREAM_INVALID_POS;
+	}
 
 	return stream->position;
 }
@@ -106,7 +126,10 @@ uint64_t dsMemoryStream_tell(dsMemoryStream* stream)
 bool dsMemoryStream_close(dsMemoryStream* stream)
 {
 	if (!stream || !stream->buffer)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	stream->buffer = NULL;
 	stream->size = 0;

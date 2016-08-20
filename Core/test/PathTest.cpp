@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Streams/Path.h>
 #include <gtest/gtest.h>
 
 TEST(PathTest, Combine)
 {
 	char result[DS_PATH_MAX];
-	EXPECT_FALSE(dsPath_combine(nullptr, DS_PATH_MAX, "", ""));
-	EXPECT_FALSE(dsPath_combine(result, 0, "", ""));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(nullptr, DS_PATH_MAX, "", ""));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(result, 0, "", ""));
 
 	strncpy(result, "test", DS_PATH_MAX);
-	EXPECT_FALSE(dsPath_combine(result, DS_PATH_MAX, "", result));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_combine(result, DS_PATH_MAX, "", result));
 
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "", ""));
 	EXPECT_STREQ("", result);
@@ -59,10 +60,10 @@ TEST(PathTest, Combine)
 	EXPECT_STREQ("/test", result);
 #endif
 
-	EXPECT_FALSE(dsPath_combine(result, 11, "path1", "path2"));
+	EXPECT_FALSE_ERRNO(ERANGE, dsPath_combine(result, 11, "path1", "path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
 
-	EXPECT_FALSE(dsPath_combine(result, 11, "path1//", "//path2"));
+	EXPECT_FALSE_ERRNO(ERANGE, dsPath_combine(result, 11, "path1//", "//path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1//", "//path2"));
 
 	result[0] = 0;
@@ -74,10 +75,10 @@ TEST(PathTest, Combine)
 TEST(PathTest, GetDirectoryName)
 {
 	char result[DS_PATH_MAX];
-	EXPECT_FALSE(dsPath_getDirectoryName(nullptr, DS_PATH_MAX, "test/"));
-	EXPECT_FALSE(dsPath_getDirectoryName(result, 0, "test/"));
-	EXPECT_FALSE(dsPath_getDirectoryName(result, DS_PATH_MAX, ""));
-	EXPECT_FALSE(dsPath_getDirectoryName(result, DS_PATH_MAX, "test"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_getDirectoryName(nullptr, DS_PATH_MAX, "test/"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_getDirectoryName(result, 0, "test/"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_getDirectoryName(result, DS_PATH_MAX, ""));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_getDirectoryName(result, DS_PATH_MAX, "test"));
 
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "test/"));
 	EXPECT_STREQ("test", result);
@@ -102,12 +103,12 @@ TEST(PathTest, GetDirectoryName)
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "/test/directory/name/"));
 	EXPECT_STREQ("/test/directory/name", result);
 
-	EXPECT_FALSE(dsPath_getDirectoryName(result, strlen("/test/directory"),
+	EXPECT_FALSE_ERRNO(ERANGE, dsPath_getDirectoryName(result, strlen("/test/directory"),
 		"/test/directory/name"));
 	EXPECT_TRUE(dsPath_getDirectoryName(result, strlen("/test/directory") + 1,
 		"/test/directory/name"));
 
-	EXPECT_FALSE(dsPath_getDirectoryName(result, 1, "/test"));
+	EXPECT_FALSE_ERRNO(ERANGE, dsPath_getDirectoryName(result, 1, "/test"));
 	EXPECT_TRUE(dsPath_getDirectoryName(result, 2, "/test"));
 
 	strncpy(result, "test/directory/name", DS_PATH_MAX);
@@ -147,9 +148,9 @@ TEST(PathTest, GetLastExtension)
 TEST(PathTest, RemoveLastExtension)
 {
 	char result[DS_PATH_MAX];
-	EXPECT_FALSE(dsPath_removeLastExtension(nullptr, DS_PATH_MAX, "test"));;
-	EXPECT_FALSE(dsPath_removeLastExtension(result, 0, "test"));
-	EXPECT_FALSE(dsPath_removeLastExtension(result, DS_PATH_MAX, nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(nullptr, DS_PATH_MAX, "test"));;
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(result, 0, "test"));
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(result, DS_PATH_MAX, nullptr));
 
 	EXPECT_TRUE(dsPath_removeLastExtension(result, DS_PATH_MAX, "test"));
 	EXPECT_STREQ("test", result);
@@ -165,6 +166,11 @@ TEST(PathTest, RemoveLastExtension)
 
 	EXPECT_TRUE(dsPath_removeLastExtension(result, DS_PATH_MAX, "test.file/name"));
 	EXPECT_STREQ("test.file/name", result);
+
+	EXPECT_FALSE_ERRNO(ERANGE, dsPath_removeLastExtension(result, strlen("test.file/name"),
+		"test.file/name.foo"));
+	EXPECT_TRUE(dsPath_removeLastExtension(result, strlen("test.file/name") + 1,
+		"test.file/name.foo"));
 
 	strncpy(result, "test.file/name.foo", DS_PATH_MAX);
 	EXPECT_TRUE(dsPath_removeLastExtension(result, DS_PATH_MAX, result));

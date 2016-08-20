@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <gtest/gtest.h>
@@ -22,7 +23,7 @@
 TEST(Allocator, Empty)
 {
 	dsAllocator allocator = {};
-	EXPECT_EQ(nullptr, dsAllocator_alloc(&allocator, 100));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc(&allocator, 100));
 }
 
 TEST(Allocator, NoFree)

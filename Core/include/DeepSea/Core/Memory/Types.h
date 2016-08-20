@@ -55,7 +55,8 @@ typedef struct dsAllocator dsAllocator;
  *
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
- * @return The allocated memory or NULL if an error occured.
+ * @return The allocated memory or NULL if an error occured. errno should be set if an error
+ * occurred.
  */
 typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size);
 
@@ -66,7 +67,7 @@ typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size);
  *
  * @param allocator The allocator to free from.
  * @param ptr The memory pointer to free.
- * @return True if the memory could be freed.
+ * @return True if the memory could be freed. errno should be set if false is returned.
  */
 typedef bool (*dsAllocatorFreeFunction)(dsAllocator* allocator, void* ptr);
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
@@ -38,9 +39,9 @@ TEST(BufferAllocator, Initialize)
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 
 	dsBufferAllocator allocator;
-	EXPECT_FALSE(dsBufferAllocator_initialize(nullptr, buffer, bufferSize));
-	EXPECT_FALSE(dsBufferAllocator_initialize(&allocator, buffer, 0));
-	EXPECT_FALSE(dsBufferAllocator_initialize(&allocator, buffer + 1, bufferSize));
+	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_initialize(nullptr, buffer, bufferSize));
+	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_initialize(&allocator, buffer, 0));
+	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_initialize(&allocator, buffer + 1, bufferSize));
 	EXPECT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
 	EXPECT_EQ(buffer, allocator.buffer);
 	EXPECT_EQ(bufferSize, allocator.bufferSize);
@@ -53,7 +54,7 @@ TEST(BufferAllocator, Allocate)
 
 	dsBufferAllocator allocator;
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 0));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);
 	EXPECT_NE(nullptr, ptr1);
@@ -63,18 +64,17 @@ TEST(BufferAllocator, Allocate)
 	EXPECT_EQ((uintptr_t)ptr1 + 16, (uintptr_t)ptr2);
 	EXPECT_EQ(46U, ((dsAllocator*)&allocator)->size);
 
-	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, 60);
-	EXPECT_EQ(nullptr, ptr3);
+	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, 60));
 
-	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 40);
-	EXPECT_EQ((uintptr_t)ptr1 + 48, (uintptr_t)ptr4);
+	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, 40);
+	EXPECT_EQ((uintptr_t)ptr1 + 48, (uintptr_t)ptr3);
 	EXPECT_EQ(88U, ((dsAllocator*)&allocator)->size);
 
-	void* ptr5 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
-	EXPECT_EQ((uintptr_t)ptr1 + 96, (uintptr_t)ptr5);
+	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
+	EXPECT_EQ((uintptr_t)ptr1 + 96, (uintptr_t)ptr4);
 	EXPECT_EQ(97U, ((dsAllocator*)&allocator)->size);
 
-	EXPECT_EQ(nullptr, dsAllocator_alloc((dsAllocator*)&allocator, 1));
+	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, 1));
 }
 
 TEST(BufferAllocator, Reset)
@@ -83,8 +83,8 @@ TEST(BufferAllocator, Reset)
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 	dsBufferAllocator allocator = {};
 
-	EXPECT_FALSE(dsBufferAllocator_reset(nullptr));
-	EXPECT_FALSE(dsBufferAllocator_reset(&allocator));
+	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_reset(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_reset(&allocator));
 
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
 	((dsAllocator*)&allocator)->size = 20;

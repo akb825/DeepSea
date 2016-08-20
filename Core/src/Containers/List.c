@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Containers/List.h>
 #include <DeepSea/Core/Assert.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -46,7 +47,10 @@ bool dsList_prependNode(dsList* list, dsListNode* node)
 bool dsList_appendNode(dsList* list, dsListNode* node)
 {
 	if (!list)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	return dsList_insert(list, list->tail, node);
 }
@@ -54,7 +58,10 @@ bool dsList_appendNode(dsList* list, dsListNode* node)
 bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 {
 	if (!list || !node || isNodeInList(node))
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	// Asserts indicate a corrupt list. Don't return false in these cases since it indicates
 	// something is seriously wrong, and would probably crash somewhere regardless.
@@ -98,7 +105,10 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 bool dsList_remove(dsList* list, dsListNode* node)
 {
 	if (!list || !node || !isNodeInList(node))
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	if (list->head == node)
 	{
@@ -129,7 +139,10 @@ bool dsList_remove(dsList* list, dsListNode* node)
 bool dsList_clear(dsList* list, bool resetNodePointers)
 {
 	if (!list)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	if (resetNodePointers)
 	{

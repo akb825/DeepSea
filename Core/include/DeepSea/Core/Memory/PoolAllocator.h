@@ -86,7 +86,7 @@ DS_CORE_EXPORT bool dsPoolAllocator_reset(dsPoolAllocator* allocator);
  * This can help make sure that there were no buffer overruns
  *
  * @param allocator The allocator to validate.
- * @return True if the allocator is valid.
+ * @return True if the allocator is valid. This will not set errno.
  */
 DS_CORE_EXPORT bool dsPoolAllocator_validate(dsPoolAllocator* allocator);
 

@@ -20,3 +20,18 @@ The `ds<Struct>_fullAllocSize()` function is used to determine the full size to 
 Implementations of `ds<Struct>_fullAllocSize()` should use the `DS_ALIGNED_SIZE()` macro in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules. In the most simple implmenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>))`.
 
 When allocating an array of objects based on `ds<Struct>_fullAllocSize()`, each element should be a pointer, even if the struct definition is publically provided. This is because any sub-allocations or extra padding might cause the array access to be incorrect.
+
+# Error management
+
+DeepSea will set errno (either directly or indirectly) when a function fails. Typical values to look out for include:
+
+* EINVAL: invalid arguments.
+* ENOMEM: failed to allocate memory.
+* EAGAIN: run out of thread or processess resources.
+* ENOENT: file not found.
+* EACCESS: permission denied reading a file.
+* EIO: IO error reading the a stream.
+* EILSEQ: invalid file format.
+* ERANGE: not enough space in the output.
+
+In order to get a string for the error enum, use the dsErrorString() function found in DeepSea/Core/Error.h.

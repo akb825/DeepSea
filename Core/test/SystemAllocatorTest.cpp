@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
@@ -21,7 +22,7 @@
 
 TEST(SystemAllocator, Allocation)
 {
-	EXPECT_FALSE(dsSystemAllocator_initialize(NULL, DS_ALLOCATOR_NO_LIMIT));
+	EXPECT_FALSE_ERRNO(EINVAL, dsSystemAllocator_initialize(NULL, DS_ALLOCATOR_NO_LIMIT));
 
 	dsSystemAllocator systemAllocator;
 	ASSERT_FALSE(dsSystemAllocator_initialize(&systemAllocator, 0));

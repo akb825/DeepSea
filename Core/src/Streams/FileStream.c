@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Assert.h>
+#include <errno.h>
 
 static void initFileStream(dsFileStream* stream, FILE* file)
 {
@@ -32,7 +33,10 @@ bool dsFileStream_openPath(dsFileStream* stream, const char* filePath,
 	const char* mode)
 {
 	if (!stream || !filePath || !mode)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	FILE* file = fopen(filePath, mode);
 	if (!file)
@@ -45,7 +49,10 @@ bool dsFileStream_openPath(dsFileStream* stream, const char* filePath,
 bool dsFileStream_openFile(dsFileStream* stream, FILE* file)
 {
 	if (!stream || !file)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	initFileStream(stream, file);
 	return true;
@@ -54,7 +61,10 @@ bool dsFileStream_openFile(dsFileStream* stream, FILE* file)
 size_t dsFileStream_read(dsFileStream* stream, void* data, size_t size)
 {
 	if (!stream || !stream->file || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	return fread(data, 1, size, stream->file);
 }
@@ -62,7 +72,10 @@ size_t dsFileStream_read(dsFileStream* stream, void* data, size_t size)
 size_t dsFileStream_write(dsFileStream* stream, const void* data, size_t size)
 {
 	if (!stream || !stream->file || !data)
+	{
+		errno = EINVAL;
 		return 0;
+	}
 
 	return fwrite(data, 1, size, stream->file);
 }
@@ -70,7 +83,10 @@ size_t dsFileStream_write(dsFileStream* stream, const void* data, size_t size)
 bool dsFileStream_seek(dsFileStream* stream, int64_t offset, dsStreamSeekWay way)
 {
 	if (!stream || !stream->file)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	int whence;
 	switch (way)
@@ -86,6 +102,7 @@ bool dsFileStream_seek(dsFileStream* stream, int64_t offset, dsStreamSeekWay way
 			break;
 		default:
 			DS_ASSERT(false);
+			errno = EINVAL;
 			return false;
 	}
 	return fseek(stream->file, (long)offset, whence) == 0;
@@ -94,7 +111,10 @@ bool dsFileStream_seek(dsFileStream* stream, int64_t offset, dsStreamSeekWay way
 uint64_t dsFileStream_tell(dsFileStream* stream)
 {
 	if (!stream || !stream->file)
+	{
+		errno = EINVAL;
 		return DS_STREAM_INVALID_POS;
+	}
 
 	return ftell(stream->file);
 }
@@ -108,7 +128,10 @@ void dsFileStream_flush(dsFileStream* stream)
 bool dsFileStream_close(dsFileStream* stream)
 {
 	if (!stream || !stream->file)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	fclose(stream->file);
 	stream->file = NULL;

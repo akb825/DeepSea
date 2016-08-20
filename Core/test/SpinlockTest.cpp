@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "Helpers.h"
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -52,10 +53,10 @@ dsThreadReturnType threadFunc(void* data)
 
 TEST(Spinlock, Null)
 {
-	EXPECT_FALSE(dsSpinlock_initialize(nullptr));
-	EXPECT_FALSE(dsSpinlock_lock(nullptr));
-	EXPECT_FALSE(dsSpinlock_tryLock(nullptr));
-	EXPECT_FALSE(dsSpinlock_unlock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_initialize(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_lock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_tryLock(nullptr));
+	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_unlock(nullptr));
 }
 
 TEST(Spinlock, TryLock)
@@ -63,7 +64,7 @@ TEST(Spinlock, TryLock)
 	dsSpinlock spinlock;
 	EXPECT_TRUE(dsSpinlock_initialize(&spinlock));
 	EXPECT_TRUE(dsSpinlock_tryLock(&spinlock));
-	EXPECT_FALSE(dsSpinlock_tryLock(&spinlock));
+	EXPECT_FALSE_ERRNO(EBUSY, dsSpinlock_tryLock(&spinlock));
 	EXPECT_TRUE(dsSpinlock_unlock(&spinlock));
 	EXPECT_TRUE(dsSpinlock_tryLock(&spinlock));
 	EXPECT_TRUE(dsSpinlock_unlock(&spinlock));

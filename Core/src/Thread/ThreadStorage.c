@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Core/Thread/ThreadStorage.h>
+#include <errno.h>
 #include <string.h>
 
 #if DS_WINDOWS
@@ -27,19 +28,31 @@
 bool dsThreadStorage_initialize(dsThreadStorage* storage)
 {
 	if (!storage)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 #if DS_WINDOWS
 
 	DWORD tls = TlsAlloc();
-	if (tls == 0)
+	if (tls == TLS_OUT_OF_INDEXES)
+	{
+		if (GetLastError() == ERROR_NOT_ENOUGH_MEMORY)
+			errno = ENOMEM;
+		else
+			errno = EAGAIN;
 		return false;
+	}
 
 	storage->storage = tls;
 	return true;
 
 #else
-	return pthread_key_create(&storage->storage, NULL) == 0;
+	int errorCode = pthread_key_create(&storage->storage, NULL);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
@@ -55,9 +68,17 @@ void* dsThreadStorage_get(dsThreadStorage storage)
 bool dsThreadStorage_set(dsThreadStorage storage, void* value)
 {
 #if DS_WINDOWS
-	return TlsSetValue(storage.storage, value);
+	if (!TlsSetValue(storage.storage, value))
+	{
+		errno = EINVAL;
+		return false;
+	}
+	return true;
 #else
-	return pthread_setspecific(storage.storage, value) == 0;
+	int errorCode = pthread_setspecific(storage.storage, value);
+	if (errorCode != 0)
+		errno = errorCode;
+	return errorCode == 0;
 #endif
 }
 
