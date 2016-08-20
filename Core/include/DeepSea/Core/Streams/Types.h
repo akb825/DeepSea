@@ -21,17 +21,42 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-
 /**
  * @file
  * @brief Includes all of the types used by the Streams portion of the DeepSea/Coroe library.
  */
+
+#if DS_WINDOWS
+#define DS_PATH_MAX MAX_PATH
+#define DS_PATH_SEPARATOR '\\'
+#define DS_PATH_ALT_SEPARATOR '/'
+#else
+/**
+ * @brief Define for the typical maximum length of a path.
+ *
+ * There are cases on some filesystems where the length can exceed this path, but this should be
+ * sufficient for typical cases.
+ */
+#define DS_PATH_MAX PATH_MAX
+
+/**
+ * @brief The main path separator for the current platform.
+ */
+#define DS_PATH_SEPARATOR '/'
+
+/**
+ * @brief The alternate path separator for the current platform, or 0 if there is no alternate
+ * separator.
+ */
+#define DS_PATH_ALT_SEPARATOR 0
+#endif
 
 /**
  * @brief Constant for an invalid stream position.
