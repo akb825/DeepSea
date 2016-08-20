@@ -360,7 +360,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
 
-	if (info.push[3].name == "TestMutex")
+	if (info.push[3].name == "Mutex")
 	{
 		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
 		EXPECT_EQ("Mutex", info.push[3].name);
