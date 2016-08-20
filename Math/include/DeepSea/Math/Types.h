@@ -48,6 +48,11 @@ extern "C"
  */
 
 /**
+ * @brief The maximum value for a random number.
+ */
+#define DS_RANDOM_MAX 2147483646
+
+/**
  * @brief Structure for a 2D vector holding floats.
  *
  * This can be accessed using cartesian coordinates (x, y), texture coordinates (s, t), color
