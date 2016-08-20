@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Streams/Types.h>
 
 #ifdef __cplusplus
@@ -43,7 +44,8 @@ extern "C"
  * @param path2 The second path to add to the first one.
  * @return False if the parameters are invalid or there isn't enough space in result.
  */
-bool dsPath_combine(char* result, size_t resultSize, const char* path1, const char* path2);
+DS_CORE_EXPORT bool dsPath_combine(char* result, size_t resultSize, const char* path1,
+	const char* path2);
 
 /**
  * @brief Gets the directory name of a path.
@@ -52,28 +54,28 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
  * @param path The path to get the directory name from.
  * @return False if the parameters are invalid or there isn't enough space in result.
  */
-bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path);
+DS_CORE_EXPORT bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path);
 
 /**
  * @brief Gets the file name of the path.
  * @param path The path to get the file name for.
  * @return The file name.
  */
-const char* dsPath_getFileName(const char* path);
+DS_CORE_EXPORT const char* dsPath_getFileName(const char* path);
 
 /**
  * @brief Gets the extension of the path.
  * @param path The path to get the extension from.
  * @return The extension, or NULL if there's no extension. This will include the '.'.
  */
-const char* dsPath_getExtension(const char* path);
+DS_CORE_EXPORT const char* dsPath_getExtension(const char* path);
 
 /**
  * @brief Gets the last extension of the path.
  * @param path The path to get the extension from.
  * @return The last extension, or NULL if there's no extension. This will include the '.'.
  */
-const char* dsPath_getLastExtension(const char* path);
+DS_CORE_EXPORT const char* dsPath_getLastExtension(const char* path);
 
 /**
  * @brief Removes the last extension on a path.
@@ -82,7 +84,7 @@ const char* dsPath_getLastExtension(const char* path);
  * @param path The path to remove the file name.
  * @return False if the parameters are invalid or there isn't enough space in result.
  */
-bool dsPath_removeLastExtension(char* result, size_t resultSize, const char* path);
+DS_CORE_EXPORT bool dsPath_removeLastExtension(char* result, size_t resultSize, const char* path);
 
 #ifdef __cplusplus
 }
