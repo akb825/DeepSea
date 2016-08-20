@@ -153,7 +153,7 @@ typedef struct dsHashTable
 	union \
 	{ \
 		dsHashTable hashTable; \
-		uint8_t data[sizeof(dsHashTable) + tableSize*sizeof(void*)]; \
+		uint8_t data[sizeof(dsHashTable) + tableSize*sizeof(dsHashTableNode*)]; \
 	}
 
 #ifdef __cplusplus

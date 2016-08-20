@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Types.h>
+#include <DeepSea/Core/Memory/Types.h>
 
 #ifdef __cplusplus
 extern "C"
