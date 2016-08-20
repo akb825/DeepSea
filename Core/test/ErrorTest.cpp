@@ -19,8 +19,15 @@
 
 TEST(ErrorTest, ErrorString)
 {
+#if DS_WINDOWS
+	EXPECT_STREQ("No error", dsErrorString(0));
+	EXPECT_STREQ("Invalid argument", dsErrorString(EINVAL));
+	EXPECT_STREQ("Not enough space", dsErrorString(ENOMEM));
+	EXPECT_STREQ("Result too large", dsErrorString(ERANGE));
+#elif defined(_GNU_SOURCE)
 	EXPECT_STREQ("Success", dsErrorString(0));
 	EXPECT_STREQ("Invalid argument", dsErrorString(EINVAL));
 	EXPECT_STREQ("Cannot allocate memory", dsErrorString(ENOMEM));
 	EXPECT_STREQ("Numerical result out of range", dsErrorString(ERANGE));
+#endif
 }
