@@ -74,7 +74,7 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 	if (((dsAllocator*)allocator)->size + allocSize > allocator->limit)
 	{
 #if DS_WINDOWS
-	_	aligned_free(ptr);
+		_aligned_free(ptr);
 #else
 		free(ptr);
 #endif

@@ -52,6 +52,13 @@ TEST(PathTest, Combine)
 	EXPECT_STREQ("otherPath1/path2", result);
 #endif
 
+	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, "/", "test"));
+#if DS_WINDOWS
+	EXPECT_STREQ("\\test", result);
+#else
+	EXPECT_STREQ("/test", result);
+#endif
+
 	EXPECT_FALSE(dsPath_combine(result, 11, "path1", "path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
 
@@ -76,10 +83,18 @@ TEST(PathTest, GetDirectoryName)
 	EXPECT_STREQ("test", result);
 
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "/test"));
+#if DS_WINDOWS
+	EXPECT_STREQ("\\", result);
+#else
 	EXPECT_STREQ("/", result);
+#endif
 
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "///test"));
+#if DS_WINDOWS
+	EXPECT_STREQ("\\", result);
+#else
 	EXPECT_STREQ("/", result);
+#endif
 
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "/test/directory///name"));
 	EXPECT_STREQ("/test/directory", result);

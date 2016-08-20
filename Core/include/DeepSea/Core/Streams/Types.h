@@ -34,7 +34,7 @@ extern "C"
  */
 
 #if DS_WINDOWS
-#define DS_PATH_MAX MAX_PATH
+#define DS_PATH_MAX _MAX_PATH
 #define DS_PATH_SEPARATOR '\\'
 #define DS_PATH_ALT_SEPARATOR '/'
 #else
