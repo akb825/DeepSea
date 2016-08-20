@@ -59,7 +59,7 @@ TEST(Mutex, CreateEmptyAllocator)
 TEST(Mutex, CreateAllocator)
 {
 	dsSystemAllocator allocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
 	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, mutex);
 	dsMutex_destroy(mutex);
@@ -68,7 +68,7 @@ TEST(Mutex, CreateAllocator)
 TEST(Mutex, CreateAllocatorNoFree)
 {
 	dsSystemAllocator allocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
 	((dsAllocator*)&allocator)->freeFunc = nullptr;
 	dsMutex* mutex = dsMutex_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, mutex);

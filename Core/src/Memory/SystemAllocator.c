@@ -36,20 +36,25 @@ static size_t getMallocSize(void* ptr)
 #endif
 }
 
-bool dsSystemAllocator_initialize(dsSystemAllocator* allocator)
+bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, size_t limit)
 {
-	if (!allocator)
+	if (!allocator || limit == 0)
 		return false;
 
 	((dsAllocator*)allocator)->size = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsSystemAllocator_alloc;
 	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsSystemAllocator_free;
+	allocator->limit = limit;
 	return true;
 }
 
 void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 {
 	if (!allocator)
+		return NULL;
+
+	// Check to see if the size will exceed the limit.
+	if (((dsAllocator*)allocator)->size + size > allocator->limit)
 		return NULL;
 
 	void* ptr;
@@ -64,7 +69,19 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size)
 	if (!ptr)
 		return NULL;
 
-	((dsAllocator*)allocator)->size += getMallocSize(ptr);
+	// Check to see if the allocated size is over the limit. (e.g. alignment padding)
+	size_t allocSize = getMallocSize(ptr);
+	if (((dsAllocator*)allocator)->size + allocSize > allocator->limit)
+	{
+#if DS_WINDOWS
+	_	aligned_free(ptr);
+#else
+		free(ptr);
+#endif
+		return NULL;
+	}
+
+	((dsAllocator*)allocator)->size += allocSize;
 	return ptr;
 }
 

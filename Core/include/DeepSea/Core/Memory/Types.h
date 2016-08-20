@@ -33,6 +33,11 @@ extern "C"
  */
 
 /**
+ * @brief Define for no limit during allocations.
+ */
+#define DS_ALLOCATOR_NO_LIMIT (size_t)-1
+
+/**
  * @brief Structure that defines a memory allocator.
  *
  * This can be "subclassed" by having it as the first member of other allocator structures. This can
@@ -100,6 +105,14 @@ typedef struct dsSystemAllocator
 	 * @brief The base allocator.
 	 */
 	dsAllocator allocator;
+
+	/**
+	 * @brief The limit for the allocator.
+	 *
+	 * If an allocation would bring the size over the limit, the allocation will fail. Set to
+	 * DS_ALLOCATOR_NO_LIMIT to have no limit.
+	 */
+	size_t limit;
 } dsSystemAllocator;
 
 /**

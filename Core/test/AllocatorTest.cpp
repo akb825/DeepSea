@@ -28,7 +28,7 @@ TEST(Allocator, Empty)
 TEST(Allocator, NoFree)
 {
 	dsSystemAllocator systemAllocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
 
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
 	allocator->freeFunc = NULL;

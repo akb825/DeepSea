@@ -61,7 +61,7 @@ TEST(ConditionVariable, CreateEmptyAllocator)
 TEST(ConditionVariable, CreateAllocator)
 {
 	dsSystemAllocator allocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
 	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, condition);
 	dsConditionVariable_destroy(condition);
@@ -70,7 +70,7 @@ TEST(ConditionVariable, CreateAllocator)
 TEST(ConditionVariable, CreateAllocatorNoFree)
 {
 	dsSystemAllocator allocator;
-	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator));
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
 	((dsAllocator*)&allocator)->freeFunc = nullptr;
 	dsConditionVariable* condition = dsConditionVariable_create((dsAllocator*)&allocator, nullptr);
 	EXPECT_NE(nullptr, condition);

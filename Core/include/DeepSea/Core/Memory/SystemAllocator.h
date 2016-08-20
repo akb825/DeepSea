@@ -33,9 +33,10 @@ extern "C"
 /**
  * @brief Initializes the system system allocator.
  * @param[out] allocator The allocator to initialize.
+ * @param limit The limit for the allocator. Set to DS_ALLOCATOR_NO_LIMIT to have no limit.
  * @return False if allocator is NULL.
  */
-DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator);
+DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, size_t limit);
 
 /**
  * @brief Allocates memory from the system allocator.
