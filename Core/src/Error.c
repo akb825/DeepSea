@@ -19,11 +19,6 @@
 #include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #define BUFFER_SIZE 256
 static DS_THREAD_LOCAL char buffer[BUFFER_SIZE];
 
@@ -38,7 +33,3 @@ const char* dsErrorString(int errorCode)
 #endif
 	return buffer;
 }
-
-#ifdef __cplusplus
-}
-#endif

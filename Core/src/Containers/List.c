@@ -18,20 +18,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <errno.h>
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-static bool isNodeInList(const dsListNode* node)
-{
-	return node->previous || node->next;
-}
-
 bool dsList_initialize(dsList* list)
 {
 	if (!list)
+	{
+		errno = EINVAL;
 		return false;
+	}
 
 	list->length = 0;
 	list->head = NULL;
@@ -39,12 +32,12 @@ bool dsList_initialize(dsList* list)
 	return true;
 }
 
-bool dsList_prependNode(dsList* list, dsListNode* node)
+bool dsList_prepend(dsList* list, dsListNode* node)
 {
 	return dsList_insert(list, NULL, node);
 }
 
-bool dsList_appendNode(dsList* list, dsListNode* node)
+bool dsList_append(dsList* list, dsListNode* node)
 {
 	if (!list)
 	{
@@ -57,7 +50,7 @@ bool dsList_appendNode(dsList* list, dsListNode* node)
 
 bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 {
-	if (!list || !node || isNodeInList(node))
+	if (!list || !node)
 	{
 		errno = EINVAL;
 		return false;
@@ -67,7 +60,7 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 	// something is seriously wrong, and would probably crash somewhere regardless.
 	if (!previous)
 	{
-		DS_ASSERT(!list->head->previous);
+		DS_ASSERT(!list->head || !list->head->previous);
 		node->next = list->head;
 		if (node->next)
 		{
@@ -85,10 +78,11 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 	{
 		node->previous = previous;
 		node->next = previous->next;
+		previous->next = node;
 		if (node->next)
 		{
 			DS_ASSERT(list->tail != previous);
-			DS_ASSERT(node->next->previous = previous);
+			DS_ASSERT(node->next->previous == previous);
 			node->next->previous = node;
 		}
 		else
@@ -104,7 +98,7 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 
 bool dsList_remove(dsList* list, dsListNode* node)
 {
-	if (!list || !node || !isNodeInList(node))
+	if (!list || !node)
 	{
 		errno = EINVAL;
 		return false;
@@ -136,7 +130,7 @@ bool dsList_remove(dsList* list, dsListNode* node)
 	return true;
 }
 
-bool dsList_clear(dsList* list, bool resetNodePointers)
+bool dsList_clear(dsList* list)
 {
 	if (!list)
 	{
@@ -144,23 +138,8 @@ bool dsList_clear(dsList* list, bool resetNodePointers)
 		return false;
 	}
 
-	if (resetNodePointers)
-	{
-		for (dsListNode* node = list->head; node;)
-		{
-			dsListNode* next = node->next;
-			node->previous = NULL;
-			node->next = NULL;
-			node = next;
-		}
-	}
-
 	list->head = NULL;
 	list->tail = NULL;
 	list->length = 0;
 	return true;
 }
-
-#ifdef __cplusplus
-}
-#endif

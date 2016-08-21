@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
@@ -37,9 +38,6 @@ extern "C"
  * @brief Structure that defines a list node.
  *
  * Put this as the first element of a structure to be able to store it within a dsList.
- *
- * The previous and next pointers must be set to NULL before inserting into a list. This can be
- * done manually or by calling dsListNode_initialize.
  */
 typedef struct dsListNode dsListNode;
 
@@ -102,10 +100,34 @@ struct dsHashTableNode
 	dsHashTableNode* chainNext;
 
 	/**
-	 * @brief The hash for the node.
+	 * @brief The data for the key.
+	 *
+	 * This will be set when the node is inserted.
 	 */
-	size_t hash;
+	const void* key;
+
+	/**
+	 * @brief The hash for the key.
+	 *
+	 * This will be set when the node is inserted.
+	 */
+	uint32_t hash;
 };
+
+/**
+ * @brief Function for getting the hash for a key.
+ * @param key The key to hash.
+ * @return The hash for the key.
+ */
+typedef uint32_t (*dsHashFunction)(const void* key);
+
+/**
+ * @brief Function for checking if two keys are equal.
+ * @param first The first key to check.
+ * @param second The second key to check.
+ * @return True if first and second are equal.
+ */
+typedef bool (*dsKeysEqualFunction)(const void* first, const void* second);
 
 #if DS_WINDOWS
 #pragma warning(push)
@@ -117,6 +139,10 @@ struct dsHashTableNode
  *
  * The has table can be cast to a dsList in order to access iterate over the nodes and get the
  * total number of elements. This list should not be modified.
+ *
+ * A hash table can be created in two ways:
+ * 1. Use the DS_STATIC_HASH_TABLE macro to statically declare a hash table with a set table size.
+ * 2. Use the dsHashTable_sizeof() function to compute the size to dynamically allocate.
  */
 typedef struct dsHashTable
 {
@@ -126,7 +152,17 @@ typedef struct dsHashTable
 	dsList list;
 
 	/**
-	 * @brief The number of elements stored within the table.
+	 * @brief The hash function for the keys.
+	 */
+	dsHashFunction hashFunc;
+
+	/**
+	 * @brief The function for comparing two keys.
+	 */
+	dsKeysEqualFunction keysEqualFunc;
+
+	/**
+	 * @brief The number of hash buckets for the hash table.
 	 */
 	size_t tableSize;
 

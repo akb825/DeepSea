@@ -34,15 +34,6 @@ extern "C"
  */
 
 /**
- * @brief Initializes a list node.
- *
- * This clears out the previous and next pointers, which is required to add it to a list.
- *
- * @param node The node to initialize.
- */
-inline bool dsListNode_initialize(dsListNode* node);
-
-/**
  * @brief Initializes a list.
  * @param list The list to initialize.
  * @return False if list is NULL.
@@ -53,17 +44,17 @@ DS_CORE_EXPORT bool dsList_initialize(dsList* list);
  * @brief Appends a node to the beginning of the list.
  * @param list The list to append the node to.
  * @param node The node to append.
- * @return False if either parameter is NULL or if the node previous or next pointer is set.
+ * @return False if either list or node is NULL or if the node previous or next pointer is set.
  */
-DS_CORE_EXPORT bool dsList_prependNode(dsList* list, dsListNode* node);
+DS_CORE_EXPORT bool dsList_prepend(dsList* list, dsListNode* node);
 
 /**
  * @brief Appends a node to the end of the list.
  * @param list The list to append the node to.
  * @param node The node to append.
- * @return False if either parameter is NULL or if the node previous or next pointer is set.
+ * @return False if either list or node is NULL.
  */
-DS_CORE_EXPORT bool dsList_appendNode(dsList* list, dsListNode* node);
+DS_CORE_EXPORT bool dsList_append(dsList* list, dsListNode* node);
 
 /**
  * @brief Inserts a node into the list.
@@ -71,7 +62,7 @@ DS_CORE_EXPORT bool dsList_appendNode(dsList* list, dsListNode* node);
  * @param previous The node to insert after. If NULL, node will be inserted at the beginning of
  * the list.
  * @param node The node to insert.
- * @return False if either list or node is NULL or if the node previous or next pointer is set.
+ * @return False if either list or node is NULL.
  */
 DS_CORE_EXPORT bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node);
 
@@ -86,21 +77,9 @@ DS_CORE_EXPORT bool dsList_remove(dsList* list, dsListNode* node);
 /**
  * @brief Clears the contents of the list.
  * @param list The list to clear.
- * @param resetNodePointers True to set the previous and next pointers for each node to NULL. This
- * is useful if the nodes will be inserted into another list.
- * @return False if the list is NULL.
+ * @return False if list is NULL.
  */
-DS_CORE_EXPORT bool dsList_clear(dsList* list, bool resetNodePointers);
-
-inline bool dsListNode_initialize(dsListNode* node)
-{
-	if (!node)
-		return false;
-
-	node->previous = NULL;
-	node->next = NULL;
-	return true;
-}
+DS_CORE_EXPORT bool dsList_clear(dsList* list);
 
 #ifdef __cplusplus
 }
