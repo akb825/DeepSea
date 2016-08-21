@@ -29,3 +29,27 @@ TEST(RandomTest, Random)
 	EXPECT_EQ(rand(), dsRandom(&seed));
 	EXPECT_EQ(rand(), dsRandom(&seed));
 }
+
+TEST(RandomTest, RandomDouble)
+{
+	uint32_t seed = 0;
+
+	for (unsigned int i = 0; i < 1000; ++i)
+	{
+		double val = dsRandomDouble(&seed, -0.3, 7.9);
+		EXPECT_LE(-0.3, val);
+		EXPECT_GE(7.9, val);
+	}
+}
+
+TEST(RandomTest, RandomInt)
+{
+	uint32_t seed = 0;
+
+	for (unsigned int i = 0; i < 1000; ++i)
+	{
+		int val = dsRandomInt(&seed, -3, 9);
+		EXPECT_LE(-3, val);
+		EXPECT_GE(9, val);
+	}
+}

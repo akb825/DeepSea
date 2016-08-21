@@ -16,6 +16,7 @@
 
 #include <DeepSea/Math/Random.h>
 #include <DeepSea/Core/Assert.h>
+#include <math.h>
 
 uint32_t dsRandom(uint32_t* seed)
 {
@@ -23,4 +24,18 @@ uint32_t dsRandom(uint32_t* seed)
 	uint64_t temp = *seed ? *seed : 1;
 	temp = temp*48271 % (DS_RANDOM_MAX + 1);
 	return *seed = (uint32_t)temp;
+}
+
+double dsRandomDouble(uint32_t* seed, double minVal, double maxVal)
+{
+	double range = maxVal - minVal;
+	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
+	return baseVal*range + minVal;
+}
+
+int dsRandomInt(uint32_t* seed, int minVal, int maxVal)
+{
+	int range = maxVal - minVal;
+	double baseVal = (double)dsRandom(seed)/DS_RANDOM_MAX;
+	return (int)round(baseVal*range) + minVal;
 }

@@ -40,6 +40,25 @@ extern "C"
  */
 DS_MATH_EXPORT uint32_t dsRandom(uint32_t* seed);
 
+/**
+ * @brief Returns a random double value.
+ * @param minVal The minimum double value.
+ * @param maxVal The maximum double value.
+ * @return A random double value.
+ */
+DS_MATH_EXPORT double dsRandomDouble(uint32_t* seed, double minVal, double maxVal);
+
+/**
+ * @brief Returns a random int value.
+ *
+ * This tries to use the full range of random bits rather than just the bottom few.
+ *
+ * @param minVal The minimum int value.
+ * @param maxVal The maximum int value.
+ * @return A random int value.
+ */
+DS_MATH_EXPORT int dsRandomInt(uint32_t* seed, int minVal, int maxVal);
+
 #ifdef __cplusplus
 }
 #endif
