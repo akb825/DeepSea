@@ -70,14 +70,6 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size, unsigne
 	void* ptr;
 #if DS_WINDOWS
 	ptr = _aligned_malloc(size, alignment);
-#elif DS_APPLE
-	// malloc is always 16-bit aligned. No equivalent to alligned_alloc.
-	if (alignment > DS_ALLOC_ALIGNMENT)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-	ptr = malloc(size);
 #else
 	int errorCode = posix_memalign(&ptr, alignment, size);
 	if (errorCode != 0)
