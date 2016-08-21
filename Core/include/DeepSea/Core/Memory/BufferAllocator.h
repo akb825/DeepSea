@@ -46,9 +46,12 @@ DS_CORE_EXPORT bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, v
  * @brief Allocates memory from the buffer allocator.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
+ * @param alignment The minimum alignment of the allocation. This will fail if it is greater than
+ * DS_ALLOC_ALIGNMENT.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size);
+DS_CORE_EXPORT void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size,
+	unsigned int alignment);
 
 /**
  * @brief Resets the buffer allocator to the beginning.

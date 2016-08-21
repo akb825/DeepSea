@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/Types.h>
 #include <errno.h>
 
@@ -33,7 +34,7 @@ extern "C"
 /**
  * @brief Allocates memory from the allocator.
  *
- * The alignment of the returned pointer must be at least 16-byte aligned.
+ * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT.
  *
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
@@ -57,7 +58,7 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 		return NULL;
 	}
 
-	return allocator->allocFunc(allocator, size);
+	return allocator->allocFunc(allocator, size, DS_ALLOC_ALIGNMENT);
 }
 
 inline bool dsAllocator_free(dsAllocator* allocator, void* ptr)

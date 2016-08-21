@@ -36,9 +36,9 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 	return true;
 }
 
-void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size)
+void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigned int alignment)
 {
-	if (!allocator || !size)
+	if (!allocator || !size || alignment > DS_ALLOC_ALIGNMENT)
 	{
 		errno = EINVAL;
 		return NULL;

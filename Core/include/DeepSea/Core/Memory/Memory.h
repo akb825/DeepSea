@@ -31,7 +31,8 @@ extern "C"
 /**
  * @brief The alignment of allocated memory.
  *
- * All allocators should ensure that memory is aligned to this amount.
+ * This is the alignment used within the DeepSea libraries, and allows for SIMD types to be used
+ * directly.
  */
 #define DS_ALLOC_ALIGNMENT 16
 

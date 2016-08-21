@@ -42,9 +42,11 @@ DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, s
  * @brief Allocates memory from the system allocator.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
+ * @param alignment The minimum alignment for the allocation.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size);
+DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size,
+	unsigned int alignment);
 
 /**
  * @brief Frees memory from the system allocator.

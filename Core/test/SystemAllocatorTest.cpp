@@ -65,19 +65,19 @@ TEST(SystemAllocator, DirectAllocation)
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
 	EXPECT_EQ(0, allocator->size);
 
-	void* ptr1 = dsSystemAllocator_alloc(&systemAllocator, 11);
+	void* ptr1 = dsSystemAllocator_alloc(&systemAllocator, 11, DS_ALLOC_ALIGNMENT);
 	size_t size1 = allocator->size;
 	EXPECT_NE(nullptr, ptr1);
 	EXPECT_EQ(0, (uintptr_t)ptr1 % 16);
 	EXPECT_LE(10U, size1);
 
-	void* ptr2 = dsSystemAllocator_alloc(&systemAllocator, 101);
+	void* ptr2 = dsSystemAllocator_alloc(&systemAllocator, 101, DS_ALLOC_ALIGNMENT);
 	size_t size2 = allocator->size;
 	EXPECT_NE(nullptr, ptr2);
 	EXPECT_EQ(0, (uintptr_t)ptr2 % 16);
 	EXPECT_LE(112U, size2);
 
-	void* ptr3 = dsSystemAllocator_alloc(&systemAllocator, 1003);
+	void* ptr3 = dsSystemAllocator_alloc(&systemAllocator, 1003, DS_ALLOC_ALIGNMENT);
 	size_t size3 = allocator->size;
 	EXPECT_NE(nullptr, ptr3);
 	EXPECT_EQ(0, (uintptr_t)ptr3 % 16);

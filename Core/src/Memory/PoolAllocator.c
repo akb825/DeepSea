@@ -59,9 +59,9 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 	return true;
 }
 
-void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size)
+void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size, unsigned int alignment)
 {
-	if (!allocator || !allocator->buffer || !size)
+	if (!allocator || !allocator->buffer || !size || alignment > DS_ALLOC_ALIGNMENT)
 	{
 		errno = EINVAL;
 		return NULL;

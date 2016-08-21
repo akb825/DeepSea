@@ -88,6 +88,7 @@ TEST(PoolAllocator, AllocateFree)
 
 	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
 	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 17));
+	EXPECT_NULL_ERRNO(EINVAL, dsPoolAllocator_alloc(&allocator, chunkSize, 32));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr1);

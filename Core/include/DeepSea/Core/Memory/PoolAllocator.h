@@ -58,9 +58,12 @@ DS_CORE_EXPORT bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_
  * @brief Allocates memory from the pool allocator.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate. This must be equal to or less than the pool size.
+ * @param alignment The minimum alignment of the allocation. This will fail if it is greater than
+ * DS_ALLOC_ALIGNMENT.
  * @return The allocated memory or NULL if an error occured.
  */
-DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size);
+DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size,
+	unsigned int alignment);
 
 /**
  * @brief Frees memory from the pool allocator.

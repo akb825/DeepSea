@@ -55,10 +55,14 @@ typedef struct dsAllocator dsAllocator;
  *
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
+ * @param alignment The minimum alignment of the allocation. When called by DeepSea (such as with
+ * dsAllocator_alloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with external
+ * libraries (e.g. Vulkan, physics libraries) it may have a different minimum alignment.
  * @return The allocated memory or NULL if an error occured. errno should be set if an error
  * occurred.
  */
-typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size);
+typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
+	unsigned int alignment);
 
 /**
  * @brief Function for freeing memory from the allocator.
@@ -99,6 +103,9 @@ struct dsAllocator
  *
  * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
  * cast between the two types.
+ *
+ * @remark This allows alignments of any size that is a power of two, so it may be used with
+ * external libraries with greater alignment requirements.
  */
 typedef struct dsSystemAllocator
 {
@@ -126,7 +133,7 @@ typedef struct dsSystemAllocator
  * to the buffer.
  *
  * The size member of dsAllocator will be used for the offset of the next memory allocated from the
- * buffer.
+ * buffer. Adjusting the size member can be used to reset where future allocations occur.
  */
 typedef struct dsBufferAllocator
 {
