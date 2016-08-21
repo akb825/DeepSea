@@ -42,6 +42,7 @@ DS_MATH_EXPORT uint32_t dsRandom(uint32_t* seed);
 
 /**
  * @brief Returns a random double value.
+ * @param seed The seed for the random number generator. This will be updated to allow the next.
  * @param minVal The minimum double value.
  * @param maxVal The maximum double value.
  * @return A random double value.
@@ -53,6 +54,7 @@ DS_MATH_EXPORT double dsRandomDouble(uint32_t* seed, double minVal, double maxVa
  *
  * This tries to use the full range of random bits rather than just the bottom few.
  *
+ * @param seed The seed for the random number generator. This will be updated to allow the next.
  * @param minVal The minimum int value.
  * @param maxVal The maximum int value.
  * @return A random int value.
