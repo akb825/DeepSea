@@ -206,18 +206,62 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
 #if DS_64BIT
 
 /**
+ * @brief Atomically loads a size_t value.
+ * @param[in] xPtr A pointer to the atomic value to load.
+ * @param[out] returnPtr A pointer to the value to load to.
+ */
+#define DS_ATOMIC_LOAD_SIZE(xPtr, returnPtr) DS_ATOMIC_LOAD64(xPtr, returnPtr)
+
+/**
+ * @brief Atomically stores a size_t value.
+ * @param[out] xPtr A pointer to the atomic value to store to.
+ * @param[in] valuePtr A pointer to the value to store.
+ */
+#define DS_ATOMIC_STORE_SIZE(xPtr, valuePtr) DS_ATOMIC_STORE64(xPtr, valuePtr)
+
+/**
+ * @brief Atomically exchanges a size value.
+ * @param[out] xPtr A pointer to the atomic value to exchange with.
+ * @param[in] valuePtr A pointer to the new value to set.
+ * @param[out] returnPtr A pointer to store the original value.
+ */
+#define DS_ATOMIC_EXCHANGE_SIZE(xPtr, valuePtr, returnPtr) \
+	DS_ATOMIC_EXCHANGE64(xPtr, valuePtr, returnPtr)
+
+/**
+ * @brief Atomically exchanges a size_t value if atomic value matches the expected value.
+ * @param[inout] xPtr A pointer to the atomic value to exchange with.
+ * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
+ * current value of xPtr if the comparison fails.
+ * @param[in] valuePtr A pointer to the new value to set.
+ * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
+ * improve performance, but the call should be done in a loop.
+ * @return True if the exchange took place.
+ */
+#define DS_ATOMIC_COMPARE_EXCHANGE_SIZE(xPtr, expectedPtr, valuePtr, weak) \
+	DS_ATOMIC_COMPARE_EXCHANGE64(xPtr, expectedPtr, valuePtr, weak)
+
+/**
+ * @brief Atomically fetches a size_t value and adds to it.
+ * @param[inout] xPtr A pointer to the atomic value to add to.
+ * @param value The value to add to the atomic value.
+ * @return The value of the atomic value before the add.
+ */
+#define DS_ATOMIC_FETCH_ADD_SIZE(xPtr, value) DS_ATOMIC_FETCH_ADD64(xPtr, value)
+
+/**
  * @brief Atomically loads a pointer value.
  * @param[in] xPtr A pointer to the atomic value to load.
  * @param[out] returnPtr A pointer to the value to load to.
  */
-#define DS_ATOMIC_LOADPTR(xPtr, returnPtr) DS_ATOMIC_LOAD64(xPtr, returnPtr)
+#define DS_ATOMIC_LOAD_PTR(xPtr, returnPtr) DS_ATOMIC_LOAD64(xPtr, returnPtr)
 
 /**
  * @brief Atomically stores a pointer value.
  * @param[out] xPtr A pointer to the atomic value to store to.
  * @param[in] valuePtr A pointer to the value to store.
  */
-#define DS_ATOMIC_STOREPTR(xPtr, valuePtr) DS_ATOMIC_STORE64(xPtr, valuePtr)
+#define DS_ATOMIC_STORE_PTR(xPtr, valuePtr) DS_ATOMIC_STORE64(xPtr, valuePtr)
 
 /**
  * @brief Atomically exchanges a pointer value.
@@ -225,7 +269,7 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
  * @param[in] valuePtr A pointer to the new value to set.
  * @param[out] returnPtr A pointer to store the original value.
  */
-#define DS_ATOMIC_EXCHANGEPTR(xPtr, valuePtr, returnPtr) \
+#define DS_ATOMIC_EXCHANGE_PTR(xPtr, valuePtr, returnPtr) \
 	DS_ATOMIC_EXCHANGE64(xPtr, valuePtr, returnPtr)
 
 /**
@@ -238,7 +282,7 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
  * improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
  */
-#define DS_ATOMIC_COMPARE_EXCHANGEPTR(xPtr, expectedPtr, valuePtr, weak) \
+#define DS_ATOMIC_COMPARE_EXCHANGE_PTR(xPtr, expectedPtr, valuePtr, weak) \
 	DS_ATOMIC_COMPARE_EXCHANGE64(xPtr, expectedPtr, valuePtr, weak)
 
 /**
@@ -247,22 +291,34 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
  * @param value The value to add to the atomic value.
  * @return The value of the atomic value before the add. This will be returned as a void*.
  */
-#define DS_ATOMIC_FETCH_ADDPTR(xPtr, value) \
+#define DS_ATOMIC_FETCH_ADD_PTR(xPtr, value) \
 	(void*)DS_ATOMIC_FETCH_ADD64(xPtr, (value)*(int64_t)sizeof(**(xPtr)))
 
 #else
 
-#define DS_ATOMIC_LOADPTR(xPtr, valuePtr) DS_ATOMIC_LOAD32(xPtr, valuePtr)
+#define DS_ATOMIC_LOAD_SIZE(xPtr, valuePtr) DS_ATOMIC_LOAD32(xPtr, valuePtr)
 
-#define DS_ATOMIC_STOREPTR(xPtr, valuePtr) DS_ATOMIC_STORE32(xPtr, valuePtr)
+#define DS_ATOMIC_STORE_SIZE(xPtr, valuePtr) DS_ATOMIC_STORE32(xPtr, valuePtr)
 
-#define DS_ATOMIC_EXCHANGEPTR(xPtr, valuePtr, returnPtr) \
+#define DS_ATOMIC_EXCHANGE_SIZE(xPtr, valuePtr, returnPtr) \
 	DS_ATOMIC_EXCHANGE32(xPtr, valuePtr, returnPtr)
 
-#define DS_ATOMIC_COMPARE_EXCHANGEPTR(xPtr, expectedPtr, valuePtr, weak) \
+#define DS_ATOMIC_COMPARE_EXCHANGE_SIZE(xPtr, expectedPtr, valuePtr, weak) \
 	DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak)
 
-#define DS_ATOMIC_FETCH_ADDPTR(xPtr, value) \
+#define DS_ATOMIC_FETCH_ADD_SIZE(xPtr, value)  DS_ATOMIC_FETCH_ADD32(xPtr, value)
+
+#define DS_ATOMIC_LOAD_PTR(xPtr, valuePtr) DS_ATOMIC_LOAD32(xPtr, valuePtr)
+
+#define DS_ATOMIC_STORE_PTR(xPtr, valuePtr) DS_ATOMIC_STORE32(xPtr, valuePtr)
+
+#define DS_ATOMIC_EXCHANGE_PTR(xPtr, valuePtr, returnPtr) \
+	DS_ATOMIC_EXCHANGE32(xPtr, valuePtr, returnPtr)
+
+#define DS_ATOMIC_COMPARE_EXCHANGE_PTR(xPtr, expectedPtr, valuePtr, weak) \
+	DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak)
+
+#define DS_ATOMIC_FETCH_ADD_PTR(xPtr, value) \
 	(void*)DS_ATOMIC_FETCH_ADD32(xPtr, (value)*(int32_t)sizeof(**(xPtr)))
 
 #endif

@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
+#include <DeepSea/Core/Atomic.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -61,7 +62,9 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size, unsigne
 	}
 
 	// Check to see if the size will exceed the limit.
-	if (((dsAllocator*)allocator)->size + size > allocator->limit)
+	size_t allocatorSize;
+	DS_ATOMIC_LOAD_SIZE(&((dsAllocator*)allocator)->size, &allocatorSize);
+	if (allocatorSize + size > allocator->limit)
 	{
 		errno = ENOMEM;
 		return NULL;
@@ -83,19 +86,25 @@ void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_t size, unsigne
 		return NULL;
 
 	// Check to see if the allocated size is over the limit. (e.g. alignment padding)
+	// Protect against concurrent allocations here.
 	size_t allocSize = getMallocSize(ptr);
-	if (((dsAllocator*)allocator)->size + allocSize > allocator->limit)
+	size_t updatedSize;
+	do
 	{
-#if DS_WINDOWS
-		_aligned_free(ptr);
-#else
-		free(ptr);
-#endif
-		errno = ENOMEM;
-		return NULL;
+		updatedSize = allocatorSize + allocSize;
+		if (updatedSize > allocator->limit)
+		{
+	#if DS_WINDOWS
+			_aligned_free(ptr);
+	#else
+			free(ptr);
+	#endif
+			errno = ENOMEM;
+			return NULL;
+		}
 	}
-
-	((dsAllocator*)allocator)->size += allocSize;
+	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &allocatorSize,
+		&updatedSize, true));
 	return ptr;
 }
 
@@ -108,11 +117,15 @@ bool dsSystemAllocator_free(dsSystemAllocator* allocator, void* ptr)
 	}
 
 	if (ptr)
-		((dsAllocator*)allocator)->size -= getMallocSize(ptr);
+	{
+		DS_ATOMIC_FETCH_ADD_SIZE(&((dsAllocator*)allocator)->size, -getMallocSize(ptr));
+
 #if DS_WINDOWS
-	_aligned_free(ptr);
+		_aligned_free(ptr);
 #else
-	free(ptr);
+		free(ptr);
 #endif
+	}
+
 	return true;
 }

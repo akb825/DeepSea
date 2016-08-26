@@ -174,6 +174,38 @@ TEST(Atomic, uint64_t)
 	EXPECT_EQ(27U, atomicVal);
 }
 
+TEST(Atomic, size_t)
+{
+	size_t atomicVal = 15;
+	size_t testVal, exchangeVal;
+
+	DS_ATOMIC_LOAD_SIZE(&atomicVal, &testVal);
+	EXPECT_EQ(15, testVal);
+
+	testVal = 20;
+	DS_ATOMIC_STORE_SIZE(&atomicVal, &testVal);
+	EXPECT_EQ(20, atomicVal);
+
+	exchangeVal = 0;
+	testVal = 25;
+	DS_ATOMIC_EXCHANGE_SIZE(&atomicVal, &testVal, &exchangeVal);
+	EXPECT_EQ(25, atomicVal);
+	EXPECT_EQ(20, exchangeVal);
+
+	testVal = 30;
+	exchangeVal = 20;
+	EXPECT_FALSE(DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&atomicVal, &exchangeVal, &testVal, false));
+	EXPECT_EQ(25, atomicVal);
+	EXPECT_EQ(25, exchangeVal);
+
+	EXPECT_TRUE(DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&atomicVal, &exchangeVal, &testVal, false));
+	EXPECT_EQ(30, atomicVal);
+	EXPECT_EQ(25, exchangeVal);
+
+	EXPECT_EQ(30, DS_ATOMIC_FETCH_ADD_SIZE(&atomicVal, -3));
+	EXPECT_EQ(27, atomicVal);
+}
+
 TEST(Atomic, double)
 {
 	double atomicVal = 1.5;
@@ -209,29 +241,29 @@ TEST(Atomic, Pointer)
 	int32_t* testVal;
 	int32_t* exchangeVal;
 
-	DS_ATOMIC_LOADPTR(&atomicVal, &testVal);
+	DS_ATOMIC_LOAD_PTR(&atomicVal, &testVal);
 	EXPECT_EQ((int32_t*)16, testVal);
 
 	testVal = (int32_t*)20;
-	DS_ATOMIC_STOREPTR(&atomicVal, &testVal);
+	DS_ATOMIC_STORE_PTR(&atomicVal, &testVal);
 	EXPECT_EQ((int32_t*)20, atomicVal);
 
 	exchangeVal = 0;
 	testVal = (int32_t*)24;
-	DS_ATOMIC_EXCHANGEPTR(&atomicVal, &testVal, &exchangeVal);
+	DS_ATOMIC_EXCHANGE_PTR(&atomicVal, &testVal, &exchangeVal);
 	EXPECT_EQ((int32_t*)24, atomicVal);
 	EXPECT_EQ((int32_t*)20, exchangeVal);
 
 	testVal = (int32_t*)28;
 	exchangeVal = (int32_t*)20;
-	EXPECT_FALSE(DS_ATOMIC_COMPARE_EXCHANGEPTR(&atomicVal, &exchangeVal, &testVal, false));
+	EXPECT_FALSE(DS_ATOMIC_COMPARE_EXCHANGE_PTR(&atomicVal, &exchangeVal, &testVal, false));
 	EXPECT_EQ((int32_t*)24, atomicVal);
 	EXPECT_EQ((int32_t*)24, exchangeVal);
 
-	EXPECT_TRUE(DS_ATOMIC_COMPARE_EXCHANGEPTR(&atomicVal, &exchangeVal, &testVal, false));
+	EXPECT_TRUE(DS_ATOMIC_COMPARE_EXCHANGE_PTR(&atomicVal, &exchangeVal, &testVal, false));
 	EXPECT_EQ((int32_t*)28, atomicVal);
 	EXPECT_EQ((int32_t*)24, exchangeVal);
 
-	EXPECT_EQ((int32_t*)28, DS_ATOMIC_FETCH_ADDPTR(&atomicVal, -3));
+	EXPECT_EQ((int32_t*)28, DS_ATOMIC_FETCH_ADD_PTR(&atomicVal, -3));
 	EXPECT_EQ((int32_t*)16, atomicVal);
 }

@@ -80,6 +80,9 @@ struct dsAllocator
 {
 	/**
 	 * @brief The current size of allocated memory.
+	 *
+	 * If this is used to allocate across different threads, it should be accessed with
+	 * DS_ATOMIC_LOAD_SIZE.
 	 */
 	size_t size;
 

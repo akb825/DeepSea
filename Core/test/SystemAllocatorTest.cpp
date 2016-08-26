@@ -18,7 +18,32 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <gtest/gtest.h>
+
+namespace
+{
+
+dsThreadReturnType threadFunc(void* data)
+{
+	dsThread_sleep(1, nullptr);
+	void* ptr = dsAllocator_alloc((dsAllocator*)data, 14);
+	EXPECT_NE(nullptr, ptr);
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)data, ptr));
+	return 0;
+}
+
+dsThreadReturnType pauseThreadFunc(void* data)
+{
+	dsThread_sleep(1, nullptr);
+	void* ptr = dsAllocator_alloc((dsAllocator*)data, 14);
+	EXPECT_NE(nullptr, ptr);
+	dsThread_sleep(1, nullptr);
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)data, ptr));
+	return 0;
+}
+
+} // namespace
 
 TEST(SystemAllocator, Allocation)
 {
@@ -112,4 +137,36 @@ TEST(SystemAllocator, Limit)
 		dsAllocator_free(allocator, ptr2);
 	if (ptr3)
 		dsAllocator_free(allocator, ptr3);
+}
+
+TEST(SystemAllocator, ThreadAlloc)
+{
+	const unsigned int threadCount = 100;
+	dsSystemAllocator allocator;
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsThread threads[threadCount];
+	for (unsigned int i = 0; i < threadCount; ++i)
+		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &allocator, 0, nullptr));
+
+	for (unsigned int i = 0; i < threadCount; ++i)
+		EXPECT_TRUE(dsThread_join(threads + i, NULL));
+
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+}
+
+TEST(SystemAllocator, ThreadAllocWithPause)
+{
+	const unsigned int threadCount = 100;
+	dsSystemAllocator allocator;
+	ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsThread threads[threadCount];
+	for (unsigned int i = 0; i < threadCount; ++i)
+		EXPECT_TRUE(dsThread_create(threads + i, &pauseThreadFunc, &allocator, 0, nullptr));
+
+	for (unsigned int i = 0; i < threadCount; ++i)
+		EXPECT_TRUE(dsThread_join(threads + i, NULL));
+
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }

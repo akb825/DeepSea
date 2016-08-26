@@ -47,7 +47,7 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 	// Use atomic operations to allow for thread safety.
 	// PTR is the same size is size_t.
 	size_t curSize, offset, nextSize;
-	DS_ATOMIC_LOADPTR(&((dsAllocator*)allocator)->size, &curSize);
+	DS_ATOMIC_LOAD_SIZE(&((dsAllocator*)allocator)->size, &curSize);
 	do
 	{
 		offset = DS_ALIGNED_SIZE(curSize);
@@ -59,7 +59,7 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 
 		nextSize = offset + size;
 	}
-	while (!DS_ATOMIC_COMPARE_EXCHANGEPTR(&((dsAllocator*)allocator)->size, &curSize, &nextSize,
+	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &curSize, &nextSize,
 		true));
 	return (uint8_t*)allocator->buffer + offset;
 }
