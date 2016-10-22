@@ -149,6 +149,70 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Multiplies two affine matrices.
+ *
+ * This assumes that the last row of both matrices is [0, 0, 0, 1].
+ *
+ * @param[out] result The result of a*b. This may NOT be the same as a or b.
+ * @param a The first matrix.
+ * @param b The second matrix.
+ */
+#define dsMatrix44_affineMul(result, a, b) \
+	do \
+	{ \
+		DS_ASSERT(&(result) != (const void*)&(a)); \
+		DS_ASSERT(&(result) != (const void*)&(b)); \
+		\
+		(result).values[0][0] = (a).values[0][0]*(b).values[0][0] + \
+								(a).values[1][0]*(b).values[0][1] + \
+								(a).values[2][0]*(b).values[0][2]; \
+		(result).values[0][1] = (a).values[0][1]*(b).values[0][0] + \
+								(a).values[1][1]*(b).values[0][1] + \
+								(a).values[2][1]*(b).values[0][2]; \
+		(result).values[0][2] = (a).values[0][2]*(b).values[0][0] + \
+								(a).values[1][2]*(b).values[0][1] + \
+								(a).values[2][2]*(b).values[0][2]; \
+		(result).values[0][3] = 0; \
+		\
+		(result).values[1][0] = (a).values[0][0]*(b).values[1][0] + \
+								(a).values[1][0]*(b).values[1][1] + \
+								(a).values[2][0]*(b).values[1][2]; \
+		(result).values[1][1] = (a).values[0][1]*(b).values[1][0] + \
+								(a).values[1][1]*(b).values[1][1] + \
+								(a).values[2][1]*(b).values[1][2]; \
+		(result).values[1][2] = (a).values[0][2]*(b).values[1][0] + \
+								(a).values[1][2]*(b).values[1][1] + \
+								(a).values[2][2]*(b).values[1][2]; \
+		(result).values[1][3] = 0; \
+		\
+		(result).values[2][0] = (a).values[0][0]*(b).values[2][0] + \
+								(a).values[1][0]*(b).values[2][1] + \
+								(a).values[2][0]*(b).values[2][2] + \
+								(a).values[3][0]*(b).values[2][3]; \
+		(result).values[2][1] = (a).values[0][1]*(b).values[2][0] + \
+								(a).values[1][1]*(b).values[2][1] + \
+								(a).values[2][1]*(b).values[2][2]; \
+		(result).values[2][2] = (a).values[0][2]*(b).values[2][0] + \
+								(a).values[1][2]*(b).values[2][1] + \
+								(a).values[2][2]*(b).values[2][2]; \
+		(result).values[2][3] = 0; \
+		\
+		(result).values[3][0] = (a).values[0][0]*(b).values[3][0] + \
+								(a).values[1][0]*(b).values[3][1] + \
+								(a).values[2][0]*(b).values[3][2] + \
+								(a).values[3][0]*(b).values[3][3]; \
+		(result).values[3][1] = (a).values[0][1]*(b).values[3][0] + \
+								(a).values[1][1]*(b).values[3][1] + \
+								(a).values[2][1]*(b).values[3][2] + \
+								(a).values[3][1]*(b).values[3][3]; \
+		(result).values[3][2] = (a).values[0][2]*(b).values[3][0] + \
+								(a).values[1][2]*(b).values[3][1] + \
+								(a).values[2][2]*(b).values[3][2] + \
+								(a).values[3][2]*(b).values[3][3]; \
+		(result).values[3][3] = 1; \
+	} while (0)
+
+/**
  * @brief Transforms a vector with a matrix.
  * @param[out] result The result of mat*vec. This may NOT be the same as vec.
  * @param mat The matrix to transform with.

@@ -712,16 +712,16 @@ TYPED_TEST(Matrix44Test, AffineInvert)
 	dsMatrix44_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3, (TypeParam)-6.5);
 
 	Matrix44Type temp;
-	dsMatrix44_mul(temp, scale, rotate);
+	dsMatrix44_affineMul(temp, scale, rotate);
 
 	Matrix44Type matrix;
-	dsMatrix44_mul(matrix, translate, temp);
+	dsMatrix44_affineMul(matrix, translate, temp);
 
 	Matrix44Type inverse;
 	dsMatrix44_affineInvert(&inverse, &matrix);
 
 	Matrix44Type result;
-	dsMatrix44_mul(result, inverse, matrix);
+	dsMatrix44_affineMul(result, inverse, matrix);
 
 	EXPECT_NEAR(1, result.values[0][0], epsilon);
 	EXPECT_NEAR(0, result.values[0][1], epsilon);

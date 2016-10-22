@@ -598,16 +598,16 @@ TYPED_TEST(Matrix33Test, AffineInvert)
 	dsMatrix33_makeTranslate(&scale, (TypeParam)-2.1, (TypeParam)4.3);
 
 	Matrix33Type temp;
-	dsMatrix33_mul(temp, scale, rotate);
+	dsMatrix33_affineMul(temp, scale, rotate);
 
 	Matrix33Type matrix;
-	dsMatrix33_mul(matrix, translate, temp);
+	dsMatrix33_affineMul(matrix, translate, temp);
 
 	Matrix33Type inverse;
 	dsMatrix33_affineInvert(&inverse, &matrix);
 
 	Matrix33Type result;
-	dsMatrix33_mul(result, inverse, matrix);
+	dsMatrix33_affineMul(result, inverse, matrix);
 
 	EXPECT_NEAR(1, result.values[0][0], epsilon);
 	EXPECT_NEAR(0, result.values[0][1], epsilon);
