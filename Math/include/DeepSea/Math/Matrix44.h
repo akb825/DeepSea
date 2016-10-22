@@ -37,6 +37,9 @@ extern "C"
  *
  * The functions have different versions for the supported Matrix44 types. These are used when the
  * implementation cannot be practically done within a macro.
+ *
+ * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
+ * the affine functions and macros.
  */
 
 /**
