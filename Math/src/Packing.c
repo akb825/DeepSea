@@ -282,6 +282,19 @@ float dsUnpackHalfFloat(dsHalfFloat x)
 	return Result.f;
 }
 
+DS_CORE_EXPORT int32_t dsPackInt32(float x);
+DS_CORE_EXPORT float dsUnpackInt32(int32_t x);
+DS_CORE_EXPORT uint32_t dsPackUInt32(float x);
+DS_CORE_EXPORT float dsUnpackUInt32(uint32_t x);
+DS_CORE_EXPORT int16_t dsPackInt16(float x);
+DS_CORE_EXPORT float dsUnpackInt16(int16_t x);
+DS_CORE_EXPORT uint16_t dsPackUInt16(float x);
+DS_CORE_EXPORT float dsUnpackUInt16(uint16_t x);
+DS_CORE_EXPORT int8_t dsPackInt8(float x);
+DS_CORE_EXPORT float dsUnpackInt8(int8_t x);
+DS_CORE_EXPORT uint8_t dsPackUInt8(float x);
+DS_CORE_EXPORT float dsUnpackUInt8(uint8_t x);
+
 #if DS_MSC
 #pragma warning(pop)
 #endif

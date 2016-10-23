@@ -59,7 +59,6 @@ inline int32_t dsPackInt32(float x);
  */
 inline float dsUnpackInt32(int32_t x);
 
-
 /**
  * @brief Packs a float into a 32-bit unsigned integer.
  * @param x The value to pack.
@@ -88,7 +87,6 @@ inline int16_t dsPackInt16(float x);
  */
 inline float dsUnpackInt16(int16_t x);
 
-
 /**
  * @brief Packs a float into a 16-bit unsigned integer.
  * @param x The value to pack.
@@ -116,7 +114,6 @@ inline int8_t dsPackInt8(float x);
  * @return The unpacked value.
  */
 inline float dsUnpackInt8(int8_t x);
-
 
 /**
  * @brief Packs a float into a 8-bit unsigned integer.
