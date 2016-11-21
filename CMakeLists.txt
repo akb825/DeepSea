@@ -9,7 +9,7 @@ set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
 set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 
-set(DEEPSEA_BUILD_GRAPHICS ON CACHE BOOL "Build graphics libraries.")
+set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
 
 # Misc options.
 set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
@@ -50,6 +50,7 @@ include(cmake/install.cmake)
 # Required libraries.
 add_subdirectory(Core)
 add_subdirectory(Math)
+add_subdirectory(Render)
 
 # Graphics libraries
 if (DEEPSEA_BUILD_GRAPHICS)
