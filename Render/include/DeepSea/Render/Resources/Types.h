@@ -39,6 +39,11 @@ extern "C"
 #define DS_MAP_FULL_BUFFER (size_t)-1
 
 /**
+ * @brief Constant for using all mip levels.
+ */
+#define DS_ALL_MIP_LEVELS (uint32_t)-1
+
+/**
  * @brief Flags used as hints for how graphics memory will be used.
  */
 typedef enum dsGfxMemory
@@ -70,6 +75,19 @@ typedef enum dsGfxBufferUsage
 	dsGfxBufferUsage_CopyFrom = 0x080,      ///< Source for GPU copy operations.
 	dsGfxBufferUsage_CopyTo = 0x100         ///< Destination for GPU and CPU copy operations.
 } dsGfxBufferUsage;
+
+/**
+ * @brief Enum for how a texture will be used.
+ *
+ * These are bitmask values, allowing a texture to be used for multiple purposes.
+ */
+typedef enum dsTextureUsage
+{
+	dsTextureUsage_Texture = 0x1,  ///< Use as a sampled texture.
+	dsTextureUsage_Image = 0x2,    ///< Use as an image without a sampler.
+	dsTextureUsage_CopyFrom = 0x4, ///< Source for GPU copy operations.
+	dsTextureUsage_CopyTo = 0x8    ///< Destination for GPU and CPU copy operations.
+} dsTextureUsage;
 
 /**
  * @brief Flags for how to map a graphics buffer to memory.
@@ -240,14 +258,33 @@ typedef enum dsGfxFormat
  */
 typedef enum dsTextureDim
 {
-	dsTextureDim_1D,        ///< 1-dimensional
-	dsTextureDim_2D,        ///< 2-dimensional
-	dsTextureDim_3D,        ///< 3-dimensional
-	dsTextureDim_Cube,      ///< Cube map
-	dsTextureDim_1DArray,   ///< 1-dimensional array
-	dsTextureDim_2DArray,   ///< 2-dimensional array
-	dsTextureDim_CubeArray  ///< Cube map array
+	dsTextureDim_1D,  ///< 1-dimensional
+	dsTextureDim_2D,  ///< 2-dimensional
+	dsTextureDim_3D,  ///< 3-dimensional
+	dsTextureDim_Cube ///< Cube map
 } dsTextureDim;
+
+/**
+ * @brief Enum for the face of a cubemap.
+ */
+typedef enum dsCubeFace
+{
+	dsCubeFace_PosX, ///< +X
+	dsCubeFace_NegX, ///< -X
+	dsCubeFace_PosY, ///< +Y
+	dsCubeFace_NegY, ///< -Y
+	dsCubeFace_PosZ, ///< +Z
+	dsCubeFace_NegZ  ///< -Z
+} dsCubeFace;
+
+/**
+ * @brief Enum for how to filter when blitting a texture.
+ */
+typedef enum dsBlitFilter
+{
+	dsBlitFilter_Nearest, ///< Nearest-neighbor filtering.
+	dsBlitFilter_Linear   ///< Linear filtering.
+} dsBlitFilter;
 
 /**
  * @brief Struct holding information about a graphics buffer.
@@ -255,11 +292,13 @@ typedef enum dsTextureDim
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
  */
 typedef struct dsGfxBuffer
 {
 	/**
-	 * @brief The usage of type of the buffer.
+	 * @brief The usage of the buffer.
 	 */
 	dsGfxBufferUsage usage;
 
@@ -273,6 +312,202 @@ typedef struct dsGfxBuffer
 	 */
 	size_t size;
 } dsGfxBuffer;
+
+/**
+ * @brief Struct holding information about a texture.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * Textures have their origin in the upper left corner.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ */
+typedef struct dsTexture
+{
+	/**
+	 * @brief The usage of the texture.
+	 */
+	dsTextureUsage usage;
+
+	/**
+	 * @brief Memory hints for how the memory will be accessed.
+	 */
+	dsGfxMemory memoryHints;
+
+	/**
+	 * @brief The format of the texture data.
+	 */
+	dsGfxFormat format;
+
+	/**
+	 * @brief THe dimension of the texture.
+	 */
+	dsTextureDim dimension;
+
+	/**
+	 * @brief The width of the texture.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the texture.
+	 */
+	uint32_t height;
+
+	/**
+	 * @brief The depth of the texture.
+	 *
+	 * If not a 3D texture, this will denote the number of array levels. If 0, the texture is not
+	 * an array.
+	 */
+	uint32_t depth;
+
+	/**
+	 * @brief The number of mip-map levels.
+	 */
+	uint32_t mipLevels;
+
+	/**
+	 * @brief True if this is an offscreen texture.
+	 */
+	bool offscreen;
+
+	/**
+	 * @brief True to resolve multisampled offscreens, false to leave unresolved to sample in the
+	 *     shader.
+	 */
+	bool resolve;
+
+	/**
+	 * @brief The number of samples used for multisampling.
+	 *
+	 * This is generally only used for offscreens.
+	 */
+	uint16_t samples;
+} dsTexture;
+
+/**
+ * @brief Typedef for an offscreen.
+ *
+ * In most cases, an offscreen may be used as a texture.
+ */
+typedef dsTexture dsOffscreen;
+
+/**
+ * @brief Structure defining the position of a texture.
+ */
+typedef struct dsTexturePosition
+{
+	/**
+	 * @brief The cube map face.
+	 */
+	dsCubeFace face;
+
+	/**
+	 * @brief The x coordinate.
+	 */
+	uint32_t x;
+
+	/**
+	 * @brief The y coordinate.
+	 */
+	uint32_t y;
+
+	/**
+	 * @brief The depth or array level for the texture.
+	 */
+	uint32_t depth;
+
+	/**
+	 * @brief The mipmap level.
+	 */
+	uint32_t mipLevel;
+} dsTexturePosition;
+
+/**
+ * @brief Structure defining the region to copy for a texture.
+ */
+typedef struct dsTextureCopyRegion
+{
+	/**
+	 * @brief The position for the source texture.
+	 */
+	dsTexturePosition srcPosition;
+
+	/**
+	 * @brief The position for the destination texture.
+	 */
+	dsTexturePosition dstPosition;
+
+	/**
+	 * @brief The width of the region to copy.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the region to copy.
+	 */
+	uint32_t height;
+
+	/**
+	 * @brief The number of array levels to copy.
+	 *
+	 * This cannot be used for multiple depth levels of a 3D texture.
+	 */
+	uint32_t arrayLevelCount;
+} dsTextureCopyRegion;
+
+/**
+ * @brief Structure defining the region to blit for a texture.
+ */
+typedef struct dsTextureBlitRegion
+{
+	/**
+	 * @brief The position for the source texture.
+	 */
+	dsTexturePosition srcPosition;
+
+	/**
+	 * @brief The position for the destination texture.
+	 */
+	dsTexturePosition dstPosition;
+
+	/**
+	 * @brief The width of the source image to blit from.
+	 */
+	uint32_t srcWidth;
+
+	/**
+	 * @brief The height of the source image to blit from.
+	 */
+	uint32_t srcHeight;
+
+	/**
+	 * @brief The number of depth levels or array levels to blit from.
+	 *
+	 * When using texture arrays, this must match dstDepthRange.
+	 */
+	uint32_t srcDepthRange;
+
+	/**
+	 * @brief The width of the destination image to blit to.
+	 */
+	uint32_t dstWidth;
+
+	/**
+	 * @brief The height of the destination image to blit to.
+	 */
+	uint32_t dstHeight;
+
+	/**
+	 * @brief The number of depth levels or array levels to blit to.
+	 *
+	 * When using texture arrays, this must match srcDepthRange.
+	 */
+	uint32_t dstDepthRange;
+} dsTextureBlitRegion;
 
 /// \{
 typedef struct dsRenderer dsRenderer;
@@ -289,6 +524,8 @@ typedef struct dsRenderer dsRenderer;
  * always be a resource context available on the main thread, while other threads require a resource
  * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
  * platforms that don't allow multiple threads to access graphics resources.
+ *
+ * @remark None of the members should be modified outside of the implementation.
  */
 typedef struct dsResourceManager dsResourceManager;
 
@@ -302,6 +539,24 @@ typedef struct dsResourceManager dsResourceManager;
  * This is declared here for internal use, and implementations will provide the final definition.
  */
 typedef struct dsResourceContext dsResourceContext;
+
+/**
+ * @brief Returns whether or not a format is supported for a vertex buffer.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format.
+ * @return True if the format may be used with vertex buffers.
+ */
+typedef bool (*dsVertexFormatSupportedFunction)(dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
+ * @brief Returns whether or not a format is supported for a texture.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format.
+ * @return True if the format may be used with textures.
+ */
+typedef bool (*dsTextureFormatSupportedFunction)(dsResourceManager* resourceManager,
+	dsGfxFormat format);
 
 /**
  * @brief Function for creating a resource context for the current thread.
@@ -403,8 +658,138 @@ typedef bool (*dsInvalidateGfxBufferFunction)(dsResourceManager* resourceManager
  * @param data The data to copy to the buffer.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsCopyGfxBufferData)(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
+typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size, const void* data);
+
+/**
+ * @brief Function for copying data to a buffer.
+ * @param resourceManager The resource manager that the buffers were created with.
+ * @param srcBuffer The buffer to copy the data from.
+ * @param srcOffset The offset into the source buffer.
+ * @param dstBuffer The buffer to copy to.
+ * @param dstOffset The offset into the destination buffer.
+ * @param size The size of the data to copy.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* srcBuffer,
+	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+/**
+ * @brief Function for creating a texture.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @param format The format of the texture.
+ * @param dimension The dimension of the texture.
+ * @param width The width of the texture.
+ * @param height The height of the texture.
+ * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
+ *     non-array textures.
+ * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
+ *     mip levels.
+ * @param size The size of the data. This is used to help catch mismatched data.
+ * @param data The initial data for the texture, or NULL to leave uninitialized. The order of the
+ *     data is:
+ *     - Mip levels.
+ *     - Array elements/depth slices.
+ *     - Cube faces in the order of dsCubeFace.
+ *     - Texture rows.
+ *     Data is tightly packed.
+ * @return The created texture, or NULL if it couldn't be created.
+ */
+typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager, int usage,
+	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
+	uint32_t height, uint32_t depth, uint32_t mipLevels, size_t size, const void* data);
+
+/**
+ * @brief Function for creating an offscreen texture.
+ * @param resourceManager The resource manager to create the offscreen from.
+ * @param usage How the offscreen will be used. This should be a combination of dsTextureUsage
+ *     flags.
+ * @param memoryHints Hints for how the memory for the offscreen will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @param format The format of the offscreen.
+ * @param dimension The dimension of the offscreen.
+ * @param width The width of the offscreen.
+ * @param height The height of the offscreen.
+ * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
+ *     non-array textures.
+ * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
+ *     mip levels.
+ * @param samples The number of samples to use for multisampling.
+ * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
+ *     the shader.
+ * @return The created offscreen, or NULL if it couldn't be created.
+ */
+typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager, int usage,
+	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
+	uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples, bool resolve);
+
+/**
+ * @brief Function for destroying a texture or offscreen.
+ * @param resourceManager The resource manager the texture was created with.
+ * @param texture The texture to destroy.
+ * @return False if the texture couldn't be destroyed.
+ */
+typedef bool (*dsDestroyTextureFunction)(dsResourceManager* resourceManager, dsTexture* texture);
+
+/**
+ * @brief Function for copying data to a texture.
+ * @param resourceManager The resource manager the texture was created with.
+ * @param texture The texture to copy the data to.
+ * @param position The position of the texture to copy to.
+ * @param width The width of the texture data.
+ * @param height The height of the texture data.
+ * @param size The size of the data. This is used to help catch mismatched data.
+ * @param data The texture data to copy. This must be tightly packed.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, unsigned height, size_t size,
+	const void* data);
+
+/**
+ * @brief Function for copying from one texture to another.
+ * @param resourceManager The resource manager the textures were created with.
+ * @param srcTexture The texture to copy from.
+ * @param dstTexture The texture to copy to.
+ * @param regionCount The number of regions to copy.
+ * @param regions The regions to copy.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager, dsTexture* srcTexture,
+	dsCubeFace srcFace, dsTexture* dstTexture, size_t regionCount,
+	const dsTextureCopyRegion* regions);
+
+/**
+ * @brief Function for blitting from one texture to another, scaling when necessary.
+ * @param resourceManager The resource manager the textures were created with.
+ * @param srcTexture The texture to blit from.
+ * @param dstTexture The texture to blit to.
+ * @param regionCount The number of regions to blit.
+ * @param regions The regions to blit.
+ * @param filter The filter to use when scaling is required.
+ * @return False if the data couldn't be copied.
+ */
+typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager, dsTexture* srcTexture,
+	dsCubeFace srcFace, dsTexture* dstTexture, size_t regionCount,
+	const dsTextureBlitRegion* regions, dsBlitFilter filter);
+
+/**
+ * @brief Function for getting texture data.
+ * @param[out] result The output buffer for the result.
+ * @param resourceManager The resource manager the texture was created with.
+ * @param texture The texture to read from.
+ * @param position The position to read from.
+ * @param width The width of the texture region.
+ * @param height The height of the texture region.
+ * @param size The size of the buffer.
+ * @return False if the data couldn't be read.
+ */
+typedef bool (*dsGetTextureDataFunction)(void* result, dsResourceManager* resourceManager,
+	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
+	size_t size);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -419,12 +804,12 @@ struct dsResourceManager
 	/**
 	 * @brief The number of resource contexts that may be created for other threads.
 	 */
-	unsigned int maxResourceContexts;
+	uint32_t maxResourceContexts;
 
 	/**
 	 * @brief The minimum alignment when mapping the range of a buffer.
 	 */
-	unsigned int minMappingAlignment;
+	uint32_t minMappingAlignment;
 
 	/**
 	 * @brief Bitmask for the supported buffer types.
@@ -436,6 +821,33 @@ struct dsResourceManager
 	 */
 	dsGfxBufferMapSupport bufferMapSupport;
 
+	/**
+	 * @brief The maximum number of bits for each index.
+	 */
+	uint32_t maxIndexBits;
+
+	/**
+	 * @brief The maximum size of textures along the width and height.
+	 */
+	uint32_t maxTextureSize;
+
+	/**
+	 * @brief The maximum depth of 3D textures, or 0 if 3D textures aren't supported.
+	 */
+	uint32_t maxTextureDepth;
+
+	/**
+	 * @brief The maximum number of texture array levels, or 0 if texture arrays aren't supported.
+	 */
+	uint32_t maxTextureArrayLevels;
+
+	/**
+	 * @brief Boolean for whether or not textures are readable.
+	 *
+	 * Offscreens will always be readable.
+	 */
+	bool texturesReadable;
+
 	// Private members
 
 	/**
@@ -444,6 +856,16 @@ struct dsResourceManager
 	dsThreadStorage _resourceContext;
 
 	// Virtual function table
+
+	/**
+	 * @brief Vertex format supported function.
+	 */
+	dsVertexFormatSupportedFunction vertexFormatSupportedFunc;
+
+	/**
+	 * @brief Texture format supported function.
+	 */
+	dsTextureFormatSupportedFunction textureFormatSupportedFunc;
 
 	/**
 	 * @brief Resource context creation function.
@@ -488,7 +910,47 @@ struct dsResourceManager
 	/**
 	 * @brief Buffer data copying function.
 	 */
-	dsCopyGfxBufferData copyBufferDataFunc;
+	dsCopyGfxBufferDataFunction copyBufferDataFunc;
+
+	/**
+	 * @brief Buffer to buffer copying function.
+	 */
+	dsCopyGfxBufferFunction copyBufferFunc;
+
+	/**
+	 * @brief Texture creation function.
+	 */
+	dsCreateTextureFunction createTextureFunc;
+
+	/**
+	 * @brief Offscreen creation function.
+	 */
+	dsCreateOffscreenFunction createOffscreenFunc;
+
+	/**
+	 * @brief Texture destruction function.
+	 */
+	dsDestroyTextureFunction destroyTextureFunc;
+
+	/**
+	 * @brief Texture data copying function.
+	 */
+	dsCopyTextureDataFunction copyTextureDataFunc;
+
+	/**
+	 * @brief Texture to texture copying function.
+	 */
+	dsCopyTextureFunction copyTextureFunc;
+
+	/**
+	 * @brief Texture blitting function.
+	 */
+	dsBlitTextureFunction blitTextureFunc;
+
+	/**
+	 * @brief Texture data getting function.
+	 */
+	dsGetTextureDataFunction getTextureDataFunc;
 };
 
 #ifdef __cplusplus
