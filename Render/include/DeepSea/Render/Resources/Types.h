@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/RenderStates.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -276,15 +277,6 @@ typedef enum dsCubeFace
 	dsCubeFace_PosZ, ///< +Z
 	dsCubeFace_NegZ  ///< -Z
 } dsCubeFace;
-
-/**
- * @brief Enum for how to filter when blitting a texture.
- */
-typedef enum dsBlitFilter
-{
-	dsBlitFilter_Nearest, ///< Nearest-neighbor filtering.
-	dsBlitFilter_Linear   ///< Linear filtering.
-} dsBlitFilter;
 
 /**
  * @brief Struct holding information about a graphics buffer.
@@ -774,7 +766,7 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager, dsText
  */
 typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager, dsTexture* srcTexture,
 	dsCubeFace srcFace, dsTexture* dstTexture, size_t regionCount,
-	const dsTextureBlitRegion* regions, dsBlitFilter filter);
+	const dsTextureBlitRegion* regions, dsFilter filter);
 
 /**
  * @brief Function for getting texture data.
