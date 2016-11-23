@@ -1,0 +1,3 @@
+[submodule "Render/ModularShaderLanguage"]
+	path = Render/ModularShaderLanguage
+	url = ssh://server.local:/shared/git/ModularShaderLanguage

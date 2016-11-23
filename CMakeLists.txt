@@ -60,4 +60,4 @@ endif()
 # Documentation. (populated by built libraries)
 add_subdirectory(doc)
 
-install_master_config()
+ds_install_master_config()

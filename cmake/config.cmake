@@ -19,7 +19,7 @@ endif()
 
 enable_testing()
 
-function(set_folder target folderName)
+function(ds_set_folder target folderName)
 	if (DEEPSEA_ROOT_FOLDER AND folderName)
 		set_property(TARGET ${target} PROPERTY FOLDER ${DEEPSEA_ROOT_FOLDER}/${folderName})
 	elseif (NOT DEEPSEA_ROOT_FOLDER AND folderName)
@@ -29,7 +29,7 @@ function(set_folder target folderName)
 	endif()
 endfunction()
 
-function(setup_filters)
+function(ds_setup_filters)
 	set(options)
 	set(oneValueArgs SRC_DIR INCLUDE_DIR)
 	set(multiValueArgs FILES)

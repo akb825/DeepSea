@@ -11,12 +11,12 @@ target_link_libraries(deepsea_math PUBLIC
 	${MATH_LIB})
 target_compile_definitions(deepsea_math PUBLIC _USE_MATH_DEFINES)
 	
-set_folder(deepsea_math libs)
-setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
+ds_set_folder(deepsea_math libs)
+ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
 	INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/Math
 	FILES ${sources})
 
-install_library(TARGET deepsea_math MODULE Math DEPENDENCIES Core)
+ds_install_library(TARGET deepsea_math MODULE Math DEPENDENCIES Core)
 set(DEEPSEA_DOC_PROJECTS ${DEEPSEA_DOC_PROJECTS} Math PARENT_SCOPE)
 
 add_subdirectory(test)

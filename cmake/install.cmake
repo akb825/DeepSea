@@ -1,4 +1,4 @@
-function(install_library)
+function(ds_install_library)
 	set(options)
 	set(oneValueArgs TARGET MODULE)
 	set(multiValueArgs DEPENDENCIES)
@@ -89,7 +89,7 @@ function(install_library)
 	install(FILES ${configPath} ${versionPath} DESTINATION ${configPackageDir} COMPONENT dev)
 endfunction()
 
-function(install_master_config)
+function(ds_install_master_config)
 	include(CMakePackageConfigHelpers)
 	set(versionPath ${DEEPSEA_EXPORTS_DIR}/DeepSeaVersion.cmake)
 	write_basic_package_version_file(${versionPath}

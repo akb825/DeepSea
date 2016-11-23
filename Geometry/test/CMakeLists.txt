@@ -10,5 +10,5 @@ target_link_libraries(deepsea_geometry_test PRIVATE
 	deepsea_geometry
 	${GTEST_BOTH_LIBRARIES})
 
-set_folder(deepsea_geometry_test tests)
+ds_set_folder(deepsea_geometry_test tests)
 add_test(NAME DeepSeaGeometryTest COMMAND deepsea_geometry_test)
