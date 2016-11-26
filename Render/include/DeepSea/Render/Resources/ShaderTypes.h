@@ -223,11 +223,21 @@ typedef struct dsMaterialDesc
 } dsMaterialDesc;
 
 /**
- * @brief Struct describing the position of a material variable in the final buffer.
+ * @brief Struct defining a material to be applied to shaders.
+ *
+ * Material instances are created with a dsMaterialDesc instance to describe the variables that are
+ * set. The values set on this structure will be used to populate the uniforms of a shader.
+ *
+ * This type is opaque and implemented by the core Render library.
+ */
+typedef struct dsMaterial dsMaterial;
+
+/**
+ * @brief Struct describing the position of a shader variable in the final buffer.
  *
  * This is specified by the implementation to be used in the core Render library.
  */
-typedef struct dsMaterialVariablePos
+typedef struct dsShaderVariablePos
 {
 	/**
 	 * @brief The offset of the variable in the buffer.
@@ -238,7 +248,7 @@ typedef struct dsMaterialVariablePos
 	 * @brief The stride of each array element.
 	 */
 	uint32_t stride;
-} dsMaterialElementPos;
+} dsShaderVariablePos;
 
 /**
  * @brief Struct holding a description of a shader variable group.
@@ -275,7 +285,7 @@ typedef struct dsShaderVariableGroupDesc
 	 *
 	 * This is only necessary when shader buffers are supported.
 	 */
-	dsMaterialVariablePos* positions;
+	dsShaderVariablePos* positions;
 } dsdsShaderVariableGroupDesc;
 
 /**

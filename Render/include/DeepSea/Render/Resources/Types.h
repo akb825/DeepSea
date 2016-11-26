@@ -826,9 +826,9 @@ typedef bool (*dsGetTextureDataFunction)(void* result, dsResourceManager* resour
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with.
  * @param module The MSL shader module.
- * @return The created shader module.
+ * @return The created shader module, or NULL if it couldn't be created.
  */
-typedef dsShaderModule* (*dsCreateShaderModule)(dsResourceManager* resourceManager,
+typedef dsShaderModule* (*dsCreateShaderModuleFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, mslModule* module);
 
 /**
@@ -837,7 +837,72 @@ typedef dsShaderModule* (*dsCreateShaderModule)(dsResourceManager* resourceManag
  * @param module The shader module.
  * @return False if the shader module couldn't be destroyed.
  */
-typedef bool (*dsDestroyShaderModule)(dsResourceManager* resourceManager, dsShaderModule* module);
+typedef bool (*dsDestroyShaderModuleFunction)(dsResourceManager* resourceManager,
+	dsShaderModule* module);
+
+/**
+ * @brief Function for creating a material description.
+ * @param resourceManager The resource manager the material description was created with.
+ * @param allocator The allocator to create the material description with.
+ * @param elementCount The number of elements.
+ * @param elements An array of elements for the description.
+ * @return The created material description, or NULL if it couldn't be created.
+ */
+typedef dsMaterialDesc* (*dsCreateMaterialDescFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, uint32_t elementCount, const dsMaterialElement* elements);
+
+/**
+ * @brief Function for destroying a material description.
+ * @param resourceManager The resource manager the material description was created with.
+ * @param materialDesc The material description.
+ * @return False if the material description couldn't be destroyed.
+ */
+typedef bool (*dsDestroyMaterialDescFunction)(dsResourceManager* resourceManager,
+	dsMaterialDesc* materialDesc);
+
+/**
+ * @brief Function for creating a shader variable group description.
+ * @param resourceManager The resource manager the shader variable group description was created
+ *     with.
+ * @param allocator The allocator to create the shader variable group description with.
+ * @param elementCount The number of elements.
+ * @param elements An array of elements for the description.
+ * @return The created shader variable group description, or NULL if it couldn't be created.
+ */
+typedef dsShaderVariableGroupDesc* (*dsCreateShaderVariableGroupDescFunction)(
+	dsResourceManager* resourceManager, dsAllocator* allocator, uint32_t elementCount,
+	const dsMaterialElement* elements);
+
+/**
+ * @brief Function for destroying a shader variable group description.
+ * @param resourceManager The resource manager the shader variable group description was created
+ *     with.
+ * @param shaderVarGroupDesc The shader variable group description.
+ * @return False if the shader variable group description couldn't be destroyed.
+ */
+typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* resourceManager,
+	dsShaderVariableGroupDesc* shaderVarGroupDesc);
+
+/**
+ * @brief Function for creating a shader.
+ * @param resourceManager The resource manager to create the shader from.
+ * @param allocator The allocator to create the shader with.
+ * @param module The shader module that contains the shader.
+ * @param name The name of the shader.
+ * @param materialDesc The description of the material type used by the shader.
+ * @return The created shader, or NULL if it couldn't be created.
+ */
+typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsShaderModule* module, const char* name,
+	const dsMaterialDesc* materialDesc);
+
+/**
+ * @brief Function for destroying a shader.
+ * @param resourceManager The resource manager the shader was created with.
+ * @param shader The shader.
+ * @return False if the shader couldn't be destroyed.
+ */
+typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -1004,6 +1069,46 @@ struct dsResourceManager
 	 * @brief Texture data getting function.
 	 */
 	dsGetTextureDataFunction getTextureDataFunc;
+
+	/**
+	 * @brief Shader module creation function.
+	 */
+	dsCreateShaderModuleFunction createShaderModuleFunc;
+
+	/**
+	 * @brief Shader module destruction function.
+	 */
+	dsDestroyShaderModuleFunction destroyShaderModuleFunc;
+
+	/**
+	 * @brief Material description creation function.
+	 */
+	dsCreateMaterialDescFunction createMaterialDescFunc;
+
+	/**
+	 * @brief Material description destruction function.
+	 */
+	dsDestroyMaterialDescFunction destroyMaterialDescFunc;
+
+	/**
+	 * @brief Shader variable group description creation function.
+	 */
+	dsCreateShaderVariableGroupDescFunction createShaderVariableGroupDescFunc;
+
+	/**
+	 * @brief Shader variable group description destruction function.
+	 */
+	dsDestroyShaderVariableGroupDescFunction destroyShaderVariableGroupDescFunc;
+
+	/**
+	 * @brief Shader creation function.
+	 */
+	dsCreateShaderFunction createShaderFunc;
+
+	/**
+	 * @brief Shader destruction function.
+	 */
+	dsDestroyShaderFunction destroyShaderFunc;
 };
 
 #ifdef __cplusplus
