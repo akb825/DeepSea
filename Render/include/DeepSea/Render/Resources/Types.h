@@ -17,8 +17,10 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Memory/Types.h>
 #include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/Resources/ShaderTypes.h>
 #include <DeepSea/Render/RenderStates.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -112,6 +114,16 @@ typedef enum dsGfxBufferMapSupport
 	dsGfxBufferMapSupport_Ranges,    ///< May arbitrary ranges of buffers.
 	dsGfxBufferMapSupport_Persistent ///< Buffers may be persistently locked.
 } dsGfxBufferMapSupport;
+
+/**
+ * @brief Enum for the support for graphics buffers bound to a shader.
+ */
+typedef enum dsShaderBufferSupport
+{
+	dsShaderBufferSupport_None,   ///< No buffers may be bound.
+	dsShaderBufferSupport_Block,  ///< Buffers may be bound as a shader block.
+	dsShaderBufferSupport_Buffer, ///< Buffers may be bound as a shader buffer.
+} dsShaderBufferSupport;
 
 /**
  * @brief Enum for formats used for vertex buffers and images.
@@ -278,6 +290,27 @@ typedef enum dsCubeFace
 	dsCubeFace_NegZ  ///< -Z
 } dsCubeFace;
 
+/// \{
+typedef struct dsRenderer dsRenderer;
+typedef struct mslModule mslModule;
+/// \}
+
+/**
+ * @brief Manager for graphics resources.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * All manipulation of graphics resources requires a resource context to be created. There will
+ * always be a resource context available on the main thread, while other threads require a resource
+ * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
+ * platforms that don't allow multiple threads to access graphics resources.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ */
+typedef struct dsResourceManager dsResourceManager;
+
 /**
  * @brief Struct holding information about a graphics buffer.
  *
@@ -289,6 +322,16 @@ typedef enum dsCubeFace
  */
 typedef struct dsGfxBuffer
 {
+	/**
+	 * @brief The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
 	/**
 	 * @brief The usage of the buffer.
 	 */
@@ -318,6 +361,16 @@ typedef struct dsGfxBuffer
  */
 typedef struct dsTexture
 {
+	/**
+	 * @brief The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
 	/**
 	 * @brief The usage of the texture.
 	 */
@@ -501,26 +554,6 @@ typedef struct dsTextureBlitRegion
 	uint32_t dstDepthRange;
 } dsTextureBlitRegion;
 
-/// \{
-typedef struct dsRenderer dsRenderer;
-/// \}
-
-/**
- * @brief Manager for graphics resources.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
- *
- * All manipulation of graphics resources requires a resource context to be created. There will
- * always be a resource context available on the main thread, while other threads require a resource
- * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
- * platforms that don't allow multiple threads to access graphics resources.
- *
- * @remark None of the members should be modified outside of the implementation.
- */
-typedef struct dsResourceManager dsResourceManager;
-
 /**
  * @brief Struct for a resource context.
  *
@@ -571,6 +604,7 @@ typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceMana
 /**
  * @brief Function for creating a graphics buffer.
  * @param resourceManager The resource manager to create the buffer from.
+ * @param allocator The allocator to create the graphics buffer with.
  * @param usage How the buffer will be used. This should be a combination of dsGfxBufferUsage flags.
  * @param memoryHints Hints for how the memory for the buffer will be used. This should be a
  *     combination of dsGfxMemory flags.
@@ -578,8 +612,8 @@ typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceMana
  * @param data The initial data for the buffer, or NULL to leave uninitialized.
  * @return The created buffer, or NULL if it couldn't be created.
  */
-typedef dsGfxBuffer* (*dsCreateGfxBufferFunction)(dsResourceManager* resourceManager, int usage,
-	int memoryHints, size_t size, const void* data);
+typedef dsGfxBuffer* (*dsCreateGfxBufferFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, int usage, int memoryHints, size_t size, const void* data);
 
 /**
  * @brief Function for destroying a graphics buffer.
@@ -669,6 +703,7 @@ typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager, dsGf
 /**
  * @brief Function for creating a texture.
  * @param resourceManager The resource manager to create the texture from.
+ * @param allocator The allocator to create the texture with.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
@@ -690,13 +725,15 @@ typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager, dsGf
  *     Data is tightly packed.
  * @return The created texture, or NULL if it couldn't be created.
  */
-typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager, int usage,
-	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, size_t size, const void* data);
+typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, size_t size,
+	const void* data);
 
 /**
  * @brief Function for creating an offscreen texture.
  * @param resourceManager The resource manager to create the offscreen from.
+ * @param allocator The allocator to create the offscreen with.
  * @param usage How the offscreen will be used. This should be a combination of dsTextureUsage
  *     flags.
  * @param memoryHints Hints for how the memory for the offscreen will be used. This should be a
@@ -714,9 +751,10 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  *     the shader.
  * @return The created offscreen, or NULL if it couldn't be created.
  */
-typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager, int usage,
-	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples, bool resolve);
+typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples,
+	bool resolve);
 
 /**
  * @brief Function for destroying a texture or offscreen.
@@ -783,6 +821,24 @@ typedef bool (*dsGetTextureDataFunction)(void* result, dsResourceManager* resour
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	size_t size);
 
+/**
+ * @brief Function for creating a shader module.
+ * @param resourceManager The resource manager to create the shader module from.
+ * @param allocator The allocator to create the shader module with.
+ * @param module The MSL shader module.
+ * @return The created shader module.
+ */
+typedef dsShaderModule* (*dsCreateShaderModule)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, mslModule* module);
+
+/**
+ * @brief Function for destroying a shader module.
+ * @param resourceManager The resource manager the shader module was created with.
+ * @param module The shader module.
+ * @return False if the shader module couldn't be destroyed.
+ */
+typedef bool (*dsDestroyShaderModule)(dsResourceManager* resourceManager, dsShaderModule* module);
+
 /** @copydoc dsResourceManager */
 struct dsResourceManager
 {
@@ -812,6 +868,11 @@ struct dsResourceManager
 	 * @brief Enum describing how buffers may be mapped.
 	 */
 	dsGfxBufferMapSupport bufferMapSupport;
+
+	/**
+	 * @brief Enum describing how buffers can be bound to shaders.
+	 */
+	dsShaderBufferSupport shaderBufferSupport;
 
 	/**
 	 * @brief The maximum number of bits for each index.
