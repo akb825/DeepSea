@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Resources/ResourceUtils.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 
 bool dsGfxFormat_isValid(dsGfxFormat format)
 {

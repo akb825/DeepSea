@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Resources/ResourceUtils.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <gtest/gtest.h>
 
-TEST(ResourceUtilsTest, GfxFormatIsValid)
+TEST(GfxFormatTest, IsValid)
 {
 	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_R8G8B8A8));
 	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
@@ -37,7 +37,7 @@ TEST(ResourceUtilsTest, GfxFormatIsValid)
 		dsGfxFormat_UNorm)));
 }
 
-TEST(ResourceUtilsTest, GfxFormatIndices)
+TEST(GfxFormatTest, Indices)
 {
 	EXPECT_EQ(5U, dsGfxFormat_standardIndex(dsGfxFormat_decorate(dsGfxFormat_B5G6R5,
 		dsGfxFormat_SInt)));

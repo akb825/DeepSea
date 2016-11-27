@@ -18,8 +18,8 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
-#include <DeepSea/Render/Resources/ResourceUtils.h>
 #include <DeepSea/Render/Types.h>
 #include <errno.h>
 #include <string.h>
