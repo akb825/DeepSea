@@ -307,7 +307,9 @@ typedef struct mslModule mslModule;
  * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
  * platforms that don't allow multiple threads to access graphics resources.
  *
- * @remark None of the members should be modified outside of the implementation.
+ * @remark None of the members should be modified outside of the implementation. If any of the
+ * virtual functions fail, the implementation should set errno to an appropriate value. If the error
+ * is due to invalid usage, it is recommended an error is printed to the console.
  */
 typedef struct dsResourceManager dsResourceManager;
 
@@ -586,11 +588,9 @@ typedef bool (*dsTextureFormatSupportedFunction)(dsResourceManager* resourceMana
 /**
  * @brief Function for creating a resource context for the current thread.
  * @param resourceManager The resource manager to create the resource context with.
- * @param mainContext True if this is the context for the main thread.
  * @return The created resource context, or NULL if it could not be created.
  */
-typedef dsResourceContext* (*dsCreateResourceContextFunction)(dsResourceManager* resourceManager,
-	bool mainContext);
+typedef dsResourceContext* (*dsCreateResourceContextFunction)(dsResourceManager* resourceManager);
 
 /**
  * @brief Function for destroying a resource context.
@@ -915,9 +915,21 @@ struct dsResourceManager
 	dsRenderer* renderer;
 
 	/**
+	 * @brief The allocator this was created with.
+	 *
+	 * This will also be the default allocator for allocating resources.
+	 */
+	dsAllocator* allocator;
+
+	/**
 	 * @brief The number of resource contexts that may be created for other threads.
 	 */
 	uint32_t maxResourceContexts;
+
+	/**
+	 * @brief The current number of resource contexts.
+	 */
+	uint32_t resourceContextCount;
 
 	/**
 	 * @brief The minimum alignment when mapping the range of a buffer.

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Render/Resources/Types.h>
 #include <stdint.h>
@@ -30,6 +31,11 @@ extern "C"
  * @file
  * @brief Includes all of the types used in the DeepSea/Render library.
  */
+
+/**
+ * @brief Log tag used by the render library.
+ */
+#define DS_RENDER_LOG_TAG "render"
 
 /**
  * @brief Base object for interfacing with the DeepSea Render library.
@@ -47,6 +53,18 @@ typedef struct dsRenderer
 	 * @brief Manager for resources used with the renderer.
 	 */
 	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The main allocator for the Renderer library.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Thread ID for the main thread.
+	 *
+	 * Some operations may only be done from the main thread.
+	 */
+	dsThreadId mainThread;
 } dsRenderer;
 
 #ifdef __cplusplus

@@ -80,7 +80,7 @@ typedef enum dsMaterialType
 	dsMaterialType_VariableGroup, ///< Group of variables from dsShaderVariableGroup.
 	dsMaterialType_UniformBlock,  ///< Graphics buffer bound as a shader block.
 	dsMaterialType_UniformBuffer, ///< Graphics buffer bound as a shader buffer.
-} dsMaterialtype;
+} dsMaterialType;
 
 /// \{
 typedef struct dsResourceManager dsResourceManager;
@@ -286,7 +286,7 @@ typedef struct dsShaderVariableGroupDesc
 	 * This is only necessary when shader buffers are supported.
 	 */
 	dsShaderVariablePos* positions;
-} dsdsShaderVariableGroupDesc;
+} dsShaderVariableGroupDesc;
 
 /**
  * @brief Struct holding a group of shader variables.
