@@ -50,11 +50,12 @@ include(cmake/install.cmake)
 # Required libraries.
 add_subdirectory(Core)
 add_subdirectory(Math)
-add_subdirectory(Render)
 
-# Graphics libraries
-if (DEEPSEA_BUILD_GRAPHICS)
+# Render libraries
+if (DEEPSEA_BUILD_RENDER)
 	add_subdirectory(Geometry)
+	add_subdirectory(Render)
+	add_subdirectory(RenderMock)
 endif()
 
 # Documentation. (populated by built libraries)

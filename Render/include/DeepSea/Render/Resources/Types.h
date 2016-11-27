@@ -116,16 +116,6 @@ typedef enum dsGfxBufferMapSupport
 } dsGfxBufferMapSupport;
 
 /**
- * @brief Enum for the support for graphics buffers bound to a shader.
- */
-typedef enum dsShaderBufferSupport
-{
-	dsShaderBufferSupport_None,   ///< No buffers may be bound.
-	dsShaderBufferSupport_Block,  ///< Buffers may be bound as a shader block.
-	dsShaderBufferSupport_Buffer, ///< Buffers may be bound as a shader buffer.
-} dsShaderBufferSupport;
-
-/**
  * @brief Enum for formats used for vertex buffers and images.
  *
  * There are multiple sections of this enum, which are mutually exclusive:
@@ -945,11 +935,6 @@ struct dsResourceManager
 	 * @brief Enum describing how buffers may be mapped.
 	 */
 	dsGfxBufferMapSupport bufferMapSupport;
-
-	/**
-	 * @brief Enum describing how buffers can be bound to shaders.
-	 */
-	dsShaderBufferSupport shaderBufferSupport;
 
 	/**
 	 * @brief The maximum number of bits for each index.

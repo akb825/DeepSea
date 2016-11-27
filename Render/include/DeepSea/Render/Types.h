@@ -50,14 +50,14 @@ extern "C"
 typedef struct dsRenderer
 {
 	/**
-	 * @brief Manager for resources used with the renderer.
-	 */
-	dsResourceManager* resourceManager;
-
-	/**
 	 * @brief The main allocator for the Renderer library.
 	 */
 	dsAllocator* allocator;
+
+	/**
+	 * @brief Manager for resources used with the renderer.
+	 */
+	dsResourceManager* resourceManager;
 
 	/**
 	 * @brief Thread ID for the main thread.
