@@ -38,8 +38,12 @@ dsThreadReturnType createResourceContextThread(void* data)
 {
 	ThreadData* threadData = (ThreadData*)data;
 	if (!dsResourceManager_createResourceContext(threadData->resourceManager))
+	{
+		EXPECT_FALSE(dsResourceManager_canUseResources(threadData->resourceManager));
 		return false;
+	}
 
+	EXPECT_TRUE(dsResourceManager_canUseResources(threadData->resourceManager));
 	if (threadData->condition)
 	{
 		EXPECT_TRUE(dsMutex_lock(threadData->mutex));
@@ -63,6 +67,7 @@ TEST(ResourceManagerTest, CreateResourceContext)
 	ASSERT_TRUE(renderer);
 
 	dsResourceManager* resourceManager = renderer->resourceManager;
+	EXPECT_TRUE(dsResourceManager_canUseResources(resourceManager));
 	EXPECT_FALSE(dsResourceManager_createResourceContext(resourceManager));
 
 	ThreadData firstThreadData =

@@ -670,6 +670,7 @@ typedef bool (*dsInvalidateGfxBufferFunction)(dsResourceManager* resourceManager
  * @brief Function for copying data to a buffer.
  * @param resourceManager The resource manager that the buffer was created with.
  * @param buffer The buffer to copy the data to.
+ * @param offset The offset into the buffer.
  * @param size The size of the data to copy.
  * @param data The data to copy to the buffer.
  * @return False if the data couldn't be copied.

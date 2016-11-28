@@ -84,6 +84,15 @@ bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager
 	return true;
 }
 
+bool dsResourceManager_canUseResources(const dsResourceManager* resourceManager)
+{
+	if (!resourceManager || !resourceManager->renderer)
+		return false;
+
+	return dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadId()) ||
+		dsThreadStorage_get(resourceManager->_resourceContext);
+}
+
 bool dsResourceManager_initialize(dsResourceManager* resourceManager)
 {
 	if (!resourceManager)
@@ -98,7 +107,7 @@ bool dsResourceManager_initialize(dsResourceManager* resourceManager)
 	return true;
 }
 
-void dsResourceManager_destroy(dsResourceManager* resourceManager)
+void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 {
 	if (!resourceManager)
 		return;

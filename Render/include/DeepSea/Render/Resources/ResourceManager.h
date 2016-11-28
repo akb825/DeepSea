@@ -54,6 +54,13 @@ DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager*
 DS_RENDER_EXPORT bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager);
 
 /**
+ * @brief Checks whether or not resources can be used on this thread.
+ * @param resourceManager The resource manager.
+ * @return True if resources may be used.
+ */
+DS_RENDER_EXPORT bool dsResourceManager_canUseResources(const dsResourceManager* resourceManager);
+
+/**
  * @brief Initializes the private members of a resource manager.
  *
  * This is called by the render implementation.
@@ -67,7 +74,7 @@ DS_RENDER_EXPORT bool dsResourceManager_initialize(dsResourceManager* resourceMa
  *
  * This is called by the render implementation.
  */
-DS_RENDER_EXPORT void dsResourceManager_destroy(dsResourceManager* resourceManager);
+DS_RENDER_EXPORT void dsResourceManager_shutdown(dsResourceManager* resourceManager);
 
 #ifdef __cplusplus
 }

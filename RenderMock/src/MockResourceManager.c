@@ -103,7 +103,7 @@ void dsMockResourceManager_destroy(dsResourceManager* resourceManager)
 	if (!resourceManager)
 		return;
 
-	dsResourceManager_destroy(resourceManager);
+	dsResourceManager_shutdown(resourceManager);
 	if (resourceManager->allocator)
 		dsAllocator_free(resourceManager->allocator, resourceManager);
 }
