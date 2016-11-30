@@ -90,10 +90,10 @@ extern "C"
  * @brief Atomically exchanges a 32-bit value if atomic value matches the expected value.
  * @param[inout] xPtr A pointer to the atomic value to exchange with.
  * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
- * current value of xPtr if the comparison fails.
+ *     current value of xPtr if the comparison fails.
  * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
- * improve performance, but the call should be done in a loop.
+ *     improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
  */
 #define DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak) \
@@ -104,10 +104,10 @@ extern "C"
  * @brief Atomically exchanges a 64-bit value if atomic value matches the expected value.
  * @param[inout] xPtr A pointer to the atomic value to exchange with.
  * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
- * current value of xPtr if the comparison fails.
+ *     current value of xPtr if the comparison fails.
  * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
- * improve performance, but the call should be done in a loop.
+ *     improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
  */
 #define DS_ATOMIC_COMPARE_EXCHANGE64(xPtr, expectedPtr, valuePtr, weak) \
@@ -232,10 +232,10 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
  * @brief Atomically exchanges a size_t value if atomic value matches the expected value.
  * @param[inout] xPtr A pointer to the atomic value to exchange with.
  * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
- * current value of xPtr if the comparison fails.
+ *     current value of xPtr if the comparison fails.
  * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
- * improve performance, but the call should be done in a loop.
+ *     improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
  */
 #define DS_ATOMIC_COMPARE_EXCHANGE_SIZE(xPtr, expectedPtr, valuePtr, weak) \
@@ -276,10 +276,10 @@ inline int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, _
  * @brief Atomically exchanges a pointer value if atomic value matches the expected value.
  * @param[inout] xPtr A pointer to the atomic value to exchange with.
  * @param[inout] expectedPtr A pointer to the expected value. This will be populated with the
- * current value of xPtr if the comparison fails.
+ *     current value of xPtr if the comparison fails.
  * @param[in] valuePtr A pointer to the new value to set.
  * @param weak True if the comparison is allowed to fail even if would normally succeed. This can
- * improve performance, but the call should be done in a loop.
+ *     improve performance, but the call should be done in a loop.
  * @return True if the exchange took place.
  */
 #define DS_ATOMIC_COMPARE_EXCHANGE_PTR(xPtr, expectedPtr, valuePtr, weak) \

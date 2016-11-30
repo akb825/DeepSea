@@ -44,6 +44,8 @@ dsThreadReturnType createResourceContextThread(void* data)
 	}
 
 	EXPECT_TRUE(dsResourceManager_canUseResources(threadData->resourceManager));
+	EXPECT_GE(threadData->resourceManager->maxResourceContexts,
+		threadData->resourceManager->resourceContextCount);
 	if (threadData->condition)
 	{
 		EXPECT_TRUE(dsMutex_lock(threadData->mutex));
@@ -53,6 +55,7 @@ dsThreadReturnType createResourceContextThread(void* data)
 			dsConditionVariable_wait(threadData->condition, threadData->mutex));
 	}
 
+	EXPECT_TRUE(dsResourceManager_destroyResourceContext(threadData->resourceManager));
 	EXPECT_TRUE(dsResourceManager_destroyResourceContext(threadData->resourceManager));
 	return true;
 }
@@ -87,6 +90,7 @@ TEST(ResourceManagerTest, CreateResourceContext)
 		DS_ATOMIC_LOAD32(&firstThreadData.created, &created);
 		if (created)
 			break;
+		dsThread_yield();
 	} while (true);
 
 	EXPECT_TRUE(dsMutex_lock(firstThreadData.mutex));
@@ -110,5 +114,30 @@ TEST(ResourceManagerTest, CreateResourceContext)
 
 	dsConditionVariable_destroy(firstThreadData.condition);
 	dsMutex_destroy(firstThreadData.mutex);
+	dsMockRender_destroy(renderer);
+}
+
+TEST(ResourceManagerTest, CreateResourceContextContention)
+{
+	dsSystemAllocator allocator;
+	dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
+	dsRenderer* renderer = dsMockRender_create(&allocator.allocator);
+	ASSERT_TRUE(renderer);
+
+	const unsigned int threadCount = 100;
+	ThreadData threadData[threadCount] = {};
+	dsThread threads[threadCount];
+
+	for (unsigned int i = 0; i < threadCount; ++i)
+		threadData[i].resourceManager = renderer->resourceManager;
+
+	for (unsigned int i = 0; i < threadCount; ++i)
+		dsThread_create(threads + i, &createResourceContextThread, threadData + 1, 0, NULL);
+
+	for (unsigned int i = 0; i < threadCount; ++i)
+		dsThread_join(threads + i,  NULL);
+
+	EXPECT_EQ(0U, renderer->resourceManager->resourceContextCount);
+
 	dsMockRender_destroy(renderer);
 }

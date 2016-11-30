@@ -17,7 +17,6 @@
 #include "MockResourceManager.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
@@ -40,14 +39,12 @@ static bool textureFormatSupported(dsResourceManager* resourceManager, dsGfxForm
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
-	DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, 1);
 	return (dsResourceContext*)dsAllocator_alloc(resourceManager->allocator, 1);
 }
 
 static bool destroyResourceContext(dsResourceManager* resourceManager, dsResourceContext* context)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator && context);
-	DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 	return dsAllocator_free(resourceManager->allocator, context);;
 }
 

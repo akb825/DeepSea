@@ -16,9 +16,10 @@
 
 #include <DeepSea/Render/Resources/ResourceManager.h>
 
-#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Thread/ThreadStorage.h>
+#include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Types.h>
@@ -49,19 +50,40 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (resourceManager->resourceContextCount >= resourceManager->maxResourceContexts)
+	// Locklessly update the resource context count. It will fail if the current count is >= the
+	// maximum at any time, guaranteeing that it will retry if the value has been updated before the
+	// has been written to the count.
+	uint32_t resourceContextCount;
+	uint32_t newResourceContextCount;
+	DS_ATOMIC_LOAD32(&resourceManager->resourceContextCount, &resourceContextCount);
+	do
 	{
-		errno = ERANGE;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Maximum render contexts exceeded.");
-		DS_PROFILE_FUNC_RETURN(false);
+		if (resourceContextCount >= resourceManager->maxResourceContexts)
+		{
+			errno = ERANGE;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Maximum render contexts exceeded.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+		newResourceContextCount = resourceContextCount + 1;
 	}
+	while (!DS_ATOMIC_COMPARE_EXCHANGE32(&resourceManager->resourceContextCount,
+		&resourceContextCount, &newResourceContextCount, true));
 
 	dsResourceContext* context = resourceManager->createResourceContextFunc(resourceManager);
 	if (!context)
+	{
+		// Allocation failed, decrement the context count incremented earlier.
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	if (!dsThreadStorage_set(resourceManager->_resourceContext, context))
+	{
+		// Setting the context failed, decrement the context count incremented earlier.
+		resourceManager->destroyResourceContextFunc(resourceManager, context);
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	DS_PROFILE_FUNC_RETURN(true);
 }
@@ -85,6 +107,7 @@ bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager
 	if (!resourceManager->destroyResourceContextFunc(resourceManager, context))
 		DS_PROFILE_FUNC_RETURN(false);
 
+	DS_ATOMIC_FETCH_ADD32(&resourceManager->resourceContextCount, -1);
 	DS_VERIFY(dsThreadStorage_set(resourceManager->_resourceContext, NULL));
 	DS_PROFILE_FUNC_RETURN(true);
 }
