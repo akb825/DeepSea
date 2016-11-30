@@ -300,6 +300,10 @@ typedef struct mslModule mslModule;
  * @remark None of the members should be modified outside of the implementation. If any of the
  * virtual functions fail, the implementation should set errno to an appropriate value. If the error
  * is due to invalid usage, it is recommended an error is printed to the console.
+ *
+ * @remark The virtual functions on the resource manager should not be called directly. The public
+ * interface functions handle error checking and statistic management, which could cause invalid
+ * values to be reported when skipped.
  */
 typedef struct dsResourceManager dsResourceManager;
 
@@ -918,11 +922,6 @@ struct dsResourceManager
 	uint32_t maxResourceContexts;
 
 	/**
-	 * @brief The current number of resource contexts.
-	 */
-	uint32_t resourceContextCount;
-
-	/**
 	 * @brief The minimum alignment when mapping the range of a buffer.
 	 */
 	uint32_t minMappingAlignment;
@@ -963,6 +962,62 @@ struct dsResourceManager
 	 * Offscreens will always be readable.
 	 */
 	bool texturesReadable;
+
+	/**
+	 * @brief The current number of resource contexts.
+	 */
+	uint32_t resourceContextCount;
+
+	/**
+	 * @brief The number of buffers currently allocated by the resource manager.
+	 */
+	uint32_t bufferCount;
+
+	/**
+	 * @brief The number of textures currently allocated by the resource manager.
+	 */
+	uint32_t textureCount;
+
+	/**
+	 * @brief The number of shader modules currently allocated by the resource manager.
+	 */
+	uint32_t shaderModuleCount;
+
+	/**
+	 * @brief The number of material descriptions currently allocated by the resource manager.
+	 */
+	uint32_t materialDescCount;
+
+	/**
+	 * @brief The number of materials currently allocated by the resource manager.
+	 */
+	uint32_t materialCount;
+
+	/**
+	 * @brief The number of shader variable group descriptions currently allocated by the resource
+	 * manager.
+	 */
+	uint32_t shaderVariableGroupDescCount;
+
+	/**
+	 * @brief The number of shader variable groups currently allocated by the resource manager.
+	 */
+	uint32_t shaderVariableGroupCount;
+
+	/**
+	 * @brief The number of shaders currently allocated by the resource manager.
+	 */
+	uint32_t shaderCount;
+
+	/**
+	 * @brief The number of bytes allocated for graphics buffers.
+	 */
+	size_t bufferMemorySize;
+
+	/**
+	 * @brief The number of bytes allocated for textures.
+	 */
+	size_t textureMemorySize;
 
 	// Private members
 

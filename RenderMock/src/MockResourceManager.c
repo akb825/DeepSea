@@ -78,7 +78,6 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	else
 		resourceManager->allocator = NULL;
 	resourceManager->maxResourceContexts = 1;
-	resourceManager->resourceContextCount = 0;
 	resourceManager->minMappingAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Indirect | dsGfxBufferUsage_UniformBlock |

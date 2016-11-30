@@ -61,9 +61,16 @@ DS_RENDER_EXPORT bool dsResourceManager_destroyResourceContext(dsResourceManager
 DS_RENDER_EXPORT bool dsResourceManager_canUseResources(const dsResourceManager* resourceManager);
 
 /**
+ * @brief Reports statistics about the allocated resources to the profiler.
+ * @param resourceManager The resource manager.
+ */
+DS_RENDER_EXPORT void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager);
+
+/**
  * @brief Initializes the private members of a resource manager.
  *
- * This is called by the render implementation.
+ * This will also initialize the resource count and memory size statistics to 0. This is called by
+ * the render implementation.
  *
  * @return False if an error occurred.
  */

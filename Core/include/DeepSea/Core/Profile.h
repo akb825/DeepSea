@@ -119,7 +119,7 @@ extern "C"
  * @brief Profiles a statistic.
  * @param category The category of the statistic.
  * @param name The name of the statistic.
- * @param value The value of the statistic.
+ * @param value The value of the statistic as a double.
  */
 #define DS_PROFILE_STAT(category, name, value) dsProfile_stat(category, name, value, __FILE__, \
 		__FUNCTION__, __LINE__)
