@@ -15,6 +15,8 @@
  */
 
 #include "MockResourceManager.h"
+
+#include "MockGfxBuffer.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -80,6 +82,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Indirect | dsGfxBufferUsage_UniformBlock |
 		dsGfxBufferUsage_Image | dsGfxBufferUsage_Sampler | dsGfxBufferUsage_CopyFrom |
 		dsGfxBufferUsage_CopyTo);
+	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
@@ -90,6 +93,16 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
+
+	resourceManager->createBufferFunc = (dsCreateGfxBufferFunction)&dsMockGfxBuffer_create;
+	resourceManager->destroyBufferFunc = (dsDestroyGfxBufferFunction)&dsMockGfxBuffer_destroy;
+	resourceManager->mapBufferFunc = (dsMapGfxBufferFunction)&dsMockGfxBuffer_map;
+	resourceManager->unmapBufferFunc = (dsUnmapGfxBufferFunction)&dsMockGfxBuffer_unmap;
+	resourceManager->flushBufferFunc = (dsFlushGfxBufferFunction)&dsMockGfxBuffer_flush;
+	resourceManager->invalidateBufferFunc =
+		(dsInvalidateGfxBufferFunction)&dsMockGfxBuffer_invalidate;
+	resourceManager->copyBufferDataFunc = (dsCopyGfxBufferDataFunction)&dsMockGfxBuffer_copyData;
+	resourceManager->copyBufferFunc = (dsCopyGfxBufferFunction)&dsMockGfxBuffer_copy;
 
 	return resourceManager;
 }

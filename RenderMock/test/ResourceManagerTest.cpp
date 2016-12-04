@@ -62,14 +62,29 @@ dsThreadReturnType createResourceContextThread(void* data)
 
 } // namespace
 
-TEST(ResourceManagerTest, CreateResourceContext)
+class ResourceManagerTest : public testing::Test
 {
-	dsSystemAllocator allocator;
-	dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
-	dsRenderer* renderer = dsMockRender_create(&allocator.allocator);
-	ASSERT_TRUE(renderer);
+public:
+	void SetUp() override
+	{
+		dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
+		renderer = dsMockRender_create(&allocator.allocator);
+		ASSERT_TRUE(renderer);
+		resourceManager = renderer->resourceManager;
+	}
 
-	dsResourceManager* resourceManager = renderer->resourceManager;
+	void TearDown() override
+	{
+		dsMockRender_destroy(renderer);
+	}
+
+	dsSystemAllocator allocator;
+	dsRenderer* renderer;
+	dsResourceManager* resourceManager;
+};
+
+TEST_F(ResourceManagerTest, CreateResourceContext)
+{
 	EXPECT_TRUE(dsResourceManager_canUseResources(resourceManager));
 	EXPECT_FALSE(dsResourceManager_createResourceContext(resourceManager));
 
@@ -114,22 +129,16 @@ TEST(ResourceManagerTest, CreateResourceContext)
 
 	dsConditionVariable_destroy(firstThreadData.condition);
 	dsMutex_destroy(firstThreadData.mutex);
-	dsMockRender_destroy(renderer);
 }
 
-TEST(ResourceManagerTest, CreateResourceContextContention)
+TEST_F(ResourceManagerTest, CreateResourceContextContention)
 {
-	dsSystemAllocator allocator;
-	dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
-	dsRenderer* renderer = dsMockRender_create(&allocator.allocator);
-	ASSERT_TRUE(renderer);
-
 	const unsigned int threadCount = 100;
 	ThreadData threadData[threadCount] = {};
 	dsThread threads[threadCount];
 
 	for (unsigned int i = 0; i < threadCount; ++i)
-		threadData[i].resourceManager = renderer->resourceManager;
+		threadData[i].resourceManager = resourceManager;
 
 	for (unsigned int i = 0; i < threadCount; ++i)
 		dsThread_create(threads + i, &createResourceContextThread, threadData + 1, 0, NULL);
@@ -137,7 +146,5 @@ TEST(ResourceManagerTest, CreateResourceContextContention)
 	for (unsigned int i = 0; i < threadCount; ++i)
 		dsThread_join(threads + i,  NULL);
 
-	EXPECT_EQ(0U, renderer->resourceManager->resourceContextCount);
-
-	dsMockRender_destroy(renderer);
+	EXPECT_EQ(0U, resourceManager->resourceContextCount);
 }

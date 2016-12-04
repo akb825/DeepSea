@@ -110,8 +110,9 @@ typedef enum dsGfxBufferMap
 typedef enum dsGfxBufferMapSupport
 {
 	dsGfxBufferMapSupport_None,      ///< Mapping of buffers isn't supported.
-	dsGfxBufferMapSupport_Full,      ///< May only map the full buffer.
-	dsGfxBufferMapSupport_Ranges,    ///< May arbitrary ranges of buffers.
+	dsGfxBufferMapSupport_Full,      ///< May only map the full buffer. The library will offset
+	                                 ///  into the buffer to simulate mapping ranges.
+	dsGfxBufferMapSupport_Range,     ///< May arbitrary ranges of buffers.
 	dsGfxBufferMapSupport_Persistent ///< Buffers may be persistently locked.
 } dsGfxBufferMapSupport;
 

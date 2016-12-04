@@ -35,11 +35,13 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (usage == 0)
+	if (!allocator)
+		allocator = resourceManager->allocator;
+
+	if (!usage || (resourceManager->supportedBuffers & usage) != usage)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"At least one usage flag must be set when creating a buffer.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Requested buffer usage type isn't supported.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -96,6 +98,22 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if ((flags & dsGfxBufferMap_Read) && !(buffer->memoryHints & dsGfxMemory_Read))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to read from a buffer without the read memory flag set.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if ((buffer->memoryHints & dsGfxMemory_GpuOnly))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to map a buffer set with GPU only memory flag set.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if ((size == DS_MAP_FULL_BUFFER && offset > size) ||
 		(size != DS_MAP_FULL_BUFFER && offset + size > buffer->size))
 	{
@@ -127,7 +145,13 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 		ptr = ((uint8_t*)mappedMem + offset);
 	}
 	else
-		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset, size);
+	{
+		size_t rem = 0;
+		if (resourceManager->minMappingAlignment > 0)
+			rem = offset % resourceManager->minMappingAlignment;
+		ptr = ((uint8_t*)buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags,
+			offset - rem, size + rem) + rem);
+	}
 
 	DS_PROFILE_FUNC_RETURN(ptr);
 }
@@ -182,6 +206,11 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (buffer->memoryHints & dsGfxMemory_Coherent)
+	{
+		DS_PROFILE_FUNC_RETURN(true);
+	}
+
 	bool success = resourceManager->flushBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -213,6 +242,11 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (buffer->memoryHints & dsGfxMemory_Coherent)
+	{
+		DS_PROFILE_FUNC_RETURN(true);
+	}
+
 	bool success = resourceManager->invalidateBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -225,6 +259,14 @@ bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, size_t offset, size_t size, const
 		!data)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(buffer->usage & dsGfxBufferUsage_CopyTo))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data to a buffer without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -256,6 +298,22 @@ bool dsGfxBuffer_copy(dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dst
 		!dstBuffer || dstBuffer->resourceManager != srcBuffer->resourceManager)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(srcBuffer->usage & dsGfxBufferUsage_CopyFrom))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data from a buffer without the copy from usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(dstBuffer->usage & dsGfxBufferUsage_CopyTo))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to copy data to a buffer without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
