@@ -294,6 +294,31 @@ DS_CORE_EXPORT int8_t dsPackInt8(float x);
 DS_CORE_EXPORT float dsUnpackInt8(int8_t x);
 DS_CORE_EXPORT uint8_t dsPackUInt8(float x);
 DS_CORE_EXPORT float dsUnpackUInt8(uint8_t x);
+DS_CORE_EXPORT uint8_t dsPackIntX4Y4(const dsVector2f* xy);
+DS_CORE_EXPORT void dsUnpackIntX4Y4(dsVector2f* result, uint8_t value);
+DS_CORE_EXPORT uint8_t dsPackUIntX4Y4(const dsVector2f* xy);
+DS_CORE_EXPORT void dsUnpackUIntX4Y4(dsVector2f* result, uint8_t value);
+DS_CORE_EXPORT uint8_t dsPackIntY4X4(const dsVector2f* xy);
+DS_CORE_EXPORT void dsUnpackIntY4X4(dsVector2f* result, uint8_t value);
+DS_CORE_EXPORT uint8_t dsPackUIntY4X4(const dsVector2f* xy);
+DS_CORE_EXPORT void dsUnpackUIntY4X4(dsVector2f* result, uint8_t value);
+DS_CORE_EXPORT uint16_t dsPackIntX4Y4Z4W4(const dsVector4f* xyzw);
+DS_CORE_EXPORT void dsUnpackIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntX4Y4Z4W4(const dsVector4f* xyzw);
+DS_CORE_EXPORT void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntX5Y6Z5(const dsVector3f* xyz);
+DS_CORE_EXPORT void dsUnpackIntX5Y6Z5(dsVector3f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntX5Y6Z5(const dsVector3f* xyz);
+DS_CORE_EXPORT void dsUnpackUIntX5Y6Z5(dsVector3f* result, uint16_t value);
+DS_CORE_EXPORT void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntZ5Y6X5(const dsVector3f* zyx);
+DS_CORE_EXPORT void dsUnpackIntZ5Y6X5(dsVector3f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntZ5Y6X5(const dsVector3f* xyz);
+DS_CORE_EXPORT void dsUnpackUIntZ5Y6X5(dsVector3f* result, uint16_t value);
 
 #if DS_MSC
 #pragma warning(pop)
