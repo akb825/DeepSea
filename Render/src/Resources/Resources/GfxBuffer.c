@@ -66,7 +66,7 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 	if (buffer)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->bufferCount, 1);
-		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->bufferMemorySize, size);
+		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->bufferMemorySize, buffer->size);
 	}
 	DS_PROFILE_FUNC_RETURN(buffer);
 }
@@ -356,11 +356,12 @@ bool dsGfxBuffer_destroy(dsGfxBuffer* buffer)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	size_t size = buffer->size;
 	bool success = resourceManager->destroyBufferFunc(resourceManager, buffer);
 	if (success)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->bufferCount, -1);
-		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->bufferMemorySize, -buffer->size);
+		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->bufferMemorySize, -size);
 	}
 	DS_PROFILE_FUNC_RETURN(success);
 }

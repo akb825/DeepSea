@@ -64,6 +64,7 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	}
 	else
 	{
+		dest = stderr;
 		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s(%u) : %s(): %s: %s - %s\n", file, line,
 			function, logLevelStrings[level], tag, message);
 	}
