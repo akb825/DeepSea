@@ -163,13 +163,11 @@ typedef enum dsGfxFormat
 	dsGfxFormat_StandardMask = 0xFF, ///< Bitmask for standard formats.
 
 	// Aliases for standard formats.
-	dsGfxFormat_X4Y4 = dsGfxFormat_R4G4,                 ///< XY 4 bits each.
-	dsGfxFormat_X4Y4Z4W4 = dsGfxFormat_R4G4B4A4,         ///< XYZW with 4 bits each.
-	dsGfxFormat_X5Y5Z5W1 = dsGfxFormat_R5G5B5A1,         ///< XYZW with 5, 5, 5, 1 bits.
 	dsGfxFormat_X8 = dsGfxFormat_R8,                     ///< X with 8 bits.
 	dsGfxFormat_X8Y8 = dsGfxFormat_R8G8,                 ///< XY with 8 bits each.
 	dsGfxFormat_X8Y8Z8 = dsGfxFormat_R8G8B8,             ///< XYZ with 8 bits each.
 	dsGfxFormat_X8Y8Z8W8 = dsGfxFormat_R8G8B8A8,         ///< XYZW with 8 bits each.
+	dsGfxFormat_W2X10Y10Z10 = dsGfxFormat_A2R10G10B10,   ///< WXYZ with 2, 10, 10, 10 bits.
 	dsGfxFormat_W2Z10Y10X10 = dsGfxFormat_A2B10G10R10,   ///< WZYX with 2, 10, 10, 10 bits.
 	dsGfxFormat_X16 = dsGfxFormat_R16,                   ///< X with 16 bits.
 	dsGfxFormat_X16Y16 = dsGfxFormat_R16G16,             ///< XY with 16 bits each.

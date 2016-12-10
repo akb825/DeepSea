@@ -314,11 +314,30 @@ DS_CORE_EXPORT uint16_t dsPackIntX5Y6Z5(const dsVector3f* xyz);
 DS_CORE_EXPORT void dsUnpackIntX5Y6Z5(dsVector3f* result, uint16_t value);
 DS_CORE_EXPORT uint16_t dsPackUIntX5Y6Z5(const dsVector3f* xyz);
 DS_CORE_EXPORT void dsUnpackUIntX5Y6Z5(dsVector3f* result, uint16_t value);
-DS_CORE_EXPORT void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
 DS_CORE_EXPORT uint16_t dsPackIntZ5Y6X5(const dsVector3f* zyx);
 DS_CORE_EXPORT void dsUnpackIntZ5Y6X5(dsVector3f* result, uint16_t value);
-DS_CORE_EXPORT uint16_t dsPackUIntZ5Y6X5(const dsVector3f* xyz);
+DS_CORE_EXPORT uint16_t dsPackUIntZ5Y6X5(const dsVector3f* zyx);
 DS_CORE_EXPORT void dsUnpackUIntZ5Y6X5(dsVector3f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntX5Y5Z5W1(const dsVector4f* xyzw);
+DS_CORE_EXPORT void dsUnpackIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntX5Y5Z5W1(const dsVector4f* xyzw);
+DS_CORE_EXPORT void dsUnpackUIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntZ5Y5X5W1(const dsVector4f* zyxw);
+DS_CORE_EXPORT void dsUnpackIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntZ5Y5X5W1(const dsVector4f* zyxw);
+DS_CORE_EXPORT void dsUnpackUIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackIntW1X5Y5Z5(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint16_t dsPackUIntW1X5Y5Z5(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackUIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
+DS_CORE_EXPORT uint32_t dsPackIntW2X10Y10Z10(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
+DS_CORE_EXPORT uint32_t dsPackUIntW2X10Y10Z10(const dsVector4f* wxyz);
+DS_CORE_EXPORT void dsUnpackUIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
+DS_CORE_EXPORT uint32_t dsPackIntW2Z10Y10X10(const dsVector4f* wzyx);
+DS_CORE_EXPORT void dsUnpackIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
+DS_CORE_EXPORT uint32_t dsPackUIntW2Z10Y10X10(const dsVector4f* wzyx);
+DS_CORE_EXPORT void dsUnpackUIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
 
 #if DS_MSC
 #pragma warning(pop)
