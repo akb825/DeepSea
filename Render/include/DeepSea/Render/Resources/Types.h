@@ -47,6 +47,11 @@ extern "C"
 #define DS_ALL_MIP_LEVELS (uint32_t)-1
 
 /**
+ * @brief Constant for the maximum number of allowed vertex attributes.
+ */
+#define DS_MAX_ALLOWED_VERTEX_ATTRIBS 32
+
+/**
  * @brief Flags used as hints for how graphics memory will be used.
  */
 typedef enum dsGfxMemory
@@ -279,6 +284,35 @@ typedef enum dsCubeFace
 	dsCubeFace_NegZ  ///< -Z
 } dsCubeFace;
 
+/**
+ * @brief Enum for named vertex attributes.
+ *
+ * These are mainly suggestions rather than a requirement to make it easier to match vertex
+ * attributes between code and shaders.
+ */
+typedef enum dsVertexAttrib
+{
+	dsVertexAttrib_Position,                            ///< Vertex position.
+	dsVertexAttrib_Position0 = dsVertexAttrib_Position, ///< Primary vertex position.
+	dsVertexAttrib_Position1,                           ///< Secondary vertex position.
+	dsVertexAttrib_Normal,                              ///< Vertex normal.
+	dsVertexAttrib_Color,                               ///< Vertex color.
+	dsVertexAttrib_Color0 = dsVertexAttrib_Color,       ///< Primary vertex color.
+	dsVertexAttrib_Color1,                              ///< Secondary vertex color.
+	dsVertexAttrib_FogCoord,                            ///< Fog coordinate.
+	dsVertexAttrib_Tangent,                             ///< Vertex tangent.
+	dsVertexAttrib_Bitangent,                           ///< Verex bitangent. (also called binormal)
+	dsVertexAttrib_TexCoord0,                           ///< First texture coordinate.
+	dsVertexAttrib_TexCoord1,                           ///< Second texture coordinate.
+	dsVertexAttrib_TexCoord2,                           ///< Third texture coordinate.
+	dsVertexAttrib_TexCoord3,                           ///< Fourth texture coordinate.
+	dsVertexAttrib_TexCoord4,                           ///< Fifth texture coordinate.
+	dsVertexAttrib_TexCoord5,                           ///< Sixth texture coordinate.
+	dsVertexAttrib_TexCoord6,                           ///< Seventh texture coordinate.
+	dsVertexAttrib_TexCoord7                            ///< Eighth texture coordinate.
+
+} dsVertexAttrib;
+
 /// \{
 typedef struct dsRenderer dsRenderer;
 typedef struct mslModule mslModule;
@@ -342,6 +376,51 @@ typedef struct dsGfxBuffer
 	 */
 	size_t size;
 } dsGfxBuffer;
+
+/**
+ * @brief Struct describing an element of a vertex buffer.
+ */
+typedef struct dsVertexElement
+{
+	/**
+	 * @brief The format of element.
+	 */
+	dsGfxFormat format;
+
+	/**
+	 * @brief The offset of the element within the vertex.
+	 */
+	uint16_t offset;
+
+	/**
+	 * @brief The size of the element.
+	 */
+	uint16_t size;
+} dsVertexElement;
+
+/**
+ * @brief Struct describing the format of a vertex buffer.
+ */
+typedef struct dsVertexFormat
+{
+	/**
+	 * @brief The elements of the vertex.
+	 */
+	dsVertexElement elements[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+
+	/**
+	 * @brief Bitmask controlling which vertex attributes are enabled.
+	 *
+	 * The dsBitmaskIndex() and dsRemoveLastBit() functions in DeepSea/Core/Bits.h may be used to
+	 * iterate over the enabled attributes.
+	 */
+	uint32_t enabledMask;
+
+	/**
+	 * @brief The size fo the vertex in bytes.
+	 */
+	uint16_t size;
+} dsVertexFormat;
 
 /**
  * @brief Struct holding information about a texture.
@@ -561,22 +640,16 @@ typedef struct dsTextureBlitRegion
 typedef struct dsResourceContext dsResourceContext;
 
 /**
- * @brief Returns whether or not a format is supported for a vertex buffer.
+ * @brief Returns whether or not a format is supported.
+ *
+ * A separate function pointer is used to determine if a format is supported for vertex buffers,
+ * textures, and offscreens.
+ *
  * @param resourceManager The resource manager.
  * @param format The graphics format.
- * @return True if the format may be used with vertex buffers.
+ * @return True if the format may be used.
  */
-typedef bool (*dsVertexFormatSupportedFunction)(dsResourceManager* resourceManager,
-	dsGfxFormat format);
-
-/**
- * @brief Returns whether or not a format is supported for a texture.
- * @param resourceManager The resource manager.
- * @param format The graphics format.
- * @return True if the format may be used with textures.
- */
-typedef bool (*dsTextureFormatSupportedFunction)(dsResourceManager* resourceManager,
-	dsGfxFormat format);
+typedef bool (*dsFormatSupportedFunction)(dsResourceManager* resourceManager, dsGfxFormat format);
 
 /**
  * @brief Function for creating a resource context for the current thread.
@@ -941,6 +1014,13 @@ struct dsResourceManager
 	uint32_t maxIndexBits;
 
 	/**
+	 * @brief The maximum number of vertex attributes.
+	 *
+	 * This must not be greater than DS_MAX_ALLOWED_VERTEX_ATTRIBS.
+	 */
+	uint32_t maxVertexAttribs;
+
+	/**
 	 * @brief The maximum size of textures along the width and height.
 	 */
 	uint32_t maxTextureSize;
@@ -1030,12 +1110,17 @@ struct dsResourceManager
 	/**
 	 * @brief Vertex format supported function.
 	 */
-	dsVertexFormatSupportedFunction vertexFormatSupportedFunc;
+	dsFormatSupportedFunction vertexFormatSupportedFunc;
 
 	/**
 	 * @brief Texture format supported function.
 	 */
-	dsTextureFormatSupportedFunction textureFormatSupportedFunc;
+	dsFormatSupportedFunction textureFormatSupportedFunc;
+
+	/**
+	 * @brief Offscreen format supported function.
+	 */
+	dsFormatSupportedFunction offscreenFormatSupportedFunc;
 
 	/**
 	 * @brief Resource context creation function.

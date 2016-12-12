@@ -38,6 +38,16 @@ extern "C"
 DS_RENDER_EXPORT bool dsGfxFormat_isValid(dsGfxFormat format);
 
 /**
+ * @brief Gets the size of an atomic unit of a format.
+ *
+ * For block formats (such as compressed texture formats), this is the size of a block.
+ *
+ * @param format The format to get he size of.
+ * @return The size in bytes of the format, or 0 if the format is invalid.
+ */
+DS_RENDER_EXPORT unsigned int dsGfxFormat_size(dsGfxFormat format);
+
+/**
  * @brief Gets the index of a standard format.
  *
  * This is useful when indexing into an array by the format.

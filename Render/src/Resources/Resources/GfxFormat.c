@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Core/Assert.h>
 
 bool dsGfxFormat_isValid(dsGfxFormat format)
 {
@@ -42,6 +43,128 @@ bool dsGfxFormat_isValid(dsGfxFormat format)
 		return true;
 	else
 		return false;
+}
+
+unsigned int dsGfxFormat_size(dsGfxFormat format)
+{
+	if (!dsGfxFormat_isValid(format))
+		return 0;
+
+	static unsigned int standardSizes[] =
+	{
+		0,
+		1,  // dsGfxFormat_R4G4
+		2,  // dsGfxFormat_R4G4B4A4
+		2,  // dsGfxFormat_B4G4R4A4
+		2,  // dsGfxFormat_R5G6B5
+		2,  // dsGfxFormat_B5G6R5
+		2,  // dsGfxFormat_R5G5B5A1
+		2,  // dsGfxFormat_B5G5R5A1
+		2,  // dsGfxFormat_A1R5G5B5
+		1,  // dsGfxFormat_R8
+		2,  // dsGfxFormat_R8G8
+		3,  // dsGfxFormat_R8G8B8
+		3,  // dsGfxFormat_B8G8R8
+		4,  // dsGfxFormat_R8G8B8A8
+		4,  // dsGfxFormat_B8G8R8A8
+		4,  // dsGfxFormat_A8B8G8R8
+		4,  // dsGfxFormat_A2R10G10B10
+		4,  // dsGfxFormat_A2B10G10R10
+		2,  // dsGfxFormat_R16
+		4,  // dsGfxFormat_R16G16
+		6,  // dsGfxFormat_R16G16B16
+		8,  // dsGfxFormat_R16G16B16A16
+		4,  // dsGfxFormat_R32
+		8,  // dsGfxFormat_R32G32
+		12, // dsGfxFormat_R32G32B32
+		16, // dsGfxFormat_R32G32B32A32
+		8,  // dsGfxFormat_R64
+		16, // dsGfxFormat_R64G64
+		24, // dsGfxFormat_R64G64B64
+		32, // dsGfxFormat_R64G64B64A64
+	};
+	DS_STATIC_ASSERT(sizeof(standardSizes)/sizeof(*standardSizes) == dsGfxFormat_StandardCount,
+		standard_format_array_mismatch);
+
+	static unsigned int specialSizes[] =
+	{
+		0,
+		4, // dsGfxFormat_B10G11R11_UFloat
+		4, // dsGfxFormat_E5B9G9R9_UFloat
+		2, // dsGfxFormat_D16
+		4, // dsGfxFormat_X8D24
+		4, // dsGfxFormat_D32_Float
+		1, // dsGfxFormat_S8
+		3, // dsGfxFormat_D16S8
+		4, // dsGfxFormat_D24S8
+		5, // dsGfxFormat_D32S8_Float
+	};
+	DS_STATIC_ASSERT(sizeof(specialSizes)/sizeof(*specialSizes) == dsGfxFormat_SpecialCount,
+		special_format_array_mismatch);
+
+	static unsigned int compressedSizes[] =
+	{
+		0,
+		8,  // dsGfxFormat_BC1_RGB
+		8,  // dsGfxFormat_BC1_RGBA
+		16, // dsGfxFormat_BC2
+		16, // dsGfxFormat_BC3
+		16, // dsGfxFormat_BC4
+		16, // dsGfxFormat_BC5
+		16, // dsGfxFormat_BC6H
+		16, // dsGfxFormat_BC7
+		8,  // dsGfxFormat_ETC1
+		8,  // dsGfxFormat_ETC2_R8G8B8
+		8,  // dsGfxFormat_ETC2_R8G8B8A1
+		16, // dsGfxFormat_ETC2_R8G8B8A8
+		8,  // dsGfxFormat_EAC_R11
+		16, // dsGfxFormat_EAC_R11G11
+		16, // dsGfxFormat_ASTC_4x4
+		16, // dsGfxFormat_ASTC_5x4
+		16, // dsGfxFormat_ASTC_5x5
+		16, // dsGfxFormat_ASTC_6x5
+		16, // dsGfxFormat_ASTC_6x6
+		16, // dsGfxFormat_ASTC_8x5
+		16, // dsGfxFormat_ASTC_8x6
+		16, // dsGfxFormat_ASTC_8x8
+		16, // dsGfxFormat_ASTC_10x5
+		16, // dsGfxFormat_ASTC_10x6
+		16, // dsGfxFormat_ASTC_10x8
+		16, // dsGfxFormat_ASTC_10x10
+		16, // dsGfxFormat_ASTC_12x10
+		16, // dsGfxFormat_ASTC_12x12
+		8,  // dsGfxFormat_PVRTC1_RGB_2BPP
+		8,  // dsGfxFormat_PVRTC1_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC1_RGB_4BPP
+		8,  // dsGfxFormat_PVRTC1_RGBA_4BPP
+		8,  // dsGfxFormat_PVRTC2_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
+	};
+	DS_STATIC_ASSERT(sizeof(compressedSizes)/sizeof(*compressedSizes) ==
+		dsGfxFormat_CompressedCount, compressed_format_array_mismatch);
+
+	int index = dsGfxFormat_standardIndex(format);
+	if (index > 0)
+	{
+		DS_ASSERT(index < dsGfxFormat_StandardCount);
+		return standardSizes[index];
+	}
+
+	index = dsGfxFormat_specialIndex(format);
+	if (index > 0)
+	{
+		DS_ASSERT(index < dsGfxFormat_SpecialCount);
+		return specialSizes[index];
+	}
+
+	index = dsGfxFormat_compressedIndex(format);
+	if (index > 0)
+	{
+		DS_ASSERT(index < dsGfxFormat_CompressedCount);
+		return compressedSizes[index];
+	}
+
+	return 0;
 }
 
 DS_RENDER_EXPORT unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);

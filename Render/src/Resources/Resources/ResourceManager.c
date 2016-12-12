@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Types.h>
 #include <errno.h>
+#include <string.h>
 
 bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
@@ -151,20 +152,9 @@ bool dsResourceManager_initialize(dsResourceManager* resourceManager)
 		return false;
 	}
 
+	memset(resourceManager, 0, sizeof(dsResourceManager));
 	if (!dsThreadStorage_initialize(&resourceManager->_resourceContext))
 		return false;
-
-	resourceManager->resourceContextCount = 0;
-	resourceManager->bufferCount = 0;
-	resourceManager->textureCount = 0;
-	resourceManager->shaderModuleCount = 0;
-	resourceManager->materialDescCount = 0;
-	resourceManager->materialCount = 0;
-	resourceManager->shaderVariableGroupDescCount = 0;
-	resourceManager->shaderVariableGroupCount = 0;
-	resourceManager->shaderCount = 0;
-	resourceManager->bufferMemorySize = 0;
-	resourceManager->textureMemorySize = 0;
 
 	return true;
 }

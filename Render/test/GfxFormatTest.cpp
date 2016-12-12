@@ -60,3 +60,13 @@ TEST(GfxFormatTest, Indices)
 	EXPECT_EQ(dsGfxFormat_UInt, dsGfxFormat_decoratorEnum(5));
 	EXPECT_EQ(dsGfxFormat_Unknown, dsGfxFormat_decoratorEnum(dsGfxFormat_DecoratorCount));
 }
+
+TEST(GfxFormatTest, Size)
+{
+	EXPECT_EQ(0U, dsGfxFormat_size((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 |
+		dsGfxFormat_UNorm)));
+	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32,
+		dsGfxFormat_Float)));
+	EXPECT_EQ(4U, dsGfxFormat_size(dsGfxFormat_D24S8));
+	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
+}

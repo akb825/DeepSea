@@ -63,7 +63,6 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	if (!resourceManager)
 		return NULL;
 
-	memset(resourceManager, 0, sizeof(dsResourceManager));
 	if (!dsResourceManager_initialize(resourceManager))
 	{
 		if (allocator->freeFunc)
@@ -84,6 +83,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
+	resourceManager->maxVertexAttribs = 32;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 256;

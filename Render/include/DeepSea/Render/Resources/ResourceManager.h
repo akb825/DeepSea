@@ -69,8 +69,8 @@ DS_RENDER_EXPORT void dsResourceManager_reportStatistics(const dsResourceManager
 /**
  * @brief Initializes the private members of a resource manager.
  *
- * This will also initialize the resource count and memory size statistics to 0. This is called by
- * the render implementation.
+ * This will initiialize all members to 0 and set up any internal structures. This is called by the
+ * render implementation.
  *
  * @return False if an error occurred.
  */
