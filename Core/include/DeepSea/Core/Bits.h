@@ -87,9 +87,9 @@ inline uint32_t dsClz(uint32_t x)
 	if (!x)
 		return 32;
 
-	DWORD ret = 0;
-	_BitScanReverse( &ret, x);
-	return ret;
+	unsigned long leading = 0;
+	_BitScanReverse( &leading, x);
+	return 31 - leading;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_clz(x) : 32;
 #else
@@ -103,9 +103,9 @@ inline uint32_t dsCtz(uint32_t x)
 	if (!x)
 		return 32;
 
-	DWORD ret = 0;
-	_BitScanForward( &ret, x);
-	return ret;
+	unsigned long trailing = 0;
+	_BitScanForward( &trailing, x);
+	return trailing;
 #elif DS_GCC || DS_CLANG
 	return x ? __builtin_ctz(x) : 32;
 #else
