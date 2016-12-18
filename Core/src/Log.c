@@ -59,13 +59,13 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	if (level < dsLogLevel_Warning)
 	{
 		dest = stdout;
-		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s: %s - %s\n", logLevelStrings[level],
+		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s: [%s] %s\n", logLevelStrings[level],
 			tag, message);
 	}
 	else
 	{
 		dest = stderr;
-		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s(%u) : %s(): %s: %s - %s\n", file, line,
+		length = snprintf(buffer, DS_LOG_MAX_LENGTH, "%s(%u) : %s(): %s: [%s] %s\n", file, line,
 			function, logLevelStrings[level], tag, message);
 	}
 
@@ -77,10 +77,10 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	OutputDebugStringA(buffer);
 #else
 	if (level < dsLogLevel_Warning)
-		fprintf(stdout, "%s: %s - %s\n", logLevelStrings[level], tag, message);
+		fprintf(stdout, "%s: [%s] %s\n", logLevelStrings[level], tag, message);
 	else
 	{
-		fprintf(stderr, "%s:%u %s(): %s: %s - %s\n", file, line, function, logLevelStrings[level],
+		fprintf(stderr, "%s:%u %s(): %s: [%s] %s\n", file, line, function, logLevelStrings[level],
 			tag, message);
 	}
 #endif
