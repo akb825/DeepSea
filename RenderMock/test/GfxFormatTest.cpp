@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+#include "FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <gtest/gtest.h>
 
-TEST(GfxFormatTest, IsValid)
+class GfxFormatTest : public FixtureBase
+{
+};
+
+TEST_F(GfxFormatTest, IsValid)
 {
 	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_R8G8B8A8));
 	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
@@ -37,7 +42,7 @@ TEST(GfxFormatTest, IsValid)
 		dsGfxFormat_UNorm)));
 }
 
-TEST(GfxFormatTest, Indices)
+TEST_F(GfxFormatTest, Indices)
 {
 	EXPECT_EQ(5U, dsGfxFormat_standardIndex(dsGfxFormat_decorate(dsGfxFormat_B5G6R5,
 		dsGfxFormat_SInt)));
@@ -61,7 +66,7 @@ TEST(GfxFormatTest, Indices)
 	EXPECT_EQ(dsGfxFormat_Unknown, dsGfxFormat_decoratorEnum(dsGfxFormat_DecoratorCount));
 }
 
-TEST(GfxFormatTest, Size)
+TEST_F(GfxFormatTest, Size)
 {
 	EXPECT_EQ(0U, dsGfxFormat_size((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 |
 		dsGfxFormat_UNorm)));
@@ -69,4 +74,34 @@ TEST(GfxFormatTest, Size)
 		dsGfxFormat_Float)));
 	EXPECT_EQ(4U, dsGfxFormat_size(dsGfxFormat_D24S8));
 	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
+}
+
+TEST_F(GfxFormatTest, VertexSupported)
+{
+	EXPECT_FALSE(dsGfxFormat_vertexSupported(nullptr, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_X32));
+	EXPECT_TRUE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
+		dsGfxFormat_Float)));
+	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_D16));
+	EXPECT_FALSE(dsGfxFormat_vertexSupported(resourceManager, dsGfxFormat_BC3));
+}
+
+TEST_F(GfxFormatTest, TextureSupported)
+{
+	EXPECT_FALSE(dsGfxFormat_textureSupported(nullptr, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_X32));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
+		dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_D16));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_BC3));
+}
+
+TEST_F(GfxFormatTest, OffscreenSupported)
+{
+	EXPECT_FALSE(dsGfxFormat_offscreenSupported(nullptr, dsGfxFormat_X32));
+	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_X32));
+	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
+		dsGfxFormat_Float)));
+	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_D16));
+	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_BC3));
 }

@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
+#include "FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <gtest/gtest.h>
 
-TEST(VertexFormat, Initialize)
+class VertexFormatTest : public FixtureBase
 {
-	dsVertexFormat vertexFormat;
-	EXPECT_FALSE(dsVertexFormat_initialize(nullptr));
-	EXPECT_TRUE(dsVertexFormat_initialize(&vertexFormat));
+};
 
-	EXPECT_EQ(0U, vertexFormat.size);
-	EXPECT_EQ(0U, vertexFormat.enabledMask);
-}
-
-TEST(VertexFormat, Enabled)
+TEST_F(VertexFormatTest, AttribEnabled)
 {
 	dsVertexFormat vertexFormat;
 	EXPECT_TRUE(dsVertexFormat_initialize(&vertexFormat));
@@ -55,7 +50,7 @@ TEST(VertexFormat, Enabled)
 	EXPECT_FALSE(dsVertexFormat_getAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0));
 }
 
-TEST(VertexFormat, ComputeOffsetsAndSize)
+TEST_F(VertexFormatTest, ComputeOffsetsAndSize)
 {
 	dsVertexFormat vertexFormat;
 	EXPECT_TRUE(dsVertexFormat_initialize(&vertexFormat));
@@ -81,4 +76,40 @@ TEST(VertexFormat, ComputeOffsetsAndSize)
 	EXPECT_EQ(4U, vertexFormat.elements[dsVertexAttrib_Normal].size);
 	EXPECT_EQ(16U, vertexFormat.elements[dsVertexAttrib_Color].offset);
 	EXPECT_EQ(4U, vertexFormat.elements[dsVertexAttrib_Color].size);
+}
+
+TEST_F(VertexFormatTest, IsValid)
+{
+	dsVertexFormat vertexFormat;
+	EXPECT_TRUE(dsVertexFormat_initialize(&vertexFormat));
+
+	EXPECT_FALSE(dsVertexFormat_isValid(nullptr, nullptr));
+	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, nullptr));
+	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Normal, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Color, true));
+	vertexFormat.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+	vertexFormat.elements[dsVertexAttrib_Normal].format =
+		dsGfxFormat_decorate(dsGfxFormat_W2X10Y10Z10, dsGfxFormat_SNorm);
+	vertexFormat.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	EXPECT_TRUE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+
+	vertexFormat.elements[dsVertexAttrib_Color].format = dsGfxFormat_BC3;
+	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+
+	vertexFormat.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	EXPECT_TRUE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+	resourceManager->maxVertexAttribs = 2;
+	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+
+	resourceManager->maxVertexAttribs = 16;
+	vertexFormat.divisor = 10;
+	EXPECT_TRUE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
+	resourceManager->supportsInstancedDrawing = false;
+	EXPECT_FALSE(dsVertexFormat_isValid(resourceManager, &vertexFormat));
 }

@@ -169,24 +169,33 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 
 bool dsGfxFormat_vertexSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
-	if (!resourceManager || !resourceManager->vertexFormatSupportedFunc)
+	if (!resourceManager || !resourceManager->vertexFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
 		return false;
+	}
 
 	return resourceManager->vertexFormatSupportedFunc(resourceManager, format);
 }
 
 bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
-	if (!resourceManager || !resourceManager->textureFormatSupportedFunc)
+	if (!resourceManager || !resourceManager->textureFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
 		return false;
+	}
 
 	return resourceManager->textureFormatSupportedFunc(resourceManager, format);
 }
 
 bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
-	if (!resourceManager || !resourceManager->offscreenFormatSupportedFunc)
+	if (!resourceManager || !resourceManager->offscreenFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
 		return false;
+	}
 
 	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
 }

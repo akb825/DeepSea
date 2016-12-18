@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Core/Memory/SystemAllocator.h>
+#include "FixtureBase.h"
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Thread/Thread.h>
-#include <DeepSea/RenderMock/MockRender.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <gtest/gtest.h>
 
@@ -62,25 +61,8 @@ dsThreadReturnType createResourceContextThread(void* data)
 
 } // namespace
 
-class ResourceManagerTest : public testing::Test
+class ResourceManagerTest : public FixtureBase
 {
-public:
-	void SetUp() override
-	{
-		dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
-		renderer = dsMockRender_create(&allocator.allocator);
-		ASSERT_TRUE(renderer);
-		resourceManager = renderer->resourceManager;
-	}
-
-	void TearDown() override
-	{
-		dsMockRender_destroy(renderer);
-	}
-
-	dsSystemAllocator allocator;
-	dsRenderer* renderer;
-	dsResourceManager* resourceManager;
 };
 
 TEST_F(ResourceManagerTest, CreateResourceContext)

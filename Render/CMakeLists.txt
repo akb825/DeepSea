@@ -22,5 +22,3 @@ ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
 
 ds_install_library(TARGET deepsea_render MODULE Render DEPENDENCIES Core Math)
 set(DEEPSEA_DOC_PROJECTS ${DEEPSEA_DOC_PROJECTS} Render PARENT_SCOPE)
-
-add_subdirectory(test)

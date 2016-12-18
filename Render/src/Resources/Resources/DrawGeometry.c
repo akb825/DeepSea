@@ -33,7 +33,8 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		!resourceManager->createGeometryFunc || !resourceManager->destroyGeometryFunc)
+		!resourceManager->createGeometryFunc || !resourceManager->destroyGeometryFunc ||
+		!vertexBuffers)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -48,10 +49,18 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		if (!vertexBuffers[i])
 			continue;
 
+		hasVertexBuffer = true;
 		if (!vertexBuffers[i]->buffer)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Vertex buffer doesn't contain a graphics buffer.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (!(vertexBuffers[i]->buffer->usage & dsGfxBufferUsage_Vertex))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as a vertex buffer.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
@@ -92,6 +101,13 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Index buffer doesn't contain a graphics buffer.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (!(indexBuffer->buffer->usage & dsGfxBufferUsage_Index))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an index buffer.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 

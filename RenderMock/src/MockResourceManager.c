@@ -42,7 +42,7 @@ static bool textureFormatSupported(const dsResourceManager* resourceManager, dsG
 static bool offscreenFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
-	return dsGfxFormat_compressedIndex(format);
+	return !dsGfxFormat_compressedIndex(format);
 }
 
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)

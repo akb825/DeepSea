@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Core/Memory/SystemAllocator.h>
-#include <DeepSea/RenderMock/MockRender.h>
+#include "FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <gtest/gtest.h>
 #include <string.h>
@@ -31,25 +30,8 @@ struct TestData
 
 } // namespace
 
-class GfxBufferTest : public testing::Test
+class GfxBufferTest : public FixtureBase
 {
-public:
-	void SetUp() override
-	{
-		dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
-		renderer = dsMockRender_create(&allocator.allocator);
-		ASSERT_TRUE(renderer);
-		resourceManager = renderer->resourceManager;
-	}
-
-	void TearDown() override
-	{
-		dsMockRender_destroy(renderer);
-	}
-
-	dsSystemAllocator allocator;
-	dsRenderer* renderer;
-	dsResourceManager* resourceManager;
 };
 
 TEST_F(GfxBufferTest, Create)
