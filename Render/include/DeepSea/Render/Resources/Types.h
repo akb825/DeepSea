@@ -52,6 +52,11 @@ extern "C"
 #define DS_MAX_ALLOWED_VERTEX_ATTRIBS 32
 
 /**
+ * @brief Constant for the maximum number of vertex buffers in a dsDrawGeometry instance.
+ */
+#define DS_MAX_GEOMETRY_VERTEX_BUFFERS 4
+
+/**
  * @brief Flags used as hints for how graphics memory will be used.
  */
 typedef enum dsGfxMemory
@@ -417,10 +422,109 @@ typedef struct dsVertexFormat
 	uint32_t enabledMask;
 
 	/**
+	 * @brief The divisor to use when drawing instanced data.
+	 *
+	 * Set to 0 to disable.
+	 */
+	uint32_t divisor;
+
+	/**
 	 * @brief The size fo the vertex in bytes.
 	 */
 	uint16_t size;
 } dsVertexFormat;
+
+/**
+ * @brief Struct describing a vertex buffer.
+ *
+ * This combines a graphics buffer, range of the buffer to use, and the vertex format.
+ */
+typedef struct dsVertexBuffer
+{
+	/**
+	 * @brief The graphcis buffer containing the data.
+	 */
+	dsGfxBuffer* buffer;
+
+	/**
+	 * @brief The offset into the buffer for the vertex data.
+	 */
+	uint32_t offset;
+
+	/**
+	 * @brief The number of vertices to use in the buffer.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The vertex format.
+	 */
+	dsVertexFormat format;
+} dsVertexBuffer;
+
+/**
+ * @brief Struct describing an index buffer.
+ *
+ * This combines a graphics buffer, range of the buffer to use, and the size of the index.
+ */
+typedef struct dsIndexBuffer
+{
+	/**
+	 * @brief The graphcis buffer containing the data.
+	 */
+	dsGfxBuffer* buffer;
+
+	/**
+	 * @brief The offset into the buffer for the vertex data.
+	 */
+	uint32_t offset;
+
+	/**
+	 * @brief The number of indices to use in the buffer.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The number of bits for each index.
+	 */
+	uint32_t indexBits;
+} dsIndexBuffer;
+
+/**
+ * @brief Struct holding information about drawable geometry.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ */
+typedef struct dsDrawGeometry
+{
+	/**
+	 * @brief The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief Array of vertex buffers used to draw the geometry.
+	 *
+	 * Unused vertex buffers will have a NULL graphics buffer.
+	 */
+	dsVertexBuffer vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+
+	/**
+	 * @brief The index buffer used to draw the geometry.
+	 *
+	 * If the graphics buffer is NULL, this cannot be used with indexed drawing.
+	 */
+	dsIndexBuffer indexBuffer;
+} dsDrawGeometry;
 
 /**
  * @brief Struct holding information about a texture.
@@ -649,7 +753,8 @@ typedef struct dsResourceContext dsResourceContext;
  * @param format The graphics format.
  * @return True if the format may be used.
  */
-typedef bool (*dsFormatSupportedFunction)(dsResourceManager* resourceManager, dsGfxFormat format);
+typedef bool (*dsFormatSupportedFunction)(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
 
 /**
  * @brief Function for creating a resource context for the current thread.
@@ -766,6 +871,27 @@ typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager, 
  */
 typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+/**
+ * @brief Function for creating drawable geometry.
+ * @param resourceManager The resource manager to create the geomtry from.
+ * @param allocator The allocator to create the geometry with.
+ * @param vertexBuffers The vertex buffers to be used. NULL vertex buffers are ignored.
+ * @param indexBuffer The index buffer to be used. This may be NULL if no index buffer is needed.
+ * @return The created draw geometry, or NULL if it couldn't be created.
+ */
+typedef dsDrawGeometry* (*dsCreateDrawGeometryFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
+	dsIndexBuffer* indexBuffer);
+
+/**
+ * @brief Function for destroying drawable geometry.
+ * @param resourceManager The resource manager the geometry was created with.
+ * @param geometry The geometry to destroy.
+ * @return False if the geometry couldn't be destroyed.
+ */
+typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager,
+	dsDrawGeometry* geometry);
 
 /**
  * @brief Function for creating a texture.
@@ -1021,6 +1147,11 @@ struct dsResourceManager
 	uint32_t maxVertexAttribs;
 
 	/**
+	 * @brief Whether or not instanced drawing is supported.
+	 */
+	bool supportsInstancedDrawing;
+
+	/**
 	 * @brief The maximum size of textures along the width and height.
 	 */
 	uint32_t maxTextureSize;
@@ -1051,6 +1182,11 @@ struct dsResourceManager
 	 * @brief The number of buffers currently allocated by the resource manager.
 	 */
 	uint32_t bufferCount;
+
+	/**
+	 * @brief The number of draw geometries currently allocated by the resource manager.
+	 */
+	uint32_t geometryCount;
 
 	/**
 	 * @brief The number of textures currently allocated by the resource manager.
@@ -1171,6 +1307,16 @@ struct dsResourceManager
 	 * @brief Buffer to buffer copying function.
 	 */
 	dsCopyGfxBufferFunction copyBufferFunc;
+
+	/**
+	 * @brief Geometry creation function.
+	 */
+	dsCreateDrawGeometryFunction createGeometryFunc;
+
+	/**
+	 * @brief Geometry destruction function.
+	 */
+	dsDestroyDrawGeometryFunction destroyGeometryFunc;
 
 	/**
 	 * @brief Texture creation function.

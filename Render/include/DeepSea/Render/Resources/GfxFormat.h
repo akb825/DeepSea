@@ -138,6 +138,33 @@ inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
  */
 inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
 
+/**
+ * @brief Checks whether or not a graphics format is supported for vertices.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for vertices.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_vertexSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
+ * @brief Checks whether or not a graphics format is supported for textures.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for textures.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
+ * @brief Checks whether or not a graphics format is supported for offscreens.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for offscreens.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)
 {
 	return format & dsGfxFormat_StandardMask;

@@ -131,6 +131,7 @@ void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager
 	DS_PROFILE_STAT("ResourceManager", "Buffers", resourceManager->bufferCount);
 	DS_PROFILE_STAT("ResourceManager", "Buffer memory (MB)",
 		(double)resourceManager->bufferMemorySize/(1024.0*1024.0));
+	DS_PROFILE_STAT("ResourceManager", "Geometries", resourceManager->geometryCount);
 	DS_PROFILE_STAT("ResourceManager", "Textures", resourceManager->textureCount);
 	DS_PROFILE_STAT("ResourceManager", "Texture memory (MB)",
 		(double)resourceManager->textureMemorySize/(1024.0*1024.0));

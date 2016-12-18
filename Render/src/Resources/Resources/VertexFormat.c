@@ -29,9 +29,7 @@ bool dsVertexFormat_initialize(dsVertexFormat* format)
 		return false;
 	}
 
-	memset(format->elements, 0, sizeof(format->elements));
-	format->enabledMask = 0;
-	format->size = 0;
+	memset(format, 0, sizeof(*format));
 	return true;
 }
 
@@ -86,6 +84,30 @@ bool dsVertexFormat_computeOffsetsAndSize(dsVertexFormat* format)
 		format->elements[i].offset = format->size;
 		format->elements[i].size = curSize;
 		format->size = (uint16_t)(format->size + curSize);
+	}
+
+	return true;
+}
+
+bool dsVertexFormat_isValid(const dsResourceManager* resourceManager, const dsVertexFormat* format)
+{
+	if (!resourceManager || !format)
+		return false;
+
+	if (format->enabledMask == 0)
+		return false;
+
+	if (format->divisor != 0 && !resourceManager->supportsInstancedDrawing)
+		return false;
+
+	for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))
+	{
+		uint32_t i = dsBitmaskIndex(mask);
+		if (i > resourceManager->maxVertexAttribs)
+			return false;
+
+		if (!dsGfxFormat_vertexSupported(resourceManager, format->elements[i].format))
+			return false;
 	}
 
 	return true;

@@ -38,6 +38,8 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 	buffer->buffer.resourceManager = resourceManager;
 	if (allocator->freeFunc)
 		buffer->buffer.allocator = allocator;
+	else
+		buffer->buffer.allocator = NULL;
 	buffer->buffer.usage = (dsGfxBufferUsage)usage;
 	buffer->buffer.memoryHints = (dsGfxMemory)memoryHints;
 	buffer->buffer.size = size;

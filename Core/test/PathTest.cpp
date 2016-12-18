@@ -148,7 +148,7 @@ TEST(PathTest, GetLastExtension)
 TEST(PathTest, RemoveLastExtension)
 {
 	char result[DS_PATH_MAX];
-	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(nullptr, DS_PATH_MAX, "test"));;
+	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(nullptr, DS_PATH_MAX, "test"));
 	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(result, 0, "test"));
 	EXPECT_FALSE_ERRNO(EINVAL, dsPath_removeLastExtension(result, DS_PATH_MAX, nullptr));
 

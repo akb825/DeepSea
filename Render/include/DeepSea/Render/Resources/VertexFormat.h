@@ -63,6 +63,15 @@ DS_RENDER_EXPORT bool dsVertexFormat_setAttribEnabled(dsVertexFormat* format, un
  */
 DS_RENDER_EXPORT bool dsVertexFormat_computeOffsetsAndSize(dsVertexFormat* format);
 
+/**
+ * @brief Checks if a vertex format is valid for the current target.
+ * @param resourceManager The resource manager.
+ * @param format The vertex format to check.
+ * @return True if the vertex format is valid.
+ */
+DS_RENDER_EXPORT bool dsVertexFormat_isValid(const dsResourceManager* resourceManager,
+	const dsVertexFormat* format);
+
 #ifdef __cplusplus
 }
 #endif

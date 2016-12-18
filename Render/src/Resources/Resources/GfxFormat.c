@@ -167,6 +167,30 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 	return 0;
 }
 
+bool dsGfxFormat_vertexSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->vertexFormatSupportedFunc)
+		return false;
+
+	return resourceManager->vertexFormatSupportedFunc(resourceManager, format);
+}
+
+bool dsGfxFormat_textureSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->textureFormatSupportedFunc)
+		return false;
+
+	return resourceManager->textureFormatSupportedFunc(resourceManager, format);
+}
+
+bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->offscreenFormatSupportedFunc)
+		return false;
+
+	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
+}
+
 DS_RENDER_EXPORT unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
 DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
 DS_RENDER_EXPORT unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);

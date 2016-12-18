@@ -119,7 +119,7 @@ bool dsHashTable_remove(dsHashTable* hashTable, const void* key)
 	uint32_t hash = hashTable->hashFunc(key);
 	size_t index = hash % hashTable->tableSize;
 	dsHashTableNode* chain;
-	dsHashTableNode* prev = NULL;;
+	dsHashTableNode* prev = NULL;
 	for (chain = hashTable->table[index]; chain; prev = chain, chain = chain->chainNext)
 	{
 		if (chain->hash == hash && hashTable->keysEqualFunc(chain->key, key))

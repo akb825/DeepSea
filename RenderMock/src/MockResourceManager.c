@@ -16,6 +16,7 @@
 
 #include "MockResourceManager.h"
 
+#include "MockDrawGeometry.h"
 #include "MockGfxBuffer.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -25,17 +26,23 @@
 #include <errno.h>
 #include <string.h>
 
-static bool vertexFormatSupported(dsResourceManager* resourceManager, dsGfxFormat format)
+static bool vertexFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
-	return !(format & dsGfxFormat_CompressedMask);
+	return !dsGfxFormat_specialIndex(format) && !dsGfxFormat_compressedIndex(format);
 }
 
-static bool textureFormatSupported(dsResourceManager* resourceManager, dsGfxFormat format)
+static bool textureFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(format);
 	return true;
+}
+
+static bool offscreenFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
+{
+	DS_UNUSED(resourceManager);
+	return dsGfxFormat_compressedIndex(format);
 }
 
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
@@ -47,7 +54,7 @@ static dsResourceContext* createResourceContext(dsResourceManager* resourceManag
 static bool destroyResourceContext(dsResourceManager* resourceManager, dsResourceContext* context)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator && context);
-	return dsAllocator_free(resourceManager->allocator, context);;
+	return dsAllocator_free(resourceManager->allocator, context);
 }
 
 dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocator* allocator)
@@ -83,7 +90,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
-	resourceManager->maxVertexAttribs = 32;
+	resourceManager->maxVertexAttribs = 16;
+	resourceManager->supportsInstancedDrawing = true;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 256;
@@ -91,6 +99,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
+	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 
@@ -103,6 +112,9 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		(dsInvalidateGfxBufferFunction)&dsMockGfxBuffer_invalidate;
 	resourceManager->copyBufferDataFunc = (dsCopyGfxBufferDataFunction)&dsMockGfxBuffer_copyData;
 	resourceManager->copyBufferFunc = (dsCopyGfxBufferFunction)&dsMockGfxBuffer_copy;
+	resourceManager->createGeometryFunc = (dsCreateDrawGeometryFunction)dsMockDrawGeometry_create;
+	resourceManager->destroyGeometryFunc =
+		(dsDestroyDrawGeometryFunction)dsMockDrawGeometry_destroy;
 
 	return resourceManager;
 }

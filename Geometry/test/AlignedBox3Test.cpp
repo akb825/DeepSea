@@ -723,7 +723,7 @@ TEST(AlignedBox3, ConvertFloatToInt)
 
 TEST(AlignedBox3, ConvertIntToFloat)
 {
-	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};;
+	dsAlignedBox3i boxi = {{{0, 1, 3}}, {{4, 5, 6}}};
 
 	dsAlignedBox3f boxf;
 	dsConvertIntToFloat(boxf, boxi);
@@ -739,7 +739,7 @@ TEST(AlignedBox3, ConvertIntToFloat)
 
 TEST(AlignedBox3, ConvertDoubleToInt)
 {
-	dsAlignedBox3d boxd = {{{0, 1, 3}}, {{4, 5, 6}}};;
+	dsAlignedBox3d boxd = {{{0, 1, 3}}, {{4, 5, 6}}};
 
 	dsAlignedBox3i boxi;
 	dsConvertDoubleToInt(boxi, boxd);
