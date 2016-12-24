@@ -88,10 +88,11 @@ bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuf
 	return true;
 }
 
-bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
-	size_t offset, size_t size, const void* data)
+bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsMockGfxBuffer* buffer, size_t offset, size_t size, const void* data)
 {
 	DS_UNUSED(resourceManager);
+	DS_UNUSED(commandBuffer);
 	DS_ASSERT(buffer);
 	DS_ASSERT(offset + size <= buffer->buffer.size);
 	DS_ASSERT(data);
@@ -99,10 +100,12 @@ bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsMockGfxBuffe
 	return true;
 }
 
-bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsMockGfxBuffer* srcBuffer,
-	size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
+bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsMockGfxBuffer* srcBuffer, size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset,
+	size_t size)
 {
 	DS_UNUSED(resourceManager);
+	DS_UNUSED(commandBuffer);
 	DS_ASSERT(srcBuffer);
 	DS_ASSERT(srcOffset + size <= srcBuffer->buffer.size);
 	DS_ASSERT(dstBuffer);

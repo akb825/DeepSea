@@ -38,6 +38,16 @@ extern "C"
 #define DS_RENDER_LOG_TAG "render"
 
 /**
+ * @brief Struct for a command buffer.
+ *
+ * This is used to queue render commands. It is used as a part of dsRenderPass in order to either
+ * send render commands to the GPU or hold onto the commands for later execution.
+ *
+ * This is an opaque type that is defined by the implementation.
+ */
+typedef struct dsCommandBuffer dsCommandBuffer;
+
+/**
  * @brief Base object for interfacing with the DeepSea Render library.
  *
  * Render implementations can effectively subclass this type by having it as the first member of

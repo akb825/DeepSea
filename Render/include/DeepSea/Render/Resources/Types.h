@@ -319,6 +319,7 @@ typedef enum dsVertexAttrib
 } dsVertexAttrib;
 
 /// \{
+typedef struct dsCommandBuffer dsCommandBuffer;
 typedef struct dsRenderer dsRenderer;
 typedef struct mslModule mslModule;
 /// \}
@@ -849,19 +850,30 @@ typedef bool (*dsInvalidateGfxBufferFunction)(dsResourceManager* resourceManager
 
 /**
  * @brief Function for copying data to a buffer.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
  * @param resourceManager The resource manager that the buffer was created with.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param buffer The buffer to copy the data to.
  * @param offset The offset into the buffer.
  * @param size The size of the data to copy.
  * @param data The data to copy to the buffer.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	size_t offset, size_t size, const void* data);
+typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset, size_t size,
+	const void* data);
 
 /**
  * @brief Function for copying data to a buffer.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
  * @param resourceManager The resource manager that the buffers were created with.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param srcBuffer The buffer to copy the data from.
  * @param srcOffset The offset into the source buffer.
  * @param dstBuffer The buffer to copy to.
@@ -869,8 +881,9 @@ typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager, 
  * @param size The size of the data to copy.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* srcBuffer,
-	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, size_t srcOffset,
+	dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
 
 /**
  * @brief Function for creating drawable geometry.
@@ -959,7 +972,12 @@ typedef bool (*dsDestroyTextureFunction)(dsResourceManager* resourceManager, dsT
 
 /**
  * @brief Function for copying data to a texture.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
  * @param resourceManager The resource manager the texture was created with.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param texture The texture to copy the data to.
  * @param position The position of the texture to copy to.
  * @param width The width of the texture data.
@@ -968,26 +986,32 @@ typedef bool (*dsDestroyTextureFunction)(dsResourceManager* resourceManager, dsT
  * @param data The texture data to copy. This must be tightly packed.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager, dsTexture* texture,
-	const dsTexturePosition* position, uint32_t width, unsigned height, size_t size,
-	const void* data);
+typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* texture, const dsTexturePosition* position,
+	uint32_t width, unsigned height, size_t size, const void* data);
 
 /**
  * @brief Function for copying from one texture to another.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
  * @param resourceManager The resource manager the textures were created with.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to copy from.
  * @param dstTexture The texture to copy to.
  * @param regionCount The number of regions to copy.
  * @param regions The regions to copy.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager, dsTexture* srcTexture,
-	dsCubeFace srcFace, dsTexture* dstTexture, size_t regionCount,
-	const dsTextureCopyRegion* regions);
+typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsCubeFace srcFace,
+	dsTexture* dstTexture, size_t regionCount, const dsTextureCopyRegion* regions);
 
 /**
  * @brief Function for blitting from one texture to another, scaling when necessary.
  * @param resourceManager The resource manager the textures were created with.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to blit from.
  * @param dstTexture The texture to blit to.
  * @param regionCount The number of regions to blit.
@@ -995,9 +1019,10 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager, dsText
  * @param filter The filter to use when scaling is required.
  * @return False if the data couldn't be copied.
  */
-typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager, dsTexture* srcTexture,
-	dsCubeFace srcFace, dsTexture* dstTexture, size_t regionCount,
-	const dsTextureBlitRegion* regions, dsFilter filter);
+typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsCubeFace srcFace,
+	dsTexture* dstTexture, size_t regionCount, const dsTextureBlitRegion* regions,
+	dsFilter filter);
 
 /**
  * @brief Function for getting texture data.

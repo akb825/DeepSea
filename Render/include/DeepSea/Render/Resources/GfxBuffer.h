@@ -101,6 +101,11 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
 
 /**
  * @brief Copies data to a buffer on the command queue.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @param commandBuffer The command buffer to process the copy on.
  * @param buffer The buffer to copy the data to. This must have been created with
  *     dsGfxBufferUsage_CopyTo.
  * @param offset The offset into the buffer.
@@ -109,11 +114,16 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * @return False if the data couldn't be copied. errno will be set to an appropriate value on
  *     failure.
  */
-DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, size_t offset, size_t size,
-	const void* data);
+DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+	size_t offset, size_t size, const void* data);
 
 /**
  * @brief Copies data from one buffer to another.
+ *
+ * This queues the copy on a command buffer, so the thread that processes this doesn't need a
+ * resource context.
+ *
+ * @param commandBuffer The command buffer to process the copy on.
  * @param srcBuffer The buffer to copy the data from. This must have been created with
  *     dsGfxBufferUsage_CopyFrom.
  * @param srcOffset The offset into the source buffer.
@@ -123,8 +133,8 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, size_t offset, s
  * @return False if the data couldn't be copied. errno will be set to an appropriate value on
  *     failure.
  */
-DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsGfxBuffer* srcBuffer, size_t srcOffset,
-	dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
 
 /**
  * @brief Destroys a graphics buffer.

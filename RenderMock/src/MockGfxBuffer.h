@@ -30,8 +30,9 @@ bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsMockGfxBuffer* 
 	size_t offset, size_t size);
 bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
 	size_t offset, size_t size);
-bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
-	size_t offset, size_t size, const void* data);
-bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsMockGfxBuffer* srcBuffer,
-	size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsMockGfxBuffer* buffer, size_t offset, size_t size, const void* data);
+bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsMockGfxBuffer* srcBuffer, size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset,
+	size_t size);
 bool dsMockGfxBuffer_destroy(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer);

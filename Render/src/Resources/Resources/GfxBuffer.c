@@ -251,12 +251,13 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, size_t offset, size_t size, const void* data)
+bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset,
+	size_t size, const void* data)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!buffer || !buffer->resourceManager || !buffer->resourceManager->copyBufferDataFunc ||
-		!data)
+	if (!commandBuffer || !buffer || !buffer->resourceManager ||
+		!buffer->resourceManager->copyBufferDataFunc || !data)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -277,25 +278,19 @@ bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, size_t offset, size_t size, const
 	}
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
-	if (!dsResourceManager_canUseResources(resourceManager))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	bool success = resourceManager->copyBufferDataFunc(resourceManager, buffer, offset, size, data);
+	bool success = resourceManager->copyBufferDataFunc(resourceManager, commandBuffer, buffer,
+	offset, size, data);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxBuffer_copy(dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer,
-	size_t dstOffset, size_t size)
+bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, size_t srcOffset,
+	dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!srcBuffer || !srcBuffer->resourceManager || !srcBuffer->resourceManager->copyBufferFunc ||
-		!dstBuffer || dstBuffer->resourceManager != srcBuffer->resourceManager)
+	if (!commandBuffer || !srcBuffer || !srcBuffer->resourceManager ||
+		!srcBuffer->resourceManager->copyBufferFunc || !dstBuffer ||
+		dstBuffer->resourceManager != srcBuffer->resourceManager)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -324,16 +319,8 @@ bool dsGfxBuffer_copy(dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dst
 	}
 
 	dsResourceManager* resourceManager = srcBuffer->resourceManager;
-	if (!dsResourceManager_canUseResources(resourceManager))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	bool success = resourceManager->copyBufferFunc(resourceManager, srcBuffer, srcOffset, dstBuffer,
-		dstOffset, size);
+	bool success = resourceManager->copyBufferFunc(resourceManager, commandBuffer, srcBuffer,
+		srcOffset, dstBuffer, dstOffset, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
