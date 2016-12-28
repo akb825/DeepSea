@@ -112,8 +112,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		}
 
 		uint32_t indexBits = indexBuffer->indexBits;
-		if (indexBits > resourceManager->maxIndexBits ||
-			(indexBits != 8 && indexBits != 16 && indexBits != 32))
+		if (indexBits > resourceManager->maxIndexBits || (indexBits != 16 && indexBits != 32))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid number of index bits.");

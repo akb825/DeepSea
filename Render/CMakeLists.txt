@@ -13,6 +13,7 @@ add_subdirectory(ModularShaderLanguage)
 target_link_libraries(deepsea_render PUBLIC
 	deepsea_core
 	deepsea_math
+	deepsea_geometry
 	msl_client)
 	
 ds_set_folder(deepsea_render libs)
