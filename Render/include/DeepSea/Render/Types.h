@@ -448,21 +448,10 @@ struct dsRenderPass
 };
 
 /**
- * @brief Structure defining a group of render passes.
- *
- * The render passes will be processed based on thier dependencies between each other. The passes
- * may be
- */
-typedef struct dsRenderPassGroup dsRenderPassGroup;
-
-/**
  * @brief function called to update the renderer each fream.
  * @param renderer The renderer.
- * @param renderPasses The list of render pass groups that will be drawn.
- * @param renderPassesCount The number of elements in renderPasses.
  */
-typedef void (*dsRenderUpdateFunction)(dsRenderer* renderer, dsRenderPassGroup** renderPasses,
-	uint32_t renderPassesCount);
+typedef void (*dsRenderUpdateFunction)(dsRenderer* renderer);
 
 /**
  * @brief Function called to update the resources each frame.
@@ -471,6 +460,16 @@ typedef void (*dsRenderUpdateFunction)(dsRenderer* renderer, dsRenderPassGroup**
  */
 typedef void (*dsRenderUpdateResourcesFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Function called to draw a rnder pass.
+ * @param renderer The renderer.
+ * @param renderPass The render pass to draw.
+ * @param framebuffer The framebuffer to draw to.
+ * @return False if it is invalid to draw.
+ */
+typedef bool (*dsDrawRenderPassFunction)(dsRenderer* renderer, dsRenderPass* renderPass,
+	dsFramebuffer* framebuffer);
 
 /** @copydoc dsRenderer */
 struct dsRenderer
@@ -506,6 +505,11 @@ struct dsRenderer
 	 * @brief The resource update function.
 	 */
 	dsRenderUpdateResourcesFunction updateResourcesFunc;
+
+	/**
+	 * @brief The render pass draw function.
+	 */
+	dsDrawRenderPassFunction drawRenderPassFunc;
 };
 
 #ifdef __cplusplus
