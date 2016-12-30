@@ -222,12 +222,6 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 			resourceManager->shaderCount);
 	}
 
-	if (resourceManager->renderSurfaceCount)
-	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u render surfaces remain allocated.",
-			resourceManager->renderSurfaceCount);
-	}
-
 	if (resourceManager->framebufferCount)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u framebuffers remain allocated.",

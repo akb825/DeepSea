@@ -82,6 +82,17 @@ typedef enum dsSubpassDependencyStage
 } dsSubpassDependencyStage;
 
 /**
+ * @brief Enum for the type of a render surface.
+ */
+typedef enum dsRenderSurfaceType
+{
+	dsRenderSurfaceType_Unknown, ///< Unknown surface type.
+	dsRenderSurfaceType_Window,  ///< Window surface.
+	dsRenderSurfaceType_PBuffer, ///< Pixel buffer surface.
+	dsRenderSurfaceType_Pixmap   ///< Pixmap surface.
+} dsRenderSurfaceType;
+
+/**
  * @brief Struct for a command buffer.
  *
  * This is used to queue render commands. It is used as a part of dsRenderPass in order to either
@@ -334,6 +345,48 @@ typedef struct dsSubpassDependency
 } dsSubpassDependency;
 
 /**
+ * @brief Structure defining a render surface, such as a window.
+ *
+ * Render surfaces are provided by the renderer implementation and
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ */
+typedef struct dsRenderSurface
+{
+	/**
+	 * The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the render surface.
+	 */
+	dsRenderSurfaceType surfaceType;
+
+	/**
+	 * @brief The format of the surface.
+	 */
+	dsGfxFormat format;
+
+	/**
+	 * @brief The width of the surface.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the render surface.
+	 */
+	uint32_t height;
+} dsRenderSurface;
+
+/**
  * @brief Function for drawing a render pass.
  * @param[out] outDrawData The draw data to use to draw with.
  * @param[out] outDrawCount The number of draw data elements.
@@ -464,12 +517,13 @@ typedef void (*dsRenderUpdateResourcesFunction)(dsRenderer* renderer,
 /**
  * @brief Function called to draw a rnder pass.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to draw to.
  * @param renderPass The render pass to draw.
  * @param framebuffer The framebuffer to draw to.
  * @return False if it is invalid to draw.
  */
-typedef bool (*dsDrawRenderPassFunction)(dsRenderer* renderer, dsRenderPass* renderPass,
-	dsFramebuffer* framebuffer);
+typedef bool (*dsDrawRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsRenderPass* renderPass, dsFramebuffer* framebuffer);
 
 /** @copydoc dsRenderer */
 struct dsRenderer
@@ -498,16 +552,29 @@ struct dsRenderer
 
 	/**
 	 * @brief The frame update function.
+	 *
+	 * This may be set by the user of this library to be notified of updates.
 	 */
 	dsRenderUpdateFunction updateFunc;
 
 	/**
 	 * @brief The resource update function.
+	 *
+	 * This may be set by the user of this library to be notified of updates.
 	 */
 	dsRenderUpdateResourcesFunction updateResourcesFunc;
 
 	/**
+	 * @brief The internal frame update function.
+	 *
+	 * This is set by the implementation.
+	 */
+	dsRenderUpdateFunction updateInternalFunc;
+
+	/**
 	 * @brief The render pass draw function.
+	 *
+	 * This is set by the implementation.
 	 */
 	dsDrawRenderPassFunction drawRenderPassFunc;
 };

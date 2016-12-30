@@ -318,17 +318,6 @@ typedef enum dsVertexAttrib
 } dsVertexAttrib;
 
 /**
- * @brief Enum for the type of a render surface.
- */
-typedef enum dsRenderSurfaceType
-{
-	dsRenderSurfaceType_Unknown, ///< Unknown surface type.
-	dsRenderSurfaceType_Window,  ///< Window surface.
-	dsRenderSurfaceType_PBuffer, ///< Pixel buffer surface.
-	dsRenderSurfaceType_Pixmap   ///< Pixmap surface.
-} dsRenderSurfaceType;
-
-/**
  * @brief Enum for the type of a surface used within a framebuffer.
  */
 typedef enum dsFramebufferSurfaceType
@@ -340,6 +329,7 @@ typedef enum dsFramebufferSurfaceType
 /// \{
 typedef struct dsCommandBuffer dsCommandBuffer;
 typedef struct dsRenderer dsRenderer;
+typedef struct dsRenderSurface dsRenderSurface;
 typedef struct mslModule mslModule;
 /// \}
 
@@ -751,41 +741,6 @@ typedef struct dsTextureBlitRegion
 	 */
 	uint32_t dstDepthRange;
 } dsTextureBlitRegion;
-
-/**
- * @brief Structure defining a render surface, such as a window.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
- */
-typedef struct dsRenderSurface
-{
-	/**
-	 * The resource manager this was created with.
-	 */
-	dsResourceManager* resourceManager;
-
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The type of the render surface.
-	 */
-	dsRenderSurfaceType surfaceType;
-
-	/**
-	 * @brief The width of the surface.
-	 */
-	uint32_t width;
-
-	/**
-	 * @brief The height of the render surface.
-	 */
-	uint32_t height;
-} dsRenderSurface;
 
 /**
  * @brief Structure defining a surface to render to within a framebuffer.
@@ -1241,38 +1196,6 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
 
 /**
- * @brief Function for creating a render surface.
- * @param resourceManager The resource manager to create the render surface from.
- * @param allocator The allocator to create the render surface with.
- * @param surfaceType The render surface type.
- * @param surface The OS-specific surface handle.
- * @return The created render surface, or NULL if it couldn't be created.
- */
-typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsRenderSurfaceType surfaceType, void* surface);
-
-/**
- * @brief Function for destroying a render surface.
- * @param resourceManager The resource manager the render surface was created with.
- * @param surface The render surface.
- * @return False if the render surface couldn't be destroyed.
- */
-typedef bool (*dsDestroyRenderSurfaceFunction)(dsRenderSurface* resourceManager,
-	dsRenderSurface* surface);
-
-/**
- * @brief Function for updating a render surface.
- *
- * This should update the width and height based on the underlying OS surface.
- *
- * @param resourceManager The resource manager the render surface was created with.
- * @param surface The surface to update.
- * @return False if the render surface couldn't be udpated.
- */
-typedef bool (*dsUpdateRenderSurfaceFunction)(dsResourceManager* resourceManager,
-	dsRenderSurface* surface);
-
-/**
  * @brief Function for creeating a framebuffer.
  * @param resourceManager The resource manager to create the framebuffer from.
  * @param allocator The allocator to create the framebuffer with.
@@ -1422,11 +1345,6 @@ struct dsResourceManager
 	 * @brief The number of shaders currently allocated by the resource manager.
 	 */
 	uint32_t shaderCount;
-
-	/**
-	 * @brief The number of render surfaces currently allocated by the resource manager.
-	 */
-	uint32_t renderSurfaceCount;
 
 	/**
 	 * @brief The number of framebuffers currently allocated by the resource manager.
@@ -1601,21 +1519,6 @@ struct dsResourceManager
 	 * @brief Shader destruction function.
 	 */
 	dsDestroyShaderFunction destroyShaderFunc;
-
-	/**
-	 * @brief Render surface creation function.
-	 */
-	dsCreateRenderSurfaceFunction createRenderSurface;
-
-	/**
-	 * @brief Render surface destruction function.
-	 */
-	dsDestroyRenderSurfaceFunction destroyRenderSurface;
-
-	/**
-	 * @brief Render surface update function.
-	 */
-	dsUpdateRenderSurfaceFunction updateRenderSurface;
 
 	/**
 	 * @brief Function for creating a framebuffer.
