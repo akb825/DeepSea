@@ -48,6 +48,19 @@ DS_RENDER_EXPORT bool dsGfxFormat_isValid(dsGfxFormat format);
 DS_RENDER_EXPORT unsigned int dsGfxFormat_size(dsGfxFormat format);
 
 /**
+ * @brief Gets the block dimensions for a format.
+ *
+ * This is used for compressed formats, where each unit compressed unit is a block of pixels.
+ *
+ * @param[out] outX The number of pixels in the X direction.
+ * @param[out] outY The number of pixels in the Y direction.
+ * @param format The format.
+ * @return False if the format is invalid or if outX or outY is NULL.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned int* outY,
+	dsGfxFormat format);
+
+/**
  * @brief Gets the index of a standard format.
  *
  * This is useful when indexing into an array by the format.

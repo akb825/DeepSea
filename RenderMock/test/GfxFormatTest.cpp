@@ -76,6 +76,34 @@ TEST_F(GfxFormatTest, Size)
 	EXPECT_EQ(16U, dsGfxFormat_size(dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_SNorm)));
 }
 
+TEST_F(GfxFormatTest, BlockDimensions)
+{
+	unsigned int x, y;
+	EXPECT_FALSE(dsGfxFormat_blockDimensions(&x, &y, (dsGfxFormat)(dsGfxFormat_R8G8B8A8 |
+		dsGfxFormat_D16 | dsGfxFormat_UNorm)));
+	EXPECT_FALSE(dsGfxFormat_blockDimensions(NULL, NULL, dsGfxFormat_decorate(
+		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float)));
+
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32,
+		dsGfxFormat_Float)));
+	EXPECT_EQ(1U, x);
+	EXPECT_EQ(1U, y);
+
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_D24S8));
+	EXPECT_EQ(1U, x);
+	EXPECT_EQ(1U, y);
+
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_BC3,
+		dsGfxFormat_SNorm)));
+	EXPECT_EQ(4U, x);
+	EXPECT_EQ(4U, y);
+
+	EXPECT_TRUE(dsGfxFormat_blockDimensions(&x, &y, dsGfxFormat_decorate(dsGfxFormat_ASTC_8x5,
+		dsGfxFormat_SNorm)));
+	EXPECT_EQ(8U, x);
+	EXPECT_EQ(5U, y);
+}
+
 TEST_F(GfxFormatTest, VertexSupported)
 {
 	EXPECT_FALSE(dsGfxFormat_vertexSupported(nullptr, dsGfxFormat_X32));
