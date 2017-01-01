@@ -41,13 +41,14 @@ extern "C"
  * @param usage How the buffer will be used. This should be a combination of dsGfxBufferUsage flags.
  * @param memoryHints Hints for how the memory for the buffer will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @param size The size of the buffer.
- * @param data The initial data for the buffer, or NULL to leave uninitialized.
+ * @param data The initial data for the buffer, or NULL to leave uninitialized. This must be the
+ *     same size as the buffer.
+ * @param size The size of the buffer. This must be given even if data is NULL.
  * @return The created buffer, or NULL if it couldn't be created. errno will be set to an
  *     appropriate value on failure.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, size_t size, const void* data);
+	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
 
 /**
  * @brief Maps a range of a graphics buffer to memory.
@@ -109,13 +110,13 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * @param buffer The buffer to copy the data to. This must have been created with
  *     dsGfxBufferUsage_CopyTo.
  * @param offset The offset into the buffer.
- * @param size The size of the data to copy.
  * @param data The data to copy to the buffer.
+ * @param size The size of the data to copy.
  * @return False if the data couldn't be copied. errno will be set to an appropriate value on
  *     failure.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
-	size_t offset, size_t size, const void* data);
+	size_t offset, const void* data, size_t size);
 
 /**
  * @brief Copies data from one buffer to another.

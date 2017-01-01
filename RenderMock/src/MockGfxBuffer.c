@@ -26,7 +26,7 @@ typedef struct dsMockGfxBuffer
 } dsMockGfxBuffer;
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, size_t size, const void* data)
+	int usage, int memoryHints, const void* data, size_t size)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -89,7 +89,7 @@ bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuf
 }
 
 bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockGfxBuffer* buffer, size_t offset, size_t size, const void* data)
+	dsMockGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);

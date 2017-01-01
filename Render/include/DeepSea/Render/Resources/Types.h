@@ -753,6 +753,21 @@ typedef struct dsFramebufferSurface
 	dsFramebufferSurfaceType surfaceType;
 
 	/**
+	 * @brief The cube face to use for cubemap offscreens.
+	 */
+	dsCubeFace cubeFace;
+
+	/**
+	 * @brief The texture array level to use for offscreens.
+	 */
+	uint32_t arrayLevel;
+
+	/**
+	 * @brief The mipmap level to use for offscreens.
+	 */
+	uint32_t mipLevel;
+
+	/**
 	 * @brief The surface.
 	 *
 	 * This will be dsRenderSurface* if surfaceType is dsFramebufferSurfaceType_RenderSUrface or
@@ -803,7 +818,7 @@ typedef struct dsFramebuffer
 	/**
 	 * @brief The number of array layers.
 	 */
-	uint32_t layers;
+	uint32_t arrayLayers;
 } dsFramebuffer;
 
 /**
@@ -853,12 +868,12 @@ typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceMana
  * @param usage How the buffer will be used. This should be a combination of dsGfxBufferUsage flags.
  * @param memoryHints Hints for how the memory for the buffer will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @param size The size of the buffer.
  * @param data The initial data for the buffer, or NULL to leave uninitialized.
+ * @param size The size of the buffer.
  * @return The created buffer, or NULL if it couldn't be created.
  */
 typedef dsGfxBuffer* (*dsCreateGfxBufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, size_t size, const void* data);
+	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
 
 /**
  * @brief Function for destroying a graphics buffer.
@@ -931,13 +946,13 @@ typedef bool (*dsInvalidateGfxBufferFunction)(dsResourceManager* resourceManager
  * @param commandBuffer The command buffer to process the copy on.
  * @param buffer The buffer to copy the data to.
  * @param offset The offset into the buffer.
- * @param size The size of the data to copy.
  * @param data The data to copy to the buffer.
+ * @param size The size of the data to copy.
  * @return False if the data couldn't be copied.
  */
 typedef bool (*dsCopyGfxBufferDataFunction)(dsResourceManager* resourceManager,
-	dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset, size_t size,
-	const void* data);
+	dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset, const void* data,
+	size_t size);
 
 /**
  * @brief Function for copying data to a buffer.
@@ -994,7 +1009,6 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  *     non-array textures.
  * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
  *     mip levels.
- * @param size The size of the data. This is used to help catch mismatched data.
  * @param data The initial data for the texture, or NULL to leave uninitialized. The order of the
  *     data is:
  *     - Mip levels.
@@ -1002,12 +1016,13 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  *     - Cube faces in the order of dsCubeFace.
  *     - Texture rows.
  *     Data is tightly packed.
+ * @param size The size of the data. This is used to help catch mismatched data.
  * @return The created texture, or NULL if it couldn't be created.
  */
 typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, size_t size,
-	const void* data);
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
+	size_t size);
 
 /**
  * @brief Function for creating an offscreen texture.
@@ -1025,7 +1040,7 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  *     non-array textures.
  * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
  *     mip levels.
- * @param samples The number of samples to use for multisampling.
+ * @param samples The number of samples to use for multisampling. Use 1 if not multisampling.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader.
  * @return The created offscreen, or NULL if it couldn't be created.
@@ -1055,13 +1070,13 @@ typedef bool (*dsDestroyTextureFunction)(dsResourceManager* resourceManager, dsT
  * @param position The position of the texture to copy to.
  * @param width The width of the texture data.
  * @param height The height of the texture data.
- * @param size The size of the data. This is used to help catch mismatched data.
  * @param data The texture data to copy. This must be tightly packed.
+ * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied.
  */
 typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, const dsTexturePosition* position,
-	uint32_t width, unsigned height, size_t size, const void* data);
+	uint32_t width, uint32_t height, const void* data, size_t size);
 
 /**
  * @brief Function for copying from one texture to another.
@@ -1073,13 +1088,13 @@ typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to copy from.
  * @param dstTexture The texture to copy to.
- * @param regionCount The number of regions to copy.
  * @param regions The regions to copy.
+ * @param regionCount The number of regions to copy.
  * @return False if the data couldn't be copied.
  */
 typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
-	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsCubeFace srcFace,
-	dsTexture* dstTexture, size_t regionCount, const dsTextureCopyRegion* regions);
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
+	const dsTextureCopyRegion* regions, size_t regionCount);
 
 /**
  * @brief Function for blitting from one texture to another, scaling when necessary.
@@ -1087,30 +1102,29 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to blit from.
  * @param dstTexture The texture to blit to.
- * @param regionCount The number of regions to blit.
  * @param regions The regions to blit.
+ * @param regionCount The number of regions to blit.
  * @param filter The filter to use when scaling is required.
- * @return False if the data couldn't be copied.
+ * @return False if the data couldn't be blitted.
  */
 typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager,
-	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsCubeFace srcFace,
-	dsTexture* dstTexture, size_t regionCount, const dsTextureBlitRegion* regions,
-	dsFilter filter);
+	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
+	const dsTextureBlitRegion* regions, size_t regionCount, dsFilter filter);
 
 /**
  * @brief Function for getting texture data.
  * @param[out] result The output buffer for the result.
+ * @param size The size of the result buffer.
  * @param resourceManager The resource manager the texture was created with.
  * @param texture The texture to read from.
  * @param position The position to read from.
  * @param width The width of the texture region.
  * @param height The height of the texture region.
- * @param size The size of the buffer.
  * @return False if the data couldn't be read.
  */
-typedef bool (*dsGetTextureDataFunction)(void* result, dsResourceManager* resourceManager,
-	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
-	size_t size);
+typedef bool (*dsGetTextureDataFunction)(void* result, size_t size,
+	dsResourceManager* resourceManager, dsTexture* texture, const dsTexturePosition* position,
+	uint32_t width, uint32_t height);
 
 /**
  * @brief Function for creating a shader module.
@@ -1287,6 +1301,13 @@ struct dsResourceManager
 	 * @brief The maximum number of texture array levels, or 0 if texture arrays aren't supported.
 	 */
 	uint32_t maxTextureArrayLevels;
+
+	/**
+	 * @brief Boolean for whether or not textures can be arbitrarily mipmapped.
+	 *
+	 * When false, textures may only be created with 1 or the maximum mip levels.
+	 */
+	bool arbitraryMipmapping;
 
 	/**
 	 * @brief Boolean for whether or not textures are readable.

@@ -36,12 +36,12 @@ class GfxBufferTest : public FixtureBase
 
 TEST_F(GfxBufferTest, Create)
 {
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 0, 0, 100, NULL));
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex, 0, 100, NULL));
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 1000, dsGfxMemory_Static, 100, NULL));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 0, 0, NULL, 100));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex, 0, NULL, 100));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 1000, dsGfxMemory_Static, NULL, 100));
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw, 100, NULL);
+		dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 100);
 	EXPECT_TRUE(buffer);
 	EXPECT_EQ(1U, resourceManager->bufferCount);
 	EXPECT_EQ(100U, resourceManager->bufferMemorySize);
@@ -55,7 +55,7 @@ TEST_F(GfxBufferTest, Map)
 	TestData testData = {1.2f, 3};
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Draw, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER));
 	EXPECT_TRUE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER));
@@ -63,14 +63,14 @@ TEST_F(GfxBufferTest, Map)
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Read | dsGfxMemory_GpuOnly, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Read | dsGfxMemory_GpuOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER));
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Read, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Read, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(TestData) + 10));
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER);
@@ -112,7 +112,7 @@ TEST_F(GfxBufferTest, FlushInvalidate)
 	TestData testData = {1.2f, 3};
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Draw, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 
 	EXPECT_TRUE(dsGfxBuffer_flush(buffer, 0, sizeof(testData)));
@@ -121,7 +121,7 @@ TEST_F(GfxBufferTest, FlushInvalidate)
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Coherent, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Coherent, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 
 	EXPECT_TRUE(dsGfxBuffer_flush(buffer, 0, sizeof(testData)));
@@ -144,17 +144,17 @@ TEST_F(GfxBufferTest, CopyData)
 	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Read, sizeof(testData), &testData);
+		dsGfxMemory_Static | dsGfxMemory_Read, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
-	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, sizeof(copyData), &copyData));
+	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL,
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static | dsGfxMemory_Read,
-		sizeof(testData), &testData);
+		&testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
-	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 4, sizeof(copyData), &copyData));
-	EXPECT_TRUE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, sizeof(copyData), &copyData));
+	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 4, &copyData, sizeof(copyData)));
+	EXPECT_TRUE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, &copyData, sizeof(copyData)));
 
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(copyData));
 	ASSERT_TRUE(data);
@@ -171,10 +171,10 @@ TEST_F(GfxBufferTest, Copy)
 	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
 
 	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_GpuOnly, sizeof(testData), &testData);
+		dsGfxMemory_GpuOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
 	dsGfxBuffer* toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		dsGfxMemory_Static | dsGfxMemory_Read, sizeof(testData), NULL);
+		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
@@ -182,10 +182,10 @@ TEST_F(GfxBufferTest, Copy)
 	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
 
 	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
-		dsGfxMemory_GpuOnly, sizeof(testData), &testData);
+		dsGfxMemory_GpuOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
 	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Read, sizeof(testData), NULL);
+		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
 
@@ -193,10 +193,10 @@ TEST_F(GfxBufferTest, Copy)
 	EXPECT_TRUE(dsGfxBuffer_destroy(toBuffer));
 
 	fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyFrom,
-		dsGfxMemory_GpuOnly, sizeof(testData), &testData);
+		dsGfxMemory_GpuOnly, &testData, sizeof(testData));
 	ASSERT_TRUE(fromBuffer);
 	toBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_CopyTo,
-		dsGfxMemory_Static | dsGfxMemory_Read, sizeof(testData), NULL);
+		dsGfxMemory_Static | dsGfxMemory_Read, NULL, sizeof(testData));
 	ASSERT_TRUE(toBuffer);
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 4, toBuffer, 0, sizeof(testData)));
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 4, sizeof(testData)));

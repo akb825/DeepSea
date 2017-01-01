@@ -271,6 +271,110 @@ bool dsGfxFormat_blockDimensions(unsigned int* outX, unsigned int* outY,
 	return true;
 }
 
+bool dsGfxFormat_minDimensions(unsigned int* outX, unsigned int* outY,
+	dsGfxFormat format)
+{
+	if (!outX || !outY || !dsGfxFormat_isValid(format))
+		return false;
+
+	static unsigned int compressedX[] =
+	{
+		0,
+		4,  // dsGfxFormat_BC1_RGB
+		4,  // dsGfxFormat_BC1_RGBA
+		4,  // dsGfxFormat_BC2
+		4,  // dsGfxFormat_BC3
+		4,  // dsGfxFormat_BC4
+		4,  // dsGfxFormat_BC5
+		4,  // dsGfxFormat_BC6H
+		4,  // dsGfxFormat_BC7
+		4,  // dsGfxFormat_ETC1
+		4,  // dsGfxFormat_ETC2_R8G8B8
+		4,  // dsGfxFormat_ETC2_R8G8B8A1
+		4,  // dsGfxFormat_ETC2_R8G8B8A8
+		4,  // dsGfxFormat_EAC_R11
+		4,  // dsGfxFormat_EAC_R11G11
+		4,  // dsGfxFormat_ASTC_4x4
+		5,  // dsGfxFormat_ASTC_5x4
+		5,  // dsGfxFormat_ASTC_5x5
+		6,  // dsGfxFormat_ASTC_6x5
+		6,  // dsGfxFormat_ASTC_6x6
+		8,  // dsGfxFormat_ASTC_8x5
+		8,  // dsGfxFormat_ASTC_8x6
+		8,  // dsGfxFormat_ASTC_8x8
+		10, // dsGfxFormat_ASTC_10x5
+		10, // dsGfxFormat_ASTC_10x6
+		10, // dsGfxFormat_ASTC_10x8
+		10, // dsGfxFormat_ASTC_10x10
+		12, // dsGfxFormat_ASTC_12x10
+		12, // dsGfxFormat_ASTC_12x12
+		16, // dsGfxFormat_PVRTC1_RGB_2BPP
+		16, // dsGfxFormat_PVRTC1_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC1_RGB_4BPP
+		8,  // dsGfxFormat_PVRTC1_RGBA_4BPP
+		16, // dsGfxFormat_PVRTC2_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
+	};
+	DS_STATIC_ASSERT(sizeof(compressedX)/sizeof(*compressedX) ==
+		dsGfxFormat_CompressedCount, compressed_format_x_array_mismatch);
+
+	static unsigned int compressedY[] =
+	{
+		0,
+		4,  // dsGfxFormat_BC1_RGB
+		4,  // dsGfxFormat_BC1_RGBA
+		4,  // dsGfxFormat_BC2
+		4,  // dsGfxFormat_BC3
+		4,  // dsGfxFormat_BC4
+		4,  // dsGfxFormat_BC5
+		4,  // dsGfxFormat_BC6H
+		4,  // dsGfxFormat_BC7
+		4,  // dsGfxFormat_ETC1
+		4,  // dsGfxFormat_ETC2_R8G8B8
+		4,  // dsGfxFormat_ETC2_R8G8B8A1
+		4,  // dsGfxFormat_ETC2_R8G8B8A8
+		4,  // dsGfxFormat_EAC_R11
+		4,  // dsGfxFormat_EAC_R11G11
+		4,  // dsGfxFormat_ASTC_4x4
+		4,  // dsGfxFormat_ASTC_5x4
+		5,  // dsGfxFormat_ASTC_5x5
+		5,  // dsGfxFormat_ASTC_6x5
+		6,  // dsGfxFormat_ASTC_6x6
+		5,  // dsGfxFormat_ASTC_8x5
+		6,  // dsGfxFormat_ASTC_8x6
+		8,  // dsGfxFormat_ASTC_8x8
+		5,  // dsGfxFormat_ASTC_10x5
+		6,  // dsGfxFormat_ASTC_10x6
+		8,  // dsGfxFormat_ASTC_10x8
+		10, // dsGfxFormat_ASTC_10x10
+		10, // dsGfxFormat_ASTC_12x10
+		12, // dsGfxFormat_ASTC_12x12
+		8,  // dsGfxFormat_PVRTC1_RGB_2BPP
+		8,  // dsGfxFormat_PVRTC1_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC1_RGB_4BPP
+		8,  // dsGfxFormat_PVRTC1_RGBA_4BPP
+		8,  // dsGfxFormat_PVRTC2_RGBA_2BPP
+		8,  // dsGfxFormat_PVRTC2_RGBA_4BPP
+	};
+	DS_STATIC_ASSERT(sizeof(compressedY)/sizeof(*compressedY) ==
+		dsGfxFormat_CompressedCount, compressed_format_y_array_mismatch);
+
+	unsigned int index = dsGfxFormat_compressedIndex(format);
+	if (index > 0)
+	{
+		DS_ASSERT(index < dsGfxFormat_CompressedCount);
+		*outX = compressedX[index];
+		*outY = compressedY[index];
+	}
+	else
+	{
+		*outX = 1;
+		*outY = 1;
+	}
+
+	return true;
+}
+
 bool dsGfxFormat_vertexSupported(const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	if (!resourceManager || !resourceManager->vertexFormatSupportedFunc ||

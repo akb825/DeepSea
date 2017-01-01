@@ -24,7 +24,7 @@
 #include <errno.h>
 
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, size_t size, const void* data)
+	int usage, int memoryHints, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -62,7 +62,7 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 	}
 
 	dsGfxBuffer* buffer = resourceManager->createBufferFunc(resourceManager, allocator, usage,
-		memoryHints, size, data);
+		memoryHints, data, size);
 	if (buffer)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->bufferCount, 1);
@@ -252,7 +252,7 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 }
 
 bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset,
-	size_t size, const void* data)
+	const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -274,12 +274,13 @@ bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, s
 	if (offset + size > buffer->size)
 	{
 		errno = ERANGE;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
 	bool success = resourceManager->copyBufferDataFunc(resourceManager, commandBuffer, buffer,
-	offset, size, data);
+		offset, data, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -315,6 +316,7 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 	if (srcOffset + size > srcBuffer->size || dstOffset + size > dstBuffer->size)
 	{
 		errno = ERANGE;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
