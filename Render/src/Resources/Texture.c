@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
@@ -28,11 +29,9 @@
 
 uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height)
 {
-	uint32_t levelCount = 1;
-	for (; width > 1 && height > 1; width /= 2, height /= 2, ++levelCount)
-		/* empty */;
-
-	return levelCount;
+	uint32_t levelCountWidth = 32 - dsClz(width);
+	uint32_t levelCountHeight = 32 - dsClz(height);
+	return dsMax(levelCountWidth, levelCountHeight);
 }
 
 size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
@@ -62,7 +61,7 @@ size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width
 		size += curBlocksX*curBlocksY*formatSize;
 	}
 
-	size *= depth*mipLevels*samples;
+	size *= depth*samples;
 	if (dimension == dsTextureDim_Cube)
 		size *= 6;
 	return size;
@@ -174,9 +173,15 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	unsigned int minWidth, minHeight;
 	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (width < minWidth || height < minHeight || width > resourceManager->maxTextureSize ||
-		height > resourceManager->maxTextureSize || (dimension == dsTextureDim_3D ?
-		depth > resourceManager->maxTextureDepth : depth > resourceManager->maxTextureArrayLevels))
+	if (dimension == dsTextureDim_2D)
+		height = minHeight;
+
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
+	if (width % blockX != 0 || height % blockY != 0 || width < minWidth || height < minHeight ||
+		width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
+		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
+		depth > resourceManager->maxTextureArrayLevels))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture dimensions.");
@@ -269,9 +274,15 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 
 	unsigned int minWidth, minHeight;
 	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (width < minWidth || height < minHeight || width > resourceManager->maxTextureSize ||
-		height > resourceManager->maxTextureSize || (dimension == dsTextureDim_3D ?
-		depth > resourceManager->maxTextureDepth : depth > resourceManager->maxTextureArrayLevels))
+	if (dimension == dsTextureDim_2D)
+		height = minHeight;
+
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
+	if (width % blockX != 0 || height % blockY != 0 || width < minWidth || height < minHeight ||
+		width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
+		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
+		depth > resourceManager->maxTextureArrayLevels))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture dimensions.");
@@ -319,6 +330,16 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	if (width % blockX != 0 || height % blockY != 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture data width and height must be a multiple of the block size.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if ((position->depth > 0 && position->depth >= texture->depth) ||
 		position->mipLevel >= texture->mipLevels)
 	{
@@ -356,7 +377,9 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !srcTexture || !dstTexture || !srcTexture->resourceManager ||
-		!srcTexture->resourceManager->copyTextureFunc || srcTexture != dstTexture || !regions)
+		!srcTexture->resourceManager->copyTextureFunc ||
+		srcTexture->resourceManager != dstTexture->resourceManager ||
+		srcTexture->format != dstTexture->format || !regions)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -378,11 +401,22 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+
 	for (size_t i = 0; i < regionCount; ++i)
 	{
 		uint32_t depthCount = (srcTexture->dimension != dsTextureDim_3D &&
 			dstTexture->dimension != dsTextureDim_3D) ? regions[i].arrayLevelCount : 1;
 		depthCount = dsMax(1U, depthCount);
+
+		if (regions[i].width % blockX != 0 || regions[i].height % blockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
 
 		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
 		uint32_t maxSrcDepth = srcPosition->depth + depthCount - 1;
@@ -459,6 +493,11 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	unsigned int srcBlockX, srcBlockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&srcBlockX, &srcBlockY, srcTexture->format));
+	unsigned int dstBlockX, dstBlockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&dstBlockX, &dstBlockY, dstTexture->format));
+
 	for (size_t i = 0; i < regionCount; ++i)
 	{
 		if ((srcTexture->dimension != dsTextureDim_3D ||
@@ -474,6 +513,14 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		// Avoid underflow during checks.
 		if (regions[i].srcDepthRange == 0 || regions[i].dstDepthRange == 0)
 			continue;
+
+		if (regions[i].srcWidth % srcBlockX != 0 || regions[i].srcHeight % srcBlockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
 
 		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
 		uint32_t maxSrcDepth = srcPosition->depth + regions[i].srcDepthRange - 1;
@@ -492,6 +539,14 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		{
 			errno = ERANGE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (regions[i].dstWidth % dstBlockX != 0 || regions[i].dstHeight % dstBlockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
@@ -546,6 +601,16 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"The target doesn't support reading from a non-offscreen texture.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	unsigned int blockX, blockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	if (width % blockX != 0 || height % blockY != 0)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture data width and height must be a multiple of the block size.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
