@@ -332,11 +332,11 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 
 	unsigned int blockX, blockY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
-	if (width % blockX != 0 || height % blockY != 0)
+	if (position->x % blockX != 0 || position->y % blockY != 0)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Texture data width and height must be a multiple of the block size.");
+			"Texture data position must be a multiple of the block size.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -350,10 +350,21 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 
 	uint32_t mipWidth = dsMax(1U, texture->width/(1 << position->mipLevel));
 	uint32_t mipHeight = dsMax(1U, texture->height/(1 << position->mipLevel));
-	if (position->x + width > mipWidth || position->y + height > mipHeight)
+	uint32_t endX = position->x + width;
+	uint32_t endY = position->y + height;
+	if (endX > mipWidth || endY > mipHeight)
 	{
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if ((endX % blockX != 0 && endX != mipWidth) || (endY % blockY && endY != mipHeight))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture data width and height must be a multiple of the block size or reach the edge "
+			"of the image.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -410,11 +421,12 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			dstTexture->dimension != dsTextureDim_3D) ? regions[i].arrayLevelCount : 1;
 		depthCount = dsMax(1U, depthCount);
 
-		if (regions[i].width % blockX != 0 || regions[i].height % blockY != 0)
+		if (regions[i].srcPosition.x % blockX != 0 || regions[i].srcPosition.y % blockY != 0 ||
+			regions[i].dstPosition.x % blockX != 0 || regions[i].dstPosition.y % blockY != 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Texture data width and height must be a multiple of the block size.");
+				"Texture data position must be a multiple of the block size.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
@@ -430,11 +442,22 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 		uint32_t srcMipWidth = dsMax(1U, srcTexture->width/(1 << srcPosition->mipLevel));
 		uint32_t srcMipHeight = dsMax(1U, srcTexture->height/(1 << srcPosition->mipLevel));
-		if (srcPosition->x + regions[i].width > srcMipWidth ||
-			srcPosition->y + regions[i].height > srcMipHeight)
+		uint32_t srcEndX = regions[i].srcPosition.x + regions[i].width;
+		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].height;
+		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
 		{
 			errno = ERANGE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((srcEndX % blockX != 0 && srcEndX != srcMipWidth) ||
+			(srcEndY % blockY != 0 && srcEndY != srcMipHeight))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
@@ -450,11 +473,22 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 		uint32_t dstMipWidth = dsMax(1U, dstTexture->width/(1 << dstPosition->mipLevel));
 		uint32_t dstMipHeight = dsMax(1U, dstTexture->height/(1 << dstPosition->mipLevel));
-		if (dstPosition->x + regions[i].width > dstMipWidth ||
-			dstPosition->y + regions[i].height > dstMipHeight)
+		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].width;
+		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].height;
+		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
 		{
 			errno = ERANGE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((dstEndX % blockX != 0 && dstEndX != dstMipWidth) ||
+			(dstEndY % blockY != 0 && dstEndY != dstMipHeight))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
@@ -514,7 +548,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		if (regions[i].srcDepthRange == 0 || regions[i].dstDepthRange == 0)
 			continue;
 
-		if (regions[i].srcWidth % srcBlockX != 0 || regions[i].srcHeight % srcBlockY != 0)
+		if (regions[i].srcPosition.x % srcBlockX != 0 || regions[i].srcPosition.y % srcBlockY != 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -532,21 +566,33 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t srcMipWidth = dsMax(1U, srcTexture->width/(1 << srcPosition->mipLevel));
-		uint32_t srcMipHeight = dsMax(1U, srcTexture->height/(1 << srcPosition->mipLevel));
-		if (srcPosition->x + regions[i].srcWidth > srcMipWidth ||
-			srcPosition->y + regions[i].srcHeight > srcMipHeight)
+		uint32_t srcMipWidth = dsMax(1U, srcTexture->width/(1 << regions[i].srcPosition.mipLevel));
+		uint32_t srcMipHeight = dsMax(1U, srcTexture->height/
+			(1 << regions[i].srcPosition.mipLevel));
+		uint32_t srcEndX = regions[i].srcPosition.x + regions[i].srcWidth;
+		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].srcHeight;
+		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
 		{
 			errno = ERANGE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		if (regions[i].dstWidth % dstBlockX != 0 || regions[i].dstHeight % dstBlockY != 0)
+		if ((srcEndX % srcBlockX != 0 && srcEndX != srcMipWidth) ||
+			(srcEndY % srcBlockY != 0 && srcEndY != srcMipHeight))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Texture data width and height must be a multiple of the block size.");
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (regions[i].dstPosition.x % dstBlockX != 0 || regions[i].dstPosition.y % dstBlockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data position must be a multiple of the block size.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
@@ -560,13 +606,25 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t dstMipWidth = dsMax(1U, dstTexture->width/(1 << dstPosition->mipLevel));
-		uint32_t dstMipHeight = dsMax(1U, dstTexture->height/(1 << dstPosition->mipLevel));
-		if (dstPosition->x + regions[i].dstWidth > dstMipWidth ||
-			dstPosition->y + regions[i].dstHeight > dstMipHeight)
+		uint32_t dstMipWidth = dsMax(1U, dstTexture->width/(1 << regions[i].dstPosition.mipLevel));
+		uint32_t dstMipHeight = dsMax(1U, dstTexture->height/
+			(1 << regions[i].dstPosition.mipLevel));
+		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].dstWidth;
+		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].dstHeight;
+		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
 		{
 			errno = ERANGE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((dstEndX % dstBlockX != 0 && dstEndX != dstMipWidth) ||
+			(dstEndY % dstBlockY != 0 && dstEndY != dstMipHeight))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
@@ -606,11 +664,11 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 
 	unsigned int blockX, blockY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
-	if (width % blockX != 0 || height % blockY != 0)
+	if (position->x % blockX != 0 || position->y % blockY != 0)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Texture data width and height must be a multiple of the block size.");
+			"Texture data position must be a multiple of the block size.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -624,10 +682,21 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 
 	uint32_t mipWidth = dsMax(1U, texture->width/(1 << position->mipLevel));
 	uint32_t mipHeight = dsMax(1U, texture->height/(1 << position->mipLevel));
-	if (position->x + width > mipWidth || position->y + height > mipHeight)
+	uint32_t endX = position->x + width;
+	uint32_t endY = position->y + height;
+	if (endX > mipWidth || endY > mipHeight)
 	{
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if ((endX % blockX != 0 && endX != mipWidth) || (endY % blockY && endY != mipHeight))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture data width and height must be a multiple of the block size or reach the edge "
+			"of the image.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

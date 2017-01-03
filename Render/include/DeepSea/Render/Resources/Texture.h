@@ -145,8 +145,10 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * @param commandBuffer The command buffer to process the copy on.
  * @param texture The texture to copy the data to.
  * @param position The position of the texture to copy to.
- * @param width The width of the texture data.
- * @param height The height of the texture data.
+ * @param width The width of the texture data. This must be a multiple of the format block size or
+ *     reach the end of the image.
+ * @param height The height of the texture data. This must be a multiple of the format block size or
+ *     reach the end of the image.
  * @param data The texture data to copy. This must be tightly packed.
  * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied. errno will be set to an appropriate value on

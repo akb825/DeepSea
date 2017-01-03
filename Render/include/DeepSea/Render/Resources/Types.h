@@ -640,11 +640,15 @@ typedef struct dsTexturePosition
 
 	/**
 	 * @brief The x coordinate.
+	 *
+	 * This must always be a multiple of the format's block size.
 	 */
 	uint32_t x;
 
 	/**
 	 * @brief The y coordinate.
+	 *
+	 * This must always be a multiple of the format's block size.
 	 */
 	uint32_t y;
 
@@ -676,11 +680,15 @@ typedef struct dsTextureCopyRegion
 
 	/**
 	 * @brief The width of the region to copy.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t width;
 
 	/**
 	 * @brief The height of the region to copy.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t height;
 
@@ -709,11 +717,15 @@ typedef struct dsTextureBlitRegion
 
 	/**
 	 * @brief The width of the source image to blit from.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t srcWidth;
 
 	/**
 	 * @brief The height of the source image to blit from.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t srcHeight;
 
@@ -726,11 +738,15 @@ typedef struct dsTextureBlitRegion
 
 	/**
 	 * @brief The width of the destination image to blit to.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t dstWidth;
 
 	/**
 	 * @brief The height of the destination image to blit to.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
 	 */
 	uint32_t dstHeight;
 

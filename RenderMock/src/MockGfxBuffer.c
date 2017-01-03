@@ -19,11 +19,11 @@
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-typedef struct dsMockGfxBuffer
+struct dsMockGfxBuffer
 {
 	dsGfxBuffer buffer;
 	uint8_t data[];
-} dsMockGfxBuffer;
+};
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
