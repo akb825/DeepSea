@@ -173,7 +173,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	unsigned int minWidth, minHeight;
 	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (dimension == dsTextureDim_2D)
+	if (dimension == dsTextureDim_1D)
 		height = minHeight;
 
 	unsigned int blockX, blockY;
@@ -272,9 +272,11 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	samples = dsMax(1U, samples);
+
 	unsigned int minWidth, minHeight;
 	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (dimension == dsTextureDim_2D)
+	if (dimension == dsTextureDim_1D)
 		height = minHeight;
 
 	unsigned int blockX, blockY;
@@ -505,7 +507,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !srcTexture || !dstTexture || !srcTexture->resourceManager ||
-		!srcTexture->resourceManager->blitTextureFunc || srcTexture != dstTexture || !regions)
+		!srcTexture->resourceManager->blitTextureFunc || !regions)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -650,6 +652,14 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data from a texture without the copy from usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if ((texture->memoryHints & dsGfxMemory_GpuOnly))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting read from a texture with GPU only memory flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

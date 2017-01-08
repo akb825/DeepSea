@@ -110,7 +110,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Attempting to map a buffer set with GPU only memory flag set.");
+			"Attempting to map a buffer with GPU only memory flag set.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

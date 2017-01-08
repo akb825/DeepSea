@@ -18,6 +18,7 @@
 
 #include "MockDrawGeometry.h"
 #include "MockGfxBuffer.h"
+#include "MockTexture.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -94,7 +95,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->supportsInstancedDrawing = true;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
-	resourceManager->maxTextureArrayLevels = 256;
+	resourceManager->maxTextureArrayLevels = 512;
+	resourceManager->arbitraryMipmapping = true;
 	resourceManager->texturesReadable = true;
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
@@ -112,9 +114,19 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		(dsInvalidateGfxBufferFunction)&dsMockGfxBuffer_invalidate;
 	resourceManager->copyBufferDataFunc = (dsCopyGfxBufferDataFunction)&dsMockGfxBuffer_copyData;
 	resourceManager->copyBufferFunc = (dsCopyGfxBufferFunction)&dsMockGfxBuffer_copy;
-	resourceManager->createGeometryFunc = (dsCreateDrawGeometryFunction)dsMockDrawGeometry_create;
+
+	resourceManager->createGeometryFunc = (dsCreateDrawGeometryFunction)&dsMockDrawGeometry_create;
 	resourceManager->destroyGeometryFunc =
-		(dsDestroyDrawGeometryFunction)dsMockDrawGeometry_destroy;
+		(dsDestroyDrawGeometryFunction)&dsMockDrawGeometry_destroy;
+
+	resourceManager->createTextureFunc = (dsCreateTextureFunction)&dsMockTexture_create;
+	resourceManager->createOffscreenFunc =
+		(dsCreateOffscreenFunction)&dsMockTexture_createOffscreen;
+	resourceManager->destroyTextureFunc = (dsDestroyTextureFunction)&dsMockTexture_destroy;
+	resourceManager->copyTextureDataFunc = (dsCopyTextureDataFunction)&dsMockTexture_copyData;
+	resourceManager->copyTextureFunc = (dsCopyTextureFunction)&dsMockTexture_copy;
+	resourceManager->blitTextureFunc = (dsBlitTextureFunction)&dsMockTexture_blit;
+	resourceManager->getTextureDataFunc = (dsGetTextureDataFunction)&dsMockTexture_getData;
 
 	return resourceManager;
 }
