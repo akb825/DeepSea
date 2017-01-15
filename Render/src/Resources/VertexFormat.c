@@ -17,8 +17,8 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 
 #include <DeepSea/Core/Bits.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
-#include <errno.h>
 #include <string.h>
 
 bool dsVertexFormat_initialize(dsVertexFormat* format)
@@ -51,7 +51,7 @@ bool dsVertexFormat_setAttribEnabled(dsVertexFormat* format, unsigned int attrib
 
 	if (attrib >= DS_MAX_ALLOWED_VERTEX_ATTRIBS)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		return false;
 	}
 

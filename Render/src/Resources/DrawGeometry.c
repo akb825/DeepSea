@@ -18,13 +18,13 @@
 
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Bits.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Types.h>
-#include <errno.h>
 
 dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
@@ -81,7 +81,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		if (vertexBuffers[i]->offset + vertexBuffers[i]->count*vertexBuffers[i]->format.size >
 			vertexBuffers[i]->buffer->size)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Vertex buffer range is outside of graphics buffer range.");
 			DS_PROFILE_FUNC_RETURN(NULL);
@@ -121,7 +121,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 
 		if (indexBuffer->offset + indexBuffer->count*indexBits/8 > indexBuffer->buffer->size)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Index buffer range is outside of graphics buffer range.");
 			DS_PROFILE_FUNC_RETURN(NULL);

@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Core/Streams/Path.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <string.h>
 
 bool dsPath_combine(char* result, size_t resultSize, const char* path1, const char* path2)
@@ -40,7 +40,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 	{
 		if (resultSize < len1 + 1)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			return false;
 		}
 
@@ -53,7 +53,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 	{
 		if (resultSize < len2 + 1)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			return false;
 		}
 
@@ -76,7 +76,7 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 
 	if (resultSize < (len1 + len2 + 2))
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		return false;
 	}
 
@@ -120,7 +120,7 @@ bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path)
 			{
 				if (resultSize < 2)
 				{
-					errno = ERANGE;
+					errno = EINDEX;
 					return false;
 				}
 
@@ -132,7 +132,7 @@ bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path)
 			{
 				if (resultSize < end + 1)
 				{
-					errno = ERANGE;
+					errno = EINDEX;
 					return false;
 				}
 
@@ -219,7 +219,7 @@ bool dsPath_removeLastExtension(char* result, size_t resultSize, const char* pat
 
 	if (resultSize < len + 1)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		return false;
 	}
 

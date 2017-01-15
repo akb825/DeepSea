@@ -28,6 +28,11 @@ extern "C"
 #endif
 
 /**
+ * @file
+ * @brief Types that are used for the shader and material system.
+ */
+
+/**
  * @brief Enum for the type of a material member.
  */
 typedef enum dsMaterialType

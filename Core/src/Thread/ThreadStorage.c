@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Core/Thread/ThreadStorage.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <string.h>
 
 #if DS_WINDOWS

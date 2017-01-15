@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 #define DS_NONE ((size_t)-1)
 #define DS_BASE_PTR(allocator, index) \

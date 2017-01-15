@@ -36,10 +36,14 @@ TEST(ErrorTest, ErrorString)
 	EXPECT_STREQ("Cannot allocate memory", dsErrorString(ENOMEM));
 	EXPECT_STREQ("Numerical result out of range", dsErrorString(ERANGE));
 #endif
+
+	EXPECT_STREQ("Index out of range", dsErrorString(EINDEX));
+	EXPECT_STREQ("Invalid file format", dsErrorString(EFORMAT));
+	EXPECT_STREQ("Unknown error", dsErrorString(-1));
 }
 
 TEST(ErrorTest, Check)
 {
 	EXPECT_TRUE(DS_CHECK("test", checkFunc(true, 0)));
-	EXPECT_FALSE(DS_CHECK("test", checkFunc(false, EINVAL)));
+	EXPECT_FALSE(DS_CHECK("test", checkFunc(false, EINDEX)));
 }

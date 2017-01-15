@@ -16,7 +16,7 @@
 
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Assert.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 static void initFileStream(dsFileStream* stream, FILE* file)
 {

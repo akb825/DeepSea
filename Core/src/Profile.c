@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Core/Profile.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 static void* gUserData;
 static dsProfileFrameFunction gStartFrameFunc;

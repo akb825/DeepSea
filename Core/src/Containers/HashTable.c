@@ -18,7 +18,7 @@
 #include <DeepSea/Core/Containers/List.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Assert.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <string.h>
 
 size_t dsHashTable_sizeof(size_t tableSize)

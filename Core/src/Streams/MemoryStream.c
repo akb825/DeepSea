@@ -16,7 +16,7 @@
 
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Assert.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <string.h>
 
 bool dsMemoryStream_open(dsMemoryStream* stream, void* buffer, size_t size)

@@ -17,21 +17,35 @@
 #include <DeepSea/Core/Error.h>
 
 #include <DeepSea/Core/Thread/ThreadStorage.h>
-#include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 #include <string.h>
 
 #define BUFFER_SIZE 256
 static DS_THREAD_LOCAL char buffer[BUFFER_SIZE];
 
+#define FIRST_CUSTOM EINDEX
+#define LAST_CUSTOM EFORMAT
+
+static const char* customCodes[] =
+{
+	"Index out of range",
+	"Invalid file format"
+};
+
 const char* dsErrorString(int errorCode)
 {
+	if (errorCode >= FIRST_CUSTOM && errorCode <= LAST_CUSTOM)
+		return customCodes[errorCode - FIRST_CUSTOM];
+
 #if DS_WINDOWS
-	DS_VERIFY(strerror_s(buffer, BUFFER_SIZE, errorCode) == 0);
+	if (rerror_s(buffer, BUFFER_SIZE, errorCode) != 0)
+		return "Unknown error";
 #elif defined(_GNU_SOURCE)
-	DS_VERIFY(strerror_r(errorCode, buffer, BUFFER_SIZE) == buffer);
+	if (strerror_r(errorCode, buffer, BUFFER_SIZE) != buffer)
+		return "Uknown error";
 #else
-	DS_VERIFY(strerror_r(errorCode, buffer, BUFFER_SIZE) == 0);
+	if (strerror_r(errorCode, buffer, BUFFER_SIZE) != 0)
+		return "Unknown error";
 #endif
 	return buffer;
 }

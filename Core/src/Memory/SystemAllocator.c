@@ -17,7 +17,7 @@
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Atomic.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <stdlib.h>
 #include <stdint.h>
 

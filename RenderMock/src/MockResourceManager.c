@@ -21,10 +21,10 @@
 #include "MockTexture.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
-#include <errno.h>
 #include <string.h>
 
 static bool vertexFormatSupported(const dsResourceManager* resourceManager, dsGfxFormat format)

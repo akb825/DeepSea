@@ -16,7 +16,7 @@
 
 #include <DeepSea/Core/Containers/List.h>
 #include <DeepSea/Core/Assert.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 bool dsList_initialize(dsList* list)
 {

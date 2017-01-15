@@ -17,11 +17,11 @@
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
-#include <errno.h>
 
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
@@ -117,7 +117,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	if ((size == DS_MAP_FULL_BUFFER && offset > size) ||
 		(size != DS_MAP_FULL_BUFFER && offset + size > buffer->size))
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -273,7 +273,7 @@ bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, s
 
 	if (offset + size > buffer->size)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -315,7 +315,7 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 
 	if (srcOffset + size > srcBuffer->size || dstOffset + size > dstBuffer->size)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}

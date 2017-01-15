@@ -15,7 +15,7 @@
  */
 
 #include <DeepSea/Core/Thread/Spinlock.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 #if DS_WINDOWS
 #include <DeepSea/Core/Atomic.h>

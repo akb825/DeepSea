@@ -19,13 +19,13 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Bits.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
-#include <errno.h>
 
 uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height)
 {
@@ -191,7 +191,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
 	if (data && size != textureSize)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
@@ -345,7 +345,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	if ((position->depth > 0 && position->depth >= texture->depth) ||
 		position->mipLevel >= texture->mipLevels)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -356,7 +356,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	uint32_t endY = position->y + height;
 	if (endX > mipWidth || endY > mipHeight)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -373,7 +373,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	if (size != dsTexture_size(texture->format, texture->dimension, width, height, 1, 1,
 		texture->samples))
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
@@ -437,7 +437,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		if ((maxSrcDepth > 0 && maxSrcDepth >= srcTexture->depth) ||
 			srcPosition->mipLevel >= srcTexture->mipLevels)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -448,7 +448,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].height;
 		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -468,7 +468,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		if ((maxDstDepth > 0 && maxDstDepth >= srcTexture->depth) ||
 			dstPosition->mipLevel >= dstTexture->mipLevels)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -479,7 +479,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].height;
 		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -563,7 +563,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		if ((maxSrcDepth > 0 && maxSrcDepth >= srcTexture->depth) ||
 			srcPosition->mipLevel >= srcTexture->mipLevels)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -575,7 +575,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].srcHeight;
 		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -603,7 +603,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		if ((maxDstDepth > 0 && maxDstDepth >= srcTexture->depth) ||
 			dstPosition->mipLevel >= dstTexture->mipLevels)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -615,7 +615,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].dstHeight;
 		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -685,7 +685,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	if ((position->depth > 0 && position->depth >= texture->depth) ||
 		position->mipLevel >= texture->mipLevels)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -696,7 +696,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	uint32_t endY = position->y + height;
 	if (endX > mipWidth || endY > mipHeight)
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -713,7 +713,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	if (size != dsTexture_size(texture->format, texture->dimension, width, height, 1, 1,
 		texture->samples))
 	{
-		errno = ERANGE;
+		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}

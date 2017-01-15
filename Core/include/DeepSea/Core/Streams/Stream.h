@@ -18,7 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Streams/Types.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 #ifdef __cplusplus
 extern "C"

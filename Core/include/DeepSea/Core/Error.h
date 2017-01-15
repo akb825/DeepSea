@@ -28,8 +28,18 @@ extern "C"
 
 /**
  * @file
- * @brief Function to get a string for an error code.
+ * @brief Functions for handling error codes and additional error code values.
  */
+
+/**
+ * @brief Error code for an index that is out of range.
+ */
+#define EINDEX 10000
+
+/**
+ * @brief Error code for invalid file format.
+ */
+#define EFORMAT 10001
 
 /**
  * @brief Executes a statement and prints an error if it fails.
@@ -50,7 +60,8 @@ extern "C"
 /**
  * @brief Gets the string for an error number.
  *
- * This is thread-safe, using a statically allocated thread-local buffer for the string.
+ * This is thread-safe, using a statically allocated thread-local buffer for the string. This also
+ * handles custom error codes.
  *
  * @param errorCode The error code to get the string for. This will typically be errno.
  * @return A string for the error number.

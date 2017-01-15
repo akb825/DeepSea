@@ -17,7 +17,7 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Atomic.h>
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 
 bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, size_t bufferSize)
 {

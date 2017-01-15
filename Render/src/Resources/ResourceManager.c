@@ -20,10 +20,10 @@
 #include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Types.h>
-#include <errno.h>
 #include <string.h>
 
 bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
@@ -61,7 +61,7 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	{
 		if (resourceContextCount >= resourceManager->maxResourceContexts)
 		{
-			errno = ERANGE;
+			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Maximum render contexts exceeded.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}

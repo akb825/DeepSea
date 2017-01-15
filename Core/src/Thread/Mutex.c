@@ -15,12 +15,13 @@
  */
 
 #include <DeepSea/Core/Thread/Mutex.h>
+
+#include "MutexImpl.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
-#include "MutexImpl.h"
-#include <errno.h>
+#include <DeepSea/Core/Error.h>
 #include <stdlib.h>
 
 unsigned int dsMutex_sizeof(void)
