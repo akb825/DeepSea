@@ -32,6 +32,11 @@ extern "C"
  */
 
 /**
+ * @brief Log tag used by the core library.
+ */
+#define DS_CORE_LOG_TAG "core"
+
+/**
  * @brief The level of the log message.
  */
 typedef enum dsLogLevel

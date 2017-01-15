@@ -17,6 +17,12 @@
 #include <DeepSea/Core/Error.h>
 #include <gtest/gtest.h>
 
+static bool checkFunc(bool success, int errorCode)
+{
+	errno = errorCode;
+	return success;
+}
+
 TEST(ErrorTest, ErrorString)
 {
 #if DS_WINDOWS
@@ -30,4 +36,10 @@ TEST(ErrorTest, ErrorString)
 	EXPECT_STREQ("Cannot allocate memory", dsErrorString(ENOMEM));
 	EXPECT_STREQ("Numerical result out of range", dsErrorString(ERANGE));
 #endif
+}
+
+TEST(ErrorTest, Check)
+{
+	EXPECT_TRUE(DS_CHECK("test", checkFunc(true, 0)));
+	EXPECT_FALSE(DS_CHECK("test", checkFunc(false, EINVAL)));
 }

@@ -15,8 +15,10 @@
  */
 
 #include <DeepSea/Core/Error.h>
-#include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Core/Thread/ThreadStorage.h>
+#include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Error.h>
 #include <string.h>
 
 #define BUFFER_SIZE 256
@@ -32,4 +34,16 @@ const char* dsErrorString(int errorCode)
 	DS_VERIFY(strerror_r(errorCode, buffer, BUFFER_SIZE) == 0);
 #endif
 	return buffer;
+}
+
+bool dsPerformCheck(const char* tag, const char* file, unsigned int line, const char* function,
+	bool result, const char* statementStr)
+{
+	if (!result)
+	{
+		dsLog_messagef(dsLogLevel_Error, tag, file, line, function, "%s failed with error: %s",
+			statementStr,dsErrorString(errno));
+	}
+
+	return result;
 }

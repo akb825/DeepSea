@@ -107,7 +107,7 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 		int errorCode = pthread_attr_setstacksize(&attributes, stackSize);
 		if (errorCode != 0)
 		{
-			DS_LOG_ERROR_F("thread", "Invalid thread stack size: %u", stackSize);
+			DS_LOG_ERROR_F(DS_CORE_LOG_TAG, "Invalid thread stack size: %u", stackSize);
 			DS_VERIFY(pthread_attr_destroy(&attributes) == 0);
 			errno = errorCode;
 			return false;
