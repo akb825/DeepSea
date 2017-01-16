@@ -759,6 +759,65 @@ typedef struct dsTextureBlitRegion
 } dsTextureBlitRegion;
 
 /**
+ * @brief Struct for holding data for a texture.
+ *
+ * This is generally loaded from a file in order to create a final renderable texture.
+ */
+typedef struct dsTextureData
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The format of the texture data.
+	 */
+	dsGfxFormat format;
+
+	/**
+	 * @brief THe dimension of the texture.
+	 */
+	dsTextureDim dimension;
+
+	/**
+	 * @brief The width of the texture.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the texture.
+	 */
+	uint32_t height;
+
+	/**
+	 * @brief The depth of the texture.
+	 *
+	 * If not a 3D texture, this will denote the number of array levels. If 0, the texture is not
+	 * an array.
+	 */
+	uint32_t depth;
+
+	/**
+	 * @brief The number of mip-map levels.
+	 */
+	uint32_t mipLevels;
+
+	/**
+	 * @brief The size of the data.
+	 */
+	size_t dataSize;
+
+	/**
+	 * @brief The data of the texture.
+	 *
+	 * This struct will be allocated such that it will be large enough for this array to be of size
+
+	 */
+	uint8_t data[];
+} dsTextureData;
+
+/**
  * @brief Structure defining a surface to render to within a framebuffer.
  */
 typedef struct dsFramebufferSurface
