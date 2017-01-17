@@ -129,11 +129,6 @@ typedef uint32_t (*dsHashFunction)(const void* key);
  */
 typedef bool (*dsKeysEqualFunction)(const void* first, const void* second);
 
-#if DS_WINDOWS
-#pragma warning(push)
-#pragma warning(disable: 4200)
-#endif
-
 /**
  * @brief Structure that holds a hash table.
  *
@@ -171,10 +166,6 @@ typedef struct dsHashTable
 	 */
 	dsHashTableNode* table[];
 } dsHashTable;
-
-#if DS_WINDOWS
-#pragma warning(pop)
-#endif
 
 /**
  * @brief Declares a statically-allocated hash table.

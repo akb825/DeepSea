@@ -38,7 +38,7 @@ const char* dsErrorString(int errorCode)
 		return customCodes[errorCode - FIRST_CUSTOM];
 
 #if DS_WINDOWS
-	if (rerror_s(buffer, BUFFER_SIZE, errorCode) != 0)
+	if (strerror_s(buffer, BUFFER_SIZE, errorCode) != 0)
 		return "Unknown error";
 #elif defined(_GNU_SOURCE)
 	if (strerror_r(errorCode, buffer, BUFFER_SIZE) != buffer)

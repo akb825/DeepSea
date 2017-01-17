@@ -375,7 +375,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = texture->resourceManager;
@@ -715,7 +715,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!dsResourceManager_canUseResources(resourceManager))
@@ -723,7 +723,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
 			"threads that have created a resource context.");
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = resourceManager->getTextureDataFunc(result, size, resourceManager, texture,
