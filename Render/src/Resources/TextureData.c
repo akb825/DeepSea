@@ -389,7 +389,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	}
 
 	uint32_t width, height, depth, surfaces, faces, mipLevels;
-	if (!readUInt32(stream, &width, filePath) || !readUInt32(stream, &height, filePath) ||
+	if (!readUInt32(stream, &height, filePath) || !readUInt32(stream, &width, filePath) ||
 		!readUInt32(stream, &depth, filePath) || !readUInt32(stream, &surfaces, filePath) ||
 		!readUInt32(stream, &faces, filePath) || !readUInt32(stream, &mipLevels, filePath))
 	{
@@ -426,7 +426,12 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 
 	dsTextureDim textureDim;
 	if (faces == 6)
+	{
 		textureDim = dsTextureDim_Cube;
+		depth = surfaces;
+		if (depth == 1)
+			depth = 0;
+	}
 	else if (depth > 1)
 		textureDim = dsTextureDim_3D;
 	else

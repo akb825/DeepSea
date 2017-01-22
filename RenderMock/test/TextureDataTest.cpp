@@ -228,3 +228,50 @@ TEST_F(TextureDataTest, LoadPvrFile_ETC2SRGB)
 
 	EXPECT_TRUE(dsTextureData_destroy(textureData));
 }
+
+TEST_F(TextureDataTest, LoadPvrFile_Array)
+{
+	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+		getPath("array.pvr"));
+	ASSERT_TRUE(textureData);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
+	EXPECT_EQ(4U, textureData->width);
+	EXPECT_EQ(2U, textureData->height);
+	EXPECT_EQ(3U, textureData->depth);
+	EXPECT_EQ(3U, textureData->mipLevels);
+
+	ASSERT_EQ((4*2 + 2 + 1)*3*sizeof(dsColor), textureData->dataSize);
+	const dsColor* textureColors = (const dsColor*)textureData->data;
+	EXPECT_EQ((dsColor{{255, 0, 0, 255}}), textureColors[0]);
+	EXPECT_EQ((dsColor{{0, 255, 0, 255}}), textureColors[4*2]);
+	EXPECT_EQ((dsColor{{0, 0, 255, 255}}), textureColors[4*2*2]);
+
+	EXPECT_TRUE(dsTextureData_destroy(textureData));
+}
+
+TEST_F(TextureDataTest, LoadPvrFile_Cube)
+{
+	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+		getPath("cube.pvr"));
+	ASSERT_TRUE(textureData);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
+	EXPECT_EQ(dsTextureDim_Cube, textureData->dimension);
+	EXPECT_EQ(4U, textureData->width);
+	EXPECT_EQ(4U, textureData->height);
+	EXPECT_EQ(0U, textureData->depth);
+	EXPECT_EQ(3U, textureData->mipLevels);
+
+	ASSERT_EQ((4*4 + 2*2 + 1)*6*sizeof(dsColor), textureData->dataSize);
+	const dsColor* textureColors = (const dsColor*)textureData->data;
+	EXPECT_EQ((dsColor{{255, 0, 0, 255}}), textureColors[0]);
+	EXPECT_EQ((dsColor{{0, 255, 0, 255}}), textureColors[4*4]);
+	EXPECT_EQ((dsColor{{0, 0, 255, 255}}), textureColors[4*4*2]);
+	EXPECT_EQ((dsColor{{255, 255, 0, 255}}), textureColors[4*4*3]);
+	EXPECT_EQ((dsColor{{0, 255, 255, 255}}), textureColors[4*4*4]);
+	EXPECT_EQ((dsColor{{255, 0, 255, 255}}), textureColors[4*4*5]);
+
+	EXPECT_TRUE(dsTextureData_destroy(textureData));
+}
