@@ -27,11 +27,13 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
-uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height)
+uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height, uint32_t depth)
 {
 	uint32_t levelCountWidth = 32 - dsClz(width);
 	uint32_t levelCountHeight = 32 - dsClz(height);
-	return dsMax(levelCountWidth, levelCountHeight);
+	uint32_t levelCountDepth = 32 - dsClz(depth);
+	uint32_t maxWidthHeight = dsMax(levelCountWidth, levelCountHeight);
+	return dsMax(maxWidthHeight, levelCountDepth);
 }
 
 size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
@@ -42,8 +44,10 @@ size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width
 
 	depth = dsMax(1U, depth);
 	samples = dsMax(1U, samples);
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height);
-	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
+		DS_MIP_DEPTH(dimension, depth));
+	uint32_t clampedMipLevels = dsMin(mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, clampedMipLevels);
 
 	unsigned int blockX, blockY, minX, minY;
 	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
@@ -53,15 +57,16 @@ size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width
 	DS_ASSERT(formatSize > 0);
 
 	size_t size = 0;
-	for (uint32_t curWidth = width, curHeight = height, i = 0; i < mipLevels;
-		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2), ++i)
+	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, i = 0; i < mipLevels;
+		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
+		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++i)
 	{
 		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
-		size += curBlocksX*curBlocksY*formatSize;
+		size += curBlocksX*curBlocksY*formatSize*curDepth;
 	}
 
-	size *= depth*samples;
+	size *= samples;
 	if (dimension == dsTextureDim_Cube)
 		size *= 6;
 	return size;
@@ -75,7 +80,8 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 		return 0;
 
 	depth = dsMax(1U, depth);
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
+		DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
 
 	if (depthIndex >= depth || mipIndex >= mipLevels)
@@ -90,8 +96,9 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
 
 	size_t size = 0;
-	for (uint32_t curWidth = width, curHeight = height, mip = 0; mip <= mipIndex;
-		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2), ++mip)
+	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, mip = 0; mip <= mipIndex;
+		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
+		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
 	{
 		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
@@ -100,7 +107,7 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 		// Add all the depth and face levels until we reach the requested mip.
 		if (mip < mipIndex)
 		{
-			size += baseMipSize*depth*faces;
+			size += baseMipSize*curDepth*faces;
 			continue;
 		}
 
@@ -161,7 +168,8 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
+		DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
 	if (!resourceManager->arbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
 	{
@@ -262,7 +270,8 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
+		DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
 	if (!resourceManager->arbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
 	{

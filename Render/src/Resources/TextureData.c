@@ -471,7 +471,7 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 		return NULL;
 	}
 
-	uint32_t maxLevels = dsTexture_maxMipmapLevels(width, height);
+	uint32_t maxLevels = dsTexture_maxMipmapLevels(width, height, DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMin(maxLevels, mipLevels);
 	size_t dataSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
 	if (dataSize == 0)

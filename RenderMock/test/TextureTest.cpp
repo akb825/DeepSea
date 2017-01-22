@@ -27,13 +27,14 @@ class TextureTest : public FixtureBase
 
 TEST_F(TextureTest, MaxMipmapLevels)
 {
-	EXPECT_EQ(0U, dsTexture_maxMipmapLevels(0, 0));
-	EXPECT_EQ(1U, dsTexture_maxMipmapLevels(1, 1));
-	EXPECT_EQ(2U, dsTexture_maxMipmapLevels(2, 2));
-	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(32, 32));
-	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(32, 16));
-	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(16, 32));
-	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(16, 33));
+	EXPECT_EQ(0U, dsTexture_maxMipmapLevels(0, 0, 0));
+	EXPECT_EQ(1U, dsTexture_maxMipmapLevels(1, 1, 0));
+	EXPECT_EQ(2U, dsTexture_maxMipmapLevels(2, 2, 0));
+	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(32, 32, 0));
+	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(32, 16, 0));
+	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(16, 32, 0));
+	EXPECT_EQ(6U, dsTexture_maxMipmapLevels(16, 33, 0));
+	EXPECT_EQ(7U, dsTexture_maxMipmapLevels(16, 33, 65));
 }
 
 TEST_F(TextureTest, Size)
@@ -49,6 +50,10 @@ TEST_F(TextureTest, Size)
 		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, 1));
 	EXPECT_EQ(4194304U, dsTexture_size(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, 1, 4));
+	EXPECT_EQ(153391700U, dsTexture_size(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, 1));
+	EXPECT_EQ(178956800U, dsTexture_size(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 128, DS_ALL_MIP_LEVELS, 1));
 	EXPECT_EQ(8U, dsTexture_size(dsGfxFormat_BC1_RGB, dsTextureDim_2D, 1, 1, 1, 1, 1));
 }
 
@@ -64,6 +69,9 @@ TEST_F(TextureTest, SurfaceOffset)
 		2));
 	EXPECT_EQ(4063232U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 3, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 2,
+		2));
+	EXPECT_EQ(151191552U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 3,
 		2));
 	EXPECT_EQ(24576000U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_SNorm), dsTextureDim_Cube, 512, 512, 3, DS_ALL_MIP_LEVELS, dsCubeFace_NegY, 2,

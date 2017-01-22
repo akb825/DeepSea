@@ -31,12 +31,21 @@ extern "C"
  */
 
 /**
+ * @brief Helper macro for getting the depth for mipmap purposes.
+ * @param dimension The dimension of the texture.
+ * @param depth The depth of the texture.
+ */
+#define DS_MIP_DEPTH(dimension, depth) ((dimension) == dsTextureDim_3D ? (depth) : 1)
+
+/**
  * @brief Gets the maximum number of mipmap levels for a texture.
  * @param width The width of the texture.
  * @param height The height of the texture.
+ * @param depth The depth of a 3D texture. Set to 1 for a non-3D texture, including texture arrays.
  * @return The maximum number of mipmap levels.
  */
-DS_RENDER_EXPORT uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height);
+DS_RENDER_EXPORT uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height,
+	uint32_t depth);
 
 /**
  * @brief Gets the size of a texture in bytes.
