@@ -176,7 +176,8 @@ TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
 		getPath("test.r16g16b16a16f.pvr"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float), textureData->format);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
+		textureData->format);
 	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
 	EXPECT_EQ(4U, textureData->width);
 	EXPECT_EQ(4U, textureData->height);
@@ -274,4 +275,107 @@ TEST_F(TextureDataTest, LoadPvrFile_Cube)
 	EXPECT_EQ((dsColor{{255, 0, 255, 255}}), textureColors[4*4*5]);
 
 	EXPECT_TRUE(dsTextureData_destroy(textureData));
+}
+
+TEST_F(TextureDataTest, CreateTexture)
+{
+	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+		getPath("test.r8g8b8a8.pvr"));
+	ASSERT_TRUE(textureData);
+
+	dsTexture* texture = dsTextureData_createTexture(NULL, NULL, textureData,
+		dsTextureUsage_Texture, dsGfxMemory_Static);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_createTexture(resourceManager, NULL, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, 0, 0);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_createTexture(resourceManager, NULL, textureData,
+		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
+	ASSERT_TRUE(texture);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
+	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
+	EXPECT_EQ(4U, texture->width);
+	EXPECT_EQ(4U, texture->height);
+	EXPECT_EQ(0U, texture->depth);
+	EXPECT_EQ(1U, texture->mipLevels);
+
+	dsColor textureColors[4*4];
+	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
+
+	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
+	EXPECT_EQ((dsColor{{255, 0, 0, 255}}), textureColors[1]);
+	EXPECT_EQ((dsColor{{0, 255, 0, 255}}), textureColors[2]);
+	EXPECT_EQ((dsColor{{0, 0, 255, 255}}), textureColors[3]);
+	EXPECT_EQ((dsColor{{0, 255, 255, 255}}), textureColors[4]);
+	EXPECT_EQ((dsColor{{255, 255, 0, 255}}), textureColors[5]);
+	EXPECT_EQ((dsColor{{255, 0, 255, 255}}), textureColors[6]);
+	EXPECT_EQ((dsColor{{255, 255, 255, 255}}), textureColors[7]);
+	EXPECT_EQ((dsColor{{128, 0, 255, 255}}), textureColors[8]);
+	EXPECT_EQ((dsColor{{0, 128, 255, 255}}), textureColors[9]);
+	EXPECT_EQ((dsColor{{0, 255, 128, 255}}), textureColors[10]);
+	EXPECT_EQ((dsColor{{128, 255, 0, 255}}), textureColors[11]);
+	EXPECT_EQ((dsColor{{255, 128, 0, 255}}), textureColors[12]);
+	EXPECT_EQ((dsColor{{255, 0, 128, 255}}), textureColors[13]);
+	EXPECT_EQ((dsColor{{255, 128, 128, 255}}), textureColors[14]);
+	EXPECT_EQ((dsColor{{128, 255, 255, 255}}), textureColors[15]);
+
+	EXPECT_TRUE(dsTexture_destroy(texture));
+	EXPECT_TRUE(dsTextureData_destroy(textureData));
+}
+
+TEST_F(TextureDataTest, LoadPvrToTexture)
+{
+	dsTexture* texture = dsTextureData_loadPvrFileToTexture(NULL, NULL, NULL,
+		getPath("test.r8g8b8a8.pvr"), dsTextureUsage_Texture, dsGfxMemory_Static);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+			getPath("test.r8g8b8a8.pvr"), 0, 0);
+	EXPECT_FALSE(texture);
+
+	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+			getPath("test.r8g8b8a8.pvr"), dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static);
+	ASSERT_TRUE(texture);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
+	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
+	EXPECT_EQ(4U, texture->width);
+	EXPECT_EQ(4U, texture->height);
+	EXPECT_EQ(0U, texture->depth);
+	EXPECT_EQ(1U, texture->mipLevels);
+
+	dsColor textureColors[4*4];
+	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
+
+	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
+	EXPECT_EQ((dsColor{{255, 0, 0, 255}}), textureColors[1]);
+	EXPECT_EQ((dsColor{{0, 255, 0, 255}}), textureColors[2]);
+	EXPECT_EQ((dsColor{{0, 0, 255, 255}}), textureColors[3]);
+	EXPECT_EQ((dsColor{{0, 255, 255, 255}}), textureColors[4]);
+	EXPECT_EQ((dsColor{{255, 255, 0, 255}}), textureColors[5]);
+	EXPECT_EQ((dsColor{{255, 0, 255, 255}}), textureColors[6]);
+	EXPECT_EQ((dsColor{{255, 255, 255, 255}}), textureColors[7]);
+	EXPECT_EQ((dsColor{{128, 0, 255, 255}}), textureColors[8]);
+	EXPECT_EQ((dsColor{{0, 128, 255, 255}}), textureColors[9]);
+	EXPECT_EQ((dsColor{{0, 255, 128, 255}}), textureColors[10]);
+	EXPECT_EQ((dsColor{{128, 255, 0, 255}}), textureColors[11]);
+	EXPECT_EQ((dsColor{{255, 128, 0, 255}}), textureColors[12]);
+	EXPECT_EQ((dsColor{{255, 0, 128, 255}}), textureColors[13]);
+	EXPECT_EQ((dsColor{{255, 128, 128, 255}}), textureColors[14]);
+	EXPECT_EQ((dsColor{{128, 255, 255, 255}}), textureColors[15]);
+
+	EXPECT_TRUE(dsTexture_destroy(texture));
 }

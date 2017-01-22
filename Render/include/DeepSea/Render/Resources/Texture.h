@@ -105,7 +105,8 @@ DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim
  *     - Cube faces in the order of dsCubeFace.
  *     - Texture rows.
  *     Data is tightly packed.
- * @param size The size of the data. This is used to help catch mismatched data.
+ * @param size The size of the data. This must match the size of the texture, and is used to ensure
+ *     protect against incorrectly calculated buffer sizes.
  * @return The created texture, or NULL if it couldn't be created. errno will be set to an
  *     appropriate value on failure.
  */
@@ -206,7 +207,8 @@ DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* 
  * executing drawing commands.
  *
  * @param[out] result The output buffer for the result.
- * @param size The size of the result buffer.
+ * @param size The size of the result buffer. This must match the size that will be read from the
+ *     texture based on the requested size.
  * @param texture The texture to read from.
  * @param position The position to read from.
  * @param width The width of the texture region.
