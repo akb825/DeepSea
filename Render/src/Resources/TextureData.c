@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2017 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@
 #include <DeepSea/Render/Types.h>
 
 #define PVR_GENERIC_FORMAT(channel0, bits0, channel1, bits1, channel2, bits2, channel3, bits3) \
-	(((uint64_t)(bits0) << 56) | ((uint64_t)(bits1) << 48) | ((uint64_t)(bits2) << 40) | \
-		((uint64_t)(bits3) << 32) | \
-	((uint64_t)(channel0) << 24) | ((uint64_t)(channel1) << 16) | ((uint64_t)(channel2) << 8) | \
-		(uint64_t)channel3)
+	(((uint64_t)(channel0) | ((uint64_t)(channel1) << 8) | ((uint64_t)(channel2) << 16) | \
+		((uint64_t)(channel3) << 24) | \
+	((uint64_t)(bits0) << 32) | ((uint64_t)(bits1) << 40) | ((uint64_t)(bits2) << 48) | \
+		((uint64_t)(bits3) << 56)))
 
 typedef enum PvrFormat
 {
@@ -308,18 +308,6 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	dsGfxFormat format = dsGfxFormat_Unknown;
 	if (pvrFormat & 0xFFFFFFFF00000000ULL)
 	{
-		if (pvrFormat >= (uint64_t)PvrFormatCount ||
-			formatMap[(size_t)pvrFormat] == dsGfxFormat_Unknown)
-		{
-			pvrError("Unsupported PVR texture format", filePath);
-			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(NULL);
-		}
-
-		format = formatMap[(size_t)pvrFormat];
-	}
-	else
-	{
 		for (size_t i = 0; i < sizeof(genericFormats)/sizeof(*genericFormats); ++i)
 		{
 			if (genericFormats[i].pvrFormat == pvrFormat)
@@ -335,6 +323,18 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			errno = EPERM;
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
+	}
+	else
+	{
+		if (pvrFormat >= (uint64_t)PvrFormatCount ||
+			formatMap[(size_t)pvrFormat] == dsGfxFormat_Unknown)
+		{
+			pvrError("Unsupported PVR texture format", filePath);
+			errno = EPERM;
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		format = formatMap[(size_t)pvrFormat];
 	}
 
 	uint32_t colorSpace;
@@ -471,6 +471,8 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 		return NULL;
 	}
 
+	uint32_t maxLevels = dsTexture_maxMipmapLevels(width, height);
+	mipLevels = dsMin(maxLevels, mipLevels);
 	size_t dataSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
 	if (dataSize == 0)
 	{
@@ -527,6 +529,17 @@ dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator, const char* fil
 	}
 
 	dsTextureData* textureData = loadPvr(allocator, (dsStream*)&fileStream, filePath);
+	if (textureData)
+	{
+		uint64_t pos = dsStream_tell((dsStream*)&fileStream);
+		dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_End);
+		if (pos != dsStream_tell((dsStream*)&fileStream))
+		{
+			pvrError("Unexpected file size", filePath);
+			dsTextureData_destroy(textureData);
+			textureData = NULL;
+		}
+	}
 	DS_VERIFY(dsStream_close((dsStream*)&fileStream));
 	return textureData;
 }
