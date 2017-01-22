@@ -46,13 +46,13 @@ struct Color16f
 	dsHalfFloat a;
 };
 
-bool operator==(const dsColor& color1, const dsColor& color2)
+static bool operator==(const dsColor& color1, const dsColor& color2)
 {
 	return color1.r == color2.r && color1.g == color2.g && color1.b == color2.b &&
 		color1.a == color2.a;
 }
 
-bool operator==(const dsColor& color1, const Color16f& color2)
+static bool operator==(const dsColor& color1, const Color16f& color2)
 {
 	dsVector4f color4f = {{dsUnpackHalfFloat(color2.r), dsUnpackHalfFloat(color2.g),
 		dsUnpackHalfFloat(color2.b), dsUnpackHalfFloat(color2.a)}};
