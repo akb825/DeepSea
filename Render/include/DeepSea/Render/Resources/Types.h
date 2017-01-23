@@ -1268,12 +1268,12 @@ typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* reso
  * @param resourceManager The resource manager to create the shader from.
  * @param allocator The allocator to create the shader with.
  * @param module The shader module that contains the shader.
- * @param name The name of the shader.
+ * @param shaderIndex The index of the shader.
  * @param materialDesc The description of the material type used by the shader.
  * @return The created shader, or NULL if it couldn't be created.
  */
 typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsShaderModule* module, const char* name,
+	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
 	const dsMaterialDesc* materialDesc);
 
 /**
