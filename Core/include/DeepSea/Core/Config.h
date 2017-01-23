@@ -107,3 +107,9 @@
  * @param x The unused variable.
  */
 #define DS_UNUSED(x) (void)(&x)
+
+/**
+ * @brief Gets the number of elements within an array.
+ * @param array The array.
+ */
+#define DS_ARRAY_SIZE(array) (sizeof(array)/sizeof(*(array)))

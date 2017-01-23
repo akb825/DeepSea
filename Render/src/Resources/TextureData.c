@@ -150,7 +150,7 @@ static dsGfxFormat formatMap[] =
 	dsGfxFormat_Unknown,          // ASTC_6x6x6
 };
 
-DS_STATIC_ASSERT(sizeof(formatMap)/sizeof(*formatMap) == PvrFormatCount, format_map_mismatch);
+DS_STATIC_ASSERT(DS_ARRAY_SIZE(formatMap) == PvrFormatCount, format_map_mismatch);
 
 typedef struct GenericFormat
 {
@@ -308,7 +308,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	dsGfxFormat format = dsGfxFormat_Unknown;
 	if (pvrFormat & 0xFFFFFFFF00000000ULL)
 	{
-		for (size_t i = 0; i < sizeof(genericFormats)/sizeof(*genericFormats); ++i)
+		for (size_t i = 0; i < DS_ARRAY_SIZE(genericFormats); ++i)
 		{
 			if (genericFormats[i].pvrFormat == pvrFormat)
 			{
