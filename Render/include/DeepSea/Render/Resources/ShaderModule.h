@@ -29,6 +29,8 @@ extern "C"
 /**
  * @file
  * @brief Functions for manipulating shader modules.
+ *
+ * Shader modules contain a list of shaders, which can then be used for rendering objects on screen.
  */
 
 /**
@@ -84,7 +86,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadData(dsResourceManager* reso
  * @param shaderModule The shader module.
  * @return The number of shader pipelines.
  */
-DS_RENDER_EXPORT uint32_t dsShadederModule_shaderCount(const dsShaderModule* shaderModule);
+DS_RENDER_EXPORT uint32_t dsShaderModule_shaderCount(const dsShaderModule* shaderModule);
 
 /**
  * @brief Gets the name of a shader within a module.

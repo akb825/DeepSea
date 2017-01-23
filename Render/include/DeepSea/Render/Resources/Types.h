@@ -1224,12 +1224,13 @@ typedef bool (*dsDestroyShaderModuleFunction)(dsResourceManager* resourceManager
  * @brief Function for creating a material description.
  * @param resourceManager The resource manager the material description was created with.
  * @param allocator The allocator to create the material description with.
+ * @param elements An array of elements for the description. This array should be allocated
+ *     with the material description and copied.
  * @param elementCount The number of elements.
- * @param elements An array of elements for the description.
  * @return The created material description, or NULL if it couldn't be created.
  */
 typedef dsMaterialDesc* (*dsCreateMaterialDescFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, uint32_t elementCount, const dsMaterialElement* elements);
+	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount);
 
 /**
  * @brief Function for destroying a material description.
@@ -1245,13 +1246,13 @@ typedef bool (*dsDestroyMaterialDescFunction)(dsResourceManager* resourceManager
  * @param resourceManager The resource manager the shader variable group description was created
  *     with.
  * @param allocator The allocator to create the shader variable group description with.
- * @param elementCount The number of elements.
  * @param elements An array of elements for the description.
+ * @param elementCount The number of elements.
  * @return The created shader variable group description, or NULL if it couldn't be created.
  */
 typedef dsShaderVariableGroupDesc* (*dsCreateShaderVariableGroupDescFunction)(
-	dsResourceManager* resourceManager, dsAllocator* allocator, uint32_t elementCount,
-	const dsMaterialElement* elements);
+	dsResourceManager* resourceManager, dsAllocator* allocator, const dsMaterialElement* elements,
+	uint32_t elementCount);
 
 /**
  * @brief Function for destroying a shader variable group description.
