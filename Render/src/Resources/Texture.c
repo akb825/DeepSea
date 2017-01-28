@@ -677,7 +677,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"The target doesn't support reading from a non-offscreen texture.");
+			"Target doesn't support reading from a non-offscreen texture.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

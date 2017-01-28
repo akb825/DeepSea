@@ -47,6 +47,22 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
+
+		if (elements[i].type == dsMaterialType_UniformBlock &&
+			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform blocks.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (elements[i].type == dsMaterialType_UniformBuffer &&
+			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform buffers.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
 	}
 
 	if (!dsResourceManager_canUseResources(resourceManager))
