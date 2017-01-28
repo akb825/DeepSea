@@ -25,6 +25,8 @@
 #include <DeepSea/Render/Types.h>
 #include <string.h>
 
+extern const char* dsResourceManager_noContextError;
+
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc)
 {
@@ -76,8 +78,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -102,8 +103,7 @@ bool dsShader_destroy(dsShader* shader)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

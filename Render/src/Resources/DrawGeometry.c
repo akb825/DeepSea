@@ -26,6 +26,8 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Types.h>
 
+extern const char* dsResourceManager_noContextError;
+
 dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
 	dsIndexBuffer* indexBuffer)
@@ -131,8 +133,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -157,8 +158,7 @@ bool dsDrawGeometry_destroy(dsDrawGeometry* geometry)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

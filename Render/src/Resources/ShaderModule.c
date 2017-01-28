@@ -29,6 +29,8 @@
 
 #include <MSL/Client/ModuleC.h>
 
+extern const char* dsResourceManager_noContextError;
+
 static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
 	dsAllocator* allocator, mslModule* module)
 {
@@ -60,8 +62,7 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -122,8 +123,7 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -170,8 +170,7 @@ dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -228,8 +227,7 @@ bool dsShaderModule_destroy(dsShaderModule* shaderModule)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

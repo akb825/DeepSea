@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Resources/MaterialDesc.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
@@ -25,14 +25,14 @@
 
 extern const char* dsResourceManager_noContextError;
 
-dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
+dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		!resourceManager->createMaterialDescFunc || !resourceManager->destroyMaterialDescFunc ||
-		(!elements && elementCount > 0))
+		!resourceManager->createShaderVariableGroupDescFunc ||
+		!resourceManager->destroyShaderVariableGroupDescFunc || (!elements && elementCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -50,19 +50,11 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (elements[i].type == dsMaterialType_UniformBlock &&
-			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock))
+		if (elements[i].type >= dsMaterialType_Texture)
 		{
 			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform blocks.");
-			DS_PROFILE_FUNC_RETURN(NULL);
-		}
-
-		if (elements[i].type == dsMaterialType_UniformBuffer &&
-			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
-		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform buffers.");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Shader variable groups cannot contain texture, image, block, or buffer types.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}
@@ -74,25 +66,25 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsMaterialDesc* materialDesc = resourceManager->createMaterialDescFunc(resourceManager,
-		allocator, elements, elementCount);
-	if (materialDesc)
-		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, 1);
-	DS_PROFILE_FUNC_RETURN(materialDesc);
+	dsShaderVariableGroupDesc* groupDesc = resourceManager->createShaderVariableGroupDescFunc(
+		resourceManager, allocator, elements, elementCount);
+	if (groupDesc)
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderVariableGroupDescCount, 1);
+	DS_PROFILE_FUNC_RETURN(groupDesc);
 }
 
-bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc)
+bool dsShaderVariableGroupDesc_destroy(dsShaderVariableGroupDesc* groupDesc)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!materialDesc || !materialDesc->resourceManager ||
-		!materialDesc->resourceManager->destroyMaterialDescFunc)
+	if (!groupDesc || !groupDesc->resourceManager ||
+		!groupDesc->resourceManager->destroyShaderVariableGroupDescFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsResourceManager* resourceManager = materialDesc->resourceManager;
+	dsResourceManager* resourceManager = groupDesc->resourceManager;
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -100,8 +92,10 @@ bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool success = resourceManager->destroyMaterialDescFunc(resourceManager, materialDesc);
+	bool success = resourceManager->destroyShaderVariableGroupDescFunc(resourceManager,
+		groupDesc);
 	if (success)
-		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, -1);
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderVariableGroupDescCount, -1);
 	DS_PROFILE_FUNC_RETURN(success);
 }
+

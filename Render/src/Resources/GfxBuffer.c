@@ -23,6 +23,8 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
+extern const char* dsResourceManager_noContextError;
+
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
 {
@@ -56,8 +58,7 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -132,8 +133,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -170,8 +170,7 @@ bool dsGfxBuffer_unmap(dsGfxBuffer* buffer)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -201,8 +200,7 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -237,8 +235,7 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -340,8 +337,7 @@ bool dsGfxBuffer_destroy(dsGfxBuffer* buffer)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

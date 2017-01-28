@@ -27,6 +27,8 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
+extern const char* dsResourceManager_noContextError;
+
 uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height, uint32_t depth)
 {
 	uint32_t levelCountWidth = 32 - dsClz(width);
@@ -207,8 +209,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -303,8 +304,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -730,8 +730,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -754,8 +753,7 @@ bool dsTexture_destroy(dsTexture* texture)
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Resources can only be manipulated from the main thread or "
-			"threads that have created a resource context.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

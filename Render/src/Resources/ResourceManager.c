@@ -26,6 +26,9 @@
 #include <DeepSea/Render/Types.h>
 #include <string.h>
 
+const char* dsResourceManager_noContextError = "Resources can only be manipulated from the main "
+	"thread or threads that have created a resource context.";
+
 bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_PROFILE_FUNC_START();
