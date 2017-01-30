@@ -31,6 +31,8 @@ extern "C"
  * @brief Functions for working with texture data.
  *
  * Texture data may be created directly or loaded from file.
+ *
+ * @see dsTextureData
  */
 
 /**

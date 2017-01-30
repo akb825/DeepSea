@@ -36,6 +36,8 @@ extern "C"
  *
  * The functions have different versions for the supported dsOrientedBox3 types. These are used when
  * the implementation cannot be practically done within a macro.
+ *
+ * @see dsOrientedBox3f dsOrientedBox3d
  */
 
 /**

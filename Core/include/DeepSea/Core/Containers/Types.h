@@ -57,6 +57,7 @@ struct dsListNode
 
 /**
  * @brief Structure for a linked list.
+ * @see List.h
  */
 typedef struct dsList
 {
@@ -83,6 +84,8 @@ typedef struct dsList
  *
  * The hash table chains collisions in a linked list. This additionally a list node, which can be
  * used to iterate over the nodes in the hash table.
+ *
+ * @see HashTable.h
  */
 typedef struct dsHashTableNode dsHashTableNode;
 
@@ -138,6 +141,8 @@ typedef bool (*dsKeysEqualFunction)(const void* first, const void* second);
  * A hash table can be created in two ways:
  * 1. Use the DS_STATIC_HASH_TABLE macro to statically declare a hash table with a set table size.
  * 2. Use the dsHashTable_sizeof() function to compute the size to dynamically allocate.
+ *
+ * @see HashTable.h
  */
 typedef struct dsHashTable
 {

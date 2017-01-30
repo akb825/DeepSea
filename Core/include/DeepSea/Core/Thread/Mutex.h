@@ -31,6 +31,8 @@ extern "C"
  *
  * Mutex functions are automatically profiled, profiling the time that is spent waiting to lock
  * and when the mutex is locked.
+ *
+ * @see dsMutex
  */
 
 /**

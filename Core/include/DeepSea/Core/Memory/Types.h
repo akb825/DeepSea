@@ -43,6 +43,8 @@ extern "C"
  * This can be "subclassed" by having it as the first member of other allocator structures. This can
  * be done to add additional data to the allocator and have it be freely casted between the
  * dsAllocator and the true allocator type.
+ *
+ * @see Allocator.h
  */
 typedef struct dsAllocator dsAllocator;
 
@@ -56,10 +58,11 @@ typedef struct dsAllocator dsAllocator;
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
  * @param alignment The minimum alignment of the allocation. When called by DeepSea (such as with
- * dsAllocator_alloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with external
- * libraries (e.g. Vulkan, physics libraries) it may have a different minimum alignment.
+ *     dsAllocator_alloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with
+ *     external libraries (e.g. Vulkan, physics libraries) it may have a different minimum
+ *     alignment.
  * @return The allocated memory or NULL if an error occured. errno should be set if an error
- * occurred.
+ *     occurred.
  */
 typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
 	unsigned int alignment);
@@ -109,6 +112,8 @@ struct dsAllocator
  *
  * @remark This allows alignments of any size that is a power of two, so it may be used with
  * external libraries with greater alignment requirements.
+ *
+ * @see SystemAllocator.h
  */
 typedef struct dsSystemAllocator
 {
@@ -137,6 +142,8 @@ typedef struct dsSystemAllocator
  *
  * The size member of dsAllocator will be used for the offset of the next memory allocated from the
  * buffer. Adjusting the size member can be used to reset where future allocations occur.
+ *
+ * @see BufferAllocator.h
  */
 typedef struct dsBufferAllocator
 {
@@ -157,14 +164,14 @@ typedef struct dsBufferAllocator
 } dsBufferAllocator;
 
 /**
- * @brief Structure for a pool allocator.
+ * @brief Structure for a pool allocator, which allocates fixed chunks from a pool of memory.
  *
  * This is effectively a subclass of dsAllocator and a pointer to dsSystemAllocator can be freely
  * cast between the two types.
  *
- * This allocates fixed chunks from a pool of memory.
- *
  * @remark Manually changing the values in this structure can cause bad memory access.
+ *
+ * @see PoolAllocator.h
  */
 typedef struct dsPoolAllocator
 {

@@ -51,6 +51,7 @@ typedef enum dsIntersectResult
 
 /**
  * @brief Structure for 2D axis-aligned bounding box using floats.
+ * @see AlignedBox2.h
  */
 typedef struct dsAlignedBox2f
 {
@@ -67,6 +68,7 @@ typedef struct dsAlignedBox2f
 
 /**
  * @brief Structure for 2D axis-aligned bounding box using doubles.
+ * @see AlignedBox2.h
  */
 typedef struct dsAlignedBox2d
 {
@@ -83,6 +85,7 @@ typedef struct dsAlignedBox2d
 
 /**
  * @brief Structure for 2D axis-aligned bounding box using ints.
+ * @see AlignedBox2.h
  */
 typedef struct dsAlignedBox2i
 {
@@ -99,6 +102,7 @@ typedef struct dsAlignedBox2i
 
 /**
  * @brief Structure for 3D axis-aligned bounding box using floats.
+ * @see AlignedBox3.h
  */
 typedef struct dsAlignedBox3f
 {
@@ -115,6 +119,7 @@ typedef struct dsAlignedBox3f
 
 /**
  * @brief Structure for 3D axis-aligned bounding box using doubles.
+ * @see AlignedBox3.h
  */
 typedef struct dsAlignedBox3d
 {
@@ -131,6 +136,7 @@ typedef struct dsAlignedBox3d
 
 /**
  * @brief Structure for 3D axis-aligned bounding box using ints.
+ * @see AlignedBox3.h
  */
 typedef struct dsAlignedBox3i
 {
@@ -147,6 +153,7 @@ typedef struct dsAlignedBox3i
 
 /**
  * @brief Structure for a 2D oriented bounding box using floats.
+ * @see OrientedBox2.h
  */
 typedef struct dsOrientedBox2f
 {
@@ -171,6 +178,7 @@ typedef struct dsOrientedBox2f
 
 /**
  * @brief Structure for a 2D oriented bounding box using doubles.
+ * @see OrientedBox2.h
  */
 typedef struct dsOrientedBox2d
 {
@@ -195,6 +203,7 @@ typedef struct dsOrientedBox2d
 
 /**
  * @brief Structure for a 3D oriented bounding box using floats.
+ * @see OrientedBox3.h
  */
 typedef struct dsOrientedBox3f
 {
@@ -219,6 +228,7 @@ typedef struct dsOrientedBox3f
 
 /**
  * @brief Structure for a 3D oriented bounding box using doubles.
+ * @see OrientedBox3.h
  */
 typedef struct dsOrientedBox3d
 {
@@ -243,6 +253,7 @@ typedef struct dsOrientedBox3d
 
 /**
  * @brief Structure for a plane using floats.
+ * @see Plane3.h
  */
 typedef struct dsPlane3f
 {
@@ -259,6 +270,7 @@ typedef struct dsPlane3f
 
 /**
  * @brief Structure for a plane using doubles.
+ * @see Plane3.h
  */
 typedef struct dsPlane3d
 {
@@ -275,6 +287,7 @@ typedef struct dsPlane3d
 
 /**
  * @brief Enum for the planes within a frustum.
+ * @see Frustum3.h
  */
 typedef enum dsFrustumPlanes
 {
@@ -289,6 +302,7 @@ typedef enum dsFrustumPlanes
 
 /**
  * @brief Structure for a frustum using floats.
+ * @see Frustum3.h
  */
 typedef struct dsFrustum3f
 {
@@ -300,6 +314,7 @@ typedef struct dsFrustum3f
 
 /**
  * @brief Structure for a frustum using doubles.
+ * @see Frustum3.h
  */
 typedef struct dsFrustum3d
 {

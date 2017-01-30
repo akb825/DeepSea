@@ -35,6 +35,8 @@ extern "C"
  *
  * The functions have different versions for the supported dsPlane3 types. These are used when
  * the implementation cannot be practically done within a macro.
+ *
+ * @see dsPlane3f dsPlane3d
  */
 
 /**

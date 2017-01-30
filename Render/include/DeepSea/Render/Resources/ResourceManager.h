@@ -29,8 +29,15 @@ extern "C"
  * @file
  * @brief Functions for interacting with a resource manager.
  *
+ * All manipulation of graphics resources requires a resource context to be created. There will
+ * always be a resource context available on the main thread, while other threads require a resource
+ * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
+ * platforms that don't allow multiple threads to access graphics resources.
+ *
  * These functions are for dealing with the resource manager in general. Functions for creating and
  * manipulating specific resource types are found in the .h files for that resource type.
+ *
+ * @see dsResourceManager
  */
 
 /**

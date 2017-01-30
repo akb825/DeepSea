@@ -31,6 +31,8 @@ extern "C"
  *
  * Unlike most types, this doesn't contain any functions for creating or destroying a renderer.
  * This is handled by the renderer implementation libraries.
+ *
+ * @see dsRenderer
  */
 
 /**

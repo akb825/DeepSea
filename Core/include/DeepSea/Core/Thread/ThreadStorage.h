@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Macros and functions for managing thread-local storage.
+ * @see dsThreadStorage
  */
 
 /**

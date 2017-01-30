@@ -106,6 +106,7 @@ typedef struct mslPipeline mslPipeline;
  * casted between dsResourceManager and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see ShaderModule.h
  */
 typedef struct dsShaderModule
 {
@@ -135,6 +136,7 @@ typedef struct dsShaderModule
  * casted between dsResourceManager and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see Shader.h
  */
 typedef struct dsShader
 {
@@ -210,6 +212,7 @@ typedef struct dsMaterialElement
  * casted between dsResourceManager and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see MaterialDesc.h
  */
 typedef struct dsMaterialDesc
 {
@@ -241,6 +244,7 @@ typedef struct dsMaterialDesc
  * set. The values set on this structure will be used to populate the uniforms of a shader.
  *
  * This type is opaque and implemented by the core Render library.
+ * @see Material.h
  */
 typedef struct dsMaterial dsMaterial;
 
@@ -274,6 +278,7 @@ typedef struct dsShaderVariablePos
  * buffers are supported, the implementation should populate the offsets array.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see ShaderVariableGroupDesc.h
  */
 typedef struct dsShaderVariableGroupDesc
 {
@@ -307,11 +312,10 @@ typedef struct dsShaderVariableGroupDesc
 
 /**
  * @brief Struct holding a group of shader variables.
-
- * This allows conditional usage of buffers for shader blocks. When shader blocks are supported,
- * a graphics buffer will be used internally.
  *
  * This type is opaque and implemented by the core Render library.
+ *
+ * @see ShaderVariableGroup.h
  */
 typedef struct dsShaderVariableGroup dsShaderVariableGroup;
 

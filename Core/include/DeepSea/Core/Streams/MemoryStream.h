@@ -27,7 +27,8 @@ extern "C"
 
 /**
  * @file
- * @brief Structure that defines a memory stream.
+ * @brief Functions for operating on memory streams.
+ * @see dsMemoryStream
  */
 
 /**

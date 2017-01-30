@@ -35,6 +35,8 @@ extern "C"
  *
  * The functions have different versions for the supported Vector2 types. These are used when the
  * implementation cannot be practically done within a macro.
+ *
+ * @see dsVector2f dsVector3d dsVector2i
  */
 
 /**

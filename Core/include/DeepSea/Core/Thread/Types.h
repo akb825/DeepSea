@@ -35,18 +35,19 @@ extern "C"
  * @brief Includes all of the types used by the Thread portion of the DeepSea/Coroe library.
  */
 
-/**
- * @see dsAllocator
- */
+/// \{
 typedef struct dsAllocator dsAllocator;
+/// \}
 
 /**
- * @brief Type of a condition variable.
+ * @brief Type for a thread condition variable.
+ * @see ConditionVariable.h
  */
 typedef struct dsConditionVariable dsConditionVariable;
 
 /**
  * @brief Result of a condition variable wait.
+ * @see ConditionVariable.h
  */
 typedef enum dsConditionVariableResult
 {
@@ -56,12 +57,14 @@ typedef enum dsConditionVariableResult
 } dsConditionVariableResult;
 
 /**
- * @brief Type of a mutex.
+ * @brief Type for a mutex lock.
+ * @see Mutex.h
  */
 typedef struct dsMutex dsMutex;
 
 /**
  * @brief Structure that holds the state of a spinlock.
+ * @see Spinlock.h
  */
 typedef struct dsSpinlock
 {
@@ -93,6 +96,8 @@ typedef struct dsThreadId
  *
  * @remark Since this is not guaranteed to store more than 32-bits, it is not safe to use to store
  * a pointer.
+ *
+ * @see Thread.h
  */
 #if DS_WINDOWS
 typedef int32_t dsThreadReturnType;
@@ -102,6 +107,7 @@ typedef intptr_t dsThreadReturnType;
 
 /**
  * @brief Function that is called at the beginning of a thread.
+ * @see Thread.h
  * @param userData User data for the thread.
  * @return The exit code for the thread.
  */
@@ -109,6 +115,7 @@ typedef dsThreadReturnType (*dsThreadFunction)(void* userData);
 
 /**
  * @brief Structure that holds the reference for a thread.
+ * @see Thread.h
  */
 typedef struct dsThread
 {
@@ -144,6 +151,7 @@ typedef struct dsThread
 
 /**
  * @brief Structure that holds thread-local storage.
+ * @see ThreadStorage.h
  */
 typedef struct dsThreadStorage
 {

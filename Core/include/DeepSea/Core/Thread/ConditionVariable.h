@@ -31,6 +31,8 @@ extern "C"
  *
  * Condition variables are automatically profiled, profiling the time that is spent waiting on the
  * condition.
+ *
+ * @see dsConditionVariable
  */
 
 /**

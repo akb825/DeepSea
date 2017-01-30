@@ -71,11 +71,14 @@ extern "C"
  * This can be "subclassed" by having it as the first member of other allocator structures. This can
  * be done to add additional data to the stream and have it be freely casted between the
  * dsStream and the true stream type.
+ *
+ * @see Stream.h
  */
 typedef struct dsStream dsStream;
 
 /**
  * @brief Enum for the way to seek in a stream.
+ * @see Stream.h
  */
 typedef enum dsStreamSeekWay
 {
@@ -184,6 +187,8 @@ struct dsStream
  *
  * This is effectively a subclass of dsStream and a pointer to dsFileStream can be freely
  * cast between the two types.
+ *
+ * @see FileStream.h
  */
 typedef struct dsFileStream
 {
@@ -203,6 +208,8 @@ typedef struct dsFileStream
  *
  * This is effectively a subclass of dsStream and a pointer to dsMemoryStream can be freely
  * cast between the two types.
+ *
+ * @see MemoryStream.h
  */
 typedef struct dsMemoryStream
 {

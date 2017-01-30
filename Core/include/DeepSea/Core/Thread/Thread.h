@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions to create and manage threads.
+ * @see dsThread
  */
 
 /**

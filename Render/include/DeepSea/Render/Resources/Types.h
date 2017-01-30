@@ -75,6 +75,8 @@ typedef enum dsGfxMemory
  * @brief Enum for how a graphics buffer will be used.
  *
  * These are bitmask values, allowing a buffer to be used for multiple purposes.
+ *
+ * @see GfxBuffer.h
  */
 typedef enum dsGfxBufferUsage
 {
@@ -93,6 +95,8 @@ typedef enum dsGfxBufferUsage
  * @brief Enum for how a texture will be used.
  *
  * These are bitmask values, allowing a texture to be used for multiple purposes.
+ *
+ * @see Texture.h
  */
 typedef enum dsTextureUsage
 {
@@ -104,6 +108,7 @@ typedef enum dsTextureUsage
 
 /**
  * @brief Flags for how to map a graphics buffer to memory.
+ * @see GfxBuffer.h
  */
 typedef enum dsGfxBufferMap
 {
@@ -134,6 +139,8 @@ typedef enum dsGfxBufferMapSupport
  * - Special formats. These may not be used with any decorators.
  * - Compressed formats. These are compressed blocks of memory, and require a decorator.
  * - Decorators. These are OR'd with standard and compressed formats to determine the final format.
+ *
+ * @see GfxFormat.h
  */
 typedef enum dsGfxFormat
 {
@@ -267,6 +274,7 @@ typedef enum dsGfxFormat
 
 /**
  * @brief Enum for the dimension of a texture.
+ * @see Textrue.h
  */
 typedef enum dsTextureDim
 {
@@ -278,6 +286,7 @@ typedef enum dsTextureDim
 
 /**
  * @brief Enum for the face of a cubemap.
+ * @see Texture.h
  */
 typedef enum dsCubeFace
 {
@@ -294,6 +303,8 @@ typedef enum dsCubeFace
  *
  * These are mainly suggestions rather than a requirement to make it easier to match vertex
  * attributes between code and shaders.
+ *
+ * @see VertexFormat.h
  */
 typedef enum dsVertexAttrib
 {
@@ -339,11 +350,6 @@ typedef struct mslModule mslModule;
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
- *
- * All manipulation of graphics resources requires a resource context to be created. There will
- * always be a resource context available on the main thread, while other threads require a resource
- * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
- * platforms that don't allow multiple threads to access graphics resources.
  *
  * @remark None of the members should be modified outside of the implementation. If any of the
  * virtual functions fail, the implementation should set errno to an appropriate value. If the error
@@ -394,6 +400,7 @@ typedef struct dsGfxBuffer
 
 /**
  * @brief Struct describing an element of a vertex buffer.
+ * @see VertexFormat.h
  */
 typedef struct dsVertexElement
 {
@@ -415,6 +422,7 @@ typedef struct dsVertexElement
 
 /**
  * @brief Struct describing the format of a vertex buffer.
+ * @see VertexFormat.h
  */
 typedef struct dsVertexFormat
 {
@@ -448,6 +456,8 @@ typedef struct dsVertexFormat
  * @brief Struct describing a vertex buffer.
  *
  * This combines a graphics buffer, range of the buffer to use, and the vertex format.
+ *
+ * @see DrawGeometry.h
  */
 typedef struct dsVertexBuffer
 {
@@ -476,6 +486,8 @@ typedef struct dsVertexBuffer
  * @brief Struct describing an index buffer.
  *
  * This combines a graphics buffer, range of the buffer to use, and the size of the index.
+ *
+ * @see DrawGeometry.h
  */
 typedef struct dsIndexBuffer
 {
@@ -508,6 +520,7 @@ typedef struct dsIndexBuffer
  * casted between dsResourceManager and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see DrawGeometry.h
  */
 typedef struct dsDrawGeometry
 {
@@ -546,6 +559,7 @@ typedef struct dsDrawGeometry
  * Textures have their origin in the upper left corner.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see Texture.h
  */
 typedef struct dsTexture
 {
@@ -625,11 +639,14 @@ typedef struct dsTexture
  * @brief Typedef for an offscreen.
  *
  * In most cases, an offscreen may be used as a texture.
+ *
+ * @see Texture.h
  */
 typedef dsTexture dsOffscreen;
 
 /**
  * @brief Structure defining the position of a texture.
+ * @see Texture.h
  */
 typedef struct dsTexturePosition
 {
@@ -665,6 +682,7 @@ typedef struct dsTexturePosition
 
 /**
  * @brief Structure defining the region to copy for a texture.
+ * @see Texture.h
  */
 typedef struct dsTextureCopyRegion
 {
@@ -702,6 +720,7 @@ typedef struct dsTextureCopyRegion
 
 /**
  * @brief Structure defining the region to blit for a texture.
+ * @see Texture.h
  */
 typedef struct dsTextureBlitRegion
 {
@@ -762,6 +781,8 @@ typedef struct dsTextureBlitRegion
  * @brief Struct for holding data for a texture.
  *
  * This is generally loaded from a file in order to create a final renderable texture.
+ *
+ * @see TextureData.h
  */
 typedef struct dsTextureData
 {
@@ -904,6 +925,8 @@ typedef struct dsFramebuffer
  * when a thread will exit)
  *
  * This is declared here for internal use, and implementations will provide the final definition.
+ *
+ * @see ResourceManager.h
  */
 typedef struct dsResourceContext dsResourceContext;
 

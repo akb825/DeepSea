@@ -40,6 +40,8 @@ extern "C"
  *
  * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
  * the affine functions and macros.
+ *
+ * @see dsMatrix44f dsMatrix44d
  */
 
 /**

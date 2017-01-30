@@ -31,6 +31,8 @@ extern "C"
  * @brief Functions for manipulating shader modules.
  *
  * Shader modules contain a list of shaders, which can then be used for rendering objects on screen.
+ *
+ * @see dsShaderModule
  */
 
 /**

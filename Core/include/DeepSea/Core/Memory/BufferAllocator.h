@@ -30,6 +30,8 @@ extern "C"
  * @brief Implementation of dsAllocator that allocates memory from the buffer.
  *
  * The buffer is pre-allocated and once memory is allocated from the buffer it isn't freed.
+ *
+ * @see dsBufferAllocator
  */
 
 /**

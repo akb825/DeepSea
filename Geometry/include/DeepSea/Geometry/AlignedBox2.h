@@ -35,6 +35,8 @@ extern "C"
  *
  * The functions have different versions for the supported dsAlignedBox2 types. These are used when
  * the implementation cannot be practically done within a macro.
+ *
+ * @see dsAlignedBox2f dsAlignedBox2d dsAlignedBox2i
  */
 
 /**

@@ -49,6 +49,7 @@ extern "C"
 
 /**
  * @brief The maximum value for a random number.
+ * @see Random.h
  */
 #define DS_RANDOM_MAX 2147483646
 
@@ -59,6 +60,7 @@ extern "C"
  * channels (r, g), or an array of values.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
+ * @see Vector2.h
  */
 typedef union dsVector2f
 {
@@ -112,6 +114,7 @@ typedef union dsVector2f
  * channels (r, g), or an array of values.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
+ * @see Vector2.h
  */
 typedef union dsVector2d
 {
@@ -165,6 +168,7 @@ typedef union dsVector2d
  * channels (r, g), or an array of values.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y}})
+ * @see Vector2.h
  */
 typedef union dsVector2i
 {
@@ -220,6 +224,7 @@ typedef union dsVector2i
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
+ * @see Vector3.h
  */
 typedef union dsVector3f
 {
@@ -290,6 +295,7 @@ typedef union dsVector3f
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
+ * @see Vector3.h
  */
 typedef union dsVector3d
 {
@@ -360,6 +366,7 @@ typedef union dsVector3d
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z}})
+ * @see Vector3.h
  */
 typedef union dsVector3i
 {
@@ -432,6 +439,7 @@ typedef union dsVector3i
  * This is guaranteed to be 16-byte aligned so it can be easily loaded into SIMD types.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @see Vector4.h
  */
 typedef union dsVector4f
 {
@@ -517,6 +525,7 @@ typedef union dsVector4f
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @see Vector4.h
  */
 typedef union dsVector4d
 {
@@ -602,6 +611,7 @@ typedef union dsVector4d
  * Note that p is used in place of r for texture coordinates to avoid naming conflicts.
  *
  * @remark When bracket initializing, use two brackets. (i.e. {{x, y, z, w}})
+ * @see Vector4.h
  */
 typedef union dsVector4i
 {
@@ -733,6 +743,8 @@ typedef union dsVector4f dsColor4f;
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0}, {x1, y1} }})
+ *
+ * @see dsMatrix22.h
  */
 typedef union dsMatrix22f
 {
@@ -754,6 +766,8 @@ typedef union dsMatrix22f
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0}, {x1, y1} }})
+ *
+ * @see dsMatrix22.h
  */
 typedef union dsMatrix22d
 {
@@ -775,6 +789,8 @@ typedef union dsMatrix22d
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
+ *
+ * @see dsMatrix33.h
  */
 typedef union dsMatrix33f
 {
@@ -796,6 +812,8 @@ typedef union dsMatrix33f
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0}, {x1, y1, z1}, {x2, y2, z2} }})
+ *
+ * @see dsMatrix33.h
  */
 typedef union dsMatrix33d
 {
@@ -817,6 +835,8 @@ typedef union dsMatrix33d
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
+ *
+ * @see dsMatrix44.h
  */
 typedef union dsMatrix44f
 {
@@ -838,6 +858,8 @@ typedef union dsMatrix44f
  *
  * @remark When bracket initializing, there must be two brackets around the list of column vectors.
  * (i.e. {{ {x0, y0, z0, w0}, {x1, y1, z1, w1}, {x2, y2, z2, w2}, {x3, y3, z3, w3} }})
+ *
+ * @see dsMatrix44.h
  */
 typedef union dsMatrix44d
 {
@@ -854,6 +876,7 @@ typedef union dsMatrix44d
 
 /**
  * @brief Structure that holds a half float.
+ * @see Packing.h
  */
 typedef struct dsHalfFloat
 {

@@ -27,7 +27,8 @@ extern "C"
 
 /**
  * @file
- * @brief Structure that defines a file stream.
+ * @brief Functions for operating on file streams.
+ * @see dsFileStream
  */
 
 /**

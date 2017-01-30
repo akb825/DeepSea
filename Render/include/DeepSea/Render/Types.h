@@ -105,12 +105,14 @@ typedef struct dsCommandBuffer dsCommandBuffer;
 /**
  * @brief Base object for interfacing with the DeepSea Render library.
  *
+ * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
+ * in any given application.
+ *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsRenderer and the true internal type.
  *
- * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
- * in any given application.
+ * @see Renderer.h
  */
 typedef struct dsRenderer dsRenderer;
 

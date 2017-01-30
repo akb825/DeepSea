@@ -38,6 +38,7 @@ extern "C"
 
 /**
  * @brief The level of the log message.
+ * @see Log.h
  */
 typedef enum dsLogLevel
 {
@@ -126,6 +127,7 @@ typedef void (*dsProfileStatFunction)(void* userData, const char* category, cons
 
 /**
  * @brief Structure that holds the system data for a timer.
+ * @see Timer.h
  */
 typedef struct dsTimer
 {

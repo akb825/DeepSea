@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for manipulating vertex formats.
+ * @see dsVertexFormat
  */
 
 /**

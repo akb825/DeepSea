@@ -28,6 +28,13 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating shader variable groups.
+ *
+ * This allows conditional usage of buffers for shader blocks. When shader blocks are supported,
+ * a graphics buffer will be used internally. Additionally, setting of values may be done on the
+ * command buffer, which allows for the values to change in-between draw calls when creating command
+ * buffers across multiple threads.
+ *
+ * @see dsShaderVariableGroup
  */
 
 /**

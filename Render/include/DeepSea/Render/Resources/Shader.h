@@ -30,6 +30,8 @@ extern "C"
  * @brief Functions for manipulating shaders.
  *
  * Shaders are created from a shader modules after they have been loaded.
+ *
+ * @see dsShader
  */
 
 /**

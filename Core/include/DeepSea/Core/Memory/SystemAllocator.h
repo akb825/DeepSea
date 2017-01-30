@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Implementation of dsAllocator that uses the system allocator. (usually malloc)
+ * @see dsSystemAllocator
  */
 
 /**

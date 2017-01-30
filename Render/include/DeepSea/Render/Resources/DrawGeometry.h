@@ -26,6 +26,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and interacting with draw geometry.
+ * @see dsDrawGeometry
  */
 
 /**

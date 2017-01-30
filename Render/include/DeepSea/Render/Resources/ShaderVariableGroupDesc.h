@@ -28,6 +28,7 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and using shader variable group descriptions.
+ * @see dsShaderVariableGroupDesc
  */
 
 /**

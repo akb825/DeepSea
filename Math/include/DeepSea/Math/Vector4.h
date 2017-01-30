@@ -35,6 +35,8 @@ extern "C"
  *
  * The functions have different versions for the supported Vector4 types. These are used when the
  * implementation cannot be practically done within a macro.
+ *
+ * @see dsVector4f dsVector4d dsVector4i
  */
 
 /**

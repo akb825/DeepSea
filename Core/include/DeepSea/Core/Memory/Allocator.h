@@ -29,6 +29,8 @@ extern "C"
 /**
  * @file
  * @brief Structure that defines a memory allocator.
+ *
+ * @see dsAllocator
  */
 
 /**

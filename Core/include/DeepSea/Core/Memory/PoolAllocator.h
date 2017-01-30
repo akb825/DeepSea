@@ -30,6 +30,8 @@ extern "C"
  * @brief Implementation of dsAllocator that allocates fixed chunks from a pool of memory.
  *
  * The pool of memory is pre-allocated and all allocations are the same size.
+ *
+ * @see dsPoolAllocator
  */
 
 /**

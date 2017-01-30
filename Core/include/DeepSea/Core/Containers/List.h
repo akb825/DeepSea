@@ -31,6 +31,8 @@ extern "C"
  *
  * None of these functions allocate or deallocate memory, so it is up to the caller to allocate or
  * free if necessary.
+ *
+ * @see dsList
  */
 
 /**
