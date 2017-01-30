@@ -192,7 +192,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 				description->positions + lastEleement);
 		dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, allocator,
 			dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo,
-			dsGfxMemory_Draw | dsGfxMemory_Stream, NULL, size);
+			dsGfxMemory_Draw | dsGfxMemory_Dynamic, NULL, size);
 		if (!buffer)
 			DS_PROFILE_FUNC_RETURN(NULL);
 
