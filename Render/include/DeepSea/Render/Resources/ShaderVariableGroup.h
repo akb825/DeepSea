@@ -131,7 +131,7 @@ DS_RENDER_EXPORT const void* dsShaderVariableGroup_getElementData(
 
 /**
  * @brief Destroys a shader variable group.
- * @param groupDesc The shader variable group to destroy.
+ * @param group The shader variable group to destroy.
  * @return False if the shader variable group couldn't be destroyed.
  */
 DS_RENDER_EXPORT bool dsShaderVariableGorup_destroy(dsShaderVariableGroup* group);

@@ -32,7 +32,7 @@ extern "C"
  * A spinlock is useful for synchronizationo of very small operations. If an operation may take a
  * long time to complete, or if a ConditionVariable is needed, use Mutex instead.
  *
- * @ee dsSpinlock
+ * @see dsSpinlock
  */
 
 /**
