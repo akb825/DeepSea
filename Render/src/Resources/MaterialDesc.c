@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
+#include <string.h>
 
 extern const char* dsResourceManager_noContextError;
 
@@ -43,7 +44,8 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (!elements[i].name || elements[i].count == 0)
+		if (!elements[i].name || (int)elements[i].type < 0 ||
+			elements[i].type >= dsMaterialType_Count)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
@@ -65,6 +67,13 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform buffers.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
+
+		if (elements[i].type >= dsMaterialType_Texture && elements[i].count > 0)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Only primitive types can use arrays.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
 	}
 
 	if (!dsResourceManager_canUseResources(resourceManager))
@@ -79,6 +88,20 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	if (materialDesc)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, 1);
 	DS_PROFILE_FUNC_RETURN(materialDesc);
+}
+
+uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc, const char* name)
+{
+	if (!materialDesc || !name)
+		return DS_UNKNOWN;
+
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (strcmp(materialDesc->elements[i].name, name) == 0)
+			return i;
+	}
+
+	return DS_UNKNOWN;
 }
 
 bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc)

@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating shader material descriptions.
+ * @brief Functions for creating and using shader material descriptions.
  */
 
 /**
@@ -42,6 +42,16 @@ extern "C"
  */
 DS_RENDER_EXPORT dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount);
+
+/**
+ * @brief Finds an element within a material description.
+ * @param materialDesc The material description.
+ * @param name The name of the variable.
+ * @return The index of the element, or DS_UNKNOWN if not found. This can be used to index into the
+ *     elements member of dsMaterialDesc or access the data within dsMaterial.
+ */
+DS_RENDER_EXPORT uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc,
+	const char* name);
 
 /**
  * @brief Destroys a material description.

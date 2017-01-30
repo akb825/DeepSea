@@ -55,7 +55,7 @@ extern "C"
  * @brief Profiles the start of a function with a custon name.
  * @param name The custom function name.
  */
-#define DS_PROFILE_FUNC_START_NAME(name) dsProfile_push(dsProfileType_Function, name,  __FILE__, \
+#define DS_PROFILE_FUNC_START_NAME(name) dsProfile_push(dsProfileType_Function, name, __FILE__, \
 	__FUNCTION__, __LINE__)
 
 /**
@@ -89,7 +89,7 @@ extern "C"
 /**
  * @brief Profiles the end of a scope.
  */
-#define DS_PROFILE_SCOPE_END() dsProfile_pop(dsProfileType_Scope, __FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_SCOPE_END() dsProfile_pop(dsProfileType_Scope, __FILE__, __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles the start of a wait.
@@ -101,7 +101,7 @@ extern "C"
 /**
  * @brief Profiles the end of a wait.
  */
-#define DS_PROFILE_WAIT_END() dsProfile_pop(dsProfileType_Wait, __FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_WAIT_END() dsProfile_pop(dsProfileType_Wait, __FILE__, __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles the start of a lock.
@@ -113,7 +113,7 @@ extern "C"
 /**
  * @brief Profiles the end of a lock.
  */
-#define DS_PROFILE_LOCK_END() dsProfile_pop(dsProfileType_Lock, __FILE__,  __FUNCTION__, __LINE__)
+#define DS_PROFILE_LOCK_END() dsProfile_pop(dsProfileType_Lock, __FILE__, __FUNCTION__, __LINE__)
 
 /**
  * @brief Profiles a statistic.

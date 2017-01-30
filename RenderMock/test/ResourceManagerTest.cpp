@@ -126,7 +126,7 @@ TEST_F(ResourceManagerTest, CreateResourceContextContention)
 		dsThread_create(threads + i, &createResourceContextThread, threadData + 1, 0, NULL);
 
 	for (unsigned int i = 0; i < threadCount; ++i)
-		dsThread_join(threads + i,  NULL);
+		dsThread_join(threads + i, NULL);
 
 	EXPECT_EQ(0U, resourceManager->resourceContextCount);
 }

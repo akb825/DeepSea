@@ -101,7 +101,7 @@ TEST(ListTest, InsertNode)
 	EXPECT_TRUE(dsList_insert(&list, NULL, (dsListNode*)&node2));
 
 	EXPECT_FALSE_ERRNO(EINVAL, dsList_insert(NULL, (dsListNode*)&node2, (dsListNode*)&node1));
-	EXPECT_FALSE_ERRNO(EINVAL, dsList_insert(&list,(dsListNode*)&node2,  NULL));
+	EXPECT_FALSE_ERRNO(EINVAL, dsList_insert(&list,(dsListNode*)&node2, NULL));
 
 	EXPECT_TRUE(dsList_insert(&list, (dsListNode*)&node2, (dsListNode*)&node1));
 	EXPECT_TRUE(dsList_insert(&list, (dsListNode*)&node2, (dsListNode*)&node3));

@@ -16,12 +16,14 @@
 
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
+#include <string.h>
 
 extern const char* dsResourceManager_noContextError;
 
@@ -32,7 +34,7 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
 		!resourceManager->createShaderVariableGroupDescFunc ||
-		!resourceManager->destroyShaderVariableGroupDescFunc || (!elements && elementCount > 0))
+		!resourceManager->destroyShaderVariableGroupDescFunc || !elements || elementCount == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -43,7 +45,8 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (!elements[i].name || elements[i].count == 0)
+		if (!elements[i].name || (int)elements[i].type < 0 ||
+			elements[i].type >= dsMaterialType_Count)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
@@ -69,8 +72,30 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 	dsShaderVariableGroupDesc* groupDesc = resourceManager->createShaderVariableGroupDescFunc(
 		resourceManager, allocator, elements, elementCount);
 	if (groupDesc)
+	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderVariableGroupDescCount, 1);
+		// Sanity check
+		DS_ASSERT(((resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) &&
+			groupDesc->positions) ||
+			(!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) &&
+			!groupDesc->positions));
+	}
 	DS_PROFILE_FUNC_RETURN(groupDesc);
+}
+
+uint32_t dsShaderVariableGroupDesc_findElement(const dsShaderVariableGroupDesc* groupDesc,
+	const char* name)
+{
+	if (!groupDesc || !name)
+		return DS_UNKNOWN;
+
+	for (uint32_t i = 0; i < groupDesc->elementCount; ++i)
+	{
+		if (strcmp(groupDesc->elements[i].name, name) == 0)
+			return i;
+	}
+
+	return DS_UNKNOWN;
 }
 
 bool dsShaderVariableGroupDesc_destroy(dsShaderVariableGroupDesc* groupDesc)

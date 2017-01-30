@@ -85,6 +85,8 @@ typedef enum dsMaterialType
 	dsMaterialType_VariableGroup, ///< Group of variables from dsShaderVariableGroup.
 	dsMaterialType_UniformBlock,  ///< Graphics buffer bound as a shader block.
 	dsMaterialType_UniformBuffer, ///< Graphics buffer bound as a shader buffer.
+
+	dsMaterialType_Count, ///< The number of material types.
 } dsMaterialType;
 
 /// \{
@@ -183,7 +185,9 @@ typedef struct dsMaterialElement
 	dsMaterialType type;
 
 	/**
-	 * @brief The number of array elements. This must be at least 1.
+	 * @brief The number of array elements.
+	 *
+	 * A count of 0 indicates a non-array.
 	 */
 	uint32_t count;
 } dsMaterialElement;
@@ -255,7 +259,12 @@ typedef struct dsShaderVariablePos
 	/**
 	 * @brief The stride of each array element.
 	 */
-	uint32_t stride;
+	uint16_t stride;
+
+	/**
+	 * @brief The stride for each column for matrix elements.
+	 */
+	uint16_t matrixColStride;
 } dsShaderVariablePos;
 
 /**
@@ -291,7 +300,7 @@ typedef struct dsShaderVariableGroupDesc
 	/**
 	 * @brief The position for the elements.
 	 *
-	 * This is only necessary when shader buffers are supported.
+	 * This is only necessary when shader uniform blocks are supported.
 	 */
 	dsShaderVariablePos* positions;
 } dsShaderVariableGroupDesc;

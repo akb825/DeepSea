@@ -11,11 +11,11 @@ DeepSea Core contains the core functionality for DeepSea. This includes:
 
 # Memory, object sizes, and alignment
 
-Every structure that would typically be allocated has a corresponding `ds<Struct>_sizeof()` and `ds<Struct>_fullAllocSize()` function. Structures that are generally stored by value (such as dsTimer and dsThread) do not have these functions.
+Structures that are typically allocated and have a known size have a `ds<Struct>_sizeof()` and `ds<Struct>_fullAllocSize()` function. Structures that are generally stored by value (such as dsTimer and dsThread) do not have these functions. Additionally, structures that can change based on runtime configuration (e.g. Render implementations) also don't implement these functions.
 
-The `ds<Struct>_sizeof()` function is the equivalent of calling `sizeof(<Struct>)`. The main difference is this will also work on opaque types, which may have a different implementation on different platforms, build environments, or even runtime environments. (e.g. different implmenetations chosen at runtime) Some implementations provide parameters for dynamic elements in order to calculate the final size.
+The `ds<Struct>_sizeof()` function is the equivalent of calling `sizeof(<Struct>)`. The main difference is this will also work on opaque types, which may have a different implementation on different platforms or build environments. Some implementations provide parameters for dynamic elements in order to calculate the final size.
 
-The `ds<Struct>_fullAllocSize()` function is used to determine the full size to allocate for a type, including any sub-allocations. This can be used to pre-allocate a buffer for the object, then use a `dsBufferAllocator` to allocate each sub-object by incrementing the buffer pointer. If the size is variable, `ds<Struct>_fullAllocSize()` will sometimes provide parameters to provide extra information to calculate the size, otherwise 0 will be returned.
+The `ds<Struct>_fullAllocSize()` function is used to determine the full size to allocate for a type, including any sub-allocations. This can be used to pre-allocate a buffer for the object, then use a `dsBufferAllocator` to allocate each sub-object by incrementing the buffer pointer. If the size is variable, `ds<Struct>_fullAllocSize()` will provide parameters to provide extra information to calculate the size.
 
 Implementations of `ds<Struct>_fullAllocSize()` should use the `DS_ALIGNED_SIZE()` macro in `DeepSea/Core/Memory/Memory.h` for each required allocation to ensure proper packing based on the alignment rules. In the most simple implmenetation, `ds<Struct>_fullAllocSize()` would return `DS_ALIGNED_SIZE(sizeof(ds<Struct>))`.
 

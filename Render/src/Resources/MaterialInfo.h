@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Renderer.h>
+#pragma once
 
-#include <DeepSea/Core/Error.h>
+#include <DeepSea/Render/Resources/Types.h>
 
-bool dsRenderer_queueMemcpy(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	void* dest, const void* src, size_t size)
-{
-	if (!renderer || !renderer->queueMemcpyFunc || !commandBuffer || !dest || !src)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return renderer->queueMemcpyFunc(renderer, commandBuffer, dest, src, size);
-}
+uint16_t dsMaterialType_size(dsMaterialType type);
+uint16_t dsMaterialType_machineAlignment(dsMaterialType type);
+unsigned int dsMaterialType_matrixRows(dsMaterialType type);
+unsigned int dsMaterialType_matrixColumns(dsMaterialType type);
