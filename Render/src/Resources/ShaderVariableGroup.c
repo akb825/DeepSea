@@ -114,13 +114,12 @@ static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* gr
 	else
 	{
 		// Need to use an intermediate buffer to resolve different packing.
-		const unsigned int staticBufferSize = 1024;
-		uint8_t staticBuffer[staticBufferSize];
+		uint8_t staticBuffer[1024];
 		uint8_t* buffer = staticBuffer;
 
 		dsAllocator* allocator = NULL;
 		uint32_t size = count*stride;
-		if (size > staticBufferSize)
+		if (size > sizeof(staticBuffer))
 		{
 			allocator = group->allocator;
 			if (!allocator)
