@@ -100,10 +100,11 @@ typedef enum dsGfxBufferUsage
  */
 typedef enum dsTextureUsage
 {
-	dsTextureUsage_Texture = 0x1,  ///< Use as a sampled texture.
-	dsTextureUsage_Image = 0x2,    ///< Use as an image without a sampler.
-	dsTextureUsage_CopyFrom = 0x4, ///< Source for GPU copy operations.
-	dsTextureUsage_CopyTo = 0x8    ///< Destination for GPU and CPU copy operations.
+	dsTextureUsage_Texture = 0x1,      ///< Use as a sampled texture.
+	dsTextureUsage_Image = 0x2,        ///< Use as an image without a sampler.
+	dsTextureUsage_SubpassInput = 0x4, ///< Use for passing image data from one subpass to another.
+	dsTextureUsage_CopyFrom = 0x8,     ///< Source for GPU copy operations.
+	dsTextureUsage_CopyTo = 0x10       ///< Destination for GPU and CPU copy operations.
 } dsTextureUsage;
 
 /**
@@ -1274,8 +1275,8 @@ typedef bool (*dsDestroyMaterialDescFunction)(dsResourceManager* resourceManager
  * @return The created shader variable group description, or NULL if it couldn't be created.
  */
 typedef dsShaderVariableGroupDesc* (*dsCreateShaderVariableGroupDescFunction)(
-	dsResourceManager* resourceManager, dsAllocator* allocator, const dsMaterialElement* elements,
-	uint32_t elementCount);
+	dsResourceManager* resourceManager, dsAllocator* allocator,
+	const dsShaderVariableElement* elements, uint32_t elementCount);
 
 /**
  * @brief Function for destroying a shader variable group description.

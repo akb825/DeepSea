@@ -17,15 +17,3 @@
 #include <DeepSea/Render/Renderer.h>
 
 #include <DeepSea/Core/Error.h>
-
-bool dsRenderer_queueMemcpy(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	void* dest, const void* src, size_t size)
-{
-	if (!renderer || !renderer->queueMemcpyFunc || !commandBuffer || !dest || !src)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return renderer->queueMemcpyFunc(renderer, commandBuffer, dest, src, size);
-}

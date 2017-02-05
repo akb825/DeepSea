@@ -527,23 +527,6 @@ typedef void (*dsRenderUpdateResourcesFunction)(dsRenderer* renderer,
 typedef bool (*dsDrawRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsRenderPass* renderPass, dsFramebuffer* framebuffer);
 
-/**
- * @brief Function for queueing a memcpy on the command buffer.
- *
- * Impelementations should provide this function when shader uniform blocks aren't supported in
- * order to handle shader variable updates.
- *
- * @param renderer The renderer.
- * @param commandBuffer The command buffer to queue the memcpy on.
- * @param dest The buffer to copy the data to.
- * @param src The buffer to copy the data from. If not executed immediately, this should be copied
- *     to the command buffer.
- * @param size The size to copy.
- * @return False on failure.
- */
-typedef bool (*dsQueueMemcpyFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	void* dest, const void* src, size_t size);
-
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
@@ -596,11 +579,6 @@ struct dsRenderer
 	 * This is set by the implementation.
 	 */
 	dsDrawRenderPassFunction drawRenderPassFunc;
-
-	/**
-	 * @brief Function for queueing a memcpy.
-	 */
-	dsQueueMemcpyFunction queueMemcpyFunc;
 };
 
 #ifdef __cplusplus

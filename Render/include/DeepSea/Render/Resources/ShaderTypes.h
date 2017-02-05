@@ -82,6 +82,7 @@ typedef enum dsMaterialType
 	// Other types
 	dsMaterialType_Texture,       ///< Sampled texture.
 	dsMaterialType_Image,         ///< Unsampled image texture.
+	dsMaterialType_SubpassInput,  ///< Image result from a previous subpass.
 	dsMaterialType_VariableGroup, ///< Group of variables from dsShaderVariableGroup.
 	dsMaterialType_UniformBlock,  ///< Graphics buffer bound as a shader block.
 	dsMaterialType_UniformBuffer, ///< Graphics buffer bound as a shader buffer.
@@ -94,6 +95,36 @@ typedef struct dsResourceManager dsResourceManager;
 typedef struct mslModule mslModule;
 typedef struct mslPipeline mslPipeline;
 /// \}
+
+/**
+ * @brief Struct holding a description of a material.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * Implementations should allocate the element list with the material description (ideally with a
+ * single allocation) and copy over the elements. The name IDs will be calculated within
+ * dsMaterialDesc_create().
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see MaterialDesc.h
+ */
+typedef struct dsMaterialDesc dsMaterialDesc;
+
+/**
+ * @brief Struct holding a description of a shader variable group.
+ *
+ * This is very similar to dsMaterialDesc, but is used for dsShaderVariableGroup. When shader
+ * buffers are supported, the implementation should populate the offsets array.
+ *
+ * Implementations should allocate the element list with the material description (ideally with a
+ * single allocation) and copy over the elements.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see ShaderVariableGroupDesc.h
+ */
+typedef struct dsShaderVariableGroupDesc dsShaderVariableGroupDesc;
 
 /**
  * @brief Struct for a shader module.
@@ -166,6 +197,11 @@ typedef struct dsShader
 	 * This is accessed with the ModularShaderLanguage library.
 	 */
 	mslPipeline* pipeline;
+
+	/**
+	 * @brief A description of the materials that can be used with this shader.
+	 */
+	const dsMaterialDesc* materialDesc;
 } dsShader;
 
 /**
@@ -192,29 +228,37 @@ typedef struct dsMaterialElement
 	 * A count of 0 indicates a non-array.
 	 */
 	uint32_t count;
+
+	/**
+	 * @brief A pointer to the shader variable group description.
+	 *
+	 * This is only used if type is dsMaterialType_VariableGroup.
+	 */
+	const dsShaderVariableGroupDesc* shaderVariableGroupDesc;
+
+	/**
+	 * @brief Whether or not the variable is volatile, able to change across draw calls.
+	 *
+	 * This may only be used for shader variables of type:
+	 * - dsMaterialType_Texture
+	 * - dsMaterialType_Image
+	 * - dsMaterialType_VariableGroup
+	 * - dsMaterialType_UniformBlock
+	 * - dsMaterialType_UniformBuffer
+	 */
+	bool isVolatile;
+
+	/**
+	 * @brief The hash value for the name.
+	 *
+	 * This will be set when the dsMaterialDesc instance is created and doesn't need to be set by
+	 * the calling code.
+	 */
+	uint32_t nameId;
 } dsMaterialElement;
 
-/**
- * @brief Struct holding a description of a material.
- *
- * This is provided when creating a shader to aid in assigning material values. It is also
- * used to create material instances.
- *
- * The same material description may be used with multiple shaders, so long as all of the uniforms
- * of the shader are provided. It is still valid if extra material parameters are avoided.
- *
- * It is encouraged to re-use the same material description for multiple shaders when they use
- * similar parameters. This allows materials to be shared across those shaders and may make
- * rendering more efficient.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
- *
- * @remark None of the members should be modified outside of the implementation.
- * @see MaterialDesc.h
- */
-typedef struct dsMaterialDesc
+/** @copydoc dsMaterialDesc */
+struct dsMaterialDesc
 {
 	/**
 	 * @brief The resource manager this was created with.
@@ -235,7 +279,7 @@ typedef struct dsMaterialDesc
 	 * @brief The material elements.
 	 */
 	dsMaterialElement* elements;
-} dsMaterialDesc;
+};
 
 /**
  * @brief Struct defining a material to be applied to shaders.
@@ -247,6 +291,32 @@ typedef struct dsMaterialDesc
  * @see Material.h
  */
 typedef struct dsMaterial dsMaterial;
+
+/**
+ * @brief Struct describing an element of a shader variable.
+ */
+typedef struct dsShaderVariableElement
+{
+	/**
+	 * @brief The name of the element.
+	 *
+	 * This must remain alive as long as the dsMaterialDesc instance that holds the element.
+	 * This can be done by using string literals or holding a table of strings in memory.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The type of the element.
+	 */
+	dsMaterialType type;
+
+	/**
+	 * @brief The number of array elements.
+	 *
+	 * A count of 0 indicates a non-array.
+	 */
+	uint32_t count;
+} dsShaderVariableElement;
 
 /**
  * @brief Struct describing the position of a shader variable in the final buffer.
@@ -271,16 +341,8 @@ typedef struct dsShaderVariablePos
 	uint16_t matrixColStride;
 } dsShaderVariablePos;
 
-/**
- * @brief Struct holding a description of a shader variable group.
- *
- * This is very similar to dsMaterialDesc, but is used for dsShaderVariableGroup. When shader
- * buffers are supported, the implementation should populate the offsets array.
- *
- * @remark None of the members should be modified outside of the implementation.
- * @see ShaderVariableGroupDesc.h
- */
-typedef struct dsShaderVariableGroupDesc
+/** @copydoc dsShaderVariableGroupDesc */
+struct dsShaderVariableGroupDesc
 {
 	/**
 	 * @brief The resource manager this was created with.
@@ -298,9 +360,9 @@ typedef struct dsShaderVariableGroupDesc
 	uint32_t elementCount;
 
 	/**
-	 * @brief The material elements.
+	 * @brief The shader variable elements.
 	 */
-	dsMaterialElement* elements;
+	dsShaderVariableElement* elements;
 
 	/**
 	 * @brief The position for the elements.
@@ -308,7 +370,7 @@ typedef struct dsShaderVariableGroupDesc
 	 * This is only necessary when shader uniform blocks are supported.
 	 */
 	dsShaderVariablePos* positions;
-} dsShaderVariableGroupDesc;
+};
 
 /**
  * @brief Struct holding a group of shader variables.
@@ -318,6 +380,15 @@ typedef struct dsShaderVariableGroupDesc
  * @see ShaderVariableGroup.h
  */
 typedef struct dsShaderVariableGroup dsShaderVariableGroup;
+
+/**
+ * @brief Struct holding the material values that are marked as volatile.
+ *
+ * This type is opaque and implemented by the core Render library.
+ *
+ * @see VolatileMaterialValues.h
+ */
+typedef struct dsVolatileMaterialValues dsVolatileMaterialValues;
 
 #ifdef __cplusplus
 }

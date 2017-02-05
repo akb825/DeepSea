@@ -16,16 +16,366 @@
 
 #include <DeepSea/Render/Resources/Shader.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Types.h>
+#include <MSL/Client/ModuleC.h>
 #include <string.h>
 
 extern const char* dsResourceManager_noContextError;
+
+static const dsMaterialType materialTypeMap[] =
+{
+	// Scalars and vectors
+	dsMaterialType_Float,  // mslType_Float
+	dsMaterialType_Vec2,   // mslType_Vec2
+	dsMaterialType_Vec3,   // mslType_Vec3
+	dsMaterialType_Vec4,   // mslType_Vec4
+	dsMaterialType_Double, // mslType_Double
+	dsMaterialType_DVec2,  // mslType_DVec2
+	dsMaterialType_DVec3,  // mslType_DVec3
+	dsMaterialType_DVec4,  // mslType_DVec4
+	dsMaterialType_Int,    // mslType_Int
+	dsMaterialType_IVec2,  // mslType_IVec2
+	dsMaterialType_IVec3,  // mslType_IVec3
+	dsMaterialType_IVec4,  // mslType_IVec4
+	dsMaterialType_UInt,   // mslType_UInt
+	dsMaterialType_UVec2,  // mslType_UVec2
+	dsMaterialType_UVec3,  // mslType_UVec3
+	dsMaterialType_UVec4,  // mslType_UVec4
+	dsMaterialType_Bool,   // mslType_Bool
+	dsMaterialType_BVec2,  // mslType_BVec2
+	dsMaterialType_BVec3,  // mslType_BVec3
+	dsMaterialType_BVec4,  // mslType_BVec4
+
+	// Matrices
+	dsMaterialType_Mat2,    // mslType_Mat2
+	dsMaterialType_Mat3,    // mslType_Mat3
+	dsMaterialType_Mat4,    // mslType_Mat4
+	dsMaterialType_Mat2x3,  // mslType_Mat2x3
+	dsMaterialType_Mat2x4,  // mslType_Mat2x4
+	dsMaterialType_Mat3x2,  // mslType_Mat3x2
+	dsMaterialType_Mat3x4,  // mslType_Mat3x4
+	dsMaterialType_Mat4x2,  // mslType_Mat4x2
+	dsMaterialType_Mat4x3,  // mslType_Mat4x3
+	dsMaterialType_DMat2,   // mslType_DMat2
+	dsMaterialType_DMat3,   // mslType_DMat3
+	dsMaterialType_DMat4,   // mslType_DMat4
+	dsMaterialType_DMat2x3, // mslType_DMat2x3
+	dsMaterialType_DMat2x4, // mslType_DMat2x4
+	dsMaterialType_DMat3x2, // mslType_DMat3x2
+	dsMaterialType_DMat3x4, // mslType_DMat3x4
+	dsMaterialType_DMat4x2, // mslType_DMat4x2
+	dsMaterialType_DMat4x3, // mslType_DMat4x3
+
+	// Samplers
+	dsMaterialType_Texture, // mslType_Sampler1D
+	dsMaterialType_Texture, // mslType_Sampler2D
+	dsMaterialType_Texture, // mslType_Sampler3D
+	dsMaterialType_Texture, // mslType_SamplerCube
+	dsMaterialType_Texture, // mslType_Sampler1DShadow
+	dsMaterialType_Texture, // mslType_Sampler2DShadow
+	dsMaterialType_Texture, // mslType_Sampler1DArray
+	dsMaterialType_Texture, // mslType_Sampler2DArray
+	dsMaterialType_Texture, // mslType_Sampler1DArrayShadow
+	dsMaterialType_Texture, // mslType_Sampler2DArrayShadow
+	dsMaterialType_Texture, // mslType_Sampler2DMS
+	dsMaterialType_Texture, // mslType_Sampler2DMSArray
+	dsMaterialType_Texture, // mslType_SamplerCubeShadow
+	dsMaterialType_Texture, // mslType_SamplerBuffer
+	dsMaterialType_Texture, // mslType_Sampler2DRect
+	dsMaterialType_Texture, // mslType_Sampler2DRectShadow
+	dsMaterialType_Texture, // mslType_ISampler1D
+	dsMaterialType_Texture, // mslType_ISampler2D
+	dsMaterialType_Texture, // mslType_ISampler3D
+	dsMaterialType_Texture, // mslType_ISamplerCube
+	dsMaterialType_Texture, // mslType_ISampler1DArray
+	dsMaterialType_Texture, // mslType_ISampler2DArray
+	dsMaterialType_Texture, // mslType_ISampler2DMS
+	dsMaterialType_Texture, // mslType_ISampler2DMSArray
+	dsMaterialType_Texture, // mslType_ISampler2DRect
+	dsMaterialType_Texture, // mslType_USampler1D
+	dsMaterialType_Texture, // mslType_USampler2D
+	dsMaterialType_Texture, // mslType_USampler3D
+	dsMaterialType_Texture, // mslType_USamplerCube
+	dsMaterialType_Texture, // mslType_USampler1DArray
+	dsMaterialType_Texture, // mslType_USampler2DArray
+	dsMaterialType_Texture, // mslType_USampler2DMS
+	dsMaterialType_Texture, // mslType_USampler2DMSArray
+	dsMaterialType_Texture, // mslType_USampler2DRect
+
+	// Images
+	dsMaterialType_Image, // mslType_Image1D
+	dsMaterialType_Image, // mslType_Image2D
+	dsMaterialType_Image, // mslType_Image3D
+	dsMaterialType_Image, // mslType_ImageCube
+	dsMaterialType_Image, // mslType_Image1DArray
+	dsMaterialType_Image, // mslType_Image2DArray
+	dsMaterialType_Image, // mslType_Image2DMS
+	dsMaterialType_Image, // mslType_Image2DMSArray
+	dsMaterialType_Image, // mslType_ImageBuffer
+	dsMaterialType_Image, // mslType_Image2DRect
+	dsMaterialType_Image, // mslType_IImage1D
+	dsMaterialType_Image, // mslType_IImage2D
+	dsMaterialType_Image, // mslType_IImage3D
+	dsMaterialType_Image, // mslType_IImageCube
+	dsMaterialType_Image, // mslType_IImage1DArray
+	dsMaterialType_Image, // mslType_IImage2DArray
+	dsMaterialType_Image, // mslType_IImage2DMS
+	dsMaterialType_Image, // mslType_IImage2DMSArray
+	dsMaterialType_Image, // mslType_IImage2DRect
+	dsMaterialType_Image, // mslType_UImage1D
+	dsMaterialType_Image, // mslType_UImage2D
+	dsMaterialType_Image, // mslType_UImage3D
+	dsMaterialType_Image, // mslType_UImageCube
+	dsMaterialType_Image, // mslType_UImage1DArray
+	dsMaterialType_Image, // mslType_UImage2DArray
+	dsMaterialType_Image, // mslType_UImage2DMS
+	dsMaterialType_Image, // mslType_UImage2DMSArray
+	dsMaterialType_Image, // mslType_UImage2DRect
+
+	// Subpass inputs.
+	dsMaterialType_SubpassInput, // mslType_SubpassInput
+	dsMaterialType_SubpassInput, // mslType_SubpassInputMS
+	dsMaterialType_SubpassInput, // mslType_ISubpassInput
+	dsMaterialType_SubpassInput, // mslType_ISubpassInputMS
+	dsMaterialType_SubpassInput, // mslType_USubpassInput
+	dsMaterialType_SubpassInput, // mslType_USubpassInputMS
+
+	// Other.
+	dsMaterialType_VariableGroup, // mslType_Struct (also UniformBlock or UniformBuffer)
+};
+
+DS_STATIC_ASSERT(DS_ARRAY_SIZE(materialTypeMap) == mslType_Count, material_type_map_mismatch);
+
+dsMaterialType convertMslType(mslType type)
+{
+	if ((unsigned int)type >= mslType_Count)
+		return dsMaterialType_Count;
+
+	return materialTypeMap[type];
+}
+
+const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
+	const char* uniformName, const char* name)
+{
+	const dsShaderVariableElement* element;
+	bool isDuplicate = false;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (materialDesc->elements[i].type != dsMaterialType_VariableGroup)
+			continue;
+
+		const dsShaderVariableGroupDesc* groupDesc =
+			materialDesc->elements[i].shaderVariableGroupDesc;
+		DS_ASSERT(groupDesc);
+		uint32_t foundElement = dsShaderVariableGroupDesc_findElement(groupDesc, name);
+		if (foundElement != DS_UNKNOWN)
+		{
+			if (element)
+				element = groupDesc->elements + foundElement;
+			else
+				isDuplicate = true;
+		}
+	}
+
+	if (isDuplicate)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Shader variable group element %s found in multiple groups.", name);
+		return NULL;
+	}
+	else if (!element)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Uniform %s.%s not found in material description or any shader variable group.",
+			uniformName, name);
+		return NULL;
+	}
+
+	return element;
+}
+
+static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelineIndex,
+	uint32_t structIndex, const dsMaterialDesc* materialDesc, bool supportsBuffers,
+	const char* uniformName)
+{
+	DS_ASSERT(materialDesc);
+	mslStruct structInfo;
+	DS_VERIFY(mslModule_struct(&structInfo, module, pipelineIndex, structIndex));
+
+	bool success = true;
+	for (uint32_t i = 0; i < structInfo.memberCount; ++i)
+	{
+		mslStructMember structMember;
+		DS_VERIFY(mslModule_structMember(&structMember, module, pipelineIndex, structIndex, i));
+
+		dsMaterialType type = dsMaterialType_Count;
+		uint32_t arrayCount = 0;
+		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, structMember.name);
+		if (elementIndex == DS_UNKNOWN)
+		{
+			if (supportsBuffers)
+			{
+				const dsShaderVariableElement* element = findShaderVariableElement(materialDesc,
+					uniformName, structMember.name);
+				if (!element)
+				{
+					// Error printed from above function call.
+					success = false;
+					continue;
+				}
+
+				type = element->type;
+				arrayCount = element->count;
+			}
+			else
+			{
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+					"Uniform %s.%s not found in material description.", uniformName,
+					structMember.name);
+				success = false;
+				continue;
+			}
+		}
+		else
+		{
+			const dsMaterialElement* element = materialDesc->elements + elementIndex;
+			type = element->type;
+			arrayCount = element->count;
+		}
+
+		if (convertMslType(structMember.type) != type ||
+			structMember.arrayElementCount != arrayCount)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Types for uniform %s.%s differ between shader and material.", uniformName,
+				structMember.name);
+			success = false;
+			continue;
+		}
+	}
+
+	return success;
+}
+
+static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pipelineIndex,
+	uint32_t structIndex, const dsShaderVariableGroupDesc* groupDesc, const char* uniformName)
+{
+	DS_ASSERT(groupDesc);
+	mslStruct structInfo;
+	DS_VERIFY(mslModule_struct(&structInfo, module, pipelineIndex, structIndex));
+
+	if (structInfo.memberCount != groupDesc->elementCount)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Variable group %s doesn't match shader uniform block.",
+			uniformName);
+		return false;
+	}
+
+	bool success = true;
+	for (uint32_t i = 0; i < structInfo.memberCount; ++i)
+	{
+		const dsShaderVariableElement* element = groupDesc->elements + i;
+
+		mslStructMember structMember;
+		DS_VERIFY(mslModule_structMember(&structMember, module, pipelineIndex, structIndex, i));
+		if (convertMslType(structMember.type) != element->type ||
+			structMember.arrayElementCount != element->count)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Types for element %s.%s differ between shader and shader variable group.",
+				uniformName, structMember.name);
+			success = false;
+		}
+	}
+
+	return success;
+}
+
+static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline* pipeline,
+	uint32_t index, const dsMaterialDesc* materialDesc, bool supportsBuffers)
+{
+	bool success = true;
+	for (uint32_t i = 0; i < pipeline->uniformCount; ++i)
+	{
+		mslUniform uniform;
+		DS_VERIFY(mslModule_uniform(&uniform, module, index, i));
+		if (uniform.uniformType == mslUniformType_PushConstant)
+		{
+			if (!arePushConstantsCompatible(module, index, uniform.structIndex,
+				materialDesc, supportsBuffers, uniform.name))
+			{
+				success = false;
+			}
+			continue;
+		}
+
+		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, uniform.name);
+		if (elementIndex == DS_UNKNOWN)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Uniform %s not found in material description.",
+				uniform.name);
+			success = false;
+			continue;
+		}
+
+		bool typesMatch = false;
+		const dsMaterialElement* element = materialDesc->elements + elementIndex;
+		switch (uniform.uniformType)
+		{
+			case mslUniformType_Block:
+				typesMatch = element->type == dsMaterialType_VariableGroup ||
+					element->type == dsMaterialType_UniformBlock;
+				if (typesMatch && element->type == dsMaterialType_VariableGroup)
+				{
+					if (uniform.arrayElementCount != 0)
+					{
+						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+							"Shader variable group %s may not be an array.", uniform.name);
+						success = false;
+					}
+
+					if (!!isShaderVariableGroupCompatible(module, index, uniform.structIndex,
+						element->shaderVariableGroupDesc, uniform.name))
+					{
+						success = false;
+					}
+				}
+				break;
+			case mslUniformType_BlockBuffer:
+				typesMatch = element->type == dsMaterialType_UniformBuffer;
+				break;
+			case mslUniformType_Image:
+				typesMatch = element->type == dsMaterialType_Image;
+				break;
+			case mslUniformType_SampledImage:
+				typesMatch = element->type == dsMaterialType_Texture;
+				break;
+			case mslUniformType_SubpassInput:
+				typesMatch = element->type == dsMaterialType_SubpassInput;
+				break;
+			default:
+				DS_ASSERT(false);
+		}
+
+		if (!typesMatch)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Types for uniform %s differ between shader and material.", uniform.name);
+			success = false;
+		}
+	}
+
+	return success;
+}
 
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc)
@@ -72,6 +422,17 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	if (index >= dsShaderModule_shaderCount(shaderModule))
 	{
 		errno = EINDEX;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	mslPipeline pipeline;
+	DS_VERIFY(mslModule_pipeline(&pipeline, shaderModule->module, index));
+	if (!isMaterialDescCompatible(shaderModule->module, &pipeline, index, materialDesc,
+		(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) != 0))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material description isn't compatible with shader %s.",
+			pipeline.name);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

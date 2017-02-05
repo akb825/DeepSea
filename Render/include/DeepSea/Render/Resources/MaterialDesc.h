@@ -28,6 +28,17 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and using shader material descriptions.
+ *
+ * A dsMaterialDesc is provided when creating a shader to aid in assigning material values. It is
+ * also used to create material instances.
+ *
+ * The same material description may be used with multiple shaders, so long as all of the uniforms
+ * of the shader are provided. It is still valid if extra material parameters are avoided.
+ *
+ * It is encouraged to re-use the same material description for multiple shaders when they use
+ * similar parameters. This allows materials to be shared across those shaders and may make
+ * rendering more efficient.
+ *
  * @see dsMaterialDesc
  */
 

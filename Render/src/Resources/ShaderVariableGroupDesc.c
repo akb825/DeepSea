@@ -27,8 +27,28 @@
 
 extern const char* dsResourceManager_noContextError;
 
+static bool hasDuplicates(const dsShaderVariableElement* elements, uint32_t elementCount)
+{
+	bool hasDuplicate = false;
+	for (uint32_t i = 0; i < elementCount; ++i)
+	{
+		for (uint32_t j = i + 1; j < elementCount; ++j)
+		{
+			if (strcmp(elements[i].name, elements[j].name) == 0)
+			{
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s specified multiple times.",
+					elements[i].name);
+				hasDuplicate = true;
+				break;
+			}
+		}
+	}
+
+	return hasDuplicate;
+}
+
 dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount)
+	dsAllocator* allocator, const dsShaderVariableElement* elements, uint32_t elementCount)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -43,23 +63,34 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
+	bool elementsValid = !hasDuplicates(elements, elementCount);
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (!elements[i].name || (int)elements[i].type < 0 ||
-			elements[i].type >= dsMaterialType_Count)
+		if (!elements[i].name)
 		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element name not given.");
+			elementsValid = false;
+			continue;
+		}
+
+		if ((unsigned int)elements[i].type >= dsMaterialType_Count)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element %s.", elements[i].name);
+			elementsValid = false;
 		}
 
 		if (elements[i].type >= dsMaterialType_Texture)
 		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Shader variable groups cannot contain texture, image, block, or buffer types.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader variable groups may only contain primitive, "
+				"vector, and matrix types for element %s.", elements[i].name);
+			elementsValid = false;
 		}
+	}
+
+	if (!elementsValid)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	if (!dsResourceManager_canUseResources(resourceManager))

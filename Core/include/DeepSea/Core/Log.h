@@ -34,6 +34,18 @@ extern "C"
  */
 
 /**
+ * @brief Macro for warning for incorrect printf formats.
+ * @param stringIndex The parameter index for the format string.
+ * @param firstFormatIndex The index of the first format parameter.
+ */
+#if DS_GCC || DS_CLANG
+#define DS_CHECK_FORMAT(stringIndex, firstFormatIndex) \
+		__attribute__((format(printf, (stringIndex) + 1, (firstFormatIndex) + 1)))
+#else
+#define DS_CHECK_FORMAT(stringIndex, firstFormatIndex)
+#endif
+
+/**
  * @brief The maximum length of a formatted log message, including the null terminator.
  */
 #define DS_LOG_MAX_LENGTH 1024
@@ -103,7 +115,7 @@ DS_CORE_EXPORT void dsLog_message(dsLogLevel level, const char* tag, const char*
  * @param message The log message.
  */
 DS_CORE_EXPORT void dsLog_messagef(dsLogLevel level, const char* tag, const char* file,
-	unsigned int line, const char* function, const char* message, ...);
+	unsigned int line, const char* function, const char* message, ...) DS_CHECK_FORMAT(5, 6);
 
 /**
  * @brief Logs a message with printf style formatting.

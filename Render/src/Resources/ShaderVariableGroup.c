@@ -42,7 +42,7 @@ struct dsShaderVariableGroup
 	dsShaderVariablePos* rawDataPositions;
 };
 
-static uint32_t elementSize(const dsMaterialElement* element, const dsShaderVariablePos* pos)
+static uint32_t elementSize(const dsShaderVariableElement* element, const dsShaderVariablePos* pos)
 {
 	if (element->count > 0)
 	{
@@ -100,7 +100,7 @@ static void memcpyData(void* result, dsMaterialType type, const dsShaderVariable
 static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* group,
 	uint32_t elementIndex, const void* data, uint32_t firstIndex, uint32_t count)
 {
-	const dsMaterialElement* element = group->description->elements + elementIndex;
+	const dsShaderVariableElement* element = group->description->elements + elementIndex;
 	const dsShaderVariablePos* pos = group->description->positions + elementIndex;
 	uint32_t baseStride = dsMaterialType_size(element->type);
 	uint32_t stride = element->count > 0 ? pos->stride : baseStride;
@@ -339,58 +339,6 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 		memcpy(group->rawData + group->rawDataPositions[element].offset + stride*firstIndex,
 		data, stride*count);
 		DS_PROFILE_FUNC_RETURN(true);
-	}
-}
-
-bool dsShaderVariableGroup_queueElementElementData(dsCommandBuffer* commandBuffer,
-	dsShaderVariableGroup* group, uint32_t element, const void* data, dsMaterialType type,
-	uint32_t firstIndex, uint32_t count)
-{
-	DS_PROFILE_FUNC_START();
-
-	if (!commandBuffer || !group || !data)
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (element >= group->description->elementCount)
-	{
-		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader variable group element.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (type != group->description->elements[element].type)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type doesn't match shader variable group element type.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	uint32_t maxCount = group->description->elements[element].count;
-	if (maxCount == 0)
-		maxCount = 1;
-	if (firstIndex + count > maxCount)
-	{
-		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader variable group element.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (group->buffer)
-	{
-		bool success = copyBuffer(commandBuffer, group, element, data, firstIndex, count);
-		DS_PROFILE_FUNC_RETURN(success);
-	}
-	else
-	{
-		// Stride is always set for raw data, even if not an array.
-		uint32_t stride = group->rawDataPositions[element].stride;
-		bool success = dsRenderer_queueMemcpy(group->resourceManager->renderer, commandBuffer,
-			group->rawData + group->rawDataPositions[element].offset + stride*firstIndex, data,
-			stride*count);
-		DS_PROFILE_FUNC_RETURN(success);
 	}
 }
 

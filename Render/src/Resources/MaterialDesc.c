@@ -16,6 +16,8 @@
 
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 
+#include <DeepSea/Core/Containers/Hash.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -25,6 +27,26 @@
 #include <string.h>
 
 extern const char* dsResourceManager_noContextError;
+
+static bool hasDuplicates(const dsMaterialElement* elements, uint32_t elementCount)
+{
+	bool hasDuplicate = false;
+	for (uint32_t i = 0; i < elementCount; ++i)
+	{
+		for (uint32_t j = i + 1; j < elementCount; ++j)
+		{
+			if (strcmp(elements[i].name, elements[j].name) == 0)
+			{
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s specified multiple times.",
+					elements[i].name);
+				hasDuplicate = true;
+				break;
+			}
+		}
+	}
+
+	return hasDuplicate;
+}
 
 dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount)
@@ -42,38 +64,66 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
+	bool elementsValid = !hasDuplicates(elements, elementCount);
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (!elements[i].name || (int)elements[i].type < 0 ||
-			elements[i].type >= dsMaterialType_Count)
+		if (!elements[i].name)
 		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element name not given.");
+			elementsValid = false;
+			continue;
+		}
+
+		if ((unsigned int)elements[i].type >= dsMaterialType_Count)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element %s.", elements[i].name);
+			elementsValid = false;
+		}
+
+		if (elements[i].isVolatile && elements[i].type < dsMaterialType_Texture)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Primitive, vector, and matrix material elements "
+				"cannot be volatile for element %s.", elements[i].name);
+			elementsValid = false;
+		}
+
+		if (elements[i].type == dsMaterialType_VariableGroup &&
+			!elements[i].shaderVariableGroupDesc)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Variable group material element missing shaderVaraibleGroupDesc for element %s.",
+				elements[i].name);
+			elementsValid = false;
 		}
 
 		if (elements[i].type == dsMaterialType_UniformBlock &&
 			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock))
 		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform blocks.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Target doesn't support uniform blocks for element %s.", elements[i].name);
+			elementsValid = false;
 		}
 
 		if (elements[i].type == dsMaterialType_UniformBuffer &&
 			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
 		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Target doesn't support uniform buffers.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Target doesn't support uniform buffers for element %s.", elements[i].name);
+			elementsValid = false;
 		}
 
 		if (elements[i].type >= dsMaterialType_Texture && elements[i].count > 0)
 		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Only primitive types can use arrays.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Only primitive types can use arrays for element %s.",
+				elements[i].name);
+			elementsValid = false;
 		}
+	}
+
+	if (!elementsValid)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	if (!dsResourceManager_canUseResources(resourceManager))
@@ -86,7 +136,13 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	dsMaterialDesc* materialDesc = resourceManager->createMaterialDescFunc(resourceManager,
 		allocator, elements, elementCount);
 	if (materialDesc)
+	{
+		DS_ASSERT(materialDesc->elementCount == elementCount);
+		for (uint32_t i = 0; i < elementCount; ++i)
+			materialDesc->elements[i].nameId = dsHashString(materialDesc->elements[i].name);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->materialDescCount, 1);
+	}
+
 	DS_PROFILE_FUNC_RETURN(materialDesc);
 }
 

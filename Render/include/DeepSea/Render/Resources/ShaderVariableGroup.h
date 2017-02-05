@@ -67,11 +67,6 @@ DS_RENDER_EXPORT const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescr
 
 /**
  * @brief Sets the data for an element.
- *
- * This will set the data as soon as possible and won't necessarily respect order within the command
- * buffer. It will be guaranteed not to interfere with any previous draw calls, but its ordering
- * with multiple subsequent draw calls or draw calls queued across multiple threads is undefined.
- *
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
  * @param group The shader variable group to set the index on.
@@ -83,26 +78,6 @@ DS_RENDER_EXPORT const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescr
  * @return False if the element couldn't be set.
  */
 DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
-	dsShaderVariableGroup* group, uint32_t element, const void* data, dsMaterialType type,
-	uint32_t firstIndex, uint32_t count);
-
-/**
- * @brief Queues setting the data for an element on the command buffer.
- *
- * This will delay setting the element until it's executed on the command buffer. This can be used
- * to set the element multiple times for multiple draw calls or when building command buffers
- * across multiple threads.
- *
- * @param commandBuffer The command buffer to queue setting the element data on.
- * @param group The shader variable group to set the index on.
- * @param element The index of the element to set.
- * @param data The data to set.
- * @param type The type of the data.
- * @param firstIndex The first index to set when the element is an array.
- * @param count The number of array indices to set to set in the element.
- * @return False if the element couldn't be set.
- */
-DS_RENDER_EXPORT bool dsShaderVariableGroup_queueElementData(dsCommandBuffer* commandBuffer,
 	dsShaderVariableGroup* group, uint32_t element, const void* data, dsMaterialType type,
 	uint32_t firstIndex, uint32_t count);
 

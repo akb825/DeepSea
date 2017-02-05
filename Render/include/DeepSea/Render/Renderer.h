@@ -35,23 +35,6 @@ extern "C"
  * @see dsRenderer
  */
 
-/**
- * @brief Function for queueing a memcpy on the command buffer.
- *
- * The main purpose of this is to handle updates of shader variables on the command queue. If shader
- * uniform blocks are supported, this may not be implemented.
- *
- * @param renderer The renderer.
- * @param commandBuffer The command buffer to queue the memcpy on.
- * @param dest The buffer to copy the data to.
- * @param src The buffer to copy the data from. If not executed immediately, this should be copied
- *     to the command buffer.
- * @param size The size to copy.
- * @return False on failure.
- */
-DS_RENDER_EXPORT bool dsRenderer_queueMemcpy(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	void* dest, const void* src, size_t size);
-
 #ifdef __cplusplus
 }
 #endif

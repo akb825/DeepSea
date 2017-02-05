@@ -66,6 +66,7 @@ uint16_t dsMaterialType_size(dsMaterialType type)
 		// Other types
 		sizeof(void*), // dsMaterialType_Texture
 		sizeof(void*), // dsMaterialType_Image
+		sizeof(void*), // dsMaterialType_SubpassInput
 		sizeof(void*), // dsMaterialType_VariableGroup
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
@@ -125,6 +126,7 @@ uint16_t dsMaterialType_machineAlignment(dsMaterialType type)
 		// Other types
 		sizeof(void*), // dsMaterialType_Texture
 		sizeof(void*), // dsMaterialType_Image
+		sizeof(void*), // dsMaterialType_SubpassInput
 		sizeof(void*), // dsMaterialType_VariableGroup
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
