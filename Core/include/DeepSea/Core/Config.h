@@ -113,3 +113,7 @@
  * @param array The array.
  */
 #define DS_ARRAY_SIZE(array) (sizeof(array)/sizeof(*(array)))
+
+#if DS_MSC
+#pragma warning(disable: 4200) // nonstandard extension used : zero-sized array in struct/union
+#endif

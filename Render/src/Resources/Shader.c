@@ -166,7 +166,7 @@ dsMaterialType convertMslType(mslType type)
 const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
 	const char* uniformName, const char* name)
 {
-	const dsShaderVariableElement* element;
+	const dsShaderVariableElement* element = NULL;
 	bool isDuplicate = false;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
