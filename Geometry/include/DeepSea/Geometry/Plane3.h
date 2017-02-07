@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Vector3.h>
@@ -34,7 +35,9 @@ extern "C"
  * are by value.
  *
  * The functions have different versions for the supported dsPlane3 types. These are used when
- * the implementation cannot be practically done within a macro.
+ * the implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsPlane3f dsPlane3d
  */
@@ -128,6 +131,42 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3f_intersectOrientedBox(const dsPlan
 /** @copydoc dsPlane3f_intersectOrientedBox() */
 DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane,
 	const dsOrientedBox3d* box);
+
+/** @copydoc dsPlane3_fromNormalPoint() */
+inline void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
+	const dsVector3f* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(normal);
+	DS_ASSERT(point);
+	dsPlane3_fromNormalPoint(*result, *normal, *point);
+}
+
+/** @copydoc dsPlane3_fromNormalPoint() */
+inline void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* normal,
+	const dsVector3d* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(normal);
+	DS_ASSERT(point);
+	dsPlane3_fromNormalPoint(*result, *normal, *point);
+}
+
+/** @copydoc dsPlane3_distanceToPoint() */
+inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f* point)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(point);
+	return dsPlane3_distanceToPoint(*plane, *point);
+}
+
+/** @copydoc dsPlane3_distanceToPoint() */
+inline double dsPlane3d_distanceToPoint(const dsPlane3d* plane, const dsVector3d* point)
+{
+	DS_ASSERT(plane);
+	DS_ASSERT(point);
+	return dsPlane3_distanceToPoint(*plane, *point);
+}
 
 #ifdef __cplusplus
 }

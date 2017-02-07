@@ -96,3 +96,27 @@ void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y)
 	result->values[1][0] = 0;
 	result->values[1][1] = y;
 }
+
+DS_MATH_EXPORT void dsMatrix22f_identity(dsMatrix22f* result);
+DS_MATH_EXPORT void dsMatrix22d_identity(dsMatrix22d* result);
+
+DS_MATH_EXPORT void dsMatrix22f_mul(dsMatrix22f* result, const dsMatrix22f* a,
+		const dsMatrix22f* b);
+DS_MATH_EXPORT void dsMatrix22d_mul(dsMatrix22d* result, const dsMatrix22d* a,
+		const dsMatrix22d* b);
+
+DS_MATH_EXPORT void dsMatrix22f_transform(dsVector2f* result, const dsMatrix22f* mat,
+	const dsVector2f* vec);
+DS_MATH_EXPORT void dsMatrix22d_transform(dsVector2d* result, const dsMatrix22d* mat,
+	const dsVector2d* vec);
+
+DS_MATH_EXPORT void dsMatrix22f_transformTransposed(dsVector2f* result, const dsMatrix22f* mat,
+	const dsVector2f* vec);
+DS_MATH_EXPORT void dsMatrix22d_transformTransposed(dsVector2d* result, const dsMatrix22d* mat,
+	const dsVector2d* vec);
+
+DS_MATH_EXPORT void dsMatrix22f_transpose(dsMatrix22f* result, const dsMatrix22f* a);
+DS_MATH_EXPORT void dsMatrix22d_transpose(dsMatrix22d* result, const dsMatrix22d* a);
+
+DS_MATH_EXPORT float dsMatrix22f_determinant(const dsMatrix22f* a);
+DS_MATH_EXPORT double dsMatrix22d_determinant(const dsMatrix22d* a);

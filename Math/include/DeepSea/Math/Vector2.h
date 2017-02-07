@@ -34,7 +34,9 @@ extern "C"
  * by value. In all cases, it is safe to have the result be the same as one of the parameters.
  *
  * The functions have different versions for the supported Vector2 types. These are used when the
- * implementation cannot be practically done within a macro.
+ * implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsVector2f dsVector3d dsVector2i
  */
@@ -142,6 +144,9 @@ inline float dsVector2f_len(const dsVector2f* a);
 /** @copydoc dsVector2f_len() */
 inline double dsVector2d_len(const dsVector2d* a);
 
+/** @copydoc dsVector2f_len() */
+inline double dsVector2i_len(const dsVector2i* a);
+
 /**
  * @brief Gets the distance between two vectors.
  * @param a The first vector.
@@ -153,6 +158,9 @@ inline float dsVector2f_dist(const dsVector2f* a, const dsVector2f* b);
 /** @copydoc dsVector2f_dist() */
 inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b);
 
+/** @copydoc dsVector2f_dist() */
+inline double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b);
+
 /**
  * @brief Normalizes a vector.
  * @param[out] result The normalized vector.
@@ -162,6 +170,207 @@ inline void dsVector2f_normalize(dsVector2f* result, const dsVector2f* a);
 
 /** @copydoc dsVector2f_normalize() */
 inline void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a);
+
+/** @copydoc dsVector2_add() */
+inline void dsVector2f_add(dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_add() */
+inline void dsVector2d_add(dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_add() */
+inline void dsVector2i_add(dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_sub() */
+inline void dsVector2f_sub(dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_sub() */
+inline void dsVector2d_sub(dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_sub() */
+inline void dsVector2i_sub(dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_mul() */
+inline void dsVector2f_mul(dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_mul() */
+inline void dsVector2d_mul(dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_mul() */
+inline void dsVector2i_mul(dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_div() */
+inline void dsVector2f_div(dsVector2f* result, const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_div() */
+inline void dsVector2d_div(dsVector2d* result, const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_div() */
+inline void dsVector2i_div(dsVector2i* result, const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector2_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector2_scale() */
+inline void dsVector2f_scale(dsVector2f* result, const dsVector2f* a, float s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector2_scale() */
+inline void dsVector2d_scale(dsVector2d* result, const dsVector2d* a, double s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector2_scale() */
+inline void dsVector2i_scale(dsVector2i* result, const dsVector2i* a, int s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector2_dot() */
+inline float dsVector2f_dot(const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dot(*a, *b);
+}
+
+/** @copydoc dsVector2_dot() */
+inline double dsVector2d_dot(const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dot(*a, *b);
+}
+
+/** @copydoc dsVector2_dot() */
+inline int dsVector2i_dot(const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dot(*a, *b);
+}
+
+/** @copydoc dsVector2_len2() */
+inline float dsVector2f_len2(const dsVector2f* a)
+{
+	DS_ASSERT(a);
+	return dsVector2_len2(*a);
+}
+
+/** @copydoc dsVector2_len2() */
+inline double dsVector2d_len2(const dsVector2d* a)
+{
+	DS_ASSERT(a);
+	return dsVector2_len2(*a);
+}
+
+/** @copydoc dsVector2_len2() */
+inline int dsVector2i_len2(const dsVector2i* a)
+{
+	DS_ASSERT(a);
+	return dsVector2_len2(*a);
+}
+
+/** @copydoc dsVector2_dist2() */
+inline float dsVector2f_dist2(const dsVector2f* a, const dsVector2f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dist2(*a, *b);
+}
+
+/** @copydoc dsVector2_dist2() */
+inline double dsVector2d_dist2(const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dist2(*a, *b);
+}
+
+/** @copydoc dsVector2_dist2() */
+inline int dsVector2i_dist2(const dsVector2i* a, const dsVector2i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector2_dist2(*a, *b);
+}
 
 inline float dsVector2f_len(const dsVector2f* a)
 {
@@ -175,6 +384,12 @@ inline double dsVector2d_len(const dsVector2d* a)
 	return sqrt(dsVector2_len2(*a));
 }
 
+inline double dsVector2i_len(const dsVector2i* a)
+{
+	DS_ASSERT(a);
+	return sqrt(dsVector2_len2(*a));
+}
+
 inline float dsVector2f_dist(const dsVector2f* a, const dsVector2f* b)
 {
 	DS_ASSERT(a);
@@ -183,6 +398,13 @@ inline float dsVector2f_dist(const dsVector2f* a, const dsVector2f* b)
 }
 
 inline double dsVector2d_dist(const dsVector2d* a, const dsVector2d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return sqrt(dsVector2_dist2(*a, *b));
+}
+
+inline double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);

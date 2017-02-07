@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
@@ -35,7 +36,9 @@ extern "C"
  * are by value.
  *
  * The functions have different versions for the supported dsOrientedBox2 types. These are used when
- * the implementation cannot be practically done within a macro.
+ * the implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsOrientedBox2f dsOrientedBox2d
  */
@@ -184,6 +187,52 @@ DS_GEOMETRY_EXPORT float dsOrientedBox2f_dist(const dsOrientedBox2f* box,
 /** @copydoc dsOrientedBox2f_dist() */
 DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist(const dsOrientedBox2d* box,
 	const dsVector2d* point);
+
+/** @copydoc dsOrientedBox2_isValid() */
+inline bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box)
+{
+	DS_ASSERT(box);
+	return dsOrientedBox2_isValid(*box);
+}
+
+/** @copydoc dsOrientedBox2_isValid() */
+inline bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box)
+{
+	DS_ASSERT(box);
+	return dsOrientedBox2_isValid(*box);
+}
+
+/** @copydoc dsOrientedBox2_fromAlignedBox() */
+inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
+	const dsAlignedBox2f* alignedBox)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(alignedBox);
+	dsOrientedBox2_fromAlignedBox(*result, *alignedBox);
+}
+
+/** @copydoc dsOrientedBox2_fromAlignedBox() */
+inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
+	const dsAlignedBox2d* alignedBox)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(alignedBox);
+	dsOrientedBox2_fromAlignedBox(*result, *alignedBox);
+}
+
+/** @copydoc dsOrientedBox2_makeInvalid() */
+inline void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result)
+{
+	DS_ASSERT(result);
+	dsOrientedBox2_makeInvalid(*result);
+}
+
+/** @copydoc dsOrientedBox2_makeInvalid() */
+inline void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result)
+{
+	DS_ASSERT(result);
+	dsOrientedBox2_makeInvalid(*result);
+}
 
 #ifdef __cplusplus
 }

@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
 
@@ -33,7 +34,9 @@ extern "C"
  * are by value.
  *
  * The functions have different versions for the supported dsFrustum3 types. These are used when
- * the implementation cannot be practically done within a macro.
+ * the implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsFrustum3f dsFrustum3d
  */
@@ -173,6 +176,22 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3f_intersectOrientedBox(const dsFr
 /** @copydoc dsFrustum3f_intersectAlignedBox() */
 DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
 	const dsOrientedBox3d* box);
+
+/** @copydoc dsFrustum3_fromMatrix() */
+inline void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+	dsFrustum3_fromMatrix(*result, *matrix, halfDepth);
+}
+
+/** @copydoc dsFrustum3_fromMatrix() */
+inline void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(matrix);
+	dsFrustum3_fromMatrix(*result, *matrix, halfDepth);
+}
 
 #ifdef __cplusplus
 }

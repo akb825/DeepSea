@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Geometry/Export.h>
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Core.h>
@@ -34,7 +35,9 @@ extern "C"
  * are by value.
  *
  * The functions have different versions for the supported dsAlignedBox2 types. These are used when
- * the implementation cannot be practically done within a macro.
+ * the implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsAlignedBox2f dsAlignedBox2d dsAlignedBox2i
  */
@@ -152,7 +155,7 @@ extern "C"
 
 /**
  * @brief Extracts the corners from an aligned box.
- * @param[out] corners The corners for the box.
+ * @param[out] corners The corners for the box. This must contain DS_BOX2_CORNER_COUNT elements.
  * @param box The box to extract the corners from.
  * @return False if box is empty.
  */
@@ -245,6 +248,282 @@ DS_GEOMETRY_EXPORT double dsAlignedBox2d_dist(const dsAlignedBox2d* box,
 /** @copydoc dsAlignedBox2f_dist() */
 DS_GEOMETRY_EXPORT double dsAlignedBox2i_dist(const dsAlignedBox2i* box,
 	const dsVector2i* point);
+
+/** @copydoc dsAlignedBox2_isValid() */
+inline bool dsAlignedBox2f_isValid(const dsAlignedBox2f* box)
+{
+	DS_ASSERT(box);
+	return dsAlignedBox2_isValid(*box);
+}
+
+/** @copydoc dsAlignedBox2_isValid() */
+inline bool dsAlignedBox2d_isValid(const dsAlignedBox2d* box)
+{
+	DS_ASSERT(box);
+	return dsAlignedBox2_isValid(*box);
+}
+
+/** @copydoc dsAlignedBox2_isValid() */
+inline bool dsAlignedBox2i_isValid(const dsAlignedBox2i* box)
+{
+	DS_ASSERT(box);
+	return dsAlignedBox2_isValid(*box);
+}
+
+/** @copydoc dsAlignedBox2_addPoint() */
+inline void dsAlignedBox2f_addPoint(dsAlignedBox2f* box, const dsVector2f* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_addPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_addPoint() */
+inline void dsAlignedBox2d_addPoint(dsAlignedBox2d* box, const dsVector2d* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_addPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_addPoint() */
+inline void dsAlignedBox2i_addPoint(dsAlignedBox2i* box, const dsVector2i* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_addPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_addBox() */
+inline void dsAlignedBox2f_addBox(dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	dsAlignedBox2_addBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_addBox() */
+inline void dsAlignedBox2d_addBox(dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	dsAlignedBox2_addBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_addBox() */
+inline void dsAlignedBox2i_addBox(dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	dsAlignedBox2_addBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_containsPoint() */
+inline bool dsAlignedBox2f_containsPoint(const dsAlignedBox2f* box, const dsVector2f* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	return dsAlignedBox2_containsPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_containsPoint() */
+inline bool dsAlignedBox2d_containsPoint(const dsAlignedBox2d* box, const dsVector2d* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	return dsAlignedBox2_containsPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_containsPoint() */
+inline bool dsAlignedBox2i_containsPoint(const dsAlignedBox2i* box, const dsVector2i* point)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	return dsAlignedBox2_containsPoint(*box, *point);
+}
+
+/** @copydoc dsAlignedBox2_containsBox() */
+inline bool dsAlignedBox2f_containsBox(const dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_containsBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_containsBox() */
+inline bool dsAlignedBox2d_containsBox(const dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_containsBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_containsBox() */
+inline bool dsAlignedBox2i_containsBox(const dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_containsBox(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_intersects() */
+inline bool dsAlignedBox2f_intersects(const dsAlignedBox2f* box, const dsAlignedBox2f* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_intersects(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_intersects() */
+inline bool dsAlignedBox2d_intersects(const dsAlignedBox2d* box, const dsAlignedBox2d* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_intersects(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_intersects() */
+inline bool dsAlignedBox2i_intersects(const dsAlignedBox2i* box, const dsAlignedBox2i* otherBox)
+{
+	DS_ASSERT(box);
+	DS_ASSERT(otherBox);
+	return dsAlignedBox2_intersects(*box, *otherBox);
+}
+
+/** @copydoc dsAlignedBox2_intersect() */
+inline void dsAlignedBox2f_intersect(dsAlignedBox2f* result, const dsAlignedBox2f* a,
+	const dsAlignedBox2f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsAlignedBox2_intersect(*result, *a, *b);
+}
+
+/** @copydoc dsAlignedBox2_intersect() */
+inline void dsAlignedBox2d_intersect(dsAlignedBox2d* result, const dsAlignedBox2d* a,
+	const dsAlignedBox2d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsAlignedBox2_intersect(*result, *a, *b);
+}
+
+/** @copydoc dsAlignedBox2_intersect() */
+inline void dsAlignedBox2i_intersect(dsAlignedBox2i* result, const dsAlignedBox2i* a,
+	const dsAlignedBox2i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsAlignedBox2_intersect(*result, *a, *b);
+}
+
+/** @copydoc dsAlignedBox2_center() */
+inline void dsAlignedBox2f_center(dsVector2f* result, const dsAlignedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_center(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_center() */
+inline void dsAlignedBox2d_center(dsVector2d* result, const dsAlignedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_center(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_center() */
+inline void dsAlignedBox2i_center(dsVector2i* result, const dsAlignedBox2i* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_center(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_extents() */
+inline void dsAlignedBox2f_extents(dsVector2f* result, const dsAlignedBox2f* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_extents(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_extents() */
+inline void dsAlignedBox2d_extents(dsVector2d* result, const dsAlignedBox2d* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_extents(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_extents() */
+inline void dsAlignedBox2i_extents(dsVector2i* result, const dsAlignedBox2i* box)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	dsAlignedBox2_extents(*result, *box);
+}
+
+/** @copydoc dsAlignedBox2_corners() */
+inline void dsAlignedBox2f_corners(dsVector2f corners[DS_BOX2_CORNER_COUNT],
+	const dsAlignedBox2f* box)
+{
+	DS_ASSERT(corners);
+	DS_ASSERT(box);
+	dsAlignedBox2_corners(corners, *box);
+}
+
+/** @copydoc dsAlignedBox2_corners() */
+inline void dsAlignedBox2d_corners(dsVector2d corners[DS_BOX2_CORNER_COUNT],
+	const dsAlignedBox2d* box)
+{
+	DS_ASSERT(corners);
+	DS_ASSERT(box);
+	dsAlignedBox2_corners(corners, *box);
+}
+
+/** @copydoc dsAlignedBox2_corners() */
+inline void dsAlignedBox2i_corners(dsVector2i corners[DS_BOX2_CORNER_COUNT],
+	const dsAlignedBox2i* box)
+{
+	DS_ASSERT(corners);
+	DS_ASSERT(box);
+	dsAlignedBox2_corners(corners, *box);
+}
+
+/** @copydoc dsAlignedBox2_closestPoint() */
+inline void dsAlignedBox2f_closestPoint(dsVector2f* result, const dsAlignedBox2f* box,
+	const dsVector2f* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_closestPoint(*result, *box, *point);
+}
+
+/** @copydoc dsAlignedBox2_closestPoint() */
+inline void dsAlignedBox2d_closestPoint(dsVector2d* result, const dsAlignedBox2d* box,
+	const dsVector2d* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_closestPoint(*result, *box, *point);
+}
+
+/** @copydoc dsAlignedBox2_closestPoint() */
+inline void dsAlignedBox2i_closestPoint(dsVector2i* result, const dsAlignedBox2i* box,
+	const dsVector2i* point)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(box);
+	DS_ASSERT(point);
+	dsAlignedBox2_closestPoint(*result, *box, *point);
+}
 
 #ifdef __cplusplus
 }

@@ -56,6 +56,11 @@ inline double dsVector3_len(dsVector3d* a)
 	return dsVector3d_len(a);
 }
 
+inline double dsVector3_len(dsVector3i* a)
+{
+	return dsVector3i_len(a);
+}
+
 inline float dsVector3_dist(dsVector3f* a, dsVector3f* b)
 {
 	return dsVector3f_dist(a, b);
@@ -64,6 +69,11 @@ inline float dsVector3_dist(dsVector3f* a, dsVector3f* b)
 inline double dsVector3_dist(dsVector3d* a, dsVector3d* b)
 {
 	return dsVector3d_dist(a, b);
+}
+
+inline double dsVector3_dist(dsVector3i* a, dsVector3i* b)
+{
+	return dsVector3i_dist(a, b);
 }
 
 inline void dsVector3_normalize(dsVector3f* result, dsVector3f* a)
@@ -203,7 +213,7 @@ TYPED_TEST(Vector3Test, Cross)
 	EXPECT_EQ(1, result.z);
 }
 
-TYPED_TEST(Vector3FloatTest, Length)
+TYPED_TEST(Vector3Test, Length)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
 
@@ -219,7 +229,7 @@ TYPED_TEST(Vector3FloatTest, Length)
 			  dsVector3_len(&a));
 }
 
-TYPED_TEST(Vector3FloatTest, Distance)
+TYPED_TEST(Vector3Test, Distance)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
 

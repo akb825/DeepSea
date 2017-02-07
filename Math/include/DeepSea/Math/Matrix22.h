@@ -35,7 +35,9 @@ extern "C"
  * of the parameters.
  *
  * The functions have different versions for the supported dsMatrix22 types. These are used when the
- * implementation cannot be practically done within a macro.
+ * implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsMatrix22f dsMatrix22d
  */
@@ -164,6 +166,106 @@ DS_MATH_EXPORT void dsMatrix22f_makeScale(dsMatrix22f* result, float x, float y)
 
 /** @copydoc dsMatrix22f_makeScale() */
 DS_MATH_EXPORT void dsMatrix22d_makeScale(dsMatrix22d* result, double x, double y);
+
+/** @copydoc dsMatrix22_identity() */
+inline void dsMatrix22f_identity(dsMatrix22f* result)
+{
+	DS_ASSERT(result);
+	dsMatrix22_identity(*result);
+}
+
+/** @copydoc dsMatrix22_identity() */
+inline void dsMatrix22d_identity(dsMatrix22d* result)
+{
+	DS_ASSERT(result);
+	dsMatrix22_identity(*result);
+}
+
+/** @copydoc dsMatrix22_mul() */
+inline void dsMatrix22f_mul(dsMatrix22f* result, const dsMatrix22f* a, const dsMatrix22f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix22_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix22_mul() */
+inline void dsMatrix22d_mul(dsMatrix22d* result, const dsMatrix22d* a, const dsMatrix22d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix22_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix22_transform() */
+inline void dsMatrix22f_transform(dsVector2f* result, const dsMatrix22f* mat, const dsVector2f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix22_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix22_transform() */
+inline void dsMatrix22d_transform(dsVector2d* result, const dsMatrix22d* mat, const dsVector2d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix22_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix22_transformTransposed() */
+inline void dsMatrix22f_transformTransposed(dsVector2f* result, const dsMatrix22f* mat,
+	const dsVector2f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix22_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix22_transformTransposed() */
+inline void dsMatrix22d_transformTransposed(dsVector2d* result, const dsMatrix22d* mat,
+	const dsVector2d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix22_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix22_transpose() */
+inline void dsMatrix22f_transpose(dsMatrix22f* result, const dsMatrix22f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix22_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix22_transpose() */
+inline void dsMatrix22d_transpose(dsMatrix22d* result, const dsMatrix22d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix22_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix22_determinant() */
+inline float dsMatrix22f_determinant(const dsMatrix22f* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix22_determinant(*a);
+}
+
+/** @copydoc dsMatrix22_determinant() */
+inline double dsMatrix22d_determinant(const dsMatrix22d* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix22_determinant(*a);
+}
 
 #ifdef __cplusplus
 }

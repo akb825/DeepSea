@@ -36,7 +36,9 @@ extern "C"
  * of the parameters.
  *
  * The functions have different versions for the supported Matrix44 types. These are used when the
- * implementation cannot be practically done within a macro.
+ * implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
  * the affine functions and macros.
@@ -490,6 +492,140 @@ DS_MATH_EXPORT void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy,
 /** @copydoc dsMatrix44f_makePerspective() */
 DS_MATH_EXPORT void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect,
 	double near, double far, bool halfDepth);
+
+/** @copydoc dsMatrix44_identity() */
+inline void dsMatrix44f_identity(dsMatrix44f* result)
+{
+	DS_ASSERT(result);
+	dsMatrix44_identity(*result);
+}
+
+/** @copydoc dsMatrix44_identity() */
+inline void dsMatrix44d_identity(dsMatrix44d* result)
+{
+	DS_ASSERT(result);
+	dsMatrix44_identity(*result);
+}
+
+/** @copydoc dsMatrix44_mul() */
+inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix44_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix44_mul() */
+inline void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix44_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix44_affineMul() */
+inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix44_affineMul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix44_affineMul() */
+inline void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix44_affineMul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix44_transform() */
+inline void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix44_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix44_transform() */
+inline void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix44_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix44_transformTransposed() */
+inline void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
+	const dsVector4f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix44_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix44_transformTransposed() */
+inline void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
+	const dsVector4d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix44_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix44_transpose() */
+inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix44_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix44_transpose() */
+inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix44_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix44_determinant() */
+inline float dsMatrix44f_determinant(dsMatrix44f* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix44_determinant(*a);
+}
+
+/** @copydoc dsMatrix44_determinant() */
+inline double dsMatrix44d_determinant(dsMatrix44d* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix44_determinant(*a);
+}
+
+/** @copydoc dsMatrix44_fastInvert() */
+inline void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix44_fastInvert(*result, *a);
+}
+
+/** @copydoc dsMatrix44_fastInvert() */
+inline void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix44_fastInvert(*result, *a);
+}
 
 #ifdef __cplusplus
 }

@@ -640,3 +640,36 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 		result->values[3][2] = 2*near*far/(near - far);
 	result->values[3][3] = 0;
 }
+
+DS_MATH_EXPORT void dsMatrix44f_identity(dsMatrix44f* result);
+DS_MATH_EXPORT void dsMatrix44d_identity(dsMatrix44d* result);
+
+DS_MATH_EXPORT void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b);
+DS_MATH_EXPORT void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b);
+
+DS_MATH_EXPORT void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b);
+DS_MATH_EXPORT void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b);
+
+DS_MATH_EXPORT void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat,
+	const dsVector4f* vec);
+DS_MATH_EXPORT void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat,
+	const dsVector4d* vec);
+
+DS_MATH_EXPORT void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
+	const dsVector4f* vec);
+
+DS_MATH_EXPORT void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
+	const dsVector4d* vec);
+
+DS_MATH_EXPORT void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a);
+
+DS_MATH_EXPORT float dsMatrix44f_determinant(dsMatrix44f* a);
+DS_MATH_EXPORT double dsMatrix44d_determinant(dsMatrix44d* a);
+
+DS_MATH_EXPORT void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a);
+DS_MATH_EXPORT void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a);

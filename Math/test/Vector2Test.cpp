@@ -56,6 +56,11 @@ inline double dsVector2_len(dsVector2d* a)
 	return dsVector2d_len(a);
 }
 
+inline double dsVector2_len(dsVector2i* a)
+{
+	return dsVector2i_len(a);
+}
+
 inline float dsVector2_dist(dsVector2f* a, dsVector2f* b)
 {
 	return dsVector2f_dist(a, b);
@@ -64,6 +69,11 @@ inline float dsVector2_dist(dsVector2f* a, dsVector2f* b)
 inline double dsVector2_dist(dsVector2d* a, dsVector2d* b)
 {
 	return dsVector2d_dist(a, b);
+}
+
+inline double dsVector2_dist(dsVector2i* a, dsVector2i* b)
+{
+	return dsVector2i_dist(a, b);
 }
 
 inline void dsVector2_normalize(dsVector2f* result, dsVector2f* a)
@@ -171,7 +181,7 @@ TYPED_TEST(Vector2Test, Dot)
 			  dsVector2_dot(a, b));
 }
 
-TYPED_TEST(Vector2FloatTest, Length)
+TYPED_TEST(Vector2Test, Length)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 
@@ -185,7 +195,7 @@ TYPED_TEST(Vector2FloatTest, Length)
 			  dsVector2_len(&a));
 }
 
-TYPED_TEST(Vector2FloatTest, Distance)
+TYPED_TEST(Vector2Test, Distance)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
 

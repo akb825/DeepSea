@@ -35,7 +35,9 @@ extern "C"
  * of the parameters.
  *
  * The functions have different versions for the supported dsMatrix33 types. These are used when the
- * implementation cannot be practically done within a macro.
+ * implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * When using affine transforms (combinations of rotate, scale, and translate), it is faster to use
  * the affine functions and macros.
@@ -340,7 +342,7 @@ DS_MATH_EXPORT void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float 
 /** @copydoc dsMatrix33f_makeScale3D() */
 DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
-/** @cond */
+/// \{
 #define dsMatrix33_determinantImpl(a, i0, i1, i2, j0, j1, j2) \
 	((a).values[i0][j0]*(a).values[i1][j1]*(a).values[i2][j2] + \
 	 (a).values[i1][j0]*(a).values[i2][j1]*(a).values[i0][j2] + \
@@ -348,7 +350,141 @@ DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, doubl
 	 (a).values[i2][j0]*(a).values[i1][j1]*(a).values[i0][j2] - \
 	 (a).values[i1][j0]*(a).values[i0][j1]*(a).values[i2][j2] - \
 	 (a).values[i0][j0]*(a).values[i2][j1]*(a).values[i1][j2])
-/** @endcond */
+/// \}
+
+/** @copydoc dsMatrix33_identity() */
+inline void dsMatrix33f_identity(dsMatrix33f* result)
+{
+	DS_ASSERT(result);
+	dsMatrix33_identity(*result);
+}
+
+/** @copydoc dsMatrix33_identity() */
+inline void dsMatrix33d_identity(dsMatrix33d* result)
+{
+	DS_ASSERT(result);
+	dsMatrix33_identity(*result);
+}
+
+/** @copydoc dsMatrix33_mul() */
+inline void dsMatrix33f_mul(dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix33_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix33_mul() */
+inline void dsMatrix33d_mul(dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix33_mul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix33_affineMul() */
+inline void dsMatrix33f_affineMul(dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix33_affineMul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix33_affineMul() */
+inline void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsMatrix33_affineMul(*result, *a, *b);
+}
+
+/** @copydoc dsMatrix33_transform() */
+inline void dsMatrix33f_transform(dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix33_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix33_transform() */
+inline void dsMatrix33d_transform(dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix33_transform(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix33_transformTransposed() */
+inline void dsMatrix33f_transformTransposed(dsVector3f* result, const dsMatrix33f* mat,
+	const dsVector3f* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix33_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix33_transformTransposed() */
+inline void dsMatrix33d_transformTransposed(dsVector3d* result, const dsMatrix33d* mat,
+	const dsVector3d* vec)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(mat);
+	DS_ASSERT(vec);
+	dsMatrix33_transformTransposed(*result, *mat, *vec);
+}
+
+/** @copydoc dsMatrix33_transpose() */
+inline void dsMatrix33f_transpose(dsMatrix33f* result, const dsMatrix33f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix33_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix33_transpose() */
+inline void dsMatrix33d_transpose(dsMatrix33d* result, const dsMatrix33d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix33_transpose(*result, *a);
+}
+
+/** @copydoc dsMatrix33_determinant() */
+inline float dsMatrix33f_determinant(dsMatrix33f* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix33_determinant(*a);
+}
+
+/** @copydoc dsMatrix33_determinant() */
+inline double dsMatrix33d_determinant(dsMatrix33d* a)
+{
+	DS_ASSERT(a);
+	return dsMatrix33_determinant(*a);
+}
+
+/** @copydoc dsMatrix33_fastInvert() */
+inline void dsMatrix33f_fastInvert(dsMatrix33f* result, const dsMatrix33f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix33_fastInvert(*result, *a);
+}
+
+/** @copydoc dsMatrix33_fastInvert() */
+inline void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsMatrix33d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsMatrix33_fastInvert(*result, *a);
+}
 
 #ifdef __cplusplus
 }

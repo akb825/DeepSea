@@ -35,7 +35,9 @@ extern "C"
  * one of the parameters.
  *
  * The functions have different versions for the supported Vector3 types. These are used when the
- * implementation cannot be practically done within a macro.
+ * implementation cannot be practically done within a macro. There are also inline functions
+ * provided to accompany the macro to use when desired. The inline functions may also be addressed
+ * in order to interface with other languages.
  *
  * @see dsVector3f dsVector3d dsVector3i
  */
@@ -164,6 +166,9 @@ inline float dsVector3f_len(const dsVector3f* a);
 /** @copydoc dsVector3f_len() */
 inline double dsVector3d_len(const dsVector3d* a);
 
+/** @copydoc dsVector3f_len() */
+inline double dsVector3i_len(const dsVector3i* a);
+
 /**
  * @brief Gets the distance between two vectors.
  * @param a The first vector.
@@ -175,6 +180,9 @@ inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
 /** @copydoc dsVector3f_dist() */
 inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
 
+/** @copydoc dsVector3f_dist() */
+inline double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
+
 /**
  * @brief Normalizes a vector.
  * @param[out] result The normalized vector.
@@ -184,6 +192,234 @@ inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
 
 /** @copydoc dsVector3f_normalize() */
 inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
+
+/** @copydoc dsVector3_add() */
+inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_add() */
+inline void dsVector3d_add(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_add() */
+inline void dsVector3i_add(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_add(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_sub() */
+inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_sub() */
+inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_sub() */
+inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_sub(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_mul() */
+inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_mul() */
+inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_mul() */
+inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_mul(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_div() */
+inline void dsVector3f_div(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_div() */
+inline void dsVector3d_div(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_div() */
+inline void dsVector3i_div(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_div(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_scale() */
+inline void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector3_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector3_scale() */
+inline void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector3_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector3_scale() */
+inline void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector3_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector3_dot() */
+inline float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dot(*a, *b);
+}
+
+/** @copydoc dsVector3_dot() */
+inline double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dot(*a, *b);
+}
+
+/** @copydoc dsVector3_dot() */
+inline int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dot(*a, *b);
+}
+
+/** @copydoc dsVector3_cross() */
+inline void dsVector3f_cross(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_cross(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_cross() */
+inline void dsVector3d_cross(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_cross(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_cross() */
+inline void dsVector3i_cross(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_cross(*result, *a, *b);
+}
+
+/** @copydoc dsVector3_len2() */
+inline float dsVector3f_len2(const dsVector3f* a)
+{
+	DS_ASSERT(a);
+	return dsVector3_len2(*a);
+}
+
+/** @copydoc dsVector3_len2() */
+inline double dsVector3d_len2(const dsVector3d* a)
+{
+	DS_ASSERT(a);
+	return dsVector3_len2(*a);
+}
+
+/** @copydoc dsVector3_len2() */
+inline int dsVector3i_len2(const dsVector3i* a)
+{
+	DS_ASSERT(a);
+	return dsVector3_len2(*a);
+}
+
+/** @copydoc dsVector3_dist2() */
+inline float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dist2(*a, *b);
+}
+
+/** @copydoc dsVector3_dist2() */
+inline double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dist2(*a, *b);
+}
+
+/** @copydoc dsVector3_dist2() */
+inline int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_dist2(*a, *b);
+}
 
 inline float dsVector3f_len(const dsVector3f* a)
 {
@@ -197,6 +433,12 @@ inline double dsVector3d_len(const dsVector3d* a)
 	return sqrt(dsVector3_len2(*a));
 }
 
+inline double dsVector3i_len(const dsVector3i* a)
+{
+	DS_ASSERT(a);
+	return sqrt(dsVector3_len2(*a));
+}
+
 inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(a);
@@ -205,6 +447,13 @@ inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b)
 }
 
 inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return sqrt(dsVector3_dist2(*a, *b));
+}
+
+inline double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
