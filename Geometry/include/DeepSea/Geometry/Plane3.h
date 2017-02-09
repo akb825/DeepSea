@@ -133,8 +133,8 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlan
 	const dsOrientedBox3d* box);
 
 /** @copydoc dsPlane3_fromNormalPoint() */
-inline void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
-	const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline void dsPlane3f_fromNormalPoint(dsPlane3f* result,
+	const dsVector3f* normal, const dsVector3f* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(normal);
@@ -143,8 +143,8 @@ inline void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* norma
 }
 
 /** @copydoc dsPlane3_fromNormalPoint() */
-inline void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* normal,
-	const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline void dsPlane3d_fromNormalPoint(dsPlane3d* result,
+	const dsVector3d* normal, const dsVector3d* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(normal);
@@ -153,7 +153,8 @@ inline void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* norma
 }
 
 /** @copydoc dsPlane3_distanceToPoint() */
-inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane,
+	const dsVector3f* point)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(point);
@@ -161,7 +162,8 @@ inline float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f*
 }
 
 /** @copydoc dsPlane3_distanceToPoint() */
-inline double dsPlane3d_distanceToPoint(const dsPlane3d* plane, const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline double dsPlane3d_distanceToPoint(const dsPlane3d* plane,
+	const dsVector3d* point)
 {
 	DS_ASSERT(plane);
 	DS_ASSERT(point);

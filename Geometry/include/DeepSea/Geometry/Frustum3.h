@@ -178,7 +178,8 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFr
 	const dsOrientedBox3d* box);
 
 /** @copydoc dsFrustum3_fromMatrix() */
-inline void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth)
+DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,
+	const dsMatrix44f* matrix, bool halfDepth)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
@@ -186,7 +187,8 @@ inline void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matri
 }
 
 /** @copydoc dsFrustum3_fromMatrix() */
-inline void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth)
+DS_GEOMETRY_EXPORT inline void dsFrustum3d_fromMatrix(dsFrustum3d* result,
+	const dsMatrix44d* matrix, bool halfDepth)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);

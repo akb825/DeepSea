@@ -15,9 +15,8 @@
  */
 
 #include <DeepSea/Core/Bits.h>
-#include <DeepSea/Core/Export.h>
 
-DS_CORE_EXPORT uint32_t dsClz(uint32_t x);
-DS_CORE_EXPORT uint32_t dsCtz(uint32_t x);
-DS_CORE_EXPORT uint32_t dsBitmaskIndex(uint32_t x);
-DS_CORE_EXPORT uint32_t dsRemoveLastBit(uint32_t x);
+uint32_t dsClz(uint32_t x);
+uint32_t dsCtz(uint32_t x);
+uint32_t dsBitmaskIndex(uint32_t x);
+uint32_t dsRemoveLastBit(uint32_t x);

@@ -343,35 +343,28 @@ void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z)
 	result->values[2][2] = z;
 }
 
-DS_MATH_EXPORT void dsMatrix33f_identity(dsMatrix33f* result);
-DS_MATH_EXPORT void dsMatrix33d_identity(dsMatrix33d* result);
+void dsMatrix33f_identity(dsMatrix33f* result);
+void dsMatrix33d_identity(dsMatrix33d* result);
 
-DS_MATH_EXPORT void dsMatrix33f_mul(dsMatrix33f* result, const dsMatrix33f* a,
-	const dsMatrix33f* b);
-DS_MATH_EXPORT void dsMatrix33d_mul(dsMatrix33d* result, const dsMatrix33d* a,
-	const dsMatrix33d* b);
+void dsMatrix33f_mul(dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b);
+void dsMatrix33d_mul(dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b);
 
-DS_MATH_EXPORT void dsMatrix33f_affineMul(dsMatrix33f* result, const dsMatrix33f* a,
-	const dsMatrix33f* b);
-DS_MATH_EXPORT void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMatrix33d* a,
-	const dsMatrix33d* b);
+void dsMatrix33f_affineMul(dsMatrix33f* result, const dsMatrix33f* a, const dsMatrix33f* b);
+void dsMatrix33d_affineMul(dsMatrix33d* result, const dsMatrix33d* a, const dsMatrix33d* b);
 
-DS_MATH_EXPORT void dsMatrix33f_transform(dsVector3f* result, const dsMatrix33f* mat,
+void dsMatrix33f_transform(dsVector3f* result, const dsMatrix33f* mat, const dsVector3f* vec);
+void dsMatrix33d_transform(dsVector3d* result, const dsMatrix33d* mat, const dsVector3d* vec);
+
+void dsMatrix33f_transformTransposed(dsVector3f* result, const dsMatrix33f* mat,
 	const dsVector3f* vec);
-DS_MATH_EXPORT void dsMatrix33d_transform(dsVector3d* result, const dsMatrix33d* mat,
+void dsMatrix33d_transformTransposed(dsVector3d* result, const dsMatrix33d* mat,
 	const dsVector3d* vec);
 
-DS_MATH_EXPORT void dsMatrix33f_transformTransposed(dsVector3f* result, const dsMatrix33f* mat,
-	const dsVector3f* vec);
+void dsMatrix33f_transpose(dsMatrix33f* result, const dsMatrix33f* a);
+void dsMatrix33d_transpose(dsMatrix33d* result, const dsMatrix33d* a);
 
-DS_MATH_EXPORT void dsMatrix33d_transformTransposed(dsVector3d* result, const dsMatrix33d* mat,
-	const dsVector3d* vec);
+float dsMatrix33f_determinant(dsMatrix33f* a);
+double dsMatrix33d_determinant(dsMatrix33d* a);
 
-DS_MATH_EXPORT void dsMatrix33f_transpose(dsMatrix33f* result, const dsMatrix33f* a);
-DS_MATH_EXPORT void dsMatrix33d_transpose(dsMatrix33d* result, const dsMatrix33d* a);
-
-DS_MATH_EXPORT float dsMatrix33f_determinant(dsMatrix33f* a);
-DS_MATH_EXPORT double dsMatrix33d_determinant(dsMatrix33d* a);
-
-DS_MATH_EXPORT void dsMatrix33f_fastInvert(dsMatrix33f* result, const dsMatrix33f* a);
-DS_MATH_EXPORT void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsMatrix33d* a);
+void dsMatrix33f_fastInvert(dsMatrix33f* result, const dsMatrix33f* a);
+void dsMatrix33d_fastInvert(dsMatrix33d* result, const dsMatrix33d* a);

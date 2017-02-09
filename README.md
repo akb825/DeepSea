@@ -6,9 +6,15 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 
 The following software is required to build DeepSea:
 
-* cmake 3.0.2 or later
-* doxygen (optional)
-* gtest (optional)
+* [cmake](https://cmake.org/) 3.0.2 or later
+* Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies)
+* [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
+* [gtest](https://github.com/google/googletest) (optional)
+
+The submodule dependencies can be grabbed by running the commands
+
+	DeepSea$ git submodule init
+	DeepSea$ git submodule update
 
 # Platforms
 
@@ -43,6 +49,7 @@ The following options may be used when running cmake:
 
 ## Miscellaneous Options:
 
+* `-DDEEPSEA_OUTPUT_DIR=directory`: The folder to place the output files. This may be explicitly left empty in order to output to the defaults used by cmake, but this may prevent tests and executables from running properly when `DEEPSEA_SHARED` is set to `ON`. Defaults to `${CMAKE_BINARY_DIR}/output`.
 * `-DDEEPSEA_EXPORTS_DIR=directory`: The folder to place the cmake exports when building. This directory can be added to the module path when embedding in other projects to be able to use the `library_find()` cmake function. Defaults to `${CMAKE_BINARY_DIR}/cmake`.
 * `-DDEEPSEA_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding DeepSea in another project. Defaults to DeepSea.
 

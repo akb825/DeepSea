@@ -12,6 +12,7 @@ set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
 
 # Misc options.
+set(DEEPSEA_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH "Folder for placing the build output.")
 set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 	"Folder for placing the cmake exports while building. Useful when embedding in other projects.")
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
@@ -37,6 +38,12 @@ if (DEEPSEA_SHARED)
 	set(DEEPSEA_LIB SHARED)
 else()
 	set(DEEPSEA_LIB STATIC)
+endif()
+
+if (DEEPSEA_OUTPUT_DIR)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${DEEPSEA_OUTPUT_DIR})
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${DEEPSEA_OUTPUT_DIR})
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${DEEPSEA_OUTPUT_DIR})
 endif()
 
 set(DEEPSEA_MAJOR_VERSION 0)

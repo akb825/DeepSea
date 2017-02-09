@@ -15,13 +15,12 @@
  */
 
 #include <DeepSea/Core/Streams/Stream.h>
-#include <DeepSea/Core/Export.h>
 
-DS_CORE_EXPORT size_t dsStream_read(dsStream* stream, void* data, size_t size);
-DS_CORE_EXPORT size_t dsStream_write(dsStream* stream, const void* data, size_t size);
+size_t dsStream_read(dsStream* stream, void* data, size_t size);
+size_t dsStream_write(dsStream* stream, const void* data, size_t size);
 
-DS_CORE_EXPORT bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);
-DS_CORE_EXPORT uint64_t dsStream_tell(dsStream* stream);
+bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);
+uint64_t dsStream_tell(dsStream* stream);
 
-DS_CORE_EXPORT void dsStream_flush(dsStream* stream);
-DS_CORE_EXPORT bool dsStream_close(dsStream* stream);
+void dsStream_flush(dsStream* stream);
+bool dsStream_close(dsStream* stream);

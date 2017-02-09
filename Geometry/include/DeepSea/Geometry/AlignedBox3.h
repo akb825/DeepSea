@@ -279,28 +279,28 @@ DS_GEOMETRY_EXPORT double dsAlignedBox3d_dist(const dsAlignedBox3d* box, const d
 DS_GEOMETRY_EXPORT double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point);
 
 /** @copydoc dsAlignedBox3_isValid() */
-inline bool dsAlignedBox3f_isValid(const dsAlignedBox3f* box)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3f_isValid(const dsAlignedBox3f* box)
 {
 	DS_ASSERT(box);
 	return dsAlignedBox3_isValid(*box);
 }
 
 /** @copydoc dsAlignedBox3_isValid() */
-inline bool dsAlignedBox3d_isValid(const dsAlignedBox3d* box)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3d_isValid(const dsAlignedBox3d* box)
 {
 	DS_ASSERT(box);
 	return dsAlignedBox3_isValid(*box);
 }
 
 /** @copydoc dsAlignedBox3_isValid() */
-inline bool dsAlignedBox3i_isValid(const dsAlignedBox3i* box)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3i_isValid(const dsAlignedBox3i* box)
 {
 	DS_ASSERT(box);
 	return dsAlignedBox3_isValid(*box);
 }
 
 /** @copydoc dsAlignedBox3_addPoint() */
-inline void dsAlignedBox3f_addPoint(dsAlignedBox3f* box, const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_addPoint(dsAlignedBox3f* box, const dsVector3f* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -308,7 +308,7 @@ inline void dsAlignedBox3f_addPoint(dsAlignedBox3f* box, const dsVector3f* point
 }
 
 /** @copydoc dsAlignedBox3_addPoint() */
-inline void dsAlignedBox3d_addPoint(dsAlignedBox3d* box, const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_addPoint(dsAlignedBox3d* box, const dsVector3d* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -316,7 +316,7 @@ inline void dsAlignedBox3d_addPoint(dsAlignedBox3d* box, const dsVector3d* point
 }
 
 /** @copydoc dsAlignedBox3_addPoint() */
-inline void dsAlignedBox3i_addPoint(dsAlignedBox3i* box, const dsVector3i* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_addPoint(dsAlignedBox3i* box, const dsVector3i* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -324,7 +324,8 @@ inline void dsAlignedBox3i_addPoint(dsAlignedBox3i* box, const dsVector3i* point
 }
 
 /** @copydoc dsAlignedBox3_addBox() */
-inline void dsAlignedBox3f_addBox(dsAlignedBox3f* box, const dsAlignedBox3f* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_addBox(dsAlignedBox3f* box,
+	const dsAlignedBox3f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -332,7 +333,8 @@ inline void dsAlignedBox3f_addBox(dsAlignedBox3f* box, const dsAlignedBox3f* oth
 }
 
 /** @copydoc dsAlignedBox3_addBox() */
-inline void dsAlignedBox3d_addBox(dsAlignedBox3d* box, const dsAlignedBox3d* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_addBox(dsAlignedBox3d* box,
+	const dsAlignedBox3d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -340,7 +342,8 @@ inline void dsAlignedBox3d_addBox(dsAlignedBox3d* box, const dsAlignedBox3d* oth
 }
 
 /** @copydoc dsAlignedBox3_addBox() */
-inline void dsAlignedBox3i_addBox(dsAlignedBox3i* box, const dsAlignedBox3i* otherBox)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_addBox(dsAlignedBox3i* box,
+	const dsAlignedBox3i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -348,7 +351,8 @@ inline void dsAlignedBox3i_addBox(dsAlignedBox3i* box, const dsAlignedBox3i* oth
 }
 
 /** @copydoc dsAlignedBox3_containsPoint() */
-inline bool dsAlignedBox3f_containsPoint(const dsAlignedBox3f* box, const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3f_containsPoint(const dsAlignedBox3f* box,
+	const dsVector3f* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -356,7 +360,8 @@ inline bool dsAlignedBox3f_containsPoint(const dsAlignedBox3f* box, const dsVect
 }
 
 /** @copydoc dsAlignedBox3_containsPoint() */
-inline bool dsAlignedBox3d_containsPoint(const dsAlignedBox3d* box, const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3d_containsPoint(const dsAlignedBox3d* box,
+	const dsVector3d* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -364,7 +369,8 @@ inline bool dsAlignedBox3d_containsPoint(const dsAlignedBox3d* box, const dsVect
 }
 
 /** @copydoc dsAlignedBox3_containsPoint() */
-inline bool dsAlignedBox3i_containsPoint(const dsAlignedBox3i* box, const dsVector3i* point)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3i_containsPoint(const dsAlignedBox3i* box,
+	const dsVector3i* point)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(point);
@@ -372,7 +378,8 @@ inline bool dsAlignedBox3i_containsPoint(const dsAlignedBox3i* box, const dsVect
 }
 
 /** @copydoc dsAlignedBox3_containsBox() */
-inline bool dsAlignedBox3f_containsBox(const dsAlignedBox3f* box, const dsAlignedBox3f* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3f_containsBox(const dsAlignedBox3f* box,
+	const dsAlignedBox3f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -380,7 +387,8 @@ inline bool dsAlignedBox3f_containsBox(const dsAlignedBox3f* box, const dsAligne
 }
 
 /** @copydoc dsAlignedBox3_containsBox() */
-inline bool dsAlignedBox3d_containsBox(const dsAlignedBox3d* box, const dsAlignedBox3d* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3d_containsBox(const dsAlignedBox3d* box,
+	const dsAlignedBox3d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -388,7 +396,8 @@ inline bool dsAlignedBox3d_containsBox(const dsAlignedBox3d* box, const dsAligne
 }
 
 /** @copydoc dsAlignedBox3_containsBox() */
-inline bool dsAlignedBox3i_containsBox(const dsAlignedBox3i* box, const dsAlignedBox3i* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3i_containsBox(const dsAlignedBox3i* box,
+	const dsAlignedBox3i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -396,7 +405,8 @@ inline bool dsAlignedBox3i_containsBox(const dsAlignedBox3i* box, const dsAligne
 }
 
 /** @copydoc dsAlignedBox3_intersects() */
-inline bool dsAlignedBox3f_intersects(const dsAlignedBox3f* box, const dsAlignedBox3f* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3f_intersects(const dsAlignedBox3f* box,
+	const dsAlignedBox3f* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -404,7 +414,8 @@ inline bool dsAlignedBox3f_intersects(const dsAlignedBox3f* box, const dsAligned
 }
 
 /** @copydoc dsAlignedBox3_intersects() */
-inline bool dsAlignedBox3d_intersects(const dsAlignedBox3d* box, const dsAlignedBox3d* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3d_intersects(const dsAlignedBox3d* box,
+	const dsAlignedBox3d* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -412,7 +423,8 @@ inline bool dsAlignedBox3d_intersects(const dsAlignedBox3d* box, const dsAligned
 }
 
 /** @copydoc dsAlignedBox3_intersects() */
-inline bool dsAlignedBox3i_intersects(const dsAlignedBox3i* box, const dsAlignedBox3i* otherBox)
+DS_GEOMETRY_EXPORT inline bool dsAlignedBox3i_intersects(const dsAlignedBox3i* box,
+	const dsAlignedBox3i* otherBox)
 {
 	DS_ASSERT(box);
 	DS_ASSERT(otherBox);
@@ -420,8 +432,8 @@ inline bool dsAlignedBox3i_intersects(const dsAlignedBox3i* box, const dsAligned
 }
 
 /** @copydoc dsAlignedBox3_intersect() */
-inline void dsAlignedBox3f_intersect(dsAlignedBox3f* result, const dsAlignedBox3f* a,
-	const dsAlignedBox3f* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_intersect(dsAlignedBox3f* result,
+	const dsAlignedBox3f* a, const dsAlignedBox3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -430,8 +442,8 @@ inline void dsAlignedBox3f_intersect(dsAlignedBox3f* result, const dsAlignedBox3
 }
 
 /** @copydoc dsAlignedBox3_intersect() */
-inline void dsAlignedBox3d_intersect(dsAlignedBox3d* result, const dsAlignedBox3d* a,
-	const dsAlignedBox3d* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_intersect(dsAlignedBox3d* result,
+	const dsAlignedBox3d* a, const dsAlignedBox3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -440,8 +452,8 @@ inline void dsAlignedBox3d_intersect(dsAlignedBox3d* result, const dsAlignedBox3
 }
 
 /** @copydoc dsAlignedBox3_intersect() */
-inline void dsAlignedBox3i_intersect(dsAlignedBox3i* result, const dsAlignedBox3i* a,
-	const dsAlignedBox3i* b)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_intersect(dsAlignedBox3i* result,
+	const dsAlignedBox3i* a, const dsAlignedBox3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -450,7 +462,7 @@ inline void dsAlignedBox3i_intersect(dsAlignedBox3i* result, const dsAlignedBox3
 }
 
 /** @copydoc dsAlignedBox3_center() */
-inline void dsAlignedBox3f_center(dsVector3f* result, const dsAlignedBox3f* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_center(dsVector3f* result, const dsAlignedBox3f* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -458,7 +470,7 @@ inline void dsAlignedBox3f_center(dsVector3f* result, const dsAlignedBox3f* box)
 }
 
 /** @copydoc dsAlignedBox3_center() */
-inline void dsAlignedBox3d_center(dsVector3d* result, const dsAlignedBox3d* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_center(dsVector3d* result, const dsAlignedBox3d* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -466,7 +478,7 @@ inline void dsAlignedBox3d_center(dsVector3d* result, const dsAlignedBox3d* box)
 }
 
 /** @copydoc dsAlignedBox3_center() */
-inline void dsAlignedBox3i_center(dsVector3i* result, const dsAlignedBox3i* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_center(dsVector3i* result, const dsAlignedBox3i* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -474,7 +486,7 @@ inline void dsAlignedBox3i_center(dsVector3i* result, const dsAlignedBox3i* box)
 }
 
 /** @copydoc dsAlignedBox3_extents() */
-inline void dsAlignedBox3f_extents(dsVector3f* result, const dsAlignedBox3f* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_extents(dsVector3f* result, const dsAlignedBox3f* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -482,7 +494,7 @@ inline void dsAlignedBox3f_extents(dsVector3f* result, const dsAlignedBox3f* box
 }
 
 /** @copydoc dsAlignedBox3_extents() */
-inline void dsAlignedBox3d_extents(dsVector3d* result, const dsAlignedBox3d* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_extents(dsVector3d* result, const dsAlignedBox3d* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -490,7 +502,7 @@ inline void dsAlignedBox3d_extents(dsVector3d* result, const dsAlignedBox3d* box
 }
 
 /** @copydoc dsAlignedBox3_extents() */
-inline void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -498,7 +510,7 @@ inline void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box
 }
 
 /** @copydoc dsAlignedBox3_corners() */
-inline void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3f* box)
 {
 	DS_ASSERT(corners);
@@ -507,7 +519,7 @@ inline void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
 }
 
 /** @copydoc dsAlignedBox3_corners() */
-inline void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3d* box)
 {
 	DS_ASSERT(corners);
@@ -516,7 +528,7 @@ inline void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],
 }
 
 /** @copydoc dsAlignedBox3_corners() */
-inline void dsAlignedBox3i_corners(dsVector3i corners[DS_BOX3_CORNER_COUNT],
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_corners(dsVector3i corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3i* box)
 {
 	DS_ASSERT(corners);
@@ -525,8 +537,8 @@ inline void dsAlignedBox3i_corners(dsVector3i corners[DS_BOX3_CORNER_COUNT],
 }
 
 /** @copydoc dsAlignedBox3_closestPoint() */
-inline void dsAlignedBox3f_closestPoint(dsVector3f* result, const dsAlignedBox3f* box,
-	const dsVector3f* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3f_closestPoint(dsVector3f* result,
+	const dsAlignedBox3f* box, const dsVector3f* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -535,8 +547,8 @@ inline void dsAlignedBox3f_closestPoint(dsVector3f* result, const dsAlignedBox3f
 }
 
 /** @copydoc dsAlignedBox3_closestPoint() */
-inline void dsAlignedBox3d_closestPoint(dsVector3d* result, const dsAlignedBox3d* box,
-	const dsVector3d* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3d_closestPoint(dsVector3d* result,
+	const dsAlignedBox3d* box, const dsVector3d* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);
@@ -545,8 +557,8 @@ inline void dsAlignedBox3d_closestPoint(dsVector3d* result, const dsAlignedBox3d
 }
 
 /** @copydoc dsAlignedBox3_closestPoint() */
-inline void dsAlignedBox3i_closestPoint(dsVector3i* result, const dsAlignedBox3i* box,
-	const dsVector3i* point)
+DS_GEOMETRY_EXPORT inline void dsAlignedBox3i_closestPoint(dsVector3i* result,
+	const dsAlignedBox3i* box, const dsVector3i* point)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(box);

@@ -145,64 +145,55 @@ double dsAlignedBox3i_dist(const dsAlignedBox3i* box, const dsVector3i* point)
 	return sqrt(distance2);
 }
 
-DS_GEOMETRY_EXPORT bool dsAlignedBox3f_isValid(const dsAlignedBox3f* box);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3d_isValid(const dsAlignedBox3d* box);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3i_isValid(const dsAlignedBox3i* box);
+bool dsAlignedBox3f_isValid(const dsAlignedBox3f* box);
+bool dsAlignedBox3d_isValid(const dsAlignedBox3d* box);
+bool dsAlignedBox3i_isValid(const dsAlignedBox3i* box);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_addPoint(dsAlignedBox3f* box, const dsVector3f* point);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_addPoint(dsAlignedBox3d* box, const dsVector3d* point);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_addPoint(dsAlignedBox3i* box, const dsVector3i* point);
+void dsAlignedBox3f_addPoint(dsAlignedBox3f* box, const dsVector3f* point);
+void dsAlignedBox3d_addPoint(dsAlignedBox3d* box, const dsVector3d* point);
+void dsAlignedBox3i_addPoint(dsAlignedBox3i* box, const dsVector3i* point);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_addBox(dsAlignedBox3f* box, const dsAlignedBox3f* otherBox);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_addBox(dsAlignedBox3d* box, const dsAlignedBox3d* otherBox);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_addBox(dsAlignedBox3i* box, const dsAlignedBox3i* otherBox);
+void dsAlignedBox3f_addBox(dsAlignedBox3f* box, const dsAlignedBox3f* otherBox);
+void dsAlignedBox3d_addBox(dsAlignedBox3d* box, const dsAlignedBox3d* otherBox);
+void dsAlignedBox3i_addBox(dsAlignedBox3i* box, const dsAlignedBox3i* otherBox);
 
-DS_GEOMETRY_EXPORT bool dsAlignedBox3f_containsPoint(const dsAlignedBox3f* box,
-	const dsVector3f* point);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3d_containsPoint(const dsAlignedBox3d* box,
-	const dsVector3d* point);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3i_containsPoint(const dsAlignedBox3i* box,
-	const dsVector3i* point);
+bool dsAlignedBox3f_containsPoint(const dsAlignedBox3f* box, const dsVector3f* point);
+bool dsAlignedBox3d_containsPoint(const dsAlignedBox3d* box, const dsVector3d* point);
+bool dsAlignedBox3i_containsPoint(const dsAlignedBox3i* box, const dsVector3i* point);
 
-DS_GEOMETRY_EXPORT bool dsAlignedBox3f_containsBox(const dsAlignedBox3f* box,
-	const dsAlignedBox3f* otherBox);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3d_containsBox(const dsAlignedBox3d* box,
-	const dsAlignedBox3d* otherBox);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3i_containsBox(const dsAlignedBox3i* box,
-	const dsAlignedBox3i* otherBox);
+bool dsAlignedBox3f_containsBox(const dsAlignedBox3f* box, const dsAlignedBox3f* otherBox);
+bool dsAlignedBox3d_containsBox(const dsAlignedBox3d* box, const dsAlignedBox3d* otherBox);
+bool dsAlignedBox3i_containsBox(const dsAlignedBox3i* box, const dsAlignedBox3i* otherBox);
 
-DS_GEOMETRY_EXPORT bool dsAlignedBox3f_intersects(const dsAlignedBox3f* box,
-	const dsAlignedBox3f* otherBox);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3d_intersects(const dsAlignedBox3d* box,
-	const dsAlignedBox3d* otherBox);
-DS_GEOMETRY_EXPORT bool dsAlignedBox3i_intersects(const dsAlignedBox3i* box,
-	const dsAlignedBox3i* otherBox);
+bool dsAlignedBox3f_intersects(const dsAlignedBox3f* box, const dsAlignedBox3f* otherBox);
+bool dsAlignedBox3d_intersects(const dsAlignedBox3d* box, const dsAlignedBox3d* otherBox);
+bool dsAlignedBox3i_intersects(const dsAlignedBox3i* box, const dsAlignedBox3i* otherBox);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_intersect(dsAlignedBox3f* result, const dsAlignedBox3f* a,
+void dsAlignedBox3f_intersect(dsAlignedBox3f* result, const dsAlignedBox3f* a,
 	const dsAlignedBox3f* b);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_intersect(dsAlignedBox3d* result, const dsAlignedBox3d* a,
+void dsAlignedBox3d_intersect(dsAlignedBox3d* result, const dsAlignedBox3d* a,
 	const dsAlignedBox3d* b);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_intersect(dsAlignedBox3i* result, const dsAlignedBox3i* a,
+void dsAlignedBox3i_intersect(dsAlignedBox3i* result, const dsAlignedBox3i* a,
 	const dsAlignedBox3i* b);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_center(dsVector3f* result, const dsAlignedBox3f* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_center(dsVector3d* result, const dsAlignedBox3d* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_center(dsVector3i* result, const dsAlignedBox3i* box);
+void dsAlignedBox3f_center(dsVector3f* result, const dsAlignedBox3f* box);
+void dsAlignedBox3d_center(dsVector3d* result, const dsAlignedBox3d* box);
+void dsAlignedBox3i_center(dsVector3i* result, const dsAlignedBox3i* box);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_extents(dsVector3f* result, const dsAlignedBox3f* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_extents(dsVector3d* result, const dsAlignedBox3d* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box);
+void dsAlignedBox3f_extents(dsVector3f* result, const dsAlignedBox3f* box);
+void dsAlignedBox3d_extents(dsVector3d* result, const dsAlignedBox3d* box);
+void dsAlignedBox3i_extents(dsVector3i* result, const dsAlignedBox3i* box);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
+void dsAlignedBox3f_corners(dsVector3f corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3f* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],
+void dsAlignedBox3d_corners(dsVector3d corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3d* box);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_corners(dsVector3i corners[DS_BOX3_CORNER_COUNT],
+void dsAlignedBox3i_corners(dsVector3i corners[DS_BOX3_CORNER_COUNT],
 	const dsAlignedBox3i* box);
 
-DS_GEOMETRY_EXPORT void dsAlignedBox3f_closestPoint(dsVector3f* result, const dsAlignedBox3f* box,
+void dsAlignedBox3f_closestPoint(dsVector3f* result, const dsAlignedBox3f* box,
 	const dsVector3f* point);
-DS_GEOMETRY_EXPORT void dsAlignedBox3d_closestPoint(dsVector3d* result, const dsAlignedBox3d* box,
+void dsAlignedBox3d_closestPoint(dsVector3d* result, const dsAlignedBox3d* box,
 	const dsVector3d* point);
-DS_GEOMETRY_EXPORT void dsAlignedBox3i_closestPoint(dsVector3i* result, const dsAlignedBox3i* box,
+void dsAlignedBox3i_closestPoint(dsVector3i* result, const dsAlignedBox3i* box,
 	const dsVector3i* point);

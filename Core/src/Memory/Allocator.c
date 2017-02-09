@@ -15,7 +15,6 @@
  */
 
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Export.h>
 
-DS_CORE_EXPORT void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
-DS_CORE_EXPORT bool dsAllocator_free(dsAllocator* allocator, void* ptr);
+void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+bool dsAllocator_free(dsAllocator* allocator, void* ptr);

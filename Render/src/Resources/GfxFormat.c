@@ -408,12 +408,12 @@ bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, ds
 	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
 }
 
-DS_RENDER_EXPORT unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
-DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
-DS_RENDER_EXPORT unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
-DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
-DS_RENDER_EXPORT unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
-DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
-DS_RENDER_EXPORT unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
-DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
-DS_RENDER_EXPORT dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
+unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
+unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
+unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
+unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
+dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);

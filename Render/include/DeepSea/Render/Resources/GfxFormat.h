@@ -82,7 +82,7 @@ DS_RENDER_EXPORT bool dsGfxFormat_minDimensions(unsigned int* outX, unsigned int
  * @return The standard format index, or 0 if not a standard format. The first valid format will
  *     be index 1.
  */
-inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
+DS_RENDER_EXPORT inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
 
 /**
  * @brief Gets the enum of a standard format index.
@@ -92,7 +92,7 @@ inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
  * @param index The index of the format.
  * @return The standard format enum.
  */
-inline dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
+DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
 
 /**
  * @brief Gets the index of a special format.
@@ -103,7 +103,7 @@ inline dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
  * @return The special format index, or 0 if not a special format. The first valid format will be
  *     index 1.
  */
-inline unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
+DS_RENDER_EXPORT inline unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
 
 /**
  * @brief Gets the enum of a special format index.
@@ -113,7 +113,7 @@ inline unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
  * @param index The index of the format.
  * @return The special format enum.
  */
-inline dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
+DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
 
 /**
  * @brief Gets the index of a compressed format.
@@ -124,7 +124,7 @@ inline dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
  * @return The compressed format index, or 0 if not a compressed format. The first valid format will
  *     be index 1.
  */
-inline unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
+DS_RENDER_EXPORT inline unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
 
 /**
  * @brief Gets the enum of a compressed format index.
@@ -134,7 +134,7 @@ inline unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
  * @param index The index of the format.
  * @return The compressed format enum.
  */
-inline dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
+DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
 
 /**
  * @brief Gets the index of a decorator.
@@ -144,7 +144,7 @@ inline dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
  * @param format The format.
  * @return The decoration index, or 0 if not decorated.
  */
-inline unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
+DS_RENDER_EXPORT inline unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
 
 /**
  * @brief Gets the enum of a decorator index.
@@ -154,7 +154,7 @@ inline unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
  * @param index The index of the format.
  * @return The decorator format enum.
  */
-inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
+DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
 
 /**
  * @brief Decorates a graphics format.
@@ -162,7 +162,7 @@ inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
  * @param decorator The decorator to apply.
  * @return The decorated format.
  */
-inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
+DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
 
 /**
  * @brief Checks whether or not a graphics format is supported for vertices.

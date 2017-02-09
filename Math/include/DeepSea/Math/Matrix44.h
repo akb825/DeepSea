@@ -494,21 +494,22 @@ DS_MATH_EXPORT void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy
 	double near, double far, bool halfDepth);
 
 /** @copydoc dsMatrix44_identity() */
-inline void dsMatrix44f_identity(dsMatrix44f* result)
+DS_MATH_EXPORT inline void dsMatrix44f_identity(dsMatrix44f* result)
 {
 	DS_ASSERT(result);
 	dsMatrix44_identity(*result);
 }
 
 /** @copydoc dsMatrix44_identity() */
-inline void dsMatrix44d_identity(dsMatrix44d* result)
+DS_MATH_EXPORT inline void dsMatrix44d_identity(dsMatrix44d* result)
 {
 	DS_ASSERT(result);
 	dsMatrix44_identity(*result);
 }
 
 /** @copydoc dsMatrix44_mul() */
-inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b)
+DS_MATH_EXPORT inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -517,7 +518,8 @@ inline void dsMatrix44f_mul(dsMatrix44f* result, const dsMatrix44f* a, const dsM
 }
 
 /** @copydoc dsMatrix44_mul() */
-inline void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b)
+DS_MATH_EXPORT inline void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -526,7 +528,8 @@ inline void dsMatrix44d_mul(dsMatrix44d* result, const dsMatrix44d* a, const dsM
 }
 
 /** @copydoc dsMatrix44_affineMul() */
-inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a, const dsMatrix44f* b)
+DS_MATH_EXPORT inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a,
+	const dsMatrix44f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -535,7 +538,8 @@ inline void dsMatrix44f_affineMul(dsMatrix44f* result, const dsMatrix44f* a, con
 }
 
 /** @copydoc dsMatrix44_affineMul() */
-inline void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, const dsMatrix44d* b)
+DS_MATH_EXPORT inline void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a,
+	const dsMatrix44d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -544,7 +548,8 @@ inline void dsMatrix44d_affineMul(dsMatrix44d* result, const dsMatrix44d* a, con
 }
 
 /** @copydoc dsMatrix44_transform() */
-inline void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, const dsVector4f* vec)
+DS_MATH_EXPORT inline void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat,
+	const dsVector4f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -553,7 +558,8 @@ inline void dsMatrix44f_transform(dsVector4f* result, const dsMatrix44f* mat, co
 }
 
 /** @copydoc dsMatrix44_transform() */
-inline void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, const dsVector4d* vec)
+DS_MATH_EXPORT inline void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat,
+	const dsVector4d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -562,8 +568,8 @@ inline void dsMatrix44d_transform(dsVector4d* result, const dsMatrix44d* mat, co
 }
 
 /** @copydoc dsMatrix44_transformTransposed() */
-inline void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44f* mat,
-	const dsVector4f* vec)
+DS_MATH_EXPORT inline void dsMatrix44f_transformTransposed(dsVector4f* result,
+	const dsMatrix44f* mat, const dsVector4f* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -572,8 +578,8 @@ inline void dsMatrix44f_transformTransposed(dsVector4f* result, const dsMatrix44
 }
 
 /** @copydoc dsMatrix44_transformTransposed() */
-inline void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44d* mat,
-	const dsVector4d* vec)
+DS_MATH_EXPORT inline void dsMatrix44d_transformTransposed(dsVector4d* result,
+	const dsMatrix44d* mat, const dsVector4d* vec)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(mat);
@@ -582,7 +588,7 @@ inline void dsMatrix44d_transformTransposed(dsVector4d* result, const dsMatrix44
 }
 
 /** @copydoc dsMatrix44_transpose() */
-inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a)
+DS_MATH_EXPORT inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -590,7 +596,7 @@ inline void dsMatrix44f_transpose(dsMatrix44f* result, const dsMatrix44f* a)
 }
 
 /** @copydoc dsMatrix44_transpose() */
-inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a)
+DS_MATH_EXPORT inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -598,21 +604,21 @@ inline void dsMatrix44d_transpose(dsMatrix44d* result, const dsMatrix44d* a)
 }
 
 /** @copydoc dsMatrix44_determinant() */
-inline float dsMatrix44f_determinant(dsMatrix44f* a)
+DS_MATH_EXPORT inline float dsMatrix44f_determinant(dsMatrix44f* a)
 {
 	DS_ASSERT(a);
 	return dsMatrix44_determinant(*a);
 }
 
 /** @copydoc dsMatrix44_determinant() */
-inline double dsMatrix44d_determinant(dsMatrix44d* a)
+DS_MATH_EXPORT inline double dsMatrix44d_determinant(dsMatrix44d* a)
 {
 	DS_ASSERT(a);
 	return dsMatrix44_determinant(*a);
 }
 
 /** @copydoc dsMatrix44_fastInvert() */
-inline void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a)
+DS_MATH_EXPORT inline void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -620,7 +626,7 @@ inline void dsMatrix44f_fastInvert(dsMatrix44f* result, const dsMatrix44f* a)
 }
 
 /** @copydoc dsMatrix44_fastInvert() */
-inline void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a)
+DS_MATH_EXPORT inline void dsMatrix44d_fastInvert(dsMatrix44d* result, const dsMatrix44d* a)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);

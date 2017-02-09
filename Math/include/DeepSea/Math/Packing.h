@@ -51,392 +51,392 @@ DS_MATH_EXPORT float dsUnpackHalfFloat(dsHalfFloat x);
  * @param x The value to pack.
  * @return The packed value.
  */
-inline int32_t dsPackInt32(float x);
+DS_MATH_EXPORT inline int32_t dsPackInt32(float x);
 
 /**
  * @brief Unpcks a 32-bit integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackInt32(int32_t x);
+DS_MATH_EXPORT inline float dsUnpackInt32(int32_t x);
 
 /**
  * @brief Packs a float into a 32-bit unsigned integer.
  * @param x The value to pack.
  * @return The packed value.
  */
-inline uint32_t dsPackUInt32(float x);
+DS_MATH_EXPORT inline uint32_t dsPackUInt32(float x);
 
 /**
  * @brief Unpcks a 32-bit unsigned integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackUInt32(uint32_t x);
+DS_MATH_EXPORT inline float dsUnpackUInt32(uint32_t x);
 
 /**
  * @brief Packs a float into a 16-bit integer.
  * @param x The value to pack.
  * @return The packed value.
  */
-inline int16_t dsPackInt16(float x);
+DS_MATH_EXPORT inline int16_t dsPackInt16(float x);
 
 /**
  * @brief Unpcks a 16-bit integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackInt16(int16_t x);
+DS_MATH_EXPORT inline float dsUnpackInt16(int16_t x);
 
 /**
  * @brief Packs a float into a 16-bit unsigned integer.
  * @param x The value to pack.
  * @return The packed value.
  */
-inline uint16_t dsPackUInt16(float x);
+DS_MATH_EXPORT inline uint16_t dsPackUInt16(float x);
 
 /**
  * @brief Unpcks a 16-bit unsigned integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackUInt16(uint16_t x);
+DS_MATH_EXPORT inline float dsUnpackUInt16(uint16_t x);
 
 /**
  * @brief Packs a float into a 8-bit integer.
  * @param x The value to pack.
  * @return The packed value.
  */
-inline int8_t dsPackInt8(float x);
+DS_MATH_EXPORT inline int8_t dsPackInt8(float x);
 
 /**
  * @brief Unpcks a 8-bit integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackInt8(int8_t x);
+DS_MATH_EXPORT inline float dsUnpackInt8(int8_t x);
 
 /**
  * @brief Packs a float into a 8-bit unsigned integer.
  * @param x The value to pack.
  * @return The packed value.
  */
-inline uint8_t dsPackUInt8(float x);
+DS_MATH_EXPORT inline uint8_t dsPackUInt8(float x);
 
 /**
  * @brief Unpcks a 8-bit unsigned integer into a float.
  * @param x The value to unpack.
  * @return The unpacked value.
  */
-inline float dsUnpackUInt8(uint8_t x);
+DS_MATH_EXPORT inline float dsUnpackUInt8(uint8_t x);
 
 /**
  * @brief Packs two floats into a 8-bit integer in XY order, 4 bits each.
  * @param xy The values to pack.
  * @return The packed integer.
  */
-inline uint8_t dsPackIntX4Y4(const dsVector2f* xy);
+DS_MATH_EXPORT inline uint8_t dsPackIntX4Y4(const dsVector2f* xy);
 
 /**
  * @brief Unpacks two floats from a 8-bit integer in XY order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntX4Y4(dsVector2f* result, uint8_t value);
+DS_MATH_EXPORT inline void dsUnpackIntX4Y4(dsVector2f* result, uint8_t value);
 
 /**
  * @brief Packs two floats into a 8-bit unsigned integer in XY order, 4 bits each.
  * @param xy The values to pack.
  * @return The packed integer.
  */
-inline uint8_t dsPackUIntX4Y4(const dsVector2f* xy);
+DS_MATH_EXPORT inline uint8_t dsPackUIntX4Y4(const dsVector2f* xy);
 
 /**
  * @brief Unpacks two floats from a 8-bit unsigned integer in XY order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntX4Y4(dsVector2f* result, uint8_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntX4Y4(dsVector2f* result, uint8_t value);
 
 /**
  * @brief Packs two floats into a 8-bit integer in YX order, 4 bits each.
  * @param xy The values to pack.
  * @return The packed integer.
  */
-inline uint8_t dsPackIntY4X4(const dsVector2f* xy);
+DS_MATH_EXPORT inline uint8_t dsPackIntY4X4(const dsVector2f* xy);
 
 /**
  * @brief Unpacks two floats from a 8-bit integer in YX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntY4X4(dsVector2f* result, uint8_t value);
+DS_MATH_EXPORT inline void dsUnpackIntY4X4(dsVector2f* result, uint8_t value);
 
 /**
  * @brief Packs two floats into a 8-bit unsigned integer in YX order, 4 bits each.
  * @param xy The values to pack.
  * @return The packed integer.
  */
-inline uint8_t dsPackUIntY4X4(const dsVector2f* xy);
+DS_MATH_EXPORT inline uint8_t dsPackUIntY4X4(const dsVector2f* xy);
 
 /**
  * @brief Unpacks two floats from a 8-bit unsigned integer in YX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntY4X4(dsVector2f* result, uint8_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntY4X4(dsVector2f* result, uint8_t value);
 
 /**
  * @brief Packs four floats into a 16-bit integer in XYZW order, 4 bits each.
  * @param xyzw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntX4Y4Z4W4(const dsVector4f* xyzw);
+DS_MATH_EXPORT inline uint16_t dsPackIntX4Y4Z4W4(const dsVector4f* xyzw);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in XYZW order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in XYZW order, 4 bits each.
  * @param xyzw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntX4Y4Z4W4(const dsVector4f* xyzw);
+DS_MATH_EXPORT inline uint16_t dsPackUIntX4Y4Z4W4(const dsVector4f* xyzw);
 
 /**
  * @brief Unpacks four floats from a 16-bit unsigned integer in XYZW order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit integer in WZYX order, 4 bits each.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackIntW4Z4Y4X4(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in WZYX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in WZYX order, 4 bits each.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackUIntW4Z4Y4X4(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit unsigned integer in WZYX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs three floats into a 16-bit integer in XYZ order, with 5, 6, 5 bits.
  * @param xyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntX5Y6Z5(const dsVector3f* xyz);
+DS_MATH_EXPORT inline uint16_t dsPackIntX5Y6Z5(const dsVector3f* xyz);
 
 /**
  * @brief Unpacks three floats from a 16-bit integer in XYZ order, with 5, 6, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntX5Y6Z5(dsVector3f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntX5Y6Z5(dsVector3f* result, uint16_t value);
 
 /**
  * @brief Packs three floats into a 16-bit unsigned integer in XYZ order, with 5, 6, 5 bits.
  * @param xyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntX5Y6Z5(const dsVector3f* xyz);
+DS_MATH_EXPORT inline uint16_t dsPackUIntX5Y6Z5(const dsVector3f* xyz);
 
 /**
  * @brief Unpacks three floats from a 16-bit unsigned integer in XYZ order, with 5, 6, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntX5Y6Z5(dsVector3f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntX5Y6Z5(dsVector3f* result, uint16_t value);
 
 /**
  * @brief Packs three floats into a 16-bit integer in ZYX order, with 5, 6, 5 bits.
  * @param zyx The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntZ5Y6X5(const dsVector3f* zyx);
+DS_MATH_EXPORT inline uint16_t dsPackIntZ5Y6X5(const dsVector3f* zyx);
 
 /**
  * @brief Unpacks three floats from a 16-bit integer in ZYX order, with 5, 6, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntZ5Y6X5(dsVector3f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntZ5Y6X5(dsVector3f* result, uint16_t value);
 
 /**
  * @brief Packs three floats into a 16-bit unsigned integer in ZYX order, with 5, 6, 5 bits.
  * @param zyx The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntZ5Y6X5(const dsVector3f* zyx);
+DS_MATH_EXPORT inline uint16_t dsPackUIntZ5Y6X5(const dsVector3f* zyx);
 
 /**
  * @brief Unpacks three floats from a 16-bit unsigned integer in ZYX order, with 5, 6, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntZ5Y6X5(dsVector3f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntZ5Y6X5(dsVector3f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit integer in XYZW order, with 5, 5, 5, 1 bits.
  * @param xyzw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntX5Y5Z5W1(const dsVector4f* xyzw);
+DS_MATH_EXPORT inline uint16_t dsPackIntX5Y5Z5W1(const dsVector4f* xyzw);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in XYZW order, with 5, 5, 5, 1 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in XYZW order, with 5, 5, 5, 1 bits.
  * @param xyzw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntX5Y5Z5W1(const dsVector4f* xyzw);
+DS_MATH_EXPORT inline uint16_t dsPackUIntX5Y5Z5W1(const dsVector4f* xyzw);
 
 /**
  * @brief Unpacks four floats from a 16-bit unsigned integer in XYZW order, with 5, 5, 5, 1 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntX5Y5Z5W1(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit integer in ZYXW order, with 5, 5, 5, 1 bits.
  * @param zyxw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntZ5Y5X5W1(const dsVector4f* zyxw);
+DS_MATH_EXPORT inline uint16_t dsPackIntZ5Y5X5W1(const dsVector4f* zyxw);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in ZYXW order, with 5, 5, 5, 1 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in ZYXW order, with 5, 5, 5, 1 bits.
  * @param zyxw The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntZ5Y5X5W1(const dsVector4f* zyxw);
+DS_MATH_EXPORT inline uint16_t dsPackUIntZ5Y5X5W1(const dsVector4f* zyxw);
 
 /**
  * @brief Unpacks three floats from a 16-bit unsigned integer in ZYXW order, with 5, 5, 5, 1 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntZ5Y5X5W1(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit integer in WXYZ order, with 1, 5, 5, 5 bits.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackIntW1X5Y5Z5(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackIntW1X5Y5Z5(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in WXYZ order, with 1, 5, 5, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in WXYZ order, with 1, 5, 5, 5 bits.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint16_t dsPackUIntW1X5Y5Z5(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackUIntW1X5Y5Z5(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit unsigned integer in WXYZ order, with 1, 5, 5, 5 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntW1X5Y5Z5(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 32-bit integer in WXYZ order, with 2, 10, 10, 10 bits.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint32_t dsPackIntW2X10Y10Z10(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint32_t dsPackIntW2X10Y10Z10(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 32-bit integer in WXYZ order, with 2, 10, 10, 10 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
+DS_MATH_EXPORT inline void dsUnpackIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
 
 /**
  * @brief Packs four floats into a 32-bit unsigned integer in WXYZ order, with 2, 10, 10, 10 bits.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-inline uint32_t dsPackUIntW2X10Y10Z10(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint32_t dsPackUIntW2X10Y10Z10(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 32-bit unsigned integer in WXYZ order, with 2, 10, 10, 10 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntW2X10Y10Z10(dsVector4f* result, uint32_t value);
 
 /**
  * @brief Packs four floats into a 32-bit integer in WZYX order, with 2, 10, 10, 10 bits.
  * @param wzyx The values to pack.
  * @return The packed integer.
  */
-inline uint32_t dsPackIntW2Z10Y10X10(const dsVector4f* wzyx);
+DS_MATH_EXPORT inline uint32_t dsPackIntW2Z10Y10X10(const dsVector4f* wzyx);
 
 /**
  * @brief Unpacks four floats from a 32-bit integer in WZYX order, with 2, 10, 10, 10 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
+DS_MATH_EXPORT inline void dsUnpackIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
 
 /**
  * @brief Packs four floats into a 32-bit unsigned integer in WZYX order, with 2, 10, 10, 10 bits.
  * @param wzyx The values to pack.
  * @return The packed integer.
  */
-inline uint32_t dsPackUIntW2Z10Y10X10(const dsVector4f* wzyx);
+DS_MATH_EXPORT inline uint32_t dsPackUIntW2Z10Y10X10(const dsVector4f* wzyx);
 
 /**
  * @brief Unpacks four floats from a 32-bit unsigned integer in WZYX order, with 2, 10, 10, 10 bits.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-inline void dsUnpackUIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntW2Z10Y10X10(dsVector4f* result, uint32_t value);
 
 /** @see dsPackIntX4Y4 */
 #define dsPackIntR4G4 dsPackIntX4Y4

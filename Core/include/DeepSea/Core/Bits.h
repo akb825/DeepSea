@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Types.h>
 
 #if DS_MSC
@@ -38,14 +39,14 @@ extern "C"
  * @param x The bitmask.
  * @return The number of leading zeros.
  */
-inline uint32_t dsClz(uint32_t x);
+DS_CORE_EXPORT inline uint32_t dsClz(uint32_t x);
 
 /**
  * @brief Counts the trailing zeros in a 32-bit integer.
  * @param x The bitmask.
  * @return The number of trailing zeros.
  */
-inline uint32_t dsCtz(uint32_t x);
+DS_CORE_EXPORT inline uint32_t dsCtz(uint32_t x);
 
 /**
  * @brief Gets the index of the next item in a bitmask.
@@ -62,7 +63,7 @@ inline uint32_t dsCtz(uint32_t x);
  * @param x The bitmask.
  * @return The first set bit.
  */
-inline uint32_t dsBitmaskIndex(uint32_t x);
+DS_CORE_EXPORT inline uint32_t dsBitmaskIndex(uint32_t x);
 
 /**
  * @brief Removes the last bit in a bitmask.
@@ -79,7 +80,7 @@ inline uint32_t dsBitmaskIndex(uint32_t x);
  * @param x The bitmask.
  * @return The bitmask with the last bit removed.
  */
-inline uint32_t dsRemoveLastBit(uint32_t x);
+DS_CORE_EXPORT inline uint32_t dsRemoveLastBit(uint32_t x);
 
 inline uint32_t dsClz(uint32_t x)
 {

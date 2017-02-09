@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Memory/Types.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Export.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -42,7 +43,7 @@ extern "C"
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.
  */
-inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
 
 /**
  * @brief Frees memory from the allocator.
@@ -50,7 +51,7 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.
  */
-inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
+DS_CORE_EXPORT inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
 
 inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 {

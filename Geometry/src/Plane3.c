@@ -260,11 +260,10 @@ dsIntersectResult dsPlane3d_intersectOrientedBox(const dsPlane3d* plane, const d
 	return dsPlane3d_intersectAlignedBox(&transformedPlane, &localBox);
 }
 
-DS_GEOMETRY_EXPORT void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
+void dsPlane3f_fromNormalPoint(dsPlane3f* result, const dsVector3f* normal,
 	const dsVector3f* point);
-DS_GEOMETRY_EXPORT void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* normal,
+void dsPlane3d_fromNormalPoint(dsPlane3d* result, const dsVector3d* normal,
 	const dsVector3d* point);
 
-DS_GEOMETRY_EXPORT float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f* point);
-DS_GEOMETRY_EXPORT double dsPlane3d_distanceToPoint(const dsPlane3d* plane,
-	const dsVector3d* point);
+float dsPlane3f_distanceToPoint(const dsPlane3f* plane, const dsVector3f* point);
+double dsPlane3d_distanceToPoint(const dsPlane3d* plane, const dsVector3d* point);

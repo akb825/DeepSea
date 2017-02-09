@@ -15,51 +15,50 @@
  */
 
 #include <DeepSea/Math/Vector3.h>
-#include <DeepSea/Math/Export.h>
 
-DS_MATH_EXPORT void dsVector3f_add(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT void dsVector3d_add(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT void dsVector3i_add(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3f_add(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_add(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_add(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_sub(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT void dsVector3d_sub(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT void dsVector3i_sub(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3f_sub(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_sub(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_sub(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_mul(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT void dsVector3d_mul(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT void dsVector3i_mul(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3f_mul(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_mul(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_mul(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_div(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT void dsVector3d_div(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT void dsVector3i_div(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3f_div(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_div(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_div(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s);
-DS_MATH_EXPORT void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s);
-DS_MATH_EXPORT void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s);
+void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s);
+void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s);
+void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s);
 
-DS_MATH_EXPORT float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b);
+float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b);
+double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b);
+int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_cross(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT void dsVector3d_cross(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT void dsVector3i_cross(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
+void dsVector3f_cross(dsVector3f* result, const dsVector3f* a, const dsVector3f* b);
+void dsVector3d_cross(dsVector3d* result, const dsVector3d* a, const dsVector3d* b);
+void dsVector3i_cross(dsVector3i* result, const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT float dsVector3f_len2(const dsVector3f* a);
-DS_MATH_EXPORT double dsVector3d_len2(const dsVector3d* a);
-DS_MATH_EXPORT int dsVector3i_len2(const dsVector3i* a);
+float dsVector3f_len2(const dsVector3f* a);
+double dsVector3d_len2(const dsVector3d* a);
+int dsVector3i_len2(const dsVector3i* a);
 
-DS_MATH_EXPORT float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b);
+float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b);
+double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b);
+int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT float dsVector3f_len(const dsVector3f* a);
-DS_MATH_EXPORT double dsVector3d_len(const dsVector3d* a);
-DS_MATH_EXPORT double dsVector3i_len(const dsVector3i* a);
+float dsVector3f_len(const dsVector3f* a);
+double dsVector3d_len(const dsVector3d* a);
+double dsVector3i_len(const dsVector3i* a);
 
-DS_MATH_EXPORT float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
-DS_MATH_EXPORT double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
-DS_MATH_EXPORT double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
+float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
+double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
+double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
 
-DS_MATH_EXPORT void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
-DS_MATH_EXPORT void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
+void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
+void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);

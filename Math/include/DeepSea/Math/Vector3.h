@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Export.h>
 #include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
@@ -161,13 +162,13 @@ extern "C"
  * @param a The first vector.
  * @return The length.
  */
-inline float dsVector3f_len(const dsVector3f* a);
+DS_MATH_EXPORT inline float dsVector3f_len(const dsVector3f* a);
 
 /** @copydoc dsVector3f_len() */
-inline double dsVector3d_len(const dsVector3d* a);
+DS_MATH_EXPORT inline double dsVector3d_len(const dsVector3d* a);
 
 /** @copydoc dsVector3f_len() */
-inline double dsVector3i_len(const dsVector3i* a);
+DS_MATH_EXPORT inline double dsVector3i_len(const dsVector3i* a);
 
 /**
  * @brief Gets the distance between two vectors.
@@ -175,26 +176,27 @@ inline double dsVector3i_len(const dsVector3i* a);
  * @param b The second vector.
  * @return The length.
  */
-inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
+DS_MATH_EXPORT inline float dsVector3f_dist(const dsVector3f* a, const dsVector3f* b);
 
 /** @copydoc dsVector3f_dist() */
-inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
+DS_MATH_EXPORT inline double dsVector3d_dist(const dsVector3d* a, const dsVector3d* b);
 
 /** @copydoc dsVector3f_dist() */
-inline double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
+DS_MATH_EXPORT inline double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
 
 /**
  * @brief Normalizes a vector.
  * @param[out] result The normalized vector.
  * @param a The vector to normalize.
  */
-inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
+DS_MATH_EXPORT inline void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
 
 /** @copydoc dsVector3f_normalize() */
-inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
+DS_MATH_EXPORT inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
 
 /** @copydoc dsVector3_add() */
-inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -203,7 +205,8 @@ inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a, const dsVect
 }
 
 /** @copydoc dsVector3_add() */
-inline void dsVector3d_add(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_add(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -212,7 +215,8 @@ inline void dsVector3d_add(dsVector3d* result, const dsVector3d* a, const dsVect
 }
 
 /** @copydoc dsVector3_add() */
-inline void dsVector3i_add(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_add(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -221,7 +225,8 @@ inline void dsVector3i_add(dsVector3i* result, const dsVector3i* a, const dsVect
 }
 
 /** @copydoc dsVector3_sub() */
-inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -230,7 +235,8 @@ inline void dsVector3f_sub(dsVector3f* result, const dsVector3f* a, const dsVect
 }
 
 /** @copydoc dsVector3_sub() */
-inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -239,7 +245,8 @@ inline void dsVector3d_sub(dsVector3d* result, const dsVector3d* a, const dsVect
 }
 
 /** @copydoc dsVector3_sub() */
-inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -248,7 +255,8 @@ inline void dsVector3i_sub(dsVector3i* result, const dsVector3i* a, const dsVect
 }
 
 /** @copydoc dsVector3_mul() */
-inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -257,7 +265,8 @@ inline void dsVector3f_mul(dsVector3f* result, const dsVector3f* a, const dsVect
 }
 
 /** @copydoc dsVector3_mul() */
-inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -266,7 +275,8 @@ inline void dsVector3d_mul(dsVector3d* result, const dsVector3d* a, const dsVect
 }
 
 /** @copydoc dsVector3_mul() */
-inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -275,7 +285,8 @@ inline void dsVector3i_mul(dsVector3i* result, const dsVector3i* a, const dsVect
 }
 
 /** @copydoc dsVector3_div() */
-inline void dsVector3f_div(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_div(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -284,7 +295,8 @@ inline void dsVector3f_div(dsVector3f* result, const dsVector3f* a, const dsVect
 }
 
 /** @copydoc dsVector3_div() */
-inline void dsVector3d_div(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_div(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -293,7 +305,8 @@ inline void dsVector3d_div(dsVector3d* result, const dsVector3d* a, const dsVect
 }
 
 /** @copydoc dsVector3_div() */
-inline void dsVector3i_div(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_div(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -302,7 +315,7 @@ inline void dsVector3i_div(dsVector3i* result, const dsVector3i* a, const dsVect
 }
 
 /** @copydoc dsVector3_scale() */
-inline void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s)
+DS_MATH_EXPORT inline void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -310,7 +323,7 @@ inline void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s)
 }
 
 /** @copydoc dsVector3_scale() */
-inline void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s)
+DS_MATH_EXPORT inline void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -318,7 +331,7 @@ inline void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s)
 }
 
 /** @copydoc dsVector3_scale() */
-inline void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s)
+DS_MATH_EXPORT inline void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -326,7 +339,7 @@ inline void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s)
 }
 
 /** @copydoc dsVector3_dot() */
-inline float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
@@ -334,7 +347,7 @@ inline float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b)
 }
 
 /** @copydoc dsVector3_dot() */
-inline double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
@@ -342,7 +355,7 @@ inline double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b)
 }
 
 /** @copydoc dsVector3_dot() */
-inline int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
@@ -350,7 +363,8 @@ inline int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b)
 }
 
 /** @copydoc dsVector3_cross() */
-inline void dsVector3f_cross(dsVector3f* result, const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline void dsVector3f_cross(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -359,7 +373,8 @@ inline void dsVector3f_cross(dsVector3f* result, const dsVector3f* a, const dsVe
 }
 
 /** @copydoc dsVector3_cross() */
-inline void dsVector3d_cross(dsVector3d* result, const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline void dsVector3d_cross(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -368,7 +383,8 @@ inline void dsVector3d_cross(dsVector3d* result, const dsVector3d* a, const dsVe
 }
 
 /** @copydoc dsVector3_cross() */
-inline void dsVector3i_cross(dsVector3i* result, const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline void dsVector3i_cross(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(a);
@@ -377,28 +393,28 @@ inline void dsVector3i_cross(dsVector3i* result, const dsVector3i* a, const dsVe
 }
 
 /** @copydoc dsVector3_len2() */
-inline float dsVector3f_len2(const dsVector3f* a)
+DS_MATH_EXPORT inline float dsVector3f_len2(const dsVector3f* a)
 {
 	DS_ASSERT(a);
 	return dsVector3_len2(*a);
 }
 
 /** @copydoc dsVector3_len2() */
-inline double dsVector3d_len2(const dsVector3d* a)
+DS_MATH_EXPORT inline double dsVector3d_len2(const dsVector3d* a)
 {
 	DS_ASSERT(a);
 	return dsVector3_len2(*a);
 }
 
 /** @copydoc dsVector3_len2() */
-inline int dsVector3i_len2(const dsVector3i* a)
+DS_MATH_EXPORT inline int dsVector3i_len2(const dsVector3i* a)
 {
 	DS_ASSERT(a);
 	return dsVector3_len2(*a);
 }
 
 /** @copydoc dsVector3_dist2() */
-inline float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b)
+DS_MATH_EXPORT inline float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
@@ -406,7 +422,7 @@ inline float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b)
 }
 
 /** @copydoc dsVector3_dist2() */
-inline double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b)
+DS_MATH_EXPORT inline double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);
@@ -414,7 +430,7 @@ inline double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b)
 }
 
 /** @copydoc dsVector3_dist2() */
-inline int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b)
+DS_MATH_EXPORT inline int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b)
 {
 	DS_ASSERT(a);
 	DS_ASSERT(b);

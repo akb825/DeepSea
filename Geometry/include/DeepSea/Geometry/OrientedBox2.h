@@ -189,21 +189,21 @@ DS_GEOMETRY_EXPORT double dsOrientedBox2d_dist(const dsOrientedBox2d* box,
 	const dsVector2d* point);
 
 /** @copydoc dsOrientedBox2_isValid() */
-inline bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box)
+DS_GEOMETRY_EXPORT inline bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box)
 {
 	DS_ASSERT(box);
 	return dsOrientedBox2_isValid(*box);
 }
 
 /** @copydoc dsOrientedBox2_isValid() */
-inline bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box)
+DS_GEOMETRY_EXPORT inline bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box)
 {
 	DS_ASSERT(box);
 	return dsOrientedBox2_isValid(*box);
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */
-inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
 	const dsAlignedBox2f* alignedBox)
 {
 	DS_ASSERT(result);
@@ -212,7 +212,7 @@ inline void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
 }
 
 /** @copydoc dsOrientedBox2_fromAlignedBox() */
-inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
 	const dsAlignedBox2d* alignedBox)
 {
 	DS_ASSERT(result);
@@ -221,14 +221,14 @@ inline void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
 }
 
 /** @copydoc dsOrientedBox2_makeInvalid() */
-inline void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result)
 {
 	DS_ASSERT(result);
 	dsOrientedBox2_makeInvalid(*result);
 }
 
 /** @copydoc dsOrientedBox2_makeInvalid() */
-inline void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result)
+DS_GEOMETRY_EXPORT inline void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result)
 {
 	DS_ASSERT(result);
 	dsOrientedBox2_makeInvalid(*result);

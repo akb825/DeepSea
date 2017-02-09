@@ -581,13 +581,11 @@ double dsOrientedBox2d_dist(const dsOrientedBox2d* box, const dsVector2d* point)
 	return sqrt(distance2);
 }
 
-DS_GEOMETRY_EXPORT bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box);
-DS_GEOMETRY_EXPORT bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box);
+bool dsOrientedBox2f_isValid(const dsOrientedBox2f* box);
+bool dsOrientedBox2d_isValid(const dsOrientedBox2d* box);
 
-DS_GEOMETRY_EXPORT void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result,
-	const dsAlignedBox2f* alignedBox);
-DS_GEOMETRY_EXPORT void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result,
-	const dsAlignedBox2d* alignedBox);
+void dsOrientedBox2f_fromAlignedBox(dsOrientedBox2f* result, const dsAlignedBox2f* alignedBox);
+void dsOrientedBox2d_fromAlignedBox(dsOrientedBox2d* result, const dsAlignedBox2d* alignedBox);
 
-DS_GEOMETRY_EXPORT void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result);
-DS_GEOMETRY_EXPORT void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result);
+void dsOrientedBox2f_makeInvalid(dsOrientedBox2f* result);
+void dsOrientedBox2d_makeInvalid(dsOrientedBox2d* result);

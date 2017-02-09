@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Export.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -38,7 +39,7 @@ extern "C"
  * @param size The number of bytes to read.
  * @return The number of bytes read from the stream.
  */
-inline size_t dsStream_read(dsStream* stream, void* data, size_t size);
+DS_CORE_EXPORT inline size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
 /**
  * @brief Writes to a stream.
@@ -47,7 +48,7 @@ inline size_t dsStream_read(dsStream* stream, void* data, size_t size);
  * @param size The number of bytes to write.
  * @return The number of bytes written to the stream.
  */
-inline size_t dsStream_write(dsStream* stream, const void* data, size_t size);
+DS_CORE_EXPORT inline size_t dsStream_write(dsStream* stream, const void* data, size_t size);
 
 /**
  * @brief Seeks in a stream.
@@ -56,7 +57,7 @@ inline size_t dsStream_write(dsStream* stream, const void* data, size_t size);
  * @param way The position in the stream to take the offset from.
  * @return False if the seek was invalid.
  */
-inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);
+DS_CORE_EXPORT inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);
 
 /**
  * @brief Tells the current position in a stream.
@@ -64,20 +65,20 @@ inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way)
  * @return The position in the stream, or DS_STREAM_INVALID_POS if the position cannot be
  * determined.
  */
-inline uint64_t dsStream_tell(dsStream* stream);
+DS_CORE_EXPORT inline uint64_t dsStream_tell(dsStream* stream);
 
 /**
  * @brief Flushes the contents of a stream.
  * @param stream The stream to flush.
  */
-inline void dsStream_flush(dsStream* stream);
+DS_CORE_EXPORT inline void dsStream_flush(dsStream* stream);
 
 /**
  * @brief Closes a stream.
  * @param stream The stream to close.
  * @return False if the stream cannot be closed. A NULL close function is considered a success.
  */
-inline bool dsStream_close(dsStream* stream);
+DS_CORE_EXPORT inline bool dsStream_close(dsStream* stream);
 
 inline size_t dsStream_read(dsStream* stream, void* data, size_t size)
 {
