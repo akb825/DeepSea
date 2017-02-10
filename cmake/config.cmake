@@ -1,5 +1,5 @@
 if (MSVC)
-	set(commonFlags "/W3 /WX /wd4146 /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS")
+	set(commonFlags "/W3 /WX /wd4146 /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /MP")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags}")
 else()

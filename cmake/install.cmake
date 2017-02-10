@@ -1,7 +1,7 @@
 function(ds_install_library)
 	set(options)
 	set(oneValueArgs TARGET MODULE)
-	set(multiValueArgs DEPENDENCIES)
+	set(multiValueArgs DEPENDENCIES EXTERNAL_PREFIXES EXTERNAL_DEPENDENCIES)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	set(moduleName DeepSea${ARGS_MODULE})
@@ -63,24 +63,36 @@ function(ds_install_library)
 	install(FILES ${exportPath} DESTINATION include/DeepSea/${ARGS_MODULE} COMPONENT dev)
 
 	include(CMakePackageConfigHelpers)
-	set(versionPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Version.cmake)
+	set(versionPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}ConfigVersion.cmake)
 	write_basic_package_version_file(${versionPath}
 		VERSION ${DEEPSEA_VERSION}
-		COMPATIBILITY AnyNewerVersion)
+		COMPATIBILITY SameMajorVersion)
 
 	export(EXPORT ${moduleName}Targets
 		FILE ${DEEPSEA_EXPORTS_DIR}/${moduleName}Targets.cmake)
 
-	set(dependencies "include(CMakeFindDependencyMacro)")
+	if (ARGS_EXTERNAL_PREFIXES)
+		set(externalPrefixes "get_filename_component(currentDir \${CMAKE_CURRENT_LIST_FILE} DIRECTORY)\n")
+		set(externalPrefixes "${externalPrefixes}get_filename_component(parentDir \${currentDir} DIRECTORY)\n")
+		foreach (prefix ${ARGS_EXTERNAL_PREFIXES})
+			set(externalPrefixes "${externalPrefixes}list(APPEND CMAKE_PREFIX_PATH \${parentDir}/${prefix})\n")
+		endforeach()
+	endif()
+
+	set(dependencies "include(CMakeFindDependencyMacro)\n")
 	foreach (dependency ${ARGS_DEPENDENCIES})
-		set(dependencies "${dependencies}\nfind_dependency(DeepSea${dependency} ${DEEPSEA_VERSION})")
+		set(dependencies "${dependencies}find_dependency(DeepSea${dependency} ${DEEPSEA_VERSION} EXACT)\n")
+	endforeach()
+	foreach (dependency ${ARGS_EXTERNAL_DEPENDENCIES})
+		set(dependencies "${dependencies}find_dependency(${dependency})\n")
 	endforeach()
 
 	set(configPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Config.cmake)
 	file(WRITE ${configPath}
-		"${dependencies}\n"
-		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake\n"
-		"get_target_property(DeepSea${ARGS_MODULE}_LIBRARIES ${ARGS_TARGET} INTERFACE_LINK_LIBRARIES)\n"
+		"${externalPrefixes}"
+		"${dependencies}"
+		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake)\n"
+		"set(DeepSea${ARGS_MODULE}_LIBRARIES ${ARGS_TARGET})\n"
 		"get_target_property(DeepSea${ARGS_MODULE}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
 
 	set(configPackageDir lib/cmake/DeepSea)
@@ -91,10 +103,10 @@ endfunction()
 
 function(ds_install_master_config)
 	include(CMakePackageConfigHelpers)
-	set(versionPath ${DEEPSEA_EXPORTS_DIR}/DeepSeaVersion.cmake)
+	set(versionPath ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfigVersion.cmake)
 	write_basic_package_version_file(${versionPath}
 		VERSION ${DEEPSEA_VERSION}
-		COMPATIBILITY AnyNewerVersion)
+		COMPATIBILITY SameMajorVersion)
 
 	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake
 		DESTINATION ${DEEPSEA_EXPORTS_DIR})

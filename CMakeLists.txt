@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(DeepSea)
-	
+
 # Build options
 set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
+set(DEEPSEA_SINGLE_SHARED OFF CACHE BOOL "Build DeepSea as a single shared library for all modules.")
 set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
+set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
 
 # Options for disabling portions of the build.
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
@@ -17,7 +19,7 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 	"Folder for placing the cmake exports while building. Useful when embedding in other projects.")
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
-	
+
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
 	if (NOT GTEST_FOUND)
