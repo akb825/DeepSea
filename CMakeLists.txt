@@ -7,6 +7,10 @@ set(DEEPSEA_SINGLE_SHARED OFF CACHE BOOL "Build DeepSea as a single shared libra
 set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
 
+if (DEEPSEA_SINGLE_SHARED)
+	set(DEEPSEA_SHARED ON CACHE BOOL "" FORCE)
+endif()
+
 # Options for disabling portions of the build.
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
 set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
@@ -19,6 +23,7 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 	"Folder for placing the cmake exports while building. Useful when embedding in other projects.")
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
+set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
 
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
@@ -57,15 +62,17 @@ include(cmake/config.cmake)
 include(cmake/install.cmake)
 
 # Required libraries.
-add_subdirectory(Core)
-add_subdirectory(Math)
+ds_add_module(Core)
+ds_add_module(Math)
 
 # Render libraries
 if (DEEPSEA_BUILD_RENDER)
-	add_subdirectory(Geometry)
-	add_subdirectory(Render)
-	add_subdirectory(RenderMock)
+	ds_add_module(Geometry)
+	ds_add_module(Render)
+	ds_add_module(RenderMock)
 endif()
+
+ds_finish_modules()
 
 # Documentation. (populated by built libraries)
 add_subdirectory(doc)

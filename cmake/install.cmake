@@ -1,4 +1,6 @@
 function(ds_install_library)
+	# This function is called from a file included into the main CMakeLists.txt from a macro, so setting
+	# variables in the parent scope will be for the main CMakeLists.txt.
 	set(options)
 	set(oneValueArgs TARGET MODULE)
 	set(multiValueArgs DEPENDENCIES EXTERNAL_PREFIXES EXTERNAL_DEPENDENCIES)
@@ -7,34 +9,46 @@ function(ds_install_library)
 	set(moduleName DeepSea${ARGS_MODULE})
 	string(TOUPPER ${ARGS_MODULE} moduleUpper)
 
-	set_property(TARGET ${ARGS_TARGET} PROPERTY VERSION ${DEEPSEA_VERSION})
-	set_property(TARGET ${ARGS_TARGET} PROPERTY SOVERSION ${DEEPSEA_MAJOR_VERSION})
+	if (NOT DEEPSEA_SINGLE_SHARED)
+		set_property(TARGET ${ARGS_TARGET} PROPERTY VERSION ${DEEPSEA_VERSION})
+		set_property(TARGET ${ARGS_TARGET} PROPERTY SOVERSION ${DEEPSEA_MAJOR_VERSION})
+		set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPATIBLE_VERSION_STRING
+			${moduleName}_MAJOR_VERSION)
+		set_property(TARGET ${ARGS_TARGET} PROPERTY DEBUG_POSTFIX d)
+	endif()
+
 	set_property(TARGET ${ARGS_TARGET} PROPERTY INTERFACE_${moduleName}_MAJOR_VERSION
 		${DEEPSEA_MAJOR_VERSION})
 	set_property(TARGET ${ARGS_TARGET} PROPERTY INTERFACE_${moduleName}_MINOR_VERSION
 		${DEEPSEA_MINOR_VERSION})
 	set_property(TARGET ${ARGS_TARGET} PROPERTY INTERFACE_${moduleName}_PATCH_VERSION
 		${DEEPSEA_PATCH_VERSION})
-	set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPATIBLE_VERSION_STRING
-		${moduleName}_MAJOR_VERSION)
-	set_property(TARGET ${ARGS_TARGET} PROPERTY DEBUG_POSTFIX d)
 
-	set(interfaceIncludes
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-	set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-		${interfaceIncludes})
+	if (NOT DEEPSEA_SINGLE_SHARED)
+		set(interfaceIncludes
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+		set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+			${interfaceIncludes})
+	endif()
 
 	set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/DeepSea/${ARGS_MODULE}/Export.h)
-	set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
-		${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
+	if (NOT DEEPSEA_SINGLE_SHARED)
+		set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
+			${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
+	endif()
 	if (DEEPSEA_SHARED)
 		if (MSVC)
-			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
-				DS_${moduleUpper}_BUILD)
+			if (DEEPSEA_SINGLE_SHARED)
+				set(buildMacro "DS_BUILD")
+			else()
+				set(buildMacro "DS_${moduleUpper}_BUILD")
+				set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
+					DS_${moduleUpper}_BUILD)
+			endif()
 			file(WRITE ${exportPath}
 				"#pragma once\n\n"
-				"#ifdef DS_${moduleUpper}_BUILD\n"
+				"#ifdef ${buildMacro}\n"
 				"#define DS_${moduleUpper}_EXPORT __declspec(dllexport)\n"
 				"#else\n"
 				"#define DS_${moduleUpper}_EXPORT __declspec(dllimport)\n"
@@ -52,6 +66,10 @@ function(ds_install_library)
 		file(WRITE ${exportPath}
 			"#pragma once\n\n"
 			"#define DS_${moduleUpper}_EXPORT\n")
+	endif()
+
+	if (NOT DEEPSEA_INSTALL)
+		return()
 	endif()
 
 	install(TARGETS ${ARGS_TARGET} EXPORT ${moduleName}Targets
@@ -79,12 +97,25 @@ function(ds_install_library)
 		endforeach()
 	endif()
 
+	if (DEEPSEA_SINGLE_SHARED)
+		set(DEEPSEA_EXTERNAL_PREFIXES "${DEEPSEA_EXTERNAL_PREFIXES}${externalPrefixes}" PARENT_SCOPE)
+		unset(externalPrefixes)
+	endif()
+
 	set(dependencies "include(CMakeFindDependencyMacro)\n")
+	if (DEEPSEA_SINGLE_SHARED)
+		set(dependencies "${dependencies}find_dependency(DeepSea ${DEEPSEA_VERSION} EXACT)\n")
+	endif()
 	foreach (dependency ${ARGS_DEPENDENCIES})
 		set(dependencies "${dependencies}find_dependency(DeepSea${dependency} ${DEEPSEA_VERSION} EXACT)\n")
 	endforeach()
+
 	foreach (dependency ${ARGS_EXTERNAL_DEPENDENCIES})
-		set(dependencies "${dependencies}find_dependency(${dependency})\n")
+		if (DEEPSEA_SINGLE_SHARED)
+			set(DEEPSEA_EXTERNAL_DEPENDENCIES "${DEEPSEA_EXTERNAL_DEPENDENCIES}find_dependency(${dependency})\n")
+		else()
+			set(dependencies "${dependencies}find_dependency(${dependency})\n")
+		endif()
 	endforeach()
 
 	set(configPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Config.cmake)
@@ -108,8 +139,59 @@ function(ds_install_master_config)
 		VERSION ${DEEPSEA_VERSION}
 		COMPATIBILITY SameMajorVersion)
 
-	file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake
-		DESTINATION ${DEEPSEA_EXPORTS_DIR})
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake ${versionPath}
-		DESTINATION lib/cmake/DeepSea COMPONENT dev)
+	if (DEEPSEA_SINGLE_SHARED)
+		set_property(TARGET deepsea PROPERTY VERSION ${DEEPSEA_VERSION})
+		set_property(TARGET deepsea PROPERTY SOVERSION ${DEEPSEA_MAJOR_VERSION})
+		set_property(TARGET deepsea PROPERTY INTERFACE_${moduleName}_MAJOR_VERSION
+			${DEEPSEA_MAJOR_VERSION})
+		set_property(TARGET deepsea PROPERTY INTERFACE_${moduleName}_MINOR_VERSION
+			${DEEPSEA_MINOR_VERSION})
+		set_property(TARGET deepsea PROPERTY INTERFACE_${moduleName}_PATCH_VERSION
+			${DEEPSEA_PATCH_VERSION})
+		set_property(TARGET deepsea APPEND PROPERTY COMPATIBLE_VERSION_STRING
+			${moduleName}_MAJOR_VERSION)
+		set_property(TARGET deepsea PROPERTY DEBUG_POSTFIX d)
+		set_property(TARGET deepsea APPEND PROPERTY COMPILE_DEFINITIONS DS_BUILD)
+		set_property(TARGET deepsea APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+			${DEEPSEA_INTERFACE_INCLUDES})
+		set_property(TARGET deepsea APPEND PROPERTY INCLUDE_DIRECTORIES
+			${CMAKE_CURRENT_BINARY_DIR}/include ${DEEPSEA_INTERFACE_INCLUDES})
+
+		if (DEEPSEA_INSTALL)
+			install(TARGETS deepsea EXPORT DeepSeaTargets
+				LIBRARY DESTINATION lib
+				ARCHIVE DESTINATION lib
+				RUNTIME DESTINATION bin
+				INCLUDES DESTINATION include)
+			export(EXPORT DeepSeaTargets FILE ${DEEPSEA_EXPORTS_DIR}/DeepSeaTargets.cmake)
+
+			set(componentCheck)
+			set(singleSharedConfig
+"${DEEPSEA_EXTERNAL_PREFIXES}\
+${DEEPSEA_EXTERNAL_DEPENDENCIES}\
+include(\${CMAKE_CURRENT_LIST_DIR}/DeepSeaTargets.cmake)")
+		endif()
+	else()
+		set(componentCheck
+"if (NOT DeepSea_FIND_COMPONENTS)\n\
+	set(DeepSea_NOT_FOUND_MESSAGE \"The DeepSea package requires at least one component\")\n\
+	set(DeepSea_FOUND False)\n\
+	return()\n\
+endif()")
+		set(singleSharedConfig)
+	endif()
+
+	if (NOT DEEPSEA_INSTALL)
+		return()
+	endif()
+
+	set(configPackageDir lib/cmake/DeepSea)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
+		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
+	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake ${versionPath}
+		DESTINATION ${configPackageDir} COMPONENT dev)
+	if (DEEPSEA_SINGLE_SHARED)
+		install(EXPORT DeepSeaTargets FILE DeepSeaTargets.cmake
+			DESTINATION ${configPackageDir})
+	endif()
 endfunction()

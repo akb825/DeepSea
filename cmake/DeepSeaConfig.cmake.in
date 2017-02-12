@@ -2,13 +2,11 @@ if (CMAKE_VERSION VERSION_LESS 3.0.2)
 	message(FATAL_ERROR "DeepSea requires at least CMake version 3.0.2")
 endif()
 
-if (NOT DeepSea_FIND_COMPONENTS)
-	set(DeepSea_NOT_FOUND_MESSAGE "The DeepSea package requires at least one component")
-	set(DeepSea_FOUND False)
-	return()
-endif()
+@componentCheck@
 
 get_filename_component(_DeepSea_InstallPrefix ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE)
+
+@singleSharedConfig@
 
 include(CMakeFindDependencyMacro)
 set(_DeepSea_NOTFOUND_MESSAGE)
