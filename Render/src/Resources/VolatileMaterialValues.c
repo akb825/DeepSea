@@ -189,7 +189,7 @@ bool dsVolatileMaterialValue_setTextureName(const dsVolatileMaterialValues* valu
 	if (!values || !name)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, dsHashString(name), Type_Texture, texture);
@@ -201,7 +201,7 @@ bool dsVolatileMaterialValue_setTextureId(const dsVolatileMaterialValues* values
 	if (!values)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, nameId, Type_Texture, texture);
@@ -237,7 +237,7 @@ bool dsVolatileMaterialValue_setShaderVariableGroupName(const dsVolatileMaterial
 	if (!values || !name)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, dsHashString(name), Type_ShaderVariableGroup, group);
@@ -249,7 +249,7 @@ bool dsVolatileMaterialValue_setShaderVariableGroupId(const dsVolatileMaterialVa
 	if (!values)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, nameId, Type_ShaderVariableGroup, group);
@@ -285,7 +285,7 @@ bool dsVolatileMaterialValue_setBufferName(const dsVolatileMaterialValues* value
 	if (!values || !name)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, dsHashString(name), Type_Buffer, buffer);
@@ -297,7 +297,7 @@ bool dsVolatileMaterialValue_setBufferId(const dsVolatileMaterialValues* values,
 	if (!values)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	return setValue(values, nameId, Type_Buffer, buffer);
