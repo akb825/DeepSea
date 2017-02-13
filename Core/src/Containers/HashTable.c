@@ -26,7 +26,7 @@ size_t dsHashTable_sizeof(size_t tableSize)
 	return sizeof(dsHashTable) + sizeof(dsHashTableNode*)*tableSize;
 }
 
-size_t dsHashTable_fullAllocSizeI(size_t tableSize)
+size_t dsHashTable_fullAllocSize(size_t tableSize)
 {
 	return DS_ALIGNED_SIZE(dsHashTable_sizeof(tableSize));
 }
@@ -71,7 +71,7 @@ bool dsHashTable_insert(dsHashTable* hashTable, const void* key, dsHashTableNode
 		{
 			if (existingNode)
 				*existingNode = chain;
-			errno = EINVAL;
+			errno = EPERM;
 			return false;
 		}
 	}
@@ -91,10 +91,7 @@ bool dsHashTable_insert(dsHashTable* hashTable, const void* key, dsHashTableNode
 dsHashTableNode* dsHashTable_find(const dsHashTable* hashTable, const void* key)
 {
 	if (!hashTable)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	uint32_t hash = hashTable->hashFunc(key);
 	size_t index = hash % hashTable->tableSize;
@@ -104,17 +101,13 @@ dsHashTableNode* dsHashTable_find(const dsHashTable* hashTable, const void* key)
 			return chain;
 	}
 
-	errno = EINVAL;
 	return NULL;
 }
 
-bool dsHashTable_remove(dsHashTable* hashTable, const void* key)
+dsHashTableNode* dsHashTable_remove(dsHashTable* hashTable, const void* key)
 {
 	if (!hashTable)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return NULL;
 
 	uint32_t hash = hashTable->hashFunc(key);
 	size_t index = hash % hashTable->tableSize;
@@ -127,10 +120,7 @@ bool dsHashTable_remove(dsHashTable* hashTable, const void* key)
 	}
 
 	if (!chain)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return NULL;
 
 	if (prev)
 		prev->chainNext = chain->chainNext;
@@ -138,7 +128,7 @@ bool dsHashTable_remove(dsHashTable* hashTable, const void* key)
 		hashTable->table[index] = chain->chainNext;
 
 	DS_VERIFY(dsList_remove((dsList*)hashTable, (dsListNode*)chain));
-	return true;
+	return chain;
 }
 
 bool dsHashTable_clear(dsHashTable* hashTable)

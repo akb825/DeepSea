@@ -39,13 +39,13 @@ extern "C"
  * @brief Gets the size of dsMutex.
  * @return The size of dsMutex.
  */
-DS_CORE_EXPORT unsigned int dsMutex_sizeof(void);
+DS_CORE_EXPORT size_t dsMutex_sizeof(void);
 
 /**
  * @brief Gets the full allocated size of dsMutex.
  * @return The full allocated size of dsMutex.
  */
-DS_CORE_EXPORT unsigned int dsMutex_fullAllocSize(void);
+DS_CORE_EXPORT size_t dsMutex_fullAllocSize(void);
 
 /**
  * @brief Creates a mutex.

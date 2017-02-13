@@ -39,12 +39,12 @@ struct dsConditionVariable
 	bool shouldFree;
 };
 
-unsigned int dsConditionVariable_sizeof(void)
+size_t dsConditionVariable_sizeof(void)
 {
 	return sizeof(dsConditionVariable);
 }
 
-unsigned int dsConditionVariable_fullAllocSize(void)
+size_t dsConditionVariable_fullAllocSize(void)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsConditionVariable));
 }

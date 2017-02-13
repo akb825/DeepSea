@@ -85,9 +85,9 @@ DS_CORE_EXPORT dsHashTableNode* dsHashTable_find(const dsHashTable* hashTable, c
  * @brief Removes a node from the hash table.
  * @param hashTable The hash table to remove the node from.
  * @param key The key for the node.
- * @return True if the node was removed.
+ * @return The removed node, or NULL if not found.
  */
-DS_CORE_EXPORT bool dsHashTable_remove(dsHashTable* hashTable, const void* key);
+DS_CORE_EXPORT dsHashTableNode* dsHashTable_remove(dsHashTable* hashTable, const void* key);
 
 /**
  * @brief Clears the contents of the hash table.

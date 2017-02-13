@@ -61,7 +61,7 @@ TEST(HashTableTest, Insert)
 		nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_insert(hashTable, "test2", nullptr,
 		nullptr));
-	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_insert(hashTable, "test2", (dsHashTableNode*)&node3,
+	EXPECT_FALSE_ERRNO(EPERM, dsHashTable_insert(hashTable, "test2", (dsHashTableNode*)&node3,
 		&existingNode));
 	EXPECT_EQ((dsHashTableNode*)&node2, existingNode);
 
@@ -101,8 +101,8 @@ TEST(HashTableTest, Find)
 	EXPECT_EQ((dsHashTableNode*)&node1, dsHashTable_find(hashTable, "test1"));
 	EXPECT_EQ((dsHashTableNode*)&node2, dsHashTable_find(hashTable, "test2"));
 	EXPECT_EQ((dsHashTableNode*)&node3, dsHashTable_find(hashTable, "test3"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test4"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(nullptr, "test1"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test4"));
+	EXPECT_FALSE(dsHashTable_find(nullptr, "test1"));
 }
 
 TEST(HashTableTest, Remove)
@@ -120,12 +120,12 @@ TEST(HashTableTest, Remove)
 	EXPECT_TRUE(dsHashTable_insert(hashTable, "test2", (dsHashTableNode*)&node2, nullptr));
 	EXPECT_TRUE(dsHashTable_insert(hashTable, "test3", (dsHashTableNode*)&node3, nullptr));
 
-	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_remove(nullptr, "test2"));
+	EXPECT_FALSE(dsHashTable_remove(nullptr, "test2"));
 	EXPECT_TRUE(dsHashTable_remove(hashTable, "test2"));
-	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_remove(hashTable, "test2"));
+	EXPECT_FALSE(dsHashTable_remove(hashTable, "test2"));
 
 	EXPECT_EQ((dsHashTableNode*)&node1, dsHashTable_find(hashTable, "test1"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test2"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test2"));
 	EXPECT_EQ((dsHashTableNode*)&node3, dsHashTable_find(hashTable, "test3"));
 
 	dsList* list = (dsList*)hashTable;
@@ -158,9 +158,9 @@ TEST(HashTableTest, Clear)
 	EXPECT_FALSE_ERRNO(EINVAL, dsHashTable_clear(nullptr));
 	EXPECT_TRUE(dsHashTable_clear(hashTable));
 
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test1"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test2"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test3"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test1"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test2"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test3"));
 
 	EXPECT_EQ(0U, hashTable->list.length);
 }
@@ -201,7 +201,7 @@ TEST(HashTableTest, Chaining)
 	EXPECT_TRUE(dsHashTable_remove(hashTable, "test2"));
 
 	EXPECT_EQ((dsHashTableNode*)&node1, dsHashTable_find(hashTable, "test1"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test2"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test2"));
 	EXPECT_EQ((dsHashTableNode*)&node3, dsHashTable_find(hashTable, "test3"));
 
 	EXPECT_EQ(2U, list->length);
@@ -217,9 +217,9 @@ TEST(HashTableTest, Chaining)
 	EXPECT_TRUE(dsHashTable_remove(hashTable, "test3"));
 	EXPECT_TRUE(dsHashTable_remove(hashTable, "test1"));
 
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test1"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test2"));
-	EXPECT_NULL_ERRNO(EINVAL, dsHashTable_find(hashTable, "test3"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test1"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test2"));
+	EXPECT_FALSE(dsHashTable_find(hashTable, "test3"));
 
 	EXPECT_EQ(0U, list->length);
 }

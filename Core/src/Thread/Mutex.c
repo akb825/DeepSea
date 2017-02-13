@@ -24,12 +24,12 @@
 #include <DeepSea/Core/Error.h>
 #include <stdlib.h>
 
-unsigned int dsMutex_sizeof(void)
+size_t dsMutex_sizeof(void)
 {
 	return sizeof(dsMutex);
 }
 
-unsigned int dsMutex_fullAllocSize(void)
+size_t dsMutex_fullAllocSize(void)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsMutex));
 }
