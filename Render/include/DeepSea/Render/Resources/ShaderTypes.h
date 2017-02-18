@@ -90,6 +90,23 @@ typedef enum dsMaterialType
 	dsMaterialType_Count, ///< The number of material types.
 } dsMaterialType;
 
+/**
+ * @brief Enum for how variables are committed to the shader.
+ *
+ * This is used to determine how the shader variables are committed in ShaderVariableGroup.
+ * Immediately committing changes will reduce the number of calls to memcpy, but will increase
+ * the number of calls to the graphics API to copy the data to the GPU. Using batched mode will
+ * first copy changes to an internal buffer before sending all changes to the GPU.
+ *
+ * You will generally want to use immediate when you make rare updates or the variables are large
+ * arrays. Batched mode is better to use if you often change small variables.
+ */
+typedef enum dsShaderCommitType
+{
+	dsShaderCommitType_Immediate, ///< Commit changes immediately.
+	dsShaderCommitType_Batched    ///< Commit changes in batches.
+} dsShaderCommitType;
+
 /// \{
 typedef struct dsResourceManager dsResourceManager;
 typedef struct mslModule mslModule;

@@ -29,13 +29,35 @@ extern "C"
  * @file
  * @brief Functions for creating and manipulating shader variable groups.
  *
- * This allows conditional usage of buffers for shader blocks. When shader blocks are supported,
+ * This allows conditional usage of buffers for uniform blocks. When uniform blocks are supported,
  * a graphics buffer will be used internally. Additionally, setting of values may be done on the
  * command buffer, which allows for the values to change in-between draw calls when creating command
  * buffers across multiple threads.
  *
  * @see dsShaderVariableGroup
  */
+
+/**
+ * @brief Gets the size of dsShaderVariableGroup.
+ * @return The size of dsShaderVariableGroup.
+ */
+DS_RENDER_EXPORT size_t dsShaderVariableGroup_sizeof(void);
+
+/**
+ * @brief Gets the full allocated size of dsShaderVariableGroup.
+ *
+ * This doesn't include the allocated size of the dsGfxBuffer used on targets that support uniform
+ * blocks. A separate allocator may be used for the dsGfxBuffer instance so the rest of the memory
+ * may be pre-allocated if desired.
+ *
+ * @param resourceManager The resource manager the shader variable group will be allocated with.
+ * @param description The description for the shader variable group.
+ * @param commitType How the variables will be committed to the GPU.
+ * @return The full allocated size of dsShaderVariableGroup.
+ */
+DS_RENDER_EXPORT size_t dsShaderVariableGroup_fullAllocSize(
+	const dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* description,
+	dsShaderCommitType commitType);
 
 /**
  * @brief Returns whether or not a graphics buffer will be used.
@@ -49,13 +71,16 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_useGfxBuffer(const dsResourceManager
  * @param resourceManager The resource manager to create the shader variable group from.
  * @param allocator The allocator to create the shader variable group with. If NULL, it will use the
  *     same allocator as the resource manager.
+ * @param gfxBufferAllocator The allocator to create the graphics buffer with. (on targets that
+ *     support uniform blocks) If NULL, it will use the same allocator as the resource manager.
  * @param description The description for the shader variable group.
+ * @param commitType How the variables will be committed to the GPU.
  * @return The created shader variable group, or NULL if it couldn't be created. errno will be set
  *     to an appropriate value on failure.
  */
 DS_RENDER_EXPORT dsShaderVariableGroup* dsShaderVariableGroup_create(
-	dsResourceManager* resourceManager, dsAllocator* allocator,
-	const dsShaderVariableGroupDesc* description);
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* gfxBufferAllocator,
+	const dsShaderVariableGroupDesc* description, dsShaderCommitType commitType);
 
 /**
  * @brief Gets the shader variable group description.
@@ -103,6 +128,37 @@ DS_RENDER_EXPORT dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(
  */
 DS_RENDER_EXPORT const void* dsShaderVariableGroup_getElementData(
 	const dsShaderVariableGroup* group, uint32_t element);
+
+/**
+ * @brief Gets whether or not an element is dirty.
+ *
+ * This should be used by the renderer implementation when uniform blocks aren't supported to avoid
+ * copying data to uniforms unnecessarily. The dirty flags will be cleared with
+ * dsShaderVariableGroup_commit().
+ *
+ * @param group The shader variable group.
+ * @param element The element index.
+ * @return True if the element is dirty.
+ */
+DS_RENDER_EXPORT bool dsShaderVariableGroup_isElementDirty(const dsShaderVariableGroup* group,
+	uint32_t element);
+
+/**
+ * @brief Commits any pending changes to the shader variable group to the GPU.
+ *
+ * This is used by the renderer implementation. If created with dsShaderCommitType_Batched, this
+ * will perform the actual copy to the GPU buffer.
+ *
+ * If uniform blocks aren't supported, this clears the dirty flags. The renderer implementation
+ * should do any checks for copying individual unfirom data before calling this function.
+ *
+ * @param commandBuffer The command buffer. Whether or not this is used depends on the
+ *     implementation and should not be relied on to be executed with the command buffer.
+ * @param group The shader variable group to commit changes for.
+ * @return False if the variables couldn't be committed.
+ */
+DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer,
+	dsShaderVariableGroup* group);
 
 /**
  * @brief Destroys a shader variable group.

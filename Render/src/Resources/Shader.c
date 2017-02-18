@@ -295,6 +295,16 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 				uniformName, structMember.name);
 			success = false;
 		}
+
+		if (((element->type >= dsMaterialType_Mat2x3 && element->type <= dsMaterialType_Mat4x3) ||
+			(element->type >= dsMaterialType_DMat2x3 && element->type <= dsMaterialType_DMat4x3)) &&
+			structMember.rowMajor)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s.%s is row major. Non-square matrix "
+				"elements within a shader variable group must be column-major.", uniformName,
+				structMember.name);
+			success = false;
+		}
 	}
 
 	return success;
