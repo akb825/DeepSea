@@ -49,6 +49,10 @@ struct dsShaderVariableGroup
 	PositionInfo* rawDataPositions;
 	size_t dirtyStart;
 	size_t dirtyEnd;
+
+	dsAllocator* tempBuffAllocator;
+	uint8_t* tempBuff;
+	size_t tempBuffSize;
 };
 
 static uint32_t elementSize(const dsShaderVariableElement* element, const dsShaderVariablePos* pos)
@@ -152,31 +156,41 @@ static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* gr
 		uint8_t staticBuffer[1024];
 		uint8_t* buffer = staticBuffer;
 
-		dsAllocator* allocator = NULL;
 		uint32_t size = count*stride;
 		if (size > sizeof(staticBuffer))
 		{
-			allocator = group->allocator;
-			if (!allocator)
-				allocator = group->resourceManager->allocator;
-			if (!allocator)
+			if (size > group->tempBuffSize)
 			{
-				errno = ENOMEM;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Couldn't find an allocator for temporary buffer.");
-				return false;
-			}
+				if (!group->tempBuffAllocator)
+				{
+					group->tempBuffAllocator = group->allocator;
+					if (!!group->tempBuffAllocator)
+						group->tempBuffAllocator = group->resourceManager->allocator;
+					if (!!group->tempBuffAllocator)
+					{
+						errno = ENOMEM;
+						DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+							"Couldn't find an allocator for temporary buffer.");
+						return false;
+					}
+				}
 
-			buffer = (uint8_t*)dsAllocator_alloc(allocator, size);
-			if (!buffer)
-				return false;
+				if (group->tempBuff)
+					DS_VERIFY(dsAllocator_free(group->tempBuffAllocator, group->tempBuff));
+				group->tempBuff = (uint8_t*)dsAllocator_alloc(group->tempBuffAllocator, size);
+				if (!group->tempBuff)
+				{
+					group->tempBuffSize = 0;
+					return false;
+				}
+				group->tempBuffSize = size;
+			}
+			buffer = group->tempBuff;
 		}
 
 		memcpyData(buffer, element->type, pos, data, count, element->count > 0);
 		bool result = dsGfxBuffer_copyData(commandBuffer, group->buffer, pos->offset +
 			stride*firstIndex, buffer, count*stride);
-
-		if (allocator)
-			DS_VERIFY(dsAllocator_free(allocator, buffer));
 		return result;
 	}
 }
@@ -270,6 +284,10 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->rawDataPositions = NULL;
 	group->dirtyStart = 0;
 	group->dirtyEnd = 0;
+
+	group->tempBuffAllocator = NULL;
+	group->tempBuff = NULL;
+	group->tempBuffSize = 0;
 
 	size_t bufferSize = getRawBufferSize(description, useGfxBuffer);
 	if (useGfxBuffer)
@@ -484,6 +502,12 @@ bool dsShaderVariableGorup_destroy(dsShaderVariableGroup* group)
 	{
 		if (!dsGfxBuffer_destroy(group->buffer))
 			DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (group->tempBuff)
+	{
+		DS_ASSERT(group->tempBuffAllocator);
+		DS_VERIFY(dsAllocator_free(group->tempBuffAllocator, group->tempBuff));
 	}
 
 	if (group->allocator)

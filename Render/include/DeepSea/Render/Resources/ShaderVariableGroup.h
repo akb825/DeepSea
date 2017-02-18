@@ -92,6 +92,23 @@ DS_RENDER_EXPORT const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescr
 
 /**
  * @brief Sets the data for an element.
+ *
+ * This may allocate memory if all of the following conditions are true:
+ * - Uniform blocks are supported.
+ * - The commit type is set to immediate.
+ * - The packing of the data doesn't match the packing on the GPU. (e.g. array of vec3, non-square
+ *   matrices)
+ * - The size of the data is > 1 KB.
+ * - The amount of data set is larger than previous calls for the same shader variable group that
+ *   meets the above criteria.
+ *
+ * The memory will be allocated with the allocator that the shader variable group was created with,
+ * or the resource manager's allocator if it was created with an allocator that doesn't free memory.
+ * (e.g. dsBufferAllocator)
+ *
+ * In order to avoid any memory allocations under any situation, you can set the commit type to
+ * batched. More memory in total will be allocated, but it will guarantee it's all up front.
+ *
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
  * @param group The shader variable group to set the index on.
