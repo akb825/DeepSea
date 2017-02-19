@@ -36,10 +36,11 @@ extern "C"
 
 /**
  * @brief Combines two paths.
+ * @remark errno will be set on failure.
  * @param[out] result The result to place the combined path into. This cannot be the same as path2.
  * @param resultSize The size of the result buffer, including the null terminator. This should
- * contains pace for both path1 and path2, plus the path separator. (if not already at the end of
- * path 2)
+ *     contains pace for both path1 and path2, plus the path separator. (if not already at the end
+ *     of path 2)
  * @param path1 The first path.
  * @param path2 The second path to add to the first one.
  * @return False if the parameters are invalid or there isn't enough space in result.
@@ -49,6 +50,7 @@ DS_CORE_EXPORT bool dsPath_combine(char* result, size_t resultSize, const char* 
 
 /**
  * @brief Gets the directory name of a path.
+ * @remark errno will be set on failure.
  * @param[out] result The result to place the directory name into.
  * @param resultSize The size of the result buffer, including the null terminator.
  * @param path The path to get the directory name from.
@@ -79,6 +81,7 @@ DS_CORE_EXPORT const char* dsPath_getLastExtension(const char* path);
 
 /**
  * @brief Removes the last extension on a path.
+ * @remark errno will be set on failure.
  * @param[out] result The result to place the path into.
  * @param resultSize The size of the result buffer, including the null terminator.
  * @param path The path to remove the file name.

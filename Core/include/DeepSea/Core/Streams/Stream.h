@@ -34,6 +34,7 @@ extern "C"
 
 /**
  * @brief Reads from a stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to read from.
  * @param data The data pointer to hold the data that was read.
  * @param size The number of bytes to read.
@@ -43,6 +44,7 @@ DS_CORE_EXPORT inline size_t dsStream_read(dsStream* stream, void* data, size_t 
 
 /**
  * @brief Writes to a stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to write to.
  * @param data The data pointer to write to the stream.
  * @param size The number of bytes to write.
@@ -52,6 +54,7 @@ DS_CORE_EXPORT inline size_t dsStream_write(dsStream* stream, const void* data, 
 
 /**
  * @brief Seeks in a stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to seek in.
  * @param offset The offset from way.
  * @param way The position in the stream to take the offset from.
@@ -61,9 +64,10 @@ DS_CORE_EXPORT inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStr
 
 /**
  * @brief Tells the current position in a stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to get the position from.
  * @return The position in the stream, or DS_STREAM_INVALID_POS if the position cannot be
- * determined.
+ *     determined.
  */
 DS_CORE_EXPORT inline uint64_t dsStream_tell(dsStream* stream);
 
@@ -75,6 +79,7 @@ DS_CORE_EXPORT inline void dsStream_flush(dsStream* stream);
 
 /**
  * @brief Closes a stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to close.
  * @return False if the stream cannot be closed. A NULL close function is considered a success.
  */

@@ -44,6 +44,7 @@ extern "C"
 
 /**
  * @brief Creates thread-local storage.
+ * @remark errno will be set on failure.
  * @param storage The storage to create.
  * @return False if the storage couldn't be created.
  */
@@ -59,6 +60,7 @@ DS_CORE_EXPORT void* dsThreadStorage_get(dsThreadStorage storage);
 /**
  * @brief Sets the thread-specific data.
  * @remark Any resources associated with the value should be destroyed before the thread exits.
+ * @remark errno will be set on failure.
  * @param storage The thread-local storage.
  * @param value The value to set.
  * @return True if the value was set.

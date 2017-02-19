@@ -49,10 +49,11 @@ DS_CORE_EXPORT size_t dsConditionVariable_fullAllocSize(void);
 
 /**
  * @brief Creates a condition variable.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
  * @param name The name of the condition variable, used for profiling. The lifetime of the string
- * should exceed the lifetime of the condition variable, such as with a string constant. If NULL,
- * will be set to "Condition".
+ *     should exceed the lifetime of the condition variable, such as with a string constant. If
+ *     NULL, will be set to "Condition".
  * @return The condition variable, or NULL if it couldn't be created.
  */
 DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator,
@@ -60,10 +61,11 @@ DS_CORE_EXPORT dsConditionVariable* dsConditionVariable_create(dsAllocator* allo
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne() or
- * dsConditionVariable_notifyAll()
+ *     dsConditionVariable_notifyAll()
+ * @remark errno will be set on failure.
  * @param condition The condition variable to wait on.
  * @param mutex A mutex that is locked. It will be unlocked while the condition variable waits, then
- * locked again before this function returns.
+ *     locked again before this function returns.
  * @return The result of waiting.
  */
 DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* condition,
@@ -71,10 +73,11 @@ DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_wait(dsConditionVar
 
 /**
  * @brief Waits for a condition variable to be notified with dsConditionVariable_notifiedOne(),
- * dsConditionVariable_notifyAll(), or times out.
+ *     dsConditionVariable_notifyAll(), or times out.
+ * @remark errno will be set on failure.
  * @param condition The condition variable to wait on.
  * @param mutex A mutex that is locked. It will be unlocked while the condition variable waits, then
- * locked again before this function returns.
+ *     locked again before this function returns.
  * @param milliseconds The number of milliseconds to wait for.
  * @return The result of waiting.
  */
@@ -86,6 +89,7 @@ DS_CORE_EXPORT dsConditionVariableResult dsConditionVariable_timedWait(
  *
  * It is possible that more than one thread will be notified.
  *
+ * @remark errno will be set on failure.
  * @param condition The condition variable to notify.
  * @return False if an error occured.
  */
@@ -93,6 +97,7 @@ DS_CORE_EXPORT bool dsConditionVariable_notifyOne(dsConditionVariable* condition
 
 /**
  * @brief Notifies all threads waiting on the condition variable to continue.
+ * @remark errno will be set on failure.
  * @param condition The condition variable to notify.
  * @return False if an error occured.
  */

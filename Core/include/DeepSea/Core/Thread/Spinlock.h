@@ -37,6 +37,7 @@ extern "C"
 
 /**
  * @brief Initializes a spinlock.
+ * @remark errno will be set on failure.
  * @param[out] spinlock The spinlock to intialize.
  * @return False if spinlock is NULL.
  */
@@ -51,6 +52,7 @@ DS_CORE_EXPORT bool dsSpinlock_tryLock(dsSpinlock* spinlock);
 
 /**
  * @brief Locks a spinlock, blocking until it can be aquired.
+ * @remark errno will be set on failure.
  * @param spinlock The spinlock to lock.
  * @return False if spinlock is NULL.
  */
@@ -58,6 +60,7 @@ DS_CORE_EXPORT bool dsSpinlock_lock(dsSpinlock* spinlock);
 
 /**
  * @brief Unlocks a spinlock.
+ * @remark errno will be set on failure.
  * @param spinlock The spinlock to unlock.
  * @return False if spinlock wasn't previously locked or is NULL.
  */

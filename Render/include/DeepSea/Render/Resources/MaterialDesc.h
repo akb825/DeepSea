@@ -44,6 +44,7 @@ extern "C"
 
 /**
  * @brief Creates a material description.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the material description from.
  * @param allocator The allocator to create the material description with. If NULL, it will use the
  *     same allocator as the resource manager.
@@ -67,6 +68,7 @@ DS_RENDER_EXPORT uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* mater
 
 /**
  * @brief Destroys a material description.
+ * @remark errno will be set on failure.
  * @param materialDesc The material description to destroy.
  * @return False if the material description couldn't be destroyed.
  */

@@ -51,9 +51,10 @@ DS_CORE_EXPORT size_t dsHashTable_fullAllocSize(size_t tableSize);
 
 /**
  * @brief Initializes a hash table.
+ * @remark errno will be set on failure.
  * @param hashTable The hash table to initialize.
  * @param tableSize The number of hash buckets for the hash table. This must match the size used for
- * dsHashTable_sizeof() or DS_STATIC_HASH_TABLE() when allocating the hash table.
+ *     dsHashTable_sizeof() or DS_STATIC_HASH_TABLE() when allocating the hash table.
  * @param hashFunc The hashing function.
  * @param keysEqualFunc The function to determine if two keys are equal.
  * @return False if the parameters are invalid.
@@ -63,6 +64,7 @@ DS_CORE_EXPORT bool dsHashTable_initialize(dsHashTable* hashTable, size_t tableS
 
 /**
  * @brief Inserts a node into the hash table.
+ * @remark errno will be set on failure.
  * @param hashTable The hash table to insert into.
  * @param key The key for the node.
  * @param node The node to insert.
@@ -91,6 +93,7 @@ DS_CORE_EXPORT dsHashTableNode* dsHashTable_remove(dsHashTable* hashTable, const
 
 /**
  * @brief Clears the contents of the hash table.
+ * @remark errno will be set on failure.
  * @param hashTable The hash table to clear.
  * @return False if hashTable is NULL.
  */

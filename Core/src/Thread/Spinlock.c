@@ -49,10 +49,7 @@ bool dsSpinlock_initialize(dsSpinlock* spinlock)
 bool dsSpinlock_tryLock(dsSpinlock* spinlock)
 {
 	if (!spinlock)
-	{
-		errno = EINVAL;
 		return false;
-	}
 
 #if DS_WINDOWS
 

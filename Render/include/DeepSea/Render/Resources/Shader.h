@@ -36,6 +36,7 @@ extern "C"
 
 /**
  * @brief Creates a shader by name.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader from.
  * @param allocator The allocator to create the shader with. If NULL, it will use the same allocator
  *     as the resource manager.
@@ -53,6 +54,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
 
 /**
  * @brief Creates a shader by index.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader from.
  * @param allocator The allocator to create the shader with. If NULL, it will use the same allocator
  *     as the resource manager.
@@ -70,6 +72,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
 
 /**
  * @brief Destroys a shader.
+ * @remark errno will be set on failure.
  * @param shader The shader to destroy.
  * @return False if the shader couldn't be destroyed.
  */

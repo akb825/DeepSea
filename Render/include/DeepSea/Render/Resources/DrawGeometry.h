@@ -31,6 +31,7 @@ extern "C"
 
 /**
  * @brief Creates a draw geometry.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the draw geometry from.
  * @param allocator The allocator to create the draw geometry buffer with. If NULL, it will use the
  *     same allocator as the resource manager.
@@ -44,6 +45,7 @@ DS_RENDER_EXPORT dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resour
 
 /**
  * @brief Destroys a draw geometry.
+ * @remark errno will be set on failure.
  * @param geometry The draw geometry to destroy.
  * @return False if the draw geometry couldn't be destroyed. errno will be set to an appropriate
  *     value on failure.

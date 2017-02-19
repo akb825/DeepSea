@@ -83,7 +83,7 @@ TEST_F(TextureDataTest, Create)
 	EXPECT_EQ(3U, textureData->mipLevels);
 	EXPECT_EQ(dsTexture_size(format, dsTextureDim_2D, 2, 4, 5, 3, 1), textureData->dataSize);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_R8G8B8A8)
@@ -127,7 +127,7 @@ TEST_F(TextureDataTest, LoadPvrFile_R8G8B8A8)
 	EXPECT_EQ((dsColor{{255, 128, 128, 255}}), textureColors[14]);
 	EXPECT_EQ((dsColor{{128, 255, 255, 255}}), textureColors[15]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrStream_R8G8B8A8)
@@ -167,7 +167,7 @@ TEST_F(TextureDataTest, LoadPvrStream_R8G8B8A8)
 	EXPECT_EQ((dsColor{{255, 128, 128, 255}}), textureColors[14]);
 	EXPECT_EQ((dsColor{{128, 255, 255, 255}}), textureColors[15]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_B8G8R8A8)
@@ -209,7 +209,7 @@ TEST_F(TextureDataTest, LoadPvrFile_B8G8R8A8)
 
 	EXPECT_EQ((dsColor{{159, 64, 159, 255}}), textureColors[20]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
@@ -252,7 +252,7 @@ TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
 
 	EXPECT_EQ((dsColor{{159, 64, 159, 255}}), textureColors[20]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_ETC2SRGB)
@@ -269,7 +269,7 @@ TEST_F(TextureDataTest, LoadPvrFile_ETC2SRGB)
 	EXPECT_EQ(0U, textureData->depth);
 	EXPECT_EQ(3U, textureData->mipLevels);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_Array)
@@ -291,7 +291,7 @@ TEST_F(TextureDataTest, LoadPvrFile_Array)
 	EXPECT_EQ((dsColor{{0, 255, 0, 255}}), textureColors[4*2]);
 	EXPECT_EQ((dsColor{{0, 0, 255, 255}}), textureColors[4*2*2]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFile_Cube)
@@ -316,7 +316,7 @@ TEST_F(TextureDataTest, LoadPvrFile_Cube)
 	EXPECT_EQ((dsColor{{0, 255, 255, 255}}), textureColors[4*4*4]);
 	EXPECT_EQ((dsColor{{255, 0, 255, 255}}), textureColors[4*4*5]);
 
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, CreateTexture)
@@ -369,7 +369,7 @@ TEST_F(TextureDataTest, CreateTexture)
 	EXPECT_EQ((dsColor{{128, 255, 255, 255}}), textureColors[15]);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
-	EXPECT_TRUE(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadPvrFileToTexture)

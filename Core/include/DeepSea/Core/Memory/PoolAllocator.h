@@ -44,24 +44,25 @@ DS_CORE_EXPORT size_t dsPoolAllocator_bufferSize(size_t chunkSize, size_t chunkC
 
 /**
  * @brief Initializes the pool allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allcoator to initialize.
  * @param chunkSize The size of each chunk.
  * @param chunkCount The number of chunks to have available.
  * @param buffer The buffer of memory to allocate from. This must be aligned by DS_ALLOC_ALIGNMENT.
  * @param bufferSize The size of the buffer. This must be the same size as calling
- * dsPoolAllocator_bufferSize().
+ *     dsPoolAllocator_bufferSize().
  * @return False if any of the parameters are invalid.
  */
 DS_CORE_EXPORT bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize,
 	size_t chunkCount, void* buffer, size_t bufferSize);
 
-
 /**
  * @brief Allocates memory from the pool allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate. This must be equal to or less than the pool size.
  * @param alignment The minimum alignment of the allocation. This will fail if it is greater than
- * DS_ALLOC_ALIGNMENT.
+ *     DS_ALLOC_ALIGNMENT.
  * @return The allocated memory or NULL if an error occured.
  */
 DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size,
@@ -69,6 +70,7 @@ DS_CORE_EXPORT void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t si
 
 /**
  * @brief Frees memory from the pool allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to free from.
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.
@@ -80,6 +82,7 @@ DS_CORE_EXPORT bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr);
  *
  * This should only be used when no destruction is needed for the contents.
  *
+ * @remark errno will be set on failure.
  * @param allocator The allocator to reset.
  * @return True if the allocator is valid.
  */

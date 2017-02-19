@@ -84,6 +84,7 @@ DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim
 
 /**
  * @brief Creates a texture.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the texture from.
  * @param allocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -120,6 +121,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  *
  * The offscreen may be rendered to, and may also be used interchangibely with a dsTexture.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the offscreen from.
  * @param allocator The allocator to create the offscreen with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -152,6 +154,7 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param texture The texture to copy the data to.
  * @param position The position of the texture to copy to.
@@ -174,6 +177,7 @@ DS_RENDER_EXPORT bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTextu
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to copy from.
  * @param dstTexture The texture to copy to.
@@ -186,6 +190,7 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
 
 /**
  * @brief Blits from one texture to another, scaling when necessary.
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to blit from.
  * @param dstTexture The texture to blit to.
@@ -204,7 +209,8 @@ DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* 
  * This is generally used to read data back from an offscreen to the CPU.
  *
  * @remark When reading from an offscreen, note that this may block until the GPU is finished
- * executing drawing commands.
+ *     executing drawing commands.
+ * @remark errno will be set on failure.
  *
  * @param[out] result The output buffer for the result.
  * @param size The size of the result buffer. This must match the size that will be read from the
@@ -220,6 +226,7 @@ DS_RENDER_EXPORT bool dsTexture_getData(void* result, size_t size, dsTexture* te
 
 /**
  * @brief Destroys a texture or offscreen.
+ * @remark errno will be set on failure.
  * @param texture The texture to destroy.
  * @return False if the texture couldn't be destroyed.
  */

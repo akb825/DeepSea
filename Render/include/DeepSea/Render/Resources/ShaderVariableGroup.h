@@ -68,6 +68,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_useGfxBuffer(const dsResourceManager
 
 /**
  * @brief Creates a shader variable group.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader variable group from.
  * @param allocator The allocator to create the shader variable group with. If NULL, it will use the
  *     same allocator as the resource manager.
@@ -84,6 +85,7 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsShaderVariableGroup_create(
 
 /**
  * @brief Gets the shader variable group description.
+ * @remark errno will be set on failure.
  * @param group The shader variable group.
  * @return The shader vairable group description.
  */
@@ -109,6 +111,7 @@ DS_RENDER_EXPORT const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescr
  * In order to avoid any memory allocations under any situation, you can set the commit type to
  * batched. More memory in total will be allocated, but it will guarantee it's all up front.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
  * @param group The shader variable group to set the data on.
@@ -169,6 +172,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_isElementDirty(const dsShaderVariabl
  * If uniform blocks aren't supported, this clears the dirty flags. The renderer implementation
  * should do any checks for copying individual unfirom data before calling this function.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
  * @param group The shader variable group to commit changes for.
@@ -179,6 +183,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffe
 
 /**
  * @brief Destroys a shader variable group.
+ * @remark errno will be set on failure.
  * @param group The shader variable group to destroy.
  * @return False if the shader variable group couldn't be destroyed.
  */

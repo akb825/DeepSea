@@ -65,8 +65,7 @@ static void* getValue(const dsVolatileMaterialValues* values, uint32_t nameId, T
 	return entry->value;
 }
 
-static bool setValue(const dsVolatileMaterialValues* values, uint32_t nameId, Type type,
-	void* value)
+static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type type, void* value)
 {
 	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameId);
 	if (entry)
@@ -163,10 +162,7 @@ dsTexture* dsVolatileMaterialValue_getTextureName(const dsVolatileMaterialValues
 	const char* name)
 {
 	if (!values || !name)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsTexture*)getValue(values, dsHashString(name), Type_Texture);
 }
@@ -175,16 +171,13 @@ dsTexture* dsVolatileMaterialValue_getTextureId(const dsVolatileMaterialValues* 
 	uint32_t nameId)
 {
 	if (!values)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsTexture*)getValue(values, nameId, Type_Texture);
 }
 
-bool dsVolatileMaterialValue_setTextureName(const dsVolatileMaterialValues* values,
-	const char* name, dsTexture* texture)
+bool dsVolatileMaterialValue_setTextureName(dsVolatileMaterialValues* values, const char* name,
+	dsTexture* texture)
 {
 	if (!values || !name)
 	{
@@ -195,7 +188,7 @@ bool dsVolatileMaterialValue_setTextureName(const dsVolatileMaterialValues* valu
 	return setValue(values, dsHashString(name), Type_Texture, texture);
 }
 
-bool dsVolatileMaterialValue_setTextureId(const dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsVolatileMaterialValue_setTextureId(dsVolatileMaterialValues* values, uint32_t nameId,
 	dsTexture* texture)
 {
 	if (!values)
@@ -211,10 +204,7 @@ dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupName(
 	const dsVolatileMaterialValues* values, const char* name)
 {
 	if (!values || !name)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsShaderVariableGroup*)getValue(values, dsHashString(name), Type_ShaderVariableGroup);
 }
@@ -223,34 +213,25 @@ dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupId(
 	const dsVolatileMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsShaderVariableGroup*)getValue(values, nameId, Type_ShaderVariableGroup);
 }
 
-bool dsVolatileMaterialValue_setVariableGroupName(const dsVolatileMaterialValues* values,
+bool dsVolatileMaterialValue_setVariableGroupName(dsVolatileMaterialValues* values,
 	const char* name, dsShaderVariableGroup* group)
 {
 	if (!values || !name)
-	{
-		errno = EINVAL;
 		return false;
-	}
 
 	return setValue(values, dsHashString(name), Type_ShaderVariableGroup, group);
 }
 
-bool dsVolatileMaterialValue_setVariableGroupId(const dsVolatileMaterialValues* values,
+bool dsVolatileMaterialValue_setVariableGroupId(dsVolatileMaterialValues* values,
 	uint32_t nameId, dsShaderVariableGroup* group)
 {
 	if (!values)
-	{
-		errno = EINVAL;
 		return false;
-	}
 
 	return setValue(values, nameId, Type_ShaderVariableGroup, group);
 }
@@ -259,10 +240,7 @@ dsGfxBuffer* dsVolatileMaterialValue_getBufferName(const dsVolatileMaterialValue
 	const char* name)
 {
 	if (!values || !name)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsGfxBuffer*)getValue(values, dsHashString(name), Type_Buffer);
 }
@@ -271,16 +249,13 @@ dsGfxBuffer* dsVolatileMaterialValue_getBufferId(const dsVolatileMaterialValues*
 	uint32_t nameId)
 {
 	if (!values)
-	{
-		errno = EINVAL;
 		return NULL;
-	}
 
 	return (dsGfxBuffer*)getValue(values, nameId, Type_Buffer);
 }
 
-bool dsVolatileMaterialValue_setBufferName(const dsVolatileMaterialValues* values,
-	const char* name, dsGfxBuffer* buffer)
+bool dsVolatileMaterialValue_setBufferName(dsVolatileMaterialValues* values, const char* name,
+	dsGfxBuffer* buffer)
 {
 	if (!values || !name)
 	{
@@ -291,7 +266,7 @@ bool dsVolatileMaterialValue_setBufferName(const dsVolatileMaterialValues* value
 	return setValue(values, dsHashString(name), Type_Buffer, buffer);
 }
 
-bool dsVolatileMaterialValue_setBufferId(const dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsVolatileMaterialValue_setBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
 	dsGfxBuffer* buffer)
 {
 	if (!values)

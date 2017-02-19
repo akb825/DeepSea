@@ -71,10 +71,7 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 bool dsMutex_tryLock(dsMutex* mutex)
 {
 	if (!mutex)
-	{
-		errno = EINVAL;
 		return false;
-	}
 
 	bool retVal;
 #if DS_WINDOWS

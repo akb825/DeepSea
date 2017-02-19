@@ -33,12 +33,13 @@ extern "C"
 
 /**
  * @brief Creates a thread.
+ * @remark errno will be set on failure.
  * @param[out] thread The thread to create.
  * @param function The function to call.
  * @param userData The user data to pass to the function.
  * @param stackSize The size of the thread's stack. Set to 0 for the default size.
  * @param name The name of the thread, used for profiling. The lifetime of the string should exceed
- * the lifetime of the thread, such as with a string constant. If NULL, will be set to "Thread".
+ *     the lifetime of the thread, such as with a string constant. If NULL, will be set to "Thread".
  * @return True if the thread was created.
  */
 DS_CORE_EXPORT bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData,
@@ -108,6 +109,7 @@ DS_CORE_EXPORT void dsThread_sleep(unsigned int milliseconds, const char* name);
  *
  * Once a thread is detached, it will continue executing in the background.
  *
+ * @remark errno will be set on failure.
  * @param[inout] thread The thread to detach. The content will be cleared.
  * @return True if the thread was detached.
  */
@@ -118,6 +120,7 @@ DS_CORE_EXPORT bool dsThread_detach(dsThread* thread);
  *
  * This will automatically profile the time spent waiting to join with the thread.
  *
+ * @remark errno will be set on failure.
  * @param[inout] thread The thread to detach. The content will be cleared.
  * @param[out] returnVal Pointer to recieve the return value of the thread. This may be NULL.
  * @return True if the thread was joined.

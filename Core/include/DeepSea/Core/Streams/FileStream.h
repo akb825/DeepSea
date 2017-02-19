@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Opens a file stream with a file path.
+ * @remark errno will be set on failure.
  * @param stream The stream to open.
  * @param filePath The file path to open.
  * @param mode The mode to open the file with. See fopen.
@@ -43,6 +44,7 @@ DS_CORE_EXPORT bool dsFileStream_openPath(dsFileStream* stream, const char* file
 
 /**
  * @brief Opens a file stream with a FILE pointer.
+ * @remark errno will be set on failure.
  * @param stream The stream to open.
  * @param file The file to use.
  * @return False if stream or file are NULL.
@@ -51,6 +53,7 @@ DS_CORE_EXPORT bool dsFileStream_openFile(dsFileStream* stream, FILE* file);
 
 /**
  * @brief Reads from a file stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to read from.
  * @param data The data pointer to hold the data that was read.
  * @param size The number of bytes to read.
@@ -60,6 +63,7 @@ DS_CORE_EXPORT size_t dsFileStream_read(dsFileStream* stream, void* data, size_t
 
 /**
  * @brief Writes to a file stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to write to.
  * @param data The data pointer to write to the stream.
  * @param size The number of bytes to write.
@@ -69,6 +73,7 @@ DS_CORE_EXPORT size_t dsFileStream_write(dsFileStream* stream, const void* data,
 
 /**
  * @brief Seeks in a file stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to seek in.
  * @param offset The offset from way.
  * @param way The position in the stream to take the offset from.
@@ -78,9 +83,10 @@ DS_CORE_EXPORT bool dsFileStream_seek(dsFileStream* stream, int64_t offset, dsSt
 
 /**
  * @brief Tells the current position in a file stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to get the position from.
  * @return The position in the stream, or DS_STREAM_INVALID_POS if the position cannot be
- * determined.
+ *     determined.
  */
 DS_CORE_EXPORT uint64_t dsFileStream_tell(dsFileStream* stream);
 
@@ -92,6 +98,7 @@ DS_CORE_EXPORT void dsFileStream_flush(dsFileStream* stream);
 
 /**
  * @brief Closes a file stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to close.
  * @return False if the stream cannot be closed.
  */

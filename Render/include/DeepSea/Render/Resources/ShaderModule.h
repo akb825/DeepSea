@@ -40,6 +40,7 @@ extern "C"
  *
  * The shader module is expected to be an mslb file created with ModuleShaderLanguage.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -55,6 +56,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
  *
  * The shader module is expected to have been created with ModuleShaderLanguage.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -71,6 +73,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* re
  *
  * The shader module is expected to have been created with ModuleShaderLanguage.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -101,6 +104,7 @@ DS_RENDER_EXPORT const char* dsShaderModule_shaderName(const dsShaderModule* sha
 
 /**
  * @brief Destroys a shader module.
+ * @remark errno will be set on failure.
  * @param shaderModule The shader module to destroy.
  * @return False if the shader module couldn't be destroyed.
  */

@@ -460,7 +460,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	if (dsStream_read(stream, textureData->data, textureData->dataSize) != textureData->dataSize)
 	{
 		pvrSizeError(filePath);
-		DS_VERIFY(dsTextureData_destroy(textureData));
+		dsTextureData_destroy(textureData);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -584,7 +584,7 @@ dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager
 
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
 		usage, memoryHints);
-	DS_VERIFY(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 	return texture;
 }
 
@@ -612,20 +612,14 @@ dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManag
 
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
 		usage, memoryHints);
-	DS_VERIFY(dsTextureData_destroy(textureData));
+	dsTextureData_destroy(textureData);
 	return texture;
 }
 
-bool dsTextureData_destroy(dsTextureData* textureData)
+void dsTextureData_destroy(dsTextureData* textureData)
 {
-	if (!textureData)
-	{
-		errno = EINVAL;
-		return false;
-	}
+	if (!textureData || !textureData->allocator)
+		return;
 
-	if (textureData->allocator)
-		return dsAllocator_free(textureData->allocator, textureData);
-	else
-		return true;
+	DS_VERIFY(dsAllocator_free(textureData->allocator, textureData));
 }

@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Initializes a vertex format.
+ * @remark errno will be set on failure.
  * @param format The format to initialize.
  * @return False if format is NULL.
  */
@@ -49,6 +50,7 @@ DS_RENDER_EXPORT bool dsVertexFormat_getAttribEnabled(const dsVertexFormat* form
 
 /**
  * @brief Sets whether or not an attribute is enabled.
+ * @remark errno will be set on failure.
  * @param format The vertex format.
  * @param attrib The attribute index.
  * @param enabled Whether or not the attribute should be enabled.
@@ -59,6 +61,7 @@ DS_RENDER_EXPORT bool dsVertexFormat_setAttribEnabled(dsVertexFormat* format, un
 
 /**
  * @brief Computes the offsets of each vertex attribute and overall size of each vertex.
+ * @remark errno will be set on failure.
  * @param format The format to compute the offsets and size for.
  * @return Flase if format is NULL or any format is invalid.
  */

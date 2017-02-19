@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Creates a shader variable group description.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the shader variable group description from.
  * @param allocator The allocator to create the shader variable group description with. If NULL, it
  *     will use the same allocator as the resource manager.
@@ -57,6 +58,7 @@ DS_RENDER_EXPORT uint32_t dsShaderVariableGroupDesc_findElement(
 
 /**
  * @brief Destroys a shader variable group description.
+ * @remark errno will be set on failure.
  * @param groupDesc The shader variable group description to destroy.
  * @return False if the shader variable group description couldn't be destroyed.
  */

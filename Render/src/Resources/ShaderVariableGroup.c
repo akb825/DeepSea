@@ -333,7 +333,10 @@ const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescription(
 	const dsShaderVariableGroup* group)
 {
 	if (!group)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	return group->description;
 }

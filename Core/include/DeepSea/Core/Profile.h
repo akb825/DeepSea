@@ -145,6 +145,7 @@ extern "C"
  *
  * If any function is NULL, this will return false and not change the state of the functions.
  *
+ * @remark errno will be set on failure.
  * @param userData Data provided to each profiler function.
  * @param startFrameFunc Function called at the start of a frame.
  * @param endFrameFunc Function called at the end of a frame.

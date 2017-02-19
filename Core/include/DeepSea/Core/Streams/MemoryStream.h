@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Opens a memory stream with a buffer.
+ * @remark errno will be set on failure.
  * @param stream The stream to open.
  * @param buffer The memory buffer.
  * @param size The size of the buffer.
@@ -42,6 +43,7 @@ DS_CORE_EXPORT bool dsMemoryStream_open(dsMemoryStream* stream, void* buffer, si
 
 /**
  * @brief Reads from a memory stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to read from.
  * @param data The data pointer to hold the data that was read.
  * @param size The number of bytes to read.
@@ -51,6 +53,7 @@ DS_CORE_EXPORT size_t dsMemoryStream_read(dsMemoryStream* stream, void* data, si
 
 /**
  * @brief Writes to a memory stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to write to.
  * @param data The data pointer to write to the stream.
  * @param size The number of bytes to write.
@@ -69,14 +72,16 @@ DS_CORE_EXPORT bool dsMemoryStream_seek(dsMemoryStream* stream, int64_t offset, 
 
 /**
  * @brief Tells the current position in a memory stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to get the position from.
  * @return The position in the stream, or DS_STREAM_INVALID_POS if the position cannot be
- * determined.
+ *     determined.
  */
 DS_CORE_EXPORT uint64_t dsMemoryStream_tell(dsMemoryStream* stream);
 
 /**
  * @brief Closes a memory stream.
+ * @remark errno will be set on failure.
  * @param stream The stream to close.
  * @return False if the stream cannot be closed.
  */

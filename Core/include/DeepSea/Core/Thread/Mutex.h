@@ -49,9 +49,10 @@ DS_CORE_EXPORT size_t dsMutex_fullAllocSize(void);
 
 /**
  * @brief Creates a mutex.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to use. If NULL, malloc() and free() will be used.
  * @param name The name of the mutex, used for profiling. The lifetime of the string should exceed
- * the lifetime of the mutex, such as with a string constant. If NULL, will be set to "Mutex".
+ *     the lifetime of the mutex, such as with a string constant. If NULL, will be set to "Mutex".
  * @return The mutex, or NULL if it couldn't be created.
  */
 DS_CORE_EXPORT dsMutex* dsMutex_create(dsAllocator* allocator, const char* name);
@@ -65,6 +66,7 @@ DS_CORE_EXPORT bool dsMutex_tryLock(dsMutex* mutex);
 
 /**
  * @brief Locks the mutex.
+ * @remark errno will be set on failure.
  * @param mutex The mutex to lock.
  * @return True if the mutex could be locked.
  */
@@ -72,6 +74,7 @@ DS_CORE_EXPORT bool dsMutex_lock(dsMutex* mutex);
 
 /**
  * @brief Unlocks the mutex.
+ * @remark errno will be set on failure.
  * @param mutex The mutex to unlock.
  * @return True if the mutex could be unlocked.
  */

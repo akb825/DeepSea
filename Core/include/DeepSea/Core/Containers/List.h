@@ -37,6 +37,7 @@ extern "C"
 
 /**
  * @brief Initializes a list.
+ * @remark errno will be set on failure.
  * @param list The list to initialize.
  * @return False if list is NULL.
  */
@@ -44,6 +45,7 @@ DS_CORE_EXPORT bool dsList_initialize(dsList* list);
 
 /**
  * @brief Appends a node to the beginning of the list.
+ * @remark errno will be set on failure.
  * @param list The list to append the node to.
  * @param node The node to append.
  * @return False if either list or node is NULL or if the node previous or next pointer is set.
@@ -52,6 +54,7 @@ DS_CORE_EXPORT bool dsList_prepend(dsList* list, dsListNode* node);
 
 /**
  * @brief Appends a node to the end of the list.
+ * @remark errno will be set on failure.
  * @param list The list to append the node to.
  * @param node The node to append.
  * @return False if either list or node is NULL.
@@ -60,9 +63,10 @@ DS_CORE_EXPORT bool dsList_append(dsList* list, dsListNode* node);
 
 /**
  * @brief Inserts a node into the list.
+ * @remark errno will be set on failure.
  * @param list The node to add.
  * @param previous The node to insert after. If NULL, node will be inserted at the beginning of
- * the list.
+ *     the list.
  * @param node The node to insert.
  * @return False if either list or node is NULL.
  */
@@ -70,6 +74,7 @@ DS_CORE_EXPORT bool dsList_insert(dsList* list, dsListNode* previous, dsListNode
 
 /**
  * @brief Removes a node from the list.
+ * @remark errno will be set on failure.
  * @param list The list to remove the node from.
  * @param node The node to remove.
  * @return False if either list or node is NULL.
@@ -78,6 +83,7 @@ DS_CORE_EXPORT bool dsList_remove(dsList* list, dsListNode* node);
 
 /**
  * @brief Clears the contents of the list.
+ * @remark errno will be set on failure.
  * @param list The list to clear.
  * @return False if list is NULL.
  */

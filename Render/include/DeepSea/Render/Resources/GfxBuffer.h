@@ -37,6 +37,7 @@ extern "C"
 
 /**
  * @brief Creates a graphics buffer.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the buffer from.
  * @param allocator The allocator to create the graphics buffer with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -54,6 +55,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceMana
 
 /**
  * @brief Maps a range of a graphics buffer to memory.
+ * @remark errno will be set on failure.
  * @param buffer The buffer to map.
  * @param flags The flags describing how to map the memory. This should be a combination of
  *     dsGfxBufferMap flags
@@ -68,6 +70,7 @@ DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t of
 
 /**
  * @brief Unmaps previously mapped memory from a graphics buffer.
+ * @remark errno will be set on failure.
  * @param buffer The buffer to unmap.
  * @return False if the memory couldn't be unmapped. errno will be set to an appropriate value on
  *     failure.
@@ -80,6 +83,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_unmap(dsGfxBuffer* buffer);
  * This is generally used for persistently mapped memory for a non-coherent buffer. This guarantees
  * writes from the CPU will be visible from the GPU.
  *
+ * @remark errno will be set on failure.
  * @param buffer The buffer to flush.
  * @param offset The offset of the range to flush.
  * @param size The size of the memory to flush.
@@ -94,6 +98,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size
  * This is generally used for persistently mapped memory for a non-coherent buffer. This guarantees
  * writes from the GPU will be visible from the CPU.
  *
+ * @remark errno will be set on failure.
  * @param buffer The buffer to invalidate.
  * @param offset The offset of the range to invalidate.
  * @param size The size of the memory to invalidate.
@@ -108,6 +113,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param buffer The buffer to copy the data to. This must have been created with
  *     dsGfxBufferUsage_CopyTo.
@@ -126,6 +132,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfx
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcBuffer The buffer to copy the data from. This must have been created with
  *     dsGfxBufferUsage_CopyFrom.
@@ -141,6 +148,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuff
 
 /**
  * @brief Destroys a graphics buffer.
+ * @remark errno will be set on failure.
  * @param buffer The buffer to destroy.
  * @return False if the buffer couldn't be destroyed. errno will be set to an appropriate value on
  *     failure.

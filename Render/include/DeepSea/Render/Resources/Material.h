@@ -55,6 +55,7 @@ DS_RENDER_EXPORT size_t dsMaterial_fullAllocSize(const dsMaterialDesc* descripti
 
 /**
  * @brief Creates a material.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to create the material with.
  * @param description The description for the material.
  * @return The created material, or NULL if it couldn't be created. errno will be set to an
@@ -65,6 +66,7 @@ DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsAllocator* allocator,
 
 /**
  * @brief Gets the material description.
+ * @remark errno will be set on failure.
  * @param material The material.
  * @return The material description.
  */
@@ -72,6 +74,7 @@ DS_RENDER_EXPORT const dsMaterialDesc* dsMaterial_getDescription(const dsMateria
 
 /**
  * @brief Gets the data for an element of a primitive, vector, or matrix type.
+ * @remark errno will be set on failure.
  * @param[out] outData The buffer to receive the data.
  * @param material The material to get the data from.
  * @param element The index of the element to get.oo
@@ -85,6 +88,7 @@ DS_RENDER_EXPORT bool dsMaterial_getElementData(void* outData, const dsMaterial*
 
 /**
  * @brief Gets the raw internal data pointer for an element.
+ * @remark errno will be set on failure.
  * @param material The material to get the data from.
  * @param element The element index.
  * @return The pointer to the element data, or NULL if invalid.
@@ -94,6 +98,7 @@ DS_RENDER_EXPORT const void* dsMaterial_getRawElementData(const dsMaterial* mate
 
 /**
  * @brief Sets the data for an element of a primitive, vector, or matrix type.
+ * @remark errno will be set on failure.
  * @param material The material to set the data on.
  * @param element The index of the element to set.
  * @param data The data to set.
@@ -115,6 +120,7 @@ DS_RENDER_EXPORT dsTexture* dsMaterial_getTexture(const dsMaterial* material, ui
 
 /**
  * @brief Sets the texture data for a material element.
+ * @remark errno will be set on failure.
  * @param material The material to set the texture on.
  * @param element The index of the element to set.
  * @param texture The texture to set.
@@ -134,6 +140,7 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsMaterial_getVariableGroup(const dsMate
 
 /**
  * @brief Sets the shader variable group data for a material element.
+ * @remark errno will be set on failure.
  * @param material The material to set the shader variable group on.
  * @param element The index of the element to set.
  * @param group The shader variable group to set.
@@ -152,6 +159,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(const dsMaterial* material, u
 
 /**
  * @brief Sets the buffer data for a material element.
+ * @remark errno will be set on failure.
  * @param material The material to set the buffer on.
  * @param element The index of the element to set.
  * @param buffer The buffer to set.

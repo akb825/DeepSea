@@ -167,7 +167,10 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 const dsMaterialDesc* dsMaterial_getDescription(const dsMaterial* material)
 {
 	if (!material)
+	{
+		errno = EINVAL;
 		return NULL;
+	}
 
 	return material->description;
 }

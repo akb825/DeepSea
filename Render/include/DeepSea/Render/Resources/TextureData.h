@@ -37,6 +37,7 @@ extern "C"
 
 /**
  * @brief Creates texture data.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
  * @param format The format of the texture.
  * @param dimension The dimension of the texture.
@@ -54,6 +55,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
 
 /**
  * @brief Creates a texture from texture data.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the texture from.
  * @param allocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -69,6 +71,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resou
 
 /**
  * @brief Loads a PVR texture file to a new texture data instance.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
  * @param filePath The file to load.
  * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
@@ -79,6 +82,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator
 
 /**
  * @brief Loads a PVR texture file from a stream to a new texture data instance.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
  * @param stream The file to load the texture from.
  * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
@@ -89,6 +93,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocat
 
 /**
  * @brief Loads a PVR texture file to a new texture instance.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -107,6 +112,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager
 
 /**
  * @brief Loads a PVR texture file from a stream to a new texture instance.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager to create the texture from.
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
@@ -126,9 +132,8 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManag
 /**
  * @brief Destroys a texture data.
  * @param textureData The texture data to destroy.
- * @return False if the texture data couldn't be destroyed.
  */
-DS_RENDER_EXPORT bool dsTextureData_destroy(dsTextureData* textureData);
+DS_RENDER_EXPORT void dsTextureData_destroy(dsTextureData* textureData);
 
 #ifdef __cplusplus
 }

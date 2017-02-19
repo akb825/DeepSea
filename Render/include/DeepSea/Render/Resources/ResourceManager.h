@@ -46,6 +46,7 @@ extern "C"
  * This will allow resources to be created and manipulated from the current thread. It will remain
  * valid until dsResourceManager_destroyResourceContext() is called.
  *
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager
  * @return False if the resource context couldn't be created. errno will be set to an appropriate
  *     value on failure.
@@ -54,6 +55,7 @@ DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager*
 
 /**
  * @brief Destroys the resource context for the current thread.
+ * @remark errno will be set on failure.
  * @param resourceManager The resource manager
  * @return False if the resource context couldn't be destroyed. errno will be set to an appropriate
  *     value on failure.
@@ -79,6 +81,7 @@ DS_RENDER_EXPORT void dsResourceManager_reportStatistics(const dsResourceManager
  * This will initiialize all members to 0 and set up any internal structures. This is called by the
  * render implementation.
  *
+ * @remark errno will be set on failure.
  * @return False if an error occurred.
  */
 DS_RENDER_EXPORT bool dsResourceManager_initialize(dsResourceManager* resourceManager);

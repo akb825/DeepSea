@@ -30,7 +30,6 @@ extern "C"
 /**
  * @file
  * @brief Structure that defines a memory allocator.
- *
  * @see dsAllocator
  */
 
@@ -39,6 +38,7 @@ extern "C"
  *
  * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT.
  *
+ * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
  * @return The allocated memory or NULL if an error occured.
@@ -47,6 +47,7 @@ DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t siz
 
 /**
  * @brief Frees memory from the allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to free from.
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.

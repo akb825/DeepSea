@@ -80,7 +80,7 @@ TEST(Mutex, CreateAllocatorNoFree)
 TEST(Mutex, Null)
 {
 	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_lock(nullptr));
-	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_tryLock(nullptr));
+	EXPECT_FALSE(dsMutex_tryLock(nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsMutex_unlock(nullptr));
 }
 

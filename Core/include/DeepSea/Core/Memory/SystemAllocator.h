@@ -33,6 +33,7 @@ extern "C"
 
 /**
  * @brief Initializes the system system allocator.
+ * @remark errno will be set on failure.
  * @param[out] allocator The allocator to initialize.
  * @param limit The limit for the allocator. Set to DS_ALLOCATOR_NO_LIMIT to have no limit.
  * @return False if allocator is NULL.
@@ -41,6 +42,7 @@ DS_CORE_EXPORT bool dsSystemAllocator_initialize(dsSystemAllocator* allocator, s
 
 /**
  * @brief Allocates memory from the system allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
  * @param alignment The minimum alignment for the allocation.
@@ -51,6 +53,7 @@ DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_
 
 /**
  * @brief Frees memory from the system allocator.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to free from.
  * @param ptr The memory pointer to free.
  * @return True if the memory could be freed.

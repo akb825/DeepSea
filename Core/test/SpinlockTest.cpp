@@ -55,7 +55,7 @@ TEST(Spinlock, Null)
 {
 	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_initialize(nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_lock(nullptr));
-	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_tryLock(nullptr));
+	EXPECT_FALSE(dsSpinlock_tryLock(nullptr));
 	EXPECT_FALSE_ERRNO(EINVAL, dsSpinlock_unlock(nullptr));
 }
 
