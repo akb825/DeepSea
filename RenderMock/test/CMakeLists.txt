@@ -10,8 +10,8 @@ target_link_libraries(deepsea_render_mock_test PRIVATE
 	deepsea_render_mock
 	${GTEST_BOTH_LIBRARIES})
 add_custom_command(TARGET deepsea_render_mock_test POST_BUILD
-	COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets
-	$<TARGET_FILE_DIR:deepsea_render_mock_test>/assets)
+	COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets/
+	$<TARGET_FILE_DIR:deepsea_render_mock_test>/RenderMock-assets)
 
 ds_set_folder(deepsea_render_mock_test tests)
 add_test(NAME DeepSeaRenderMockTest COMMAND deepsea_render_mock_test)

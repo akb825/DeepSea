@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	testing::InitGoogleTest(&argc, argv);
 
 	dsPath_getDirectoryName(assetsDir, DS_PATH_MAX, argv[0]);
-	dsPath_combine(assetsDir, DS_PATH_MAX, assetsDir, "assets");
+	dsPath_combine(assetsDir, DS_PATH_MAX, assetsDir, "RenderMock-assets");
 
 	return RUN_ALL_TESTS();
 }
