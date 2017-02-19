@@ -33,7 +33,7 @@ extern "C"
  * also used to create material instances.
  *
  * The same material description may be used with multiple shaders, so long as all of the uniforms
- * of the shader are provided. It is still valid if extra material parameters are avoided.
+ * of the shader are provided. It is still valid if extra material parameters are provided.
  *
  * It is encouraged to re-use the same material description for multiple shaders when they use
  * similar parameters. This allows materials to be shared across those shaders and may make

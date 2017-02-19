@@ -16,7 +16,6 @@
 
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 
-#include "MaterialInfo.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -26,8 +25,8 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+#include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
-#include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/Types.h>
 #include <string.h>
 
@@ -81,18 +80,11 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 				description->positions + lastEleement);
 	}
 
-	uint32_t dataSize = 0;
+	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		// Guarantee machine alignment.
-		dsMaterialType type = description->elements[i].type;
-		uint32_t alignment = dsMaterialType_machineAlignment(type);
-		dataSize = ((dataSize + alignment - 1)/alignment)*alignment;
-
-		uint32_t count = description->elements[i].count;
-		if (count == 0)
-			count = 1;
-		dataSize += dsMaterialType_size(type)*count;
+		dsMaterialType_addElementSize(&dataSize, description->elements[i].type,
+			description->elements[i].count);
 	}
 	return dataSize;
 }
@@ -235,8 +227,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		(!gfxBufferAllocator && !resourceManager->allocator) || !description ||
-		!description->elements || description->elementCount == 0)
+		(!gfxBufferAllocator && !resourceManager->allocator) || !description)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -290,6 +281,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->tempBuffSize = 0;
 
 	size_t bufferSize = getRawBufferSize(description, useGfxBuffer);
+	DS_ASSERT(bufferSize > 0);
 	if (useGfxBuffer)
 	{
 		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator,
@@ -311,30 +303,24 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		// Cache the position of each element.
 		if (!useGfxBuffer)
 		{
-			group->rawDataPositions = (PositionInfo*)dsAllocator_alloc( (dsAllocator*)&bufferAllocator,
-				sizeof(PositionInfo)*description->elementCount);
+			group->rawDataPositions = (PositionInfo*)dsAllocator_alloc(
+				(dsAllocator*)&bufferAllocator, sizeof(PositionInfo)*description->elementCount);
 			DS_ASSERT(group->rawDataPositions);
 
-			for (uint32_t i = 0, curOffset = 0; i < description->elementCount; ++i)
+			size_t curSize = 0;
+			for (uint32_t i = 0; i < description->elementCount; ++i)
 			{
 				// Guarantee machine alignment.
 				dsMaterialType type = description->elements[i].type;
-				uint32_t alignment = dsMaterialType_machineAlignment(type);
-				curOffset = ((curOffset + alignment - 1)/alignment)*alignment;
-
-				uint32_t count = description->elements[i].count;
-				if (count == 0)
-					count = 1;
 				uint16_t stride = dsMaterialType_size(type);
 
-				group->rawDataPositions[i].pos.offset = curOffset;
+				group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementSize(
+					&curSize, type, description->elements[i].count);
 				group->rawDataPositions[i].pos.stride = stride;
 				group->rawDataPositions[i].pos.matrixColStride =
 					(uint16_t)(dsMaterialType_matrixRows(type)*
 					dsMaterialType_machineAlignment(type));
 				group->rawDataPositions[i].dirty = false;
-
-				curOffset += stride*count;
 			}
 		}
 	}
@@ -358,7 +344,7 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !group || !data)
+	if (!commandBuffer || !group || !data || count == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -384,7 +370,7 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 	if (firstIndex + count > maxCount)
 	{
 		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader variable group element.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy too many elements.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -434,7 +420,7 @@ dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(const dsShaderVariableGroup* gro
 	return group->buffer;
 }
 
-const void* dsShaderVariableGroup_getElementData(const dsShaderVariableGroup* group,
+const void* dsShaderVariableGroup_getRawElementData(const dsShaderVariableGroup* group,
 	uint32_t element)
 {
 	if (!group || !group->rawDataPositions || element >= group->description->elementCount)

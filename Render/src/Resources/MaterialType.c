@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MaterialInfo.h"
+#include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Core/Assert.h>
 
 uint16_t dsMaterialType_size(dsMaterialType type)
@@ -195,4 +195,16 @@ unsigned int dsMaterialType_matrixColumns(dsMaterialType type)
 	};
 	DS_ASSERT(type - dsMaterialType_Mat2 < DS_ARRAY_SIZE(columns));
 	return columns[type - dsMaterialType_Mat2];
+}
+
+size_t dsMaterialType_addElementSize(size_t* curSize, dsMaterialType type, uint32_t count)
+{
+	DS_ASSERT(curSize);
+	uint32_t alignment = dsMaterialType_machineAlignment(type);
+	size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+
+	if (count == 0)
+		count = 1;
+	*curSize = offset + dsMaterialType_size(type)*count;
+	return offset;
 }

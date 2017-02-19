@@ -111,12 +111,12 @@ DS_RENDER_EXPORT const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescr
  *
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
- * @param group The shader variable group to set the index on.
+ * @param group The shader variable group to set the data on.
  * @param element The index of the element to set.
  * @param data The data to set.
  * @param type The type of the data.
  * @param firstIndex The first index to set when the element is an array.
- * @param count The number of array indices to set to set in the element.
+ * @param count The number of array indices to set in the element. This must be 1 if not an array.
  * @return False if the element couldn't be set.
  */
 DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
@@ -143,7 +143,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(
  * @param element The element index.
  * @return The pointer to the element data, or NULL if using graphics buffers.
  */
-DS_RENDER_EXPORT const void* dsShaderVariableGroup_getElementData(
+DS_RENDER_EXPORT const void* dsShaderVariableGroup_getRawElementData(
 	const dsShaderVariableGroup* group, uint32_t element);
 
 /**

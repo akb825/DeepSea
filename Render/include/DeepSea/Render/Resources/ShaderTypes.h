@@ -34,6 +34,7 @@ extern "C"
 
 /**
  * @brief Enum for the type of a material member.
+ * @see MaterialType.h
  */
 typedef enum dsMaterialType
 {
@@ -305,6 +306,7 @@ struct dsMaterialDesc
  * set. The values set on this structure will be used to populate the uniforms of a shader.
  *
  * This type is opaque and implemented by the core Render library.
+ *
  * @see Material.h
  */
 typedef struct dsMaterial dsMaterial;

@@ -207,7 +207,7 @@ bool dsVolatileMaterialValue_setTextureId(const dsVolatileMaterialValues* values
 	return setValue(values, nameId, Type_Texture, texture);
 }
 
-dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupName(
+dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupName(
 	const dsVolatileMaterialValues* values, const char* name)
 {
 	if (!values || !name)
@@ -219,7 +219,7 @@ dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupName(
 	return (dsShaderVariableGroup*)getValue(values, dsHashString(name), Type_ShaderVariableGroup);
 }
 
-dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupId(
+dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupId(
 	const dsVolatileMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
@@ -231,7 +231,7 @@ dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupId(
 	return (dsShaderVariableGroup*)getValue(values, nameId, Type_ShaderVariableGroup);
 }
 
-bool dsVolatileMaterialValue_setShaderVariableGroupName(const dsVolatileMaterialValues* values,
+bool dsVolatileMaterialValue_setVariableGroupName(const dsVolatileMaterialValues* values,
 	const char* name, dsShaderVariableGroup* group)
 {
 	if (!values || !name)
@@ -243,7 +243,7 @@ bool dsVolatileMaterialValue_setShaderVariableGroupName(const dsVolatileMaterial
 	return setValue(values, dsHashString(name), Type_ShaderVariableGroup, group);
 }
 
-bool dsVolatileMaterialValue_setShaderVariableGroupId(const dsVolatileMaterialValues* values,
+bool dsVolatileMaterialValue_setVariableGroupId(const dsVolatileMaterialValues* values,
 	uint32_t nameId, dsShaderVariableGroup* group)
 {
 	if (!values)

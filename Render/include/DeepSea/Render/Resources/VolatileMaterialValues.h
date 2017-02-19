@@ -94,7 +94,7 @@ DS_RENDER_EXPORT unsigned int dsVolatileMaterialValues_getMaxValueCount(
  * @brief Gets a texture value by name.
  * @param values The volatile material values.
  * @param name The name of the texture.
- * @return The texture, or NULL if not found.
+ * @return The texture, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsTexture* dsVolatileMaterialValue_getTextureName(
 	const dsVolatileMaterialValues* values, const char* name);
@@ -103,7 +103,7 @@ DS_RENDER_EXPORT dsTexture* dsVolatileMaterialValue_getTextureName(
  * @brief Gets a texture value by ID.
  * @param values The volatile material values.
  * @param nameId The hash of the texture name.
- * @return The texture, or NULL if not found.
+ * @return The texture, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsTexture* dsVolatileMaterialValue_getTextureId(
 	const dsVolatileMaterialValues* values, uint32_t nameId);
@@ -134,18 +134,18 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValue_setTextureId(const dsVolatileMater
  * @brief Gets a shader variable group value by name.
  * @param values The volatile material values.
  * @param name The name of the shader variable group.
- * @return The shader variable group, or NULL if not found.
+ * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupName(
+DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupName(
 	const dsVolatileMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a shader variable group value by ID.
  * @param values The volatile material values.
  * @param nameId The hash of the shader variable group name.
- * @return The shader variable group, or NULL if not found.
+ * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariableGroupId(
+DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValue_getVariableGroupId(
 	const dsVolatileMaterialValues* values, uint32_t nameId);
 
 /**
@@ -156,7 +156,7 @@ DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValue_getShaderVariabl
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValue_setShaderVariableGroupName(
+DS_RENDER_EXPORT bool dsVolatileMaterialValue_setVariableGroupName(
 	const dsVolatileMaterialValues* values, const char* name, dsShaderVariableGroup* group);
 
 /**
@@ -167,14 +167,14 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValue_setShaderVariableGroupName(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValue_setShaderVariableGroupId(
+DS_RENDER_EXPORT bool dsVolatileMaterialValue_setVariableGroupId(
 	const dsVolatileMaterialValues* values, uint32_t nameId, dsShaderVariableGroup* group);
 
 /**
  * @brief Gets a buffer value by name.
  * @param values The volatile material values.
  * @param name The name of the buffer.
- * @return The buffer, or NULL if not found.
+ * @return The buffer, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValue_getBufferName(
 	const dsVolatileMaterialValues* values, const char* name);
@@ -183,7 +183,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValue_getBufferName(
  * @brief Gets a buffer value by ID.
  * @param values The volatile material values.
  * @param nameId The hash of the buffer name.
- * @return The buffer, or NULL if not found.
+ * @return The buffer, or NULL if not found or unset.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValue_getBufferId(
 	const dsVolatileMaterialValues* values, uint32_t nameId);
