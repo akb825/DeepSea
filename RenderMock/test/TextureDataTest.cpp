@@ -32,7 +32,8 @@ class TextureDataTest : public FixtureBase
 public:
 	const char* getPath(const char* fileName)
 	{
-		dsPath_combine(buffer, DS_PATH_MAX, assetsDir, fileName);
+		dsPath_combine(buffer, DS_PATH_MAX, assetsDir, "textures");
+		dsPath_combine(buffer, DS_PATH_MAX, buffer, fileName);
 		return buffer;
 	}
 

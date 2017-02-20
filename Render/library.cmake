@@ -20,6 +20,6 @@ else()
 	add_subdirectory(${mslDirectory})
 endif()
 
-ds_glob_library_sources(sources Render src/*.c src/*.h include/*.h)
+ds_glob_library_sources(sources Render src/*.c src/*.h include/*.h include/*.mslh)
 ds_add_library(deepsea_render Render ${sources})
 ds_target_link_libraries(deepsea_render PRIVATE msl_client)

@@ -1,0 +1,25 @@
+#pragma once
+
+/**
+ * @file
+ * @brief Constants for layout positions of vertex attributes.
+ */
+
+#define DS_POSITION  0
+#define DS_POSITION0 DS_POSITION
+#define DS_POSITION1 1
+#define DS_NORMAL    2
+#define DS_COLOR     3
+#define DS_COLOR0    DS_COLOR
+#define DS_COLOR1    4
+#define DS_FOG_COORD 5
+#define DS_TANGENT   6
+#define DS_BITANGENT 7
+#define DS_TEXCOORD0 8
+#define DS_TEXCOORD1 9
+#define DS_TEXCOORD2 10
+#define DS_TEXCOORD3 11
+#define DS_TEXCOORD4 12
+#define DS_TEXCOORD5 13
+#define DS_TEXCOORD6 14
+#define DS_TEXCOORD7 15

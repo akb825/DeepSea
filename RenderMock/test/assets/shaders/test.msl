@@ -1,0 +1,64 @@
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
+uniform sampler2D diffuseTexture;
+sampler_state diffuseTexture
+{
+	address_mode_u = repeat;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = anisotropic;
+};
+
+uniform vec4 colorMultiplier;
+uniform vec2 textureScale;
+
+uniform Transform
+{
+	mat4 modelViewProjection;
+	mat3 normalMat;
+} transform;
+
+[[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_NORMAL) in vec3 normal;
+[[vertex]] layout(location = DS_COLOR) in vec4 color;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
+
+[[vertex]] out VertexOut
+{
+	vec3 normal;
+	vec4 color;
+	vec2 texCoord;
+} outputs;
+
+[[fragment]] in FragmentIn
+{
+	vec3 normal;
+	vec4 color;
+	vec2 texCoord;
+} inputs;
+
+[[fragment]] out vec4 color;
+
+[[vertex]] void vertexShader()
+{
+	gl_Position = INSTANCE(transform).modelViewProjection*vec4(position, 1.0);
+	outputs.normal = INSTANCE(transform).normalMat*normal;
+	outputs.color = uniforms.colorMultiplier*color;
+	outputs.texCoord = uniforms.textureScale*texCoord;
+}
+
+[[fragment]] void fragmentShader()
+{
+	color = inputs.color*texture(diffuseTexture, inputs.texCoord);
+}
+
+pipeline Test
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+	blend_enable = true;
+	src_blend_factor = src_alpha;
+	dst_color_blend_factor = one_minus_src_alpha;
+	dst_alpha_blend_factor = zero;
+}
