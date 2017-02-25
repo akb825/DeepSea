@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Containers/Types.h>
 #include <DeepSea/Core/Memory/Types.h>
+#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Core/Thread/Types.h>
 
 #ifdef __cplusplus

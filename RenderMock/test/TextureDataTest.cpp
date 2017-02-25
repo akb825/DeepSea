@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "AssetFixtureBase.h"
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Streams/Path.h>
@@ -27,18 +27,13 @@
 
 extern char assetsDir[];
 
-class TextureDataTest : public FixtureBase
+class TextureDataTest : public AssetFixtureBase
 {
 public:
-	const char* getPath(const char* fileName)
+	TextureDataTest()
+		: AssetFixtureBase("textures")
 	{
-		dsPath_combine(buffer, DS_PATH_MAX, assetsDir, "textures");
-		dsPath_combine(buffer, DS_PATH_MAX, buffer, fileName);
-		return buffer;
 	}
-
-private:
-	char buffer[DS_PATH_MAX];
 };
 
 struct Color16f
