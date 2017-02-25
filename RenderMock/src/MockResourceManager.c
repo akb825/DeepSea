@@ -18,7 +18,9 @@
 
 #include "MockDrawGeometry.h"
 #include "MockGfxBuffer.h"
+#include "MockShaderModule.h"
 #include "MockTexture.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -127,6 +129,11 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->copyTextureFunc = (dsCopyTextureFunction)&dsMockTexture_copy;
 	resourceManager->blitTextureFunc = (dsBlitTextureFunction)&dsMockTexture_blit;
 	resourceManager->getTextureDataFunc = (dsGetTextureDataFunction)&dsMockTexture_getData;
+
+	resourceManager->createShaderModuleFunc =
+		(dsCreateShaderModuleFunction)&dsMockShaderModule_create;
+	resourceManager->destroyShaderModuleFunc =
+		(dsDestroyShaderModuleFunction)&dsMockShaderModule_destroy;
 
 	return resourceManager;
 }

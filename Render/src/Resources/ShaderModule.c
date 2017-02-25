@@ -37,7 +37,10 @@ static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
 	dsShaderModule* shaderModule = resourceManager->createShaderModuleFunc(resourceManager,
 		allocator, module);
 	if (shaderModule)
+	{
+		DS_ASSERT(shaderModule->module == module);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderModuleCount, 1);
+	}
 	else
 		mslModule_destroy(module);
 	return shaderModule;
@@ -85,13 +88,12 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 	mslModule_setInvalidFormatErrno(EFORMAT);
 	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, &fileStream, size,
 		&allocWrapper);
-	if (module)
+	if (!module)
 	{
 		if (errno == EFORMAT)
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file %s", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
-
 
 	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module);
 	DS_PROFILE_FUNC_RETURN(shaderModule);
@@ -140,10 +142,10 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 	mslModule_setInvalidFormatErrno(EFORMAT);
 	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, stream, size,
 		&allocWrapper);
-	if (module)
+	if (!module)
 	{
 		if (errno == EFORMAT)
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader module stream");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader module stream.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -181,10 +183,10 @@ dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
 
 	mslModule_setInvalidFormatErrno(EFORMAT);
 	mslModule* module = mslModule_readData(data, size, &allocWrapper);
-	if (module)
+	if (!module)
 	{
 		if (errno == EFORMAT)
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader module data");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader module data.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
