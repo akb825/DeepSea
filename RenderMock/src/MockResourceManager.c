@@ -18,7 +18,10 @@
 
 #include "MockDrawGeometry.h"
 #include "MockGfxBuffer.h"
+#include "MockMaterialDesc.h"
+#include "MockShader.h"
 #include "MockShaderModule.h"
+#include "MockShaderVariableGroupDesc.h"
 #include "MockTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -134,6 +137,19 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		(dsCreateShaderModuleFunction)&dsMockShaderModule_create;
 	resourceManager->destroyShaderModuleFunc =
 		(dsDestroyShaderModuleFunction)&dsMockShaderModule_destroy;
+
+	resourceManager->createMaterialDescFunc =
+		(dsCreateMaterialDescFunction)&dsMockMaterialDesc_create;
+	resourceManager->destroyMaterialDescFunc =
+		(dsDestroyMaterialDescFunction)&dsMockMaterialDesc_destroy;
+
+	resourceManager->createShaderVariableGroupDescFunc =
+		(dsCreateShaderVariableGroupDescFunction)&dsMockShaderVariableGroupDesc_create;
+	resourceManager->destroyShaderVariableGroupDescFunc =
+		(dsDestroyShaderVariableGroupDescFunction)&dsMockShaderVariableGroupDesc_destroy;
+
+	resourceManager->createShaderFunc = (dsCreateShaderFunction)&dsMockShader_create;
+	resourceManager->destroyShaderFunc = (dsDestroyShaderFunction)&dsMockShader_destroy;
 
 	return resourceManager;
 }

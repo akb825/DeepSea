@@ -42,12 +42,8 @@ dsShaderModule* dsMockShaderModule_create(dsResourceManager* resourceManager,
 
 bool dsMockShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module)
 {
-	DS_ASSERT(resourceManager);
-	DS_ASSERT(module);
 	DS_UNUSED(resourceManager);
-
 	if (module->allocator)
 		return dsAllocator_free(module->allocator, module);
-	else
-		return true;
+	return true;
 }
