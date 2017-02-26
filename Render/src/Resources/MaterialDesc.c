@@ -37,7 +37,7 @@ static bool hasDuplicates(const dsMaterialElement* elements, uint32_t elementCou
 		{
 			if (strcmp(elements[i].name, elements[j].name) == 0)
 			{
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s specified multiple times.",
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s' specified multiple times.",
 					elements[i].name);
 				hasDuplicate = true;
 				break;
@@ -76,14 +76,14 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 
 		if ((unsigned int)elements[i].type >= dsMaterialType_Count)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element %s.", elements[i].name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 
 		if (elements[i].isVolatile && elements[i].type < dsMaterialType_Texture)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Primitive, vector, and matrix material elements "
-				"cannot be volatile for element %s.", elements[i].name);
+				"cannot be volatile for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 
@@ -91,7 +91,7 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			!elements[i].shaderVariableGroupDesc)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Variable group material element missing shaderVaraibleGroupDesc for element %s.",
+				"Variable group material element missing shaderVaraibleGroupDesc for element '%s'.",
 				elements[i].name);
 			elementsValid = false;
 		}
@@ -100,7 +100,7 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock))
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Target doesn't support uniform blocks for element %s.", elements[i].name);
+				"Target doesn't support uniform blocks for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 
@@ -108,14 +108,14 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			!(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Target doesn't support uniform buffers for element %s.", elements[i].name);
+				"Target doesn't support uniform buffers for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 
 		if (elements[i].type >= dsMaterialType_Texture && elements[i].count > 0)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Only primitive types can use arrays for element %s.",
-				elements[i].name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Only primitive types can use arrays for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 	}

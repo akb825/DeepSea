@@ -61,6 +61,13 @@ unsigned int dsMaterialType_matrixRows(dsMaterialType type);
 unsigned int dsMaterialType_matrixColumns(dsMaterialType type);
 
 /**
+ * @brief Gets the type of a matrix column.
+ * @param type The material type.
+ * @return The type of the column, or dsMaterialType_Count if not a matrix type.
+ */
+dsMaterialType dsMaterialType_matrixColumnType(dsMaterialType type);
+
+/**
  * @brief Adds the size of an element.
  *
  * This can be used for building up local storage for material elements for access on the CPU. This

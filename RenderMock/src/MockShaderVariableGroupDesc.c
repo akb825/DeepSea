@@ -18,6 +18,8 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Resources/MaterialType.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <string.h>
 
 dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
@@ -25,10 +27,14 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
-	DS_ASSERT(elements || elementCount == 0);
+	DS_ASSERT(elements);
+	DS_ASSERT(elementCount > 0);
 
+	bool useGfxBuffer = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	size_t size = DS_ALIGNED_SIZE(sizeof(dsShaderVariableGroupDesc)) +
 		DS_ALIGNED_SIZE(sizeof(dsShaderVariableElement)*elementCount);
+	if (useGfxBuffer)
+		size += DS_ALIGNED_SIZE(sizeof(dsShaderVariablePos)*elementCount);
 	void* buffer = dsAllocator_alloc(allocator, size);
 	if (!buffer)
 		return NULL;
@@ -36,32 +42,47 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
 
-	dsShaderVariableGroupDesc* materialDesc = (dsShaderVariableGroupDesc*)dsAllocator_alloc(
+	dsShaderVariableGroupDesc* groupDesc = (dsShaderVariableGroupDesc*)dsAllocator_alloc(
 		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableGroupDesc));
-	DS_ASSERT(materialDesc);
+	DS_ASSERT(groupDesc);
 
-	materialDesc->resourceManager = resourceManager;
+	groupDesc->resourceManager = resourceManager;
 	if (allocator->freeFunc)
-		materialDesc->allocator = allocator;
+		groupDesc->allocator = allocator;
 	else
-		materialDesc->allocator = NULL;
-	materialDesc->elementCount = elementCount;
-	if (elementCount > 0)
-	{
-		materialDesc->elements = (dsShaderVariableElement*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableElement)*elementCount);
-		DS_ASSERT(materialDesc->elements);
-		memcpy(materialDesc->elements, elements, sizeof(dsShaderVariableElement)*elementCount);
-	}
+		groupDesc->allocator = NULL;
+	groupDesc->elementCount = elementCount;
+	groupDesc->elements = (dsShaderVariableElement*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableElement)*elementCount);
+	DS_ASSERT(groupDesc->elements);
+	memcpy(groupDesc->elements, elements, sizeof(dsShaderVariableElement)*elementCount);
 
-	return materialDesc;
+	if (useGfxBuffer)
+	{
+		groupDesc->positions = (dsShaderVariablePos*)dsAllocator_alloc(
+			(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariablePos)*elementCount);
+		DS_ASSERT(groupDesc->positions);
+		size_t curSize = 0;
+		for (uint32_t i = 0; i < elementCount; ++i)
+		{
+			groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementSize(&curSize,
+				elements[i].type, elements[i].count);
+			groupDesc->positions[i].stride = dsMaterialType_size(elements[i].type);
+			groupDesc->positions[i].matrixColStride = dsMaterialType_size(
+				dsMaterialType_matrixColumnType(elements[i].type));
+		}
+	}
+	else
+		groupDesc->positions = NULL;
+
+	return groupDesc;
 }
 
 bool dsMockShaderVariableGroupDesc_destroy(dsResourceManager* resourceManager,
-	dsShaderVariableGroupDesc* materialDesc)
+	dsShaderVariableGroupDesc* groupDesc)
 {
 	DS_UNUSED(resourceManager);
-	if (materialDesc->allocator)
-		return dsAllocator_free(materialDesc->allocator, materialDesc);
+	if (groupDesc->allocator)
+		return dsAllocator_free(groupDesc->allocator, groupDesc);
 	return true;
 }

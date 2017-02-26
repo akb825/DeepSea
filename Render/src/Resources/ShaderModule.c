@@ -72,7 +72,7 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 	dsFileStream fileStream;
 	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open shader module file %s", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open shader module file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -91,7 +91,7 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 	if (!module)
 	{
 		if (errno == EFORMAT)
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file %s", filePath);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

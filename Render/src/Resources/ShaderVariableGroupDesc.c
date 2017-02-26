@@ -36,7 +36,7 @@ static bool hasDuplicates(const dsShaderVariableElement* elements, uint32_t elem
 		{
 			if (strcmp(elements[i].name, elements[j].name) == 0)
 			{
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s specified multiple times.",
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s' specified multiple times.",
 					elements[i].name);
 				hasDuplicate = true;
 				break;
@@ -75,14 +75,14 @@ dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(dsResourceManager* r
 
 		if ((unsigned int)elements[i].type >= dsMaterialType_Count)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element %s.", elements[i].name);
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid type for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 
 		if (elements[i].type >= dsMaterialType_Texture)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader variable groups may only contain primitive, "
-				"vector, and matrix types for element %s.", elements[i].name);
+				"vector, and matrix types for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 	}

@@ -189,13 +189,13 @@ const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* m
 	if (isDuplicate)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-			"Shader variable group element %s found in multiple groups.", name);
+			"Shader variable group element '%s' found in multiple groups.", name);
 		return NULL;
 	}
 	else if (!element)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-			"Uniform %s.%s not found in material description or any shader variable group.",
+			"Uniform '%s.%s' not found in material description or any shader variable group.",
 			uniformName, name);
 		return NULL;
 	}
@@ -239,7 +239,7 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 			else
 			{
 				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-					"Uniform %s.%s not found in material description.", uniformName,
+					"Uniform '%s.%s' not found in material description.", uniformName,
 					structMember.name);
 				success = false;
 				continue;
@@ -256,7 +256,7 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 			structMember.arrayElementCount != arrayCount)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for uniform %s.%s differ between shader and material.", uniformName,
+				"Types for uniform '%s.%s' differ between shader and material.", uniformName,
 				structMember.name);
 			success = false;
 			continue;
@@ -275,7 +275,7 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 
 	if (structInfo.memberCount != groupDesc->elementCount)
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Variable group %s doesn't match shader uniform block.",
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Variable group '%s' doesn't match shader uniform block.",
 			uniformName);
 		return false;
 	}
@@ -291,7 +291,7 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 			structMember.arrayElementCount != element->count)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for element %s.%s differ between shader and shader variable group.",
+				"Types for element '%s.%s' differ between shader and shader variable group.",
 				uniformName, structMember.name);
 			success = false;
 		}
@@ -300,7 +300,7 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 			(element->type >= dsMaterialType_DMat2x3 && element->type <= dsMaterialType_DMat4x3)) &&
 			structMember.rowMajor)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element %s.%s is row major. Non-square matrix "
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Element '%s.%s' is row major. Non-square matrix "
 				"elements within a shader variable group must be column-major.", uniformName,
 				structMember.name);
 			success = false;
@@ -331,7 +331,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, uniform.name);
 		if (elementIndex == DS_UNKNOWN)
 		{
-			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Uniform %s not found in material description.",
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Uniform '%s' not found in material description.",
 				uniform.name);
 			success = false;
 			continue;
@@ -349,7 +349,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 					if (uniform.arrayElementCount != 0)
 					{
 						DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-							"Shader variable group %s may not be an array.", uniform.name);
+							"Shader variable group '%s' may not be an array.", uniform.name);
 						success = false;
 					}
 
@@ -379,7 +379,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 		if (!typesMatch)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Types for uniform %s differ between shader and material.", uniform.name);
+				"Types for uniform '%s' differ between shader and material.", uniform.name);
 			success = false;
 		}
 	}
@@ -407,7 +407,7 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 	if (index == shaderCount)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader %s not found in shader module.", name);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shader '%s' not found in shader module.", name);
 		return NULL;
 	}
 
@@ -441,7 +441,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) != 0))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material description isn't compatible with shader %s.",
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material description isn't compatible with shader '%s'.",
 			pipeline.name);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}

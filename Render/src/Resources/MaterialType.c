@@ -71,9 +71,11 @@ uint16_t dsMaterialType_size(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
 	};
-
 	DS_STATIC_ASSERT(DS_ARRAY_SIZE(size) == dsMaterialType_Count, array_enum_mismatch);
-	DS_ASSERT(type >= 0 && type < dsMaterialType_Count);
+
+	if ((int)type < 0 || type >= dsMaterialType_Count)
+		return 0;
+
 	return size[type];
 }
 
@@ -131,9 +133,11 @@ uint16_t dsMaterialType_machineAlignment(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
 	};
-
 	DS_STATIC_ASSERT(DS_ARRAY_SIZE(alignment) == dsMaterialType_Count, array_enum_mismatch);
-	DS_ASSERT(type >= 0 && type < dsMaterialType_Count);
+
+	if ((int)type < 0 || type >= dsMaterialType_Count)
+		return 0;
+
 	return alignment[type];
 }
 
@@ -163,6 +167,7 @@ unsigned int dsMaterialType_matrixRows(dsMaterialType type)
 		2, // dsMaterialType_DMat4x2
 		3, // dsMaterialType_DMat4x3
 	};
+
 	DS_ASSERT(type - dsMaterialType_Mat2 < DS_ARRAY_SIZE(rows));
 	return rows[type - dsMaterialType_Mat2];
 }
@@ -193,8 +198,40 @@ unsigned int dsMaterialType_matrixColumns(dsMaterialType type)
 		4, // dsMaterialType_DMat4x2
 		4, // dsMaterialType_DMat4x3
 	};
+
 	DS_ASSERT(type - dsMaterialType_Mat2 < DS_ARRAY_SIZE(columns));
 	return columns[type - dsMaterialType_Mat2];
+}
+
+dsMaterialType dsMaterialType_matrixColumnType(dsMaterialType type)
+{
+	if (type < dsMaterialType_Mat2 || type > dsMaterialType_DMat4x3)
+		return dsMaterialType_Count;
+
+	static const dsMaterialType columnTypes[] =
+	{
+		dsMaterialType_Vec2,  // dsMaterialType_Mat2
+		dsMaterialType_Vec3,  // dsMaterialType_Mat3
+		dsMaterialType_Vec4,  // dsMaterialType_Mat4
+		dsMaterialType_Vec2,  // dsMaterialType_Mat2x3
+		dsMaterialType_Vec2,  // dsMaterialType_Mat2x4
+		dsMaterialType_Vec3,  // dsMaterialType_Mat3x2
+		dsMaterialType_Vec3,  // dsMaterialType_Mat3x4
+		dsMaterialType_Vec4,  // dsMaterialType_Mat4x2
+		dsMaterialType_Vec4,  // dsMaterialType_Mat4x3
+		dsMaterialType_DVec2, // dsMaterialType_DMat2
+		dsMaterialType_DVec3, // dsMaterialType_DMat3
+		dsMaterialType_DVec4, // dsMaterialType_DMat4
+		dsMaterialType_DVec2, // dsMaterialType_DMat2x3
+		dsMaterialType_DVec2, // dsMaterialType_DMat2x4
+		dsMaterialType_DVec3, // dsMaterialType_DMat3x2
+		dsMaterialType_DVec3, // dsMaterialType_DMat3x4
+		dsMaterialType_DVec4, // dsMaterialType_DMat4x2
+		dsMaterialType_DVec4, // dsMaterialType_DMat4x3
+	};
+
+	DS_ASSERT(type - dsMaterialType_Mat2 < DS_ARRAY_SIZE(columnTypes));
+	return columnTypes[type - dsMaterialType_Mat2];
 }
 
 size_t dsMaterialType_addElementSize(size_t* curSize, dsMaterialType type, uint32_t count)
