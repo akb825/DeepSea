@@ -39,6 +39,7 @@ TEST_F(ShaderVariableGroupDescTest, Create)
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
 		elements, elementCount);
 	ASSERT_TRUE(groupDesc);
+	EXPECT_EQ(1U, resourceManager->shaderVariableGroupDescCount);
 
 	EXPECT_EQ(0U, dsShaderVariableGroupDesc_findElement(groupDesc, "singleVec4"));
 	EXPECT_EQ(1U, dsShaderVariableGroupDesc_findElement(groupDesc, "matrixArray"));
@@ -46,6 +47,7 @@ TEST_F(ShaderVariableGroupDescTest, Create)
 	EXPECT_EQ(DS_UNKNOWN, dsShaderVariableGroupDesc_findElement(groupDesc, "asdf"));
 
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc));
+	EXPECT_EQ(0U, resourceManager->shaderVariableGroupDescCount);
 }
 
 TEST_F(ShaderVariableGroupDescTest, CreateDuplicateName)

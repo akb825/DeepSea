@@ -92,8 +92,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->minMappingAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Indirect | dsGfxBufferUsage_UniformBlock |
-		dsGfxBufferUsage_Image | dsGfxBufferUsage_Sampler | dsGfxBufferUsage_CopyFrom |
-		dsGfxBufferUsage_CopyTo);
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_Sampler |
+		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
 	resourceManager->maxVertexAttribs = 16;

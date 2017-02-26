@@ -91,7 +91,7 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			!elements[i].shaderVariableGroupDesc)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Variable group material element missing shaderVaraibleGroupDesc for element '%s'.",
+				"Variable group material element '%s' missing shaderVaraibleGroupDesc.",
 				elements[i].name);
 			elementsValid = false;
 		}
@@ -115,7 +115,8 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 		if (elements[i].type >= dsMaterialType_Texture && elements[i].count > 0)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-				"Only primitive types can use arrays for element '%s'.", elements[i].name);
+				"Only primitive, vector, and matrix types can use arrays for element '%s'.",
+				elements[i].name);
 			elementsValid = false;
 		}
 	}

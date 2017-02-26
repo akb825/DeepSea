@@ -73,7 +73,7 @@ uint16_t dsMaterialType_size(dsMaterialType type)
 	};
 	DS_STATIC_ASSERT(DS_ARRAY_SIZE(size) == dsMaterialType_Count, array_enum_mismatch);
 
-	if ((int)type < 0 || type >= dsMaterialType_Count)
+	if ((unsigned int)type >= dsMaterialType_Count)
 		return 0;
 
 	return size[type];
@@ -135,7 +135,7 @@ uint16_t dsMaterialType_machineAlignment(dsMaterialType type)
 	};
 	DS_STATIC_ASSERT(DS_ARRAY_SIZE(alignment) == dsMaterialType_Count, array_enum_mismatch);
 
-	if ((int)type < 0 || type >= dsMaterialType_Count)
+	if ((unsigned int)type >= dsMaterialType_Count)
 		return 0;
 
 	return alignment[type];
