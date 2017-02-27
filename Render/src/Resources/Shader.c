@@ -180,9 +180,9 @@ const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* m
 		if (foundElement != DS_UNKNOWN)
 		{
 			if (element)
-				element = groupDesc->elements + foundElement;
-			else
 				isDuplicate = true;
+			else
+				element = groupDesc->elements + foundElement;
 		}
 	}
 
@@ -224,6 +224,14 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 		{
 			if (supportsBuffers)
 			{
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+					"Uniform '%s.%s' not found in material description.", uniformName,
+					structMember.name);
+				success = false;
+				continue;
+			}
+			else
+			{
 				const dsShaderVariableElement* element = findShaderVariableElement(materialDesc,
 					uniformName, structMember.name);
 				if (!element)
@@ -236,14 +244,6 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 				type = element->type;
 				arrayCount = element->count;
 			}
-			else
-			{
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
-					"Uniform '%s.%s' not found in material description.", uniformName,
-					structMember.name);
-				success = false;
-				continue;
-			}
 		}
 		else
 		{
@@ -252,8 +252,25 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 			arrayCount = element->count;
 		}
 
-		if (convertMslType(structMember.type) != type ||
-			structMember.arrayElementCount != arrayCount)
+
+		uint32_t structMemberArrayCount = 0;
+		if (structMember.arrayElementCount > 1)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Multi-dimentional arrays aren't supported for uniform '%s.%s'.",
+				uniformName, structMember.name);
+			success = false;
+			continue;
+		}
+		else if (structMember.arrayElementCount == 1)
+		{
+			mslArrayInfo arrayInfo;
+			DS_VERIFY(mslModule_structMemberArrayInfo(&arrayInfo, module, pipelineIndex,
+				structIndex, i, 0));
+			structMemberArrayCount = arrayInfo.length;
+		}
+
+		if (convertMslType(structMember.type) != type || structMemberArrayCount != arrayCount)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
 				"Types for uniform '%s.%s' differ between shader and material.", uniformName,
@@ -287,8 +304,26 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 
 		mslStructMember structMember;
 		DS_VERIFY(mslModule_structMember(&structMember, module, pipelineIndex, structIndex, i));
+
+		uint32_t structMemberArrayCount = 0;
+		if (structMember.arrayElementCount > 1)
+		{
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+				"Multi-dimentional arrays aren't supported for variable group member '%s.%s'.",
+				uniformName, structMember.name);
+			success = false;
+			continue;
+		}
+		else if (structMember.arrayElementCount == 1)
+		{
+			mslArrayInfo arrayInfo;
+			DS_VERIFY(mslModule_structMemberArrayInfo(&arrayInfo, module, pipelineIndex,
+				structIndex, i, 0));
+			structMemberArrayCount = arrayInfo.length;
+		}
+
 		if (convertMslType(structMember.type) != element->type ||
-			structMember.arrayElementCount != element->count)
+			structMemberArrayCount != element->count)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
 				"Types for element '%s.%s' differ between shader and shader variable group.",
@@ -353,7 +388,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 						success = false;
 					}
 
-					if (!!isShaderVariableGroupCompatible(module, index, uniform.structIndex,
+					if (!isShaderVariableGroupCompatible(module, index, uniform.structIndex,
 						element->shaderVariableGroupDesc, uniform.name))
 					{
 						success = false;

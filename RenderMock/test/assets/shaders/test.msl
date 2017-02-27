@@ -11,7 +11,7 @@ sampler_state diffuseTexture
 };
 
 uniform vec4 colorMultiplier;
-uniform vec2 textureScale;
+uniform vec2 textureScaleOffset[2];
 
 uniform Transform
 {
@@ -31,7 +31,7 @@ uniform Transform
 	vec2 texCoord;
 } outputs;
 
-[[fragment]] in FragmentIn
+[[fragment]] in VertexOut
 {
 	vec3 normal;
 	vec4 color;
@@ -45,7 +45,7 @@ uniform Transform
 	gl_Position = INSTANCE(transform).modelViewProjection*vec4(position, 1.0);
 	outputs.normal = INSTANCE(transform).normalMat*normal;
 	outputs.color = uniforms.colorMultiplier*color;
-	outputs.texCoord = uniforms.textureScale*texCoord;
+	outputs.texCoord = uniforms.textureScaleOffset[0]*texCoord + uniforms.textureScaleOffset[1];
 }
 
 [[fragment]] void fragmentShader()
