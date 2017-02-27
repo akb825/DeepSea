@@ -24,19 +24,15 @@ uniform Transform
 [[vertex]] layout(location = DS_COLOR) in vec4 color;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
 
-[[vertex]] out VertexOut
+struct VertexOut
 {
 	vec3 normal;
 	vec4 color;
 	vec2 texCoord;
-} outputs;
+};
 
-[[fragment]] in VertexOut
-{
-	vec3 normal;
-	vec4 color;
-	vec2 texCoord;
-} inputs;
+[[vertex]] out VertexOut outputs;
+[[fragment]] in VertexOut inputs;
 
 [[fragment]] out vec4 color;
 
