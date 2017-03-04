@@ -44,7 +44,7 @@ static size_t getDataSize(const dsMaterialDesc* description)
 		if (description->elements[i].isVolatile)
 			continue;
 
-		dsMaterialType_addElementSize(&dataSize, description->elements[i].type,
+		dsMaterialType_addElementCpuSize(&dataSize, description->elements[i].type,
 			description->elements[i].count);
 	}
 	return dataSize;
@@ -155,7 +155,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 			material->offsets[i] = DS_UNKNOWN;
 		else
 		{
-			material->offsets[i] = (uint32_t)dsMaterialType_addElementSize(&curSize,
+			material->offsets[i] = (uint32_t)dsMaterialType_addElementCpuSize(&curSize,
 				description->elements[i].type, description->elements[i].count);
 		}
 	}
@@ -183,7 +183,7 @@ bool dsMaterial_getElementData(void* outData, const dsMaterial* material, uint32
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
 	DS_ASSERT(material->offsets[element] != DS_UNKNOWN);
-	uint16_t stride = dsMaterialType_size(type);
+	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(outData, material->data + material->offsets[element] + firstIndex*stride, count*stride);
 	return true;
 }
@@ -223,7 +223,7 @@ bool dsMaterial_setElementData(dsMaterial* material, uint32_t element, const voi
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
 	DS_ASSERT(material->offsets[element] != DS_UNKNOWN);
-	uint16_t stride = dsMaterialType_size(type);
+	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(material->data + material->offsets[element] + firstIndex*stride, data, count*stride);
 	return true;
 }

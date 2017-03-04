@@ -67,7 +67,7 @@ static uint32_t elementSize(const dsShaderVariableElement* element, const dsShad
 		return pos->matrixColStride*dsMaterialType_matrixRows(element->type);
 	}
 	else
-		return dsMaterialType_size(element->type);
+		return dsMaterialType_cpuSize(element->type);
 }
 
 static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, bool useGfxBuffer)
@@ -83,7 +83,7 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		dsMaterialType_addElementSize(&dataSize, description->elements[i].type,
+		dsMaterialType_addElementCpuSize(&dataSize, description->elements[i].type,
 			description->elements[i].count);
 	}
 	return dataSize;
@@ -92,7 +92,7 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 static void memcpyData(void* result, dsMaterialType type, const dsShaderVariablePos* pos,
 	const void* data, uint32_t count, bool isArray)
 {
-	uint32_t baseStride = dsMaterialType_size(type);
+	uint32_t baseStride = dsMaterialType_cpuSize(type);
 	uint32_t stride = isArray ? pos->stride : baseStride;
 	DS_ASSERT(stride >= baseStride);
 
@@ -104,7 +104,7 @@ static void memcpyData(void* result, dsMaterialType type, const dsShaderVariable
 		// Matrices may have thier own stride.
 		unsigned int rows = dsMaterialType_matrixRows(type);
 		unsigned int columns = dsMaterialType_matrixColumns(type);
-		uint32_t baseMatrixColStride = rows*dsMaterialType_machineAlignment(type);
+		uint32_t baseMatrixColStride = rows*dsMaterialType_cpuAlignment(type);
 		uint32_t matrixColStride = pos->matrixColStride;
 		DS_ASSERT(matrixColStride >= baseMatrixColStride);
 		DS_ASSERT(baseMatrixColStride*columns == baseStride);
@@ -133,7 +133,7 @@ static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* gr
 {
 	const dsShaderVariableElement* element = group->description->elements + elementIndex;
 	const dsShaderVariablePos* pos = group->description->positions + elementIndex;
-	uint32_t baseStride = dsMaterialType_size(element->type);
+	uint32_t baseStride = dsMaterialType_cpuSize(element->type);
 	uint32_t stride = element->count > 0 ? pos->stride : baseStride;
 	DS_ASSERT(stride >= baseStride);
 
@@ -312,14 +312,14 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			{
 				// Guarantee machine alignment.
 				dsMaterialType type = description->elements[i].type;
-				uint16_t stride = dsMaterialType_size(type);
+				uint16_t stride = dsMaterialType_cpuSize(type);
 
-				group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementSize(
+				group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCpuSize(
 					&curSize, type, description->elements[i].count);
 				group->rawDataPositions[i].pos.stride = stride;
 				group->rawDataPositions[i].pos.matrixColStride =
 					(uint16_t)(dsMaterialType_matrixRows(type)*
-					dsMaterialType_machineAlignment(type));
+					dsMaterialType_cpuAlignment(type));
 				group->rawDataPositions[i].dirty = false;
 			}
 		}
@@ -395,7 +395,7 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 			pos = group->description->positions + element;
 
 			if (group->description->elements[element].count == 0)
-				stride = dsMaterialType_size(type);
+				stride = dsMaterialType_cpuSize(type);
 			else
 				stride = pos->stride;
 

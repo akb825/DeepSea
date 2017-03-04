@@ -65,11 +65,14 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 		size_t curSize = 0;
 		for (uint32_t i = 0; i < elementCount; ++i)
 		{
-			groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementSize(&curSize,
+			groupDesc->positions[i].offset = (uint32_t)dsMaterialType_addElementBlockSize(&curSize,
 				elements[i].type, elements[i].count);
-			groupDesc->positions[i].stride = dsMaterialType_size(elements[i].type);
-			groupDesc->positions[i].matrixColStride = dsMaterialType_size(
-				dsMaterialType_matrixColumnType(elements[i].type));
+			if (elements[i].count > 0)
+				groupDesc->positions[i].stride = dsMaterialType_blockSize(elements[i].type, true);
+			else
+				groupDesc->positions[i].stride = 0;
+			groupDesc->positions[i].matrixColStride = dsMaterialType_blockAlignment(
+				dsMaterialType_matrixColumnType(elements[i].type), true);
 		}
 	}
 	else
