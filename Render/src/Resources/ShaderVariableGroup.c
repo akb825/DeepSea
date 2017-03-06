@@ -64,7 +64,7 @@ static uint32_t elementSize(const dsShaderVariableElement* element, const dsShad
 	else if (element->type >= dsMaterialType_Mat2 && element->type <= dsMaterialType_DMat4x3)
 	{
 		DS_ASSERT(pos->matrixColStride > 0);
-		return pos->matrixColStride*dsMaterialType_matrixRows(element->type);
+		return pos->matrixColStride*dsMaterialType_matrixColumns(element->type);
 	}
 	else
 		return dsMaterialType_cpuSize(element->type);
@@ -89,22 +89,22 @@ static size_t getRawBufferSize(const dsShaderVariableGroupDesc* description, boo
 	return dataSize;
 }
 
-static void memcpyData(void* result, dsMaterialType type, const dsShaderVariablePos* pos,
-	const void* data, uint32_t count, bool isArray)
+static void memcpyData(void* result, const dsShaderVariableElement* element,
+	const dsShaderVariablePos* pos, const void* data, uint32_t count)
 {
-	uint32_t baseStride = dsMaterialType_cpuSize(type);
-	uint32_t stride = isArray ? pos->stride : baseStride;
+	uint32_t baseStride = dsMaterialType_cpuSize(element->type);
+	uint32_t stride = element->count > 0 ? pos->stride : elementSize(element, pos);
 	DS_ASSERT(stride >= baseStride);
 
 	// Check to see if the packing of the data matches.
 	if (baseStride == stride)
 		memcpy(result, data, stride*count);
-	else if (type >= dsMaterialType_Mat2 && type <= dsMaterialType_DMat4x3)
+	else if (element->type >= dsMaterialType_Mat2 && element->type <= dsMaterialType_DMat4x3)
 	{
 		// Matrices may have thier own stride.
-		unsigned int rows = dsMaterialType_matrixRows(type);
-		unsigned int columns = dsMaterialType_matrixColumns(type);
-		uint32_t baseMatrixColStride = rows*dsMaterialType_cpuAlignment(type);
+		unsigned int columns = dsMaterialType_matrixColumns(element->type);
+		uint32_t baseMatrixColStride = dsMaterialType_cpuSize(
+			dsMaterialType_matrixColumnType(element->type));
 		uint32_t matrixColStride = pos->matrixColStride;
 		DS_ASSERT(matrixColStride >= baseMatrixColStride);
 		DS_ASSERT(baseMatrixColStride*columns == baseStride);
@@ -134,7 +134,7 @@ static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* gr
 	const dsShaderVariableElement* element = group->description->elements + elementIndex;
 	const dsShaderVariablePos* pos = group->description->positions + elementIndex;
 	uint32_t baseStride = dsMaterialType_cpuSize(element->type);
-	uint32_t stride = element->count > 0 ? pos->stride : baseStride;
+	uint32_t stride = element->count > 0 ? pos->stride : elementSize(element, pos);
 	DS_ASSERT(stride >= baseStride);
 
 	if (stride == baseStride)
@@ -180,7 +180,7 @@ static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* gr
 			buffer = group->tempBuff;
 		}
 
-		memcpyData(buffer, element->type, pos, data, count, element->count > 0);
+		memcpyData(buffer, element, pos, data, count);
 		bool result = dsGfxBuffer_copyData(commandBuffer, group->buffer, pos->offset +
 			stride*firstIndex, buffer, count*stride);
 		return result;
@@ -273,7 +273,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->buffer = NULL;
 	group->rawData = NULL;
 	group->rawDataPositions = NULL;
-	group->dirtyStart = 0;
+	group->dirtyStart = (size_t)-1;
 	group->dirtyEnd = 0;
 
 	group->tempBuffAllocator = NULL;
@@ -285,8 +285,9 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	if (useGfxBuffer)
 	{
 		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator,
-			dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo,
-			dsGfxMemory_Draw | dsGfxMemory_Dynamic, NULL, bufferSize);
+			dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo,
+			dsGfxMemory_Draw | dsGfxMemory_Dynamic | dsGfxMemory_Read, NULL,
+			DS_ALIGNED_SIZE(bufferSize));
 
 		if (!group->buffer)
 		{
@@ -310,16 +311,14 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			size_t curSize = 0;
 			for (uint32_t i = 0; i < description->elementCount; ++i)
 			{
-				// Guarantee machine alignment.
 				dsMaterialType type = description->elements[i].type;
 				uint16_t stride = dsMaterialType_cpuSize(type);
 
 				group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCpuSize(
 					&curSize, type, description->elements[i].count);
 				group->rawDataPositions[i].pos.stride = stride;
-				group->rawDataPositions[i].pos.matrixColStride =
-					(uint16_t)(dsMaterialType_matrixRows(type)*
-					dsMaterialType_cpuAlignment(type));
+				group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(
+					dsMaterialType_matrixColumnType(type));
 				group->rawDataPositions[i].dirty = false;
 			}
 		}
@@ -404,8 +403,8 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 			group->dirtyStart = dsMin(start, group->dirtyStart);
 			group->dirtyEnd = dsMax(end, group->dirtyEnd);
 		}
-		memcpyData(group->rawData + pos->offset + stride*firstIndex, type, pos, data, count,
-			group->description->elements[element].count > 0);
+		memcpyData(group->rawData + pos->offset + stride*firstIndex,
+			group->description->elements + element, pos, data, count);
 		DS_PROFILE_FUNC_RETURN(true);
 	}
 	else
@@ -453,12 +452,15 @@ bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariab
 	}
 
 	bool success = true;
-	if (group->buffer && group->rawData && group->dirtyStart != group->dirtyEnd)
+	if (group->buffer && group->rawData && group->dirtyStart < group->dirtyEnd)
 	{
-		success = dsGfxBuffer_copyData(commandBuffer, group->buffer, 0,
+		success = dsGfxBuffer_copyData(commandBuffer, group->buffer, group->dirtyStart,
 			group->rawData + group->dirtyStart, group->dirtyEnd - group->dirtyStart);
 		if (success)
-			group->dirtyStart = group->dirtyEnd = 0;
+		{
+			group->dirtyStart = (size_t)-1;
+			group->dirtyEnd = 0;
+		}
 	}
 	else if (group->rawDataPositions)
 	{
@@ -469,7 +471,7 @@ bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariab
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShaderVariableGorup_destroy(dsShaderVariableGroup* group)
+bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group)
 {
 	DS_PROFILE_FUNC_START();
 

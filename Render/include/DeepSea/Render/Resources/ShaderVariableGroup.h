@@ -187,7 +187,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffe
  * @param group The shader variable group to destroy.
  * @return False if the shader variable group couldn't be destroyed.
  */
-DS_RENDER_EXPORT bool dsShaderVariableGorup_destroy(dsShaderVariableGroup* group);
+DS_RENDER_EXPORT bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group);
 
 #ifdef __cplusplus
 }
