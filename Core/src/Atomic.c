@@ -23,22 +23,22 @@
 
 __int64 dsAtomic_interlockedOr64Impl(__int64* xPtr, __int64 value)
 {
-	return _InterlockedOr64(xPtr, value);
+	return InterlockedOr64(xPtr, value);
 }
 
 __int64 dsAtomic_interlockedExchange64Impl(__int64* xPtr, __int64 value)
 {
-	return _InterlockedExchange64(xPtr, value);
+	return InterlockedExchange64(xPtr, value);
 }
 
 __int64 dsAtomic_interlockedCompareExchange64Impl(__int64* xPtr, __int64 value, __int64 expected)
 {
-	return _InterlockedCompareExchange64(xPtr, value, expected);
+	return InterlockedCompareExchange64(xPtr, value, expected);
 }
 
 __int64 dsAtomic_interlockedExchangeAdd64Impl(__int64* xPtr, __int64 value)
 {
-	return _InterlockedExchangeAdd64(xPtr, value);
+	return InterlockedExchangeAdd64(xPtr, value);
 }
 
 DS_CORE_EXPORT int dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* valuePtr);
