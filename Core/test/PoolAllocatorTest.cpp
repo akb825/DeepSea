@@ -47,7 +47,7 @@ dsThreadReturnType pauseThreadFunc(void* data)
 
 TEST(PoolAllocator, Initialize)
 {
-	const unsigned int chunkSize = 14;
+	const unsigned int chunkSize = 24;
 	const unsigned int chunkCount = 4;
 	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*chunkCount;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
@@ -76,7 +76,7 @@ TEST(PoolAllocator, Initialize)
 
 TEST(PoolAllocator, AllocateFree)
 {
-	const unsigned int chunkSize = 14;
+	const unsigned int chunkSize = 24;
 	const unsigned int chunkCount = 4;
 	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*chunkCount;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
@@ -87,7 +87,7 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
 
 	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 17));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 33));
 	EXPECT_NULL_ERRNO(EINVAL, dsPoolAllocator_alloc(&allocator, chunkSize, 32));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
@@ -179,9 +179,47 @@ TEST(PoolAllocator, AllocateFree)
 	dsPoolAllocator_destroy(&allocator);
 }
 
+TEST(PoolAllocator, SingleChunk)
+{
+	const unsigned int chunkSize = 24;
+	const unsigned int chunkCount = 1;
+	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*chunkCount;
+	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
+
+	EXPECT_EQ(bufferSize, dsPoolAllocator_bufferSize(chunkSize, chunkCount));
+
+	dsPoolAllocator allocator;
+	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
+
+	void* ptr = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
+	EXPECT_EQ(buffer, ptr);
+	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
+	EXPECT_EQ((size_t)-1, allocator.head);
+	EXPECT_EQ(0U, allocator.freeCount);
+	EXPECT_EQ(1U, allocator.initializedCount);
+	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+
+	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_reset(nullptr));
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr));
+	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
+	EXPECT_EQ(0U, allocator.head);
+	EXPECT_EQ(1U, allocator.freeCount);
+	EXPECT_EQ(1U, allocator.initializedCount);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+
+	ptr = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
+	EXPECT_EQ(buffer, ptr);
+	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
+	EXPECT_EQ((size_t)-1, allocator.head);
+	EXPECT_EQ(0U, allocator.freeCount);
+	EXPECT_EQ(1U, allocator.initializedCount);
+	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+}
+
 TEST(PoolAllocator, Reset)
 {
-	const unsigned int chunkSize = 14;
+	const unsigned int chunkSize = 24;
 	const unsigned int chunkCount = 4;
 	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*chunkCount;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
@@ -192,7 +230,7 @@ TEST(PoolAllocator, Reset)
 	EXPECT_TRUE(dsPoolAllocator_initialize(&allocator, chunkSize, chunkCount, buffer, bufferSize));
 
 	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
-	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 17));
+	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 33));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr1);
@@ -279,7 +317,7 @@ TEST(PoolAllocator, Reset)
 TEST(PoolAllocator, ThreadAlloc)
 {
 	const unsigned int threadCount = 100;
-	const unsigned int chunkSize = 14;
+	const unsigned int chunkSize = 24;
 	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*threadCount;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 
@@ -301,7 +339,7 @@ TEST(PoolAllocator, ThreadAlloc)
 TEST(PoolAllocator, ThreadAllocWithPause)
 {
 	const unsigned int threadCount = 100;
-	const unsigned int chunkSize = 14;
+	const unsigned int chunkSize = 24;
 	const unsigned int bufferSize = DS_ALIGNED_SIZE(chunkSize)*threadCount;
 	DS_ALIGN(DS_ALLOC_ALIGNMENT) uint8_t buffer[bufferSize];
 

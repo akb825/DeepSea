@@ -147,7 +147,9 @@ typedef bool (*dsKeysEqualFunction)(const void* first, const void* second);
 typedef struct dsHashTable
 {
 	/**
-	 * @brief The list of nodes. This should not be modified.
+	 * @brief The list of nodes.
+	 *
+	 * This can be used to iterate over the nodes, but should not be modified.
 	 */
 	dsList list;
 

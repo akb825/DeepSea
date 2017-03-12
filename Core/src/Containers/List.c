@@ -61,6 +61,7 @@ bool dsList_insert(dsList* list, dsListNode* previous, dsListNode* node)
 	if (!previous)
 	{
 		DS_ASSERT(!list->head || !list->head->previous);
+		node->previous = NULL;
 		node->next = list->head;
 		if (node->next)
 		{

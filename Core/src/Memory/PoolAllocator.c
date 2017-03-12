@@ -92,13 +92,21 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size, unsigned in
 		size_t nextHead = *(size_t*)retVal;
 		if (nextHead == DS_NONE)
 		{
-			nextHead = ++allocator->initializedCount;
-			if (nextHead < allocator->chunkCount)
-				*(size_t*)DS_BASE_PTR(allocator, nextHead) = DS_NONE;
+			if (allocator->initializedCount == allocator->chunkCount)
+			{
+				DS_ASSERT(allocator->freeCount == 1);
+				nextHead = DS_NONE;
+			}
 			else
 			{
-				DS_ASSERT(allocator->initializedCount == allocator->chunkCount);
-				nextHead = DS_NONE;
+				nextHead = ++allocator->initializedCount;
+				if (nextHead < allocator->chunkCount)
+					*(size_t*)DS_BASE_PTR(allocator, nextHead) = DS_NONE;
+				else
+				{
+					DS_ASSERT(allocator->initializedCount == allocator->chunkCount);
+					nextHead = DS_NONE;
+				}
 			}
 		}
 		--allocator->freeCount;
@@ -138,14 +146,14 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 		allocator->chunkSize % DS_ALLOC_ALIGNMENT == 0);
 
 	// Make sure that the pointer is valid.
-	uintptr_t ptrInt = (uintptr_t)ptr;
-	if (ptrInt % allocator->chunkSize != 0)
+	uintptr_t bufferOffset = (uintptr_t)ptr - (uintptr_t)allocator->buffer;
+	if (bufferOffset % allocator->chunkSize != 0)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	size_t index = (size_t)(ptrInt - (uintptr_t)allocator->buffer)/allocator->chunkSize;
+	size_t index = bufferOffset/allocator->chunkSize;
 	if (index >= allocator->chunkCount)
 	{
 		errno = EINVAL;
