@@ -36,6 +36,27 @@ struct dsMaterial
 	uint32_t* offsets;
 };
 
+typedef struct BufferData
+{
+	dsGfxBuffer* buffer;
+	size_t offset;
+	size_t size;
+} BufferData;
+
+static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t count)
+{
+	if (type == dsMaterialType_UniformBlock || type == dsMaterialType_UniformBuffer)
+	{
+		DS_ASSERT(count == 0);
+		size_t alignment = sizeof(void*);
+		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		*curSize = offset + sizeof(BufferData);
+		return offset;
+	}
+
+	return dsMaterialType_addElementCpuSize(curSize, type, count);
+}
+
 static size_t getDataSize(const dsMaterialDesc* description)
 {
 	size_t dataSize = 0;
@@ -44,8 +65,7 @@ static size_t getDataSize(const dsMaterialDesc* description)
 		if (description->elements[i].isVolatile)
 			continue;
 
-		dsMaterialType_addElementCpuSize(&dataSize, description->elements[i].type,
-			description->elements[i].count);
+		addElementSize(&dataSize, description->elements[i].type, description->elements[i].count);
 	}
 	return dataSize;
 }
@@ -155,7 +175,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 			material->offsets[i] = DS_UNKNOWN;
 		else
 		{
-			material->offsets[i] = (uint32_t)dsMaterialType_addElementCpuSize(&curSize,
+			material->offsets[i] = (uint32_t)addElementSize(&curSize,
 				description->elements[i].type, description->elements[i].count);
 		}
 	}
@@ -269,12 +289,12 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a texture type.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture type.");
 		return false;
 	}
 
 	*(dsTexture**)(material->data + material->offsets[element]) = texture;
-	return false;
+	return true;
 }
 
 dsShaderVariableGroup* dsMaterial_getVariableGroup(const dsMaterial* material, uint32_t element)
@@ -315,15 +335,16 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 	if (material->description->elements[element].type != dsMaterialType_VariableGroup)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a shader variable group.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a shader variable group.");
 		return false;
 	}
 
 	*(dsShaderVariableGroup**)(material->data + material->offsets[element]) = group;
-	return false;
+	return true;
 }
 
-dsGfxBuffer* dsMaterial_getBuffer(const dsMaterial* material, uint32_t element)
+dsGfxBuffer* dsMaterial_getBuffer(size_t* outOffset, size_t* outSize, const dsMaterial* material,
+	uint32_t element)
 {
 	if (!material || element >= material->description->elementCount ||
 		material->offsets[element] == DS_UNKNOWN)
@@ -335,10 +356,16 @@ dsGfxBuffer* dsMaterial_getBuffer(const dsMaterial* material, uint32_t element)
 	if (type < dsMaterialType_UniformBlock || type > dsMaterialType_UniformBuffer)
 		return NULL;
 
-	return *(dsGfxBuffer**)(material->data + material->offsets[element]);
+	const BufferData* bufferData = (const BufferData*)(material->data + material->offsets[element]);
+	if (outOffset)
+		*outOffset = bufferData->offset;
+	if (outSize)
+		*outSize = bufferData->size;
+	return bufferData->buffer;
 }
 
-bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer)
+bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer,
+	size_t offset, size_t size)
 {
 	if (!material)
 	{
@@ -364,12 +391,40 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	if (type < dsMaterialType_UniformBlock || type > dsMaterialType_UniformBuffer)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a buffer type.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a buffer type.");
 		return false;
 	}
 
-	*(dsGfxBuffer**)(material->data + material->offsets[element]) = buffer;
-	return false;
+	if (buffer)
+	{
+		if (type == dsMaterialType_UniformBlock && !(buffer->usage & dsGfxBufferUsage_UniformBlock))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a uniform block.");
+			return false;
+		}
+
+		if (type == dsMaterialType_UniformBuffer &&
+			!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a uniform buffer.");
+			return false;
+		}
+
+		if (offset + size > buffer->size)
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");
+			return false;
+		}
+	}
+
+	BufferData* bufferData = (BufferData*)(material->data + material->offsets[element]);
+	bufferData->buffer = buffer;
+	bufferData->offset = offset;
+	bufferData->size = size;
+	return true;
 }
 
 void dsMaterial_destroy(dsMaterial* material)

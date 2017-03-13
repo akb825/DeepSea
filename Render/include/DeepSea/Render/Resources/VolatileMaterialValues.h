@@ -177,21 +177,25 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMate
 
 /**
  * @brief Gets a buffer value by name.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param values The volatile material values.
  * @param name The name of the buffer.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferName(
-	const dsVolatileMaterialValues* values, const char* name);
+DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset,
+	size_t* outSize, const dsVolatileMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a buffer value by ID.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param values The volatile material values.
  * @param nameId The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferId(
-	const dsVolatileMaterialValues* values, uint32_t nameId);
+DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset,
+	size_t* outSize, const dsVolatileMaterialValues* values, uint32_t nameId);
 
 /**
  * @brief Sets a buffer value by name.
@@ -199,11 +203,13 @@ DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferId(
  * @param values The volatile material values.
  * @param name The name of the buffer.
  * @param buffer The buffer to set.
+ * @param offset The offset into the buffer.
+ * @param size The size to use within the buffer.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
 DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values,
-	const char* name, dsGfxBuffer* buffer);
+	const char* name, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Sets a buffer value by ID.
@@ -211,11 +217,13 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialV
  * @param values The volatile material values.
  * @param nameId The hash of the buffer name.
  * @param buffer The buffer to set.
+ * @param offset The offset into the buffer.
+ * @param size The size to use within the buffer.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
 DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values,
-	uint32_t nameId, dsGfxBuffer* buffer);
+	uint32_t nameId, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Removes a volatile material value by name.

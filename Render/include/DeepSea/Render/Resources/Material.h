@@ -151,11 +151,14 @@ DS_RENDER_EXPORT bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t
 
 /**
  * @brief Gets the buffer data for a material element.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outSize The size to use within the buffer. This may be NULL.
  * @param material The material to get the buffer from.
  * @param element The index of the element to get.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(const dsMaterial* material, uint32_t element);
+DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(size_t* outOffset, size_t* outSize,
+	const dsMaterial* material, uint32_t element);
 
 /**
  * @brief Sets the buffer data for a material element.
@@ -163,10 +166,12 @@ DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getBuffer(const dsMaterial* material, u
  * @param material The material to set the buffer on.
  * @param element The index of the element to set.
  * @param buffer The buffer to set.
+ * @param offset The offset into the buffer.
+ * @param size The size to use within the buffer.
  * @return Flase if the parameters are invalid or the element isn't a buffer.
  */
 DS_RENDER_EXPORT bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element,
-	dsGfxBuffer* buffer);
+	dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Destroys a material.
