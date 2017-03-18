@@ -112,6 +112,8 @@ typedef struct dsCommandBuffer dsCommandBuffer;
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsRenderer and the true internal type.
  *
+ * @remark None of the members should be modified outside of the implementation.
+ *
  * @see Renderer.h
  */
 typedef struct dsRenderer dsRenderer;
@@ -275,9 +277,9 @@ typedef struct dsAttachmentInfo
 	dsGfxFormat format;
 
 	/**
-	 * @brief The number of anti-alias samples.
+	 * @brief The number of samples for multisampling.
 	 */
-	unsigned int samples;
+	uint16_t samples;
 } dsAttachmentInfo;
 
 /**
@@ -349,8 +351,6 @@ typedef struct dsSubpassDependency
 /**
  * @brief Structure defining a render surface, such as a window.
  *
- * Render surfaces are provided by the renderer implementation and
- *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
@@ -371,11 +371,6 @@ typedef struct dsRenderSurface
 	 * @brief The type of the render surface.
 	 */
 	dsRenderSurfaceType surfaceType;
-
-	/**
-	 * @brief The format of the surface.
-	 */
-	dsGfxFormat format;
 
 	/**
 	 * @brief The width of the surface.
@@ -539,6 +534,33 @@ struct dsRenderer
 	 * @brief Manager for resources used with the renderer.
 	 */
 	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The format for color render surfaces.
+	 */
+	dsGfxFormat surfaceColorFormat;
+
+	/**
+	 * @brief The format for depth/stencil render surfaces.
+	 *
+	 * This can be set to dsGfxFormat_Unknown if a depth buffer isn't used.
+	 */
+	dsGfxFormat surfaceDepthStencilFormat;
+
+	/**
+	 * @brief The number of samples for multisampling in render surfaces.
+	 */
+	uint16_t surfaceSamples;
+
+	/**
+	 * @brief True if render surfaces are double-buffered.
+	 */
+	bool doubleBuffer;
+
+	/**
+	 * @brief True if render surfaces are vsynced.
+	 */
+	bool vsync;
 
 	/**
 	 * @brief Thread ID for the main thread.

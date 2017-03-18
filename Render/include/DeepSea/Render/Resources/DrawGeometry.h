@@ -47,8 +47,7 @@ DS_RENDER_EXPORT dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resour
  * @brief Destroys a draw geometry.
  * @remark errno will be set on failure.
  * @param geometry The draw geometry to destroy.
- * @return False if the draw geometry couldn't be destroyed. errno will be set to an appropriate
- *     value on failure.
+ * @return False if the draw geometry couldn't be destroyed.
  */
 DS_RENDER_EXPORT bool dsDrawGeometry_destroy(dsDrawGeometry* geometry);
 

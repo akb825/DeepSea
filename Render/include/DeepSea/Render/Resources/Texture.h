@@ -108,8 +108,7 @@ DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim
  *     Data is tightly packed.
  * @param size The size of the data. This must match the size of the texture, and is used to ensure
  *     protect against incorrectly calculated buffer sizes.
- * @return The created texture, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
@@ -140,8 +139,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  * @param samples The number of samples to use for multisampling. Use 1 if not multisampling.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader.
- * @return The created offscreen, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created offscreen, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
@@ -164,8 +162,7 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  *     reach the end of the image.
  * @param data The texture data to copy. This must be tightly packed.
  * @param size The size of the data. This is used to help catch mismatched data.
- * @return False if the data couldn't be copied. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the data couldn't be copied.
  */
 DS_RENDER_EXPORT bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, const void* data,
@@ -197,8 +194,7 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
  * @param regions The regions to blit.
  * @param regionCount The number of regions to blit.
  * @param filter The filter to use when scaling is required.
- * @return False if the data couldn't be blitted. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the data couldn't be blitted.
  */
 DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount, dsFilter filter);

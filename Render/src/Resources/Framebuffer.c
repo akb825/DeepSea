@@ -1,0 +1,211 @@
+/*
+ * Copyright 2017 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Resources/Framebuffer.h>
+
+#include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/ResourceManager.h>
+#include <DeepSea/Render/Types.h>
+
+extern const char* dsResourceManager_noContextError;
+
+dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	uint32_t layers)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
+		!resourceManager->createFramebufferFunc || !resourceManager->destroyFramebufferFunc ||
+		(surfaceCount > 0 && !surfaces))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!allocator)
+		allocator = resourceManager->allocator;
+
+	if (surfaceCount == 0)
+		width = height = layers = 0;
+	else
+		layers = dsMax(1U, layers);
+
+	bool hasColorSurface = false;
+	unsigned int renderSurfaceCount = 0, otherSurfaceCount = 0;
+	for (uint32_t i = 0; i < surfaceCount; ++i)
+	{
+		if (!surfaces[i].surface)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot use a NULL surface with a framebuffer.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		dsGfxFormat surfaceFormat;
+		uint32_t surfaceWidth, surfaceHeight, surfaceDepth;
+		switch (surfaces[i].surfaceType)
+		{
+			case dsFramebufferSurfaceType_ColorRenderSurface:
+			{
+				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
+				surfaceFormat = surface->renderer->surfaceColorFormat;
+				surfaceWidth = surface->width;
+				surfaceHeight = surface->height;
+				surfaceDepth = 0;
+				++renderSurfaceCount;
+				break;
+			}
+			case dsFramebufferSurfaceType_DepthRenderSurface:
+			{
+				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
+				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
+				surfaceWidth = surface->width;
+				surfaceHeight = surface->height;
+				surfaceDepth = 0;
+				++renderSurfaceCount;
+				break;
+			}
+			case dsFramebufferSurfaceType_Offscreen:
+			{
+				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
+				surfaceFormat = surface->format;
+				surfaceDepth = surface->dimension == dsTextureDim_3D ? 0 : surface->depth;
+
+				if (!surface->offscreen)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Attempting to use a non-offscreen texture for a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+
+				if (surfaces[i].mipLevel >= surface->mipLevels)
+				{
+					errno = EINDEX;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Mip level out of range for offscreen within a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+
+				surfaceWidth = surface->width/(1 << surfaces[i].mipLevel);
+				surfaceWidth = dsMax(1U, surfaceWidth);
+				surfaceHeight = surface->height/(1 << surfaces[i].mipLevel);
+				surfaceHeight = dsMax(1U, surfaceHeight);
+
+				if (surfaceDepth > 0 && surfaces[i].arrayLevel >= surfaceDepth)
+				{
+					errno = EINDEX;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Array level out of range for offscreen within a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+
+				++otherSurfaceCount;
+				break;
+			}
+			case dsFramebufferSurfaceType_Renderbuffer:
+			{
+				dsRenderbuffer* surface = (dsRenderbuffer*)surfaces[i].surface;
+				surfaceFormat = surface->format;
+				surfaceWidth = surface->width;
+				surfaceHeight = surface->height;
+				surfaceDepth = 0;
+				++otherSurfaceCount;
+				break;
+			}
+			default:
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Unknown surface type.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		surfaceDepth = dsMax(1U, surfaceDepth);
+		if (surfaceWidth != width || surfaceHeight != height || surfaceDepth != layers)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Surface dimensions don't match framebuffer dimensions.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (!dsGfxFormat_isValid(surfaceFormat))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface format is invalid.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (!(surfaceFormat & (dsGfxFormat_D16 | dsGfxFormat_X8D24 | dsGfxFormat_D32_Float |
+			dsGfxFormat_S8 | dsGfxFormat_D16S8 | dsGfxFormat_D24S8 | dsGfxFormat_D32S8_Float)))
+		{
+			hasColorSurface = true;
+		}
+	}
+
+	if (!hasColorSurface && resourceManager->requiresColorBuffer)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Current target requires at least one color target for a framebuffer.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceManager->canMixWithRenderSurface && renderSurfaceCount > 0 &&
+		otherSurfaceCount > 0)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target cannot mix render surfaces with offscreens "
+			"or renderbuffers for a framebuffer.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsFramebuffer* framebuffer = resourceManager->createFramebufferFunc(resourceManager, allocator,
+		surfaces, surfaceCount, width, height, layers);
+	if (framebuffer)
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->framebufferCount, 1);
+	DS_PROFILE_FUNC_RETURN(framebuffer);
+}
+
+bool dsFramebuffer_destroy(dsFramebuffer* framebuffer)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!framebuffer || !framebuffer->resourceManager ||
+		!framebuffer->resourceManager->destroyRenderbufferFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = framebuffer->resourceManager;
+	if (!dsResourceManager_canUseResources(resourceManager))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool success = resourceManager->destroyFramebufferFunc(resourceManager, framebuffer);
+	if (success)
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->framebufferCount, -1);
+	DS_PROFILE_FUNC_RETURN(success);
+}

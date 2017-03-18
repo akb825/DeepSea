@@ -39,8 +39,7 @@ extern "C"
  *     will use the same allocator as the resource manager.
  * @param elements The elements that comprise the shader variable group.
  * @param elementCount The number of material elements. This must not be empty.
- * @return The created shader variable group description, or NULL if it couldn't be created. errno
- *     will be set to an appropriate value on failure.
+ * @return The created shader variable group description, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(
 	dsResourceManager* resourceManager, dsAllocator* allocator,

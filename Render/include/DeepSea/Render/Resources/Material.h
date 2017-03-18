@@ -58,8 +58,7 @@ DS_RENDER_EXPORT size_t dsMaterial_fullAllocSize(const dsMaterialDesc* descripti
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the material with.
  * @param description The description for the material.
- * @return The created material, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created material, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsAllocator* allocator,
 	const dsMaterialDesc* description);

@@ -47,8 +47,7 @@ extern "C"
  *     non-array textures.
  * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
  *     mip levels.
- * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels);
@@ -63,8 +62,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @return The created texture, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsTextureData* textureData, int usage, int memoryHints);
@@ -74,8 +72,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resou
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
  * @param filePath The file to load.
- * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator,
 	const char* filePath);
@@ -85,8 +82,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
  * @param stream The file to load the texture from.
- * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocator,
 	dsStream* stream);
@@ -103,8 +99,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocat
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath, int usage,
@@ -122,8 +117,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @return The created texture data, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream, int usage,

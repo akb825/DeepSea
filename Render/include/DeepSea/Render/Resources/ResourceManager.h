@@ -48,8 +48,7 @@ extern "C"
  *
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager
- * @return False if the resource context couldn't be created. errno will be set to an appropriate
- *     value on failure.
+ * @return False if the resource context couldn't be created.
  */
 DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager);
 
@@ -57,8 +56,7 @@ DS_RENDER_EXPORT bool dsResourceManager_createResourceContext(dsResourceManager*
  * @brief Destroys the resource context for the current thread.
  * @remark errno will be set on failure.
  * @param resourceManager The resource manager
- * @return False if the resource context couldn't be destroyed. errno will be set to an appropriate
- *     value on failure.
+ * @return False if the resource context couldn't be destroyed.
  */
 DS_RENDER_EXPORT bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager);
 

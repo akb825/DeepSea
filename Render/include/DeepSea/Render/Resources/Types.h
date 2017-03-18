@@ -334,8 +334,10 @@ typedef enum dsVertexAttrib
  */
 typedef enum dsFramebufferSurfaceType
 {
-	dsFramebufferSurfaceType_RenderSurface, ///< Render surface, such as a window.
-	dsFramebufferSurfaceType_Offscreen      ///< Offscreen texture.
+	dsFramebufferSurfaceType_ColorRenderSurface, ///< The color portion of a render surface.
+	dsFramebufferSurfaceType_DepthRenderSurface, ///< The depth/stencil portion of a render surface.
+	dsFramebufferSurfaceType_Offscreen,          ///< Offscreen texture.
+	dsFramebufferSurfaceType_Renderbuffer        ///< Color or depth renderbuffer.
 } dsFramebufferSurfaceType;
 
 /// \{
@@ -352,13 +354,15 @@ typedef struct mslModule mslModule;
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
  *
- * @remark None of the members should be modified outside of the implementation. If any of the
- * virtual functions fail, the implementation should set errno to an appropriate value. If the error
- * is due to invalid usage, it is recommended an error is printed to the console.
+ * @remark None of the members should be modified outside of the implementation.
  *
  * @remark The virtual functions on the resource manager should not be called directly. The public
  * interface functions handle error checking and statistic management, which could cause invalid
  * values to be reported when skipped.
+ *
+ * @remark When implementing the virutal functions of the resource manager, if an error occurs errno
+ * to an appropriate value. If the error is due to invalid usage, it is recommended an error is
+ * printed to the console.
  */
 typedef struct dsResourceManager dsResourceManager;
 
@@ -840,7 +844,50 @@ typedef struct dsTextureData
 } dsTextureData;
 
 /**
+ * @brief Structure defining a buffer to render to without having to access the contents directly.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * @see Renderbuffer.h
+ */
+typedef struct dsRenderbuffer
+{
+	/**
+	 * The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The format of the buffer.
+	 */
+	dsGfxFormat format;
+
+	/**
+	 * @brief The width of the buffer.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the buffer.
+	 */
+	uint32_t height;
+
+	/**
+	 * @brief The number of samples used for multisampling.
+	 */
+	uint16_t samples;
+} dsRenderbuffer;
+
+/**
  * @brief Structure defining a surface to render to within a framebuffer.
+ * @see Framebuffer.h
  */
 typedef struct dsFramebufferSurface
 {
@@ -867,8 +914,11 @@ typedef struct dsFramebufferSurface
 	/**
 	 * @brief The surface.
 	 *
-	 * This will be dsRenderSurface* if surfaceType is dsFramebufferSurfaceType_RenderSUrface or
-	 * dsOffscreen* if surfaceType is dsFramebufferSurfaceType_Offscreen.
+	 * The type of this pointer should be:
+	 * - dsRenderSurface* if surfaceType is dsFramebufferSurfaceType_ColorRenderSurface or
+	 *   dsFramebufferSurfaceType_DepthRenderSurface.
+	 * - dsOffscreen* if surfaceType is dsFramebufferSurfaceType_Offscreen.
+	 * - dsRenderbuffer* if surfaceType is dsFramebufferSurfaceType_Renderbuffer.
 	 */
 	void* surface;
 } dsFramebufferSurface;
@@ -879,6 +929,8 @@ typedef struct dsFramebufferSurface
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
+ *
+ * @see Framebuffer.h
  */
 typedef struct dsFramebuffer
 {
@@ -1226,6 +1278,52 @@ typedef bool (*dsGetTextureDataFunction)(void* result, size_t size,
 	uint32_t width, uint32_t height);
 
 /**
+ * @brief Function for creeating a framebuffer.
+ * @param resourceManager The resource manager to create the framebuffer from.
+ * @param allocator The allocator to create the framebuffer with.
+ * @param surfaces The surfaces that make up the framebuffer.
+ * @param surfaceCount The number of surfaces.
+ * @param width The width of the framebuffer.
+ * @param height The height of the framebuffer.
+ * @param layers The number of array layers in the framebuffer.
+ * @return The created framebuffer, or NULL if it couldn't be created.
+ */
+typedef dsFramebuffer* (*dsCreateFramebufferFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
+	uint32_t width, uint32_t height, uint32_t layers);
+
+/**
+ * @brief Function for destroying a renderbuffer.
+ * @param resourceManager The resource manager the framebuffer was created with.
+ * @param renderbuffer The renderbuffer.
+ * @return False if the renderbuffer couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRenderbufferFunction)(dsResourceManager* resourceManager,
+	dsRenderbuffer* renderbuffer);
+
+/**
+ * @brief Function for creating a renderbuffer.
+ * @param resourceManager The resource manager to create the renderbuffer from.
+ * @param allocator The allocator to create the renderbuffer with.
+ * @param format The format of the renderbuffer.
+ * @param width The width of the renderbuffer.
+ * @param height The height of the renderbuffer.
+ * @param samples The number of samples to use for multisampling.
+ * @return The created renderbuffer, or NULL if it couldn't be created.
+ */
+typedef dsRenderbuffer* (*dsCreateRenderbufferFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint16_t samples);
+
+/**
+ * @brief Function for destroying a framebuffer.
+ * @param resourceManager The resource manager the framebuffer was created with.
+ * @param framebuffer The framebuffer.
+ * @return False if the framebuffer couldn't be destroyed.
+ */
+typedef bool (*dsDestroyFramebufferFunction)(dsResourceManager* resourceManager,
+	dsFramebuffer* framebuffer);
+
+/**
  * @brief Function for creating a shader module.
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with.
@@ -1308,30 +1406,6 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
  * @return False if the shader couldn't be destroyed.
  */
 typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
-
-/**
- * @brief Function for creeating a framebuffer.
- * @param resourceManager The resource manager to create the framebuffer from.
- * @param allocator The allocator to create the framebuffer with.
- * @param surfaces The surfaces that make up the framebuffer.
- * @param surfaceCount The number of surfaces.
- * @param width The width of the framebuffer.
- * @param height The height of the framebuffer.
- * @param layers The number of array layers in the framebuffer.
- * @return The created framebuffer, or NULL if it couldn't be created.
- */
-typedef dsFramebuffer* (*dsCreateFramebufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
-	uint32_t height, uint32_t layers);
-
-/**
- * @brief Function for destroying a framebuffer.
- * @param resourceManager The resource manager the framebuffer was created with.
- * @param framebuffer The framebuffer.
- * @return False if the framebuffer couldn't be destroyed.
- */
-typedef bool (*dsDestroyFramebufferFunction)(dsResourceManager* resourceManager,
-	dsFramebuffer* framebuffer);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -1417,6 +1491,17 @@ struct dsResourceManager
 	bool texturesReadable;
 
 	/**
+	 * @brief True if a color buffer must be provided with a framebuffer.
+	 */
+	bool requiresColorBuffer;
+
+	/**
+	 * @brief True if offscreens or renderbuffers may be mixed with render surfaces in a
+	 * framebuffer.
+	 */
+	bool canMixWithRenderSurface;
+
+	/**
 	 * @brief The current number of resource contexts.
 	 */
 	uint32_t resourceContextCount;
@@ -1435,6 +1520,16 @@ struct dsResourceManager
 	 * @brief The number of textures currently allocated by the resource manager.
 	 */
 	uint32_t textureCount;
+
+	/**
+	 * @brief The number of renderbuffers currently allocated by the resource manager.
+	 */
+	uint32_t renderbufferCount;
+
+	/**
+	 * @brief The number of framebuffers currently allocated by the resource manager.
+	 */
+	uint32_t framebufferCount;
 
 	/**
 	 * @brief The number of shader modules currently allocated by the resource manager.
@@ -1468,11 +1563,6 @@ struct dsResourceManager
 	uint32_t shaderCount;
 
 	/**
-	 * @brief The number of framebuffers currently allocated by the resource manager.
-	 */
-	uint32_t framebufferCount;
-
-	/**
 	 * @brief The number of bytes allocated for graphics buffers.
 	 */
 	size_t bufferMemorySize;
@@ -1481,6 +1571,11 @@ struct dsResourceManager
 	 * @brief The number of bytes allocated for textures.
 	 */
 	size_t textureMemorySize;
+
+	/**
+	 * @brief The number of bytes allocated for renderbuffers.
+	 */
+	size_t renderbufferMemorySize;
 
 	// Private members
 
@@ -1602,6 +1697,26 @@ struct dsResourceManager
 	dsGetTextureDataFunction getTextureDataFunc;
 
 	/**
+	 * @brief Function for creating a renderbuffer.
+	 */
+	dsCreateRenderbufferFunction createRenderbufferFunc;
+
+	/**
+	 * @brief Function for destroying a renderbuffer.
+	 */
+	dsDestroyRenderbufferFunction destroyRenderbufferFunc;
+
+	/**
+	 * @brief Function for creating a framebuffer.
+	 */
+	dsCreateFramebufferFunction createFramebufferFunc;
+
+	/**
+	 * @brief Function for destroying a framebuffer.
+	 */
+	dsDestroyFramebufferFunction destroyFramebufferFunc;
+
+	/**
 	 * @brief Shader module creation function.
 	 */
 	dsCreateShaderModuleFunction createShaderModuleFunc;
@@ -1640,16 +1755,6 @@ struct dsResourceManager
 	 * @brief Shader destruction function.
 	 */
 	dsDestroyShaderFunction destroyShaderFunc;
-
-	/**
-	 * @brief Function for creating a framebuffer.
-	 */
-	dsCreateFramebufferFunction createFramebufferFunc;
-
-	/**
-	 * @brief Function for destroying a framebuffer.
-	 */
-	dsDestroyFramebufferFunction destroyFramebufferFunc;
 };
 
 #ifdef __cplusplus

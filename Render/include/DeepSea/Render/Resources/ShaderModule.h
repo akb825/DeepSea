@@ -45,8 +45,7 @@ extern "C"
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param filePath The file path for the shader module to load.
- * @return The created shader module, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const char* filePath);
@@ -62,8 +61,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
  *     allocator as the resource manager.
  * @param stream The stream to load the shader module from. This stream will be read from the
  *     current position until the end, and must be seekable.
- * @return The created shader module, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsStream* stream);
@@ -79,8 +77,7 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* re
  *     allocator as the resource manager.
  * @param data The data for the shader module. The data isn't used after this call.
  * @param size The size of the data buffer.
- * @return The created shader module, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const void* data, size_t size);

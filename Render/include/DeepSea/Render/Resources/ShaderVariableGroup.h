@@ -76,8 +76,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_useGfxBuffer(const dsResourceManager
  *     support uniform blocks) If NULL, it will use the same allocator as the resource manager.
  * @param description The description for the shader variable group.
  * @param commitType How the variables will be committed to the GPU.
- * @return The created shader variable group, or NULL if it couldn't be created. errno will be set
- *     to an appropriate value on failure.
+ * @return The created shader variable group, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderVariableGroup* dsShaderVariableGroup_create(
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* gfxBufferAllocator,

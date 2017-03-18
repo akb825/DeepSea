@@ -50,8 +50,7 @@ extern "C"
  *     same allocator as the resource manager.
  * @param elements The elements that comprise the material.
  * @param elementCount The number of material elements.
- * @return The created material description, or NULL if it couldn't be created. errno will be set to
- *     an appropriate value on failure.
+ * @return The created material description, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsMaterialElement* elements, uint32_t elementCount);

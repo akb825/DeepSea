@@ -47,8 +47,7 @@ extern "C"
  * @param data The initial data for the buffer, or NULL to leave uninitialized. This must be the
  *     same size as the buffer.
  * @param size The size of the buffer. This must be given even if data is NULL.
- * @return The created buffer, or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created buffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
@@ -63,8 +62,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceMana
  *     from dsResourceManager.
  * @param size The number of bytes to map. This may be set to DS_MAP_FULL_BUFFER to map from the
  *     offset to the end of the buffer.
- * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped. errno will be
- *     set to an appropriate value on failure.
+ * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped.
  */
 DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size);
 
@@ -72,8 +70,7 @@ DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t of
  * @brief Unmaps previously mapped memory from a graphics buffer.
  * @remark errno will be set on failure.
  * @param buffer The buffer to unmap.
- * @return False if the memory couldn't be unmapped. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the memory couldn't be unmapped.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_unmap(dsGfxBuffer* buffer);
 
@@ -87,8 +84,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_unmap(dsGfxBuffer* buffer);
  * @param buffer The buffer to flush.
  * @param offset The offset of the range to flush.
  * @param size The size of the memory to flush.
- * @return False if the memory couldn't be flushed. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the memory couldn't be flushed.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size);
 
@@ -102,8 +98,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size
  * @param buffer The buffer to invalidate.
  * @param offset The offset of the range to invalidate.
  * @param size The size of the memory to invalidate.
- * @return False if the memory couldn't be invalidated. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the memory couldn't be invalidated.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size);
 
@@ -120,8 +115,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * @param offset The offset into the buffer.
  * @param data The data to copy to the buffer.
  * @param size The size of the data to copy.
- * @return False if the data couldn't be copied. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the data couldn't be copied.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size);
@@ -140,8 +134,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfx
  * @param dstBuffer The buffer to copy to. This must have been created with dsGfxBufferUsage_CopyTo.
  * @param dstOffset The offset into the destination buffer.
  * @param size The size of the data to copy.
- * @return False if the data couldn't be copied. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the data couldn't be copied.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
@@ -150,8 +143,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuff
  * @brief Destroys a graphics buffer.
  * @remark errno will be set on failure.
  * @param buffer The buffer to destroy.
- * @return False if the buffer couldn't be destroyed. errno will be set to an appropriate value on
- *     failure.
+ * @return False if the buffer couldn't be destroyed.
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_destroy(dsGfxBuffer* buffer);
 

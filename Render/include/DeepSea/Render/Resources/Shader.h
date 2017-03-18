@@ -45,8 +45,7 @@ extern "C"
  * @param name The name of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
- * @return The created shader , or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created shader , or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, const char* name,
@@ -63,8 +62,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
  * @param index The index of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
- * @return The created shader , or NULL if it couldn't be created. errno will be set to an
- *     appropriate value on failure.
+ * @return The created shader , or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, uint32_t index,
