@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MockDrawGeometry.h"
+#include "Resources/MockDrawGeometry.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
@@ -31,10 +31,7 @@ dsDrawGeometry* dsMockDrawGeometry_create(dsResourceManager* resourceManager,
 		return NULL;
 
 	geometry->resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		geometry->allocator = allocator;
-	else
-		geometry->allocator = NULL;
+	geometry->allocator = dsAllocator_keepPointer(allocator);
 
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{

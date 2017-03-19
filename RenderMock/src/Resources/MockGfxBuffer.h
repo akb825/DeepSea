@@ -19,20 +19,18 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Resources/Types.h>
 
-typedef struct dsMockGfxBuffer dsMockGfxBuffer;
-
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
-void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer, int flags,
+void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, int flags,
 	size_t offset, size_t size);
-bool dsMockGfxBuffer_unmap(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer);
-bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
+bool dsMockGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
+bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size);
-bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
+bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size);
 bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockGfxBuffer* buffer, size_t offset, const void* data, size_t size);
+	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size);
 bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockGfxBuffer* srcBuffer, size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset,
+	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size);
-bool dsMockGfxBuffer_destroy(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer);
+bool dsMockGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);

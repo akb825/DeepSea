@@ -146,10 +146,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	dsMaterial* material = dsAllocator_alloc((dsAllocator*)&bufferAllocator, sizeof(dsMaterial));
 	DS_ASSERT(material);
 
-	if (allocator->freeFunc)
-		material->allocator = allocator;
-	else
-		material->allocator = NULL;
+	material->allocator = dsAllocator_keepPointer(allocator);
 	material->description = description;
 
 	if (description->elementCount == 0)

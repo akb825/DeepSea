@@ -50,7 +50,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		layers = dsMax(1U, layers);
 
 	bool hasColorSurface = false;
-	unsigned int renderSurfaceCount = 0, otherSurfaceCount = 0;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
 		if (!surfaces[i].surface)
@@ -71,7 +70,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
 				surfaceDepth = 0;
-				++renderSurfaceCount;
 				break;
 			}
 			case dsFramebufferSurfaceType_DepthRenderSurface:
@@ -81,7 +79,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
 				surfaceDepth = 0;
-				++renderSurfaceCount;
 				break;
 			}
 			case dsFramebufferSurfaceType_Offscreen:
@@ -119,7 +116,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
-				++otherSurfaceCount;
 				break;
 			}
 			case dsFramebufferSurfaceType_Renderbuffer:
@@ -129,7 +125,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
 				surfaceDepth = 0;
-				++otherSurfaceCount;
 				break;
 			}
 			default:
@@ -139,7 +134,15 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		}
 
 		surfaceDepth = dsMax(1U, surfaceDepth);
-		if (surfaceWidth != width || surfaceHeight != height || surfaceDepth != layers)
+		if (surfaces[i].arrayLevel > surfaceDepth || surfaceDepth - surfaces[i].arrayLevel < layers)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Surface array layers are out of range for framebuffer.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (surfaceWidth != width || surfaceHeight != height)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -166,15 +169,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Current target requires at least one color target for a framebuffer.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
-	if (!resourceManager->canMixWithRenderSurface && renderSurfaceCount > 0 &&
-		otherSurfaceCount > 0)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target cannot mix render surfaces with offscreens "
-			"or renderbuffers for a framebuffer.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

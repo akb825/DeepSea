@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MockMaterialDesc.h"
+#include "Resources/MockMaterialDesc.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -41,10 +41,7 @@ dsMaterialDesc* dsMockMaterialDesc_create(dsResourceManager* resourceManager,
 	DS_ASSERT(materialDesc);
 
 	materialDesc->resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		materialDesc->allocator = allocator;
-	else
-		materialDesc->allocator = NULL;
+	materialDesc->allocator = dsAllocator_keepPointer(allocator);
 	materialDesc->elementCount = elementCount;
 	if (elementCount > 0)
 	{

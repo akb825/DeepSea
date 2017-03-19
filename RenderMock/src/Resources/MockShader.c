@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MockShader.h"
+#include "Resources/MockShader.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -43,10 +43,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_ASSERT(shader);
 
 	shader->resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		shader->allocator = allocator;
-	else
-		shader->allocator = NULL;
+	shader->allocator = dsAllocator_keepPointer(allocator);
 	shader->module = module;
 	shader->pipelineIndex = shaderIndex;
 	shader->pipeline = (mslPipeline*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,

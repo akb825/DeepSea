@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MockShaderVariableGroupDesc.h"
+#include "Resources/MockShaderVariableGroupDesc.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -47,10 +47,7 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 	DS_ASSERT(groupDesc);
 
 	groupDesc->resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		groupDesc->allocator = allocator;
-	else
-		groupDesc->allocator = NULL;
+	groupDesc->allocator = dsAllocator_keepPointer(allocator);
 	groupDesc->elementCount = elementCount;
 	groupDesc->elements = (dsShaderVariableElement*)dsAllocator_alloc(
 		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableElement)*elementCount);

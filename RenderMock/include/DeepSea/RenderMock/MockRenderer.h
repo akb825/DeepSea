@@ -37,13 +37,13 @@ extern "C"
  * @param allocator The allocator to use.
  * @return The renderer.
  */
-DS_RENDERMOCK_EXPORT dsRenderer* dsMockRender_create(dsAllocator* allocator);
+DS_RENDERMOCK_EXPORT dsRenderer* dsMockRenderer_create(dsAllocator* allocator);
 
 /**
  * @brief Destroys a mock renderer.
  * @param renderer The renderer to destroy.
  */
-DS_RENDERMOCK_EXPORT void dsMockRender_destroy(dsRenderer* renderer);
+DS_RENDERMOCK_EXPORT void dsMockRenderer_destroy(dsRenderer* renderer);
 
 #ifdef __cplusplus
 }

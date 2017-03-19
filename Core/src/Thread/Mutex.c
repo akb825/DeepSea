@@ -63,7 +63,7 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 #endif
 
 	mutex->name = name ? name : "Mutex";
-	mutex->allocator = allocator && allocator->freeFunc ? allocator : NULL;
+	mutex->allocator = dsAllocator_keepPointer(allocator);
 	mutex->shouldFree = !allocator || allocator->freeFunc;
 	return mutex;
 }

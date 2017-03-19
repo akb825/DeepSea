@@ -159,10 +159,7 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 	dsVolatileMaterialValues* materialValues = dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		sizeof(dsVolatileMaterialValues));
 	DS_ASSERT(materialValues);
-	if (allocator->freeFunc)
-		materialValues->allocator = allocator;
-	else
-		materialValues->allocator = NULL;
+	materialValues->allocator = dsAllocator_keepPointer(allocator);
 
 	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(Entry), maxValues);
 	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAllocator, poolSize);

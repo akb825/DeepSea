@@ -354,6 +354,8 @@ typedef struct dsSubpassDependency
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsResourceManager and the true internal type.
+ *
+ * @see dsRenderSurface.h
  */
 typedef struct dsRenderSurface
 {
@@ -498,6 +500,33 @@ struct dsRenderPass
 };
 
 /**
+ * @brief Function for creating a render surface.
+ * @param renderer The renderer to use the render surface with.
+ * @param allocator The allocator to create the render surface.
+ * @param osHandle The OS handle, such as window handle.
+ * @param type The type of the render surface.
+ * @return The created render surface, or NULL if it couldn't be created.
+ */
+typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
+
+/**
+ * @brief Function for updating a render surface.
+ * @param renderer The renderer the render surface is used with.
+ * @param renderSurface The render surface to update.
+ * @return True if the render surface size changed.
+ */
+typedef bool (*dsUpdateRenderSurfaceFunction)(dsRenderer* renderer, dsRenderSurface* renderSurface);
+
+/**
+ * @brief Function for destroying a render surface.
+ * @param renderer The renderer the render surface is used with.
+ * @param renderSurface The render surface to destroy
+ */
+typedef bool (*dsDestroyRenderSurfaceFunction)(dsRenderer* renderer,
+	dsRenderSurface* renderSurface);
+
+/**
  * @brief function called to update the renderer each fream.
  * @param renderer The renderer.
  */
@@ -536,6 +565,13 @@ struct dsRenderer
 	dsResourceManager* resourceManager;
 
 	/**
+	 * @brief Thread ID for the main thread.
+	 *
+	 * Some operations may only be done from the main thread.
+	 */
+	dsThreadId mainThread;
+
+	/**
 	 * @brief The format for color render surfaces.
 	 */
 	dsGfxFormat surfaceColorFormat;
@@ -563,16 +599,29 @@ struct dsRenderer
 	bool vsync;
 
 	/**
-	 * @brief Thread ID for the main thread.
-	 *
-	 * Some operations may only be done from the main thread.
+	 * @brief The default level of anisotropy for anisotropic filtering.
 	 */
-	dsThreadId mainThread;
+	float defaultAnisotropy;
 
 	/**
 	 * @brief User data set on the renderer.
 	 */
 	void* userData;
+
+	/**
+	 * @brief Render surface creation function.
+	 */
+	dsCreateRenderSurfaceFunction createRenderSurfaceFunc;
+
+	/**
+	 * @brief Render surface update function.
+	 */
+	dsUpdateRenderSurfaceFunction updateRenderSurfaceFunc;
+
+	/**
+	 * @brief Render surface destruction function.
+	 */
+	dsDestroyRenderSurfaceFunction destroyRenderSurfaceFunc;
 
 	/**
 	 * @brief The frame update function.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "MockTexture.h"
+#include "Resources/MockTexture.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -24,12 +24,12 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
 
-struct dsMockTexture
+typedef struct dsMockTexture
 {
 	dsTexture texture;
 	size_t dataSize;
 	uint8_t data[];
-};
+} dsMockTexture;
 
 dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
@@ -44,10 +44,7 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 		return NULL;
 
 	texture->texture.resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		texture->texture.allocator = allocator;
-	else
-		texture->texture.allocator = NULL;
+	texture->texture.allocator = dsAllocator_keepPointer(allocator);
 	texture->texture.usage = (dsTextureUsage)usage;
 	texture->texture.memoryHints = (dsGfxMemory)memoryHints;
 	texture->texture.format = format;
@@ -59,11 +56,11 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 	texture->texture.offscreen = false;
 	texture->texture.resolve = false;
 	texture->texture.samples = 1;
-	texture->dataSize = textureSize;
+	((dsMockTexture*)texture)->dataSize = textureSize;
 	if (data)
 	{
 		DS_ASSERT(size == textureSize);
-		memcpy(texture->data, data, size);
+		memcpy(((dsMockTexture*)texture)->data, data, size);
 	}
 
 	return &texture->texture;
@@ -84,10 +81,7 @@ dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 		return NULL;
 
 	texture->texture.resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		texture->texture.allocator = allocator;
-	else
-		texture->texture.allocator = NULL;
+	texture->texture.allocator = dsAllocator_keepPointer(allocator);
 	texture->texture.usage = (dsTextureUsage)usage;
 	texture->texture.memoryHints = (dsGfxMemory)memoryHints;
 	texture->texture.format = format;
@@ -99,13 +93,13 @@ dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	texture->texture.offscreen = true;
 	texture->texture.resolve = resolve;
 	texture->texture.samples = samples;
-	texture->dataSize = textureSize;
+	((dsMockTexture*)texture)->dataSize = textureSize;
 
 	return &texture->texture;
 }
 
 bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
+	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	const void* data, size_t size)
 {
 	DS_ASSERT(resourceManager);
@@ -116,8 +110,8 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	DS_UNUSED(size);
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->texture.format));
-	unsigned int blockSize = dsGfxFormat_size(texture->texture.format);
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	unsigned int blockSize = dsGfxFormat_size(texture->format);
 	DS_ASSERT(blockSize > 0);
 
 	DS_ASSERT(position->x % blockX == 0 && position->y % blockY == 0);
@@ -127,24 +121,25 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	uint32_t blockHeight = (height + blockY - 1)/blockY;
 	uint32_t dataPitch = blockWidth*blockSize;
 
-	size_t textureOffset = dsTexture_surfaceOffset(texture->texture.format,
-		texture->texture.dimension, texture->texture.width, texture->texture.height,
-		texture->texture.depth, texture->texture.mipLevels, position->face, position->depth,
+	size_t textureOffset = dsTexture_surfaceOffset(texture->format,
+		texture->dimension, texture->width, texture->height,
+		texture->depth, texture->mipLevels, position->face, position->depth,
 		position->mipLevel);
-	uint32_t mipWidth = texture->texture.width/(1 << position->mipLevel);
+	uint32_t mipWidth = texture->width/(1 << position->mipLevel);
 	uint32_t surfacePitch = (mipWidth + blockX - 1)/blockX*blockSize;
 	textureOffset += surfacePitch*posBlockY + posBlockX*blockSize;
 	for (uint32_t y = 0; y < blockHeight; ++y, textureOffset += surfacePitch)
 	{
-		DS_ASSERT(textureOffset + dataPitch <= texture->dataSize);
-		memcpy(texture->data + textureOffset, (const uint8_t*)data + dataPitch*y, dataPitch);
+		DS_ASSERT(textureOffset + dataPitch <= ((dsMockTexture*)texture)->dataSize);
+		memcpy(((dsMockTexture*)texture)->data + textureOffset, (const uint8_t*)data + dataPitch*y,
+			dataPitch);
 	}
 
 	return true;
 }
 
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockTexture* srcTexture, dsMockTexture* dstTexture, const dsTextureCopyRegion* regions,
+	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	size_t regionCount)
 {
 	DS_ASSERT(resourceManager);
@@ -153,10 +148,10 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_ASSERT(regions);
 	DS_UNUSED(commandBuffer);
 
-	DS_ASSERT(srcTexture->texture.format == dstTexture->texture.format);
+	DS_ASSERT(srcTexture->format == dstTexture->format);
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->texture.format));
-	unsigned int blockSize = dsGfxFormat_size(srcTexture->texture.format);
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+	unsigned int blockSize = dsGfxFormat_size(srcTexture->format);
 	DS_ASSERT(blockSize > 0);
 
 	for (size_t i = 0; i < regionCount; ++i)
@@ -164,13 +159,13 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		DS_ASSERT(regions[i].srcPosition.x % blockX == 0 && regions[i].srcPosition.y % blockY == 0);
 		uint32_t srcPosBlockX = regions[i].srcPosition.x/blockX;
 		uint32_t srcPosBlockY = regions[i].srcPosition.y/blockY;
-		uint32_t srcMipWidth = srcTexture->texture.width/(1 << regions[i].srcPosition.mipLevel);
+		uint32_t srcMipWidth = srcTexture->width/(1 << regions[i].srcPosition.mipLevel);
 		uint32_t srcPitch = (srcMipWidth + blockX - 1)/blockX*blockSize;
 
 		DS_ASSERT(regions[i].dstPosition.x % blockX == 0 && regions[i].dstPosition.y % blockY == 0);
 		uint32_t dstPosBlockX = regions[i].dstPosition.x/blockX;
 		uint32_t dstPosBlockY = regions[i].dstPosition.y/blockY;
-		uint32_t dstMipWidth = dstTexture->texture.width/(1 << regions[i].dstPosition.mipLevel);
+		uint32_t dstMipWidth = dstTexture->width/(1 << regions[i].dstPosition.mipLevel);
 		uint32_t dstPitch = (dstMipWidth + blockX - 1)/blockX*blockSize;
 
 		uint32_t copySize = (regions[i].width + blockX - 1)/blockX*blockSize;
@@ -178,25 +173,26 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		uint32_t arrayLevelCount = dsMax(1U, regions[i].arrayLevelCount);
 		for (uint32_t j = 0; j < arrayLevelCount; ++j)
 		{
-			size_t srcOffset = dsTexture_surfaceOffset(srcTexture->texture.format,
-				srcTexture->texture.dimension, srcTexture->texture.width,
-				srcTexture->texture.height, srcTexture->texture.depth,
-				srcTexture->texture.mipLevels, regions[i].srcPosition.face,
+			size_t srcOffset = dsTexture_surfaceOffset(srcTexture->format,
+				srcTexture->dimension, srcTexture->width,
+				srcTexture->height, srcTexture->depth,
+				srcTexture->mipLevels, regions[i].srcPosition.face,
 				regions[i].srcPosition.depth + j, regions[i].srcPosition.mipLevel);
 			srcOffset += srcPosBlockY*srcPitch + srcPosBlockX*blockSize;
 
-			size_t dstOffset = dsTexture_surfaceOffset(dstTexture->texture.format,
-				dstTexture->texture.dimension, dstTexture->texture.width,
-				dstTexture->texture.height, dstTexture->texture.depth,
-				dstTexture->texture.mipLevels, regions[i].dstPosition.face,
+			size_t dstOffset = dsTexture_surfaceOffset(dstTexture->format,
+				dstTexture->dimension, dstTexture->width,
+				dstTexture->height, dstTexture->depth,
+				dstTexture->mipLevels, regions[i].dstPosition.face,
 				regions[i].dstPosition.depth + j, regions[i].dstPosition.mipLevel);
 			dstOffset += dstPosBlockY*dstPitch + dstPosBlockX*blockSize;
 
 			for (uint32_t y = 0; y < blockHeight; ++y, srcOffset += srcPitch, dstOffset += dstPitch)
 			{
-				DS_ASSERT(srcOffset + copySize <= srcTexture->dataSize);
-				DS_ASSERT(dstOffset + copySize <= dstTexture->dataSize);
-				memcpy(dstTexture->data + dstOffset, srcTexture->data + srcOffset, copySize);
+				DS_ASSERT(srcOffset + copySize <= ((dsMockTexture*)srcTexture)->dataSize);
+				DS_ASSERT(dstOffset + copySize <= ((dsMockTexture*)dstTexture)->dataSize);
+				memcpy(((dsMockTexture*)dstTexture)->data + dstOffset,
+					((dsMockTexture*)srcTexture)->data + srcOffset, copySize);
 			}
 		}
 	}
@@ -205,7 +201,7 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 }
 
 bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockTexture* srcTexture, dsMockTexture* dstTexture, const dsTextureBlitRegion* regions,
+	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
 	size_t regionCount, dsFilter filter)
 {
 	DS_ASSERT(resourceManager);
@@ -215,7 +211,7 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(filter);
 
-	if (srcTexture->texture.format != dstTexture->texture.format)
+	if (srcTexture->format != dstTexture->format)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR("render-mock", "Mock render implementation requires textures to have the same "
@@ -236,10 +232,10 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		}
 	}
 
-	DS_ASSERT(srcTexture->texture.format == dstTexture->texture.format);
+	DS_ASSERT(srcTexture->format == dstTexture->format);
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->texture.format));
-	unsigned int blockSize = dsGfxFormat_size(srcTexture->texture.format);
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+	unsigned int blockSize = dsGfxFormat_size(srcTexture->format);
 	DS_ASSERT(blockSize > 0);
 
 	for (size_t i = 0; i < regionCount; ++i)
@@ -247,13 +243,13 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		DS_ASSERT(regions[i].srcPosition.x % blockX == 0 && regions[i].srcPosition.y % blockY == 0);
 		uint32_t srcPosBlockX = regions[i].srcPosition.x/blockX;
 		uint32_t srcPosBlockY = regions[i].srcPosition.y/blockY;
-		uint32_t srcMipWidth = srcTexture->texture.width/(1 << regions[i].srcPosition.mipLevel);
+		uint32_t srcMipWidth = srcTexture->width/(1 << regions[i].srcPosition.mipLevel);
 		uint32_t srcPitch = (srcMipWidth + blockX - 1)/blockX*blockSize;
 
 		DS_ASSERT(regions[i].dstPosition.x % blockX == 0 && regions[i].dstPosition.y % blockY == 0);
 		uint32_t dstPosBlockX = regions[i].dstPosition.x/blockX;
 		uint32_t dstPosBlockY = regions[i].dstPosition.y/blockY;
-		uint32_t dstMipWidth = dstTexture->texture.width/(1 << regions[i].dstPosition.mipLevel);
+		uint32_t dstMipWidth = dstTexture->width/(1 << regions[i].dstPosition.mipLevel);
 		uint32_t dstPitch = (dstMipWidth + blockX - 1)/blockX*blockSize;
 
 		uint32_t copySize = (regions[i].srcWidth + blockX - 1)/blockX*blockSize;
@@ -261,25 +257,26 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		uint32_t depthRange = dsMax(1U, regions[i].srcDepthRange);
 		for (uint32_t j = 0; j < depthRange; ++j)
 		{
-			size_t srcOffset = dsTexture_surfaceOffset(srcTexture->texture.format,
-				srcTexture->texture.dimension, srcTexture->texture.width,
-				srcTexture->texture.height, srcTexture->texture.depth,
-				srcTexture->texture.mipLevels, regions[i].srcPosition.face,
+			size_t srcOffset = dsTexture_surfaceOffset(srcTexture->format,
+				srcTexture->dimension, srcTexture->width,
+				srcTexture->height, srcTexture->depth,
+				srcTexture->mipLevels, regions[i].srcPosition.face,
 				regions[i].srcPosition.depth + j, regions[i].srcPosition.mipLevel);
 			srcOffset += srcPosBlockY*srcPitch + srcPosBlockX*blockSize;
 
-			size_t dstOffset = dsTexture_surfaceOffset(dstTexture->texture.format,
-				dstTexture->texture.dimension, dstTexture->texture.width,
-				dstTexture->texture.height, dstTexture->texture.depth,
-				dstTexture->texture.mipLevels, regions[i].dstPosition.face,
+			size_t dstOffset = dsTexture_surfaceOffset(dstTexture->format,
+				dstTexture->dimension, dstTexture->width,
+				dstTexture->height, dstTexture->depth,
+				dstTexture->mipLevels, regions[i].dstPosition.face,
 				regions[i].dstPosition.depth + j, regions[i].dstPosition.mipLevel);
 			dstOffset += dstPosBlockY*dstPitch + dstPosBlockX*blockSize;
 
 			for (uint32_t y = 0; y < blockHeight; ++y, srcOffset += srcPitch, dstOffset += dstPitch)
 			{
-				DS_ASSERT(srcOffset + copySize <= srcTexture->dataSize);
-				DS_ASSERT(dstOffset + copySize <= dstTexture->dataSize);
-				memcpy(dstTexture->data + dstOffset, srcTexture->data + srcOffset, copySize);
+				DS_ASSERT(srcOffset + copySize <= ((dsMockTexture*)srcTexture)->dataSize);
+				DS_ASSERT(dstOffset + copySize <= ((dsMockTexture*)dstTexture)->dataSize);
+				memcpy(((dsMockTexture*)dstTexture)->data + dstOffset,
+					((dsMockTexture*)srcTexture)->data + srcOffset, copySize);
 			}
 		}
 	}
@@ -288,7 +285,7 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 }
 
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
-	dsMockTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height)
+	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(texture);
@@ -297,8 +294,8 @@ bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourc
 	DS_UNUSED(resourceManager);
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->texture.format));
-	unsigned int blockSize = dsGfxFormat_size(texture->texture.format);
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	unsigned int blockSize = dsGfxFormat_size(texture->format);
 	DS_ASSERT(blockSize > 0);
 
 	DS_ASSERT(position->x % blockX == 0 && position->y % blockY == 0);
@@ -308,27 +305,28 @@ bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourc
 	uint32_t blockHeight = (height + blockY - 1)/blockY;
 	uint32_t dataPitch = blockWidth*blockSize;
 
-	size_t textureOffset = dsTexture_surfaceOffset(texture->texture.format,
-		texture->texture.dimension, texture->texture.width, texture->texture.height,
-		texture->texture.depth, texture->texture.mipLevels, position->face, position->depth,
+	size_t textureOffset = dsTexture_surfaceOffset(texture->format,
+		texture->dimension, texture->width, texture->height,
+		texture->depth, texture->mipLevels, position->face, position->depth,
 		position->mipLevel);
-	uint32_t mipWidth = texture->texture.width/(1 << position->mipLevel);
+	uint32_t mipWidth = texture->width/(1 << position->mipLevel);
 	uint32_t surfacePitch = (mipWidth + blockX - 1)/blockX*blockSize;
 	textureOffset += surfacePitch*posBlockY + posBlockX*blockSize;
 	for (uint32_t y = 0; y < blockHeight; ++y, textureOffset += surfacePitch)
 	{
-		DS_ASSERT(textureOffset + dataPitch <= texture->dataSize);
+		DS_ASSERT(textureOffset + dataPitch <= ((dsMockTexture*)texture)->dataSize);
 		DS_ASSERT(y*dataPitch < size);
-		memcpy((uint8_t*)result + dataPitch*y, texture->data + textureOffset, dataPitch);
+		memcpy((uint8_t*)result + dataPitch*y, ((dsMockTexture*)texture)->data + textureOffset,
+			dataPitch);
 	}
 
 	return true;
 }
 
-bool dsMockTexture_destroy(dsResourceManager* resourceManager, dsMockTexture* texture)
+bool dsMockTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 {
 	DS_UNUSED(resourceManager);
-	if (texture->texture.allocator)
-		return dsAllocator_free(texture->texture.allocator, texture);
+	if (texture->allocator)
+		return dsAllocator_free(texture->allocator, texture);
 	return true;
 }

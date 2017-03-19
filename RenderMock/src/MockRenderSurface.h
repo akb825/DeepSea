@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Renderer.h>
+#pragma once
 
-#include <DeepSea/Core/Thread/Thread.h>
-#include <DeepSea/Core/Error.h>
-#include <string.h>
+#include <DeepSea/Render/Types.h>
 
-bool dsRenderer_initialize(dsRenderer* renderer)
-{
-	if (!renderer)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	memset(renderer, 0, sizeof(dsRenderer));
-	renderer->mainThread = dsThread_thisThreadId();
-	return true;
-}
-
-void dsRenderer_shutdown(dsRenderer* renderer)
-{
-	DS_UNUSED(renderer);
-}
+dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
+bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
+bool dsMockRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

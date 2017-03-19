@@ -35,6 +35,24 @@ extern "C"
  * @see dsRenderer
  */
 
+/**
+ * @brief Initializes the members of a renderer.
+ *
+ * This will initiialize all members to 0 and set up any internal structures. This is called by the
+ * render implementation.
+ *
+ * @remark errno will be set on failure.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsRenderer_initialize(dsRenderer* renderer);
+
+/**
+ * @brief Destroys the private members of a renderer.
+ *
+ * This is called by the render implementation.
+ */
+DS_RENDER_EXPORT void dsRenderer_shutdown(dsRenderer* renderer);
+
 #ifdef __cplusplus
 }
 #endif

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
-#include <DeepSea/RenderMock/MockRender.h>
+#include <DeepSea/RenderMock/MockRenderer.h>
 #include <gtest/gtest.h>
 
 class FixtureBase : public testing::Test
@@ -26,14 +26,14 @@ public:
 	void SetUp() override
 	{
 		dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT);
-		renderer = dsMockRender_create(&allocator.allocator);
+		renderer = dsMockRenderer_create(&allocator.allocator);
 		ASSERT_TRUE(renderer);
 		resourceManager = renderer->resourceManager;
 	}
 
 	void TearDown() override
 	{
-		dsMockRender_destroy(renderer);
+		dsMockRenderer_destroy(renderer);
 		EXPECT_EQ(0U, allocator.allocator.size);
 	}
 

@@ -265,10 +265,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	DS_ASSERT(group);
 
 	group->resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		group->allocator = allocator;
-	else
-		group->allocator = NULL;
+	group->allocator = dsAllocator_keepPointer(allocator);
 	group->description = description;
 	group->buffer = NULL;
 	group->rawData = NULL;

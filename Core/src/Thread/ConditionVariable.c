@@ -79,7 +79,7 @@ dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator, const ch
 #endif
 
 	condition->name = name ? name : "Condition";
-	condition->allocator = allocator && allocator->freeFunc ? allocator : NULL;
+	condition->allocator = dsAllocator_keepPointer(allocator);
 	condition->shouldFree = !allocator || allocator->freeFunc;
 	return condition;
 }

@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-#include "MockResourceManager.h"
+#include "Resources/MockResourceManager.h"
 
-#include "MockDrawGeometry.h"
-#include "MockGfxBuffer.h"
-#include "MockMaterialDesc.h"
-#include "MockShader.h"
-#include "MockShaderModule.h"
-#include "MockShaderVariableGroupDesc.h"
-#include "MockTexture.h"
+#include "Resources/MockDrawGeometry.h"
+#include "Resources/MockFramebuffer.h"
+#include "Resources/MockGfxBuffer.h"
+#include "Resources/MockMaterialDesc.h"
+#include "Resources/MockRenderbuffer.h"
+#include "Resources/MockShader.h"
+#include "Resources/MockShaderModule.h"
+#include "Resources/MockShaderVariableGroupDesc.h"
+#include "Resources/MockTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -84,10 +86,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	}
 
 	resourceManager->renderer = renderer;
-	if (allocator->freeFunc)
-		resourceManager->allocator = allocator;
-	else
-		resourceManager->allocator = NULL;
+	resourceManager->allocator = dsAllocator_keepPointer(allocator);
 	resourceManager->maxResourceContexts = 1;
 	resourceManager->minMappingAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
@@ -103,6 +102,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxTextureArrayLevels = 512;
 	resourceManager->arbitraryMipmapping = true;
 	resourceManager->texturesReadable = true;
+	resourceManager->requiresColorBuffer = false;
+	resourceManager->canMixWithRenderSurface = true;
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
@@ -110,46 +111,43 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 
-	resourceManager->createBufferFunc = (dsCreateGfxBufferFunction)&dsMockGfxBuffer_create;
-	resourceManager->destroyBufferFunc = (dsDestroyGfxBufferFunction)&dsMockGfxBuffer_destroy;
-	resourceManager->mapBufferFunc = (dsMapGfxBufferFunction)&dsMockGfxBuffer_map;
-	resourceManager->unmapBufferFunc = (dsUnmapGfxBufferFunction)&dsMockGfxBuffer_unmap;
-	resourceManager->flushBufferFunc = (dsFlushGfxBufferFunction)&dsMockGfxBuffer_flush;
-	resourceManager->invalidateBufferFunc =
-		(dsInvalidateGfxBufferFunction)&dsMockGfxBuffer_invalidate;
-	resourceManager->copyBufferDataFunc = (dsCopyGfxBufferDataFunction)&dsMockGfxBuffer_copyData;
-	resourceManager->copyBufferFunc = (dsCopyGfxBufferFunction)&dsMockGfxBuffer_copy;
+	resourceManager->createBufferFunc = &dsMockGfxBuffer_create;
+	resourceManager->destroyBufferFunc = &dsMockGfxBuffer_destroy;
+	resourceManager->mapBufferFunc = &dsMockGfxBuffer_map;
+	resourceManager->unmapBufferFunc = &dsMockGfxBuffer_unmap;
+	resourceManager->flushBufferFunc = &dsMockGfxBuffer_flush;
+	resourceManager->invalidateBufferFunc = &dsMockGfxBuffer_invalidate;
+	resourceManager->copyBufferDataFunc = &dsMockGfxBuffer_copyData;
+	resourceManager->copyBufferFunc = &dsMockGfxBuffer_copy;
 
-	resourceManager->createGeometryFunc = (dsCreateDrawGeometryFunction)&dsMockDrawGeometry_create;
-	resourceManager->destroyGeometryFunc =
-		(dsDestroyDrawGeometryFunction)&dsMockDrawGeometry_destroy;
+	resourceManager->createGeometryFunc = &dsMockDrawGeometry_create;
+	resourceManager->destroyGeometryFunc = &dsMockDrawGeometry_destroy;
 
-	resourceManager->createTextureFunc = (dsCreateTextureFunction)&dsMockTexture_create;
-	resourceManager->createOffscreenFunc =
-		(dsCreateOffscreenFunction)&dsMockTexture_createOffscreen;
-	resourceManager->destroyTextureFunc = (dsDestroyTextureFunction)&dsMockTexture_destroy;
-	resourceManager->copyTextureDataFunc = (dsCopyTextureDataFunction)&dsMockTexture_copyData;
-	resourceManager->copyTextureFunc = (dsCopyTextureFunction)&dsMockTexture_copy;
-	resourceManager->blitTextureFunc = (dsBlitTextureFunction)&dsMockTexture_blit;
-	resourceManager->getTextureDataFunc = (dsGetTextureDataFunction)&dsMockTexture_getData;
+	resourceManager->createTextureFunc = &dsMockTexture_create;
+	resourceManager->createOffscreenFunc = &dsMockTexture_createOffscreen;
+	resourceManager->destroyTextureFunc = &dsMockTexture_destroy;
+	resourceManager->copyTextureDataFunc = &dsMockTexture_copyData;
+	resourceManager->copyTextureFunc = &dsMockTexture_copy;
+	resourceManager->blitTextureFunc = &dsMockTexture_blit;
+	resourceManager->getTextureDataFunc = &dsMockTexture_getData;
 
-	resourceManager->createShaderModuleFunc =
-		(dsCreateShaderModuleFunction)&dsMockShaderModule_create;
-	resourceManager->destroyShaderModuleFunc =
-		(dsDestroyShaderModuleFunction)&dsMockShaderModule_destroy;
+	resourceManager->createRenderbufferFunc = &dsMockRenderbuffer_create;
+	resourceManager->destroyRenderbufferFunc = &dsMockRenderbuffer_destroy;
 
-	resourceManager->createMaterialDescFunc =
-		(dsCreateMaterialDescFunction)&dsMockMaterialDesc_create;
-	resourceManager->destroyMaterialDescFunc =
-		(dsDestroyMaterialDescFunction)&dsMockMaterialDesc_destroy;
+	resourceManager->createFramebufferFunc = &dsMockFramebuffer_create;
+	resourceManager->destroyFramebufferFunc = &dsMockFramebuffer_destroy;
 
-	resourceManager->createShaderVariableGroupDescFunc =
-		(dsCreateShaderVariableGroupDescFunction)&dsMockShaderVariableGroupDesc_create;
-	resourceManager->destroyShaderVariableGroupDescFunc =
-		(dsDestroyShaderVariableGroupDescFunction)&dsMockShaderVariableGroupDesc_destroy;
+	resourceManager->createShaderModuleFunc = &dsMockShaderModule_create;
+	resourceManager->destroyShaderModuleFunc = &dsMockShaderModule_destroy;
 
-	resourceManager->createShaderFunc = (dsCreateShaderFunction)&dsMockShader_create;
-	resourceManager->destroyShaderFunc = (dsDestroyShaderFunction)&dsMockShader_destroy;
+	resourceManager->createMaterialDescFunc = &dsMockMaterialDesc_create;
+	resourceManager->destroyMaterialDescFunc = &dsMockMaterialDesc_destroy;
+
+	resourceManager->createShaderVariableGroupDescFunc = &dsMockShaderVariableGroupDesc_create;
+	resourceManager->destroyShaderVariableGroupDescFunc = &dsMockShaderVariableGroupDesc_destroy;
+
+	resourceManager->createShaderFunc = &dsMockShader_create;
+	resourceManager->destroyShaderFunc = &dsMockShader_destroy;
 
 	return resourceManager;
 }

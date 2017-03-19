@@ -38,7 +38,8 @@ extern "C"
 /**
  * @brief Creates a renderbuffer.
  * @remark errno will be set on failure.
- * @param resourceManager The resource manager to create the renderbuffer from.
+ * @param resourceManager The resource manager to create the renderbuffer from. If NULL, it will use
+ *     the same allocator as the resource manager.
  * @param allocator The allocator to create the renderbuffer with.
  * @param format The format of the renderbuffer. This format must be compatible with offscreens.
  * @param width The width of the renderbuffer.

@@ -18,3 +18,4 @@
 
 void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
 bool dsAllocator_free(dsAllocator* allocator, void* ptr);
+dsAllocator* dsAllocator_keepPointer(dsAllocator* allocator);

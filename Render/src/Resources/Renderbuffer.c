@@ -64,8 +64,8 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 	if (renderbuffer)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->renderbufferCount, 1);
-		size_t textureSize = dsTexture_size(format, dsTextureDim_2D, width, height, 0, 1, samples);
-		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->textureMemorySize, textureSize);
+		size_t size = dsTexture_size(format, dsTextureDim_2D, width, height, 0, 1, samples);
+		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->renderbufferMemorySize, size);
 	}
 	DS_PROFILE_FUNC_RETURN(renderbuffer);
 }

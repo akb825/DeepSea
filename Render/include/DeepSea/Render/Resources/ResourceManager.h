@@ -74,7 +74,7 @@ DS_RENDER_EXPORT bool dsResourceManager_canUseResources(const dsResourceManager*
 DS_RENDER_EXPORT void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager);
 
 /**
- * @brief Initializes the private members of a resource manager.
+ * @brief Initializes the members of a resource manager.
  *
  * This will initiialize all members to 0 and set up any internal structures. This is called by the
  * render implementation.

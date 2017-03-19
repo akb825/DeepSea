@@ -54,6 +54,18 @@ DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t siz
  */
 DS_CORE_EXPORT inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
 
+
+/**
+ * @brief Gets the pointer to keep for an allocator.
+ *
+ * If the allocator doesn't have a free function, the allocator shouldn't be kept around with
+ * an allocated object to free the object.
+ *
+ * @return The allocator pointer to keep in order to free memory, or NULL if the memory shouldn't
+ *     be freed.
+ */
+DS_CORE_EXPORT inline dsAllocator* dsAllocator_keepPointer(dsAllocator* allocator);
+
 inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 {
 	if (!allocator || !allocator->allocFunc)
@@ -74,6 +86,11 @@ inline bool dsAllocator_free(dsAllocator* allocator, void* ptr)
 	}
 
 	return allocator->freeFunc(allocator, ptr);
+}
+
+inline dsAllocator* dsAllocator_keepPointer(dsAllocator* allocator)
+{
+	return allocator && allocator->freeFunc ? allocator : NULL;
 }
 
 #ifdef __cplusplus

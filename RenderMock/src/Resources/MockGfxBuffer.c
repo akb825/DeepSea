@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include "MockGfxBuffer.h"
+#include "Resources/MockGfxBuffer.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-struct dsMockGfxBuffer
+typedef struct dsMockGfxBuffer
 {
 	dsGfxBuffer buffer;
 	uint8_t data[];
-};
+} dsMockGfxBuffer;
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
@@ -36,10 +36,7 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 
 	buffer->buffer.resourceManager = resourceManager;
-	if (allocator->freeFunc)
-		buffer->buffer.allocator = allocator;
-	else
-		buffer->buffer.allocator = NULL;
+	buffer->buffer.allocator = dsAllocator_keepPointer(allocator);
 	buffer->buffer.usage = (dsGfxBufferUsage)usage;
 	buffer->buffer.memoryHints = (dsGfxMemory)memoryHints;
 	buffer->buffer.size = size;
@@ -49,26 +46,26 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 	return &buffer->buffer;
 }
 
-void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer, int flags,
+void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, int flags,
 	size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(flags);
 	DS_ASSERT(buffer);
 	if (size == DS_MAP_FULL_BUFFER)
-		size = buffer->buffer.size;
-	DS_ASSERT(offset + size <= buffer->buffer.size);
-	return buffer->data + offset;
+		size = buffer->size;
+	DS_ASSERT(offset + size <= buffer->size);
+	return ((dsMockGfxBuffer*)buffer)->data + offset;
 }
 
-bool dsMockGfxBuffer_unmap(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer)
+bool dsMockGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(buffer);
 	return true;
 }
 
-bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
+bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
@@ -78,7 +75,7 @@ bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsMockGfxBuffer* 
 	return true;
 }
 
-bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer,
+bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
@@ -89,35 +86,36 @@ bool dsMockGfxBuffer_invalidate(dsResourceManager* resourceManager, dsMockGfxBuf
 }
 
 bool dsMockGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockGfxBuffer* buffer, size_t offset, const void* data, size_t size)
+	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
 	DS_ASSERT(buffer);
-	DS_ASSERT(offset + size <= buffer->buffer.size);
+	DS_ASSERT(offset + size <= buffer->size);
 	DS_ASSERT(data);
-	memcpy(buffer->data + offset, data, size);
+	memcpy(((dsMockGfxBuffer*)buffer)->data + offset, data, size);
 	return true;
 }
 
 bool dsMockGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsMockGfxBuffer* srcBuffer, size_t srcOffset, dsMockGfxBuffer* dstBuffer, size_t dstOffset,
+	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
 	DS_ASSERT(srcBuffer);
-	DS_ASSERT(srcOffset + size <= srcBuffer->buffer.size);
+	DS_ASSERT(srcOffset + size <= srcBuffer->size);
 	DS_ASSERT(dstBuffer);
-	DS_ASSERT(dstOffset + size <= dstBuffer->buffer.size);
-	memcpy(dstBuffer->data + dstOffset, srcBuffer->data + srcOffset, size);
+	DS_ASSERT(dstOffset + size <= dstBuffer->size);
+	memcpy(((dsMockGfxBuffer*)dstBuffer)->data + dstOffset,
+		((dsMockGfxBuffer*)srcBuffer)->data + srcOffset, size);
 	return true;
 }
 
-bool dsMockGfxBuffer_destroy(dsResourceManager* resourceManager, dsMockGfxBuffer* buffer)
+bool dsMockGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
 {
 	DS_UNUSED(resourceManager);
-	if (buffer->buffer.allocator)
-		return dsAllocator_free(buffer->buffer.allocator, buffer);
+	if (buffer->allocator)
+		return dsAllocator_free(buffer->allocator, buffer);
 	return true;
 }

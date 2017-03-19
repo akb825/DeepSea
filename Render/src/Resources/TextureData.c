@@ -489,10 +489,7 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 	if (!textureData)
 		return NULL;
 
-	if (allocator->freeFunc)
-		textureData->allocator = allocator;
-	else
-		textureData->allocator = NULL;
+	textureData->allocator = dsAllocator_keepPointer(allocator);
 	textureData->format = format;
 	textureData->dimension = dimension;
 	textureData->width = width;
