@@ -195,7 +195,7 @@ TEST(Thread, ThreadId)
 	dsMutex_destroy(mutex);
 }
 
-TEST(Thread, DISABLED_Sleep)
+TEST(Thread, Sleep)
 {
 	dsTimer timer = dsTimer_create();
 	double startTime = dsTimer_time(timer);

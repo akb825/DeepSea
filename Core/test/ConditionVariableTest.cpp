@@ -156,7 +156,7 @@ TEST(ConditionVariable, NotifyOne)
 	dsMutex_destroy(threadData.mutex);
 }
 
-TEST(ConditionVariable, DISABLED_TimedWait)
+TEST(ConditionVariable, TimedWait)
 {
 	dsConditionVariable* condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, condition);
