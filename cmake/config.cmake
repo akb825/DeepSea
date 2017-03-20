@@ -131,7 +131,7 @@ macro(ds_add_library target moduleName)
 		add_library(${target} ${DEEPSEA_LIB} ${ARGN})
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
 			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${moduleName}
-			FILES ${tempResult})
+			FILES ${ARGN})
 	endif()
 endmacro()
 

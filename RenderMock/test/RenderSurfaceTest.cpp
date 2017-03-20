@@ -22,7 +22,7 @@ class RenderSurfaceTest : public FixtureBase
 {
 };
 
-extern DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
+extern "C" DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
 TEST_F(RenderSurfaceTest, Create)
 {
