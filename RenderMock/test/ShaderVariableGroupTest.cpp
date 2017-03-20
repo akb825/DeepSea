@@ -110,155 +110,14 @@ public:
 	}
 };
 
-TEST_F(ShaderVariableGroupTest, GfxBufferImmediate)
+TEST_F(ShaderVariableGroupTest, GfxBuffer)
 {
 	int commandBufferData;
 	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
-	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc,
-		dsShaderCommitType_Immediate);
-	ASSERT_TRUE(group);
-	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
-
-	dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(group);
-	ASSERT_TRUE(buffer);
-
-	TestGfxBufferStruct* gfxBufferValues = (TestGfxBufferStruct*)dsGfxBuffer_map(buffer,
-		dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER);
-	ASSERT_TRUE(gfxBufferValues);
-
-	TestStruct testValues = createTestValues();
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
-		dsMaterialType_Float, 0, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
-		dsMaterialType_Vec3, 1, 1));
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
-		dsMaterialType_Vec3, 0, 1));
-	EXPECT_EQ(0.1f, gfxBufferValues->vec3Mem[0]);
-	EXPECT_EQ(0.2f, gfxBufferValues->vec3Mem[1]);
-	EXPECT_EQ(0.3f, gfxBufferValues->vec3Mem[2]);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 1, &testValues.vec2Mem,
-		dsMaterialType_Vec2, 0, 1));
-	EXPECT_EQ(0.4f, gfxBufferValues->vec2Mem[0]);
-	EXPECT_EQ(0.5f, gfxBufferValues->vec2Mem[1]);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 2, &testValues.floatMem,
-		dsMaterialType_Float, 0, 1));
-	EXPECT_EQ(0.6f, gfxBufferValues->floatMem);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 3, &testValues.intMem,
-		dsMaterialType_Int, 0, 1));
-	EXPECT_EQ(-7, gfxBufferValues->intMem);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 4, &testValues.uintMem,
-		dsMaterialType_UInt, 0, 1));
-	EXPECT_EQ(8U, gfxBufferValues->uintMem);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 5, &testValues.doubleMem,
-		dsMaterialType_Double, 0, 1));
-	EXPECT_EQ(0.9, gfxBufferValues->doubleMem);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 6,
-		&testValues.matrix3x4Mem, dsMaterialType_Mat3x4, 0, 1));
-	EXPECT_EQ(1.0f, gfxBufferValues->matrix3x4Mem[0][0]);
-	EXPECT_EQ(1.1f, gfxBufferValues->matrix3x4Mem[0][1]);
-	EXPECT_EQ(1.2f, gfxBufferValues->matrix3x4Mem[0][2]);
-	EXPECT_EQ(1.3f, gfxBufferValues->matrix3x4Mem[0][3]);
-	EXPECT_EQ(1.4f, gfxBufferValues->matrix3x4Mem[1][0]);
-	EXPECT_EQ(1.5f, gfxBufferValues->matrix3x4Mem[1][1]);
-	EXPECT_EQ(1.6f, gfxBufferValues->matrix3x4Mem[1][2]);
-	EXPECT_EQ(1.7f, gfxBufferValues->matrix3x4Mem[1][3]);
-	EXPECT_EQ(1.8f, gfxBufferValues->matrix3x4Mem[2][0]);
-	EXPECT_EQ(1.9f, gfxBufferValues->matrix3x4Mem[2][1]);
-	EXPECT_EQ(2.0f, gfxBufferValues->matrix3x4Mem[2][2]);
-	EXPECT_EQ(2.1f, gfxBufferValues->matrix3x4Mem[2][3]);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 7,
-		&testValues.doubleMatrix2x3Mem, dsMaterialType_DMat2x3, 0, 1));
-	EXPECT_EQ(2.2, gfxBufferValues->doubleMatrix2x3Mem[0][0]);
-	EXPECT_EQ(2.3, gfxBufferValues->doubleMatrix2x3Mem[0][1]);
-	EXPECT_EQ(2.4, gfxBufferValues->doubleMatrix2x3Mem[0][2]);
-	EXPECT_EQ(2.5, gfxBufferValues->doubleMatrix2x3Mem[1][0]);
-	EXPECT_EQ(2.6, gfxBufferValues->doubleMatrix2x3Mem[1][1]);
-	EXPECT_EQ(2.7, gfxBufferValues->doubleMatrix2x3Mem[1][2]);
-
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem, dsMaterialType_Float, 0, 2));
-	EXPECT_EQ(2.8f, gfxBufferValues->floatArrayMem[0][0]);
-	EXPECT_EQ(2.9f, gfxBufferValues->floatArrayMem[1][0]);
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem + 2, dsMaterialType_Float, 2, 3));
-	EXPECT_EQ(3.0f, gfxBufferValues->floatArrayMem[2][0]);
-	EXPECT_EQ(3.1f, gfxBufferValues->floatArrayMem[3][0]);
-	EXPECT_EQ(3.2f, gfxBufferValues->floatArrayMem[4][0]);
-
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
-	EXPECT_EQ(0.1f, gfxBufferValues->vec3Mem[0]);
-	EXPECT_EQ(0.2f, gfxBufferValues->vec3Mem[1]);
-	EXPECT_EQ(0.3f, gfxBufferValues->vec3Mem[2]);
-	EXPECT_EQ(0.4f, gfxBufferValues->vec2Mem[0]);
-	EXPECT_EQ(0.5f, gfxBufferValues->vec2Mem[1]);
-	EXPECT_EQ(0.6f, gfxBufferValues->floatMem);
-	EXPECT_EQ(-7, gfxBufferValues->intMem);
-	EXPECT_EQ(8U, gfxBufferValues->uintMem);
-	EXPECT_EQ(0.9, gfxBufferValues->doubleMem);
-	EXPECT_EQ(1.0f, gfxBufferValues->matrix3x4Mem[0][0]);
-	EXPECT_EQ(1.1f, gfxBufferValues->matrix3x4Mem[0][1]);
-	EXPECT_EQ(1.2f, gfxBufferValues->matrix3x4Mem[0][2]);
-	EXPECT_EQ(1.3f, gfxBufferValues->matrix3x4Mem[0][3]);
-	EXPECT_EQ(1.4f, gfxBufferValues->matrix3x4Mem[1][0]);
-	EXPECT_EQ(1.5f, gfxBufferValues->matrix3x4Mem[1][1]);
-	EXPECT_EQ(1.6f, gfxBufferValues->matrix3x4Mem[1][2]);
-	EXPECT_EQ(1.7f, gfxBufferValues->matrix3x4Mem[1][3]);
-	EXPECT_EQ(1.8f, gfxBufferValues->matrix3x4Mem[2][0]);
-	EXPECT_EQ(1.9f, gfxBufferValues->matrix3x4Mem[2][1]);
-	EXPECT_EQ(2.0f, gfxBufferValues->matrix3x4Mem[2][2]);
-	EXPECT_EQ(2.1f, gfxBufferValues->matrix3x4Mem[2][3]);
-	EXPECT_EQ(-7, gfxBufferValues->intMem);
-	EXPECT_EQ(8U, gfxBufferValues->uintMem);
-	EXPECT_EQ(0.9, gfxBufferValues->doubleMem);
-	EXPECT_EQ(1.0f, gfxBufferValues->matrix3x4Mem[0][0]);
-	EXPECT_EQ(1.1f, gfxBufferValues->matrix3x4Mem[0][1]);
-	EXPECT_EQ(1.2f, gfxBufferValues->matrix3x4Mem[0][2]);
-	EXPECT_EQ(1.3f, gfxBufferValues->matrix3x4Mem[0][3]);
-	EXPECT_EQ(1.4f, gfxBufferValues->matrix3x4Mem[1][0]);
-	EXPECT_EQ(1.5f, gfxBufferValues->matrix3x4Mem[1][1]);
-	EXPECT_EQ(1.6f, gfxBufferValues->matrix3x4Mem[1][2]);
-	EXPECT_EQ(1.7f, gfxBufferValues->matrix3x4Mem[1][3]);
-	EXPECT_EQ(1.8f, gfxBufferValues->matrix3x4Mem[2][0]);
-	EXPECT_EQ(1.9f, gfxBufferValues->matrix3x4Mem[2][1]);
-	EXPECT_EQ(2.0f, gfxBufferValues->matrix3x4Mem[2][2]);
-	EXPECT_EQ(2.1f, gfxBufferValues->matrix3x4Mem[2][3]);
-	EXPECT_EQ(2.2, gfxBufferValues->doubleMatrix2x3Mem[0][0]);
-	EXPECT_EQ(2.3, gfxBufferValues->doubleMatrix2x3Mem[0][1]);
-	EXPECT_EQ(2.4, gfxBufferValues->doubleMatrix2x3Mem[0][2]);
-	EXPECT_EQ(2.5, gfxBufferValues->doubleMatrix2x3Mem[1][0]);
-	EXPECT_EQ(2.6, gfxBufferValues->doubleMatrix2x3Mem[1][1]);
-	EXPECT_EQ(2.7, gfxBufferValues->doubleMatrix2x3Mem[1][2]);
-	EXPECT_EQ(2.8f, gfxBufferValues->floatArrayMem[0][0]);
-	EXPECT_EQ(2.9f, gfxBufferValues->floatArrayMem[1][0]);
-	EXPECT_EQ(3.0f, gfxBufferValues->floatArrayMem[2][0]);
-	EXPECT_EQ(3.1f, gfxBufferValues->floatArrayMem[3][0]);
-	EXPECT_EQ(3.2f, gfxBufferValues->floatArrayMem[4][0]);
-
-	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
-	EXPECT_TRUE(dsShaderVariableGroup_destroy(group));
-	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(desc));
-}
-
-TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
-{
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
-
-	dsShaderVariableGroupDesc* desc = createDesc();
-	ASSERT_TRUE(desc);
-	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc,
-		dsShaderCommitType_Batched);
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc);
 	ASSERT_TRUE(group);
 	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
 
@@ -271,23 +130,23 @@ TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
 	memset(gfxBufferValues, 0, sizeof(TestGfxBufferStruct));
 
 	TestStruct testValues = createTestValues();
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_FALSE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Float, 0, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_FALSE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 1, 1));
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 0, 1));
 	EXPECT_EQ(0.0f, gfxBufferValues->vec3Mem[0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->vec3Mem[1]);
 	EXPECT_EQ(0.0f, gfxBufferValues->vec3Mem[2]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 1, &testValues.vec2Mem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 1, &testValues.vec2Mem,
 		dsMaterialType_Vec2, 0, 1));
 	EXPECT_EQ(0.0f, gfxBufferValues->vec2Mem[0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->vec2Mem[1]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 2, &testValues.floatMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 2, &testValues.floatMem,
 		dsMaterialType_Float, 0, 1));
 	EXPECT_EQ(0.0f, gfxBufferValues->floatMem);
 
@@ -299,20 +158,20 @@ TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
 	EXPECT_EQ(0.5f, gfxBufferValues->vec2Mem[1]);
 	EXPECT_EQ(0.6f, gfxBufferValues->floatMem);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 3, &testValues.intMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 3, &testValues.intMem,
 		dsMaterialType_Int, 0, 1));
 	EXPECT_EQ(0, gfxBufferValues->intMem);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 4, &testValues.uintMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 4, &testValues.uintMem,
 		dsMaterialType_UInt, 0, 1));
 	EXPECT_EQ(0U, gfxBufferValues->uintMem);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 5, &testValues.doubleMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 5, &testValues.doubleMem,
 		dsMaterialType_Double, 0, 1));
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMem);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 6,
-		&testValues.matrix3x4Mem, dsMaterialType_Mat3x4, 0, 1));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 6, &testValues.matrix3x4Mem,
+		dsMaterialType_Mat3x4, 0, 1));
 	EXPECT_EQ(0.0f, gfxBufferValues->matrix3x4Mem[0][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->matrix3x4Mem[0][1]);
 	EXPECT_EQ(0.0f, gfxBufferValues->matrix3x4Mem[0][2]);
@@ -343,8 +202,8 @@ TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
 	EXPECT_EQ(2.0f, gfxBufferValues->matrix3x4Mem[2][2]);
 	EXPECT_EQ(2.1f, gfxBufferValues->matrix3x4Mem[2][3]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 7,
-		&testValues.doubleMatrix2x3Mem, dsMaterialType_DMat2x3, 0, 1));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 7, &testValues.doubleMatrix2x3Mem,
+		dsMaterialType_DMat2x3, 0, 1));
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMatrix2x3Mem[0][0]);
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMatrix2x3Mem[0][1]);
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMatrix2x3Mem[0][2]);
@@ -352,8 +211,8 @@ TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMatrix2x3Mem[1][1]);
 	EXPECT_EQ(0.0, gfxBufferValues->doubleMatrix2x3Mem[1][2]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem, dsMaterialType_Float, 0, 2));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem,
+		dsMaterialType_Float, 0, 2));
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[0][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[1][0]);
 
@@ -367,8 +226,8 @@ TEST_F(ShaderVariableGroupTest, GfxBufferBatched)
 	EXPECT_EQ(2.8f, gfxBufferValues->floatArrayMem[0][0]);
 	EXPECT_EQ(2.9f, gfxBufferValues->floatArrayMem[1][0]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem + 2, dsMaterialType_Float, 2, 3));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem + 2,
+		dsMaterialType_Float, 2, 3));
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[2][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[3][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[4][0]);
@@ -436,27 +295,26 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
-	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc,
-		dsShaderCommitType_Immediate);
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc);
 	ASSERT_TRUE(group);
 	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
 
 	EXPECT_FALSE(dsShaderVariableGroup_getGfxBuffer(group));
 
 	TestStruct testValues = createTestValues();
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_FALSE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Float, 0, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_FALSE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 1, 1));
 
 	for (uint32_t i = 0; i < desc->elementCount; ++i)
 		EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, i));
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 0, &testValues.vec3Mem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 1, &testValues.vec2Mem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 1, &testValues.vec2Mem,
 		dsMaterialType_Vec2, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 2, &testValues.floatMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 2, &testValues.floatMem,
 		dsMaterialType_Float, 0, 1));
 
 	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 0));
@@ -480,14 +338,14 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.floatMem, elementPtr, sizeof(testValues.floatMem)));
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 3, &testValues.intMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 3, &testValues.intMem,
 		dsMaterialType_Int, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 4, &testValues.uintMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 4, &testValues.uintMem,
 		dsMaterialType_UInt, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 5, &testValues.doubleMem,
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 5, &testValues.doubleMem,
 		dsMaterialType_Double, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 6,
-		&testValues.matrix3x4Mem, dsMaterialType_Mat3x4, 0, 1));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 6, &testValues.matrix3x4Mem,
+		dsMaterialType_Mat3x4, 0, 1));
 
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));
@@ -513,10 +371,10 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.matrix3x4Mem, elementPtr, sizeof(testValues.matrix3x4Mem)));
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 7,
-		&testValues.doubleMatrix2x3Mem, dsMaterialType_DMat2x3, 0, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem, dsMaterialType_Float, 0, 2));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 7, &testValues.doubleMatrix2x3Mem,
+		dsMaterialType_DMat2x3, 0, 1));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem,
+		dsMaterialType_Float, 0, 2));
 
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));
@@ -537,8 +395,8 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.floatArrayMem, elementPtr, sizeof(float)*2));
 
-	EXPECT_TRUE(dsShaderVariableGroup_setElementData(commandBuffer, group, 8,
-		testValues.floatArrayMem + 2, dsMaterialType_Float, 2, 3));
+	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem + 2,
+		dsMaterialType_Float, 2, 3));
 
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));

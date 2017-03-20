@@ -325,7 +325,7 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 	ASSERT_TRUE(material);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		groupDesc, dsShaderCommitType_Immediate);
+		groupDesc);
 	ASSERT_TRUE(variableGroup);
 
 	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 0, variableGroup));
@@ -452,7 +452,7 @@ TEST_F(MaterialTest, MixedTypes)
 	ASSERT_TRUE(buffer);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		groupDesc, dsShaderCommitType_Immediate);
+		groupDesc);
 	ASSERT_TRUE(variableGroup);
 
 	float floatVal = 1.2f;;

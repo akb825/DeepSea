@@ -48,10 +48,6 @@ struct dsShaderVariableGroup
 	PositionInfo* rawDataPositions;
 	size_t dirtyStart;
 	size_t dirtyEnd;
-
-	dsAllocator* tempBuffAllocator;
-	uint8_t* tempBuff;
-	size_t tempBuffSize;
 };
 
 static uint32_t elementSize(const dsShaderVariableElement* element, const dsShaderVariablePos* pos)
@@ -128,73 +124,13 @@ static void memcpyData(void* result, const dsShaderVariableElement* element,
 	}
 }
 
-static bool copyBuffer(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* group,
-	uint32_t elementIndex, const void* data, uint32_t firstIndex, uint32_t count)
-{
-	const dsShaderVariableElement* element = group->description->elements + elementIndex;
-	const dsShaderVariablePos* pos = group->description->positions + elementIndex;
-	uint32_t baseStride = dsMaterialType_cpuSize(element->type);
-	uint32_t stride = element->count > 0 ? pos->stride : elementSize(element, pos);
-	DS_ASSERT(stride >= baseStride);
-
-	if (stride == baseStride)
-	{
-		return dsGfxBuffer_copyData(commandBuffer, group->buffer, pos->offset + stride*firstIndex,
-			data, count*stride);
-	}
-	else
-	{
-		// Need to use an intermediate buffer to resolve different packing.
-		uint8_t staticBuffer[1024];
-		uint8_t* buffer = staticBuffer;
-
-		uint32_t size = count*stride;
-		if (size > sizeof(staticBuffer))
-		{
-			if (size > group->tempBuffSize)
-			{
-				if (!group->tempBuffAllocator)
-				{
-					group->tempBuffAllocator = group->allocator;
-					if (!!group->tempBuffAllocator)
-						group->tempBuffAllocator = group->resourceManager->allocator;
-					if (!!group->tempBuffAllocator)
-					{
-						errno = ENOMEM;
-						DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-							"Couldn't find an allocator for temporary buffer.");
-						return false;
-					}
-				}
-
-				if (group->tempBuff)
-					DS_VERIFY(dsAllocator_free(group->tempBuffAllocator, group->tempBuff));
-				group->tempBuff = (uint8_t*)dsAllocator_alloc(group->tempBuffAllocator, size);
-				if (!group->tempBuff)
-				{
-					group->tempBuffSize = 0;
-					return false;
-				}
-				group->tempBuffSize = size;
-			}
-			buffer = group->tempBuff;
-		}
-
-		memcpyData(buffer, element, pos, data, count);
-		bool result = dsGfxBuffer_copyData(commandBuffer, group->buffer, pos->offset +
-			stride*firstIndex, buffer, count*stride);
-		return result;
-	}
-}
-
 size_t dsShaderVariableGroup_sizeof(void)
 {
 	return sizeof(dsShaderVariableGroup);
 }
 
 size_t dsShaderVariableGroup_fullAllocSize(
-	const dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* description,
-	dsShaderCommitType commitType)
+	const dsResourceManager* resourceManager, const dsShaderVariableGroupDesc* description)
 {
 	if (!resourceManager || !description)
 		return 0;
@@ -202,12 +138,9 @@ size_t dsShaderVariableGroup_fullAllocSize(
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsShaderVariableGroup));
 
 	bool useGfxBuffer = dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	if (!useGfxBuffer || commitType == dsShaderCommitType_Batched)
-	{
-		fullSize += DS_ALIGNED_SIZE(getRawBufferSize(description, useGfxBuffer));
-		if (!useGfxBuffer)
-			fullSize += DS_ALIGNED_SIZE(description->elementCount*sizeof(PositionInfo));
-	}
+	fullSize += DS_ALIGNED_SIZE(getRawBufferSize(description, useGfxBuffer));
+	if (!useGfxBuffer)
+		fullSize += DS_ALIGNED_SIZE(description->elementCount*sizeof(PositionInfo));
 
 	return fullSize;
 }
@@ -222,7 +155,7 @@ bool dsShaderVariableGroup_useGfxBuffer(const dsResourceManager* resourceManager
 
 dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsAllocator* gfxBufferAllocator,
-	const dsShaderVariableGroupDesc* description, dsShaderCommitType commitType)
+	const dsShaderVariableGroupDesc* description)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -250,8 +183,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	size_t totalSize = dsShaderVariableGroup_fullAllocSize(resourceManager, description,
-		commitType);
+	size_t totalSize = dsShaderVariableGroup_fullAllocSize(resourceManager, description);
 	DS_ASSERT(totalSize > 0);
 	void* fullMem = dsAllocator_alloc(allocator, totalSize);
 	if (!fullMem)
@@ -273,10 +205,6 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->dirtyStart = (size_t)-1;
 	group->dirtyEnd = 0;
 
-	group->tempBuffAllocator = NULL;
-	group->tempBuff = NULL;
-	group->tempBuffSize = 0;
-
 	size_t bufferSize = getRawBufferSize(description, useGfxBuffer);
 	DS_ASSERT(bufferSize > 0);
 	if (useGfxBuffer)
@@ -293,31 +221,28 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		}
 	}
 
-	if (!useGfxBuffer || commitType == dsShaderCommitType_Batched)
+	group->rawData = dsAllocator_alloc((dsAllocator*)&bufferAllocator, bufferSize);
+	DS_ASSERT(group->rawData);
+
+	// Cache the position of each element.
+	if (!useGfxBuffer)
 	{
-		group->rawData = dsAllocator_alloc((dsAllocator*)&bufferAllocator, bufferSize);
-		DS_ASSERT(group->rawData);
+		group->rawDataPositions = (PositionInfo*)dsAllocator_alloc(
+			(dsAllocator*)&bufferAllocator, sizeof(PositionInfo)*description->elementCount);
+		DS_ASSERT(group->rawDataPositions);
 
-		// Cache the position of each element.
-		if (!useGfxBuffer)
+		size_t curSize = 0;
+		for (uint32_t i = 0; i < description->elementCount; ++i)
 		{
-			group->rawDataPositions = (PositionInfo*)dsAllocator_alloc(
-				(dsAllocator*)&bufferAllocator, sizeof(PositionInfo)*description->elementCount);
-			DS_ASSERT(group->rawDataPositions);
+			dsMaterialType type = description->elements[i].type;
+			uint16_t stride = dsMaterialType_cpuSize(type);
 
-			size_t curSize = 0;
-			for (uint32_t i = 0; i < description->elementCount; ++i)
-			{
-				dsMaterialType type = description->elements[i].type;
-				uint16_t stride = dsMaterialType_cpuSize(type);
-
-				group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCpuSize(
-					&curSize, type, description->elements[i].count);
-				group->rawDataPositions[i].pos.stride = stride;
-				group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(
-					dsMaterialType_matrixColumnType(type));
-				group->rawDataPositions[i].dirty = false;
-			}
+			group->rawDataPositions[i].pos.offset = (uint32_t)dsMaterialType_addElementCpuSize(
+				&curSize, type, description->elements[i].count);
+			group->rawDataPositions[i].pos.stride = stride;
+			group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(
+				dsMaterialType_matrixColumnType(type));
+			group->rawDataPositions[i].dirty = false;
 		}
 	}
 
@@ -337,13 +262,12 @@ const dsShaderVariableGroupDesc* dsShaderVariableGroup_getDescription(
 	return group->description;
 }
 
-bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
-	dsShaderVariableGroup* group, uint32_t element, const void* data, dsMaterialType type,
-	uint32_t firstIndex, uint32_t count)
+bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup* group, uint32_t element,
+	const void* data, dsMaterialType type, uint32_t firstIndex, uint32_t count)
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !group || !data || count == 0)
+	if (!group || !data || count == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -373,42 +297,34 @@ bool dsShaderVariableGroup_setElementData(dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (group->rawData)
+	const dsShaderVariablePos* pos;
+	uint32_t stride;
+	if (group->rawDataPositions)
 	{
-		const dsShaderVariablePos* pos;
-		uint32_t stride;
-		if (group->rawDataPositions)
-		{
-			pos = &group->rawDataPositions[element].pos;
+		pos = &group->rawDataPositions[element].pos;
 
-			// Stride is always set for raw data, even if not an array.
-			stride = pos->stride;
-			group->rawDataPositions[element].dirty = true;
-		}
-		else
-		{
-			DS_ASSERT(group->description->positions);
-			pos = group->description->positions + element;
-
-			if (group->description->elements[element].count == 0)
-				stride = dsMaterialType_cpuSize(type);
-			else
-				stride = pos->stride;
-
-			size_t start = pos->offset + stride*firstIndex;
-			size_t end = start + count*stride;
-			group->dirtyStart = dsMin(start, group->dirtyStart);
-			group->dirtyEnd = dsMax(end, group->dirtyEnd);
-		}
-		memcpyData(group->rawData + pos->offset + stride*firstIndex,
-			group->description->elements + element, pos, data, count);
-		DS_PROFILE_FUNC_RETURN(true);
+		// Stride is always set for raw data, even if not an array.
+		stride = pos->stride;
+		group->rawDataPositions[element].dirty = true;
 	}
 	else
 	{
-		bool success = copyBuffer(commandBuffer, group, element, data, firstIndex, count);
-		DS_PROFILE_FUNC_RETURN(success);
+		DS_ASSERT(group->description->positions);
+		pos = group->description->positions + element;
+
+		if (group->description->elements[element].count == 0)
+			stride = dsMaterialType_cpuSize(type);
+		else
+			stride = pos->stride;
+
+		size_t start = pos->offset + stride*firstIndex;
+		size_t end = start + count*stride;
+		group->dirtyStart = dsMin(start, group->dirtyStart);
+		group->dirtyEnd = dsMax(end, group->dirtyEnd);
 	}
+	memcpyData(group->rawData + pos->offset + stride*firstIndex,
+		group->description->elements + element, pos, data, count);
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(const dsShaderVariableGroup* group)
@@ -449,7 +365,7 @@ bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariab
 	}
 
 	bool success = true;
-	if (group->buffer && group->rawData && group->dirtyStart < group->dirtyEnd)
+	if (group->buffer && group->dirtyStart < group->dirtyEnd)
 	{
 		success = dsGfxBuffer_copyData(commandBuffer, group->buffer, group->dirtyStart,
 			group->rawData + group->dirtyStart, group->dirtyEnd - group->dirtyStart);
@@ -490,12 +406,6 @@ bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group)
 	{
 		if (!dsGfxBuffer_destroy(group->buffer))
 			DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (group->tempBuff)
-	{
-		DS_ASSERT(group->tempBuffAllocator);
-		DS_VERIFY(dsAllocator_free(group->tempBuffAllocator, group->tempBuff));
 	}
 
 	if (group->allocator)

@@ -107,12 +107,12 @@ TEST_F(VolatileMaterialValuesTest, VariableGroups)
 		elements, (uint32_t)DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(desc);
 
-	dsShaderVariableGroup* variableGroup1 = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		desc, dsShaderCommitType_Immediate);
+	dsShaderVariableGroup* variableGroup1 = dsShaderVariableGroup_create(resourceManager, NULL,
+		NULL, desc);
 	ASSERT_TRUE(variableGroup1);
 
-	dsShaderVariableGroup* variableGroup2 = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-	desc, dsShaderCommitType_Immediate);
+	dsShaderVariableGroup* variableGroup2 = dsShaderVariableGroup_create(resourceManager, NULL,
+		NULL, desc);
 	ASSERT_TRUE(variableGroup2);
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(values, "test1", variableGroup1));
@@ -121,7 +121,8 @@ TEST_F(VolatileMaterialValuesTest, VariableGroups)
 
 	EXPECT_EQ(2U, dsVolatileMaterialValues_getValueCount(values));
 
-	EXPECT_EQ(variableGroup1, dsVolatileMaterialValues_getVariableGroupId(values, dsHashString("test1")));
+	EXPECT_EQ(variableGroup1, dsVolatileMaterialValues_getVariableGroupId(values,
+		dsHashString("test1")));
 	EXPECT_EQ(variableGroup2, dsVolatileMaterialValues_getVariableGroupName(values, "test2"));
 
 	EXPECT_FALSE(dsVolatileMaterialValues_getVariableGroupName(values, "asdf"));
@@ -186,7 +187,8 @@ TEST_F(VolatileMaterialValuesTest, Buffers)
 	EXPECT_EQ(64U, size);
 
 	EXPECT_FALSE(dsVolatileMaterialValues_getBufferName(&offset, &size, values, "asdf"));
-	EXPECT_FALSE(dsVolatileMaterialValues_getBufferId(&offset, &size, values, dsHashString("asdf")));
+	EXPECT_FALSE(dsVolatileMaterialValues_getBufferId(&offset, &size, values,
+		dsHashString("asdf")));
 	EXPECT_FALSE(dsVolatileMaterialValues_getTextureName(values, "test1"));
 	EXPECT_FALSE(dsVolatileMaterialValues_getVariableGroupName(values, "test1"));
 
@@ -238,7 +240,7 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 	ASSERT_TRUE(desc);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		desc, dsShaderCommitType_Immediate);
+		desc);
 	ASSERT_TRUE(variableGroup);
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
@@ -291,7 +293,7 @@ TEST_F(VolatileMaterialValuesTest, Limit)
 	ASSERT_TRUE(desc);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		desc, dsShaderCommitType_Immediate);
+		desc);
 	ASSERT_TRUE(variableGroup);
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
