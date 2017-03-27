@@ -61,7 +61,6 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 
 	if (!dsThread_equal(dsThread_thisThreadId(), renderSurface->renderer->mainThread))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render surfaces may only be updated on the main thread.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -69,6 +68,69 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 	bool resized = renderSurface->renderer->updateRenderSurfaceFunc(renderSurface->renderer,
 		renderSurface);
 	DS_PROFILE_FUNC_RETURN(resized);
+}
+
+bool dsRenderSurface_beginDraw(dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->beginRenderSurfaceFunc ||
+		!renderSurface->renderer->endRenderSurfaceFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsRenderer* renderer = renderSurface->renderer;
+	bool begun = renderer->beginRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
+	DS_PROFILE_FUNC_RETURN(begun);
+}
+
+bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->endRenderSurfaceFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsRenderer* renderer = renderSurface->renderer;
+	bool ended = renderer->endRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
+	DS_PROFILE_FUNC_RETURN(ended);
+}
+
+bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->swapRenderSurfaceBuffersFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsRenderer* renderer = renderSurface->renderer;
+	if (!renderer->doubleBuffer)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Render surfaces may only be swapped on the main thread.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool swapped = renderer->swapRenderSurfaceBuffersFunc(renderer, renderSurface);
+	DS_PROFILE_FUNC_RETURN(swapped);
 }
 
 bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
@@ -81,7 +143,8 @@ bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderSurface->renderer->mainThread))
+	dsRenderer* renderer = renderSurface->renderer;
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -89,7 +152,6 @@ bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool destroyed = renderSurface->renderer->destroyRenderSurfaceFunc(renderSurface->renderer,
-		renderSurface);
+	bool destroyed = renderer->destroyRenderSurfaceFunc(renderer, renderSurface);
 	DS_PROFILE_FUNC_RETURN(destroyed);
 }

@@ -55,7 +55,7 @@ dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager,
 	framebuffer->surfaceCount = surfaceCount;
 	framebuffer->width = width;
 	framebuffer->height = height;
-	framebuffer->arrayLayers = layers;
+	framebuffer->layers = layers;
 	return framebuffer;
 }
 

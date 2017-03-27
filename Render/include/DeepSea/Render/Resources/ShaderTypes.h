@@ -91,6 +91,25 @@ typedef enum dsMaterialType
 	dsMaterialType_Count, ///< The number of material types.
 } dsMaterialType;
 
+/**
+ * @brief Enum for the type of primitive to draw with.
+ * @see Shader.h
+ * @see Renderer.h
+ */
+typedef enum dsPrimitiveType
+{
+	dsPrimitiveType_PointList,              ///< A list of points.
+	dsPrimitiveType_LineList,               ///< A list of lines.
+	dsPrimitiveType_LineStrip,              ///< A strip of connected lines.
+	dsPrimitiveType_TriangleList,           ///< A list of triangles.
+	dsPrimitiveType_TriangleStrip,          ///< A strip of connected triangles.
+	dsPrimitiveType_TriangleFan,            ///< A fan of connected triangles.
+	dsPrimitiveType_LineListAdjacency,      ///< A list of lines with adjacency info.
+	dsPrimitiveType_TriangleListAdjacency,  ///< A list of triangles with adjacency info.
+	dsPrimitiveType_TriangleStripAdjacency, ///< A strip of connected triangles with adjacency info.
+	dsPrimitiveType_PatchList,              ///< A list of tessellation control patches.
+} dsPrimitiveType;
+
 /// \{
 typedef struct dsResourceManager dsResourceManager;
 typedef struct mslModule mslModule;
@@ -203,6 +222,11 @@ typedef struct dsShader
 	 * @brief A description of the materials that can be used with this shader.
 	 */
 	const dsMaterialDesc* materialDesc;
+
+	/**
+	 * @brief The type of primitive the shader will be drawn with.
+	 */
+	dsPrimitiveType primitiveType;
 } dsShader;
 
 /**
@@ -391,6 +415,108 @@ typedef struct dsShaderVariableGroup dsShaderVariableGroup;
  * @see VolatileMaterialValues.h
  */
 typedef struct dsVolatileMaterialValues dsVolatileMaterialValues;
+
+/**
+ * @brief Structure holding render states that can be changed dynamically when binding a shader.
+ * @see Shader.h
+ */
+typedef struct dsDynamicRenderStates
+{
+	/**
+	 * @brief The width of line primitives.
+	 *
+	 * This will only be used for shaders that draw lines and the line width isn't declared within
+	 * the shader.
+	 */
+	float lineWidth;
+
+	/**
+	 * @brief The depth bias constant factor.
+	 *
+	 * This will only be used for shaders that enable depth bias and the depth bias isn't declared
+	 * in the shader.
+	 */
+	float depthBiasConstantFactor;
+
+	/**
+	 * @brief The depth bias clamp.
+	 *
+	 * This will only be used for shaders that enable depth bias and the depth bias isn't declared
+	 * in the shader.
+	 */
+	float depthBiasClamp;
+
+	/**
+	 * @brief The depth bias slope factor.
+	 *
+	 * This will only be used for shaders that enable depth bias and the depth bias isn't declared
+	 * in the shader.
+	 */
+	float depthBiasSlopeFactor;
+
+	/**
+	 * @brief The blend constants.
+	 *
+	 * This will only be used when used with a shader that uses blending with the constant factor.
+	 */
+	dsColor4f blendConstants;
+
+	/**
+	 * @brief The minimum and maximum depth values.
+	 *
+	 * This will only be used for shaders that enable depth bounds and don't declare the depth
+	 * bounds within the shader.
+	 */
+	dsVector2f depthBounds;
+
+	/**
+	 * @brief The stencil compare mask for front faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the compare
+	 * masks within in the shader.
+	 */
+	uint32_t frontStencilCompareMask;
+
+	/**
+	 * @brief The stencil compare mask for back faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the compare
+	 * masks within in the shader.
+	 */
+	uint32_t backStencilCompareMask;
+
+	/**
+	 * @brief The stencil write mask for front faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the write
+	 * masks within in the shader.
+	 */
+	uint32_t frontStencilWriteMask;
+
+	/**
+	 * @brief The stencil write mask for back faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the write
+	 * masks within in the shader.
+	 */
+	uint32_t backStencilWriteMask;
+
+	/**
+	 * @brief The stencil reference for front faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the references
+	 * within in the shader.
+	 */
+	uint32_t frontStencilReference;
+
+	/**
+	 * @brief The stencil reference for back faces.
+	 *
+	 * This will only be used for shaders that enable stencil tests and don't declare the references
+	 * within in the shader.
+	 */
+	uint32_t backStencilReference;
+} dsDynamicRenderStates;
 
 #ifdef __cplusplus
 }

@@ -49,8 +49,9 @@ DS_RENDER_EXPORT dsShaderVariableGroupDesc* dsShaderVariableGroupDesc_create(
  * @brief Finds an element within a shader variable description.
  * @param groupDesc The shader variable group description.
  * @param name The name of the variable.
- * @return The index of the element, or DS_UNKNOWN if not found. This can be used to index into the
- *     elements member of dsShaderVariableGroupDesc or access the data within dsShaderVariableGroup.
+ * @return The index of the element, or DS_MATERIAL_UNKNOWN if not found. This can be used to index
+ *     into the elements member of dsShaderVariableGroupDesc or access the data within
+ *     dsShaderVariableGroup.
  */
 DS_RENDER_EXPORT uint32_t dsShaderVariableGroupDesc_findElement(
 	const dsShaderVariableGroupDesc* groupDesc, const char* name);

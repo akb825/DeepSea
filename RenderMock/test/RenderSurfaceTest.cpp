@@ -56,3 +56,38 @@ TEST_F(RenderSurfaceTest, Update)
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
 }
+
+TEST_F(RenderSurfaceTest, BeginEnd)
+{
+	int commandBufferData;
+	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
+		dsRenderSurfaceType_Unknown);
+	ASSERT_TRUE(renderSurface);
+
+	EXPECT_FALSE(dsRenderSurface_beginDraw(NULL, renderSurface));
+	EXPECT_FALSE(dsRenderSurface_beginDraw(commandBuffer, NULL));
+	EXPECT_TRUE(dsRenderSurface_beginDraw(commandBuffer, renderSurface));
+
+	EXPECT_FALSE(dsRenderSurface_endDraw(NULL, renderSurface));
+	EXPECT_FALSE(dsRenderSurface_endDraw(commandBuffer, NULL));
+	EXPECT_TRUE(dsRenderSurface_endDraw(commandBuffer, renderSurface));
+
+	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
+}
+
+TEST_F(RenderSurfaceTest, SwapBuffers)
+{
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
+		dsRenderSurfaceType_Unknown);
+	ASSERT_TRUE(renderSurface);
+
+	EXPECT_FALSE(dsRenderSurface_swapBuffers(NULL));
+	EXPECT_TRUE(dsRenderSurface_swapBuffers(renderSurface));
+
+	renderer->doubleBuffer = false;
+	EXPECT_FALSE(dsRenderSurface_swapBuffers(renderSurface));
+
+	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
+}

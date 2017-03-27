@@ -21,4 +21,9 @@
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
 	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
 bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
+bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface* renderSurface);
 bool dsMockRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

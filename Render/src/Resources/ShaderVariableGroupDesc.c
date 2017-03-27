@@ -118,7 +118,7 @@ uint32_t dsShaderVariableGroupDesc_findElement(const dsShaderVariableGroupDesc* 
 	const char* name)
 {
 	if (!groupDesc || !name)
-		return DS_UNKNOWN;
+		return DS_MATERIAL_UNKNOWN;
 
 	for (uint32_t i = 0; i < groupDesc->elementCount; ++i)
 	{
@@ -126,7 +126,7 @@ uint32_t dsShaderVariableGroupDesc_findElement(const dsShaderVariableGroupDesc* 
 			return i;
 	}
 
-	return DS_UNKNOWN;
+	return DS_MATERIAL_UNKNOWN;
 }
 
 bool dsShaderVariableGroupDesc_destroy(dsShaderVariableGroupDesc* groupDesc)

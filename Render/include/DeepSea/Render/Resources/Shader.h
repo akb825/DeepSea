@@ -45,11 +45,12 @@ extern "C"
  * @param name The name of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
+ * @param primitiveType The type of primitive the shader will be drawn with.
  * @return The created shader , or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, const char* name,
-	const dsMaterialDesc* materialDesc);
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
 
 /**
  * @brief Creates a shader by index.
@@ -62,11 +63,51 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
  * @param index The index of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
+ * @param primitiveType The type of primitive the shader will be drawn with.
  * @return The created shader , or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, uint32_t index,
-	const dsMaterialDesc* materialDesc);
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
+
+
+/**
+ * @brief Binds a shader to be drawn to.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to draw with.
+ * @param material The material values to apply to the shader.
+ * @param volatileValues The volatile values to apply to the shader.
+ * @param renderStates The dynamic render states to apply. This may be NULL to use the default
+ *     values.
+ * @return False if the values couldn't be bound.
+ */
+DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, dsShader* shader,
+	const dsMaterial* material, dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates);
+
+/**
+ * @brief Updates the volatile material values for the shader.
+ *
+ * This will try to only update the values that have changed.
+ *
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to update the values on.
+ * @param volatileValues The volatile values to updte.
+ * @return False if the values couldn't be updated.
+ */
+DS_RENDER_EXPORT bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, dsVolatileMaterialValues* volatileValues);
+
+/**
+ * @brief Un-binds a shader that was previously bound.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to update the values on.
+ * @return False if the values couldn't be unbound.
+ */
+DS_RENDER_EXPORT bool dsShader_unbind(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 /**
  * @brief Destroys a shader.

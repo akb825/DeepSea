@@ -202,7 +202,7 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 
 bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsFilter filter)
+	size_t regionCount, dsBlitFilter filter)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(srcTexture);

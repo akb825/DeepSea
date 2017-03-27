@@ -150,7 +150,7 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc, const char* name)
 {
 	if (!materialDesc || !name)
-		return DS_UNKNOWN;
+		return DS_MATERIAL_UNKNOWN;
 
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
@@ -158,7 +158,7 @@ uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc, const ch
 			return i;
 	}
 
-	return DS_UNKNOWN;
+	return DS_MATERIAL_UNKNOWN;
 }
 
 bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc)

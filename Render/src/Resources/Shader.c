@@ -177,7 +177,7 @@ const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* m
 			materialDesc->elements[i].shaderVariableGroupDesc;
 		DS_ASSERT(groupDesc);
 		uint32_t foundElement = dsShaderVariableGroupDesc_findElement(groupDesc, name);
-		if (foundElement != DS_UNKNOWN)
+		if (foundElement != DS_MATERIAL_UNKNOWN)
 		{
 			if (element)
 				isDuplicate = true;
@@ -220,7 +220,7 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 		dsMaterialType type = dsMaterialType_Count;
 		uint32_t arrayCount = 0;
 		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, structMember.name);
-		if (elementIndex == DS_UNKNOWN)
+		if (elementIndex == DS_MATERIAL_UNKNOWN)
 		{
 			if (supportsBuffers)
 			{
@@ -364,7 +364,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 		}
 
 		uint32_t elementIndex = dsMaterialDesc_findElement(materialDesc, uniform.name);
-		if (elementIndex == DS_UNKNOWN)
+		if (elementIndex == DS_MATERIAL_UNKNOWN)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Uniform '%s' not found in material description.",
 				uniform.name);
@@ -423,7 +423,8 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 }
 
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc)
+	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
+	dsPrimitiveType primitiveType)
 {
 	if (!resourceManager || !resourceManager->createShaderFunc ||
 		!resourceManager->destroyShaderFunc || !shaderModule || !name || !materialDesc)
@@ -446,11 +447,13 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 		return NULL;
 	}
 
-	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc);
+	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc,
+		primitiveType);
 }
 
 dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc)
+	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc,
+	dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -489,7 +492,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	}
 
 	dsShader* shader = resourceManager->createShaderFunc(resourceManager, allocator, shaderModule,
-		index, materialDesc);
+		index, materialDesc, primitiveType);
 	if (shader)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, 1);
 	DS_PROFILE_FUNC_RETURN(shader);

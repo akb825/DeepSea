@@ -173,6 +173,22 @@ DS_RENDER_EXPORT bool dsMaterial_setBuffer(dsMaterial* material, uint32_t elemen
 	dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
+ * @brief Commits changes to the material values.
+ *
+ * This will ensure any changes are reflected in shaders when drawing geometry. If this isn't
+ * called, changes may not be applied.
+ *
+ * @remark This shouldn't be used across multiple threads. If different values are required across
+ * threads, consider dsVolatileMaterialValues.
+ *
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to commit the changes on.
+ * @param material The material to commit the changes for.
+ * @return False if the values couldn't be committed.
+ */
+DS_RENDER_EXPORT bool dsMaterial_commit(dsCommandBuffer* commandBuffer, dsMaterial* material);
+
+/**
  * @brief Destroys a material.
  * @param material The material to destroy.
  */

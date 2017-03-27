@@ -49,6 +49,13 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	else
 		layers = dsMax(1U, layers);
 
+	if (layers > resourceManager->maxFramebufferLayers)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Framebuffer layers exceeds supported maximum.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	bool hasColorSurface = false;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
@@ -60,7 +67,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		}
 
 		dsGfxFormat surfaceFormat;
-		uint32_t surfaceWidth, surfaceHeight, surfaceDepth;
+		uint32_t surfaceWidth, surfaceHeight, surfaceLayers;
 		switch (surfaces[i].surfaceType)
 		{
 			case dsFramebufferSurfaceType_ColorRenderSurface:
@@ -69,7 +76,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceFormat = surface->renderer->surfaceColorFormat;
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
-				surfaceDepth = 0;
+				surfaceLayers = 1;
 				break;
 			}
 			case dsFramebufferSurfaceType_DepthRenderSurface:
@@ -78,14 +85,16 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
-				surfaceDepth = 0;
+				surfaceLayers = 1;
 				break;
 			}
 			case dsFramebufferSurfaceType_Offscreen:
 			{
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
 				surfaceFormat = surface->format;
-				surfaceDepth = surface->dimension == dsTextureDim_3D ? 0 : surface->depth;
+				surfaceLayers = dsMax(1U, surface->depth);
+				if (surface->dimension == dsTextureDim_Cube)
+					surfaceLayers *= 6;
 
 				if (!surface->offscreen)
 				{
@@ -108,11 +117,11 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceHeight = surface->height/(1 << surfaces[i].mipLevel);
 				surfaceHeight = dsMax(1U, surfaceHeight);
 
-				if (surfaceDepth > 0 && surfaces[i].arrayLevel >= surfaceDepth)
+				if (layers == 1 && surface->depth > 0 && surfaces[i].layer >= surfaceLayers)
 				{
 					errno = EINDEX;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-						"Array level out of range for offscreen within a framebuffer.");
+						"Texture layer out of range for offscreen within a framebuffer.");
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
@@ -124,7 +133,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceFormat = surface->format;
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
-				surfaceDepth = 0;
+				surfaceLayers = 1;
 				break;
 			}
 			default:
@@ -133,12 +142,11 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		surfaceDepth = dsMax(1U, surfaceDepth);
-		if (surfaces[i].arrayLevel > surfaceDepth || surfaceDepth - surfaces[i].arrayLevel < layers)
+		if (surfaceLayers != layers)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Surface array layers are out of range for framebuffer.");
+				"Surface layer count don't match framebuffer layer count.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 

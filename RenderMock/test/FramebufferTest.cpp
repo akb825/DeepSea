@@ -76,7 +76,7 @@ TEST_F(FramebufferTest, CreateLayers)
 {
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 5, 1, 4, true);
+		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 4, 1, 4, true);
 	ASSERT_TRUE(offscreen1);
 
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
@@ -86,15 +86,15 @@ TEST_F(FramebufferTest, CreateLayers)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 2, 0, offscreen1},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 15, 0, offscreen1},
 		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 4));
+		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 2));
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 2);
+		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 4);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));

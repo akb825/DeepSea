@@ -34,7 +34,7 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	size_t regionCount);
 bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsFilter filter);
+	size_t regionCount, dsBlitFilter filter);
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height);
 bool dsMockTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture);

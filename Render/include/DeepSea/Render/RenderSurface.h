@@ -59,6 +59,34 @@ DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
 DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface);
 
 /**
+ * @brief Begins drawing to a render surface.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderSurface The render surface to draw to.
+ * @return False if the render surface couldn't begin.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+
+/**
+ * @brief Ends drawing to a render surface.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderSurface The render surface to draw to.
+ * @return False if the render surface couldn't end.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+
+/**
+ * @brief Swaps the front and back buffers for a render surface.
+ * @remark errno will be set on failure.
+ * @param renderSurface The render surface to swap buffers on.
+ * @return False if the buffers couldn't be swapped.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface);
+
+/**
  * @brief Destroys a render surface.
  * @remark errno will be set on failure.
  * @param renderSurface The render surface to destroy.

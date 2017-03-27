@@ -45,7 +45,7 @@ TEST_F(MaterialDescTest, Create)
 	EXPECT_EQ(0U, dsMaterialDesc_findElement(materialDesc, "singleVec4"));
 	EXPECT_EQ(1U, dsMaterialDesc_findElement(materialDesc, "matrixArray"));
 	EXPECT_EQ(2U, dsMaterialDesc_findElement(materialDesc, "integer"));
-	EXPECT_EQ(DS_UNKNOWN, dsMaterialDesc_findElement(materialDesc, "asdf"));
+	EXPECT_EQ(DS_MATERIAL_UNKNOWN, dsMaterialDesc_findElement(materialDesc, "asdf"));
 
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
 	EXPECT_EQ(0U, resourceManager->materialDescCount);

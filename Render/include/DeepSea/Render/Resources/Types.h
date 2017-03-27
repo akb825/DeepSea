@@ -21,7 +21,6 @@
 #include <DeepSea/Core/Thread/Types.h>
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Render/Resources/ShaderTypes.h>
-#include <DeepSea/Render/RenderStates.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -55,6 +54,11 @@ extern "C"
  * @brief Constant for the maximum number of vertex buffers in a dsDrawGeometry instance.
  */
 #define DS_MAX_GEOMETRY_VERTEX_BUFFERS 4
+
+/**
+ * @brief Constant for no known value.
+ */
+#define DS_MATERIAL_UNKNOWN (uint32_t)-1
 
 /**
  * @brief Flags used as hints for how graphics memory will be used.
@@ -300,6 +304,16 @@ typedef enum dsCubeFace
 } dsCubeFace;
 
 /**
+ * @brief Enum for the filter to use when blitting.
+ * @see Texture.h
+ */
+typedef enum dsBlitFilter
+{
+	dsBlitFilter_Nearest, ///< Nearest-neighbor
+	dsBlitFilter_Linear   ///< Linear scaling
+} dsBlitFilter;
+
+/**
  * @brief Enum for named vertex attributes.
  *
  * These are mainly suggestions rather than a requirement to make it easier to match vertex
@@ -331,6 +345,7 @@ typedef enum dsVertexAttrib
 
 /**
  * @brief Enum for the type of a surface used within a framebuffer.
+ * @see Framebuffer.h
  */
 typedef enum dsFramebufferSurfaceType
 {
@@ -363,6 +378,8 @@ typedef struct mslModule mslModule;
  * @remark When implementing the virutal functions of the resource manager, if an error occurs errno
  * to an appropriate value. If the error is due to invalid usage, it is recommended an error is
  * printed to the console.
+ *
+ * @see ResourceManager.h
  */
 typedef struct dsResourceManager dsResourceManager;
 
@@ -374,6 +391,7 @@ typedef struct dsResourceManager dsResourceManager;
  * casted between dsResourceManager and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
+ * @see GfxBuffer.h
  */
 typedef struct dsGfxBuffer
 {
@@ -898,13 +916,18 @@ typedef struct dsFramebufferSurface
 
 	/**
 	 * @brief The cube face to use for cubemap offscreens.
+	 *
+	 * This is used when a single layer is used with the framebuffer. If multiple layers are used,
+	 * all faces will be used.
 	 */
 	dsCubeFace cubeFace;
 
 	/**
-	 * @brief The texture array level to use for offscreens.
+	 * @brief The texture array level or 3D texture level to use for offscreens.
+	 *
+	 * This is ignored when binding all levels.
 	 */
-	uint32_t arrayLevel;
+	uint32_t layer;
 
 	/**
 	 * @brief The mipmap level to use for offscreens.
@@ -965,9 +988,11 @@ typedef struct dsFramebuffer
 	uint32_t height;
 
 	/**
-	 * @brief The number of array layers.
+	 * @brief The number of image layers.
+	 *
+	 * This can be array layers, cube map images, or a combination of both.
 	 */
-	uint32_t arrayLayers;
+	uint32_t layers;
 } dsFramebuffer;
 
 /**
@@ -1260,7 +1285,7 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
  */
 typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
-	const dsTextureBlitRegion* regions, size_t regionCount, dsFilter filter);
+	const dsTextureBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 
 /**
  * @brief Function for getting texture data.
@@ -1393,11 +1418,12 @@ typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* reso
  * @param module The shader module that contains the shader.
  * @param shaderIndex The index of the shader.
  * @param materialDesc The description of the material type used by the shader.
+ * @param primitiveType The type of primitives the shader will be drawn with.
  * @return The created shader, or NULL if it couldn't be created.
  */
 typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
-	const dsMaterialDesc* materialDesc);
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for destroying a shader.
@@ -1406,6 +1432,45 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
  * @return False if the shader couldn't be destroyed.
  */
 typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
+
+/**
+ * @brief Function for binding a shader for drawing.
+ * @param resourceManager The resource manager the shader was created with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to draw with.
+ * @param material The material values to apply to the shader.
+ * @param volatileValues The volatile values to apply to the shader.
+ * @param renderStates The dynamic render states to apply. This may be NULL to use the default
+ *     values.
+ * @return False if the values couldn't be bound.
+ */
+typedef bool (*dsBindShaderFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
+	dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
+
+/**
+ * @brief Function for updating the volatile material values used for the currently bound shader.
+ *
+ * The implementation should attempt to only update the values that have changed.
+ *
+ * @param resourceManager The resource manager the shader was created with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to update the values on.
+ * @param volatileValues The volatile values to updte.
+ * @return False if the values couldn't be updated.
+ */
+typedef bool (*dsUpdateShaderVolatileValuesFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	dsVolatileMaterialValues* volatileValues);
+
+/**
+ * @brief Function for un-binding the currently bound shader.
+ * @param resourceManager The resource manager the shader was created with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @return False if the values couldn't be unbound.
+ */
+typedef bool (*dsUnbindShaderFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -1475,6 +1540,11 @@ struct dsResourceManager
 	 * @brief The maximum number of texture array levels, or 0 if texture arrays aren't supported.
 	 */
 	uint32_t maxTextureArrayLevels;
+
+	/**
+	 * @brief The maximum number of layers for a framebuffer.
+	 */
+	uint32_t maxFramebufferLayers;
 
 	/**
 	 * @brief Boolean for whether or not textures can be arbitrarily mipmapped.
@@ -1755,6 +1825,21 @@ struct dsResourceManager
 	 * @brief Shader destruction function.
 	 */
 	dsDestroyShaderFunction destroyShaderFunc;
+
+	/**
+	 * @brief Shader binding function.
+	 */
+	dsBindShaderFunction bindShaderFunc;
+
+	/**
+	 * @brief Shader volatile value update function.
+	 */
+	dsUpdateShaderVolatileValuesFunction updateShaderVolatileValuesFunc;
+
+	/**
+	 * @brief Shader unbinding function.
+	 */
+	dsUnbindShaderFunction unbindShaderFunc;
 };
 
 #ifdef __cplusplus

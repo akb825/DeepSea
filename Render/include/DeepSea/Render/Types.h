@@ -39,21 +39,9 @@ extern "C"
 #define DS_RENDER_LOG_TAG "render"
 
 /**
- * @brief Enum for the type of primitive to draw with.
+ * @brief Constant for no attachment.
  */
-typedef enum dsPrimitiveType
-{
-	dsPrimitiveType_PointList,              ///< A list of points.
-	dsPrimitiveType_LineList,               ///< A list of lines.
-	dsPrimitiveType_LineStrip,              ///< A strip of connected lines.
-	dsPrimitiveType_TriangleList,           ///< A list of triangles.
-	dsPrimitiveType_TriangleStrip,          ///< A strip of connected triangles.
-	dsPrimitiveType_TriangleFan,            ///< A fan of connected triangles.
-	dsPrimitiveType_LineListAdjacency,      ///< A list of lines with adjacency info.
-	dsPrimitiveType_TriangleListAdjacency,  ///< A list of triangles with adjacency info.
-	dsPrimitiveType_TriangleStripAdjacency, ///< A strip of connected triangles with adjacency info.
-	dsPrimitiveType_PatchList,              ///< A list of tessellation control patches.
-} dsPrimitiveType;
+#define DS_NO_ATTACHMENT (uint32_t)-1
 
 /**
  * @brief Enum for how an image attachment will be used.
@@ -83,6 +71,7 @@ typedef enum dsSubpassDependencyStage
 
 /**
  * @brief Enum for the type of a render surface.
+ * @see RenderSurface.h
  */
 typedef enum dsRenderSurfaceType
 {
@@ -114,9 +103,50 @@ typedef struct dsCommandBuffer dsCommandBuffer;
  *
  * @remark None of the members should be modified outside of the implementation.
  *
+ * @remark The virtual functions on the renderer should not be called directly. The public interface
+ * functions handle error checking and statistic management, which could cause invalid values to be
+ * reported when skipped.
+ *
  * @see Renderer.h
  */
 typedef struct dsRenderer dsRenderer;
+
+/**
+ * @brief Structure defining a render surface, such as a window.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsResourceManager and the true internal type.
+ *
+ * @see dsRenderSurface.h
+ */
+typedef struct dsRenderSurface
+{
+	/**
+	 * The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of the render surface.
+	 */
+	dsRenderSurfaceType surfaceType;
+
+	/**
+	 * @brief The width of the surface.
+	 */
+	uint32_t width;
+
+	/**
+	 * @brief The height of the render surface.
+	 */
+	uint32_t height;
+} dsRenderSurface;
 
 /**
  * @brief Struct for a render pass used by the renderer.
@@ -135,31 +165,6 @@ typedef struct dsRenderer dsRenderer;
  * casted between dsRenderer and the true internal type.
  */
 typedef struct dsRenderPass dsRenderPass;
-
-/**
- * @brief Structure describing a viewport.
- *
- * This includes the matrices used and the bounds of the framebuffer to draw to.
- */
-typedef struct dsViewport
-{
-	/**
-	 * @brief The view matrix.
-	 */
-	dsMatrix44f viewMatrix;
-
-	/**
-	 * @brief The projection matrix.
-	 */
-	dsMatrix44f projectionMatrix;
-
-	/**
-	 * @brief The view bounds.
-	 *
-	 * The origin is in the upper-left corner and the values should be in the range [0, 1].
-	 */
-	dsAlignedBox2f viewBounds;
-} dsViewport;
 
 /**
  * @brief Structure describing the data for a draw call.
@@ -288,6 +293,13 @@ typedef struct dsAttachmentInfo
 typedef struct dsRenderSubpassInfo
 {
 	/**
+	 * @brief The list of shaders to use with the subpass.
+	 *
+	 * This should not be changed after creation.
+	 */
+	const dsShaderDrawInfo* shaders;
+
+	/**
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 *
@@ -296,15 +308,20 @@ typedef struct dsRenderSubpassInfo
 	const uint32_t* inputAttachments;
 
 	/**
-	 * @brief The number of input attachments.
-	 */
-	uint32_t inputAttachmentCount;
-
-	/**
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 */
 	const uint32_t* colorAttachments;
+
+	/**
+	 * @brief The number of shaders.
+	 */
+	uint32_t shaderCount;
+
+	/**
+	 * @brief The number of input attachments.
+	 */
+	uint32_t inputAttachmentCount;
 
 	/**
 	 * @brief The number of color attachments.
@@ -314,7 +331,7 @@ typedef struct dsRenderSubpassInfo
 	/**
 	 * @brief The depth stencil attachment as an index to the attachment list for the render pass.
 	 *
-	 * Set to DS_UNKNOWN to not have a depth attachment.
+	 * Set to DS_NO_ATTACHMENT to not have a depth attachment.
 	 */
 	uint32_t depthStencilAttachment;
 } dsRenderSubpassInfo;
@@ -346,68 +363,12 @@ typedef struct dsSubpassDependency
 	 * @brief The stage to wait executing for in the destination subpass.
 	 */
 	dsSubpassDependencyStage dstStage;
+
+	/**
+	 * @brief True if the dependency is by region as opposed to the full surface.
+	 */
+	bool regionDependency;
 } dsSubpassDependency;
-
-/**
- * @brief Structure defining a render surface, such as a window.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
- *
- * @see dsRenderSurface.h
- */
-typedef struct dsRenderSurface
-{
-	/**
-	 * The renderer this is used with.
-	 */
-	dsRenderer* renderer;
-
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The type of the render surface.
-	 */
-	dsRenderSurfaceType surfaceType;
-
-	/**
-	 * @brief The width of the surface.
-	 */
-	uint32_t width;
-
-	/**
-	 * @brief The height of the render surface.
-	 */
-	uint32_t height;
-} dsRenderSurface;
-
-/**
- * @brief Function for drawing a render pass.
- * @param[out] outDrawData The draw data to use to draw with.
- * @param[out] outDrawCount The number of draw data elements.
- * @param renderPass The render pass that will be drawn.
- * @param subpassIndex The index of the current subpass.
- * @param commandBuffer The command buffer that will be drawn to. This can be used to for resource
- *     copy operations.
- * @param scratchDrawList A scratch list of items to draw. Usage of this is optional, but may be
- *     be used to avoid maintaining multiple allocations of draw lists across draws.
- */
-typedef void (*dsRenderPassDrawFunction)(dsDrawData** outDrawData, size_t* outDrawCount,
-	dsRenderPass* renderPass, uint32_t subpassIndex, dsCommandBuffer* commandBuffer,
-	dsDrawList* scratchDrawList);
-
-/**
- * @brief Function for operations after drawing the render pass.
- * @param renderPass The render pass that was drawn.
- * @param commandBuffer The command buffer that was drawn to. THis can be used for resource copy
- *     operations.
- */
-typedef void (*dsRenderPassPostDrawFunction)(dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer);
 
 /** @copydoc dsRenderPass */
 struct dsRenderPass
@@ -423,41 +384,14 @@ struct dsRenderPass
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The viewport to draw with.
-	 */
-	const dsViewport* viewport;
-
-	/**
-	 * @brief The list of shaders to use with the render pass.
-	 *
-	 * This should not be changed after creation.
-	 */
-	const dsShaderDrawInfo* shaders;
-
-	/**
-	 * @brief The number of shaders.
-	 */
-	uint32_t shaderCount;
-
-	/**
 	 * @brief The list of image attachments to use with the render pass.
 	 */
 	const dsAttachmentInfo* attachments;
 
 	/**
-	 * @brief The number of attachments.
-	 */
-	uint32_t attachmentCount;
-
-	/**
 	 * @brief The list of subpasses for this render pass.
 	 */
 	const dsRenderSubpassInfo* subpasses;
-
-	/**
-	 * @brief The number of subpasses.
-	 */
-	uint32_t subpassCount;
 
 	/**
 	 * @brief The list of subpass explicit subpass dependencies.
@@ -468,36 +402,64 @@ struct dsRenderPass
 	const dsSubpassDependency* subpassDependencies;
 
 	/**
+	 * @brief The number of attachments.
+	 */
+	uint32_t attachmentCount;
+
+	/**
+	 * @brief The number of subpasses.
+	 */
+	uint32_t subpassCount;
+
+	/**
 	 * @brief The number of subpass dependencies.
 	 */
 	uint32_t subpassDependeniesCount;
-
-	/**
-	 * @brief The render states to apply to the render pass.
-	 *
-	 * This should not be modified directly after creation.
-	 */
-	dsRenderState renderState;
-
-	/**
-	 * @brief User data to set on the render pass.
-	 */
-	void* userData;
-
-	/**
-	 * @brief The draw function.
-	 *
-	 * This will be used to provide the data to be drawn by the render pass.
-	 */
-	dsRenderPassDrawFunction drawFunc;
-
-	/**
-	 * @brief The post-draw function.
-	 *
-	 * If provided, this will can be used to perform operations after drawing has completed.
-	 */
-	dsRenderPassPostDrawFunction postDrawFunc;
 };
+
+/**
+ * @brief Struct containing a combined depth and stencil value.
+ */
+typedef struct dsDepthStencilValue
+{
+	/**
+	 * @brief The depth value in the range [0, 1].
+	 */
+	float depth;
+
+	/**
+	 * @brief The stencil value.
+	 */
+	uint32_t stencil;
+} dsDepthStencilValue;
+
+/**
+ * @brief Value used to clear a render surface when beginning a render pass.
+ *
+ * Which member of the union is used depends on the type of the surface.
+ */
+typedef union dsSurfaceClearValue
+{
+	/**
+	 * @brief Color value for float and snorm surfaces.
+	 */
+	dsColor4f colorValue;
+
+	/**
+	 * @brief Color value for integer surfaces.
+	 */
+	int intValue[4];
+
+	/**
+	 * @brief Color value for unsigned integer surfaces.
+	 */
+	unsigned int uintValue[4];
+
+	/**
+	 * @brief Depth and stencil value for depth-stencil surfaces.
+	 */
+	dsDepthStencilValue depthStencil;
+} dsSurfaceClearValue;
 
 /**
  * @brief Function for creating a render surface.
@@ -511,6 +473,15 @@ typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
 	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
 
 /**
+ * @brief Function for destroying a render surface.
+ * @param renderer The renderer the render surface is used with.
+ * @param renderSurface The render surface to destroy
+ * @return False if the render surface couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRenderSurfaceFunction)(dsRenderer* renderer,
+	dsRenderSurface* renderSurface);
+
+/**
  * @brief Function for updating a render surface.
  * @param renderer The renderer the render surface is used with.
  * @param renderSurface The render surface to update.
@@ -519,37 +490,99 @@ typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
 typedef bool (*dsUpdateRenderSurfaceFunction)(dsRenderer* renderer, dsRenderSurface* renderSurface);
 
 /**
- * @brief Function for destroying a render surface.
+ * @brief Function to start drawing to a render surface.
  * @param renderer The renderer the render surface is used with.
- * @param renderSurface The render surface to destroy
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderSurface The render surface to start drawing to.
+ * @return False if this couldn't start drawing to the render surface.
  */
-typedef bool (*dsDestroyRenderSurfaceFunction)(dsRenderer* renderer,
+typedef bool (*dsBeginRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+
+/**
+ * @brief Function to end drawing to a render surface.
+ * @param renderer The renderer the render surface is used with.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderSurface The render surface to end drawing to.
+ * @return False if this couldn't end drawing to the render surface.
+ */
+typedef bool (*dsEndRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface);
+
+/**
+ * @brief Function for swapping buffers for a render surface.
+ * @param renderer The renderer the render surface is used with.
+ * @param renderSurface The render surface to swap the buffers on.
+ * @return False if the buffers couldn't be swapped.
+ */
+typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
 	dsRenderSurface* renderSurface);
 
 /**
- * @brief function called to update the renderer each fream.
- * @param renderer The renderer.
+ * @brief Function for creating a render pass.
+ *
+ * All arrays passed in and part of the structures should be copied by the implementation rather
+ * than just copying the pointers.
+ *
+ * @param renderer The renderer to draw the render pass with.
+ * @param allocator The allocator to create the render pass with.
+ * @param attachments The attachments that will be used with the framebuffer.
+ * @param attachmentCount The number of attachments.
+ * @param subpasses The subpasses within the render pass.
  */
-typedef void (*dsRenderUpdateFunction)(dsRenderer* renderer);
+typedef dsRenderPass* (*dsCreateRenderPassFunction)(dsRenderer* renderer, dsAllocator* allocator,
+	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
+	const dsSubpassDependency* dependencies, uint32_t dependencyCount);
 
 /**
- * @brief Function called to update the resources each frame.
- * @param The renderer.
- * @param commandBuffer The command buffer to use with resource copy oerations.
+ * @brief Function for destroying a render pass.
+ * @param renderer The renderer the render pass was created with.
+ * @param renderPass The render pass to destroy.
+ * @return False if the render pass couldn't be destroyed.
  */
-typedef void (*dsRenderUpdateResourcesFunction)(dsRenderer* renderer,
-	dsCommandBuffer* commandBuffer);
+typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* renderPass);
 
 /**
- * @brief Function called to draw a rnder pass.
- * @param renderer The renderer.
- * @param commandBuffer The command buffer to draw to.
- * @param renderPass The render pass to draw.
- * @param framebuffer The framebuffer to draw to.
- * @return False if it is invalid to draw.
+ * @brief Function for beginning a render pass.
+ * @param renderer The renderer the render pass was created with.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderPass The render pass to start.
+ * @param framebuffer The framebuffer to draw the render pass to.
+ * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
+ *     in the range [0, 1]. If NULL, the full range is used.
+ * @param clearValues The values to clear the framebuffer with. Only values corresponding to
+ *     attachments with the clear bit set are considered. This may be NULL if no attachments will be
+ *     cleared.
+ * @param clearValueCount The number of clear values. This must either be 0 if clearValues is NULL
+ *     or equal to the number of attachments.
+ * @param indirectCommands True if the render commands for the first subpass will be provided with
+ *     command buffers, false if the render commands will be inlined.
  */
-typedef bool (*dsDrawRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	dsRenderPass* renderPass, dsFramebuffer* framebuffer);
+typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3d* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount, bool indirectCommands);
+
+/**
+ * @brief Function for continuing to the next subpass within a render pass.
+ * @param renderer The renderer the render pass was created with.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderPass The render pass to continue.
+ * @param indirectCommands True if the render commands for the subpass will be provided with command
+ *     buffers, false if the render commands will be inlined.
+ */
+typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, bool indirectCommands);
+
+/**
+ * @brief Function for ending a render pass.
+ * @param renderer The renderer the render pass was created with.
+ * @param commandBuffer The command buffer to push the commands on.
+ * @param renderPass The render pass to end.
+ */
+typedef bool (*dsEndRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass);
 
 /** @copydoc dsRenderer */
 struct dsRenderer
@@ -570,6 +603,11 @@ struct dsRenderer
 	 * Some operations may only be done from the main thread.
 	 */
 	dsThreadId mainThread;
+
+	/**
+	 * @brief The maximum anisitropy level for anisotropic texture filtering.
+	 */
+	float maxAnisotropy;
 
 	/**
 	 * @brief The format for color render surfaces.
@@ -594,9 +632,24 @@ struct dsRenderer
 	bool doubleBuffer;
 
 	/**
-	 * @brief True if render surfaces are vsynced.
+	 * @brief True to wait for vsync when drawing to a render surface.
 	 */
 	bool vsync;
+
+	/**
+	 * @brief True if geometry shaders are supported.
+	 */
+	bool hasGeometryShaders;
+
+	/**
+	 * @brief True if tessellation shaders are supported.
+	 */
+	bool hasTessellationShaders;
+
+	/**
+	 * @brief True if compute shaders are supported.
+	 */
+	bool hasComputeShaders;
 
 	/**
 	 * @brief The default level of anisotropy for anisotropic filtering.
@@ -604,19 +657,9 @@ struct dsRenderer
 	float defaultAnisotropy;
 
 	/**
-	 * @brief User data set on the renderer.
-	 */
-	void* userData;
-
-	/**
 	 * @brief Render surface creation function.
 	 */
 	dsCreateRenderSurfaceFunction createRenderSurfaceFunc;
-
-	/**
-	 * @brief Render surface update function.
-	 */
-	dsUpdateRenderSurfaceFunction updateRenderSurfaceFunc;
 
 	/**
 	 * @brief Render surface destruction function.
@@ -624,32 +667,24 @@ struct dsRenderer
 	dsDestroyRenderSurfaceFunction destroyRenderSurfaceFunc;
 
 	/**
-	 * @brief The frame update function.
-	 *
-	 * This may be set by the user of this library to be notified of updates.
+	 * @brief Render surface update function.
 	 */
-	dsRenderUpdateFunction updateFunc;
+	dsUpdateRenderSurfaceFunction updateRenderSurfaceFunc;
 
 	/**
-	 * @brief The resource update function.
-	 *
-	 * This may be set by the user of this library to be notified of updates.
+	 * @brief Render surface begin function.
 	 */
-	dsRenderUpdateResourcesFunction updateResourcesFunc;
+	dsBeginRenderSurfaceFunction beginRenderSurfaceFunc;
 
 	/**
-	 * @brief The internal frame update function.
-	 *
-	 * This is set by the implementation.
+	 * @brief Render surface end function.
 	 */
-	dsRenderUpdateFunction updateInternalFunc;
+	dsBeginRenderSurfaceFunction endRenderSurfaceFunc;
 
 	/**
-	 * @brief The render pass draw function.
-	 *
-	 * This is set by the implementation.
+	 * @brief Render surface buffer swap function.
 	 */
-	dsDrawRenderPassFunction drawRenderPassFunc;
+	dsSwapRenderSurfaceBuffersFunction swapRenderSurfaceBuffersFunc;
 };
 
 #ifdef __cplusplus

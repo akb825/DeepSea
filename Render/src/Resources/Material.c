@@ -25,6 +25,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Types.h>
 #include <string.h>
 
@@ -169,7 +170,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
 		if (description->elements[i].isVolatile)
-			material->offsets[i] = DS_UNKNOWN;
+			material->offsets[i] = DS_MATERIAL_UNKNOWN;
 		else
 		{
 			material->offsets[i] = (uint32_t)addElementSize(&curSize,
@@ -199,7 +200,7 @@ bool dsMaterial_getElementData(void* outData, const dsMaterial* material, uint32
 		return false;
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
-	DS_ASSERT(material->offsets[element] != DS_UNKNOWN);
+	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(outData, material->data + material->offsets[element] + firstIndex*stride, count*stride);
 	return true;
@@ -228,7 +229,7 @@ const void* dsMaterial_getRawElementData(const dsMaterial* material, uint32_t el
 	}
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
-	DS_ASSERT(material->offsets[element] != DS_UNKNOWN);
+	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	return material->data + material->offsets[element];
 }
 
@@ -239,7 +240,7 @@ bool dsMaterial_setElementData(dsMaterial* material, uint32_t element, const voi
 		return false;
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
-	DS_ASSERT(material->offsets[element] != DS_UNKNOWN);
+	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(material->data + material->offsets[element] + firstIndex*stride, data, count*stride);
 	return true;
@@ -248,7 +249,7 @@ bool dsMaterial_setElementData(dsMaterial* material, uint32_t element, const voi
 dsTexture* dsMaterial_getTexture(const dsMaterial* material, uint32_t element)
 {
 	if (!material || element >= material->description->elementCount ||
-		material->offsets[element] == DS_UNKNOWN)
+		material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		return NULL;
 	}
@@ -275,7 +276,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 		return false;
 	}
 
-	if (material->offsets[element] == DS_UNKNOWN)
+	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
@@ -297,7 +298,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 dsShaderVariableGroup* dsMaterial_getVariableGroup(const dsMaterial* material, uint32_t element)
 {
 	if (!material || element >= material->description->elementCount ||
-		material->offsets[element] == DS_UNKNOWN ||
+		material->offsets[element] == DS_MATERIAL_UNKNOWN ||
 		material->description->elements[element].type != dsMaterialType_VariableGroup)
 	{
 		return NULL;
@@ -322,7 +323,7 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 		return false;
 	}
 
-	if (material->offsets[element] == DS_UNKNOWN)
+	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
@@ -344,7 +345,7 @@ dsGfxBuffer* dsMaterial_getBuffer(size_t* outOffset, size_t* outSize, const dsMa
 	uint32_t element)
 {
 	if (!material || element >= material->description->elementCount ||
-		material->offsets[element] == DS_UNKNOWN)
+		material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		return NULL;
 	}
@@ -377,7 +378,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 		return false;
 	}
 
-	if (material->offsets[element] == DS_UNKNOWN)
+	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
@@ -421,6 +422,24 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	bufferData->buffer = buffer;
 	bufferData->offset = offset;
 	bufferData->size = size;
+	return true;
+}
+
+bool dsMaterial_commit(dsCommandBuffer* commandBuffer, dsMaterial* material)
+{
+	if (!commandBuffer || !material)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < material->description->elementCount; ++i)
+	{
+		dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(material, i);
+		if (variableGroup && !dsShaderVariableGroup_commit(commandBuffer, variableGroup))
+			return false;
+	}
+
 	return true;
 }
 

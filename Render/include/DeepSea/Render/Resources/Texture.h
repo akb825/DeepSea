@@ -197,7 +197,8 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
  * @return False if the data couldn't be blitted.
  */
 DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount, dsFilter filter);
+	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
+	dsBlitFilter filter);
 
 /**
  * @brief Grabs texture data.

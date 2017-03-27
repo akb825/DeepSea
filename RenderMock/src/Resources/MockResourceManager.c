@@ -100,6 +100,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 512;
+	resourceManager->maxFramebufferLayers = 1024;
 	resourceManager->arbitraryMipmapping = true;
 	resourceManager->texturesReadable = true;
 	resourceManager->requiresColorBuffer = false;

@@ -548,7 +548,7 @@ TEST_F(TextureTest, Blit)
 	};
 
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
@@ -562,7 +562,7 @@ TEST_F(TextureTest, Blit)
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
@@ -577,7 +577,7 @@ TEST_F(TextureTest, Blit)
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_TRUE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	dsColor readTextureData[8*4];
 	EXPECT_TRUE(dsTexture_getData(readTextureData, sizeof(readTextureData), toTexture,
@@ -609,43 +609,43 @@ TEST_F(TextureTest, Blit)
 
 	blitRegion.srcPosition.x = 25;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 1;
 	blitRegion.srcPosition.y = 13;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 0;
 	blitRegion.srcPosition.y = 0;
 	blitRegion.srcPosition.mipLevel = 5;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.mipLevel = 0;
 	blitRegion.srcPosition.depth = 3;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.depth = 0;
 	blitRegion.dstPosition.x = 17;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.x = 3;
 	blitRegion.dstPosition.y = 29;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.y = 4;
 	blitRegion.dstPosition.mipLevel = 3;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.mipLevel = 0;
 	blitRegion.dstPosition.depth = 4;
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,
-		dsFilter_Nearest));
+		dsBlitFilter_Nearest));
 
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));

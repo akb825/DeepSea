@@ -47,7 +47,9 @@ extern "C"
  * @param surfaceCount The number of surfaces.
  * @param width The width of the framebuffer.
  * @param height The height of the framebuffer.
- * @param layers The number of array layers in the framebuffer.
+ * @param layers The number of image layers in the framebuffer. This can be array layers, cube map
+ *     images, or a combination of both. This must either be 1 or cover all of the layers within the
+ *     surfaces.
  * @return The created framebuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager,

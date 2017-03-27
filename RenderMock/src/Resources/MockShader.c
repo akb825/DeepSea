@@ -23,7 +23,8 @@
 #include <string.h>
 
 dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc)
+	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
+	dsPrimitiveType primitiveType)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -51,6 +52,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_ASSERT(shader->pipeline);
 	DS_VERIFY(mslModule_pipeline(shader->pipeline, module->module, shaderIndex));
 	shader->materialDesc = materialDesc;
+	shader->primitiveType = primitiveType;
 
 	return shader;
 }

@@ -511,7 +511,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 }
 
 bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
-	const dsTextureBlitRegion* regions, size_t regionCount, dsFilter filter)
+	const dsTextureBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
 {
 	DS_PROFILE_FUNC_START();
 

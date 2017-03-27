@@ -44,7 +44,7 @@ TEST_F(ShaderVariableGroupDescTest, Create)
 	EXPECT_EQ(0U, dsShaderVariableGroupDesc_findElement(groupDesc, "singleVec4"));
 	EXPECT_EQ(1U, dsShaderVariableGroupDesc_findElement(groupDesc, "matrixArray"));
 	EXPECT_EQ(2U, dsShaderVariableGroupDesc_findElement(groupDesc, "integer"));
-	EXPECT_EQ(DS_UNKNOWN, dsShaderVariableGroupDesc_findElement(groupDesc, "asdf"));
+	EXPECT_EQ(DS_MATERIAL_UNKNOWN, dsShaderVariableGroupDesc_findElement(groupDesc, "asdf"));
 
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc));
 	EXPECT_EQ(0U, resourceManager->shaderVariableGroupDescCount);

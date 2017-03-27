@@ -57,10 +57,14 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
+	renderer->doubleBuffer = true;
 
 	renderer->createRenderSurfaceFunc = &dsMockRenderSurface_create;
-	renderer->updateRenderSurfaceFunc = &dsMockRenderSurface_update;
 	renderer->destroyRenderSurfaceFunc = &dsMockRenderSurface_destroy;
+	renderer->updateRenderSurfaceFunc = &dsMockRenderSurface_update;
+	renderer->beginRenderSurfaceFunc = &dsMockRenderSurface_beginDraw;
+	renderer->endRenderSurfaceFunc = &dsMockRenderSurface_endDraw;
+	renderer->swapRenderSurfaceBuffersFunc = &dsMockRenderSurface_swapBuffers;
 
 	return renderer;
 }

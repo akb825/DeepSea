@@ -57,6 +57,39 @@ bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSur
 	return false;
 }
 
+bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(renderSurface);
+	DS_UNUSED(renderSurface);
+	return true;
+}
+
+bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderSurface* renderSurface)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(renderSurface);
+	DS_UNUSED(renderSurface);
+	return true;
+}
+
+bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface* renderSurface)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(renderSurface);
+	DS_UNUSED(renderSurface);
+	return true;
+}
+
 bool dsMockRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface)
 {
 	DS_ASSERT(renderer);

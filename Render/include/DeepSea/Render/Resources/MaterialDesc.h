@@ -59,8 +59,8 @@ DS_RENDER_EXPORT dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resour
  * @brief Finds an element within a material description.
  * @param materialDesc The material description.
  * @param name The name of the variable.
- * @return The index of the element, or DS_UNKNOWN if not found. This can be used to index into the
- *     elements member of dsMaterialDesc or access the data within dsMaterial.
+ * @return The index of the element, or DS_MATERIAL_UNKNOWN if not found. This can be used to index
+ *     into the elements member of dsMaterialDesc or access the data within dsMaterial.
  */
 DS_RENDER_EXPORT uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc,
 	const char* name);
