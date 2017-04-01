@@ -77,13 +77,14 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
  * @param material The material values to apply to the shader.
- * @param volatileValues The volatile values to apply to the shader.
+ * @param volatileValues The volatile values to apply to the shader. This may be NULL if the
+ *     material description doesn't use volatile values.
  * @param renderStates The dynamic render states to apply. This may be NULL to use the default
  *     values.
  * @return False if the values couldn't be bound.
  */
-DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, dsShader* shader,
-	const dsMaterial* material, dsVolatileMaterialValues* volatileValues,
+DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates);
 
 /**
@@ -98,7 +99,7 @@ DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, dsShader* sh
  * @return False if the values couldn't be updated.
  */
 DS_RENDER_EXPORT bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, dsVolatileMaterialValues* volatileValues);
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
 
 /**
  * @brief Un-binds a shader that was previously bound.

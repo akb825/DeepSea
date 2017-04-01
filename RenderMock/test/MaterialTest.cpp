@@ -263,20 +263,26 @@ TEST_F(MaterialTest, Textures)
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static,
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
 		DS_ALL_MIP_LEVELS, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	dsTexture* texture3 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyTo, dsGfxMemory_Static,
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
 		DS_ALL_MIP_LEVELS, NULL, 0);
 	ASSERT_TRUE(texture3);
 
 	EXPECT_FALSE(dsMaterial_setTexture(material, 0, texture1));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 1, texture2));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 1, texture3));
 	EXPECT_FALSE(dsMaterial_setTexture(material, 2, texture1));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 3, texture1));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 3, texture3));
 	EXPECT_FALSE(dsMaterial_setTexture(material, 4, texture1));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 5, texture1));
+	EXPECT_FALSE(dsMaterial_setTexture(material, 5, texture2));
 	EXPECT_FALSE(dsMaterial_setTexture(material, 6, texture1));
 
 	EXPECT_TRUE(dsMaterial_setTexture(material, 1, texture1));
@@ -305,15 +311,20 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 		{"testValue", dsMaterialType_Float, 0}
 	};
 
-	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
+	dsShaderVariableGroupDesc* groupDesc1 = dsShaderVariableGroupDesc_create(resourceManager, NULL,
 		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+	ASSERT_TRUE(groupDesc1);
+
+	dsShaderVariableGroupDesc* groupDesc2 = dsShaderVariableGroupDesc_create(resourceManager, NULL,
+		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+	ASSERT_TRUE(groupDesc2);
 
 	dsMaterialElement elements[] =
 	{
 		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
+		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc1, false, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"volatileVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc, true, 0},
+		{"volatileVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc2, true, 0},
 		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0}
 	};
 
@@ -324,26 +335,33 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
 	ASSERT_TRUE(material);
 
-	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
-		groupDesc);
-	ASSERT_TRUE(variableGroup);
+	dsShaderVariableGroup* variableGroup1 = dsShaderVariableGroup_create(resourceManager, NULL,
+		NULL, groupDesc1);
+	ASSERT_TRUE(variableGroup1);
 
-	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 0, variableGroup));
-	EXPECT_TRUE(dsMaterial_setVariableGroup(material, 1, variableGroup));
-	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 2, variableGroup));
-	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 3, variableGroup));
-	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 4, variableGroup));
+	dsShaderVariableGroup* variableGroup2 = dsShaderVariableGroup_create(resourceManager, NULL,
+		NULL, groupDesc2);
+	ASSERT_TRUE(variableGroup2);
+
+	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 0, variableGroup1));
+	EXPECT_TRUE(dsMaterial_setVariableGroup(material, 1, variableGroup1));
+	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 1, variableGroup2));
+	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 2, variableGroup1));
+	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 3, variableGroup1));
+	EXPECT_FALSE(dsMaterial_setVariableGroup(material, 4, variableGroup1));
 
 	EXPECT_FALSE(dsMaterial_getVariableGroup(material, 0));
-	EXPECT_EQ(variableGroup, dsMaterial_getVariableGroup(material, 1));
+	EXPECT_EQ(variableGroup1, dsMaterial_getVariableGroup(material, 1));
 	EXPECT_FALSE(dsMaterial_getVariableGroup(material, 2));
 	EXPECT_FALSE(dsMaterial_getVariableGroup(material, 3));
 	EXPECT_FALSE(dsMaterial_getVariableGroup(material, 4));
 
 	dsMaterial_destroy(material);
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
-	EXPECT_TRUE(dsShaderVariableGroup_destroy(variableGroup));
-	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc));
+	EXPECT_TRUE(dsShaderVariableGroup_destroy(variableGroup1));
+	EXPECT_TRUE(dsShaderVariableGroup_destroy(variableGroup2));
+	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc1));
+	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc2));
 }
 
 TEST_F(MaterialTest, Buffers)

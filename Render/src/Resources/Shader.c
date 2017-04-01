@@ -21,10 +21,13 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
+#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
 #include <DeepSea/Render/Types.h>
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
@@ -155,7 +158,7 @@ static const dsMaterialType materialTypeMap[] =
 
 DS_STATIC_ASSERT(DS_ARRAY_SIZE(materialTypeMap) == mslType_Count, material_type_map_mismatch);
 
-dsMaterialType convertMslType(mslType type)
+static dsMaterialType convertMslType(mslType type)
 {
 	if ((unsigned int)type >= mslType_Count)
 		return dsMaterialType_Count;
@@ -163,7 +166,7 @@ dsMaterialType convertMslType(mslType type)
 	return materialTypeMap[type];
 }
 
-const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
+static const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
 	const char* uniformName, const char* name)
 {
 	const dsShaderVariableElement* element = NULL;
@@ -422,6 +425,125 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 	return success;
 }
 
+static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (!materialDesc->elements[i].isVolatile)
+			continue;
+
+		if (!volatileValues)
+		{
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses volatile values, but no volatile values "
+				"provided during shader bind.");
+			return false;
+		}
+
+		switch (materialDesc->elements[i].type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				dsTexture* texture = dsVolatileMaterialValues_getTextureId(volatileValues,
+					materialDesc->elements[i].nameId);
+				if (!texture)
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile texture '%s' not found.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (materialDesc->elements[i].type == dsMaterialType_Texture &&
+					!(texture->usage & dsTextureUsage_Texture))
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Texture '%s' doesn't support being used as a texture sampler.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (materialDesc->elements[i].type == dsMaterialType_Image &&
+					!(texture->usage & dsTextureUsage_Image))
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Texture '%s' doesn't support being used as an image sampler.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (materialDesc->elements[i].type == dsMaterialType_SubpassInput &&
+					!(texture->usage & dsTextureUsage_SubpassInput))
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Texture '%s' doesn't support being used as a subpass input.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				dsShaderVariableGroup* variableGroup = dsVolatileMaterialValues_getVariableGroupId(
+					volatileValues, materialDesc->elements[i].nameId);
+				if (!variableGroup)
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile variable group '%s' not found.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (dsShaderVariableGroup_getDescription(variableGroup) !=
+					materialDesc->elements[i].shaderVariableGroupDesc)
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile variable group description for "
+						"'%s' doesn't match description set on material element.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				dsGfxBuffer* buffer = dsVolatileMaterialValues_getBufferId(NULL, NULL,
+					volatileValues, materialDesc->elements[i].nameId);
+				if (!buffer)
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (materialDesc->elements[i].type == dsMaterialType_UniformBlock &&
+					!(buffer->usage & dsGfxBufferUsage_UniformBlock))
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Buffer '%s' doesn't support being used as a uniform block.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (materialDesc->elements[i].type == dsMaterialType_UniformBuffer &&
+					!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
+				{
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+						"Buffer '%s' doesn't support being used as a uniform buffer.",
+						materialDesc->elements[i].name);
+					return false;
+				}
+				break;
+			}
+			default:
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid volatile material type.");
+				return false;
+		}
+	}
+
+	return true;
+}
+
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
 	dsPrimitiveType primitiveType)
@@ -496,6 +618,79 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	if (shader)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, 1);
 	DS_PROFILE_FUNC_RETURN(shader);
+}
+
+bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !material || !shader->resourceManager ||
+		!shader->resourceManager->bindShaderFunc || !shader->resourceManager->unbindShaderFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsMaterial_getDescription(material) != shader->materialDesc)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Material descriptions for shader and material don't match.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->bindShaderFunc(shader->resourceManager, commandBuffer, shader,
+		material, volatileValues, renderStates);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !shader->resourceManager ||
+		!shader->resourceManager->bindShaderFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->updateShaderVolatileValuesFunc(shader->resourceManager,
+		commandBuffer, shader, volatileValues);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_unbind(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !shader->resourceManager ||
+		!shader->resourceManager->unbindShaderFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->unbindShaderFunc(resourceManager, commandBuffer, shader);
+	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsShader_destroy(dsShader* shader)

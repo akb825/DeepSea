@@ -57,6 +57,52 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	return shader;
 }
 
+bool dsMockShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(shader);
+	DS_UNUSED(shader);
+	DS_ASSERT(material);
+	DS_UNUSED(material);
+	DS_UNUSED(volatileValues);
+	DS_UNUSED(renderStates);
+
+	return true;
+}
+
+bool dsMockShader_updateVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(shader);
+	DS_UNUSED(shader);
+	DS_UNUSED(volatileValues);
+
+	return true;
+}
+
+bool dsMockShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader)
+{
+	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(shader);
+	DS_UNUSED(shader);
+
+	return true;
+}
+
 bool dsMockShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 {
 	DS_UNUSED(resourceManager);

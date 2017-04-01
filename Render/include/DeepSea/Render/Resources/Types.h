@@ -1446,7 +1446,7 @@ typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsSh
  */
 typedef bool (*dsBindShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
-	dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
+	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
 
 /**
  * @brief Function for updating the volatile material values used for the currently bound shader.
@@ -1461,7 +1461,7 @@ typedef bool (*dsBindShaderFunction)(dsResourceManager* resourceManager,
  */
 typedef bool (*dsUpdateShaderVolatileValuesFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	dsVolatileMaterialValues* volatileValues);
+	const dsVolatileMaterialValues* volatileValues);
 
 /**
  * @brief Function for un-binding the currently bound shader.

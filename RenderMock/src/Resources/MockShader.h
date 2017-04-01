@@ -21,4 +21,12 @@
 dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
 	dsPrimitiveType primitiveType);
+bool dsMockShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates);
+bool dsMockShader_updateVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues);
+bool dsMockShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader);
 bool dsMockShader_destroy(dsResourceManager* resourceManager, dsShader* shader);

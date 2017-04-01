@@ -149,6 +149,9 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 
 	resourceManager->createShaderFunc = &dsMockShader_create;
 	resourceManager->destroyShaderFunc = &dsMockShader_destroy;
+	resourceManager->bindShaderFunc = &dsMockShader_bind;
+	resourceManager->updateShaderVolatileValuesFunc = &dsMockShader_updateVolatileValues;
+	resourceManager->unbindShaderFunc = &dsMockShader_unbind;
 
 	return resourceManager;
 }

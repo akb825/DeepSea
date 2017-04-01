@@ -291,6 +291,33 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 		return false;
 	}
 
+	if (texture)
+	{
+		if (type == dsMaterialType_Texture && !(texture->usage & dsTextureUsage_Texture))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture doesn't support being used as a texture sampler.");
+			return false;
+		}
+
+		if (type == dsMaterialType_Image && !(texture->usage & dsTextureUsage_Image))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture doesn't support being used as an image sampler.");
+			return false;
+		}
+
+		if (type == dsMaterialType_SubpassInput && !(texture->usage & dsTextureUsage_SubpassInput))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture doesn't support being used as a subpass input.");
+			return false;
+		}
+	}
+
 	*(dsTexture**)(material->data + material->offsets[element]) = texture;
 	return true;
 }
@@ -334,6 +361,15 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a shader variable group.");
+		return false;
+	}
+
+	if (group && dsShaderVariableGroup_getDescription(group) !=
+		material->description->elements[element].shaderVariableGroupDesc)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader variable group description doesn't match "
+			"description set on material element.");
 		return false;
 	}
 
@@ -398,7 +434,8 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 		if (type == dsMaterialType_UniformBlock && !(buffer->usage & dsGfxBufferUsage_UniformBlock))
 		{
 			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a uniform block.");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Buffer doesn't support being used as a uniform block.");
 			return false;
 		}
 
@@ -406,7 +443,8 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 			!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
 		{
 			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a uniform buffer.");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Buffer doesn't support being used as a uniform buffer.");
 			return false;
 		}
 
