@@ -17,8 +17,8 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Types.h>
 #include <DeepSea/Render/Export.h>
+#include <DeepSea/Render/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -33,6 +33,8 @@ extern "C"
  * create and manage the renderable surface with the OS surface. It is dependent on the platform
  * whether a generic OS handle (such as a window handle) can be used or if setup is required
  * beforehand to make it compatible with drawing.
+ *
+ * @remark All render surface operations must be performed on the main thread.
  *
  * @see dsRenderSurface
  */

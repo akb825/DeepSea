@@ -388,7 +388,7 @@ typedef struct dsResourceManager dsResourceManager;
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsGfxBuffer and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see GfxBuffer.h
@@ -540,7 +540,7 @@ typedef struct dsIndexBuffer
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsDrawGeoemtry and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see DrawGeometry.h
@@ -577,7 +577,7 @@ typedef struct dsDrawGeometry
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsTexture and the true internal type.
  *
  * Textures have their origin in the upper left corner.
  *
@@ -612,7 +612,7 @@ typedef struct dsTexture
 	dsGfxFormat format;
 
 	/**
-	 * @brief THe dimension of the texture.
+	 * @brief The dimension of the texture.
 	 */
 	dsTextureDim dimension;
 
@@ -820,7 +820,7 @@ typedef struct dsTextureData
 	dsGfxFormat format;
 
 	/**
-	 * @brief THe dimension of the texture.
+	 * @brief The dimension of the texture.
 	 */
 	dsTextureDim dimension;
 
@@ -866,7 +866,7 @@ typedef struct dsTextureData
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsRenderbuffer and the true internal type.
  *
  * @see Renderbuffer.h
  */
@@ -951,7 +951,7 @@ typedef struct dsFramebufferSurface
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsFramebuffer and the true internal type.
  *
  * @see Framebuffer.h
  */

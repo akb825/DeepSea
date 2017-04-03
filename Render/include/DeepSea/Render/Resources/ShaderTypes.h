@@ -121,7 +121,7 @@ typedef struct mslPipeline mslPipeline;
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsMaterialDesc and the true internal type.
  *
  * Implementations should allocate the element list with the material description (ideally with a
  * single allocation) and copy over the elements. The name IDs will be calculated within
@@ -154,7 +154,7 @@ typedef struct dsShaderVariableGroupDesc dsShaderVariableGroupDesc;
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsShaderModule and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see ShaderModule.h
@@ -184,7 +184,7 @@ typedef struct dsShaderModule
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsShader and the true internal type.
  *
  * @remark None of the members should be modified outside of the implementation.
  * @see Shader.h

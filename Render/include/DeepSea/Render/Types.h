@@ -82,14 +82,91 @@ typedef enum dsRenderSurfaceType
 } dsRenderSurfaceType;
 
 /**
+ * @brief Enum for how to use a command buffer.
+ *
+ * This enum is a bitmask to allow multiple combinations of the usage bits.
+ * @see CommandBufferPool.h
+ */
+typedef enum dsCommandBufferUsage
+{
+	dsCommandBufferUsage_Subpass = 0x1,        ///< Will only be used within a render subpass.
+	dsCommandBufferUsage_MultipleSubmit = 0x2, ///< Will be submitted multiple times in a frame.
+	dsCommandBufferUsage_MultipleFrames = 0x4, ///< Will be submitted across frames.
+	/**
+	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
+	 * in parallel to another set being submitted.
+	 */
+	dsCommandBufferUsage_DoubleBuffer = 0x8
+} dsCommandBufferUsage;
+
+/**
+ * @brief Struct for a pool of command buffers.
+ *
+ * Multiple command buffers may be used to queue draw commands in parallel before submitting them to
+ * the GPU. The pool is double-buffered, allowing for
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsCommandBuffer and the true internal type.
+ *
+ * @see CommandBufferPool.h
+ */
+typedef struct dsCommandBufferPool
+{
+	/**
+	 * @brief The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The current command buffers to use.
+	 * @remark Even of the dsCommandBufferUsage_DoubleBuffer flag isn't set, this may still change
+	 * between resets.
+	 */
+	dsCommandBuffer** currentBuffers;
+
+	/**
+	 * @brief The other set of command buffers when double-buffering is enabled.
+	 *
+	 * When resetting the pool, the currentBuffers and otherBuffers arrays will be swapped.
+	 */
+	dsCommandBuffer** otherBuffers;
+
+	/**
+	 * @brief The number of command buffers in the pool.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The usage flags for the command buffers.
+	 */
+	dsCommandBufferUsage usage;
+} dsCommandBufferPool;
+
+/**
  * @brief Struct for a command buffer.
  *
  * This is used to queue render commands. It is used as a part of dsRenderPass in order to either
  * send render commands to the GPU or hold onto the commands for later execution.
  *
- * This is an opaque type that is defined by the implementation.
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsCommandBuffer and the true internal type.
+ *
+ * @see CommandBuffer.h
  */
-typedef struct dsCommandBuffer dsCommandBuffer;
+typedef struct dsCommandBuffer
+{
+	/**
+	 * @brief The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+} dsCommandBuffer;
 
 /**
  * @brief Base object for interfacing with the DeepSea Render library.
@@ -116,7 +193,7 @@ typedef struct dsRenderer dsRenderer;
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsResourceManager and the true internal type.
+ * casted between dsRenderSurface and the true internal type.
  *
  * @see dsRenderSurface.h
  */
@@ -162,7 +239,7 @@ typedef struct dsRenderSurface
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsRenderer and the true internal type.
+ * casted between dsRenderPass and the true internal type.
  */
 typedef struct dsRenderPass dsRenderPass;
 
@@ -519,6 +596,82 @@ typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
 	dsRenderSurface* renderSurface);
 
 /**
+ * @brief Function for creating a command buffer pool.
+ * @param renderer The renderer the command buffers will be used wtih.
+ * @param allocator The allocator to create the command buffer pool.
+ * @param usage The usage flags. Set to 0 if none of the usage options are needed.
+ * @param count The number of command buffers to create in the pool.
+ * @return The command buffer pool.
+ */
+typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* renderer,
+	dsAllocator* allocator, int usage, uint32_t count);
+
+/**
+ * @brief Function for destroying a command buffer pool.
+ * @param renderer The renderer the command buffer pool was created with.
+ * @param pool The command buffer pool to destroy.
+ * @return False if the command buffer pool couldn't be destroyed.
+ */
+typedef bool (*dsDestroyCommandBufferPoolFunction)(dsRenderer* renderer, dsCommandBufferPool* pool);
+
+/**
+ * @brief Function for resetting a command buffer pool, preparing the command buffers to be built up
+ *     with new render commands.
+ *
+ * It is the responsibility of the implementation to swap the command buffer arrays, since some
+ * implementations have additional requirements and may need to tripple-buffer.
+ *
+ * @param renderer The renderer the command buffer pool was created with.
+ * @param pool The command buffer pool to reset.
+ * @return False if the command buffer pool couldn't be reset.
+ */
+typedef bool (*dsResetCommandBufferPoolFunction)(dsRenderer* renderer, dsCommandBufferPool* pool);
+
+/**
+ * @brief Function for beginning a frame.
+ * @param renderer The renderer to draw with.
+ * @return False if the frame couldn't be begun.
+ */
+typedef bool (*dsBeginFrameFunction)(dsRenderer* renderer);
+
+/**
+ * @brief Function for ending a frame.
+ * @param renderer The renderer to draw with.
+ * @return False if the frame couldn't be ended.
+ */
+typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
+
+/**
+ * @brief Function for starting to draw to a command buffer.
+ * @param renderer The renderer that the command buffer will be drawn with.
+ * @param commandBuffer The command buffer to begin.
+ * @param renderPass The render pass the command buffer will be drawn with.
+ * @param subpassIndex The subpass within the render pass that will be drawn with.
+ * @param framebuffer The framebuffer that will be drawn to.
+ * @return False if the command buffer couldn't be begun.
+ */
+typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+
+/**
+ * @brief Function for ending drawing to a command buffer.
+ * @param renderer The renderer that the command buffer will be drawn with.
+ * @param commandBuffer The command buffer to end.
+ * @return False if the command buffer couldn't be ended.
+ */
+typedef bool (*dsEndCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Function for submitting a command buffer from one buffer to another.
+ * @param renderer The renderer the command buffer will be drawn with.
+ * @param commandBuffer The command buffer to submit the commands to.
+ * @param submitBuffer The buffer to submit.
+ * @return False if the command buffer couldn't be submitted.
+ */
+typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsCommandBuffer* submitBuffer);
+
+/**
  * @brief Function for creating a render pass.
  *
  * All arrays passed in and part of the structures should be copied by the implementation rather
@@ -605,6 +758,14 @@ struct dsRenderer
 	dsThreadId mainThread;
 
 	/**
+	 * @brief The main command buffer.
+	 *
+	 * This should only be used from the main thread. The pointer may change after calling
+	 * dsRenderer_beginFrame() depending on the implementation.
+	 */
+	dsCommandBuffer* mainCommandBuffer;
+
+	/**
 	 * @brief The maximum anisitropy level for anisotropic texture filtering.
 	 */
 	float maxAnisotropy;
@@ -657,6 +818,13 @@ struct dsRenderer
 	float defaultAnisotropy;
 
 	/**
+	 * @brief The current frame number.
+	 *
+	 * This is incremented when calling dsRenderer_beginFrame().
+	 */
+	uint32_t frameNumber;
+
+	/**
 	 * @brief Render surface creation function.
 	 */
 	dsCreateRenderSurfaceFunction createRenderSurfaceFunc;
@@ -685,6 +853,46 @@ struct dsRenderer
 	 * @brief Render surface buffer swap function.
 	 */
 	dsSwapRenderSurfaceBuffersFunction swapRenderSurfaceBuffersFunc;
+
+	/**
+	 * @brief Command buffer pool creation function.
+	 */
+	dsCreateCommandBufferPoolFunction createCommandBufferPoolFunc;
+
+	/**
+	 * @brief Command buffer pool destruction function.
+	 */
+	dsDestroyCommandBufferPoolFunction destroyCommandBufferPoolFunc;
+
+	/**
+	 * @brief Command buffer pool reset function.
+	 */
+	dsResetCommandBufferPoolFunction resetCommandBufferPoolFunc;
+
+	/**
+	 * @brief Frame begin function.
+	 */
+	dsBeginFrameFunction beginFrameFunc;
+
+	/**
+	 * @brief Frame end function.
+	 */
+	dsEndFrameFunction endFrameFunc;
+
+	/**
+	 * @brief Command buffer begin function.
+	 */
+	dsBeginCommandBufferFunction beginCommandBufferFunc;
+
+	/**
+	 * @brief Command buffer end function.
+	 */
+	dsEndCommandBufferFunction endCommandBufferFunc;
+
+	/**
+	 * @brief Command buffer submit function.
+	 */
+	dsSubmitCommandBufferFunction submitCommandBufferFunc;
 };
 
 #ifdef __cplusplus
