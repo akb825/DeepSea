@@ -34,6 +34,23 @@ extern "C"
  */
 
 /**
+ * @brief Generic hash generation for a list of bytes.
+ * @param buffer The bytes to hash.
+ * @param size The size of the buffer.
+ * @return The hash.
+ */
+DS_CORE_EXPORT uint32_t dsHashBytes(const void* buffer, size_t size);
+
+/**
+ * @brief Generic hash generation for a list of bytes, combining with a previous hash.
+ * @param seed The previous hash value.
+ * @param buffer The bytes to hash.
+ * @param size The size of the buffer.
+ * @return The hash.
+ */
+DS_CORE_EXPORT uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size);
+
+/**
  * @brief Combines two hash values.
  *
  * This can be chained to combine as many hash values together as you want. This is preferable to a
@@ -154,6 +171,48 @@ DS_CORE_EXPORT uint32_t dsHashPointer(const void* ptr);
  * @return True if first and second are equal.
  */
 DS_CORE_EXPORT bool dsHashPointerEqual(const void* first, const void* second);
+
+/**
+ * @brief Hashes a float value.
+ *
+ * This is similar to dsHash32(), except it treats 0 and -0 as the same.
+ *
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashFloat(const void* ptr);
+
+/**
+ * @brief Checks if two float values are equal.
+ *
+ * This is similar to dsHash32Equal(), except it treats 0 and -0 as the same.
+ *
+ * @param first A pointer to the first value.
+ * @param second A pointer to the second value.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT bool dsHashFloatEqual(const void* first, const void* second);
+
+/**
+ * @brief Hashes a double value.
+ *
+ * This is similar to dsHash64(), except it treats 0 and -0 as the same.
+ *
+ * @param ptr A pointer to the value to hash.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT uint32_t dsHashDouble(const void* ptr);
+
+/**
+ * @brief Checks if two double values are equal.
+ *
+ * This is similar to dsHash64Equal(), except it treats 0 and -0 as the same.
+ *
+ * @param first A pointer to the first value.
+ * @param second A pointer to the second value.
+ * @return The hashed value.
+ */
+DS_CORE_EXPORT bool dsHashDoubleEqual(const void* first, const void* second);
 
 #ifdef __cplusplus
 }

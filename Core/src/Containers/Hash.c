@@ -18,13 +18,138 @@
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-static uint32_t hashInteger(uint32_t value)
+#define DEFAULT_SEED 0xc70f6907U
+
+inline static uint32_t rotl32(uint32_t x, int8_t r)
 {
-	// http://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
-	value = ((value >> 16) ^ value) * 0x45d9f3b;
-    value = ((value >> 16) ^ value) * 0x45d9f3b;
-    value = (value >> 16) ^ value;
-    return value;
+	return (x << r) | (x >> (32 - r));
+}
+
+inline static uint32_t fmix32(uint32_t h)
+{
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+
+	return h;
+}
+
+static uint32_t hashBytesSmall(uint32_t seed, const void* buffer, size_t size)
+{
+	// Just the tail portion of dsHashCombineBytes().
+	DS_ASSERT(buffer);
+	const uint8_t* tail = (const uint8_t*)buffer;
+	uint32_t k1 = 0;
+	uint32_t h1 = seed;
+
+	const uint32_t c1 = 0xcc9e2d51;
+	const uint32_t c2 = 0x1b873593;
+
+	switch (size & 3)
+	{
+		case 3: k1 ^= tail[2] << 16;
+		case 2: k1 ^= tail[1] << 8;
+		case 1: k1 ^= tail[0];
+		k1 *= c1; k1 = rotl32(k1, 15); k1 *= c2; h1 ^= k1;
+	};
+
+	//----------
+	// finalization
+
+	h1 ^= size;
+
+	return fmix32(h1);
+}
+
+static uint32_t hashBytes32(uint32_t seed, const void* buffer, size_t size)
+{
+	// Single iteration of dsHashCombineBytes().
+	DS_ASSERT(buffer);
+	uint32_t block = *(const uint32_t*)buffer;
+	uint32_t h1 = seed;
+
+	const uint32_t c1 = 0xcc9e2d51;
+	const uint32_t c2 = 0x1b873593;
+
+	uint32_t k1 = block;
+
+	k1 *= c1;
+	k1 = rotl32(k1, 15);
+	k1 *= c2;
+
+	h1 ^= k1;
+	h1 = rotl32(h1, 13);
+	h1 = h1 * 5 + 0xe6546b64;
+
+	k1 = 0;
+	k1 *= c1;
+	k1 = rotl32(k1, 15);
+	k1 *= c2;
+	h1 ^= k1;
+
+	//----------
+	// finalization
+
+	h1 ^= size;
+
+	return fmix32(h1);
+}
+
+uint32_t dsHashBytes(const void* buffer, size_t size)
+{
+	return dsHashCombineBytes(DEFAULT_SEED, buffer, size);
+}
+
+uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
+{
+	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
+	DS_ASSERT(buffer);
+	const uint8_t* data = (const uint8_t*)buffer;
+	const size_t nblocks = size/4;
+
+	uint32_t h1 = seed;
+
+	const uint32_t c1 = 0xcc9e2d51;
+	const uint32_t c2 = 0x1b873593;
+
+	//----------
+	// body
+	const uint32_t* blocks = (const uint32_t*)data;
+	for (size_t i = 0; i < nblocks; ++i)
+	{
+		uint32_t k1 = blocks[i];
+
+		k1 *= c1;
+		k1 = rotl32(k1, 15);
+		k1 *= c2;
+
+		h1 ^= k1;
+		h1 = rotl32(h1, 13);
+		h1 = h1 * 5 + 0xe6546b64;
+	}
+
+	//----------
+	// tail
+
+	const uint8_t* tail = (const uint8_t*)(data + nblocks*4);
+	uint32_t k1 = 0;
+
+	switch (size & 3)
+	{
+		case 3: k1 ^= tail[2] << 16;
+		case 2: k1 ^= tail[1] << 8;
+		case 1: k1 ^= tail[0];
+		k1 *= c1; k1 = rotl32(k1, 15); k1 *= c2; h1 ^= k1;
+	};
+
+	//----------
+	// finalization
+
+	h1 ^= size;
+
+	return fmix32(h1);
 }
 
 uint32_t dsHashCombine(uint32_t first, uint32_t second)
@@ -35,15 +160,10 @@ uint32_t dsHashCombine(uint32_t first, uint32_t second)
 
 uint32_t dsHashString(const void* string)
 {
-	// djb2 algorithm
-	uint32_t hash = 5381;
 	if (!string)
-		return hash;
+		return DEFAULT_SEED;
 
-	for (const char* c = (const char*)string; *c; ++c)
-		hash = ((hash << 5) + hash) + *c; /* hash * 33 + c */
-
-	return hash;
+	return dsHashBytes(string, strlen((const char*)string));
 }
 
 bool dsHashStringEqual(const void* first, const void* second)
@@ -58,7 +178,8 @@ bool dsHashStringEqual(const void* first, const void* second)
 
 uint32_t dsHash8(const void* ptr)
 {
-	return hashInteger(ptr ? *(const uint8_t*)ptr : 0);
+	uint8_t value = ptr ? *(const uint8_t*)ptr : 0;
+	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint8_t));
 }
 
 bool dsHash8Equal(const void* first, const void* second)
@@ -73,7 +194,8 @@ bool dsHash8Equal(const void* first, const void* second)
 
 uint32_t dsHash16(const void* ptr)
 {
-	return hashInteger(ptr ? *(const uint16_t*)ptr : 0);
+	uint16_t value = ptr ? *(const uint16_t*)ptr : 0;
+	return hashBytesSmall(DEFAULT_SEED, &value, sizeof(uint16_t));
 }
 
 bool dsHash16Equal(const void* first, const void* second)
@@ -88,7 +210,8 @@ bool dsHash16Equal(const void* first, const void* second)
 
 uint32_t dsHash32(const void* ptr)
 {
-	return hashInteger(ptr ? *(const uint32_t*)ptr : 0);
+	uint32_t value = ptr ? *(const uint32_t*)ptr : 0;
+	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
 }
 
 bool dsHash32Equal(const void* first, const void* second)
@@ -103,11 +226,8 @@ bool dsHash32Equal(const void* first, const void* second)
 
 uint32_t dsHash64(const void* ptr)
 {
-	if (!ptr)
-		return hashInteger(0);
-
-	const uint32_t* integers = (const uint32_t*)ptr;
-	return dsHashCombine(hashInteger(integers[0]), hashInteger(integers[1]));
+	uint64_t value = ptr ? *(const uint64_t*)ptr : 0;
+	return dsHashBytes(&value, sizeof(uint64_t));
 }
 
 bool dsHash64Equal(const void* first, const void* second)
@@ -155,4 +275,40 @@ uint32_t dsHashPointer(const void* ptr)
 bool dsHashPointerEqual(const void* first, const void* second)
 {
 	return first == second;
+}
+
+uint32_t dsHashFloat(const void* ptr)
+{
+	float value = ptr ? *(const float*)ptr : 0;
+	// Handle -0
+	value = value != 0.0f ? value : 0.0f;
+	return hashBytes32(DEFAULT_SEED, &value, sizeof(uint32_t));
+}
+
+bool dsHashFloatEqual(const void* first, const void* second)
+{
+	if (first == second)
+		return true;
+	else if ((first && !second) || (!first && second))
+		return false;
+
+	return *(const float*)first == *(const float*)second;
+}
+
+uint32_t dsHashDouble(const void* ptr)
+{
+	double value = ptr ? *(const double*)ptr : 0;
+	// Handle -0
+	value = value != 0.0 ? value : 0.0;
+	return dsHashBytes(&value, sizeof(double));
+}
+
+bool dsHashDoubleEqual(const void* first, const void* second)
+{
+	if (first == second)
+		return true;
+	else if ((first && !second) || (!first && second))
+		return false;
+
+	return *(const double*)first == *(const double*)second;
 }
