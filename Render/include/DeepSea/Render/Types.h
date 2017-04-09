@@ -47,6 +47,7 @@ extern "C"
  * @brief Enum for how an image attachment will be used.
  *
  * This enum is a bitmask to allow multiple combinations of the usage bits.
+ * @see RenderSurface.h
  */
 typedef enum dsAttachmentUsage
 {
@@ -62,6 +63,7 @@ typedef enum dsAttachmentUsage
 
 /**
  * @brief Enum for the stage for a pipeline dependency.
+ * @see RenderPass.h
  */
 typedef enum dsSubpassDependencyStage
 {
@@ -195,7 +197,7 @@ typedef struct dsRenderer dsRenderer;
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsRenderSurface and the true internal type.
  *
- * @see dsRenderSurface.h
+ * @see RenderSurface.h
  */
 typedef struct dsRenderSurface
 {
@@ -228,18 +230,11 @@ typedef struct dsRenderSurface
 /**
  * @brief Struct for a render pass used by the renderer.
  *
- * This is used to draw a group of geometry together to a framebuffer. Render passes may either be
- * drawn to their own framebuffer or framebuffers may be shared to control draw order.
- *
- * A render pass contains one or more subpasses. Image attachment outputs from one subpass may be
- * accessed as inputs to other subpasses. When this is done, you can only access the same pixel's
- * value corresponding to the pixel being drawn. This is more efficient on some implementations
- * since it doesn't require the	full offscreen to be resolved while rendering the different portions
- * of the screen. One example where this is useful is for the various passes for deferred lighting.
- *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
  * casted between dsRenderPass and the true internal type.
+ *
+ * @see RenderPass.h
  */
 typedef struct dsRenderPass dsRenderPass;
 
@@ -321,27 +316,6 @@ typedef struct dsDrawList
 } dsDrawList;
 
 /**
- * @brief Structure describing how to draw with a shader.
- */
-typedef struct dsShaderDrawInfo
-{
-	/**
-	 * @brief The shader to draw with.
-	 */
-	dsShader* shader;
-
-	/**
-	 * @brief The type of primitives the shader will be drawn with.
-	 */
-	dsPrimitiveType primitiveType;
-
-	/**
-	 * @brief True to enable primitive restarts with strips and fans.
-	 */
-	bool primitiveRestart;
-} dsShaderDrawInfo;
-
-/**
  * @brief The info for an image attachment.
  *
  * This provides information ahead of time that can help improve performance during rendering.
@@ -370,13 +344,6 @@ typedef struct dsAttachmentInfo
 typedef struct dsRenderSubpassInfo
 {
 	/**
-	 * @brief The list of shaders to use with the subpass.
-	 *
-	 * This should not be changed after creation.
-	 */
-	const dsShaderDrawInfo* shaders;
-
-	/**
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 *
@@ -389,11 +356,6 @@ typedef struct dsRenderSubpassInfo
 	 * render pass.
 	 */
 	const uint32_t* colorAttachments;
-
-	/**
-	 * @brief The number of shaders.
-	 */
-	uint32_t shaderCount;
 
 	/**
 	 * @brief The number of input attachments.
@@ -682,6 +644,10 @@ typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuf
  * @param attachments The attachments that will be used with the framebuffer.
  * @param attachmentCount The number of attachments.
  * @param subpasses The subpasses within the render pass.
+ * @param subpassCount The number of subpasses within the render pass.
+ * @param dependencies The dependencies between subpasses.
+ * @param dependencyCount The number of dependencies.
+ * @return The created render pass, or NULL if it couldn't be created.
  */
 typedef dsRenderPass* (*dsCreateRenderPassFunction)(dsRenderer* renderer, dsAllocator* allocator,
 	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
@@ -700,7 +666,7 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  * @brief Function for beginning a render pass.
  * @param renderer The renderer the render pass was created with.
  * @param commandBuffer The command buffer to push the commands on.
- * @param renderPass The render pass to start.
+ * @param renderPass The render pass to begin.
  * @param framebuffer The framebuffer to draw the render pass to.
  * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
  *     in the range [0, 1]. If NULL, the full range is used.
@@ -711,6 +677,7 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  *     or equal to the number of attachments.
  * @param indirectCommands True if the render commands for the first subpass will be provided with
  *     command buffers, false if the render commands will be inlined.
+ * @return False if the render pass couldn't be begun.
  */
 typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
@@ -718,12 +685,13 @@ typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer*
 	uint32_t clearValueCount, bool indirectCommands);
 
 /**
- * @brief Function for continuing to the next subpass within a render pass.
+ * @brief Function for advancing to the next subpass within a render pass.
  * @param renderer The renderer the render pass was created with.
  * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to continue.
  * @param indirectCommands True if the render commands for the subpass will be provided with command
  *     buffers, false if the render commands will be inlined.
+ * @return False if the render pass couldn't be advanced.
  */
 typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, bool indirectCommands);
@@ -733,6 +701,7 @@ typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffe
  * @param renderer The renderer the render pass was created with.
  * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to end.
+ * @return False if the render pass couldn't be ended.
  */
 typedef bool (*dsEndRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
@@ -764,6 +733,11 @@ struct dsRenderer
 	 * dsRenderer_beginFrame() depending on the implementation.
 	 */
 	dsCommandBuffer* mainCommandBuffer;
+
+	/**
+	 * @brief The maximum number of color attachments when drawing a render subpass.
+	 */
+	uint16_t maxColorAttachments;
 
 	/**
 	 * @brief The maximum anisitropy level for anisotropic texture filtering.
@@ -893,6 +867,31 @@ struct dsRenderer
 	 * @brief Command buffer submit function.
 	 */
 	dsSubmitCommandBufferFunction submitCommandBufferFunc;
+
+	/**
+	 * @brief Render pass creation function.
+	 */
+	dsCreateRenderPassFunction createRenderPassFunc;
+
+	/**
+	 * @brief Render pass destruction function.
+	 */
+	dsDestroyRenderPassFunction destroyRenderPassFunc;
+
+	/**
+	 * @brief Render pass begin function.
+	 */
+	dsBeginRenderPassFunction beginRenderPassFunc;
+
+	/**
+	 * @brief Render subpass advancement function.
+	 */
+	dsNextRenderSubpassFunction nextRenderSubpassFunc;
+
+	/**
+	 * @brief Render pass end function.
+	 */
+	dsEndRenderPassFunction endRenderPassFunc;
 };
 
 #ifdef __cplusplus

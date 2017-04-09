@@ -70,6 +70,9 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
 
+	renderer->maxColorAttachments = 4;
+	renderer->maxAnisotropy = 16;
+
 	renderer->surfaceColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;

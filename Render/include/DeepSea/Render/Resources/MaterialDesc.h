@@ -48,7 +48,7 @@ extern "C"
  * @param resourceManager The resource manager to create the material description from.
  * @param allocator The allocator to create the material description with. If NULL, it will use the
  *     same allocator as the resource manager.
- * @param elements The elements that comprise the material.
+ * @param elements The elements that comprise the material. This array will be copied.
  * @param elementCount The number of material elements.
  * @return The created material description, or NULL if it couldn't be created.
  */

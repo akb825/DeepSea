@@ -79,7 +79,6 @@ typedef enum dsGfxMemory
  * @brief Enum for how a graphics buffer will be used.
  *
  * These are bitmask values, allowing a buffer to be used for multiple purposes.
- *
  * @see GfxBuffer.h
  */
 typedef enum dsGfxBufferUsage
@@ -99,7 +98,6 @@ typedef enum dsGfxBufferUsage
  * @brief Enum for how a texture will be used.
  *
  * These are bitmask values, allowing a texture to be used for multiple purposes.
- *
  * @see Texture.h
  */
 typedef enum dsTextureUsage

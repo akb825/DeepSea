@@ -37,7 +37,7 @@ extern "C"
  * @param resourceManager The resource manager to create the shader variable group description from.
  * @param allocator The allocator to create the shader variable group description with. If NULL, it
  *     will use the same allocator as the resource manager.
- * @param elements The elements that comprise the shader variable group.
+ * @param elements The elements that comprise the shader variable group. This array will be copied.
  * @param elementCount The number of material elements. This must not be empty.
  * @return The created shader variable group description, or NULL if it couldn't be created.
  */

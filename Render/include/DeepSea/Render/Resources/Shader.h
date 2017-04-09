@@ -46,7 +46,7 @@ extern "C"
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
  * @param primitiveType The type of primitive the shader will be drawn with.
- * @return The created shader , or NULL if it couldn't be created.
+ * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, const char* name,
@@ -64,7 +64,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
  * @param primitiveType The type of primitive the shader will be drawn with.
- * @return The created shader , or NULL if it couldn't be created.
+ * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, uint32_t index,
