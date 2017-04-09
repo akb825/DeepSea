@@ -294,8 +294,7 @@ TEST_F(TextureTest, GetData)
 
 TEST_F(TextureTest, CopyData)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	dsTexture* texture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
@@ -370,8 +369,7 @@ TEST_F(TextureTest, CopyData)
 
 TEST_F(TextureTest, Copy)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
 	for (unsigned int level = 0, index = 0; level < 3; ++level)
@@ -506,8 +504,7 @@ TEST_F(TextureTest, Copy)
 
 TEST_F(TextureTest, Blit)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
 	for (unsigned int level = 0, index = 0; level < 3; ++level)

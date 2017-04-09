@@ -112,8 +112,7 @@ public:
 
 TEST_F(ShaderVariableGroupTest, GfxBuffer)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
@@ -288,8 +287,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 
 TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(resourceManager->supportedBuffers &
 		~dsGfxBufferUsage_UniformBlock);
 

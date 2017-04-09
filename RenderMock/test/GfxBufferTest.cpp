@@ -140,8 +140,7 @@ TEST_F(GfxBufferTest, CopyData)
 {
 	TestData testData = {1.2f, 3};
 	TestData copyData = {3.4f, 5};
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Read, &testData, sizeof(testData));
@@ -167,8 +166,7 @@ TEST_F(GfxBufferTest, CopyData)
 TEST_F(GfxBufferTest, Copy)
 {
 	TestData testData = {1.2f, 3};
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsGfxBuffer* fromBuffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_GpuOnly, &testData, sizeof(testData));

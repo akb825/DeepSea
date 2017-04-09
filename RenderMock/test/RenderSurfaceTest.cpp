@@ -59,8 +59,7 @@ TEST_F(RenderSurfaceTest, Update)
 
 TEST_F(RenderSurfaceTest, BeginEnd)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
 		dsRenderSurfaceType_Unknown);

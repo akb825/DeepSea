@@ -318,8 +318,7 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 
 TEST_F(ShaderTest, BindAndUpdate)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsShaderVariableElement transformElements[] =
 	{
@@ -458,8 +457,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 
 TEST_F(ShaderTest, BindAndUpdateBuffer)
 {
-	int commandBufferData;
-	dsCommandBuffer* commandBuffer = (dsCommandBuffer*)&commandBufferData;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsMaterialElement elements[] =
 	{

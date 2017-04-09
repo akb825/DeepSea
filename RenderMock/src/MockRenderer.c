@@ -17,10 +17,13 @@
 #include <DeepSea/RenderMock/MockRenderer.h>
 
 #include "Resources/MockResourceManager.h"
+#include "MockCommandBuffer.h"
+#include "MockCommandBufferPool.h"
 #include "MockRenderSurface.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
-#include <DeepSea/Core/Thread/Thread.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
@@ -32,9 +35,17 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 		return NULL;
 	}
 
-	dsRenderer* renderer = (dsRenderer*)dsAllocator_alloc(allocator, sizeof(dsRenderer));
-	if (!renderer)
+	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderer)) +
+		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer));
+	void* buffer = dsAllocator_alloc(allocator, totalSize);
+	if (!buffer)
 		return NULL;
+
+	dsBufferAllocator bufferAllocator;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
+	dsRenderer* renderer = (dsRenderer*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
+		sizeof(dsRenderer));
+	DS_ASSERT(renderer);
 
 	if (!dsRenderer_initialize(renderer))
 	{
@@ -54,6 +65,11 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->allocator = dsAllocator_keepPointer(allocator);
 	renderer->resourceManager = resourceManager;
 
+	renderer->mainCommandBuffer = (dsCommandBuffer*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
+	DS_ASSERT(renderer->mainCommandBuffer);
+	renderer->mainCommandBuffer->renderer = renderer;
+
 	renderer->surfaceColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
@@ -65,6 +81,14 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->beginRenderSurfaceFunc = &dsMockRenderSurface_beginDraw;
 	renderer->endRenderSurfaceFunc = &dsMockRenderSurface_endDraw;
 	renderer->swapRenderSurfaceBuffersFunc = &dsMockRenderSurface_swapBuffers;
+
+	renderer->createCommandBufferPoolFunc = &dsMockCommandBufferPool_create;
+	renderer->resetCommandBufferPoolFunc = &dsMockCommandBufferPool_reset;
+	renderer->destroyCommandBufferPoolFunc = &dsMockCommandBufferPool_destroy;
+
+	renderer->beginCommandBufferFunc = &dsMockCommandBuffer_begin;
+	renderer->endCommandBufferFunc = &dsMockCommandBuffer_end;
+	renderer->submitCommandBufferFunc = &dsMockCommandBuffer_submit;
 
 	return renderer;
 }
