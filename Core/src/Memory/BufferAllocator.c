@@ -28,6 +28,8 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 	}
 
 	((dsAllocator*)allocator)->size = 0;
+	((dsAllocator*)allocator)->totalAllocations = 0;
+	((dsAllocator*)allocator)->currentAllocations = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsBufferAllocator_alloc;
 	((dsAllocator*)allocator)->freeFunc = NULL;
 
@@ -61,6 +63,9 @@ void* dsBufferAllocator_alloc(dsBufferAllocator* allocator, size_t size, unsigne
 	}
 	while (!DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&((dsAllocator*)allocator)->size, &curSize, &nextSize,
 		true));
+
+	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->totalAllocations, 1);
+	DS_ATOMIC_FETCH_ADD32(&((dsAllocator*)allocator)->currentAllocations, 1);
 	return (uint8_t*)allocator->buffer + offset;
 }
 
@@ -73,5 +78,7 @@ bool dsBufferAllocator_reset(dsBufferAllocator* allocator)
 	}
 
 	((dsAllocator*)allocator)->size = 0;
+	((dsAllocator*)allocator)->totalAllocations = 0;
+	((dsAllocator*)allocator)->currentAllocations = 0;
 	return true;
 }

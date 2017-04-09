@@ -29,6 +29,11 @@
 #	define DS_APPLE
 #endif
 
+// Android is also Linux, so separate.
+#if defined(__ANDROID__)
+#	define DS_ANDROID 1
+#endif
+
 #if defined(_MSC_VER)
 #	define DS_MSC 1
 #elif defined(__clang__)
@@ -58,6 +63,15 @@
  */
 #ifndef DS_APPLE
 #	define DS_APPLE 0
+#endif
+
+/**
+ * @brief Define for whether the platform is Android.
+ *
+ * DS_LINUX should also be 1 on Android.
+ */
+#ifndef DS_ANDROID
+#	define DS_ANDROID 0
 #endif
 
 /**

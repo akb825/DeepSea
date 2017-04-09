@@ -60,22 +60,32 @@ TEST(BufferAllocator, Allocate)
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);
 	EXPECT_NE(nullptr, ptr1);
 	EXPECT_EQ(10U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, 30);
 	EXPECT_EQ((uintptr_t)ptr1 + 16, (uintptr_t)ptr2);
 	EXPECT_EQ(46U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, 60));
 
 	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, 40);
 	EXPECT_EQ((uintptr_t)ptr1 + 48, (uintptr_t)ptr3);
 	EXPECT_EQ(88U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, 1);
 	EXPECT_EQ((uintptr_t)ptr1 + 96, (uintptr_t)ptr4);
 	EXPECT_EQ(97U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, 1));
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
 }
 
 TEST(BufferAllocator, Reset)
@@ -88,9 +98,12 @@ TEST(BufferAllocator, Reset)
 	EXPECT_FALSE_ERRNO(EINVAL, dsBufferAllocator_reset(&allocator));
 
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
-	((dsAllocator*)&allocator)->size = 20;
+	EXPECT_TRUE(dsAllocator_alloc((dsAllocator*)&allocator, 10));
+
 	EXPECT_TRUE(dsBufferAllocator_reset(&allocator));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
 }
 
 TEST(BufferAllocator, ThreadAlloc)
@@ -110,4 +123,6 @@ TEST(BufferAllocator, ThreadAlloc)
 		EXPECT_TRUE(dsThread_join(threads + i, NULL));
 
 	EXPECT_EQ(bufferSize, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->currentAllocations);
 }

@@ -97,6 +97,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize - 1);
 	EXPECT_EQ(buffer + DS_ALIGNED_SIZE(chunkSize), ptr2);
@@ -105,6 +107,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(2U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 2*DS_ALIGNED_SIZE(chunkSize), ptr3);
@@ -113,6 +117,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr1));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -120,6 +126,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr3));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -127,6 +135,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr4 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 2*DS_ALIGNED_SIZE(chunkSize), ptr4);
@@ -135,6 +145,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr5 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr5);
@@ -143,6 +155,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(5U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr6 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 3*DS_ALIGNED_SIZE(chunkSize), ptr6);
@@ -151,6 +165,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(0U, allocator.freeCount);
 	EXPECT_EQ(4U, allocator.initializedCount);
 	EXPECT_EQ(4*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(6U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(4U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_NULL_ERRNO(ENOMEM, dsAllocator_alloc((dsAllocator*)&allocator, chunkSize));
 
@@ -160,6 +176,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(4U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(6U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr6));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -167,6 +185,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(4U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(6U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr8 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 3*DS_ALIGNED_SIZE(chunkSize), ptr8);
@@ -175,6 +195,8 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(4U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(7U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	dsPoolAllocator_destroy(&allocator);
 }
@@ -198,6 +220,8 @@ TEST(PoolAllocator, SingleChunk)
 	EXPECT_EQ(0U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_reset(nullptr));
 
@@ -207,6 +231,8 @@ TEST(PoolAllocator, SingleChunk)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	ptr = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer, ptr);
@@ -215,6 +241,8 @@ TEST(PoolAllocator, SingleChunk)
 	EXPECT_EQ(0U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 }
 
 TEST(PoolAllocator, Reset)
@@ -239,6 +267,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize - 1);
 	EXPECT_EQ(buffer + DS_ALIGNED_SIZE(chunkSize), ptr2);
@@ -247,6 +277,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(2U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	void* ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 2*DS_ALIGNED_SIZE(chunkSize), ptr3);
@@ -255,6 +287,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr1));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -262,6 +296,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr3));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -269,6 +305,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_FALSE_ERRNO(EINVAL, dsPoolAllocator_reset(nullptr));
 	EXPECT_TRUE(dsPoolAllocator_reset(&allocator));
@@ -280,6 +318,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(1U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	ptr2 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize - 1);
 	EXPECT_EQ(buffer + DS_ALIGNED_SIZE(chunkSize), ptr2);
@@ -288,6 +328,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(2U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	ptr3 = dsAllocator_alloc((dsAllocator*)&allocator, chunkSize);
 	EXPECT_EQ(buffer + 2*DS_ALIGNED_SIZE(chunkSize), ptr3);
@@ -296,6 +338,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(1U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(3*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr1));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -303,6 +347,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(2U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(2*DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(2U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, ptr3));
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
@@ -310,6 +356,8 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, allocator.freeCount);
 	EXPECT_EQ(3U, allocator.initializedCount);
 	EXPECT_EQ(DS_ALIGNED_SIZE(chunkSize), ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
 	dsPoolAllocator_destroy(&allocator);
 }
@@ -333,6 +381,8 @@ TEST(PoolAllocator, ThreadAlloc)
 
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
 	dsPoolAllocator_destroy(&allocator);
 }
 
@@ -355,5 +405,7 @@ TEST(PoolAllocator, ThreadAllocWithPause)
 
 	EXPECT_TRUE(dsPoolAllocator_validate(&allocator));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->totalAllocations);
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
 	dsPoolAllocator_destroy(&allocator);
 }

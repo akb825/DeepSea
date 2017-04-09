@@ -90,6 +90,22 @@ struct dsAllocator
 	size_t size;
 
 	/**
+	 * @brief The total number of allocations over the lifetime of the allocator.
+	 *
+	 * If this is used to allocate across different threads, it should be accessed with
+	 * DS_ATOMIC_LOAD_SIZE.
+	 */
+	uint32_t totalAllocations;
+
+	/**
+	 * @brief The current number of active allocations.
+	 *
+	 * If this is used to allocate across different threads, it should be accessed with
+	 * DS_ATOMIC_LOAD_SIZE.
+	 */
+	uint32_t currentAllocations;
+
+	/**
 	 * @brief The allocation function.
 	 */
 	dsAllocatorAllocFunction allocFunc;

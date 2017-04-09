@@ -45,6 +45,8 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 		return false;
 
 	((dsAllocator*)allocator)->size = 0;
+	((dsAllocator*)allocator)->totalAllocations = 0;
+	((dsAllocator*)allocator)->currentAllocations = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsPoolAllocator_alloc;
 	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsPoolAllocator_free;
 
@@ -125,6 +127,8 @@ void* dsPoolAllocator_alloc(dsPoolAllocator* allocator, size_t size, unsigned in
 	if (retVal)
 	{
 		((dsAllocator*)allocator)->size += allocator->chunkSize;
+		++((dsAllocator*)allocator)->totalAllocations;
+		++((dsAllocator*)allocator)->currentAllocations;
 		DS_ASSERT(((dsAllocator*)allocator)->size <= allocator->bufferSize);
 	}
 
@@ -172,6 +176,7 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 
 	DS_ASSERT(((dsAllocator*)allocator)->size >= allocator->chunkSize);
 	((dsAllocator*)allocator)->size -= allocator->chunkSize;
+	--((dsAllocator*)allocator)->currentAllocations;
 
 	DS_VERIFY(dsSpinlock_unlock(&allocator->lock));
 	return true;
@@ -185,8 +190,10 @@ bool dsPoolAllocator_reset(dsPoolAllocator* allocator)
 		errno = EINVAL;
 		return false;
 	}
-	
+
 	((dsAllocator*)allocator)->size = 0;
+	((dsAllocator*)allocator)->totalAllocations = 0;
+	((dsAllocator*)allocator)->currentAllocations = 0;
 
 	allocator->head = 0;
 	allocator->freeCount = allocator->chunkCount;
@@ -261,6 +268,9 @@ void dsPoolAllocator_destroy(dsPoolAllocator* allocator)
 {
 	if (!allocator || !allocator->buffer)
 		return;
+
+	((dsAllocator*)allocator)->totalAllocations = 0;
+	((dsAllocator*)allocator)->currentAllocations = 0;
 
 	allocator->buffer = NULL;
 	allocator->bufferSize = 0;
