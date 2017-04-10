@@ -66,7 +66,7 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Command buffer pools may only be reset on the main thread.");
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = renderer->resetCommandBufferPoolFunc(renderer, pool);
@@ -89,7 +89,7 @@ bool dsCommandBufferPool_destroy(dsCommandBufferPool* pool)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Command buffer pools may only be destroyed on the main thread.");
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = renderer->destroyCommandBufferPoolFunc(renderer, pool);
