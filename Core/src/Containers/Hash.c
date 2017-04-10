@@ -58,7 +58,7 @@ static uint32_t hashBytesSmall(uint32_t seed, const void* buffer, size_t size)
 	//----------
 	// finalization
 
-	h1 ^= size;
+	h1 ^= (uint32_t)size;
 
 	return fmix32(h1);
 }
@@ -92,7 +92,7 @@ static uint32_t hashBytes32(uint32_t seed, const void* buffer, size_t size)
 	//----------
 	// finalization
 
-	h1 ^= size;
+	h1 ^= (uint32_t)size;
 
 	return fmix32(h1);
 }
@@ -147,7 +147,7 @@ uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
 	//----------
 	// finalization
 
-	h1 ^= size;
+	h1 ^= (uint32_t)size;
 
 	return fmix32(h1);
 }
