@@ -86,7 +86,7 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
  */
 DS_RENDER_EXPORT bool dsRenderPass_begin(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3d* viewport, const dsSurfaceClearValue* clearValues,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount, bool indirectCommands);
 
 /**

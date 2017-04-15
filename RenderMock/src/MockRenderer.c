@@ -19,6 +19,7 @@
 #include "Resources/MockResourceManager.h"
 #include "MockCommandBuffer.h"
 #include "MockCommandBufferPool.h"
+#include "MockRenderPass.h"
 #include "MockRenderSurface.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -92,6 +93,12 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->beginCommandBufferFunc = &dsMockCommandBuffer_begin;
 	renderer->endCommandBufferFunc = &dsMockCommandBuffer_end;
 	renderer->submitCommandBufferFunc = &dsMockCommandBuffer_submit;
+
+	renderer->createRenderPassFunc = &dsMockRenderPass_create;
+	renderer->destroyRenderPassFunc = &dsMockRenderPass_destroy;
+	renderer->beginRenderPassFunc = &dsMockRenderPass_begin;
+	renderer->nextRenderSubpassFunc = &dsMockRenderPass_nextSubpass;
+	renderer->endRenderPassFunc = &dsMockRenderPass_end;
 
 	return renderer;
 }

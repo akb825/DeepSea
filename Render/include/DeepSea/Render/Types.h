@@ -453,7 +453,7 @@ struct dsRenderPass
 	/**
 	 * @brief The number of subpass dependencies.
 	 */
-	uint32_t subpassDependeniesCount;
+	uint32_t subpassDependencyCount;
 };
 
 /**
@@ -681,7 +681,7 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  */
 typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
-	const dsAlignedBox3d* viewport, const dsSurfaceClearValue* clearValues,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount, bool indirectCommands);
 
 /**

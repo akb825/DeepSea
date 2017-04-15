@@ -116,14 +116,14 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 		for (uint32_t j = 0; j < subpasses[i].colorAttachmentCount; ++j)
 		{
-			if (subpasses[i].inputAttachments[j] >= attachmentCount)
+			if (subpasses[i].colorAttachments[j] >= attachmentCount)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass color attachment out of range.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (isDepthStencil(attachments[subpasses[i].inputAttachments[j]].format))
+			if (isDepthStencil(attachments[subpasses[i].colorAttachments[j]].format))
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -178,14 +178,15 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 }
 
 bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
-	const dsFramebuffer* framebuffer, const dsAlignedBox3d* viewport,
+	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool indirectCommands)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !renderPass || !renderPass->renderer ||
-		!renderPass->renderer->beginRenderPassFunc || renderPass->renderer->nextRenderSubpassFunc ||
-		!renderPass->renderer->endRenderPassFunc || !framebuffer)
+		!renderPass->renderer->beginRenderPassFunc ||
+		!renderPass->renderer->nextRenderSubpassFunc || !renderPass->renderer->endRenderPassFunc ||
+		!framebuffer)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -202,7 +203,8 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 	bool needsClear = false;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		if (getSurfaceFormat(renderer, framebuffer->surfaces + 1))
+		if (getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
+			renderPass->attachments[i].format)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -250,7 +252,7 @@ bool dsRenderPass_nextSubpass(dsCommandBuffer* commandBuffer, const dsRenderPass
 {
 	DS_PROFILE_FUNC_START();
 
-	if (commandBuffer || !renderPass || !renderPass->renderer ||
+	if (!commandBuffer || !renderPass || !renderPass->renderer ||
 		!renderPass->renderer->nextRenderSubpassFunc)
 	{
 		errno = EINVAL;
@@ -267,7 +269,7 @@ bool dsRenderPass_end(dsCommandBuffer* commandBuffer, const dsRenderPass* render
 {
 	DS_PROFILE_FUNC_START();
 
-	if (commandBuffer || !renderPass || !renderPass->renderer ||
+	if (!commandBuffer || !renderPass || !renderPass->renderer ||
 		!renderPass->renderer->endRenderPassFunc)
 	{
 		errno = EINVAL;
@@ -277,4 +279,27 @@ bool dsRenderPass_end(dsCommandBuffer* commandBuffer, const dsRenderPass* render
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->endRenderPassFunc(renderer, commandBuffer, renderPass);
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsRenderPass_destroy(dsRenderPass* renderPass)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!renderPass || !renderPass->renderer ||
+		!renderPass->renderer->destroyRenderPassFunc)
+	{
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsRenderer* renderer = renderPass->renderer;
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Render passes may only be destroyed on the main thread.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	bool destroyed = renderer->destroyRenderPassFunc(renderer, renderPass);
+	DS_PROFILE_FUNC_RETURN(destroyed);
 }
