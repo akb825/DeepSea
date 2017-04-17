@@ -47,10 +47,12 @@ TEST_F(RenderPassTest, Create)
 	uint32_t pass2ColorAttachments[] = {1};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments), DS_NO_ATTACHMENT},
-		{NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments), DS_NO_ATTACHMENT},
-		{pass2InputAttachments, pass2ColorAttachments, DS_ARRAY_SIZE(pass2InputAttachments),
-			DS_ARRAY_SIZE(pass2ColorAttachments), 0},
+		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
+			DS_NO_ATTACHMENT},
+		{"test2", NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments),
+			DS_NO_ATTACHMENT},
+		{"combine", pass2InputAttachments, pass2ColorAttachments,
+			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
 	};
 	uint32_t subpassCount = (uint32_t)DS_ARRAY_SIZE(subpasses);
 
@@ -139,10 +141,12 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	uint32_t pass2ColorAttachments[] = {1};
 	dsRenderSubpassInfo subpasses[] =
 	{
-		{NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments), DS_NO_ATTACHMENT},
-		{NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments), DS_NO_ATTACHMENT},
-		{pass2InputAttachments, pass2ColorAttachments, DS_ARRAY_SIZE(pass2InputAttachments),
-			DS_ARRAY_SIZE(pass2ColorAttachments), 0},
+		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
+			DS_NO_ATTACHMENT},
+		{"test2", NULL, pass1ColorAttachments, 0, DS_ARRAY_SIZE(pass1ColorAttachments),
+			DS_NO_ATTACHMENT},
+		{"combine", pass2InputAttachments, pass2ColorAttachments,
+			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
 	};
 	uint32_t subpassCount = (uint32_t)DS_ARRAY_SIZE(subpasses);
 

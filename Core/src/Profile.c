@@ -15,32 +15,18 @@
  */
 
 #include <DeepSea/Core/Profile.h>
-#include <DeepSea/Core/Error.h>
+#include <string.h>
 
 static void* gUserData;
-static dsProfileFrameFunction gStartFrameFunc;
-static dsProfileFrameFunction gEndFrameFunc;
-static dsProfilePushFunction gPushFunc;
-static dsProfilePopFunction gPopFunc;
-static dsProfileStatFunction gStatFunc;
+static dsProfileFunctions gFunctions;
 
-bool dsProfile_setFunctions(void* userData, dsProfileFrameFunction startFrameFunc,
-	dsProfileFrameFunction endFrameFunc, dsProfilePushFunction pushFunc,
-	dsProfilePopFunction popFunc, dsProfileStatFunction statFunc)
+void dsProfile_setFunctions(void* userData, const dsProfileFunctions* functions)
 {
-	if (!startFrameFunc || !endFrameFunc || !pushFunc || !popFunc || !statFunc)
-	{
-		errno = EINVAL;
-		return false;
-	}
+	if (!functions)
+		dsProfile_clearFunctions();
 
 	gUserData = userData;
-	gStartFrameFunc = startFrameFunc;
-	gEndFrameFunc = endFrameFunc;
-	gPushFunc = pushFunc;
-	gPopFunc = popFunc;
-	gStatFunc = statFunc;
-	return true;
+	gFunctions = *functions;
 }
 
 void* dsProfile_getUserData(void)
@@ -48,84 +34,71 @@ void* dsProfile_getUserData(void)
 	return gUserData;
 }
 
-dsProfileFrameFunction dsProfile_getStartFrameFunction(void)
+const dsProfileFunctions* dsProfile_getFunctions(void)
 {
-	return gStartFrameFunc;
-}
-
-dsProfileFrameFunction dsProfile_getEndFrameFunction(void)
-{
-	return gEndFrameFunc;
-}
-
-dsProfilePushFunction dsProfile_getPushFunction(void)
-{
-	return gPushFunc;
-}
-
-dsProfilePopFunction dsProfile_getPopFunction(void)
-{
-	return gPopFunc;
-}
-
-dsProfileStatFunction dsProfile_getStatFunction(void)
-{
-	return gStatFunc;
+	return &gFunctions;
 }
 
 void dsProfile_clearFunctions(void)
 {
 	gUserData = NULL;
-	gStartFrameFunc = NULL;
-	gEndFrameFunc = NULL;
-	gPushFunc = NULL;
-	gPopFunc = NULL;
-	gStatFunc = NULL;
+	memset(&gFunctions, 0, sizeof(gFunctions));
 }
 
-bool dsProfile_enabled(void)
+void dsProfile_registerThread(const char* name)
 {
-	return gStartFrameFunc != NULL;
-}
-
-void dsProfile_startFrame(const char* file, const char* function, unsigned int line)
-{
-	if (!gStartFrameFunc)
+	if (!gFunctions.registerThreadFunc)
 		return;
 
-	gStartFrameFunc(gUserData, file, function, line);
+	gFunctions.registerThreadFunc(gUserData, name);
 }
 
-void dsProfile_endFrame(const char* file, const char* function, unsigned int line)
+void dsProfile_startFrame(void)
 {
-	if (!gEndFrameFunc)
+	if (!gFunctions.startFrameFunc)
 		return;
 
-	gEndFrameFunc(gUserData, file, function, line);
+	gFunctions.startFrameFunc(gUserData);
 }
 
-void dsProfile_push(dsProfileType type, const char* name, const char* file, const char* function,
-	unsigned int line)
+void dsProfile_endFrame()
 {
-	if (!gPushFunc)
+	if (!gFunctions.endFrameFunc)
 		return;
 
-	gPushFunc(gUserData, type, name, file, function, line);
+	gFunctions.endFrameFunc(gUserData);
+}
+
+void dsProfile_push(void** localData, dsProfileType type, const char* name, const char* file,
+	const char* function, unsigned int line)
+{
+	if (!gFunctions.pushFunc)
+		return;
+
+	gFunctions.pushFunc(gUserData, localData, type, name, file, function, line);
 }
 
 void dsProfile_pop(dsProfileType type, const char* file, const char* function, unsigned int line)
 {
-	if (!gPopFunc)
+	if (!gFunctions.popFunc)
 		return;
 
-	gPopFunc(gUserData, type, file, function, line);
+	gFunctions.popFunc(gUserData, type, file, function, line);
 }
 
-void dsProfile_stat(const char* category, const char* name, double value,
+void dsProfile_stat(void** localData, const char* category, const char* name, double value,
 	const char* file, const char* function, unsigned int line)
 {
-	if (!gStatFunc)
+	if (!gFunctions.statFunc)
 		return;
 
-	gStatFunc(gUserData, category, name, value, file, function, line);
+	gFunctions.statFunc(gUserData, localData, category, name, value, file, function, line);
+}
+
+void dsProfile_gpu(const char* name, uint64_t timeNs)
+{
+	if (!gFunctions.gpuFunc)
+		return;
+
+	gFunctions.gpuFunc(gUserData, name, timeNs);
 }

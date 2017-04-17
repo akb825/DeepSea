@@ -77,28 +77,32 @@ typedef enum dsProfileType
 } dsProfileType;
 
 /**
+ * @brief Type for a function registering a thread name.
+ * @param userData The user data for profiling functions.
+ * @param name The name of the thread.
+ */
+typedef void (*dsProfileRegisterThreadFunction)(void* userData, const char* name);
+
+/**
  * @brief Type for the function marking the start and end of a frame.
  * @remark This may be called across multiple threads.
  * @param userData The user data for profiling functions.
- * @param file The name of the source file.
- * @param function The function calling this.
- * @param line The line of the function call.
  */
-typedef void (*dsProfileFrameFunction)(void* userData, const char* file, const char* function,
-	unsigned int line);
+typedef void (*dsProfileFrameFunction)(void* userData);
 
 /**
  * @brief Type for the function pushing a profile scope.
  * @remark This may be called across multiple threads.
  * @param userData User data for the profiling functions.
+ * @param localData A pointer to a void* for data unique to the call site.
  * @param type What is being profiled.
  * @param name The name for what is being profiled.
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-typedef void (*dsProfilePushFunction)(void* userData, dsProfileType type, const char* name,
-	const char* file, const char* function, unsigned int line);
+typedef void (*dsProfilePushFunction)(void* userData, void** localData, dsProfileType type,
+	const char* name, const char* file, const char* function, unsigned int line);
 
 /**
  * @brief Type for the function popping a profile scope.
@@ -116,6 +120,7 @@ typedef void (*dsProfilePopFunction)(void* userData, dsProfileType type, const c
  * @brief Type for the function profiling a statistic.
  * @remark This may be called across multiple threads.
  * @param userData The user data for profiling functions.
+ * @param localData A pointer to a void* for data unique to the call site.
  * @param category The category for the statistic.
  * @param name The name of the value.
  * @param value The value for the statistic.
@@ -123,8 +128,58 @@ typedef void (*dsProfilePopFunction)(void* userData, dsProfileType type, const c
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-typedef void (*dsProfileStatFunction)(void* userData, const char* category, const char* name,
-	double value, const char* file, const char* function, unsigned int line);
+typedef void (*dsProfileStatFunction)(void* userData, void** localData, const char* category,
+	const char* name, double value, const char* file, const char* function, unsigned int line);
+
+/**
+ * @brief Type for a function reporting time spent on the GPU.
+ * @remark This will only be called from the main thread.
+ * @param userData The user data for profiling functions.
+ * @param name The name of the block being profiled.
+ * @param timeNs The time spent for rendering in nanoseconds.
+ */
+typedef void (*dsProfileGpuFunction)(void* userData, const char* name, uint64_t timeNs);
+
+/**
+ * @brief Struct containing the function pointers for the profiler.
+ */
+typedef struct dsProfileFunctions
+{
+	/**
+	 * @brief Thread registration function.
+	 */
+	dsProfileRegisterThreadFunction registerThreadFunc;
+
+	/**
+	 * @brief Frame start function.
+	 */
+	dsProfileFrameFunction startFrameFunc;
+
+	/**
+	 * @brief Frame end function.
+	 */
+	dsProfileFrameFunction endFrameFunc;
+
+	/**
+	 * @brief CPU push function.
+	 */
+	dsProfilePushFunction pushFunc;
+
+	/**
+	 * @brief CPU pop function.
+	 */
+	dsProfilePopFunction popFunc;
+
+	/**
+	 * @brief Stat registration function.
+	 */
+	dsProfileStatFunction statFunc;
+
+	/**
+	 * @brief GPU timing function.
+	 */
+	dsProfileGpuFunction gpuFunc;
+} dsProfileFunctions;
 
 /**
  * @brief Structure that holds the system data for a timer.

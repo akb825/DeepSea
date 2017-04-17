@@ -58,6 +58,7 @@ static dsThreadReturnType threadWrapperFunc(void* data)
 	DS_ATOMIC_STORE32(&thread->started, &started);
 
 	dsThread_setThisThreadName(name);
+	dsProfile_registerThread(name);
 	return function(userData);
 }
 

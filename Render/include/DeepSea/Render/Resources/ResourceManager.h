@@ -69,6 +69,9 @@ DS_RENDER_EXPORT bool dsResourceManager_canUseResources(const dsResourceManager*
 
 /**
  * @brief Reports statistics about the allocated resources to the profiler.
+ *
+ * This will automatically be called at the end of each frame.
+ *
  * @param resourceManager The resource manager.
  */
 DS_RENDER_EXPORT void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager);

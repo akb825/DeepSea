@@ -27,16 +27,6 @@
 namespace
 {
 
-struct FrameInfo
-{
-	FrameInfo(const char* file_, const char* function_, unsigned int line_)
-		: file(file_), function(function_), line(line_) {}
-
-	std::string file;
-	std::string function;
-	unsigned int line;
-};
-
 struct PushInfo
 {
 	PushInfo(dsProfileType type_, const char* name_, const char* file_, const char* function_,
@@ -84,30 +74,24 @@ struct ProfileInfo
 	}
 
 	dsSpinlock spinlock;
-	std::vector<FrameInfo> startFrame;
-	std::vector<FrameInfo> endFrame;
 	std::vector<PushInfo> push;
 	std::vector<PopInfo> pop;
 	std::vector<StatInfo> stat;
 };
 
-void profileStartFrame(void* userData, const char* file, const char* function,
-	unsigned int line)
+void profileRegisterThread(void*, const char*)
 {
-	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	((ProfileInfo*)userData)->startFrame.emplace_back(file, function, line);
-	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
-void profileEndFrame(void* userData, const char* file, const char* function,
-	unsigned int line)
+void profileStartFrame(void*)
 {
-	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	((ProfileInfo*)userData)->endFrame.emplace_back(file, function, line);
-	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
-void profilePush(void* userData, dsProfileType type, const char* name, const char* file,
+void profileEndFrame(void*)
+{
+}
+
+void profilePush(void* userData, void**, dsProfileType type, const char* name, const char* file,
 	const char* function, unsigned int line)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
@@ -123,12 +107,16 @@ void profilePop(void* userData, dsProfileType type, const char* file, const char
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
-void profileStat(void* userData, const char* category, const char* name, double value,
+void profileStat(void* userData, void**, const char* category, const char* name, double value,
 	const char* file, const char* function, unsigned int line)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
 	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line);
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
+}
+
+void profileGpu(void*, const char*, uint64_t)
+{
 }
 
 #if DS_PROFILING_ENABLED
@@ -167,49 +155,42 @@ dsThreadReturnType threadFunc(void* userData)
 TEST(Profile, SetFunctions)
 {
 	EXPECT_EQ(nullptr, dsProfile_getUserData());
-	EXPECT_EQ(nullptr, dsProfile_getStartFrameFunction());
-	EXPECT_EQ(nullptr, dsProfile_getEndFrameFunction());
-	EXPECT_EQ(nullptr, dsProfile_getPushFunction());
-	EXPECT_EQ(nullptr, dsProfile_getPopFunction());
-	EXPECT_EQ(nullptr, dsProfile_getStatFunction());
+	const dsProfileFunctions* curFunctions = dsProfile_getFunctions();
+	EXPECT_EQ(nullptr, curFunctions->registerThreadFunc);
+	EXPECT_EQ(nullptr, curFunctions->startFrameFunc);
+	EXPECT_EQ(nullptr, curFunctions->endFrameFunc);
+	EXPECT_EQ(nullptr, curFunctions->pushFunc);
+	EXPECT_EQ(nullptr, curFunctions->popFunc);
+	EXPECT_EQ(nullptr, curFunctions->statFunc);
+	EXPECT_EQ(nullptr, curFunctions->gpuFunc);
 
 	ProfileInfo info;
-	EXPECT_TRUE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
+	dsProfileFunctions functions =
+	{
+		&profileRegisterThread, &profileStartFrame, &profileEndFrame, &profilePush, &profilePop,
+		&profileStat, &profileGpu
+	};
+	dsProfile_setFunctions(&info, &functions);
 
 	EXPECT_EQ(&info, dsProfile_getUserData());
-	EXPECT_EQ(&profileStartFrame, dsProfile_getStartFrameFunction());
-	EXPECT_EQ(&profileEndFrame, dsProfile_getEndFrameFunction());
-	EXPECT_EQ(&profilePush, dsProfile_getPushFunction());
-	EXPECT_EQ(&profilePop, dsProfile_getPopFunction());
-	EXPECT_EQ(&profileStat, dsProfile_getStatFunction());
-
-	EXPECT_FALSE(dsProfile_setFunctions(&info, nullptr, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
-	EXPECT_FALSE(dsProfile_setFunctions(&info, &profileStartFrame, nullptr, &profilePush,
-		&profilePop, &profileStat));
-	EXPECT_FALSE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, nullptr,
-		&profilePop, &profileStat));
-	EXPECT_FALSE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		nullptr, &profileStat));
-	EXPECT_FALSE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, nullptr));
-
-	EXPECT_EQ(&info, dsProfile_getUserData());
-	EXPECT_EQ(&profileStartFrame, dsProfile_getStartFrameFunction());
-	EXPECT_EQ(&profileEndFrame, dsProfile_getEndFrameFunction());
-	EXPECT_EQ(&profilePush, dsProfile_getPushFunction());
-	EXPECT_EQ(&profilePop, dsProfile_getPopFunction());
-	EXPECT_EQ(&profileStat, dsProfile_getStatFunction());
+	EXPECT_EQ(&profileRegisterThread, curFunctions->registerThreadFunc);
+	EXPECT_EQ(&profileStartFrame, curFunctions->startFrameFunc);
+	EXPECT_EQ(&profileEndFrame, curFunctions->endFrameFunc);
+	EXPECT_EQ(&profilePush, curFunctions->pushFunc);
+	EXPECT_EQ(&profilePop, curFunctions->popFunc);
+	EXPECT_EQ(&profileStat, curFunctions->statFunc);
+	EXPECT_EQ(&profileGpu, curFunctions->gpuFunc);
 
 	dsProfile_clearFunctions();
 
 	EXPECT_EQ(nullptr, dsProfile_getUserData());
-	EXPECT_EQ(nullptr, dsProfile_getStartFrameFunction());
-	EXPECT_EQ(nullptr, dsProfile_getEndFrameFunction());
-	EXPECT_EQ(nullptr, dsProfile_getPushFunction());
-	EXPECT_EQ(nullptr, dsProfile_getPopFunction());
-	EXPECT_EQ(nullptr, dsProfile_getStatFunction());
+	EXPECT_EQ(nullptr, curFunctions->registerThreadFunc);
+	EXPECT_EQ(nullptr, curFunctions->startFrameFunc);
+	EXPECT_EQ(nullptr, curFunctions->endFrameFunc);
+	EXPECT_EQ(nullptr, curFunctions->pushFunc);
+	EXPECT_EQ(nullptr, curFunctions->popFunc);
+	EXPECT_EQ(nullptr, curFunctions->statFunc);
+	EXPECT_EQ(nullptr, curFunctions->gpuFunc);
 }
 
 #if DS_PROFILING_ENABLED
@@ -217,11 +198,13 @@ TEST(Profile, SetFunctions)
 TEST(Profile, Macros)
 {
 	ProfileInfo info;
-	EXPECT_TRUE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
+	dsProfileFunctions functions =
+	{
+		&profileRegisterThread, &profileStartFrame, &profileEndFrame, &profilePush, &profilePop,
+		&profileStat, &profileGpu
+	};
+	dsProfile_setFunctions(&info, &functions);
 
-	DS_PROFILE_FRAME_START();
-	DS_PROFILE_FRAME_END();
 	voidFunction();
 	EXPECT_EQ(10, intFunction(10));
 	DS_PROFILE_SCOPE_START("Scope");
@@ -236,16 +219,6 @@ TEST(Profile, Macros)
 
 	std::string fileName = "ProfileTest.cpp";
 	std::string functionName = "TestBody";
-
-	ASSERT_EQ(1U, info.startFrame.size());
-	EXPECT_NE(std::string::npos, info.startFrame[0].file.find(fileName));
-	EXPECT_NE(std::string::npos, info.startFrame[0].function.find(functionName));
-	EXPECT_NE(0, info.startFrame[0].line);
-
-	ASSERT_EQ(1U, info.endFrame.size());
-	EXPECT_NE(std::string::npos, info.endFrame[0].file.find(fileName));
-	EXPECT_NE(std::string::npos, info.endFrame[0].function.find(functionName));
-	EXPECT_NE(0, info.endFrame[0].line);
 
 	ASSERT_EQ(5U, info.push.size());
 	EXPECT_EQ(dsProfileType_Function, info.push[0].type);
@@ -316,8 +289,12 @@ TEST(Profile, Macros)
 TEST(Profile, ThreadTypes)
 {
 	ProfileInfo info;
-	EXPECT_TRUE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
+	dsProfileFunctions functions =
+	{
+		&profileRegisterThread, &profileStartFrame, &profileEndFrame, &profilePush, &profilePop,
+		&profileStat, &profileGpu
+	};
+	dsProfile_setFunctions(&info, &functions);
 
 	dsMutex* mutex = dsMutex_create(nullptr, nullptr);
 	dsConditionVariable* condition = dsConditionVariable_create(nullptr, nullptr);
@@ -464,8 +441,12 @@ TEST(Profile, ThreadTypes)
 TEST(Profile, ThreadTypesNamed)
 {
 	ProfileInfo info;
-	EXPECT_TRUE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
+	dsProfileFunctions functions =
+	{
+		&profileRegisterThread, &profileStartFrame, &profileEndFrame, &profilePush, &profilePop,
+		&profileStat, &profileGpu
+	};
+	dsProfile_setFunctions(&info, &functions);
 
 	dsMutex* mutex = dsMutex_create(nullptr, "TestMutex");
 	dsConditionVariable* condition = dsConditionVariable_create(nullptr, "TestCondition");

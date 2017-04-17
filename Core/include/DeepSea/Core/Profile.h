@@ -35,28 +35,26 @@ extern "C"
 
 #if DS_PROFILING_ENABLED
 
-/**
- * @brief Marks the start of a frame.
- */
-#define DS_PROFILE_FRAME_START() dsProfile_startFrame(__FILE__, __FUNCTION__, __LINE__)
-
-/**
- * @brief Marks the end of a frame.
- */
-#define DS_PROFILE_FRAME_END() dsProfile_endFrame(__FILE__, __FUNCTION__, __LINE__)
+///\{
+#define DS_PROFILE_PUSH_IMPL(type, name) \
+	do \
+	{ \
+		static void* _dsProfileLocalData; \
+		dsProfile_push(&_dsProfileLocalData, type, name, __FILE__, __FUNCTION__, __LINE__); \
+	} while(0)
+#define DS_PROFILE_POP_IMPL(type) dsProfile_pop(type, __FILE__, __FUNCTION__, __LINE__)
+///\}
 
 /**
  * @brief Profiles the start of a function.
  */
-#define DS_PROFILE_FUNC_START() dsProfile_push(dsProfileType_Function, __FUNCTION__, \
-	__FILE__, __FUNCTION__, __LINE__)
+#define DS_PROFILE_FUNC_START() DS_PROFILE_PUSH_IMPL(dsProfileType_Function, __FUNCTION__)
 
 /**
  * @brief Profiles the start of a function with a custon name.
  * @param name The custom function name.
  */
-#define DS_PROFILE_FUNC_START_NAME(name) dsProfile_push(dsProfileType_Function, name, __FILE__, \
-	__FUNCTION__, __LINE__)
+#define DS_PROFILE_FUNC_START_NAME(name) DS_PROFILE_PUSH_IMPL(dsProfileType_Function, name)
 
 /**
  * @brief Returns void from a profiled function.
@@ -64,7 +62,7 @@ extern "C"
 #define DS_PROFILE_FUNC_RETURN_VOID() \
 	do \
 	{ \
-		dsProfile_pop(dsProfileType_Function, __FILE__, __FUNCTION__, __LINE__); \
+		DS_PROFILE_POP_IMPL(dsProfileType_Function); \
 		return; \
 	} while(0)
 
@@ -75,7 +73,7 @@ extern "C"
 #define DS_PROFILE_FUNC_RETURN(retVal) \
 	do \
 	{ \
-		dsProfile_pop(dsProfileType_Function, __FILE__, __FUNCTION__, __LINE__); \
+		DS_PROFILE_POP_IMPL(dsProfileType_Function); \
 		return retVal; \
 	} while(0)
 
@@ -83,37 +81,34 @@ extern "C"
  * @brief Profiles the start of a scope.
  * @param name The name of the scope.
  */
-#define DS_PROFILE_SCOPE_START(name) dsProfile_push(dsProfileType_Scope, name, __FILE__, \
-	__FUNCTION__, __LINE__)
+#define DS_PROFILE_SCOPE_START(name) DS_PROFILE_PUSH_IMPL(dsProfileType_Scope, name)
 
 /**
  * @brief Profiles the end of a scope.
  */
-#define DS_PROFILE_SCOPE_END() dsProfile_pop(dsProfileType_Scope, __FILE__, __FUNCTION__, __LINE__)
+#define DS_PROFILE_SCOPE_END() DS_PROFILE_POP_IMPL(dsProfileType_Scope)
 
 /**
  * @brief Profiles the start of a wait.
  * @param name The name of what's being waited on.
  */
-#define DS_PROFILE_WAIT_START(name) dsProfile_push(dsProfileType_Wait, name, __FILE__, \
-	__FUNCTION__, __LINE__)
+#define DS_PROFILE_WAIT_START(name) DS_PROFILE_PUSH_IMPL(dsProfileType_Wait, name)
 
 /**
  * @brief Profiles the end of a wait.
  */
-#define DS_PROFILE_WAIT_END() dsProfile_pop(dsProfileType_Wait, __FILE__, __FUNCTION__, __LINE__)
+#define DS_PROFILE_WAIT_END() DS_PROFILE_POP_IMPL(dsProfileType_Wait)
 
 /**
  * @brief Profiles the start of a lock.
  * @param name The name of what's being locked.
  */
-#define DS_PROFILE_LOCK_START(name) dsProfile_push(dsProfileType_Lock, name, __FILE__, \
-	__FUNCTION__, __LINE__)
+#define DS_PROFILE_LOCK_START(name) DS_PROFILE_PUSH_IMPL(dsProfileType_Lock, name)
 
 /**
  * @brief Profiles the end of a lock.
  */
-#define DS_PROFILE_LOCK_END() dsProfile_pop(dsProfileType_Lock, __FILE__, __FUNCTION__, __LINE__)
+#define DS_PROFILE_LOCK_END() DS_PROFILE_POP_IMPL(dsProfileType_Lock)
 
 /**
  * @brief Profiles a statistic.
@@ -121,12 +116,15 @@ extern "C"
  * @param name The name of the statistic.
  * @param value The value of the statistic as a double.
  */
-#define DS_PROFILE_STAT(category, name, value) dsProfile_stat(category, name, value, __FILE__, \
-		__FUNCTION__, __LINE__)
+#define DS_PROFILE_STAT(category, name, value) \
+	do \
+	{ \
+		static void* _dsProfileLocalData; \
+		dsProfile_stat(&_dsProfileLocalData, category, name, value, __FILE__, __FUNCTION__, \
+			__LINE__); \
+	} while (0)
 
 #else
-#define DS_PROFILE_FRAME_START() do {} while(0)
-#define DS_PROFILE_FRAME_END() do {} while(0)
 #define DS_PROFILE_FUNC_START() do {} while(0)
 #define DS_PROFILE_FUNC_START_NAME(name) do {} while(0)
 #define DS_PROFILE_FUNC_RETURN_VOID() return
@@ -142,21 +140,11 @@ extern "C"
 
 /**
  * @brief Sets the functions used by the profiler.
- *
- * If any function is NULL, this will return false and not change the state of the functions.
- *
- * @remark errno will be set on failure.
  * @param userData Data provided to each profiler function.
- * @param startFrameFunc Function called at the start of a frame.
- * @param endFrameFunc Function called at the end of a frame.
- * @param pushFunc The function called when pushing a profile scope.
- * @param popFunc The function called when popping a profile scope.
- * @param statFunc The function called when profiling a statistic.
- * @return False if not all of the functions are provided.
+ * @param functions The profiler function functions. If NULL, this will be the same as calling
+ *     dsProfile_clearFunctions().
  */
-DS_CORE_EXPORT bool dsProfile_setFunctions(void* userData, dsProfileFrameFunction startFrameFunc,
-	dsProfileFrameFunction endFrameFunc, dsProfilePushFunction pushFunc,
-	dsProfilePopFunction popFunc, dsProfileStatFunction statFunc);
+DS_CORE_EXPORT void dsProfile_setFunctions(void* userData, const dsProfileFunctions* functions);
 
 /**
  * @brief Gets the user data for the profiler.
@@ -165,34 +153,10 @@ DS_CORE_EXPORT bool dsProfile_setFunctions(void* userData, dsProfileFrameFunctio
 DS_CORE_EXPORT void* dsProfile_getUserData(void);
 
 /**
- * @brief Gets the start frame function.
- * @return The start frame function.
+ * @brief Gets the registered functions.
+ * @return The registered functions.
  */
-DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getStartFrameFunction(void);
-
-/**
- * @brief Gets the end frame function.
- * @return The end frame function.
- */
-DS_CORE_EXPORT dsProfileFrameFunction dsProfile_getEndFrameFunction(void);
-
-/**
- * @brief Gets the profile push function.
- * @return The push function.
- */
-DS_CORE_EXPORT dsProfilePushFunction dsProfile_getPushFunction(void);
-
-/**
- * @brief Gets the profile pop function.
- * @return The pop function.
- */
-DS_CORE_EXPORT dsProfilePopFunction dsProfile_getPopFunction(void);
-
-/**
- * @brief Gets the profile stat function.
- * @return The stat function.
- */
-DS_CORE_EXPORT dsProfileStatFunction dsProfile_getStatFunction(void);
+DS_CORE_EXPORT const dsProfileFunctions* dsProfile_getFunctions(void);
 
 /**
  * @brief Clears the functions used by the profiler.
@@ -202,40 +166,33 @@ DS_CORE_EXPORT dsProfileStatFunction dsProfile_getStatFunction(void);
 DS_CORE_EXPORT void dsProfile_clearFunctions(void);
 
 /**
- * @brief Returns whether or not profiling is enabled.
- *
- * Profiling is disabled when no functions are set.
- *
- * @return True if profiling is enabled.
+ * @brief Registers a thread.
+ * @remark This will automatically be called when dsThread_setThisThreadName() is called.
+ * @param name The name of the thread.
  */
-DS_CORE_EXPORT bool dsProfile_enabled(void);
+DS_CORE_EXPORT void dsProfile_registerThread(const char* name);
 
 /**
  * @brief Marks the start of a frame.
- * @param file The name of the source file.
- * @param function The function calling this.
- * @param line The line of the function call.
  */
-DS_CORE_EXPORT void dsProfile_startFrame(const char* file, const char* function, unsigned int line);
+DS_CORE_EXPORT void dsProfile_startFrame(void);
 
 /**
  * @brief Marks the end of a frame.
- * @param file The name of the source file.
- * @param function The function calling this.
- * @param line The line of the function call.
  */
-DS_CORE_EXPORT void dsProfile_endFrame(const char* file, const char* function, unsigned int line);
+DS_CORE_EXPORT void dsProfile_endFrame(void);
 
 /**
  * @brief Pushes a profile scope.
+ * @param localData A pointer to a void* for data unique to the call site.
  * @param type What is being profiled.
  * @param name The name for what is being profiled.
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-DS_CORE_EXPORT void dsProfile_push(dsProfileType type, const char* name, const char* file,
-	const char* function, unsigned int line);
+DS_CORE_EXPORT void dsProfile_push(void** localData, dsProfileType type, const char* name,
+	const char* file, const char* function, unsigned int line);
 
 /**
  * @brief Pops a profile scope.
@@ -249,6 +206,7 @@ DS_CORE_EXPORT void dsProfile_pop(dsProfileType type, const char* file, const ch
 
 /**
  * @brief Profiles a statistic.
+ * @param localData A pointer to a void* for data unique to the call site.
  * @param category The category for the statistic.
  * @param name The name of the value.
  * @param value The value for the statistic.
@@ -256,8 +214,15 @@ DS_CORE_EXPORT void dsProfile_pop(dsProfileType type, const char* file, const ch
  * @param function The function calling this.
  * @param line The line of the function call.
  */
-DS_CORE_EXPORT void dsProfile_stat(const char* category, const char* name, double value,
-	const char* file, const char* function, unsigned int line);
+DS_CORE_EXPORT void dsProfile_stat(void** localData, const char* category, const char* name,
+	double value, const char* file, const char* function, unsigned int line);
+
+/**
+ * @brief Profiles a GPU timing.
+ * @param name The name of the portion being timed.
+ * @param timeNs The time spent in nanoseconds.
+ */
+DS_CORE_EXPORT void dsProfile_gpu(const char* name, uint64_t timeNs);
 
 #ifdef __cplusplus
 }

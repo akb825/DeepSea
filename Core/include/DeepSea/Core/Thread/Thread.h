@@ -47,10 +47,7 @@ DS_CORE_EXPORT bool dsThread_create(dsThread* thread, dsThreadFunction function,
 
 /**
  * @brief Sets the name of this thread.
- *
- * This is automatically called as part of dsThread_create(), but is useful when using threads
- * created by other libraries.
- *
+ * @remark This is automatically called for threads created with dsThread.
  * @param name The name of the thread.
  * @return True if the name was set.
  */

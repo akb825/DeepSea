@@ -286,6 +286,13 @@ typedef struct dsAttachmentInfo
 typedef struct dsRenderSubpassInfo
 {
 	/**
+	 * @brief The name of this subpass, used for profiling info.
+	 *
+	 * This should be allocated for the duration of the application, such as a string constant.
+	 */
+	const char* name;
+
+	/**
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 *

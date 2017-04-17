@@ -28,16 +28,6 @@
 namespace
 {
 
-struct FrameInfo
-{
-	FrameInfo(const char* file_, const char* function_, unsigned int line_)
-		: file(file_), function(function_), line(line_) {}
-
-	std::string file;
-	std::string function;
-	unsigned int line;
-};
-
 struct PushInfo
 {
 	PushInfo(dsProfileType type_, const char* name_, const char* file_, const char* function_,
@@ -79,26 +69,12 @@ struct StatInfo
 
 struct ProfileInfo
 {
-	std::vector<FrameInfo> startFrame;
-	std::vector<FrameInfo> endFrame;
 	std::vector<PushInfo> push;
 	std::vector<PopInfo> pop;
 	std::vector<StatInfo> stat;
 };
 
-void profileStartFrame(void* userData, const char* file, const char* function,
-	unsigned int line)
-{
-	((ProfileInfo*)userData)->startFrame.emplace_back(file, function, line);
-}
-
-void profileEndFrame(void* userData, const char* file, const char* function,
-	unsigned int line)
-{
-	((ProfileInfo*)userData)->endFrame.emplace_back(file, function, line);
-}
-
-void profilePush(void* userData, dsProfileType type, const char* name, const char* file,
+void profilePush(void* userData, void**, dsProfileType type, const char* name, const char* file,
 	const char* function, unsigned int line)
 {
 	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line);
@@ -110,7 +86,7 @@ void profilePop(void* userData, dsProfileType type, const char* file, const char
 	((ProfileInfo*)userData)->pop.emplace_back(type, file, function, line);
 }
 
-void profileStat(void* userData, const char* category, const char* name, double value,
+void profileStat(void* userData, void**, const char* category, const char* name, double value,
 	const char* file, const char* function, unsigned int line)
 {
 	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line);
@@ -133,11 +109,12 @@ int intFunction(int retVal)
 TEST(ProfileDisabled, Macros)
 {
 	ProfileInfo info;
-	EXPECT_TRUE(dsProfile_setFunctions(&info, &profileStartFrame, &profileEndFrame, &profilePush,
-		&profilePop, &profileStat));
+	dsProfileFunctions functions =
+	{
+		NULL, NULL, NULL, &profilePush, &profilePop, &profileStat, NULL
+	};
+	dsProfile_setFunctions(&info, &functions);
 
-	DS_PROFILE_FRAME_START();
-	DS_PROFILE_FRAME_END();
 	voidFunction();
 	EXPECT_EQ(10, intFunction(10));
 	DS_PROFILE_SCOPE_START("Scope");
@@ -150,8 +127,6 @@ TEST(ProfileDisabled, Macros)
 
 	dsProfile_clearFunctions();
 
-	EXPECT_EQ(0U, info.startFrame.size());
-	EXPECT_EQ(0U, info.endFrame.size());
 	EXPECT_EQ(0U, info.push.size());
 	EXPECT_EQ(0U, info.pop.size());
 	EXPECT_EQ(0U, info.stat.size());
