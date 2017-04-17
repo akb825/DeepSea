@@ -44,7 +44,9 @@ extern "C"
  * @param format The format of the renderbuffer. This format must be compatible with offscreens.
  * @param width The width of the renderbuffer.
  * @param height The height of the renderbuffer.
- * @param samples The number of samples to use for multisampling.
+ * @param samples The number of samples to use for multisampling. This may be set to
+ *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. The renderbuffer will
+ *     need to be re-created by the caller if the default changes.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager,

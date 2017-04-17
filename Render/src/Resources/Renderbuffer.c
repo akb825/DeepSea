@@ -58,6 +58,8 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = resourceManager->renderer->surfaceSamples;
 	samples = dsMax(1U, samples);
 	dsRenderbuffer* renderbuffer = resourceManager->createRenderbufferFunc(resourceManager,
 		allocator, format, width, height, samples);

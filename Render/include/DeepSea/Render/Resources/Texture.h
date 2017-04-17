@@ -136,7 +136,9 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  *     non-array textures.
  * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
  *     mip levels.
- * @param samples The number of samples to use for multisampling. Use 1 if not multisampling.
+ * @param samples The number of samples to use for multisampling. This may be set to
+ *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. The renderbuffer will
+ *     need to be re-created by the caller if the default changes.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader.
  * @return The created offscreen, or NULL if it couldn't be created.

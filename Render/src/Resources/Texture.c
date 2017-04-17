@@ -282,6 +282,8 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = resourceManager->renderer->surfaceSamples;
 	samples = dsMax(1U, samples);
 
 	unsigned int minWidth, minHeight;

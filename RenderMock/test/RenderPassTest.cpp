@@ -204,10 +204,10 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	dsSurfaceClearValue clearValues[4];
 	clearValues[0].depthStencil.depth = 1.0f;
 	clearValues[0].depthStencil.stencil = 0;
-	clearValues[1].colorValue.r = 0.0f;
-	clearValues[1].colorValue.g = 0.0f;
-	clearValues[1].colorValue.b = 0.0f;
-	clearValues[1].colorValue.a = 1.0f;
+	clearValues[1].colorValue.floatValue.r = 0.0f;
+	clearValues[1].colorValue.floatValue.g = 0.0f;
+	clearValues[1].colorValue.floatValue.b = 0.0f;
+	clearValues[1].colorValue.floatValue.a = 1.0f;
 	uint32_t clearValueCount = DS_ARRAY_SIZE(clearValues);
 
 	dsAlignedBox3f validViewport =

@@ -44,6 +44,11 @@ extern "C"
 #define DS_NO_ATTACHMENT (uint32_t)-1
 
 /**
+ * @brief Constant for the default number of anti-alias samples.
+ */
+#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint16_t)-1
+
+/**
  * @brief Enum for how an image attachment will be used.
  *
  * This enum is a bitmask to allow multiple combinations of the usage bits.
@@ -100,6 +105,16 @@ typedef enum dsCommandBufferUsage
 	 */
 	dsCommandBufferUsage_DoubleBuffer = 0x8
 } dsCommandBufferUsage;
+
+/**
+ * @brief Enum for whether to clear the depth or stencil value for a surface.
+ */
+typedef enum dsClearDepthStencil
+{
+	dsClearDepthStencil_Depth,   ///< Clear only the depth value.
+	dsClearDepthStencil_Stencil, ///< Clear only the stencil value.
+	dsClearDepthStencil_Both     ///< Clear both depth and stencil values.
+}dsClearDepthStencil;
 
 /**
  * @brief Struct for a pool of command buffers.
@@ -239,86 +254,10 @@ typedef struct dsRenderSurface
 typedef struct dsRenderPass dsRenderPass;
 
 /**
- * @brief Structure describing the data for a draw call.
- */
-typedef struct dsDrawData
-{
-	/**
-	 * @brief The geometry to draw.
-	 */
-	dsDrawGeometry* geometry;
-
-	/**
-	 * @brief The material to apply to the shader.
-	 */
-	dsMaterial* material;
-
-	/**
-	 * @brief The index of the shader to draw with.
-	 */
-	uint32_t shaderIndex;
-
-	/**
-	 * @brief The world matrix to apply.
-	 */
-	dsMatrix44f worldMatrix;
-
-	/**
-	 * @brief The first index to draw.
-	 */
-	uint32_t startIndex;
-
-	/**
-	 * @brief The number of indices to draw.
-	 */
-	uint32_t indexCount;
-
-	/**
-	 * @brief The offset to apply to each index when looking up in the vertex buffer.
-	 */
-	int32_t vertexOffset;
-
-	/**
-	 * @brief The index of the first instance that's drawn.
-	 */
-	uint32_t firstInstance;
-
-	/**
-	 * @brief The number of instances to draw.
-	 */
-	uint32_t instanceCount;
-} dsDrawData;
-
-/**
- * @brief Structure defining a list of items to draw.
- */
-typedef struct dsDrawList
-{
-	/**
-	 * @brief The allocator to use for the underlying data.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The list of data to draw with.
-	 */
-	dsDrawData* drawData;
-
-	/**
-	 * @brief The number of active items in drawData.
-	 */
-	size_t size;
-
-	/**
-	 * @brief The maximum number of items that can be placed in drawData.
-	 */
-	size_t capacity;
-} dsDrawList;
-
-/**
  * @brief The info for an image attachment.
  *
  * This provides information ahead of time that can help improve performance during rendering.
+ * @see RenderPass.h
  */
 typedef struct dsAttachmentInfo
 {
@@ -334,12 +273,15 @@ typedef struct dsAttachmentInfo
 
 	/**
 	 * @brief The number of samples for multisampling.
+	 *
+	 * This may be set to DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer.
 	 */
 	uint16_t samples;
 } dsAttachmentInfo;
 
 /**
  * @brief Structure defining what is used for a subpass.
+ * @see RenderPass.h
  */
 typedef struct dsRenderSubpassInfo
 {
@@ -380,6 +322,8 @@ typedef struct dsRenderSubpassInfo
  *
  * This ensures that the GPU is done with the specified stage from the source subpass before
  * processing the specified stage for the destination subpass.
+ *
+ * @see RenderPass.h
  */
 typedef struct dsSubpassDependency
 {
@@ -457,7 +401,32 @@ struct dsRenderPass
 };
 
 /**
+ * @brief Union for a color value of a surface.
+ *
+ * Which member of the union is used depends on the type of the surface.
+ * @see Renderer.h
+ */
+typedef union dsSurfaceColorValue
+{
+	/**
+	 * @brief Color value for float and snorm surfaces.
+	 */
+	dsColor4f floatValue;
+
+	/**
+	 * @brief Color value for integer surfaces.
+	 */
+	int intValue[4];
+
+	/**
+	 * @brief Color value for unsigned integer surfaces.
+	 */
+	unsigned int uintValue[4];
+} dsSurfaceColorValue;
+
+/**
  * @brief Struct containing a combined depth and stencil value.
+ * @see Renderer.h
  */
 typedef struct dsDepthStencilValue
 {
@@ -476,29 +445,79 @@ typedef struct dsDepthStencilValue
  * @brief Value used to clear a render surface when beginning a render pass.
  *
  * Which member of the union is used depends on the type of the surface.
+ * @see Renderer.h
  */
 typedef union dsSurfaceClearValue
 {
 	/**
-	 * @brief Color value for float and snorm surfaces.
+	 * @brief Color value for color surfaces.
 	 */
-	dsColor4f colorValue;
-
-	/**
-	 * @brief Color value for integer surfaces.
-	 */
-	int intValue[4];
-
-	/**
-	 * @brief Color value for unsigned integer surfaces.
-	 */
-	unsigned int uintValue[4];
+	dsSurfaceColorValue colorValue;
 
 	/**
 	 * @brief Depth and stencil value for depth-stencil surfaces.
 	 */
 	dsDepthStencilValue depthStencil;
 } dsSurfaceClearValue;
+
+/**
+ * @brief Structure defining the range of data to draw without an index buffer.
+ * @see Renderer.h
+ */
+typedef struct dsDrawRange
+{
+	/**
+	 * @brief The number of vertices to draw.
+	 */
+	uint32_t vertexCount;
+
+	/**
+	 * @brief The number of instances to draw.
+	 */
+	uint32_t instanceCount;
+
+	/**
+	 * @brief The first vertex to draw.
+	 */
+	uint32_t firstVertex;
+
+	/**
+	 * @brief The first instance to draw.
+	 */
+	uint32_t firstInstance;
+} dsDrawRange;
+
+/**
+ * @brief Structure defining the range of data to draw with an index buffer.
+ * @see Renderer.h
+ */
+typedef struct dsDrawIndexedRange
+{
+	/**
+	 * @brief The number of indices to draw.
+	 */
+	uint32_t indexCount;
+
+	/**
+	 * @brief The number of instances to draw.
+	 */
+	uint32_t instanceCount;
+
+	/**
+	 * @brief The first instance to draw.
+	 */
+	uint32_t firstIndex;
+
+	/**
+	 * @brief The offset to apply to each index value.
+	 */
+	int32_t vertexOffset;
+
+	/**
+	 * @brief The first instance to draw.
+	 */
+	uint32_t firstInstance;
+} dsDrawIndexedRange;
 
 /**
  * @brief Function for creating a render surface.
@@ -706,6 +725,139 @@ typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffe
 typedef bool (*dsEndRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
+/**
+ * @brief Function for setting the number of anti-alias samples for the default render surfaces.
+ *
+ * This should set the default value on the renderer on success. The implementation is responsible
+ * for making any necessary changse to the render passes when the attachment info is set to
+ * DS_DEFAULT_ANTIALIAS_SAMPLES. The caller is responsible for re-creating any render surfaces,
+ * offscreens, renderbuffers, and framebuffers.
+ *
+ * @param renderer The renderer.
+ * @param samples The number of anti-alias samples.
+ * @return False if the number of samples couldn't be set.
+ */
+typedef bool (*dsSetRenderSurfaceSamplesFunction)(dsRenderer* renderer, uint16_t samples);
+
+/**
+ * @brief Function for setting whether or not to wait for vsync.
+ * @param renderer The renderer.
+ * @param vsync True to wait for vsync.
+ * @return False if the vsync couldn't be set.
+ */
+typedef bool (*dsSetRenderVsyncFunction)(dsRenderer* renderer, bool vsync);
+
+/**
+ * @brief Function for setting the default anisotropy for anisotropic filtering.
+ * @param renderer The renderer.
+ * @param anisotropy The default anisotropy.
+ * @return False if the anisotropy couldn't be set.
+ */
+typedef bool (*dsSetRenderDefaultAnisotropyFunction)(dsRenderer* renderer, float anisotropy);
+
+/**
+ * @brief Function for clearing a color surface.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the clear command on.
+ * @param surface The surface to clear.
+ * @param colorValue The color value to clear with.
+ * @return False if the surface couldn't be cleared.
+ */
+typedef bool (*dsRenderClearColorSurfaceFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	const dsSurfaceColorValue* colorValue);
+
+/**
+ * @brief Function for clearing a depth-stencil surface.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the clear command on.
+ * @param surface The surface to clear.
+ * @param surfaceParts The parts of the surface to clear.
+ * @param depthStencilValue The depth-stencil value to clear with.
+ * @return False if the surface couldn't be cleared.
+ */
+typedef bool (*dsRenderClearDepthStencilSurfaceFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthstencilValue);
+
+/**
+ * @brief Function for drawing vertex geometry with the currently bound shader.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
+ * @param geometry The geometry to draw.
+ * @param drawRange The range of vertices to draw.
+ * @return False if the geometry couldn't be drawn.
+ */
+typedef bool (*dsRenderDrawFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
+
+/**
+ * @brief Function for drawing indexed geometry with the currently bound shader.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
+ * @param geometry The geometry to draw.
+ * @param drawRange The range of vertices to draw.
+ * @return False if the geometry couldn't be drawn.
+ */
+typedef bool (*dsRenderDrawIndexedFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+
+/**
+ * @brief Function for indirectly drawing vertex geometry with the currently bound shader.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
+ * @param geometry The geometry to draw.
+ * @param indirectBuffer The buffer containing the draw information. The contents should be the same
+ *     layout as dsDrawRange.
+ * @param offset The offset into the buffer.
+ * @param count The number of draw calls.
+ * @param stride The stride for each element in the indirect buffer.
+ * @return False if the geometry couldn't be drawn.
+ */
+typedef bool (*dsRenderDrawIndirectFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride);
+
+/**
+ * @brief Function for indirectly drawing indexed geometry with the currently bound shader.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
+ * @param geometry The geometry to draw.
+ * @param indirectBuffer The buffer containing the draw information. The contents should be the same
+ *     layout as dsDrawRange.
+ * @param offset The offset into the buffer.
+ * @param count The number of draw calls.
+ * @param stride The stride for each element in the indirect buffer.
+ * @return False if the geometry couldn't be drawn.
+ */
+typedef bool (*dsRenderDrawIndexedIndirectFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
+	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride);
+
+/**
+ * @brief Function for dispatching a compute job.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the dispatch command on.
+ * @param x The number of working groups in the X direction.
+ * @param y The number of working groups in the Y direction.
+ * @param z The number of working groups in the Z direction.
+ * @return False if the compute job couldn't be dispatched.
+ */
+typedef bool (*dsRenderDispatchComputeFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z);
+
+/**
+ * @brief Function for dispatching an indirect compute job.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the dispatch command on.
+ * @param indirectBuffer The buffer that contains the number of working groups in the X, Y, and Z
+ *     dimensions as 4-byte unsigned integers.
+ * @param offset The offset into the indirect buffer.
+ * @return False if the compute job couldn't be dispatched.
+ */
+typedef bool (*dsRenderDispatchComputeIndirectFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset);
+
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
@@ -892,6 +1044,61 @@ struct dsRenderer
 	 * @brief Render pass end function.
 	 */
 	dsEndRenderPassFunction endRenderPassFunc;
+
+	/**
+	 * @brief Surface anti-alias sample set function.
+	 */
+	dsSetRenderSurfaceSamplesFunction setSurfaceSamplesFunc;
+
+	/**
+	 * @brief Vsync set function.
+	 */
+	dsSetRenderVsyncFunction setVsyncFunc;
+
+	/**
+	 * @brief Default anisotropy set function.
+	 */
+	dsSetRenderDefaultAnisotropyFunction setDefaultAnisotropyFunc;
+
+	/**
+	 * @brief Color surface clear function.
+	 */
+	dsRenderClearColorSurfaceFunction clearColorSurfaceFunc;
+
+	/**
+	 * @brief Depth-stencil surface clear function.
+	 */
+	dsRenderClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
+
+	/**
+	 * @brief Draw function.
+	 */
+	dsRenderDrawFunction drawFunc;
+
+	/**
+	 * @brief Indexed draw function.
+	 */
+	dsRenderDrawIndexedFunction drawIndexedFunc;
+
+	/**
+	 * @brief Indirect draw function.
+	 */
+	dsRenderDrawIndirectFunction drawIndirectFunc;
+
+	/**
+	 * @brief Indirect indexed draw function.
+	 */
+	dsRenderDrawIndexedIndirectFunction drawIndexedIndirectFunc;
+
+	/**
+	 * @brief Compute shader dispatch function.
+	 */
+	dsRenderDispatchComputeFunction dispatchComputeFunc;
+
+	/**
+	 * @brief Compute shader indirect dispatch function.
+	 */
+	dsRenderDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
 };
 
 #ifdef __cplusplus
