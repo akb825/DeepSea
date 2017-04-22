@@ -173,7 +173,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(NULL);
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 
 			if (surface->layer >= surfaceLayers)
@@ -181,7 +181,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Texture layer out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(NULL);
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 			valid = !isDepthStencil(offscreen->format);
 			break;
@@ -239,7 +239,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(NULL);
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 
 			if (surface->layer >= surfaceLayers)
@@ -247,7 +247,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Texture layer out of range for offscreen.");
-				DS_PROFILE_FUNC_RETURN(NULL);
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 			valid = isDepthStencil(offscreen->format);
 			break;

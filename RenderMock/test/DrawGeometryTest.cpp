@@ -77,12 +77,12 @@ TEST_F(DrawGeometryTest, Create)
 	vertexBuffer1.count = 10;
 	dsDrawGeometry* drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray,
 		NULL);
+	ASSERT_TRUE(drawGeometry);
 	EXPECT_EQ(1U, resourceManager->geometryCount);
-	EXPECT_TRUE(drawGeometry);
-	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
-	EXPECT_EQ(0U, resourceManager->geometryCount);
 	EXPECT_EQ(10U, dsDrawGeometry_getVertexCount(drawGeometry));
 	EXPECT_EQ(0U, dsDrawGeometry_getIndexCount(drawGeometry));
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_EQ(0U, resourceManager->geometryCount);
 
 	drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer);
 	EXPECT_FALSE(drawGeometry);
@@ -95,7 +95,7 @@ TEST_F(DrawGeometryTest, Create)
 
 	indexBuffer.indexBits = 16;
 	drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer);
-	EXPECT_TRUE(drawGeometry);
+	ASSERT_TRUE(drawGeometry);
 	EXPECT_EQ(10U, dsDrawGeometry_getVertexCount(drawGeometry));
 	EXPECT_EQ(20U, dsDrawGeometry_getIndexCount(drawGeometry));
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
