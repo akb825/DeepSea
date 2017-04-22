@@ -96,8 +96,8 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (vertexBuffers[i]->offset + vertexBuffers[i]->count*vertexBuffers[i]->format.size >
-			vertexBuffers[i]->buffer->size)
+		if (!DS_IS_BUFFER_RANGE_VALID(vertexBuffers[i]->offset,
+			vertexBuffers[i]->count*vertexBuffers[i]->format.size, vertexBuffers[i]->buffer->size))
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -137,7 +137,8 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (indexBuffer->offset + indexBuffer->count*indexBits/8 > indexBuffer->buffer->size)
+		if (!DS_IS_BUFFER_RANGE_VALID(indexBuffer->offset, indexBuffer->count*indexBits/8,
+			indexBuffer->buffer->size))
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

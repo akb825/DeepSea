@@ -116,7 +116,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	}
 
 	if ((size == DS_MAP_FULL_BUFFER && offset > size) ||
-		(size != DS_MAP_FULL_BUFFER && offset + size > buffer->size))
+		(size != DS_MAP_FULL_BUFFER && !DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size)))
 	{
 		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -268,7 +268,7 @@ bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, s
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (offset + size > buffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
@@ -310,7 +310,8 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (srcOffset + size > srcBuffer->size || dstOffset + size > dstBuffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(srcOffset, size, srcBuffer->size) ||
+		!DS_IS_BUFFER_RANGE_VALID(dstOffset, size, dstBuffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");

@@ -290,7 +290,7 @@ bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup* group, uint32_t
 	uint32_t maxCount = group->description->elements[element].count;
 	if (maxCount == 0)
 		maxCount = 1;
-	if (firstIndex + count > maxCount)
+	if (!DS_IS_BUFFER_RANGE_VALID(firstIndex, count, maxCount))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy too many elements.");

@@ -104,7 +104,7 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 	uint32_t maxCount = material->description->elements[element].count;
 	if (maxCount == 0)
 		maxCount = 1;
-	if (firstIndex + count > maxCount)
+	if (!DS_IS_BUFFER_RANGE_VALID(firstIndex, count, maxCount))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy too many elements.");
@@ -448,7 +448,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 			return false;
 		}
 
-		if (offset + size > buffer->size)
+		if (!DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size))
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");

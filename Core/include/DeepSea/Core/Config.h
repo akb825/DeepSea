@@ -128,6 +128,19 @@
  */
 #define DS_ARRAY_SIZE(array) (sizeof(array)/sizeof(*(array)))
 
+/**
+ * @brief Checks whether or not a range within a buffer is valid.
+ *
+ * This is designed to prevent cases where offset + rangeSize would cause an integer overflow.
+ *
+ * @param offset The offset into the buffer.
+ * @param rangeSize The size of the range within the buffer.
+ * @param bufferSize The size of the buffer.
+ * @return True if the range is valid.
+ */
+#define DS_IS_BUFFER_RANGE_VALID(offset, rangeSize, bufferSize) \
+	((offset) <= (bufferSize) && ((bufferSize) - (offset)) >= (rangeSize))
+
 #if DS_MSC
 #pragma warning(disable: 4200) // nonstandard extension used : zero-sized array in struct/union
 #endif

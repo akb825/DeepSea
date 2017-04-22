@@ -117,7 +117,7 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 		return false;
 	}
 
-	if (offset + size > buffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");

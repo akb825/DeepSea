@@ -285,7 +285,7 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	}
 
 	uint32_t vertexCount = dsDrawGeometry_getVertexCount(geometry);
-	if (drawRange->firstVertex + drawRange->vertexCount > vertexCount)
+	if (!DS_IS_BUFFER_RANGE_VALID(drawRange->firstVertex, drawRange->vertexCount, vertexCount))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Draw range is out of range of geometry vertices.");
@@ -324,7 +324,7 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (drawRange->firstIndex + drawRange->indexCount > indexCount)
+	if (!DS_IS_BUFFER_RANGE_VALID(drawRange->firstIndex, drawRange->indexCount, indexCount))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Draw range is out of range of geometry indices.");
@@ -378,7 +378,7 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (offset + count*stride > indirectBuffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, count*stride, indirectBuffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect draws outside of indirect buffer range.");
@@ -425,7 +425,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (offset + count*stride > indirectBuffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, count*stride, indirectBuffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect draws outside of indirect buffer range.");
@@ -498,7 +498,7 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (offset + 3*sizeof(uint32_t) > indirectBuffer->size)
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, 3*sizeof(uint32_t), indirectBuffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect dispatch outside of indirect buffer range.");
