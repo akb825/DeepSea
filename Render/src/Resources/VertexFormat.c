@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Types.h>
 #include <string.h>
 
 bool dsVertexFormat_initialize(dsVertexFormat* format)
@@ -97,7 +98,7 @@ bool dsVertexFormat_isValid(const dsResourceManager* resourceManager, const dsVe
 	if (format->enabledMask == 0)
 		return false;
 
-	if (format->divisor != 0 && !resourceManager->supportsInstancedDrawing)
+	if (format->divisor != 0 && !resourceManager->renderer->supportsInstancedDrawing)
 		return false;
 
 	for (uint32_t mask = format->enabledMask; mask; mask = dsRemoveLastBit(mask))

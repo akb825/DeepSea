@@ -96,7 +96,6 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
 	resourceManager->maxVertexAttribs = 16;
-	resourceManager->supportsInstancedDrawing = true;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 512;

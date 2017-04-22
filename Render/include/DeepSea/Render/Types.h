@@ -114,7 +114,7 @@ typedef enum dsClearDepthStencil
 	dsClearDepthStencil_Depth,   ///< Clear only the depth value.
 	dsClearDepthStencil_Stencil, ///< Clear only the stencil value.
 	dsClearDepthStencil_Both     ///< Clear both depth and stencil values.
-}dsClearDepthStencil;
+} dsClearDepthStencil;
 
 /**
  * @brief Struct for a pool of command buffers.
@@ -616,20 +616,6 @@ typedef bool (*dsDestroyCommandBufferPoolFunction)(dsRenderer* renderer, dsComma
 typedef bool (*dsResetCommandBufferPoolFunction)(dsRenderer* renderer, dsCommandBufferPool* pool);
 
 /**
- * @brief Function for beginning a frame.
- * @param renderer The renderer to draw with.
- * @return False if the frame couldn't be begun.
- */
-typedef bool (*dsBeginFrameFunction)(dsRenderer* renderer);
-
-/**
- * @brief Function for ending a frame.
- * @param renderer The renderer to draw with.
- * @return False if the frame couldn't be ended.
- */
-typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
-
-/**
  * @brief Function for starting to draw to a command buffer.
  * @param renderer The renderer that the command buffer will be drawn with.
  * @param commandBuffer The command buffer to begin.
@@ -733,6 +719,20 @@ typedef bool (*dsEndRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* c
 	const dsRenderPass* renderPass);
 
 /**
+ * @brief Function for beginning a frame.
+ * @param renderer The renderer to draw with.
+ * @return False if the frame couldn't be begun.
+ */
+typedef bool (*dsBeginFrameFunction)(dsRenderer* renderer);
+
+/**
+ * @brief Function for ending a frame.
+ * @param renderer The renderer to draw with.
+ * @return False if the frame couldn't be ended.
+ */
+typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
+
+/**
  * @brief Function for setting the number of anti-alias samples for the default render surfaces.
  *
  * This should set the default value on the renderer on success. The implementation is responsible
@@ -785,7 +785,7 @@ typedef bool (*dsRenderClearColorSurfaceFunction)(dsRenderer* renderer,
  */
 typedef bool (*dsRenderClearDepthStencilSurfaceFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
-	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthstencilValue);
+	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
 
 /**
  * @brief Function for drawing vertex geometry with the currently bound shader.
@@ -946,6 +946,16 @@ struct dsRenderer
 	bool hasComputeShaders;
 
 	/**
+	 * @brief True if indirect draws with a count > 1 will use a single graphics API call.
+	 */
+	bool hasNativeMultidraw;
+
+	/**
+	 * @brief Whether or not instanced drawing is supported.
+	 */
+	bool supportsInstancedDrawing;
+
+	/**
 	 * @brief The default level of anisotropy for anisotropic filtering.
 	 */
 	float defaultAnisotropy;
@@ -1003,16 +1013,6 @@ struct dsRenderer
 	dsResetCommandBufferPoolFunction resetCommandBufferPoolFunc;
 
 	/**
-	 * @brief Frame begin function.
-	 */
-	dsBeginFrameFunction beginFrameFunc;
-
-	/**
-	 * @brief Frame end function.
-	 */
-	dsEndFrameFunction endFrameFunc;
-
-	/**
 	 * @brief Command buffer begin function.
 	 */
 	dsBeginCommandBufferFunction beginCommandBufferFunc;
@@ -1051,6 +1051,16 @@ struct dsRenderer
 	 * @brief Render pass end function.
 	 */
 	dsEndRenderPassFunction endRenderPassFunc;
+
+	/**
+	 * @brief Frame begin function.
+	 */
+	dsBeginFrameFunction beginFrameFunc;
+
+	/**
+	 * @brief Frame end function.
+	 */
+	dsEndFrameFunction endFrameFunc;
 
 	/**
 	 * @brief Surface anti-alias sample set function.

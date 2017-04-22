@@ -1520,11 +1520,6 @@ struct dsResourceManager
 	uint32_t maxVertexAttribs;
 
 	/**
-	 * @brief Whether or not instanced drawing is supported.
-	 */
-	bool supportsInstancedDrawing;
-
-	/**
 	 * @brief The maximum size of textures along the width and height.
 	 */
 	uint32_t maxTextureSize;

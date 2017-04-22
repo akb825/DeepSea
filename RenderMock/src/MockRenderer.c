@@ -28,6 +28,175 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
 
+bool dsMockRenderer_beginFrame(dsRenderer* renderer)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+
+	return true;
+}
+
+bool dsMockRenderer_endFrame(dsRenderer* renderer)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+
+	return true;
+}
+
+bool dsMockRenderer_setSurfaceSamples(dsRenderer* renderer, uint16_t samples)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_UNUSED(samples);
+
+	return true;
+}
+
+bool dsMockRenderer_setVsync(dsRenderer* renderer, bool vsync)
+{
+	DS_ASSERT(renderer);
+
+	renderer->vsync = vsync;
+	return true;
+}
+
+bool dsMockRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
+{
+	DS_ASSERT(renderer);
+
+	renderer->defaultAnisotropy = anisotropy;
+	return true;
+}
+
+bool dsMockRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(surface);
+	DS_UNUSED(surface);
+	DS_ASSERT(colorValue);
+	DS_UNUSED(colorValue);
+
+	return true;
+}
+
+bool dsMockRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(surface);
+	DS_UNUSED(surface);
+	DS_UNUSED(surfaceParts);
+	DS_ASSERT(depthStencilValue);
+	DS_UNUSED(depthStencilValue);
+
+	return true;
+}
+
+bool dsMockRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(geometry);
+	DS_UNUSED(geometry);
+	DS_ASSERT(drawRange);
+	DS_UNUSED(drawRange);
+
+	return true;
+}
+
+bool dsMockRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(geometry);
+	DS_UNUSED(geometry);
+	DS_ASSERT(drawRange);
+	DS_UNUSED(drawRange);
+
+	return true;
+}
+
+bool dsMockRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(geometry);
+	DS_UNUSED(geometry);
+	DS_ASSERT(indirectBuffer);
+	DS_UNUSED(indirectBuffer);
+	DS_UNUSED(offset);
+	DS_UNUSED(count);
+	DS_UNUSED(stride);
+
+	return true;
+}
+
+bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(geometry);
+	DS_UNUSED(geometry);
+	DS_ASSERT(indirectBuffer);
+	DS_UNUSED(indirectBuffer);
+	DS_UNUSED(offset);
+	DS_UNUSED(count);
+	DS_UNUSED(stride);
+
+	return true;
+}
+
+bool dsMockRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	uint32_t x, uint32_t y, uint32_t z)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(x);
+	DS_UNUSED(y);
+	DS_UNUSED(z);
+
+	return true;
+}
+
+bool dsMockRenderer_dispatchComputeIndirect(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(indirectBuffer);
+	DS_UNUSED(indirectBuffer);
+	DS_UNUSED(offset);
+
+	return true;
+}
+
 dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 {
 	if (!allocator)
@@ -78,6 +247,12 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
 	renderer->doubleBuffer = true;
+	renderer->vsync = true;
+	renderer->hasGeometryShaders = true;
+	renderer->hasTessellationShaders = true;
+	renderer->hasComputeShaders = true;
+	renderer->hasNativeMultidraw = true;
+	renderer->supportsInstancedDrawing = true;
 
 	renderer->createRenderSurfaceFunc = &dsMockRenderSurface_create;
 	renderer->destroyRenderSurfaceFunc = &dsMockRenderSurface_destroy;
@@ -99,6 +274,20 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->beginRenderPassFunc = &dsMockRenderPass_begin;
 	renderer->nextRenderSubpassFunc = &dsMockRenderPass_nextSubpass;
 	renderer->endRenderPassFunc = &dsMockRenderPass_end;
+
+	renderer->beginFrameFunc = &dsMockRenderer_beginFrame;
+	renderer->endFrameFunc = &dsMockRenderer_endFrame;
+	renderer->setSurfaceSamplesFunc = &dsMockRenderer_setSurfaceSamples;
+	renderer->setVsyncFunc = &dsMockRenderer_setVsync;
+	renderer->setDefaultAnisotropyFunc = &dsMockRenderer_setDefaultAnisotropy;
+	renderer->clearColorSurfaceFunc = &dsMockRenderer_clearColorSurface;
+	renderer->clearDepthStencilSurfaceFunc = &dsMockRenderer_clearDepthStencilSurface;
+	renderer->drawFunc = &dsMockRenderer_draw;
+	renderer->drawIndexedFunc = &dsMockRenderer_drawIndexed;
+	renderer->drawIndirectFunc = &dsMockRenderer_drawIndirect;
+	renderer->drawIndexedIndirectFunc = &dsMockRenderer_drawIndexedIndirect;
+	renderer->dispatchComputeFunc = &dsMockRenderer_dispatchCompute;
+	renderer->dispatchComputeIndirectFunc = &dsMockRenderer_dispatchComputeIndirect;
 
 	return renderer;
 }

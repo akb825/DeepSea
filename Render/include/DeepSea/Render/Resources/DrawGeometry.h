@@ -44,6 +44,20 @@ DS_RENDER_EXPORT dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resour
 	dsIndexBuffer* indexBuffer);
 
 /**
+ * @brief Gets the number of vertices in geometry.
+ * @param geometry The geometry.
+ * @return The number of vertices.
+ */
+DS_RENDER_EXPORT uint32_t dsDrawGeometry_getVertexCount(const dsDrawGeometry* geometry);
+
+/**
+ * @brief Gets the number of indices in geometry.
+ * @param geometry The geometry.
+ * @return The number of indices.
+ */
+DS_RENDER_EXPORT uint32_t dsDrawGeometry_getIndexCount(const dsDrawGeometry* geometry);
+
+/**
  * @brief Destroys a draw geometry.
  * @remark errno will be set on failure.
  * @param geometry The draw geometry to destroy.

@@ -27,29 +27,26 @@ class DrawGeometryTest : public FixtureBase
 
 TEST_F(DrawGeometryTest, Create)
 {
-	EXPECT_FALSE(dsDrawGeometry_create(nullptr, nullptr, nullptr, nullptr));
-	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, nullptr, nullptr, nullptr));
+	EXPECT_FALSE(dsDrawGeometry_create(NULL, NULL, NULL, NULL));
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, NULL, NULL));
 
 	dsVertexBuffer vertexBuffer1 = {};
 	dsVertexBuffer vertexBuffer2 = {};
 	dsIndexBuffer indexBuffer = {};
 
-	dsGfxBuffer* vertexGfxBuffer = dsGfxBuffer_create(resourceManager, nullptr,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, nullptr, 1024);
+	dsGfxBuffer* vertexGfxBuffer = dsGfxBuffer_create(resourceManager, NULL,
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 1024);
 	ASSERT_TRUE(vertexGfxBuffer);
-	dsGfxBuffer* indexGfxBuffer = dsGfxBuffer_create(resourceManager, nullptr,
-		dsGfxBufferUsage_Index, dsGfxMemory_Static | dsGfxMemory_Draw, nullptr, 1024);
+	dsGfxBuffer* indexGfxBuffer = dsGfxBuffer_create(resourceManager, NULL,
+		dsGfxBufferUsage_Index, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 1024);
 	ASSERT_TRUE(indexGfxBuffer);
 
 	dsVertexBuffer* vertexBufferArray[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {};
-	dsDrawGeometry* drawGeometry = dsDrawGeometry_create(resourceManager, nullptr,
-		vertexBufferArray, nullptr);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, NULL));
 
 	vertexBufferArray[0] = &vertexBuffer1;
 	vertexBufferArray[1] = &vertexBuffer2;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, nullptr);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, NULL));
 
 	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&vertexBuffer1.format, dsVertexAttrib_Position,
 		true));
@@ -70,50 +67,53 @@ TEST_F(DrawGeometryTest, Create)
 	vertexBuffer2.buffer = vertexGfxBuffer;
 	vertexBuffer2.offset = 0;
 	vertexBuffer2.count = 10;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, nullptr);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, NULL));
 
-	dsVertexFormat_computeOffsetsAndSize(&vertexBuffer1.format);
-	dsVertexFormat_computeOffsetsAndSize(&vertexBuffer2.format);
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, nullptr);
+	EXPECT_TRUE(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer1.format));
+	EXPECT_TRUE(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer2.format));
+	vertexBuffer1.count = 9;
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, NULL));
+
+	vertexBuffer1.count = 10;
+	dsDrawGeometry* drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray,
+		NULL);
 	EXPECT_EQ(1U, resourceManager->geometryCount);
 	EXPECT_TRUE(drawGeometry);
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 	EXPECT_EQ(0U, resourceManager->geometryCount);
+	EXPECT_EQ(10U, dsDrawGeometry_getVertexCount(drawGeometry));
+	EXPECT_EQ(0U, dsDrawGeometry_getIndexCount(drawGeometry));
 
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
+	drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer);
 	EXPECT_FALSE(drawGeometry);
 
 	indexBuffer.buffer = indexGfxBuffer;
 	indexBuffer.offset = 0;
 	indexBuffer.count = 20;
 	indexBuffer.indexBits = 10;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
 	indexBuffer.indexBits = 16;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
+	drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer);
 	EXPECT_TRUE(drawGeometry);
+	EXPECT_EQ(10U, dsDrawGeometry_getVertexCount(drawGeometry));
+	EXPECT_EQ(20U, dsDrawGeometry_getIndexCount(drawGeometry));
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 
 	vertexBuffer2.offset = 1000;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
 	vertexBuffer2.offset = 0;
 	indexBuffer.offset = 1000;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
 	indexBuffer.offset = 0;
 	vertexBuffer1.buffer = indexGfxBuffer;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
 	vertexBuffer1.buffer = vertexGfxBuffer;
 	indexBuffer.buffer = vertexGfxBuffer;
-	drawGeometry = dsDrawGeometry_create(resourceManager, nullptr, vertexBufferArray, &indexBuffer);
-	EXPECT_FALSE(drawGeometry);
+	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(indexGfxBuffer));

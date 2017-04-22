@@ -46,12 +46,28 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		allocator = resourceManager->allocator;
 
 	bool hasVertexBuffer = false;
+	uint32_t vertexCount = 0;
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (!vertexBuffers[i])
 			continue;
 
-		hasVertexBuffer = true;
+		if (hasVertexBuffer)
+		{
+			if (vertexBuffers[i]->count != vertexCount)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Vertex buffers must have the same number of vertices.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+		}
+		else
+		{
+			hasVertexBuffer = true;
+			vertexCount = vertexBuffers[i]->count;
+		}
+
 		if (!vertexBuffers[i]->buffer)
 		{
 			errno = EINVAL;
@@ -142,6 +158,28 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 	if (geometry)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->geometryCount, 1);
 	DS_PROFILE_FUNC_RETURN(geometry);
+}
+
+uint32_t dsDrawGeometry_getVertexCount(const dsDrawGeometry* geometry)
+{
+	if (!geometry)
+		return 0;
+
+	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (geometry->vertexBuffers[i].buffer)
+			return geometry->vertexBuffers[i].count;
+	}
+
+	return 0;
+}
+
+uint32_t dsDrawGeometry_getIndexCount(const dsDrawGeometry* geometry)
+{
+	if (!geometry || !geometry->indexBuffer.buffer)
+		return 0;
+
+	return geometry->indexBuffer.count;
 }
 
 bool dsDrawGeometry_destroy(dsDrawGeometry* geometry)

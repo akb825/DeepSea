@@ -137,7 +137,11 @@ void dsLog_vmessagef(dsLogLevel level, const char* tag, const char* file,
 	int length = vsnprintf(buffer, DS_LOG_MAX_LENGTH, message, argsCopy);
 	DS_ASSERT(length >= 0);
 	if (length >= 0)
+	{
+		DS_ASSERT(length <= DS_LOG_MAX_LENGTH);
+		buffer[length] = 0;
 		dsLog_message(level, tag, file, line, function, buffer);
+	}
 	va_end(argsCopy);
 	va_end(args);
 }
