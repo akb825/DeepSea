@@ -26,7 +26,7 @@
 #elif defined(linux)
 #	define DS_LINUX 1
 #elif defined(__APPLE__)
-#	define DS_APPLE
+#	define DS_APPLE 1
 #endif
 
 // Android is also Linux, so separate.
