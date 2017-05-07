@@ -17,7 +17,9 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Error.h>
 
-#if DS_WINDOWS
+#define DS_CUSTOM_SPINLOCK DS_WINDOWS || DS_APPLE
+
+#if DS_CUSTOM_SPINLOCK
 #include <DeepSea/Core/Atomic.h>
 #else
 #include <pthread.h>
@@ -32,7 +34,7 @@ bool dsSpinlock_initialize(dsSpinlock* spinlock)
 		return false;
 	}
 
-#if DS_WINDOWS
+#if DS_CUSTOM_SPINLOCK
 
 	uint32_t counter = 0;
 	DS_ATOMIC_STORE32(&spinlock->counter, &counter);
@@ -51,7 +53,7 @@ bool dsSpinlock_tryLock(dsSpinlock* spinlock)
 	if (!spinlock)
 		return false;
 
-#if DS_WINDOWS
+#if DS_CUSTOM_SPINLOCK
 
 	uint32_t expected = 0;
 	uint32_t value = 1;
@@ -76,7 +78,7 @@ bool dsSpinlock_lock(dsSpinlock* spinlock)
 		return false;
 	}
 
-#if DS_WINDOWS
+#if DS_CUSTOM_SPINLOCK
 
 	uint32_t expected;
 	uint32_t value = 1;
@@ -103,7 +105,7 @@ bool dsSpinlock_unlock(dsSpinlock* spinlock)
 		return false;
 	}
 
-#if DS_WINDOWS
+#if DS_CUSTOM_SPINLOCK
 
 	uint32_t expected = 1;
 	uint32_t value = 0;
@@ -122,7 +124,7 @@ void dsSpinlock_destroy(dsSpinlock* spinlock)
 	if (!spinlock)
 		return;
 
-#if DS_WINDOWS
+#if DS_CUSTOM_SPINLOCK
 	uint32_t counter = 0;
 	DS_ATOMIC_STORE32(&spinlock->counter, &counter);
 #else

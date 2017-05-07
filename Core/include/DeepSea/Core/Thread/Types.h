@@ -69,7 +69,7 @@ typedef struct dsMutex dsMutex;
 typedef struct dsSpinlock
 {
 	/** Internal */
-#if DS_WINDOWS
+#if DS_WINDOWS || DS_APPLE
 	uint32_t counter;
 #else
 	pthread_spinlock_t spinlock;

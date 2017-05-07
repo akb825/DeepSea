@@ -125,7 +125,7 @@ bool dsThread_create(dsThread* thread, dsThreadFunction function, void* userData
 		return false;
 	}
 
-	thread->thread = (uint64_t)handle;
+	thread->thread = (pthread_t)handle;
 
 #endif
 

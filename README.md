@@ -22,6 +22,7 @@ DeepSea has been built for and tested on the following platforms:
 
 * Linux (GCC and LLVM clang)
 * Windows (requires Visual Studio 2015 or later)
+* Mac OS X
 
 # Building
 

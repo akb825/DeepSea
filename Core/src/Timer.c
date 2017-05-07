@@ -22,7 +22,7 @@
 #include <Windows.h>
 #elif DS_APPLE
 #include <mach/mach.h>
-#include <mac/mach_time.h>
+#include <mach/mach_time.h>
 #else
 #include <time.h>
 #endif
@@ -40,8 +40,9 @@ dsTimer dsTimer_create(void)
 #elif DS_APPLE
 
 	mach_timebase_info_data_t timebaseInfo;
-	DEBUG_VERIFY(mach_timebase_info(&timebaseInfo) == KERN_SUCCESS);
-	timer.scale = (double)timebaseInfo.number/timebaseInfo.denom;
+	DS_VERIFY(mach_timebase_info(&timebaseInfo) == KERN_SUCCESS);
+	// Mach time scale is in nanoseconds.
+	timer.scale = (double)timebaseInfo.numer/timebaseInfo.denom*1e-9;
 
 #else
 	timer.scale = 0;
