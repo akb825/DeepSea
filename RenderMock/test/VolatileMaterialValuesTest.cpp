@@ -212,6 +212,9 @@ TEST_F(VolatileMaterialValuesTest, Buffers)
 	EXPECT_FALSE(dsVolatileMaterialValues_getBufferName(&offset, &size, values, "test1"));
 	EXPECT_FALSE(dsVolatileMaterialValues_getBufferName(&offset, &size, values, "test2"));
 
+	resourceManager->maxUniformBlcokSize = 64;
+	EXPECT_FALSE(dsVolatileMaterialValues_setBufferName(values, "test1", buffer1, 0, 128));
+
 	dsVolatileMaterialValues_destroy(values);
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer1));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer2));

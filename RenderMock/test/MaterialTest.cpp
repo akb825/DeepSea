@@ -426,6 +426,9 @@ TEST_F(MaterialTest, Buffers)
 	EXPECT_FALSE(dsMaterial_getBuffer(&offset, &size, material, 4));
 	EXPECT_FALSE(dsMaterial_getBuffer(&offset, &size, material, 5));
 
+	resourceManager->maxUniformBlcokSize = 64;
+	EXPECT_FALSE(dsMaterial_setBuffer(material, 1, buffer1, 0, 128));
+
 	dsMaterial_destroy(material);
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc));

@@ -90,11 +90,13 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxResourceContexts = 1;
 	resourceManager->minMappingAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
-		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Indirect | dsGfxBufferUsage_UniformBlock |
-		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_Sampler |
+		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw |
+		dsGfxBufferUsage_IndirectDispatch | dsGfxBufferUsage_UniformBlock |
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->maxIndexBits = 32;
+	resourceManager->maxUniformBlcokSize = 1024*1024*1024;
 	resourceManager->maxVertexAttribs = 16;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;

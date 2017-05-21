@@ -83,15 +83,16 @@ typedef enum dsGfxMemory
  */
 typedef enum dsGfxBufferUsage
 {
-	dsGfxBufferUsage_Index = 0x001,         ///< Index buffer.
-	dsGfxBufferUsage_Vertex  = 0x002,       ///< Vertex buffer.
-	dsGfxBufferUsage_Indirect = 0x004,      ///< Indirect draw information.
-	dsGfxBufferUsage_UniformBlock = 0x008,  ///< Shader uniform block.
-	dsGfxBufferUsage_UniformBuffer = 0x010, ///< Shader uniform buffer, modifiable by the shader.
-	dsGfxBufferUsage_Image = 0x020,         ///< Shader image buffer.
-	dsGfxBufferUsage_Sampler = 0x040,       ///< Shader sampler buffer.
-	dsGfxBufferUsage_CopyFrom = 0x080,      ///< Source for GPU copy operations.
-	dsGfxBufferUsage_CopyTo = 0x100         ///< Destination for GPU and CPU copy operations.
+	dsGfxBufferUsage_Index = 0x001,            ///< Index buffer.
+	dsGfxBufferUsage_Vertex  = 0x002,          ///< Vertex buffer.
+	dsGfxBufferUsage_IndirectDraw = 0x004,     ///< Indirect draw information.
+	dsGfxBufferUsage_IndirectDispatch = 0x008, ///< Indirect dispatch information.
+	dsGfxBufferUsage_UniformBlock = 0x010,     ///< Shader uniform block.
+	dsGfxBufferUsage_UniformBuffer = 0x020,    ///< Shader uniform buffer, modifiable by the shader.
+	dsGfxBufferUsage_Image = 0x040,            ///< Shader image buffer.
+	dsGfxBufferUsage_MutableImage = 0x080,     ///< Shader image buffer that can be stored to.
+	dsGfxBufferUsage_CopyFrom = 0x100,         ///< Source for GPU copy operations.
+	dsGfxBufferUsage_CopyTo = 0x200            ///< Destination for GPU and CPU copy operations.
 } dsGfxBufferUsage;
 
 /**
@@ -1511,6 +1512,11 @@ struct dsResourceManager
 	 * @brief The maximum number of bits for each index.
 	 */
 	uint32_t maxIndexBits;
+
+	/**
+	 * @brief The maximum size of a uniform block.
+	 */
+	size_t maxUniformBlcokSize;
 
 	/**
 	 * @brief The maximum number of vertex attributes.

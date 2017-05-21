@@ -356,7 +356,7 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!(indirectBuffer->usage & dsGfxBufferUsage_Indirect))
+	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDraw))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");
@@ -403,7 +403,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!(indirectBuffer->usage & dsGfxBufferUsage_Indirect))
+	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDraw))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");
@@ -484,7 +484,7 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!(indirectBuffer->usage & dsGfxBufferUsage_Indirect))
+	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDispatch))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");

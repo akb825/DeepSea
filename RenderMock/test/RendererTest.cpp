@@ -336,7 +336,7 @@ TEST_F(RendererTest, DrawIndirect)
 	ASSERT_TRUE(vertexGfxBuffer);
 
 	dsGfxBuffer* indirectBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_Indirect, dsGfxMemory_Static | dsGfxMemory_Draw, NULL,
+		dsGfxBufferUsage_IndirectDraw, dsGfxMemory_Static | dsGfxMemory_Draw, NULL,
 		sizeof(dsDrawRange)*4);
 	ASSERT_TRUE(indirectBuffer);
 
@@ -392,7 +392,7 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 	ASSERT_TRUE(indexGfxBuffer);
 
 	dsGfxBuffer* indirectBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_Indirect, dsGfxMemory_Static | dsGfxMemory_Draw, NULL,
+		dsGfxBufferUsage_IndirectDraw, dsGfxMemory_Static | dsGfxMemory_Draw, NULL,
 		sizeof(dsDrawIndexedRange)*4);
 	ASSERT_TRUE(indirectBuffer);
 
@@ -464,7 +464,8 @@ TEST_F(RendererTest, DispatchComputeIndirect)
 	ASSERT_TRUE(vertexGfxBuffer);
 
 	dsGfxBuffer* indirectBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_Indirect, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, sizeof(uint32_t)*4);
+		dsGfxBufferUsage_IndirectDispatch, dsGfxMemory_Static | dsGfxMemory_Draw, NULL,
+		sizeof(uint32_t)*4);
 	ASSERT_TRUE(indirectBuffer);
 
 	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(NULL, renderer->mainCommandBuffer,

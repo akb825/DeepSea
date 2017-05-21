@@ -124,6 +124,15 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 		return false;
 	}
 
+	if ((buffer->usage & dsGfxBufferUsage_UniformBlock) &&
+		size > buffer->resourceManager->maxUniformBlcokSize)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer size exceeds the maximum uniform block size for the current target.");
+		return false;
+	}
+
 	return true;
 }
 

@@ -454,6 +454,15 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");
 			return false;
 		}
+
+		if (type == dsMaterialType_UniformBlock &&
+			size > buffer->resourceManager->maxUniformBlcokSize)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Buffer size exceeds the maximum uniform block size for the current target.");
+			return false;
+		}
 	}
 
 	BufferData* bufferData = (BufferData*)(material->data + material->offsets[element]);

@@ -38,7 +38,7 @@ TEST_F(GfxBufferTest, Create)
 {
 	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 0, 0, NULL, 100));
 	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex, 0, NULL, 100));
-	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 1000, dsGfxMemory_Static, NULL, 100));
+	EXPECT_FALSE(dsGfxBuffer_create(resourceManager, NULL, 12345, dsGfxMemory_Static, NULL, 100));
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 100);
