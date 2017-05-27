@@ -23,11 +23,13 @@
 #include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Types.h>
 
 typedef enum Type
 {
 	Type_Texture,
+	Type_TextureBuffer,
 	Type_ShaderVariableGroup,
 	Type_Buffer
 } Type;
@@ -37,9 +39,10 @@ typedef struct Entry
 	dsHashTableNode node;
 	uint32_t key;
 	Type type;
-	void* value;
 	size_t offset;
 	size_t size;
+	dsGfxFormat format;
+	void* value;
 } Entry;
 
 struct dsVolatileMaterialValues
@@ -60,13 +63,15 @@ static unsigned int getTableSize(unsigned int maxValues)
 	return (unsigned int)((float)maxValues/loadFactor);
 }
 
-static void* getValue(size_t* outOffset, size_t* outSize, const dsVolatileMaterialValues* values,
-	uint32_t nameId, Type type)
+static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize,
+	const dsVolatileMaterialValues* values, uint32_t nameId, Type type)
 {
 	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameId);
 	if (!entry || entry->type != type)
 		return NULL;
 
+	if (outFormat)
+		*outFormat = entry->format;
 	if (outOffset)
 		*outOffset = entry->offset;
 	if (outSize)
@@ -75,7 +80,7 @@ static void* getValue(size_t* outOffset, size_t* outSize, const dsVolatileMateri
 }
 
 static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type type, void* value,
-	size_t offset, size_t size)
+	dsGfxFormat format, size_t offset, size_t size)
 {
 	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameId);
 	if (entry)
@@ -87,6 +92,7 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 		}
 
 		entry->value = value;
+		entry->format = format;
 		entry->offset = offset;
 		entry->size = size;
 		return true;
@@ -99,9 +105,49 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 	entry->key = nameId;
 	entry->type = type;
 	entry->value = value;
+	entry->format = format;
 	entry->offset = offset;
 	entry->size = size;
 	DS_VERIFY(dsHashTable_insert(values->hashTable, &entry->key, &entry->node, NULL));
+	return true;
+}
+
+static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
+	size_t count)
+{
+	if (!buffer)
+		return true;
+
+	if (!dsGfxFormat_textureBufferSupported(buffer->resourceManager, format))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
+		return false;
+	}
+
+	if (!(buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage)))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a texture.");
+		return false;
+	}
+
+	unsigned int formatSize = dsGfxFormat_size(format);
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, count*formatSize, buffer->size))
+	{
+		errno = EINDEX;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");
+		return false;
+	}
+
+	if (count*formatSize > buffer->resourceManager->maxTextureBufferSize)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer size exceeds the maximum texture buffer size for the current target.");
+		return false;
+	}
+
 	return true;
 }
 
@@ -125,7 +171,7 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 	}
 
 	if ((buffer->usage & dsGfxBufferUsage_UniformBlock) &&
-		size > buffer->resourceManager->maxUniformBlcokSize)
+		size > buffer->resourceManager->maxUniformBlockSize)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -206,7 +252,7 @@ dsTexture* dsVolatileMaterialValues_getTextureName(const dsVolatileMaterialValue
 	if (!values || !name)
 		return NULL;
 
-	return (dsTexture*)getValue(NULL, NULL, values, dsHashString(name), Type_Texture);
+	return (dsTexture*)getValue(NULL, NULL, NULL, values, dsHashString(name), Type_Texture);
 }
 
 dsTexture* dsVolatileMaterialValues_getTextureId(const dsVolatileMaterialValues* values,
@@ -215,7 +261,7 @@ dsTexture* dsVolatileMaterialValues_getTextureId(const dsVolatileMaterialValues*
 	if (!values)
 		return NULL;
 
-	return (dsTexture*)getValue(NULL, NULL, values, nameId, Type_Texture);
+	return (dsTexture*)getValue(NULL, NULL, NULL, values, nameId, Type_Texture);
 }
 
 bool dsVolatileMaterialValues_setTextureName(dsVolatileMaterialValues* values, const char* name,
@@ -227,7 +273,7 @@ bool dsVolatileMaterialValues_setTextureName(dsVolatileMaterialValues* values, c
 		return false;
 	}
 
-	return setValue(values, dsHashString(name), Type_Texture, texture, 0, 0);
+	return setValue(values, dsHashString(name), Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
 bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values, uint32_t nameId,
@@ -239,7 +285,57 @@ bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values, uin
 		return false;
 	}
 
-	return setValue(values, nameId, Type_Texture, texture, 0, 0);
+	return setValue(values, nameId, Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
+}
+
+dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, const char* name)
+{
+	if (!values || !name)
+		return NULL;
+
+	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, dsHashString(name),
+		Type_TextureBuffer);
+}
+
+dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferId(dsGfxFormat* outFormat, size_t* outOffset,
+	size_t* outCount, const dsVolatileMaterialValues* values, uint32_t nameId)
+{
+	if (!values)
+		return NULL;
+
+	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, nameId,
+		Type_TextureBuffer);
+}
+
+bool dsVolatileMaterialValues_setTextureBufferName(dsVolatileMaterialValues* values,
+	const char* name, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	if (!values || !name)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!canUseTextureBuffer(buffer, format, offset, count))
+		return false;
+
+	return setValue(values, dsHashString(name), Type_TextureBuffer, buffer, format, offset, count);
+}
+
+bool dsVolatileMaterialValues_setTextureBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
+	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	if (!values)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!canUseTextureBuffer(buffer, format, offset, count))
+		return false;
+
+	return setValue(values, nameId, Type_TextureBuffer, buffer, format, offset, count);
 }
 
 dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(
@@ -248,7 +344,7 @@ dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(
 	if (!values || !name)
 		return NULL;
 
-	return (dsShaderVariableGroup*)getValue(NULL, NULL, values, dsHashString(name),
+	return (dsShaderVariableGroup*)getValue(NULL, NULL, NULL, values, dsHashString(name),
 		Type_ShaderVariableGroup);
 }
 
@@ -258,7 +354,8 @@ dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupId(
 	if (!values)
 		return NULL;
 
-	return (dsShaderVariableGroup*)getValue(NULL, NULL, values, nameId, Type_ShaderVariableGroup);
+	return (dsShaderVariableGroup*)getValue(NULL, NULL, NULL, values, nameId,
+		Type_ShaderVariableGroup);
 }
 
 bool dsVolatileMaterialValues_setVariableGroupName(dsVolatileMaterialValues* values,
@@ -267,7 +364,8 @@ bool dsVolatileMaterialValues_setVariableGroupName(dsVolatileMaterialValues* val
 	if (!values || !name)
 		return false;
 
-	return setValue(values, dsHashString(name), Type_ShaderVariableGroup, group, 0, 0);
+	return setValue(values, dsHashString(name), Type_ShaderVariableGroup, group,
+		dsGfxFormat_Unknown, 0, 0);
 }
 
 bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMaterialValues* values,
@@ -276,7 +374,7 @@ bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMaterialValues* value
 	if (!values)
 		return false;
 
-	return setValue(values, nameId, Type_ShaderVariableGroup, group, 0, 0);
+	return setValue(values, nameId, Type_ShaderVariableGroup, group, dsGfxFormat_Unknown, 0, 0);
 }
 
 dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset, size_t* outSize,
@@ -285,7 +383,8 @@ dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset, size_t* o
 	if (!values || !name)
 		return NULL;
 
-	return (dsGfxBuffer*)getValue(outOffset, outSize, values, dsHashString(name), Type_Buffer);
+	return (dsGfxBuffer*)getValue(NULL, outOffset, outSize, values, dsHashString(name),
+		Type_Buffer);
 }
 
 dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset, size_t* outSize,
@@ -294,7 +393,7 @@ dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset, size_t* out
 	if (!values)
 		return NULL;
 
-	return (dsGfxBuffer*)getValue(outOffset, outSize, values, nameId, Type_Buffer);
+	return (dsGfxBuffer*)getValue(NULL, outOffset, outSize, values, nameId, Type_Buffer);
 }
 
 bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values, const char* name,
@@ -309,7 +408,8 @@ bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values, co
 	if (!canUseBuffer(buffer, offset, size))
 		return false;
 
-	return setValue(values, dsHashString(name), Type_Buffer, buffer, offset, size);
+	return setValue(values, dsHashString(name), Type_Buffer, buffer, dsGfxFormat_Unknown, offset,
+		size);
 }
 
 bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
@@ -324,7 +424,7 @@ bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values, uint
 	if (!canUseBuffer(buffer, offset, size))
 		return false;
 
-	return setValue(values, nameId, Type_Buffer, buffer, offset, size);
+	return setValue(values, nameId, Type_Buffer, buffer, dsGfxFormat_Unknown, offset, size);
 }
 
 bool dsVolatileMaterialValues_removeValueName(dsVolatileMaterialValues* values, const char* name)

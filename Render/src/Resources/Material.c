@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/MaterialType.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
@@ -44,6 +45,21 @@ typedef struct BufferData
 	size_t size;
 } BufferData;
 
+typedef enum TextureType
+{
+	TextureType_Texture,
+	TextureType_Buffer
+} TextureType;
+
+typedef struct TextureData
+{
+	TextureType type;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+	void* data;
+} TextureData;
+
 static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
 	if (type == dsMaterialType_UniformBlock || type == dsMaterialType_UniformBuffer)
@@ -52,6 +68,14 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 		size_t alignment = sizeof(void*);
 		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
 		*curSize = offset + sizeof(BufferData);
+		return offset;
+	}
+	else if (type >= dsMaterialType_Texture && type <= dsMaterialType_SubpassInput)
+	{
+		DS_ASSERT(count == 0);
+		size_t alignment = sizeof(void*);
+		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		*curSize = offset + sizeof(TextureData);
 		return offset;
 	}
 
@@ -258,7 +282,12 @@ dsTexture* dsMaterial_getTexture(const dsMaterial* material, uint32_t element)
 	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
 		return NULL;
 
-	return *(dsTexture**)(material->data + material->offsets[element]);
+	const TextureData* textureData = (const TextureData*)(material->data +
+		material->offsets[element]);
+	if (textureData->type != TextureType_Texture)
+		return NULL;
+
+	return (dsTexture*)textureData->data;
 }
 
 bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* texture)
@@ -318,7 +347,110 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 		}
 	}
 
-	*(dsTexture**)(material->data + material->offsets[element]) = texture;
+	TextureData* textureData = (TextureData*)(material->data + material->offsets[element]);
+	textureData->type = TextureType_Texture;
+	textureData->data = texture;
+	return true;
+}
+
+dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffset,
+	size_t* outCount, const dsMaterial* material, uint32_t element)
+{
+	if (!material || element >= material->description->elementCount ||
+		material->offsets[element] == DS_MATERIAL_UNKNOWN)
+	{
+		return NULL;
+	}
+
+	dsMaterialType type = material->description->elements[element].type;
+	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
+		return NULL;
+
+	const TextureData* textureData = (const TextureData*)(material->data +
+		material->offsets[element]);
+	if (textureData->type != TextureType_Buffer)
+		return NULL;
+
+	if (outFormat)
+		*outFormat = textureData->format;
+	if (outOffset)
+		*outOffset = textureData->offset;
+	if (outCount)
+		*outCount = textureData->count;
+	return (dsGfxBuffer*)textureData->data;
+}
+
+bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer,
+	dsGfxFormat format, size_t offset, size_t count)
+{
+	if (!material)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (element >= material->description->elementCount)
+	{
+		errno = EINDEX;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid material element.");
+		return false;
+	}
+
+	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
+		return false;
+	}
+
+	if (!dsGfxFormat_textureBufferSupported(material->description->resourceManager, format))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
+		return false;
+	}
+
+	dsMaterialType type = material->description->elements[element].type;
+	if (type < dsMaterialType_Texture || type > dsMaterialType_Image)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture type.");
+		return false;
+	}
+
+	if (buffer)
+	{
+		if (!(buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage)))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Buffer doesn't support being used as a texture.");
+			return false;
+		}
+
+		unsigned int formatSize = dsGfxFormat_size(format);
+		if (!DS_IS_BUFFER_RANGE_VALID(offset, count*formatSize, buffer->size))
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");
+			return false;
+		}
+
+		if (count*formatSize > buffer->resourceManager->maxTextureBufferSize)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Buffer size exceeds the maximum texture buffer size for the current target.");
+			return false;
+		}
+	}
+
+	TextureData* textureData = (TextureData*)(material->data + material->offsets[element]);
+	textureData->type = TextureType_Buffer;
+	textureData->format = format;
+	textureData->offset = offset;
+	textureData->count = count;
+	textureData->data = buffer;
 	return true;
 }
 
@@ -456,7 +588,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 		}
 
 		if (type == dsMaterialType_UniformBlock &&
-			size > buffer->resourceManager->maxUniformBlcokSize)
+			size > buffer->resourceManager->maxUniformBlockSize)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

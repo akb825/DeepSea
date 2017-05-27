@@ -1522,7 +1522,12 @@ struct dsResourceManager
 	/**
 	 * @brief The maximum size of a uniform block.
 	 */
-	size_t maxUniformBlcokSize;
+	size_t maxUniformBlockSize;
+
+	/**
+	 * @brief The maximum size of a texture buffer.
+	 */
+	size_t maxTextureBufferSize;
 
 	/**
 	 * @brief The maximum number of vertex attributes.
@@ -1680,6 +1685,11 @@ struct dsResourceManager
 	 * @brief Offscreen format supported function.
 	 */
 	dsFormatSupportedFunction offscreenFormatSupportedFunc;
+
+	/**
+	 * @brief Texture buffer format supported function.
+	 */
+	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
 
 	/**
 	 * @brief Resource context creation function.

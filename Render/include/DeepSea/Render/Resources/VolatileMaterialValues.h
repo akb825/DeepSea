@@ -134,6 +134,61 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialVa
 	uint32_t nameId, dsTexture* texture);
 
 /**
+ * @brief Gets a texture buffer value by name.
+ * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outCount The number of texels for the buffer. This may be NULL.
+ * @param values The volatile material values.
+ * @param name The name of the buffer.
+ * @return The buffer, or NULL if not found or unset.
+ */
+DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, const char* name);
+
+/**
+ * @brief Gets a texture buffer value by ID.
+ * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outCount The number of texels for the buffer. This may be NULL.
+ * @param values The volatile material values.
+ * @param nameId The hash of the buffer name.
+ * @return The buffer, or NULL if not found or unset.
+ */
+DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferId(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, uint32_t nameId);
+
+/**
+ * @brief Sets a texture buffer value by name.
+ * @remark errno will be set on failure.
+ * @param values The volatile material values.
+ * @param name The name of the buffer.
+ * @param buffer The buffer to set.
+ * @param format The texture format to interpret the buffer data.
+ * @param offset The offset into the buffer.
+ * @param count The number of texels for the buffer.
+ * @return False if the parameters are invalid, there isn't space available, or a value with the
+ *     name is set that isn't a buffer.
+ */
+DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureBufferName(
+	dsVolatileMaterialValues* values, const char* name, dsGfxBuffer* buffer, dsGfxFormat format,
+	size_t offset, size_t count);
+
+/**
+ * @brief Sets a texture buffer value by ID.
+ * @remark errno will be set on failure.
+ * @param values The volatile material values.
+ * @param nameId The hash of the buffer name.
+ * @param buffer The buffer to set.
+ * @param format The texture format to interpret the buffer data.
+ * @param offset The offset into the buffer.
+ * @param count The number of texels for the buffer.
+ * @return False if the parameters are invalid, there isn't space available, or a value with the
+ *     name is set that isn't a buffer.
+ */
+DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureBufferId(dsVolatileMaterialValues* values,
+	uint32_t nameId, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
+
+/**
  * @brief Gets a shader variable group value by name.
  * @param values The volatile material values.
  * @param name The name of the shader variable group.

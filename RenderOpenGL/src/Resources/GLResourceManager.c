@@ -219,14 +219,14 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		{
 			GLint64 maxSize = 0;
 			glGetInteger64v(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);
-			baseResourceManager->maxUniformBlcokSize = (size_t)(dsMin(maxSize,
+			baseResourceManager->maxUniformBlockSize = (size_t)(dsMin(maxSize,
 				SIZE_MAX));
 		}
 		else
 		{
 			GLint maxSize = 0;
 			glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);
-			baseResourceManager->maxUniformBlcokSize = maxSize;
+			baseResourceManager->maxUniformBlockSize = maxSize;
 		}
 	}
 

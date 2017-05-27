@@ -408,6 +408,18 @@ bool dsGfxFormat_offscreenSupported(const dsResourceManager* resourceManager, ds
 	return resourceManager->offscreenFormatSupportedFunc(resourceManager, format);
 }
 
+bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->textureBufferFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->textureBufferFormatSupportedFunc(resourceManager, format);
+}
+
 unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
 dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
 unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);

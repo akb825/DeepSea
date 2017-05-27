@@ -129,6 +129,32 @@ DS_RENDER_EXPORT bool dsMaterial_setTexture(dsMaterial* material, uint32_t eleme
 	dsTexture* texture);
 
 /**
+ * @brief Gets the texture buffer data for a material element.
+ * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
+ * @param[out] outOffset The offset into the buffer. This may be NULL.
+ * @param[out] outCount The number of texels for the buffer. This may be NULL.
+ * @param material The material to get the buffer from.
+ * @param element The index of the element to get.
+ * @return The buffer, or NULL if not found or unset.
+ */
+DS_RENDER_EXPORT dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffset,
+	size_t* outCount, const dsMaterial* material, uint32_t element);
+
+/**
+ * @brief Sets the texture buffer data for a material element.
+ * @remark errno will be set on failure.
+ * @param material The material to set the buffer on.
+ * @param element The index of the element to set.
+ * @param buffer The buffer to set.
+ * @param format The texture format to interpret the buffer data.
+ * @param offset The offset into the buffer.
+ * @param count The number of texels for the buffer.
+ * @return Flase if the parameters are invalid or the element isn't a buffer.
+ */
+DS_RENDER_EXPORT bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element,
+	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
+
+/**
  * @brief Gets the shader variable group data for a material element.
  * @param material The material to get the shader variable group from.
  * @param element The index of the element to get.

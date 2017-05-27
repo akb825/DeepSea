@@ -53,6 +53,13 @@ static bool offscreenFormatSupported(const dsResourceManager* resourceManager, d
 	return !dsGfxFormat_compressedIndex(format);
 }
 
+static bool textureBufferFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_UNUSED(resourceManager);
+	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
+}
+
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
@@ -97,7 +104,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->canCopyBuffers = true;
 	resourceManager->maxIndexBits = 32;
-	resourceManager->maxUniformBlcokSize = 1024*1024*1024;
+	resourceManager->maxUniformBlockSize = 1024*1024*1024;
+	resourceManager->maxTextureBufferSize = 64*1024;
 	resourceManager->maxVertexAttribs = 16;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
@@ -112,6 +120,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
 	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
+	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 
