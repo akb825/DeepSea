@@ -95,6 +95,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage |
 		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
+	resourceManager->canCopyBuffers = true;
 	resourceManager->maxIndexBits = 32;
 	resourceManager->maxUniformBlcokSize = 1024*1024*1024;
 	resourceManager->maxVertexAttribs = 16;
@@ -104,6 +105,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxFramebufferLayers = 1024;
 	resourceManager->arbitraryMipmapping = true;
 	resourceManager->texturesReadable = true;
+	resourceManager->canCopyTextures = true;
 	resourceManager->requiresColorBuffer = false;
 	resourceManager->canMixWithRenderSurface = true;
 

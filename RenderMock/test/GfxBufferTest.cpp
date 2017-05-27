@@ -70,7 +70,8 @@ TEST_F(GfxBufferTest, Map)
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Read, &testData, sizeof(testData));
+		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_Read | dsGfxMemory_Persistent,
+		&testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(TestData) + 10));
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER);

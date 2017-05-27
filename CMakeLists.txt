@@ -16,6 +16,13 @@ set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
 set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 
 set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
+set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation, used by tests.")
+set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")
+
+# OpenGL specific options.
+set(DEEPSEA_GLES OFF CACHE BOOL "Use OpenGL ES rather than desktop OpenGL.")
+set(DEEPSEA_TARGET_GLES_VERSION "30" CACHE STRING
+	"The version of OpenGL ES to use times 10. This is currently only used for Apple platforms.")
 
 # Misc options.
 set(DEEPSEA_OUTPUT_DIR ${CMAKE_BINARY_DIR}/output CACHE PATH "Folder for placing the build output.")
@@ -60,6 +67,7 @@ set(DEEPSEA_VERSION ${DEEPSEA_MAJOR_VERSION}.${DEEPSEA_MINOR_VERSION}.${DEEPSEA_
 
 set(DEEPSEA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${DEEPSEA_SOURCE_DIR}/cmake)
 include(cmake/config.cmake)
 include(cmake/install.cmake)
 
@@ -71,7 +79,12 @@ ds_add_module(Math)
 if (DEEPSEA_BUILD_RENDER)
 	ds_add_module(Geometry)
 	ds_add_module(Render)
-	ds_add_module(RenderMock)
+	if (DEEPSEA_BUILD_RENDER_MOCK)
+		ds_add_module(RenderMock)
+	endif()
+	if (DEEPSEA_BUILD_RENDER_OPENGL)
+		ds_add_module(RenderOpenGL)
+	endif()
 endif()
 
 ds_finish_modules()

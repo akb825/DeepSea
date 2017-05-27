@@ -65,14 +65,15 @@ extern "C"
  */
 typedef enum dsGfxMemory
 {
-	dsGfxMemory_GpuOnly = 0x01,    ///< The memory will only ever be accessed by the GPU.
-	dsGfxMemory_Static = 0x02,     ///< The memory will be modified on the CPU very rarely.
-	dsGfxMemory_Dynamic = 0x04,    ///< The memory will be modified on the CPU somewhat often.
-	dsGfxMemory_Stream = 0x08,     ///< The memory will be modified on the CPU every time it's used.
-	dsGfxMemory_Draw = 0x10,       ///< The memory will be used by draw commands.
-	dsGfxMemory_Read = 0x20,       ///< The memory will be read back from the GPU.
-	dsGfxMemory_Coherent = 0x40,   ///< The memory should remain coherent to avoid manual flushing.
-	dsGfxMemory_Synchronize = 0x80 ///< Wait for the memory to not be in use when mapping.
+	dsGfxMemory_GpuOnly = 0x001,    ///< The memory will only ever be accessed by the GPU.
+	dsGfxMemory_Static = 0x002,     ///< The memory will never be modified from the CPU.
+	dsGfxMemory_Dynamic = 0x004,    ///< The memory will be modified on the CPU occasionally.
+	dsGfxMemory_Stream = 0x008,     ///< The memory will be modified on the CPU constantly.
+	dsGfxMemory_Draw = 0x010,       ///< The memory will be used by draw commands.
+	dsGfxMemory_Read = 0x020,       ///< The memory will be read back from the GPU.
+	dsGfxMemory_Persistent = 0x040, ///< The memory will be mapped mersistently across frames.
+	dsGfxMemory_Coherent = 0x080,   ///< The memory should remain coherent to avoid manual flushing.
+	dsGfxMemory_Synchronize = 0x100 ///< Wait for the memory to not be in use when mapping.
 } dsGfxMemory;
 
 /**
@@ -1509,6 +1510,11 @@ struct dsResourceManager
 	dsGfxBufferMapSupport bufferMapSupport;
 
 	/**
+	 * @brief Whether or not buffers can be copied between each other.
+	 */
+	bool canCopyBuffers;
+
+	/**
 	 * @brief The maximum number of bits for each index.
 	 */
 	uint32_t maxIndexBits;
@@ -1558,6 +1564,11 @@ struct dsResourceManager
 	 * Offscreens will always be readable.
 	 */
 	bool texturesReadable;
+
+	/**
+	 * @brief Boolean for whether or not textures can be copied or blitted between each other.
+	 */
+	bool canCopyTextures;
 
 	/**
 	 * @brief True if a color buffer must be provided with a framebuffer.

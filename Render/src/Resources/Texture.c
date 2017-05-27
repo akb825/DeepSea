@@ -409,6 +409,15 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	dsResourceManager* resourceManager = srcTexture->resourceManager;
+	if (!resourceManager->canCopyBuffers)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Textures cannot be copied between each other on the current device.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (!(srcTexture->usage & dsTextureUsage_CopyFrom))
 	{
 		errno = EPERM;
@@ -506,7 +515,6 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 	}
 
-	dsResourceManager* resourceManager = srcTexture->resourceManager;
 	bool success = resourceManager->copyTextureFunc(resourceManager, commandBuffer, srcTexture,
 		dstTexture, regions, regionCount);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -521,6 +529,15 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		!srcTexture->resourceManager->blitTextureFunc || !regions)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = srcTexture->resourceManager;
+	if (!resourceManager->canCopyBuffers)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Textures cannot be copied between each other on the current device.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -642,7 +659,6 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 	}
 
-	dsResourceManager* resourceManager = srcTexture->resourceManager;
 	bool success = resourceManager->blitTextureFunc(resourceManager, commandBuffer, srcTexture,
 		dstTexture, regions, regionCount, filter);
 	DS_PROFILE_FUNC_RETURN(success);

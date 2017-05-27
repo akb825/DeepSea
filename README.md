@@ -48,6 +48,13 @@ The following options may be used when running cmake:
 * `-DDEEPSEA_BUILD_TESTS=ON|OFF`: Set to `ON` to build the unit tests. `gtest` must also be found in order to build the unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_DOCS=ON|OFF`: Set to `ON` to build the documentation. `doxygen` must also be found in order to build the documentation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER=ON|OFF`: Set to `ON` to build the libraries related to rendering. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
+
+## OpenGL specific Options
+
+* `-DDEEPSEA_GLES=ON|OFF`: Set to `ONE` to use OpenGL ES instead of desktop OpenGL. Defaults to `OFF`.
+* `-DDEEPSEA_TARGET_GLES_VERSION=##`: Set to the target OpenGL ES version times 10. This is currently only used for Apple platforms, and will be the maximum version number supported. Defaults to `30`.
 
 ## Miscellaneous Options:
 

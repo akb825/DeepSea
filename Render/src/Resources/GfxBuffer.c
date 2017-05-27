@@ -115,6 +115,14 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if ((flags & dsGfxBufferMap_Persistent) && !(buffer->memoryHints & dsGfxMemory_Persistent))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to persistently map a buffer without the persistent memory flag set.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if ((size == DS_MAP_FULL_BUFFER && offset > size) ||
 		(size != DS_MAP_FULL_BUFFER && !DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size)))
 	{
@@ -140,17 +148,21 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	void* ptr;
 	if (support == dsGfxBufferMapSupport_Full)
 	{
-		void* mappedMem = resourceManager->mapBufferFunc(resourceManager, buffer, flags, 0,
-			DS_MAP_FULL_BUFFER);
-		ptr = ((uint8_t*)mappedMem + offset);
+		ptr = resourceManager->mapBufferFunc(resourceManager, buffer, flags, 0, DS_MAP_FULL_BUFFER);
+		if (!ptr)
+			DS_PROFILE_FUNC_RETURN(NULL);
+		ptr = ((uint8_t*)ptr + offset);
 	}
 	else
 	{
 		size_t rem = 0;
 		if (resourceManager->minMappingAlignment > 0)
 			rem = offset % resourceManager->minMappingAlignment;
-		ptr = ((uint8_t*)buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags,
-			offset - rem, size + rem) + rem);
+		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset - rem,
+			size + rem);
+		if (!ptr)
+			DS_PROFILE_FUNC_RETURN(NULL);
+		ptr = ((uint8_t*)ptr + rem);
 	}
 
 	DS_PROFILE_FUNC_RETURN(ptr);
@@ -294,6 +306,15 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	dsResourceManager* resourceManager = srcBuffer->resourceManager;
+	if (!resourceManager->canCopyBuffers)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffers cannot be copied between each other on the current device.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (!(srcBuffer->usage & dsGfxBufferUsage_CopyFrom))
 	{
 		errno = EPERM;
@@ -318,7 +339,6 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsResourceManager* resourceManager = srcBuffer->resourceManager;
 	bool success = resourceManager->copyBufferFunc(resourceManager, commandBuffer, srcBuffer,
 		srcOffset, dstBuffer, dstOffset, size);
 	DS_PROFILE_FUNC_RETURN(success);
