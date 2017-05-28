@@ -34,7 +34,7 @@ extern "C"
  * context to be created. Up to maxResourceContexts contexts may be created, which may be 0 for
  * platforms that don't allow multiple threads to access graphics resources.
  *
- * These functions are for dealing with the resource manager in general. Functions for creating and
+ * These functions are for using the resource manager in general. Functions for creating and
  * manipulating specific resource types are found in the .h files for that resource type.
  *
  * @see dsResourceManager

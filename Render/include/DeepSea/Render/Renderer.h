@@ -35,6 +35,7 @@ extern "C"
  * Unlike most types, this doesn't contain any functions for creating or destroying a renderer.
  * This is handled by the renderer implementation libraries.
  *
+ * @remark All functions that don't take a command buffer must be called on the main thread.
  * @see dsRenderer
  */
 
@@ -202,6 +203,19 @@ DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(dsRenderer* renderer,
  */
 DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset);
+
+/**
+ * @brief Waits until the GPU is idle.
+ *
+ * Waiting until idle is useful when destroying large numbers of graphics resources (e.g. unloading
+ * a scene) since it allows the implementation to destroy those resources immediately rather than
+ * waiting for the current frame to complete. This can reduce spikes of memory usage when a new set
+ * of resources is loaded while waiting to destroy the old set.
+ *
+ * @param renderer The renderer.
+ * @return False if the renderer couldn't be waited on.
+ */
+DS_RENDER_EXPORT bool dsRenderer_waitUntilIdle(dsRenderer* renderer);
 
 /**
  * @brief Initializes the members of a renderer.

@@ -490,3 +490,9 @@ TEST_F(RendererTest, DispatchComputeIndirect)
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(indirectBuffer));
 }
+
+TEST_F(RendererTest, WaitUntilIdle)
+{
+	EXPECT_FALSE(dsRenderer_waitUntilIdle(NULL));
+	EXPECT_TRUE(dsRenderer_waitUntilIdle(renderer));
+}

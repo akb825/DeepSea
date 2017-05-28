@@ -873,6 +873,13 @@ typedef bool (*dsRenderDispatchComputeFunction)(dsRenderer* renderer,
 typedef bool (*dsRenderDispatchComputeIndirectFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset);
 
+/**
+ * @brief Function for waiting until the GPU is idle.
+ * @param renderer The renderer.
+ * @return False if the renderer is in an invalid state.
+ */
+typedef bool (*dsRenderWaitUntilIdleFunction)(dsRenderer* renderer);
+
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
@@ -973,7 +980,7 @@ struct dsRenderer
 	 *
 	 * This is incremented when calling dsRenderer_beginFrame().
 	 */
-	uint32_t frameNumber;
+	uint64_t frameNumber;
 
 	/**
 	 * @brief Render surface creation function.
@@ -1124,6 +1131,11 @@ struct dsRenderer
 	 * @brief Compute shader indirect dispatch function.
 	 */
 	dsRenderDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
+
+	/**
+	 * @brief Idle waiting function.
+	 */
+	dsRenderWaitUntilIdleFunction waitUntilIdleFunc;
 };
 
 #ifdef __cplusplus

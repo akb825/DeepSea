@@ -197,6 +197,13 @@ bool dsMockRenderer_dispatchComputeIndirect(dsRenderer* renderer,
 	return true;
 }
 
+bool dsMockRenderer_waitUntilIdle(dsRenderer* renderer)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	return true;
+}
+
 dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 {
 	if (!allocator)
@@ -289,6 +296,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->drawIndexedIndirectFunc = &dsMockRenderer_drawIndexedIndirect;
 	renderer->dispatchComputeFunc = &dsMockRenderer_dispatchCompute;
 	renderer->dispatchComputeIndirectFunc = &dsMockRenderer_dispatchComputeIndirect;
+	renderer->waitUntilIdleFunc = &dsMockRenderer_waitUntilIdle;
 
 	return renderer;
 }

@@ -56,7 +56,7 @@ extern "C"
 #define DS_MAX_GEOMETRY_VERTEX_BUFFERS 4
 
 /**
- * @brief Constant for no known value.
+ * @brief Constant for no known material value.
  */
 #define DS_MATERIAL_UNKNOWN (uint32_t)-1
 
@@ -354,6 +354,18 @@ typedef enum dsFramebufferSurfaceType
 	dsFramebufferSurfaceType_Offscreen,          ///< Offscreen texture.
 	dsFramebufferSurfaceType_Renderbuffer        ///< Color or depth renderbuffer.
 } dsFramebufferSurfaceType;
+
+/**
+ * @brief Enum for the result of waiting for a fence.
+ */
+typedef enum dsGfxFenceResult
+{
+	dsGfxFenceResult_Success,        ///< The fence has finishd on the GPU side.
+	dsGfxFenceResult_Timeout,        ///< The timeout has been reached.
+	dsGfxFenceResult_Unset,          ///< The fence hasn't been set yet.
+	dsGfxFenceResult_WaitingToQueue, ///< Still waiting to queue the fence on the GPU.
+	dsGfxFenceResult_Error           ///< An error occurred. errno will have more info.
+} dsGfxFenceResult;
 
 /// \{
 typedef struct dsCommandBuffer dsCommandBuffer;
@@ -996,6 +1008,28 @@ typedef struct dsFramebuffer
 } dsFramebuffer;
 
 /**
+ * @brief Structure defining a fence, allowing the CPU to synchronize to the GPU.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsFramebuffer and the true internal type.
+ *
+ * @see GfxFence.h
+ */
+typedef struct dsGfxFence
+{
+	/**
+	 * The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+} dsGfxFence;
+
+/**
  * @brief Struct for a resource context.
  *
  * A resource context must be created for each thread that manages resources. The context will be
@@ -1349,6 +1383,54 @@ typedef bool (*dsDestroyFramebufferFunction)(dsResourceManager* resourceManager,
 	dsFramebuffer* framebuffer);
 
 /**
+ * @brief Function for creating a fence.
+ * @param resourceManager The resource manager to create the fence from.
+ * @param allocator The allocator to create the fence with.
+ * @return The created fence, or NULL if it couldn't be created.
+ */
+typedef dsGfxFence* (*dsCreateFenceFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator);
+
+/**
+ * @brief Function for destroying a fence.
+ * @param resourceManager The resource manager the fence was created with.
+ * @param framebuffer The fence.
+ * @return False if the fence couldn't be destroyed.
+ */
+typedef bool (*dsDestroyFenceFunction)(dsResourceManager* resourceManager,
+	dsGfxFence* fence);
+
+/**
+ * @brief Function for setting a fence.
+ * @param resourceManager The resource manager the fence was created with.
+ * @param commandBuffer The command buffer to queue the fence on.
+ * @param fence The fence.
+ * @param bufferReadback True if persistently mapped buffers will be read back.
+ * @return False if the fence couldn't be set.
+ */
+typedef bool (*dsSetFenceFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxFence* fence, bool bufferReadback);
+
+/**
+ * @brief Function for waiting for a fence to complete.
+ * @param resourceManager The resource manager the fence was created with.
+ * @param fence The fence.
+ * @param timeout The number of nanoseconds to wait for the fence.
+ * @return The result of the wait.
+ */
+typedef dsGfxFenceResult (*dsWaitFenceFunction)(dsResourceManager* resourceManager,
+	dsGfxFence* fence, uint64_t timeout);
+
+/**
+ * @brief Function for resetting a fence.
+ * @param resourceManager The resource manager the fence was created with.
+ * @param fence The fence.
+ * @return False if the fence couldn't be reset.
+ */
+typedef bool (*dsResetFenceFunction)(dsResourceManager* resourceManager,
+	dsGfxFence* fence);
+
+/**
  * @brief Function for creating a shader module.
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with.
@@ -1587,6 +1669,11 @@ struct dsResourceManager
 	bool canMixWithRenderSurface;
 
 	/**
+	 * @brief True if fences are supported.
+	 */
+	bool hasFences;
+
+	/**
 	 * @brief The current number of resource contexts.
 	 */
 	uint32_t resourceContextCount;
@@ -1615,6 +1702,11 @@ struct dsResourceManager
 	 * @brief The number of framebuffers currently allocated by the resource manager.
 	 */
 	uint32_t framebufferCount;
+
+	/**
+	 * @brief The number of fences currently allocated by the resource manager.
+	 */
+	uint32_t fenceCount;
 
 	/**
 	 * @brief The number of shader modules currently allocated by the resource manager.
@@ -1805,6 +1897,31 @@ struct dsResourceManager
 	 * @brief Function for destroying a framebuffer.
 	 */
 	dsDestroyFramebufferFunction destroyFramebufferFunc;
+
+	/**
+	 * @brief Function for creating a fence.
+	 */
+	dsCreateFenceFunction createFenceFunc;
+
+	/**
+	 * @brief Function for destroying a fence.
+	 */
+	dsDestroyFenceFunction destroyFenceFunc;
+
+	/**
+	 * @brief Function for setting a fence.
+	 */
+	dsSetFenceFunction setFenceFunc;
+
+	/**
+	 * @brief Function for waiting on a fence.
+	 */
+	dsWaitFenceFunction waitFenceFunc;
+
+	/**
+	 * @brief Function for resetting a fence.
+	 */
+	dsResetFenceFunction resetFenceFunc;
 
 	/**
 	 * @brief Shader module creation function.

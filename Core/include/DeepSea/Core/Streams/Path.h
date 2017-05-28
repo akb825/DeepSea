@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Helper functions for dealing with paths.
+ * @brief Helper functions for manipulating paths.
  *
  * For each of the functions that take a result buffer as a parameter, it is safe to have it be the
  * same as the input path. The exception is dsPath_combine(), where the buffer cannot be the same as

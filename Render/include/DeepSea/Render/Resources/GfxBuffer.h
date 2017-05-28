@@ -27,12 +27,13 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for dealing with graphics buffers.
+ * @brief Functions for using graphics buffers.
  *
- * All functions must either be called on the main thread or on a thread with an active resource
- * context. A resource shouldn't be accessed simultaneously across multiple threads.
+ * Unless a command buffer is passed as an argument, all functions must either be called on the main
+ * thread or on a thread with an active resource context. A resource shouldn't be accessed
+ * simultaneously across multiple threads.
  *
- * @see dsGfxFormat
+ * @see dsGfxBuffer
  */
 
 /**

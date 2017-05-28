@@ -27,7 +27,7 @@ extern "C"
 
 /**
  * @file
- * @brief Utility functions for dealing with graphics formats.
+ * @brief Utility functions for using graphics formats.
  */
 
 /**

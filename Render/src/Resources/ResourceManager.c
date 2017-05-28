@@ -138,6 +138,11 @@ void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager
 	DS_PROFILE_STAT("ResourceManager", "Textures", resourceManager->textureCount);
 	DS_PROFILE_STAT("ResourceManager", "Texture memory (MB)",
 		(double)resourceManager->textureMemorySize/(1024.0*1024.0));
+	DS_PROFILE_STAT("ResourceManager", "Renderbuffers", resourceManager->renderbufferCount);
+	DS_PROFILE_STAT("ResourceManager", "Renderbuffer memory (MB)",
+		resourceManager->renderbufferMemorySize);
+	DS_PROFILE_STAT("ResourceManager", "Framebuffers", resourceManager->framebufferCount);
+	DS_PROFILE_STAT("ResourceManager", "Fences", resourceManager->fenceCount);
 	DS_PROFILE_STAT("ResourceManager", "Shader modules", resourceManager->shaderModuleCount);
 	DS_PROFILE_STAT("ResourceManager", "Shaders", resourceManager->shaderCount);
 	DS_PROFILE_STAT("ResourceManager", "Material descriptions", resourceManager->materialDescCount);

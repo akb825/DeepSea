@@ -510,6 +510,24 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
+bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
+{
+	if (!renderer || !renderer->waitUntilIdleFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Waiting for idle must be done on the main thread.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	return renderer->waitUntilIdleFunc(renderer);
+}
+
 bool dsRenderer_initialize(dsRenderer* renderer)
 {
 	if (!renderer)

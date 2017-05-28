@@ -19,6 +19,7 @@
 #include "Resources/MockDrawGeometry.h"
 #include "Resources/MockFramebuffer.h"
 #include "Resources/MockGfxBuffer.h"
+#include "Resources/MockGfxFence.h"
 #include "Resources/MockMaterialDesc.h"
 #include "Resources/MockRenderbuffer.h"
 #include "Resources/MockShader.h"
@@ -116,6 +117,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->canCopyTextures = true;
 	resourceManager->requiresColorBuffer = false;
 	resourceManager->canMixWithRenderSurface = true;
+	resourceManager->hasFences = true;
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
@@ -164,6 +166,12 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bindShaderFunc = &dsMockShader_bind;
 	resourceManager->updateShaderVolatileValuesFunc = &dsMockShader_updateVolatileValues;
 	resourceManager->unbindShaderFunc = &dsMockShader_unbind;
+
+	resourceManager->createFenceFunc = &dsMockGfxFence_create;
+	resourceManager->destroyFenceFunc = &dsMockGfxFence_destroy;
+	resourceManager->setFenceFunc = &dsMockGfxFence_set;
+	resourceManager->waitFenceFunc = &dsMockGfxFence_wait;
+	resourceManager->resetFenceFunc = &dsMockGfxFence_reset;
 
 	return resourceManager;
 }
