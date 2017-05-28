@@ -239,6 +239,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 		(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
+	renderer->mainCommandBuffer->usage = dsCommandBufferUsage_Standard;
 
 	renderer->maxColorAttachments = 4;
 	renderer->maxAnisotropy = 16;

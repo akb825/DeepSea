@@ -96,9 +96,10 @@ typedef enum dsRenderSurfaceType
  */
 typedef enum dsCommandBufferUsage
 {
-	dsCommandBufferUsage_Subpass = 0x1,        ///< Will only be used within a render subpass.
-	dsCommandBufferUsage_MultipleSubmit = 0x2, ///< Will be submitted multiple times in a frame.
-	dsCommandBufferUsage_MultipleFrames = 0x4, ///< Will be submitted across frames.
+	dsCommandBufferUsage_Standard = 0,      ///< Standard usage.
+	dsCommandBufferUsage_Subpass = 0x1,     ///< Will only be used within a render subpass.
+	dsCommandBufferUsage_MultiSubmit = 0x2, ///< Will be submitted multiple times in a frame.
+	dsCommandBufferUsage_MultiFrame = 0x4,  ///< Will be submitted across frames.
 	/**
 	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
 	 * in parallel to another set being submitted.
@@ -183,6 +184,13 @@ typedef struct dsCommandBuffer
 	 * @brief The renderer this is used with.
 	 */
 	dsRenderer* renderer;
+
+	/**
+	 * @brief The usage of the command buffer.
+	 *
+	 * This should be inherited from the parent pool or dsCommandBufferUsage if not part of a pool.
+	 */
+	dsCommandBufferUsage usage;
 } dsCommandBuffer;
 
 /**

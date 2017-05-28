@@ -93,6 +93,17 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, const dsCommandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (((commandBuffer->usage & dsCommandBufferUsage_MultiSubmit) &&
+		!(submitBuffer->usage & dsCommandBufferUsage_MultiSubmit)) ||
+		((commandBuffer->usage & dsCommandBufferUsage_MultiFrame) &&
+				!(submitBuffer->usage & dsCommandBufferUsage_MultiFrame)))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot submit a single-use command buffer to a multi-use command buffer.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsRenderer* renderer = commandBuffer->renderer;
 	if (submitBuffer == renderer->mainCommandBuffer)
 	{

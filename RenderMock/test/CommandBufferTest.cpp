@@ -43,11 +43,19 @@ TEST_F(CommandBufferTest, Submit)
 	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL, 0, 1);
 	ASSERT_TRUE(pool);
 
+	dsCommandBufferPool* otherPool = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_MultiSubmit, 1);
+	ASSERT_TRUE(otherPool);
+
 	EXPECT_FALSE(dsCommandBuffer_submit(NULL, NULL));
 	EXPECT_FALSE(dsCommandBuffer_submit(pool->currentBuffers[0], NULL));
 	EXPECT_FALSE(dsCommandBuffer_submit(NULL, pool->currentBuffers[0]));
 	EXPECT_FALSE(dsCommandBuffer_submit(pool->currentBuffers[0], renderer->mainCommandBuffer));
 	EXPECT_TRUE(dsCommandBuffer_submit(renderer->mainCommandBuffer, pool->currentBuffers[0]));
 
+	EXPECT_TRUE(dsCommandBuffer_submit(pool->currentBuffers[0], otherPool->currentBuffers[0]));
+	EXPECT_FALSE(dsCommandBuffer_submit(otherPool->currentBuffers[0], pool->currentBuffers[0]));
+
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));
+	EXPECT_TRUE(dsCommandBufferPool_destroy(otherPool));
 }
