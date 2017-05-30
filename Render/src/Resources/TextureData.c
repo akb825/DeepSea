@@ -387,6 +387,8 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 				DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}
+	if (dsGfxFormat_compressedIndex(format) != 0 && colorSpace == 0)
+		format = dsGfxFormat_decorate(format, dsGfxFormat_UNorm);
 
 	uint32_t width, height, depth, surfaces, faces, mipLevels;
 	if (!readUInt32(stream, &height, filePath) || !readUInt32(stream, &width, filePath) ||

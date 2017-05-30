@@ -17,10 +17,9 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Types.h>
+#include "Types.h"
 
-bool dsMockCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
-bool dsMockCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
-bool dsMockCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	dsCommandBuffer* submitBuffer);
+void dsGLResource_initialize(dsGLResource* resource);
+void dsGLResource_addRef(dsGLResource* resource);
+bool dsGLResource_freeRef(dsGLResource* resource);
+bool dsGLResource_destroy(dsGLResource* resource);

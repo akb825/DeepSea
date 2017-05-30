@@ -54,7 +54,8 @@ TEST_F(TextureTest, Size)
 		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, 1));
 	EXPECT_EQ(178956800U, dsTexture_size(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 128, DS_ALL_MIP_LEVELS, 1));
-	EXPECT_EQ(8U, dsTexture_size(dsGfxFormat_BC1_RGB, dsTextureDim_2D, 1, 1, 1, 1, 1));
+	EXPECT_EQ(8U, dsTexture_size(dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 1, 1, 1, 1, 1));
 }
 
 TEST_F(TextureTest, SurfaceOffset)
@@ -122,9 +123,11 @@ TEST_F(TextureTest, Create)
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
 	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static, dsGfxFormat_BC3, dsTextureDim_2D, 127, 255, 0, 1, NULL, 0));
+		dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 127, 255, 0, 1, NULL, 0));
 	texture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
-		dsGfxFormat_BC3, dsTextureDim_2D, 128, 256, 0, 1, NULL, 0);
+		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm), dsTextureDim_2D, 128, 256, 0, 1,
+		NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256, resourceManager->textureMemorySize);
@@ -199,7 +202,8 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static, dsGfxFormat_BC3, dsTextureDim_2D, 128, 256, 0, 1, 1, true));
+		dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 128, 256, 0, 1, 1, true));
 
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 3, 1, true);

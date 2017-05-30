@@ -75,7 +75,7 @@ bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer)
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, const dsCommandBuffer* submitBuffer)
+bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

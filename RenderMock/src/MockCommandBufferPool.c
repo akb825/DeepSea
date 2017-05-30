@@ -56,6 +56,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 			(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
 		DS_ASSERT(pool->currentBuffers[i]);
 		pool->currentBuffers[i]->renderer = renderer;
+		pool->currentBuffers[i]->allocator = pool->allocator;
 		pool->currentBuffers[i]->usage = pool->usage;
 	}
 
@@ -70,6 +71,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 				(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
 			DS_ASSERT(pool->otherBuffers[i]);
 			pool->otherBuffers[i]->renderer = renderer;
+			pool->otherBuffers[i]->allocator = pool->allocator;
 			pool->otherBuffers[i]->usage = pool->usage;
 		}
 	}

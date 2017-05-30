@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "Types.h"
 
 void* dsGetGLDisplay(void);
@@ -30,5 +31,7 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface);
 
 void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
+void dsSwapGLBuffers(void* display, void* surface);
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface);
+
 bool dsBindGLContext(void* display, void* context, void* surface);

@@ -17,7 +17,9 @@
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
 #include "Resources/GLGfxBuffer.h"
+#include "GLCommandBuffer.h"
 #include "GLHelpers.h"
+#include "GLResource.h"
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -41,6 +43,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	baseBuffer->memoryHints = memoryHints;
 	baseBuffer->size = size;
 	buffer->bufferId = 0;
+	dsGLResource_initialize(&buffer->resource);
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();
 	AnyGL_setErrorCheckingEnabled(false);
@@ -226,11 +229,24 @@ bool dsGLGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	return true;
 }
 
-bool dsGLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
+bool dsGLGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
 {
 	DS_UNUSED(resourceManager);
-	DS_ASSERT(buffer);
+	return dsGLCommandBuffer_copyBufferData(commandBuffer, buffer, offset, data, size);
+}
 
+bool dsGLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
+	size_t size)
+{
+	DS_UNUSED(resourceManager);
+	return dsGLCommandBuffer_copyBuffer(commandBuffer, srcBuffer, srcOffset, dstBuffer, dstOffset,
+		size);
+}
+
+static bool destroyImpl(dsGfxBuffer* buffer)
+{
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	if (glBuffer->bufferId)
 		glDeleteBuffers(1, &glBuffer->bufferId);
@@ -238,4 +254,31 @@ bool dsGLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buff
 		return dsAllocator_free(buffer->allocator, buffer);
 
 	return true;
+}
+
+bool dsGLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(buffer);
+
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	if (dsGLResource_destroy(&glBuffer->resource))
+		return destroyImpl(buffer);
+
+	return true;
+}
+
+void dsGLGfxBuffer_addInternalRef(dsGfxBuffer* buffer)
+{
+	DS_ASSERT(buffer);
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	dsGLResource_addRef(&glBuffer->resource);
+}
+
+void dsGLGfxBuffer_freeInternalRef(dsGfxBuffer* buffer)
+{
+	DS_ASSERT(buffer);
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	if (dsGLResource_freeRef(&glBuffer->resource))
+		destroyImpl(buffer);
 }

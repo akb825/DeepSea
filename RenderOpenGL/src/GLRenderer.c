@@ -20,6 +20,7 @@
 #include "AnyGL/gl.h"
 #include "Platform/Platform.h"
 #include "Resources/GLResourceManager.h"
+#include "GLMainCommandBuffer.h"
 #include "Types.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -223,6 +224,14 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
+	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
+		allocator);
+	if (!baseRenderer->mainCommandBuffer)
+	{
+		dsGLRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceSamples = options->samples;
@@ -245,6 +254,7 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 		return;
 
 	dsGLResourceManager_destroy((dsGLResourceManager*)renderer->resourceManager);
+	dsGLMainCommandBuffer_destroy((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;

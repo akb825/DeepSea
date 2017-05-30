@@ -42,7 +42,7 @@ bool dsMockCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 }
 
 bool dsMockCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsCommandBuffer* submitBuffer)
+	dsCommandBuffer* submitBuffer)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);

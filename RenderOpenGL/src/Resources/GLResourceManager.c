@@ -27,15 +27,40 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <stdint.h>
 #include <string.h>
+
+enum FormatBit
+{
+	FormatBit_Vertex = 0x1,
+	FormatBit_Texture = 0x2,
+	FormatBit_Offscreen = 0x4,
+	FormatBit_TextureBuffer = 0x8
+};
 
 static size_t dsGLResourceManager_fullAllocSize(const dsOpenGLOptions* options)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsGLResourceManager)) +
 		DS_ALIGNED_SIZE(options->maxResourceThreads*sizeof(dsResourceContext)) +
 		dsMutex_fullAllocSize();
+}
+
+static void glGetSizeT(GLenum pname, size_t* value)
+{
+	if (ANYGL_SUPPORTED(glGetInteger64v))
+	{
+		GLint64 temp = 0;
+		glGetInteger64v(pname, &temp);
+		*value = (size_t)temp;
+	}
+	else
+	{
+		GLint temp = 0;
+		glGetIntegerv(pname, &temp);
+		*value = temp;
+	}
 }
 
 static dsGfxBufferUsage getSupportedBuffers(void)
@@ -88,7 +113,554 @@ static dsGfxBufferMapSupport getBufferMapSupport(void)
 	return dsGfxBufferMapSupport_Range;
 }
 
-static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
+static void setStandardFormat(dsGLResourceManager* resourceManager, dsGfxFormat format,
+	dsGfxFormat decorator, int bits, GLenum internalFormat, GLenum glFormat, GLenum type)
+{
+	unsigned int index = dsGfxFormat_standardIndex(format);
+	unsigned int decoratorIndex = dsGfxFormat_standardIndex(decorator);
+	resourceManager->standardFormats[index][decoratorIndex] = bits;
+	resourceManager->standardInternalFormats[index][decoratorIndex] = internalFormat;
+	resourceManager->standardGlFormats[index][decoratorIndex] = glFormat;
+	resourceManager->standardTypes[index][decoratorIndex] = type;
+}
+
+static void setSpecialFormat(dsGLResourceManager* resourceManager, dsGfxFormat format,
+	int bits, GLenum internalFormat, GLenum glFormat, GLenum type)
+{
+	unsigned int index = dsGfxFormat_specialIndex(format);
+	resourceManager->specialFormats[index] = bits;
+	resourceManager->specialInternalFormats[index] = internalFormat;
+	resourceManager->specialGlFormats[index] = glFormat;
+	resourceManager->specialTypes[index] = type;
+}
+
+static void setCompressedFormat(dsGLResourceManager* resourceManager, dsGfxFormat format,
+	dsGfxFormat decorator, int bits, GLenum internalFormat, GLenum glFormat)
+{
+	unsigned int index = dsGfxFormat_compressedIndex(format);
+	unsigned int decoratorIndex = dsGfxFormat_standardIndex(decorator);
+	resourceManager->compressedFormats[index][decoratorIndex] = bits;
+	resourceManager->compressedInternalFormats[index][decoratorIndex] = internalFormat;
+	resourceManager->compressedGlFormats[index][decoratorIndex] = glFormat;
+}
+
+static void cacheTextureFormats(dsGLResourceManager* resourceManager)
+{
+	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+	{
+		// Standard texture formats
+		// UNorm
+		setStandardFormat(resourceManager, dsGfxFormat_R4G4B4A4, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
+		setStandardFormat(resourceManager, dsGfxFormat_R5G6B5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
+		setStandardFormat(resourceManager, dsGfxFormat_R5G5B5A1, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
+		setStandardFormat(resourceManager, dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen, GL_RGB10_A2, GL_RGBA,
+			GL_UNSIGNED_INT_2_10_10_10_REV);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA8, GL_RGBA,
+			GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG8, GL_RG,
+			GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R8, GL_RED,
+			GL_UNSIGNED_BYTE);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16, GL_RGBA,
+			GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB16, GL_RGB, GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16, GL_RG,
+			GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16, GL_RED,
+			GL_UNSIGNED_SHORT);
+
+		// SNorm
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8_SNORM, GL_RGBA, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB8_SNORM, GL_RGB, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RG8_SNORM, GL_RG, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_R8_SNORM, GL_RED, GL_BYTE);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA16_SNORM, GL_RGBA, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB16_SNORM, GL_RGB, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RG16_SNORM, GL_RG, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_R16_SNORM, GL_RED, GL_SHORT);
+
+		// UScaled
+		setStandardFormat(resourceManager, dsGfxFormat_A2B10G10R10, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen, GL_RGB10_A2UI, GL_RGBA_INTEGER,
+			GL_UNSIGNED_INT_2_10_10_10_REV);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA8UI,
+			GL_RGBA_INTEGER, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UScaled,
+			FormatBit_Texture, GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG8UI,
+			GL_RG_INTEGER, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R8UI,
+			GL_RED_INTEGER, GL_UNSIGNED_BYTE);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16UI,
+			GL_RGBA_INTEGER, GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_UScaled,
+			FormatBit_Texture, GL_RGB16UI, GL_RGB_INTEGER, GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16UI,
+			GL_RG_INTEGER, GL_UNSIGNED_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16UI,
+			GL_RED_INTEGER, GL_UNSIGNED_SHORT);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32UI,
+			GL_RGBA_INTEGER, GL_UNSIGNED_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32UI, GL_RGB_INTEGER,
+			GL_UNSIGNED_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32UI,
+			GL_RG_INTEGER, GL_UNSIGNED_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_UScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32UI,
+			GL_RED_INTEGER, GL_UNSIGNED_INT);
+
+		// SScaled
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA8I,
+			GL_RGBA_INTEGER, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_SScaled,
+			FormatBit_Texture, GL_RGB8I, GL_RGB_INTEGER, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG8I,
+			GL_RG_INTEGER, GL_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R8I,
+			GL_RED_INTEGER, GL_BYTE);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16I,
+			GL_RGBA_INTEGER, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_SScaled,
+			FormatBit_Texture, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16I,
+			GL_RG_INTEGER, GL_SHORT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16I,
+			GL_RED_INTEGER, GL_SHORT);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32I,
+			GL_RGBA_INTEGER, GL_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32I, GL_RGB_INTEGER, GL_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32I,
+			GL_RG_INTEGER, GL_INT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_SScaled,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32I,
+			GL_RED_INTEGER, GL_INT);
+
+		// Float
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16F, GL_RGBA,
+			GL_HALF_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16F, GL_RG,
+			GL_HALF_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16F, GL_RED,
+			GL_HALF_FLOAT);
+
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32F, GL_RGBA,
+			GL_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32F, GL_RGB, GL_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32F, GL_RG,
+			GL_FLOAT);
+		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_Float,
+			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32F, GL_RED,
+			GL_FLOAT);
+
+		// SRGB
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen, GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_SRGB8, GL_RGB, GL_UNSIGNED_BYTE);
+
+		// Special formats
+		setSpecialFormat(resourceManager, dsGfxFormat_B10G11R11_UFloat,
+			FormatBit_Texture | FormatBit_Offscreen, GL_R11F_G11F_B10F, GL_RGB,
+			GL_UNSIGNED_INT_10F_11F_11F_REV);
+		setSpecialFormat(resourceManager, dsGfxFormat_E5B9G9R9_UFloat, FormatBit_Texture,
+			GL_RGB9_E5, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV);
+
+		setSpecialFormat(resourceManager, dsGfxFormat_D16, FormatBit_Texture | FormatBit_Offscreen,
+			GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT);
+		setSpecialFormat(resourceManager, dsGfxFormat_X8D24,
+			FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT,
+			GL_UNSIGNED_INT);
+		setSpecialFormat(resourceManager, dsGfxFormat_S8, FormatBit_Texture | FormatBit_Offscreen,
+			GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE);
+		setSpecialFormat(resourceManager, dsGfxFormat_D24S8,
+			FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL,
+			GL_UNSIGNED_INT_24_8);
+		setSpecialFormat(resourceManager, dsGfxFormat_D32S8_Float,
+			FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL,
+			GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
+	}
+	else
+	{
+		// UNorm
+		setStandardFormat(resourceManager, dsGfxFormat_R4G4B4A4, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
+		setStandardFormat(resourceManager, dsGfxFormat_R5G6B5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
+		setStandardFormat(resourceManager, dsGfxFormat_R5G5B5A1, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
+
+		if (AnyGL_EXT_texture_type_2_10_10_10_REV)
+		{
+			setStandardFormat(resourceManager, dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm,
+				FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA,
+				GL_UNSIGNED_INT_2_10_10_10_REV);
+		}
+
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA,
+			GL_UNSIGNED_BYTE);
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UNorm,
+			FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE);
+
+		// Float
+		if (AnyGL_ARB_texture_float || AnyGL_OES_texture_float)
+		{
+			setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_Float,
+				FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA, GL_FLOAT);
+			setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_Float,
+				FormatBit_Texture, GL_RGB, GL_RGB, GL_FLOAT);
+			setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_Float,
+				FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA,
+				GL_FLOAT);
+			setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_Float,
+				FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE, GL_LUMINANCE, GL_FLOAT);
+
+			if (AnyGL_ARB_half_float_pixel || AnyGL_OES_texture_float)
+			{
+				setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_Float,
+					FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA, GL_HALF_FLOAT);
+				setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_Float,
+					FormatBit_Texture, GL_RGB, GL_RGB, GL_HALF_FLOAT);
+				setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_Float,
+					FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE_ALPHA,
+					GL_LUMINANCE_ALPHA, GL_HALF_FLOAT);
+				setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_Float,
+					FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE, GL_LUMINANCE,
+					GL_HALF_FLOAT);
+			}
+		}
+
+		// SRGB
+		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_sRGB)
+		{
+			setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+				FormatBit_Texture | FormatBit_Offscreen, GL_SRGB8_ALPHA8, GL_RGBA,
+				GL_UNSIGNED_BYTE);
+			setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+				FormatBit_Texture, GL_SRGB8, GL_RGB, GL_UNSIGNED_BYTE);
+		}
+
+		// Special formats
+		if (AnyGL_EXT_packed_float)
+		{
+			setSpecialFormat(resourceManager, dsGfxFormat_B10G11R11_UFloat,
+				FormatBit_Texture | FormatBit_Offscreen, GL_RGB, GL_RGB,
+				GL_UNSIGNED_INT_10F_11F_11F_REV);
+			setSpecialFormat(resourceManager, dsGfxFormat_E5B9G9R9_UFloat, FormatBit_Texture,
+				GL_RGB, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV);
+		}
+
+		if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_OES_depth_texture)
+		{
+			setSpecialFormat(resourceManager, dsGfxFormat_D16,
+				FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
+				GL_UNSIGNED_SHORT);
+			setSpecialFormat(resourceManager, dsGfxFormat_X8D24,
+				FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
+				GL_UNSIGNED_INT);
+		}
+
+		if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_OES_texture_stencil8)
+		{
+			setSpecialFormat(resourceManager, dsGfxFormat_S8,
+				FormatBit_Texture | FormatBit_Offscreen, GL_STENCIL_INDEX, GL_STENCIL_INDEX,
+				GL_UNSIGNED_BYTE);
+		}
+
+		if (AnyGL_EXT_packed_depth_stencil || AnyGL_OES_packed_depth_stencil)
+		{
+			setSpecialFormat(resourceManager, dsGfxFormat_D24S8,
+				FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_STENCIL, GL_DEPTH_STENCIL,
+				GL_UNSIGNED_INT_24_8);
+		}
+	}
+
+	// Compressed formats
+	if (AnyGL_EXT_texture_compression_s3tc || AnyGL_EXT_texture_compression_dxt1)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, GL_RGB);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, GL_RGBA);
+		if (AnyGL_EXT_texture_sRGB)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT, GL_RGB);
+			setCompressedFormat(resourceManager, dsGfxFormat_BC1_RGBA, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, GL_RGBA);
+		}
+	}
+
+	if (AnyGL_EXT_texture_compression_s3tc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA);
+		if (AnyGL_EXT_texture_sRGB)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGB);
+		}
+	}
+
+	if (AnyGL_EXT_texture_compression_s3tc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA);
+		if (AnyGL_EXT_texture_sRGB)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGB);
+		}
+	}
+
+	if (AnyGL_OES_compressed_ETC1_RGB8_texture)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC1, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_ETC1_RGB8_OES, GL_RGB);
+	}
+
+	if (AnyGL_atLeastVersion(3, 0, true) || AnyGL_ARB_ES3_compatibility)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGB8_ETC2, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A1, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA8_ETC2_EAC, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_EAC_R11, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_R11_EAC, GL_RED);
+		setCompressedFormat(resourceManager, dsGfxFormat_EAC_R11G11, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RG11_EAC, GL_RG);
+
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ETC2, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A1, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A8, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC, GL_RGBA);
+
+		setCompressedFormat(resourceManager, dsGfxFormat_EAC_R11, dsGfxFormat_SNorm,
+			FormatBit_Texture, GL_COMPRESSED_SIGNED_R11_EAC, GL_RED);
+		setCompressedFormat(resourceManager, dsGfxFormat_EAC_R11G11, dsGfxFormat_SNorm,
+			FormatBit_Texture, GL_COMPRESSED_SIGNED_RG11_EAC, GL_RG);
+	}
+
+	if (AnyGL_OES_texture_compression_astc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_4x4, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_4x4_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_5x4, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_5x4_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_5x5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_5x5_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_6x5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_6x5_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_6x6, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_6x6_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_8x5_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x6, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_8x6_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_8x8_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_10x5_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x6, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_10x6_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x8, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_10x8_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x10, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_10x10_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_12x10, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_12x10_KHR, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_12x12, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_ASTC_12x12_KHR, GL_RGBA);
+
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_4x4, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_5x4, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_5x5, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_6x5, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_6x6, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x5, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x6, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_8x8, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x5, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x6, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x8, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_10x10, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_12x10, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR, GL_SRGB8_ALPHA8);
+		setCompressedFormat(resourceManager, dsGfxFormat_ASTC_12x12, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR, GL_SRGB8_ALPHA8);
+	}
+
+	if (AnyGL_IMG_texture_compression_pvrtc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGB_2BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG, GL_RGB);
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGBA_2BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGB_4BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG, GL_RGB);
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGBA_4BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG, GL_RGBA);
+
+		if (AnyGL_EXT_pvrtc_sRGB)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGB_2BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT, GL_RGB);
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGBA_2BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT, GL_RGBA);
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGB_4BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT, GL_RGB);
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC1_RGBA_4BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT, GL_RGBA);
+		}
+	}
+
+	if (AnyGL_IMG_texture_compression_pvrtc2)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC2_RGBA_2BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_PVRTC2_RGBA_4BPP, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG, GL_RGBA);
+
+		if (AnyGL_EXT_pvrtc_sRGB)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC2_RGBA_2BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV2_IMG, GL_RGBA);
+			setCompressedFormat(resourceManager, dsGfxFormat_PVRTC2_RGBA_4BPP, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV2_IMG, GL_RGBA);
+		}
+	}
+}
+
+static bool formatSupported(const dsGLResourceManager* resourceManager, dsGfxFormat format, int bit)
+{
+	unsigned int standardIndex = dsGfxFormat_standardIndex(format);
+	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(format);
+	if (standardIndex > 0)
+		return (resourceManager->standardFormats[standardIndex][decoratorIndex] & bit) != 0;
+
+	unsigned int specialIndex = dsGfxFormat_compressedIndex(format);
+	if (specialIndex > 0)
+		return (resourceManager->specialFormats[specialIndex] & bit) != 0;
+
+	unsigned int compressedIndex = dsGfxFormat_compressedIndex(format);
+	if (compressedIndex > 0)
+		return (resourceManager->compressedFormats[compressedIndex][decoratorIndex] & bit) != 0;
+
+	return false;
+}
+
+bool dsGLResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_Vertex);
+}
+
+bool dsGLResourceManager_textureFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_Texture);
+}
+
+bool dsGLResourceManager_offscreenFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_Offscreen);
+}
+
+bool dsGLResourceManager_textureBufferFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_ASSERT(resourceManager);
+
+	const dsGLResourceManager* glResourceManager = (const dsGLResourceManager*)resourceManager;
+	return formatSupported(glResourceManager, format, FormatBit_TextureBuffer);
+}
+
+dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager);
 
@@ -113,7 +685,8 @@ static dsResourceContext* createResourceContext(dsResourceManager* resourceManag
 	return context;
 }
 
-static bool destroyResourceContext(dsResourceManager* resourceManager, dsResourceContext* context)
+bool dsGLResourceManager_destroyResourceContext(dsResourceManager* resourceManager,
+	dsResourceContext* context)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(context);
@@ -191,9 +764,18 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		}
 	}
 
+	// Formats
+	cacheTextureFormats(resourceManager);
+	baseResourceManager->vertexFormatSupportedFunc = &dsGLResourceManager_vertexFormatSupported;
+	baseResourceManager->textureFormatSupportedFunc = &dsGLResourceManager_textureFormatSupported;
+	baseResourceManager->offscreenFormatSupportedFunc =
+		&dsGLResourceManager_offscreenFormatSupported;
+	baseResourceManager->textureBufferFormatSupportedFunc =
+		&dsGLResourceManager_textureBufferFormatSupported;
+
 	// Resource contexts
-	baseResourceManager->createResourceContextFunc = &createResourceContext;
-	baseResourceManager->destroyResourceContextFunc = &destroyResourceContext;
+	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;
+	baseResourceManager->destroyResourceContextFunc = &dsGLResourceManager_destroyResourceContext;
 
 	// Buffers
 	if (AnyGL_atLeastVersion(4, 2, false) || AnyGL_ARB_map_buffer_alignment)
@@ -214,21 +796,9 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		baseResourceManager->maxIndexBits = 16;
 
 	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
-	{
-		if (ANYGL_SUPPORTED(glGetInteger64v))
-		{
-			GLint64 maxSize = 0;
-			glGetInteger64v(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);
-			baseResourceManager->maxUniformBlockSize = (size_t)(dsMin(maxSize,
-				SIZE_MAX));
-		}
-		else
-		{
-			GLint maxSize = 0;
-			glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSize);
-			baseResourceManager->maxUniformBlockSize = maxSize;
-		}
-	}
+		glGetSizeT(GL_MAX_UNIFORM_BLOCK_SIZE, &baseResourceManager->maxUniformBlockSize);
+	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_Image)
+		glGetSizeT(GL_MAX_TEXTURE_BUFFER_SIZE, &baseResourceManager->maxTextureBufferSize);
 
 	baseResourceManager->createBufferFunc = &dsGLGfxBuffer_create;
 	baseResourceManager->destroyBufferFunc = &dsGLGfxBuffer_destroy;
@@ -242,6 +812,9 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 			baseResourceManager->invalidateBufferFunc = &dsGLGfxBuffer_invalidate;
 		}
 	}
+	baseResourceManager->copyBufferDataFunc = &dsGLGfxBuffer_copyData;
+	if (ANYGL_SUPPORTED(glCopyBufferSubData))
+		baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
 
 	return resourceManager;
 }

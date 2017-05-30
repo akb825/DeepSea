@@ -3328,6 +3328,10 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES",
 		"GL_SAMPLER_EXTERNAL_2D_Y2Y_EXT",
 		"GL_TEXTURE_PROTECTED_EXT",
+		"GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG",
 		"GL_TEXTURE_RED_TYPE",
 		"GL_TEXTURE_GREEN_TYPE",
 		"GL_TEXTURE_BLUE_TYPE",
@@ -3874,6 +3878,8 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_PACK_COMPRESSED_BLOCK_DEPTH",
 		"GL_PACK_COMPRESSED_BLOCK_SIZE",
 		"GL_TEXTURE_IMMUTABLE_FORMAT",
+		"GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG",
+		"GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG",
 		"GL_MAX_DEBUG_MESSAGE_LENGTH",
 		"GL_MAX_DEBUG_LOGGED_MESSAGES",
 		"GL_DEBUG_LOGGED_MESSAGES",
@@ -4465,194 +4471,198 @@ static const char* getAnyEnumStr(GLenum e)
 		return enumNames[e - 0x8be7 + 1592];
 	if (e >= 0x8bfa && e <= 0x8bfa)
 		return enumNames[e - 0x8bfa + 1593];
+	if (e >= 0x8c00 && e <= 0x8c03)
+		return enumNames[e - 0x8c00 + 1594];
 	if (e >= 0x8c10 && e <= 0x8c1d)
-		return enumNames[e - 0x8c10 + 1594];
+		return enumNames[e - 0x8c10 + 1598];
 	if (e >= 0x8c29 && e <= 0x8c2f)
-		return enumNames[e - 0x8c29 + 1608];
+		return enumNames[e - 0x8c29 + 1612];
 	if (e >= 0x8c36 && e <= 0x8c37)
-		return enumNames[e - 0x8c36 + 1615];
+		return enumNames[e - 0x8c36 + 1619];
 	if (e >= 0x8c3a && e <= 0x8c4f)
-		return enumNames[e - 0x8c3a + 1617];
+		return enumNames[e - 0x8c3a + 1621];
 	if (e >= 0x8c70 && e <= 0x8c73)
-		return enumNames[e - 0x8c70 + 1639];
+		return enumNames[e - 0x8c70 + 1643];
 	if (e >= 0x8c76 && e <= 0x8c76)
-		return enumNames[e - 0x8c76 + 1643];
+		return enumNames[e - 0x8c76 + 1647];
 	if (e >= 0x8c7f && e <= 0x8c80)
-		return enumNames[e - 0x8c7f + 1644];
+		return enumNames[e - 0x8c7f + 1648];
 	if (e >= 0x8c83 && e <= 0x8c85)
-		return enumNames[e - 0x8c83 + 1646];
+		return enumNames[e - 0x8c83 + 1650];
 	if (e >= 0x8c87 && e <= 0x8c8f)
-		return enumNames[e - 0x8c87 + 1649];
+		return enumNames[e - 0x8c87 + 1653];
 	if (e >= 0x8ca0 && e <= 0x8cad)
-		return enumNames[e - 0x8ca0 + 1658];
+		return enumNames[e - 0x8ca0 + 1662];
 	if (e >= 0x8cd0 && e <= 0x8cd7)
-		return enumNames[e - 0x8cd0 + 1672];
+		return enumNames[e - 0x8cd0 + 1676];
 	if (e >= 0x8cd9 && e <= 0x8cdd)
-		return enumNames[e - 0x8cd9 + 1680];
+		return enumNames[e - 0x8cd9 + 1684];
 	if (e >= 0x8cdf && e <= 0x8d00)
-		return enumNames[e - 0x8cdf + 1685];
+		return enumNames[e - 0x8cdf + 1689];
 	if (e >= 0x8d20 && e <= 0x8d20)
-		return enumNames[e - 0x8d20 + 1719];
+		return enumNames[e - 0x8d20 + 1723];
 	if (e >= 0x8d40 && e <= 0x8d44)
-		return enumNames[e - 0x8d40 + 1720];
+		return enumNames[e - 0x8d40 + 1724];
 	if (e >= 0x8d46 && e <= 0x8d49)
-		return enumNames[e - 0x8d46 + 1725];
+		return enumNames[e - 0x8d46 + 1729];
 	if (e >= 0x8d50 && e <= 0x8d57)
-		return enumNames[e - 0x8d50 + 1729];
+		return enumNames[e - 0x8d50 + 1733];
 	if (e >= 0x8d60 && e <= 0x8d62)
-		return enumNames[e - 0x8d60 + 1737];
+		return enumNames[e - 0x8d60 + 1741];
 	if (e >= 0x8d64 && e <= 0x8d6c)
-		return enumNames[e - 0x8d64 + 1740];
+		return enumNames[e - 0x8d64 + 1744];
 	if (e >= 0x8d70 && e <= 0x8d9f)
-		return enumNames[e - 0x8d70 + 1749];
+		return enumNames[e - 0x8d70 + 1753];
 	if (e >= 0x8da7 && e <= 0x8da9)
-		return enumNames[e - 0x8da7 + 1797];
+		return enumNames[e - 0x8da7 + 1801];
 	if (e >= 0x8dad && e <= 0x8dae)
-		return enumNames[e - 0x8dad + 1800];
+		return enumNames[e - 0x8dad + 1804];
 	if (e >= 0x8db9 && e <= 0x8dbe)
-		return enumNames[e - 0x8db9 + 1802];
+		return enumNames[e - 0x8db9 + 1806];
 	if (e >= 0x8dc0 && e <= 0x8dea)
-		return enumNames[e - 0x8dc0 + 1808];
+		return enumNames[e - 0x8dc0 + 1812];
 	if (e >= 0x8ded && e <= 0x8dfd)
-		return enumNames[e - 0x8ded + 1851];
+		return enumNames[e - 0x8ded + 1855];
 	if (e >= 0x8e13 && e <= 0x8e1b)
-		return enumNames[e - 0x8e13 + 1868];
+		return enumNames[e - 0x8e13 + 1872];
 	if (e >= 0x8e1e && e <= 0x8e1f)
-		return enumNames[e - 0x8e1e + 1877];
+		return enumNames[e - 0x8e1e + 1881];
 	if (e >= 0x8e22 && e <= 0x8e25)
-		return enumNames[e - 0x8e22 + 1879];
+		return enumNames[e - 0x8e22 + 1883];
 	if (e >= 0x8e28 && e <= 0x8e28)
-		return enumNames[e - 0x8e28 + 1883];
+		return enumNames[e - 0x8e28 + 1887];
 	if (e >= 0x8e2d && e <= 0x8e2f)
-		return enumNames[e - 0x8e2d + 1884];
+		return enumNames[e - 0x8e2d + 1888];
 	if (e >= 0x8e42 && e <= 0x8e52)
-		return enumNames[e - 0x8e42 + 1887];
+		return enumNames[e - 0x8e42 + 1891];
 	if (e >= 0x8e59 && e <= 0x8e5f)
-		return enumNames[e - 0x8e59 + 1904];
+		return enumNames[e - 0x8e59 + 1908];
 	if (e >= 0x8e70 && e <= 0x8e8a)
-		return enumNames[e - 0x8e70 + 1911];
+		return enumNames[e - 0x8e70 + 1915];
 	if (e >= 0x8e8c && e <= 0x8e8f)
-		return enumNames[e - 0x8e8c + 1938];
+		return enumNames[e - 0x8e8c + 1942];
 	if (e >= 0x8f10 && e <= 0x8f15)
-		return enumNames[e - 0x8f10 + 1942];
+		return enumNames[e - 0x8f10 + 1946];
 	if (e >= 0x8f36 && e <= 0x8f3f)
-		return enumNames[e - 0x8f36 + 1948];
+		return enumNames[e - 0x8f36 + 1952];
 	if (e >= 0x8f43 && e <= 0x8f43)
-		return enumNames[e - 0x8f43 + 1958];
+		return enumNames[e - 0x8f43 + 1962];
 	if (e >= 0x8f46 && e <= 0x8f4f)
-		return enumNames[e - 0x8f46 + 1959];
+		return enumNames[e - 0x8f46 + 1963];
 	if (e >= 0x8f63 && e <= 0x8f64)
-		return enumNames[e - 0x8f63 + 1969];
+		return enumNames[e - 0x8f63 + 1973];
 	if (e >= 0x8f67 && e <= 0x8f67)
-		return enumNames[e - 0x8f67 + 1971];
+		return enumNames[e - 0x8f67 + 1975];
 	if (e >= 0x8f69 && e <= 0x8f69)
-		return enumNames[e - 0x8f69 + 1972];
+		return enumNames[e - 0x8f69 + 1976];
 	if (e >= 0x8f90 && e <= 0x8f9f)
-		return enumNames[e - 0x8f90 + 1973];
+		return enumNames[e - 0x8f90 + 1977];
 	if (e >= 0x8fbb && e <= 0x8fbb)
-		return enumNames[e - 0x8fbb + 1989];
+		return enumNames[e - 0x8fbb + 1993];
 	if (e >= 0x8fbd && e <= 0x8fbe)
-		return enumNames[e - 0x8fbd + 1990];
+		return enumNames[e - 0x8fbd + 1994];
 	if (e >= 0x8fe9 && e <= 0x8feb)
-		return enumNames[e - 0x8fe9 + 1992];
+		return enumNames[e - 0x8fe9 + 1996];
 	if (e >= 0x8ff5 && e <= 0x8ff7)
-		return enumNames[e - 0x8ff5 + 1995];
+		return enumNames[e - 0x8ff5 + 1999];
 	if (e >= 0x8ffc && e <= 0x8ffe)
-		return enumNames[e - 0x8ffc + 1998];
+		return enumNames[e - 0x8ffc + 2002];
 	if (e >= 0x9009 && e <= 0x901b)
-		return enumNames[e - 0x9009 + 2001];
+		return enumNames[e - 0x9009 + 2005];
 	if (e >= 0x904c && e <= 0x906f)
-		return enumNames[e - 0x904c + 2020];
+		return enumNames[e - 0x904c + 2024];
 	if (e >= 0x90ba && e <= 0x90bc)
-		return enumNames[e - 0x90ba + 2056];
+		return enumNames[e - 0x90ba + 2060];
 	if (e >= 0x90c7 && e <= 0x90cf)
-		return enumNames[e - 0x90c7 + 2059];
+		return enumNames[e - 0x90c7 + 2063];
 	if (e >= 0x90d2 && e <= 0x90df)
-		return enumNames[e - 0x90d2 + 2068];
+		return enumNames[e - 0x90d2 + 2072];
 	if (e >= 0x90e1 && e <= 0x90e1)
-		return enumNames[e - 0x90e1 + 2082];
+		return enumNames[e - 0x90e1 + 2086];
 	if (e >= 0x90ea && e <= 0x90f3)
-		return enumNames[e - 0x90ea + 2083];
+		return enumNames[e - 0x90ea + 2087];
 	if (e >= 0x9100 && e <= 0x911d)
-		return enumNames[e - 0x9100 + 2093];
+		return enumNames[e - 0x9100 + 2097];
 	if (e >= 0x911f && e <= 0x912f)
-		return enumNames[e - 0x911f + 2123];
+		return enumNames[e - 0x911f + 2127];
+	if (e >= 0x9137 && e <= 0x9138)
+		return enumNames[e - 0x9137 + 2144];
 	if (e >= 0x9143 && e <= 0x9148)
-		return enumNames[e - 0x9143 + 2140];
+		return enumNames[e - 0x9143 + 2146];
 	if (e >= 0x9151 && e <= 0x9151)
-		return enumNames[e - 0x9151 + 2146];
+		return enumNames[e - 0x9151 + 2152];
 	if (e >= 0x9153 && e <= 0x9154)
-		return enumNames[e - 0x9153 + 2147];
+		return enumNames[e - 0x9153 + 2153];
 	if (e >= 0x9192 && e <= 0x919a)
-		return enumNames[e - 0x9192 + 2149];
+		return enumNames[e - 0x9192 + 2155];
 	if (e >= 0x919d && e <= 0x919f)
-		return enumNames[e - 0x919d + 2158];
+		return enumNames[e - 0x919d + 2164];
 	if (e >= 0x91a6 && e <= 0x91aa)
-		return enumNames[e - 0x91a6 + 2161];
+		return enumNames[e - 0x91a6 + 2167];
 	if (e >= 0x91b0 && e <= 0x91b1)
-		return enumNames[e - 0x91b0 + 2166];
+		return enumNames[e - 0x91b0 + 2172];
 	if (e >= 0x91b9 && e <= 0x91b9)
-		return enumNames[e - 0x91b9 + 2168];
+		return enumNames[e - 0x91b9 + 2174];
 	if (e >= 0x91bb && e <= 0x91bf)
-		return enumNames[e - 0x91bb + 2169];
+		return enumNames[e - 0x91bb + 2175];
 	if (e >= 0x9270 && e <= 0x9279)
-		return enumNames[e - 0x9270 + 2174];
+		return enumNames[e - 0x9270 + 2180];
 	if (e >= 0x9285 && e <= 0x9285)
-		return enumNames[e - 0x9285 + 2184];
+		return enumNames[e - 0x9285 + 2190];
 	if (e >= 0x9294 && e <= 0x929c)
-		return enumNames[e - 0x9294 + 2185];
+		return enumNames[e - 0x9294 + 2191];
 	if (e >= 0x929e && e <= 0x929e)
-		return enumNames[e - 0x929e + 2194];
+		return enumNames[e - 0x929e + 2200];
 	if (e >= 0x92a0 && e <= 0x92a0)
-		return enumNames[e - 0x92a0 + 2195];
+		return enumNames[e - 0x92a0 + 2201];
 	if (e >= 0x92ad && e <= 0x92b0)
-		return enumNames[e - 0x92ad + 2196];
+		return enumNames[e - 0x92ad + 2202];
 	if (e >= 0x92be && e <= 0x92be)
-		return enumNames[e - 0x92be + 2200];
+		return enumNames[e - 0x92be + 2206];
 	if (e >= 0x92c0 && e <= 0x92dc)
-		return enumNames[e - 0x92c0 + 2201];
+		return enumNames[e - 0x92c0 + 2207];
 	if (e >= 0x92e0 && e <= 0x9318)
-		return enumNames[e - 0x92e0 + 2230];
+		return enumNames[e - 0x92e0 + 2236];
 	if (e >= 0x9327 && e <= 0x932c)
-		return enumNames[e - 0x9327 + 2287];
+		return enumNames[e - 0x9327 + 2293];
 	if (e >= 0x933d && e <= 0x9345)
-		return enumNames[e - 0x933d + 2293];
+		return enumNames[e - 0x933d + 2299];
 	if (e >= 0x934a && e <= 0x934c)
-		return enumNames[e - 0x934a + 2302];
+		return enumNames[e - 0x934a + 2308];
 	if (e >= 0x935c && e <= 0x935f)
-		return enumNames[e - 0x935c + 2305];
+		return enumNames[e - 0x935c + 2311];
 	if (e >= 0x9365 && e <= 0x9367)
-		return enumNames[e - 0x9365 + 2309];
+		return enumNames[e - 0x9365 + 2315];
 	if (e >= 0x9380 && e <= 0x9382)
-		return enumNames[e - 0x9380 + 2312];
+		return enumNames[e - 0x9380 + 2318];
 	if (e >= 0x93a1 && e <= 0x93a1)
-		return enumNames[e - 0x93a1 + 2315];
+		return enumNames[e - 0x93a1 + 2321];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 2316];
+		return enumNames[e - 0x93b0 + 2322];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 2330];
+		return enumNames[e - 0x93c0 + 2336];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 2340];
+		return enumNames[e - 0x93d0 + 2346];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 2354];
+		return enumNames[e - 0x93e0 + 2360];
 	if (e >= 0x93f0 && e <= 0x93f1)
-		return enumNames[e - 0x93f0 + 2364];
+		return enumNames[e - 0x93f0 + 2370];
 	if (e >= 0x9551 && e <= 0x9552)
-		return enumNames[e - 0x9551 + 2366];
+		return enumNames[e - 0x9551 + 2372];
 	if (e >= 0x9650 && e <= 0x9652)
-		return enumNames[e - 0x9650 + 2368];
+		return enumNames[e - 0x9650 + 2374];
 	if (e >= 0x10000 && e <= 0x10000)
-		return enumNames[e - 0x10000 + 2371];
+		return enumNames[e - 0x10000 + 2377];
 	if (e >= 0x20000 && e <= 0x20000)
-		return enumNames[e - 0x20000 + 2372];
+		return enumNames[e - 0x20000 + 2378];
 	if (e >= 0x40000 && e <= 0x40000)
-		return enumNames[e - 0x40000 + 2373];
+		return enumNames[e - 0x40000 + 2379];
 	if (e >= 0x80000 && e <= 0x80000)
-		return enumNames[e - 0x80000 + 2374];
+		return enumNames[e - 0x80000 + 2380];
 	if (e >= 0x20000000 && e <= 0x20000000)
-		return enumNames[e - 0x20000000 + 2375];
+		return enumNames[e - 0x20000000 + 2381];
 	if (e >= 0xffffffff && e <= 0xffffffff)
-		return enumNames[e - 0xffffffff + 2376];
+		return enumNames[e - 0xffffffff + 2382];
 	return "INVALID";
 }
 

@@ -60,11 +60,11 @@ DS_RENDER_EXPORT bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer);
 /**
  * @brief Submits one command buffer to be executed on another command buffer.
  * @param commandBuffer The command buffer to execute the commands of submitBuffer on.
- * @param submitBuffer The command buffer to submit. This should not be the main command buffer.
+ * @param submitBuffer The command buffer to submit. This may not be the main command buffer.
  * @return False if the command buffer couldn't be submitted.
  */
 DS_RENDER_EXPORT bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer,
-	const dsCommandBuffer* submitBuffer);
+	dsCommandBuffer* submitBuffer);
 
 #ifdef __cplusplus
 }

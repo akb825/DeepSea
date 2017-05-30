@@ -6356,6 +6356,12 @@ int AnyGL_load(void)
 		AnyGL_glImportSyncEXT = NULL;
 	}
 
+	/* GL_IMG_texture_compression_pvrtc */
+	AnyGL_IMG_texture_compression_pvrtc = AnyGL_queryExtension("GL_IMG_texture_compression_pvrtc");
+
+	/* GL_IMG_texture_compression_pvrtc2 */
+	AnyGL_IMG_texture_compression_pvrtc2 = AnyGL_queryExtension("GL_IMG_texture_compression_pvrtc2");
+
 	AnyGL_initDebug();
 	return 1;
 }

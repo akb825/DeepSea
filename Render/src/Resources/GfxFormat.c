@@ -40,7 +40,12 @@ bool dsGfxFormat_isValid(dsGfxFormat format)
 		return true;
 	}
 	else if (format & dsGfxFormat_CompressedMask)
+	{
+		if (!(format & dsGfxFormat_DecoratorMask))
+			return false;
+
 		return true;
+	}
 	else
 		return false;
 }

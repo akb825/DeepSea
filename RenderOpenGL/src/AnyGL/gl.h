@@ -2608,6 +2608,18 @@ ANYGL_EXPORT extern int AnyGL_EXT_window_rectangles;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_x11_sync_object;
 
+#ifndef GL_IMG_texture_compression_pvrtc
+#define GL_IMG_texture_compression_pvrtc 1
+#define ANYGL_IMG_texture_compression_pvrtc 1
+#endif
+ANYGL_EXPORT extern int AnyGL_IMG_texture_compression_pvrtc;
+
+#ifndef GL_IMG_texture_compression_pvrtc2
+#define GL_IMG_texture_compression_pvrtc2 1
+#define ANYGL_IMG_texture_compression_pvrtc2 1
+#endif
+ANYGL_EXPORT extern int AnyGL_IMG_texture_compression_pvrtc2;
+
 /* Type declarations */
 #if defined(ANYGL_VERSION_1_0) && defined(ANYGL_VERSION_1_0) && defined(ANYGL_ES_VERSION_2_0)
 #if ANYGL_GLES
@@ -7319,6 +7331,18 @@ typedef double GLclampd;
 #ifdef ANYGL_EXT_x11_sync_object
 #define GL_SYNC_X11_FENCE_EXT             0x90E1
 #endif /* GL_EXT_x11_sync_object */
+
+#ifdef ANYGL_IMG_texture_compression_pvrtc
+#define GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG 0x8C00
+#define GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG 0x8C01
+#define GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG 0x8C02
+#define GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG 0x8C03
+#endif /* GL_IMG_texture_compression_pvrtc */
+
+#ifdef ANYGL_IMG_texture_compression_pvrtc2
+#define GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG 0x9137
+#define GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG 0x9138
+#endif /* GL_IMG_texture_compression_pvrtc2 */
 
 /* Function declarations */
 /* GL_ES_VERSION_2_0 */
@@ -15540,6 +15564,18 @@ ANYGL_EXPORT extern PFNANYGLIMPORTSYNCEXTPROC AnyGL_glImportSyncEXT;
 
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #define glImportSyncEXT(external_sync_type, external_sync, flags) ANYGL_CALL(AnyGL_glImportSyncEXT)(external_sync_type, external_sync, flags)
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+/* GL_IMG_texture_compression_pvrtc */
+
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+/* GL_IMG_texture_compression_pvrtc2 */
+
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
 #ifdef __cplusplus

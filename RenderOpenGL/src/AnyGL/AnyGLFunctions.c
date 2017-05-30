@@ -2113,3 +2113,5 @@ ANYGL_EXPORT int AnyGL_EXT_window_rectangles;
 ANYGL_EXPORT PFNANYGLWINDOWRECTANGLESEXTPROC AnyGL_glWindowRectanglesEXT;
 ANYGL_EXPORT int AnyGL_EXT_x11_sync_object;
 ANYGL_EXPORT PFNANYGLIMPORTSYNCEXTPROC AnyGL_glImportSyncEXT;
+ANYGL_EXPORT int AnyGL_IMG_texture_compression_pvrtc;
+ANYGL_EXPORT int AnyGL_IMG_texture_compression_pvrtc2;

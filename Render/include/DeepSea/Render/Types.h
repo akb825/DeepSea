@@ -186,6 +186,11 @@ typedef struct dsCommandBuffer
 	dsRenderer* renderer;
 
 	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
 	 * @brief The usage of the command buffer.
 	 *
 	 * This should be inherited from the parent pool or dsCommandBufferUsage if not part of a pool.
@@ -651,7 +656,7 @@ typedef bool (*dsEndCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer
  * @return False if the command buffer couldn't be submitted.
  */
 typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsCommandBuffer* submitBuffer);
+	dsCommandBuffer* submitBuffer);
 
 /**
  * @brief Function for creating a render pass.

@@ -31,7 +31,7 @@ TEST_F(GfxFormatTest, IsValid)
 	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_D16));
 	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_decorate(dsGfxFormat_D16, dsGfxFormat_Float)));
 
-	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_ETC1));
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_ETC1));
 	EXPECT_TRUE(dsGfxFormat_isValid(dsGfxFormat_decorate(dsGfxFormat_ETC1, dsGfxFormat_UNorm)));
 
 	EXPECT_FALSE(dsGfxFormat_isValid((dsGfxFormat)(dsGfxFormat_R8G8B8A8 | dsGfxFormat_D16 |
@@ -149,7 +149,8 @@ TEST_F(GfxFormatTest, TextureSupported)
 	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
 		dsGfxFormat_Float)));
 	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_BC3));
+	EXPECT_TRUE(dsGfxFormat_textureSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_BC3,
+		dsGfxFormat_UNorm)));
 }
 
 TEST_F(GfxFormatTest, OffscreenSupported)
@@ -159,5 +160,6 @@ TEST_F(GfxFormatTest, OffscreenSupported)
 	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_decorate(dsGfxFormat_X32,
 		dsGfxFormat_Float)));
 	EXPECT_TRUE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_D16));
-	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager, dsGfxFormat_BC3));
+	EXPECT_FALSE(dsGfxFormat_offscreenSupported(resourceManager,
+		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm)));
 }

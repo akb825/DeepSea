@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Resources/Types.h>
 
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -33,3 +34,6 @@ bool dsGLGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size);
 bool dsGLGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
+
+void dsGLGfxBuffer_addInternalRef(dsGfxBuffer* buffer);
+void dsGLGfxBuffer_freeInternalRef(dsGfxBuffer* buffer);

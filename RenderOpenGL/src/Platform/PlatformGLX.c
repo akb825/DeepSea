@@ -313,6 +313,14 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	}
 }
 
+void dsSwapGLBuffers(void* display, void* surface)
+{
+	if (!surface)
+		return;
+
+	glXSwapBuffers(display, (GLXDrawable)surface);
+}
+
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
@@ -326,7 +334,7 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 {
 	if (!glXMakeCurrent(display, (GLXDrawable)surface, context))
 	{
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create dummy GL context.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't bind GL context.");
 		return false;
 	}
 
