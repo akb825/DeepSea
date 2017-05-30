@@ -3287,9 +3287,7 @@ typedef double GLclampd;
 #define GL_COLOR_ATTACHMENT31             0x8CFF
 #define GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE 0x8D56
 #define GL_MAX_SAMPLES                    0x8D57
-#if !ANYGL_GLES
 #define GL_HALF_FLOAT                     0x140B
-#endif
 #define GL_MAP_READ_BIT                   0x0001
 #define GL_MAP_WRITE_BIT                  0x0002
 #define GL_MAP_INVALIDATE_RANGE_BIT       0x0004
@@ -5912,9 +5910,7 @@ typedef double GLclampd;
 #endif /* GL_OES_texture_cube_map_array */
 
 #ifdef ANYGL_OES_texture_half_float
-#if ANYGL_GLES
 #define GL_HALF_FLOAT_OES                 0x8D61
-#endif
 #endif /* GL_OES_texture_half_float */
 
 #ifdef ANYGL_OES_texture_mirrored_repeat
@@ -7343,6 +7339,9 @@ typedef double GLclampd;
 #define GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG 0x9137
 #define GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG 0x9138
 #endif /* GL_IMG_texture_compression_pvrtc2 */
+
+/* Workaround for GL_HALF_FLOAT_OES */
+ANYGL_EXPORT extern GLenum AnyGL_HALF_FLOAT;
 
 /* Function declarations */
 /* GL_ES_VERSION_2_0 */

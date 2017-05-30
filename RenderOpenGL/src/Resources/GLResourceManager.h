@@ -20,4 +20,10 @@
 #include "Types.h"
 
 dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRenderer* renderer);
+
+bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElements,
+	bool* outNormalized, const dsResourceManager* resourceManager, dsGfxFormat format);
+bool dsGLResourceManager_getTextureFormatInfo(GLenum* outInternalFormat, GLenum* outFormat,
+	GLenum* outType, const dsResourceManager* resourceManager, dsGfxFormat format);
+
 void dsGLResourceManager_destroy(dsGLResourceManager* resourceManager);

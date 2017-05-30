@@ -182,6 +182,11 @@ int AnyGL_load(void)
 	if (!AnyGL_updateGLVersion())
 		return 0;
 
+	if (AnyGL_atLeastVersion(3, 0, true))
+		AnyGL_HALF_FLOAT = GL_HALF_FLOAT;
+	else
+		AnyGL_HALF_FLOAT = GL_HALF_FLOAT_OES;
+
 #ifndef ANYGL_ES_VERSION_3_0
 	if (AnyGL_atLeastVersion(3, 0, 1))
 	{

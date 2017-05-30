@@ -50,9 +50,9 @@ typedef struct dsGLResourceManager
 	dsResourceContext* resourceContexts;
 	dsMutex* mutex;
 
-	int standardFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
-	int specialFormats[dsGfxFormat_SpecialCount];
-	int compressedFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
+	uint8_t standardFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
+	uint8_t specialFormats[dsGfxFormat_SpecialCount];
+	uint8_t compressedFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
 
 	GLenum standardInternalFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 	GLenum specialInternalFormats[dsGfxFormat_SpecialCount];
@@ -64,6 +64,12 @@ typedef struct dsGLResourceManager
 
 	GLenum standardTypes[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 	GLenum specialTypes[dsGfxFormat_SpecialCount];
+
+	GLenum standardVertexFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
+	GLenum specialVertexFormats[dsGfxFormat_SpecialCount];
+
+	GLint standardVertexElements[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
+	GLint specialVertexElements[dsGfxFormat_StandardCount];
 } dsGLResourceManager;
 
 typedef struct dsGLRenderer
