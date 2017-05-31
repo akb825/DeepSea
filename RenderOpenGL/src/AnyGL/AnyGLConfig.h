@@ -8,7 +8,7 @@
 #	define ANYGL_ANDROID 1
 #elif defined(__APPLE__)
 #	define ANYGL_APPLE 1
-#	include "TargetConditionals"
+#	include "TargetConditionals.h"
 #	if TARGET_OS_IPHONE
 #		define ANYGL_IOS 1
 #	endif

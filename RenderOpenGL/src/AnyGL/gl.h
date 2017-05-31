@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmacro-redefined"
+#endif
+
 #define ANYGL_SUPPORTED(func) (AnyGL_ ## func != 0)
 
 ANYGL_EXPORT void AnyGL_setLastCallsite(const char* file, const char* function, unsigned int line);
@@ -15576,6 +15581,10 @@ ANYGL_EXPORT extern PFNANYGLIMPORTSYNCEXTPROC AnyGL_glImportSyncEXT;
 
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 }

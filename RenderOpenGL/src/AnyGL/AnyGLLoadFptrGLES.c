@@ -2,20 +2,37 @@
 
 #if ANYGL_LOAD == ANYGL_LOAD_FPTR && ANYGL_GLES
 #define GL_GLEXT_PROTOTYPES
-#if ANYGL_GLES_VERSION >= 32
-#include <GLES3/gl32.h>
-#elif ANYGL_GLES_VERSION == 31
-#include <GLES3/gl31.h>
-#elif ANYGL_GLES_VERSION == 30
-#include <GLES3/gl3.h>
-#else
-#include <GLES2/gl2.h>
-#endif
+#if ANYGL_APPLE
+#  if ANYGL_GLES_VERSION >= 32
+#    include <OpenGLES/ES3/gl32.h>
+#  elif ANYGL_GLES_VERSION == 31
+#    include <OpenGLES/ES3/gl31.h>
+#  elif ANYGL_GLES_VERSION == 30
+#    include <OpenGLES/ES3/gl3.h>
+#  else
+#    include <OpenGLES/ES2/gl2.h>
+#  endif
 
-#if ANYGL_GLES_VERSION >= 30
-#include <GLES3/gl3ext.h>
+#  if ANYGL_GLES_VERSION >= 30
+#    include <OpenGLES/ES3/gl3ext.h>
+#  endif
+#  include <OpenGLES2/gl2ext.h>
+#else
+#  if ANYGL_GLES_VERSION >= 32
+#    include <GLES3/gl32.h>
+#  elif ANYGL_GLES_VERSION == 31
+#    include <GLES3/gl31.h>
+#  elif ANYGL_GLES_VERSION == 30
+#    include <GLES3/gl3.h>
+#  else
+#    include <GLES2/gl2.h>
+#  endif
+
+#  if ANYGL_GLES_VERSION >= 30
+#    include <GLES3/gl3ext.h>
+#  endif
+#  include <GLES2/gl2ext.h>
 #endif
-#include <GLES2/gl2ext.h>
 
 
 #define ANYGL_NO_FUNCTION_DEFINES

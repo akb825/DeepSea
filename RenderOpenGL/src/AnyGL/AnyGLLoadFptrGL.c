@@ -2,8 +2,13 @@
 
 #if ANYGL_LOAD == ANYGL_LOAD_FPTR && !ANYGL_GLES
 #define GL_GLEXT_PROTOTYPES
+#if ANYGL_APPLE
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#else
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif
 
 #define ANYGL_NO_FUNCTION_DEFINES
 #include "gl.h"
