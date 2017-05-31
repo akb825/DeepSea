@@ -772,9 +772,6 @@ TYPED_TEST(Matrix44Test, InverseTranspose)
 	dsMatrix44_invert(&inverse, &matrix);
 	dsMatrix44_transpose(inverseTransposeCheck, inverse);
 
-	Matrix44Type result;
-	dsMatrix44_mul(result, inverse, matrix);
-
 	EXPECT_NEAR(inverseTransposeCheck.values[0][0], inverseTranspose.values[0][0], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][1], inverseTranspose.values[0][1], epsilon);
 	EXPECT_NEAR(inverseTransposeCheck.values[0][2], inverseTranspose.values[0][2], epsilon);
