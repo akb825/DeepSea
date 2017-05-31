@@ -3,11 +3,16 @@
 #if ANYGL_LOAD == ANYGL_LOAD_FPTR && !ANYGL_GLES
 #define GL_GLEXT_PROTOTYPES
 #if ANYGL_APPLE
-#include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
+#  if ANYGL_GL_VERSION >= 30
+#    define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+#    include <OpenGL/gl3.h>
+#    include <OpenGL/gl3ext.h>
+#  endif
+#  include <OpenGL/gl.h>
+#  include <OpenGL/glext.h>
 #else
-#include <GL/gl.h>
-#include <GL/glext.h>
+#  include <GL/gl.h>
+#  include <GL/glext.h>
 #endif
 
 #define ANYGL_NO_FUNCTION_DEFINES
@@ -789,6 +794,7 @@ int AnyGL_load(void)
 		AnyGL_glVertexAttribP3uiv = (PFNANYGLVERTEXATTRIBP3UIVPROC)&glVertexAttribP3uiv;
 		AnyGL_glVertexAttribP4ui = (PFNANYGLVERTEXATTRIBP4UIPROC)&glVertexAttribP4ui;
 		AnyGL_glVertexAttribP4uiv = (PFNANYGLVERTEXATTRIBP4UIVPROC)&glVertexAttribP4uiv;
+#if !ANYGL_APPLE
 		AnyGL_glVertexP2ui = (PFNANYGLVERTEXP2UIPROC)&glVertexP2ui;
 		AnyGL_glVertexP2uiv = (PFNANYGLVERTEXP2UIVPROC)&glVertexP2uiv;
 		AnyGL_glVertexP3ui = (PFNANYGLVERTEXP3UIPROC)&glVertexP3ui;
@@ -819,6 +825,7 @@ int AnyGL_load(void)
 		AnyGL_glColorP4uiv = (PFNANYGLCOLORP4UIVPROC)&glColorP4uiv;
 		AnyGL_glSecondaryColorP3ui = (PFNANYGLSECONDARYCOLORP3UIPROC)&glSecondaryColorP3ui;
 		AnyGL_glSecondaryColorP3uiv = (PFNANYGLSECONDARYCOLORP3UIVPROC)&glSecondaryColorP3uiv;
+#endif
 	}
 #endif /* GL_VERSION_3_3 */
 

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmacro-redefined"
 #endif
