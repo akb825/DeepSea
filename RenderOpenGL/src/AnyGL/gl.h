@@ -13,6 +13,9 @@ extern "C" {
 #if defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmacro-redefined"
+#elif defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4005)
 #endif
 
 #define ANYGL_SUPPORTED(func) (AnyGL_ ## func != 0)
@@ -15582,8 +15585,10 @@ ANYGL_EXPORT extern PFNANYGLIMPORTSYNCEXTPROC AnyGL_glImportSyncEXT;
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__clang__)
 #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
 #endif
 
 #ifdef __cplusplus

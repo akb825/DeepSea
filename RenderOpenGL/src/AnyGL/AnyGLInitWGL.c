@@ -2,6 +2,7 @@
 
 #if ANYGL_LOAD == ANYGL_LOAD_WGL
 #define WIN32_LEAN_AND_MEAN
+#undef APIENTRY
 #include <Windows.h>
 #include <GL/gl.h>
 
@@ -150,7 +151,7 @@ int AnyGL_initialize(void)
 	if (!wglGetCurrentContext())
 	{
 		HINSTANCE hinst = GetModuleHandle(NULL);
-		WNDCLASSA windowClass = {};
+		WNDCLASSA windowClass = {0};
 		PIXELFORMATDESCRIPTOR pfd =
 		{
 			sizeof(PIXELFORMATDESCRIPTOR),
@@ -174,7 +175,7 @@ int AnyGL_initialize(void)
 
 		windowClass.style = CS_OWNDC;
 		windowClass.lpfnWndProc = &DefWindowProc;
-		windowClass.hInstance = hisnt;
+		windowClass.hInstance = hinst;
 		windowClass.lpszClassName = "AnyGLDummyWindow";
 		if (!RegisterClassA(&windowClass))
 			return 0;
@@ -187,7 +188,7 @@ int AnyGL_initialize(void)
 		pixelFormat = ChoosePixelFormat(dc, &pfd);
 		if (!pixelFormat || !SetPixelFormat(dc, pixelFormat, &pfd))
 		{
-			ReleaseDC(dc);
+			ReleaseDC(window, dc);
 			DestroyWindow(window);
 			return 0;
 		}
@@ -195,7 +196,7 @@ int AnyGL_initialize(void)
 		context = wglCreateContext(dc);
 		if (!context || !wglMakeCurrent(dc, context))
 		{
-			ReleaseDC(dc);
+			ReleaseDC(window, dc);
 			DestroyWindow(window);
 			return 0;
 		}
@@ -432,7 +433,7 @@ int AnyGL_initialize(void)
 	{
 		wglMakeCurrent(NULL, NULL);
 		wglDeleteContext(context);
-		ReleaseDC(dc);
+		ReleaseDC(window, dc);
 		DestroyWindow(window);
 	}
 

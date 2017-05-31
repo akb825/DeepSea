@@ -8,8 +8,13 @@
 #ifndef _CRT_NONSTDC_NO_DEPRECATE
 #define _CRT_NONSTDC_NO_DEPRECATE
 #endif
+#undef APIENTRY
 #include <Windows.h>
+#undef near
+#undef far
+#if _MSC_VER < 1400
 #define snprintf _snprintf
+#endif
 #endif
 #include <stdio.h>
 #include <string.h>
@@ -5755,7 +5760,7 @@ static void defaultErrorFunc(const char* file, const char* function, unsigned in
 	int length = snprintf(buffer, PRINT_BUFFER_SIZE, "%s(%u) %s(): [%s] %s\n", file, line, function, AnyGL_errorString(glError), glFunction);
 	if (length >= 0 && length < PRINT_BUFFER_SIZE)
 	{
-		write(stderr, buffer);
+		fwrite(buffer, sizeof(char), strlen(buffer), stderr);
 		OutputDebugStringA(buffer);
 	}
 	else
@@ -5771,7 +5776,7 @@ static ANYGL_THREAD const char* lastFile;
 static ANYGL_THREAD const char* lastFunction;
 static ANYGL_THREAD unsigned int lastLine;
 
-static APIENTRY void debug_glActiveTexture(GLenum texture)
+static void APIENTRY debug_glActiveTexture(GLenum texture)
 {
 	glActiveTexture(texture);
 	if (checkErrors)
@@ -5788,7 +5793,7 @@ static APIENTRY void debug_glActiveTexture(GLenum texture)
 	}
 }
 
-static APIENTRY void debug_glAttachShader(GLuint program, GLuint shader)
+static void APIENTRY debug_glAttachShader(GLuint program, GLuint shader)
 {
 	glAttachShader(program, shader);
 	if (checkErrors)
@@ -5805,7 +5810,7 @@ static APIENTRY void debug_glAttachShader(GLuint program, GLuint shader)
 	}
 }
 
-static APIENTRY void debug_glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
+static void APIENTRY debug_glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
 {
 	glBindAttribLocation(program, index, name);
 	if (checkErrors)
@@ -5822,7 +5827,7 @@ static APIENTRY void debug_glBindAttribLocation(GLuint program, GLuint index, co
 	}
 }
 
-static APIENTRY void debug_glBindBuffer(GLenum target, GLuint buffer)
+static void APIENTRY debug_glBindBuffer(GLenum target, GLuint buffer)
 {
 	glBindBuffer(target, buffer);
 	if (checkErrors)
@@ -5839,7 +5844,7 @@ static APIENTRY void debug_glBindBuffer(GLenum target, GLuint buffer)
 	}
 }
 
-static APIENTRY void debug_glBindFramebuffer(GLenum target, GLuint framebuffer)
+static void APIENTRY debug_glBindFramebuffer(GLenum target, GLuint framebuffer)
 {
 	glBindFramebuffer(target, framebuffer);
 	if (checkErrors)
@@ -5856,7 +5861,7 @@ static APIENTRY void debug_glBindFramebuffer(GLenum target, GLuint framebuffer)
 	}
 }
 
-static APIENTRY void debug_glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+static void APIENTRY debug_glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
 	glBindRenderbuffer(target, renderbuffer);
 	if (checkErrors)
@@ -5873,7 +5878,7 @@ static APIENTRY void debug_glBindRenderbuffer(GLenum target, GLuint renderbuffer
 	}
 }
 
-static APIENTRY void debug_glBindTexture(GLenum target, GLuint texture)
+static void APIENTRY debug_glBindTexture(GLenum target, GLuint texture)
 {
 	glBindTexture(target, texture);
 	if (checkErrors)
@@ -5890,7 +5895,7 @@ static APIENTRY void debug_glBindTexture(GLenum target, GLuint texture)
 	}
 }
 
-static APIENTRY void debug_glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+static void APIENTRY debug_glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	glBlendColor(red, green, blue, alpha);
 	if (checkErrors)
@@ -5907,7 +5912,7 @@ static APIENTRY void debug_glBlendColor(GLfloat red, GLfloat green, GLfloat blue
 	}
 }
 
-static APIENTRY void debug_glBlendEquation(GLenum mode)
+static void APIENTRY debug_glBlendEquation(GLenum mode)
 {
 	glBlendEquation(mode);
 	if (checkErrors)
@@ -5924,7 +5929,7 @@ static APIENTRY void debug_glBlendEquation(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
+static void APIENTRY debug_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
 	glBlendEquationSeparate(modeRGB, modeAlpha);
 	if (checkErrors)
@@ -5941,7 +5946,7 @@ static APIENTRY void debug_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAl
 	}
 }
 
-static APIENTRY void debug_glBlendFunc(GLenum sfactor, GLenum dfactor)
+static void APIENTRY debug_glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 	glBlendFunc(sfactor, dfactor);
 	if (checkErrors)
@@ -5958,7 +5963,7 @@ static APIENTRY void debug_glBlendFunc(GLenum sfactor, GLenum dfactor)
 	}
 }
 
-static APIENTRY void debug_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
+static void APIENTRY debug_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
 	glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 	if (checkErrors)
@@ -5975,7 +5980,7 @@ static APIENTRY void debug_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactor
 	}
 }
 
-static APIENTRY void debug_glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
+static void APIENTRY debug_glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
 {
 	glBufferData(target, size, data, usage);
 	if (checkErrors)
@@ -5992,7 +5997,7 @@ static APIENTRY void debug_glBufferData(GLenum target, GLsizeiptr size, const vo
 	}
 }
 
-static APIENTRY void debug_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
+static void APIENTRY debug_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
 {
 	glBufferSubData(target, offset, size, data);
 	if (checkErrors)
@@ -6009,7 +6014,7 @@ static APIENTRY void debug_glBufferSubData(GLenum target, GLintptr offset, GLsiz
 	}
 }
 
-static APIENTRY GLenum debug_glCheckFramebufferStatus(GLenum target)
+static GLenum APIENTRY debug_glCheckFramebufferStatus(GLenum target)
 {
 	GLenum retVal = default_glCheckFramebufferStatus(target);
 	if (checkErrors)
@@ -6027,7 +6032,7 @@ static APIENTRY GLenum debug_glCheckFramebufferStatus(GLenum target)
 	return retVal;
 }
 
-static APIENTRY void debug_glClear(GLbitfield mask)
+static void APIENTRY debug_glClear(GLbitfield mask)
 {
 	glClear(mask);
 	if (checkErrors)
@@ -6044,7 +6049,7 @@ static APIENTRY void debug_glClear(GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+static void APIENTRY debug_glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	glClearColor(red, green, blue, alpha);
 	if (checkErrors)
@@ -6061,7 +6066,7 @@ static APIENTRY void debug_glClearColor(GLfloat red, GLfloat green, GLfloat blue
 	}
 }
 
-static APIENTRY void debug_glClearDepthf(GLfloat d)
+static void APIENTRY debug_glClearDepthf(GLfloat d)
 {
 	glClearDepthf(d);
 	if (checkErrors)
@@ -6078,7 +6083,7 @@ static APIENTRY void debug_glClearDepthf(GLfloat d)
 	}
 }
 
-static APIENTRY void debug_glClearStencil(GLint s)
+static void APIENTRY debug_glClearStencil(GLint s)
 {
 	glClearStencil(s);
 	if (checkErrors)
@@ -6095,7 +6100,7 @@ static APIENTRY void debug_glClearStencil(GLint s)
 	}
 }
 
-static APIENTRY void debug_glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+static void APIENTRY debug_glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
 	glColorMask(red, green, blue, alpha);
 	if (checkErrors)
@@ -6112,7 +6117,7 @@ static APIENTRY void debug_glColorMask(GLboolean red, GLboolean green, GLboolean
 	}
 }
 
-static APIENTRY void debug_glCompileShader(GLuint shader)
+static void APIENTRY debug_glCompileShader(GLuint shader)
 {
 	glCompileShader(shader);
 	if (checkErrors)
@@ -6129,7 +6134,7 @@ static APIENTRY void debug_glCompileShader(GLuint shader)
 	}
 }
 
-static APIENTRY void debug_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
 {
 	glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
 	if (checkErrors)
@@ -6146,7 +6151,7 @@ static APIENTRY void debug_glCompressedTexImage2D(GLenum target, GLint level, GL
 	}
 }
 
-static APIENTRY void debug_glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 	if (checkErrors)
@@ -6163,7 +6168,7 @@ static APIENTRY void debug_glCompressedTexSubImage2D(GLenum target, GLint level,
 	}
 }
 
-static APIENTRY void debug_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+static void APIENTRY debug_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
 	glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
@@ -6180,7 +6185,7 @@ static APIENTRY void debug_glCopyTexImage2D(GLenum target, GLint level, GLenum i
 	}
 }
 
-static APIENTRY void debug_glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
@@ -6197,7 +6202,7 @@ static APIENTRY void debug_glCopyTexSubImage2D(GLenum target, GLint level, GLint
 	}
 }
 
-static APIENTRY GLuint debug_glCreateProgram()
+static GLuint APIENTRY debug_glCreateProgram()
 {
 	GLuint retVal = default_glCreateProgram();
 	if (checkErrors)
@@ -6215,7 +6220,7 @@ static APIENTRY GLuint debug_glCreateProgram()
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glCreateShader(GLenum type)
+static GLuint APIENTRY debug_glCreateShader(GLenum type)
 {
 	GLuint retVal = default_glCreateShader(type);
 	if (checkErrors)
@@ -6233,7 +6238,7 @@ static APIENTRY GLuint debug_glCreateShader(GLenum type)
 	return retVal;
 }
 
-static APIENTRY void debug_glCullFace(GLenum mode)
+static void APIENTRY debug_glCullFace(GLenum mode)
 {
 	glCullFace(mode);
 	if (checkErrors)
@@ -6250,7 +6255,7 @@ static APIENTRY void debug_glCullFace(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glDeleteBuffers(GLsizei n, const GLuint *buffers)
+static void APIENTRY debug_glDeleteBuffers(GLsizei n, const GLuint *buffers)
 {
 	glDeleteBuffers(n, buffers);
 	if (checkErrors)
@@ -6267,7 +6272,7 @@ static APIENTRY void debug_glDeleteBuffers(GLsizei n, const GLuint *buffers)
 	}
 }
 
-static APIENTRY void debug_glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
+static void APIENTRY debug_glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
 {
 	glDeleteFramebuffers(n, framebuffers);
 	if (checkErrors)
@@ -6284,7 +6289,7 @@ static APIENTRY void debug_glDeleteFramebuffers(GLsizei n, const GLuint *framebu
 	}
 }
 
-static APIENTRY void debug_glDeleteProgram(GLuint program)
+static void APIENTRY debug_glDeleteProgram(GLuint program)
 {
 	glDeleteProgram(program);
 	if (checkErrors)
@@ -6301,7 +6306,7 @@ static APIENTRY void debug_glDeleteProgram(GLuint program)
 	}
 }
 
-static APIENTRY void debug_glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
+static void APIENTRY debug_glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
 {
 	glDeleteRenderbuffers(n, renderbuffers);
 	if (checkErrors)
@@ -6318,7 +6323,7 @@ static APIENTRY void debug_glDeleteRenderbuffers(GLsizei n, const GLuint *render
 	}
 }
 
-static APIENTRY void debug_glDeleteShader(GLuint shader)
+static void APIENTRY debug_glDeleteShader(GLuint shader)
 {
 	glDeleteShader(shader);
 	if (checkErrors)
@@ -6335,7 +6340,7 @@ static APIENTRY void debug_glDeleteShader(GLuint shader)
 	}
 }
 
-static APIENTRY void debug_glDeleteTextures(GLsizei n, const GLuint *textures)
+static void APIENTRY debug_glDeleteTextures(GLsizei n, const GLuint *textures)
 {
 	glDeleteTextures(n, textures);
 	if (checkErrors)
@@ -6352,7 +6357,7 @@ static APIENTRY void debug_glDeleteTextures(GLsizei n, const GLuint *textures)
 	}
 }
 
-static APIENTRY void debug_glDepthFunc(GLenum func)
+static void APIENTRY debug_glDepthFunc(GLenum func)
 {
 	glDepthFunc(func);
 	if (checkErrors)
@@ -6369,7 +6374,7 @@ static APIENTRY void debug_glDepthFunc(GLenum func)
 	}
 }
 
-static APIENTRY void debug_glDepthMask(GLboolean flag)
+static void APIENTRY debug_glDepthMask(GLboolean flag)
 {
 	glDepthMask(flag);
 	if (checkErrors)
@@ -6386,7 +6391,7 @@ static APIENTRY void debug_glDepthMask(GLboolean flag)
 	}
 }
 
-static APIENTRY void debug_glDepthRangef(GLfloat n, GLfloat f)
+static void APIENTRY debug_glDepthRangef(GLfloat n, GLfloat f)
 {
 	glDepthRangef(n, f);
 	if (checkErrors)
@@ -6403,7 +6408,7 @@ static APIENTRY void debug_glDepthRangef(GLfloat n, GLfloat f)
 	}
 }
 
-static APIENTRY void debug_glDetachShader(GLuint program, GLuint shader)
+static void APIENTRY debug_glDetachShader(GLuint program, GLuint shader)
 {
 	glDetachShader(program, shader);
 	if (checkErrors)
@@ -6420,7 +6425,7 @@ static APIENTRY void debug_glDetachShader(GLuint program, GLuint shader)
 	}
 }
 
-static APIENTRY void debug_glDisable(GLenum cap)
+static void APIENTRY debug_glDisable(GLenum cap)
 {
 	glDisable(cap);
 	if (checkErrors)
@@ -6437,7 +6442,7 @@ static APIENTRY void debug_glDisable(GLenum cap)
 	}
 }
 
-static APIENTRY void debug_glDisableVertexAttribArray(GLuint index)
+static void APIENTRY debug_glDisableVertexAttribArray(GLuint index)
 {
 	glDisableVertexAttribArray(index);
 	if (checkErrors)
@@ -6454,7 +6459,7 @@ static APIENTRY void debug_glDisableVertexAttribArray(GLuint index)
 	}
 }
 
-static APIENTRY void debug_glDrawArrays(GLenum mode, GLint first, GLsizei count)
+static void APIENTRY debug_glDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
 	glDrawArrays(mode, first, count);
 	if (checkErrors)
@@ -6471,7 +6476,7 @@ static APIENTRY void debug_glDrawArrays(GLenum mode, GLint first, GLsizei count)
 	}
 }
 
-static APIENTRY void debug_glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
+static void APIENTRY debug_glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
 	glDrawElements(mode, count, type, indices);
 	if (checkErrors)
@@ -6488,7 +6493,7 @@ static APIENTRY void debug_glDrawElements(GLenum mode, GLsizei count, GLenum typ
 	}
 }
 
-static APIENTRY void debug_glEnable(GLenum cap)
+static void APIENTRY debug_glEnable(GLenum cap)
 {
 	glEnable(cap);
 	if (checkErrors)
@@ -6505,7 +6510,7 @@ static APIENTRY void debug_glEnable(GLenum cap)
 	}
 }
 
-static APIENTRY void debug_glEnableVertexAttribArray(GLuint index)
+static void APIENTRY debug_glEnableVertexAttribArray(GLuint index)
 {
 	glEnableVertexAttribArray(index);
 	if (checkErrors)
@@ -6522,7 +6527,7 @@ static APIENTRY void debug_glEnableVertexAttribArray(GLuint index)
 	}
 }
 
-static APIENTRY void debug_glFinish()
+static void APIENTRY debug_glFinish()
 {
 	glFinish();
 	if (checkErrors)
@@ -6539,7 +6544,7 @@ static APIENTRY void debug_glFinish()
 	}
 }
 
-static APIENTRY void debug_glFlush()
+static void APIENTRY debug_glFlush()
 {
 	glFlush();
 	if (checkErrors)
@@ -6556,7 +6561,7 @@ static APIENTRY void debug_glFlush()
 	}
 }
 
-static APIENTRY void debug_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+static void APIENTRY debug_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
 	glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
@@ -6573,7 +6578,7 @@ static APIENTRY void debug_glFramebufferRenderbuffer(GLenum target, GLenum attac
 	}
 }
 
-static APIENTRY void debug_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+static void APIENTRY debug_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 	glFramebufferTexture2D(target, attachment, textarget, texture, level);
 	if (checkErrors)
@@ -6590,7 +6595,7 @@ static APIENTRY void debug_glFramebufferTexture2D(GLenum target, GLenum attachme
 	}
 }
 
-static APIENTRY void debug_glFrontFace(GLenum mode)
+static void APIENTRY debug_glFrontFace(GLenum mode)
 {
 	glFrontFace(mode);
 	if (checkErrors)
@@ -6607,7 +6612,7 @@ static APIENTRY void debug_glFrontFace(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glGenBuffers(GLsizei n, GLuint *buffers)
+static void APIENTRY debug_glGenBuffers(GLsizei n, GLuint *buffers)
 {
 	glGenBuffers(n, buffers);
 	if (checkErrors)
@@ -6624,7 +6629,7 @@ static APIENTRY void debug_glGenBuffers(GLsizei n, GLuint *buffers)
 	}
 }
 
-static APIENTRY void debug_glGenerateMipmap(GLenum target)
+static void APIENTRY debug_glGenerateMipmap(GLenum target)
 {
 	glGenerateMipmap(target);
 	if (checkErrors)
@@ -6641,7 +6646,7 @@ static APIENTRY void debug_glGenerateMipmap(GLenum target)
 	}
 }
 
-static APIENTRY void debug_glGenFramebuffers(GLsizei n, GLuint *framebuffers)
+static void APIENTRY debug_glGenFramebuffers(GLsizei n, GLuint *framebuffers)
 {
 	glGenFramebuffers(n, framebuffers);
 	if (checkErrors)
@@ -6658,7 +6663,7 @@ static APIENTRY void debug_glGenFramebuffers(GLsizei n, GLuint *framebuffers)
 	}
 }
 
-static APIENTRY void debug_glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
+static void APIENTRY debug_glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
 	glGenRenderbuffers(n, renderbuffers);
 	if (checkErrors)
@@ -6675,7 +6680,7 @@ static APIENTRY void debug_glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 	}
 }
 
-static APIENTRY void debug_glGenTextures(GLsizei n, GLuint *textures)
+static void APIENTRY debug_glGenTextures(GLsizei n, GLuint *textures)
 {
 	glGenTextures(n, textures);
 	if (checkErrors)
@@ -6692,7 +6697,7 @@ static APIENTRY void debug_glGenTextures(GLsizei n, GLuint *textures)
 	}
 }
 
-static APIENTRY void debug_glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+static void APIENTRY debug_glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
 	glGetActiveAttrib(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
@@ -6709,7 +6714,7 @@ static APIENTRY void debug_glGetActiveAttrib(GLuint program, GLuint index, GLsiz
 	}
 }
 
-static APIENTRY void debug_glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
+static void APIENTRY debug_glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
 	glGetActiveUniform(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
@@ -6726,7 +6731,7 @@ static APIENTRY void debug_glGetActiveUniform(GLuint program, GLuint index, GLsi
 	}
 }
 
-static APIENTRY void debug_glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
+static void APIENTRY debug_glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
 {
 	glGetAttachedShaders(program, maxCount, count, shaders);
 	if (checkErrors)
@@ -6743,7 +6748,7 @@ static APIENTRY void debug_glGetAttachedShaders(GLuint program, GLsizei maxCount
 	}
 }
 
-static APIENTRY GLint debug_glGetAttribLocation(GLuint program, const GLchar *name)
+static GLint APIENTRY debug_glGetAttribLocation(GLuint program, const GLchar *name)
 {
 	GLint retVal = default_glGetAttribLocation(program, name);
 	if (checkErrors)
@@ -6761,7 +6766,7 @@ static APIENTRY GLint debug_glGetAttribLocation(GLuint program, const GLchar *na
 	return retVal;
 }
 
-static APIENTRY void debug_glGetBooleanv(GLenum pname, GLboolean *data)
+static void APIENTRY debug_glGetBooleanv(GLenum pname, GLboolean *data)
 {
 	glGetBooleanv(pname, data);
 	if (checkErrors)
@@ -6778,7 +6783,7 @@ static APIENTRY void debug_glGetBooleanv(GLenum pname, GLboolean *data)
 	}
 }
 
-static APIENTRY void debug_glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetBufferParameteriv(target, pname, params);
 	if (checkErrors)
@@ -6795,7 +6800,7 @@ static APIENTRY void debug_glGetBufferParameteriv(GLenum target, GLenum pname, G
 	}
 }
 
-static APIENTRY void debug_glGetFloatv(GLenum pname, GLfloat *data)
+static void APIENTRY debug_glGetFloatv(GLenum pname, GLfloat *data)
 {
 	glGetFloatv(pname, data);
 	if (checkErrors)
@@ -6812,7 +6817,7 @@ static APIENTRY void debug_glGetFloatv(GLenum pname, GLfloat *data)
 	}
 }
 
-static APIENTRY void debug_glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params)
 {
 	glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
 	if (checkErrors)
@@ -6829,7 +6834,7 @@ static APIENTRY void debug_glGetFramebufferAttachmentParameteriv(GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glGetIntegerv(GLenum pname, GLint *data)
+static void APIENTRY debug_glGetIntegerv(GLenum pname, GLint *data)
 {
 	glGetIntegerv(pname, data);
 	if (checkErrors)
@@ -6846,7 +6851,7 @@ static APIENTRY void debug_glGetIntegerv(GLenum pname, GLint *data)
 	}
 }
 
-static APIENTRY void debug_glGetProgramiv(GLuint program, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetProgramiv(GLuint program, GLenum pname, GLint *params)
 {
 	glGetProgramiv(program, pname, params);
 	if (checkErrors)
@@ -6863,7 +6868,7 @@ static APIENTRY void debug_glGetProgramiv(GLuint program, GLenum pname, GLint *p
 	}
 }
 
-static APIENTRY void debug_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+static void APIENTRY debug_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
 	glGetProgramInfoLog(program, bufSize, length, infoLog);
 	if (checkErrors)
@@ -6880,7 +6885,7 @@ static APIENTRY void debug_glGetProgramInfoLog(GLuint program, GLsizei bufSize, 
 	}
 }
 
-static APIENTRY void debug_glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetRenderbufferParameteriv(target, pname, params);
 	if (checkErrors)
@@ -6897,7 +6902,7 @@ static APIENTRY void debug_glGetRenderbufferParameteriv(GLenum target, GLenum pn
 	}
 }
 
-static APIENTRY void debug_glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
 {
 	glGetShaderiv(shader, pname, params);
 	if (checkErrors)
@@ -6914,7 +6919,7 @@ static APIENTRY void debug_glGetShaderiv(GLuint shader, GLenum pname, GLint *par
 	}
 }
 
-static APIENTRY void debug_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+static void APIENTRY debug_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
 	glGetShaderInfoLog(shader, bufSize, length, infoLog);
 	if (checkErrors)
@@ -6931,7 +6936,7 @@ static APIENTRY void debug_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GL
 	}
 }
 
-static APIENTRY void debug_glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
+static void APIENTRY debug_glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
 {
 	glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision);
 	if (checkErrors)
@@ -6948,7 +6953,7 @@ static APIENTRY void debug_glGetShaderPrecisionFormat(GLenum shadertype, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
+static void APIENTRY debug_glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
 {
 	glGetShaderSource(shader, bufSize, length, source);
 	if (checkErrors)
@@ -6965,7 +6970,7 @@ static APIENTRY void debug_glGetShaderSource(GLuint shader, GLsizei bufSize, GLs
 	}
 }
 
-static APIENTRY const GLubyte * debug_glGetString(GLenum name)
+static const GLubyte * APIENTRY debug_glGetString(GLenum name)
 {
 	const GLubyte * retVal = default_glGetString(name);
 	if (checkErrors)
@@ -6983,7 +6988,7 @@ static APIENTRY const GLubyte * debug_glGetString(GLenum name)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetTexParameterfv(target, pname, params);
 	if (checkErrors)
@@ -7000,7 +7005,7 @@ static APIENTRY void debug_glGetTexParameterfv(GLenum target, GLenum pname, GLfl
 	}
 }
 
-static APIENTRY void debug_glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetTexParameteriv(target, pname, params);
 	if (checkErrors)
@@ -7017,7 +7022,7 @@ static APIENTRY void debug_glGetTexParameteriv(GLenum target, GLenum pname, GLin
 	}
 }
 
-static APIENTRY void debug_glGetUniformfv(GLuint program, GLint location, GLfloat *params)
+static void APIENTRY debug_glGetUniformfv(GLuint program, GLint location, GLfloat *params)
 {
 	glGetUniformfv(program, location, params);
 	if (checkErrors)
@@ -7034,7 +7039,7 @@ static APIENTRY void debug_glGetUniformfv(GLuint program, GLint location, GLfloa
 	}
 }
 
-static APIENTRY void debug_glGetUniformiv(GLuint program, GLint location, GLint *params)
+static void APIENTRY debug_glGetUniformiv(GLuint program, GLint location, GLint *params)
 {
 	glGetUniformiv(program, location, params);
 	if (checkErrors)
@@ -7051,7 +7056,7 @@ static APIENTRY void debug_glGetUniformiv(GLuint program, GLint location, GLint 
 	}
 }
 
-static APIENTRY GLint debug_glGetUniformLocation(GLuint program, const GLchar *name)
+static GLint APIENTRY debug_glGetUniformLocation(GLuint program, const GLchar *name)
 {
 	GLint retVal = default_glGetUniformLocation(program, name);
 	if (checkErrors)
@@ -7069,7 +7074,7 @@ static APIENTRY GLint debug_glGetUniformLocation(GLuint program, const GLchar *n
 	return retVal;
 }
 
-static APIENTRY void debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
 {
 	glGetVertexAttribfv(index, pname, params);
 	if (checkErrors)
@@ -7086,7 +7091,7 @@ static APIENTRY void debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLflo
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
 {
 	glGetVertexAttribiv(index, pname, params);
 	if (checkErrors)
@@ -7103,7 +7108,7 @@ static APIENTRY void debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
+static void APIENTRY debug_glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
 {
 	glGetVertexAttribPointerv(index, pname, pointer);
 	if (checkErrors)
@@ -7120,7 +7125,7 @@ static APIENTRY void debug_glGetVertexAttribPointerv(GLuint index, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glHint(GLenum target, GLenum mode)
+static void APIENTRY debug_glHint(GLenum target, GLenum mode)
 {
 	glHint(target, mode);
 	if (checkErrors)
@@ -7137,7 +7142,7 @@ static APIENTRY void debug_glHint(GLenum target, GLenum mode)
 	}
 }
 
-static APIENTRY GLboolean debug_glIsBuffer(GLuint buffer)
+static GLboolean APIENTRY debug_glIsBuffer(GLuint buffer)
 {
 	GLboolean retVal = default_glIsBuffer(buffer);
 	if (checkErrors)
@@ -7155,7 +7160,7 @@ static APIENTRY GLboolean debug_glIsBuffer(GLuint buffer)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsEnabled(GLenum cap)
+static GLboolean APIENTRY debug_glIsEnabled(GLenum cap)
 {
 	GLboolean retVal = default_glIsEnabled(cap);
 	if (checkErrors)
@@ -7173,7 +7178,7 @@ static APIENTRY GLboolean debug_glIsEnabled(GLenum cap)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsFramebuffer(GLuint framebuffer)
+static GLboolean APIENTRY debug_glIsFramebuffer(GLuint framebuffer)
 {
 	GLboolean retVal = default_glIsFramebuffer(framebuffer);
 	if (checkErrors)
@@ -7191,7 +7196,7 @@ static APIENTRY GLboolean debug_glIsFramebuffer(GLuint framebuffer)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsProgram(GLuint program)
+static GLboolean APIENTRY debug_glIsProgram(GLuint program)
 {
 	GLboolean retVal = default_glIsProgram(program);
 	if (checkErrors)
@@ -7209,7 +7214,7 @@ static APIENTRY GLboolean debug_glIsProgram(GLuint program)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsRenderbuffer(GLuint renderbuffer)
+static GLboolean APIENTRY debug_glIsRenderbuffer(GLuint renderbuffer)
 {
 	GLboolean retVal = default_glIsRenderbuffer(renderbuffer);
 	if (checkErrors)
@@ -7227,7 +7232,7 @@ static APIENTRY GLboolean debug_glIsRenderbuffer(GLuint renderbuffer)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsShader(GLuint shader)
+static GLboolean APIENTRY debug_glIsShader(GLuint shader)
 {
 	GLboolean retVal = default_glIsShader(shader);
 	if (checkErrors)
@@ -7245,7 +7250,7 @@ static APIENTRY GLboolean debug_glIsShader(GLuint shader)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsTexture(GLuint texture)
+static GLboolean APIENTRY debug_glIsTexture(GLuint texture)
 {
 	GLboolean retVal = default_glIsTexture(texture);
 	if (checkErrors)
@@ -7263,7 +7268,7 @@ static APIENTRY GLboolean debug_glIsTexture(GLuint texture)
 	return retVal;
 }
 
-static APIENTRY void debug_glLineWidth(GLfloat width)
+static void APIENTRY debug_glLineWidth(GLfloat width)
 {
 	glLineWidth(width);
 	if (checkErrors)
@@ -7280,7 +7285,7 @@ static APIENTRY void debug_glLineWidth(GLfloat width)
 	}
 }
 
-static APIENTRY void debug_glLinkProgram(GLuint program)
+static void APIENTRY debug_glLinkProgram(GLuint program)
 {
 	glLinkProgram(program);
 	if (checkErrors)
@@ -7297,7 +7302,7 @@ static APIENTRY void debug_glLinkProgram(GLuint program)
 	}
 }
 
-static APIENTRY void debug_glPixelStorei(GLenum pname, GLint param)
+static void APIENTRY debug_glPixelStorei(GLenum pname, GLint param)
 {
 	glPixelStorei(pname, param);
 	if (checkErrors)
@@ -7314,7 +7319,7 @@ static APIENTRY void debug_glPixelStorei(GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glPolygonOffset(GLfloat factor, GLfloat units)
+static void APIENTRY debug_glPolygonOffset(GLfloat factor, GLfloat units)
 {
 	glPolygonOffset(factor, units);
 	if (checkErrors)
@@ -7331,7 +7336,7 @@ static APIENTRY void debug_glPolygonOffset(GLfloat factor, GLfloat units)
 	}
 }
 
-static APIENTRY void debug_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
+static void APIENTRY debug_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
 {
 	glReadPixels(x, y, width, height, format, type, pixels);
 	if (checkErrors)
@@ -7348,7 +7353,7 @@ static APIENTRY void debug_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei
 	}
 }
 
-static APIENTRY void debug_glReleaseShaderCompiler()
+static void APIENTRY debug_glReleaseShaderCompiler()
 {
 	glReleaseShaderCompiler();
 	if (checkErrors)
@@ -7365,7 +7370,7 @@ static APIENTRY void debug_glReleaseShaderCompiler()
 	}
 }
 
-static APIENTRY void debug_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glRenderbufferStorage(target, internalformat, width, height);
 	if (checkErrors)
@@ -7382,7 +7387,7 @@ static APIENTRY void debug_glRenderbufferStorage(GLenum target, GLenum internalf
 	}
 }
 
-static APIENTRY void debug_glSampleCoverage(GLfloat value, GLboolean invert)
+static void APIENTRY debug_glSampleCoverage(GLfloat value, GLboolean invert)
 {
 	glSampleCoverage(value, invert);
 	if (checkErrors)
@@ -7399,7 +7404,7 @@ static APIENTRY void debug_glSampleCoverage(GLfloat value, GLboolean invert)
 	}
 }
 
-static APIENTRY void debug_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glScissor(x, y, width, height);
 	if (checkErrors)
@@ -7416,7 +7421,7 @@ static APIENTRY void debug_glScissor(GLint x, GLint y, GLsizei width, GLsizei he
 	}
 }
 
-static APIENTRY void debug_glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length)
+static void APIENTRY debug_glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length)
 {
 	glShaderBinary(count, shaders, binaryformat, binary, length);
 	if (checkErrors)
@@ -7433,7 +7438,7 @@ static APIENTRY void debug_glShaderBinary(GLsizei count, const GLuint *shaders, 
 	}
 }
 
-static APIENTRY void debug_glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
+static void APIENTRY debug_glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
 {
 	glShaderSource(shader, count, string, length);
 	if (checkErrors)
@@ -7450,7 +7455,7 @@ static APIENTRY void debug_glShaderSource(GLuint shader, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glStencilFunc(GLenum func, GLint ref, GLuint mask)
+static void APIENTRY debug_glStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
 	glStencilFunc(func, ref, mask);
 	if (checkErrors)
@@ -7467,7 +7472,7 @@ static APIENTRY void debug_glStencilFunc(GLenum func, GLint ref, GLuint mask)
 	}
 }
 
-static APIENTRY void debug_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
+static void APIENTRY debug_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 {
 	glStencilFuncSeparate(face, func, ref, mask);
 	if (checkErrors)
@@ -7484,7 +7489,7 @@ static APIENTRY void debug_glStencilFuncSeparate(GLenum face, GLenum func, GLint
 	}
 }
 
-static APIENTRY void debug_glStencilMask(GLuint mask)
+static void APIENTRY debug_glStencilMask(GLuint mask)
 {
 	glStencilMask(mask);
 	if (checkErrors)
@@ -7501,7 +7506,7 @@ static APIENTRY void debug_glStencilMask(GLuint mask)
 	}
 }
 
-static APIENTRY void debug_glStencilMaskSeparate(GLenum face, GLuint mask)
+static void APIENTRY debug_glStencilMaskSeparate(GLenum face, GLuint mask)
 {
 	glStencilMaskSeparate(face, mask);
 	if (checkErrors)
@@ -7518,7 +7523,7 @@ static APIENTRY void debug_glStencilMaskSeparate(GLenum face, GLuint mask)
 	}
 }
 
-static APIENTRY void debug_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+static void APIENTRY debug_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
 	glStencilOp(fail, zfail, zpass);
 	if (checkErrors)
@@ -7535,7 +7540,7 @@ static APIENTRY void debug_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 	}
 }
 
-static APIENTRY void debug_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
+static void APIENTRY debug_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
 {
 	glStencilOpSeparate(face, sfail, dpfail, dppass);
 	if (checkErrors)
@@ -7552,7 +7557,7 @@ static APIENTRY void debug_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum
 	}
 }
 
-static APIENTRY void debug_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
@@ -7569,7 +7574,7 @@ static APIENTRY void debug_glTexImage2D(GLenum target, GLint level, GLint intern
 	}
 }
 
-static APIENTRY void debug_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
 	glTexParameterf(target, pname, param);
 	if (checkErrors)
@@ -7586,7 +7591,7 @@ static APIENTRY void debug_glTexParameterf(GLenum target, GLenum pname, GLfloat 
 	}
 }
 
-static APIENTRY void debug_glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
 	glTexParameterfv(target, pname, params);
 	if (checkErrors)
@@ -7603,7 +7608,7 @@ static APIENTRY void debug_glTexParameterfv(GLenum target, GLenum pname, const G
 	}
 }
 
-static APIENTRY void debug_glTexParameteri(GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glTexParameteri(GLenum target, GLenum pname, GLint param)
 {
 	glTexParameteri(target, pname, param);
 	if (checkErrors)
@@ -7620,7 +7625,7 @@ static APIENTRY void debug_glTexParameteri(GLenum target, GLenum pname, GLint pa
 	}
 }
 
-static APIENTRY void debug_glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
 	glTexParameteriv(target, pname, params);
 	if (checkErrors)
@@ -7637,7 +7642,7 @@ static APIENTRY void debug_glTexParameteriv(GLenum target, GLenum pname, const G
 	}
 }
 
-static APIENTRY void debug_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
 	glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
@@ -7654,7 +7659,7 @@ static APIENTRY void debug_glTexSubImage2D(GLenum target, GLint level, GLint xof
 	}
 }
 
-static APIENTRY void debug_glUniform1f(GLint location, GLfloat v0)
+static void APIENTRY debug_glUniform1f(GLint location, GLfloat v0)
 {
 	glUniform1f(location, v0);
 	if (checkErrors)
@@ -7671,7 +7676,7 @@ static APIENTRY void debug_glUniform1f(GLint location, GLfloat v0)
 	}
 }
 
-static APIENTRY void debug_glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
 {
 	glUniform1fv(location, count, value);
 	if (checkErrors)
@@ -7688,7 +7693,7 @@ static APIENTRY void debug_glUniform1fv(GLint location, GLsizei count, const GLf
 	}
 }
 
-static APIENTRY void debug_glUniform1i(GLint location, GLint v0)
+static void APIENTRY debug_glUniform1i(GLint location, GLint v0)
 {
 	glUniform1i(location, v0);
 	if (checkErrors)
@@ -7705,7 +7710,7 @@ static APIENTRY void debug_glUniform1i(GLint location, GLint v0)
 	}
 }
 
-static APIENTRY void debug_glUniform1iv(GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glUniform1iv(GLint location, GLsizei count, const GLint *value)
 {
 	glUniform1iv(location, count, value);
 	if (checkErrors)
@@ -7722,7 +7727,7 @@ static APIENTRY void debug_glUniform1iv(GLint location, GLsizei count, const GLi
 	}
 }
 
-static APIENTRY void debug_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
+static void APIENTRY debug_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 {
 	glUniform2f(location, v0, v1);
 	if (checkErrors)
@@ -7739,7 +7744,7 @@ static APIENTRY void debug_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 	}
 }
 
-static APIENTRY void debug_glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
 {
 	glUniform2fv(location, count, value);
 	if (checkErrors)
@@ -7756,7 +7761,7 @@ static APIENTRY void debug_glUniform2fv(GLint location, GLsizei count, const GLf
 	}
 }
 
-static APIENTRY void debug_glUniform2i(GLint location, GLint v0, GLint v1)
+static void APIENTRY debug_glUniform2i(GLint location, GLint v0, GLint v1)
 {
 	glUniform2i(location, v0, v1);
 	if (checkErrors)
@@ -7773,7 +7778,7 @@ static APIENTRY void debug_glUniform2i(GLint location, GLint v0, GLint v1)
 	}
 }
 
-static APIENTRY void debug_glUniform2iv(GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glUniform2iv(GLint location, GLsizei count, const GLint *value)
 {
 	glUniform2iv(location, count, value);
 	if (checkErrors)
@@ -7790,7 +7795,7 @@ static APIENTRY void debug_glUniform2iv(GLint location, GLsizei count, const GLi
 	}
 }
 
-static APIENTRY void debug_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+static void APIENTRY debug_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
 	glUniform3f(location, v0, v1, v2);
 	if (checkErrors)
@@ -7807,7 +7812,7 @@ static APIENTRY void debug_glUniform3f(GLint location, GLfloat v0, GLfloat v1, G
 	}
 }
 
-static APIENTRY void debug_glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
 {
 	glUniform3fv(location, count, value);
 	if (checkErrors)
@@ -7824,7 +7829,7 @@ static APIENTRY void debug_glUniform3fv(GLint location, GLsizei count, const GLf
 	}
 }
 
-static APIENTRY void debug_glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
+static void APIENTRY debug_glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
 {
 	glUniform3i(location, v0, v1, v2);
 	if (checkErrors)
@@ -7841,7 +7846,7 @@ static APIENTRY void debug_glUniform3i(GLint location, GLint v0, GLint v1, GLint
 	}
 }
 
-static APIENTRY void debug_glUniform3iv(GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glUniform3iv(GLint location, GLsizei count, const GLint *value)
 {
 	glUniform3iv(location, count, value);
 	if (checkErrors)
@@ -7858,7 +7863,7 @@ static APIENTRY void debug_glUniform3iv(GLint location, GLsizei count, const GLi
 	}
 }
 
-static APIENTRY void debug_glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+static void APIENTRY debug_glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
 	glUniform4f(location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -7875,7 +7880,7 @@ static APIENTRY void debug_glUniform4f(GLint location, GLfloat v0, GLfloat v1, G
 	}
 }
 
-static APIENTRY void debug_glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
 {
 	glUniform4fv(location, count, value);
 	if (checkErrors)
@@ -7892,7 +7897,7 @@ static APIENTRY void debug_glUniform4fv(GLint location, GLsizei count, const GLf
 	}
 }
 
-static APIENTRY void debug_glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+static void APIENTRY debug_glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
 	glUniform4i(location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -7909,7 +7914,7 @@ static APIENTRY void debug_glUniform4i(GLint location, GLint v0, GLint v1, GLint
 	}
 }
 
-static APIENTRY void debug_glUniform4iv(GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glUniform4iv(GLint location, GLsizei count, const GLint *value)
 {
 	glUniform4iv(location, count, value);
 	if (checkErrors)
@@ -7926,7 +7931,7 @@ static APIENTRY void debug_glUniform4iv(GLint location, GLsizei count, const GLi
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix2fv(location, count, transpose, value);
 	if (checkErrors)
@@ -7943,7 +7948,7 @@ static APIENTRY void debug_glUniformMatrix2fv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix3fv(location, count, transpose, value);
 	if (checkErrors)
@@ -7960,7 +7965,7 @@ static APIENTRY void debug_glUniformMatrix3fv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix4fv(location, count, transpose, value);
 	if (checkErrors)
@@ -7977,7 +7982,7 @@ static APIENTRY void debug_glUniformMatrix4fv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUseProgram(GLuint program)
+static void APIENTRY debug_glUseProgram(GLuint program)
 {
 	glUseProgram(program);
 	if (checkErrors)
@@ -7994,7 +7999,7 @@ static APIENTRY void debug_glUseProgram(GLuint program)
 	}
 }
 
-static APIENTRY void debug_glValidateProgram(GLuint program)
+static void APIENTRY debug_glValidateProgram(GLuint program)
 {
 	glValidateProgram(program);
 	if (checkErrors)
@@ -8011,7 +8016,7 @@ static APIENTRY void debug_glValidateProgram(GLuint program)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1f(GLuint index, GLfloat x)
+static void APIENTRY debug_glVertexAttrib1f(GLuint index, GLfloat x)
 {
 	glVertexAttrib1f(index, x);
 	if (checkErrors)
@@ -8028,7 +8033,7 @@ static APIENTRY void debug_glVertexAttrib1f(GLuint index, GLfloat x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1fv(GLuint index, const GLfloat *v)
+static void APIENTRY debug_glVertexAttrib1fv(GLuint index, const GLfloat *v)
 {
 	glVertexAttrib1fv(index, v);
 	if (checkErrors)
@@ -8045,7 +8050,7 @@ static APIENTRY void debug_glVertexAttrib1fv(GLuint index, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
+static void APIENTRY debug_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 {
 	glVertexAttrib2f(index, x, y);
 	if (checkErrors)
@@ -8062,7 +8067,7 @@ static APIENTRY void debug_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2fv(GLuint index, const GLfloat *v)
+static void APIENTRY debug_glVertexAttrib2fv(GLuint index, const GLfloat *v)
 {
 	glVertexAttrib2fv(index, v);
 	if (checkErrors)
@@ -8079,7 +8084,7 @@ static APIENTRY void debug_glVertexAttrib2fv(GLuint index, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 {
 	glVertexAttrib3f(index, x, y, z);
 	if (checkErrors)
@@ -8096,7 +8101,7 @@ static APIENTRY void debug_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3fv(GLuint index, const GLfloat *v)
+static void APIENTRY debug_glVertexAttrib3fv(GLuint index, const GLfloat *v)
 {
 	glVertexAttrib3fv(index, v);
 	if (checkErrors)
@@ -8113,7 +8118,7 @@ static APIENTRY void debug_glVertexAttrib3fv(GLuint index, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glVertexAttrib4f(index, x, y, z, w);
 	if (checkErrors)
@@ -8130,7 +8135,7 @@ static APIENTRY void debug_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4fv(GLuint index, const GLfloat *v)
+static void APIENTRY debug_glVertexAttrib4fv(GLuint index, const GLfloat *v)
 {
 	glVertexAttrib4fv(index, v);
 	if (checkErrors)
@@ -8147,7 +8152,7 @@ static APIENTRY void debug_glVertexAttrib4fv(GLuint index, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
 {
 	glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 	if (checkErrors)
@@ -8164,7 +8169,7 @@ static APIENTRY void debug_glVertexAttribPointer(GLuint index, GLint size, GLenu
 	}
 }
 
-static APIENTRY void debug_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glViewport(x, y, width, height);
 	if (checkErrors)
@@ -8181,7 +8186,7 @@ static APIENTRY void debug_glViewport(GLint x, GLint y, GLsizei width, GLsizei h
 	}
 }
 
-static APIENTRY void debug_glReadBuffer(GLenum src)
+static void APIENTRY debug_glReadBuffer(GLenum src)
 {
 	glReadBuffer(src);
 	if (checkErrors)
@@ -8198,7 +8203,7 @@ static APIENTRY void debug_glReadBuffer(GLenum src)
 	}
 }
 
-static APIENTRY void debug_glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
+static void APIENTRY debug_glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
 {
 	glDrawRangeElements(mode, start, end, count, type, indices);
 	if (checkErrors)
@@ -8215,7 +8220,7 @@ static APIENTRY void debug_glDrawRangeElements(GLenum mode, GLuint start, GLuint
 	}
 }
 
-static APIENTRY void debug_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
@@ -8232,7 +8237,7 @@ static APIENTRY void debug_glTexImage3D(GLenum target, GLint level, GLint intern
 	}
 }
 
-static APIENTRY void debug_glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
 	glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
@@ -8249,7 +8254,7 @@ static APIENTRY void debug_glTexSubImage3D(GLenum target, GLint level, GLint xof
 	}
 }
 
-static APIENTRY void debug_glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
@@ -8266,7 +8271,7 @@ static APIENTRY void debug_glCopyTexSubImage3D(GLenum target, GLint level, GLint
 	}
 }
 
-static APIENTRY void debug_glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data)
 {
 	glCompressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, data);
 	if (checkErrors)
@@ -8283,7 +8288,7 @@ static APIENTRY void debug_glCompressedTexImage3D(GLenum target, GLint level, GL
 	}
 }
 
-static APIENTRY void debug_glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 	if (checkErrors)
@@ -8300,7 +8305,7 @@ static APIENTRY void debug_glCompressedTexSubImage3D(GLenum target, GLint level,
 	}
 }
 
-static APIENTRY void debug_glGenQueries(GLsizei n, GLuint *ids)
+static void APIENTRY debug_glGenQueries(GLsizei n, GLuint *ids)
 {
 	glGenQueries(n, ids);
 	if (checkErrors)
@@ -8317,7 +8322,7 @@ static APIENTRY void debug_glGenQueries(GLsizei n, GLuint *ids)
 	}
 }
 
-static APIENTRY void debug_glDeleteQueries(GLsizei n, const GLuint *ids)
+static void APIENTRY debug_glDeleteQueries(GLsizei n, const GLuint *ids)
 {
 	glDeleteQueries(n, ids);
 	if (checkErrors)
@@ -8334,7 +8339,7 @@ static APIENTRY void debug_glDeleteQueries(GLsizei n, const GLuint *ids)
 	}
 }
 
-static APIENTRY GLboolean debug_glIsQuery(GLuint id)
+static GLboolean APIENTRY debug_glIsQuery(GLuint id)
 {
 	GLboolean retVal = default_glIsQuery(id);
 	if (checkErrors)
@@ -8352,7 +8357,7 @@ static APIENTRY GLboolean debug_glIsQuery(GLuint id)
 	return retVal;
 }
 
-static APIENTRY void debug_glBeginQuery(GLenum target, GLuint id)
+static void APIENTRY debug_glBeginQuery(GLenum target, GLuint id)
 {
 	glBeginQuery(target, id);
 	if (checkErrors)
@@ -8369,7 +8374,7 @@ static APIENTRY void debug_glBeginQuery(GLenum target, GLuint id)
 	}
 }
 
-static APIENTRY void debug_glEndQuery(GLenum target)
+static void APIENTRY debug_glEndQuery(GLenum target)
 {
 	glEndQuery(target);
 	if (checkErrors)
@@ -8386,7 +8391,7 @@ static APIENTRY void debug_glEndQuery(GLenum target)
 	}
 }
 
-static APIENTRY void debug_glGetQueryiv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetQueryiv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetQueryiv(target, pname, params);
 	if (checkErrors)
@@ -8403,7 +8408,7 @@ static APIENTRY void debug_glGetQueryiv(GLenum target, GLenum pname, GLint *para
 	}
 }
 
-static APIENTRY void debug_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 {
 	glGetQueryObjectuiv(id, pname, params);
 	if (checkErrors)
@@ -8420,7 +8425,7 @@ static APIENTRY void debug_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *
 	}
 }
 
-static APIENTRY GLboolean debug_glUnmapBuffer(GLenum target)
+static GLboolean APIENTRY debug_glUnmapBuffer(GLenum target)
 {
 	GLboolean retVal = default_glUnmapBuffer(target);
 	if (checkErrors)
@@ -8438,7 +8443,7 @@ static APIENTRY GLboolean debug_glUnmapBuffer(GLenum target)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetBufferPointerv(GLenum target, GLenum pname, void **params)
+static void APIENTRY debug_glGetBufferPointerv(GLenum target, GLenum pname, void **params)
 {
 	glGetBufferPointerv(target, pname, params);
 	if (checkErrors)
@@ -8455,7 +8460,7 @@ static APIENTRY void debug_glGetBufferPointerv(GLenum target, GLenum pname, void
 	}
 }
 
-static APIENTRY void debug_glDrawBuffers(GLsizei n, const GLenum *bufs)
+static void APIENTRY debug_glDrawBuffers(GLsizei n, const GLenum *bufs)
 {
 	glDrawBuffers(n, bufs);
 	if (checkErrors)
@@ -8472,7 +8477,7 @@ static APIENTRY void debug_glDrawBuffers(GLsizei n, const GLenum *bufs)
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix2x3fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8489,7 +8494,7 @@ static APIENTRY void debug_glUniformMatrix2x3fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix3x2fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8506,7 +8511,7 @@ static APIENTRY void debug_glUniformMatrix3x2fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix2x4fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8523,7 +8528,7 @@ static APIENTRY void debug_glUniformMatrix2x4fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix4x2fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8540,7 +8545,7 @@ static APIENTRY void debug_glUniformMatrix4x2fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix3x4fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8557,7 +8562,7 @@ static APIENTRY void debug_glUniformMatrix3x4fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glUniformMatrix4x3fv(location, count, transpose, value);
 	if (checkErrors)
@@ -8574,7 +8579,7 @@ static APIENTRY void debug_glUniformMatrix4x3fv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+static void APIENTRY debug_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
 	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 	if (checkErrors)
@@ -8591,7 +8596,7 @@ static APIENTRY void debug_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint src
 	}
 }
 
-static APIENTRY void debug_glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
 	if (checkErrors)
@@ -8608,7 +8613,7 @@ static APIENTRY void debug_glRenderbufferStorageMultisample(GLenum target, GLsiz
 	}
 }
 
-static APIENTRY void debug_glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
+static void APIENTRY debug_glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
 	glFramebufferTextureLayer(target, attachment, texture, level, layer);
 	if (checkErrors)
@@ -8625,7 +8630,7 @@ static APIENTRY void debug_glFramebufferTextureLayer(GLenum target, GLenum attac
 	}
 }
 
-static APIENTRY void * debug_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+static void * APIENTRY debug_glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
 	void * retVal = default_glMapBufferRange(target, offset, length, access);
 	if (checkErrors)
@@ -8643,7 +8648,7 @@ static APIENTRY void * debug_glMapBufferRange(GLenum target, GLintptr offset, GL
 	return retVal;
 }
 
-static APIENTRY void debug_glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
+static void APIENTRY debug_glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
 {
 	glFlushMappedBufferRange(target, offset, length);
 	if (checkErrors)
@@ -8660,7 +8665,7 @@ static APIENTRY void debug_glFlushMappedBufferRange(GLenum target, GLintptr offs
 	}
 }
 
-static APIENTRY void debug_glBindVertexArray(GLuint array)
+static void APIENTRY debug_glBindVertexArray(GLuint array)
 {
 	glBindVertexArray(array);
 	if (checkErrors)
@@ -8677,7 +8682,7 @@ static APIENTRY void debug_glBindVertexArray(GLuint array)
 	}
 }
 
-static APIENTRY void debug_glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
+static void APIENTRY debug_glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 {
 	glDeleteVertexArrays(n, arrays);
 	if (checkErrors)
@@ -8694,7 +8699,7 @@ static APIENTRY void debug_glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 	}
 }
 
-static APIENTRY void debug_glGenVertexArrays(GLsizei n, GLuint *arrays)
+static void APIENTRY debug_glGenVertexArrays(GLsizei n, GLuint *arrays)
 {
 	glGenVertexArrays(n, arrays);
 	if (checkErrors)
@@ -8711,7 +8716,7 @@ static APIENTRY void debug_glGenVertexArrays(GLsizei n, GLuint *arrays)
 	}
 }
 
-static APIENTRY GLboolean debug_glIsVertexArray(GLuint array)
+static GLboolean APIENTRY debug_glIsVertexArray(GLuint array)
 {
 	GLboolean retVal = default_glIsVertexArray(array);
 	if (checkErrors)
@@ -8729,7 +8734,7 @@ static APIENTRY GLboolean debug_glIsVertexArray(GLuint array)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
+static void APIENTRY debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
 {
 	glGetIntegeri_v(target, index, data);
 	if (checkErrors)
@@ -8746,7 +8751,7 @@ static APIENTRY void debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *d
 	}
 }
 
-static APIENTRY void debug_glBeginTransformFeedback(GLenum primitiveMode)
+static void APIENTRY debug_glBeginTransformFeedback(GLenum primitiveMode)
 {
 	glBeginTransformFeedback(primitiveMode);
 	if (checkErrors)
@@ -8763,7 +8768,7 @@ static APIENTRY void debug_glBeginTransformFeedback(GLenum primitiveMode)
 	}
 }
 
-static APIENTRY void debug_glEndTransformFeedback()
+static void APIENTRY debug_glEndTransformFeedback()
 {
 	glEndTransformFeedback();
 	if (checkErrors)
@@ -8780,7 +8785,7 @@ static APIENTRY void debug_glEndTransformFeedback()
 	}
 }
 
-static APIENTRY void debug_glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
+static void APIENTRY debug_glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 	glBindBufferRange(target, index, buffer, offset, size);
 	if (checkErrors)
@@ -8797,7 +8802,7 @@ static APIENTRY void debug_glBindBufferRange(GLenum target, GLuint index, GLuint
 	}
 }
 
-static APIENTRY void debug_glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
+static void APIENTRY debug_glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
 {
 	glBindBufferBase(target, index, buffer);
 	if (checkErrors)
@@ -8814,7 +8819,7 @@ static APIENTRY void debug_glBindBufferBase(GLenum target, GLuint index, GLuint 
 	}
 }
 
-static APIENTRY void debug_glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode)
+static void APIENTRY debug_glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode)
 {
 	glTransformFeedbackVaryings(program, count, varyings, bufferMode);
 	if (checkErrors)
@@ -8831,7 +8836,7 @@ static APIENTRY void debug_glTransformFeedbackVaryings(GLuint program, GLsizei c
 	}
 }
 
-static APIENTRY void debug_glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)
+static void APIENTRY debug_glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)
 {
 	glGetTransformFeedbackVarying(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
@@ -8848,7 +8853,7 @@ static APIENTRY void debug_glGetTransformFeedbackVarying(GLuint program, GLuint 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glVertexAttribIPointer(index, size, type, stride, pointer);
 	if (checkErrors)
@@ -8865,7 +8870,7 @@ static APIENTRY void debug_glVertexAttribIPointer(GLuint index, GLint size, GLen
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 {
 	glGetVertexAttribIiv(index, pname, params);
 	if (checkErrors)
@@ -8882,7 +8887,7 @@ static APIENTRY void debug_glGetVertexAttribIiv(GLuint index, GLenum pname, GLin
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
 {
 	glGetVertexAttribIuiv(index, pname, params);
 	if (checkErrors)
@@ -8899,7 +8904,7 @@ static APIENTRY void debug_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLu
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
+static void APIENTRY debug_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
 {
 	glVertexAttribI4i(index, x, y, z, w);
 	if (checkErrors)
@@ -8916,7 +8921,7 @@ static APIENTRY void debug_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLi
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
+static void APIENTRY debug_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
 	glVertexAttribI4ui(index, x, y, z, w);
 	if (checkErrors)
@@ -8933,7 +8938,7 @@ static APIENTRY void debug_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4iv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttribI4iv(GLuint index, const GLint *v)
 {
 	glVertexAttribI4iv(index, v);
 	if (checkErrors)
@@ -8950,7 +8955,7 @@ static APIENTRY void debug_glVertexAttribI4iv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4uiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttribI4uiv(GLuint index, const GLuint *v)
 {
 	glVertexAttribI4uiv(index, v);
 	if (checkErrors)
@@ -8967,7 +8972,7 @@ static APIENTRY void debug_glVertexAttribI4uiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glGetUniformuiv(GLuint program, GLint location, GLuint *params)
+static void APIENTRY debug_glGetUniformuiv(GLuint program, GLint location, GLuint *params)
 {
 	glGetUniformuiv(program, location, params);
 	if (checkErrors)
@@ -8984,7 +8989,7 @@ static APIENTRY void debug_glGetUniformuiv(GLuint program, GLint location, GLuin
 	}
 }
 
-static APIENTRY GLint debug_glGetFragDataLocation(GLuint program, const GLchar *name)
+static GLint APIENTRY debug_glGetFragDataLocation(GLuint program, const GLchar *name)
 {
 	GLint retVal = default_glGetFragDataLocation(program, name);
 	if (checkErrors)
@@ -9002,7 +9007,7 @@ static APIENTRY GLint debug_glGetFragDataLocation(GLuint program, const GLchar *
 	return retVal;
 }
 
-static APIENTRY void debug_glUniform1ui(GLint location, GLuint v0)
+static void APIENTRY debug_glUniform1ui(GLint location, GLuint v0)
 {
 	glUniform1ui(location, v0);
 	if (checkErrors)
@@ -9019,7 +9024,7 @@ static APIENTRY void debug_glUniform1ui(GLint location, GLuint v0)
 	}
 }
 
-static APIENTRY void debug_glUniform2ui(GLint location, GLuint v0, GLuint v1)
+static void APIENTRY debug_glUniform2ui(GLint location, GLuint v0, GLuint v1)
 {
 	glUniform2ui(location, v0, v1);
 	if (checkErrors)
@@ -9036,7 +9041,7 @@ static APIENTRY void debug_glUniform2ui(GLint location, GLuint v0, GLuint v1)
 	}
 }
 
-static APIENTRY void debug_glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
+static void APIENTRY debug_glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
 	glUniform3ui(location, v0, v1, v2);
 	if (checkErrors)
@@ -9053,7 +9058,7 @@ static APIENTRY void debug_glUniform3ui(GLint location, GLuint v0, GLuint v1, GL
 	}
 }
 
-static APIENTRY void debug_glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+static void APIENTRY debug_glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
 	glUniform4ui(location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -9070,7 +9075,7 @@ static APIENTRY void debug_glUniform4ui(GLint location, GLuint v0, GLuint v1, GL
 	}
 }
 
-static APIENTRY void debug_glUniform1uiv(GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glUniform1uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	glUniform1uiv(location, count, value);
 	if (checkErrors)
@@ -9087,7 +9092,7 @@ static APIENTRY void debug_glUniform1uiv(GLint location, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	glUniform2uiv(location, count, value);
 	if (checkErrors)
@@ -9104,7 +9109,7 @@ static APIENTRY void debug_glUniform2uiv(GLint location, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	glUniform3uiv(location, count, value);
 	if (checkErrors)
@@ -9121,7 +9126,7 @@ static APIENTRY void debug_glUniform3uiv(GLint location, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
 {
 	glUniform4uiv(location, count, value);
 	if (checkErrors)
@@ -9138,7 +9143,7 @@ static APIENTRY void debug_glUniform4uiv(GLint location, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)
+static void APIENTRY debug_glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)
 {
 	glClearBufferiv(buffer, drawbuffer, value);
 	if (checkErrors)
@@ -9155,7 +9160,7 @@ static APIENTRY void debug_glClearBufferiv(GLenum buffer, GLint drawbuffer, cons
 	}
 }
 
-static APIENTRY void debug_glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
+static void APIENTRY debug_glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
 	glClearBufferuiv(buffer, drawbuffer, value);
 	if (checkErrors)
@@ -9172,7 +9177,7 @@ static APIENTRY void debug_glClearBufferuiv(GLenum buffer, GLint drawbuffer, con
 	}
 }
 
-static APIENTRY void debug_glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
+static void APIENTRY debug_glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
 	glClearBufferfv(buffer, drawbuffer, value);
 	if (checkErrors)
@@ -9189,7 +9194,7 @@ static APIENTRY void debug_glClearBufferfv(GLenum buffer, GLint drawbuffer, cons
 	}
 }
 
-static APIENTRY void debug_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+static void APIENTRY debug_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
 	glClearBufferfi(buffer, drawbuffer, depth, stencil);
 	if (checkErrors)
@@ -9206,7 +9211,7 @@ static APIENTRY void debug_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfl
 	}
 }
 
-static APIENTRY const GLubyte * debug_glGetStringi(GLenum name, GLuint index)
+static const GLubyte * APIENTRY debug_glGetStringi(GLenum name, GLuint index)
 {
 	const GLubyte * retVal = default_glGetStringi(name, index);
 	if (checkErrors)
@@ -9224,7 +9229,7 @@ static APIENTRY const GLubyte * debug_glGetStringi(GLenum name, GLuint index)
 	return retVal;
 }
 
-static APIENTRY void debug_glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+static void APIENTRY debug_glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
 	glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 	if (checkErrors)
@@ -9241,7 +9246,7 @@ static APIENTRY void debug_glCopyBufferSubData(GLenum readTarget, GLenum writeTa
 	}
 }
 
-static APIENTRY void debug_glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices)
+static void APIENTRY debug_glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices)
 {
 	glGetUniformIndices(program, uniformCount, uniformNames, uniformIndices);
 	if (checkErrors)
@@ -9258,7 +9263,7 @@ static APIENTRY void debug_glGetUniformIndices(GLuint program, GLsizei uniformCo
 	}
 }
 
-static APIENTRY void debug_glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params)
 {
 	glGetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params);
 	if (checkErrors)
@@ -9275,7 +9280,7 @@ static APIENTRY void debug_glGetActiveUniformsiv(GLuint program, GLsizei uniform
 	}
 }
 
-static APIENTRY GLuint debug_glGetUniformBlockIndex(GLuint program, const GLchar *uniformBlockName)
+static GLuint APIENTRY debug_glGetUniformBlockIndex(GLuint program, const GLchar *uniformBlockName)
 {
 	GLuint retVal = default_glGetUniformBlockIndex(program, uniformBlockName);
 	if (checkErrors)
@@ -9293,7 +9298,7 @@ static APIENTRY GLuint debug_glGetUniformBlockIndex(GLuint program, const GLchar
 	return retVal;
 }
 
-static APIENTRY void debug_glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
 {
 	glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
 	if (checkErrors)
@@ -9310,7 +9315,7 @@ static APIENTRY void debug_glGetActiveUniformBlockiv(GLuint program, GLuint unif
 	}
 }
 
-static APIENTRY void debug_glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName)
+static void APIENTRY debug_glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName)
 {
 	glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName);
 	if (checkErrors)
@@ -9327,7 +9332,7 @@ static APIENTRY void debug_glGetActiveUniformBlockName(GLuint program, GLuint un
 	}
 }
 
-static APIENTRY void debug_glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
+static void APIENTRY debug_glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 {
 	glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 	if (checkErrors)
@@ -9344,7 +9349,7 @@ static APIENTRY void debug_glUniformBlockBinding(GLuint program, GLuint uniformB
 	}
 }
 
-static APIENTRY void debug_glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
+static void APIENTRY debug_glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
 {
 	glDrawArraysInstanced(mode, first, count, instancecount);
 	if (checkErrors)
@@ -9361,7 +9366,7 @@ static APIENTRY void debug_glDrawArraysInstanced(GLenum mode, GLint first, GLsiz
 	}
 }
 
-static APIENTRY void debug_glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
+static void APIENTRY debug_glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
 {
 	glDrawElementsInstanced(mode, count, type, indices, instancecount);
 	if (checkErrors)
@@ -9378,7 +9383,7 @@ static APIENTRY void debug_glDrawElementsInstanced(GLenum mode, GLsizei count, G
 	}
 }
 
-static APIENTRY GLsync debug_glFenceSync(GLenum condition, GLbitfield flags)
+static GLsync APIENTRY debug_glFenceSync(GLenum condition, GLbitfield flags)
 {
 	GLsync retVal = default_glFenceSync(condition, flags);
 	if (checkErrors)
@@ -9396,7 +9401,7 @@ static APIENTRY GLsync debug_glFenceSync(GLenum condition, GLbitfield flags)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsSync(GLsync sync)
+static GLboolean APIENTRY debug_glIsSync(GLsync sync)
 {
 	GLboolean retVal = default_glIsSync(sync);
 	if (checkErrors)
@@ -9414,7 +9419,7 @@ static APIENTRY GLboolean debug_glIsSync(GLsync sync)
 	return retVal;
 }
 
-static APIENTRY void debug_glDeleteSync(GLsync sync)
+static void APIENTRY debug_glDeleteSync(GLsync sync)
 {
 	glDeleteSync(sync);
 	if (checkErrors)
@@ -9431,7 +9436,7 @@ static APIENTRY void debug_glDeleteSync(GLsync sync)
 	}
 }
 
-static APIENTRY GLenum debug_glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
+static GLenum APIENTRY debug_glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 {
 	GLenum retVal = default_glClientWaitSync(sync, flags, timeout);
 	if (checkErrors)
@@ -9449,7 +9454,7 @@ static APIENTRY GLenum debug_glClientWaitSync(GLsync sync, GLbitfield flags, GLu
 	return retVal;
 }
 
-static APIENTRY void debug_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
+static void APIENTRY debug_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 {
 	glWaitSync(sync, flags, timeout);
 	if (checkErrors)
@@ -9466,7 +9471,7 @@ static APIENTRY void debug_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 ti
 	}
 }
 
-static APIENTRY void debug_glGetInteger64v(GLenum pname, GLint64 *data)
+static void APIENTRY debug_glGetInteger64v(GLenum pname, GLint64 *data)
 {
 	glGetInteger64v(pname, data);
 	if (checkErrors)
@@ -9483,7 +9488,7 @@ static APIENTRY void debug_glGetInteger64v(GLenum pname, GLint64 *data)
 	}
 }
 
-static APIENTRY void debug_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values)
+static void APIENTRY debug_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values)
 {
 	glGetSynciv(sync, pname, bufSize, length, values);
 	if (checkErrors)
@@ -9500,7 +9505,7 @@ static APIENTRY void debug_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSiz
 	}
 }
 
-static APIENTRY void debug_glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
+static void APIENTRY debug_glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 {
 	glGetInteger64i_v(target, index, data);
 	if (checkErrors)
@@ -9517,7 +9522,7 @@ static APIENTRY void debug_glGetInteger64i_v(GLenum target, GLuint index, GLint6
 	}
 }
 
-static APIENTRY void debug_glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
+static void APIENTRY debug_glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
 {
 	glGetBufferParameteri64v(target, pname, params);
 	if (checkErrors)
@@ -9534,7 +9539,7 @@ static APIENTRY void debug_glGetBufferParameteri64v(GLenum target, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glGenSamplers(GLsizei count, GLuint *samplers)
+static void APIENTRY debug_glGenSamplers(GLsizei count, GLuint *samplers)
 {
 	glGenSamplers(count, samplers);
 	if (checkErrors)
@@ -9551,7 +9556,7 @@ static APIENTRY void debug_glGenSamplers(GLsizei count, GLuint *samplers)
 	}
 }
 
-static APIENTRY void debug_glDeleteSamplers(GLsizei count, const GLuint *samplers)
+static void APIENTRY debug_glDeleteSamplers(GLsizei count, const GLuint *samplers)
 {
 	glDeleteSamplers(count, samplers);
 	if (checkErrors)
@@ -9568,7 +9573,7 @@ static APIENTRY void debug_glDeleteSamplers(GLsizei count, const GLuint *sampler
 	}
 }
 
-static APIENTRY GLboolean debug_glIsSampler(GLuint sampler)
+static GLboolean APIENTRY debug_glIsSampler(GLuint sampler)
 {
 	GLboolean retVal = default_glIsSampler(sampler);
 	if (checkErrors)
@@ -9586,7 +9591,7 @@ static APIENTRY GLboolean debug_glIsSampler(GLuint sampler)
 	return retVal;
 }
 
-static APIENTRY void debug_glBindSampler(GLuint unit, GLuint sampler)
+static void APIENTRY debug_glBindSampler(GLuint unit, GLuint sampler)
 {
 	glBindSampler(unit, sampler);
 	if (checkErrors)
@@ -9603,7 +9608,7 @@ static APIENTRY void debug_glBindSampler(GLuint unit, GLuint sampler)
 	}
 }
 
-static APIENTRY void debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
+static void APIENTRY debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
 {
 	glSamplerParameteri(sampler, pname, param);
 	if (checkErrors)
@@ -9620,7 +9625,7 @@ static APIENTRY void debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLi
 	}
 }
 
-static APIENTRY void debug_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint *param)
+static void APIENTRY debug_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint *param)
 {
 	glSamplerParameteriv(sampler, pname, param);
 	if (checkErrors)
@@ -9637,7 +9642,7 @@ static APIENTRY void debug_glSamplerParameteriv(GLuint sampler, GLenum pname, co
 	}
 }
 
-static APIENTRY void debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
+static void APIENTRY debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
 {
 	glSamplerParameterf(sampler, pname, param);
 	if (checkErrors)
@@ -9654,7 +9659,7 @@ static APIENTRY void debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLf
 	}
 }
 
-static APIENTRY void debug_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat *param)
+static void APIENTRY debug_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat *param)
 {
 	glSamplerParameterfv(sampler, pname, param);
 	if (checkErrors)
@@ -9671,7 +9676,7 @@ static APIENTRY void debug_glSamplerParameterfv(GLuint sampler, GLenum pname, co
 	}
 }
 
-static APIENTRY void debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
 {
 	glGetSamplerParameteriv(sampler, pname, params);
 	if (checkErrors)
@@ -9688,7 +9693,7 @@ static APIENTRY void debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
 {
 	glGetSamplerParameterfv(sampler, pname, params);
 	if (checkErrors)
@@ -9705,7 +9710,7 @@ static APIENTRY void debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glVertexAttribDivisor(GLuint index, GLuint divisor)
+static void APIENTRY debug_glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
 	glVertexAttribDivisor(index, divisor);
 	if (checkErrors)
@@ -9722,7 +9727,7 @@ static APIENTRY void debug_glVertexAttribDivisor(GLuint index, GLuint divisor)
 	}
 }
 
-static APIENTRY void debug_glBindTransformFeedback(GLenum target, GLuint id)
+static void APIENTRY debug_glBindTransformFeedback(GLenum target, GLuint id)
 {
 	glBindTransformFeedback(target, id);
 	if (checkErrors)
@@ -9739,7 +9744,7 @@ static APIENTRY void debug_glBindTransformFeedback(GLenum target, GLuint id)
 	}
 }
 
-static APIENTRY void debug_glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
+static void APIENTRY debug_glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
 {
 	glDeleteTransformFeedbacks(n, ids);
 	if (checkErrors)
@@ -9756,7 +9761,7 @@ static APIENTRY void debug_glDeleteTransformFeedbacks(GLsizei n, const GLuint *i
 	}
 }
 
-static APIENTRY void debug_glGenTransformFeedbacks(GLsizei n, GLuint *ids)
+static void APIENTRY debug_glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 {
 	glGenTransformFeedbacks(n, ids);
 	if (checkErrors)
@@ -9773,7 +9778,7 @@ static APIENTRY void debug_glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 	}
 }
 
-static APIENTRY GLboolean debug_glIsTransformFeedback(GLuint id)
+static GLboolean APIENTRY debug_glIsTransformFeedback(GLuint id)
 {
 	GLboolean retVal = default_glIsTransformFeedback(id);
 	if (checkErrors)
@@ -9791,7 +9796,7 @@ static APIENTRY GLboolean debug_glIsTransformFeedback(GLuint id)
 	return retVal;
 }
 
-static APIENTRY void debug_glPauseTransformFeedback()
+static void APIENTRY debug_glPauseTransformFeedback()
 {
 	glPauseTransformFeedback();
 	if (checkErrors)
@@ -9808,7 +9813,7 @@ static APIENTRY void debug_glPauseTransformFeedback()
 	}
 }
 
-static APIENTRY void debug_glResumeTransformFeedback()
+static void APIENTRY debug_glResumeTransformFeedback()
 {
 	glResumeTransformFeedback();
 	if (checkErrors)
@@ -9825,7 +9830,7 @@ static APIENTRY void debug_glResumeTransformFeedback()
 	}
 }
 
-static APIENTRY void debug_glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)
+static void APIENTRY debug_glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)
 {
 	glGetProgramBinary(program, bufSize, length, binaryFormat, binary);
 	if (checkErrors)
@@ -9842,7 +9847,7 @@ static APIENTRY void debug_glGetProgramBinary(GLuint program, GLsizei bufSize, G
 	}
 }
 
-static APIENTRY void debug_glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
+static void APIENTRY debug_glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
 {
 	glProgramBinary(program, binaryFormat, binary, length);
 	if (checkErrors)
@@ -9859,7 +9864,7 @@ static APIENTRY void debug_glProgramBinary(GLuint program, GLenum binaryFormat, 
 	}
 }
 
-static APIENTRY void debug_glProgramParameteri(GLuint program, GLenum pname, GLint value)
+static void APIENTRY debug_glProgramParameteri(GLuint program, GLenum pname, GLint value)
 {
 	glProgramParameteri(program, pname, value);
 	if (checkErrors)
@@ -9876,7 +9881,7 @@ static APIENTRY void debug_glProgramParameteri(GLuint program, GLenum pname, GLi
 	}
 }
 
-static APIENTRY void debug_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments)
+static void APIENTRY debug_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments)
 {
 	glInvalidateFramebuffer(target, numAttachments, attachments);
 	if (checkErrors)
@@ -9893,7 +9898,7 @@ static APIENTRY void debug_glInvalidateFramebuffer(GLenum target, GLsizei numAtt
 	}
 }
 
-static APIENTRY void debug_glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glInvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);
 	if (checkErrors)
@@ -9910,7 +9915,7 @@ static APIENTRY void debug_glInvalidateSubFramebuffer(GLenum target, GLsizei num
 	}
 }
 
-static APIENTRY void debug_glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glTexStorage2D(target, levels, internalformat, width, height);
 	if (checkErrors)
@@ -9927,7 +9932,7 @@ static APIENTRY void debug_glTexStorage2D(GLenum target, GLsizei levels, GLenum 
 	}
 }
 
-static APIENTRY void debug_glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+static void APIENTRY debug_glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
 	glTexStorage3D(target, levels, internalformat, width, height, depth);
 	if (checkErrors)
@@ -9944,7 +9949,7 @@ static APIENTRY void debug_glTexStorage3D(GLenum target, GLsizei levels, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params)
+static void APIENTRY debug_glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params)
 {
 	glGetInternalformativ(target, internalformat, pname, bufSize, params);
 	if (checkErrors)
@@ -9961,7 +9966,7 @@ static APIENTRY void debug_glGetInternalformativ(GLenum target, GLenum internalf
 	}
 }
 
-static APIENTRY void debug_glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
+static void APIENTRY debug_glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
 {
 	glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
 	if (checkErrors)
@@ -9978,7 +9983,7 @@ static APIENTRY void debug_glDispatchCompute(GLuint num_groups_x, GLuint num_gro
 	}
 }
 
-static APIENTRY void debug_glDispatchComputeIndirect(GLintptr indirect)
+static void APIENTRY debug_glDispatchComputeIndirect(GLintptr indirect)
 {
 	glDispatchComputeIndirect(indirect);
 	if (checkErrors)
@@ -9995,7 +10000,7 @@ static APIENTRY void debug_glDispatchComputeIndirect(GLintptr indirect)
 	}
 }
 
-static APIENTRY void debug_glDrawArraysIndirect(GLenum mode, const void *indirect)
+static void APIENTRY debug_glDrawArraysIndirect(GLenum mode, const void *indirect)
 {
 	glDrawArraysIndirect(mode, indirect);
 	if (checkErrors)
@@ -10012,7 +10017,7 @@ static APIENTRY void debug_glDrawArraysIndirect(GLenum mode, const void *indirec
 	}
 }
 
-static APIENTRY void debug_glDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect)
+static void APIENTRY debug_glDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect)
 {
 	glDrawElementsIndirect(mode, type, indirect);
 	if (checkErrors)
@@ -10029,7 +10034,7 @@ static APIENTRY void debug_glDrawElementsIndirect(GLenum mode, GLenum type, cons
 	}
 }
 
-static APIENTRY void debug_glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
 {
 	glFramebufferParameteri(target, pname, param);
 	if (checkErrors)
@@ -10046,7 +10051,7 @@ static APIENTRY void debug_glFramebufferParameteri(GLenum target, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetFramebufferParameteriv(target, pname, params);
 	if (checkErrors)
@@ -10063,7 +10068,7 @@ static APIENTRY void debug_glGetFramebufferParameteriv(GLenum target, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint *params)
 {
 	glGetProgramInterfaceiv(program, programInterface, pname, params);
 	if (checkErrors)
@@ -10080,7 +10085,7 @@ static APIENTRY void debug_glGetProgramInterfaceiv(GLuint program, GLenum progra
 	}
 }
 
-static APIENTRY GLuint debug_glGetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar *name)
+static GLuint APIENTRY debug_glGetProgramResourceIndex(GLuint program, GLenum programInterface, const GLchar *name)
 {
 	GLuint retVal = default_glGetProgramResourceIndex(program, programInterface, name);
 	if (checkErrors)
@@ -10098,7 +10103,7 @@ static APIENTRY GLuint debug_glGetProgramResourceIndex(GLuint program, GLenum pr
 	return retVal;
 }
 
-static APIENTRY void debug_glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name)
+static void APIENTRY debug_glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name)
 {
 	glGetProgramResourceName(program, programInterface, index, bufSize, length, name);
 	if (checkErrors)
@@ -10115,7 +10120,7 @@ static APIENTRY void debug_glGetProgramResourceName(GLuint program, GLenum progr
 	}
 }
 
-static APIENTRY void debug_glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei bufSize, GLsizei *length, GLint *params)
+static void APIENTRY debug_glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei bufSize, GLsizei *length, GLint *params)
 {
 	glGetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);
 	if (checkErrors)
@@ -10132,7 +10137,7 @@ static APIENTRY void debug_glGetProgramResourceiv(GLuint program, GLenum program
 	}
 }
 
-static APIENTRY GLint debug_glGetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar *name)
+static GLint APIENTRY debug_glGetProgramResourceLocation(GLuint program, GLenum programInterface, const GLchar *name)
 {
 	GLint retVal = default_glGetProgramResourceLocation(program, programInterface, name);
 	if (checkErrors)
@@ -10150,7 +10155,7 @@ static APIENTRY GLint debug_glGetProgramResourceLocation(GLuint program, GLenum 
 	return retVal;
 }
 
-static APIENTRY void debug_glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
+static void APIENTRY debug_glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 {
 	glUseProgramStages(pipeline, stages, program);
 	if (checkErrors)
@@ -10167,7 +10172,7 @@ static APIENTRY void debug_glUseProgramStages(GLuint pipeline, GLbitfield stages
 	}
 }
 
-static APIENTRY void debug_glActiveShaderProgram(GLuint pipeline, GLuint program)
+static void APIENTRY debug_glActiveShaderProgram(GLuint pipeline, GLuint program)
 {
 	glActiveShaderProgram(pipeline, program);
 	if (checkErrors)
@@ -10184,7 +10189,7 @@ static APIENTRY void debug_glActiveShaderProgram(GLuint pipeline, GLuint program
 	}
 }
 
-static APIENTRY GLuint debug_glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const*strings)
+static GLuint APIENTRY debug_glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const*strings)
 {
 	GLuint retVal = default_glCreateShaderProgramv(type, count, strings);
 	if (checkErrors)
@@ -10202,7 +10207,7 @@ static APIENTRY GLuint debug_glCreateShaderProgramv(GLenum type, GLsizei count, 
 	return retVal;
 }
 
-static APIENTRY void debug_glBindProgramPipeline(GLuint pipeline)
+static void APIENTRY debug_glBindProgramPipeline(GLuint pipeline)
 {
 	glBindProgramPipeline(pipeline);
 	if (checkErrors)
@@ -10219,7 +10224,7 @@ static APIENTRY void debug_glBindProgramPipeline(GLuint pipeline)
 	}
 }
 
-static APIENTRY void debug_glDeleteProgramPipelines(GLsizei n, const GLuint *pipelines)
+static void APIENTRY debug_glDeleteProgramPipelines(GLsizei n, const GLuint *pipelines)
 {
 	glDeleteProgramPipelines(n, pipelines);
 	if (checkErrors)
@@ -10236,7 +10241,7 @@ static APIENTRY void debug_glDeleteProgramPipelines(GLsizei n, const GLuint *pip
 	}
 }
 
-static APIENTRY void debug_glGenProgramPipelines(GLsizei n, GLuint *pipelines)
+static void APIENTRY debug_glGenProgramPipelines(GLsizei n, GLuint *pipelines)
 {
 	glGenProgramPipelines(n, pipelines);
 	if (checkErrors)
@@ -10253,7 +10258,7 @@ static APIENTRY void debug_glGenProgramPipelines(GLsizei n, GLuint *pipelines)
 	}
 }
 
-static APIENTRY GLboolean debug_glIsProgramPipeline(GLuint pipeline)
+static GLboolean APIENTRY debug_glIsProgramPipeline(GLuint pipeline)
 {
 	GLboolean retVal = default_glIsProgramPipeline(pipeline);
 	if (checkErrors)
@@ -10271,7 +10276,7 @@ static APIENTRY GLboolean debug_glIsProgramPipeline(GLuint pipeline)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint *params)
 {
 	glGetProgramPipelineiv(pipeline, pname, params);
 	if (checkErrors)
@@ -10288,7 +10293,7 @@ static APIENTRY void debug_glGetProgramPipelineiv(GLuint pipeline, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1i(GLuint program, GLint location, GLint v0)
+static void APIENTRY debug_glProgramUniform1i(GLuint program, GLint location, GLint v0)
 {
 	glProgramUniform1i(program, location, v0);
 	if (checkErrors)
@@ -10305,7 +10310,7 @@ static APIENTRY void debug_glProgramUniform1i(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
+static void APIENTRY debug_glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
 {
 	glProgramUniform2i(program, location, v0, v1);
 	if (checkErrors)
@@ -10322,7 +10327,7 @@ static APIENTRY void debug_glProgramUniform2i(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
+static void APIENTRY debug_glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
 {
 	glProgramUniform3i(program, location, v0, v1, v2);
 	if (checkErrors)
@@ -10339,7 +10344,7 @@ static APIENTRY void debug_glProgramUniform3i(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+static void APIENTRY debug_glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
 	glProgramUniform4i(program, location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -10356,7 +10361,7 @@ static APIENTRY void debug_glProgramUniform4i(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
+static void APIENTRY debug_glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
 {
 	glProgramUniform1ui(program, location, v0);
 	if (checkErrors)
@@ -10373,7 +10378,7 @@ static APIENTRY void debug_glProgramUniform1ui(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
+static void APIENTRY debug_glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
 {
 	glProgramUniform2ui(program, location, v0, v1);
 	if (checkErrors)
@@ -10390,7 +10395,7 @@ static APIENTRY void debug_glProgramUniform2ui(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
+static void APIENTRY debug_glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
 	glProgramUniform3ui(program, location, v0, v1, v2);
 	if (checkErrors)
@@ -10407,7 +10412,7 @@ static APIENTRY void debug_glProgramUniform3ui(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
+static void APIENTRY debug_glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
 	glProgramUniform4ui(program, location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -10424,7 +10429,7 @@ static APIENTRY void debug_glProgramUniform4ui(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
+static void APIENTRY debug_glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
 {
 	glProgramUniform1f(program, location, v0);
 	if (checkErrors)
@@ -10441,7 +10446,7 @@ static APIENTRY void debug_glProgramUniform1f(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
+static void APIENTRY debug_glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
 {
 	glProgramUniform2f(program, location, v0, v1);
 	if (checkErrors)
@@ -10458,7 +10463,7 @@ static APIENTRY void debug_glProgramUniform2f(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+static void APIENTRY debug_glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
 	glProgramUniform3f(program, location, v0, v1, v2);
 	if (checkErrors)
@@ -10475,7 +10480,7 @@ static APIENTRY void debug_glProgramUniform3f(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+static void APIENTRY debug_glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
 	glProgramUniform4f(program, location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -10492,7 +10497,7 @@ static APIENTRY void debug_glProgramUniform4f(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
 	glProgramUniform1iv(program, location, count, value);
 	if (checkErrors)
@@ -10509,7 +10514,7 @@ static APIENTRY void debug_glProgramUniform1iv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
 	glProgramUniform2iv(program, location, count, value);
 	if (checkErrors)
@@ -10526,7 +10531,7 @@ static APIENTRY void debug_glProgramUniform2iv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
 	glProgramUniform3iv(program, location, count, value);
 	if (checkErrors)
@@ -10543,7 +10548,7 @@ static APIENTRY void debug_glProgramUniform3iv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint *value)
+static void APIENTRY debug_glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
 	glProgramUniform4iv(program, location, count, value);
 	if (checkErrors)
@@ -10560,7 +10565,7 @@ static APIENTRY void debug_glProgramUniform4iv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
 	glProgramUniform1uiv(program, location, count, value);
 	if (checkErrors)
@@ -10577,7 +10582,7 @@ static APIENTRY void debug_glProgramUniform1uiv(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
 	glProgramUniform2uiv(program, location, count, value);
 	if (checkErrors)
@@ -10594,7 +10599,7 @@ static APIENTRY void debug_glProgramUniform2uiv(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
 	glProgramUniform3uiv(program, location, count, value);
 	if (checkErrors)
@@ -10611,7 +10616,7 @@ static APIENTRY void debug_glProgramUniform3uiv(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
+static void APIENTRY debug_glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
 	glProgramUniform4uiv(program, location, count, value);
 	if (checkErrors)
@@ -10628,7 +10633,7 @@ static APIENTRY void debug_glProgramUniform4uiv(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
 	glProgramUniform1fv(program, location, count, value);
 	if (checkErrors)
@@ -10645,7 +10650,7 @@ static APIENTRY void debug_glProgramUniform1fv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
 	glProgramUniform2fv(program, location, count, value);
 	if (checkErrors)
@@ -10662,7 +10667,7 @@ static APIENTRY void debug_glProgramUniform2fv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
 	glProgramUniform3fv(program, location, count, value);
 	if (checkErrors)
@@ -10679,7 +10684,7 @@ static APIENTRY void debug_glProgramUniform3fv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
+static void APIENTRY debug_glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
 	glProgramUniform4fv(program, location, count, value);
 	if (checkErrors)
@@ -10696,7 +10701,7 @@ static APIENTRY void debug_glProgramUniform4fv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix2fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10713,7 +10718,7 @@ static APIENTRY void debug_glProgramUniformMatrix2fv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix3fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10730,7 +10735,7 @@ static APIENTRY void debug_glProgramUniformMatrix3fv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix4fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10747,7 +10752,7 @@ static APIENTRY void debug_glProgramUniformMatrix4fv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix2x3fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10764,7 +10769,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x3fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix3x2fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10781,7 +10786,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x2fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix2x4fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10798,7 +10803,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x4fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix4x2fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10815,7 +10820,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x2fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix3x4fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10832,7 +10837,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x4fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
+static void APIENTRY debug_glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
 	glProgramUniformMatrix4x3fv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -10849,7 +10854,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x3fv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glValidateProgramPipeline(GLuint pipeline)
+static void APIENTRY debug_glValidateProgramPipeline(GLuint pipeline)
 {
 	glValidateProgramPipeline(pipeline);
 	if (checkErrors)
@@ -10866,7 +10871,7 @@ static APIENTRY void debug_glValidateProgramPipeline(GLuint pipeline)
 	}
 }
 
-static APIENTRY void debug_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+static void APIENTRY debug_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
 	glGetProgramPipelineInfoLog(pipeline, bufSize, length, infoLog);
 	if (checkErrors)
@@ -10883,7 +10888,7 @@ static APIENTRY void debug_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei 
 	}
 }
 
-static APIENTRY void debug_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format)
+static void APIENTRY debug_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format)
 {
 	glBindImageTexture(unit, texture, level, layered, layer, access, format);
 	if (checkErrors)
@@ -10900,7 +10905,7 @@ static APIENTRY void debug_glBindImageTexture(GLuint unit, GLuint texture, GLint
 	}
 }
 
-static APIENTRY void debug_glGetBooleani_v(GLenum target, GLuint index, GLboolean *data)
+static void APIENTRY debug_glGetBooleani_v(GLenum target, GLuint index, GLboolean *data)
 {
 	glGetBooleani_v(target, index, data);
 	if (checkErrors)
@@ -10917,7 +10922,7 @@ static APIENTRY void debug_glGetBooleani_v(GLenum target, GLuint index, GLboolea
 	}
 }
 
-static APIENTRY void debug_glMemoryBarrier(GLbitfield barriers)
+static void APIENTRY debug_glMemoryBarrier(GLbitfield barriers)
 {
 	glMemoryBarrier(barriers);
 	if (checkErrors)
@@ -10934,7 +10939,7 @@ static APIENTRY void debug_glMemoryBarrier(GLbitfield barriers)
 	}
 }
 
-static APIENTRY void debug_glMemoryBarrierByRegion(GLbitfield barriers)
+static void APIENTRY debug_glMemoryBarrierByRegion(GLbitfield barriers)
 {
 	glMemoryBarrierByRegion(barriers);
 	if (checkErrors)
@@ -10951,7 +10956,7 @@ static APIENTRY void debug_glMemoryBarrierByRegion(GLbitfield barriers)
 	}
 }
 
-static APIENTRY void debug_glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
 	glTexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
@@ -10968,7 +10973,7 @@ static APIENTRY void debug_glTexStorage2DMultisample(GLenum target, GLsizei samp
 	}
 }
 
-static APIENTRY void debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val)
+static void APIENTRY debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val)
 {
 	glGetMultisamplefv(pname, index, val);
 	if (checkErrors)
@@ -10985,7 +10990,7 @@ static APIENTRY void debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloa
 	}
 }
 
-static APIENTRY void debug_glSampleMaski(GLuint maskNumber, GLbitfield mask)
+static void APIENTRY debug_glSampleMaski(GLuint maskNumber, GLbitfield mask)
 {
 	glSampleMaski(maskNumber, mask);
 	if (checkErrors)
@@ -11002,7 +11007,7 @@ static APIENTRY void debug_glSampleMaski(GLuint maskNumber, GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
 {
 	glGetTexLevelParameteriv(target, level, pname, params);
 	if (checkErrors)
@@ -11019,7 +11024,7 @@ static APIENTRY void debug_glGetTexLevelParameteriv(GLenum target, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
 	glGetTexLevelParameterfv(target, level, pname, params);
 	if (checkErrors)
@@ -11036,7 +11041,7 @@ static APIENTRY void debug_glGetTexLevelParameterfv(GLenum target, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+static void APIENTRY debug_glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
 	glBindVertexBuffer(bindingindex, buffer, offset, stride);
 	if (checkErrors)
@@ -11053,7 +11058,7 @@ static APIENTRY void debug_glBindVertexBuffer(GLuint bindingindex, GLuint buffer
 	}
 }
 
-static APIENTRY void debug_glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+static void APIENTRY debug_glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
 	glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
@@ -11070,7 +11075,7 @@ static APIENTRY void debug_glVertexAttribFormat(GLuint attribindex, GLint size, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexAttribIFormat(attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -11087,7 +11092,7 @@ static APIENTRY void debug_glVertexAttribIFormat(GLuint attribindex, GLint size,
 	}
 }
 
-static APIENTRY void debug_glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
+static void APIENTRY debug_glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
 {
 	glVertexAttribBinding(attribindex, bindingindex);
 	if (checkErrors)
@@ -11104,7 +11109,7 @@ static APIENTRY void debug_glVertexAttribBinding(GLuint attribindex, GLuint bind
 	}
 }
 
-static APIENTRY void debug_glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
+static void APIENTRY debug_glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
 {
 	glVertexBindingDivisor(bindingindex, divisor);
 	if (checkErrors)
@@ -11121,7 +11126,7 @@ static APIENTRY void debug_glVertexBindingDivisor(GLuint bindingindex, GLuint di
 	}
 }
 
-static APIENTRY void debug_glBlendBarrier()
+static void APIENTRY debug_glBlendBarrier()
 {
 	glBlendBarrier();
 	if (checkErrors)
@@ -11138,7 +11143,7 @@ static APIENTRY void debug_glBlendBarrier()
 	}
 }
 
-static APIENTRY void debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
+static void APIENTRY debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
 {
 	glCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
 	if (checkErrors)
@@ -11155,7 +11160,7 @@ static APIENTRY void debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, 
 	}
 }
 
-static APIENTRY void debug_glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled)
+static void APIENTRY debug_glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled)
 {
 	glDebugMessageControl(source, type, severity, count, ids, enabled);
 	if (checkErrors)
@@ -11172,7 +11177,7 @@ static APIENTRY void debug_glDebugMessageControl(GLenum source, GLenum type, GLe
 	}
 }
 
-static APIENTRY void debug_glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf)
+static void APIENTRY debug_glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf)
 {
 	glDebugMessageInsert(source, type, id, severity, length, buf);
 	if (checkErrors)
@@ -11189,7 +11194,7 @@ static APIENTRY void debug_glDebugMessageInsert(GLenum source, GLenum type, GLui
 	}
 }
 
-static APIENTRY void debug_glDebugMessageCallback(GLDEBUGPROC callback, const void *userParam)
+static void APIENTRY debug_glDebugMessageCallback(GLDEBUGPROC callback, const void *userParam)
 {
 	glDebugMessageCallback(callback, userParam);
 	if (checkErrors)
@@ -11206,7 +11211,7 @@ static APIENTRY void debug_glDebugMessageCallback(GLDEBUGPROC callback, const vo
 	}
 }
 
-static APIENTRY GLuint debug_glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog)
+static GLuint APIENTRY debug_glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog)
 {
 	GLuint retVal = default_glGetDebugMessageLog(count, bufSize, sources, types, ids, severities, lengths, messageLog);
 	if (checkErrors)
@@ -11224,7 +11229,7 @@ static APIENTRY GLuint debug_glGetDebugMessageLog(GLuint count, GLsizei bufSize,
 	return retVal;
 }
 
-static APIENTRY void debug_glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *message)
+static void APIENTRY debug_glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *message)
 {
 	glPushDebugGroup(source, id, length, message);
 	if (checkErrors)
@@ -11241,7 +11246,7 @@ static APIENTRY void debug_glPushDebugGroup(GLenum source, GLuint id, GLsizei le
 	}
 }
 
-static APIENTRY void debug_glPopDebugGroup()
+static void APIENTRY debug_glPopDebugGroup()
 {
 	glPopDebugGroup();
 	if (checkErrors)
@@ -11258,7 +11263,7 @@ static APIENTRY void debug_glPopDebugGroup()
 	}
 }
 
-static APIENTRY void debug_glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
+static void APIENTRY debug_glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
 {
 	glObjectLabel(identifier, name, length, label);
 	if (checkErrors)
@@ -11275,7 +11280,7 @@ static APIENTRY void debug_glObjectLabel(GLenum identifier, GLuint name, GLsizei
 	}
 }
 
-static APIENTRY void debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label)
+static void APIENTRY debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
 	glGetObjectLabel(identifier, name, bufSize, length, label);
 	if (checkErrors)
@@ -11292,7 +11297,7 @@ static APIENTRY void debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsi
 	}
 }
 
-static APIENTRY void debug_glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
+static void APIENTRY debug_glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
 {
 	glObjectPtrLabel(ptr, length, label);
 	if (checkErrors)
@@ -11309,7 +11314,7 @@ static APIENTRY void debug_glObjectPtrLabel(const void *ptr, GLsizei length, con
 	}
 }
 
-static APIENTRY void debug_glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
+static void APIENTRY debug_glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
 	glGetObjectPtrLabel(ptr, bufSize, length, label);
 	if (checkErrors)
@@ -11326,7 +11331,7 @@ static APIENTRY void debug_glGetObjectPtrLabel(const void *ptr, GLsizei bufSize,
 	}
 }
 
-static APIENTRY void debug_glGetPointerv(GLenum pname, void **params)
+static void APIENTRY debug_glGetPointerv(GLenum pname, void **params)
 {
 	glGetPointerv(pname, params);
 	if (checkErrors)
@@ -11343,7 +11348,7 @@ static APIENTRY void debug_glGetPointerv(GLenum pname, void **params)
 	}
 }
 
-static APIENTRY void debug_glEnablei(GLenum target, GLuint index)
+static void APIENTRY debug_glEnablei(GLenum target, GLuint index)
 {
 	glEnablei(target, index);
 	if (checkErrors)
@@ -11360,7 +11365,7 @@ static APIENTRY void debug_glEnablei(GLenum target, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glDisablei(GLenum target, GLuint index)
+static void APIENTRY debug_glDisablei(GLenum target, GLuint index)
 {
 	glDisablei(target, index);
 	if (checkErrors)
@@ -11377,7 +11382,7 @@ static APIENTRY void debug_glDisablei(GLenum target, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glBlendEquationi(GLuint buf, GLenum mode)
+static void APIENTRY debug_glBlendEquationi(GLuint buf, GLenum mode)
 {
 	glBlendEquationi(buf, mode);
 	if (checkErrors)
@@ -11394,7 +11399,7 @@ static APIENTRY void debug_glBlendEquationi(GLuint buf, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
+static void APIENTRY debug_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
 {
 	glBlendEquationSeparatei(buf, modeRGB, modeAlpha);
 	if (checkErrors)
@@ -11411,7 +11416,7 @@ static APIENTRY void debug_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, 
 	}
 }
 
-static APIENTRY void debug_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
+static void APIENTRY debug_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 {
 	glBlendFunci(buf, src, dst);
 	if (checkErrors)
@@ -11428,7 +11433,7 @@ static APIENTRY void debug_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 	}
 }
 
-static APIENTRY void debug_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+static void APIENTRY debug_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
 {
 	glBlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
 	if (checkErrors)
@@ -11445,7 +11450,7 @@ static APIENTRY void debug_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenu
 	}
 }
 
-static APIENTRY void debug_glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
+static void APIENTRY debug_glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
 {
 	glColorMaski(index, r, g, b, a);
 	if (checkErrors)
@@ -11462,7 +11467,7 @@ static APIENTRY void debug_glColorMaski(GLuint index, GLboolean r, GLboolean g, 
 	}
 }
 
-static APIENTRY GLboolean debug_glIsEnabledi(GLenum target, GLuint index)
+static GLboolean APIENTRY debug_glIsEnabledi(GLenum target, GLuint index)
 {
 	GLboolean retVal = default_glIsEnabledi(target, index);
 	if (checkErrors)
@@ -11480,7 +11485,7 @@ static APIENTRY GLboolean debug_glIsEnabledi(GLenum target, GLuint index)
 	return retVal;
 }
 
-static APIENTRY void debug_glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
+static void APIENTRY debug_glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
 	glDrawElementsBaseVertex(mode, count, type, indices, basevertex);
 	if (checkErrors)
@@ -11497,7 +11502,7 @@ static APIENTRY void debug_glDrawElementsBaseVertex(GLenum mode, GLsizei count, 
 	}
 }
 
-static APIENTRY void debug_glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
+static void APIENTRY debug_glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
 	glDrawRangeElementsBaseVertex(mode, start, end, count, type, indices, basevertex);
 	if (checkErrors)
@@ -11514,7 +11519,7 @@ static APIENTRY void debug_glDrawRangeElementsBaseVertex(GLenum mode, GLuint sta
 	}
 }
 
-static APIENTRY void debug_glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
+static void APIENTRY debug_glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
 {
 	glDrawElementsInstancedBaseVertex(mode, count, type, indices, instancecount, basevertex);
 	if (checkErrors)
@@ -11531,7 +11536,7 @@ static APIENTRY void debug_glDrawElementsInstancedBaseVertex(GLenum mode, GLsize
 	}
 }
 
-static APIENTRY void debug_glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
+static void APIENTRY debug_glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
 {
 	glFramebufferTexture(target, attachment, texture, level);
 	if (checkErrors)
@@ -11548,7 +11553,7 @@ static APIENTRY void debug_glFramebufferTexture(GLenum target, GLenum attachment
 	}
 }
 
-static APIENTRY void debug_glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
+static void APIENTRY debug_glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
 {
 	glPrimitiveBoundingBox(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW);
 	if (checkErrors)
@@ -11565,7 +11570,7 @@ static APIENTRY void debug_glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GL
 	}
 }
 
-static APIENTRY GLenum debug_glGetGraphicsResetStatus()
+static GLenum APIENTRY debug_glGetGraphicsResetStatus()
 {
 	GLenum retVal = default_glGetGraphicsResetStatus();
 	if (checkErrors)
@@ -11583,7 +11588,7 @@ static APIENTRY GLenum debug_glGetGraphicsResetStatus()
 	return retVal;
 }
 
-static APIENTRY void debug_glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data)
+static void APIENTRY debug_glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data)
 {
 	glReadnPixels(x, y, width, height, format, type, bufSize, data);
 	if (checkErrors)
@@ -11600,7 +11605,7 @@ static APIENTRY void debug_glReadnPixels(GLint x, GLint y, GLsizei width, GLsize
 	}
 }
 
-static APIENTRY void debug_glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat *params)
+static void APIENTRY debug_glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat *params)
 {
 	glGetnUniformfv(program, location, bufSize, params);
 	if (checkErrors)
@@ -11617,7 +11622,7 @@ static APIENTRY void debug_glGetnUniformfv(GLuint program, GLint location, GLsiz
 	}
 }
 
-static APIENTRY void debug_glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint *params)
+static void APIENTRY debug_glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint *params)
 {
 	glGetnUniformiv(program, location, bufSize, params);
 	if (checkErrors)
@@ -11634,7 +11639,7 @@ static APIENTRY void debug_glGetnUniformiv(GLuint program, GLint location, GLsiz
 	}
 }
 
-static APIENTRY void debug_glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint *params)
+static void APIENTRY debug_glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint *params)
 {
 	glGetnUniformuiv(program, location, bufSize, params);
 	if (checkErrors)
@@ -11651,7 +11656,7 @@ static APIENTRY void debug_glGetnUniformuiv(GLuint program, GLint location, GLsi
 	}
 }
 
-static APIENTRY void debug_glMinSampleShading(GLfloat value)
+static void APIENTRY debug_glMinSampleShading(GLfloat value)
 {
 	glMinSampleShading(value);
 	if (checkErrors)
@@ -11668,7 +11673,7 @@ static APIENTRY void debug_glMinSampleShading(GLfloat value)
 	}
 }
 
-static APIENTRY void debug_glPatchParameteri(GLenum pname, GLint value)
+static void APIENTRY debug_glPatchParameteri(GLenum pname, GLint value)
 {
 	glPatchParameteri(pname, value);
 	if (checkErrors)
@@ -11685,7 +11690,7 @@ static APIENTRY void debug_glPatchParameteri(GLenum pname, GLint value)
 	}
 }
 
-static APIENTRY void debug_glTexParameterIiv(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTexParameterIiv(GLenum target, GLenum pname, const GLint *params)
 {
 	glTexParameterIiv(target, pname, params);
 	if (checkErrors)
@@ -11702,7 +11707,7 @@ static APIENTRY void debug_glTexParameterIiv(GLenum target, GLenum pname, const 
 	}
 }
 
-static APIENTRY void debug_glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params)
+static void APIENTRY debug_glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params)
 {
 	glTexParameterIuiv(target, pname, params);
 	if (checkErrors)
@@ -11719,7 +11724,7 @@ static APIENTRY void debug_glTexParameterIuiv(GLenum target, GLenum pname, const
 	}
 }
 
-static APIENTRY void debug_glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetTexParameterIiv(target, pname, params);
 	if (checkErrors)
@@ -11736,7 +11741,7 @@ static APIENTRY void debug_glGetTexParameterIiv(GLenum target, GLenum pname, GLi
 	}
 }
 
-static APIENTRY void debug_glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params)
 {
 	glGetTexParameterIuiv(target, pname, params);
 	if (checkErrors)
@@ -11753,7 +11758,7 @@ static APIENTRY void debug_glGetTexParameterIuiv(GLenum target, GLenum pname, GL
 	}
 }
 
-static APIENTRY void debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint *param)
+static void APIENTRY debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint *param)
 {
 	glSamplerParameterIiv(sampler, pname, param);
 	if (checkErrors)
@@ -11770,7 +11775,7 @@ static APIENTRY void debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, c
 	}
 }
 
-static APIENTRY void debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint *param)
+static void APIENTRY debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint *param)
 {
 	glSamplerParameterIuiv(sampler, pname, param);
 	if (checkErrors)
@@ -11787,7 +11792,7 @@ static APIENTRY void debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint *params)
 {
 	glGetSamplerParameterIiv(sampler, pname, params);
 	if (checkErrors)
@@ -11804,7 +11809,7 @@ static APIENTRY void debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint *params)
 {
 	glGetSamplerParameterIuiv(sampler, pname, params);
 	if (checkErrors)
@@ -11821,7 +11826,7 @@ static APIENTRY void debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
+static void APIENTRY debug_glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
 {
 	glTexBuffer(target, internalformat, buffer);
 	if (checkErrors)
@@ -11838,7 +11843,7 @@ static APIENTRY void debug_glTexBuffer(GLenum target, GLenum internalformat, GLu
 	}
 }
 
-static APIENTRY void debug_glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+static void APIENTRY debug_glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 	glTexBufferRange(target, internalformat, buffer, offset, size);
 	if (checkErrors)
@@ -11855,7 +11860,7 @@ static APIENTRY void debug_glTexBufferRange(GLenum target, GLenum internalformat
 	}
 }
 
-static APIENTRY void debug_glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
 	glTexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
@@ -11872,7 +11877,7 @@ static APIENTRY void debug_glTexStorage3DMultisample(GLenum target, GLsizei samp
 	}
 }
 
-static APIENTRY void debug_glPointSize(GLfloat size)
+static void APIENTRY debug_glPointSize(GLfloat size)
 {
 	glPointSize(size);
 	if (checkErrors)
@@ -11889,7 +11894,7 @@ static APIENTRY void debug_glPointSize(GLfloat size)
 	}
 }
 
-static APIENTRY void debug_glPolygonMode(GLenum face, GLenum mode)
+static void APIENTRY debug_glPolygonMode(GLenum face, GLenum mode)
 {
 	glPolygonMode(face, mode);
 	if (checkErrors)
@@ -11906,7 +11911,7 @@ static APIENTRY void debug_glPolygonMode(GLenum face, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTexImage1D(target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
@@ -11923,7 +11928,7 @@ static APIENTRY void debug_glTexImage1D(GLenum target, GLint level, GLint intern
 	}
 }
 
-static APIENTRY void debug_glDrawBuffer(GLenum buf)
+static void APIENTRY debug_glDrawBuffer(GLenum buf)
 {
 	glDrawBuffer(buf);
 	if (checkErrors)
@@ -11940,7 +11945,7 @@ static APIENTRY void debug_glDrawBuffer(GLenum buf)
 	}
 }
 
-static APIENTRY void debug_glClearDepth(GLdouble depth)
+static void APIENTRY debug_glClearDepth(GLdouble depth)
 {
 	glClearDepth(depth);
 	if (checkErrors)
@@ -11957,7 +11962,7 @@ static APIENTRY void debug_glClearDepth(GLdouble depth)
 	}
 }
 
-static APIENTRY void debug_glLogicOp(GLenum opcode)
+static void APIENTRY debug_glLogicOp(GLenum opcode)
 {
 	glLogicOp(opcode);
 	if (checkErrors)
@@ -11974,7 +11979,7 @@ static APIENTRY void debug_glLogicOp(GLenum opcode)
 	}
 }
 
-static APIENTRY void debug_glPixelStoref(GLenum pname, GLfloat param)
+static void APIENTRY debug_glPixelStoref(GLenum pname, GLfloat param)
 {
 	glPixelStoref(pname, param);
 	if (checkErrors)
@@ -11991,7 +11996,7 @@ static APIENTRY void debug_glPixelStoref(GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glGetDoublev(GLenum pname, GLdouble *data)
+static void APIENTRY debug_glGetDoublev(GLenum pname, GLdouble *data)
 {
 	glGetDoublev(pname, data);
 	if (checkErrors)
@@ -12008,7 +12013,7 @@ static APIENTRY void debug_glGetDoublev(GLenum pname, GLdouble *data)
 	}
 }
 
-static APIENTRY void debug_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
+static void APIENTRY debug_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
 	glGetTexImage(target, level, format, type, pixels);
 	if (checkErrors)
@@ -12025,7 +12030,7 @@ static APIENTRY void debug_glGetTexImage(GLenum target, GLint level, GLenum form
 	}
 }
 
-static APIENTRY void debug_glDepthRange(GLdouble near, GLdouble far)
+static void APIENTRY debug_glDepthRange(GLdouble near, GLdouble far)
 {
 	glDepthRange(near, far);
 	if (checkErrors)
@@ -12042,7 +12047,7 @@ static APIENTRY void debug_glDepthRange(GLdouble near, GLdouble far)
 	}
 }
 
-static APIENTRY void debug_glNewList(GLuint list, GLenum mode)
+static void APIENTRY debug_glNewList(GLuint list, GLenum mode)
 {
 	glNewList(list, mode);
 	if (checkErrors)
@@ -12059,7 +12064,7 @@ static APIENTRY void debug_glNewList(GLuint list, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glEndList()
+static void APIENTRY debug_glEndList()
 {
 	glEndList();
 	if (checkErrors)
@@ -12076,7 +12081,7 @@ static APIENTRY void debug_glEndList()
 	}
 }
 
-static APIENTRY void debug_glCallList(GLuint list)
+static void APIENTRY debug_glCallList(GLuint list)
 {
 	glCallList(list);
 	if (checkErrors)
@@ -12093,7 +12098,7 @@ static APIENTRY void debug_glCallList(GLuint list)
 	}
 }
 
-static APIENTRY void debug_glCallLists(GLsizei n, GLenum type, const void *lists)
+static void APIENTRY debug_glCallLists(GLsizei n, GLenum type, const void *lists)
 {
 	glCallLists(n, type, lists);
 	if (checkErrors)
@@ -12110,7 +12115,7 @@ static APIENTRY void debug_glCallLists(GLsizei n, GLenum type, const void *lists
 	}
 }
 
-static APIENTRY void debug_glDeleteLists(GLuint list, GLsizei range)
+static void APIENTRY debug_glDeleteLists(GLuint list, GLsizei range)
 {
 	glDeleteLists(list, range);
 	if (checkErrors)
@@ -12127,7 +12132,7 @@ static APIENTRY void debug_glDeleteLists(GLuint list, GLsizei range)
 	}
 }
 
-static APIENTRY GLuint debug_glGenLists(GLsizei range)
+static GLuint APIENTRY debug_glGenLists(GLsizei range)
 {
 	GLuint retVal = default_glGenLists(range);
 	if (checkErrors)
@@ -12145,7 +12150,7 @@ static APIENTRY GLuint debug_glGenLists(GLsizei range)
 	return retVal;
 }
 
-static APIENTRY void debug_glListBase(GLuint base)
+static void APIENTRY debug_glListBase(GLuint base)
 {
 	glListBase(base);
 	if (checkErrors)
@@ -12162,7 +12167,7 @@ static APIENTRY void debug_glListBase(GLuint base)
 	}
 }
 
-static APIENTRY void debug_glBegin(GLenum mode)
+static void APIENTRY debug_glBegin(GLenum mode)
 {
 	glBegin(mode);
 	if (checkErrors)
@@ -12179,7 +12184,7 @@ static APIENTRY void debug_glBegin(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap)
+static void APIENTRY debug_glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap)
 {
 	glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
 	if (checkErrors)
@@ -12196,7 +12201,7 @@ static APIENTRY void debug_glBitmap(GLsizei width, GLsizei height, GLfloat xorig
 	}
 }
 
-static APIENTRY void debug_glColor3b(GLbyte red, GLbyte green, GLbyte blue)
+static void APIENTRY debug_glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
 	glColor3b(red, green, blue);
 	if (checkErrors)
@@ -12213,7 +12218,7 @@ static APIENTRY void debug_glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 	}
 }
 
-static APIENTRY void debug_glColor3bv(const GLbyte *v)
+static void APIENTRY debug_glColor3bv(const GLbyte *v)
 {
 	glColor3bv(v);
 	if (checkErrors)
@@ -12230,7 +12235,7 @@ static APIENTRY void debug_glColor3bv(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glColor3d(GLdouble red, GLdouble green, GLdouble blue)
+static void APIENTRY debug_glColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
 	glColor3d(red, green, blue);
 	if (checkErrors)
@@ -12247,7 +12252,7 @@ static APIENTRY void debug_glColor3d(GLdouble red, GLdouble green, GLdouble blue
 	}
 }
 
-static APIENTRY void debug_glColor3dv(const GLdouble *v)
+static void APIENTRY debug_glColor3dv(const GLdouble *v)
 {
 	glColor3dv(v);
 	if (checkErrors)
@@ -12264,7 +12269,7 @@ static APIENTRY void debug_glColor3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glColor3f(GLfloat red, GLfloat green, GLfloat blue)
+static void APIENTRY debug_glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
 	glColor3f(red, green, blue);
 	if (checkErrors)
@@ -12281,7 +12286,7 @@ static APIENTRY void debug_glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 	}
 }
 
-static APIENTRY void debug_glColor3fv(const GLfloat *v)
+static void APIENTRY debug_glColor3fv(const GLfloat *v)
 {
 	glColor3fv(v);
 	if (checkErrors)
@@ -12298,7 +12303,7 @@ static APIENTRY void debug_glColor3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glColor3i(GLint red, GLint green, GLint blue)
+static void APIENTRY debug_glColor3i(GLint red, GLint green, GLint blue)
 {
 	glColor3i(red, green, blue);
 	if (checkErrors)
@@ -12315,7 +12320,7 @@ static APIENTRY void debug_glColor3i(GLint red, GLint green, GLint blue)
 	}
 }
 
-static APIENTRY void debug_glColor3iv(const GLint *v)
+static void APIENTRY debug_glColor3iv(const GLint *v)
 {
 	glColor3iv(v);
 	if (checkErrors)
@@ -12332,7 +12337,7 @@ static APIENTRY void debug_glColor3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glColor3s(GLshort red, GLshort green, GLshort blue)
+static void APIENTRY debug_glColor3s(GLshort red, GLshort green, GLshort blue)
 {
 	glColor3s(red, green, blue);
 	if (checkErrors)
@@ -12349,7 +12354,7 @@ static APIENTRY void debug_glColor3s(GLshort red, GLshort green, GLshort blue)
 	}
 }
 
-static APIENTRY void debug_glColor3sv(const GLshort *v)
+static void APIENTRY debug_glColor3sv(const GLshort *v)
 {
 	glColor3sv(v);
 	if (checkErrors)
@@ -12366,7 +12371,7 @@ static APIENTRY void debug_glColor3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
+static void APIENTRY debug_glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
 	glColor3ub(red, green, blue);
 	if (checkErrors)
@@ -12383,7 +12388,7 @@ static APIENTRY void debug_glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 	}
 }
 
-static APIENTRY void debug_glColor3ubv(const GLubyte *v)
+static void APIENTRY debug_glColor3ubv(const GLubyte *v)
 {
 	glColor3ubv(v);
 	if (checkErrors)
@@ -12400,7 +12405,7 @@ static APIENTRY void debug_glColor3ubv(const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glColor3ui(GLuint red, GLuint green, GLuint blue)
+static void APIENTRY debug_glColor3ui(GLuint red, GLuint green, GLuint blue)
 {
 	glColor3ui(red, green, blue);
 	if (checkErrors)
@@ -12417,7 +12422,7 @@ static APIENTRY void debug_glColor3ui(GLuint red, GLuint green, GLuint blue)
 	}
 }
 
-static APIENTRY void debug_glColor3uiv(const GLuint *v)
+static void APIENTRY debug_glColor3uiv(const GLuint *v)
 {
 	glColor3uiv(v);
 	if (checkErrors)
@@ -12434,7 +12439,7 @@ static APIENTRY void debug_glColor3uiv(const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glColor3us(GLushort red, GLushort green, GLushort blue)
+static void APIENTRY debug_glColor3us(GLushort red, GLushort green, GLushort blue)
 {
 	glColor3us(red, green, blue);
 	if (checkErrors)
@@ -12451,7 +12456,7 @@ static APIENTRY void debug_glColor3us(GLushort red, GLushort green, GLushort blu
 	}
 }
 
-static APIENTRY void debug_glColor3usv(const GLushort *v)
+static void APIENTRY debug_glColor3usv(const GLushort *v)
 {
 	glColor3usv(v);
 	if (checkErrors)
@@ -12468,7 +12473,7 @@ static APIENTRY void debug_glColor3usv(const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
+static void APIENTRY debug_glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
 {
 	glColor4b(red, green, blue, alpha);
 	if (checkErrors)
@@ -12485,7 +12490,7 @@ static APIENTRY void debug_glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLby
 	}
 }
 
-static APIENTRY void debug_glColor4bv(const GLbyte *v)
+static void APIENTRY debug_glColor4bv(const GLbyte *v)
 {
 	glColor4bv(v);
 	if (checkErrors)
@@ -12502,7 +12507,7 @@ static APIENTRY void debug_glColor4bv(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
+static void APIENTRY debug_glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
 {
 	glColor4d(red, green, blue, alpha);
 	if (checkErrors)
@@ -12519,7 +12524,7 @@ static APIENTRY void debug_glColor4d(GLdouble red, GLdouble green, GLdouble blue
 	}
 }
 
-static APIENTRY void debug_glColor4dv(const GLdouble *v)
+static void APIENTRY debug_glColor4dv(const GLdouble *v)
 {
 	glColor4dv(v);
 	if (checkErrors)
@@ -12536,7 +12541,7 @@ static APIENTRY void debug_glColor4dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+static void APIENTRY debug_glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	glColor4f(red, green, blue, alpha);
 	if (checkErrors)
@@ -12553,7 +12558,7 @@ static APIENTRY void debug_glColor4f(GLfloat red, GLfloat green, GLfloat blue, G
 	}
 }
 
-static APIENTRY void debug_glColor4fv(const GLfloat *v)
+static void APIENTRY debug_glColor4fv(const GLfloat *v)
 {
 	glColor4fv(v);
 	if (checkErrors)
@@ -12570,7 +12575,7 @@ static APIENTRY void debug_glColor4fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
+static void APIENTRY debug_glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
 {
 	glColor4i(red, green, blue, alpha);
 	if (checkErrors)
@@ -12587,7 +12592,7 @@ static APIENTRY void debug_glColor4i(GLint red, GLint green, GLint blue, GLint a
 	}
 }
 
-static APIENTRY void debug_glColor4iv(const GLint *v)
+static void APIENTRY debug_glColor4iv(const GLint *v)
 {
 	glColor4iv(v);
 	if (checkErrors)
@@ -12604,7 +12609,7 @@ static APIENTRY void debug_glColor4iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
+static void APIENTRY debug_glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
 {
 	glColor4s(red, green, blue, alpha);
 	if (checkErrors)
@@ -12621,7 +12626,7 @@ static APIENTRY void debug_glColor4s(GLshort red, GLshort green, GLshort blue, G
 	}
 }
 
-static APIENTRY void debug_glColor4sv(const GLshort *v)
+static void APIENTRY debug_glColor4sv(const GLshort *v)
 {
 	glColor4sv(v);
 	if (checkErrors)
@@ -12638,7 +12643,7 @@ static APIENTRY void debug_glColor4sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
+static void APIENTRY debug_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 {
 	glColor4ub(red, green, blue, alpha);
 	if (checkErrors)
@@ -12655,7 +12660,7 @@ static APIENTRY void debug_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, 
 	}
 }
 
-static APIENTRY void debug_glColor4ubv(const GLubyte *v)
+static void APIENTRY debug_glColor4ubv(const GLubyte *v)
 {
 	glColor4ubv(v);
 	if (checkErrors)
@@ -12672,7 +12677,7 @@ static APIENTRY void debug_glColor4ubv(const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
+static void APIENTRY debug_glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 {
 	glColor4ui(red, green, blue, alpha);
 	if (checkErrors)
@@ -12689,7 +12694,7 @@ static APIENTRY void debug_glColor4ui(GLuint red, GLuint green, GLuint blue, GLu
 	}
 }
 
-static APIENTRY void debug_glColor4uiv(const GLuint *v)
+static void APIENTRY debug_glColor4uiv(const GLuint *v)
 {
 	glColor4uiv(v);
 	if (checkErrors)
@@ -12706,7 +12711,7 @@ static APIENTRY void debug_glColor4uiv(const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
+static void APIENTRY debug_glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
 {
 	glColor4us(red, green, blue, alpha);
 	if (checkErrors)
@@ -12723,7 +12728,7 @@ static APIENTRY void debug_glColor4us(GLushort red, GLushort green, GLushort blu
 	}
 }
 
-static APIENTRY void debug_glColor4usv(const GLushort *v)
+static void APIENTRY debug_glColor4usv(const GLushort *v)
 {
 	glColor4usv(v);
 	if (checkErrors)
@@ -12740,7 +12745,7 @@ static APIENTRY void debug_glColor4usv(const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glEdgeFlag(GLboolean flag)
+static void APIENTRY debug_glEdgeFlag(GLboolean flag)
 {
 	glEdgeFlag(flag);
 	if (checkErrors)
@@ -12757,7 +12762,7 @@ static APIENTRY void debug_glEdgeFlag(GLboolean flag)
 	}
 }
 
-static APIENTRY void debug_glEdgeFlagv(const GLboolean *flag)
+static void APIENTRY debug_glEdgeFlagv(const GLboolean *flag)
 {
 	glEdgeFlagv(flag);
 	if (checkErrors)
@@ -12774,7 +12779,7 @@ static APIENTRY void debug_glEdgeFlagv(const GLboolean *flag)
 	}
 }
 
-static APIENTRY void debug_glEnd()
+static void APIENTRY debug_glEnd()
 {
 	glEnd();
 	if (checkErrors)
@@ -12791,7 +12796,7 @@ static APIENTRY void debug_glEnd()
 	}
 }
 
-static APIENTRY void debug_glIndexd(GLdouble c)
+static void APIENTRY debug_glIndexd(GLdouble c)
 {
 	glIndexd(c);
 	if (checkErrors)
@@ -12808,7 +12813,7 @@ static APIENTRY void debug_glIndexd(GLdouble c)
 	}
 }
 
-static APIENTRY void debug_glIndexdv(const GLdouble *c)
+static void APIENTRY debug_glIndexdv(const GLdouble *c)
 {
 	glIndexdv(c);
 	if (checkErrors)
@@ -12825,7 +12830,7 @@ static APIENTRY void debug_glIndexdv(const GLdouble *c)
 	}
 }
 
-static APIENTRY void debug_glIndexf(GLfloat c)
+static void APIENTRY debug_glIndexf(GLfloat c)
 {
 	glIndexf(c);
 	if (checkErrors)
@@ -12842,7 +12847,7 @@ static APIENTRY void debug_glIndexf(GLfloat c)
 	}
 }
 
-static APIENTRY void debug_glIndexfv(const GLfloat *c)
+static void APIENTRY debug_glIndexfv(const GLfloat *c)
 {
 	glIndexfv(c);
 	if (checkErrors)
@@ -12859,7 +12864,7 @@ static APIENTRY void debug_glIndexfv(const GLfloat *c)
 	}
 }
 
-static APIENTRY void debug_glIndexi(GLint c)
+static void APIENTRY debug_glIndexi(GLint c)
 {
 	glIndexi(c);
 	if (checkErrors)
@@ -12876,7 +12881,7 @@ static APIENTRY void debug_glIndexi(GLint c)
 	}
 }
 
-static APIENTRY void debug_glIndexiv(const GLint *c)
+static void APIENTRY debug_glIndexiv(const GLint *c)
 {
 	glIndexiv(c);
 	if (checkErrors)
@@ -12893,7 +12898,7 @@ static APIENTRY void debug_glIndexiv(const GLint *c)
 	}
 }
 
-static APIENTRY void debug_glIndexs(GLshort c)
+static void APIENTRY debug_glIndexs(GLshort c)
 {
 	glIndexs(c);
 	if (checkErrors)
@@ -12910,7 +12915,7 @@ static APIENTRY void debug_glIndexs(GLshort c)
 	}
 }
 
-static APIENTRY void debug_glIndexsv(const GLshort *c)
+static void APIENTRY debug_glIndexsv(const GLshort *c)
 {
 	glIndexsv(c);
 	if (checkErrors)
@@ -12927,7 +12932,7 @@ static APIENTRY void debug_glIndexsv(const GLshort *c)
 	}
 }
 
-static APIENTRY void debug_glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
+static void APIENTRY debug_glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 {
 	glNormal3b(nx, ny, nz);
 	if (checkErrors)
@@ -12944,7 +12949,7 @@ static APIENTRY void debug_glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 	}
 }
 
-static APIENTRY void debug_glNormal3bv(const GLbyte *v)
+static void APIENTRY debug_glNormal3bv(const GLbyte *v)
 {
 	glNormal3bv(v);
 	if (checkErrors)
@@ -12961,7 +12966,7 @@ static APIENTRY void debug_glNormal3bv(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
+static void APIENTRY debug_glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 {
 	glNormal3d(nx, ny, nz);
 	if (checkErrors)
@@ -12978,7 +12983,7 @@ static APIENTRY void debug_glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 	}
 }
 
-static APIENTRY void debug_glNormal3dv(const GLdouble *v)
+static void APIENTRY debug_glNormal3dv(const GLdouble *v)
 {
 	glNormal3dv(v);
 	if (checkErrors)
@@ -12995,7 +13000,7 @@ static APIENTRY void debug_glNormal3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
+static void APIENTRY debug_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
 	glNormal3f(nx, ny, nz);
 	if (checkErrors)
@@ -13012,7 +13017,7 @@ static APIENTRY void debug_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 	}
 }
 
-static APIENTRY void debug_glNormal3fv(const GLfloat *v)
+static void APIENTRY debug_glNormal3fv(const GLfloat *v)
 {
 	glNormal3fv(v);
 	if (checkErrors)
@@ -13029,7 +13034,7 @@ static APIENTRY void debug_glNormal3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glNormal3i(GLint nx, GLint ny, GLint nz)
+static void APIENTRY debug_glNormal3i(GLint nx, GLint ny, GLint nz)
 {
 	glNormal3i(nx, ny, nz);
 	if (checkErrors)
@@ -13046,7 +13051,7 @@ static APIENTRY void debug_glNormal3i(GLint nx, GLint ny, GLint nz)
 	}
 }
 
-static APIENTRY void debug_glNormal3iv(const GLint *v)
+static void APIENTRY debug_glNormal3iv(const GLint *v)
 {
 	glNormal3iv(v);
 	if (checkErrors)
@@ -13063,7 +13068,7 @@ static APIENTRY void debug_glNormal3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glNormal3s(GLshort nx, GLshort ny, GLshort nz)
+static void APIENTRY debug_glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 {
 	glNormal3s(nx, ny, nz);
 	if (checkErrors)
@@ -13080,7 +13085,7 @@ static APIENTRY void debug_glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 	}
 }
 
-static APIENTRY void debug_glNormal3sv(const GLshort *v)
+static void APIENTRY debug_glNormal3sv(const GLshort *v)
 {
 	glNormal3sv(v);
 	if (checkErrors)
@@ -13097,7 +13102,7 @@ static APIENTRY void debug_glNormal3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2d(GLdouble x, GLdouble y)
+static void APIENTRY debug_glRasterPos2d(GLdouble x, GLdouble y)
 {
 	glRasterPos2d(x, y);
 	if (checkErrors)
@@ -13114,7 +13119,7 @@ static APIENTRY void debug_glRasterPos2d(GLdouble x, GLdouble y)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2dv(const GLdouble *v)
+static void APIENTRY debug_glRasterPos2dv(const GLdouble *v)
 {
 	glRasterPos2dv(v);
 	if (checkErrors)
@@ -13131,7 +13136,7 @@ static APIENTRY void debug_glRasterPos2dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2f(GLfloat x, GLfloat y)
+static void APIENTRY debug_glRasterPos2f(GLfloat x, GLfloat y)
 {
 	glRasterPos2f(x, y);
 	if (checkErrors)
@@ -13148,7 +13153,7 @@ static APIENTRY void debug_glRasterPos2f(GLfloat x, GLfloat y)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2fv(const GLfloat *v)
+static void APIENTRY debug_glRasterPos2fv(const GLfloat *v)
 {
 	glRasterPos2fv(v);
 	if (checkErrors)
@@ -13165,7 +13170,7 @@ static APIENTRY void debug_glRasterPos2fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2i(GLint x, GLint y)
+static void APIENTRY debug_glRasterPos2i(GLint x, GLint y)
 {
 	glRasterPos2i(x, y);
 	if (checkErrors)
@@ -13182,7 +13187,7 @@ static APIENTRY void debug_glRasterPos2i(GLint x, GLint y)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2iv(const GLint *v)
+static void APIENTRY debug_glRasterPos2iv(const GLint *v)
 {
 	glRasterPos2iv(v);
 	if (checkErrors)
@@ -13199,7 +13204,7 @@ static APIENTRY void debug_glRasterPos2iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2s(GLshort x, GLshort y)
+static void APIENTRY debug_glRasterPos2s(GLshort x, GLshort y)
 {
 	glRasterPos2s(x, y);
 	if (checkErrors)
@@ -13216,7 +13221,7 @@ static APIENTRY void debug_glRasterPos2s(GLshort x, GLshort y)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2sv(const GLshort *v)
+static void APIENTRY debug_glRasterPos2sv(const GLshort *v)
 {
 	glRasterPos2sv(v);
 	if (checkErrors)
@@ -13233,7 +13238,7 @@ static APIENTRY void debug_glRasterPos2sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
 	glRasterPos3d(x, y, z);
 	if (checkErrors)
@@ -13250,7 +13255,7 @@ static APIENTRY void debug_glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3dv(const GLdouble *v)
+static void APIENTRY debug_glRasterPos3dv(const GLdouble *v)
 {
 	glRasterPos3dv(v);
 	if (checkErrors)
@@ -13267,7 +13272,7 @@ static APIENTRY void debug_glRasterPos3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
 	glRasterPos3f(x, y, z);
 	if (checkErrors)
@@ -13284,7 +13289,7 @@ static APIENTRY void debug_glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3fv(const GLfloat *v)
+static void APIENTRY debug_glRasterPos3fv(const GLfloat *v)
 {
 	glRasterPos3fv(v);
 	if (checkErrors)
@@ -13301,7 +13306,7 @@ static APIENTRY void debug_glRasterPos3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3i(GLint x, GLint y, GLint z)
+static void APIENTRY debug_glRasterPos3i(GLint x, GLint y, GLint z)
 {
 	glRasterPos3i(x, y, z);
 	if (checkErrors)
@@ -13318,7 +13323,7 @@ static APIENTRY void debug_glRasterPos3i(GLint x, GLint y, GLint z)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3iv(const GLint *v)
+static void APIENTRY debug_glRasterPos3iv(const GLint *v)
 {
 	glRasterPos3iv(v);
 	if (checkErrors)
@@ -13335,7 +13340,7 @@ static APIENTRY void debug_glRasterPos3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3s(GLshort x, GLshort y, GLshort z)
+static void APIENTRY debug_glRasterPos3s(GLshort x, GLshort y, GLshort z)
 {
 	glRasterPos3s(x, y, z);
 	if (checkErrors)
@@ -13352,7 +13357,7 @@ static APIENTRY void debug_glRasterPos3s(GLshort x, GLshort y, GLshort z)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3sv(const GLshort *v)
+static void APIENTRY debug_glRasterPos3sv(const GLshort *v)
 {
 	glRasterPos3sv(v);
 	if (checkErrors)
@@ -13369,7 +13374,7 @@ static APIENTRY void debug_glRasterPos3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glRasterPos4d(x, y, z, w);
 	if (checkErrors)
@@ -13386,7 +13391,7 @@ static APIENTRY void debug_glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLd
 	}
 }
 
-static APIENTRY void debug_glRasterPos4dv(const GLdouble *v)
+static void APIENTRY debug_glRasterPos4dv(const GLdouble *v)
 {
 	glRasterPos4dv(v);
 	if (checkErrors)
@@ -13403,7 +13408,7 @@ static APIENTRY void debug_glRasterPos4dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glRasterPos4f(x, y, z, w);
 	if (checkErrors)
@@ -13420,7 +13425,7 @@ static APIENTRY void debug_glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloa
 	}
 }
 
-static APIENTRY void debug_glRasterPos4fv(const GLfloat *v)
+static void APIENTRY debug_glRasterPos4fv(const GLfloat *v)
 {
 	glRasterPos4fv(v);
 	if (checkErrors)
@@ -13437,7 +13442,7 @@ static APIENTRY void debug_glRasterPos4fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
+static void APIENTRY debug_glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 {
 	glRasterPos4i(x, y, z, w);
 	if (checkErrors)
@@ -13454,7 +13459,7 @@ static APIENTRY void debug_glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4iv(const GLint *v)
+static void APIENTRY debug_glRasterPos4iv(const GLint *v)
 {
 	glRasterPos4iv(v);
 	if (checkErrors)
@@ -13471,7 +13476,7 @@ static APIENTRY void debug_glRasterPos4iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
+static void APIENTRY debug_glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
 	glRasterPos4s(x, y, z, w);
 	if (checkErrors)
@@ -13488,7 +13493,7 @@ static APIENTRY void debug_glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshor
 	}
 }
 
-static APIENTRY void debug_glRasterPos4sv(const GLshort *v)
+static void APIENTRY debug_glRasterPos4sv(const GLshort *v)
 {
 	glRasterPos4sv(v);
 	if (checkErrors)
@@ -13505,7 +13510,7 @@ static APIENTRY void debug_glRasterPos4sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
+static void APIENTRY debug_glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 {
 	glRectd(x1, y1, x2, y2);
 	if (checkErrors)
@@ -13522,7 +13527,7 @@ static APIENTRY void debug_glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdoub
 	}
 }
 
-static APIENTRY void debug_glRectdv(const GLdouble *v1, const GLdouble *v2)
+static void APIENTRY debug_glRectdv(const GLdouble *v1, const GLdouble *v2)
 {
 	glRectdv(v1, v2);
 	if (checkErrors)
@@ -13539,7 +13544,7 @@ static APIENTRY void debug_glRectdv(const GLdouble *v1, const GLdouble *v2)
 	}
 }
 
-static APIENTRY void debug_glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
+static void APIENTRY debug_glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 {
 	glRectf(x1, y1, x2, y2);
 	if (checkErrors)
@@ -13556,7 +13561,7 @@ static APIENTRY void debug_glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y
 	}
 }
 
-static APIENTRY void debug_glRectfv(const GLfloat *v1, const GLfloat *v2)
+static void APIENTRY debug_glRectfv(const GLfloat *v1, const GLfloat *v2)
 {
 	glRectfv(v1, v2);
 	if (checkErrors)
@@ -13573,7 +13578,7 @@ static APIENTRY void debug_glRectfv(const GLfloat *v1, const GLfloat *v2)
 	}
 }
 
-static APIENTRY void debug_glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
+static void APIENTRY debug_glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 {
 	glRecti(x1, y1, x2, y2);
 	if (checkErrors)
@@ -13590,7 +13595,7 @@ static APIENTRY void debug_glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 	}
 }
 
-static APIENTRY void debug_glRectiv(const GLint *v1, const GLint *v2)
+static void APIENTRY debug_glRectiv(const GLint *v1, const GLint *v2)
 {
 	glRectiv(v1, v2);
 	if (checkErrors)
@@ -13607,7 +13612,7 @@ static APIENTRY void debug_glRectiv(const GLint *v1, const GLint *v2)
 	}
 }
 
-static APIENTRY void debug_glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
+static void APIENTRY debug_glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
 {
 	glRects(x1, y1, x2, y2);
 	if (checkErrors)
@@ -13624,7 +13629,7 @@ static APIENTRY void debug_glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y
 	}
 }
 
-static APIENTRY void debug_glRectsv(const GLshort *v1, const GLshort *v2)
+static void APIENTRY debug_glRectsv(const GLshort *v1, const GLshort *v2)
 {
 	glRectsv(v1, v2);
 	if (checkErrors)
@@ -13641,7 +13646,7 @@ static APIENTRY void debug_glRectsv(const GLshort *v1, const GLshort *v2)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1d(GLdouble s)
+static void APIENTRY debug_glTexCoord1d(GLdouble s)
 {
 	glTexCoord1d(s);
 	if (checkErrors)
@@ -13658,7 +13663,7 @@ static APIENTRY void debug_glTexCoord1d(GLdouble s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1dv(const GLdouble *v)
+static void APIENTRY debug_glTexCoord1dv(const GLdouble *v)
 {
 	glTexCoord1dv(v);
 	if (checkErrors)
@@ -13675,7 +13680,7 @@ static APIENTRY void debug_glTexCoord1dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1f(GLfloat s)
+static void APIENTRY debug_glTexCoord1f(GLfloat s)
 {
 	glTexCoord1f(s);
 	if (checkErrors)
@@ -13692,7 +13697,7 @@ static APIENTRY void debug_glTexCoord1f(GLfloat s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1fv(const GLfloat *v)
+static void APIENTRY debug_glTexCoord1fv(const GLfloat *v)
 {
 	glTexCoord1fv(v);
 	if (checkErrors)
@@ -13709,7 +13714,7 @@ static APIENTRY void debug_glTexCoord1fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1i(GLint s)
+static void APIENTRY debug_glTexCoord1i(GLint s)
 {
 	glTexCoord1i(s);
 	if (checkErrors)
@@ -13726,7 +13731,7 @@ static APIENTRY void debug_glTexCoord1i(GLint s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1iv(const GLint *v)
+static void APIENTRY debug_glTexCoord1iv(const GLint *v)
 {
 	glTexCoord1iv(v);
 	if (checkErrors)
@@ -13743,7 +13748,7 @@ static APIENTRY void debug_glTexCoord1iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1s(GLshort s)
+static void APIENTRY debug_glTexCoord1s(GLshort s)
 {
 	glTexCoord1s(s);
 	if (checkErrors)
@@ -13760,7 +13765,7 @@ static APIENTRY void debug_glTexCoord1s(GLshort s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1sv(const GLshort *v)
+static void APIENTRY debug_glTexCoord1sv(const GLshort *v)
 {
 	glTexCoord1sv(v);
 	if (checkErrors)
@@ -13777,7 +13782,7 @@ static APIENTRY void debug_glTexCoord1sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2d(GLdouble s, GLdouble t)
+static void APIENTRY debug_glTexCoord2d(GLdouble s, GLdouble t)
 {
 	glTexCoord2d(s, t);
 	if (checkErrors)
@@ -13794,7 +13799,7 @@ static APIENTRY void debug_glTexCoord2d(GLdouble s, GLdouble t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2dv(const GLdouble *v)
+static void APIENTRY debug_glTexCoord2dv(const GLdouble *v)
 {
 	glTexCoord2dv(v);
 	if (checkErrors)
@@ -13811,7 +13816,7 @@ static APIENTRY void debug_glTexCoord2dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2f(GLfloat s, GLfloat t)
+static void APIENTRY debug_glTexCoord2f(GLfloat s, GLfloat t)
 {
 	glTexCoord2f(s, t);
 	if (checkErrors)
@@ -13828,7 +13833,7 @@ static APIENTRY void debug_glTexCoord2f(GLfloat s, GLfloat t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2fv(const GLfloat *v)
+static void APIENTRY debug_glTexCoord2fv(const GLfloat *v)
 {
 	glTexCoord2fv(v);
 	if (checkErrors)
@@ -13845,7 +13850,7 @@ static APIENTRY void debug_glTexCoord2fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2i(GLint s, GLint t)
+static void APIENTRY debug_glTexCoord2i(GLint s, GLint t)
 {
 	glTexCoord2i(s, t);
 	if (checkErrors)
@@ -13862,7 +13867,7 @@ static APIENTRY void debug_glTexCoord2i(GLint s, GLint t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2iv(const GLint *v)
+static void APIENTRY debug_glTexCoord2iv(const GLint *v)
 {
 	glTexCoord2iv(v);
 	if (checkErrors)
@@ -13879,7 +13884,7 @@ static APIENTRY void debug_glTexCoord2iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2s(GLshort s, GLshort t)
+static void APIENTRY debug_glTexCoord2s(GLshort s, GLshort t)
 {
 	glTexCoord2s(s, t);
 	if (checkErrors)
@@ -13896,7 +13901,7 @@ static APIENTRY void debug_glTexCoord2s(GLshort s, GLshort t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2sv(const GLshort *v)
+static void APIENTRY debug_glTexCoord2sv(const GLshort *v)
 {
 	glTexCoord2sv(v);
 	if (checkErrors)
@@ -13913,7 +13918,7 @@ static APIENTRY void debug_glTexCoord2sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
+static void APIENTRY debug_glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 {
 	glTexCoord3d(s, t, r);
 	if (checkErrors)
@@ -13930,7 +13935,7 @@ static APIENTRY void debug_glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3dv(const GLdouble *v)
+static void APIENTRY debug_glTexCoord3dv(const GLdouble *v)
 {
 	glTexCoord3dv(v);
 	if (checkErrors)
@@ -13947,7 +13952,7 @@ static APIENTRY void debug_glTexCoord3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
+static void APIENTRY debug_glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 {
 	glTexCoord3f(s, t, r);
 	if (checkErrors)
@@ -13964,7 +13969,7 @@ static APIENTRY void debug_glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3fv(const GLfloat *v)
+static void APIENTRY debug_glTexCoord3fv(const GLfloat *v)
 {
 	glTexCoord3fv(v);
 	if (checkErrors)
@@ -13981,7 +13986,7 @@ static APIENTRY void debug_glTexCoord3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3i(GLint s, GLint t, GLint r)
+static void APIENTRY debug_glTexCoord3i(GLint s, GLint t, GLint r)
 {
 	glTexCoord3i(s, t, r);
 	if (checkErrors)
@@ -13998,7 +14003,7 @@ static APIENTRY void debug_glTexCoord3i(GLint s, GLint t, GLint r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3iv(const GLint *v)
+static void APIENTRY debug_glTexCoord3iv(const GLint *v)
 {
 	glTexCoord3iv(v);
 	if (checkErrors)
@@ -14015,7 +14020,7 @@ static APIENTRY void debug_glTexCoord3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3s(GLshort s, GLshort t, GLshort r)
+static void APIENTRY debug_glTexCoord3s(GLshort s, GLshort t, GLshort r)
 {
 	glTexCoord3s(s, t, r);
 	if (checkErrors)
@@ -14032,7 +14037,7 @@ static APIENTRY void debug_glTexCoord3s(GLshort s, GLshort t, GLshort r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3sv(const GLshort *v)
+static void APIENTRY debug_glTexCoord3sv(const GLshort *v)
 {
 	glTexCoord3sv(v);
 	if (checkErrors)
@@ -14049,7 +14054,7 @@ static APIENTRY void debug_glTexCoord3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
+static void APIENTRY debug_glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
 	glTexCoord4d(s, t, r, q);
 	if (checkErrors)
@@ -14066,7 +14071,7 @@ static APIENTRY void debug_glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdo
 	}
 }
 
-static APIENTRY void debug_glTexCoord4dv(const GLdouble *v)
+static void APIENTRY debug_glTexCoord4dv(const GLdouble *v)
 {
 	glTexCoord4dv(v);
 	if (checkErrors)
@@ -14083,7 +14088,7 @@ static APIENTRY void debug_glTexCoord4dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
+static void APIENTRY debug_glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
 	glTexCoord4f(s, t, r, q);
 	if (checkErrors)
@@ -14100,7 +14105,7 @@ static APIENTRY void debug_glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat
 	}
 }
 
-static APIENTRY void debug_glTexCoord4fv(const GLfloat *v)
+static void APIENTRY debug_glTexCoord4fv(const GLfloat *v)
 {
 	glTexCoord4fv(v);
 	if (checkErrors)
@@ -14117,7 +14122,7 @@ static APIENTRY void debug_glTexCoord4fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
+static void APIENTRY debug_glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 {
 	glTexCoord4i(s, t, r, q);
 	if (checkErrors)
@@ -14134,7 +14139,7 @@ static APIENTRY void debug_glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4iv(const GLint *v)
+static void APIENTRY debug_glTexCoord4iv(const GLint *v)
 {
 	glTexCoord4iv(v);
 	if (checkErrors)
@@ -14151,7 +14156,7 @@ static APIENTRY void debug_glTexCoord4iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
+static void APIENTRY debug_glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
 {
 	glTexCoord4s(s, t, r, q);
 	if (checkErrors)
@@ -14168,7 +14173,7 @@ static APIENTRY void debug_glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort
 	}
 }
 
-static APIENTRY void debug_glTexCoord4sv(const GLshort *v)
+static void APIENTRY debug_glTexCoord4sv(const GLshort *v)
 {
 	glTexCoord4sv(v);
 	if (checkErrors)
@@ -14185,7 +14190,7 @@ static APIENTRY void debug_glTexCoord4sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertex2d(GLdouble x, GLdouble y)
+static void APIENTRY debug_glVertex2d(GLdouble x, GLdouble y)
 {
 	glVertex2d(x, y);
 	if (checkErrors)
@@ -14202,7 +14207,7 @@ static APIENTRY void debug_glVertex2d(GLdouble x, GLdouble y)
 	}
 }
 
-static APIENTRY void debug_glVertex2dv(const GLdouble *v)
+static void APIENTRY debug_glVertex2dv(const GLdouble *v)
 {
 	glVertex2dv(v);
 	if (checkErrors)
@@ -14219,7 +14224,7 @@ static APIENTRY void debug_glVertex2dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertex2f(GLfloat x, GLfloat y)
+static void APIENTRY debug_glVertex2f(GLfloat x, GLfloat y)
 {
 	glVertex2f(x, y);
 	if (checkErrors)
@@ -14236,7 +14241,7 @@ static APIENTRY void debug_glVertex2f(GLfloat x, GLfloat y)
 	}
 }
 
-static APIENTRY void debug_glVertex2fv(const GLfloat *v)
+static void APIENTRY debug_glVertex2fv(const GLfloat *v)
 {
 	glVertex2fv(v);
 	if (checkErrors)
@@ -14253,7 +14258,7 @@ static APIENTRY void debug_glVertex2fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertex2i(GLint x, GLint y)
+static void APIENTRY debug_glVertex2i(GLint x, GLint y)
 {
 	glVertex2i(x, y);
 	if (checkErrors)
@@ -14270,7 +14275,7 @@ static APIENTRY void debug_glVertex2i(GLint x, GLint y)
 	}
 }
 
-static APIENTRY void debug_glVertex2iv(const GLint *v)
+static void APIENTRY debug_glVertex2iv(const GLint *v)
 {
 	glVertex2iv(v);
 	if (checkErrors)
@@ -14287,7 +14292,7 @@ static APIENTRY void debug_glVertex2iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertex2s(GLshort x, GLshort y)
+static void APIENTRY debug_glVertex2s(GLshort x, GLshort y)
 {
 	glVertex2s(x, y);
 	if (checkErrors)
@@ -14304,7 +14309,7 @@ static APIENTRY void debug_glVertex2s(GLshort x, GLshort y)
 	}
 }
 
-static APIENTRY void debug_glVertex2sv(const GLshort *v)
+static void APIENTRY debug_glVertex2sv(const GLshort *v)
 {
 	glVertex2sv(v);
 	if (checkErrors)
@@ -14321,7 +14326,7 @@ static APIENTRY void debug_glVertex2sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertex3d(GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 {
 	glVertex3d(x, y, z);
 	if (checkErrors)
@@ -14338,7 +14343,7 @@ static APIENTRY void debug_glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 	}
 }
 
-static APIENTRY void debug_glVertex3dv(const GLdouble *v)
+static void APIENTRY debug_glVertex3dv(const GLdouble *v)
 {
 	glVertex3dv(v);
 	if (checkErrors)
@@ -14355,7 +14360,7 @@ static APIENTRY void debug_glVertex3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 {
 	glVertex3f(x, y, z);
 	if (checkErrors)
@@ -14372,7 +14377,7 @@ static APIENTRY void debug_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 	}
 }
 
-static APIENTRY void debug_glVertex3fv(const GLfloat *v)
+static void APIENTRY debug_glVertex3fv(const GLfloat *v)
 {
 	glVertex3fv(v);
 	if (checkErrors)
@@ -14389,7 +14394,7 @@ static APIENTRY void debug_glVertex3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertex3i(GLint x, GLint y, GLint z)
+static void APIENTRY debug_glVertex3i(GLint x, GLint y, GLint z)
 {
 	glVertex3i(x, y, z);
 	if (checkErrors)
@@ -14406,7 +14411,7 @@ static APIENTRY void debug_glVertex3i(GLint x, GLint y, GLint z)
 	}
 }
 
-static APIENTRY void debug_glVertex3iv(const GLint *v)
+static void APIENTRY debug_glVertex3iv(const GLint *v)
 {
 	glVertex3iv(v);
 	if (checkErrors)
@@ -14423,7 +14428,7 @@ static APIENTRY void debug_glVertex3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertex3s(GLshort x, GLshort y, GLshort z)
+static void APIENTRY debug_glVertex3s(GLshort x, GLshort y, GLshort z)
 {
 	glVertex3s(x, y, z);
 	if (checkErrors)
@@ -14440,7 +14445,7 @@ static APIENTRY void debug_glVertex3s(GLshort x, GLshort y, GLshort z)
 	}
 }
 
-static APIENTRY void debug_glVertex3sv(const GLshort *v)
+static void APIENTRY debug_glVertex3sv(const GLshort *v)
 {
 	glVertex3sv(v);
 	if (checkErrors)
@@ -14457,7 +14462,7 @@ static APIENTRY void debug_glVertex3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glVertex4d(x, y, z, w);
 	if (checkErrors)
@@ -14474,7 +14479,7 @@ static APIENTRY void debug_glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdoub
 	}
 }
 
-static APIENTRY void debug_glVertex4dv(const GLdouble *v)
+static void APIENTRY debug_glVertex4dv(const GLdouble *v)
 {
 	glVertex4dv(v);
 	if (checkErrors)
@@ -14491,7 +14496,7 @@ static APIENTRY void debug_glVertex4dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glVertex4f(x, y, z, w);
 	if (checkErrors)
@@ -14508,7 +14513,7 @@ static APIENTRY void debug_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w
 	}
 }
 
-static APIENTRY void debug_glVertex4fv(const GLfloat *v)
+static void APIENTRY debug_glVertex4fv(const GLfloat *v)
 {
 	glVertex4fv(v);
 	if (checkErrors)
@@ -14525,7 +14530,7 @@ static APIENTRY void debug_glVertex4fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glVertex4i(GLint x, GLint y, GLint z, GLint w)
+static void APIENTRY debug_glVertex4i(GLint x, GLint y, GLint z, GLint w)
 {
 	glVertex4i(x, y, z, w);
 	if (checkErrors)
@@ -14542,7 +14547,7 @@ static APIENTRY void debug_glVertex4i(GLint x, GLint y, GLint z, GLint w)
 	}
 }
 
-static APIENTRY void debug_glVertex4iv(const GLint *v)
+static void APIENTRY debug_glVertex4iv(const GLint *v)
 {
 	glVertex4iv(v);
 	if (checkErrors)
@@ -14559,7 +14564,7 @@ static APIENTRY void debug_glVertex4iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
+static void APIENTRY debug_glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
 	glVertex4s(x, y, z, w);
 	if (checkErrors)
@@ -14576,7 +14581,7 @@ static APIENTRY void debug_glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w
 	}
 }
 
-static APIENTRY void debug_glVertex4sv(const GLshort *v)
+static void APIENTRY debug_glVertex4sv(const GLshort *v)
 {
 	glVertex4sv(v);
 	if (checkErrors)
@@ -14593,7 +14598,7 @@ static APIENTRY void debug_glVertex4sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glClipPlane(GLenum plane, const GLdouble *equation)
+static void APIENTRY debug_glClipPlane(GLenum plane, const GLdouble *equation)
 {
 	glClipPlane(plane, equation);
 	if (checkErrors)
@@ -14610,7 +14615,7 @@ static APIENTRY void debug_glClipPlane(GLenum plane, const GLdouble *equation)
 	}
 }
 
-static APIENTRY void debug_glColorMaterial(GLenum face, GLenum mode)
+static void APIENTRY debug_glColorMaterial(GLenum face, GLenum mode)
 {
 	glColorMaterial(face, mode);
 	if (checkErrors)
@@ -14627,7 +14632,7 @@ static APIENTRY void debug_glColorMaterial(GLenum face, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glFogf(GLenum pname, GLfloat param)
+static void APIENTRY debug_glFogf(GLenum pname, GLfloat param)
 {
 	glFogf(pname, param);
 	if (checkErrors)
@@ -14644,7 +14649,7 @@ static APIENTRY void debug_glFogf(GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glFogfv(GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glFogfv(GLenum pname, const GLfloat *params)
 {
 	glFogfv(pname, params);
 	if (checkErrors)
@@ -14661,7 +14666,7 @@ static APIENTRY void debug_glFogfv(GLenum pname, const GLfloat *params)
 	}
 }
 
-static APIENTRY void debug_glFogi(GLenum pname, GLint param)
+static void APIENTRY debug_glFogi(GLenum pname, GLint param)
 {
 	glFogi(pname, param);
 	if (checkErrors)
@@ -14678,7 +14683,7 @@ static APIENTRY void debug_glFogi(GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glFogiv(GLenum pname, const GLint *params)
+static void APIENTRY debug_glFogiv(GLenum pname, const GLint *params)
 {
 	glFogiv(pname, params);
 	if (checkErrors)
@@ -14695,7 +14700,7 @@ static APIENTRY void debug_glFogiv(GLenum pname, const GLint *params)
 	}
 }
 
-static APIENTRY void debug_glLightf(GLenum light, GLenum pname, GLfloat param)
+static void APIENTRY debug_glLightf(GLenum light, GLenum pname, GLfloat param)
 {
 	glLightf(light, pname, param);
 	if (checkErrors)
@@ -14712,7 +14717,7 @@ static APIENTRY void debug_glLightf(GLenum light, GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
 	glLightfv(light, pname, params);
 	if (checkErrors)
@@ -14729,7 +14734,7 @@ static APIENTRY void debug_glLightfv(GLenum light, GLenum pname, const GLfloat *
 	}
 }
 
-static APIENTRY void debug_glLighti(GLenum light, GLenum pname, GLint param)
+static void APIENTRY debug_glLighti(GLenum light, GLenum pname, GLint param)
 {
 	glLighti(light, pname, param);
 	if (checkErrors)
@@ -14746,7 +14751,7 @@ static APIENTRY void debug_glLighti(GLenum light, GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glLightiv(GLenum light, GLenum pname, const GLint *params)
+static void APIENTRY debug_glLightiv(GLenum light, GLenum pname, const GLint *params)
 {
 	glLightiv(light, pname, params);
 	if (checkErrors)
@@ -14763,7 +14768,7 @@ static APIENTRY void debug_glLightiv(GLenum light, GLenum pname, const GLint *pa
 	}
 }
 
-static APIENTRY void debug_glLightModelf(GLenum pname, GLfloat param)
+static void APIENTRY debug_glLightModelf(GLenum pname, GLfloat param)
 {
 	glLightModelf(pname, param);
 	if (checkErrors)
@@ -14780,7 +14785,7 @@ static APIENTRY void debug_glLightModelf(GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glLightModelfv(GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glLightModelfv(GLenum pname, const GLfloat *params)
 {
 	glLightModelfv(pname, params);
 	if (checkErrors)
@@ -14797,7 +14802,7 @@ static APIENTRY void debug_glLightModelfv(GLenum pname, const GLfloat *params)
 	}
 }
 
-static APIENTRY void debug_glLightModeli(GLenum pname, GLint param)
+static void APIENTRY debug_glLightModeli(GLenum pname, GLint param)
 {
 	glLightModeli(pname, param);
 	if (checkErrors)
@@ -14814,7 +14819,7 @@ static APIENTRY void debug_glLightModeli(GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glLightModeliv(GLenum pname, const GLint *params)
+static void APIENTRY debug_glLightModeliv(GLenum pname, const GLint *params)
 {
 	glLightModeliv(pname, params);
 	if (checkErrors)
@@ -14831,7 +14836,7 @@ static APIENTRY void debug_glLightModeliv(GLenum pname, const GLint *params)
 	}
 }
 
-static APIENTRY void debug_glLineStipple(GLint factor, GLushort pattern)
+static void APIENTRY debug_glLineStipple(GLint factor, GLushort pattern)
 {
 	glLineStipple(factor, pattern);
 	if (checkErrors)
@@ -14848,7 +14853,7 @@ static APIENTRY void debug_glLineStipple(GLint factor, GLushort pattern)
 	}
 }
 
-static APIENTRY void debug_glMaterialf(GLenum face, GLenum pname, GLfloat param)
+static void APIENTRY debug_glMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
 	glMaterialf(face, pname, param);
 	if (checkErrors)
@@ -14865,7 +14870,7 @@ static APIENTRY void debug_glMaterialf(GLenum face, GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
 	glMaterialfv(face, pname, params);
 	if (checkErrors)
@@ -14882,7 +14887,7 @@ static APIENTRY void debug_glMaterialfv(GLenum face, GLenum pname, const GLfloat
 	}
 }
 
-static APIENTRY void debug_glMateriali(GLenum face, GLenum pname, GLint param)
+static void APIENTRY debug_glMateriali(GLenum face, GLenum pname, GLint param)
 {
 	glMateriali(face, pname, param);
 	if (checkErrors)
@@ -14899,7 +14904,7 @@ static APIENTRY void debug_glMateriali(GLenum face, GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glMaterialiv(GLenum face, GLenum pname, const GLint *params)
+static void APIENTRY debug_glMaterialiv(GLenum face, GLenum pname, const GLint *params)
 {
 	glMaterialiv(face, pname, params);
 	if (checkErrors)
@@ -14916,7 +14921,7 @@ static APIENTRY void debug_glMaterialiv(GLenum face, GLenum pname, const GLint *
 	}
 }
 
-static APIENTRY void debug_glPolygonStipple(const GLubyte *mask)
+static void APIENTRY debug_glPolygonStipple(const GLubyte *mask)
 {
 	glPolygonStipple(mask);
 	if (checkErrors)
@@ -14933,7 +14938,7 @@ static APIENTRY void debug_glPolygonStipple(const GLubyte *mask)
 	}
 }
 
-static APIENTRY void debug_glShadeModel(GLenum mode)
+static void APIENTRY debug_glShadeModel(GLenum mode)
 {
 	glShadeModel(mode);
 	if (checkErrors)
@@ -14950,7 +14955,7 @@ static APIENTRY void debug_glShadeModel(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
 	glTexEnvf(target, pname, param);
 	if (checkErrors)
@@ -14967,7 +14972,7 @@ static APIENTRY void debug_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 {
 	glTexEnvfv(target, pname, params);
 	if (checkErrors)
@@ -14984,7 +14989,7 @@ static APIENTRY void debug_glTexEnvfv(GLenum target, GLenum pname, const GLfloat
 	}
 }
 
-static APIENTRY void debug_glTexEnvi(GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glTexEnvi(GLenum target, GLenum pname, GLint param)
 {
 	glTexEnvi(target, pname, param);
 	if (checkErrors)
@@ -15001,7 +15006,7 @@ static APIENTRY void debug_glTexEnvi(GLenum target, GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glTexEnviv(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTexEnviv(GLenum target, GLenum pname, const GLint *params)
 {
 	glTexEnviv(target, pname, params);
 	if (checkErrors)
@@ -15018,7 +15023,7 @@ static APIENTRY void debug_glTexEnviv(GLenum target, GLenum pname, const GLint *
 	}
 }
 
-static APIENTRY void debug_glTexGend(GLenum coord, GLenum pname, GLdouble param)
+static void APIENTRY debug_glTexGend(GLenum coord, GLenum pname, GLdouble param)
 {
 	glTexGend(coord, pname, param);
 	if (checkErrors)
@@ -15035,7 +15040,7 @@ static APIENTRY void debug_glTexGend(GLenum coord, GLenum pname, GLdouble param)
 	}
 }
 
-static APIENTRY void debug_glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
+static void APIENTRY debug_glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
 {
 	glTexGendv(coord, pname, params);
 	if (checkErrors)
@@ -15052,7 +15057,7 @@ static APIENTRY void debug_glTexGendv(GLenum coord, GLenum pname, const GLdouble
 	}
 }
 
-static APIENTRY void debug_glTexGenf(GLenum coord, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 {
 	glTexGenf(coord, pname, param);
 	if (checkErrors)
@@ -15069,7 +15074,7 @@ static APIENTRY void debug_glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
 {
 	glTexGenfv(coord, pname, params);
 	if (checkErrors)
@@ -15086,7 +15091,7 @@ static APIENTRY void debug_glTexGenfv(GLenum coord, GLenum pname, const GLfloat 
 	}
 }
 
-static APIENTRY void debug_glTexGeni(GLenum coord, GLenum pname, GLint param)
+static void APIENTRY debug_glTexGeni(GLenum coord, GLenum pname, GLint param)
 {
 	glTexGeni(coord, pname, param);
 	if (checkErrors)
@@ -15103,7 +15108,7 @@ static APIENTRY void debug_glTexGeni(GLenum coord, GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 {
 	glTexGeniv(coord, pname, params);
 	if (checkErrors)
@@ -15120,7 +15125,7 @@ static APIENTRY void debug_glTexGeniv(GLenum coord, GLenum pname, const GLint *p
 	}
 }
 
-static APIENTRY void debug_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
+static void APIENTRY debug_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
 {
 	glFeedbackBuffer(size, type, buffer);
 	if (checkErrors)
@@ -15137,7 +15142,7 @@ static APIENTRY void debug_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *
 	}
 }
 
-static APIENTRY void debug_glSelectBuffer(GLsizei size, GLuint *buffer)
+static void APIENTRY debug_glSelectBuffer(GLsizei size, GLuint *buffer)
 {
 	glSelectBuffer(size, buffer);
 	if (checkErrors)
@@ -15154,7 +15159,7 @@ static APIENTRY void debug_glSelectBuffer(GLsizei size, GLuint *buffer)
 	}
 }
 
-static APIENTRY GLint debug_glRenderMode(GLenum mode)
+static GLint APIENTRY debug_glRenderMode(GLenum mode)
 {
 	GLint retVal = default_glRenderMode(mode);
 	if (checkErrors)
@@ -15172,7 +15177,7 @@ static APIENTRY GLint debug_glRenderMode(GLenum mode)
 	return retVal;
 }
 
-static APIENTRY void debug_glInitNames()
+static void APIENTRY debug_glInitNames()
 {
 	glInitNames();
 	if (checkErrors)
@@ -15189,7 +15194,7 @@ static APIENTRY void debug_glInitNames()
 	}
 }
 
-static APIENTRY void debug_glLoadName(GLuint name)
+static void APIENTRY debug_glLoadName(GLuint name)
 {
 	glLoadName(name);
 	if (checkErrors)
@@ -15206,7 +15211,7 @@ static APIENTRY void debug_glLoadName(GLuint name)
 	}
 }
 
-static APIENTRY void debug_glPassThrough(GLfloat token)
+static void APIENTRY debug_glPassThrough(GLfloat token)
 {
 	glPassThrough(token);
 	if (checkErrors)
@@ -15223,7 +15228,7 @@ static APIENTRY void debug_glPassThrough(GLfloat token)
 	}
 }
 
-static APIENTRY void debug_glPopName()
+static void APIENTRY debug_glPopName()
 {
 	glPopName();
 	if (checkErrors)
@@ -15240,7 +15245,7 @@ static APIENTRY void debug_glPopName()
 	}
 }
 
-static APIENTRY void debug_glPushName(GLuint name)
+static void APIENTRY debug_glPushName(GLuint name)
 {
 	glPushName(name);
 	if (checkErrors)
@@ -15257,7 +15262,7 @@ static APIENTRY void debug_glPushName(GLuint name)
 	}
 }
 
-static APIENTRY void debug_glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+static void APIENTRY debug_glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	glClearAccum(red, green, blue, alpha);
 	if (checkErrors)
@@ -15274,7 +15279,7 @@ static APIENTRY void debug_glClearAccum(GLfloat red, GLfloat green, GLfloat blue
 	}
 }
 
-static APIENTRY void debug_glClearIndex(GLfloat c)
+static void APIENTRY debug_glClearIndex(GLfloat c)
 {
 	glClearIndex(c);
 	if (checkErrors)
@@ -15291,7 +15296,7 @@ static APIENTRY void debug_glClearIndex(GLfloat c)
 	}
 }
 
-static APIENTRY void debug_glIndexMask(GLuint mask)
+static void APIENTRY debug_glIndexMask(GLuint mask)
 {
 	glIndexMask(mask);
 	if (checkErrors)
@@ -15308,7 +15313,7 @@ static APIENTRY void debug_glIndexMask(GLuint mask)
 	}
 }
 
-static APIENTRY void debug_glAccum(GLenum op, GLfloat value)
+static void APIENTRY debug_glAccum(GLenum op, GLfloat value)
 {
 	glAccum(op, value);
 	if (checkErrors)
@@ -15325,7 +15330,7 @@ static APIENTRY void debug_glAccum(GLenum op, GLfloat value)
 	}
 }
 
-static APIENTRY void debug_glPopAttrib()
+static void APIENTRY debug_glPopAttrib()
 {
 	glPopAttrib();
 	if (checkErrors)
@@ -15342,7 +15347,7 @@ static APIENTRY void debug_glPopAttrib()
 	}
 }
 
-static APIENTRY void debug_glPushAttrib(GLbitfield mask)
+static void APIENTRY debug_glPushAttrib(GLbitfield mask)
 {
 	glPushAttrib(mask);
 	if (checkErrors)
@@ -15359,7 +15364,7 @@ static APIENTRY void debug_glPushAttrib(GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)
+static void APIENTRY debug_glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)
 {
 	glMap1d(target, u1, u2, stride, order, points);
 	if (checkErrors)
@@ -15376,7 +15381,7 @@ static APIENTRY void debug_glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLin
 	}
 }
 
-static APIENTRY void debug_glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points)
+static void APIENTRY debug_glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points)
 {
 	glMap1f(target, u1, u2, stride, order, points);
 	if (checkErrors)
@@ -15393,7 +15398,7 @@ static APIENTRY void debug_glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint 
 	}
 }
 
-static APIENTRY void debug_glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points)
+static void APIENTRY debug_glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points)
 {
 	glMap2d(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
@@ -15410,7 +15415,7 @@ static APIENTRY void debug_glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLin
 	}
 }
 
-static APIENTRY void debug_glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points)
+static void APIENTRY debug_glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points)
 {
 	glMap2f(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
@@ -15427,7 +15432,7 @@ static APIENTRY void debug_glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint 
 	}
 }
 
-static APIENTRY void debug_glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
+static void APIENTRY debug_glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 {
 	glMapGrid1d(un, u1, u2);
 	if (checkErrors)
@@ -15444,7 +15449,7 @@ static APIENTRY void debug_glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 	}
 }
 
-static APIENTRY void debug_glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
+static void APIENTRY debug_glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 {
 	glMapGrid1f(un, u1, u2);
 	if (checkErrors)
@@ -15461,7 +15466,7 @@ static APIENTRY void debug_glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 	}
 }
 
-static APIENTRY void debug_glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2)
+static void APIENTRY debug_glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2)
 {
 	glMapGrid2d(un, u1, u2, vn, v1, v2);
 	if (checkErrors)
@@ -15478,7 +15483,7 @@ static APIENTRY void debug_glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint
 	}
 }
 
-static APIENTRY void debug_glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2)
+static void APIENTRY debug_glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2)
 {
 	glMapGrid2f(un, u1, u2, vn, v1, v2);
 	if (checkErrors)
@@ -15495,7 +15500,7 @@ static APIENTRY void debug_glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint v
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1d(GLdouble u)
+static void APIENTRY debug_glEvalCoord1d(GLdouble u)
 {
 	glEvalCoord1d(u);
 	if (checkErrors)
@@ -15512,7 +15517,7 @@ static APIENTRY void debug_glEvalCoord1d(GLdouble u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1dv(const GLdouble *u)
+static void APIENTRY debug_glEvalCoord1dv(const GLdouble *u)
 {
 	glEvalCoord1dv(u);
 	if (checkErrors)
@@ -15529,7 +15534,7 @@ static APIENTRY void debug_glEvalCoord1dv(const GLdouble *u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1f(GLfloat u)
+static void APIENTRY debug_glEvalCoord1f(GLfloat u)
 {
 	glEvalCoord1f(u);
 	if (checkErrors)
@@ -15546,7 +15551,7 @@ static APIENTRY void debug_glEvalCoord1f(GLfloat u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1fv(const GLfloat *u)
+static void APIENTRY debug_glEvalCoord1fv(const GLfloat *u)
 {
 	glEvalCoord1fv(u);
 	if (checkErrors)
@@ -15563,7 +15568,7 @@ static APIENTRY void debug_glEvalCoord1fv(const GLfloat *u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2d(GLdouble u, GLdouble v)
+static void APIENTRY debug_glEvalCoord2d(GLdouble u, GLdouble v)
 {
 	glEvalCoord2d(u, v);
 	if (checkErrors)
@@ -15580,7 +15585,7 @@ static APIENTRY void debug_glEvalCoord2d(GLdouble u, GLdouble v)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2dv(const GLdouble *u)
+static void APIENTRY debug_glEvalCoord2dv(const GLdouble *u)
 {
 	glEvalCoord2dv(u);
 	if (checkErrors)
@@ -15597,7 +15602,7 @@ static APIENTRY void debug_glEvalCoord2dv(const GLdouble *u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2f(GLfloat u, GLfloat v)
+static void APIENTRY debug_glEvalCoord2f(GLfloat u, GLfloat v)
 {
 	glEvalCoord2f(u, v);
 	if (checkErrors)
@@ -15614,7 +15619,7 @@ static APIENTRY void debug_glEvalCoord2f(GLfloat u, GLfloat v)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2fv(const GLfloat *u)
+static void APIENTRY debug_glEvalCoord2fv(const GLfloat *u)
 {
 	glEvalCoord2fv(u);
 	if (checkErrors)
@@ -15631,7 +15636,7 @@ static APIENTRY void debug_glEvalCoord2fv(const GLfloat *u)
 	}
 }
 
-static APIENTRY void debug_glEvalMesh1(GLenum mode, GLint i1, GLint i2)
+static void APIENTRY debug_glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 {
 	glEvalMesh1(mode, i1, i2);
 	if (checkErrors)
@@ -15648,7 +15653,7 @@ static APIENTRY void debug_glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 	}
 }
 
-static APIENTRY void debug_glEvalPoint1(GLint i)
+static void APIENTRY debug_glEvalPoint1(GLint i)
 {
 	glEvalPoint1(i);
 	if (checkErrors)
@@ -15665,7 +15670,7 @@ static APIENTRY void debug_glEvalPoint1(GLint i)
 	}
 }
 
-static APIENTRY void debug_glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
+static void APIENTRY debug_glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
 {
 	glEvalMesh2(mode, i1, i2, j1, j2);
 	if (checkErrors)
@@ -15682,7 +15687,7 @@ static APIENTRY void debug_glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1
 	}
 }
 
-static APIENTRY void debug_glEvalPoint2(GLint i, GLint j)
+static void APIENTRY debug_glEvalPoint2(GLint i, GLint j)
 {
 	glEvalPoint2(i, j);
 	if (checkErrors)
@@ -15699,7 +15704,7 @@ static APIENTRY void debug_glEvalPoint2(GLint i, GLint j)
 	}
 }
 
-static APIENTRY void debug_glAlphaFunc(GLenum func, GLfloat ref)
+static void APIENTRY debug_glAlphaFunc(GLenum func, GLfloat ref)
 {
 	glAlphaFunc(func, ref);
 	if (checkErrors)
@@ -15716,7 +15721,7 @@ static APIENTRY void debug_glAlphaFunc(GLenum func, GLfloat ref)
 	}
 }
 
-static APIENTRY void debug_glPixelZoom(GLfloat xfactor, GLfloat yfactor)
+static void APIENTRY debug_glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 {
 	glPixelZoom(xfactor, yfactor);
 	if (checkErrors)
@@ -15733,7 +15738,7 @@ static APIENTRY void debug_glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 	}
 }
 
-static APIENTRY void debug_glPixelTransferf(GLenum pname, GLfloat param)
+static void APIENTRY debug_glPixelTransferf(GLenum pname, GLfloat param)
 {
 	glPixelTransferf(pname, param);
 	if (checkErrors)
@@ -15750,7 +15755,7 @@ static APIENTRY void debug_glPixelTransferf(GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glPixelTransferi(GLenum pname, GLint param)
+static void APIENTRY debug_glPixelTransferi(GLenum pname, GLint param)
 {
 	glPixelTransferi(pname, param);
 	if (checkErrors)
@@ -15767,7 +15772,7 @@ static APIENTRY void debug_glPixelTransferi(GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
+static void APIENTRY debug_glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
 {
 	glPixelMapfv(map, mapsize, values);
 	if (checkErrors)
@@ -15784,7 +15789,7 @@ static APIENTRY void debug_glPixelMapfv(GLenum map, GLsizei mapsize, const GLflo
 	}
 }
 
-static APIENTRY void debug_glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
+static void APIENTRY debug_glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
 {
 	glPixelMapuiv(map, mapsize, values);
 	if (checkErrors)
@@ -15801,7 +15806,7 @@ static APIENTRY void debug_glPixelMapuiv(GLenum map, GLsizei mapsize, const GLui
 	}
 }
 
-static APIENTRY void debug_glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
+static void APIENTRY debug_glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
 {
 	glPixelMapusv(map, mapsize, values);
 	if (checkErrors)
@@ -15818,7 +15823,7 @@ static APIENTRY void debug_glPixelMapusv(GLenum map, GLsizei mapsize, const GLus
 	}
 }
 
-static APIENTRY void debug_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
+static void APIENTRY debug_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
 {
 	glCopyPixels(x, y, width, height, type);
 	if (checkErrors)
@@ -15835,7 +15840,7 @@ static APIENTRY void debug_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei
 	}
 }
 
-static APIENTRY void debug_glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
 	glDrawPixels(width, height, format, type, pixels);
 	if (checkErrors)
@@ -15852,7 +15857,7 @@ static APIENTRY void debug_glDrawPixels(GLsizei width, GLsizei height, GLenum fo
 	}
 }
 
-static APIENTRY void debug_glGetClipPlane(GLenum plane, GLdouble *equation)
+static void APIENTRY debug_glGetClipPlane(GLenum plane, GLdouble *equation)
 {
 	glGetClipPlane(plane, equation);
 	if (checkErrors)
@@ -15869,7 +15874,7 @@ static APIENTRY void debug_glGetClipPlane(GLenum plane, GLdouble *equation)
 	}
 }
 
-static APIENTRY void debug_glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
 {
 	glGetLightfv(light, pname, params);
 	if (checkErrors)
@@ -15886,7 +15891,7 @@ static APIENTRY void debug_glGetLightfv(GLenum light, GLenum pname, GLfloat *par
 	}
 }
 
-static APIENTRY void debug_glGetLightiv(GLenum light, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetLightiv(GLenum light, GLenum pname, GLint *params)
 {
 	glGetLightiv(light, pname, params);
 	if (checkErrors)
@@ -15903,7 +15908,7 @@ static APIENTRY void debug_glGetLightiv(GLenum light, GLenum pname, GLint *param
 	}
 }
 
-static APIENTRY void debug_glGetMapdv(GLenum target, GLenum query, GLdouble *v)
+static void APIENTRY debug_glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 {
 	glGetMapdv(target, query, v);
 	if (checkErrors)
@@ -15920,7 +15925,7 @@ static APIENTRY void debug_glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glGetMapfv(GLenum target, GLenum query, GLfloat *v)
+static void APIENTRY debug_glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 {
 	glGetMapfv(target, query, v);
 	if (checkErrors)
@@ -15937,7 +15942,7 @@ static APIENTRY void debug_glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glGetMapiv(GLenum target, GLenum query, GLint *v)
+static void APIENTRY debug_glGetMapiv(GLenum target, GLenum query, GLint *v)
 {
 	glGetMapiv(target, query, v);
 	if (checkErrors)
@@ -15954,7 +15959,7 @@ static APIENTRY void debug_glGetMapiv(GLenum target, GLenum query, GLint *v)
 	}
 }
 
-static APIENTRY void debug_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
 {
 	glGetMaterialfv(face, pname, params);
 	if (checkErrors)
@@ -15971,7 +15976,7 @@ static APIENTRY void debug_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *p
 	}
 }
 
-static APIENTRY void debug_glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
 {
 	glGetMaterialiv(face, pname, params);
 	if (checkErrors)
@@ -15988,7 +15993,7 @@ static APIENTRY void debug_glGetMaterialiv(GLenum face, GLenum pname, GLint *par
 	}
 }
 
-static APIENTRY void debug_glGetPixelMapfv(GLenum map, GLfloat *values)
+static void APIENTRY debug_glGetPixelMapfv(GLenum map, GLfloat *values)
 {
 	glGetPixelMapfv(map, values);
 	if (checkErrors)
@@ -16005,7 +16010,7 @@ static APIENTRY void debug_glGetPixelMapfv(GLenum map, GLfloat *values)
 	}
 }
 
-static APIENTRY void debug_glGetPixelMapuiv(GLenum map, GLuint *values)
+static void APIENTRY debug_glGetPixelMapuiv(GLenum map, GLuint *values)
 {
 	glGetPixelMapuiv(map, values);
 	if (checkErrors)
@@ -16022,7 +16027,7 @@ static APIENTRY void debug_glGetPixelMapuiv(GLenum map, GLuint *values)
 	}
 }
 
-static APIENTRY void debug_glGetPixelMapusv(GLenum map, GLushort *values)
+static void APIENTRY debug_glGetPixelMapusv(GLenum map, GLushort *values)
 {
 	glGetPixelMapusv(map, values);
 	if (checkErrors)
@@ -16039,7 +16044,7 @@ static APIENTRY void debug_glGetPixelMapusv(GLenum map, GLushort *values)
 	}
 }
 
-static APIENTRY void debug_glGetPolygonStipple(GLubyte *mask)
+static void APIENTRY debug_glGetPolygonStipple(GLubyte *mask)
 {
 	glGetPolygonStipple(mask);
 	if (checkErrors)
@@ -16056,7 +16061,7 @@ static APIENTRY void debug_glGetPolygonStipple(GLubyte *mask)
 	}
 }
 
-static APIENTRY void debug_glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetTexEnvfv(target, pname, params);
 	if (checkErrors)
@@ -16073,7 +16078,7 @@ static APIENTRY void debug_glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *p
 	}
 }
 
-static APIENTRY void debug_glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetTexEnviv(target, pname, params);
 	if (checkErrors)
@@ -16090,7 +16095,7 @@ static APIENTRY void debug_glGetTexEnviv(GLenum target, GLenum pname, GLint *par
 	}
 }
 
-static APIENTRY void debug_glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
+static void APIENTRY debug_glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
 {
 	glGetTexGendv(coord, pname, params);
 	if (checkErrors)
@@ -16107,7 +16112,7 @@ static APIENTRY void debug_glGetTexGendv(GLenum coord, GLenum pname, GLdouble *p
 	}
 }
 
-static APIENTRY void debug_glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
 {
 	glGetTexGenfv(coord, pname, params);
 	if (checkErrors)
@@ -16124,7 +16129,7 @@ static APIENTRY void debug_glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *pa
 	}
 }
 
-static APIENTRY void debug_glGetTexGeniv(GLenum coord, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexGeniv(GLenum coord, GLenum pname, GLint *params)
 {
 	glGetTexGeniv(coord, pname, params);
 	if (checkErrors)
@@ -16141,7 +16146,7 @@ static APIENTRY void debug_glGetTexGeniv(GLenum coord, GLenum pname, GLint *para
 	}
 }
 
-static APIENTRY GLboolean debug_glIsList(GLuint list)
+static GLboolean APIENTRY debug_glIsList(GLuint list)
 {
 	GLboolean retVal = default_glIsList(list);
 	if (checkErrors)
@@ -16159,7 +16164,7 @@ static APIENTRY GLboolean debug_glIsList(GLuint list)
 	return retVal;
 }
 
-static APIENTRY void debug_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+static void APIENTRY debug_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
 	glFrustum(left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
@@ -16176,7 +16181,7 @@ static APIENTRY void debug_glFrustum(GLdouble left, GLdouble right, GLdouble bot
 	}
 }
 
-static APIENTRY void debug_glLoadIdentity()
+static void APIENTRY debug_glLoadIdentity()
 {
 	glLoadIdentity();
 	if (checkErrors)
@@ -16193,7 +16198,7 @@ static APIENTRY void debug_glLoadIdentity()
 	}
 }
 
-static APIENTRY void debug_glLoadMatrixf(const GLfloat *m)
+static void APIENTRY debug_glLoadMatrixf(const GLfloat *m)
 {
 	glLoadMatrixf(m);
 	if (checkErrors)
@@ -16210,7 +16215,7 @@ static APIENTRY void debug_glLoadMatrixf(const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glLoadMatrixd(const GLdouble *m)
+static void APIENTRY debug_glLoadMatrixd(const GLdouble *m)
 {
 	glLoadMatrixd(m);
 	if (checkErrors)
@@ -16227,7 +16232,7 @@ static APIENTRY void debug_glLoadMatrixd(const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glMatrixMode(GLenum mode)
+static void APIENTRY debug_glMatrixMode(GLenum mode)
 {
 	glMatrixMode(mode);
 	if (checkErrors)
@@ -16244,7 +16249,7 @@ static APIENTRY void debug_glMatrixMode(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glMultMatrixf(const GLfloat *m)
+static void APIENTRY debug_glMultMatrixf(const GLfloat *m)
 {
 	glMultMatrixf(m);
 	if (checkErrors)
@@ -16261,7 +16266,7 @@ static APIENTRY void debug_glMultMatrixf(const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glMultMatrixd(const GLdouble *m)
+static void APIENTRY debug_glMultMatrixd(const GLdouble *m)
 {
 	glMultMatrixd(m);
 	if (checkErrors)
@@ -16278,7 +16283,7 @@ static APIENTRY void debug_glMultMatrixd(const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+static void APIENTRY debug_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
 	glOrtho(left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
@@ -16295,7 +16300,7 @@ static APIENTRY void debug_glOrtho(GLdouble left, GLdouble right, GLdouble botto
 	}
 }
 
-static APIENTRY void debug_glPopMatrix()
+static void APIENTRY debug_glPopMatrix()
 {
 	glPopMatrix();
 	if (checkErrors)
@@ -16312,7 +16317,7 @@ static APIENTRY void debug_glPopMatrix()
 	}
 }
 
-static APIENTRY void debug_glPushMatrix()
+static void APIENTRY debug_glPushMatrix()
 {
 	glPushMatrix();
 	if (checkErrors)
@@ -16329,7 +16334,7 @@ static APIENTRY void debug_glPushMatrix()
 	}
 }
 
-static APIENTRY void debug_glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 {
 	glRotated(angle, x, y, z);
 	if (checkErrors)
@@ -16346,7 +16351,7 @@ static APIENTRY void debug_glRotated(GLdouble angle, GLdouble x, GLdouble y, GLd
 	}
 }
 
-static APIENTRY void debug_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
 	glRotatef(angle, x, y, z);
 	if (checkErrors)
@@ -16363,7 +16368,7 @@ static APIENTRY void debug_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloa
 	}
 }
 
-static APIENTRY void debug_glScaled(GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glScaled(GLdouble x, GLdouble y, GLdouble z)
 {
 	glScaled(x, y, z);
 	if (checkErrors)
@@ -16380,7 +16385,7 @@ static APIENTRY void debug_glScaled(GLdouble x, GLdouble y, GLdouble z)
 	}
 }
 
-static APIENTRY void debug_glScalef(GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
 	glScalef(x, y, z);
 	if (checkErrors)
@@ -16397,7 +16402,7 @@ static APIENTRY void debug_glScalef(GLfloat x, GLfloat y, GLfloat z)
 	}
 }
 
-static APIENTRY void debug_glTranslated(GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glTranslated(GLdouble x, GLdouble y, GLdouble z)
 {
 	glTranslated(x, y, z);
 	if (checkErrors)
@@ -16414,7 +16419,7 @@ static APIENTRY void debug_glTranslated(GLdouble x, GLdouble y, GLdouble z)
 	}
 }
 
-static APIENTRY void debug_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 	glTranslatef(x, y, z);
 	if (checkErrors)
@@ -16431,7 +16436,7 @@ static APIENTRY void debug_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 	}
 }
 
-static APIENTRY void debug_glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
+static void APIENTRY debug_glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
 	glCopyTexImage1D(target, level, internalformat, x, y, width, border);
 	if (checkErrors)
@@ -16448,7 +16453,7 @@ static APIENTRY void debug_glCopyTexImage1D(GLenum target, GLint level, GLenum i
 	}
 }
 
-static APIENTRY void debug_glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
 	glCopyTexSubImage1D(target, level, xoffset, x, y, width);
 	if (checkErrors)
@@ -16465,7 +16470,7 @@ static APIENTRY void debug_glCopyTexSubImage1D(GLenum target, GLint level, GLint
 	}
 }
 
-static APIENTRY void debug_glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
 	glTexSubImage1D(target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
@@ -16482,7 +16487,7 @@ static APIENTRY void debug_glTexSubImage1D(GLenum target, GLint level, GLint xof
 	}
 }
 
-static APIENTRY void debug_glArrayElement(GLint i)
+static void APIENTRY debug_glArrayElement(GLint i)
 {
 	glArrayElement(i);
 	if (checkErrors)
@@ -16499,7 +16504,7 @@ static APIENTRY void debug_glArrayElement(GLint i)
 	}
 }
 
-static APIENTRY void debug_glColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glColorPointer(size, type, stride, pointer);
 	if (checkErrors)
@@ -16516,7 +16521,7 @@ static APIENTRY void debug_glColorPointer(GLint size, GLenum type, GLsizei strid
 	}
 }
 
-static APIENTRY void debug_glDisableClientState(GLenum array)
+static void APIENTRY debug_glDisableClientState(GLenum array)
 {
 	glDisableClientState(array);
 	if (checkErrors)
@@ -16533,7 +16538,7 @@ static APIENTRY void debug_glDisableClientState(GLenum array)
 	}
 }
 
-static APIENTRY void debug_glEdgeFlagPointer(GLsizei stride, const void *pointer)
+static void APIENTRY debug_glEdgeFlagPointer(GLsizei stride, const void *pointer)
 {
 	glEdgeFlagPointer(stride, pointer);
 	if (checkErrors)
@@ -16550,7 +16555,7 @@ static APIENTRY void debug_glEdgeFlagPointer(GLsizei stride, const void *pointer
 	}
 }
 
-static APIENTRY void debug_glEnableClientState(GLenum array)
+static void APIENTRY debug_glEnableClientState(GLenum array)
 {
 	glEnableClientState(array);
 	if (checkErrors)
@@ -16567,7 +16572,7 @@ static APIENTRY void debug_glEnableClientState(GLenum array)
 	}
 }
 
-static APIENTRY void debug_glIndexPointer(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glIndexPointer(GLenum type, GLsizei stride, const void *pointer)
 {
 	glIndexPointer(type, stride, pointer);
 	if (checkErrors)
@@ -16584,7 +16589,7 @@ static APIENTRY void debug_glIndexPointer(GLenum type, GLsizei stride, const voi
 	}
 }
 
-static APIENTRY void debug_glInterleavedArrays(GLenum format, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glInterleavedArrays(GLenum format, GLsizei stride, const void *pointer)
 {
 	glInterleavedArrays(format, stride, pointer);
 	if (checkErrors)
@@ -16601,7 +16606,7 @@ static APIENTRY void debug_glInterleavedArrays(GLenum format, GLsizei stride, co
 	}
 }
 
-static APIENTRY void debug_glNormalPointer(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glNormalPointer(GLenum type, GLsizei stride, const void *pointer)
 {
 	glNormalPointer(type, stride, pointer);
 	if (checkErrors)
@@ -16618,7 +16623,7 @@ static APIENTRY void debug_glNormalPointer(GLenum type, GLsizei stride, const vo
 	}
 }
 
-static APIENTRY void debug_glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glTexCoordPointer(size, type, stride, pointer);
 	if (checkErrors)
@@ -16635,7 +16640,7 @@ static APIENTRY void debug_glTexCoordPointer(GLint size, GLenum type, GLsizei st
 	}
 }
 
-static APIENTRY void debug_glVertexPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glVertexPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glVertexPointer(size, type, stride, pointer);
 	if (checkErrors)
@@ -16652,7 +16657,7 @@ static APIENTRY void debug_glVertexPointer(GLint size, GLenum type, GLsizei stri
 	}
 }
 
-static APIENTRY GLboolean debug_glAreTexturesResident(GLsizei n, const GLuint *textures, GLboolean *residences)
+static GLboolean APIENTRY debug_glAreTexturesResident(GLsizei n, const GLuint *textures, GLboolean *residences)
 {
 	GLboolean retVal = default_glAreTexturesResident(n, textures, residences);
 	if (checkErrors)
@@ -16670,7 +16675,7 @@ static APIENTRY GLboolean debug_glAreTexturesResident(GLsizei n, const GLuint *t
 	return retVal;
 }
 
-static APIENTRY void debug_glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLfloat *priorities)
+static void APIENTRY debug_glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLfloat *priorities)
 {
 	glPrioritizeTextures(n, textures, priorities);
 	if (checkErrors)
@@ -16687,7 +16692,7 @@ static APIENTRY void debug_glPrioritizeTextures(GLsizei n, const GLuint *texture
 	}
 }
 
-static APIENTRY void debug_glIndexub(GLubyte c)
+static void APIENTRY debug_glIndexub(GLubyte c)
 {
 	glIndexub(c);
 	if (checkErrors)
@@ -16704,7 +16709,7 @@ static APIENTRY void debug_glIndexub(GLubyte c)
 	}
 }
 
-static APIENTRY void debug_glIndexubv(const GLubyte *c)
+static void APIENTRY debug_glIndexubv(const GLubyte *c)
 {
 	glIndexubv(c);
 	if (checkErrors)
@@ -16721,7 +16726,7 @@ static APIENTRY void debug_glIndexubv(const GLubyte *c)
 	}
 }
 
-static APIENTRY void debug_glPopClientAttrib()
+static void APIENTRY debug_glPopClientAttrib()
 {
 	glPopClientAttrib();
 	if (checkErrors)
@@ -16738,7 +16743,7 @@ static APIENTRY void debug_glPopClientAttrib()
 	}
 }
 
-static APIENTRY void debug_glPushClientAttrib(GLbitfield mask)
+static void APIENTRY debug_glPushClientAttrib(GLbitfield mask)
 {
 	glPushClientAttrib(mask);
 	if (checkErrors)
@@ -16755,7 +16760,7 @@ static APIENTRY void debug_glPushClientAttrib(GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data)
 {
 	glCompressedTexImage1D(target, level, internalformat, width, border, imageSize, data);
 	if (checkErrors)
@@ -16772,7 +16777,7 @@ static APIENTRY void debug_glCompressedTexImage1D(GLenum target, GLint level, GL
 	}
 }
 
-static APIENTRY void debug_glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data);
 	if (checkErrors)
@@ -16789,7 +16794,7 @@ static APIENTRY void debug_glCompressedTexSubImage1D(GLenum target, GLint level,
 	}
 }
 
-static APIENTRY void debug_glGetCompressedTexImage(GLenum target, GLint level, void *img)
+static void APIENTRY debug_glGetCompressedTexImage(GLenum target, GLint level, void *img)
 {
 	glGetCompressedTexImage(target, level, img);
 	if (checkErrors)
@@ -16806,7 +16811,7 @@ static APIENTRY void debug_glGetCompressedTexImage(GLenum target, GLint level, v
 	}
 }
 
-static APIENTRY void debug_glClientActiveTexture(GLenum texture)
+static void APIENTRY debug_glClientActiveTexture(GLenum texture)
 {
 	glClientActiveTexture(texture);
 	if (checkErrors)
@@ -16823,7 +16828,7 @@ static APIENTRY void debug_glClientActiveTexture(GLenum texture)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1d(GLenum target, GLdouble s)
+static void APIENTRY debug_glMultiTexCoord1d(GLenum target, GLdouble s)
 {
 	glMultiTexCoord1d(target, s);
 	if (checkErrors)
@@ -16840,7 +16845,7 @@ static APIENTRY void debug_glMultiTexCoord1d(GLenum target, GLdouble s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1dv(GLenum target, const GLdouble *v)
+static void APIENTRY debug_glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 {
 	glMultiTexCoord1dv(target, v);
 	if (checkErrors)
@@ -16857,7 +16862,7 @@ static APIENTRY void debug_glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1f(GLenum target, GLfloat s)
+static void APIENTRY debug_glMultiTexCoord1f(GLenum target, GLfloat s)
 {
 	glMultiTexCoord1f(target, s);
 	if (checkErrors)
@@ -16874,7 +16879,7 @@ static APIENTRY void debug_glMultiTexCoord1f(GLenum target, GLfloat s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1fv(GLenum target, const GLfloat *v)
+static void APIENTRY debug_glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 {
 	glMultiTexCoord1fv(target, v);
 	if (checkErrors)
@@ -16891,7 +16896,7 @@ static APIENTRY void debug_glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1i(GLenum target, GLint s)
+static void APIENTRY debug_glMultiTexCoord1i(GLenum target, GLint s)
 {
 	glMultiTexCoord1i(target, s);
 	if (checkErrors)
@@ -16908,7 +16913,7 @@ static APIENTRY void debug_glMultiTexCoord1i(GLenum target, GLint s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1iv(GLenum target, const GLint *v)
+static void APIENTRY debug_glMultiTexCoord1iv(GLenum target, const GLint *v)
 {
 	glMultiTexCoord1iv(target, v);
 	if (checkErrors)
@@ -16925,7 +16930,7 @@ static APIENTRY void debug_glMultiTexCoord1iv(GLenum target, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1s(GLenum target, GLshort s)
+static void APIENTRY debug_glMultiTexCoord1s(GLenum target, GLshort s)
 {
 	glMultiTexCoord1s(target, s);
 	if (checkErrors)
@@ -16942,7 +16947,7 @@ static APIENTRY void debug_glMultiTexCoord1s(GLenum target, GLshort s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1sv(GLenum target, const GLshort *v)
+static void APIENTRY debug_glMultiTexCoord1sv(GLenum target, const GLshort *v)
 {
 	glMultiTexCoord1sv(target, v);
 	if (checkErrors)
@@ -16959,7 +16964,7 @@ static APIENTRY void debug_glMultiTexCoord1sv(GLenum target, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t)
+static void APIENTRY debug_glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t)
 {
 	glMultiTexCoord2d(target, s, t);
 	if (checkErrors)
@@ -16976,7 +16981,7 @@ static APIENTRY void debug_glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2dv(GLenum target, const GLdouble *v)
+static void APIENTRY debug_glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 {
 	glMultiTexCoord2dv(target, v);
 	if (checkErrors)
@@ -16993,7 +16998,7 @@ static APIENTRY void debug_glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
+static void APIENTRY debug_glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 {
 	glMultiTexCoord2f(target, s, t);
 	if (checkErrors)
@@ -17010,7 +17015,7 @@ static APIENTRY void debug_glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2fv(GLenum target, const GLfloat *v)
+static void APIENTRY debug_glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 {
 	glMultiTexCoord2fv(target, v);
 	if (checkErrors)
@@ -17027,7 +17032,7 @@ static APIENTRY void debug_glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2i(GLenum target, GLint s, GLint t)
+static void APIENTRY debug_glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 {
 	glMultiTexCoord2i(target, s, t);
 	if (checkErrors)
@@ -17044,7 +17049,7 @@ static APIENTRY void debug_glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2iv(GLenum target, const GLint *v)
+static void APIENTRY debug_glMultiTexCoord2iv(GLenum target, const GLint *v)
 {
 	glMultiTexCoord2iv(target, v);
 	if (checkErrors)
@@ -17061,7 +17066,7 @@ static APIENTRY void debug_glMultiTexCoord2iv(GLenum target, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
+static void APIENTRY debug_glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
 {
 	glMultiTexCoord2s(target, s, t);
 	if (checkErrors)
@@ -17078,7 +17083,7 @@ static APIENTRY void debug_glMultiTexCoord2s(GLenum target, GLshort s, GLshort t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2sv(GLenum target, const GLshort *v)
+static void APIENTRY debug_glMultiTexCoord2sv(GLenum target, const GLshort *v)
 {
 	glMultiTexCoord2sv(target, v);
 	if (checkErrors)
@@ -17095,7 +17100,7 @@ static APIENTRY void debug_glMultiTexCoord2sv(GLenum target, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r)
+static void APIENTRY debug_glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r)
 {
 	glMultiTexCoord3d(target, s, t, r);
 	if (checkErrors)
@@ -17112,7 +17117,7 @@ static APIENTRY void debug_glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3dv(GLenum target, const GLdouble *v)
+static void APIENTRY debug_glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 {
 	glMultiTexCoord3dv(target, v);
 	if (checkErrors)
@@ -17129,7 +17134,7 @@ static APIENTRY void debug_glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
+static void APIENTRY debug_glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
 {
 	glMultiTexCoord3f(target, s, t, r);
 	if (checkErrors)
@@ -17146,7 +17151,7 @@ static APIENTRY void debug_glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3fv(GLenum target, const GLfloat *v)
+static void APIENTRY debug_glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 {
 	glMultiTexCoord3fv(target, v);
 	if (checkErrors)
@@ -17163,7 +17168,7 @@ static APIENTRY void debug_glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
+static void APIENTRY debug_glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
 {
 	glMultiTexCoord3i(target, s, t, r);
 	if (checkErrors)
@@ -17180,7 +17185,7 @@ static APIENTRY void debug_glMultiTexCoord3i(GLenum target, GLint s, GLint t, GL
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3iv(GLenum target, const GLint *v)
+static void APIENTRY debug_glMultiTexCoord3iv(GLenum target, const GLint *v)
 {
 	glMultiTexCoord3iv(target, v);
 	if (checkErrors)
@@ -17197,7 +17202,7 @@ static APIENTRY void debug_glMultiTexCoord3iv(GLenum target, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
+static void APIENTRY debug_glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
 {
 	glMultiTexCoord3s(target, s, t, r);
 	if (checkErrors)
@@ -17214,7 +17219,7 @@ static APIENTRY void debug_glMultiTexCoord3s(GLenum target, GLshort s, GLshort t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3sv(GLenum target, const GLshort *v)
+static void APIENTRY debug_glMultiTexCoord3sv(GLenum target, const GLshort *v)
 {
 	glMultiTexCoord3sv(target, v);
 	if (checkErrors)
@@ -17231,7 +17236,7 @@ static APIENTRY void debug_glMultiTexCoord3sv(GLenum target, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q)
+static void APIENTRY debug_glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
 	glMultiTexCoord4d(target, s, t, r, q);
 	if (checkErrors)
@@ -17248,7 +17253,7 @@ static APIENTRY void debug_glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4dv(GLenum target, const GLdouble *v)
+static void APIENTRY debug_glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 {
 	glMultiTexCoord4dv(target, v);
 	if (checkErrors)
@@ -17265,7 +17270,7 @@ static APIENTRY void debug_glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
+static void APIENTRY debug_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
 	glMultiTexCoord4f(target, s, t, r, q);
 	if (checkErrors)
@@ -17282,7 +17287,7 @@ static APIENTRY void debug_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4fv(GLenum target, const GLfloat *v)
+static void APIENTRY debug_glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 {
 	glMultiTexCoord4fv(target, v);
 	if (checkErrors)
@@ -17299,7 +17304,7 @@ static APIENTRY void debug_glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
+static void APIENTRY debug_glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
 {
 	glMultiTexCoord4i(target, s, t, r, q);
 	if (checkErrors)
@@ -17316,7 +17321,7 @@ static APIENTRY void debug_glMultiTexCoord4i(GLenum target, GLint s, GLint t, GL
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4iv(GLenum target, const GLint *v)
+static void APIENTRY debug_glMultiTexCoord4iv(GLenum target, const GLint *v)
 {
 	glMultiTexCoord4iv(target, v);
 	if (checkErrors)
@@ -17333,7 +17338,7 @@ static APIENTRY void debug_glMultiTexCoord4iv(GLenum target, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q)
+static void APIENTRY debug_glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q)
 {
 	glMultiTexCoord4s(target, s, t, r, q);
 	if (checkErrors)
@@ -17350,7 +17355,7 @@ static APIENTRY void debug_glMultiTexCoord4s(GLenum target, GLshort s, GLshort t
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4sv(GLenum target, const GLshort *v)
+static void APIENTRY debug_glMultiTexCoord4sv(GLenum target, const GLshort *v)
 {
 	glMultiTexCoord4sv(target, v);
 	if (checkErrors)
@@ -17367,7 +17372,7 @@ static APIENTRY void debug_glMultiTexCoord4sv(GLenum target, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glLoadTransposeMatrixf(const GLfloat *m)
+static void APIENTRY debug_glLoadTransposeMatrixf(const GLfloat *m)
 {
 	glLoadTransposeMatrixf(m);
 	if (checkErrors)
@@ -17384,7 +17389,7 @@ static APIENTRY void debug_glLoadTransposeMatrixf(const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glLoadTransposeMatrixd(const GLdouble *m)
+static void APIENTRY debug_glLoadTransposeMatrixd(const GLdouble *m)
 {
 	glLoadTransposeMatrixd(m);
 	if (checkErrors)
@@ -17401,7 +17406,7 @@ static APIENTRY void debug_glLoadTransposeMatrixd(const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glMultTransposeMatrixf(const GLfloat *m)
+static void APIENTRY debug_glMultTransposeMatrixf(const GLfloat *m)
 {
 	glMultTransposeMatrixf(m);
 	if (checkErrors)
@@ -17418,7 +17423,7 @@ static APIENTRY void debug_glMultTransposeMatrixf(const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glMultTransposeMatrixd(const GLdouble *m)
+static void APIENTRY debug_glMultTransposeMatrixd(const GLdouble *m)
 {
 	glMultTransposeMatrixd(m);
 	if (checkErrors)
@@ -17435,7 +17440,7 @@ static APIENTRY void debug_glMultTransposeMatrixd(const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount)
+static void APIENTRY debug_glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount)
 {
 	glMultiDrawArrays(mode, first, count, drawcount);
 	if (checkErrors)
@@ -17452,7 +17457,7 @@ static APIENTRY void debug_glMultiDrawArrays(GLenum mode, const GLint *first, co
 	}
 }
 
-static APIENTRY void debug_glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
+static void APIENTRY debug_glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
 {
 	glMultiDrawElements(mode, count, type, indices, drawcount);
 	if (checkErrors)
@@ -17469,7 +17474,7 @@ static APIENTRY void debug_glMultiDrawElements(GLenum mode, const GLsizei *count
 	}
 }
 
-static APIENTRY void debug_glPointParameterf(GLenum pname, GLfloat param)
+static void APIENTRY debug_glPointParameterf(GLenum pname, GLfloat param)
 {
 	glPointParameterf(pname, param);
 	if (checkErrors)
@@ -17486,7 +17491,7 @@ static APIENTRY void debug_glPointParameterf(GLenum pname, GLfloat param)
 	}
 }
 
-static APIENTRY void debug_glPointParameterfv(GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glPointParameterfv(GLenum pname, const GLfloat *params)
 {
 	glPointParameterfv(pname, params);
 	if (checkErrors)
@@ -17503,7 +17508,7 @@ static APIENTRY void debug_glPointParameterfv(GLenum pname, const GLfloat *param
 	}
 }
 
-static APIENTRY void debug_glPointParameteri(GLenum pname, GLint param)
+static void APIENTRY debug_glPointParameteri(GLenum pname, GLint param)
 {
 	glPointParameteri(pname, param);
 	if (checkErrors)
@@ -17520,7 +17525,7 @@ static APIENTRY void debug_glPointParameteri(GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glPointParameteriv(GLenum pname, const GLint *params)
+static void APIENTRY debug_glPointParameteriv(GLenum pname, const GLint *params)
 {
 	glPointParameteriv(pname, params);
 	if (checkErrors)
@@ -17537,7 +17542,7 @@ static APIENTRY void debug_glPointParameteriv(GLenum pname, const GLint *params)
 	}
 }
 
-static APIENTRY void debug_glFogCoordf(GLfloat coord)
+static void APIENTRY debug_glFogCoordf(GLfloat coord)
 {
 	glFogCoordf(coord);
 	if (checkErrors)
@@ -17554,7 +17559,7 @@ static APIENTRY void debug_glFogCoordf(GLfloat coord)
 	}
 }
 
-static APIENTRY void debug_glFogCoordfv(const GLfloat *coord)
+static void APIENTRY debug_glFogCoordfv(const GLfloat *coord)
 {
 	glFogCoordfv(coord);
 	if (checkErrors)
@@ -17571,7 +17576,7 @@ static APIENTRY void debug_glFogCoordfv(const GLfloat *coord)
 	}
 }
 
-static APIENTRY void debug_glFogCoordd(GLdouble coord)
+static void APIENTRY debug_glFogCoordd(GLdouble coord)
 {
 	glFogCoordd(coord);
 	if (checkErrors)
@@ -17588,7 +17593,7 @@ static APIENTRY void debug_glFogCoordd(GLdouble coord)
 	}
 }
 
-static APIENTRY void debug_glFogCoorddv(const GLdouble *coord)
+static void APIENTRY debug_glFogCoorddv(const GLdouble *coord)
 {
 	glFogCoorddv(coord);
 	if (checkErrors)
@@ -17605,7 +17610,7 @@ static APIENTRY void debug_glFogCoorddv(const GLdouble *coord)
 	}
 }
 
-static APIENTRY void debug_glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer)
 {
 	glFogCoordPointer(type, stride, pointer);
 	if (checkErrors)
@@ -17622,7 +17627,7 @@ static APIENTRY void debug_glFogCoordPointer(GLenum type, GLsizei stride, const 
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue)
+static void APIENTRY debug_glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
 	glSecondaryColor3b(red, green, blue);
 	if (checkErrors)
@@ -17639,7 +17644,7 @@ static APIENTRY void debug_glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte b
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3bv(const GLbyte *v)
+static void APIENTRY debug_glSecondaryColor3bv(const GLbyte *v)
 {
 	glSecondaryColor3bv(v);
 	if (checkErrors)
@@ -17656,7 +17661,7 @@ static APIENTRY void debug_glSecondaryColor3bv(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue)
+static void APIENTRY debug_glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
 	glSecondaryColor3d(red, green, blue);
 	if (checkErrors)
@@ -17673,7 +17678,7 @@ static APIENTRY void debug_glSecondaryColor3d(GLdouble red, GLdouble green, GLdo
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3dv(const GLdouble *v)
+static void APIENTRY debug_glSecondaryColor3dv(const GLdouble *v)
 {
 	glSecondaryColor3dv(v);
 	if (checkErrors)
@@ -17690,7 +17695,7 @@ static APIENTRY void debug_glSecondaryColor3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue)
+static void APIENTRY debug_glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
 	glSecondaryColor3f(red, green, blue);
 	if (checkErrors)
@@ -17707,7 +17712,7 @@ static APIENTRY void debug_glSecondaryColor3f(GLfloat red, GLfloat green, GLfloa
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3fv(const GLfloat *v)
+static void APIENTRY debug_glSecondaryColor3fv(const GLfloat *v)
 {
 	glSecondaryColor3fv(v);
 	if (checkErrors)
@@ -17724,7 +17729,7 @@ static APIENTRY void debug_glSecondaryColor3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3i(GLint red, GLint green, GLint blue)
+static void APIENTRY debug_glSecondaryColor3i(GLint red, GLint green, GLint blue)
 {
 	glSecondaryColor3i(red, green, blue);
 	if (checkErrors)
@@ -17741,7 +17746,7 @@ static APIENTRY void debug_glSecondaryColor3i(GLint red, GLint green, GLint blue
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3iv(const GLint *v)
+static void APIENTRY debug_glSecondaryColor3iv(const GLint *v)
 {
 	glSecondaryColor3iv(v);
 	if (checkErrors)
@@ -17758,7 +17763,7 @@ static APIENTRY void debug_glSecondaryColor3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
+static void APIENTRY debug_glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
 {
 	glSecondaryColor3s(red, green, blue);
 	if (checkErrors)
@@ -17775,7 +17780,7 @@ static APIENTRY void debug_glSecondaryColor3s(GLshort red, GLshort green, GLshor
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3sv(const GLshort *v)
+static void APIENTRY debug_glSecondaryColor3sv(const GLshort *v)
 {
 	glSecondaryColor3sv(v);
 	if (checkErrors)
@@ -17792,7 +17797,7 @@ static APIENTRY void debug_glSecondaryColor3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue)
+static void APIENTRY debug_glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
 	glSecondaryColor3ub(red, green, blue);
 	if (checkErrors)
@@ -17809,7 +17814,7 @@ static APIENTRY void debug_glSecondaryColor3ub(GLubyte red, GLubyte green, GLuby
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3ubv(const GLubyte *v)
+static void APIENTRY debug_glSecondaryColor3ubv(const GLubyte *v)
 {
 	glSecondaryColor3ubv(v);
 	if (checkErrors)
@@ -17826,7 +17831,7 @@ static APIENTRY void debug_glSecondaryColor3ubv(const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
+static void APIENTRY debug_glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
 {
 	glSecondaryColor3ui(red, green, blue);
 	if (checkErrors)
@@ -17843,7 +17848,7 @@ static APIENTRY void debug_glSecondaryColor3ui(GLuint red, GLuint green, GLuint 
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3uiv(const GLuint *v)
+static void APIENTRY debug_glSecondaryColor3uiv(const GLuint *v)
 {
 	glSecondaryColor3uiv(v);
 	if (checkErrors)
@@ -17860,7 +17865,7 @@ static APIENTRY void debug_glSecondaryColor3uiv(const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
+static void APIENTRY debug_glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
 {
 	glSecondaryColor3us(red, green, blue);
 	if (checkErrors)
@@ -17877,7 +17882,7 @@ static APIENTRY void debug_glSecondaryColor3us(GLushort red, GLushort green, GLu
 	}
 }
 
-static APIENTRY void debug_glSecondaryColor3usv(const GLushort *v)
+static void APIENTRY debug_glSecondaryColor3usv(const GLushort *v)
 {
 	glSecondaryColor3usv(v);
 	if (checkErrors)
@@ -17894,7 +17899,7 @@ static APIENTRY void debug_glSecondaryColor3usv(const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glSecondaryColorPointer(size, type, stride, pointer);
 	if (checkErrors)
@@ -17911,7 +17916,7 @@ static APIENTRY void debug_glSecondaryColorPointer(GLint size, GLenum type, GLsi
 	}
 }
 
-static APIENTRY void debug_glWindowPos2d(GLdouble x, GLdouble y)
+static void APIENTRY debug_glWindowPos2d(GLdouble x, GLdouble y)
 {
 	glWindowPos2d(x, y);
 	if (checkErrors)
@@ -17928,7 +17933,7 @@ static APIENTRY void debug_glWindowPos2d(GLdouble x, GLdouble y)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2dv(const GLdouble *v)
+static void APIENTRY debug_glWindowPos2dv(const GLdouble *v)
 {
 	glWindowPos2dv(v);
 	if (checkErrors)
@@ -17945,7 +17950,7 @@ static APIENTRY void debug_glWindowPos2dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2f(GLfloat x, GLfloat y)
+static void APIENTRY debug_glWindowPos2f(GLfloat x, GLfloat y)
 {
 	glWindowPos2f(x, y);
 	if (checkErrors)
@@ -17962,7 +17967,7 @@ static APIENTRY void debug_glWindowPos2f(GLfloat x, GLfloat y)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2fv(const GLfloat *v)
+static void APIENTRY debug_glWindowPos2fv(const GLfloat *v)
 {
 	glWindowPos2fv(v);
 	if (checkErrors)
@@ -17979,7 +17984,7 @@ static APIENTRY void debug_glWindowPos2fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2i(GLint x, GLint y)
+static void APIENTRY debug_glWindowPos2i(GLint x, GLint y)
 {
 	glWindowPos2i(x, y);
 	if (checkErrors)
@@ -17996,7 +18001,7 @@ static APIENTRY void debug_glWindowPos2i(GLint x, GLint y)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2iv(const GLint *v)
+static void APIENTRY debug_glWindowPos2iv(const GLint *v)
 {
 	glWindowPos2iv(v);
 	if (checkErrors)
@@ -18013,7 +18018,7 @@ static APIENTRY void debug_glWindowPos2iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2s(GLshort x, GLshort y)
+static void APIENTRY debug_glWindowPos2s(GLshort x, GLshort y)
 {
 	glWindowPos2s(x, y);
 	if (checkErrors)
@@ -18030,7 +18035,7 @@ static APIENTRY void debug_glWindowPos2s(GLshort x, GLshort y)
 	}
 }
 
-static APIENTRY void debug_glWindowPos2sv(const GLshort *v)
+static void APIENTRY debug_glWindowPos2sv(const GLshort *v)
 {
 	glWindowPos2sv(v);
 	if (checkErrors)
@@ -18047,7 +18052,7 @@ static APIENTRY void debug_glWindowPos2sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
 	glWindowPos3d(x, y, z);
 	if (checkErrors)
@@ -18064,7 +18069,7 @@ static APIENTRY void debug_glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3dv(const GLdouble *v)
+static void APIENTRY debug_glWindowPos3dv(const GLdouble *v)
 {
 	glWindowPos3dv(v);
 	if (checkErrors)
@@ -18081,7 +18086,7 @@ static APIENTRY void debug_glWindowPos3dv(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
 	glWindowPos3f(x, y, z);
 	if (checkErrors)
@@ -18098,7 +18103,7 @@ static APIENTRY void debug_glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3fv(const GLfloat *v)
+static void APIENTRY debug_glWindowPos3fv(const GLfloat *v)
 {
 	glWindowPos3fv(v);
 	if (checkErrors)
@@ -18115,7 +18120,7 @@ static APIENTRY void debug_glWindowPos3fv(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3i(GLint x, GLint y, GLint z)
+static void APIENTRY debug_glWindowPos3i(GLint x, GLint y, GLint z)
 {
 	glWindowPos3i(x, y, z);
 	if (checkErrors)
@@ -18132,7 +18137,7 @@ static APIENTRY void debug_glWindowPos3i(GLint x, GLint y, GLint z)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3iv(const GLint *v)
+static void APIENTRY debug_glWindowPos3iv(const GLint *v)
 {
 	glWindowPos3iv(v);
 	if (checkErrors)
@@ -18149,7 +18154,7 @@ static APIENTRY void debug_glWindowPos3iv(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3s(GLshort x, GLshort y, GLshort z)
+static void APIENTRY debug_glWindowPos3s(GLshort x, GLshort y, GLshort z)
 {
 	glWindowPos3s(x, y, z);
 	if (checkErrors)
@@ -18166,7 +18171,7 @@ static APIENTRY void debug_glWindowPos3s(GLshort x, GLshort y, GLshort z)
 	}
 }
 
-static APIENTRY void debug_glWindowPos3sv(const GLshort *v)
+static void APIENTRY debug_glWindowPos3sv(const GLshort *v)
 {
 	glWindowPos3sv(v);
 	if (checkErrors)
@@ -18183,7 +18188,7 @@ static APIENTRY void debug_glWindowPos3sv(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
 {
 	glGetQueryObjectiv(id, pname, params);
 	if (checkErrors)
@@ -18200,7 +18205,7 @@ static APIENTRY void debug_glGetQueryObjectiv(GLuint id, GLenum pname, GLint *pa
 	}
 }
 
-static APIENTRY void debug_glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void *data)
+static void APIENTRY debug_glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void *data)
 {
 	glGetBufferSubData(target, offset, size, data);
 	if (checkErrors)
@@ -18217,7 +18222,7 @@ static APIENTRY void debug_glGetBufferSubData(GLenum target, GLintptr offset, GL
 	}
 }
 
-static APIENTRY void * debug_glMapBuffer(GLenum target, GLenum access)
+static void * APIENTRY debug_glMapBuffer(GLenum target, GLenum access)
 {
 	void * retVal = default_glMapBuffer(target, access);
 	if (checkErrors)
@@ -18235,7 +18240,7 @@ static APIENTRY void * debug_glMapBuffer(GLenum target, GLenum access)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params)
+static void APIENTRY debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params)
 {
 	glGetVertexAttribdv(index, pname, params);
 	if (checkErrors)
@@ -18252,7 +18257,7 @@ static APIENTRY void debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdou
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1d(GLuint index, GLdouble x)
+static void APIENTRY debug_glVertexAttrib1d(GLuint index, GLdouble x)
 {
 	glVertexAttrib1d(index, x);
 	if (checkErrors)
@@ -18269,7 +18274,7 @@ static APIENTRY void debug_glVertexAttrib1d(GLuint index, GLdouble x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttrib1dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttrib1dv(index, v);
 	if (checkErrors)
@@ -18286,7 +18291,7 @@ static APIENTRY void debug_glVertexAttrib1dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1s(GLuint index, GLshort x)
+static void APIENTRY debug_glVertexAttrib1s(GLuint index, GLshort x)
 {
 	glVertexAttrib1s(index, x);
 	if (checkErrors)
@@ -18303,7 +18308,7 @@ static APIENTRY void debug_glVertexAttrib1s(GLuint index, GLshort x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib1sv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttrib1sv(GLuint index, const GLshort *v)
 {
 	glVertexAttrib1sv(index, v);
 	if (checkErrors)
@@ -18320,7 +18325,7 @@ static APIENTRY void debug_glVertexAttrib1sv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
+static void APIENTRY debug_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
 {
 	glVertexAttrib2d(index, x, y);
 	if (checkErrors)
@@ -18337,7 +18342,7 @@ static APIENTRY void debug_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttrib2dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttrib2dv(index, v);
 	if (checkErrors)
@@ -18354,7 +18359,7 @@ static APIENTRY void debug_glVertexAttrib2dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
+static void APIENTRY debug_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 {
 	glVertexAttrib2s(index, x, y);
 	if (checkErrors)
@@ -18371,7 +18376,7 @@ static APIENTRY void debug_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib2sv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttrib2sv(GLuint index, const GLshort *v)
 {
 	glVertexAttrib2sv(index, v);
 	if (checkErrors)
@@ -18388,7 +18393,7 @@ static APIENTRY void debug_glVertexAttrib2sv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
 	glVertexAttrib3d(index, x, y, z);
 	if (checkErrors)
@@ -18405,7 +18410,7 @@ static APIENTRY void debug_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttrib3dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttrib3dv(index, v);
 	if (checkErrors)
@@ -18422,7 +18427,7 @@ static APIENTRY void debug_glVertexAttrib3dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
+static void APIENTRY debug_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
 {
 	glVertexAttrib3s(index, x, y, z);
 	if (checkErrors)
@@ -18439,7 +18444,7 @@ static APIENTRY void debug_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib3sv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttrib3sv(GLuint index, const GLshort *v)
 {
 	glVertexAttrib3sv(index, v);
 	if (checkErrors)
@@ -18456,7 +18461,7 @@ static APIENTRY void debug_glVertexAttrib3sv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
+static void APIENTRY debug_glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 {
 	glVertexAttrib4Nbv(index, v);
 	if (checkErrors)
@@ -18473,7 +18478,7 @@ static APIENTRY void debug_glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Niv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttrib4Niv(GLuint index, const GLint *v)
 {
 	glVertexAttrib4Niv(index, v);
 	if (checkErrors)
@@ -18490,7 +18495,7 @@ static APIENTRY void debug_glVertexAttrib4Niv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nsv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 {
 	glVertexAttrib4Nsv(index, v);
 	if (checkErrors)
@@ -18507,7 +18512,7 @@ static APIENTRY void debug_glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
+static void APIENTRY debug_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
 {
 	glVertexAttrib4Nub(index, x, y, z, w);
 	if (checkErrors)
@@ -18524,7 +18529,7 @@ static APIENTRY void debug_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
+static void APIENTRY debug_glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 {
 	glVertexAttrib4Nubv(index, v);
 	if (checkErrors)
@@ -18541,7 +18546,7 @@ static APIENTRY void debug_glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 {
 	glVertexAttrib4Nuiv(index, v);
 	if (checkErrors)
@@ -18558,7 +18563,7 @@ static APIENTRY void debug_glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4Nusv(GLuint index, const GLushort *v)
+static void APIENTRY debug_glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 {
 	glVertexAttrib4Nusv(index, v);
 	if (checkErrors)
@@ -18575,7 +18580,7 @@ static APIENTRY void debug_glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4bv(GLuint index, const GLbyte *v)
+static void APIENTRY debug_glVertexAttrib4bv(GLuint index, const GLbyte *v)
 {
 	glVertexAttrib4bv(index, v);
 	if (checkErrors)
@@ -18592,7 +18597,7 @@ static APIENTRY void debug_glVertexAttrib4bv(GLuint index, const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glVertexAttrib4d(index, x, y, z, w);
 	if (checkErrors)
@@ -18609,7 +18614,7 @@ static APIENTRY void debug_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttrib4dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttrib4dv(index, v);
 	if (checkErrors)
@@ -18626,7 +18631,7 @@ static APIENTRY void debug_glVertexAttrib4dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4iv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttrib4iv(GLuint index, const GLint *v)
 {
 	glVertexAttrib4iv(index, v);
 	if (checkErrors)
@@ -18643,7 +18648,7 @@ static APIENTRY void debug_glVertexAttrib4iv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
+static void APIENTRY debug_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
 {
 	glVertexAttrib4s(index, x, y, z, w);
 	if (checkErrors)
@@ -18660,7 +18665,7 @@ static APIENTRY void debug_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4sv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttrib4sv(GLuint index, const GLshort *v)
 {
 	glVertexAttrib4sv(index, v);
 	if (checkErrors)
@@ -18677,7 +18682,7 @@ static APIENTRY void debug_glVertexAttrib4sv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4ubv(GLuint index, const GLubyte *v)
+static void APIENTRY debug_glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 {
 	glVertexAttrib4ubv(index, v);
 	if (checkErrors)
@@ -18694,7 +18699,7 @@ static APIENTRY void debug_glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4uiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttrib4uiv(GLuint index, const GLuint *v)
 {
 	glVertexAttrib4uiv(index, v);
 	if (checkErrors)
@@ -18711,7 +18716,7 @@ static APIENTRY void debug_glVertexAttrib4uiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttrib4usv(GLuint index, const GLushort *v)
+static void APIENTRY debug_glVertexAttrib4usv(GLuint index, const GLushort *v)
 {
 	glVertexAttrib4usv(index, v);
 	if (checkErrors)
@@ -18728,7 +18733,7 @@ static APIENTRY void debug_glVertexAttrib4usv(GLuint index, const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glClampColor(GLenum target, GLenum clamp)
+static void APIENTRY debug_glClampColor(GLenum target, GLenum clamp)
 {
 	glClampColor(target, clamp);
 	if (checkErrors)
@@ -18745,7 +18750,7 @@ static APIENTRY void debug_glClampColor(GLenum target, GLenum clamp)
 	}
 }
 
-static APIENTRY void debug_glBeginConditionalRender(GLuint id, GLenum mode)
+static void APIENTRY debug_glBeginConditionalRender(GLuint id, GLenum mode)
 {
 	glBeginConditionalRender(id, mode);
 	if (checkErrors)
@@ -18762,7 +18767,7 @@ static APIENTRY void debug_glBeginConditionalRender(GLuint id, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glEndConditionalRender()
+static void APIENTRY debug_glEndConditionalRender()
 {
 	glEndConditionalRender();
 	if (checkErrors)
@@ -18779,7 +18784,7 @@ static APIENTRY void debug_glEndConditionalRender()
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI1i(GLuint index, GLint x)
+static void APIENTRY debug_glVertexAttribI1i(GLuint index, GLint x)
 {
 	glVertexAttribI1i(index, x);
 	if (checkErrors)
@@ -18796,7 +18801,7 @@ static APIENTRY void debug_glVertexAttribI1i(GLuint index, GLint x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI2i(GLuint index, GLint x, GLint y)
+static void APIENTRY debug_glVertexAttribI2i(GLuint index, GLint x, GLint y)
 {
 	glVertexAttribI2i(index, x, y);
 	if (checkErrors)
@@ -18813,7 +18818,7 @@ static APIENTRY void debug_glVertexAttribI2i(GLuint index, GLint x, GLint y)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
+static void APIENTRY debug_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
 {
 	glVertexAttribI3i(index, x, y, z);
 	if (checkErrors)
@@ -18830,7 +18835,7 @@ static APIENTRY void debug_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLi
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI1ui(GLuint index, GLuint x)
+static void APIENTRY debug_glVertexAttribI1ui(GLuint index, GLuint x)
 {
 	glVertexAttribI1ui(index, x);
 	if (checkErrors)
@@ -18847,7 +18852,7 @@ static APIENTRY void debug_glVertexAttribI1ui(GLuint index, GLuint x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
+static void APIENTRY debug_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 {
 	glVertexAttribI2ui(index, x, y);
 	if (checkErrors)
@@ -18864,7 +18869,7 @@ static APIENTRY void debug_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
+static void APIENTRY debug_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
 {
 	glVertexAttribI3ui(index, x, y, z);
 	if (checkErrors)
@@ -18881,7 +18886,7 @@ static APIENTRY void debug_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI1iv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttribI1iv(GLuint index, const GLint *v)
 {
 	glVertexAttribI1iv(index, v);
 	if (checkErrors)
@@ -18898,7 +18903,7 @@ static APIENTRY void debug_glVertexAttribI1iv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI2iv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttribI2iv(GLuint index, const GLint *v)
 {
 	glVertexAttribI2iv(index, v);
 	if (checkErrors)
@@ -18915,7 +18920,7 @@ static APIENTRY void debug_glVertexAttribI2iv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI3iv(GLuint index, const GLint *v)
+static void APIENTRY debug_glVertexAttribI3iv(GLuint index, const GLint *v)
 {
 	glVertexAttribI3iv(index, v);
 	if (checkErrors)
@@ -18932,7 +18937,7 @@ static APIENTRY void debug_glVertexAttribI3iv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI1uiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttribI1uiv(GLuint index, const GLuint *v)
 {
 	glVertexAttribI1uiv(index, v);
 	if (checkErrors)
@@ -18949,7 +18954,7 @@ static APIENTRY void debug_glVertexAttribI1uiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI2uiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttribI2uiv(GLuint index, const GLuint *v)
 {
 	glVertexAttribI2uiv(index, v);
 	if (checkErrors)
@@ -18966,7 +18971,7 @@ static APIENTRY void debug_glVertexAttribI2uiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI3uiv(GLuint index, const GLuint *v)
+static void APIENTRY debug_glVertexAttribI3uiv(GLuint index, const GLuint *v)
 {
 	glVertexAttribI3uiv(index, v);
 	if (checkErrors)
@@ -18983,7 +18988,7 @@ static APIENTRY void debug_glVertexAttribI3uiv(GLuint index, const GLuint *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4bv(GLuint index, const GLbyte *v)
+static void APIENTRY debug_glVertexAttribI4bv(GLuint index, const GLbyte *v)
 {
 	glVertexAttribI4bv(index, v);
 	if (checkErrors)
@@ -19000,7 +19005,7 @@ static APIENTRY void debug_glVertexAttribI4bv(GLuint index, const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4sv(GLuint index, const GLshort *v)
+static void APIENTRY debug_glVertexAttribI4sv(GLuint index, const GLshort *v)
 {
 	glVertexAttribI4sv(index, v);
 	if (checkErrors)
@@ -19017,7 +19022,7 @@ static APIENTRY void debug_glVertexAttribI4sv(GLuint index, const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4ubv(GLuint index, const GLubyte *v)
+static void APIENTRY debug_glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 {
 	glVertexAttribI4ubv(index, v);
 	if (checkErrors)
@@ -19034,7 +19039,7 @@ static APIENTRY void debug_glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribI4usv(GLuint index, const GLushort *v)
+static void APIENTRY debug_glVertexAttribI4usv(GLuint index, const GLushort *v)
 {
 	glVertexAttribI4usv(index, v);
 	if (checkErrors)
@@ -19051,7 +19056,7 @@ static APIENTRY void debug_glVertexAttribI4usv(GLuint index, const GLushort *v)
 	}
 }
 
-static APIENTRY void debug_glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
+static void APIENTRY debug_glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
 {
 	glBindFragDataLocation(program, color, name);
 	if (checkErrors)
@@ -19068,7 +19073,7 @@ static APIENTRY void debug_glBindFragDataLocation(GLuint program, GLuint color, 
 	}
 }
 
-static APIENTRY void debug_glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+static void APIENTRY debug_glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 	glFramebufferTexture1D(target, attachment, textarget, texture, level);
 	if (checkErrors)
@@ -19085,7 +19090,7 @@ static APIENTRY void debug_glFramebufferTexture1D(GLenum target, GLenum attachme
 	}
 }
 
-static APIENTRY void debug_glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
+static void APIENTRY debug_glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
 	glFramebufferTexture3D(target, attachment, textarget, texture, level, zoffset);
 	if (checkErrors)
@@ -19102,7 +19107,7 @@ static APIENTRY void debug_glFramebufferTexture3D(GLenum target, GLenum attachme
 	}
 }
 
-static APIENTRY void debug_glPrimitiveRestartIndex(GLuint index)
+static void APIENTRY debug_glPrimitiveRestartIndex(GLuint index)
 {
 	glPrimitiveRestartIndex(index);
 	if (checkErrors)
@@ -19119,7 +19124,7 @@ static APIENTRY void debug_glPrimitiveRestartIndex(GLuint index)
 	}
 }
 
-static APIENTRY void debug_glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName)
+static void APIENTRY debug_glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName)
 {
 	glGetActiveUniformName(program, uniformIndex, bufSize, length, uniformName);
 	if (checkErrors)
@@ -19136,7 +19141,7 @@ static APIENTRY void debug_glGetActiveUniformName(GLuint program, GLuint uniform
 	}
 }
 
-static APIENTRY void debug_glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
+static void APIENTRY debug_glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
 {
 	glMultiDrawElementsBaseVertex(mode, count, type, indices, drawcount, basevertex);
 	if (checkErrors)
@@ -19153,7 +19158,7 @@ static APIENTRY void debug_glMultiDrawElementsBaseVertex(GLenum mode, const GLsi
 	}
 }
 
-static APIENTRY void debug_glProvokingVertex(GLenum mode)
+static void APIENTRY debug_glProvokingVertex(GLenum mode)
 {
 	glProvokingVertex(mode);
 	if (checkErrors)
@@ -19170,7 +19175,7 @@ static APIENTRY void debug_glProvokingVertex(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
 	glTexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
@@ -19187,7 +19192,7 @@ static APIENTRY void debug_glTexImage2DMultisample(GLenum target, GLsizei sample
 	}
 }
 
-static APIENTRY void debug_glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
 	glTexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
@@ -19204,7 +19209,7 @@ static APIENTRY void debug_glTexImage3DMultisample(GLenum target, GLsizei sample
 	}
 }
 
-static APIENTRY void debug_glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar *name)
+static void APIENTRY debug_glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar *name)
 {
 	glBindFragDataLocationIndexed(program, colorNumber, index, name);
 	if (checkErrors)
@@ -19221,7 +19226,7 @@ static APIENTRY void debug_glBindFragDataLocationIndexed(GLuint program, GLuint 
 	}
 }
 
-static APIENTRY GLint debug_glGetFragDataIndex(GLuint program, const GLchar *name)
+static GLint APIENTRY debug_glGetFragDataIndex(GLuint program, const GLchar *name)
 {
 	GLint retVal = default_glGetFragDataIndex(program, name);
 	if (checkErrors)
@@ -19239,7 +19244,7 @@ static APIENTRY GLint debug_glGetFragDataIndex(GLuint program, const GLchar *nam
 	return retVal;
 }
 
-static APIENTRY void debug_glQueryCounter(GLuint id, GLenum target)
+static void APIENTRY debug_glQueryCounter(GLuint id, GLenum target)
 {
 	glQueryCounter(id, target);
 	if (checkErrors)
@@ -19256,7 +19261,7 @@ static APIENTRY void debug_glQueryCounter(GLuint id, GLenum target)
 	}
 }
 
-static APIENTRY void debug_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params)
+static void APIENTRY debug_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params)
 {
 	glGetQueryObjecti64v(id, pname, params);
 	if (checkErrors)
@@ -19273,7 +19278,7 @@ static APIENTRY void debug_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64
 	}
 }
 
-static APIENTRY void debug_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params)
+static void APIENTRY debug_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params)
 {
 	glGetQueryObjectui64v(id, pname, params);
 	if (checkErrors)
@@ -19290,7 +19295,7 @@ static APIENTRY void debug_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
+static void APIENTRY debug_glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
 	glVertexAttribP1ui(index, type, normalized, value);
 	if (checkErrors)
@@ -19307,7 +19312,7 @@ static APIENTRY void debug_glVertexAttribP1ui(GLuint index, GLenum type, GLboole
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
+static void APIENTRY debug_glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
 	glVertexAttribP1uiv(index, type, normalized, value);
 	if (checkErrors)
@@ -19324,7 +19329,7 @@ static APIENTRY void debug_glVertexAttribP1uiv(GLuint index, GLenum type, GLbool
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
+static void APIENTRY debug_glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
 	glVertexAttribP2ui(index, type, normalized, value);
 	if (checkErrors)
@@ -19341,7 +19346,7 @@ static APIENTRY void debug_glVertexAttribP2ui(GLuint index, GLenum type, GLboole
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
+static void APIENTRY debug_glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
 	glVertexAttribP2uiv(index, type, normalized, value);
 	if (checkErrors)
@@ -19358,7 +19363,7 @@ static APIENTRY void debug_glVertexAttribP2uiv(GLuint index, GLenum type, GLbool
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
+static void APIENTRY debug_glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
 	glVertexAttribP3ui(index, type, normalized, value);
 	if (checkErrors)
@@ -19375,7 +19380,7 @@ static APIENTRY void debug_glVertexAttribP3ui(GLuint index, GLenum type, GLboole
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
+static void APIENTRY debug_glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
 	glVertexAttribP3uiv(index, type, normalized, value);
 	if (checkErrors)
@@ -19392,7 +19397,7 @@ static APIENTRY void debug_glVertexAttribP3uiv(GLuint index, GLenum type, GLbool
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
+static void APIENTRY debug_glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
 	glVertexAttribP4ui(index, type, normalized, value);
 	if (checkErrors)
@@ -19409,7 +19414,7 @@ static APIENTRY void debug_glVertexAttribP4ui(GLuint index, GLenum type, GLboole
 	}
 }
 
-static APIENTRY void debug_glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
+static void APIENTRY debug_glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
 	glVertexAttribP4uiv(index, type, normalized, value);
 	if (checkErrors)
@@ -19426,7 +19431,7 @@ static APIENTRY void debug_glVertexAttribP4uiv(GLuint index, GLenum type, GLbool
 	}
 }
 
-static APIENTRY void debug_glVertexP2ui(GLenum type, GLuint value)
+static void APIENTRY debug_glVertexP2ui(GLenum type, GLuint value)
 {
 	glVertexP2ui(type, value);
 	if (checkErrors)
@@ -19443,7 +19448,7 @@ static APIENTRY void debug_glVertexP2ui(GLenum type, GLuint value)
 	}
 }
 
-static APIENTRY void debug_glVertexP2uiv(GLenum type, const GLuint *value)
+static void APIENTRY debug_glVertexP2uiv(GLenum type, const GLuint *value)
 {
 	glVertexP2uiv(type, value);
 	if (checkErrors)
@@ -19460,7 +19465,7 @@ static APIENTRY void debug_glVertexP2uiv(GLenum type, const GLuint *value)
 	}
 }
 
-static APIENTRY void debug_glVertexP3ui(GLenum type, GLuint value)
+static void APIENTRY debug_glVertexP3ui(GLenum type, GLuint value)
 {
 	glVertexP3ui(type, value);
 	if (checkErrors)
@@ -19477,7 +19482,7 @@ static APIENTRY void debug_glVertexP3ui(GLenum type, GLuint value)
 	}
 }
 
-static APIENTRY void debug_glVertexP3uiv(GLenum type, const GLuint *value)
+static void APIENTRY debug_glVertexP3uiv(GLenum type, const GLuint *value)
 {
 	glVertexP3uiv(type, value);
 	if (checkErrors)
@@ -19494,7 +19499,7 @@ static APIENTRY void debug_glVertexP3uiv(GLenum type, const GLuint *value)
 	}
 }
 
-static APIENTRY void debug_glVertexP4ui(GLenum type, GLuint value)
+static void APIENTRY debug_glVertexP4ui(GLenum type, GLuint value)
 {
 	glVertexP4ui(type, value);
 	if (checkErrors)
@@ -19511,7 +19516,7 @@ static APIENTRY void debug_glVertexP4ui(GLenum type, GLuint value)
 	}
 }
 
-static APIENTRY void debug_glVertexP4uiv(GLenum type, const GLuint *value)
+static void APIENTRY debug_glVertexP4uiv(GLenum type, const GLuint *value)
 {
 	glVertexP4uiv(type, value);
 	if (checkErrors)
@@ -19528,7 +19533,7 @@ static APIENTRY void debug_glVertexP4uiv(GLenum type, const GLuint *value)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP1ui(GLenum type, GLuint coords)
+static void APIENTRY debug_glTexCoordP1ui(GLenum type, GLuint coords)
 {
 	glTexCoordP1ui(type, coords);
 	if (checkErrors)
@@ -19545,7 +19550,7 @@ static APIENTRY void debug_glTexCoordP1ui(GLenum type, GLuint coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP1uiv(GLenum type, const GLuint *coords)
+static void APIENTRY debug_glTexCoordP1uiv(GLenum type, const GLuint *coords)
 {
 	glTexCoordP1uiv(type, coords);
 	if (checkErrors)
@@ -19562,7 +19567,7 @@ static APIENTRY void debug_glTexCoordP1uiv(GLenum type, const GLuint *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP2ui(GLenum type, GLuint coords)
+static void APIENTRY debug_glTexCoordP2ui(GLenum type, GLuint coords)
 {
 	glTexCoordP2ui(type, coords);
 	if (checkErrors)
@@ -19579,7 +19584,7 @@ static APIENTRY void debug_glTexCoordP2ui(GLenum type, GLuint coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP2uiv(GLenum type, const GLuint *coords)
+static void APIENTRY debug_glTexCoordP2uiv(GLenum type, const GLuint *coords)
 {
 	glTexCoordP2uiv(type, coords);
 	if (checkErrors)
@@ -19596,7 +19601,7 @@ static APIENTRY void debug_glTexCoordP2uiv(GLenum type, const GLuint *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP3ui(GLenum type, GLuint coords)
+static void APIENTRY debug_glTexCoordP3ui(GLenum type, GLuint coords)
 {
 	glTexCoordP3ui(type, coords);
 	if (checkErrors)
@@ -19613,7 +19618,7 @@ static APIENTRY void debug_glTexCoordP3ui(GLenum type, GLuint coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP3uiv(GLenum type, const GLuint *coords)
+static void APIENTRY debug_glTexCoordP3uiv(GLenum type, const GLuint *coords)
 {
 	glTexCoordP3uiv(type, coords);
 	if (checkErrors)
@@ -19630,7 +19635,7 @@ static APIENTRY void debug_glTexCoordP3uiv(GLenum type, const GLuint *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP4ui(GLenum type, GLuint coords)
+static void APIENTRY debug_glTexCoordP4ui(GLenum type, GLuint coords)
 {
 	glTexCoordP4ui(type, coords);
 	if (checkErrors)
@@ -19647,7 +19652,7 @@ static APIENTRY void debug_glTexCoordP4ui(GLenum type, GLuint coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoordP4uiv(GLenum type, const GLuint *coords)
+static void APIENTRY debug_glTexCoordP4uiv(GLenum type, const GLuint *coords)
 {
 	glTexCoordP4uiv(type, coords);
 	if (checkErrors)
@@ -19664,7 +19669,7 @@ static APIENTRY void debug_glTexCoordP4uiv(GLenum type, const GLuint *coords)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP1ui(GLenum texture, GLenum type, GLuint coords)
+static void APIENTRY debug_glMultiTexCoordP1ui(GLenum texture, GLenum type, GLuint coords)
 {
 	glMultiTexCoordP1ui(texture, type, coords);
 	if (checkErrors)
@@ -19681,7 +19686,7 @@ static APIENTRY void debug_glMultiTexCoordP1ui(GLenum texture, GLenum type, GLui
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP1uiv(GLenum texture, GLenum type, const GLuint *coords)
+static void APIENTRY debug_glMultiTexCoordP1uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
 	glMultiTexCoordP1uiv(texture, type, coords);
 	if (checkErrors)
@@ -19698,7 +19703,7 @@ static APIENTRY void debug_glMultiTexCoordP1uiv(GLenum texture, GLenum type, con
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP2ui(GLenum texture, GLenum type, GLuint coords)
+static void APIENTRY debug_glMultiTexCoordP2ui(GLenum texture, GLenum type, GLuint coords)
 {
 	glMultiTexCoordP2ui(texture, type, coords);
 	if (checkErrors)
@@ -19715,7 +19720,7 @@ static APIENTRY void debug_glMultiTexCoordP2ui(GLenum texture, GLenum type, GLui
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP2uiv(GLenum texture, GLenum type, const GLuint *coords)
+static void APIENTRY debug_glMultiTexCoordP2uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
 	glMultiTexCoordP2uiv(texture, type, coords);
 	if (checkErrors)
@@ -19732,7 +19737,7 @@ static APIENTRY void debug_glMultiTexCoordP2uiv(GLenum texture, GLenum type, con
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP3ui(GLenum texture, GLenum type, GLuint coords)
+static void APIENTRY debug_glMultiTexCoordP3ui(GLenum texture, GLenum type, GLuint coords)
 {
 	glMultiTexCoordP3ui(texture, type, coords);
 	if (checkErrors)
@@ -19749,7 +19754,7 @@ static APIENTRY void debug_glMultiTexCoordP3ui(GLenum texture, GLenum type, GLui
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP3uiv(GLenum texture, GLenum type, const GLuint *coords)
+static void APIENTRY debug_glMultiTexCoordP3uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
 	glMultiTexCoordP3uiv(texture, type, coords);
 	if (checkErrors)
@@ -19766,7 +19771,7 @@ static APIENTRY void debug_glMultiTexCoordP3uiv(GLenum texture, GLenum type, con
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP4ui(GLenum texture, GLenum type, GLuint coords)
+static void APIENTRY debug_glMultiTexCoordP4ui(GLenum texture, GLenum type, GLuint coords)
 {
 	glMultiTexCoordP4ui(texture, type, coords);
 	if (checkErrors)
@@ -19783,7 +19788,7 @@ static APIENTRY void debug_glMultiTexCoordP4ui(GLenum texture, GLenum type, GLui
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordP4uiv(GLenum texture, GLenum type, const GLuint *coords)
+static void APIENTRY debug_glMultiTexCoordP4uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
 	glMultiTexCoordP4uiv(texture, type, coords);
 	if (checkErrors)
@@ -19800,7 +19805,7 @@ static APIENTRY void debug_glMultiTexCoordP4uiv(GLenum texture, GLenum type, con
 	}
 }
 
-static APIENTRY void debug_glNormalP3ui(GLenum type, GLuint coords)
+static void APIENTRY debug_glNormalP3ui(GLenum type, GLuint coords)
 {
 	glNormalP3ui(type, coords);
 	if (checkErrors)
@@ -19817,7 +19822,7 @@ static APIENTRY void debug_glNormalP3ui(GLenum type, GLuint coords)
 	}
 }
 
-static APIENTRY void debug_glNormalP3uiv(GLenum type, const GLuint *coords)
+static void APIENTRY debug_glNormalP3uiv(GLenum type, const GLuint *coords)
 {
 	glNormalP3uiv(type, coords);
 	if (checkErrors)
@@ -19834,7 +19839,7 @@ static APIENTRY void debug_glNormalP3uiv(GLenum type, const GLuint *coords)
 	}
 }
 
-static APIENTRY void debug_glColorP3ui(GLenum type, GLuint color)
+static void APIENTRY debug_glColorP3ui(GLenum type, GLuint color)
 {
 	glColorP3ui(type, color);
 	if (checkErrors)
@@ -19851,7 +19856,7 @@ static APIENTRY void debug_glColorP3ui(GLenum type, GLuint color)
 	}
 }
 
-static APIENTRY void debug_glColorP3uiv(GLenum type, const GLuint *color)
+static void APIENTRY debug_glColorP3uiv(GLenum type, const GLuint *color)
 {
 	glColorP3uiv(type, color);
 	if (checkErrors)
@@ -19868,7 +19873,7 @@ static APIENTRY void debug_glColorP3uiv(GLenum type, const GLuint *color)
 	}
 }
 
-static APIENTRY void debug_glColorP4ui(GLenum type, GLuint color)
+static void APIENTRY debug_glColorP4ui(GLenum type, GLuint color)
 {
 	glColorP4ui(type, color);
 	if (checkErrors)
@@ -19885,7 +19890,7 @@ static APIENTRY void debug_glColorP4ui(GLenum type, GLuint color)
 	}
 }
 
-static APIENTRY void debug_glColorP4uiv(GLenum type, const GLuint *color)
+static void APIENTRY debug_glColorP4uiv(GLenum type, const GLuint *color)
 {
 	glColorP4uiv(type, color);
 	if (checkErrors)
@@ -19902,7 +19907,7 @@ static APIENTRY void debug_glColorP4uiv(GLenum type, const GLuint *color)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColorP3ui(GLenum type, GLuint color)
+static void APIENTRY debug_glSecondaryColorP3ui(GLenum type, GLuint color)
 {
 	glSecondaryColorP3ui(type, color);
 	if (checkErrors)
@@ -19919,7 +19924,7 @@ static APIENTRY void debug_glSecondaryColorP3ui(GLenum type, GLuint color)
 	}
 }
 
-static APIENTRY void debug_glSecondaryColorP3uiv(GLenum type, const GLuint *color)
+static void APIENTRY debug_glSecondaryColorP3uiv(GLenum type, const GLuint *color)
 {
 	glSecondaryColorP3uiv(type, color);
 	if (checkErrors)
@@ -19936,7 +19941,7 @@ static APIENTRY void debug_glSecondaryColorP3uiv(GLenum type, const GLuint *colo
 	}
 }
 
-static APIENTRY void debug_glUniform1d(GLint location, GLdouble x)
+static void APIENTRY debug_glUniform1d(GLint location, GLdouble x)
 {
 	glUniform1d(location, x);
 	if (checkErrors)
@@ -19953,7 +19958,7 @@ static APIENTRY void debug_glUniform1d(GLint location, GLdouble x)
 	}
 }
 
-static APIENTRY void debug_glUniform2d(GLint location, GLdouble x, GLdouble y)
+static void APIENTRY debug_glUniform2d(GLint location, GLdouble x, GLdouble y)
 {
 	glUniform2d(location, x, y);
 	if (checkErrors)
@@ -19970,7 +19975,7 @@ static APIENTRY void debug_glUniform2d(GLint location, GLdouble x, GLdouble y)
 	}
 }
 
-static APIENTRY void debug_glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
 	glUniform3d(location, x, y, z);
 	if (checkErrors)
@@ -19987,7 +19992,7 @@ static APIENTRY void debug_glUniform3d(GLint location, GLdouble x, GLdouble y, G
 	}
 }
 
-static APIENTRY void debug_glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glUniform4d(location, x, y, z, w);
 	if (checkErrors)
@@ -20004,7 +20009,7 @@ static APIENTRY void debug_glUniform4d(GLint location, GLdouble x, GLdouble y, G
 	}
 }
 
-static APIENTRY void debug_glUniform1dv(GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glUniform1dv(GLint location, GLsizei count, const GLdouble *value)
 {
 	glUniform1dv(location, count, value);
 	if (checkErrors)
@@ -20021,7 +20026,7 @@ static APIENTRY void debug_glUniform1dv(GLint location, GLsizei count, const GLd
 	}
 }
 
-static APIENTRY void debug_glUniform2dv(GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glUniform2dv(GLint location, GLsizei count, const GLdouble *value)
 {
 	glUniform2dv(location, count, value);
 	if (checkErrors)
@@ -20038,7 +20043,7 @@ static APIENTRY void debug_glUniform2dv(GLint location, GLsizei count, const GLd
 	}
 }
 
-static APIENTRY void debug_glUniform3dv(GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glUniform3dv(GLint location, GLsizei count, const GLdouble *value)
 {
 	glUniform3dv(location, count, value);
 	if (checkErrors)
@@ -20055,7 +20060,7 @@ static APIENTRY void debug_glUniform3dv(GLint location, GLsizei count, const GLd
 	}
 }
 
-static APIENTRY void debug_glUniform4dv(GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glUniform4dv(GLint location, GLsizei count, const GLdouble *value)
 {
 	glUniform4dv(location, count, value);
 	if (checkErrors)
@@ -20072,7 +20077,7 @@ static APIENTRY void debug_glUniform4dv(GLint location, GLsizei count, const GLd
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix2dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20089,7 +20094,7 @@ static APIENTRY void debug_glUniformMatrix2dv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix3dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20106,7 +20111,7 @@ static APIENTRY void debug_glUniformMatrix3dv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix4dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20123,7 +20128,7 @@ static APIENTRY void debug_glUniformMatrix4dv(GLint location, GLsizei count, GLb
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix2x3dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20140,7 +20145,7 @@ static APIENTRY void debug_glUniformMatrix2x3dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix2x4dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20157,7 +20162,7 @@ static APIENTRY void debug_glUniformMatrix2x4dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix3x2dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20174,7 +20179,7 @@ static APIENTRY void debug_glUniformMatrix3x2dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix3x4dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20191,7 +20196,7 @@ static APIENTRY void debug_glUniformMatrix3x4dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix4x2dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20208,7 +20213,7 @@ static APIENTRY void debug_glUniformMatrix4x2dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glUniformMatrix4x3dv(location, count, transpose, value);
 	if (checkErrors)
@@ -20225,7 +20230,7 @@ static APIENTRY void debug_glUniformMatrix4x3dv(GLint location, GLsizei count, G
 	}
 }
 
-static APIENTRY void debug_glGetUniformdv(GLuint program, GLint location, GLdouble *params)
+static void APIENTRY debug_glGetUniformdv(GLuint program, GLint location, GLdouble *params)
 {
 	glGetUniformdv(program, location, params);
 	if (checkErrors)
@@ -20242,7 +20247,7 @@ static APIENTRY void debug_glGetUniformdv(GLuint program, GLint location, GLdoub
 	}
 }
 
-static APIENTRY GLint debug_glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar *name)
+static GLint APIENTRY debug_glGetSubroutineUniformLocation(GLuint program, GLenum shadertype, const GLchar *name)
 {
 	GLint retVal = default_glGetSubroutineUniformLocation(program, shadertype, name);
 	if (checkErrors)
@@ -20260,7 +20265,7 @@ static APIENTRY GLint debug_glGetSubroutineUniformLocation(GLuint program, GLenu
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar *name)
+static GLuint APIENTRY debug_glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar *name)
 {
 	GLuint retVal = default_glGetSubroutineIndex(program, shadertype, name);
 	if (checkErrors)
@@ -20278,7 +20283,7 @@ static APIENTRY GLuint debug_glGetSubroutineIndex(GLuint program, GLenum shadert
 	return retVal;
 }
 
-static APIENTRY void debug_glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values)
+static void APIENTRY debug_glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values)
 {
 	glGetActiveSubroutineUniformiv(program, shadertype, index, pname, values);
 	if (checkErrors)
@@ -20295,7 +20300,7 @@ static APIENTRY void debug_glGetActiveSubroutineUniformiv(GLuint program, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
+static void APIENTRY debug_glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
 {
 	glGetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name);
 	if (checkErrors)
@@ -20312,7 +20317,7 @@ static APIENTRY void debug_glGetActiveSubroutineUniformName(GLuint program, GLen
 	}
 }
 
-static APIENTRY void debug_glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
+static void APIENTRY debug_glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
 {
 	glGetActiveSubroutineName(program, shadertype, index, bufsize, length, name);
 	if (checkErrors)
@@ -20329,7 +20334,7 @@ static APIENTRY void debug_glGetActiveSubroutineName(GLuint program, GLenum shad
 	}
 }
 
-static APIENTRY void debug_glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
+static void APIENTRY debug_glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
 {
 	glUniformSubroutinesuiv(shadertype, count, indices);
 	if (checkErrors)
@@ -20346,7 +20351,7 @@ static APIENTRY void debug_glUniformSubroutinesuiv(GLenum shadertype, GLsizei co
 	}
 }
 
-static APIENTRY void debug_glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
+static void APIENTRY debug_glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
 {
 	glGetUniformSubroutineuiv(shadertype, location, params);
 	if (checkErrors)
@@ -20363,7 +20368,7 @@ static APIENTRY void debug_glGetUniformSubroutineuiv(GLenum shadertype, GLint lo
 	}
 }
 
-static APIENTRY void debug_glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint *values)
+static void APIENTRY debug_glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint *values)
 {
 	glGetProgramStageiv(program, shadertype, pname, values);
 	if (checkErrors)
@@ -20380,7 +20385,7 @@ static APIENTRY void debug_glGetProgramStageiv(GLuint program, GLenum shadertype
 	}
 }
 
-static APIENTRY void debug_glPatchParameterfv(GLenum pname, const GLfloat *values)
+static void APIENTRY debug_glPatchParameterfv(GLenum pname, const GLfloat *values)
 {
 	glPatchParameterfv(pname, values);
 	if (checkErrors)
@@ -20397,7 +20402,7 @@ static APIENTRY void debug_glPatchParameterfv(GLenum pname, const GLfloat *value
 	}
 }
 
-static APIENTRY void debug_glDrawTransformFeedback(GLenum mode, GLuint id)
+static void APIENTRY debug_glDrawTransformFeedback(GLenum mode, GLuint id)
 {
 	glDrawTransformFeedback(mode, id);
 	if (checkErrors)
@@ -20414,7 +20419,7 @@ static APIENTRY void debug_glDrawTransformFeedback(GLenum mode, GLuint id)
 	}
 }
 
-static APIENTRY void debug_glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
+static void APIENTRY debug_glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
 {
 	glDrawTransformFeedbackStream(mode, id, stream);
 	if (checkErrors)
@@ -20431,7 +20436,7 @@ static APIENTRY void debug_glDrawTransformFeedbackStream(GLenum mode, GLuint id,
 	}
 }
 
-static APIENTRY void debug_glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
+static void APIENTRY debug_glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
 {
 	glBeginQueryIndexed(target, index, id);
 	if (checkErrors)
@@ -20448,7 +20453,7 @@ static APIENTRY void debug_glBeginQueryIndexed(GLenum target, GLuint index, GLui
 	}
 }
 
-static APIENTRY void debug_glEndQueryIndexed(GLenum target, GLuint index)
+static void APIENTRY debug_glEndQueryIndexed(GLenum target, GLuint index)
 {
 	glEndQueryIndexed(target, index);
 	if (checkErrors)
@@ -20465,7 +20470,7 @@ static APIENTRY void debug_glEndQueryIndexed(GLenum target, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *params)
 {
 	glGetQueryIndexediv(target, index, pname, params);
 	if (checkErrors)
@@ -20482,7 +20487,7 @@ static APIENTRY void debug_glGetQueryIndexediv(GLenum target, GLuint index, GLen
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
+static void APIENTRY debug_glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
 {
 	glProgramUniform1d(program, location, v0);
 	if (checkErrors)
@@ -20499,7 +20504,7 @@ static APIENTRY void debug_glProgramUniform1d(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform1dv(program, location, count, value);
 	if (checkErrors)
@@ -20516,7 +20521,7 @@ static APIENTRY void debug_glProgramUniform1dv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1)
+static void APIENTRY debug_glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1)
 {
 	glProgramUniform2d(program, location, v0, v1);
 	if (checkErrors)
@@ -20533,7 +20538,7 @@ static APIENTRY void debug_glProgramUniform2d(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform2dv(program, location, count, value);
 	if (checkErrors)
@@ -20550,7 +20555,7 @@ static APIENTRY void debug_glProgramUniform2dv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2)
+static void APIENTRY debug_glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2)
 {
 	glProgramUniform3d(program, location, v0, v1, v2);
 	if (checkErrors)
@@ -20567,7 +20572,7 @@ static APIENTRY void debug_glProgramUniform3d(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform3dv(program, location, count, value);
 	if (checkErrors)
@@ -20584,7 +20589,7 @@ static APIENTRY void debug_glProgramUniform3dv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3)
+static void APIENTRY debug_glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3)
 {
 	glProgramUniform4d(program, location, v0, v1, v2, v3);
 	if (checkErrors)
@@ -20601,7 +20606,7 @@ static APIENTRY void debug_glProgramUniform4d(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform4dv(program, location, count, value);
 	if (checkErrors)
@@ -20618,7 +20623,7 @@ static APIENTRY void debug_glProgramUniform4dv(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20635,7 +20640,7 @@ static APIENTRY void debug_glProgramUniformMatrix2dv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20652,7 +20657,7 @@ static APIENTRY void debug_glProgramUniformMatrix3dv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20669,7 +20674,7 @@ static APIENTRY void debug_glProgramUniformMatrix4dv(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2x3dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20686,7 +20691,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x3dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3x2dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20703,7 +20708,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x2dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2x4dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20720,7 +20725,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x4dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4x2dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20737,7 +20742,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x2dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3x4dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20754,7 +20759,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x4dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4x3dv(program, location, count, transpose, value);
 	if (checkErrors)
@@ -20771,7 +20776,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x3dv(GLuint program, GLint loc
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL1d(GLuint index, GLdouble x)
+static void APIENTRY debug_glVertexAttribL1d(GLuint index, GLdouble x)
 {
 	glVertexAttribL1d(index, x);
 	if (checkErrors)
@@ -20788,7 +20793,7 @@ static APIENTRY void debug_glVertexAttribL1d(GLuint index, GLdouble x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
+static void APIENTRY debug_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
 {
 	glVertexAttribL2d(index, x, y);
 	if (checkErrors)
@@ -20805,7 +20810,7 @@ static APIENTRY void debug_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
 	glVertexAttribL3d(index, x, y, z);
 	if (checkErrors)
@@ -20822,7 +20827,7 @@ static APIENTRY void debug_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glVertexAttribL4d(index, x, y, z, w);
 	if (checkErrors)
@@ -20839,7 +20844,7 @@ static APIENTRY void debug_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble 
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL1dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttribL1dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttribL1dv(index, v);
 	if (checkErrors)
@@ -20856,7 +20861,7 @@ static APIENTRY void debug_glVertexAttribL1dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL2dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttribL2dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttribL2dv(index, v);
 	if (checkErrors)
@@ -20873,7 +20878,7 @@ static APIENTRY void debug_glVertexAttribL2dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL3dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttribL3dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttribL3dv(index, v);
 	if (checkErrors)
@@ -20890,7 +20895,7 @@ static APIENTRY void debug_glVertexAttribL3dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL4dv(GLuint index, const GLdouble *v)
+static void APIENTRY debug_glVertexAttribL4dv(GLuint index, const GLdouble *v)
 {
 	glVertexAttribL4dv(index, v);
 	if (checkErrors)
@@ -20907,7 +20912,7 @@ static APIENTRY void debug_glVertexAttribL4dv(GLuint index, const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glVertexAttribLPointer(index, size, type, stride, pointer);
 	if (checkErrors)
@@ -20924,7 +20929,7 @@ static APIENTRY void debug_glVertexAttribLPointer(GLuint index, GLint size, GLen
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble *params)
+static void APIENTRY debug_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble *params)
 {
 	glGetVertexAttribLdv(index, pname, params);
 	if (checkErrors)
@@ -20941,7 +20946,7 @@ static APIENTRY void debug_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdo
 	}
 }
 
-static APIENTRY void debug_glViewportArrayv(GLuint first, GLsizei count, const GLfloat *v)
+static void APIENTRY debug_glViewportArrayv(GLuint first, GLsizei count, const GLfloat *v)
 {
 	glViewportArrayv(first, count, v);
 	if (checkErrors)
@@ -20958,7 +20963,7 @@ static APIENTRY void debug_glViewportArrayv(GLuint first, GLsizei count, const G
 	}
 }
 
-static APIENTRY void debug_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
+static void APIENTRY debug_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 {
 	glViewportIndexedf(index, x, y, w, h);
 	if (checkErrors)
@@ -20975,7 +20980,7 @@ static APIENTRY void debug_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y
 	}
 }
 
-static APIENTRY void debug_glViewportIndexedfv(GLuint index, const GLfloat *v)
+static void APIENTRY debug_glViewportIndexedfv(GLuint index, const GLfloat *v)
 {
 	glViewportIndexedfv(index, v);
 	if (checkErrors)
@@ -20992,7 +20997,7 @@ static APIENTRY void debug_glViewportIndexedfv(GLuint index, const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glScissorArrayv(GLuint first, GLsizei count, const GLint *v)
+static void APIENTRY debug_glScissorArrayv(GLuint first, GLsizei count, const GLint *v)
 {
 	glScissorArrayv(first, count, v);
 	if (checkErrors)
@@ -21009,7 +21014,7 @@ static APIENTRY void debug_glScissorArrayv(GLuint first, GLsizei count, const GL
 	}
 }
 
-static APIENTRY void debug_glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
+static void APIENTRY debug_glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
 {
 	glScissorIndexed(index, left, bottom, width, height);
 	if (checkErrors)
@@ -21026,7 +21031,7 @@ static APIENTRY void debug_glScissorIndexed(GLuint index, GLint left, GLint bott
 	}
 }
 
-static APIENTRY void debug_glScissorIndexedv(GLuint index, const GLint *v)
+static void APIENTRY debug_glScissorIndexedv(GLuint index, const GLint *v)
 {
 	glScissorIndexedv(index, v);
 	if (checkErrors)
@@ -21043,7 +21048,7 @@ static APIENTRY void debug_glScissorIndexedv(GLuint index, const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble *v)
+static void APIENTRY debug_glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble *v)
 {
 	glDepthRangeArrayv(first, count, v);
 	if (checkErrors)
@@ -21060,7 +21065,7 @@ static APIENTRY void debug_glDepthRangeArrayv(GLuint first, GLsizei count, const
 	}
 }
 
-static APIENTRY void debug_glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
+static void APIENTRY debug_glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
 {
 	glDepthRangeIndexed(index, n, f);
 	if (checkErrors)
@@ -21077,7 +21082,7 @@ static APIENTRY void debug_glDepthRangeIndexed(GLuint index, GLdouble n, GLdoubl
 	}
 }
 
-static APIENTRY void debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *data)
+static void APIENTRY debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *data)
 {
 	glGetFloati_v(target, index, data);
 	if (checkErrors)
@@ -21094,7 +21099,7 @@ static APIENTRY void debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *d
 	}
 }
 
-static APIENTRY void debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble *data)
+static void APIENTRY debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble *data)
 {
 	glGetDoublei_v(target, index, data);
 	if (checkErrors)
@@ -21111,7 +21116,7 @@ static APIENTRY void debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble 
 	}
 }
 
-static APIENTRY void debug_glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
+static void APIENTRY debug_glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
 {
 	glDrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance);
 	if (checkErrors)
@@ -21128,7 +21133,7 @@ static APIENTRY void debug_glDrawArraysInstancedBaseInstance(GLenum mode, GLint 
 	}
 }
 
-static APIENTRY void debug_glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
+static void APIENTRY debug_glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
 {
 	glDrawElementsInstancedBaseInstance(mode, count, type, indices, instancecount, baseinstance);
 	if (checkErrors)
@@ -21145,7 +21150,7 @@ static APIENTRY void debug_glDrawElementsInstancedBaseInstance(GLenum mode, GLsi
 	}
 }
 
-static APIENTRY void debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
+static void APIENTRY debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
 {
 	glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instancecount, basevertex, baseinstance);
 	if (checkErrors)
@@ -21162,7 +21167,7 @@ static APIENTRY void debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint *params)
 {
 	glGetActiveAtomicCounterBufferiv(program, bufferIndex, pname, params);
 	if (checkErrors)
@@ -21179,7 +21184,7 @@ static APIENTRY void debug_glGetActiveAtomicCounterBufferiv(GLuint program, GLui
 	}
 }
 
-static APIENTRY void debug_glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+static void APIENTRY debug_glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {
 	glTexStorage1D(target, levels, internalformat, width);
 	if (checkErrors)
@@ -21196,7 +21201,7 @@ static APIENTRY void debug_glTexStorage1D(GLenum target, GLsizei levels, GLenum 
 	}
 }
 
-static APIENTRY void debug_glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
+static void APIENTRY debug_glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
 {
 	glDrawTransformFeedbackInstanced(mode, id, instancecount);
 	if (checkErrors)
@@ -21213,7 +21218,7 @@ static APIENTRY void debug_glDrawTransformFeedbackInstanced(GLenum mode, GLuint 
 	}
 }
 
-static APIENTRY void debug_glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
+static void APIENTRY debug_glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
 {
 	glDrawTransformFeedbackStreamInstanced(mode, id, stream, instancecount);
 	if (checkErrors)
@@ -21230,7 +21235,7 @@ static APIENTRY void debug_glDrawTransformFeedbackStreamInstanced(GLenum mode, G
 	}
 }
 
-static APIENTRY void debug_glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
 	glClearBufferData(target, internalformat, format, type, data);
 	if (checkErrors)
@@ -21247,7 +21252,7 @@ static APIENTRY void debug_glClearBufferData(GLenum target, GLenum internalforma
 	}
 }
 
-static APIENTRY void debug_glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
 	glClearBufferSubData(target, internalformat, offset, size, format, type, data);
 	if (checkErrors)
@@ -21264,7 +21269,7 @@ static APIENTRY void debug_glClearBufferSubData(GLenum target, GLenum internalfo
 	}
 }
 
-static APIENTRY void debug_glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 *params)
+static void APIENTRY debug_glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 *params)
 {
 	glGetInternalformati64v(target, internalformat, pname, bufSize, params);
 	if (checkErrors)
@@ -21281,7 +21286,7 @@ static APIENTRY void debug_glGetInternalformati64v(GLenum target, GLenum interna
 	}
 }
 
-static APIENTRY void debug_glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth)
+static void APIENTRY debug_glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth)
 {
 	glInvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);
 	if (checkErrors)
@@ -21298,7 +21303,7 @@ static APIENTRY void debug_glInvalidateTexSubImage(GLuint texture, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glInvalidateTexImage(GLuint texture, GLint level)
+static void APIENTRY debug_glInvalidateTexImage(GLuint texture, GLint level)
 {
 	glInvalidateTexImage(texture, level);
 	if (checkErrors)
@@ -21315,7 +21320,7 @@ static APIENTRY void debug_glInvalidateTexImage(GLuint texture, GLint level)
 	}
 }
 
-static APIENTRY void debug_glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length)
+static void APIENTRY debug_glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
 	glInvalidateBufferSubData(buffer, offset, length);
 	if (checkErrors)
@@ -21332,7 +21337,7 @@ static APIENTRY void debug_glInvalidateBufferSubData(GLuint buffer, GLintptr off
 	}
 }
 
-static APIENTRY void debug_glInvalidateBufferData(GLuint buffer)
+static void APIENTRY debug_glInvalidateBufferData(GLuint buffer)
 {
 	glInvalidateBufferData(buffer);
 	if (checkErrors)
@@ -21349,7 +21354,7 @@ static APIENTRY void debug_glInvalidateBufferData(GLuint buffer)
 	}
 }
 
-static APIENTRY void debug_glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
+static void APIENTRY debug_glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
 	glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
 	if (checkErrors)
@@ -21366,7 +21371,7 @@ static APIENTRY void debug_glMultiDrawArraysIndirect(GLenum mode, const void *in
 	}
 }
 
-static APIENTRY void debug_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
+static void APIENTRY debug_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
 	glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride);
 	if (checkErrors)
@@ -21383,7 +21388,7 @@ static APIENTRY void debug_glMultiDrawElementsIndirect(GLenum mode, GLenum type,
 	}
 }
 
-static APIENTRY GLint debug_glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar *name)
+static GLint APIENTRY debug_glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface, const GLchar *name)
 {
 	GLint retVal = default_glGetProgramResourceLocationIndex(program, programInterface, name);
 	if (checkErrors)
@@ -21401,7 +21406,7 @@ static APIENTRY GLint debug_glGetProgramResourceLocationIndex(GLuint program, GL
 	return retVal;
 }
 
-static APIENTRY void debug_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
+static void APIENTRY debug_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
 {
 	glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
 	if (checkErrors)
@@ -21418,7 +21423,7 @@ static APIENTRY void debug_glShaderStorageBlockBinding(GLuint program, GLuint st
 	}
 }
 
-static APIENTRY void debug_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
+static void APIENTRY debug_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
 {
 	glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
 	if (checkErrors)
@@ -21435,7 +21440,7 @@ static APIENTRY void debug_glTextureView(GLuint texture, GLenum target, GLuint o
 	}
 }
 
-static APIENTRY void debug_glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexAttribLFormat(attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -21452,7 +21457,7 @@ static APIENTRY void debug_glVertexAttribLFormat(GLuint attribindex, GLint size,
 	}
 }
 
-static APIENTRY void debug_glBufferStorage(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags)
+static void APIENTRY debug_glBufferStorage(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags)
 {
 	glBufferStorage(target, size, data, flags);
 	if (checkErrors)
@@ -21469,7 +21474,7 @@ static APIENTRY void debug_glBufferStorage(GLenum target, GLsizeiptr size, const
 	}
 }
 
-static APIENTRY void debug_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
 {
 	glClearTexImage(texture, level, format, type, data);
 	if (checkErrors)
@@ -21486,7 +21491,7 @@ static APIENTRY void debug_glClearTexImage(GLuint texture, GLint level, GLenum f
 	}
 }
 
-static APIENTRY void debug_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
 {
 	glClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
 	if (checkErrors)
@@ -21503,7 +21508,7 @@ static APIENTRY void debug_glClearTexSubImage(GLuint texture, GLint level, GLint
 	}
 }
 
-static APIENTRY void debug_glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint *buffers)
+static void APIENTRY debug_glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint *buffers)
 {
 	glBindBuffersBase(target, first, count, buffers);
 	if (checkErrors)
@@ -21520,7 +21525,7 @@ static APIENTRY void debug_glBindBuffersBase(GLenum target, GLuint first, GLsize
 	}
 }
 
-static APIENTRY void debug_glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes)
+static void APIENTRY debug_glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes)
 {
 	glBindBuffersRange(target, first, count, buffers, offsets, sizes);
 	if (checkErrors)
@@ -21537,7 +21542,7 @@ static APIENTRY void debug_glBindBuffersRange(GLenum target, GLuint first, GLsiz
 	}
 }
 
-static APIENTRY void debug_glBindTextures(GLuint first, GLsizei count, const GLuint *textures)
+static void APIENTRY debug_glBindTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
 	glBindTextures(first, count, textures);
 	if (checkErrors)
@@ -21554,7 +21559,7 @@ static APIENTRY void debug_glBindTextures(GLuint first, GLsizei count, const GLu
 	}
 }
 
-static APIENTRY void debug_glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers)
+static void APIENTRY debug_glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers)
 {
 	glBindSamplers(first, count, samplers);
 	if (checkErrors)
@@ -21571,7 +21576,7 @@ static APIENTRY void debug_glBindSamplers(GLuint first, GLsizei count, const GLu
 	}
 }
 
-static APIENTRY void debug_glBindImageTextures(GLuint first, GLsizei count, const GLuint *textures)
+static void APIENTRY debug_glBindImageTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
 	glBindImageTextures(first, count, textures);
 	if (checkErrors)
@@ -21588,7 +21593,7 @@ static APIENTRY void debug_glBindImageTextures(GLuint first, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glBindVertexBuffers(GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
+static void APIENTRY debug_glBindVertexBuffers(GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
 {
 	glBindVertexBuffers(first, count, buffers, offsets, strides);
 	if (checkErrors)
@@ -21605,7 +21610,7 @@ static APIENTRY void debug_glBindVertexBuffers(GLuint first, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glClipControl(GLenum origin, GLenum depth)
+static void APIENTRY debug_glClipControl(GLenum origin, GLenum depth)
 {
 	glClipControl(origin, depth);
 	if (checkErrors)
@@ -21622,7 +21627,7 @@ static APIENTRY void debug_glClipControl(GLenum origin, GLenum depth)
 	}
 }
 
-static APIENTRY void debug_glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
+static void APIENTRY debug_glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 {
 	glCreateTransformFeedbacks(n, ids);
 	if (checkErrors)
@@ -21639,7 +21644,7 @@ static APIENTRY void debug_glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 	}
 }
 
-static APIENTRY void debug_glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
+static void APIENTRY debug_glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
 {
 	glTransformFeedbackBufferBase(xfb, index, buffer);
 	if (checkErrors)
@@ -21656,7 +21661,7 @@ static APIENTRY void debug_glTransformFeedbackBufferBase(GLuint xfb, GLuint inde
 	}
 }
 
-static APIENTRY void debug_glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
+static void APIENTRY debug_glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 	glTransformFeedbackBufferRange(xfb, index, buffer, offset, size);
 	if (checkErrors)
@@ -21673,7 +21678,7 @@ static APIENTRY void debug_glTransformFeedbackBufferRange(GLuint xfb, GLuint ind
 	}
 }
 
-static APIENTRY void debug_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 {
 	glGetTransformFeedbackiv(xfb, pname, param);
 	if (checkErrors)
@@ -21690,7 +21695,7 @@ static APIENTRY void debug_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GL
 	}
 }
 
-static APIENTRY void debug_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint *param)
+static void APIENTRY debug_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint *param)
 {
 	glGetTransformFeedbacki_v(xfb, pname, index, param);
 	if (checkErrors)
@@ -21707,7 +21712,7 @@ static APIENTRY void debug_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, G
 	}
 }
 
-static APIENTRY void debug_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 *param)
+static void APIENTRY debug_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 *param)
 {
 	glGetTransformFeedbacki64_v(xfb, pname, index, param);
 	if (checkErrors)
@@ -21724,7 +21729,7 @@ static APIENTRY void debug_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glCreateBuffers(GLsizei n, GLuint *buffers)
+static void APIENTRY debug_glCreateBuffers(GLsizei n, GLuint *buffers)
 {
 	glCreateBuffers(n, buffers);
 	if (checkErrors)
@@ -21741,7 +21746,7 @@ static APIENTRY void debug_glCreateBuffers(GLsizei n, GLuint *buffers)
 	}
 }
 
-static APIENTRY void debug_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags)
+static void APIENTRY debug_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags)
 {
 	glNamedBufferStorage(buffer, size, data, flags);
 	if (checkErrors)
@@ -21758,7 +21763,7 @@ static APIENTRY void debug_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, 
 	}
 }
 
-static APIENTRY void debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
+static void APIENTRY debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
 {
 	glNamedBufferData(buffer, size, data, usage);
 	if (checkErrors)
@@ -21775,7 +21780,7 @@ static APIENTRY void debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, con
 	}
 }
 
-static APIENTRY void debug_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
+static void APIENTRY debug_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
 {
 	glNamedBufferSubData(buffer, offset, size, data);
 	if (checkErrors)
@@ -21792,7 +21797,7 @@ static APIENTRY void debug_glNamedBufferSubData(GLuint buffer, GLintptr offset, 
 	}
 }
 
-static APIENTRY void debug_glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+static void APIENTRY debug_glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
 	glCopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);
 	if (checkErrors)
@@ -21809,7 +21814,7 @@ static APIENTRY void debug_glCopyNamedBufferSubData(GLuint readBuffer, GLuint wr
 	}
 }
 
-static APIENTRY void debug_glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
 	glClearNamedBufferData(buffer, internalformat, format, type, data);
 	if (checkErrors)
@@ -21826,7 +21831,7 @@ static APIENTRY void debug_glClearNamedBufferData(GLuint buffer, GLenum internal
 	}
 }
 
-static APIENTRY void debug_glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
 	glClearNamedBufferSubData(buffer, internalformat, offset, size, format, type, data);
 	if (checkErrors)
@@ -21843,7 +21848,7 @@ static APIENTRY void debug_glClearNamedBufferSubData(GLuint buffer, GLenum inter
 	}
 }
 
-static APIENTRY void * debug_glMapNamedBuffer(GLuint buffer, GLenum access)
+static void * APIENTRY debug_glMapNamedBuffer(GLuint buffer, GLenum access)
 {
 	void * retVal = default_glMapNamedBuffer(buffer, access);
 	if (checkErrors)
@@ -21861,7 +21866,7 @@ static APIENTRY void * debug_glMapNamedBuffer(GLuint buffer, GLenum access)
 	return retVal;
 }
 
-static APIENTRY void * debug_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
+static void * APIENTRY debug_glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
 	void * retVal = default_glMapNamedBufferRange(buffer, offset, length, access);
 	if (checkErrors)
@@ -21879,7 +21884,7 @@ static APIENTRY void * debug_glMapNamedBufferRange(GLuint buffer, GLintptr offse
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glUnmapNamedBuffer(GLuint buffer)
+static GLboolean APIENTRY debug_glUnmapNamedBuffer(GLuint buffer)
 {
 	GLboolean retVal = default_glUnmapNamedBuffer(buffer);
 	if (checkErrors)
@@ -21897,7 +21902,7 @@ static APIENTRY GLboolean debug_glUnmapNamedBuffer(GLuint buffer)
 	return retVal;
 }
 
-static APIENTRY void debug_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length)
+static void APIENTRY debug_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
 	glFlushMappedNamedBufferRange(buffer, offset, length);
 	if (checkErrors)
@@ -21914,7 +21919,7 @@ static APIENTRY void debug_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint *params)
 {
 	glGetNamedBufferParameteriv(buffer, pname, params);
 	if (checkErrors)
@@ -21931,7 +21936,7 @@ static APIENTRY void debug_glGetNamedBufferParameteriv(GLuint buffer, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 *params)
+static void APIENTRY debug_glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 *params)
 {
 	glGetNamedBufferParameteri64v(buffer, pname, params);
 	if (checkErrors)
@@ -21948,7 +21953,7 @@ static APIENTRY void debug_glGetNamedBufferParameteri64v(GLuint buffer, GLenum p
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void **params)
+static void APIENTRY debug_glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void **params)
 {
 	glGetNamedBufferPointerv(buffer, pname, params);
 	if (checkErrors)
@@ -21965,7 +21970,7 @@ static APIENTRY void debug_glGetNamedBufferPointerv(GLuint buffer, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
+static void APIENTRY debug_glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
 {
 	glGetNamedBufferSubData(buffer, offset, size, data);
 	if (checkErrors)
@@ -21982,7 +21987,7 @@ static APIENTRY void debug_glGetNamedBufferSubData(GLuint buffer, GLintptr offse
 	}
 }
 
-static APIENTRY void debug_glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
+static void APIENTRY debug_glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 {
 	glCreateFramebuffers(n, framebuffers);
 	if (checkErrors)
@@ -21999,7 +22004,7 @@ static APIENTRY void debug_glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+static void APIENTRY debug_glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
 	glNamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
@@ -22016,7 +22021,7 @@ static APIENTRY void debug_glNamedFramebufferRenderbuffer(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
+static void APIENTRY debug_glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 {
 	glNamedFramebufferParameteri(framebuffer, pname, param);
 	if (checkErrors)
@@ -22033,7 +22038,7 @@ static APIENTRY void debug_glNamedFramebufferParameteri(GLuint framebuffer, GLen
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
+static void APIENTRY debug_glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
 	glNamedFramebufferTexture(framebuffer, attachment, texture, level);
 	if (checkErrors)
@@ -22050,7 +22055,7 @@ static APIENTRY void debug_glNamedFramebufferTexture(GLuint framebuffer, GLenum 
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
+static void APIENTRY debug_glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
 	glNamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);
 	if (checkErrors)
@@ -22067,7 +22072,7 @@ static APIENTRY void debug_glNamedFramebufferTextureLayer(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
+static void APIENTRY debug_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
 {
 	glNamedFramebufferDrawBuffer(framebuffer, buf);
 	if (checkErrors)
@@ -22084,7 +22089,7 @@ static APIENTRY void debug_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLen
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs)
+static void APIENTRY debug_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs)
 {
 	glNamedFramebufferDrawBuffers(framebuffer, n, bufs);
 	if (checkErrors)
@@ -22101,7 +22106,7 @@ static APIENTRY void debug_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLs
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
+static void APIENTRY debug_glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
 {
 	glNamedFramebufferReadBuffer(framebuffer, src);
 	if (checkErrors)
@@ -22118,7 +22123,7 @@ static APIENTRY void debug_glNamedFramebufferReadBuffer(GLuint framebuffer, GLen
 	}
 }
 
-static APIENTRY void debug_glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments)
+static void APIENTRY debug_glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments)
 {
 	glInvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);
 	if (checkErrors)
@@ -22135,7 +22140,7 @@ static APIENTRY void debug_glInvalidateNamedFramebufferData(GLuint framebuffer, 
 	}
 }
 
-static APIENTRY void debug_glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glInvalidateNamedFramebufferSubData(framebuffer, numAttachments, attachments, x, y, width, height);
 	if (checkErrors)
@@ -22152,7 +22157,7 @@ static APIENTRY void debug_glInvalidateNamedFramebufferSubData(GLuint framebuffe
 	}
 }
 
-static APIENTRY void debug_glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value)
+static void APIENTRY debug_glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value)
 {
 	glClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
@@ -22169,7 +22174,7 @@ static APIENTRY void debug_glClearNamedFramebufferiv(GLuint framebuffer, GLenum 
 	}
 }
 
-static APIENTRY void debug_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value)
+static void APIENTRY debug_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
 	glClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
@@ -22186,7 +22191,7 @@ static APIENTRY void debug_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum
 	}
 }
 
-static APIENTRY void debug_glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value)
+static void APIENTRY debug_glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
 	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
@@ -22203,7 +22208,7 @@ static APIENTRY void debug_glClearNamedFramebufferfv(GLuint framebuffer, GLenum 
 	}
 }
 
-static APIENTRY void debug_glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+static void APIENTRY debug_glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
 	glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
 	if (checkErrors)
@@ -22220,7 +22225,7 @@ static APIENTRY void debug_glClearNamedFramebufferfi(GLuint framebuffer, GLenum 
 	}
 }
 
-static APIENTRY void debug_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+static void APIENTRY debug_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
 	glBlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 	if (checkErrors)
@@ -22237,7 +22242,7 @@ static APIENTRY void debug_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint
 	}
 }
 
-static APIENTRY GLenum debug_glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
+static GLenum APIENTRY debug_glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
 {
 	GLenum retVal = default_glCheckNamedFramebufferStatus(framebuffer, target);
 	if (checkErrors)
@@ -22255,7 +22260,7 @@ static APIENTRY GLenum debug_glCheckNamedFramebufferStatus(GLuint framebuffer, G
 	return retVal;
 }
 
-static APIENTRY void debug_glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *param)
 {
 	glGetNamedFramebufferParameteriv(framebuffer, pname, param);
 	if (checkErrors)
@@ -22272,7 +22277,7 @@ static APIENTRY void debug_glGetNamedFramebufferParameteriv(GLuint framebuffer, 
 	}
 }
 
-static APIENTRY void debug_glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
 {
 	glGetNamedFramebufferAttachmentParameteriv(framebuffer, attachment, pname, params);
 	if (checkErrors)
@@ -22289,7 +22294,7 @@ static APIENTRY void debug_glGetNamedFramebufferAttachmentParameteriv(GLuint fra
 	}
 }
 
-static APIENTRY void debug_glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
+static void APIENTRY debug_glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
 	glCreateRenderbuffers(n, renderbuffers);
 	if (checkErrors)
@@ -22306,7 +22311,7 @@ static APIENTRY void debug_glCreateRenderbuffers(GLsizei n, GLuint *renderbuffer
 	}
 }
 
-static APIENTRY void debug_glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
 	if (checkErrors)
@@ -22323,7 +22328,7 @@ static APIENTRY void debug_glNamedRenderbufferStorage(GLuint renderbuffer, GLenu
 	}
 }
 
-static APIENTRY void debug_glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glNamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);
 	if (checkErrors)
@@ -22340,7 +22345,7 @@ static APIENTRY void debug_glNamedRenderbufferStorageMultisample(GLuint renderbu
 	}
 }
 
-static APIENTRY void debug_glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint *params)
 {
 	glGetNamedRenderbufferParameteriv(renderbuffer, pname, params);
 	if (checkErrors)
@@ -22357,7 +22362,7 @@ static APIENTRY void debug_glGetNamedRenderbufferParameteriv(GLuint renderbuffer
 	}
 }
 
-static APIENTRY void debug_glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
+static void APIENTRY debug_glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
 {
 	glCreateTextures(target, n, textures);
 	if (checkErrors)
@@ -22374,7 +22379,7 @@ static APIENTRY void debug_glCreateTextures(GLenum target, GLsizei n, GLuint *te
 	}
 }
 
-static APIENTRY void debug_glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
+static void APIENTRY debug_glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
 {
 	glTextureBuffer(texture, internalformat, buffer);
 	if (checkErrors)
@@ -22391,7 +22396,7 @@ static APIENTRY void debug_glTextureBuffer(GLuint texture, GLenum internalformat
 	}
 }
 
-static APIENTRY void debug_glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+static void APIENTRY debug_glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 	glTextureBufferRange(texture, internalformat, buffer, offset, size);
 	if (checkErrors)
@@ -22408,7 +22413,7 @@ static APIENTRY void debug_glTextureBufferRange(GLuint texture, GLenum internalf
 	}
 }
 
-static APIENTRY void debug_glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
+static void APIENTRY debug_glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
 {
 	glTextureStorage1D(texture, levels, internalformat, width);
 	if (checkErrors)
@@ -22425,7 +22430,7 @@ static APIENTRY void debug_glTextureStorage1D(GLuint texture, GLsizei levels, GL
 	}
 }
 
-static APIENTRY void debug_glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glTextureStorage2D(texture, levels, internalformat, width, height);
 	if (checkErrors)
@@ -22442,7 +22447,7 @@ static APIENTRY void debug_glTextureStorage2D(GLuint texture, GLsizei levels, GL
 	}
 }
 
-static APIENTRY void debug_glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+static void APIENTRY debug_glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
 	glTextureStorage3D(texture, levels, internalformat, width, height, depth);
 	if (checkErrors)
@@ -22459,7 +22464,7 @@ static APIENTRY void debug_glTextureStorage3D(GLuint texture, GLsizei levels, GL
 	}
 }
 
-static APIENTRY void debug_glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
 	glTextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
@@ -22476,7 +22481,7 @@ static APIENTRY void debug_glTextureStorage2DMultisample(GLuint texture, GLsizei
 	}
 }
 
-static APIENTRY void debug_glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
 	glTextureStorage3DMultisample(texture, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
@@ -22493,7 +22498,7 @@ static APIENTRY void debug_glTextureStorage3DMultisample(GLuint texture, GLsizei
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage1D(texture, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
@@ -22510,7 +22515,7 @@ static APIENTRY void debug_glTextureSubImage1D(GLuint texture, GLint level, GLin
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
@@ -22527,7 +22532,7 @@ static APIENTRY void debug_glTextureSubImage2D(GLuint texture, GLint level, GLin
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
@@ -22544,7 +22549,7 @@ static APIENTRY void debug_glTextureSubImage3D(GLuint texture, GLint level, GLin
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTextureSubImage1D(texture, level, xoffset, width, format, imageSize, data);
 	if (checkErrors)
@@ -22561,7 +22566,7 @@ static APIENTRY void debug_glCompressedTextureSubImage1D(GLuint texture, GLint l
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, imageSize, data);
 	if (checkErrors)
@@ -22578,7 +22583,7 @@ static APIENTRY void debug_glCompressedTextureSubImage2D(GLuint texture, GLint l
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
+static void APIENTRY debug_glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
 	glCompressedTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 	if (checkErrors)
@@ -22595,7 +22600,7 @@ static APIENTRY void debug_glCompressedTextureSubImage3D(GLuint texture, GLint l
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
 	glCopyTextureSubImage1D(texture, level, xoffset, x, y, width);
 	if (checkErrors)
@@ -22612,7 +22617,7 @@ static APIENTRY void debug_glCopyTextureSubImage1D(GLuint texture, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTextureSubImage2D(texture, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
@@ -22629,7 +22634,7 @@ static APIENTRY void debug_glCopyTextureSubImage2D(GLuint texture, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
@@ -22646,7 +22651,7 @@ static APIENTRY void debug_glCopyTextureSubImage3D(GLuint texture, GLint level, 
 	}
 }
 
-static APIENTRY void debug_glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
 {
 	glTextureParameterf(texture, pname, param);
 	if (checkErrors)
@@ -22663,7 +22668,7 @@ static APIENTRY void debug_glTextureParameterf(GLuint texture, GLenum pname, GLf
 	}
 }
 
-static APIENTRY void debug_glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat *param)
+static void APIENTRY debug_glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat *param)
 {
 	glTextureParameterfv(texture, pname, param);
 	if (checkErrors)
@@ -22680,7 +22685,7 @@ static APIENTRY void debug_glTextureParameterfv(GLuint texture, GLenum pname, co
 	}
 }
 
-static APIENTRY void debug_glTextureParameteri(GLuint texture, GLenum pname, GLint param)
+static void APIENTRY debug_glTextureParameteri(GLuint texture, GLenum pname, GLint param)
 {
 	glTextureParameteri(texture, pname, param);
 	if (checkErrors)
@@ -22697,7 +22702,7 @@ static APIENTRY void debug_glTextureParameteri(GLuint texture, GLenum pname, GLi
 	}
 }
 
-static APIENTRY void debug_glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params)
 {
 	glTextureParameterIiv(texture, pname, params);
 	if (checkErrors)
@@ -22714,7 +22719,7 @@ static APIENTRY void debug_glTextureParameterIiv(GLuint texture, GLenum pname, c
 	}
 }
 
-static APIENTRY void debug_glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params)
+static void APIENTRY debug_glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params)
 {
 	glTextureParameterIuiv(texture, pname, params);
 	if (checkErrors)
@@ -22731,7 +22736,7 @@ static APIENTRY void debug_glTextureParameterIuiv(GLuint texture, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param)
+static void APIENTRY debug_glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param)
 {
 	glTextureParameteriv(texture, pname, param);
 	if (checkErrors)
@@ -22748,7 +22753,7 @@ static APIENTRY void debug_glTextureParameteriv(GLuint texture, GLenum pname, co
 	}
 }
 
-static APIENTRY void debug_glGenerateTextureMipmap(GLuint texture)
+static void APIENTRY debug_glGenerateTextureMipmap(GLuint texture)
 {
 	glGenerateTextureMipmap(texture);
 	if (checkErrors)
@@ -22765,7 +22770,7 @@ static APIENTRY void debug_glGenerateTextureMipmap(GLuint texture)
 	}
 }
 
-static APIENTRY void debug_glBindTextureUnit(GLuint unit, GLuint texture)
+static void APIENTRY debug_glBindTextureUnit(GLuint unit, GLuint texture)
 {
 	glBindTextureUnit(unit, texture);
 	if (checkErrors)
@@ -22782,7 +22787,7 @@ static APIENTRY void debug_glBindTextureUnit(GLuint unit, GLuint texture)
 	}
 }
 
-static APIENTRY void debug_glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
 	glGetTextureImage(texture, level, format, type, bufSize, pixels);
 	if (checkErrors)
@@ -22799,7 +22804,7 @@ static APIENTRY void debug_glGetTextureImage(GLuint texture, GLint level, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void *pixels)
 {
 	glGetCompressedTextureImage(texture, level, bufSize, pixels);
 	if (checkErrors)
@@ -22816,7 +22821,7 @@ static APIENTRY void debug_glGetCompressedTextureImage(GLuint texture, GLint lev
 	}
 }
 
-static APIENTRY void debug_glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat *params)
 {
 	glGetTextureLevelParameterfv(texture, level, pname, params);
 	if (checkErrors)
@@ -22833,7 +22838,7 @@ static APIENTRY void debug_glGetTextureLevelParameterfv(GLuint texture, GLint le
 	}
 }
 
-static APIENTRY void debug_glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint *params)
 {
 	glGetTextureLevelParameteriv(texture, level, pname, params);
 	if (checkErrors)
@@ -22850,7 +22855,7 @@ static APIENTRY void debug_glGetTextureLevelParameteriv(GLuint texture, GLint le
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params)
 {
 	glGetTextureParameterfv(texture, pname, params);
 	if (checkErrors)
@@ -22867,7 +22872,7 @@ static APIENTRY void debug_glGetTextureParameterfv(GLuint texture, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params)
 {
 	glGetTextureParameterIiv(texture, pname, params);
 	if (checkErrors)
@@ -22884,7 +22889,7 @@ static APIENTRY void debug_glGetTextureParameterIiv(GLuint texture, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params)
 {
 	glGetTextureParameterIuiv(texture, pname, params);
 	if (checkErrors)
@@ -22901,7 +22906,7 @@ static APIENTRY void debug_glGetTextureParameterIuiv(GLuint texture, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params)
 {
 	glGetTextureParameteriv(texture, pname, params);
 	if (checkErrors)
@@ -22918,7 +22923,7 @@ static APIENTRY void debug_glGetTextureParameteriv(GLuint texture, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glCreateVertexArrays(GLsizei n, GLuint *arrays)
+static void APIENTRY debug_glCreateVertexArrays(GLsizei n, GLuint *arrays)
 {
 	glCreateVertexArrays(n, arrays);
 	if (checkErrors)
@@ -22935,7 +22940,7 @@ static APIENTRY void debug_glCreateVertexArrays(GLsizei n, GLuint *arrays)
 	}
 }
 
-static APIENTRY void debug_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
+static void APIENTRY debug_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
 	glDisableVertexArrayAttrib(vaobj, index);
 	if (checkErrors)
@@ -22952,7 +22957,7 @@ static APIENTRY void debug_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index
 	}
 }
 
-static APIENTRY void debug_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
+static void APIENTRY debug_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
 	glEnableVertexArrayAttrib(vaobj, index);
 	if (checkErrors)
@@ -22969,7 +22974,7 @@ static APIENTRY void debug_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
+static void APIENTRY debug_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
 {
 	glVertexArrayElementBuffer(vaobj, buffer);
 	if (checkErrors)
@@ -22986,7 +22991,7 @@ static APIENTRY void debug_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffe
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+static void APIENTRY debug_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
 	glVertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
 	if (checkErrors)
@@ -23003,7 +23008,7 @@ static APIENTRY void debug_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindin
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
+static void APIENTRY debug_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
 {
 	glVertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);
 	if (checkErrors)
@@ -23020,7 +23025,7 @@ static APIENTRY void debug_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first
 	}
 }
 
-static APIENTRY void debug_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
+static void APIENTRY debug_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
 {
 	glVertexArrayAttribBinding(vaobj, attribindex, bindingindex);
 	if (checkErrors)
@@ -23037,7 +23042,7 @@ static APIENTRY void debug_glVertexArrayAttribBinding(GLuint vaobj, GLuint attri
 	}
 }
 
-static APIENTRY void debug_glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
 	glVertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
@@ -23054,7 +23059,7 @@ static APIENTRY void debug_glVertexArrayAttribFormat(GLuint vaobj, GLuint attrib
 	}
 }
 
-static APIENTRY void debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexArrayAttribIFormat(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -23071,7 +23076,7 @@ static APIENTRY void debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attri
 	}
 }
 
-static APIENTRY void debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexArrayAttribLFormat(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -23088,7 +23093,7 @@ static APIENTRY void debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attri
 	}
 }
 
-static APIENTRY void debug_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
+static void APIENTRY debug_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
 {
 	glVertexArrayBindingDivisor(vaobj, bindingindex, divisor);
 	if (checkErrors)
@@ -23105,7 +23110,7 @@ static APIENTRY void debug_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bind
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint *param)
 {
 	glGetVertexArrayiv(vaobj, pname, param);
 	if (checkErrors)
@@ -23122,7 +23127,7 @@ static APIENTRY void debug_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint 
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
 {
 	glGetVertexArrayIndexediv(vaobj, index, pname, param);
 	if (checkErrors)
@@ -23139,7 +23144,7 @@ static APIENTRY void debug_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index,
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 *param)
+static void APIENTRY debug_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 *param)
 {
 	glGetVertexArrayIndexed64iv(vaobj, index, pname, param);
 	if (checkErrors)
@@ -23156,7 +23161,7 @@ static APIENTRY void debug_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint inde
 	}
 }
 
-static APIENTRY void debug_glCreateSamplers(GLsizei n, GLuint *samplers)
+static void APIENTRY debug_glCreateSamplers(GLsizei n, GLuint *samplers)
 {
 	glCreateSamplers(n, samplers);
 	if (checkErrors)
@@ -23173,7 +23178,7 @@ static APIENTRY void debug_glCreateSamplers(GLsizei n, GLuint *samplers)
 	}
 }
 
-static APIENTRY void debug_glCreateProgramPipelines(GLsizei n, GLuint *pipelines)
+static void APIENTRY debug_glCreateProgramPipelines(GLsizei n, GLuint *pipelines)
 {
 	glCreateProgramPipelines(n, pipelines);
 	if (checkErrors)
@@ -23190,7 +23195,7 @@ static APIENTRY void debug_glCreateProgramPipelines(GLsizei n, GLuint *pipelines
 	}
 }
 
-static APIENTRY void debug_glCreateQueries(GLenum target, GLsizei n, GLuint *ids)
+static void APIENTRY debug_glCreateQueries(GLenum target, GLsizei n, GLuint *ids)
 {
 	glCreateQueries(target, n, ids);
 	if (checkErrors)
@@ -23207,7 +23212,7 @@ static APIENTRY void debug_glCreateQueries(GLenum target, GLsizei n, GLuint *ids
 	}
 }
 
-static APIENTRY void debug_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
+static void APIENTRY debug_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
 	glGetQueryBufferObjecti64v(id, buffer, pname, offset);
 	if (checkErrors)
@@ -23224,7 +23229,7 @@ static APIENTRY void debug_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, 
 	}
 }
 
-static APIENTRY void debug_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
+static void APIENTRY debug_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
 	glGetQueryBufferObjectiv(id, buffer, pname, offset);
 	if (checkErrors)
@@ -23241,7 +23246,7 @@ static APIENTRY void debug_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GL
 	}
 }
 
-static APIENTRY void debug_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
+static void APIENTRY debug_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
 	glGetQueryBufferObjectui64v(id, buffer, pname, offset);
 	if (checkErrors)
@@ -23258,7 +23263,7 @@ static APIENTRY void debug_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer,
 	}
 }
 
-static APIENTRY void debug_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
+static void APIENTRY debug_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
 	glGetQueryBufferObjectuiv(id, buffer, pname, offset);
 	if (checkErrors)
@@ -23275,7 +23280,7 @@ static APIENTRY void debug_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, G
 	}
 }
 
-static APIENTRY void debug_glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
 	glGetTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, bufSize, pixels);
 	if (checkErrors)
@@ -23292,7 +23297,7 @@ static APIENTRY void debug_glGetTextureSubImage(GLuint texture, GLint level, GLi
 	}
 }
 
-static APIENTRY void debug_glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels)
 {
 	glGetCompressedTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, bufSize, pixels);
 	if (checkErrors)
@@ -23309,7 +23314,7 @@ static APIENTRY void debug_glGetCompressedTextureSubImage(GLuint texture, GLint 
 	}
 }
 
-static APIENTRY void debug_glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void *pixels)
 {
 	glGetnCompressedTexImage(target, lod, bufSize, pixels);
 	if (checkErrors)
@@ -23326,7 +23331,7 @@ static APIENTRY void debug_glGetnCompressedTexImage(GLenum target, GLint lod, GL
 	}
 }
 
-static APIENTRY void debug_glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
+static void APIENTRY debug_glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
 	glGetnTexImage(target, level, format, type, bufSize, pixels);
 	if (checkErrors)
@@ -23343,7 +23348,7 @@ static APIENTRY void debug_glGetnTexImage(GLenum target, GLint level, GLenum for
 	}
 }
 
-static APIENTRY void debug_glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble *params)
+static void APIENTRY debug_glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble *params)
 {
 	glGetnUniformdv(program, location, bufSize, params);
 	if (checkErrors)
@@ -23360,7 +23365,7 @@ static APIENTRY void debug_glGetnUniformdv(GLuint program, GLint location, GLsiz
 	}
 }
 
-static APIENTRY void debug_glGetnMapdv(GLenum target, GLenum query, GLsizei bufSize, GLdouble *v)
+static void APIENTRY debug_glGetnMapdv(GLenum target, GLenum query, GLsizei bufSize, GLdouble *v)
 {
 	glGetnMapdv(target, query, bufSize, v);
 	if (checkErrors)
@@ -23377,7 +23382,7 @@ static APIENTRY void debug_glGetnMapdv(GLenum target, GLenum query, GLsizei bufS
 	}
 }
 
-static APIENTRY void debug_glGetnMapfv(GLenum target, GLenum query, GLsizei bufSize, GLfloat *v)
+static void APIENTRY debug_glGetnMapfv(GLenum target, GLenum query, GLsizei bufSize, GLfloat *v)
 {
 	glGetnMapfv(target, query, bufSize, v);
 	if (checkErrors)
@@ -23394,7 +23399,7 @@ static APIENTRY void debug_glGetnMapfv(GLenum target, GLenum query, GLsizei bufS
 	}
 }
 
-static APIENTRY void debug_glGetnMapiv(GLenum target, GLenum query, GLsizei bufSize, GLint *v)
+static void APIENTRY debug_glGetnMapiv(GLenum target, GLenum query, GLsizei bufSize, GLint *v)
 {
 	glGetnMapiv(target, query, bufSize, v);
 	if (checkErrors)
@@ -23411,7 +23416,7 @@ static APIENTRY void debug_glGetnMapiv(GLenum target, GLenum query, GLsizei bufS
 	}
 }
 
-static APIENTRY void debug_glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat *values)
+static void APIENTRY debug_glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat *values)
 {
 	glGetnPixelMapfv(map, bufSize, values);
 	if (checkErrors)
@@ -23428,7 +23433,7 @@ static APIENTRY void debug_glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat
 	}
 }
 
-static APIENTRY void debug_glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint *values)
+static void APIENTRY debug_glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint *values)
 {
 	glGetnPixelMapuiv(map, bufSize, values);
 	if (checkErrors)
@@ -23445,7 +23450,7 @@ static APIENTRY void debug_glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint
 	}
 }
 
-static APIENTRY void debug_glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLushort *values)
+static void APIENTRY debug_glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLushort *values)
 {
 	glGetnPixelMapusv(map, bufSize, values);
 	if (checkErrors)
@@ -23462,7 +23467,7 @@ static APIENTRY void debug_glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLusho
 	}
 }
 
-static APIENTRY void debug_glGetnPolygonStipple(GLsizei bufSize, GLubyte *pattern)
+static void APIENTRY debug_glGetnPolygonStipple(GLsizei bufSize, GLubyte *pattern)
 {
 	glGetnPolygonStipple(bufSize, pattern);
 	if (checkErrors)
@@ -23479,7 +23484,7 @@ static APIENTRY void debug_glGetnPolygonStipple(GLsizei bufSize, GLubyte *patter
 	}
 }
 
-static APIENTRY void debug_glGetnColorTable(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table)
+static void APIENTRY debug_glGetnColorTable(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table)
 {
 	glGetnColorTable(target, format, type, bufSize, table);
 	if (checkErrors)
@@ -23496,7 +23501,7 @@ static APIENTRY void debug_glGetnColorTable(GLenum target, GLenum format, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetnConvolutionFilter(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image)
+static void APIENTRY debug_glGetnConvolutionFilter(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image)
 {
 	glGetnConvolutionFilter(target, format, type, bufSize, image);
 	if (checkErrors)
@@ -23513,7 +23518,7 @@ static APIENTRY void debug_glGetnConvolutionFilter(GLenum target, GLenum format,
 	}
 }
 
-static APIENTRY void debug_glGetnSeparableFilter(GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span)
+static void APIENTRY debug_glGetnSeparableFilter(GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span)
 {
 	glGetnSeparableFilter(target, format, type, rowBufSize, row, columnBufSize, column, span);
 	if (checkErrors)
@@ -23530,7 +23535,7 @@ static APIENTRY void debug_glGetnSeparableFilter(GLenum target, GLenum format, G
 	}
 }
 
-static APIENTRY void debug_glGetnHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
+static void APIENTRY debug_glGetnHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
 	glGetnHistogram(target, reset, format, type, bufSize, values);
 	if (checkErrors)
@@ -23547,7 +23552,7 @@ static APIENTRY void debug_glGetnHistogram(GLenum target, GLboolean reset, GLenu
 	}
 }
 
-static APIENTRY void debug_glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
+static void APIENTRY debug_glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
 	glGetnMinmax(target, reset, format, type, bufSize, values);
 	if (checkErrors)
@@ -23564,7 +23569,7 @@ static APIENTRY void debug_glGetnMinmax(GLenum target, GLboolean reset, GLenum f
 	}
 }
 
-static APIENTRY void debug_glTextureBarrier()
+static void APIENTRY debug_glTextureBarrier()
 {
 	glTextureBarrier();
 	if (checkErrors)
@@ -23581,7 +23586,7 @@ static APIENTRY void debug_glTextureBarrier()
 	}
 }
 
-static APIENTRY GLuint64 debug_glGetTextureHandleARB(GLuint texture)
+static GLuint64 APIENTRY debug_glGetTextureHandleARB(GLuint texture)
 {
 	GLuint64 retVal = default_glGetTextureHandleARB(texture);
 	if (checkErrors)
@@ -23599,7 +23604,7 @@ static APIENTRY GLuint64 debug_glGetTextureHandleARB(GLuint texture)
 	return retVal;
 }
 
-static APIENTRY GLuint64 debug_glGetTextureSamplerHandleARB(GLuint texture, GLuint sampler)
+static GLuint64 APIENTRY debug_glGetTextureSamplerHandleARB(GLuint texture, GLuint sampler)
 {
 	GLuint64 retVal = default_glGetTextureSamplerHandleARB(texture, sampler);
 	if (checkErrors)
@@ -23617,7 +23622,7 @@ static APIENTRY GLuint64 debug_glGetTextureSamplerHandleARB(GLuint texture, GLui
 	return retVal;
 }
 
-static APIENTRY void debug_glMakeTextureHandleResidentARB(GLuint64 handle)
+static void APIENTRY debug_glMakeTextureHandleResidentARB(GLuint64 handle)
 {
 	glMakeTextureHandleResidentARB(handle);
 	if (checkErrors)
@@ -23634,7 +23639,7 @@ static APIENTRY void debug_glMakeTextureHandleResidentARB(GLuint64 handle)
 	}
 }
 
-static APIENTRY void debug_glMakeTextureHandleNonResidentARB(GLuint64 handle)
+static void APIENTRY debug_glMakeTextureHandleNonResidentARB(GLuint64 handle)
 {
 	glMakeTextureHandleNonResidentARB(handle);
 	if (checkErrors)
@@ -23651,7 +23656,7 @@ static APIENTRY void debug_glMakeTextureHandleNonResidentARB(GLuint64 handle)
 	}
 }
 
-static APIENTRY GLuint64 debug_glGetImageHandleARB(GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format)
+static GLuint64 APIENTRY debug_glGetImageHandleARB(GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum format)
 {
 	GLuint64 retVal = default_glGetImageHandleARB(texture, level, layered, layer, format);
 	if (checkErrors)
@@ -23669,7 +23674,7 @@ static APIENTRY GLuint64 debug_glGetImageHandleARB(GLuint texture, GLint level, 
 	return retVal;
 }
 
-static APIENTRY void debug_glMakeImageHandleResidentARB(GLuint64 handle, GLenum access)
+static void APIENTRY debug_glMakeImageHandleResidentARB(GLuint64 handle, GLenum access)
 {
 	glMakeImageHandleResidentARB(handle, access);
 	if (checkErrors)
@@ -23686,7 +23691,7 @@ static APIENTRY void debug_glMakeImageHandleResidentARB(GLuint64 handle, GLenum 
 	}
 }
 
-static APIENTRY void debug_glMakeImageHandleNonResidentARB(GLuint64 handle)
+static void APIENTRY debug_glMakeImageHandleNonResidentARB(GLuint64 handle)
 {
 	glMakeImageHandleNonResidentARB(handle);
 	if (checkErrors)
@@ -23703,7 +23708,7 @@ static APIENTRY void debug_glMakeImageHandleNonResidentARB(GLuint64 handle)
 	}
 }
 
-static APIENTRY void debug_glUniformHandleui64ARB(GLint location, GLuint64 value)
+static void APIENTRY debug_glUniformHandleui64ARB(GLint location, GLuint64 value)
 {
 	glUniformHandleui64ARB(location, value);
 	if (checkErrors)
@@ -23720,7 +23725,7 @@ static APIENTRY void debug_glUniformHandleui64ARB(GLint location, GLuint64 value
 	}
 }
 
-static APIENTRY void debug_glUniformHandleui64vARB(GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glUniformHandleui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
 	glUniformHandleui64vARB(location, count, value);
 	if (checkErrors)
@@ -23737,7 +23742,7 @@ static APIENTRY void debug_glUniformHandleui64vARB(GLint location, GLsizei count
 	}
 }
 
-static APIENTRY void debug_glProgramUniformHandleui64ARB(GLuint program, GLint location, GLuint64 value)
+static void APIENTRY debug_glProgramUniformHandleui64ARB(GLuint program, GLint location, GLuint64 value)
 {
 	glProgramUniformHandleui64ARB(program, location, value);
 	if (checkErrors)
@@ -23754,7 +23759,7 @@ static APIENTRY void debug_glProgramUniformHandleui64ARB(GLuint program, GLint l
 	}
 }
 
-static APIENTRY void debug_glProgramUniformHandleui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *values)
+static void APIENTRY debug_glProgramUniformHandleui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *values)
 {
 	glProgramUniformHandleui64vARB(program, location, count, values);
 	if (checkErrors)
@@ -23771,7 +23776,7 @@ static APIENTRY void debug_glProgramUniformHandleui64vARB(GLuint program, GLint 
 	}
 }
 
-static APIENTRY GLboolean debug_glIsTextureHandleResidentARB(GLuint64 handle)
+static GLboolean APIENTRY debug_glIsTextureHandleResidentARB(GLuint64 handle)
 {
 	GLboolean retVal = default_glIsTextureHandleResidentARB(handle);
 	if (checkErrors)
@@ -23789,7 +23794,7 @@ static APIENTRY GLboolean debug_glIsTextureHandleResidentARB(GLuint64 handle)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsImageHandleResidentARB(GLuint64 handle)
+static GLboolean APIENTRY debug_glIsImageHandleResidentARB(GLuint64 handle)
 {
 	GLboolean retVal = default_glIsImageHandleResidentARB(handle);
 	if (checkErrors)
@@ -23807,7 +23812,7 @@ static APIENTRY GLboolean debug_glIsImageHandleResidentARB(GLuint64 handle)
 	return retVal;
 }
 
-static APIENTRY void debug_glVertexAttribL1ui64ARB(GLuint index, GLuint64EXT x)
+static void APIENTRY debug_glVertexAttribL1ui64ARB(GLuint index, GLuint64EXT x)
 {
 	glVertexAttribL1ui64ARB(index, x);
 	if (checkErrors)
@@ -23824,7 +23829,7 @@ static APIENTRY void debug_glVertexAttribL1ui64ARB(GLuint index, GLuint64EXT x)
 	}
 }
 
-static APIENTRY void debug_glVertexAttribL1ui64vARB(GLuint index, const GLuint64EXT *v)
+static void APIENTRY debug_glVertexAttribL1ui64vARB(GLuint index, const GLuint64EXT *v)
 {
 	glVertexAttribL1ui64vARB(index, v);
 	if (checkErrors)
@@ -23841,7 +23846,7 @@ static APIENTRY void debug_glVertexAttribL1ui64vARB(GLuint index, const GLuint64
 	}
 }
 
-static APIENTRY void debug_glGetVertexAttribLui64vARB(GLuint index, GLenum pname, GLuint64EXT *params)
+static void APIENTRY debug_glGetVertexAttribLui64vARB(GLuint index, GLenum pname, GLuint64EXT *params)
 {
 	glGetVertexAttribLui64vARB(index, pname, params);
 	if (checkErrors)
@@ -23858,7 +23863,7 @@ static APIENTRY void debug_glGetVertexAttribLui64vARB(GLuint index, GLenum pname
 	}
 }
 
-static APIENTRY GLsync debug_glCreateSyncFromCLeventARB(struct _cl_context *context, struct _cl_event *event, GLbitfield flags)
+static GLsync APIENTRY debug_glCreateSyncFromCLeventARB(struct _cl_context *context, struct _cl_event *event, GLbitfield flags)
 {
 	GLsync retVal = default_glCreateSyncFromCLeventARB(context, event, flags);
 	if (checkErrors)
@@ -23876,7 +23881,7 @@ static APIENTRY GLsync debug_glCreateSyncFromCLeventARB(struct _cl_context *cont
 	return retVal;
 }
 
-static APIENTRY void debug_glDispatchComputeGroupSizeARB(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z)
+static void APIENTRY debug_glDispatchComputeGroupSizeARB(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z)
 {
 	glDispatchComputeGroupSizeARB(num_groups_x, num_groups_y, num_groups_z, group_size_x, group_size_y, group_size_z);
 	if (checkErrors)
@@ -23893,7 +23898,7 @@ static APIENTRY void debug_glDispatchComputeGroupSizeARB(GLuint num_groups_x, GL
 	}
 }
 
-static APIENTRY void debug_glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string)
+static void APIENTRY debug_glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string)
 {
 	glProgramStringARB(target, format, len, string);
 	if (checkErrors)
@@ -23910,7 +23915,7 @@ static APIENTRY void debug_glProgramStringARB(GLenum target, GLenum format, GLsi
 	}
 }
 
-static APIENTRY void debug_glBindProgramARB(GLenum target, GLuint program)
+static void APIENTRY debug_glBindProgramARB(GLenum target, GLuint program)
 {
 	glBindProgramARB(target, program);
 	if (checkErrors)
@@ -23927,7 +23932,7 @@ static APIENTRY void debug_glBindProgramARB(GLenum target, GLuint program)
 	}
 }
 
-static APIENTRY void debug_glDeleteProgramsARB(GLsizei n, const GLuint *programs)
+static void APIENTRY debug_glDeleteProgramsARB(GLsizei n, const GLuint *programs)
 {
 	glDeleteProgramsARB(n, programs);
 	if (checkErrors)
@@ -23944,7 +23949,7 @@ static APIENTRY void debug_glDeleteProgramsARB(GLsizei n, const GLuint *programs
 	}
 }
 
-static APIENTRY void debug_glGenProgramsARB(GLsizei n, GLuint *programs)
+static void APIENTRY debug_glGenProgramsARB(GLsizei n, GLuint *programs)
 {
 	glGenProgramsARB(n, programs);
 	if (checkErrors)
@@ -23961,7 +23966,7 @@ static APIENTRY void debug_glGenProgramsARB(GLsizei n, GLuint *programs)
 	}
 }
 
-static APIENTRY void debug_glProgramEnvParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glProgramEnvParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glProgramEnvParameter4dARB(target, index, x, y, z, w);
 	if (checkErrors)
@@ -23978,7 +23983,7 @@ static APIENTRY void debug_glProgramEnvParameter4dARB(GLenum target, GLuint inde
 	}
 }
 
-static APIENTRY void debug_glProgramEnvParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
+static void APIENTRY debug_glProgramEnvParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
 {
 	glProgramEnvParameter4dvARB(target, index, params);
 	if (checkErrors)
@@ -23995,7 +24000,7 @@ static APIENTRY void debug_glProgramEnvParameter4dvARB(GLenum target, GLuint ind
 	}
 }
 
-static APIENTRY void debug_glProgramEnvParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glProgramEnvParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glProgramEnvParameter4fARB(target, index, x, y, z, w);
 	if (checkErrors)
@@ -24012,7 +24017,7 @@ static APIENTRY void debug_glProgramEnvParameter4fARB(GLenum target, GLuint inde
 	}
 }
 
-static APIENTRY void debug_glProgramEnvParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
+static void APIENTRY debug_glProgramEnvParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
 {
 	glProgramEnvParameter4fvARB(target, index, params);
 	if (checkErrors)
@@ -24029,7 +24034,7 @@ static APIENTRY void debug_glProgramEnvParameter4fvARB(GLenum target, GLuint ind
 	}
 }
 
-static APIENTRY void debug_glProgramLocalParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glProgramLocalParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glProgramLocalParameter4dARB(target, index, x, y, z, w);
 	if (checkErrors)
@@ -24046,7 +24051,7 @@ static APIENTRY void debug_glProgramLocalParameter4dARB(GLenum target, GLuint in
 	}
 }
 
-static APIENTRY void debug_glProgramLocalParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
+static void APIENTRY debug_glProgramLocalParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
 {
 	glProgramLocalParameter4dvARB(target, index, params);
 	if (checkErrors)
@@ -24063,7 +24068,7 @@ static APIENTRY void debug_glProgramLocalParameter4dvARB(GLenum target, GLuint i
 	}
 }
 
-static APIENTRY void debug_glProgramLocalParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glProgramLocalParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glProgramLocalParameter4fARB(target, index, x, y, z, w);
 	if (checkErrors)
@@ -24080,7 +24085,7 @@ static APIENTRY void debug_glProgramLocalParameter4fARB(GLenum target, GLuint in
 	}
 }
 
-static APIENTRY void debug_glProgramLocalParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
+static void APIENTRY debug_glProgramLocalParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
 {
 	glProgramLocalParameter4fvARB(target, index, params);
 	if (checkErrors)
@@ -24097,7 +24102,7 @@ static APIENTRY void debug_glProgramLocalParameter4fvARB(GLenum target, GLuint i
 	}
 }
 
-static APIENTRY void debug_glGetProgramEnvParameterdvARB(GLenum target, GLuint index, GLdouble *params)
+static void APIENTRY debug_glGetProgramEnvParameterdvARB(GLenum target, GLuint index, GLdouble *params)
 {
 	glGetProgramEnvParameterdvARB(target, index, params);
 	if (checkErrors)
@@ -24114,7 +24119,7 @@ static APIENTRY void debug_glGetProgramEnvParameterdvARB(GLenum target, GLuint i
 	}
 }
 
-static APIENTRY void debug_glGetProgramEnvParameterfvARB(GLenum target, GLuint index, GLfloat *params)
+static void APIENTRY debug_glGetProgramEnvParameterfvARB(GLenum target, GLuint index, GLfloat *params)
 {
 	glGetProgramEnvParameterfvARB(target, index, params);
 	if (checkErrors)
@@ -24131,7 +24136,7 @@ static APIENTRY void debug_glGetProgramEnvParameterfvARB(GLenum target, GLuint i
 	}
 }
 
-static APIENTRY void debug_glGetProgramLocalParameterdvARB(GLenum target, GLuint index, GLdouble *params)
+static void APIENTRY debug_glGetProgramLocalParameterdvARB(GLenum target, GLuint index, GLdouble *params)
 {
 	glGetProgramLocalParameterdvARB(target, index, params);
 	if (checkErrors)
@@ -24148,7 +24153,7 @@ static APIENTRY void debug_glGetProgramLocalParameterdvARB(GLenum target, GLuint
 	}
 }
 
-static APIENTRY void debug_glGetProgramLocalParameterfvARB(GLenum target, GLuint index, GLfloat *params)
+static void APIENTRY debug_glGetProgramLocalParameterfvARB(GLenum target, GLuint index, GLfloat *params)
 {
 	glGetProgramLocalParameterfvARB(target, index, params);
 	if (checkErrors)
@@ -24165,7 +24170,7 @@ static APIENTRY void debug_glGetProgramLocalParameterfvARB(GLenum target, GLuint
 	}
 }
 
-static APIENTRY void debug_glGetProgramivARB(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetProgramivARB(GLenum target, GLenum pname, GLint *params)
 {
 	glGetProgramivARB(target, pname, params);
 	if (checkErrors)
@@ -24182,7 +24187,7 @@ static APIENTRY void debug_glGetProgramivARB(GLenum target, GLenum pname, GLint 
 	}
 }
 
-static APIENTRY void debug_glGetProgramStringARB(GLenum target, GLenum pname, void *string)
+static void APIENTRY debug_glGetProgramStringARB(GLenum target, GLenum pname, void *string)
 {
 	glGetProgramStringARB(target, pname, string);
 	if (checkErrors)
@@ -24199,7 +24204,7 @@ static APIENTRY void debug_glGetProgramStringARB(GLenum target, GLenum pname, vo
 	}
 }
 
-static APIENTRY GLboolean debug_glIsProgramARB(GLuint program)
+static GLboolean APIENTRY debug_glIsProgramARB(GLuint program)
 {
 	GLboolean retVal = default_glIsProgramARB(program);
 	if (checkErrors)
@@ -24217,7 +24222,7 @@ static APIENTRY GLboolean debug_glIsProgramARB(GLuint program)
 	return retVal;
 }
 
-static APIENTRY void debug_glFramebufferTextureFaceARB(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face)
+static void APIENTRY debug_glFramebufferTextureFaceARB(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face)
 {
 	glFramebufferTextureFaceARB(target, attachment, texture, level, face);
 	if (checkErrors)
@@ -24234,7 +24239,7 @@ static APIENTRY void debug_glFramebufferTextureFaceARB(GLenum target, GLenum att
 	}
 }
 
-static APIENTRY void debug_glSpecializeShaderARB(GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue)
+static void APIENTRY debug_glSpecializeShaderARB(GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue)
 {
 	glSpecializeShaderARB(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue);
 	if (checkErrors)
@@ -24251,7 +24256,7 @@ static APIENTRY void debug_glSpecializeShaderARB(GLuint shader, const GLchar *pE
 	}
 }
 
-static APIENTRY void debug_glUniform1i64ARB(GLint location, GLint64 x)
+static void APIENTRY debug_glUniform1i64ARB(GLint location, GLint64 x)
 {
 	glUniform1i64ARB(location, x);
 	if (checkErrors)
@@ -24268,7 +24273,7 @@ static APIENTRY void debug_glUniform1i64ARB(GLint location, GLint64 x)
 	}
 }
 
-static APIENTRY void debug_glUniform2i64ARB(GLint location, GLint64 x, GLint64 y)
+static void APIENTRY debug_glUniform2i64ARB(GLint location, GLint64 x, GLint64 y)
 {
 	glUniform2i64ARB(location, x, y);
 	if (checkErrors)
@@ -24285,7 +24290,7 @@ static APIENTRY void debug_glUniform2i64ARB(GLint location, GLint64 x, GLint64 y
 	}
 }
 
-static APIENTRY void debug_glUniform3i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z)
+static void APIENTRY debug_glUniform3i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z)
 {
 	glUniform3i64ARB(location, x, y, z);
 	if (checkErrors)
@@ -24302,7 +24307,7 @@ static APIENTRY void debug_glUniform3i64ARB(GLint location, GLint64 x, GLint64 y
 	}
 }
 
-static APIENTRY void debug_glUniform4i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
+static void APIENTRY debug_glUniform4i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
 {
 	glUniform4i64ARB(location, x, y, z, w);
 	if (checkErrors)
@@ -24319,7 +24324,7 @@ static APIENTRY void debug_glUniform4i64ARB(GLint location, GLint64 x, GLint64 y
 	}
 }
 
-static APIENTRY void debug_glUniform1i64vARB(GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glUniform1i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
 	glUniform1i64vARB(location, count, value);
 	if (checkErrors)
@@ -24336,7 +24341,7 @@ static APIENTRY void debug_glUniform1i64vARB(GLint location, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glUniform2i64vARB(GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glUniform2i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
 	glUniform2i64vARB(location, count, value);
 	if (checkErrors)
@@ -24353,7 +24358,7 @@ static APIENTRY void debug_glUniform2i64vARB(GLint location, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glUniform3i64vARB(GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glUniform3i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
 	glUniform3i64vARB(location, count, value);
 	if (checkErrors)
@@ -24370,7 +24375,7 @@ static APIENTRY void debug_glUniform3i64vARB(GLint location, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glUniform4i64vARB(GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glUniform4i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
 	glUniform4i64vARB(location, count, value);
 	if (checkErrors)
@@ -24387,7 +24392,7 @@ static APIENTRY void debug_glUniform4i64vARB(GLint location, GLsizei count, cons
 	}
 }
 
-static APIENTRY void debug_glUniform1ui64ARB(GLint location, GLuint64 x)
+static void APIENTRY debug_glUniform1ui64ARB(GLint location, GLuint64 x)
 {
 	glUniform1ui64ARB(location, x);
 	if (checkErrors)
@@ -24404,7 +24409,7 @@ static APIENTRY void debug_glUniform1ui64ARB(GLint location, GLuint64 x)
 	}
 }
 
-static APIENTRY void debug_glUniform2ui64ARB(GLint location, GLuint64 x, GLuint64 y)
+static void APIENTRY debug_glUniform2ui64ARB(GLint location, GLuint64 x, GLuint64 y)
 {
 	glUniform2ui64ARB(location, x, y);
 	if (checkErrors)
@@ -24421,7 +24426,7 @@ static APIENTRY void debug_glUniform2ui64ARB(GLint location, GLuint64 x, GLuint6
 	}
 }
 
-static APIENTRY void debug_glUniform3ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
+static void APIENTRY debug_glUniform3ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
 {
 	glUniform3ui64ARB(location, x, y, z);
 	if (checkErrors)
@@ -24438,7 +24443,7 @@ static APIENTRY void debug_glUniform3ui64ARB(GLint location, GLuint64 x, GLuint6
 	}
 }
 
-static APIENTRY void debug_glUniform4ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
+static void APIENTRY debug_glUniform4ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
 {
 	glUniform4ui64ARB(location, x, y, z, w);
 	if (checkErrors)
@@ -24455,7 +24460,7 @@ static APIENTRY void debug_glUniform4ui64ARB(GLint location, GLuint64 x, GLuint6
 	}
 }
 
-static APIENTRY void debug_glUniform1ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glUniform1ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
 	glUniform1ui64vARB(location, count, value);
 	if (checkErrors)
@@ -24472,7 +24477,7 @@ static APIENTRY void debug_glUniform1ui64vARB(GLint location, GLsizei count, con
 	}
 }
 
-static APIENTRY void debug_glUniform2ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glUniform2ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
 	glUniform2ui64vARB(location, count, value);
 	if (checkErrors)
@@ -24489,7 +24494,7 @@ static APIENTRY void debug_glUniform2ui64vARB(GLint location, GLsizei count, con
 	}
 }
 
-static APIENTRY void debug_glUniform3ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glUniform3ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
 	glUniform3ui64vARB(location, count, value);
 	if (checkErrors)
@@ -24506,7 +24511,7 @@ static APIENTRY void debug_glUniform3ui64vARB(GLint location, GLsizei count, con
 	}
 }
 
-static APIENTRY void debug_glUniform4ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glUniform4ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
 	glUniform4ui64vARB(location, count, value);
 	if (checkErrors)
@@ -24523,7 +24528,7 @@ static APIENTRY void debug_glUniform4ui64vARB(GLint location, GLsizei count, con
 	}
 }
 
-static APIENTRY void debug_glGetUniformi64vARB(GLuint program, GLint location, GLint64 *params)
+static void APIENTRY debug_glGetUniformi64vARB(GLuint program, GLint location, GLint64 *params)
 {
 	glGetUniformi64vARB(program, location, params);
 	if (checkErrors)
@@ -24540,7 +24545,7 @@ static APIENTRY void debug_glGetUniformi64vARB(GLuint program, GLint location, G
 	}
 }
 
-static APIENTRY void debug_glGetUniformui64vARB(GLuint program, GLint location, GLuint64 *params)
+static void APIENTRY debug_glGetUniformui64vARB(GLuint program, GLint location, GLuint64 *params)
 {
 	glGetUniformui64vARB(program, location, params);
 	if (checkErrors)
@@ -24557,7 +24562,7 @@ static APIENTRY void debug_glGetUniformui64vARB(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glGetnUniformi64vARB(GLuint program, GLint location, GLsizei bufSize, GLint64 *params)
+static void APIENTRY debug_glGetnUniformi64vARB(GLuint program, GLint location, GLsizei bufSize, GLint64 *params)
 {
 	glGetnUniformi64vARB(program, location, bufSize, params);
 	if (checkErrors)
@@ -24574,7 +24579,7 @@ static APIENTRY void debug_glGetnUniformi64vARB(GLuint program, GLint location, 
 	}
 }
 
-static APIENTRY void debug_glGetnUniformui64vARB(GLuint program, GLint location, GLsizei bufSize, GLuint64 *params)
+static void APIENTRY debug_glGetnUniformui64vARB(GLuint program, GLint location, GLsizei bufSize, GLuint64 *params)
 {
 	glGetnUniformui64vARB(program, location, bufSize, params);
 	if (checkErrors)
@@ -24591,7 +24596,7 @@ static APIENTRY void debug_glGetnUniformui64vARB(GLuint program, GLint location,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1i64ARB(GLuint program, GLint location, GLint64 x)
+static void APIENTRY debug_glProgramUniform1i64ARB(GLuint program, GLint location, GLint64 x)
 {
 	glProgramUniform1i64ARB(program, location, x);
 	if (checkErrors)
@@ -24608,7 +24613,7 @@ static APIENTRY void debug_glProgramUniform1i64ARB(GLuint program, GLint locatio
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y)
+static void APIENTRY debug_glProgramUniform2i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y)
 {
 	glProgramUniform2i64ARB(program, location, x, y);
 	if (checkErrors)
@@ -24625,7 +24630,7 @@ static APIENTRY void debug_glProgramUniform2i64ARB(GLuint program, GLint locatio
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z)
+static void APIENTRY debug_glProgramUniform3i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z)
 {
 	glProgramUniform3i64ARB(program, location, x, y, z);
 	if (checkErrors)
@@ -24642,7 +24647,7 @@ static APIENTRY void debug_glProgramUniform3i64ARB(GLuint program, GLint locatio
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
+static void APIENTRY debug_glProgramUniform4i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
 {
 	glProgramUniform4i64ARB(program, location, x, y, z, w);
 	if (checkErrors)
@@ -24659,7 +24664,7 @@ static APIENTRY void debug_glProgramUniform4i64ARB(GLuint program, GLint locatio
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glProgramUniform1i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
 	glProgramUniform1i64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24676,7 +24681,7 @@ static APIENTRY void debug_glProgramUniform1i64vARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glProgramUniform2i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
 	glProgramUniform2i64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24693,7 +24698,7 @@ static APIENTRY void debug_glProgramUniform2i64vARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glProgramUniform3i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
 	glProgramUniform3i64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24710,7 +24715,7 @@ static APIENTRY void debug_glProgramUniform3i64vARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
+static void APIENTRY debug_glProgramUniform4i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
 	glProgramUniform4i64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24727,7 +24732,7 @@ static APIENTRY void debug_glProgramUniform4i64vARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1ui64ARB(GLuint program, GLint location, GLuint64 x)
+static void APIENTRY debug_glProgramUniform1ui64ARB(GLuint program, GLint location, GLuint64 x)
 {
 	glProgramUniform1ui64ARB(program, location, x);
 	if (checkErrors)
@@ -24744,7 +24749,7 @@ static APIENTRY void debug_glProgramUniform1ui64ARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y)
+static void APIENTRY debug_glProgramUniform2ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y)
 {
 	glProgramUniform2ui64ARB(program, location, x, y);
 	if (checkErrors)
@@ -24761,7 +24766,7 @@ static APIENTRY void debug_glProgramUniform2ui64ARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
+static void APIENTRY debug_glProgramUniform3ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
 {
 	glProgramUniform3ui64ARB(program, location, x, y, z);
 	if (checkErrors)
@@ -24778,7 +24783,7 @@ static APIENTRY void debug_glProgramUniform3ui64ARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
+static void APIENTRY debug_glProgramUniform4ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
 {
 	glProgramUniform4ui64ARB(program, location, x, y, z, w);
 	if (checkErrors)
@@ -24795,7 +24800,7 @@ static APIENTRY void debug_glProgramUniform4ui64ARB(GLuint program, GLint locati
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glProgramUniform1ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
 	glProgramUniform1ui64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24812,7 +24817,7 @@ static APIENTRY void debug_glProgramUniform1ui64vARB(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glProgramUniform2ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
 	glProgramUniform2ui64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24829,7 +24834,7 @@ static APIENTRY void debug_glProgramUniform2ui64vARB(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glProgramUniform3ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
 	glProgramUniform3ui64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24846,7 +24851,7 @@ static APIENTRY void debug_glProgramUniform3ui64vARB(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
+static void APIENTRY debug_glProgramUniform4ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
 	glProgramUniform4ui64vARB(program, location, count, value);
 	if (checkErrors)
@@ -24863,7 +24868,7 @@ static APIENTRY void debug_glProgramUniform4ui64vARB(GLuint program, GLint locat
 	}
 }
 
-static APIENTRY void debug_glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table)
+static void APIENTRY debug_glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table)
 {
 	glColorTable(target, internalformat, width, format, type, table);
 	if (checkErrors)
@@ -24880,7 +24885,7 @@ static APIENTRY void debug_glColorTable(GLenum target, GLenum internalformat, GL
 	}
 }
 
-static APIENTRY void debug_glColorTableParameterfv(GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glColorTableParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
 	glColorTableParameterfv(target, pname, params);
 	if (checkErrors)
@@ -24897,7 +24902,7 @@ static APIENTRY void debug_glColorTableParameterfv(GLenum target, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glColorTableParameteriv(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glColorTableParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
 	glColorTableParameteriv(target, pname, params);
 	if (checkErrors)
@@ -24914,7 +24919,7 @@ static APIENTRY void debug_glColorTableParameteriv(GLenum target, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glCopyColorTable(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyColorTable(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
 {
 	glCopyColorTable(target, internalformat, x, y, width);
 	if (checkErrors)
@@ -24931,7 +24936,7 @@ static APIENTRY void debug_glCopyColorTable(GLenum target, GLenum internalformat
 	}
 }
 
-static APIENTRY void debug_glGetColorTable(GLenum target, GLenum format, GLenum type, void *table)
+static void APIENTRY debug_glGetColorTable(GLenum target, GLenum format, GLenum type, void *table)
 {
 	glGetColorTable(target, format, type, table);
 	if (checkErrors)
@@ -24948,7 +24953,7 @@ static APIENTRY void debug_glGetColorTable(GLenum target, GLenum format, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetColorTableParameterfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetColorTableParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetColorTableParameterfv(target, pname, params);
 	if (checkErrors)
@@ -24965,7 +24970,7 @@ static APIENTRY void debug_glGetColorTableParameterfv(GLenum target, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glGetColorTableParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetColorTableParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetColorTableParameteriv(target, pname, params);
 	if (checkErrors)
@@ -24982,7 +24987,7 @@ static APIENTRY void debug_glGetColorTableParameteriv(GLenum target, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glColorSubTable(GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glColorSubTable(GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data)
 {
 	glColorSubTable(target, start, count, format, type, data);
 	if (checkErrors)
@@ -24999,7 +25004,7 @@ static APIENTRY void debug_glColorSubTable(GLenum target, GLsizei start, GLsizei
 	}
 }
 
-static APIENTRY void debug_glCopyColorSubTable(GLenum target, GLsizei start, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyColorSubTable(GLenum target, GLsizei start, GLint x, GLint y, GLsizei width)
 {
 	glCopyColorSubTable(target, start, x, y, width);
 	if (checkErrors)
@@ -25016,7 +25021,7 @@ static APIENTRY void debug_glCopyColorSubTable(GLenum target, GLsizei start, GLi
 	}
 }
 
-static APIENTRY void debug_glConvolutionFilter1D(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image)
+static void APIENTRY debug_glConvolutionFilter1D(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image)
 {
 	glConvolutionFilter1D(target, internalformat, width, format, type, image);
 	if (checkErrors)
@@ -25033,7 +25038,7 @@ static APIENTRY void debug_glConvolutionFilter1D(GLenum target, GLenum internalf
 	}
 }
 
-static APIENTRY void debug_glConvolutionFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image)
+static void APIENTRY debug_glConvolutionFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image)
 {
 	glConvolutionFilter2D(target, internalformat, width, height, format, type, image);
 	if (checkErrors)
@@ -25050,7 +25055,7 @@ static APIENTRY void debug_glConvolutionFilter2D(GLenum target, GLenum internalf
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameterf(GLenum target, GLenum pname, GLfloat params)
+static void APIENTRY debug_glConvolutionParameterf(GLenum target, GLenum pname, GLfloat params)
 {
 	glConvolutionParameterf(target, pname, params);
 	if (checkErrors)
@@ -25067,7 +25072,7 @@ static APIENTRY void debug_glConvolutionParameterf(GLenum target, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameterfv(GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glConvolutionParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
 	glConvolutionParameterfv(target, pname, params);
 	if (checkErrors)
@@ -25084,7 +25089,7 @@ static APIENTRY void debug_glConvolutionParameterfv(GLenum target, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameteri(GLenum target, GLenum pname, GLint params)
+static void APIENTRY debug_glConvolutionParameteri(GLenum target, GLenum pname, GLint params)
 {
 	glConvolutionParameteri(target, pname, params);
 	if (checkErrors)
@@ -25101,7 +25106,7 @@ static APIENTRY void debug_glConvolutionParameteri(GLenum target, GLenum pname, 
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameteriv(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glConvolutionParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
 	glConvolutionParameteriv(target, pname, params);
 	if (checkErrors)
@@ -25118,7 +25123,7 @@ static APIENTRY void debug_glConvolutionParameteriv(GLenum target, GLenum pname,
 	}
 }
 
-static APIENTRY void debug_glCopyConvolutionFilter1D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyConvolutionFilter1D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
 {
 	glCopyConvolutionFilter1D(target, internalformat, x, y, width);
 	if (checkErrors)
@@ -25135,7 +25140,7 @@ static APIENTRY void debug_glCopyConvolutionFilter1D(GLenum target, GLenum inter
 	}
 }
 
-static APIENTRY void debug_glCopyConvolutionFilter2D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyConvolutionFilter2D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyConvolutionFilter2D(target, internalformat, x, y, width, height);
 	if (checkErrors)
@@ -25152,7 +25157,7 @@ static APIENTRY void debug_glCopyConvolutionFilter2D(GLenum target, GLenum inter
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionFilter(GLenum target, GLenum format, GLenum type, void *image)
+static void APIENTRY debug_glGetConvolutionFilter(GLenum target, GLenum format, GLenum type, void *image)
 {
 	glGetConvolutionFilter(target, format, type, image);
 	if (checkErrors)
@@ -25169,7 +25174,7 @@ static APIENTRY void debug_glGetConvolutionFilter(GLenum target, GLenum format, 
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionParameterfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetConvolutionParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetConvolutionParameterfv(target, pname, params);
 	if (checkErrors)
@@ -25186,7 +25191,7 @@ static APIENTRY void debug_glGetConvolutionParameterfv(GLenum target, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetConvolutionParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetConvolutionParameteriv(target, pname, params);
 	if (checkErrors)
@@ -25203,7 +25208,7 @@ static APIENTRY void debug_glGetConvolutionParameteriv(GLenum target, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetSeparableFilter(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
+static void APIENTRY debug_glGetSeparableFilter(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
 {
 	glGetSeparableFilter(target, format, type, row, column, span);
 	if (checkErrors)
@@ -25220,7 +25225,7 @@ static APIENTRY void debug_glGetSeparableFilter(GLenum target, GLenum format, GL
 	}
 }
 
-static APIENTRY void debug_glSeparableFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column)
+static void APIENTRY debug_glSeparableFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column)
 {
 	glSeparableFilter2D(target, internalformat, width, height, format, type, row, column);
 	if (checkErrors)
@@ -25237,7 +25242,7 @@ static APIENTRY void debug_glSeparableFilter2D(GLenum target, GLenum internalfor
 	}
 }
 
-static APIENTRY void debug_glGetHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
+static void APIENTRY debug_glGetHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
 	glGetHistogram(target, reset, format, type, values);
 	if (checkErrors)
@@ -25254,7 +25259,7 @@ static APIENTRY void debug_glGetHistogram(GLenum target, GLboolean reset, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetHistogramParameterfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetHistogramParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetHistogramParameterfv(target, pname, params);
 	if (checkErrors)
@@ -25271,7 +25276,7 @@ static APIENTRY void debug_glGetHistogramParameterfv(GLenum target, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glGetHistogramParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetHistogramParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetHistogramParameteriv(target, pname, params);
 	if (checkErrors)
@@ -25288,7 +25293,7 @@ static APIENTRY void debug_glGetHistogramParameteriv(GLenum target, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glGetMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
+static void APIENTRY debug_glGetMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
 	glGetMinmax(target, reset, format, type, values);
 	if (checkErrors)
@@ -25305,7 +25310,7 @@ static APIENTRY void debug_glGetMinmax(GLenum target, GLboolean reset, GLenum fo
 	}
 }
 
-static APIENTRY void debug_glGetMinmaxParameterfv(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMinmaxParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetMinmaxParameterfv(target, pname, params);
 	if (checkErrors)
@@ -25322,7 +25327,7 @@ static APIENTRY void debug_glGetMinmaxParameterfv(GLenum target, GLenum pname, G
 	}
 }
 
-static APIENTRY void debug_glGetMinmaxParameteriv(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMinmaxParameteriv(GLenum target, GLenum pname, GLint *params)
 {
 	glGetMinmaxParameteriv(target, pname, params);
 	if (checkErrors)
@@ -25339,7 +25344,7 @@ static APIENTRY void debug_glGetMinmaxParameteriv(GLenum target, GLenum pname, G
 	}
 }
 
-static APIENTRY void debug_glHistogram(GLenum target, GLsizei width, GLenum internalformat, GLboolean sink)
+static void APIENTRY debug_glHistogram(GLenum target, GLsizei width, GLenum internalformat, GLboolean sink)
 {
 	glHistogram(target, width, internalformat, sink);
 	if (checkErrors)
@@ -25356,7 +25361,7 @@ static APIENTRY void debug_glHistogram(GLenum target, GLsizei width, GLenum inte
 	}
 }
 
-static APIENTRY void debug_glMinmax(GLenum target, GLenum internalformat, GLboolean sink)
+static void APIENTRY debug_glMinmax(GLenum target, GLenum internalformat, GLboolean sink)
 {
 	glMinmax(target, internalformat, sink);
 	if (checkErrors)
@@ -25373,7 +25378,7 @@ static APIENTRY void debug_glMinmax(GLenum target, GLenum internalformat, GLbool
 	}
 }
 
-static APIENTRY void debug_glResetHistogram(GLenum target)
+static void APIENTRY debug_glResetHistogram(GLenum target)
 {
 	glResetHistogram(target);
 	if (checkErrors)
@@ -25390,7 +25395,7 @@ static APIENTRY void debug_glResetHistogram(GLenum target)
 	}
 }
 
-static APIENTRY void debug_glResetMinmax(GLenum target)
+static void APIENTRY debug_glResetMinmax(GLenum target)
 {
 	glResetMinmax(target);
 	if (checkErrors)
@@ -25407,7 +25412,7 @@ static APIENTRY void debug_glResetMinmax(GLenum target)
 	}
 }
 
-static APIENTRY void debug_glMultiDrawArraysIndirectCountARB(GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
+static void APIENTRY debug_glMultiDrawArraysIndirectCountARB(GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
 {
 	glMultiDrawArraysIndirectCountARB(mode, indirect, drawcount, maxdrawcount, stride);
 	if (checkErrors)
@@ -25424,7 +25429,7 @@ static APIENTRY void debug_glMultiDrawArraysIndirectCountARB(GLenum mode, GLintp
 	}
 }
 
-static APIENTRY void debug_glMultiDrawElementsIndirectCountARB(GLenum mode, GLenum type, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
+static void APIENTRY debug_glMultiDrawElementsIndirectCountARB(GLenum mode, GLenum type, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
 {
 	glMultiDrawElementsIndirectCountARB(mode, type, indirect, drawcount, maxdrawcount, stride);
 	if (checkErrors)
@@ -25441,7 +25446,7 @@ static APIENTRY void debug_glMultiDrawElementsIndirectCountARB(GLenum mode, GLen
 	}
 }
 
-static APIENTRY void debug_glCurrentPaletteMatrixARB(GLint index)
+static void APIENTRY debug_glCurrentPaletteMatrixARB(GLint index)
 {
 	glCurrentPaletteMatrixARB(index);
 	if (checkErrors)
@@ -25458,7 +25463,7 @@ static APIENTRY void debug_glCurrentPaletteMatrixARB(GLint index)
 	}
 }
 
-static APIENTRY void debug_glMatrixIndexubvARB(GLint size, const GLubyte *indices)
+static void APIENTRY debug_glMatrixIndexubvARB(GLint size, const GLubyte *indices)
 {
 	glMatrixIndexubvARB(size, indices);
 	if (checkErrors)
@@ -25475,7 +25480,7 @@ static APIENTRY void debug_glMatrixIndexubvARB(GLint size, const GLubyte *indice
 	}
 }
 
-static APIENTRY void debug_glMatrixIndexusvARB(GLint size, const GLushort *indices)
+static void APIENTRY debug_glMatrixIndexusvARB(GLint size, const GLushort *indices)
 {
 	glMatrixIndexusvARB(size, indices);
 	if (checkErrors)
@@ -25492,7 +25497,7 @@ static APIENTRY void debug_glMatrixIndexusvARB(GLint size, const GLushort *indic
 	}
 }
 
-static APIENTRY void debug_glMatrixIndexuivARB(GLint size, const GLuint *indices)
+static void APIENTRY debug_glMatrixIndexuivARB(GLint size, const GLuint *indices)
 {
 	glMatrixIndexuivARB(size, indices);
 	if (checkErrors)
@@ -25509,7 +25514,7 @@ static APIENTRY void debug_glMatrixIndexuivARB(GLint size, const GLuint *indices
 	}
 }
 
-static APIENTRY void debug_glMatrixIndexPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glMatrixIndexPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glMatrixIndexPointerARB(size, type, stride, pointer);
 	if (checkErrors)
@@ -25526,7 +25531,7 @@ static APIENTRY void debug_glMatrixIndexPointerARB(GLint size, GLenum type, GLsi
 	}
 }
 
-static APIENTRY void debug_glMaxShaderCompilerThreadsARB(GLuint count)
+static void APIENTRY debug_glMaxShaderCompilerThreadsARB(GLuint count)
 {
 	glMaxShaderCompilerThreadsARB(count);
 	if (checkErrors)
@@ -25543,7 +25548,7 @@ static APIENTRY void debug_glMaxShaderCompilerThreadsARB(GLuint count)
 	}
 }
 
-static APIENTRY void debug_glFramebufferSampleLocationsfvARB(GLenum target, GLuint start, GLsizei count, const GLfloat *v)
+static void APIENTRY debug_glFramebufferSampleLocationsfvARB(GLenum target, GLuint start, GLsizei count, const GLfloat *v)
 {
 	glFramebufferSampleLocationsfvARB(target, start, count, v);
 	if (checkErrors)
@@ -25560,7 +25565,7 @@ static APIENTRY void debug_glFramebufferSampleLocationsfvARB(GLenum target, GLui
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferSampleLocationsfvARB(GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v)
+static void APIENTRY debug_glNamedFramebufferSampleLocationsfvARB(GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v)
 {
 	glNamedFramebufferSampleLocationsfvARB(framebuffer, start, count, v);
 	if (checkErrors)
@@ -25577,7 +25582,7 @@ static APIENTRY void debug_glNamedFramebufferSampleLocationsfvARB(GLuint framebu
 	}
 }
 
-static APIENTRY void debug_glEvaluateDepthValuesARB()
+static void APIENTRY debug_glEvaluateDepthValuesARB()
 {
 	glEvaluateDepthValuesARB();
 	if (checkErrors)
@@ -25594,7 +25599,7 @@ static APIENTRY void debug_glEvaluateDepthValuesARB()
 	}
 }
 
-static APIENTRY void debug_glDeleteObjectARB(GLhandleARB obj)
+static void APIENTRY debug_glDeleteObjectARB(GLhandleARB obj)
 {
 	glDeleteObjectARB(obj);
 	if (checkErrors)
@@ -25611,7 +25616,7 @@ static APIENTRY void debug_glDeleteObjectARB(GLhandleARB obj)
 	}
 }
 
-static APIENTRY GLhandleARB debug_glGetHandleARB(GLenum pname)
+static GLhandleARB APIENTRY debug_glGetHandleARB(GLenum pname)
 {
 	GLhandleARB retVal = default_glGetHandleARB(pname);
 	if (checkErrors)
@@ -25629,7 +25634,7 @@ static APIENTRY GLhandleARB debug_glGetHandleARB(GLenum pname)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params)
 {
 	glGetObjectParameterfvARB(obj, pname, params);
 	if (checkErrors)
@@ -25646,7 +25651,7 @@ static APIENTRY void debug_glGetObjectParameterfvARB(GLhandleARB obj, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params)
 {
 	glGetObjectParameterivARB(obj, pname, params);
 	if (checkErrors)
@@ -25663,7 +25668,7 @@ static APIENTRY void debug_glGetObjectParameterivARB(GLhandleARB obj, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog)
+static void APIENTRY debug_glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog)
 {
 	glGetInfoLogARB(obj, maxLength, length, infoLog);
 	if (checkErrors)
@@ -25680,7 +25685,7 @@ static APIENTRY void debug_glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, G
 	}
 }
 
-static APIENTRY void debug_glGetAttachedObjectsARB(GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj)
+static void APIENTRY debug_glGetAttachedObjectsARB(GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj)
 {
 	glGetAttachedObjectsARB(containerObj, maxCount, count, obj);
 	if (checkErrors)
@@ -25697,7 +25702,7 @@ static APIENTRY void debug_glGetAttachedObjectsARB(GLhandleARB containerObj, GLs
 	}
 }
 
-static APIENTRY void debug_glNamedStringARB(GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string)
+static void APIENTRY debug_glNamedStringARB(GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string)
 {
 	glNamedStringARB(type, namelen, name, stringlen, string);
 	if (checkErrors)
@@ -25714,7 +25719,7 @@ static APIENTRY void debug_glNamedStringARB(GLenum type, GLint namelen, const GL
 	}
 }
 
-static APIENTRY void debug_glDeleteNamedStringARB(GLint namelen, const GLchar *name)
+static void APIENTRY debug_glDeleteNamedStringARB(GLint namelen, const GLchar *name)
 {
 	glDeleteNamedStringARB(namelen, name);
 	if (checkErrors)
@@ -25731,7 +25736,7 @@ static APIENTRY void debug_glDeleteNamedStringARB(GLint namelen, const GLchar *n
 	}
 }
 
-static APIENTRY void debug_glCompileShaderIncludeARB(GLuint shader, GLsizei count, const GLchar *const*path, const GLint *length)
+static void APIENTRY debug_glCompileShaderIncludeARB(GLuint shader, GLsizei count, const GLchar *const*path, const GLint *length)
 {
 	glCompileShaderIncludeARB(shader, count, path, length);
 	if (checkErrors)
@@ -25748,7 +25753,7 @@ static APIENTRY void debug_glCompileShaderIncludeARB(GLuint shader, GLsizei coun
 	}
 }
 
-static APIENTRY GLboolean debug_glIsNamedStringARB(GLint namelen, const GLchar *name)
+static GLboolean APIENTRY debug_glIsNamedStringARB(GLint namelen, const GLchar *name)
 {
 	GLboolean retVal = default_glIsNamedStringARB(namelen, name);
 	if (checkErrors)
@@ -25766,7 +25771,7 @@ static APIENTRY GLboolean debug_glIsNamedStringARB(GLint namelen, const GLchar *
 	return retVal;
 }
 
-static APIENTRY void debug_glGetNamedStringARB(GLint namelen, const GLchar *name, GLsizei bufSize, GLint *stringlen, GLchar *string)
+static void APIENTRY debug_glGetNamedStringARB(GLint namelen, const GLchar *name, GLsizei bufSize, GLint *stringlen, GLchar *string)
 {
 	glGetNamedStringARB(namelen, name, bufSize, stringlen, string);
 	if (checkErrors)
@@ -25783,7 +25788,7 @@ static APIENTRY void debug_glGetNamedStringARB(GLint namelen, const GLchar *name
 	}
 }
 
-static APIENTRY void debug_glGetNamedStringivARB(GLint namelen, const GLchar *name, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedStringivARB(GLint namelen, const GLchar *name, GLenum pname, GLint *params)
 {
 	glGetNamedStringivARB(namelen, name, pname, params);
 	if (checkErrors)
@@ -25800,7 +25805,7 @@ static APIENTRY void debug_glGetNamedStringivARB(GLint namelen, const GLchar *na
 	}
 }
 
-static APIENTRY void debug_glBufferPageCommitmentARB(GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit)
+static void APIENTRY debug_glBufferPageCommitmentARB(GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
 	glBufferPageCommitmentARB(target, offset, size, commit);
 	if (checkErrors)
@@ -25817,7 +25822,7 @@ static APIENTRY void debug_glBufferPageCommitmentARB(GLenum target, GLintptr off
 	}
 }
 
-static APIENTRY void debug_glNamedBufferPageCommitmentEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
+static void APIENTRY debug_glNamedBufferPageCommitmentEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
 	glNamedBufferPageCommitmentEXT(buffer, offset, size, commit);
 	if (checkErrors)
@@ -25834,7 +25839,7 @@ static APIENTRY void debug_glNamedBufferPageCommitmentEXT(GLuint buffer, GLintpt
 	}
 }
 
-static APIENTRY void debug_glNamedBufferPageCommitmentARB(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
+static void APIENTRY debug_glNamedBufferPageCommitmentARB(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
 	glNamedBufferPageCommitmentARB(buffer, offset, size, commit);
 	if (checkErrors)
@@ -25851,7 +25856,7 @@ static APIENTRY void debug_glNamedBufferPageCommitmentARB(GLuint buffer, GLintpt
 	}
 }
 
-static APIENTRY void debug_glTexPageCommitmentARB(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
+static void APIENTRY debug_glTexPageCommitmentARB(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
 {
 	glTexPageCommitmentARB(target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 	if (checkErrors)
@@ -25868,7 +25873,7 @@ static APIENTRY void debug_glTexPageCommitmentARB(GLenum target, GLint level, GL
 	}
 }
 
-static APIENTRY void debug_glWeightbvARB(GLint size, const GLbyte *weights)
+static void APIENTRY debug_glWeightbvARB(GLint size, const GLbyte *weights)
 {
 	glWeightbvARB(size, weights);
 	if (checkErrors)
@@ -25885,7 +25890,7 @@ static APIENTRY void debug_glWeightbvARB(GLint size, const GLbyte *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightsvARB(GLint size, const GLshort *weights)
+static void APIENTRY debug_glWeightsvARB(GLint size, const GLshort *weights)
 {
 	glWeightsvARB(size, weights);
 	if (checkErrors)
@@ -25902,7 +25907,7 @@ static APIENTRY void debug_glWeightsvARB(GLint size, const GLshort *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightivARB(GLint size, const GLint *weights)
+static void APIENTRY debug_glWeightivARB(GLint size, const GLint *weights)
 {
 	glWeightivARB(size, weights);
 	if (checkErrors)
@@ -25919,7 +25924,7 @@ static APIENTRY void debug_glWeightivARB(GLint size, const GLint *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightfvARB(GLint size, const GLfloat *weights)
+static void APIENTRY debug_glWeightfvARB(GLint size, const GLfloat *weights)
 {
 	glWeightfvARB(size, weights);
 	if (checkErrors)
@@ -25936,7 +25941,7 @@ static APIENTRY void debug_glWeightfvARB(GLint size, const GLfloat *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightdvARB(GLint size, const GLdouble *weights)
+static void APIENTRY debug_glWeightdvARB(GLint size, const GLdouble *weights)
 {
 	glWeightdvARB(size, weights);
 	if (checkErrors)
@@ -25953,7 +25958,7 @@ static APIENTRY void debug_glWeightdvARB(GLint size, const GLdouble *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightubvARB(GLint size, const GLubyte *weights)
+static void APIENTRY debug_glWeightubvARB(GLint size, const GLubyte *weights)
 {
 	glWeightubvARB(size, weights);
 	if (checkErrors)
@@ -25970,7 +25975,7 @@ static APIENTRY void debug_glWeightubvARB(GLint size, const GLubyte *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightusvARB(GLint size, const GLushort *weights)
+static void APIENTRY debug_glWeightusvARB(GLint size, const GLushort *weights)
 {
 	glWeightusvARB(size, weights);
 	if (checkErrors)
@@ -25987,7 +25992,7 @@ static APIENTRY void debug_glWeightusvARB(GLint size, const GLushort *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightuivARB(GLint size, const GLuint *weights)
+static void APIENTRY debug_glWeightuivARB(GLint size, const GLuint *weights)
 {
 	glWeightuivARB(size, weights);
 	if (checkErrors)
@@ -26004,7 +26009,7 @@ static APIENTRY void debug_glWeightuivARB(GLint size, const GLuint *weights)
 	}
 }
 
-static APIENTRY void debug_glWeightPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glWeightPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glWeightPointerARB(size, type, stride, pointer);
 	if (checkErrors)
@@ -26021,7 +26026,7 @@ static APIENTRY void debug_glWeightPointerARB(GLint size, GLenum type, GLsizei s
 	}
 }
 
-static APIENTRY void debug_glVertexBlendARB(GLint count)
+static void APIENTRY debug_glVertexBlendARB(GLint count)
 {
 	glVertexBlendARB(count);
 	if (checkErrors)
@@ -26038,7 +26043,7 @@ static APIENTRY void debug_glVertexBlendARB(GLint count)
 	}
 }
 
-static APIENTRY void debug_glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
+static void APIENTRY debug_glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 {
 	glEGLImageTargetTexture2DOES(target, image);
 	if (checkErrors)
@@ -26055,7 +26060,7 @@ static APIENTRY void debug_glEGLImageTargetTexture2DOES(GLenum target, GLeglImag
 	}
 }
 
-static APIENTRY void debug_glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
+static void APIENTRY debug_glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
 {
 	glEGLImageTargetRenderbufferStorageOES(target, image);
 	if (checkErrors)
@@ -26072,7 +26077,7 @@ static APIENTRY void debug_glEGLImageTargetRenderbufferStorageOES(GLenum target,
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1bOES(GLenum texture, GLbyte s)
+static void APIENTRY debug_glMultiTexCoord1bOES(GLenum texture, GLbyte s)
 {
 	glMultiTexCoord1bOES(texture, s);
 	if (checkErrors)
@@ -26089,7 +26094,7 @@ static APIENTRY void debug_glMultiTexCoord1bOES(GLenum texture, GLbyte s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1bvOES(GLenum texture, const GLbyte *coords)
+static void APIENTRY debug_glMultiTexCoord1bvOES(GLenum texture, const GLbyte *coords)
 {
 	glMultiTexCoord1bvOES(texture, coords);
 	if (checkErrors)
@@ -26106,7 +26111,7 @@ static APIENTRY void debug_glMultiTexCoord1bvOES(GLenum texture, const GLbyte *c
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2bOES(GLenum texture, GLbyte s, GLbyte t)
+static void APIENTRY debug_glMultiTexCoord2bOES(GLenum texture, GLbyte s, GLbyte t)
 {
 	glMultiTexCoord2bOES(texture, s, t);
 	if (checkErrors)
@@ -26123,7 +26128,7 @@ static APIENTRY void debug_glMultiTexCoord2bOES(GLenum texture, GLbyte s, GLbyte
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2bvOES(GLenum texture, const GLbyte *coords)
+static void APIENTRY debug_glMultiTexCoord2bvOES(GLenum texture, const GLbyte *coords)
 {
 	glMultiTexCoord2bvOES(texture, coords);
 	if (checkErrors)
@@ -26140,7 +26145,7 @@ static APIENTRY void debug_glMultiTexCoord2bvOES(GLenum texture, const GLbyte *c
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r)
+static void APIENTRY debug_glMultiTexCoord3bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r)
 {
 	glMultiTexCoord3bOES(texture, s, t, r);
 	if (checkErrors)
@@ -26157,7 +26162,7 @@ static APIENTRY void debug_glMultiTexCoord3bOES(GLenum texture, GLbyte s, GLbyte
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3bvOES(GLenum texture, const GLbyte *coords)
+static void APIENTRY debug_glMultiTexCoord3bvOES(GLenum texture, const GLbyte *coords)
 {
 	glMultiTexCoord3bvOES(texture, coords);
 	if (checkErrors)
@@ -26174,7 +26179,7 @@ static APIENTRY void debug_glMultiTexCoord3bvOES(GLenum texture, const GLbyte *c
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r, GLbyte q)
+static void APIENTRY debug_glMultiTexCoord4bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r, GLbyte q)
 {
 	glMultiTexCoord4bOES(texture, s, t, r, q);
 	if (checkErrors)
@@ -26191,7 +26196,7 @@ static APIENTRY void debug_glMultiTexCoord4bOES(GLenum texture, GLbyte s, GLbyte
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4bvOES(GLenum texture, const GLbyte *coords)
+static void APIENTRY debug_glMultiTexCoord4bvOES(GLenum texture, const GLbyte *coords)
 {
 	glMultiTexCoord4bvOES(texture, coords);
 	if (checkErrors)
@@ -26208,7 +26213,7 @@ static APIENTRY void debug_glMultiTexCoord4bvOES(GLenum texture, const GLbyte *c
 	}
 }
 
-static APIENTRY void debug_glTexCoord1bOES(GLbyte s)
+static void APIENTRY debug_glTexCoord1bOES(GLbyte s)
 {
 	glTexCoord1bOES(s);
 	if (checkErrors)
@@ -26225,7 +26230,7 @@ static APIENTRY void debug_glTexCoord1bOES(GLbyte s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1bvOES(const GLbyte *coords)
+static void APIENTRY debug_glTexCoord1bvOES(const GLbyte *coords)
 {
 	glTexCoord1bvOES(coords);
 	if (checkErrors)
@@ -26242,7 +26247,7 @@ static APIENTRY void debug_glTexCoord1bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2bOES(GLbyte s, GLbyte t)
+static void APIENTRY debug_glTexCoord2bOES(GLbyte s, GLbyte t)
 {
 	glTexCoord2bOES(s, t);
 	if (checkErrors)
@@ -26259,7 +26264,7 @@ static APIENTRY void debug_glTexCoord2bOES(GLbyte s, GLbyte t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2bvOES(const GLbyte *coords)
+static void APIENTRY debug_glTexCoord2bvOES(const GLbyte *coords)
 {
 	glTexCoord2bvOES(coords);
 	if (checkErrors)
@@ -26276,7 +26281,7 @@ static APIENTRY void debug_glTexCoord2bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3bOES(GLbyte s, GLbyte t, GLbyte r)
+static void APIENTRY debug_glTexCoord3bOES(GLbyte s, GLbyte t, GLbyte r)
 {
 	glTexCoord3bOES(s, t, r);
 	if (checkErrors)
@@ -26293,7 +26298,7 @@ static APIENTRY void debug_glTexCoord3bOES(GLbyte s, GLbyte t, GLbyte r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3bvOES(const GLbyte *coords)
+static void APIENTRY debug_glTexCoord3bvOES(const GLbyte *coords)
 {
 	glTexCoord3bvOES(coords);
 	if (checkErrors)
@@ -26310,7 +26315,7 @@ static APIENTRY void debug_glTexCoord3bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4bOES(GLbyte s, GLbyte t, GLbyte r, GLbyte q)
+static void APIENTRY debug_glTexCoord4bOES(GLbyte s, GLbyte t, GLbyte r, GLbyte q)
 {
 	glTexCoord4bOES(s, t, r, q);
 	if (checkErrors)
@@ -26327,7 +26332,7 @@ static APIENTRY void debug_glTexCoord4bOES(GLbyte s, GLbyte t, GLbyte r, GLbyte 
 	}
 }
 
-static APIENTRY void debug_glTexCoord4bvOES(const GLbyte *coords)
+static void APIENTRY debug_glTexCoord4bvOES(const GLbyte *coords)
 {
 	glTexCoord4bvOES(coords);
 	if (checkErrors)
@@ -26344,7 +26349,7 @@ static APIENTRY void debug_glTexCoord4bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glVertex2bOES(GLbyte x, GLbyte y)
+static void APIENTRY debug_glVertex2bOES(GLbyte x, GLbyte y)
 {
 	glVertex2bOES(x, y);
 	if (checkErrors)
@@ -26361,7 +26366,7 @@ static APIENTRY void debug_glVertex2bOES(GLbyte x, GLbyte y)
 	}
 }
 
-static APIENTRY void debug_glVertex2bvOES(const GLbyte *coords)
+static void APIENTRY debug_glVertex2bvOES(const GLbyte *coords)
 {
 	glVertex2bvOES(coords);
 	if (checkErrors)
@@ -26378,7 +26383,7 @@ static APIENTRY void debug_glVertex2bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glVertex3bOES(GLbyte x, GLbyte y, GLbyte z)
+static void APIENTRY debug_glVertex3bOES(GLbyte x, GLbyte y, GLbyte z)
 {
 	glVertex3bOES(x, y, z);
 	if (checkErrors)
@@ -26395,7 +26400,7 @@ static APIENTRY void debug_glVertex3bOES(GLbyte x, GLbyte y, GLbyte z)
 	}
 }
 
-static APIENTRY void debug_glVertex3bvOES(const GLbyte *coords)
+static void APIENTRY debug_glVertex3bvOES(const GLbyte *coords)
 {
 	glVertex3bvOES(coords);
 	if (checkErrors)
@@ -26412,7 +26417,7 @@ static APIENTRY void debug_glVertex3bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glVertex4bOES(GLbyte x, GLbyte y, GLbyte z, GLbyte w)
+static void APIENTRY debug_glVertex4bOES(GLbyte x, GLbyte y, GLbyte z, GLbyte w)
 {
 	glVertex4bOES(x, y, z, w);
 	if (checkErrors)
@@ -26429,7 +26434,7 @@ static APIENTRY void debug_glVertex4bOES(GLbyte x, GLbyte y, GLbyte z, GLbyte w)
 	}
 }
 
-static APIENTRY void debug_glVertex4bvOES(const GLbyte *coords)
+static void APIENTRY debug_glVertex4bvOES(const GLbyte *coords)
 {
 	glVertex4bvOES(coords);
 	if (checkErrors)
@@ -26446,7 +26451,7 @@ static APIENTRY void debug_glVertex4bvOES(const GLbyte *coords)
 	}
 }
 
-static APIENTRY void debug_glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshort width, GLshort height)
+static void APIENTRY debug_glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshort width, GLshort height)
 {
 	glDrawTexsOES(x, y, z, width, height);
 	if (checkErrors)
@@ -26463,7 +26468,7 @@ static APIENTRY void debug_glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshor
 	}
 }
 
-static APIENTRY void debug_glDrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
+static void APIENTRY debug_glDrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
 {
 	glDrawTexiOES(x, y, z, width, height);
 	if (checkErrors)
@@ -26480,7 +26485,7 @@ static APIENTRY void debug_glDrawTexiOES(GLint x, GLint y, GLint z, GLint width,
 	}
 }
 
-static APIENTRY void debug_glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)
+static void APIENTRY debug_glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)
 {
 	glDrawTexxOES(x, y, z, width, height);
 	if (checkErrors)
@@ -26497,7 +26502,7 @@ static APIENTRY void debug_glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixe
 	}
 }
 
-static APIENTRY void debug_glDrawTexsvOES(const GLshort *coords)
+static void APIENTRY debug_glDrawTexsvOES(const GLshort *coords)
 {
 	glDrawTexsvOES(coords);
 	if (checkErrors)
@@ -26514,7 +26519,7 @@ static APIENTRY void debug_glDrawTexsvOES(const GLshort *coords)
 	}
 }
 
-static APIENTRY void debug_glDrawTexivOES(const GLint *coords)
+static void APIENTRY debug_glDrawTexivOES(const GLint *coords)
 {
 	glDrawTexivOES(coords);
 	if (checkErrors)
@@ -26531,7 +26536,7 @@ static APIENTRY void debug_glDrawTexivOES(const GLint *coords)
 	}
 }
 
-static APIENTRY void debug_glDrawTexxvOES(const GLfixed *coords)
+static void APIENTRY debug_glDrawTexxvOES(const GLfixed *coords)
 {
 	glDrawTexxvOES(coords);
 	if (checkErrors)
@@ -26548,7 +26553,7 @@ static APIENTRY void debug_glDrawTexxvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
+static void APIENTRY debug_glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
 {
 	glDrawTexfOES(x, y, z, width, height);
 	if (checkErrors)
@@ -26565,7 +26570,7 @@ static APIENTRY void debug_glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloa
 	}
 }
 
-static APIENTRY void debug_glDrawTexfvOES(const GLfloat *coords)
+static void APIENTRY debug_glDrawTexfvOES(const GLfloat *coords)
 {
 	glDrawTexfvOES(coords);
 	if (checkErrors)
@@ -26582,7 +26587,7 @@ static APIENTRY void debug_glDrawTexfvOES(const GLfloat *coords)
 	}
 }
 
-static APIENTRY void debug_glAlphaFuncxOES(GLenum func, GLfixed ref)
+static void APIENTRY debug_glAlphaFuncxOES(GLenum func, GLfixed ref)
 {
 	glAlphaFuncxOES(func, ref);
 	if (checkErrors)
@@ -26599,7 +26604,7 @@ static APIENTRY void debug_glAlphaFuncxOES(GLenum func, GLfixed ref)
 	}
 }
 
-static APIENTRY void debug_glClearColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+static void APIENTRY debug_glClearColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
 	glClearColorxOES(red, green, blue, alpha);
 	if (checkErrors)
@@ -26616,7 +26621,7 @@ static APIENTRY void debug_glClearColorxOES(GLfixed red, GLfixed green, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glClearDepthxOES(GLfixed depth)
+static void APIENTRY debug_glClearDepthxOES(GLfixed depth)
 {
 	glClearDepthxOES(depth);
 	if (checkErrors)
@@ -26633,7 +26638,7 @@ static APIENTRY void debug_glClearDepthxOES(GLfixed depth)
 	}
 }
 
-static APIENTRY void debug_glClipPlanexOES(GLenum plane, const GLfixed *equation)
+static void APIENTRY debug_glClipPlanexOES(GLenum plane, const GLfixed *equation)
 {
 	glClipPlanexOES(plane, equation);
 	if (checkErrors)
@@ -26650,7 +26655,7 @@ static APIENTRY void debug_glClipPlanexOES(GLenum plane, const GLfixed *equation
 	}
 }
 
-static APIENTRY void debug_glColor4xOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+static void APIENTRY debug_glColor4xOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
 	glColor4xOES(red, green, blue, alpha);
 	if (checkErrors)
@@ -26667,7 +26672,7 @@ static APIENTRY void debug_glColor4xOES(GLfixed red, GLfixed green, GLfixed blue
 	}
 }
 
-static APIENTRY void debug_glDepthRangexOES(GLfixed n, GLfixed f)
+static void APIENTRY debug_glDepthRangexOES(GLfixed n, GLfixed f)
 {
 	glDepthRangexOES(n, f);
 	if (checkErrors)
@@ -26684,7 +26689,7 @@ static APIENTRY void debug_glDepthRangexOES(GLfixed n, GLfixed f)
 	}
 }
 
-static APIENTRY void debug_glFogxOES(GLenum pname, GLfixed param)
+static void APIENTRY debug_glFogxOES(GLenum pname, GLfixed param)
 {
 	glFogxOES(pname, param);
 	if (checkErrors)
@@ -26701,7 +26706,7 @@ static APIENTRY void debug_glFogxOES(GLenum pname, GLfixed param)
 	}
 }
 
-static APIENTRY void debug_glFogxvOES(GLenum pname, const GLfixed *param)
+static void APIENTRY debug_glFogxvOES(GLenum pname, const GLfixed *param)
 {
 	glFogxvOES(pname, param);
 	if (checkErrors)
@@ -26718,7 +26723,7 @@ static APIENTRY void debug_glFogxvOES(GLenum pname, const GLfixed *param)
 	}
 }
 
-static APIENTRY void debug_glFrustumxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+static void APIENTRY debug_glFrustumxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
 {
 	glFrustumxOES(l, r, b, t, n, f);
 	if (checkErrors)
@@ -26735,7 +26740,7 @@ static APIENTRY void debug_glFrustumxOES(GLfixed l, GLfixed r, GLfixed b, GLfixe
 	}
 }
 
-static APIENTRY void debug_glGetClipPlanexOES(GLenum plane, GLfixed *equation)
+static void APIENTRY debug_glGetClipPlanexOES(GLenum plane, GLfixed *equation)
 {
 	glGetClipPlanexOES(plane, equation);
 	if (checkErrors)
@@ -26752,7 +26757,7 @@ static APIENTRY void debug_glGetClipPlanexOES(GLenum plane, GLfixed *equation)
 	}
 }
 
-static APIENTRY void debug_glGetFixedvOES(GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetFixedvOES(GLenum pname, GLfixed *params)
 {
 	glGetFixedvOES(pname, params);
 	if (checkErrors)
@@ -26769,7 +26774,7 @@ static APIENTRY void debug_glGetFixedvOES(GLenum pname, GLfixed *params)
 	}
 }
 
-static APIENTRY void debug_glGetTexEnvxvOES(GLenum target, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetTexEnvxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
 	glGetTexEnvxvOES(target, pname, params);
 	if (checkErrors)
@@ -26786,7 +26791,7 @@ static APIENTRY void debug_glGetTexEnvxvOES(GLenum target, GLenum pname, GLfixed
 	}
 }
 
-static APIENTRY void debug_glGetTexParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetTexParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
 	glGetTexParameterxvOES(target, pname, params);
 	if (checkErrors)
@@ -26803,7 +26808,7 @@ static APIENTRY void debug_glGetTexParameterxvOES(GLenum target, GLenum pname, G
 	}
 }
 
-static APIENTRY void debug_glLightModelxOES(GLenum pname, GLfixed param)
+static void APIENTRY debug_glLightModelxOES(GLenum pname, GLfixed param)
 {
 	glLightModelxOES(pname, param);
 	if (checkErrors)
@@ -26820,7 +26825,7 @@ static APIENTRY void debug_glLightModelxOES(GLenum pname, GLfixed param)
 	}
 }
 
-static APIENTRY void debug_glLightModelxvOES(GLenum pname, const GLfixed *param)
+static void APIENTRY debug_glLightModelxvOES(GLenum pname, const GLfixed *param)
 {
 	glLightModelxvOES(pname, param);
 	if (checkErrors)
@@ -26837,7 +26842,7 @@ static APIENTRY void debug_glLightModelxvOES(GLenum pname, const GLfixed *param)
 	}
 }
 
-static APIENTRY void debug_glLightxOES(GLenum light, GLenum pname, GLfixed param)
+static void APIENTRY debug_glLightxOES(GLenum light, GLenum pname, GLfixed param)
 {
 	glLightxOES(light, pname, param);
 	if (checkErrors)
@@ -26854,7 +26859,7 @@ static APIENTRY void debug_glLightxOES(GLenum light, GLenum pname, GLfixed param
 	}
 }
 
-static APIENTRY void debug_glLightxvOES(GLenum light, GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glLightxvOES(GLenum light, GLenum pname, const GLfixed *params)
 {
 	glLightxvOES(light, pname, params);
 	if (checkErrors)
@@ -26871,7 +26876,7 @@ static APIENTRY void debug_glLightxvOES(GLenum light, GLenum pname, const GLfixe
 	}
 }
 
-static APIENTRY void debug_glLineWidthxOES(GLfixed width)
+static void APIENTRY debug_glLineWidthxOES(GLfixed width)
 {
 	glLineWidthxOES(width);
 	if (checkErrors)
@@ -26888,7 +26893,7 @@ static APIENTRY void debug_glLineWidthxOES(GLfixed width)
 	}
 }
 
-static APIENTRY void debug_glLoadMatrixxOES(const GLfixed *m)
+static void APIENTRY debug_glLoadMatrixxOES(const GLfixed *m)
 {
 	glLoadMatrixxOES(m);
 	if (checkErrors)
@@ -26905,7 +26910,7 @@ static APIENTRY void debug_glLoadMatrixxOES(const GLfixed *m)
 	}
 }
 
-static APIENTRY void debug_glMaterialxOES(GLenum face, GLenum pname, GLfixed param)
+static void APIENTRY debug_glMaterialxOES(GLenum face, GLenum pname, GLfixed param)
 {
 	glMaterialxOES(face, pname, param);
 	if (checkErrors)
@@ -26922,7 +26927,7 @@ static APIENTRY void debug_glMaterialxOES(GLenum face, GLenum pname, GLfixed par
 	}
 }
 
-static APIENTRY void debug_glMaterialxvOES(GLenum face, GLenum pname, const GLfixed *param)
+static void APIENTRY debug_glMaterialxvOES(GLenum face, GLenum pname, const GLfixed *param)
 {
 	glMaterialxvOES(face, pname, param);
 	if (checkErrors)
@@ -26939,7 +26944,7 @@ static APIENTRY void debug_glMaterialxvOES(GLenum face, GLenum pname, const GLfi
 	}
 }
 
-static APIENTRY void debug_glMultMatrixxOES(const GLfixed *m)
+static void APIENTRY debug_glMultMatrixxOES(const GLfixed *m)
 {
 	glMultMatrixxOES(m);
 	if (checkErrors)
@@ -26956,7 +26961,7 @@ static APIENTRY void debug_glMultMatrixxOES(const GLfixed *m)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
+static void APIENTRY debug_glMultiTexCoord4xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
 {
 	glMultiTexCoord4xOES(texture, s, t, r, q);
 	if (checkErrors)
@@ -26973,7 +26978,7 @@ static APIENTRY void debug_glMultiTexCoord4xOES(GLenum texture, GLfixed s, GLfix
 	}
 }
 
-static APIENTRY void debug_glNormal3xOES(GLfixed nx, GLfixed ny, GLfixed nz)
+static void APIENTRY debug_glNormal3xOES(GLfixed nx, GLfixed ny, GLfixed nz)
 {
 	glNormal3xOES(nx, ny, nz);
 	if (checkErrors)
@@ -26990,7 +26995,7 @@ static APIENTRY void debug_glNormal3xOES(GLfixed nx, GLfixed ny, GLfixed nz)
 	}
 }
 
-static APIENTRY void debug_glOrthoxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
+static void APIENTRY debug_glOrthoxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
 {
 	glOrthoxOES(l, r, b, t, n, f);
 	if (checkErrors)
@@ -27007,7 +27012,7 @@ static APIENTRY void debug_glOrthoxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glPointParameterxvOES(GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glPointParameterxvOES(GLenum pname, const GLfixed *params)
 {
 	glPointParameterxvOES(pname, params);
 	if (checkErrors)
@@ -27024,7 +27029,7 @@ static APIENTRY void debug_glPointParameterxvOES(GLenum pname, const GLfixed *pa
 	}
 }
 
-static APIENTRY void debug_glPointSizexOES(GLfixed size)
+static void APIENTRY debug_glPointSizexOES(GLfixed size)
 {
 	glPointSizexOES(size);
 	if (checkErrors)
@@ -27041,7 +27046,7 @@ static APIENTRY void debug_glPointSizexOES(GLfixed size)
 	}
 }
 
-static APIENTRY void debug_glPolygonOffsetxOES(GLfixed factor, GLfixed units)
+static void APIENTRY debug_glPolygonOffsetxOES(GLfixed factor, GLfixed units)
 {
 	glPolygonOffsetxOES(factor, units);
 	if (checkErrors)
@@ -27058,7 +27063,7 @@ static APIENTRY void debug_glPolygonOffsetxOES(GLfixed factor, GLfixed units)
 	}
 }
 
-static APIENTRY void debug_glRotatexOES(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
+static void APIENTRY debug_glRotatexOES(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
 {
 	glRotatexOES(angle, x, y, z);
 	if (checkErrors)
@@ -27075,7 +27080,7 @@ static APIENTRY void debug_glRotatexOES(GLfixed angle, GLfixed x, GLfixed y, GLf
 	}
 }
 
-static APIENTRY void debug_glScalexOES(GLfixed x, GLfixed y, GLfixed z)
+static void APIENTRY debug_glScalexOES(GLfixed x, GLfixed y, GLfixed z)
 {
 	glScalexOES(x, y, z);
 	if (checkErrors)
@@ -27092,7 +27097,7 @@ static APIENTRY void debug_glScalexOES(GLfixed x, GLfixed y, GLfixed z)
 	}
 }
 
-static APIENTRY void debug_glTexEnvxOES(GLenum target, GLenum pname, GLfixed param)
+static void APIENTRY debug_glTexEnvxOES(GLenum target, GLenum pname, GLfixed param)
 {
 	glTexEnvxOES(target, pname, param);
 	if (checkErrors)
@@ -27109,7 +27114,7 @@ static APIENTRY void debug_glTexEnvxOES(GLenum target, GLenum pname, GLfixed par
 	}
 }
 
-static APIENTRY void debug_glTexEnvxvOES(GLenum target, GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glTexEnvxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
 	glTexEnvxvOES(target, pname, params);
 	if (checkErrors)
@@ -27126,7 +27131,7 @@ static APIENTRY void debug_glTexEnvxvOES(GLenum target, GLenum pname, const GLfi
 	}
 }
 
-static APIENTRY void debug_glTexParameterxOES(GLenum target, GLenum pname, GLfixed param)
+static void APIENTRY debug_glTexParameterxOES(GLenum target, GLenum pname, GLfixed param)
 {
 	glTexParameterxOES(target, pname, param);
 	if (checkErrors)
@@ -27143,7 +27148,7 @@ static APIENTRY void debug_glTexParameterxOES(GLenum target, GLenum pname, GLfix
 	}
 }
 
-static APIENTRY void debug_glTexParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glTexParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
 	glTexParameterxvOES(target, pname, params);
 	if (checkErrors)
@@ -27160,7 +27165,7 @@ static APIENTRY void debug_glTexParameterxvOES(GLenum target, GLenum pname, cons
 	}
 }
 
-static APIENTRY void debug_glTranslatexOES(GLfixed x, GLfixed y, GLfixed z)
+static void APIENTRY debug_glTranslatexOES(GLfixed x, GLfixed y, GLfixed z)
 {
 	glTranslatexOES(x, y, z);
 	if (checkErrors)
@@ -27177,7 +27182,7 @@ static APIENTRY void debug_glTranslatexOES(GLfixed x, GLfixed y, GLfixed z)
 	}
 }
 
-static APIENTRY void debug_glAccumxOES(GLenum op, GLfixed value)
+static void APIENTRY debug_glAccumxOES(GLenum op, GLfixed value)
 {
 	glAccumxOES(op, value);
 	if (checkErrors)
@@ -27194,7 +27199,7 @@ static APIENTRY void debug_glAccumxOES(GLenum op, GLfixed value)
 	}
 }
 
-static APIENTRY void debug_glBitmapxOES(GLsizei width, GLsizei height, GLfixed xorig, GLfixed yorig, GLfixed xmove, GLfixed ymove, const GLubyte *bitmap)
+static void APIENTRY debug_glBitmapxOES(GLsizei width, GLsizei height, GLfixed xorig, GLfixed yorig, GLfixed xmove, GLfixed ymove, const GLubyte *bitmap)
 {
 	glBitmapxOES(width, height, xorig, yorig, xmove, ymove, bitmap);
 	if (checkErrors)
@@ -27211,7 +27216,7 @@ static APIENTRY void debug_glBitmapxOES(GLsizei width, GLsizei height, GLfixed x
 	}
 }
 
-static APIENTRY void debug_glBlendColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+static void APIENTRY debug_glBlendColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
 	glBlendColorxOES(red, green, blue, alpha);
 	if (checkErrors)
@@ -27228,7 +27233,7 @@ static APIENTRY void debug_glBlendColorxOES(GLfixed red, GLfixed green, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glClearAccumxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
+static void APIENTRY debug_glClearAccumxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
 	glClearAccumxOES(red, green, blue, alpha);
 	if (checkErrors)
@@ -27245,7 +27250,7 @@ static APIENTRY void debug_glClearAccumxOES(GLfixed red, GLfixed green, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glColor3xOES(GLfixed red, GLfixed green, GLfixed blue)
+static void APIENTRY debug_glColor3xOES(GLfixed red, GLfixed green, GLfixed blue)
 {
 	glColor3xOES(red, green, blue);
 	if (checkErrors)
@@ -27262,7 +27267,7 @@ static APIENTRY void debug_glColor3xOES(GLfixed red, GLfixed green, GLfixed blue
 	}
 }
 
-static APIENTRY void debug_glColor3xvOES(const GLfixed *components)
+static void APIENTRY debug_glColor3xvOES(const GLfixed *components)
 {
 	glColor3xvOES(components);
 	if (checkErrors)
@@ -27279,7 +27284,7 @@ static APIENTRY void debug_glColor3xvOES(const GLfixed *components)
 	}
 }
 
-static APIENTRY void debug_glColor4xvOES(const GLfixed *components)
+static void APIENTRY debug_glColor4xvOES(const GLfixed *components)
 {
 	glColor4xvOES(components);
 	if (checkErrors)
@@ -27296,7 +27301,7 @@ static APIENTRY void debug_glColor4xvOES(const GLfixed *components)
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameterxOES(GLenum target, GLenum pname, GLfixed param)
+static void APIENTRY debug_glConvolutionParameterxOES(GLenum target, GLenum pname, GLfixed param)
 {
 	glConvolutionParameterxOES(target, pname, param);
 	if (checkErrors)
@@ -27313,7 +27318,7 @@ static APIENTRY void debug_glConvolutionParameterxOES(GLenum target, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glConvolutionParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glConvolutionParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
 	glConvolutionParameterxvOES(target, pname, params);
 	if (checkErrors)
@@ -27330,7 +27335,7 @@ static APIENTRY void debug_glConvolutionParameterxvOES(GLenum target, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1xOES(GLfixed u)
+static void APIENTRY debug_glEvalCoord1xOES(GLfixed u)
 {
 	glEvalCoord1xOES(u);
 	if (checkErrors)
@@ -27347,7 +27352,7 @@ static APIENTRY void debug_glEvalCoord1xOES(GLfixed u)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord1xvOES(const GLfixed *coords)
+static void APIENTRY debug_glEvalCoord1xvOES(const GLfixed *coords)
 {
 	glEvalCoord1xvOES(coords);
 	if (checkErrors)
@@ -27364,7 +27369,7 @@ static APIENTRY void debug_glEvalCoord1xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2xOES(GLfixed u, GLfixed v)
+static void APIENTRY debug_glEvalCoord2xOES(GLfixed u, GLfixed v)
 {
 	glEvalCoord2xOES(u, v);
 	if (checkErrors)
@@ -27381,7 +27386,7 @@ static APIENTRY void debug_glEvalCoord2xOES(GLfixed u, GLfixed v)
 	}
 }
 
-static APIENTRY void debug_glEvalCoord2xvOES(const GLfixed *coords)
+static void APIENTRY debug_glEvalCoord2xvOES(const GLfixed *coords)
 {
 	glEvalCoord2xvOES(coords);
 	if (checkErrors)
@@ -27398,7 +27403,7 @@ static APIENTRY void debug_glEvalCoord2xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glFeedbackBufferxOES(GLsizei n, GLenum type, const GLfixed *buffer)
+static void APIENTRY debug_glFeedbackBufferxOES(GLsizei n, GLenum type, const GLfixed *buffer)
 {
 	glFeedbackBufferxOES(n, type, buffer);
 	if (checkErrors)
@@ -27415,7 +27420,7 @@ static APIENTRY void debug_glFeedbackBufferxOES(GLsizei n, GLenum type, const GL
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetConvolutionParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
 	glGetConvolutionParameterxvOES(target, pname, params);
 	if (checkErrors)
@@ -27432,7 +27437,7 @@ static APIENTRY void debug_glGetConvolutionParameterxvOES(GLenum target, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetHistogramParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetHistogramParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
 	glGetHistogramParameterxvOES(target, pname, params);
 	if (checkErrors)
@@ -27449,7 +27454,7 @@ static APIENTRY void debug_glGetHistogramParameterxvOES(GLenum target, GLenum pn
 	}
 }
 
-static APIENTRY void debug_glGetLightxOES(GLenum light, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetLightxOES(GLenum light, GLenum pname, GLfixed *params)
 {
 	glGetLightxOES(light, pname, params);
 	if (checkErrors)
@@ -27466,7 +27471,7 @@ static APIENTRY void debug_glGetLightxOES(GLenum light, GLenum pname, GLfixed *p
 	}
 }
 
-static APIENTRY void debug_glGetMapxvOES(GLenum target, GLenum query, GLfixed *v)
+static void APIENTRY debug_glGetMapxvOES(GLenum target, GLenum query, GLfixed *v)
 {
 	glGetMapxvOES(target, query, v);
 	if (checkErrors)
@@ -27483,7 +27488,7 @@ static APIENTRY void debug_glGetMapxvOES(GLenum target, GLenum query, GLfixed *v
 	}
 }
 
-static APIENTRY void debug_glGetMaterialxOES(GLenum face, GLenum pname, GLfixed param)
+static void APIENTRY debug_glGetMaterialxOES(GLenum face, GLenum pname, GLfixed param)
 {
 	glGetMaterialxOES(face, pname, param);
 	if (checkErrors)
@@ -27500,7 +27505,7 @@ static APIENTRY void debug_glGetMaterialxOES(GLenum face, GLenum pname, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glGetPixelMapxv(GLenum map, GLint size, GLfixed *values)
+static void APIENTRY debug_glGetPixelMapxv(GLenum map, GLint size, GLfixed *values)
 {
 	glGetPixelMapxv(map, size, values);
 	if (checkErrors)
@@ -27517,7 +27522,7 @@ static APIENTRY void debug_glGetPixelMapxv(GLenum map, GLint size, GLfixed *valu
 	}
 }
 
-static APIENTRY void debug_glGetTexGenxvOES(GLenum coord, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetTexGenxvOES(GLenum coord, GLenum pname, GLfixed *params)
 {
 	glGetTexGenxvOES(coord, pname, params);
 	if (checkErrors)
@@ -27534,7 +27539,7 @@ static APIENTRY void debug_glGetTexGenxvOES(GLenum coord, GLenum pname, GLfixed 
 	}
 }
 
-static APIENTRY void debug_glGetTexLevelParameterxvOES(GLenum target, GLint level, GLenum pname, GLfixed *params)
+static void APIENTRY debug_glGetTexLevelParameterxvOES(GLenum target, GLint level, GLenum pname, GLfixed *params)
 {
 	glGetTexLevelParameterxvOES(target, level, pname, params);
 	if (checkErrors)
@@ -27551,7 +27556,7 @@ static APIENTRY void debug_glGetTexLevelParameterxvOES(GLenum target, GLint leve
 	}
 }
 
-static APIENTRY void debug_glIndexxOES(GLfixed component)
+static void APIENTRY debug_glIndexxOES(GLfixed component)
 {
 	glIndexxOES(component);
 	if (checkErrors)
@@ -27568,7 +27573,7 @@ static APIENTRY void debug_glIndexxOES(GLfixed component)
 	}
 }
 
-static APIENTRY void debug_glIndexxvOES(const GLfixed *component)
+static void APIENTRY debug_glIndexxvOES(const GLfixed *component)
 {
 	glIndexxvOES(component);
 	if (checkErrors)
@@ -27585,7 +27590,7 @@ static APIENTRY void debug_glIndexxvOES(const GLfixed *component)
 	}
 }
 
-static APIENTRY void debug_glLoadTransposeMatrixxOES(const GLfixed *m)
+static void APIENTRY debug_glLoadTransposeMatrixxOES(const GLfixed *m)
 {
 	glLoadTransposeMatrixxOES(m);
 	if (checkErrors)
@@ -27602,7 +27607,7 @@ static APIENTRY void debug_glLoadTransposeMatrixxOES(const GLfixed *m)
 	}
 }
 
-static APIENTRY void debug_glMap1xOES(GLenum target, GLfixed u1, GLfixed u2, GLint stride, GLint order, GLfixed points)
+static void APIENTRY debug_glMap1xOES(GLenum target, GLfixed u1, GLfixed u2, GLint stride, GLint order, GLfixed points)
 {
 	glMap1xOES(target, u1, u2, stride, order, points);
 	if (checkErrors)
@@ -27619,7 +27624,7 @@ static APIENTRY void debug_glMap1xOES(GLenum target, GLfixed u1, GLfixed u2, GLi
 	}
 }
 
-static APIENTRY void debug_glMap2xOES(GLenum target, GLfixed u1, GLfixed u2, GLint ustride, GLint uorder, GLfixed v1, GLfixed v2, GLint vstride, GLint vorder, GLfixed points)
+static void APIENTRY debug_glMap2xOES(GLenum target, GLfixed u1, GLfixed u2, GLint ustride, GLint uorder, GLfixed v1, GLfixed v2, GLint vstride, GLint vorder, GLfixed points)
 {
 	glMap2xOES(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
@@ -27636,7 +27641,7 @@ static APIENTRY void debug_glMap2xOES(GLenum target, GLfixed u1, GLfixed u2, GLi
 	}
 }
 
-static APIENTRY void debug_glMapGrid1xOES(GLint n, GLfixed u1, GLfixed u2)
+static void APIENTRY debug_glMapGrid1xOES(GLint n, GLfixed u1, GLfixed u2)
 {
 	glMapGrid1xOES(n, u1, u2);
 	if (checkErrors)
@@ -27653,7 +27658,7 @@ static APIENTRY void debug_glMapGrid1xOES(GLint n, GLfixed u1, GLfixed u2)
 	}
 }
 
-static APIENTRY void debug_glMapGrid2xOES(GLint n, GLfixed u1, GLfixed u2, GLfixed v1, GLfixed v2)
+static void APIENTRY debug_glMapGrid2xOES(GLint n, GLfixed u1, GLfixed u2, GLfixed v1, GLfixed v2)
 {
 	glMapGrid2xOES(n, u1, u2, v1, v2);
 	if (checkErrors)
@@ -27670,7 +27675,7 @@ static APIENTRY void debug_glMapGrid2xOES(GLint n, GLfixed u1, GLfixed u2, GLfix
 	}
 }
 
-static APIENTRY void debug_glMultTransposeMatrixxOES(const GLfixed *m)
+static void APIENTRY debug_glMultTransposeMatrixxOES(const GLfixed *m)
 {
 	glMultTransposeMatrixxOES(m);
 	if (checkErrors)
@@ -27687,7 +27692,7 @@ static APIENTRY void debug_glMultTransposeMatrixxOES(const GLfixed *m)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1xOES(GLenum texture, GLfixed s)
+static void APIENTRY debug_glMultiTexCoord1xOES(GLenum texture, GLfixed s)
 {
 	glMultiTexCoord1xOES(texture, s);
 	if (checkErrors)
@@ -27704,7 +27709,7 @@ static APIENTRY void debug_glMultiTexCoord1xOES(GLenum texture, GLfixed s)
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord1xvOES(GLenum texture, const GLfixed *coords)
+static void APIENTRY debug_glMultiTexCoord1xvOES(GLenum texture, const GLfixed *coords)
 {
 	glMultiTexCoord1xvOES(texture, coords);
 	if (checkErrors)
@@ -27721,7 +27726,7 @@ static APIENTRY void debug_glMultiTexCoord1xvOES(GLenum texture, const GLfixed *
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2xOES(GLenum texture, GLfixed s, GLfixed t)
+static void APIENTRY debug_glMultiTexCoord2xOES(GLenum texture, GLfixed s, GLfixed t)
 {
 	glMultiTexCoord2xOES(texture, s, t);
 	if (checkErrors)
@@ -27738,7 +27743,7 @@ static APIENTRY void debug_glMultiTexCoord2xOES(GLenum texture, GLfixed s, GLfix
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord2xvOES(GLenum texture, const GLfixed *coords)
+static void APIENTRY debug_glMultiTexCoord2xvOES(GLenum texture, const GLfixed *coords)
 {
 	glMultiTexCoord2xvOES(texture, coords);
 	if (checkErrors)
@@ -27755,7 +27760,7 @@ static APIENTRY void debug_glMultiTexCoord2xvOES(GLenum texture, const GLfixed *
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r)
+static void APIENTRY debug_glMultiTexCoord3xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r)
 {
 	glMultiTexCoord3xOES(texture, s, t, r);
 	if (checkErrors)
@@ -27772,7 +27777,7 @@ static APIENTRY void debug_glMultiTexCoord3xOES(GLenum texture, GLfixed s, GLfix
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord3xvOES(GLenum texture, const GLfixed *coords)
+static void APIENTRY debug_glMultiTexCoord3xvOES(GLenum texture, const GLfixed *coords)
 {
 	glMultiTexCoord3xvOES(texture, coords);
 	if (checkErrors)
@@ -27789,7 +27794,7 @@ static APIENTRY void debug_glMultiTexCoord3xvOES(GLenum texture, const GLfixed *
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoord4xvOES(GLenum texture, const GLfixed *coords)
+static void APIENTRY debug_glMultiTexCoord4xvOES(GLenum texture, const GLfixed *coords)
 {
 	glMultiTexCoord4xvOES(texture, coords);
 	if (checkErrors)
@@ -27806,7 +27811,7 @@ static APIENTRY void debug_glMultiTexCoord4xvOES(GLenum texture, const GLfixed *
 	}
 }
 
-static APIENTRY void debug_glNormal3xvOES(const GLfixed *coords)
+static void APIENTRY debug_glNormal3xvOES(const GLfixed *coords)
 {
 	glNormal3xvOES(coords);
 	if (checkErrors)
@@ -27823,7 +27828,7 @@ static APIENTRY void debug_glNormal3xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glPassThroughxOES(GLfixed token)
+static void APIENTRY debug_glPassThroughxOES(GLfixed token)
 {
 	glPassThroughxOES(token);
 	if (checkErrors)
@@ -27840,7 +27845,7 @@ static APIENTRY void debug_glPassThroughxOES(GLfixed token)
 	}
 }
 
-static APIENTRY void debug_glPixelMapx(GLenum map, GLint size, const GLfixed *values)
+static void APIENTRY debug_glPixelMapx(GLenum map, GLint size, const GLfixed *values)
 {
 	glPixelMapx(map, size, values);
 	if (checkErrors)
@@ -27857,7 +27862,7 @@ static APIENTRY void debug_glPixelMapx(GLenum map, GLint size, const GLfixed *va
 	}
 }
 
-static APIENTRY void debug_glPixelStorex(GLenum pname, GLfixed param)
+static void APIENTRY debug_glPixelStorex(GLenum pname, GLfixed param)
 {
 	glPixelStorex(pname, param);
 	if (checkErrors)
@@ -27874,7 +27879,7 @@ static APIENTRY void debug_glPixelStorex(GLenum pname, GLfixed param)
 	}
 }
 
-static APIENTRY void debug_glPixelTransferxOES(GLenum pname, GLfixed param)
+static void APIENTRY debug_glPixelTransferxOES(GLenum pname, GLfixed param)
 {
 	glPixelTransferxOES(pname, param);
 	if (checkErrors)
@@ -27891,7 +27896,7 @@ static APIENTRY void debug_glPixelTransferxOES(GLenum pname, GLfixed param)
 	}
 }
 
-static APIENTRY void debug_glPixelZoomxOES(GLfixed xfactor, GLfixed yfactor)
+static void APIENTRY debug_glPixelZoomxOES(GLfixed xfactor, GLfixed yfactor)
 {
 	glPixelZoomxOES(xfactor, yfactor);
 	if (checkErrors)
@@ -27908,7 +27913,7 @@ static APIENTRY void debug_glPixelZoomxOES(GLfixed xfactor, GLfixed yfactor)
 	}
 }
 
-static APIENTRY void debug_glPrioritizeTexturesxOES(GLsizei n, const GLuint *textures, const GLfixed *priorities)
+static void APIENTRY debug_glPrioritizeTexturesxOES(GLsizei n, const GLuint *textures, const GLfixed *priorities)
 {
 	glPrioritizeTexturesxOES(n, textures, priorities);
 	if (checkErrors)
@@ -27925,7 +27930,7 @@ static APIENTRY void debug_glPrioritizeTexturesxOES(GLsizei n, const GLuint *tex
 	}
 }
 
-static APIENTRY void debug_glRasterPos2xOES(GLfixed x, GLfixed y)
+static void APIENTRY debug_glRasterPos2xOES(GLfixed x, GLfixed y)
 {
 	glRasterPos2xOES(x, y);
 	if (checkErrors)
@@ -27942,7 +27947,7 @@ static APIENTRY void debug_glRasterPos2xOES(GLfixed x, GLfixed y)
 	}
 }
 
-static APIENTRY void debug_glRasterPos2xvOES(const GLfixed *coords)
+static void APIENTRY debug_glRasterPos2xvOES(const GLfixed *coords)
 {
 	glRasterPos2xvOES(coords);
 	if (checkErrors)
@@ -27959,7 +27964,7 @@ static APIENTRY void debug_glRasterPos2xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3xOES(GLfixed x, GLfixed y, GLfixed z)
+static void APIENTRY debug_glRasterPos3xOES(GLfixed x, GLfixed y, GLfixed z)
 {
 	glRasterPos3xOES(x, y, z);
 	if (checkErrors)
@@ -27976,7 +27981,7 @@ static APIENTRY void debug_glRasterPos3xOES(GLfixed x, GLfixed y, GLfixed z)
 	}
 }
 
-static APIENTRY void debug_glRasterPos3xvOES(const GLfixed *coords)
+static void APIENTRY debug_glRasterPos3xvOES(const GLfixed *coords)
 {
 	glRasterPos3xvOES(coords);
 	if (checkErrors)
@@ -27993,7 +27998,7 @@ static APIENTRY void debug_glRasterPos3xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glRasterPos4xOES(GLfixed x, GLfixed y, GLfixed z, GLfixed w)
+static void APIENTRY debug_glRasterPos4xOES(GLfixed x, GLfixed y, GLfixed z, GLfixed w)
 {
 	glRasterPos4xOES(x, y, z, w);
 	if (checkErrors)
@@ -28010,7 +28015,7 @@ static APIENTRY void debug_glRasterPos4xOES(GLfixed x, GLfixed y, GLfixed z, GLf
 	}
 }
 
-static APIENTRY void debug_glRasterPos4xvOES(const GLfixed *coords)
+static void APIENTRY debug_glRasterPos4xvOES(const GLfixed *coords)
 {
 	glRasterPos4xvOES(coords);
 	if (checkErrors)
@@ -28027,7 +28032,7 @@ static APIENTRY void debug_glRasterPos4xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glRectxOES(GLfixed x1, GLfixed y1, GLfixed x2, GLfixed y2)
+static void APIENTRY debug_glRectxOES(GLfixed x1, GLfixed y1, GLfixed x2, GLfixed y2)
 {
 	glRectxOES(x1, y1, x2, y2);
 	if (checkErrors)
@@ -28044,7 +28049,7 @@ static APIENTRY void debug_glRectxOES(GLfixed x1, GLfixed y1, GLfixed x2, GLfixe
 	}
 }
 
-static APIENTRY void debug_glRectxvOES(const GLfixed *v1, const GLfixed *v2)
+static void APIENTRY debug_glRectxvOES(const GLfixed *v1, const GLfixed *v2)
 {
 	glRectxvOES(v1, v2);
 	if (checkErrors)
@@ -28061,7 +28066,7 @@ static APIENTRY void debug_glRectxvOES(const GLfixed *v1, const GLfixed *v2)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1xOES(GLfixed s)
+static void APIENTRY debug_glTexCoord1xOES(GLfixed s)
 {
 	glTexCoord1xOES(s);
 	if (checkErrors)
@@ -28078,7 +28083,7 @@ static APIENTRY void debug_glTexCoord1xOES(GLfixed s)
 	}
 }
 
-static APIENTRY void debug_glTexCoord1xvOES(const GLfixed *coords)
+static void APIENTRY debug_glTexCoord1xvOES(const GLfixed *coords)
 {
 	glTexCoord1xvOES(coords);
 	if (checkErrors)
@@ -28095,7 +28100,7 @@ static APIENTRY void debug_glTexCoord1xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2xOES(GLfixed s, GLfixed t)
+static void APIENTRY debug_glTexCoord2xOES(GLfixed s, GLfixed t)
 {
 	glTexCoord2xOES(s, t);
 	if (checkErrors)
@@ -28112,7 +28117,7 @@ static APIENTRY void debug_glTexCoord2xOES(GLfixed s, GLfixed t)
 	}
 }
 
-static APIENTRY void debug_glTexCoord2xvOES(const GLfixed *coords)
+static void APIENTRY debug_glTexCoord2xvOES(const GLfixed *coords)
 {
 	glTexCoord2xvOES(coords);
 	if (checkErrors)
@@ -28129,7 +28134,7 @@ static APIENTRY void debug_glTexCoord2xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3xOES(GLfixed s, GLfixed t, GLfixed r)
+static void APIENTRY debug_glTexCoord3xOES(GLfixed s, GLfixed t, GLfixed r)
 {
 	glTexCoord3xOES(s, t, r);
 	if (checkErrors)
@@ -28146,7 +28151,7 @@ static APIENTRY void debug_glTexCoord3xOES(GLfixed s, GLfixed t, GLfixed r)
 	}
 }
 
-static APIENTRY void debug_glTexCoord3xvOES(const GLfixed *coords)
+static void APIENTRY debug_glTexCoord3xvOES(const GLfixed *coords)
 {
 	glTexCoord3xvOES(coords);
 	if (checkErrors)
@@ -28163,7 +28168,7 @@ static APIENTRY void debug_glTexCoord3xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glTexCoord4xOES(GLfixed s, GLfixed t, GLfixed r, GLfixed q)
+static void APIENTRY debug_glTexCoord4xOES(GLfixed s, GLfixed t, GLfixed r, GLfixed q)
 {
 	glTexCoord4xOES(s, t, r, q);
 	if (checkErrors)
@@ -28180,7 +28185,7 @@ static APIENTRY void debug_glTexCoord4xOES(GLfixed s, GLfixed t, GLfixed r, GLfi
 	}
 }
 
-static APIENTRY void debug_glTexCoord4xvOES(const GLfixed *coords)
+static void APIENTRY debug_glTexCoord4xvOES(const GLfixed *coords)
 {
 	glTexCoord4xvOES(coords);
 	if (checkErrors)
@@ -28197,7 +28202,7 @@ static APIENTRY void debug_glTexCoord4xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glTexGenxOES(GLenum coord, GLenum pname, GLfixed param)
+static void APIENTRY debug_glTexGenxOES(GLenum coord, GLenum pname, GLfixed param)
 {
 	glTexGenxOES(coord, pname, param);
 	if (checkErrors)
@@ -28214,7 +28219,7 @@ static APIENTRY void debug_glTexGenxOES(GLenum coord, GLenum pname, GLfixed para
 	}
 }
 
-static APIENTRY void debug_glTexGenxvOES(GLenum coord, GLenum pname, const GLfixed *params)
+static void APIENTRY debug_glTexGenxvOES(GLenum coord, GLenum pname, const GLfixed *params)
 {
 	glTexGenxvOES(coord, pname, params);
 	if (checkErrors)
@@ -28231,7 +28236,7 @@ static APIENTRY void debug_glTexGenxvOES(GLenum coord, GLenum pname, const GLfix
 	}
 }
 
-static APIENTRY void debug_glVertex2xOES(GLfixed x)
+static void APIENTRY debug_glVertex2xOES(GLfixed x)
 {
 	glVertex2xOES(x);
 	if (checkErrors)
@@ -28248,7 +28253,7 @@ static APIENTRY void debug_glVertex2xOES(GLfixed x)
 	}
 }
 
-static APIENTRY void debug_glVertex2xvOES(const GLfixed *coords)
+static void APIENTRY debug_glVertex2xvOES(const GLfixed *coords)
 {
 	glVertex2xvOES(coords);
 	if (checkErrors)
@@ -28265,7 +28270,7 @@ static APIENTRY void debug_glVertex2xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glVertex3xOES(GLfixed x, GLfixed y)
+static void APIENTRY debug_glVertex3xOES(GLfixed x, GLfixed y)
 {
 	glVertex3xOES(x, y);
 	if (checkErrors)
@@ -28282,7 +28287,7 @@ static APIENTRY void debug_glVertex3xOES(GLfixed x, GLfixed y)
 	}
 }
 
-static APIENTRY void debug_glVertex3xvOES(const GLfixed *coords)
+static void APIENTRY debug_glVertex3xvOES(const GLfixed *coords)
 {
 	glVertex3xvOES(coords);
 	if (checkErrors)
@@ -28299,7 +28304,7 @@ static APIENTRY void debug_glVertex3xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glVertex4xOES(GLfixed x, GLfixed y, GLfixed z)
+static void APIENTRY debug_glVertex4xOES(GLfixed x, GLfixed y, GLfixed z)
 {
 	glVertex4xOES(x, y, z);
 	if (checkErrors)
@@ -28316,7 +28321,7 @@ static APIENTRY void debug_glVertex4xOES(GLfixed x, GLfixed y, GLfixed z)
 	}
 }
 
-static APIENTRY void debug_glVertex4xvOES(const GLfixed *coords)
+static void APIENTRY debug_glVertex4xvOES(const GLfixed *coords)
 {
 	glVertex4xvOES(coords);
 	if (checkErrors)
@@ -28333,7 +28338,7 @@ static APIENTRY void debug_glVertex4xvOES(const GLfixed *coords)
 	}
 }
 
-static APIENTRY void debug_glCurrentPaletteMatrixOES(GLuint matrixpaletteindex)
+static void APIENTRY debug_glCurrentPaletteMatrixOES(GLuint matrixpaletteindex)
 {
 	glCurrentPaletteMatrixOES(matrixpaletteindex);
 	if (checkErrors)
@@ -28350,7 +28355,7 @@ static APIENTRY void debug_glCurrentPaletteMatrixOES(GLuint matrixpaletteindex)
 	}
 }
 
-static APIENTRY void debug_glLoadPaletteFromModelViewMatrixOES()
+static void APIENTRY debug_glLoadPaletteFromModelViewMatrixOES()
 {
 	glLoadPaletteFromModelViewMatrixOES();
 	if (checkErrors)
@@ -28367,7 +28372,7 @@ static APIENTRY void debug_glLoadPaletteFromModelViewMatrixOES()
 	}
 }
 
-static APIENTRY void debug_glMatrixIndexPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glMatrixIndexPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glMatrixIndexPointerOES(size, type, stride, pointer);
 	if (checkErrors)
@@ -28384,7 +28389,7 @@ static APIENTRY void debug_glMatrixIndexPointerOES(GLint size, GLenum type, GLsi
 	}
 }
 
-static APIENTRY void debug_glWeightPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glWeightPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glWeightPointerOES(size, type, stride, pointer);
 	if (checkErrors)
@@ -28401,7 +28406,7 @@ static APIENTRY void debug_glWeightPointerOES(GLint size, GLenum type, GLsizei s
 	}
 }
 
-static APIENTRY void debug_glPointSizePointerOES(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glPointSizePointerOES(GLenum type, GLsizei stride, const void *pointer)
 {
 	glPointSizePointerOES(type, stride, pointer);
 	if (checkErrors)
@@ -28418,7 +28423,7 @@ static APIENTRY void debug_glPointSizePointerOES(GLenum type, GLsizei stride, co
 	}
 }
 
-static APIENTRY GLbitfield debug_glQueryMatrixxOES(GLfixed *mantissa, GLint *exponent)
+static GLbitfield APIENTRY debug_glQueryMatrixxOES(GLfixed *mantissa, GLint *exponent)
 {
 	GLbitfield retVal = default_glQueryMatrixxOES(mantissa, exponent);
 	if (checkErrors)
@@ -28436,7 +28441,7 @@ static APIENTRY GLbitfield debug_glQueryMatrixxOES(GLfixed *mantissa, GLint *exp
 	return retVal;
 }
 
-static APIENTRY void debug_glClipPlanefOES(GLenum plane, const GLfloat *equation)
+static void APIENTRY debug_glClipPlanefOES(GLenum plane, const GLfloat *equation)
 {
 	glClipPlanefOES(plane, equation);
 	if (checkErrors)
@@ -28453,7 +28458,7 @@ static APIENTRY void debug_glClipPlanefOES(GLenum plane, const GLfloat *equation
 	}
 }
 
-static APIENTRY void debug_glFrustumfOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+static void APIENTRY debug_glFrustumfOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
 {
 	glFrustumfOES(l, r, b, t, n, f);
 	if (checkErrors)
@@ -28470,7 +28475,7 @@ static APIENTRY void debug_glFrustumfOES(GLfloat l, GLfloat r, GLfloat b, GLfloa
 	}
 }
 
-static APIENTRY void debug_glGetClipPlanefOES(GLenum plane, GLfloat *equation)
+static void APIENTRY debug_glGetClipPlanefOES(GLenum plane, GLfloat *equation)
 {
 	glGetClipPlanefOES(plane, equation);
 	if (checkErrors)
@@ -28487,7 +28492,7 @@ static APIENTRY void debug_glGetClipPlanefOES(GLenum plane, GLfloat *equation)
 	}
 }
 
-static APIENTRY void debug_glOrthofOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+static void APIENTRY debug_glOrthofOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
 {
 	glOrthofOES(l, r, b, t, n, f);
 	if (checkErrors)
@@ -28504,7 +28509,7 @@ static APIENTRY void debug_glOrthofOES(GLfloat l, GLfloat r, GLfloat b, GLfloat 
 	}
 }
 
-static APIENTRY void debug_glTexGenfOES(GLenum coord, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTexGenfOES(GLenum coord, GLenum pname, GLfloat param)
 {
 	glTexGenfOES(coord, pname, param);
 	if (checkErrors)
@@ -28521,7 +28526,7 @@ static APIENTRY void debug_glTexGenfOES(GLenum coord, GLenum pname, GLfloat para
 	}
 }
 
-static APIENTRY void debug_glTexGenfvOES(GLenum coord, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glTexGenfvOES(GLenum coord, GLenum pname, const GLfloat *params)
 {
 	glTexGenfvOES(coord, pname, params);
 	if (checkErrors)
@@ -28538,7 +28543,7 @@ static APIENTRY void debug_glTexGenfvOES(GLenum coord, GLenum pname, const GLflo
 	}
 }
 
-static APIENTRY void debug_glTexGeniOES(GLenum coord, GLenum pname, GLint param)
+static void APIENTRY debug_glTexGeniOES(GLenum coord, GLenum pname, GLint param)
 {
 	glTexGeniOES(coord, pname, param);
 	if (checkErrors)
@@ -28555,7 +28560,7 @@ static APIENTRY void debug_glTexGeniOES(GLenum coord, GLenum pname, GLint param)
 	}
 }
 
-static APIENTRY void debug_glTexGenivOES(GLenum coord, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTexGenivOES(GLenum coord, GLenum pname, const GLint *params)
 {
 	glTexGenivOES(coord, pname, params);
 	if (checkErrors)
@@ -28572,7 +28577,7 @@ static APIENTRY void debug_glTexGenivOES(GLenum coord, GLenum pname, const GLint
 	}
 }
 
-static APIENTRY void debug_glGetTexGenfvOES(GLenum coord, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTexGenfvOES(GLenum coord, GLenum pname, GLfloat *params)
 {
 	glGetTexGenfvOES(coord, pname, params);
 	if (checkErrors)
@@ -28589,7 +28594,7 @@ static APIENTRY void debug_glGetTexGenfvOES(GLenum coord, GLenum pname, GLfloat 
 	}
 }
 
-static APIENTRY void debug_glGetTexGenivOES(GLenum coord, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTexGenivOES(GLenum coord, GLenum pname, GLint *params)
 {
 	glGetTexGenivOES(coord, pname, params);
 	if (checkErrors)
@@ -28606,7 +28611,7 @@ static APIENTRY void debug_glGetTexGenivOES(GLenum coord, GLenum pname, GLint *p
 	}
 }
 
-static APIENTRY void debug_glDepthRangeArrayfvOES(GLuint first, GLsizei count, const GLfloat *v)
+static void APIENTRY debug_glDepthRangeArrayfvOES(GLuint first, GLsizei count, const GLfloat *v)
 {
 	glDepthRangeArrayfvOES(first, count, v);
 	if (checkErrors)
@@ -28623,7 +28628,7 @@ static APIENTRY void debug_glDepthRangeArrayfvOES(GLuint first, GLsizei count, c
 	}
 }
 
-static APIENTRY void debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfloat f)
+static void APIENTRY debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfloat f)
 {
 	glDepthRangeIndexedfOES(index, n, f);
 	if (checkErrors)
@@ -28640,7 +28645,7 @@ static APIENTRY void debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfl
 	}
 }
 
-static APIENTRY void debug_glUniformBufferEXT(GLuint program, GLint location, GLuint buffer)
+static void APIENTRY debug_glUniformBufferEXT(GLuint program, GLint location, GLuint buffer)
 {
 	glUniformBufferEXT(program, location, buffer);
 	if (checkErrors)
@@ -28657,7 +28662,7 @@ static APIENTRY void debug_glUniformBufferEXT(GLuint program, GLint location, GL
 	}
 }
 
-static APIENTRY GLint debug_glGetUniformBufferSizeEXT(GLuint program, GLint location)
+static GLint APIENTRY debug_glGetUniformBufferSizeEXT(GLuint program, GLint location)
 {
 	GLint retVal = default_glGetUniformBufferSizeEXT(program, location);
 	if (checkErrors)
@@ -28675,7 +28680,7 @@ static APIENTRY GLint debug_glGetUniformBufferSizeEXT(GLuint program, GLint loca
 	return retVal;
 }
 
-static APIENTRY GLintptr debug_glGetUniformOffsetEXT(GLuint program, GLint location)
+static GLintptr APIENTRY debug_glGetUniformOffsetEXT(GLuint program, GLint location)
 {
 	GLintptr retVal = default_glGetUniformOffsetEXT(program, location);
 	if (checkErrors)
@@ -28693,7 +28698,7 @@ static APIENTRY GLintptr debug_glGetUniformOffsetEXT(GLuint program, GLint locat
 	return retVal;
 }
 
-static APIENTRY void debug_glLockArraysEXT(GLint first, GLsizei count)
+static void APIENTRY debug_glLockArraysEXT(GLint first, GLsizei count)
 {
 	glLockArraysEXT(first, count);
 	if (checkErrors)
@@ -28710,7 +28715,7 @@ static APIENTRY void debug_glLockArraysEXT(GLint first, GLsizei count)
 	}
 }
 
-static APIENTRY void debug_glUnlockArraysEXT()
+static void APIENTRY debug_glUnlockArraysEXT()
 {
 	glUnlockArraysEXT();
 	if (checkErrors)
@@ -28727,7 +28732,7 @@ static APIENTRY void debug_glUnlockArraysEXT()
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionFilterEXT(GLenum target, GLenum format, GLenum type, void *image)
+static void APIENTRY debug_glGetConvolutionFilterEXT(GLenum target, GLenum format, GLenum type, void *image)
 {
 	glGetConvolutionFilterEXT(target, format, type, image);
 	if (checkErrors)
@@ -28744,7 +28749,7 @@ static APIENTRY void debug_glGetConvolutionFilterEXT(GLenum target, GLenum forma
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetConvolutionParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetConvolutionParameterfvEXT(target, pname, params);
 	if (checkErrors)
@@ -28761,7 +28766,7 @@ static APIENTRY void debug_glGetConvolutionParameterfvEXT(GLenum target, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetConvolutionParameterivEXT(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetConvolutionParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
 	glGetConvolutionParameterivEXT(target, pname, params);
 	if (checkErrors)
@@ -28778,7 +28783,7 @@ static APIENTRY void debug_glGetConvolutionParameterivEXT(GLenum target, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetSeparableFilterEXT(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
+static void APIENTRY debug_glGetSeparableFilterEXT(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
 {
 	glGetSeparableFilterEXT(target, format, type, row, column, span);
 	if (checkErrors)
@@ -28795,7 +28800,7 @@ static APIENTRY void debug_glGetSeparableFilterEXT(GLenum target, GLenum format,
 	}
 }
 
-static APIENTRY void debug_glTangent3bEXT(GLbyte tx, GLbyte ty, GLbyte tz)
+static void APIENTRY debug_glTangent3bEXT(GLbyte tx, GLbyte ty, GLbyte tz)
 {
 	glTangent3bEXT(tx, ty, tz);
 	if (checkErrors)
@@ -28812,7 +28817,7 @@ static APIENTRY void debug_glTangent3bEXT(GLbyte tx, GLbyte ty, GLbyte tz)
 	}
 }
 
-static APIENTRY void debug_glTangent3bvEXT(const GLbyte *v)
+static void APIENTRY debug_glTangent3bvEXT(const GLbyte *v)
 {
 	glTangent3bvEXT(v);
 	if (checkErrors)
@@ -28829,7 +28834,7 @@ static APIENTRY void debug_glTangent3bvEXT(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glTangent3dEXT(GLdouble tx, GLdouble ty, GLdouble tz)
+static void APIENTRY debug_glTangent3dEXT(GLdouble tx, GLdouble ty, GLdouble tz)
 {
 	glTangent3dEXT(tx, ty, tz);
 	if (checkErrors)
@@ -28846,7 +28851,7 @@ static APIENTRY void debug_glTangent3dEXT(GLdouble tx, GLdouble ty, GLdouble tz)
 	}
 }
 
-static APIENTRY void debug_glTangent3dvEXT(const GLdouble *v)
+static void APIENTRY debug_glTangent3dvEXT(const GLdouble *v)
 {
 	glTangent3dvEXT(v);
 	if (checkErrors)
@@ -28863,7 +28868,7 @@ static APIENTRY void debug_glTangent3dvEXT(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glTangent3fEXT(GLfloat tx, GLfloat ty, GLfloat tz)
+static void APIENTRY debug_glTangent3fEXT(GLfloat tx, GLfloat ty, GLfloat tz)
 {
 	glTangent3fEXT(tx, ty, tz);
 	if (checkErrors)
@@ -28880,7 +28885,7 @@ static APIENTRY void debug_glTangent3fEXT(GLfloat tx, GLfloat ty, GLfloat tz)
 	}
 }
 
-static APIENTRY void debug_glTangent3fvEXT(const GLfloat *v)
+static void APIENTRY debug_glTangent3fvEXT(const GLfloat *v)
 {
 	glTangent3fvEXT(v);
 	if (checkErrors)
@@ -28897,7 +28902,7 @@ static APIENTRY void debug_glTangent3fvEXT(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glTangent3iEXT(GLint tx, GLint ty, GLint tz)
+static void APIENTRY debug_glTangent3iEXT(GLint tx, GLint ty, GLint tz)
 {
 	glTangent3iEXT(tx, ty, tz);
 	if (checkErrors)
@@ -28914,7 +28919,7 @@ static APIENTRY void debug_glTangent3iEXT(GLint tx, GLint ty, GLint tz)
 	}
 }
 
-static APIENTRY void debug_glTangent3ivEXT(const GLint *v)
+static void APIENTRY debug_glTangent3ivEXT(const GLint *v)
 {
 	glTangent3ivEXT(v);
 	if (checkErrors)
@@ -28931,7 +28936,7 @@ static APIENTRY void debug_glTangent3ivEXT(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glTangent3sEXT(GLshort tx, GLshort ty, GLshort tz)
+static void APIENTRY debug_glTangent3sEXT(GLshort tx, GLshort ty, GLshort tz)
 {
 	glTangent3sEXT(tx, ty, tz);
 	if (checkErrors)
@@ -28948,7 +28953,7 @@ static APIENTRY void debug_glTangent3sEXT(GLshort tx, GLshort ty, GLshort tz)
 	}
 }
 
-static APIENTRY void debug_glTangent3svEXT(const GLshort *v)
+static void APIENTRY debug_glTangent3svEXT(const GLshort *v)
 {
 	glTangent3svEXT(v);
 	if (checkErrors)
@@ -28965,7 +28970,7 @@ static APIENTRY void debug_glTangent3svEXT(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glBinormal3bEXT(GLbyte bx, GLbyte by, GLbyte bz)
+static void APIENTRY debug_glBinormal3bEXT(GLbyte bx, GLbyte by, GLbyte bz)
 {
 	glBinormal3bEXT(bx, by, bz);
 	if (checkErrors)
@@ -28982,7 +28987,7 @@ static APIENTRY void debug_glBinormal3bEXT(GLbyte bx, GLbyte by, GLbyte bz)
 	}
 }
 
-static APIENTRY void debug_glBinormal3bvEXT(const GLbyte *v)
+static void APIENTRY debug_glBinormal3bvEXT(const GLbyte *v)
 {
 	glBinormal3bvEXT(v);
 	if (checkErrors)
@@ -28999,7 +29004,7 @@ static APIENTRY void debug_glBinormal3bvEXT(const GLbyte *v)
 	}
 }
 
-static APIENTRY void debug_glBinormal3dEXT(GLdouble bx, GLdouble by, GLdouble bz)
+static void APIENTRY debug_glBinormal3dEXT(GLdouble bx, GLdouble by, GLdouble bz)
 {
 	glBinormal3dEXT(bx, by, bz);
 	if (checkErrors)
@@ -29016,7 +29021,7 @@ static APIENTRY void debug_glBinormal3dEXT(GLdouble bx, GLdouble by, GLdouble bz
 	}
 }
 
-static APIENTRY void debug_glBinormal3dvEXT(const GLdouble *v)
+static void APIENTRY debug_glBinormal3dvEXT(const GLdouble *v)
 {
 	glBinormal3dvEXT(v);
 	if (checkErrors)
@@ -29033,7 +29038,7 @@ static APIENTRY void debug_glBinormal3dvEXT(const GLdouble *v)
 	}
 }
 
-static APIENTRY void debug_glBinormal3fEXT(GLfloat bx, GLfloat by, GLfloat bz)
+static void APIENTRY debug_glBinormal3fEXT(GLfloat bx, GLfloat by, GLfloat bz)
 {
 	glBinormal3fEXT(bx, by, bz);
 	if (checkErrors)
@@ -29050,7 +29055,7 @@ static APIENTRY void debug_glBinormal3fEXT(GLfloat bx, GLfloat by, GLfloat bz)
 	}
 }
 
-static APIENTRY void debug_glBinormal3fvEXT(const GLfloat *v)
+static void APIENTRY debug_glBinormal3fvEXT(const GLfloat *v)
 {
 	glBinormal3fvEXT(v);
 	if (checkErrors)
@@ -29067,7 +29072,7 @@ static APIENTRY void debug_glBinormal3fvEXT(const GLfloat *v)
 	}
 }
 
-static APIENTRY void debug_glBinormal3iEXT(GLint bx, GLint by, GLint bz)
+static void APIENTRY debug_glBinormal3iEXT(GLint bx, GLint by, GLint bz)
 {
 	glBinormal3iEXT(bx, by, bz);
 	if (checkErrors)
@@ -29084,7 +29089,7 @@ static APIENTRY void debug_glBinormal3iEXT(GLint bx, GLint by, GLint bz)
 	}
 }
 
-static APIENTRY void debug_glBinormal3ivEXT(const GLint *v)
+static void APIENTRY debug_glBinormal3ivEXT(const GLint *v)
 {
 	glBinormal3ivEXT(v);
 	if (checkErrors)
@@ -29101,7 +29106,7 @@ static APIENTRY void debug_glBinormal3ivEXT(const GLint *v)
 	}
 }
 
-static APIENTRY void debug_glBinormal3sEXT(GLshort bx, GLshort by, GLshort bz)
+static void APIENTRY debug_glBinormal3sEXT(GLshort bx, GLshort by, GLshort bz)
 {
 	glBinormal3sEXT(bx, by, bz);
 	if (checkErrors)
@@ -29118,7 +29123,7 @@ static APIENTRY void debug_glBinormal3sEXT(GLshort bx, GLshort by, GLshort bz)
 	}
 }
 
-static APIENTRY void debug_glBinormal3svEXT(const GLshort *v)
+static void APIENTRY debug_glBinormal3svEXT(const GLshort *v)
 {
 	glBinormal3svEXT(v);
 	if (checkErrors)
@@ -29135,7 +29140,7 @@ static APIENTRY void debug_glBinormal3svEXT(const GLshort *v)
 	}
 }
 
-static APIENTRY void debug_glTangentPointerEXT(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glTangentPointerEXT(GLenum type, GLsizei stride, const void *pointer)
 {
 	glTangentPointerEXT(type, stride, pointer);
 	if (checkErrors)
@@ -29152,7 +29157,7 @@ static APIENTRY void debug_glTangentPointerEXT(GLenum type, GLsizei stride, cons
 	}
 }
 
-static APIENTRY void debug_glBinormalPointerEXT(GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glBinormalPointerEXT(GLenum type, GLsizei stride, const void *pointer)
 {
 	glBinormalPointerEXT(type, stride, pointer);
 	if (checkErrors)
@@ -29169,7 +29174,7 @@ static APIENTRY void debug_glBinormalPointerEXT(GLenum type, GLsizei stride, con
 	}
 }
 
-static APIENTRY void debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
+static void APIENTRY debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
 {
 	glCullParameterdvEXT(pname, params);
 	if (checkErrors)
@@ -29186,7 +29191,7 @@ static APIENTRY void debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
 	}
 }
 
-static APIENTRY void debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
+static void APIENTRY debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
 {
 	glCullParameterfvEXT(pname, params);
 	if (checkErrors)
@@ -29203,7 +29208,7 @@ static APIENTRY void debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
 	}
 }
 
-static APIENTRY void debug_glLabelObjectEXT(GLenum type, GLuint object, GLsizei length, const GLchar *label)
+static void APIENTRY debug_glLabelObjectEXT(GLenum type, GLuint object, GLsizei length, const GLchar *label)
 {
 	glLabelObjectEXT(type, object, length, label);
 	if (checkErrors)
@@ -29220,7 +29225,7 @@ static APIENTRY void debug_glLabelObjectEXT(GLenum type, GLuint object, GLsizei 
 	}
 }
 
-static APIENTRY void debug_glGetObjectLabelEXT(GLenum type, GLuint object, GLsizei bufSize, GLsizei *length, GLchar *label)
+static void APIENTRY debug_glGetObjectLabelEXT(GLenum type, GLuint object, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
 	glGetObjectLabelEXT(type, object, bufSize, length, label);
 	if (checkErrors)
@@ -29237,7 +29242,7 @@ static APIENTRY void debug_glGetObjectLabelEXT(GLenum type, GLuint object, GLsiz
 	}
 }
 
-static APIENTRY void debug_glInsertEventMarkerEXT(GLsizei length, const GLchar *marker)
+static void APIENTRY debug_glInsertEventMarkerEXT(GLsizei length, const GLchar *marker)
 {
 	glInsertEventMarkerEXT(length, marker);
 	if (checkErrors)
@@ -29254,7 +29259,7 @@ static APIENTRY void debug_glInsertEventMarkerEXT(GLsizei length, const GLchar *
 	}
 }
 
-static APIENTRY void debug_glPushGroupMarkerEXT(GLsizei length, const GLchar *marker)
+static void APIENTRY debug_glPushGroupMarkerEXT(GLsizei length, const GLchar *marker)
 {
 	glPushGroupMarkerEXT(length, marker);
 	if (checkErrors)
@@ -29271,7 +29276,7 @@ static APIENTRY void debug_glPushGroupMarkerEXT(GLsizei length, const GLchar *ma
 	}
 }
 
-static APIENTRY void debug_glPopGroupMarkerEXT()
+static void APIENTRY debug_glPopGroupMarkerEXT()
 {
 	glPopGroupMarkerEXT();
 	if (checkErrors)
@@ -29288,7 +29293,7 @@ static APIENTRY void debug_glPopGroupMarkerEXT()
 	}
 }
 
-static APIENTRY void debug_glDepthBoundsEXT(GLclampd zmin, GLclampd zmax)
+static void APIENTRY debug_glDepthBoundsEXT(GLclampd zmin, GLclampd zmax)
 {
 	glDepthBoundsEXT(zmin, zmax);
 	if (checkErrors)
@@ -29305,7 +29310,7 @@ static APIENTRY void debug_glDepthBoundsEXT(GLclampd zmin, GLclampd zmax)
 	}
 }
 
-static APIENTRY void debug_glMatrixLoadfEXT(GLenum mode, const GLfloat *m)
+static void APIENTRY debug_glMatrixLoadfEXT(GLenum mode, const GLfloat *m)
 {
 	glMatrixLoadfEXT(mode, m);
 	if (checkErrors)
@@ -29322,7 +29327,7 @@ static APIENTRY void debug_glMatrixLoadfEXT(GLenum mode, const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glMatrixLoaddEXT(GLenum mode, const GLdouble *m)
+static void APIENTRY debug_glMatrixLoaddEXT(GLenum mode, const GLdouble *m)
 {
 	glMatrixLoaddEXT(mode, m);
 	if (checkErrors)
@@ -29339,7 +29344,7 @@ static APIENTRY void debug_glMatrixLoaddEXT(GLenum mode, const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glMatrixMultfEXT(GLenum mode, const GLfloat *m)
+static void APIENTRY debug_glMatrixMultfEXT(GLenum mode, const GLfloat *m)
 {
 	glMatrixMultfEXT(mode, m);
 	if (checkErrors)
@@ -29356,7 +29361,7 @@ static APIENTRY void debug_glMatrixMultfEXT(GLenum mode, const GLfloat *m)
 	}
 }
 
-static APIENTRY void debug_glMatrixMultdEXT(GLenum mode, const GLdouble *m)
+static void APIENTRY debug_glMatrixMultdEXT(GLenum mode, const GLdouble *m)
 {
 	glMatrixMultdEXT(mode, m);
 	if (checkErrors)
@@ -29373,7 +29378,7 @@ static APIENTRY void debug_glMatrixMultdEXT(GLenum mode, const GLdouble *m)
 	}
 }
 
-static APIENTRY void debug_glMatrixLoadIdentityEXT(GLenum mode)
+static void APIENTRY debug_glMatrixLoadIdentityEXT(GLenum mode)
 {
 	glMatrixLoadIdentityEXT(mode);
 	if (checkErrors)
@@ -29390,7 +29395,7 @@ static APIENTRY void debug_glMatrixLoadIdentityEXT(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
 	glMatrixRotatefEXT(mode, angle, x, y, z);
 	if (checkErrors)
@@ -29407,7 +29412,7 @@ static APIENTRY void debug_glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloa
 	}
 }
 
-static APIENTRY void debug_glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 {
 	glMatrixRotatedEXT(mode, angle, x, y, z);
 	if (checkErrors)
@@ -29424,7 +29429,7 @@ static APIENTRY void debug_glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdou
 	}
 }
 
-static APIENTRY void debug_glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
 {
 	glMatrixScalefEXT(mode, x, y, z);
 	if (checkErrors)
@@ -29441,7 +29446,7 @@ static APIENTRY void debug_glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, 
 	}
 }
 
-static APIENTRY void debug_glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
 {
 	glMatrixScaledEXT(mode, x, y, z);
 	if (checkErrors)
@@ -29458,7 +29463,7 @@ static APIENTRY void debug_glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y
 	}
 }
 
-static APIENTRY void debug_glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
+static void APIENTRY debug_glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
 {
 	glMatrixTranslatefEXT(mode, x, y, z);
 	if (checkErrors)
@@ -29475,7 +29480,7 @@ static APIENTRY void debug_glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat
 	}
 }
 
-static APIENTRY void debug_glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
 {
 	glMatrixTranslatedEXT(mode, x, y, z);
 	if (checkErrors)
@@ -29492,7 +29497,7 @@ static APIENTRY void debug_glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdoub
 	}
 }
 
-static APIENTRY void debug_glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+static void APIENTRY debug_glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
 	glMatrixFrustumEXT(mode, left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
@@ -29509,7 +29514,7 @@ static APIENTRY void debug_glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdoub
 	}
 }
 
-static APIENTRY void debug_glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
+static void APIENTRY debug_glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
 	glMatrixOrthoEXT(mode, left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
@@ -29526,7 +29531,7 @@ static APIENTRY void debug_glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble
 	}
 }
 
-static APIENTRY void debug_glMatrixPopEXT(GLenum mode)
+static void APIENTRY debug_glMatrixPopEXT(GLenum mode)
 {
 	glMatrixPopEXT(mode);
 	if (checkErrors)
@@ -29543,7 +29548,7 @@ static APIENTRY void debug_glMatrixPopEXT(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glMatrixPushEXT(GLenum mode)
+static void APIENTRY debug_glMatrixPushEXT(GLenum mode)
 {
 	glMatrixPushEXT(mode);
 	if (checkErrors)
@@ -29560,7 +29565,7 @@ static APIENTRY void debug_glMatrixPushEXT(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glClientAttribDefaultEXT(GLbitfield mask)
+static void APIENTRY debug_glClientAttribDefaultEXT(GLbitfield mask)
 {
 	glClientAttribDefaultEXT(mask);
 	if (checkErrors)
@@ -29577,7 +29582,7 @@ static APIENTRY void debug_glClientAttribDefaultEXT(GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glPushClientAttribDefaultEXT(GLbitfield mask)
+static void APIENTRY debug_glPushClientAttribDefaultEXT(GLbitfield mask)
 {
 	glPushClientAttribDefaultEXT(mask);
 	if (checkErrors)
@@ -29594,7 +29599,7 @@ static APIENTRY void debug_glPushClientAttribDefaultEXT(GLbitfield mask)
 	}
 }
 
-static APIENTRY void debug_glTextureParameterfEXT(GLuint texture, GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glTextureParameterfEXT(GLuint texture, GLenum target, GLenum pname, GLfloat param)
 {
 	glTextureParameterfEXT(texture, target, pname, param);
 	if (checkErrors)
@@ -29611,7 +29616,7 @@ static APIENTRY void debug_glTextureParameterfEXT(GLuint texture, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, const GLfloat *params)
 {
 	glTextureParameterfvEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -29628,7 +29633,7 @@ static APIENTRY void debug_glTextureParameterfvEXT(GLuint texture, GLenum target
 	}
 }
 
-static APIENTRY void debug_glTextureParameteriEXT(GLuint texture, GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glTextureParameteriEXT(GLuint texture, GLenum target, GLenum pname, GLint param)
 {
 	glTextureParameteriEXT(texture, target, pname, param);
 	if (checkErrors)
@@ -29645,7 +29650,7 @@ static APIENTRY void debug_glTextureParameteriEXT(GLuint texture, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
 {
 	glTextureParameterivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -29662,7 +29667,7 @@ static APIENTRY void debug_glTextureParameterivEXT(GLuint texture, GLenum target
 	}
 }
 
-static APIENTRY void debug_glTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureImage1DEXT(texture, target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
@@ -29679,7 +29684,7 @@ static APIENTRY void debug_glTextureImage1DEXT(GLuint texture, GLenum target, GL
 	}
 }
 
-static APIENTRY void debug_glTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
@@ -29696,7 +29701,7 @@ static APIENTRY void debug_glTextureImage2DEXT(GLuint texture, GLenum target, GL
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage1DEXT(texture, target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
@@ -29713,7 +29718,7 @@ static APIENTRY void debug_glTextureSubImage1DEXT(GLuint texture, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
@@ -29730,7 +29735,7 @@ static APIENTRY void debug_glTextureSubImage2DEXT(GLuint texture, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glCopyTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
+static void APIENTRY debug_glCopyTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
 	glCopyTextureImage1DEXT(texture, target, level, internalformat, x, y, width, border);
 	if (checkErrors)
@@ -29747,7 +29752,7 @@ static APIENTRY void debug_glCopyTextureImage1DEXT(GLuint texture, GLenum target
 	}
 }
 
-static APIENTRY void debug_glCopyTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+static void APIENTRY debug_glCopyTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
 	glCopyTextureImage2DEXT(texture, target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
@@ -29764,7 +29769,7 @@ static APIENTRY void debug_glCopyTextureImage2DEXT(GLuint texture, GLenum target
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
 	glCopyTextureSubImage1DEXT(texture, target, level, xoffset, x, y, width);
 	if (checkErrors)
@@ -29781,7 +29786,7 @@ static APIENTRY void debug_glCopyTextureSubImage1DEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
@@ -29798,7 +29803,7 @@ static APIENTRY void debug_glCopyTextureSubImage2DEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glGetTextureImageEXT(GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
+static void APIENTRY debug_glGetTextureImageEXT(GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
 	glGetTextureImageEXT(texture, target, level, format, type, pixels);
 	if (checkErrors)
@@ -29815,7 +29820,7 @@ static APIENTRY void debug_glGetTextureImageEXT(GLuint texture, GLenum target, G
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetTextureParameterfvEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -29832,7 +29837,7 @@ static APIENTRY void debug_glGetTextureParameterfvEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
 {
 	glGetTextureParameterivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -29849,7 +29854,7 @@ static APIENTRY void debug_glGetTextureParameterivEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glGetTextureLevelParameterfvEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetTextureLevelParameterfvEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
 	glGetTextureLevelParameterfvEXT(texture, target, level, pname, params);
 	if (checkErrors)
@@ -29866,7 +29871,7 @@ static APIENTRY void debug_glGetTextureLevelParameterfvEXT(GLuint texture, GLenu
 	}
 }
 
-static APIENTRY void debug_glGetTextureLevelParameterivEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureLevelParameterivEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params)
 {
 	glGetTextureLevelParameterivEXT(texture, target, level, pname, params);
 	if (checkErrors)
@@ -29883,7 +29888,7 @@ static APIENTRY void debug_glGetTextureLevelParameterivEXT(GLuint texture, GLenu
 	}
 }
 
-static APIENTRY void debug_glTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
@@ -29900,7 +29905,7 @@ static APIENTRY void debug_glTextureImage3DEXT(GLuint texture, GLenum target, GL
 	}
 }
 
-static APIENTRY void debug_glTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
 	glTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
@@ -29917,7 +29922,7 @@ static APIENTRY void debug_glTextureSubImage3DEXT(GLuint texture, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glCopyTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
@@ -29934,7 +29939,7 @@ static APIENTRY void debug_glCopyTextureSubImage3DEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glBindMultiTextureEXT(GLenum texunit, GLenum target, GLuint texture)
+static void APIENTRY debug_glBindMultiTextureEXT(GLenum texunit, GLenum target, GLuint texture)
 {
 	glBindMultiTextureEXT(texunit, target, texture);
 	if (checkErrors)
@@ -29951,7 +29956,7 @@ static APIENTRY void debug_glBindMultiTextureEXT(GLenum texunit, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glMultiTexCoordPointerEXT(GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glMultiTexCoordPointerEXT(GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glMultiTexCoordPointerEXT(texunit, size, type, stride, pointer);
 	if (checkErrors)
@@ -29968,7 +29973,7 @@ static APIENTRY void debug_glMultiTexCoordPointerEXT(GLenum texunit, GLint size,
 	}
 }
 
-static APIENTRY void debug_glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
 {
 	glMultiTexEnvfEXT(texunit, target, pname, param);
 	if (checkErrors)
@@ -29985,7 +29990,7 @@ static APIENTRY void debug_glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLen
 	}
 }
 
-static APIENTRY void debug_glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
 {
 	glMultiTexEnvfvEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30002,7 +30007,7 @@ static APIENTRY void debug_glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLe
 	}
 }
 
-static APIENTRY void debug_glMultiTexEnviEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glMultiTexEnviEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
 {
 	glMultiTexEnviEXT(texunit, target, pname, param);
 	if (checkErrors)
@@ -30019,7 +30024,7 @@ static APIENTRY void debug_glMultiTexEnviEXT(GLenum texunit, GLenum target, GLen
 	}
 }
 
-static APIENTRY void debug_glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
 	glMultiTexEnvivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30036,7 +30041,7 @@ static APIENTRY void debug_glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLe
 	}
 }
 
-static APIENTRY void debug_glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble param)
+static void APIENTRY debug_glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble param)
 {
 	glMultiTexGendEXT(texunit, coord, pname, param);
 	if (checkErrors)
@@ -30053,7 +30058,7 @@ static APIENTRY void debug_glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenu
 	}
 }
 
-static APIENTRY void debug_glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params)
+static void APIENTRY debug_glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params)
 {
 	glMultiTexGendvEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30070,7 +30075,7 @@ static APIENTRY void debug_glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLen
 	}
 }
 
-static APIENTRY void debug_glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat param)
+static void APIENTRY debug_glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat param)
 {
 	glMultiTexGenfEXT(texunit, coord, pname, param);
 	if (checkErrors)
@@ -30087,7 +30092,7 @@ static APIENTRY void debug_glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenu
 	}
 }
 
-static APIENTRY void debug_glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params)
 {
 	glMultiTexGenfvEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30104,7 +30109,7 @@ static APIENTRY void debug_glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLen
 	}
 }
 
-static APIENTRY void debug_glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenum pname, GLint param)
+static void APIENTRY debug_glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenum pname, GLint param)
 {
 	glMultiTexGeniEXT(texunit, coord, pname, param);
 	if (checkErrors)
@@ -30121,7 +30126,7 @@ static APIENTRY void debug_glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenu
 	}
 }
 
-static APIENTRY void debug_glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, const GLint *params)
+static void APIENTRY debug_glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, const GLint *params)
 {
 	glMultiTexGenivEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30138,7 +30143,7 @@ static APIENTRY void debug_glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLen
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetMultiTexEnvfvEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30155,7 +30160,7 @@ static APIENTRY void debug_glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
 	glGetMultiTexEnvivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30172,7 +30177,7 @@ static APIENTRY void debug_glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble *params)
+static void APIENTRY debug_glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble *params)
 {
 	glGetMultiTexGendvEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30189,7 +30194,7 @@ static APIENTRY void debug_glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, G
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat *params)
 {
 	glGetMultiTexGenfvEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30206,7 +30211,7 @@ static APIENTRY void debug_glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, G
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, GLint *params)
 {
 	glGetMultiTexGenivEXT(texunit, coord, pname, params);
 	if (checkErrors)
@@ -30223,7 +30228,7 @@ static APIENTRY void debug_glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, G
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameteriEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glMultiTexParameteriEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
 {
 	glMultiTexParameteriEXT(texunit, target, pname, param);
 	if (checkErrors)
@@ -30240,7 +30245,7 @@ static APIENTRY void debug_glMultiTexParameteriEXT(GLenum texunit, GLenum target
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
 	glMultiTexParameterivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30257,7 +30262,7 @@ static APIENTRY void debug_glMultiTexParameterivEXT(GLenum texunit, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameterfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glMultiTexParameterfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
 {
 	glMultiTexParameterfEXT(texunit, target, pname, param);
 	if (checkErrors)
@@ -30274,7 +30279,7 @@ static APIENTRY void debug_glMultiTexParameterfEXT(GLenum texunit, GLenum target
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
 {
 	glMultiTexParameterfvEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30291,7 +30296,7 @@ static APIENTRY void debug_glMultiTexParameterfvEXT(GLenum texunit, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
@@ -30308,7 +30313,7 @@ static APIENTRY void debug_glMultiTexImage1DEXT(GLenum texunit, GLenum target, G
 	}
 }
 
-static APIENTRY void debug_glMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
@@ -30325,7 +30330,7 @@ static APIENTRY void debug_glMultiTexImage2DEXT(GLenum texunit, GLenum target, G
 	}
 }
 
-static APIENTRY void debug_glMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
@@ -30342,7 +30347,7 @@ static APIENTRY void debug_glMultiTexSubImage1DEXT(GLenum texunit, GLenum target
 	}
 }
 
-static APIENTRY void debug_glMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
@@ -30359,7 +30364,7 @@ static APIENTRY void debug_glMultiTexSubImage2DEXT(GLenum texunit, GLenum target
 	}
 }
 
-static APIENTRY void debug_glCopyMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
+static void APIENTRY debug_glCopyMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
 	glCopyMultiTexImage1DEXT(texunit, target, level, internalformat, x, y, width, border);
 	if (checkErrors)
@@ -30376,7 +30381,7 @@ static APIENTRY void debug_glCopyMultiTexImage1DEXT(GLenum texunit, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glCopyMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
+static void APIENTRY debug_glCopyMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
 	glCopyMultiTexImage2DEXT(texunit, target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
@@ -30393,7 +30398,7 @@ static APIENTRY void debug_glCopyMultiTexImage2DEXT(GLenum texunit, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
+static void APIENTRY debug_glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
 	glCopyMultiTexSubImage1DEXT(texunit, target, level, xoffset, x, y, width);
 	if (checkErrors)
@@ -30410,7 +30415,7 @@ static APIENTRY void debug_glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
@@ -30427,7 +30432,7 @@ static APIENTRY void debug_glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexImageEXT(GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
+static void APIENTRY debug_glGetMultiTexImageEXT(GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
 	glGetMultiTexImageEXT(texunit, target, level, format, type, pixels);
 	if (checkErrors)
@@ -30444,7 +30449,7 @@ static APIENTRY void debug_glGetMultiTexImageEXT(GLenum texunit, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetMultiTexParameterfvEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30461,7 +30466,7 @@ static APIENTRY void debug_glGetMultiTexParameterfvEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
 	glGetMultiTexParameterivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -30478,7 +30483,7 @@ static APIENTRY void debug_glGetMultiTexParameterivEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
 	glGetMultiTexLevelParameterfvEXT(texunit, target, level, pname, params);
 	if (checkErrors)
@@ -30495,7 +30500,7 @@ static APIENTRY void debug_glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLen
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexLevelParameterivEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMultiTexLevelParameterivEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params)
 {
 	glGetMultiTexLevelParameterivEXT(texunit, target, level, pname, params);
 	if (checkErrors)
@@ -30512,7 +30517,7 @@ static APIENTRY void debug_glGetMultiTexLevelParameterivEXT(GLenum texunit, GLen
 	}
 }
 
-static APIENTRY void debug_glMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
@@ -30529,7 +30534,7 @@ static APIENTRY void debug_glMultiTexImage3DEXT(GLenum texunit, GLenum target, G
 	}
 }
 
-static APIENTRY void debug_glMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+static void APIENTRY debug_glMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
 	glMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
@@ -30546,7 +30551,7 @@ static APIENTRY void debug_glMultiTexSubImage3DEXT(GLenum texunit, GLenum target
 	}
 }
 
-static APIENTRY void debug_glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+static void APIENTRY debug_glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	glCopyMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
@@ -30563,7 +30568,7 @@ static APIENTRY void debug_glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glEnableClientStateIndexedEXT(GLenum array, GLuint index)
+static void APIENTRY debug_glEnableClientStateIndexedEXT(GLenum array, GLuint index)
 {
 	glEnableClientStateIndexedEXT(array, index);
 	if (checkErrors)
@@ -30580,7 +30585,7 @@ static APIENTRY void debug_glEnableClientStateIndexedEXT(GLenum array, GLuint in
 	}
 }
 
-static APIENTRY void debug_glDisableClientStateIndexedEXT(GLenum array, GLuint index)
+static void APIENTRY debug_glDisableClientStateIndexedEXT(GLenum array, GLuint index)
 {
 	glDisableClientStateIndexedEXT(array, index);
 	if (checkErrors)
@@ -30597,7 +30602,7 @@ static APIENTRY void debug_glDisableClientStateIndexedEXT(GLenum array, GLuint i
 	}
 }
 
-static APIENTRY void debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, void **data)
+static void APIENTRY debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, void **data)
 {
 	glGetPointerIndexedvEXT(target, index, data);
 	if (checkErrors)
@@ -30614,7 +30619,7 @@ static APIENTRY void debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, 
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, imageSize, bits);
 	if (checkErrors)
@@ -30631,7 +30636,7 @@ static APIENTRY void debug_glCompressedTextureImage3DEXT(GLuint texture, GLenum 
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureImage2DEXT(texture, target, level, internalformat, width, height, border, imageSize, bits);
 	if (checkErrors)
@@ -30648,7 +30653,7 @@ static APIENTRY void debug_glCompressedTextureImage2DEXT(GLuint texture, GLenum 
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureImage1DEXT(texture, target, level, internalformat, width, border, imageSize, bits);
 	if (checkErrors)
@@ -30665,7 +30670,7 @@ static APIENTRY void debug_glCompressedTextureImage1DEXT(GLuint texture, GLenum 
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
 	if (checkErrors)
@@ -30682,7 +30687,7 @@ static APIENTRY void debug_glCompressedTextureSubImage3DEXT(GLuint texture, GLen
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
 	if (checkErrors)
@@ -30699,7 +30704,7 @@ static APIENTRY void debug_glCompressedTextureSubImage2DEXT(GLuint texture, GLen
 	}
 }
 
-static APIENTRY void debug_glCompressedTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedTextureSubImage1DEXT(texture, target, level, xoffset, width, format, imageSize, bits);
 	if (checkErrors)
@@ -30716,7 +30721,7 @@ static APIENTRY void debug_glCompressedTextureSubImage1DEXT(GLuint texture, GLen
 	}
 }
 
-static APIENTRY void debug_glGetCompressedTextureImageEXT(GLuint texture, GLenum target, GLint lod, void *img)
+static void APIENTRY debug_glGetCompressedTextureImageEXT(GLuint texture, GLenum target, GLint lod, void *img)
 {
 	glGetCompressedTextureImageEXT(texture, target, lod, img);
 	if (checkErrors)
@@ -30733,7 +30738,7 @@ static APIENTRY void debug_glGetCompressedTextureImageEXT(GLuint texture, GLenum
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, imageSize, bits);
 	if (checkErrors)
@@ -30750,7 +30755,7 @@ static APIENTRY void debug_glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, imageSize, bits);
 	if (checkErrors)
@@ -30767,7 +30772,7 @@ static APIENTRY void debug_glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, imageSize, bits);
 	if (checkErrors)
@@ -30784,7 +30789,7 @@ static APIENTRY void debug_glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
 	if (checkErrors)
@@ -30801,7 +30806,7 @@ static APIENTRY void debug_glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLe
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
 	if (checkErrors)
@@ -30818,7 +30823,7 @@ static APIENTRY void debug_glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLe
 	}
 }
 
-static APIENTRY void debug_glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
+static void APIENTRY debug_glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
 {
 	glCompressedMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, imageSize, bits);
 	if (checkErrors)
@@ -30835,7 +30840,7 @@ static APIENTRY void debug_glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLe
 	}
 }
 
-static APIENTRY void debug_glGetCompressedMultiTexImageEXT(GLenum texunit, GLenum target, GLint lod, void *img)
+static void APIENTRY debug_glGetCompressedMultiTexImageEXT(GLenum texunit, GLenum target, GLint lod, void *img)
 {
 	glGetCompressedMultiTexImageEXT(texunit, target, lod, img);
 	if (checkErrors)
@@ -30852,7 +30857,7 @@ static APIENTRY void debug_glGetCompressedMultiTexImageEXT(GLenum texunit, GLenu
 	}
 }
 
-static APIENTRY void debug_glMatrixLoadTransposefEXT(GLenum mode, const GLfloat *m)
+static void APIENTRY debug_glMatrixLoadTransposefEXT(GLenum mode, const GLfloat *m)
 {
 	glMatrixLoadTransposefEXT(mode, m);
 	if (checkErrors)
@@ -30869,7 +30874,7 @@ static APIENTRY void debug_glMatrixLoadTransposefEXT(GLenum mode, const GLfloat 
 	}
 }
 
-static APIENTRY void debug_glMatrixLoadTransposedEXT(GLenum mode, const GLdouble *m)
+static void APIENTRY debug_glMatrixLoadTransposedEXT(GLenum mode, const GLdouble *m)
 {
 	glMatrixLoadTransposedEXT(mode, m);
 	if (checkErrors)
@@ -30886,7 +30891,7 @@ static APIENTRY void debug_glMatrixLoadTransposedEXT(GLenum mode, const GLdouble
 	}
 }
 
-static APIENTRY void debug_glMatrixMultTransposefEXT(GLenum mode, const GLfloat *m)
+static void APIENTRY debug_glMatrixMultTransposefEXT(GLenum mode, const GLfloat *m)
 {
 	glMatrixMultTransposefEXT(mode, m);
 	if (checkErrors)
@@ -30903,7 +30908,7 @@ static APIENTRY void debug_glMatrixMultTransposefEXT(GLenum mode, const GLfloat 
 	}
 }
 
-static APIENTRY void debug_glMatrixMultTransposedEXT(GLenum mode, const GLdouble *m)
+static void APIENTRY debug_glMatrixMultTransposedEXT(GLenum mode, const GLdouble *m)
 {
 	glMatrixMultTransposedEXT(mode, m);
 	if (checkErrors)
@@ -30920,7 +30925,7 @@ static APIENTRY void debug_glMatrixMultTransposedEXT(GLenum mode, const GLdouble
 	}
 }
 
-static APIENTRY void debug_glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
+static void APIENTRY debug_glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
 {
 	glNamedBufferDataEXT(buffer, size, data, usage);
 	if (checkErrors)
@@ -30937,7 +30942,7 @@ static APIENTRY void debug_glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, 
 	}
 }
 
-static APIENTRY void * debug_glMapNamedBufferEXT(GLuint buffer, GLenum access)
+static void * APIENTRY debug_glMapNamedBufferEXT(GLuint buffer, GLenum access)
 {
 	void * retVal = default_glMapNamedBufferEXT(buffer, access);
 	if (checkErrors)
@@ -30955,7 +30960,7 @@ static APIENTRY void * debug_glMapNamedBufferEXT(GLuint buffer, GLenum access)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glUnmapNamedBufferEXT(GLuint buffer)
+static GLboolean APIENTRY debug_glUnmapNamedBufferEXT(GLuint buffer)
 {
 	GLboolean retVal = default_glUnmapNamedBufferEXT(buffer);
 	if (checkErrors)
@@ -30973,7 +30978,7 @@ static APIENTRY GLboolean debug_glUnmapNamedBufferEXT(GLuint buffer)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetNamedBufferParameterivEXT(GLuint buffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedBufferParameterivEXT(GLuint buffer, GLenum pname, GLint *params)
 {
 	glGetNamedBufferParameterivEXT(buffer, pname, params);
 	if (checkErrors)
@@ -30990,7 +30995,7 @@ static APIENTRY void debug_glGetNamedBufferParameterivEXT(GLuint buffer, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferPointervEXT(GLuint buffer, GLenum pname, void **params)
+static void APIENTRY debug_glGetNamedBufferPointervEXT(GLuint buffer, GLenum pname, void **params)
 {
 	glGetNamedBufferPointervEXT(buffer, pname, params);
 	if (checkErrors)
@@ -31007,7 +31012,7 @@ static APIENTRY void debug_glGetNamedBufferPointervEXT(GLuint buffer, GLenum pna
 	}
 }
 
-static APIENTRY void debug_glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
+static void APIENTRY debug_glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
 {
 	glGetNamedBufferSubDataEXT(buffer, offset, size, data);
 	if (checkErrors)
@@ -31024,7 +31029,7 @@ static APIENTRY void debug_glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr of
 	}
 }
 
-static APIENTRY void debug_glTextureBufferEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer)
+static void APIENTRY debug_glTextureBufferEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer)
 {
 	glTextureBufferEXT(texture, target, internalformat, buffer);
 	if (checkErrors)
@@ -31041,7 +31046,7 @@ static APIENTRY void debug_glTextureBufferEXT(GLuint texture, GLenum target, GLe
 	}
 }
 
-static APIENTRY void debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer)
+static void APIENTRY debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer)
 {
 	glMultiTexBufferEXT(texunit, target, internalformat, buffer);
 	if (checkErrors)
@@ -31058,7 +31063,7 @@ static APIENTRY void debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GL
 	}
 }
 
-static APIENTRY void debug_glTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
 {
 	glTextureParameterIivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -31075,7 +31080,7 @@ static APIENTRY void debug_glTextureParameterIivEXT(GLuint texture, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, const GLuint *params)
+static void APIENTRY debug_glTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, const GLuint *params)
 {
 	glTextureParameterIuivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -31092,7 +31097,7 @@ static APIENTRY void debug_glTextureParameterIuivEXT(GLuint texture, GLenum targ
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
 {
 	glGetTextureParameterIivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -31109,7 +31114,7 @@ static APIENTRY void debug_glGetTextureParameterIivEXT(GLuint texture, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glGetTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, GLuint *params)
 {
 	glGetTextureParameterIuivEXT(texture, target, pname, params);
 	if (checkErrors)
@@ -31126,7 +31131,7 @@ static APIENTRY void debug_glGetTextureParameterIuivEXT(GLuint texture, GLenum t
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
 	glMultiTexParameterIivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -31143,7 +31148,7 @@ static APIENTRY void debug_glMultiTexParameterIivEXT(GLenum texunit, GLenum targ
 	}
 }
 
-static APIENTRY void debug_glMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, const GLuint *params)
+static void APIENTRY debug_glMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, const GLuint *params)
 {
 	glMultiTexParameterIuivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -31160,7 +31165,7 @@ static APIENTRY void debug_glMultiTexParameterIuivEXT(GLenum texunit, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
 	glGetMultiTexParameterIivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -31177,7 +31182,7 @@ static APIENTRY void debug_glGetMultiTexParameterIivEXT(GLenum texunit, GLenum t
 	}
 }
 
-static APIENTRY void debug_glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, GLuint *params)
+static void APIENTRY debug_glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, GLuint *params)
 {
 	glGetMultiTexParameterIuivEXT(texunit, target, pname, params);
 	if (checkErrors)
@@ -31194,7 +31199,7 @@ static APIENTRY void debug_glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum 
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameters4fvEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params)
+static void APIENTRY debug_glNamedProgramLocalParameters4fvEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
 	glNamedProgramLocalParameters4fvEXT(program, target, index, count, params);
 	if (checkErrors)
@@ -31211,7 +31216,7 @@ static APIENTRY void debug_glNamedProgramLocalParameters4fvEXT(GLuint program, G
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameterI4iEXT(GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w)
+static void APIENTRY debug_glNamedProgramLocalParameterI4iEXT(GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w)
 {
 	glNamedProgramLocalParameterI4iEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
@@ -31228,7 +31233,7 @@ static APIENTRY void debug_glNamedProgramLocalParameterI4iEXT(GLuint program, GL
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameterI4ivEXT(GLuint program, GLenum target, GLuint index, const GLint *params)
+static void APIENTRY debug_glNamedProgramLocalParameterI4ivEXT(GLuint program, GLenum target, GLuint index, const GLint *params)
 {
 	glNamedProgramLocalParameterI4ivEXT(program, target, index, params);
 	if (checkErrors)
@@ -31245,7 +31250,7 @@ static APIENTRY void debug_glNamedProgramLocalParameterI4ivEXT(GLuint program, G
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParametersI4ivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params)
+static void APIENTRY debug_glNamedProgramLocalParametersI4ivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params)
 {
 	glNamedProgramLocalParametersI4ivEXT(program, target, index, count, params);
 	if (checkErrors)
@@ -31262,7 +31267,7 @@ static APIENTRY void debug_glNamedProgramLocalParametersI4ivEXT(GLuint program, 
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameterI4uiEXT(GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
+static void APIENTRY debug_glNamedProgramLocalParameterI4uiEXT(GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
 	glNamedProgramLocalParameterI4uiEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
@@ -31279,7 +31284,7 @@ static APIENTRY void debug_glNamedProgramLocalParameterI4uiEXT(GLuint program, G
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameterI4uivEXT(GLuint program, GLenum target, GLuint index, const GLuint *params)
+static void APIENTRY debug_glNamedProgramLocalParameterI4uivEXT(GLuint program, GLenum target, GLuint index, const GLuint *params)
 {
 	glNamedProgramLocalParameterI4uivEXT(program, target, index, params);
 	if (checkErrors)
@@ -31296,7 +31301,7 @@ static APIENTRY void debug_glNamedProgramLocalParameterI4uivEXT(GLuint program, 
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParametersI4uivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params)
+static void APIENTRY debug_glNamedProgramLocalParametersI4uivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params)
 {
 	glNamedProgramLocalParametersI4uivEXT(program, target, index, count, params);
 	if (checkErrors)
@@ -31313,7 +31318,7 @@ static APIENTRY void debug_glNamedProgramLocalParametersI4uivEXT(GLuint program,
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramLocalParameterIivEXT(GLuint program, GLenum target, GLuint index, GLint *params)
+static void APIENTRY debug_glGetNamedProgramLocalParameterIivEXT(GLuint program, GLenum target, GLuint index, GLint *params)
 {
 	glGetNamedProgramLocalParameterIivEXT(program, target, index, params);
 	if (checkErrors)
@@ -31330,7 +31335,7 @@ static APIENTRY void debug_glGetNamedProgramLocalParameterIivEXT(GLuint program,
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramLocalParameterIuivEXT(GLuint program, GLenum target, GLuint index, GLuint *params)
+static void APIENTRY debug_glGetNamedProgramLocalParameterIuivEXT(GLuint program, GLenum target, GLuint index, GLuint *params)
 {
 	glGetNamedProgramLocalParameterIuivEXT(program, target, index, params);
 	if (checkErrors)
@@ -31347,7 +31352,7 @@ static APIENTRY void debug_glGetNamedProgramLocalParameterIuivEXT(GLuint program
 	}
 }
 
-static APIENTRY void debug_glEnableClientStateiEXT(GLenum array, GLuint index)
+static void APIENTRY debug_glEnableClientStateiEXT(GLenum array, GLuint index)
 {
 	glEnableClientStateiEXT(array, index);
 	if (checkErrors)
@@ -31364,7 +31369,7 @@ static APIENTRY void debug_glEnableClientStateiEXT(GLenum array, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glDisableClientStateiEXT(GLenum array, GLuint index)
+static void APIENTRY debug_glDisableClientStateiEXT(GLenum array, GLuint index)
 {
 	glDisableClientStateiEXT(array, index);
 	if (checkErrors)
@@ -31381,7 +31386,7 @@ static APIENTRY void debug_glDisableClientStateiEXT(GLenum array, GLuint index)
 	}
 }
 
-static APIENTRY void debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void **params)
+static void APIENTRY debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void **params)
 {
 	glGetPointeri_vEXT(pname, index, params);
 	if (checkErrors)
@@ -31398,7 +31403,7 @@ static APIENTRY void debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void *
 	}
 }
 
-static APIENTRY void debug_glNamedProgramStringEXT(GLuint program, GLenum target, GLenum format, GLsizei len, const void *string)
+static void APIENTRY debug_glNamedProgramStringEXT(GLuint program, GLenum target, GLenum format, GLsizei len, const void *string)
 {
 	glNamedProgramStringEXT(program, target, format, len, string);
 	if (checkErrors)
@@ -31415,7 +31420,7 @@ static APIENTRY void debug_glNamedProgramStringEXT(GLuint program, GLenum target
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameter4dEXT(GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glNamedProgramLocalParameter4dEXT(GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glNamedProgramLocalParameter4dEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
@@ -31432,7 +31437,7 @@ static APIENTRY void debug_glNamedProgramLocalParameter4dEXT(GLuint program, GLe
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameter4dvEXT(GLuint program, GLenum target, GLuint index, const GLdouble *params)
+static void APIENTRY debug_glNamedProgramLocalParameter4dvEXT(GLuint program, GLenum target, GLuint index, const GLdouble *params)
 {
 	glNamedProgramLocalParameter4dvEXT(program, target, index, params);
 	if (checkErrors)
@@ -31449,7 +31454,7 @@ static APIENTRY void debug_glNamedProgramLocalParameter4dvEXT(GLuint program, GL
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameter4fEXT(GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static void APIENTRY debug_glNamedProgramLocalParameter4fEXT(GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
 	glNamedProgramLocalParameter4fEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
@@ -31466,7 +31471,7 @@ static APIENTRY void debug_glNamedProgramLocalParameter4fEXT(GLuint program, GLe
 	}
 }
 
-static APIENTRY void debug_glNamedProgramLocalParameter4fvEXT(GLuint program, GLenum target, GLuint index, const GLfloat *params)
+static void APIENTRY debug_glNamedProgramLocalParameter4fvEXT(GLuint program, GLenum target, GLuint index, const GLfloat *params)
 {
 	glNamedProgramLocalParameter4fvEXT(program, target, index, params);
 	if (checkErrors)
@@ -31483,7 +31488,7 @@ static APIENTRY void debug_glNamedProgramLocalParameter4fvEXT(GLuint program, GL
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramLocalParameterdvEXT(GLuint program, GLenum target, GLuint index, GLdouble *params)
+static void APIENTRY debug_glGetNamedProgramLocalParameterdvEXT(GLuint program, GLenum target, GLuint index, GLdouble *params)
 {
 	glGetNamedProgramLocalParameterdvEXT(program, target, index, params);
 	if (checkErrors)
@@ -31500,7 +31505,7 @@ static APIENTRY void debug_glGetNamedProgramLocalParameterdvEXT(GLuint program, 
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramLocalParameterfvEXT(GLuint program, GLenum target, GLuint index, GLfloat *params)
+static void APIENTRY debug_glGetNamedProgramLocalParameterfvEXT(GLuint program, GLenum target, GLuint index, GLfloat *params)
 {
 	glGetNamedProgramLocalParameterfvEXT(program, target, index, params);
 	if (checkErrors)
@@ -31517,7 +31522,7 @@ static APIENTRY void debug_glGetNamedProgramLocalParameterfvEXT(GLuint program, 
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramivEXT(GLuint program, GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedProgramivEXT(GLuint program, GLenum target, GLenum pname, GLint *params)
 {
 	glGetNamedProgramivEXT(program, target, pname, params);
 	if (checkErrors)
@@ -31534,7 +31539,7 @@ static APIENTRY void debug_glGetNamedProgramivEXT(GLuint program, GLenum target,
 	}
 }
 
-static APIENTRY void debug_glGetNamedProgramStringEXT(GLuint program, GLenum target, GLenum pname, void *string)
+static void APIENTRY debug_glGetNamedProgramStringEXT(GLuint program, GLenum target, GLenum pname, void *string)
 {
 	glGetNamedProgramStringEXT(program, target, pname, string);
 	if (checkErrors)
@@ -31551,7 +31556,7 @@ static APIENTRY void debug_glGetNamedProgramStringEXT(GLuint program, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glNamedRenderbufferStorageEXT(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glNamedRenderbufferStorageEXT(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glNamedRenderbufferStorageEXT(renderbuffer, internalformat, width, height);
 	if (checkErrors)
@@ -31568,7 +31573,7 @@ static APIENTRY void debug_glNamedRenderbufferStorageEXT(GLuint renderbuffer, GL
 	}
 }
 
-static APIENTRY void debug_glGetNamedRenderbufferParameterivEXT(GLuint renderbuffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedRenderbufferParameterivEXT(GLuint renderbuffer, GLenum pname, GLint *params)
 {
 	glGetNamedRenderbufferParameterivEXT(renderbuffer, pname, params);
 	if (checkErrors)
@@ -31585,7 +31590,7 @@ static APIENTRY void debug_glGetNamedRenderbufferParameterivEXT(GLuint renderbuf
 	}
 }
 
-static APIENTRY void debug_glNamedRenderbufferStorageMultisampleEXT(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glNamedRenderbufferStorageMultisampleEXT(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glNamedRenderbufferStorageMultisampleEXT(renderbuffer, samples, internalformat, width, height);
 	if (checkErrors)
@@ -31602,7 +31607,7 @@ static APIENTRY void debug_glNamedRenderbufferStorageMultisampleEXT(GLuint rende
 	}
 }
 
-static APIENTRY void debug_glNamedRenderbufferStorageMultisampleCoverageEXT(GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glNamedRenderbufferStorageMultisampleCoverageEXT(GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glNamedRenderbufferStorageMultisampleCoverageEXT(renderbuffer, coverageSamples, colorSamples, internalformat, width, height);
 	if (checkErrors)
@@ -31619,7 +31624,7 @@ static APIENTRY void debug_glNamedRenderbufferStorageMultisampleCoverageEXT(GLui
 	}
 }
 
-static APIENTRY GLenum debug_glCheckNamedFramebufferStatusEXT(GLuint framebuffer, GLenum target)
+static GLenum APIENTRY debug_glCheckNamedFramebufferStatusEXT(GLuint framebuffer, GLenum target)
 {
 	GLenum retVal = default_glCheckNamedFramebufferStatusEXT(framebuffer, target);
 	if (checkErrors)
@@ -31637,7 +31642,7 @@ static APIENTRY GLenum debug_glCheckNamedFramebufferStatusEXT(GLuint framebuffer
 	return retVal;
 }
 
-static APIENTRY void debug_glNamedFramebufferTexture1DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+static void APIENTRY debug_glNamedFramebufferTexture1DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 	glNamedFramebufferTexture1DEXT(framebuffer, attachment, textarget, texture, level);
 	if (checkErrors)
@@ -31654,7 +31659,7 @@ static APIENTRY void debug_glNamedFramebufferTexture1DEXT(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTexture2DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
+static void APIENTRY debug_glNamedFramebufferTexture2DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
 	glNamedFramebufferTexture2DEXT(framebuffer, attachment, textarget, texture, level);
 	if (checkErrors)
@@ -31671,7 +31676,7 @@ static APIENTRY void debug_glNamedFramebufferTexture2DEXT(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTexture3DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
+static void APIENTRY debug_glNamedFramebufferTexture3DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
 	glNamedFramebufferTexture3DEXT(framebuffer, attachment, textarget, texture, level, zoffset);
 	if (checkErrors)
@@ -31688,7 +31693,7 @@ static APIENTRY void debug_glNamedFramebufferTexture3DEXT(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferRenderbufferEXT(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+static void APIENTRY debug_glNamedFramebufferRenderbufferEXT(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
 	glNamedFramebufferRenderbufferEXT(framebuffer, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
@@ -31705,7 +31710,7 @@ static APIENTRY void debug_glNamedFramebufferRenderbufferEXT(GLuint framebuffer,
 	}
 }
 
-static APIENTRY void debug_glGetNamedFramebufferAttachmentParameterivEXT(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedFramebufferAttachmentParameterivEXT(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
 {
 	glGetNamedFramebufferAttachmentParameterivEXT(framebuffer, attachment, pname, params);
 	if (checkErrors)
@@ -31722,7 +31727,7 @@ static APIENTRY void debug_glGetNamedFramebufferAttachmentParameterivEXT(GLuint 
 	}
 }
 
-static APIENTRY void debug_glGenerateTextureMipmapEXT(GLuint texture, GLenum target)
+static void APIENTRY debug_glGenerateTextureMipmapEXT(GLuint texture, GLenum target)
 {
 	glGenerateTextureMipmapEXT(texture, target);
 	if (checkErrors)
@@ -31739,7 +31744,7 @@ static APIENTRY void debug_glGenerateTextureMipmapEXT(GLuint texture, GLenum tar
 	}
 }
 
-static APIENTRY void debug_glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum target)
+static void APIENTRY debug_glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum target)
 {
 	glGenerateMultiTexMipmapEXT(texunit, target);
 	if (checkErrors)
@@ -31756,7 +31761,7 @@ static APIENTRY void debug_glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum ta
 	}
 }
 
-static APIENTRY void debug_glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum mode)
+static void APIENTRY debug_glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum mode)
 {
 	glFramebufferDrawBufferEXT(framebuffer, mode);
 	if (checkErrors)
@@ -31773,7 +31778,7 @@ static APIENTRY void debug_glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum
 	}
 }
 
-static APIENTRY void debug_glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsizei n, const GLenum *bufs)
+static void APIENTRY debug_glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsizei n, const GLenum *bufs)
 {
 	glFramebufferDrawBuffersEXT(framebuffer, n, bufs);
 	if (checkErrors)
@@ -31790,7 +31795,7 @@ static APIENTRY void debug_glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsiz
 	}
 }
 
-static APIENTRY void debug_glFramebufferReadBufferEXT(GLuint framebuffer, GLenum mode)
+static void APIENTRY debug_glFramebufferReadBufferEXT(GLuint framebuffer, GLenum mode)
 {
 	glFramebufferReadBufferEXT(framebuffer, mode);
 	if (checkErrors)
@@ -31807,7 +31812,7 @@ static APIENTRY void debug_glFramebufferReadBufferEXT(GLuint framebuffer, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
 {
 	glGetFramebufferParameterivEXT(framebuffer, pname, params);
 	if (checkErrors)
@@ -31824,7 +31829,7 @@ static APIENTRY void debug_glGetFramebufferParameterivEXT(GLuint framebuffer, GL
 	}
 }
 
-static APIENTRY void debug_glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+static void APIENTRY debug_glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
 	glNamedCopyBufferSubDataEXT(readBuffer, writeBuffer, readOffset, writeOffset, size);
 	if (checkErrors)
@@ -31841,7 +31846,7 @@ static APIENTRY void debug_glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTextureEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
+static void APIENTRY debug_glNamedFramebufferTextureEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
 	glNamedFramebufferTextureEXT(framebuffer, attachment, texture, level);
 	if (checkErrors)
@@ -31858,7 +31863,7 @@ static APIENTRY void debug_glNamedFramebufferTextureEXT(GLuint framebuffer, GLen
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTextureLayerEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
+static void APIENTRY debug_glNamedFramebufferTextureLayerEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
 	glNamedFramebufferTextureLayerEXT(framebuffer, attachment, texture, level, layer);
 	if (checkErrors)
@@ -31875,7 +31880,7 @@ static APIENTRY void debug_glNamedFramebufferTextureLayerEXT(GLuint framebuffer,
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferTextureFaceEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face)
+static void APIENTRY debug_glNamedFramebufferTextureFaceEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face)
 {
 	glNamedFramebufferTextureFaceEXT(framebuffer, attachment, texture, level, face);
 	if (checkErrors)
@@ -31892,7 +31897,7 @@ static APIENTRY void debug_glNamedFramebufferTextureFaceEXT(GLuint framebuffer, 
 	}
 }
 
-static APIENTRY void debug_glTextureRenderbufferEXT(GLuint texture, GLenum target, GLuint renderbuffer)
+static void APIENTRY debug_glTextureRenderbufferEXT(GLuint texture, GLenum target, GLuint renderbuffer)
 {
 	glTextureRenderbufferEXT(texture, target, renderbuffer);
 	if (checkErrors)
@@ -31909,7 +31914,7 @@ static APIENTRY void debug_glTextureRenderbufferEXT(GLuint texture, GLenum targe
 	}
 }
 
-static APIENTRY void debug_glMultiTexRenderbufferEXT(GLenum texunit, GLenum target, GLuint renderbuffer)
+static void APIENTRY debug_glMultiTexRenderbufferEXT(GLenum texunit, GLenum target, GLuint renderbuffer)
 {
 	glMultiTexRenderbufferEXT(texunit, target, renderbuffer);
 	if (checkErrors)
@@ -31926,7 +31931,7 @@ static APIENTRY void debug_glMultiTexRenderbufferEXT(GLenum texunit, GLenum targ
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayVertexOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
@@ -31943,7 +31948,7 @@ static APIENTRY void debug_glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buf
 	}
 }
 
-static APIENTRY void debug_glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
@@ -31960,7 +31965,7 @@ static APIENTRY void debug_glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buff
 	}
 }
 
-static APIENTRY void debug_glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayEdgeFlagOffsetEXT(vaobj, buffer, stride, offset);
 	if (checkErrors)
@@ -31977,7 +31982,7 @@ static APIENTRY void debug_glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint b
 	}
 }
 
-static APIENTRY void debug_glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayIndexOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
@@ -31994,7 +31999,7 @@ static APIENTRY void debug_glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buff
 	}
 }
 
-static APIENTRY void debug_glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayNormalOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
@@ -32011,7 +32016,7 @@ static APIENTRY void debug_glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buf
 	}
 }
 
-static APIENTRY void debug_glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayTexCoordOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
@@ -32028,7 +32033,7 @@ static APIENTRY void debug_glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint b
 	}
 }
 
-static APIENTRY void debug_glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayMultiTexCoordOffsetEXT(vaobj, buffer, texunit, size, type, stride, offset);
 	if (checkErrors)
@@ -32045,7 +32050,7 @@ static APIENTRY void debug_glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayFogCoordOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
@@ -32062,7 +32067,7 @@ static APIENTRY void debug_glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint b
 	}
 }
 
-static APIENTRY void debug_glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArraySecondaryColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
@@ -32079,7 +32084,7 @@ static APIENTRY void debug_glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GL
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayVertexAttribOffsetEXT(vaobj, buffer, index, size, type, normalized, stride, offset);
 	if (checkErrors)
@@ -32096,7 +32101,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLui
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayVertexAttribIOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
 	if (checkErrors)
@@ -32113,7 +32118,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glEnableVertexArrayEXT(GLuint vaobj, GLenum array)
+static void APIENTRY debug_glEnableVertexArrayEXT(GLuint vaobj, GLenum array)
 {
 	glEnableVertexArrayEXT(vaobj, array);
 	if (checkErrors)
@@ -32130,7 +32135,7 @@ static APIENTRY void debug_glEnableVertexArrayEXT(GLuint vaobj, GLenum array)
 	}
 }
 
-static APIENTRY void debug_glDisableVertexArrayEXT(GLuint vaobj, GLenum array)
+static void APIENTRY debug_glDisableVertexArrayEXT(GLuint vaobj, GLenum array)
 {
 	glDisableVertexArrayEXT(vaobj, array);
 	if (checkErrors)
@@ -32147,7 +32152,7 @@ static APIENTRY void debug_glDisableVertexArrayEXT(GLuint vaobj, GLenum array)
 	}
 }
 
-static APIENTRY void debug_glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
+static void APIENTRY debug_glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
 {
 	glEnableVertexArrayAttribEXT(vaobj, index);
 	if (checkErrors)
@@ -32164,7 +32169,7 @@ static APIENTRY void debug_glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint ind
 	}
 }
 
-static APIENTRY void debug_glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
+static void APIENTRY debug_glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
 {
 	glDisableVertexArrayAttribEXT(vaobj, index);
 	if (checkErrors)
@@ -32181,7 +32186,7 @@ static APIENTRY void debug_glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint in
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pname, GLint *param)
 {
 	glGetVertexArrayIntegervEXT(vaobj, pname, param);
 	if (checkErrors)
@@ -32198,7 +32203,7 @@ static APIENTRY void debug_glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pname, void **param)
+static void APIENTRY debug_glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pname, void **param)
 {
 	glGetVertexArrayPointervEXT(vaobj, pname, param);
 	if (checkErrors)
@@ -32215,7 +32220,7 @@ static APIENTRY void debug_glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pnam
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
+static void APIENTRY debug_glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
 {
 	glGetVertexArrayIntegeri_vEXT(vaobj, index, pname, param);
 	if (checkErrors)
@@ -32232,7 +32237,7 @@ static APIENTRY void debug_glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint in
 	}
 }
 
-static APIENTRY void debug_glGetVertexArrayPointeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, void **param)
+static void APIENTRY debug_glGetVertexArrayPointeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, void **param)
 {
 	glGetVertexArrayPointeri_vEXT(vaobj, index, pname, param);
 	if (checkErrors)
@@ -32249,7 +32254,7 @@ static APIENTRY void debug_glGetVertexArrayPointeri_vEXT(GLuint vaobj, GLuint in
 	}
 }
 
-static APIENTRY void * debug_glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
+static void * APIENTRY debug_glMapNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access)
 {
 	void * retVal = default_glMapNamedBufferRangeEXT(buffer, offset, length, access);
 	if (checkErrors)
@@ -32267,7 +32272,7 @@ static APIENTRY void * debug_glMapNamedBufferRangeEXT(GLuint buffer, GLintptr of
 	return retVal;
 }
 
-static APIENTRY void debug_glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length)
+static void APIENTRY debug_glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
 	glFlushMappedNamedBufferRangeEXT(buffer, offset, length);
 	if (checkErrors)
@@ -32284,7 +32289,7 @@ static APIENTRY void debug_glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLint
 	}
 }
 
-static APIENTRY void debug_glClearNamedBufferDataEXT(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearNamedBufferDataEXT(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
 	glClearNamedBufferDataEXT(buffer, internalformat, format, type, data);
 	if (checkErrors)
@@ -32301,7 +32306,7 @@ static APIENTRY void debug_glClearNamedBufferDataEXT(GLuint buffer, GLenum inter
 	}
 }
 
-static APIENTRY void debug_glClearNamedBufferSubDataEXT(GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
+static void APIENTRY debug_glClearNamedBufferSubDataEXT(GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
 	glClearNamedBufferSubDataEXT(buffer, internalformat, offset, size, format, type, data);
 	if (checkErrors)
@@ -32318,7 +32323,7 @@ static APIENTRY void debug_glClearNamedBufferSubDataEXT(GLuint buffer, GLenum in
 	}
 }
 
-static APIENTRY void debug_glNamedFramebufferParameteriEXT(GLuint framebuffer, GLenum pname, GLint param)
+static void APIENTRY debug_glNamedFramebufferParameteriEXT(GLuint framebuffer, GLenum pname, GLint param)
 {
 	glNamedFramebufferParameteriEXT(framebuffer, pname, param);
 	if (checkErrors)
@@ -32335,7 +32340,7 @@ static APIENTRY void debug_glNamedFramebufferParameteriEXT(GLuint framebuffer, G
 	}
 }
 
-static APIENTRY void debug_glGetNamedFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetNamedFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
 {
 	glGetNamedFramebufferParameterivEXT(framebuffer, pname, params);
 	if (checkErrors)
@@ -32352,7 +32357,7 @@ static APIENTRY void debug_glGetNamedFramebufferParameterivEXT(GLuint framebuffe
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1dEXT(GLuint program, GLint location, GLdouble x)
+static void APIENTRY debug_glProgramUniform1dEXT(GLuint program, GLint location, GLdouble x)
 {
 	glProgramUniform1dEXT(program, location, x);
 	if (checkErrors)
@@ -32369,7 +32374,7 @@ static APIENTRY void debug_glProgramUniform1dEXT(GLuint program, GLint location,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2dEXT(GLuint program, GLint location, GLdouble x, GLdouble y)
+static void APIENTRY debug_glProgramUniform2dEXT(GLuint program, GLint location, GLdouble x, GLdouble y)
 {
 	glProgramUniform2dEXT(program, location, x, y);
 	if (checkErrors)
@@ -32386,7 +32391,7 @@ static APIENTRY void debug_glProgramUniform2dEXT(GLuint program, GLint location,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z)
+static void APIENTRY debug_glProgramUniform3dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
 	glProgramUniform3dEXT(program, location, x, y, z);
 	if (checkErrors)
@@ -32403,7 +32408,7 @@ static APIENTRY void debug_glProgramUniform3dEXT(GLuint program, GLint location,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+static void APIENTRY debug_glProgramUniform4dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
 	glProgramUniform4dEXT(program, location, x, y, z, w);
 	if (checkErrors)
@@ -32420,7 +32425,7 @@ static APIENTRY void debug_glProgramUniform4dEXT(GLuint program, GLint location,
 	}
 }
 
-static APIENTRY void debug_glProgramUniform1dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform1dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform1dvEXT(program, location, count, value);
 	if (checkErrors)
@@ -32437,7 +32442,7 @@ static APIENTRY void debug_glProgramUniform1dvEXT(GLuint program, GLint location
 	}
 }
 
-static APIENTRY void debug_glProgramUniform2dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform2dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform2dvEXT(program, location, count, value);
 	if (checkErrors)
@@ -32454,7 +32459,7 @@ static APIENTRY void debug_glProgramUniform2dvEXT(GLuint program, GLint location
 	}
 }
 
-static APIENTRY void debug_glProgramUniform3dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform3dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform3dvEXT(program, location, count, value);
 	if (checkErrors)
@@ -32471,7 +32476,7 @@ static APIENTRY void debug_glProgramUniform3dvEXT(GLuint program, GLint location
 	}
 }
 
-static APIENTRY void debug_glProgramUniform4dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
+static void APIENTRY debug_glProgramUniform4dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
 	glProgramUniform4dvEXT(program, location, count, value);
 	if (checkErrors)
@@ -32488,7 +32493,7 @@ static APIENTRY void debug_glProgramUniform4dvEXT(GLuint program, GLint location
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32505,7 +32510,7 @@ static APIENTRY void debug_glProgramUniformMatrix2dvEXT(GLuint program, GLint lo
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32522,7 +32527,7 @@ static APIENTRY void debug_glProgramUniformMatrix3dvEXT(GLuint program, GLint lo
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32539,7 +32544,7 @@ static APIENTRY void debug_glProgramUniformMatrix4dvEXT(GLuint program, GLint lo
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2x3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32556,7 +32561,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x3dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix2x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix2x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix2x4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32573,7 +32578,7 @@ static APIENTRY void debug_glProgramUniformMatrix2x4dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3x2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32590,7 +32595,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x2dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix3x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix3x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix3x4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32607,7 +32612,7 @@ static APIENTRY void debug_glProgramUniformMatrix3x4dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4x2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32624,7 +32629,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x2dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glProgramUniformMatrix4x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+static void APIENTRY debug_glProgramUniformMatrix4x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
 	glProgramUniformMatrix4x3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
@@ -32641,7 +32646,7 @@ static APIENTRY void debug_glProgramUniformMatrix4x3dvEXT(GLuint program, GLint 
 	}
 }
 
-static APIENTRY void debug_glTextureBufferRangeEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
+static void APIENTRY debug_glTextureBufferRangeEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
 	glTextureBufferRangeEXT(texture, target, internalformat, buffer, offset, size);
 	if (checkErrors)
@@ -32658,7 +32663,7 @@ static APIENTRY void debug_glTextureBufferRangeEXT(GLuint texture, GLenum target
 	}
 }
 
-static APIENTRY void debug_glTextureStorage1DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
+static void APIENTRY debug_glTextureStorage1DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {
 	glTextureStorage1DEXT(texture, target, levels, internalformat, width);
 	if (checkErrors)
@@ -32675,7 +32680,7 @@ static APIENTRY void debug_glTextureStorage1DEXT(GLuint texture, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glTextureStorage2DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
+static void APIENTRY debug_glTextureStorage2DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	glTextureStorage2DEXT(texture, target, levels, internalformat, width, height);
 	if (checkErrors)
@@ -32692,7 +32697,7 @@ static APIENTRY void debug_glTextureStorage2DEXT(GLuint texture, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glTextureStorage3DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
+static void APIENTRY debug_glTextureStorage3DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
 	glTextureStorage3DEXT(texture, target, levels, internalformat, width, height, depth);
 	if (checkErrors)
@@ -32709,7 +32714,7 @@ static APIENTRY void debug_glTextureStorage3DEXT(GLuint texture, GLenum target, 
 	}
 }
 
-static APIENTRY void debug_glTextureStorage2DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTextureStorage2DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
 	glTextureStorage2DMultisampleEXT(texture, target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
@@ -32726,7 +32731,7 @@ static APIENTRY void debug_glTextureStorage2DMultisampleEXT(GLuint texture, GLen
 	}
 }
 
-static APIENTRY void debug_glTextureStorage3DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glTextureStorage3DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
 	glTextureStorage3DMultisampleEXT(texture, target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
@@ -32743,7 +32748,7 @@ static APIENTRY void debug_glTextureStorage3DMultisampleEXT(GLuint texture, GLen
 	}
 }
 
-static APIENTRY void debug_glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+static void APIENTRY debug_glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
 	glVertexArrayBindVertexBufferEXT(vaobj, bindingindex, buffer, offset, stride);
 	if (checkErrors)
@@ -32760,7 +32765,7 @@ static APIENTRY void debug_glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
 	glVertexArrayVertexAttribFormatEXT(vaobj, attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
@@ -32777,7 +32782,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLui
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexArrayVertexAttribIFormatEXT(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -32794,7 +32799,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
+static void APIENTRY debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
 	glVertexArrayVertexAttribLFormatEXT(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
@@ -32811,7 +32816,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
+static void APIENTRY debug_glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
 {
 	glVertexArrayVertexAttribBindingEXT(vaobj, attribindex, bindingindex);
 	if (checkErrors)
@@ -32828,7 +32833,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GLuint bindingindex, GLuint divisor)
+static void APIENTRY debug_glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GLuint bindingindex, GLuint divisor)
 {
 	glVertexArrayVertexBindingDivisorEXT(vaobj, bindingindex, divisor);
 	if (checkErrors)
@@ -32845,7 +32850,7 @@ static APIENTRY void debug_glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GL
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+static void APIENTRY debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
 	glVertexArrayVertexAttribLOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
 	if (checkErrors)
@@ -32862,7 +32867,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glTexturePageCommitmentEXT(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
+static void APIENTRY debug_glTexturePageCommitmentEXT(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
 {
 	glTexturePageCommitmentEXT(texture, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 	if (checkErrors)
@@ -32879,7 +32884,7 @@ static APIENTRY void debug_glTexturePageCommitmentEXT(GLuint texture, GLint leve
 	}
 }
 
-static APIENTRY void debug_glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLuint index, GLuint divisor)
+static void APIENTRY debug_glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLuint index, GLuint divisor)
 {
 	glVertexArrayVertexAttribDivisorEXT(vaobj, index, divisor);
 	if (checkErrors)
@@ -32896,7 +32901,7 @@ static APIENTRY void debug_glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLu
 	}
 }
 
-static APIENTRY void debug_glDiscardFramebufferEXT(GLenum target, GLsizei numAttachments, const GLenum *attachments)
+static void APIENTRY debug_glDiscardFramebufferEXT(GLenum target, GLsizei numAttachments, const GLenum *attachments)
 {
 	glDiscardFramebufferEXT(target, numAttachments, attachments);
 	if (checkErrors)
@@ -32913,7 +32918,7 @@ static APIENTRY void debug_glDiscardFramebufferEXT(GLenum target, GLsizei numAtt
 	}
 }
 
-static APIENTRY void debug_glProgramEnvParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
+static void APIENTRY debug_glProgramEnvParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
 	glProgramEnvParameters4fvEXT(target, index, count, params);
 	if (checkErrors)
@@ -32930,7 +32935,7 @@ static APIENTRY void debug_glProgramEnvParameters4fvEXT(GLenum target, GLuint in
 	}
 }
 
-static APIENTRY void debug_glProgramLocalParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
+static void APIENTRY debug_glProgramLocalParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
 	glProgramLocalParameters4fvEXT(target, index, count, params);
 	if (checkErrors)
@@ -32947,7 +32952,7 @@ static APIENTRY void debug_glProgramLocalParameters4fvEXT(GLenum target, GLuint 
 	}
 }
 
-static APIENTRY void debug_glGetHistogramEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
+static void APIENTRY debug_glGetHistogramEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
 	glGetHistogramEXT(target, reset, format, type, values);
 	if (checkErrors)
@@ -32964,7 +32969,7 @@ static APIENTRY void debug_glGetHistogramEXT(GLenum target, GLboolean reset, GLe
 	}
 }
 
-static APIENTRY void debug_glGetHistogramParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetHistogramParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetHistogramParameterfvEXT(target, pname, params);
 	if (checkErrors)
@@ -32981,7 +32986,7 @@ static APIENTRY void debug_glGetHistogramParameterfvEXT(GLenum target, GLenum pn
 	}
 }
 
-static APIENTRY void debug_glGetHistogramParameterivEXT(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetHistogramParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
 	glGetHistogramParameterivEXT(target, pname, params);
 	if (checkErrors)
@@ -32998,7 +33003,7 @@ static APIENTRY void debug_glGetHistogramParameterivEXT(GLenum target, GLenum pn
 	}
 }
 
-static APIENTRY void debug_glGetMinmaxEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
+static void APIENTRY debug_glGetMinmaxEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
 	glGetMinmaxEXT(target, reset, format, type, values);
 	if (checkErrors)
@@ -33015,7 +33020,7 @@ static APIENTRY void debug_glGetMinmaxEXT(GLenum target, GLboolean reset, GLenum
 	}
 }
 
-static APIENTRY void debug_glGetMinmaxParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetMinmaxParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetMinmaxParameterfvEXT(target, pname, params);
 	if (checkErrors)
@@ -33032,7 +33037,7 @@ static APIENTRY void debug_glGetMinmaxParameterfvEXT(GLenum target, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glGetMinmaxParameterivEXT(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetMinmaxParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
 	glGetMinmaxParameterivEXT(target, pname, params);
 	if (checkErrors)
@@ -33049,7 +33054,7 @@ static APIENTRY void debug_glGetMinmaxParameterivEXT(GLenum target, GLenum pname
 	}
 }
 
-static APIENTRY void debug_glIndexFuncEXT(GLenum func, GLclampf ref)
+static void APIENTRY debug_glIndexFuncEXT(GLenum func, GLclampf ref)
 {
 	glIndexFuncEXT(func, ref);
 	if (checkErrors)
@@ -33066,7 +33071,7 @@ static APIENTRY void debug_glIndexFuncEXT(GLenum func, GLclampf ref)
 	}
 }
 
-static APIENTRY void debug_glIndexMaterialEXT(GLenum face, GLenum mode)
+static void APIENTRY debug_glIndexMaterialEXT(GLenum face, GLenum mode)
 {
 	glIndexMaterialEXT(face, mode);
 	if (checkErrors)
@@ -33083,7 +33088,7 @@ static APIENTRY void debug_glIndexMaterialEXT(GLenum face, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glApplyTextureEXT(GLenum mode)
+static void APIENTRY debug_glApplyTextureEXT(GLenum mode)
 {
 	glApplyTextureEXT(mode);
 	if (checkErrors)
@@ -33100,7 +33105,7 @@ static APIENTRY void debug_glApplyTextureEXT(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glTextureLightEXT(GLenum pname)
+static void APIENTRY debug_glTextureLightEXT(GLenum pname)
 {
 	glTextureLightEXT(pname);
 	if (checkErrors)
@@ -33117,7 +33122,7 @@ static APIENTRY void debug_glTextureLightEXT(GLenum pname)
 	}
 }
 
-static APIENTRY void debug_glTextureMaterialEXT(GLenum face, GLenum mode)
+static void APIENTRY debug_glTextureMaterialEXT(GLenum face, GLenum mode)
 {
 	glTextureMaterialEXT(face, mode);
 	if (checkErrors)
@@ -33134,7 +33139,7 @@ static APIENTRY void debug_glTextureMaterialEXT(GLenum face, GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glSampleMaskEXT(GLclampf value, GLboolean invert)
+static void APIENTRY debug_glSampleMaskEXT(GLclampf value, GLboolean invert)
 {
 	glSampleMaskEXT(value, invert);
 	if (checkErrors)
@@ -33151,7 +33156,7 @@ static APIENTRY void debug_glSampleMaskEXT(GLclampf value, GLboolean invert)
 	}
 }
 
-static APIENTRY void debug_glSamplePatternEXT(GLenum pattern)
+static void APIENTRY debug_glSamplePatternEXT(GLenum pattern)
 {
 	glSamplePatternEXT(pattern);
 	if (checkErrors)
@@ -33168,7 +33173,7 @@ static APIENTRY void debug_glSamplePatternEXT(GLenum pattern)
 	}
 }
 
-static APIENTRY void debug_glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
+static void APIENTRY debug_glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
 {
 	glFramebufferTexture2DMultisampleEXT(target, attachment, textarget, texture, level, samples);
 	if (checkErrors)
@@ -33185,7 +33190,7 @@ static APIENTRY void debug_glFramebufferTexture2DMultisampleEXT(GLenum target, G
 	}
 }
 
-static APIENTRY void debug_glReadBufferIndexedEXT(GLenum src, GLint index)
+static void APIENTRY debug_glReadBufferIndexedEXT(GLenum src, GLint index)
 {
 	glReadBufferIndexedEXT(src, index);
 	if (checkErrors)
@@ -33202,7 +33207,7 @@ static APIENTRY void debug_glReadBufferIndexedEXT(GLenum src, GLint index)
 	}
 }
 
-static APIENTRY void debug_glDrawBuffersIndexedEXT(GLint n, const GLenum *location, const GLint *indices)
+static void APIENTRY debug_glDrawBuffersIndexedEXT(GLint n, const GLenum *location, const GLint *indices)
 {
 	glDrawBuffersIndexedEXT(n, location, indices);
 	if (checkErrors)
@@ -33219,7 +33224,7 @@ static APIENTRY void debug_glDrawBuffersIndexedEXT(GLint n, const GLenum *locati
 	}
 }
 
-static APIENTRY void debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint *data)
+static void APIENTRY debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint *data)
 {
 	glGetIntegeri_vEXT(target, index, data);
 	if (checkErrors)
@@ -33236,7 +33241,7 @@ static APIENTRY void debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint
 	}
 }
 
-static APIENTRY void debug_glPixelTransformParameteriEXT(GLenum target, GLenum pname, GLint param)
+static void APIENTRY debug_glPixelTransformParameteriEXT(GLenum target, GLenum pname, GLint param)
 {
 	glPixelTransformParameteriEXT(target, pname, param);
 	if (checkErrors)
@@ -33253,7 +33258,7 @@ static APIENTRY void debug_glPixelTransformParameteriEXT(GLenum target, GLenum p
 	}
 }
 
-static APIENTRY void debug_glPixelTransformParameterfEXT(GLenum target, GLenum pname, GLfloat param)
+static void APIENTRY debug_glPixelTransformParameterfEXT(GLenum target, GLenum pname, GLfloat param)
 {
 	glPixelTransformParameterfEXT(target, pname, param);
 	if (checkErrors)
@@ -33270,7 +33275,7 @@ static APIENTRY void debug_glPixelTransformParameterfEXT(GLenum target, GLenum p
 	}
 }
 
-static APIENTRY void debug_glPixelTransformParameterivEXT(GLenum target, GLenum pname, const GLint *params)
+static void APIENTRY debug_glPixelTransformParameterivEXT(GLenum target, GLenum pname, const GLint *params)
 {
 	glPixelTransformParameterivEXT(target, pname, params);
 	if (checkErrors)
@@ -33287,7 +33292,7 @@ static APIENTRY void debug_glPixelTransformParameterivEXT(GLenum target, GLenum 
 	}
 }
 
-static APIENTRY void debug_glPixelTransformParameterfvEXT(GLenum target, GLenum pname, const GLfloat *params)
+static void APIENTRY debug_glPixelTransformParameterfvEXT(GLenum target, GLenum pname, const GLfloat *params)
 {
 	glPixelTransformParameterfvEXT(target, pname, params);
 	if (checkErrors)
@@ -33304,7 +33309,7 @@ static APIENTRY void debug_glPixelTransformParameterfvEXT(GLenum target, GLenum 
 	}
 }
 
-static APIENTRY void debug_glGetPixelTransformParameterivEXT(GLenum target, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetPixelTransformParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
 	glGetPixelTransformParameterivEXT(target, pname, params);
 	if (checkErrors)
@@ -33321,7 +33326,7 @@ static APIENTRY void debug_glGetPixelTransformParameterivEXT(GLenum target, GLen
 	}
 }
 
-static APIENTRY void debug_glGetPixelTransformParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
+static void APIENTRY debug_glGetPixelTransformParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
 	glGetPixelTransformParameterfvEXT(target, pname, params);
 	if (checkErrors)
@@ -33338,7 +33343,7 @@ static APIENTRY void debug_glGetPixelTransformParameterfvEXT(GLenum target, GLen
 	}
 }
 
-static APIENTRY void debug_glPolygonOffsetEXT(GLfloat factor, GLfloat bias)
+static void APIENTRY debug_glPolygonOffsetEXT(GLfloat factor, GLfloat bias)
 {
 	glPolygonOffsetEXT(factor, bias);
 	if (checkErrors)
@@ -33355,7 +33360,7 @@ static APIENTRY void debug_glPolygonOffsetEXT(GLfloat factor, GLfloat bias)
 	}
 }
 
-static APIENTRY void debug_glPolygonOffsetClampEXT(GLfloat factor, GLfloat units, GLfloat clamp)
+static void APIENTRY debug_glPolygonOffsetClampEXT(GLfloat factor, GLfloat units, GLfloat clamp)
 {
 	glPolygonOffsetClampEXT(factor, units, clamp);
 	if (checkErrors)
@@ -33372,7 +33377,7 @@ static APIENTRY void debug_glPolygonOffsetClampEXT(GLfloat factor, GLfloat units
 	}
 }
 
-static APIENTRY void debug_glRasterSamplesEXT(GLuint samples, GLboolean fixedsamplelocations)
+static void APIENTRY debug_glRasterSamplesEXT(GLuint samples, GLboolean fixedsamplelocations)
 {
 	glRasterSamplesEXT(samples, fixedsamplelocations);
 	if (checkErrors)
@@ -33389,7 +33394,7 @@ static APIENTRY void debug_glRasterSamplesEXT(GLuint samples, GLboolean fixedsam
 	}
 }
 
-static APIENTRY void debug_glUseShaderProgramEXT(GLenum type, GLuint program)
+static void APIENTRY debug_glUseShaderProgramEXT(GLenum type, GLuint program)
 {
 	glUseShaderProgramEXT(type, program);
 	if (checkErrors)
@@ -33406,7 +33411,7 @@ static APIENTRY void debug_glUseShaderProgramEXT(GLenum type, GLuint program)
 	}
 }
 
-static APIENTRY void debug_glActiveProgramEXT(GLuint program)
+static void APIENTRY debug_glActiveProgramEXT(GLuint program)
 {
 	glActiveProgramEXT(program);
 	if (checkErrors)
@@ -33423,7 +33428,7 @@ static APIENTRY void debug_glActiveProgramEXT(GLuint program)
 	}
 }
 
-static APIENTRY GLuint debug_glCreateShaderProgramEXT(GLenum type, const GLchar *string)
+static GLuint APIENTRY debug_glCreateShaderProgramEXT(GLenum type, const GLchar *string)
 {
 	GLuint retVal = default_glCreateShaderProgramEXT(type, string);
 	if (checkErrors)
@@ -33441,7 +33446,7 @@ static APIENTRY GLuint debug_glCreateShaderProgramEXT(GLenum type, const GLchar 
 	return retVal;
 }
 
-static APIENTRY void debug_glActiveShaderProgramEXT(GLuint pipeline, GLuint program)
+static void APIENTRY debug_glActiveShaderProgramEXT(GLuint pipeline, GLuint program)
 {
 	glActiveShaderProgramEXT(pipeline, program);
 	if (checkErrors)
@@ -33458,7 +33463,7 @@ static APIENTRY void debug_glActiveShaderProgramEXT(GLuint pipeline, GLuint prog
 	}
 }
 
-static APIENTRY void debug_glBindProgramPipelineEXT(GLuint pipeline)
+static void APIENTRY debug_glBindProgramPipelineEXT(GLuint pipeline)
 {
 	glBindProgramPipelineEXT(pipeline);
 	if (checkErrors)
@@ -33475,7 +33480,7 @@ static APIENTRY void debug_glBindProgramPipelineEXT(GLuint pipeline)
 	}
 }
 
-static APIENTRY GLuint debug_glCreateShaderProgramvEXT(GLenum type, GLsizei count, const GLchar **strings)
+static GLuint APIENTRY debug_glCreateShaderProgramvEXT(GLenum type, GLsizei count, const GLchar **strings)
 {
 	GLuint retVal = default_glCreateShaderProgramvEXT(type, count, strings);
 	if (checkErrors)
@@ -33493,7 +33498,7 @@ static APIENTRY GLuint debug_glCreateShaderProgramvEXT(GLenum type, GLsizei coun
 	return retVal;
 }
 
-static APIENTRY void debug_glDeleteProgramPipelinesEXT(GLsizei n, const GLuint *pipelines)
+static void APIENTRY debug_glDeleteProgramPipelinesEXT(GLsizei n, const GLuint *pipelines)
 {
 	glDeleteProgramPipelinesEXT(n, pipelines);
 	if (checkErrors)
@@ -33510,7 +33515,7 @@ static APIENTRY void debug_glDeleteProgramPipelinesEXT(GLsizei n, const GLuint *
 	}
 }
 
-static APIENTRY void debug_glGenProgramPipelinesEXT(GLsizei n, GLuint *pipelines)
+static void APIENTRY debug_glGenProgramPipelinesEXT(GLsizei n, GLuint *pipelines)
 {
 	glGenProgramPipelinesEXT(n, pipelines);
 	if (checkErrors)
@@ -33527,7 +33532,7 @@ static APIENTRY void debug_glGenProgramPipelinesEXT(GLsizei n, GLuint *pipelines
 	}
 }
 
-static APIENTRY void debug_glGetProgramPipelineInfoLogEXT(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
+static void APIENTRY debug_glGetProgramPipelineInfoLogEXT(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
 	glGetProgramPipelineInfoLogEXT(pipeline, bufSize, length, infoLog);
 	if (checkErrors)
@@ -33544,7 +33549,7 @@ static APIENTRY void debug_glGetProgramPipelineInfoLogEXT(GLuint pipeline, GLsiz
 	}
 }
 
-static APIENTRY void debug_glGetProgramPipelineivEXT(GLuint pipeline, GLenum pname, GLint *params)
+static void APIENTRY debug_glGetProgramPipelineivEXT(GLuint pipeline, GLenum pname, GLint *params)
 {
 	glGetProgramPipelineivEXT(pipeline, pname, params);
 	if (checkErrors)
@@ -33561,7 +33566,7 @@ static APIENTRY void debug_glGetProgramPipelineivEXT(GLuint pipeline, GLenum pna
 	}
 }
 
-static APIENTRY GLboolean debug_glIsProgramPipelineEXT(GLuint pipeline)
+static GLboolean APIENTRY debug_glIsProgramPipelineEXT(GLuint pipeline)
 {
 	GLboolean retVal = default_glIsProgramPipelineEXT(pipeline);
 	if (checkErrors)
@@ -33579,7 +33584,7 @@ static APIENTRY GLboolean debug_glIsProgramPipelineEXT(GLuint pipeline)
 	return retVal;
 }
 
-static APIENTRY void debug_glUseProgramStagesEXT(GLuint pipeline, GLbitfield stages, GLuint program)
+static void APIENTRY debug_glUseProgramStagesEXT(GLuint pipeline, GLbitfield stages, GLuint program)
 {
 	glUseProgramStagesEXT(pipeline, stages, program);
 	if (checkErrors)
@@ -33596,7 +33601,7 @@ static APIENTRY void debug_glUseProgramStagesEXT(GLuint pipeline, GLbitfield sta
 	}
 }
 
-static APIENTRY void debug_glValidateProgramPipelineEXT(GLuint pipeline)
+static void APIENTRY debug_glValidateProgramPipelineEXT(GLuint pipeline)
 {
 	glValidateProgramPipelineEXT(pipeline);
 	if (checkErrors)
@@ -33613,7 +33618,7 @@ static APIENTRY void debug_glValidateProgramPipelineEXT(GLuint pipeline)
 	}
 }
 
-static APIENTRY void debug_glFramebufferPixelLocalStorageSizeEXT(GLuint target, GLsizei size)
+static void APIENTRY debug_glFramebufferPixelLocalStorageSizeEXT(GLuint target, GLsizei size)
 {
 	glFramebufferPixelLocalStorageSizeEXT(target, size);
 	if (checkErrors)
@@ -33630,7 +33635,7 @@ static APIENTRY void debug_glFramebufferPixelLocalStorageSizeEXT(GLuint target, 
 	}
 }
 
-static APIENTRY GLsizei debug_glGetFramebufferPixelLocalStorageSizeEXT(GLuint target)
+static GLsizei APIENTRY debug_glGetFramebufferPixelLocalStorageSizeEXT(GLuint target)
 {
 	GLsizei retVal = default_glGetFramebufferPixelLocalStorageSizeEXT(target);
 	if (checkErrors)
@@ -33648,7 +33653,7 @@ static APIENTRY GLsizei debug_glGetFramebufferPixelLocalStorageSizeEXT(GLuint ta
 	return retVal;
 }
 
-static APIENTRY void debug_glClearPixelLocalStorageuiEXT(GLsizei offset, GLsizei n, const GLuint *values)
+static void APIENTRY debug_glClearPixelLocalStorageuiEXT(GLsizei offset, GLsizei n, const GLuint *values)
 {
 	glClearPixelLocalStorageuiEXT(offset, n, values);
 	if (checkErrors)
@@ -33665,7 +33670,7 @@ static APIENTRY void debug_glClearPixelLocalStorageuiEXT(GLsizei offset, GLsizei
 	}
 }
 
-static APIENTRY void debug_glStencilClearTagEXT(GLsizei stencilTagBits, GLuint stencilClearTag)
+static void APIENTRY debug_glStencilClearTagEXT(GLsizei stencilTagBits, GLuint stencilClearTag)
 {
 	glStencilClearTagEXT(stencilTagBits, stencilClearTag);
 	if (checkErrors)
@@ -33682,7 +33687,7 @@ static APIENTRY void debug_glStencilClearTagEXT(GLsizei stencilTagBits, GLuint s
 	}
 }
 
-static APIENTRY void debug_glActiveStencilFaceEXT(GLenum face)
+static void APIENTRY debug_glActiveStencilFaceEXT(GLenum face)
 {
 	glActiveStencilFaceEXT(face);
 	if (checkErrors)
@@ -33699,7 +33704,7 @@ static APIENTRY void debug_glActiveStencilFaceEXT(GLenum face)
 	}
 }
 
-static APIENTRY void debug_glClearColorIiEXT(GLint red, GLint green, GLint blue, GLint alpha)
+static void APIENTRY debug_glClearColorIiEXT(GLint red, GLint green, GLint blue, GLint alpha)
 {
 	glClearColorIiEXT(red, green, blue, alpha);
 	if (checkErrors)
@@ -33716,7 +33721,7 @@ static APIENTRY void debug_glClearColorIiEXT(GLint red, GLint green, GLint blue,
 	}
 }
 
-static APIENTRY void debug_glClearColorIuiEXT(GLuint red, GLuint green, GLuint blue, GLuint alpha)
+static void APIENTRY debug_glClearColorIuiEXT(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 {
 	glClearColorIuiEXT(red, green, blue, alpha);
 	if (checkErrors)
@@ -33733,7 +33738,7 @@ static APIENTRY void debug_glClearColorIuiEXT(GLuint red, GLuint green, GLuint b
 	}
 }
 
-static APIENTRY GLboolean debug_glAreTexturesResidentEXT(GLsizei n, const GLuint *textures, GLboolean *residences)
+static GLboolean APIENTRY debug_glAreTexturesResidentEXT(GLsizei n, const GLuint *textures, GLboolean *residences)
 {
 	GLboolean retVal = default_glAreTexturesResidentEXT(n, textures, residences);
 	if (checkErrors)
@@ -33751,7 +33756,7 @@ static APIENTRY GLboolean debug_glAreTexturesResidentEXT(GLsizei n, const GLuint
 	return retVal;
 }
 
-static APIENTRY void debug_glTextureNormalEXT(GLenum mode)
+static void APIENTRY debug_glTextureNormalEXT(GLenum mode)
 {
 	glTextureNormalEXT(mode);
 	if (checkErrors)
@@ -33768,7 +33773,7 @@ static APIENTRY void debug_glTextureNormalEXT(GLenum mode)
 	}
 }
 
-static APIENTRY void debug_glBindBufferOffsetEXT(GLenum target, GLuint index, GLuint buffer, GLintptr offset)
+static void APIENTRY debug_glBindBufferOffsetEXT(GLenum target, GLuint index, GLuint buffer, GLintptr offset)
 {
 	glBindBufferOffsetEXT(target, index, buffer, offset);
 	if (checkErrors)
@@ -33785,7 +33790,7 @@ static APIENTRY void debug_glBindBufferOffsetEXT(GLenum target, GLuint index, GL
 	}
 }
 
-static APIENTRY void debug_glColorPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
+static void APIENTRY debug_glColorPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
 	glColorPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
@@ -33802,7 +33807,7 @@ static APIENTRY void debug_glColorPointerEXT(GLint size, GLenum type, GLsizei st
 	}
 }
 
-static APIENTRY void debug_glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, const GLboolean *pointer)
+static void APIENTRY debug_glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, const GLboolean *pointer)
 {
 	glEdgeFlagPointerEXT(stride, count, pointer);
 	if (checkErrors)
@@ -33819,7 +33824,7 @@ static APIENTRY void debug_glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, c
 	}
 }
 
-static APIENTRY void debug_glIndexPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
+static void APIENTRY debug_glIndexPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
 	glIndexPointerEXT(type, stride, count, pointer);
 	if (checkErrors)
@@ -33836,7 +33841,7 @@ static APIENTRY void debug_glIndexPointerEXT(GLenum type, GLsizei stride, GLsize
 	}
 }
 
-static APIENTRY void debug_glNormalPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
+static void APIENTRY debug_glNormalPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
 	glNormalPointerEXT(type, stride, count, pointer);
 	if (checkErrors)
@@ -33853,7 +33858,7 @@ static APIENTRY void debug_glNormalPointerEXT(GLenum type, GLsizei stride, GLsiz
 	}
 }
 
-static APIENTRY void debug_glTexCoordPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
+static void APIENTRY debug_glTexCoordPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
 	glTexCoordPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
@@ -33870,7 +33875,7 @@ static APIENTRY void debug_glTexCoordPointerEXT(GLint size, GLenum type, GLsizei
 	}
 }
 
-static APIENTRY void debug_glVertexPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
+static void APIENTRY debug_glVertexPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
 	glVertexPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
@@ -33887,7 +33892,7 @@ static APIENTRY void debug_glVertexPointerEXT(GLint size, GLenum type, GLsizei s
 	}
 }
 
-static APIENTRY void debug_glBeginVertexShaderEXT()
+static void APIENTRY debug_glBeginVertexShaderEXT()
 {
 	glBeginVertexShaderEXT();
 	if (checkErrors)
@@ -33904,7 +33909,7 @@ static APIENTRY void debug_glBeginVertexShaderEXT()
 	}
 }
 
-static APIENTRY void debug_glEndVertexShaderEXT()
+static void APIENTRY debug_glEndVertexShaderEXT()
 {
 	glEndVertexShaderEXT();
 	if (checkErrors)
@@ -33921,7 +33926,7 @@ static APIENTRY void debug_glEndVertexShaderEXT()
 	}
 }
 
-static APIENTRY void debug_glBindVertexShaderEXT(GLuint id)
+static void APIENTRY debug_glBindVertexShaderEXT(GLuint id)
 {
 	glBindVertexShaderEXT(id);
 	if (checkErrors)
@@ -33938,7 +33943,7 @@ static APIENTRY void debug_glBindVertexShaderEXT(GLuint id)
 	}
 }
 
-static APIENTRY GLuint debug_glGenVertexShadersEXT(GLuint range)
+static GLuint APIENTRY debug_glGenVertexShadersEXT(GLuint range)
 {
 	GLuint retVal = default_glGenVertexShadersEXT(range);
 	if (checkErrors)
@@ -33956,7 +33961,7 @@ static APIENTRY GLuint debug_glGenVertexShadersEXT(GLuint range)
 	return retVal;
 }
 
-static APIENTRY void debug_glDeleteVertexShaderEXT(GLuint id)
+static void APIENTRY debug_glDeleteVertexShaderEXT(GLuint id)
 {
 	glDeleteVertexShaderEXT(id);
 	if (checkErrors)
@@ -33973,7 +33978,7 @@ static APIENTRY void debug_glDeleteVertexShaderEXT(GLuint id)
 	}
 }
 
-static APIENTRY void debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
+static void APIENTRY debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
 {
 	glShaderOp1EXT(op, res, arg1);
 	if (checkErrors)
@@ -33990,7 +33995,7 @@ static APIENTRY void debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
 	}
 }
 
-static APIENTRY void debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2)
+static void APIENTRY debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2)
 {
 	glShaderOp2EXT(op, res, arg1, arg2);
 	if (checkErrors)
@@ -34007,7 +34012,7 @@ static APIENTRY void debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GL
 	}
 }
 
-static APIENTRY void debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2, GLuint arg3)
+static void APIENTRY debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2, GLuint arg3)
 {
 	glShaderOp3EXT(op, res, arg1, arg2, arg3);
 	if (checkErrors)
@@ -34024,7 +34029,7 @@ static APIENTRY void debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GL
 	}
 }
 
-static APIENTRY void debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
+static void APIENTRY debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
 {
 	glSwizzleEXT(res, in, outX, outY, outZ, outW);
 	if (checkErrors)
@@ -34041,7 +34046,7 @@ static APIENTRY void debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLen
 	}
 }
 
-static APIENTRY void debug_glWriteMaskEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
+static void APIENTRY debug_glWriteMaskEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
 {
 	glWriteMaskEXT(res, in, outX, outY, outZ, outW);
 	if (checkErrors)
@@ -34058,7 +34063,7 @@ static APIENTRY void debug_glWriteMaskEXT(GLuint res, GLuint in, GLenum outX, GL
 	}
 }
 
-static APIENTRY void debug_glInsertComponentEXT(GLuint res, GLuint src, GLuint num)
+static void APIENTRY debug_glInsertComponentEXT(GLuint res, GLuint src, GLuint num)
 {
 	glInsertComponentEXT(res, src, num);
 	if (checkErrors)
@@ -34075,7 +34080,7 @@ static APIENTRY void debug_glInsertComponentEXT(GLuint res, GLuint src, GLuint n
 	}
 }
 
-static APIENTRY void debug_glExtractComponentEXT(GLuint res, GLuint src, GLuint num)
+static void APIENTRY debug_glExtractComponentEXT(GLuint res, GLuint src, GLuint num)
 {
 	glExtractComponentEXT(res, src, num);
 	if (checkErrors)
@@ -34092,7 +34097,7 @@ static APIENTRY void debug_glExtractComponentEXT(GLuint res, GLuint src, GLuint 
 	}
 }
 
-static APIENTRY GLuint debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype, GLenum range, GLuint components)
+static GLuint APIENTRY debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype, GLenum range, GLuint components)
 {
 	GLuint retVal = default_glGenSymbolsEXT(datatype, storagetype, range, components);
 	if (checkErrors)
@@ -34110,7 +34115,7 @@ static APIENTRY GLuint debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype
 	return retVal;
 }
 
-static APIENTRY void debug_glSetInvariantEXT(GLuint id, GLenum type, const void *addr)
+static void APIENTRY debug_glSetInvariantEXT(GLuint id, GLenum type, const void *addr)
 {
 	glSetInvariantEXT(id, type, addr);
 	if (checkErrors)
@@ -34127,7 +34132,7 @@ static APIENTRY void debug_glSetInvariantEXT(GLuint id, GLenum type, const void 
 	}
 }
 
-static APIENTRY void debug_glSetLocalConstantEXT(GLuint id, GLenum type, const void *addr)
+static void APIENTRY debug_glSetLocalConstantEXT(GLuint id, GLenum type, const void *addr)
 {
 	glSetLocalConstantEXT(id, type, addr);
 	if (checkErrors)
@@ -34144,7 +34149,7 @@ static APIENTRY void debug_glSetLocalConstantEXT(GLuint id, GLenum type, const v
 	}
 }
 
-static APIENTRY void debug_glVariantbvEXT(GLuint id, const GLbyte *addr)
+static void APIENTRY debug_glVariantbvEXT(GLuint id, const GLbyte *addr)
 {
 	glVariantbvEXT(id, addr);
 	if (checkErrors)
@@ -34161,7 +34166,7 @@ static APIENTRY void debug_glVariantbvEXT(GLuint id, const GLbyte *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantsvEXT(GLuint id, const GLshort *addr)
+static void APIENTRY debug_glVariantsvEXT(GLuint id, const GLshort *addr)
 {
 	glVariantsvEXT(id, addr);
 	if (checkErrors)
@@ -34178,7 +34183,7 @@ static APIENTRY void debug_glVariantsvEXT(GLuint id, const GLshort *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantivEXT(GLuint id, const GLint *addr)
+static void APIENTRY debug_glVariantivEXT(GLuint id, const GLint *addr)
 {
 	glVariantivEXT(id, addr);
 	if (checkErrors)
@@ -34195,7 +34200,7 @@ static APIENTRY void debug_glVariantivEXT(GLuint id, const GLint *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantfvEXT(GLuint id, const GLfloat *addr)
+static void APIENTRY debug_glVariantfvEXT(GLuint id, const GLfloat *addr)
 {
 	glVariantfvEXT(id, addr);
 	if (checkErrors)
@@ -34212,7 +34217,7 @@ static APIENTRY void debug_glVariantfvEXT(GLuint id, const GLfloat *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantdvEXT(GLuint id, const GLdouble *addr)
+static void APIENTRY debug_glVariantdvEXT(GLuint id, const GLdouble *addr)
 {
 	glVariantdvEXT(id, addr);
 	if (checkErrors)
@@ -34229,7 +34234,7 @@ static APIENTRY void debug_glVariantdvEXT(GLuint id, const GLdouble *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantubvEXT(GLuint id, const GLubyte *addr)
+static void APIENTRY debug_glVariantubvEXT(GLuint id, const GLubyte *addr)
 {
 	glVariantubvEXT(id, addr);
 	if (checkErrors)
@@ -34246,7 +34251,7 @@ static APIENTRY void debug_glVariantubvEXT(GLuint id, const GLubyte *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantusvEXT(GLuint id, const GLushort *addr)
+static void APIENTRY debug_glVariantusvEXT(GLuint id, const GLushort *addr)
 {
 	glVariantusvEXT(id, addr);
 	if (checkErrors)
@@ -34263,7 +34268,7 @@ static APIENTRY void debug_glVariantusvEXT(GLuint id, const GLushort *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantuivEXT(GLuint id, const GLuint *addr)
+static void APIENTRY debug_glVariantuivEXT(GLuint id, const GLuint *addr)
 {
 	glVariantuivEXT(id, addr);
 	if (checkErrors)
@@ -34280,7 +34285,7 @@ static APIENTRY void debug_glVariantuivEXT(GLuint id, const GLuint *addr)
 	}
 }
 
-static APIENTRY void debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint stride, const void *addr)
+static void APIENTRY debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint stride, const void *addr)
 {
 	glVariantPointerEXT(id, type, stride, addr);
 	if (checkErrors)
@@ -34297,7 +34302,7 @@ static APIENTRY void debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint st
 	}
 }
 
-static APIENTRY void debug_glEnableVariantClientStateEXT(GLuint id)
+static void APIENTRY debug_glEnableVariantClientStateEXT(GLuint id)
 {
 	glEnableVariantClientStateEXT(id);
 	if (checkErrors)
@@ -34314,7 +34319,7 @@ static APIENTRY void debug_glEnableVariantClientStateEXT(GLuint id)
 	}
 }
 
-static APIENTRY void debug_glDisableVariantClientStateEXT(GLuint id)
+static void APIENTRY debug_glDisableVariantClientStateEXT(GLuint id)
 {
 	glDisableVariantClientStateEXT(id);
 	if (checkErrors)
@@ -34331,7 +34336,7 @@ static APIENTRY void debug_glDisableVariantClientStateEXT(GLuint id)
 	}
 }
 
-static APIENTRY GLuint debug_glBindLightParameterEXT(GLenum light, GLenum value)
+static GLuint APIENTRY debug_glBindLightParameterEXT(GLenum light, GLenum value)
 {
 	GLuint retVal = default_glBindLightParameterEXT(light, value);
 	if (checkErrors)
@@ -34349,7 +34354,7 @@ static APIENTRY GLuint debug_glBindLightParameterEXT(GLenum light, GLenum value)
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glBindMaterialParameterEXT(GLenum face, GLenum value)
+static GLuint APIENTRY debug_glBindMaterialParameterEXT(GLenum face, GLenum value)
 {
 	GLuint retVal = default_glBindMaterialParameterEXT(face, value);
 	if (checkErrors)
@@ -34367,7 +34372,7 @@ static APIENTRY GLuint debug_glBindMaterialParameterEXT(GLenum face, GLenum valu
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glBindTexGenParameterEXT(GLenum unit, GLenum coord, GLenum value)
+static GLuint APIENTRY debug_glBindTexGenParameterEXT(GLenum unit, GLenum coord, GLenum value)
 {
 	GLuint retVal = default_glBindTexGenParameterEXT(unit, coord, value);
 	if (checkErrors)
@@ -34385,7 +34390,7 @@ static APIENTRY GLuint debug_glBindTexGenParameterEXT(GLenum unit, GLenum coord,
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glBindTextureUnitParameterEXT(GLenum unit, GLenum value)
+static GLuint APIENTRY debug_glBindTextureUnitParameterEXT(GLenum unit, GLenum value)
 {
 	GLuint retVal = default_glBindTextureUnitParameterEXT(unit, value);
 	if (checkErrors)
@@ -34403,7 +34408,7 @@ static APIENTRY GLuint debug_glBindTextureUnitParameterEXT(GLenum unit, GLenum v
 	return retVal;
 }
 
-static APIENTRY GLuint debug_glBindParameterEXT(GLenum value)
+static GLuint APIENTRY debug_glBindParameterEXT(GLenum value)
 {
 	GLuint retVal = default_glBindParameterEXT(value);
 	if (checkErrors)
@@ -34421,7 +34426,7 @@ static APIENTRY GLuint debug_glBindParameterEXT(GLenum value)
 	return retVal;
 }
 
-static APIENTRY GLboolean debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
+static GLboolean APIENTRY debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
 {
 	GLboolean retVal = default_glIsVariantEnabledEXT(id, cap);
 	if (checkErrors)
@@ -34439,7 +34444,7 @@ static APIENTRY GLboolean debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
 	return retVal;
 }
 
-static APIENTRY void debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
+static void APIENTRY debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
 	glGetVariantBooleanvEXT(id, value, data);
 	if (checkErrors)
@@ -34456,7 +34461,7 @@ static APIENTRY void debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLbo
 	}
 }
 
-static APIENTRY void debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLint *data)
+static void APIENTRY debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
 	glGetVariantIntegervEXT(id, value, data);
 	if (checkErrors)
@@ -34473,7 +34478,7 @@ static APIENTRY void debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLin
 	}
 }
 
-static APIENTRY void debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
+static void APIENTRY debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
 	glGetVariantFloatvEXT(id, value, data);
 	if (checkErrors)
@@ -34490,7 +34495,7 @@ static APIENTRY void debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloa
 	}
 }
 
-static APIENTRY void debug_glGetVariantPointervEXT(GLuint id, GLenum value, void **data)
+static void APIENTRY debug_glGetVariantPointervEXT(GLuint id, GLenum value, void **data)
 {
 	glGetVariantPointervEXT(id, value, data);
 	if (checkErrors)
@@ -34507,7 +34512,7 @@ static APIENTRY void debug_glGetVariantPointervEXT(GLuint id, GLenum value, void
 	}
 }
 
-static APIENTRY void debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
+static void APIENTRY debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
 	glGetInvariantBooleanvEXT(id, value, data);
 	if (checkErrors)
@@ -34524,7 +34529,7 @@ static APIENTRY void debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GL
 	}
 }
 
-static APIENTRY void debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GLint *data)
+static void APIENTRY debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
 	glGetInvariantIntegervEXT(id, value, data);
 	if (checkErrors)
@@ -34541,7 +34546,7 @@ static APIENTRY void debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GL
 	}
 }
 
-static APIENTRY void debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
+static void APIENTRY debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
 	glGetInvariantFloatvEXT(id, value, data);
 	if (checkErrors)
@@ -34558,7 +34563,7 @@ static APIENTRY void debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfl
 	}
 }
 
-static APIENTRY void debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
+static void APIENTRY debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
 	glGetLocalConstantBooleanvEXT(id, value, data);
 	if (checkErrors)
@@ -34575,7 +34580,7 @@ static APIENTRY void debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value
 	}
 }
 
-static APIENTRY void debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value, GLint *data)
+static void APIENTRY debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
 	glGetLocalConstantIntegervEXT(id, value, data);
 	if (checkErrors)
@@ -34592,7 +34597,7 @@ static APIENTRY void debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value
 	}
 }
 
-static APIENTRY void debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
+static void APIENTRY debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
 	glGetLocalConstantFloatvEXT(id, value, data);
 	if (checkErrors)
@@ -34609,7 +34614,7 @@ static APIENTRY void debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, 
 	}
 }
 
-static APIENTRY void debug_glVertexWeightfEXT(GLfloat weight)
+static void APIENTRY debug_glVertexWeightfEXT(GLfloat weight)
 {
 	glVertexWeightfEXT(weight);
 	if (checkErrors)
@@ -34626,7 +34631,7 @@ static APIENTRY void debug_glVertexWeightfEXT(GLfloat weight)
 	}
 }
 
-static APIENTRY void debug_glVertexWeightfvEXT(const GLfloat *weight)
+static void APIENTRY debug_glVertexWeightfvEXT(const GLfloat *weight)
 {
 	glVertexWeightfvEXT(weight);
 	if (checkErrors)
@@ -34643,7 +34648,7 @@ static APIENTRY void debug_glVertexWeightfvEXT(const GLfloat *weight)
 	}
 }
 
-static APIENTRY void debug_glVertexWeightPointerEXT(GLint size, GLenum type, GLsizei stride, const void *pointer)
+static void APIENTRY debug_glVertexWeightPointerEXT(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
 	glVertexWeightPointerEXT(size, type, stride, pointer);
 	if (checkErrors)
@@ -34660,7 +34665,7 @@ static APIENTRY void debug_glVertexWeightPointerEXT(GLint size, GLenum type, GLs
 	}
 }
 
-static APIENTRY void debug_glWindowRectanglesEXT(GLenum mode, GLsizei count, const GLint *box)
+static void APIENTRY debug_glWindowRectanglesEXT(GLenum mode, GLsizei count, const GLint *box)
 {
 	glWindowRectanglesEXT(mode, count, box);
 	if (checkErrors)
@@ -34677,7 +34682,7 @@ static APIENTRY void debug_glWindowRectanglesEXT(GLenum mode, GLsizei count, con
 	}
 }
 
-static APIENTRY GLsync debug_glImportSyncEXT(GLenum external_sync_type, GLintptr external_sync, GLbitfield flags)
+static GLsync APIENTRY debug_glImportSyncEXT(GLenum external_sync_type, GLintptr external_sync, GLbitfield flags)
 {
 	GLsync retVal = default_glImportSyncEXT(external_sync_type, external_sync, flags);
 	if (checkErrors)
