@@ -16,4 +16,4 @@ ds_add_library(deepsea_render_opengl RenderOpenGL ${sources})
 ds_target_include_directories(deepsea_render_opengl
 	PRIVATE ${OPENGL_INCLUDE_DIR} ${extraIncludeDirs} ${DEEPSEA_SOURCE_DIR}/RenderOpenGL/src)
 ds_target_link_libraries(deepsea_render_opengl
-	PRIVATE ${CMAKE_DL_LIBS} ${OPENGL_gl_LIBRARIES} ${extraLibs})
+	PRIVATE ${CMAKE_DL_LIBS} ${OPENGL_gl_LIBRARY} ${extraLibs})
