@@ -4198,6 +4198,9 @@ int AnyGL_load(void)
 	/* GL_EXT_422_pixels */
 	AnyGL_EXT_422_pixels = AnyGL_queryExtension("GL_EXT_422_pixels");
 
+	/* GL_EXT_EGL_image_array */
+	AnyGL_EXT_EGL_image_array = AnyGL_queryExtension("GL_EXT_EGL_image_array");
+
 	/* GL_EXT_YUV_target */
 	AnyGL_EXT_YUV_target = AnyGL_queryExtension("GL_EXT_YUV_target");
 

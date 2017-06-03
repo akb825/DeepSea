@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/RenderOpenGL/GLRenderer.h>
+#include "GLRendererInternal.h"
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
@@ -25,9 +26,12 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Thread/Mutex.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
 #include <string.h>
@@ -72,7 +76,7 @@ static dsGfxFormat getDepthFormat(const dsOpenGLOptions* options)
 
 static size_t dsGLRenderer_fullAllocSize(void)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer));
+	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer)) + dsMutex_fullAllocSize();
 }
 
 static bool hasRequiredFunctions(void)
@@ -147,7 +151,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
-	(baseRenderer)->allocator = dsAllocator_keepPointer(allocator);
+	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
 
 	renderer->options = *options;
 	if (!renderer->options.display)
@@ -216,6 +220,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
+	renderer->contextMutex = dsMutex_create(allocator, "GL context");
+	DS_ASSERT(renderer->contextMutex);
+
 	baseRenderer->resourceManager = (dsResourceManager*)dsGLResourceManager_create(allocator,
 		renderer);
 	if (!baseRenderer->resourceManager)
@@ -237,6 +244,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->surfaceSamples = options->samples;
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 
+	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glVertexAttribDivisor);
+
 	return baseRenderer;
 }
 
@@ -246,6 +255,50 @@ void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer, bool enabled)
 		return;
 
 	AnyGL_setDebugEnabled(enabled);
+}
+
+void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount)
+{
+	dsAllocator* allocator = renderer->allocator;
+	if (!vao || !allocator)
+		return;
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+		glRenderer->renderContextBound)
+	{
+		if (contextCount == glRenderer->contextCount)
+			glDeleteVertexArrays(1, &vao);
+		return;
+	}
+
+	dsMutex_lock(glRenderer->contextMutex);
+	if (contextCount != glRenderer->contextCount)
+	{
+		dsMutex_unlock(glRenderer->contextMutex);
+		return;
+	}
+
+	if (glRenderer->curDestroyVaos >= glRenderer->maxDestroyVaos)
+	{
+		size_t newMaxVaos = dsMax(16U, glRenderer->maxDestroyVaos*2);
+		GLuint* newDestroyVaos = (GLuint*)dsAllocator_alloc(allocator, newMaxVaos*sizeof(GLuint));
+		if (!newDestroyVaos)
+		{
+			dsMutex_unlock(glRenderer->contextMutex);
+			return;
+		}
+
+		memcpy(newDestroyVaos, glRenderer->destroyVaos, glRenderer->curDestroyVaos*sizeof(GLuint));
+		DS_VERIFY(dsAllocator_free(allocator, glRenderer->destroyVaos));
+		glRenderer->destroyVaos = newDestroyVaos;
+		glRenderer->maxDestroyVaos = newMaxVaos;
+	}
+
+	DS_ASSERT(glRenderer->curDestroyVaos < glRenderer->maxDestroyVaos);
+	glRenderer->destroyVaos[glRenderer->curDestroyVaos++] = vao;
+
+	dsMutex_unlock(glRenderer->contextMutex);
 }
 
 void dsGLRenderer_destroy(dsRenderer* renderer)
@@ -263,6 +316,10 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	dsDestroyDummyGLSurface(display, glRenderer->dummySurface, glRenderer->dummyOsSurface);
 	dsDestroyGLConfig(display, glRenderer->sharedConfig);
 	dsDestroyGLConfig(display, glRenderer->renderConfig);
+
+	if (glRenderer->destroyVaos)
+		dsAllocator_free(renderer->allocator, glRenderer->destroyVaos);
+	dsMutex_destroy(glRenderer->contextMutex);
 
 	if (renderer->allocator)
 		dsAllocator_free(renderer->allocator, renderer);

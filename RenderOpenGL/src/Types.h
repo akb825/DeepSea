@@ -40,8 +40,8 @@ typedef struct dsGLResource
 typedef struct dsGLGfxBuffer
 {
 	dsGfxBuffer buffer;
-	GLuint bufferId;
 	dsGLResource resource;
+	GLuint bufferId;
 } dsGLGfxBuffer;
 
 typedef struct dsGLResourceManager
@@ -78,12 +78,20 @@ typedef struct dsGLRenderer
 	dsOpenGLOptions options;
 	bool releaseDisplay;
 
+	bool renderContextBound;
+	uint32_t contextCount;
 	void* sharedConfig;
 	void* sharedContext;
 	void* dummySurface;
 	void* dummyOsSurface;
 	void* renderConfig;
 	void* renderContext;
+	dsMutex* contextMutex;
+
+	GLuint* destroyVaos;
+	size_t maxDestroyVaos;
+	size_t curDestroyVaos;
+	bool boundAttributes[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
 } dsGLRenderer;
 
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -108,3 +116,11 @@ typedef struct dsGLCommandBuffer
 
 typedef struct dsGLMainCommandBuffer dsGLMainCommandBuffer;
 typedef struct dsGLOtherCommandBuffer dsGLOtherCommandBuffer;
+
+typedef struct dsGLDrawGeometry
+{
+	dsDrawGeometry drawGeometry;
+	dsGLResource resource;
+	GLuint vao;
+	uint32_t vaoContext;
+} dsGLDrawGeometry;

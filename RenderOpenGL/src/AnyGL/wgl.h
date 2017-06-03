@@ -78,6 +78,14 @@ ANYGL_EXPORT extern PFNANYWGLCREATECONTEXTATTRIBSARBPROC AnyGL_wglCreateContextA
 #define wglCreateContextAttribsARB(hDC, hShareContext, attribList) AnyGL_wglCreateContextAttribsARB(hDC, hShareContext, attribList)
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
+#ifndef WGL_ARB_create_context_no_error
+#define WGL_ARB_create_context_no_error 1
+#define ANYWGL_ARB_create_context_no_error 1
+
+#define WGL_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
+
+#endif /* WGL_ARB_create_context_no_error */
+
 #ifndef WGL_ARB_create_context_profile
 #define WGL_ARB_create_context_profile 1
 #define ANYWGL_ARB_create_context_profile 1

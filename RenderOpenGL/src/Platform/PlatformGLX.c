@@ -341,4 +341,10 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	return true;
 }
 
+void* dsGetCurrentGLContext(void* display)
+{
+	DS_UNUSED(display);
+	return glXGetCurrentContext();
+}
+
 #endif // ANYGL_LOAD

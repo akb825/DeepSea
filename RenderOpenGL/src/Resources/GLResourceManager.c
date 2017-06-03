@@ -20,6 +20,7 @@
 #include "AnyGL/gl.h"
 #include "Platform/Platform.h"
 #include "Resources/GLGfxBuffer.h"
+#include "Resources/GLDrawGeometry.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -1006,6 +1007,13 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->copyBufferDataFunc = &dsGLGfxBuffer_copyData;
 	if (ANYGL_SUPPORTED(glCopyBufferSubData))
 		baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
+
+	// Draw geometry
+	GLint maxVertexAttribs = 0;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
+	baseResourceManager->maxVertexAttribs = dsMin(maxVertexAttribs, DS_MAX_ALLOWED_VERTEX_ATTRIBS);
+	baseResourceManager->createGeometryFunc = &dsGLDrawGeometry_create;
+	baseResourceManager->destroyGeometryFunc = &dsGLDrawGeometry_destroy;
 
 	return resourceManager;
 }

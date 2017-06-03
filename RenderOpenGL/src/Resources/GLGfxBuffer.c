@@ -30,7 +30,6 @@
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
 {
-	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
 	dsGLGfxBuffer* buffer = (dsGLGfxBuffer*)dsAllocator_alloc(allocator, sizeof(dsGLGfxBuffer));
@@ -38,9 +37,10 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		return NULL;
 
 	dsGfxBuffer* baseBuffer = (dsGfxBuffer*)buffer;
+	baseBuffer->resourceManager = resourceManager;
 	baseBuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseBuffer->usage = usage;
-	baseBuffer->memoryHints = memoryHints;
+	baseBuffer->usage = (dsGfxBufferUsage)usage;
+	baseBuffer->memoryHints = (dsGfxMemory)memoryHints;
 	baseBuffer->size = size;
 	buffer->bufferId = 0;
 	dsGLResource_initialize(&buffer->resource);

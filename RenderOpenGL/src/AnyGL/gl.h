@@ -1644,6 +1644,12 @@ ANYGL_EXPORT extern int AnyGL_OES_viewport_array;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_422_pixels;
 
+#ifndef GL_EXT_EGL_image_array
+#define GL_EXT_EGL_image_array 1
+#define ANYGL_EXT_EGL_image_array 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_array;
+
 #ifndef GL_EXT_YUV_target
 #define GL_EXT_YUV_target 1
 #define ANYGL_EXT_YUV_target 1
@@ -13303,6 +13309,12 @@ ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDFOESPROC AnyGL_glDepthRangeIndexedf
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
 /* GL_EXT_422_pixels */
+
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+/* GL_EXT_EGL_image_array */
 
 
 #ifndef ANYGL_NO_FUNCTION_DEFINES

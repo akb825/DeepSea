@@ -35,3 +35,4 @@ void dsSwapGLBuffers(void* display, void* surface);
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface);
 
 bool dsBindGLContext(void* display, void* context, void* surface);
+void* dsGetCurrentGLContext(void* display);

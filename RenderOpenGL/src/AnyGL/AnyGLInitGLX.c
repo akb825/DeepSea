@@ -176,6 +176,8 @@ int AnyGL_initialize(void)
 	/* GLX_ARB_create_context */
 	AnyGL_glXCreateContextAttribsARB = (PFNANYGLXCREATECONTEXTATTRIBSARBPROC)AnyGL_glXGetProcAddress((const GLubyte*)"glXCreateContextAttribsARB");
 
+	/* GLX_ARB_create_context_no_error */
+
 	/* GLX_ARB_create_context_profile */
 
 	/* GLX_ARB_create_context_robustness */

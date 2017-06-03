@@ -313,6 +313,14 @@ ANYGL_EXPORT extern PFNANYGLXCREATECONTEXTATTRIBSARBPROC AnyGL_glXCreateContextA
 #define glXCreateContextAttribsARB(dpy, config, share_context, direct, attrib_list) AnyGL_glXCreateContextAttribsARB(dpy, config, share_context, direct, attrib_list)
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
+#ifndef GLX_ARB_create_context_no_error
+#define GLX_ARB_create_context_no_error 1
+#define ANYGLX_ARB_create_context_no_error 1
+
+#define GLX_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
+
+#endif /* GLX_ARB_create_context_no_error */
+
 #ifndef GLX_ARB_create_context_profile
 #define GLX_ARB_create_context_profile 1
 #define ANYGLX_ARB_create_context_profile 1

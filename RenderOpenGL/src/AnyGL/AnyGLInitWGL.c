@@ -213,6 +213,8 @@ int AnyGL_initialize(void)
 	/* WGL_ARB_create_context */
 	AnyGL_wglCreateContextAttribsARB = (PFNANYWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
+	/* WGL_ARB_create_context_no_error */
+
 	/* WGL_ARB_create_context_profile */
 
 	/* WGL_ARB_create_context_robustness */
