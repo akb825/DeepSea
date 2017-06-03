@@ -207,7 +207,14 @@ bool dsConditionVariable_notifyAll(dsConditionVariable* condition)
 
 void dsConditionVariable_destroy(dsConditionVariable* condition)
 {
-	if (!condition || !condition->shouldFree)
+	if (!condition)
+		return;
+
+#if !DS_WINDOWS
+	DS_VERIFY(pthread_cond_destroy(&condition->condition) == 0);
+#endif
+
+	if (!condition->shouldFree)
 		return;
 
 	if (condition->allocator)

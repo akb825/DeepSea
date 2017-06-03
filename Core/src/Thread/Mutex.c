@@ -149,7 +149,16 @@ bool dsMutex_unlock(dsMutex* mutex)
 
 void dsMutex_destroy(dsMutex* mutex)
 {
-	if (!mutex || !mutex->shouldFree)
+	if (!mutex)
+		return;
+
+#if DS_WINDOWS
+	DeleteCriticalSection(&mutex->mutex);
+#else
+	DS_VERIFY(pthread_mutex_destroy(&mutex->mutex) == 0);
+#endif
+
+	if (!mutex->shouldFree)
 		return;
 
 	if (mutex->allocator)

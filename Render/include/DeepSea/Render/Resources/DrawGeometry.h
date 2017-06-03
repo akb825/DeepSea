@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#pragma once
+
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Resources/Types.h>
 #include <DeepSea/Render/Export.h>

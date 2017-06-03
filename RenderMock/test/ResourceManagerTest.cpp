@@ -52,6 +52,7 @@ dsThreadReturnType createResourceContextThread(void* data)
 		DS_ATOMIC_STORE32(&threadData->created, &created);
 		EXPECT_EQ(dsConditionVariableResult_Success,
 			dsConditionVariable_wait(threadData->condition, threadData->mutex));
+		EXPECT_TRUE(dsMutex_unlock(threadData->mutex));
 	}
 
 	EXPECT_TRUE(dsResourceManager_destroyResourceContext(threadData->resourceManager));
