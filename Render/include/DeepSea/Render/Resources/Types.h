@@ -1647,6 +1647,11 @@ struct dsResourceManager
 	uint32_t maxTextureArrayLevels;
 
 	/**
+	 * @brief The maximum size of renderbuffers along the width and height.
+	 */
+	uint32_t maxRenderbufferSize;
+
+	/**
 	 * @brief The maximum number of layers for a framebuffer.
 	 */
 	uint32_t maxFramebufferLayers;

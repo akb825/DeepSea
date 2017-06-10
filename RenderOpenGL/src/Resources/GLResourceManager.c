@@ -21,6 +21,7 @@
 #include "Platform/Platform.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLDrawGeometry.h"
+#include "Resources/GLRenderbuffer.h"
 #include "Resources/GLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -1090,9 +1091,13 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->blitTextureFunc = &dsGLTexture_blit;
 	baseResourceManager->getTextureDataFunc = &dsGLTexture_getData;
 
+	// Renderbuffers
+	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, (GLint*)&baseResourceManager->maxRenderbufferSize);
+	baseResourceManager->createRenderbufferFunc = &dsGLRenderbuffer_create;
+	baseResourceManager->destroyRenderbufferFunc = &dsGLRenderbuffer_destroy;
+
 	return resourceManager;
 }
-
 
 bool dsGLResourceManager_getVertexFormatInfo(GLenum* outFormat, GLint* outElements,
 	bool* outNormalized, const dsResourceManager* resourceManager, dsGfxFormat format)

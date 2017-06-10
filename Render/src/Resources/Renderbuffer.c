@@ -44,6 +44,21 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
+	if (samples > resourceManager->renderer->maxSurfaceSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (width > resourceManager->maxRenderbufferSize ||
+		height > resourceManager->maxRenderbufferSize)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid renderbuffer dimensions.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsGfxFormat_offscreenSupported(resourceManager, format))
 	{
 		errno = EINVAL;

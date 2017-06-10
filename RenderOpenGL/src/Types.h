@@ -60,6 +60,13 @@ typedef struct dsGLTexture
 	GLuint drawBufferId;
 } dsGLTexture;
 
+typedef struct dsGLRenderbuffer
+{
+	dsRenderbuffer renderbuffer;
+	dsGLResource resource;
+	GLuint renderbufferId;
+} dsGLRenderbuffer;
+
 typedef struct dsGLResourceManager
 {
 	dsResourceManager resourceManager;
