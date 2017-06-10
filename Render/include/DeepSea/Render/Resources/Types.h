@@ -746,11 +746,11 @@ typedef struct dsTextureCopyRegion
 	uint32_t height;
 
 	/**
-	 * @brief The number of array levels to copy.
+	 * @brief The number of layers to copy.
 	 *
-	 * This cannot be used for multiple depth levels of a 3D texture.
+	 * This is the number of depth layers multiplied by the number of faces.
 	 */
-	uint32_t arrayLevelCount;
+	uint32_t layers;
 } dsTextureCopyRegion;
 
 /**
@@ -784,13 +784,6 @@ typedef struct dsTextureBlitRegion
 	uint32_t srcHeight;
 
 	/**
-	 * @brief The number of depth levels or array levels to blit from.
-	 *
-	 * When using texture arrays, this must match dstDepthRange.
-	 */
-	uint32_t srcDepthRange;
-
-	/**
 	 * @brief The width of the destination image to blit to.
 	 *
 	 * This must always be a multiple of the format's block size or reach the edge of the image.
@@ -805,11 +798,11 @@ typedef struct dsTextureBlitRegion
 	uint32_t dstHeight;
 
 	/**
-	 * @brief The number of depth levels or array levels to blit to.
+	 * @brief The number of layers to blit.
 	 *
-	 * When using texture arrays, this must match srcDepthRange.
+	 * This is the depth multiplied by the number of faces.
 	 */
-	uint32_t dstDepthRange;
+	uint32_t layers;
 } dsTextureBlitRegion;
 
 /**
@@ -1043,7 +1036,7 @@ typedef struct dsGfxFence
 typedef struct dsResourceContext dsResourceContext;
 
 /**
- * @brief Returns whether or not a format is supported.
+ * @brief Function for determining whether or not a format is supported.
  *
  * A separate function pointer is used to determine if a format is supported for vertex buffers,
  * textures, and offscreens.
@@ -1054,6 +1047,25 @@ typedef struct dsResourceContext dsResourceContext;
  */
 typedef bool (*dsFormatSupportedFunction)(const dsResourceManager* resourceManager,
 	dsGfxFormat format);
+
+/**
+ * @brief Function for determining whether or not copying between two formats is supported.
+ * @param resourceManager The resource manager.
+ * @param srcFormat The format for the source texture.
+ * @param dstFormat The format for the destination texture.
+ */
+typedef bool (*dsCopySupportedFunction)(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
+
+/**
+ * @brief Function for determining whether or not blitting between two formats is supported.
+ * @param resourceManager The resource manager.
+ * @param srcFormat The format for the source texture.
+ * @param dstFormat The format for the destination texture.
+ * @param filter The blit filter.
+ */
+typedef bool (*dsBlitSupportedFunction)(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
 
 /**
  * @brief Function for creating a resource context for the current thread.
@@ -1280,13 +1292,14 @@ typedef bool (*dsDestroyTextureFunction)(dsResourceManager* resourceManager, dsT
  * @param position The position of the texture to copy to.
  * @param width The width of the texture data.
  * @param height The height of the texture data.
+ * @param layers The number of layers in the texture data.
  * @param data The texture data to copy. This must be tightly packed.
  * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied.
  */
 typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, const dsTexturePosition* position,
-	uint32_t width, uint32_t height, const void* data, size_t size);
+	uint32_t width, uint32_t height, uint32_t layers, const void* data, size_t size);
 
 /**
  * @brief Function for copying from one texture to another.
@@ -1643,7 +1656,17 @@ struct dsResourceManager
 	 *
 	 * When false, textures may only be created with 1 or the maximum mip levels.
 	 */
-	bool arbitraryMipmapping;
+	bool hasArbitraryMipmapping;
+
+	/**
+	 * @brief Boolean for whether or not cubemap arrays are supported.
+	 */
+	bool hasCubeArrays;
+
+	/**
+	 * @brief Boolean for whether or not multisample textures are supported.
+	 */
+	bool hasMultisampleTextures;
 
 	/**
 	 * @brief Boolean for whether or not textures are readable.
@@ -1651,11 +1674,6 @@ struct dsResourceManager
 	 * Offscreens will always be readable.
 	 */
 	bool texturesReadable;
-
-	/**
-	 * @brief Boolean for whether or not textures can be copied or blitted between each other.
-	 */
-	bool canCopyTextures;
 
 	/**
 	 * @brief True if a color buffer must be provided with a framebuffer.
@@ -1782,6 +1800,16 @@ struct dsResourceManager
 	 * @brief Texture buffer format supported function.
 	 */
 	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
+
+	/**
+	 * @brief Texture copy validity check function.
+	 */
+	dsCopySupportedFunction textureCopyFormatsSupportedFunc;
+
+	/**
+	 * @brief Texture blit validity check function.
+	 */
+	dsBlitSupportedFunction textureBlitFormatsSupportedFunc;
 
 	/**
 	 * @brief Resource context creation function.

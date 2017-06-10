@@ -17,7 +17,13 @@
 #pragma once
 
 #include "AnyGL/gl.h"
+#include <DeepSea/Render/Types.h>
 
 void dsCheckGLErrors(void);
 void dsClearGLErrors(void);
 int dsGetGLErrno(GLenum error);
+
+void dsGLBindFramebufferTexture(GLenum framebuffer, dsTexture* texture, uint32_t mipLevel,
+	uint32_t layer);
+
+void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture);

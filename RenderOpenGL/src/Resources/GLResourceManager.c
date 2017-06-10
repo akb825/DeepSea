@@ -21,6 +21,7 @@
 #include "Platform/Platform.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLDrawGeometry.h"
+#include "Resources/GLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -851,6 +852,55 @@ bool dsGLResourceManager_textureBufferFormatSupported(const dsResourceManager* r
 	return formatSupported(glResourceManager, format, FormatBit_TextureBuffer);
 }
 
+bool dsGLResourceManager_textureBlitFormatsSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter)
+{
+	if (!ANYGL_SUPPORTED(glBlitFramebuffer) &&
+		dsGLResourceManager_offscreenFormatSupported(resourceManager, srcFormat) &&
+		dsGLResourceManager_offscreenFormatSupported(resourceManager, dstFormat))
+	{
+		return false;
+	}
+
+	dsGfxFormat srcDecorator = (dsGfxFormat)(srcFormat & dsGfxFormat_DecoratorMask);
+	dsGfxFormat dstDecorator = (dsGfxFormat)(dstFormat & dsGfxFormat_DecoratorMask);
+	if (srcDecorator == dsGfxFormat_Float || srcFormat == dsGfxFormat_B10G11R11_UFloat ||
+		srcFormat == dsGfxFormat_E5B9G9R9_UFloat)
+	{
+		return dstDecorator == dsGfxFormat_Float || dstFormat == dsGfxFormat_B10G11R11_UFloat ||
+			dstFormat == dsGfxFormat_E5B9G9R9_UFloat;
+	}
+
+	if (srcDecorator == dsGfxFormat_UInt)
+		return dstDecorator == dsGfxFormat_UInt && filter == dsBlitFilter_Nearest;
+
+	if (srcDecorator == dsGfxFormat_SInt)
+		return dstDecorator == dsGfxFormat_SInt && filter == dsBlitFilter_Nearest;
+
+	if (!srcDecorator || !dstDecorator)
+		return srcFormat == dstFormat && filter == dsBlitFilter_Nearest;
+
+	return true;
+}
+
+bool dsGLResourceManager_textureCopyFormatsSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat)
+{
+	if (!ANYGL_SUPPORTED(glCopyImageSubData))
+	{
+		return dsGLResourceManager_textureBlitFormatsSupported(resourceManager, srcFormat,
+			dstFormat, dsBlitFilter_Nearest);
+	}
+
+	if (!dsGLResourceManager_textureFormatSupported(resourceManager, srcFormat) ||
+		!dsGLResourceManager_textureFormatSupported(resourceManager, dstFormat))
+	{
+		return false;
+	}
+
+	return dsGfxFormat_size(srcFormat) == dsGfxFormat_size(srcFormat);
+}
+
 dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager);
@@ -1014,6 +1064,31 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->maxVertexAttribs = dsMin(maxVertexAttribs, DS_MAX_ALLOWED_VERTEX_ATTRIBS);
 	baseResourceManager->createGeometryFunc = &dsGLDrawGeometry_create;
 	baseResourceManager->destroyGeometryFunc = &dsGLDrawGeometry_destroy;
+
+	// Textures
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&baseResourceManager->maxTextureSize);
+	if (ANYGL_SUPPORTED(glTexImage3D))
+	{
+		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,
+			(GLint*)&baseResourceManager->maxTextureArrayLevels);
+	}
+	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, true) ||
+		AnyGL_EXT_texture_array)
+	{
+		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS,
+			(GLint*)&baseResourceManager->maxTextureArrayLevels);
+	}
+	baseResourceManager->hasArbitraryMipmapping = AnyGL_atLeastVersion(1, 2, false) ||
+		AnyGL_atLeastVersion(3, 0, true);
+	baseResourceManager->hasCubeArrays = AnyGL_atLeastVersion(4, 0, false) ||
+		AnyGL_ARB_texture_cube_map_array;
+	baseResourceManager->hasMultisampleTextures = ANYGL_SUPPORTED(glTexStorage2DMultisample);
+	baseResourceManager->createTextureFunc = &dsGLTexture_create;
+	baseResourceManager->destroyTextureFunc = &dsGLTexture_destroy;
+	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
+	baseResourceManager->copyTextureFunc = &dsGLTexture_copy;
+	baseResourceManager->blitTextureFunc = &dsGLTexture_blit;
+	baseResourceManager->getTextureDataFunc = &dsGLTexture_getData;
 
 	return resourceManager;
 }

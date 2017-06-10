@@ -112,9 +112,9 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
-				surfaceWidth = surface->width/(1 << surfaces[i].mipLevel);
+				surfaceWidth = surface->width >> surfaces[i].mipLevel;
 				surfaceWidth = dsMax(1U, surfaceWidth);
-				surfaceHeight = surface->height/(1 << surfaces[i].mipLevel);
+				surfaceHeight = surface->height >> surfaces[i].mipLevel;
 				surfaceHeight = dsMax(1U, surfaceHeight);
 
 				if (layers == 1 && surface->depth > 0 && surfaces[i].layer >= surfaceLayers)

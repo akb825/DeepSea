@@ -81,7 +81,7 @@ static size_t dsGLRenderer_fullAllocSize(void)
 
 static bool hasRequiredFunctions(void)
 {
-	if (!ANYGL_SUPPORTED(glGenBuffers))
+	if (!ANYGL_SUPPORTED(glGenBuffers) || !ANYGL_SUPPORTED(glGenFramebuffers))
 		return false;
 
 	return true;
@@ -185,9 +185,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	renderer->sharedContext = dsCreateGLContext(allocator, display, renderer->sharedConfig,
 		NULL);
-	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
-		renderer->sharedContext);
-	if (!renderer->sharedContext || !renderer->renderContext)
+	if (!renderer->sharedContext)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL context.");
@@ -216,6 +214,22 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		int major, minor;
 		AnyGL_getGLVersion(&major, &minor, NULL);
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL %d.%d is too old.", major, minor);
+		dsGLRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	GLint maxSamples = 0;
+	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+	maxSamples = dsMax(1, maxSamples);
+	baseRenderer->maxSurfaceSamples = (uint16_t)maxSamples;
+	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
+
+	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
+		renderer->sharedContext);
+	if (!renderer->renderContext)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL context.");
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
@@ -299,6 +313,32 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 	glRenderer->destroyVaos[glRenderer->curDestroyVaos++] = vao;
 
 	dsMutex_unlock(glRenderer->contextMutex);
+}
+
+GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (!glRenderer->renderContextBound)
+		return 0;
+
+	if (glRenderer->tempFramebuffer)
+		return glRenderer->tempFramebuffer;
+
+	glGenFramebuffers(1, &glRenderer->tempFramebuffer);
+	return glRenderer->tempFramebuffer;
+}
+
+GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (!glRenderer->renderContextBound)
+		return 0;
+
+	if (glRenderer->tempCopyFramebuffer)
+		return glRenderer->tempCopyFramebuffer;
+
+	glGenFramebuffers(1, &glRenderer->tempCopyFramebuffer);
+	return glRenderer->tempCopyFramebuffer;
 }
 
 void dsGLRenderer_destroy(dsRenderer* renderer)

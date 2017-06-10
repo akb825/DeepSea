@@ -919,6 +919,11 @@ struct dsRenderer
 	uint16_t maxColorAttachments;
 
 	/**
+	 * @brief The maximum number of samples for render surfaces.
+	 */
+	uint16_t maxSurfaceSamples;
+
+	/**
 	 * @brief The maximum anisitropy level for anisotropic texture filtering.
 	 */
 	float maxAnisotropy;

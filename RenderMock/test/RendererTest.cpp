@@ -40,7 +40,8 @@ TEST_F(RendererTest, BeginEndFrame)
 TEST_F(RendererTest, SetSurfaceSamples)
 {
 	EXPECT_FALSE(dsRenderer_setSurfaceSamples(NULL, 1));
-	EXPECT_TRUE(dsRenderer_setSurfaceSamples(renderer, 1));
+	EXPECT_FALSE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples + 1));
+	EXPECT_TRUE(dsRenderer_setSurfaceSamples(renderer, renderer->maxSurfaceSamples));
 }
 
 TEST_F(RendererTest, SetVsync)

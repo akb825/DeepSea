@@ -79,6 +79,22 @@ TEST_F(TextureTest, SurfaceOffset)
 		2));
 }
 
+TEST_F(TextureTest, LayerOffset)
+{
+	EXPECT_EQ(0U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, 1, 0, 0));
+	EXPECT_EQ(1048576U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, 0, 1));
+	EXPECT_EQ(1310720U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, 0, 2));
+	EXPECT_EQ(4063232U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 3, DS_ALL_MIP_LEVELS, 2, 2));
+	EXPECT_EQ(151191552U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, 3, 2));
+	EXPECT_EQ(24576000U, dsTexture_layerOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_SNorm), dsTextureDim_Cube, 512, 512, 3, DS_ALL_MIP_LEVELS, 15, 2));
+}
+
 TEST_F(TextureTest, Create)
 {
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
@@ -144,9 +160,13 @@ TEST_F(TextureTest, Create)
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
-	resourceManager->arbitraryMipmapping = false;
+	resourceManager->hasArbitraryMipmapping = false;
 	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
 		format, dsTextureDim_2D, 128, 256, 0, 3, NULL, 0));
+
+	resourceManager->hasCubeArrays = false;
+	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
+		format, dsTextureDim_Cube, 128, 128, 3, 0, NULL, 0));
 }
 
 TEST_F(TextureTest, CreateOffscreen)
@@ -171,7 +191,7 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 1, 4, true);
+		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 1, 4, false);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*4, resourceManager->textureMemorySize);
@@ -214,9 +234,29 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
-	resourceManager->arbitraryMipmapping = false;
+	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 1, 32, true));
+
+	resourceManager->hasArbitraryMipmapping = false;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 3, 1, true));
+
+	resourceManager->hasCubeArrays = false;
+	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
+		format, dsTextureDim_Cube, 128, 128, 3, 0, NULL, 0));
+
+	resourceManager->hasMultisampleTextures = false;
+	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 1, 4, true);
+	ASSERT_TRUE(texture);
+	EXPECT_EQ(1U, resourceManager->textureCount);
+	EXPECT_EQ(128*256*4*5, resourceManager->textureMemorySize);
+	EXPECT_TRUE(dsTexture_destroy(texture));
+	EXPECT_EQ(0U, resourceManager->textureCount);
+	EXPECT_EQ(0U, resourceManager->textureMemorySize);
+
+	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 128, 256, 0, 1, 4, false));
 }
 
 TEST_F(TextureTest, GetData)
@@ -224,8 +264,8 @@ TEST_F(TextureTest, GetData)
 	dsColor textureData[32*16 + 16*8 + 8*4];
 	for (unsigned int level = 0, index = 0; level < 3; ++level)
 	{
-		unsigned int width = 32/(1 << level);
-		unsigned int height = 16/(1 << level);
+		unsigned int width = 32 >> level;
+		unsigned int height = 16 >> level;
 		for (unsigned int y = 0; y < height; ++y)
 		{
 			for (unsigned int x = 0; x < width; ++x, ++index)
@@ -317,22 +357,25 @@ TEST_F(TextureTest, CopyData)
 		}
 	}
 	dsTexturePosition position = {dsCubeFace_PosX, 3, 4, 0, 1};
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData, 8*4*4));
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+		8*4*4));
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	texture = dsTexture_create(resourceManager, NULL,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static, format, dsTextureDim_2D, 32, 16, 0, 3, NULL, 0);
 	ASSERT_TRUE(texture);
-	EXPECT_FALSE(dsTexture_copyData(NULL, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(NULL, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, NULL, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, NULL, 8, 4, 1, textureData,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, NULL,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, NULL,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		100));
-	EXPECT_TRUE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 2, textureData,
+		sizeof(textureData)));
+	EXPECT_TRUE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	memset(textureData, 0, sizeof(textureData));
@@ -349,23 +392,23 @@ TEST_F(TextureTest, CopyData)
 	}
 
 	position.x = 9;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.x = 3;
 	position.y = 5;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.x = 0;
 	position.y = 0;
 	position.mipLevel = 5;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.mipLevel = 0;
 	position.depth = 1;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, textureData,
+	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
@@ -378,8 +421,8 @@ TEST_F(TextureTest, Copy)
 	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
 	for (unsigned int level = 0, index = 0; level < 3; ++level)
 	{
-		unsigned int width = 32/(1 << level);
-		unsigned int height = 16/(1 << level);
+		unsigned int width = 32 >> level;
+		unsigned int height = 16 >> level;
 		for (unsigned int depth = 0; depth < 4; ++depth)
 		{
 			for (unsigned int y = 0; y < height; ++y)
@@ -513,8 +556,8 @@ TEST_F(TextureTest, Blit)
 	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
 	for (unsigned int level = 0, index = 0; level < 3; ++level)
 	{
-		unsigned int width = 32/(1 << level);
-		unsigned int height = 16/(1 << level);
+		unsigned int width = 32 >> level;
+		unsigned int height = 16 >> level;
 		for (unsigned int depth = 0; depth < 4; ++depth)
 		{
 			for (unsigned int y = 0; y < height; ++y)
@@ -545,7 +588,7 @@ TEST_F(TextureTest, Blit)
 	{
 		{dsCubeFace_PosX, 1, 2, 2, 1},
 		{dsCubeFace_PosX, 3, 4, 1, 0},
-		8, 4, 2, 8, 4, 2
+		8, 4, 8, 4, 2
 	};
 
 	EXPECT_FALSE(dsTexture_blit(commandBuffer, fromTexture, toTexture, &blitRegion, 1,

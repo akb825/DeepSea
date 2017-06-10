@@ -30,6 +30,7 @@
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size)
 {
+	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
 	dsGLGfxBuffer* buffer = (dsGLGfxBuffer*)dsAllocator_alloc(allocator, sizeof(dsGLGfxBuffer));
@@ -42,6 +43,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	baseBuffer->usage = (dsGfxBufferUsage)usage;
 	baseBuffer->memoryHints = (dsGfxMemory)memoryHints;
 	baseBuffer->size = size;
+
 	buffer->bufferId = 0;
 	dsGLResource_initialize(&buffer->resource);
 
@@ -132,6 +134,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating graphics buffer: %s",
 			AnyGL_errorString(error));
 		errno = dsGetGLErrno(error);
+		dsClearGLErrors();
 		dsGLGfxBuffer_destroy(resourceManager, baseBuffer);
 		return NULL;
 	}

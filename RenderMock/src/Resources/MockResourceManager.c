@@ -61,6 +61,21 @@ static bool textureBufferFormatSupported(const dsResourceManager* resourceManage
 	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
 }
 
+static bool copyFormatsSupported(const dsResourceManager* resourceManager, dsGfxFormat srcFormat,
+	dsGfxFormat dstFormat)
+{
+	return textureFormatSupported(resourceManager, srcFormat) &&
+		textureFormatSupported(resourceManager, dstFormat) && srcFormat == dstFormat;
+}
+
+static bool blitFormatsSupported(const dsResourceManager* resourceManager, dsGfxFormat srcFormat,
+	dsGfxFormat dstFormat, dsBlitFilter filter)
+{
+	return offscreenFormatSupported(resourceManager, srcFormat) &&
+		offscreenFormatSupported(resourceManager, dstFormat) && srcFormat == dstFormat &&
+		filter == dsBlitFilter_Nearest;
+}
+
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
@@ -112,9 +127,10 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 512;
 	resourceManager->maxFramebufferLayers = 1024;
-	resourceManager->arbitraryMipmapping = true;
+	resourceManager->hasArbitraryMipmapping = true;
+	resourceManager->hasCubeArrays = true;
+	resourceManager->hasMultisampleTextures = true;
 	resourceManager->texturesReadable = true;
-	resourceManager->canCopyTextures = true;
 	resourceManager->requiresColorBuffer = false;
 	resourceManager->canMixWithRenderSurface = true;
 	resourceManager->hasFences = true;
@@ -123,6 +139,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
 	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
 	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
+	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
+	resourceManager->textureBlitFormatsSupportedFunc = &blitFormatsSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 

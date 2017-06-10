@@ -15,11 +15,14 @@
  */
 
 #include "GLHelpers.h"
+
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "Resources/GLTexture.h"
 #include "Types.h"
-#include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 
 void dsCheckGLErrors(void)
 {
@@ -58,4 +61,63 @@ int dsGetGLErrno(GLenum error)
 		default:
 			return EINVAL;
 	}
+}
+
+void dsGLBindFramebufferTexture(GLenum framebuffer, dsTexture* texture, uint32_t mipLevel,
+	uint32_t layer)
+{
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+	GLenum target = dsGLTexture_target(texture);
+	GLenum attachment = dsGLTexture_attachment(texture);
+	switch (texture->dimension)
+	{
+		case dsTextureDim_1D:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture1D(framebuffer, attachment, target, glTexture->textureId,
+					mipLevel);
+			}
+			break;
+		case dsTextureDim_2D:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture2D(framebuffer, attachment, target, glTexture->textureId,
+					mipLevel);
+			}
+			break;
+		case dsTextureDim_3D:
+			glFramebufferTexture3D(framebuffer, attachment, target, glTexture->textureId, mipLevel,
+				layer);
+			break;
+		case dsTextureDim_Cube:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture2D(framebuffer, attachment,
+					GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, glTexture->textureId, mipLevel);
+			}
+			break;
+		default:
+			DS_ASSERT(false);
+	}
+}
+
+void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture)
+{
+	GLenum attachment = dsGLTexture_attachment(texture);
+	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
 }

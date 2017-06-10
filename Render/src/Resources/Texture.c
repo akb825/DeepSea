@@ -87,7 +87,7 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
 
 	if (depthIndex >= depth || mipIndex >= mipLevels)
-		return 0;
+		return DS_INVALID_TEXTURE_OFFSET;
 
 	unsigned int blockX, blockY, minX, minY;
 	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
@@ -119,7 +119,54 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 	}
 
 	DS_ASSERT(false);
-	return 0;
+	return DS_INVALID_TEXTURE_OFFSET;
+}
+
+size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
+	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerIndex, uint32_t mipIndex)
+{
+	if (width == 0 || height == 0)
+		return 0;
+
+	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
+	uint32_t layers = dsMax(1U, depth)*faces;
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
+		DS_MIP_DEPTH(dimension, depth));
+	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
+
+	if (layerIndex >= layers || mipIndex >= mipLevels)
+		return DS_INVALID_TEXTURE_OFFSET;
+
+	unsigned int blockX, blockY, minX, minY;
+	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
+		return 0;
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, format));
+	unsigned int formatSize = dsGfxFormat_size(format);
+	DS_ASSERT(formatSize > 0);
+
+	size_t size = 0;
+	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, mip = 0; mip <= mipIndex;
+		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
+		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
+	{
+		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
+		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
+
+		size_t baseMipSize = curBlocksX*curBlocksY*formatSize;
+		// Add all the depth and face levels until we reach the requested mip.
+		if (mip < mipIndex)
+		{
+			size += baseMipSize*curDepth*faces;
+			continue;
+		}
+
+		// Offset to the current depth and face index.
+		size += baseMipSize*layerIndex;
+		return size;
+	}
+
+	DS_ASSERT(false);
+	return DS_INVALID_TEXTURE_OFFSET;
 }
 
 dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator, int usage,
@@ -156,7 +203,8 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if ((dimension == dsTextureDim_3D &&
 		(depth == 0 || depth > resourceManager->maxTextureDepth)) ||
-		(dimension != dsTextureDim_3D && depth > resourceManager->maxTextureArrayLevels))
+		(dimension != dsTextureDim_3D && (depth > resourceManager->maxTextureArrayLevels)) ||
+		(dimension == dsTextureDim_Cube && depth > 0 && !resourceManager->hasCubeArrays))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture depth.");
@@ -173,7 +221,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
 		DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
-	if (!resourceManager->arbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
+	if (!resourceManager->hasArbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -257,7 +305,8 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 
 	if ((dimension == dsTextureDim_3D &&
 		(depth == 0 || depth > resourceManager->maxTextureDepth)) ||
-		(dimension != dsTextureDim_3D && depth > resourceManager->maxTextureArrayLevels))
+		(dimension != dsTextureDim_3D && (depth > resourceManager->maxTextureArrayLevels)) ||
+		(dimension == dsTextureDim_Cube && depth > 0 && !resourceManager->hasCubeArrays))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture depth.");
@@ -274,7 +323,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
 		DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
-	if (!resourceManager->arbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
+	if (!resourceManager->hasArbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -303,6 +352,21 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if (samples > resourceManager->renderer->maxSurfaceSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (samples > 0 && !resolve && !resourceManager->hasMultisampleTextures)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Multisampled textures aren't supported by the current target.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -316,15 +380,17 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->textureCount, 1);
 		size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels,
-			samples);
+			resolve ? 1 : samples);
+		if (resolve && samples > 1)
+			textureSize += dsTexture_size(format, dimension, width, height, 1, 1, samples);
 		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->textureMemorySize, textureSize);
 	}
 	DS_PROFILE_FUNC_RETURN(offscreen);
 }
 
 bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	const dsTexturePosition* position, uint32_t width, uint32_t height, const void* data,
-	size_t size)
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -353,19 +419,21 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((position->depth > 0 && position->depth >= texture->depth) ||
-		position->mipLevel >= texture->mipLevels)
+	uint32_t mipWidth = dsMax(1U, texture->width >> position->mipLevel);
+	uint32_t mipHeight = dsMax(1U, texture->height >> position->mipLevel);
+	uint32_t mipLayers = dsMax(1U, texture->depth);
+	uint32_t layerOffset = position->depth;
+	if (texture->dimension == dsTextureDim_3D)
+		mipLayers = dsMax(1U, mipLayers >> position->mipLevel);
+	else if (texture->dimension == dsTextureDim_Cube)
 	{
-		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
-		DS_PROFILE_FUNC_RETURN(false);
+		mipLayers *= 6;
+		layerOffset = layerOffset*6 + position->face;
 	}
-
-	uint32_t mipWidth = dsMax(1U, texture->width/(1 << position->mipLevel));
-	uint32_t mipHeight = dsMax(1U, texture->height/(1 << position->mipLevel));
 	uint32_t endX = position->x + width;
 	uint32_t endY = position->y + height;
-	if (endX > mipWidth || endY > mipHeight)
+	uint32_t endLayer = layerOffset + mipLayers;
+	if (endX > mipWidth || endY > mipHeight || endLayer > mipLayers)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
@@ -381,7 +449,10 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (size != dsTexture_size(texture->format, texture->dimension, width, height, 1, 1,
+	dsTextureDim dimension = texture->dimension;
+	if (dimension == dsTextureDim_Cube)
+		dimension = dsTextureDim_2D;
+	if (size != dsTexture_size(texture->format, dimension, width, height, layers, 1,
 		texture->samples))
 	{
 		errno = EINDEX;
@@ -391,7 +462,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 
 	dsResourceManager* resourceManager = texture->resourceManager;
 	bool success = resourceManager->copyTextureDataFunc(resourceManager, commandBuffer, texture,
-		position, width, height, data, size);
+		position, width, height, layers, data, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -403,14 +474,14 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	if (!commandBuffer || !srcTexture || !dstTexture || !srcTexture->resourceManager ||
 		!srcTexture->resourceManager->copyTextureFunc ||
 		srcTexture->resourceManager != dstTexture->resourceManager ||
-		srcTexture->format != dstTexture->format || !regions)
+		srcTexture->format != dstTexture->format || (!regions && regionCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = srcTexture->resourceManager;
-	if (!resourceManager->canCopyBuffers)
+	if (!dsGfxFormat_textureCopySupported(resourceManager, srcTexture->format, dstTexture->format))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -439,10 +510,6 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	for (size_t i = 0; i < regionCount; ++i)
 	{
-		uint32_t depthCount = (srcTexture->dimension != dsTextureDim_3D &&
-			dstTexture->dimension != dsTextureDim_3D) ? regions[i].arrayLevelCount : 1;
-		depthCount = dsMax(1U, depthCount);
-
 		if (regions[i].srcPosition.x % blockX != 0 || regions[i].srcPosition.y % blockY != 0 ||
 			regions[i].dstPosition.x % blockX != 0 || regions[i].dstPosition.y % blockY != 0)
 		{
@@ -453,20 +520,28 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
-		uint32_t maxSrcDepth = srcPosition->depth + depthCount - 1;
-		if ((maxSrcDepth > 0 && maxSrcDepth >= srcTexture->depth) ||
-			srcPosition->mipLevel >= srcTexture->mipLevels)
+		if (srcPosition->mipLevel >= srcTexture->mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t srcMipWidth = dsMax(1U, srcTexture->width/(1 << srcPosition->mipLevel));
-		uint32_t srcMipHeight = dsMax(1U, srcTexture->height/(1 << srcPosition->mipLevel));
+		uint32_t srcMipWidth = dsMax(1U, srcTexture->width >> srcPosition->mipLevel);
+		uint32_t srcMipHeight = dsMax(1U, srcTexture->height >> srcPosition->mipLevel);
+		uint32_t srcMipLayers = dsMax(1U, srcTexture->depth);
+		uint32_t srcLayerOffset = srcPosition->depth;
+		if (srcTexture->dimension == dsTextureDim_3D)
+			srcMipLayers = dsMax(1U, srcMipLayers >> srcPosition->mipLevel);
+		else if (srcTexture->dimension == dsTextureDim_Cube)
+		{
+			srcMipLayers *= 6;
+			srcLayerOffset = srcLayerOffset*6 + srcPosition->face;
+		}
 		uint32_t srcEndX = regions[i].srcPosition.x + regions[i].width;
 		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].height;
-		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
+		uint32_t srcEndLayer = srcLayerOffset + regions[i].layers;
+		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight || srcEndLayer > srcMipLayers)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
@@ -484,20 +559,28 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
-		uint32_t maxDstDepth = dstPosition->depth + depthCount - 1;
-		if ((maxDstDepth > 0 && maxDstDepth >= srcTexture->depth) ||
-			dstPosition->mipLevel >= dstTexture->mipLevels)
+		if (dstPosition->mipLevel >= dstTexture->mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t dstMipWidth = dsMax(1U, dstTexture->width/(1 << dstPosition->mipLevel));
-		uint32_t dstMipHeight = dsMax(1U, dstTexture->height/(1 << dstPosition->mipLevel));
+		uint32_t dstMipWidth = dsMax(1U, dstTexture->width >> dstPosition->mipLevel);
+		uint32_t dstMipHeight = dsMax(1U, dstTexture->height >> dstPosition->mipLevel);
+		uint32_t dstMipLayers = dsMax(1U, dstTexture->depth);
+		uint32_t dstLayerOffset = dstPosition->depth;
+		if (dstTexture->dimension == dsTextureDim_3D)
+			dstMipLayers = dsMax(1U, dstMipLayers >> dstPosition->mipLevel);
+		else if (dstTexture->dimension == dsTextureDim_Cube)
+		{
+			dstMipLayers *= 6;
+			dstLayerOffset = dstLayerOffset*6 + dstPosition->face;
+		}
 		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].width;
 		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].height;
-		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
+		uint32_t dstEndLayer = dstLayerOffset + regions[i].layers;
+		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight || dstEndLayer > dstMipLayers)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
@@ -526,18 +609,19 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !srcTexture || !dstTexture || !srcTexture->resourceManager ||
-		!srcTexture->resourceManager->blitTextureFunc || !regions)
+		!srcTexture->resourceManager->blitTextureFunc || (!regions && regionCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = srcTexture->resourceManager;
-	if (!resourceManager->canCopyBuffers)
+	if (!dsGfxFormat_textureBlitSupported(resourceManager, srcTexture->format, dstTexture->format,
+		filter))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Textures cannot be copied between each other on the current device.");
+			"Textures cannot be blit between each other on the current device.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -564,20 +648,6 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	for (size_t i = 0; i < regionCount; ++i)
 	{
-		if ((srcTexture->dimension != dsTextureDim_3D ||
-			dstTexture->dimension != dsTextureDim_3D) &&
-			regions[i].srcDepthRange != regions[i].dstDepthRange)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Source and destination depth ranges must match when blitting texture arrays.");
-			DS_PROFILE_FUNC_RETURN(false);
-		}
-
-		// Avoid underflow during checks.
-		if (regions[i].srcDepthRange == 0 || regions[i].dstDepthRange == 0)
-			continue;
-
 		if (regions[i].srcPosition.x % srcBlockX != 0 || regions[i].srcPosition.y % srcBlockY != 0)
 		{
 			errno = EINVAL;
@@ -587,21 +657,28 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
-		uint32_t maxSrcDepth = srcPosition->depth + regions[i].srcDepthRange - 1;
-		if ((maxSrcDepth > 0 && maxSrcDepth >= srcTexture->depth) ||
-			srcPosition->mipLevel >= srcTexture->mipLevels)
+		if (srcPosition->mipLevel >= srcTexture->mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t srcMipWidth = dsMax(1U, srcTexture->width/(1 << regions[i].srcPosition.mipLevel));
-		uint32_t srcMipHeight = dsMax(1U, srcTexture->height/
-			(1 << regions[i].srcPosition.mipLevel));
-		uint32_t srcEndX = regions[i].srcPosition.x + regions[i].srcWidth;
-		uint32_t srcEndY = regions[i].srcPosition.y + regions[i].srcHeight;
-		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight)
+		uint32_t srcMipWidth = dsMax(1U, srcTexture->width >> srcPosition->mipLevel);
+		uint32_t srcMipHeight = dsMax(1U, srcTexture->height >> srcPosition->mipLevel);
+		uint32_t srcMipLayers = dsMax(1U, srcTexture->depth);
+		uint32_t srcLayerOffset = srcPosition->depth;
+		if (srcTexture->dimension == dsTextureDim_3D)
+			srcMipLayers = dsMax(1U, srcMipLayers >> srcPosition->mipLevel);
+		else if (srcTexture->dimension == dsTextureDim_Cube)
+		{
+			srcMipLayers *= 6;
+			srcLayerOffset = srcLayerOffset*6 + srcPosition->face;
+		}
+		uint32_t srcEndX = srcPosition->x + regions[i].srcWidth;
+		uint32_t srcEndY = srcPosition->y + regions[i].srcHeight;
+		uint32_t srcEndLayer = srcLayerOffset + regions[i].layers;
+		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight || srcEndLayer > srcMipLayers)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
@@ -627,21 +704,28 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
-		uint32_t maxDstDepth = dstPosition->depth + regions[i].dstDepthRange - 1;
-		if ((maxDstDepth > 0 && maxDstDepth >= srcTexture->depth) ||
-			dstPosition->mipLevel >= dstTexture->mipLevels)
+		if (dstPosition->mipLevel >= dstTexture->mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t dstMipWidth = dsMax(1U, dstTexture->width/(1 << regions[i].dstPosition.mipLevel));
-		uint32_t dstMipHeight = dsMax(1U, dstTexture->height/
-			(1 << regions[i].dstPosition.mipLevel));
+		uint32_t dstMipWidth = dsMax(1U, dstTexture->width >> dstPosition->mipLevel);
+		uint32_t dstMipHeight = dsMax(1U, dstTexture->height >> dstPosition->mipLevel);
+		uint32_t dstMipLayers = dsMax(1U, dstTexture->depth);
+		uint32_t dstLayerOffset = dstPosition->depth;
+		if (dstTexture->dimension == dsTextureDim_3D)
+			dstMipLayers = dsMax(1U, dstMipLayers >> dstPosition->mipLevel);
+		else if (dstTexture->dimension == dsTextureDim_Cube)
+		{
+			dstMipLayers *= 6;
+			dstLayerOffset = dstLayerOffset*6 + dstPosition->face;
+		}
 		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].dstWidth;
 		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].dstHeight;
-		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight)
+		uint32_t dstEndLayer = dstLayerOffset + regions[i].layers;
+		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight || dstEndLayer > dstMipLayers)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
@@ -717,8 +801,8 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t mipWidth = dsMax(1U, texture->width/(1 << position->mipLevel));
-	uint32_t mipHeight = dsMax(1U, texture->height/(1 << position->mipLevel));
+	uint32_t mipWidth = dsMax(1U, texture->width >> position->mipLevel);
+	uint32_t mipHeight = dsMax(1U, texture->height >> position->mipLevel);
 	uint32_t endX = position->x + width;
 	uint32_t endY = position->y + height;
 	if (endX > mipWidth || endY > mipHeight)
@@ -776,7 +860,13 @@ bool dsTexture_destroy(dsTexture* texture)
 	}
 
 	size_t size = dsTexture_size(texture->format, texture->dimension, texture->width,
-		texture->height, texture->depth, texture->mipLevels, texture->samples);
+		texture->height, texture->depth, texture->mipLevels,
+		texture->resolve ? 1 : texture->samples);
+	if (texture->resolve && texture->samples > 1)
+	{
+		size += dsTexture_size(texture->format, texture->dimension, texture->width,
+			texture->height, 1, 1, texture->samples);
+	}
 	bool success = resourceManager->destroyTextureFunc(resourceManager, texture);
 	if (success)
 	{

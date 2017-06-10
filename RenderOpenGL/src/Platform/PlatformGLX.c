@@ -92,13 +92,11 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	if (options->stereo)
 		addOption(attr, &optionCount, GLX_STEREO);
 
-	int samplesIdx = -1;
 	int major, minor;
 	glXQueryVersion(display, &major, &minor);
 	if (render && options->samples > 1 && ((major > 1 || (major == 1 && minor >= 4)) ||
 		hasExtension(extensions, "GLX_ARB_multisample")))
 	{
-		samplesIdx = optionCount;
 		addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
 		addOption2(attr, &optionCount, GLX_SAMPLES, options->samples);
 	}
@@ -120,25 +118,9 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 			visualInfo = glXGetVisualFromFBConfig(display, fbConfig);
 			XFree(configs);
 		}
-		else if (samplesIdx >= 0)
-		{
-			// Try without multisampling.
-			attr[samplesIdx + 1] = 0;
-			attr[samplesIdx + 3] = 0;
-			configs = glXChooseFBConfig(display, screen, attr, &configCount);
-			if (configs && configCount > 0)
-			{
-				fbConfig = configs[0];
-				visualInfo = glXGetVisualFromFBConfig(display, fbConfig);
-				XFree(configs);
-			}
-		}
 	}
 	else
-	{
-		DS_ASSERT(samplesIdx < 0);
 		visualInfo = glXChooseVisual(display, screen, attr);
-	}
 
 	if (!visualInfo)
 	{

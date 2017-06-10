@@ -81,6 +81,13 @@ bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint16_t samples)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (samples > renderer->maxSurfaceSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximume.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
@@ -125,7 +132,7 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 
 	if (anisotropy > renderer->maxAnisotropy)
 	{
-		errno = ERANGE;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Anisotropy is above the maximum.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}

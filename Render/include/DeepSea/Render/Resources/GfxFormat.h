@@ -200,6 +200,29 @@ DS_RENDER_EXPORT bool dsGfxFormat_offscreenSupported(const dsResourceManager* re
 DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format);
 
+/**
+ * @brief Checks whether or not a pair of graphics formats is supported for copying textures.
+ * @remark You should not assume that just because two formats are equal they can be copied.
+ * @param resourceManager The resource manager.
+ * @param srcFormat The graphics format to blit from.
+ * @param dstFormat The graphics format to blit to.
+ * @return True if the format can be used for copying textures.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
+
+/**
+ * @brief Checks whether or not a pair of graphics formats are supported for blitting textures.
+ * @remark You should not assume that just because two formats are equal they can be blitted.
+ * @param resourceManager The resource manager.
+ * @param srcFormat The graphics format to blit from.
+ * @param dstFormat The graphics format to blit to.
+ * @param filter The filter to blit with.
+ * @return True if the format can be used for copying textures.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_textureBlitSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
+
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)
 {
 	return format & dsGfxFormat_StandardMask;

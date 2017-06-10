@@ -23,5 +23,15 @@ bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffe
 	size_t offset, const void* data, size_t size);
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size);
+bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
+bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
+	size_t regionCount, dsBlitFilter filter);
+
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

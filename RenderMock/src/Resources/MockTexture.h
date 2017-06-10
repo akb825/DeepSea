@@ -28,7 +28,7 @@ dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	bool resolve);
 bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
-	const void* data, size_t size);
+	uint32_t layers, const void* data, size_t size);
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	size_t regionCount);

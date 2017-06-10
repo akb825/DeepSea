@@ -34,8 +34,14 @@ extern "C"
  * @brief Helper macro for getting the depth for mipmap purposes.
  * @param dimension The dimension of the texture.
  * @param depth The depth of the texture.
+ * @return The depth used for calculating the mipmap level.
  */
 #define DS_MIP_DEPTH(dimension, depth) ((dimension) == dsTextureDim_3D ? (depth) : 1)
+
+/**
+ * @brief Constant for an invalid offset.
+ */
+#define DS_INVALID_TEXTURE_OFFSET (size_t)-1
 
 /**
  * @brief Gets the maximum number of mipmap levels for a texture.
@@ -76,11 +82,33 @@ DS_RENDER_EXPORT size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimensio
  * @param cubeFace The cube map face when accessing a cube map.
  * @param depthIndex The index of the depth level or array element.
  * @param mipIndex The mipmap index.
- * @return The offset to the surface.
+ * @return The offset to the surface, or DS_INVALID_TEXTURE_OFFSET if the surface is out of range.
  */
 DS_RENDER_EXPORT size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension,
 	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, dsCubeFace cubeFace,
 	uint32_t depthIndex, uint32_t mipIndex);
+
+/**
+ * @brief Gets the offset for a layer within a texture.
+ *
+ * This is very similar to dsTexture_surfaceOffset(), except the cube face and depth index are
+ * combined into a single layer index.
+ *
+ * @param format The format of the texture.
+ * @param dimension The dimension of the texture.
+ * @param width The width of the texture.
+ * @param height The height of the texture.
+ * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
+ *     non-array textures.
+ * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
+ *     mip levels.
+ * @param layerIndex The index of the layer, which is the same as depth*faceCount + face.
+ * @param mipIndex The mipmap index.
+ * @return The offset to the layer, or DS_INVALID_TEXTURE_OFFSET if the layer is out of range.
+ */
+DS_RENDER_EXPORT size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerIndex,
+	uint32_t mipIndex);
 
 /**
  * @brief Creates a texture.
@@ -138,7 +166,9 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  *     mip levels.
  * @param samples The number of samples to use for multisampling. This may be set to
  *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. The renderbuffer will
- *     need to be re-created by the caller if the default changes.
+ *     need to be re-created by the caller if the default changes. When multisampling isn't
+ *     supported, this will silently fallback to no multisampling for resolved surfaces or fail for
+ *     non-resolved surfaces.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader.
  * @return The created offscreen, or NULL if it couldn't be created.
@@ -162,13 +192,14 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  *     reach the end of the image.
  * @param height The height of the texture data. This must be a multiple of the format block size or
  *     reach the end of the image.
+ * @param layers The number of layers to copy, which is the depth multiplied by the number of faces.
  * @param data The texture data to copy. This must be tightly packed.
  * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied.
  */
 DS_RENDER_EXPORT bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	const dsTexturePosition* position, uint32_t width, uint32_t height, const void* data,
-	size_t size);
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size);
 
 /**
  * @brief Copies data from one texture to another.

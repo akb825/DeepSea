@@ -44,6 +44,22 @@ typedef struct dsGLGfxBuffer
 	GLuint bufferId;
 } dsGLGfxBuffer;
 
+typedef struct dsGLDrawGeometry
+{
+	dsDrawGeometry drawGeometry;
+	dsGLResource resource;
+	GLuint vao;
+	uint32_t vaoContext;
+} dsGLDrawGeometry;
+
+typedef struct dsGLTexture
+{
+	dsTexture texture;
+	dsGLResource resource;
+	GLuint textureId;
+	GLuint drawBufferId;
+} dsGLTexture;
+
 typedef struct dsGLResourceManager
 {
 	dsResourceManager resourceManager;
@@ -92,12 +108,25 @@ typedef struct dsGLRenderer
 	size_t maxDestroyVaos;
 	size_t curDestroyVaos;
 	bool boundAttributes[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+
+	GLuint tempFramebuffer;
+	GLuint tempCopyFramebuffer;
 } dsGLRenderer;
 
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size);
 typedef bool (*GLCopyGfxBufferFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+typedef bool (*GLCopyTextureDataFunction)(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size);
+typedef bool (*GLCopyTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
+typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
+	size_t regionCount, dsBlitFilter filter);
+
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -105,6 +134,11 @@ typedef struct CommandBufferFunctionTable
 {
 	GLCopyGfxBufferDataFunction copyBufferDataFunc;
 	GLCopyGfxBufferFunction copyBufferFunc;
+
+	GLCopyTextureDataFunction copyTextureDataFunc;
+	GLCopyTextureFunction copyTextureFunc;
+	GLBlitTextureFunction blitTextureFunc;
+
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;
 
@@ -116,11 +150,3 @@ typedef struct dsGLCommandBuffer
 
 typedef struct dsGLMainCommandBuffer dsGLMainCommandBuffer;
 typedef struct dsGLOtherCommandBuffer dsGLOtherCommandBuffer;
-
-typedef struct dsGLDrawGeometry
-{
-	dsDrawGeometry drawGeometry;
-	dsGLResource resource;
-	GLuint vao;
-	uint32_t vaoContext;
-} dsGLDrawGeometry;

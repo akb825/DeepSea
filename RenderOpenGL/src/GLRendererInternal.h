@@ -20,3 +20,5 @@
 #include "Types.h"
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount);
+GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer);
+GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer);

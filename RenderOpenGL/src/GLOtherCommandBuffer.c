@@ -17,6 +17,7 @@
 #include "GLOtherCommandBuffer.h"
 
 #include "Resources/GLGfxBuffer.h"
+#include "Resources/GLTexture.h"
 #include "GLCommandBuffer.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -29,7 +30,10 @@
 typedef enum CommandType
 {
 	CommandType_CopyBufferData,
-	CommandType_CopyBuffer
+	CommandType_CopyBuffer,
+	CommandType_CopyTextureData,
+	CommandType_CopyTexture,
+	CommandType_BlitTexture
 } CommandType;
 
 typedef struct Command
@@ -56,6 +60,37 @@ typedef struct CopyBufferCommand
 	size_t dstOffset;
 	size_t size;
 } CopyBufferCommand;
+
+typedef struct CopyTextureDataCommand
+{
+	Command command;
+	dsTexture* texture;
+	dsTexturePosition position;
+	uint32_t width;
+	uint32_t height;
+	uint32_t layers;
+	size_t size;
+	uint8_t data[];
+} CopyTextureDataCommand;
+
+typedef struct CopyTextureCommand
+{
+	Command command;
+	dsTexture* srcTexture;
+	dsTexture* dstTexture;
+	size_t regionCount;
+	dsTextureCopyRegion regions[];
+} CopyTextureCommand;
+
+typedef struct BlitTextureCommand
+{
+	Command command;
+	dsTexture* srcTexture;
+	dsTexture* dstTexture;
+	dsBlitFilter filter;
+	size_t regionCount;
+	dsTextureBlitRegion regions[];
+} BlitTextureCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -96,7 +131,7 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 bool dsGLOtherCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
-	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyBufferCommand)) + DS_ALIGNED_SIZE(size);
+	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyBufferDataCommand) + size);
 	CopyBufferDataCommand* command = (CopyBufferDataCommand*)allocateCommand(commandBuffer,
 		CommandType_CopyBufferData, commandSize);
 	if (!command)
@@ -128,6 +163,67 @@ bool dsGLOtherCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuff
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size)
+{
+	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyTextureDataCommand) + size);
+	CopyTextureDataCommand* command = (CopyTextureDataCommand*)allocateCommand(commandBuffer,
+		CommandType_CopyTextureData, commandSize);
+	if (!command)
+		return false;
+
+	dsGLTexture_addInternalRef(texture);
+	command->texture = texture;
+	command->position = *position;
+	command->width = width;
+	command->height = height;
+	command->layers = layers;
+	command->size = size;
+	memcpy(command->data, data, size);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
+{
+	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyTextureCommand) +
+		sizeof(dsTextureCopyRegion)*regionCount);
+	CopyTextureCommand* command = (CopyTextureCommand*)allocateCommand(commandBuffer,
+		CommandType_CopyTexture, commandSize);
+	if (!command)
+		return false;
+
+	dsGLTexture_addInternalRef(srcTexture);
+	dsGLTexture_addInternalRef(dstTexture);
+	command->srcTexture = srcTexture;
+	command->dstTexture = dstTexture;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, sizeof(dsTextureCopyRegion)*regionCount);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
+	dsBlitFilter filter)
+{
+	size_t commandSize = DS_ALIGNED_SIZE(sizeof(BlitTextureCommand) +
+		sizeof(dsTextureBlitRegion)*regionCount);
+	BlitTextureCommand* command = (BlitTextureCommand*)allocateCommand(commandBuffer,
+		CommandType_BlitTexture, commandSize);
+	if (!command)
+		return false;
+
+	dsGLTexture_addInternalRef(srcTexture);
+	dsGLTexture_addInternalRef(dstTexture);
+	command->srcTexture = srcTexture;
+	command->dstTexture = dstTexture;
+	command->filter = filter;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, sizeof(dsTextureBlitRegion)*regionCount);
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	dsGLOtherCommandBuffer* glSubmitBuffer = (dsGLOtherCommandBuffer*)submitBuffer;
@@ -155,6 +251,29 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->size);
 				break;
 			}
+			case CommandType_CopyTextureData:
+			{
+				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
+				dsGLCommandBuffer_copyTextureData(commandBuffer, thisCommand->texture,
+					&thisCommand->position, thisCommand->width, thisCommand->height,
+					thisCommand->layers, thisCommand->data, thisCommand->size);
+				break;
+			}
+			case CommandType_CopyTexture:
+			{
+				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
+				dsGLCommandBuffer_copyTexture(commandBuffer, thisCommand->srcTexture,
+					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount);
+				break;
+			}
+			case CommandType_BlitTexture:
+			{
+				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
+				dsGLCommandBuffer_blitTexture(commandBuffer, thisCommand->srcTexture,
+					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount,
+					thisCommand->filter);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -174,6 +293,9 @@ static CommandBufferFunctionTable functionTable =
 {
 	&dsGLOtherCommandBuffer_copyBufferData,
 	&dsGLOtherCommandBuffer_copyBuffer,
+	&dsGLOtherCommandBuffer_copyTextureData,
+	&dsGLOtherCommandBuffer_copyTexture,
+	&dsGLOtherCommandBuffer_blitTexture,
 	&dsGLOtherCommandBuffer_submit
 };
 
@@ -237,6 +359,26 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				CopyBufferCommand* thisCommand = (CopyBufferCommand*)command;
 				dsGLGfxBuffer_freeInternalRef(thisCommand->srcBuffer);
 				dsGLGfxBuffer_freeInternalRef(thisCommand->dstBuffer);
+				break;
+			}
+			case CommandType_CopyTextureData:
+			{
+				CopyTextureDataCommand* thisCommand = (CopyTextureDataCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_CopyTexture:
+			{
+				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
+				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_BlitTexture:
+			{
+				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
+				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
 				break;
 			}
 			default:

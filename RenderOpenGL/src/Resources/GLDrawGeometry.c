@@ -20,6 +20,7 @@
 #include "Resources/GLResourceManager.h"
 #include "Resources/GLResource.h"
 #include "GLRendererInternal.h"
+#include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Assert.h>
@@ -88,6 +89,9 @@ static void bindElements(dsGLDrawGeometry* geometry, bool track)
 dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS], dsIndexBuffer* indexBuffer)
 {
+	DS_ASSERT(resourceManager);
+	DS_ASSERT(allocator);
+
 	dsGLDrawGeometry* geometry = (dsGLDrawGeometry*)dsAllocator_alloc(allocator,
 		sizeof(dsGLDrawGeometry));
 	if (!geometry)

@@ -77,7 +77,8 @@ typedef struct dsOpenGLOptions
 	/**
 	 * @brief The default number of anti-alias samples.
 	 *
-	 * This may be changed later, but all surfaces must be re-created.
+	 * This may be changed later, but all surfaces must be re-created. It will be clamped to the
+	 * maximum number of supported samples.
 	 */
 	uint8_t samples;
 

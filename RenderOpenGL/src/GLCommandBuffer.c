@@ -32,6 +32,31 @@ bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* s
 		size);
 }
 
+bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
+		data, size);
+}
+
+bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
+}
+
+bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
+	dsBlitFilter filter)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->blitTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount,
+		filter);
+}
+
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
 {
