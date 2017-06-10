@@ -102,7 +102,7 @@ void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 	options->samples = 4;
 	options->doubleBuffer = true;
 	options->srgb = false;
-	options->stereo = false;
+	options->stereoscopic = false;
 	options->accelerated = -1;
 	options->debug = ANYGL_ALLOW_DEBUG;
 	options->maxResourceThreads = 0;
@@ -257,6 +257,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceSamples = options->samples;
 	baseRenderer->doubleBuffer = options->doubleBuffer;
+	baseRenderer->stereoscopic = options->stereoscopic;
 
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glVertexAttribDivisor);
 
@@ -315,6 +316,50 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 	dsMutex_unlock(glRenderer->contextMutex);
 }
 
+void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount)
+{
+	dsAllocator* allocator = renderer->allocator;
+	if (!fbo || !allocator)
+		return;
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+		glRenderer->renderContextBound)
+	{
+		if (contextCount == glRenderer->contextCount)
+			glDeleteFramebuffers(1, &fbo);
+		return;
+	}
+
+	dsMutex_lock(glRenderer->contextMutex);
+	if (contextCount != glRenderer->contextCount)
+	{
+		dsMutex_unlock(glRenderer->contextMutex);
+		return;
+	}
+
+	if (glRenderer->curDestroyVaos >= glRenderer->maxDestroyFbos)
+	{
+		size_t newMaxFbos = dsMax(16U, glRenderer->maxDestroyFbos*2);
+		GLuint* newDestroyFbos = (GLuint*)dsAllocator_alloc(allocator, newMaxFbos*sizeof(GLuint));
+		if (!newDestroyFbos)
+		{
+			dsMutex_unlock(glRenderer->contextMutex);
+			return;
+		}
+
+		memcpy(newDestroyFbos, glRenderer->destroyFbos, glRenderer->curDestroyFbos*sizeof(GLuint));
+		DS_VERIFY(dsAllocator_free(allocator, glRenderer->destroyFbos));
+		glRenderer->destroyFbos = newDestroyFbos;
+		glRenderer->maxDestroyFbos = newMaxFbos;
+	}
+
+	DS_ASSERT(glRenderer->curDestroyFbos < glRenderer->maxDestroyFbos);
+	glRenderer->destroyFbos[glRenderer->curDestroyFbos++] = fbo;
+
+	dsMutex_unlock(glRenderer->contextMutex);
+}
+
 GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -359,6 +404,8 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 
 	if (glRenderer->destroyVaos)
 		dsAllocator_free(renderer->allocator, glRenderer->destroyVaos);
+	if (glRenderer->destroyFbos)
+		dsAllocator_free(renderer->allocator, glRenderer->destroyFbos);
 	dsMutex_destroy(glRenderer->contextMutex);
 
 	if (renderer->allocator)

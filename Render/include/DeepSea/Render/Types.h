@@ -951,6 +951,11 @@ struct dsRenderer
 	bool doubleBuffer;
 
 	/**
+	 * @brief True if render surfaces are stereoscopic.
+	 */
+	bool stereoscopic;
+
+	/**
 	 * @brief True to wait for vsync when drawing to a render surface.
 	 */
 	bool vsync;

@@ -256,6 +256,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
 	renderer->doubleBuffer = true;
+	renderer->stereoscopic = false;
 	renderer->vsync = true;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;

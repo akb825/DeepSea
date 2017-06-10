@@ -33,8 +33,12 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSur
 	switch (surface->surfaceType)
 	{
 		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
 			return renderer->surfaceColorFormat;
 		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceDepthStencilFormat;
 		case dsFramebufferSurfaceType_Offscreen:
 			return ((dsOffscreen*)surface->surface)->format;

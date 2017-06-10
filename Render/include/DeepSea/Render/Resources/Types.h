@@ -349,10 +349,19 @@ typedef enum dsVertexAttrib
  */
 typedef enum dsFramebufferSurfaceType
 {
-	dsFramebufferSurfaceType_ColorRenderSurface, ///< The color portion of a render surface.
-	dsFramebufferSurfaceType_DepthRenderSurface, ///< The depth/stencil portion of a render surface.
-	dsFramebufferSurfaceType_Offscreen,          ///< Offscreen texture.
-	dsFramebufferSurfaceType_Renderbuffer        ///< Color or depth renderbuffer.
+	dsFramebufferSurfaceType_ColorRenderSurface,      ///< The color portion of a render surface.
+	/// The left color portion of a render surface.
+	dsFramebufferSurfaceType_ColorRenderSurfaceLeft,
+	/// The right color portion of a render surface.
+	dsFramebufferSurfaceType_ColorRenderSurfaceRight,
+	/// The depth/stencil portion of a render surface.
+	dsFramebufferSurfaceType_DepthRenderSurface,
+	/// The left depth/stencil portion of a render surface.
+	dsFramebufferSurfaceType_DepthRenderSurfaceLeft,
+	/// The right depth/stencil portion of a render surface.
+	dsFramebufferSurfaceType_DepthRenderSurfaceRight,
+	dsFramebufferSurfaceType_Offscreen,               ///< Offscreen texture.
+	dsFramebufferSurfaceType_Renderbuffer             ///< Color or depth renderbuffer.
 } dsFramebufferSurfaceType;
 
 /**
@@ -943,8 +952,8 @@ typedef struct dsFramebufferSurface
 	 * @brief The surface.
 	 *
 	 * The type of this pointer should be:
-	 * - dsRenderSurface* if surfaceType is dsFramebufferSurfaceType_ColorRenderSurface or
-	 *   dsFramebufferSurfaceType_DepthRenderSurface.
+	 * - dsRenderSurface* if surfaceType is dsFramebufferSurfaceType_ColorRenderSurface* or
+	 *   dsFramebufferSurfaceType_DepthRenderSurface*.
 	 * - dsOffscreen* if surfaceType is dsFramebufferSurfaceType_Offscreen.
 	 * - dsRenderbuffer* if surfaceType is dsFramebufferSurfaceType_Renderbuffer.
 	 */

@@ -164,9 +164,13 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 	switch (surface->surfaceType)
 	{
 		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
 			valid = true;
 			break;
 		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
 			valid = false;
 			break;
 		case dsFramebufferSurfaceType_Offscreen:

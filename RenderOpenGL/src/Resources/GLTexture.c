@@ -634,6 +634,8 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		if (texture->dimension == dsTextureDim_Cube)
 			layer = layer*6 + position->face;
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+		if (ANYGL_SUPPORTED(glReadBuffer))
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
 		dsGLBindFramebufferTexture(GL_READ_FRAMEBUFFER, texture, position->mipLevel, layer);
 
 		glReadPixels(position->x, position->y, width, height, glFormat, type, result);

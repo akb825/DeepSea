@@ -17,9 +17,13 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include <DeepSea/Render/Resources/Types.h>
 
-void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount);
-void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount);
-GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer);
-GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer);
+dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
+	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
+	uint32_t width, uint32_t height, uint32_t layers);
+bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
+
+void dsGLFramebuffer_bind(dsFramebuffer* framebuffer);
+void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer);
+void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer);

@@ -93,9 +93,9 @@ typedef struct dsOpenGLOptions
 	bool srgb;
 
 	/**
-	 * @brief True to use stereo rendering, false to use a single surface.
+	 * @brief True to use stereoscopic rendering, false to use a single surface.
 	 */
-	bool stereo;
+	bool stereoscopic;
 
 	/**
 	 * @brief Whether or not to use an accelerated target.

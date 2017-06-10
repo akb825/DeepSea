@@ -156,3 +156,28 @@ TEST_F(FramebufferTest, NoColorSurface)
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
 	EXPECT_TRUE(dsRenderbuffer_destroy(depthBuffer));
 }
+
+TEST_F(FramebufferTest, Stereoscopic)
+{
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
+		dsRenderSurfaceType_Unknown);
+	ASSERT_TRUE(renderSurface);
+
+	dsFramebufferSurface surfaces[] =
+	{
+		{dsFramebufferSurfaceType_ColorRenderSurfaceLeft, dsCubeFace_PosX, 0, 0, renderSurface},
+		{dsFramebufferSurfaceType_DepthRenderSurfaceLeft, dsCubeFace_PosX, 0, 0, renderSurface}
+	};
+
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+		(uint32_t)DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1));
+
+	renderer->stereoscopic = true;
+
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+		(uint32_t)DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1);
+	ASSERT_TRUE(framebuffer);
+
+	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
+	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
+}

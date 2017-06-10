@@ -70,6 +70,17 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		uint32_t surfaceWidth, surfaceHeight, surfaceLayers;
 		switch (surfaces[i].surfaceType)
 		{
+			case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+			case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+				if (!resourceManager->renderer->stereoscopic)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Attempting to use a stereoscopic render surface for a framebuffer when "
+						"not using stereoscopic rendering.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+				// fall through
 			case dsFramebufferSurfaceType_ColorRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
@@ -79,6 +90,17 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceLayers = 1;
 				break;
 			}
+			case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+			case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+				if (!resourceManager->renderer->stereoscopic)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Attempting to use a stereoscopic render surface for a framebuffer when "
+						"not using stereoscopic rendering.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+				// fall through
 			case dsFramebufferSurfaceType_DepthRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;

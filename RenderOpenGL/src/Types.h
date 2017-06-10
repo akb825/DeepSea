@@ -67,6 +67,16 @@ typedef struct dsGLRenderbuffer
 	GLuint renderbufferId;
 } dsGLRenderbuffer;
 
+typedef struct dsGLFramebuffer
+{
+	dsFramebuffer framebuffer;
+	dsGLResource resource;
+	GLuint framebufferId;
+	uint32_t fboContext;
+	bool defaultFramebuffer;
+} dsGLFramebuffer;
+
+
 typedef struct dsGLResourceManager
 {
 	dsResourceManager resourceManager;
@@ -115,6 +125,10 @@ typedef struct dsGLRenderer
 	size_t maxDestroyVaos;
 	size_t curDestroyVaos;
 	bool boundAttributes[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+
+	GLuint* destroyFbos;
+	size_t maxDestroyFbos;
+	size_t curDestroyFbos;
 
 	GLuint tempFramebuffer;
 	GLuint tempCopyFramebuffer;

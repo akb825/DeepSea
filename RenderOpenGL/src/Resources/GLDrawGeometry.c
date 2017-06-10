@@ -116,27 +116,6 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 	return baseGeometry;
 }
 
-void dsGLDrawGeometry_bind(dsDrawGeometry* geometry)
-{
-	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;;
-	if (ANYGL_SUPPORTED(glGenVertexArrays))
-	{
-		// Vertex array objects are tied to specific contexts.
-		dsGLRenderer* renderer =
-			(dsGLRenderer*)((dsDrawGeometry*)geometry)->resourceManager->renderer;
-		if (!glGeometry->vao || glGeometry->vaoContext != renderer->contextCount)
-		{
-			glGenVertexArrays(1, &glGeometry->vao);
-			glBindVertexArray(glGeometry->vao);
-			bindElements(glGeometry, false);
-		}
-		else
-			glBindVertexArray(glGeometry->vao);
-	}
-	else
-		bindElements(glGeometry, true);
-}
-
 static bool destroyImpl(dsDrawGeometry* geometry)
 {
 	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;
@@ -159,6 +138,26 @@ bool dsGLDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry
 		return destroyImpl(geometry);
 
 	return true;
+}
+
+void dsGLDrawGeometry_bind(dsDrawGeometry* geometry)
+{
+	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;;
+	if (ANYGL_SUPPORTED(glGenVertexArrays))
+	{
+		// Vertex array objects are tied to specific contexts.
+		dsGLRenderer* renderer = (dsGLRenderer*)geometry->resourceManager->renderer;
+		if (!glGeometry->vao || glGeometry->vaoContext != renderer->contextCount)
+		{
+			glGenVertexArrays(1, &glGeometry->vao);
+			glBindVertexArray(glGeometry->vao);
+			bindElements(glGeometry, false);
+		}
+		else
+			glBindVertexArray(glGeometry->vao);
+	}
+	else
+		bindElements(glGeometry, true);
 }
 
 void dsGLDrawGeometry_addInternalRef(dsDrawGeometry* geometry)

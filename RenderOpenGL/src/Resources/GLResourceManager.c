@@ -21,6 +21,7 @@
 #include "Platform/Platform.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLDrawGeometry.h"
+#include "Resources/GLFramebuffer.h"
 #include "Resources/GLRenderbuffer.h"
 #include "Resources/GLTexture.h"
 
@@ -1084,6 +1085,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->hasCubeArrays = AnyGL_atLeastVersion(4, 0, false) ||
 		AnyGL_ARB_texture_cube_map_array;
 	baseResourceManager->hasMultisampleTextures = ANYGL_SUPPORTED(glTexStorage2DMultisample);
+	baseResourceManager->texturesReadable = ANYGL_SUPPORTED(glGetTexImage);
 	baseResourceManager->createTextureFunc = &dsGLTexture_create;
 	baseResourceManager->destroyTextureFunc = &dsGLTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
@@ -1095,6 +1097,14 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, (GLint*)&baseResourceManager->maxRenderbufferSize);
 	baseResourceManager->createRenderbufferFunc = &dsGLRenderbuffer_create;
 	baseResourceManager->destroyRenderbufferFunc = &dsGLRenderbuffer_destroy;
+
+	// Framebuffers
+	glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, (GLint*)&baseResourceManager->maxFramebufferLayers);
+	baseResourceManager->canMixWithRenderSurface = false;
+	baseResourceManager->requiresColorBuffer = ANYGL_SUPPORTED(glDrawBuffer) ||
+		ANYGL_SUPPORTED(glDrawBuffers);
+	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
+	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
 
 	return resourceManager;
 }

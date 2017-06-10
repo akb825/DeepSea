@@ -89,7 +89,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->stencilBits);
 	if (options->doubleBuffer)
 		addOption(attr, &optionCount, GLX_DOUBLEBUFFER);
-	if (options->stereo)
+	if (options->stereoscopic)
 		addOption(attr, &optionCount, GLX_STEREO);
 
 	int major, minor;
