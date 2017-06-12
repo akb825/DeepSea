@@ -1423,15 +1423,16 @@ typedef bool (*dsDestroyFenceFunction)(dsResourceManager* resourceManager,
 	dsGfxFence* fence);
 
 /**
- * @brief Function for setting a fence.
+ * @brief Function for setting multiple fences.
  * @param resourceManager The resource manager the fence was created with.
  * @param commandBuffer The command buffer to queue the fence on.
- * @param fence The fence.
+ * @param fences The fences.
+ * @param fenceCount The number of fences.
  * @param bufferReadback True if persistently mapped buffers will be read back.
  * @return False if the fence couldn't be set.
  */
-typedef bool (*dsSetFenceFunction)(dsResourceManager* resourceManager,
-	dsCommandBuffer* commandBuffer, dsGfxFence* fence, bool bufferReadback);
+typedef bool (*dsSetFencesFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxFence** fences, uint32_t fenceCount, bool bufferReadback);
 
 /**
  * @brief Function for waiting for a fence to complete.
@@ -1951,9 +1952,9 @@ struct dsResourceManager
 	dsDestroyFenceFunction destroyFenceFunc;
 
 	/**
-	 * @brief Function for setting a fence.
+	 * @brief Function for setting multiple fences.
 	 */
-	dsSetFenceFunction setFenceFunc;
+	dsSetFencesFunction setFencesFunc;
 
 	/**
 	 * @brief Function for waiting on a fence.

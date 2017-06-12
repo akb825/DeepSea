@@ -66,6 +66,46 @@ TEST_F(GfxFenceTest, Set)
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool2));
 }
 
+TEST_F(GfxFenceTest, SetMultiple)
+{
+	dsCommandBufferPool* pool1 = dsCommandBufferPool_create(renderer, NULL, 0, 1);
+	ASSERT_TRUE(pool1);
+
+	dsCommandBufferPool* pool2 = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_MultiSubmit, 1);
+	ASSERT_TRUE(pool2);
+
+	dsGfxFence* fence1 = dsGfxFence_create(resourceManager, NULL);
+	ASSERT_TRUE(fence1);
+	dsGfxFence* fence2 = dsGfxFence_create(resourceManager, NULL);
+	ASSERT_TRUE(fence2);
+
+	dsGfxFence* fences[] = {fence1, fence2};
+	uint32_t fenceCount = (uint32_t)DS_ARRAY_SIZE(fences);
+
+	EXPECT_FALSE(dsGfxFence_setMultiple(NULL, fences, fenceCount, false));
+	EXPECT_FALSE(dsGfxFence_setMultiple(renderer->mainCommandBuffer, NULL, fenceCount, false));
+	fences[0] = NULL;
+	EXPECT_FALSE(dsGfxFence_setMultiple(renderer->mainCommandBuffer, fences, fenceCount, false));
+	fences[0] = fence1;
+
+	EXPECT_TRUE(dsGfxFence_setMultiple(renderer->mainCommandBuffer, NULL, 0, false));
+	EXPECT_TRUE(dsGfxFence_setMultiple(renderer->mainCommandBuffer, fences, fenceCount, false));
+
+	EXPECT_TRUE(dsGfxFence_reset(fence1));
+	EXPECT_TRUE(dsGfxFence_reset(fence2));
+	EXPECT_TRUE(dsGfxFence_setMultiple(pool1->currentBuffers[0], fences, fenceCount, false));
+
+	EXPECT_TRUE(dsGfxFence_reset(fence1));
+	EXPECT_TRUE(dsGfxFence_reset(fence2));
+	EXPECT_FALSE(dsGfxFence_setMultiple(pool2->currentBuffers[0], fences, fenceCount, false));
+
+	EXPECT_TRUE(dsGfxFence_destroy(fence1));
+	EXPECT_TRUE(dsGfxFence_destroy(fence2));
+	EXPECT_TRUE(dsCommandBufferPool_destroy(pool1));
+	EXPECT_TRUE(dsCommandBufferPool_destroy(pool2));
+}
+
 TEST_F(GfxFenceTest, Wait)
 {
 	dsGfxFence* fence = dsGfxFence_create(resourceManager, NULL);

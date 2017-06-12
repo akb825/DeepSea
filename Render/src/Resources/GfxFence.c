@@ -64,7 +64,7 @@ bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence* fence, bool buff
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !fence || !fence->resourceManager ||
-		!fence->resourceManager->setFenceFunc)
+		!fence->resourceManager->setFencesFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -79,7 +79,45 @@ bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence* fence, bool buff
 	}
 
 	dsResourceManager* resourceManager = fence->resourceManager;
-	bool retVal = resourceManager->setFenceFunc(resourceManager, commandBuffer, fence,
+	bool retVal = resourceManager->setFencesFunc(resourceManager, commandBuffer, &fence, 1,
+		bufferReadback);
+	DS_PROFILE_FUNC_RETURN(retVal);
+}
+
+bool dsGfxFence_setMultiple(dsCommandBuffer* commandBuffer, dsGfxFence** fences,
+	uint32_t fenceCount, bool bufferReadback)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !commandBuffer->renderer || !commandBuffer->renderer->resourceManager ||
+		!commandBuffer->renderer->resourceManager->setFencesFunc || (!fences && fenceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	for (uint32_t i = 0; i < fenceCount; ++i)
+	{
+		if (!fences[i])
+		{
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	if (commandBuffer->usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Fences cannot be set on a command buffers that can be submitted multiple times.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (fenceCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	dsResourceManager* resourceManager = commandBuffer->renderer->resourceManager;
+	bool retVal = resourceManager->setFencesFunc(resourceManager, commandBuffer, fences, fenceCount,
 		bufferReadback);
 	DS_PROFILE_FUNC_RETURN(retVal);
 }

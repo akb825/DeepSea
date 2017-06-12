@@ -22,11 +22,14 @@
 #include "Platform/Platform.h"
 #include "Resources/GLResourceManager.h"
 #include "GLMainCommandBuffer.h"
+#include "GLHelpers.h"
 #include "Types.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Thread/Mutex.h>
+#include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -35,6 +38,8 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
 #include <string.h>
+
+#define DS_SYNC_POOL_COUNT 100
 
 static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
 {
@@ -87,6 +92,31 @@ static bool hasRequiredFunctions(void)
 	return true;
 }
 
+static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools, size_t* curPools,
+	size_t* maxPools, size_t elemSize, size_t poolElements)
+{
+	DS_ASSERT(allocator);
+	DS_ASSERT(pools);
+	DS_ASSERT(curPools);
+	DS_ASSERT(allocator);
+	DS_ASSERT(maxPools);
+	DS_ASSERT(*pools || *curPools == 0);
+
+	size_t poolSize = dsPoolAllocator_bufferSize(elemSize, poolElements);
+	void* poolBuffer = dsAllocator_alloc(allocator, poolSize);
+	if (!poolBuffer)
+		return NULL;
+
+	size_t index = *curPools;
+	if (!dsGLAddToBuffer(allocator, (void**)pools, curPools, maxPools, sizeof(dsPoolAllocator), 1))
+		return NULL;
+
+	DS_ASSERT(index < *maxPools);
+	dsPoolAllocator* pool = *pools + index;
+	DS_VERIFY(dsPoolAllocator_initialize(pool, elemSize, poolElements, poolBuffer, poolSize));
+	return pool;
+}
+
 void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 {
 	if (!options)
@@ -113,6 +143,13 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	if (!allocator || !options)
 	{
 		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator->freeFunc)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Renderer allocator must support freeing memory.");
 		return NULL;
 	}
 
@@ -151,7 +188,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 
 	DS_VERIFY(dsRenderer_initialize(baseRenderer));
-	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
+	baseRenderer->allocator = allocator;
+	DS_VERIFY(dsSpinlock_initialize(&renderer->syncPoolLock));
+	DS_VERIFY(dsSpinlock_initialize(&renderer->syncRefPoolLock));
 
 	renderer->options = *options;
 	if (!renderer->options.display)
@@ -274,8 +313,7 @@ void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer, bool enabled)
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount)
 {
-	dsAllocator* allocator = renderer->allocator;
-	if (!vao || !allocator)
+	if (!vao)
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -294,32 +332,22 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 		return;
 	}
 
-	if (glRenderer->curDestroyVaos >= glRenderer->maxDestroyVaos)
+	size_t index = glRenderer->curDestroyVaos;
+	if (!dsGLAddToBuffer(renderer->allocator, (void**)&glRenderer->destroyVaos,
+		&glRenderer->curDestroyVaos, &glRenderer->maxDestroyVaos, sizeof(GLuint), 1))
 	{
-		size_t newMaxVaos = dsMax(16U, glRenderer->maxDestroyVaos*2);
-		GLuint* newDestroyVaos = (GLuint*)dsAllocator_alloc(allocator, newMaxVaos*sizeof(GLuint));
-		if (!newDestroyVaos)
-		{
-			dsMutex_unlock(glRenderer->contextMutex);
-			return;
-		}
-
-		memcpy(newDestroyVaos, glRenderer->destroyVaos, glRenderer->curDestroyVaos*sizeof(GLuint));
-		DS_VERIFY(dsAllocator_free(allocator, glRenderer->destroyVaos));
-		glRenderer->destroyVaos = newDestroyVaos;
-		glRenderer->maxDestroyVaos = newMaxVaos;
+		dsMutex_unlock(glRenderer->contextMutex);
+		return;
 	}
 
-	DS_ASSERT(glRenderer->curDestroyVaos < glRenderer->maxDestroyVaos);
-	glRenderer->destroyVaos[glRenderer->curDestroyVaos++] = vao;
-
+	DS_ASSERT(index < glRenderer->maxDestroyVaos);
+	glRenderer->destroyVaos[index++] = vao;
 	dsMutex_unlock(glRenderer->contextMutex);
 }
 
 void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount)
 {
-	dsAllocator* allocator = renderer->allocator;
-	if (!fbo || !allocator)
+	if (!fbo)
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -338,25 +366,16 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 		return;
 	}
 
-	if (glRenderer->curDestroyVaos >= glRenderer->maxDestroyFbos)
+	size_t index = glRenderer->curDestroyFbos;
+	if (!dsGLAddToBuffer(renderer->allocator, (void**)&glRenderer->destroyFbos,
+		&glRenderer->curDestroyFbos, &glRenderer->maxDestroyFbos, sizeof(GLuint), 1))
 	{
-		size_t newMaxFbos = dsMax(16U, glRenderer->maxDestroyFbos*2);
-		GLuint* newDestroyFbos = (GLuint*)dsAllocator_alloc(allocator, newMaxFbos*sizeof(GLuint));
-		if (!newDestroyFbos)
-		{
-			dsMutex_unlock(glRenderer->contextMutex);
-			return;
-		}
-
-		memcpy(newDestroyFbos, glRenderer->destroyFbos, glRenderer->curDestroyFbos*sizeof(GLuint));
-		DS_VERIFY(dsAllocator_free(allocator, glRenderer->destroyFbos));
-		glRenderer->destroyFbos = newDestroyFbos;
-		glRenderer->maxDestroyFbos = newMaxFbos;
+		dsMutex_unlock(glRenderer->contextMutex);
+		return;
 	}
 
-	DS_ASSERT(glRenderer->curDestroyFbos < glRenderer->maxDestroyFbos);
-	glRenderer->destroyFbos[glRenderer->curDestroyFbos++] = fbo;
-
+	DS_ASSERT(index < glRenderer->maxDestroyFbos);
+	glRenderer->destroyFbos[index++] = fbo;
 	dsMutex_unlock(glRenderer->contextMutex);
 }
 
@@ -386,6 +405,86 @@ GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer)
 	return glRenderer->tempCopyFramebuffer;
 }
 
+dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&glRenderer->syncPoolLock));
+
+	int prevErrno = errno;
+	dsAllocator* pool = NULL;
+	dsGLFenceSync* fenceSync = NULL;
+	for (size_t i = 0; i < glRenderer->curSyncPools && !fenceSync; ++i)
+	{
+		pool = (dsAllocator*)(glRenderer->syncPools + i);
+		fenceSync = (dsGLFenceSync*)dsAllocator_alloc(pool, sizeof(dsGLFenceSync));
+		if (fenceSync)
+			break;
+	}
+	errno = prevErrno;
+
+	// All pools are full.
+	if (!fenceSync)
+	{
+		pool = (dsAllocator*)addPool(renderer->allocator, &glRenderer->syncPools,
+			&glRenderer->curSyncPools, &glRenderer->maxSyncPools, sizeof(dsGLFenceSync),
+			DS_SYNC_POOL_COUNT);
+		if (!pool)
+		{
+			DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));
+			return NULL;
+		}
+
+		fenceSync = (dsGLFenceSync*)dsAllocator_alloc(pool, sizeof(dsGLFenceSync));
+		DS_ASSERT(fenceSync);
+	}
+	DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));
+
+	fenceSync->allocator = pool;
+	fenceSync->refCount = 1;
+	fenceSync->glSync = sync;
+	return fenceSync;
+}
+
+dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&glRenderer->syncRefPoolLock));
+
+	int prevErrno = errno;
+	dsAllocator* pool = NULL;
+	dsGLFenceSyncRef* fenceSyncRef = NULL;
+	for (size_t i = 0; i < glRenderer->curSyncRefPools && !fenceSyncRef; ++i)
+	{
+		pool = (dsAllocator*)(glRenderer->syncRefPools + i);
+		fenceSyncRef = (dsGLFenceSyncRef*)dsAllocator_alloc(pool, sizeof(dsGLFenceSyncRef));
+		if (fenceSyncRef)
+			break;
+	}
+	errno = prevErrno;
+
+	// All pools are full.
+	if (!fenceSyncRef)
+	{
+		pool = (dsAllocator*)addPool(renderer->allocator, &glRenderer->syncRefPools,
+			&glRenderer->curSyncRefPools, &glRenderer->maxSyncRefPools, sizeof(dsGLFenceSyncRef),
+			DS_SYNC_POOL_COUNT);
+		if (!pool)
+		{
+			DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));
+			return NULL;
+		}
+
+		fenceSyncRef = (dsGLFenceSyncRef*)dsAllocator_alloc(pool, sizeof(dsGLFenceSyncRef));
+		DS_ASSERT(fenceSyncRef);
+	}
+	DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncRefPoolLock));
+
+	fenceSyncRef->allocator = pool;
+	fenceSyncRef->refCount = 1;
+	fenceSyncRef->sync = NULL;
+	return fenceSyncRef;
+}
+
 void dsGLRenderer_destroy(dsRenderer* renderer)
 {
 	if (!renderer)
@@ -403,13 +502,29 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	dsDestroyGLConfig(display, glRenderer->renderConfig);
 
 	if (glRenderer->destroyVaos)
-		dsAllocator_free(renderer->allocator, glRenderer->destroyVaos);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
 	if (glRenderer->destroyFbos)
-		dsAllocator_free(renderer->allocator, glRenderer->destroyFbos);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
 	dsMutex_destroy(glRenderer->contextMutex);
 
+	if (glRenderer->syncPools)
+	{
+		for (size_t i = 0; i < glRenderer->curSyncPools; ++i)
+			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools[i].buffer));
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools));
+	}
+	dsSpinlock_destroy(&glRenderer->syncPoolLock);
+
+	if (glRenderer->syncRefPools)
+	{
+		for (size_t i = 0; i < glRenderer->curSyncRefPools; ++i)
+			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools[i].buffer));
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools));
+	}
+	dsSpinlock_destroy(&glRenderer->syncRefPoolLock);
+
 	if (renderer->allocator)
-		dsAllocator_free(renderer->allocator, renderer);
+		DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
 	AnyGL_shutdown();
 }

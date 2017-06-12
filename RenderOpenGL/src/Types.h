@@ -76,6 +76,26 @@ typedef struct dsGLFramebuffer
 	bool defaultFramebuffer;
 } dsGLFramebuffer;
 
+typedef struct dsGLFenceSync
+{
+	dsAllocator* allocator;
+	GLsync glSync;
+	uint32_t refCount;
+} dsGLFenceSync;
+
+typedef struct dsGLFenceSyncRef
+{
+	dsAllocator* allocator;
+	dsGLFenceSync* sync;
+	uint32_t refCount;
+} dsGLFenceSyncRef;
+
+typedef struct dsGLGfxFence
+{
+	dsGfxFence fence;
+	dsSpinlock lock;
+	dsGLFenceSyncRef* sync;
+} dsGLGfxFence;
 
 typedef struct dsGLResourceManager
 {
@@ -132,6 +152,16 @@ typedef struct dsGLRenderer
 
 	GLuint tempFramebuffer;
 	GLuint tempCopyFramebuffer;
+
+	dsPoolAllocator* syncPools;
+	size_t curSyncPools;
+	size_t maxSyncPools;
+	dsSpinlock syncPoolLock;
+
+	dsPoolAllocator* syncRefPools;
+	size_t curSyncRefPools;
+	size_t maxSyncRefPools;
+	dsSpinlock syncRefPoolLock;
 } dsGLRenderer;
 
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -148,6 +178,9 @@ typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture*
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
 	size_t regionCount, dsBlitFilter filter);
 
+typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
+	size_t syncCount, bool bufferReadback);
+
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -159,6 +192,8 @@ typedef struct CommandBufferFunctionTable
 	GLCopyTextureDataFunction copyTextureDataFunc;
 	GLCopyTextureFunction copyTextureFunc;
 	GLBlitTextureFunction blitTextureFunc;
+
+	GLSetFenceSyncsFunction setFenceSyncsFunc;
 
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;

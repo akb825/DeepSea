@@ -16,20 +16,64 @@
 
 #include "GLMainCommandBuffer.h"
 
+#include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "Resources/GLGfxFence.h"
 #include "Resources/GLResourceManager.h"
 #include "Resources/GLTexture.h"
 #include "GLHelpers.h"
 #include "GLRendererInternal.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 
 struct dsGLMainCommandBuffer
 {
 	dsGLCommandBuffer commandBuffer;
+
+	dsGLFenceSyncRef** fenceSyncs;
+	size_t curFenceSyncs;
+	size_t maxFenceSyncs;
+	bool bufferReadback;
+
+	bool insideRenderPass;
 };
+
+static bool setFences(dsRenderer* renderer, dsGLFenceSyncRef** fenceSyncs, size_t fenceCount,
+	bool bufferReadback)
+{
+	if (ANYGL_SUPPORTED(glMemoryBarrier) && bufferReadback)
+		glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+
+	GLsync glSync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	if (!glSync)
+	{
+		GLenum lastError = dsGetLastGLError();
+		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error setting fence: %s",
+			AnyGL_errorString(lastError));
+		errno = dsGetGLErrno(lastError);
+	}
+	glFlush();
+
+	dsGLFenceSync* sync = dsGLRenderer_createSync(renderer, glSync);
+	if (!sync)
+	{
+		glDeleteSync(glSync);
+		return false;
+	}
+
+	for (size_t i = 0; i < fenceCount; ++i)
+	{
+		dsGLFenceSync_addRef(sync);
+		DS_ASSERT(!fenceSyncs[i]->sync);
+		DS_ATOMIC_STORE_PTR(&fenceSyncs[i]->sync, &sync);
+	}
+
+	dsGLFenceSync_freeRef(sync);
+	return true;
+}
 
 bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
@@ -320,6 +364,37 @@ bool dsGLMainCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture
 	return true;
 }
 
+bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
+	size_t syncCount, bool bufferReadback)
+{
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->insideRenderPass)
+	{
+		size_t index = glCommandBuffer->curFenceSyncs;
+		if (!dsGLAddToBuffer(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
+			&glCommandBuffer->curFenceSyncs, &glCommandBuffer->maxFenceSyncs,
+			sizeof(dsGLFenceSyncRef*), syncCount))
+		{
+			return false;
+		}
+
+		DS_ASSERT(index + syncCount <= glCommandBuffer->maxFenceSyncs);
+		for (size_t i = 0; i < syncCount; ++i)
+		{
+			glCommandBuffer->fenceSyncs[index + i] = syncs[i];
+			dsGLFenceSyncRef_addRef(syncs[i]);
+		}
+		glCommandBuffer->curFenceSyncs += syncCount;
+
+		if (bufferReadback)
+			glCommandBuffer->bufferReadback = bufferReadback;
+
+		return true;
+	}
+	else
+		return setFences(commandBuffer->renderer, syncs, syncCount, bufferReadback);
+}
+
 bool dsGLMainCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -334,11 +409,13 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_copyTextureData,
 	&dsGLMainCommandBuffer_copyTexture,
 	&dsGLMainCommandBuffer_blitTexture,
+	&dsGLMainCommandBuffer_setFenceSyncs,
 	&dsGLMainCommandBuffer_submit
 };
 
 dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllocator* allocator)
 {
+	DS_ASSERT(allocator->freeFunc);
 	dsGLMainCommandBuffer* commandBuffer = (dsGLMainCommandBuffer*)dsAllocator_alloc(allocator,
 		sizeof(dsGLMainCommandBuffer));
 	if (!commandBuffer)
@@ -346,10 +423,15 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
 	baseCommandBuffer->renderer = renderer;
-	baseCommandBuffer->allocator = dsAllocator_keepPointer(allocator);
+	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = dsCommandBufferUsage_Standard;
 
 	((dsGLCommandBuffer*)commandBuffer)->functions = &functionTable;
+	commandBuffer->fenceSyncs = NULL;
+	commandBuffer->curFenceSyncs = 0;
+	commandBuffer->maxFenceSyncs = 0;
+	commandBuffer->bufferReadback = false;
+	commandBuffer->insideRenderPass = false;
 
 	return commandBuffer;
 }
@@ -360,7 +442,14 @@ bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
 		return true;
 
 	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
-	if (allocator)
-		return dsAllocator_free(allocator, commandBuffer);
+
+	if (commandBuffer->fenceSyncs)
+	{
+		for (size_t i = 0; i < commandBuffer->curFenceSyncs; ++i)
+			dsGLFenceSyncRef_freeRef(commandBuffer->fenceSyncs[i]);
+		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
+	}
+
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer));
 	return true;
 }

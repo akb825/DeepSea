@@ -62,7 +62,8 @@ DS_RENDER_EXPORT dsGfxFence* dsGfxFence_create(dsResourceManager* resourceManage
  *   submitted to the main command buffer. It will be set once all commands during that submit have
  *   completed.
  *
- * A fence may not be set on a command buffer that can be submitted multiple times.
+ * A fence may not be set on a command buffer that can be submitted multiple times. Once set, a
+ * fence must be reset before being set again.
  *
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to queue the fence on.
@@ -74,10 +75,23 @@ DS_RENDER_EXPORT bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence*
 	bool bufferReadback);
 
 /**
+ * @brief Sets multiple fences on the command buffer.
+ *
+ * These fences will be set together based on the rules in dsGfxFence_set(). This will be more
+ * efficient than setting each fence individually.
+ *
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to queue the fence on.
+ * @param fences The fences to set.
+ * @param fenceCount The number of fences.
+ * @param bufferReadback True if persistently mapped buffers will be read back.
+ * @return False if the fence couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsGfxFence_setMultiple(dsCommandBuffer* commandBuffer, dsGfxFence** fencees,
+	uint32_t fenceCount, bool bufferReadback);
+
+/**
  * @brief Waits for a fence to complete.
- *
- * The fence will be reset on success.
- *
  * @remark errno will be set on failure.
  * @param fence The fence.
  * @param timeout The number of nanoseconds to wait for the fence.

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "Resources/GLGfxBuffer.h"
+
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
 #include "Resources/GLGfxBuffer.h"

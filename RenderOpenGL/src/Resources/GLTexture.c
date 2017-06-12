@@ -43,7 +43,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 	dsTexture* baseTexture = (dsTexture*)texture;
 	baseTexture->resourceManager = resourceManager;
-	baseTexture->allocator = allocator;
+	baseTexture->allocator = dsAllocator_keepPointer(allocator);
 	baseTexture->usage = (dsTextureUsage)usage;
 	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
 	baseTexture->format = format;
@@ -390,7 +390,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 
 	dsTexture* baseTexture = (dsTexture*)texture;
 	baseTexture->resourceManager = resourceManager;
-	baseTexture->allocator = allocator;
+	baseTexture->allocator = dsAllocator_keepPointer(allocator);
 	baseTexture->usage = (dsTextureUsage)usage;
 	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
 	baseTexture->format = format;

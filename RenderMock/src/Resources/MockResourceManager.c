@@ -188,7 +188,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 
 	resourceManager->createFenceFunc = &dsMockGfxFence_create;
 	resourceManager->destroyFenceFunc = &dsMockGfxFence_destroy;
-	resourceManager->setFenceFunc = &dsMockGfxFence_set;
+	resourceManager->setFencesFunc = &dsMockGfxFence_set;
 	resourceManager->waitFenceFunc = &dsMockGfxFence_wait;
 	resourceManager->resetFenceFunc = &dsMockGfxFence_reset;
 

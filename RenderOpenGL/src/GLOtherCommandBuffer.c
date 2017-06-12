@@ -17,8 +17,10 @@
 #include "GLOtherCommandBuffer.h"
 
 #include "Resources/GLGfxBuffer.h"
+#include "Resources/GLGfxFence.h"
 #include "Resources/GLTexture.h"
 #include "GLCommandBuffer.h"
+#include "GLHelpers.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -33,7 +35,7 @@ typedef enum CommandType
 	CommandType_CopyBuffer,
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
-	CommandType_BlitTexture
+	CommandType_BlitTexture,
 } CommandType;
 
 typedef struct Command
@@ -96,6 +98,11 @@ struct dsGLOtherCommandBuffer
 {
 	dsGLCommandBuffer commandBuffer;
 	dsBufferAllocator buffer;
+
+	dsGLFenceSyncRef** fenceSyncs;
+	size_t curFenceSyncs;
+	size_t maxFenceSyncs;
+	bool bufferReadback;
 };
 
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
@@ -131,7 +138,7 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 bool dsGLOtherCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
-	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyBufferDataCommand) + size);
+	size_t commandSize = sizeof(CopyBufferDataCommand) + size;
 	CopyBufferDataCommand* command = (CopyBufferDataCommand*)allocateCommand(commandBuffer,
 		CommandType_CopyBufferData, commandSize);
 	if (!command)
@@ -167,7 +174,7 @@ bool dsGLOtherCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTe
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
 {
-	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyTextureDataCommand) + size);
+	size_t commandSize = sizeof(CopyTextureDataCommand) + size;
 	CopyTextureDataCommand* command = (CopyTextureDataCommand*)allocateCommand(commandBuffer,
 		CommandType_CopyTextureData, commandSize);
 	if (!command)
@@ -187,8 +194,7 @@ bool dsGLOtherCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTe
 bool dsGLOtherCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
 {
-	size_t commandSize = DS_ALIGNED_SIZE(sizeof(CopyTextureCommand) +
-		sizeof(dsTextureCopyRegion)*regionCount);
+	size_t commandSize = sizeof(CopyTextureCommand) + sizeof(dsTextureCopyRegion)*regionCount;
 	CopyTextureCommand* command = (CopyTextureCommand*)allocateCommand(commandBuffer,
 		CommandType_CopyTexture, commandSize);
 	if (!command)
@@ -207,8 +213,7 @@ bool dsGLOtherCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTextur
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
 	dsBlitFilter filter)
 {
-	size_t commandSize = DS_ALIGNED_SIZE(sizeof(BlitTextureCommand) +
-		sizeof(dsTextureBlitRegion)*regionCount);
+	size_t commandSize = sizeof(BlitTextureCommand) + sizeof(dsTextureBlitRegion)*regionCount;
 	BlitTextureCommand* command = (BlitTextureCommand*)allocateCommand(commandBuffer,
 		CommandType_BlitTexture, commandSize);
 	if (!command)
@@ -221,6 +226,32 @@ bool dsGLOtherCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTextur
 	command->filter = filter;
 	command->regionCount = regionCount;
 	memcpy(command->regions, regions, sizeof(dsTextureBlitRegion)*regionCount);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
+	size_t syncCount, bool bufferReadback)
+{
+	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
+	size_t index = glCommandBuffer->curFenceSyncs;
+	if (!dsGLAddToBuffer(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
+		&glCommandBuffer->curFenceSyncs, &glCommandBuffer->maxFenceSyncs, sizeof(dsGLFenceSyncRef*),
+		syncCount))
+	{
+		return false;
+	}
+
+	DS_ASSERT(index + syncCount <= glCommandBuffer->maxFenceSyncs);
+	for (size_t i = 0; i < syncCount; ++i)
+	{
+		glCommandBuffer->fenceSyncs[index + i] = syncs[i];
+		dsGLFenceSyncRef_addRef(syncs[i]);
+	}
+	glCommandBuffer->curFenceSyncs += syncCount;
+
+	if (bufferReadback)
+		glCommandBuffer->bufferReadback = bufferReadback;
+
 	return true;
 }
 
@@ -279,6 +310,12 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 		}
 	}
 
+	if (glSubmitBuffer->curFenceSyncs > 0)
+	{
+		dsGLCommandBuffer_setFenceSyncs(commandBuffer, glSubmitBuffer->fenceSyncs,
+			glSubmitBuffer->curFenceSyncs, glSubmitBuffer->bufferReadback);
+	}
+
 	// Reset immediately if not submitted multiple times. This frees any internal references to
 	// resources.
 	if (!(commandBuffer->usage &
@@ -296,6 +333,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyTextureData,
 	&dsGLOtherCommandBuffer_copyTexture,
 	&dsGLOtherCommandBuffer_blitTexture,
+	&dsGLOtherCommandBuffer_setFenceSyncs,
 	&dsGLOtherCommandBuffer_submit
 };
 
@@ -304,6 +342,7 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 {
 	if (!allocator->freeFunc)
 	{
+		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
 			"Command buffer allocator must support freeing memory.");
 		return NULL;
@@ -320,6 +359,10 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	baseCommandBuffer->usage = usage;
 
 	((dsGLCommandBuffer*)commandBuffer)->functions = &functionTable;
+	commandBuffer->fenceSyncs = NULL;
+	commandBuffer->curFenceSyncs = 0;
+	commandBuffer->maxFenceSyncs = 0;
+	commandBuffer->bufferReadback = false;
 
 	const size_t defaultBufferSize = 512*1024;
 	void* bufferData = dsAllocator_alloc(allocator, defaultBufferSize);
@@ -385,6 +428,12 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				DS_ASSERT(false);
 		}
 	}
+
+	for (size_t i = 0; i < glCommandBuffer->curFenceSyncs; ++i)
+		dsGLFenceSyncRef_freeRef(glCommandBuffer->fenceSyncs[i]);
+	glCommandBuffer->curFenceSyncs = 0;
+	glCommandBuffer->bufferReadback = false;
+
 	DS_VERIFY(dsBufferAllocator_reset(&commandBuffer->buffer));
 }
 
@@ -393,6 +442,11 @@ bool dsGLOtherCommandBuffer_destroy(dsGLOtherCommandBuffer* commandBuffer)
 	DS_ASSERT(commandBuffer);
 	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
 	dsGLOtherCommandBuffer_reset(commandBuffer);
+
+	DS_ASSERT(commandBuffer->curFenceSyncs == 0);
+	if (commandBuffer->fenceSyncs)
+		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
+
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->buffer.buffer));
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer));
 	return true;

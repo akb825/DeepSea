@@ -49,7 +49,7 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
 	baseFramebuffer->resourceManager = resourceManager;
-	baseFramebuffer->allocator = allocator;
+	baseFramebuffer->allocator = dsAllocator_keepPointer(allocator);
 	if (surfaceCount > 0)
 	{
 		baseFramebuffer->surfaces = (dsFramebufferSurface*)dsAllocator_alloc(

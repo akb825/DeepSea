@@ -20,6 +20,7 @@
 #include "AnyGL/gl.h"
 #include "Platform/Platform.h"
 #include "Resources/GLGfxBuffer.h"
+#include "Resources/GLGfxFence.h"
 #include "Resources/GLDrawGeometry.h"
 #include "Resources/GLFramebuffer.h"
 #include "Resources/GLRenderbuffer.h"
@@ -1105,6 +1106,14 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		ANYGL_SUPPORTED(glDrawBuffers);
 	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
+
+	// Fences
+	baseResourceManager->hasFences = ANYGL_SUPPORTED(glFenceSync);
+	baseResourceManager->createFenceFunc = &dsGLGfxFence_create;
+	baseResourceManager->destroyFenceFunc = &dsGLGfxFence_destroy;
+	baseResourceManager->setFencesFunc = &dsGLGfxFence_set;
+	baseResourceManager->waitFenceFunc = &dsGLGfxFence_wait;
+	baseResourceManager->resetFenceFunc = &dsGLGfxFence_reset;
 
 	return resourceManager;
 }

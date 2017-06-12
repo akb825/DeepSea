@@ -33,14 +33,16 @@ dsGfxFence* dsMockGfxFence_create(dsResourceManager* resourceManager, dsAllocato
 }
 
 bool dsMockGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsGfxFence* fence, bool bufferReadback)
+	dsGfxFence* fences, uint32_t fenceCount, bool bufferReadback)
 {
 	DS_ASSERT(resourceManager);
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_UNUSED(commandBuffer);
-	DS_ASSERT(fence);
-	DS_UNUSED(fence);
+	DS_ASSERT(fences);
+	DS_UNUSED(fences);
+	DS_ASSERT(fenceCount > 0);
+	DS_UNUSED(fenceCount);
 	DS_UNUSED(bufferReadback);
 
 	return true;

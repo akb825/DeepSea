@@ -57,6 +57,13 @@ bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 		filter);
 }
 
+bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
+	size_t syncCount, bool bufferReadback)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setFenceSyncsFunc(commandBuffer, syncs, syncCount, bufferReadback);
+}
+
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
 {

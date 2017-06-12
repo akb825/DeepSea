@@ -21,7 +21,7 @@
 
 dsGfxFence* dsMockGfxFence_create(dsResourceManager* resourceManager, dsAllocator* allocator);
 bool dsMockGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsGfxFence* fence, bool bufferReadback);
+	dsGfxFence** fences, uint32_t fenceCount, bool bufferReadback);
 dsGfxFenceResult dsMockGfxFence_wait(dsResourceManager* resourceManager, dsGfxFence* fence,
 	uint64_t timeout);
 bool dsMockGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence);

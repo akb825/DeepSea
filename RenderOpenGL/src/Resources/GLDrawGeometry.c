@@ -99,7 +99,7 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 
 	dsDrawGeometry* baseGeometry = (dsDrawGeometry*)geometry;
 	baseGeometry->resourceManager = resourceManager;
-	baseGeometry->allocator = allocator;
+	baseGeometry->allocator = dsAllocator_keepPointer(allocator);
 	memcpy(baseGeometry->vertexBuffers, vertexBuffers, sizeof(baseGeometry->vertexBuffers));
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{

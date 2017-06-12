@@ -20,9 +20,12 @@
 #include "AnyGL/gl.h"
 #include "Resources/GLTexture.h"
 #include "Types.h"
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Core.h>
+#include <string.h>
 
 void dsCheckGLErrors(void)
 {
@@ -40,6 +43,17 @@ void dsClearGLErrors(void)
 		if (error != GL_NO_ERROR)
 			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL error: %s", AnyGL_errorString(error));
 	} while (error != GL_NO_ERROR);
+}
+
+GLenum dsGetLastGLError(void)
+{
+	GLenum curError = GL_NO_ERROR, lastError;
+	do
+	{
+		lastError = curError;
+		curError = glGetError();
+	} while (curError != GL_NO_ERROR);
+	return lastError;
 }
 
 int dsGetGLErrno(GLenum error)
@@ -120,4 +134,37 @@ void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture)
 {
 	GLenum attachment = dsGLTexture_attachment(texture);
 	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
+}
+
+bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems, size_t* maxElems,
+	size_t elemSize, size_t addElems)
+{
+	DS_ASSERT(allocator);
+	DS_ASSERT(buffer);
+	DS_ASSERT(curElems);
+	DS_ASSERT(maxElems);
+	DS_ASSERT(*buffer || *curElems == 0);
+
+	if (*curElems + addElems <= *maxElems)
+	{
+		*curElems += addElems;
+		return true;
+	}
+
+	size_t newMaxElems = dsMax(16U, addElems);
+	newMaxElems = dsMax(newMaxElems, *maxElems*2);
+	DS_ASSERT(newMaxElems >= *curElems + addElems);
+	void* newBuffer = dsAllocator_alloc(allocator, newMaxElems*elemSize);
+	if (!newBuffer)
+		return false;
+
+	if (*buffer)
+	{
+		memcpy(newBuffer, *buffer, *curElems*elemSize);
+		DS_VERIFY(dsAllocator_free(allocator, buffer));
+	}
+	*curElems += addElems;
+	*maxElems = newMaxElems;
+	*buffer = newBuffer;
+	return true;
 }
