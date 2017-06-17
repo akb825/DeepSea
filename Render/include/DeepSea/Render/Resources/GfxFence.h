@@ -87,7 +87,7 @@ DS_RENDER_EXPORT bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence*
  * @param bufferReadback True if persistently mapped buffers will be read back.
  * @return False if the fence couldn't be set.
  */
-DS_RENDER_EXPORT bool dsGfxFence_setMultiple(dsCommandBuffer* commandBuffer, dsGfxFence** fencees,
+DS_RENDER_EXPORT bool dsGfxFence_setMultiple(dsCommandBuffer* commandBuffer, dsGfxFence** fences,
 	uint32_t fenceCount, bool bufferReadback);
 
 /**

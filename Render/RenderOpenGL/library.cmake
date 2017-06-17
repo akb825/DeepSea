@@ -11,9 +11,9 @@ elseif (UNIX AND NOT APPLE)
 	set(extraIncludeDirs ${X11_INCLUDE_DIRECTORIES} ${GLX_INCLUDE_DIRECTORIES})
 endif()
 
-ds_glob_library_sources(sources RenderOpenGL src/*.c src/*.h include/*.h)
-ds_add_library(deepsea_render_opengl RenderOpenGL ${sources})
+ds_glob_library_sources(sources Render/RenderOpenGL src/*.c src/*.h include/*.h)
+ds_add_library(deepsea_render_opengl Render/RenderOpenGL ${sources})
 ds_target_include_directories(deepsea_render_opengl
-	PRIVATE ${OPENGL_INCLUDE_DIR} ${extraIncludeDirs} ${DEEPSEA_SOURCE_DIR}/RenderOpenGL/src)
+	PRIVATE ${OPENGL_INCLUDE_DIR} ${extraIncludeDirs} ${DEEPSEA_SOURCE_DIR}/Render/RenderOpenGL/src)
 ds_target_link_libraries(deepsea_render_opengl
 	PRIVATE ${CMAKE_DL_LIBS} ${OPENGL_gl_LIBRARY} ${extraLibs})

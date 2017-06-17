@@ -1,5 +1,6 @@
 find_package(OpenGL)
 if (NOT OPENGL_FOUND)
+	message("OpenGL not found. Skipping RenderOpenGL.")
 	return()
 endif()
 

@@ -77,7 +77,8 @@ DeepSea contains the following modules:
 * [Math](Math/README.md): (Required) Math structures and functions used throughout DeepSea.
 * [Geometry](Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
 * [Render](Render/README.md): (Optional) Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
-* [RenderMock](RenderMock/README.md): (Optional) Mock implementation of the Render library, used for unit tests.
+* [RenderMock](Render/RenderMock/README.md): (Optional) Mock implementation of the Render library, used for unit tests.
+* [RenderOpenGL](Render/RenderOpenGL/README.md): (Optional) OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
 
 The directory structure of the include files is:
 
