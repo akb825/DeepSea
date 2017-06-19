@@ -19,11 +19,15 @@
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
 #include "Platform/Platform.h"
-#include "Resources/GLGfxBuffer.h"
-#include "Resources/GLGfxFence.h"
 #include "Resources/GLDrawGeometry.h"
 #include "Resources/GLFramebuffer.h"
+#include "Resources/GLGfxBuffer.h"
+#include "Resources/GLGfxFence.h"
+#include "Resources/GLMaterialDesc.h"
 #include "Resources/GLRenderbuffer.h"
+#include "Resources/GLShader.h"
+#include "Resources/GLShaderModule.h"
+#include "Resources/GLShaderVariableGroupDesc.h"
 #include "Resources/GLTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -68,7 +72,7 @@ static void glGetSizeT(GLenum pname, size_t* value)
 	}
 }
 
-static dsGfxBufferUsage getSupportedBuffers(void)
+static dsGfxBufferUsage getSupportedBuffers(dsGLDisableFeatures disableFeatures)
 {
 	dsGfxBufferUsage supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Vertex |
 		dsGfxBufferUsage_Index | dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_CopyFrom);
@@ -90,8 +94,8 @@ static dsGfxBufferUsage getSupportedBuffers(void)
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_Image);
 	}
 
-	if (AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
-		AnyGL_ARB_uniform_buffer_object)
+	if ((AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+		AnyGL_ARB_uniform_buffer_object) && !(disableFeatures & dsGLDisableFeatures_UniformBlock))
 	{
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBlock);
 	}
@@ -1028,7 +1032,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT,
 			(GLint*)&baseResourceManager->minMappingAlignment);
 	}
-	baseResourceManager->supportedBuffers = getSupportedBuffers();
+	baseResourceManager->supportedBuffers = getSupportedBuffers(options->disableFeatures);
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
 
@@ -1114,6 +1118,16 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->setFencesFunc = &dsGLGfxFence_set;
 	baseResourceManager->waitFenceFunc = &dsGLGfxFence_wait;
 	baseResourceManager->resetFenceFunc = &dsGLGfxFence_reset;
+
+	// Shaders and materials
+	baseResourceManager->createShaderModuleFunc = &dsGLShaderModule_create;
+	baseResourceManager->destroyShaderModuleFunc = &dsGLShaderModule_destroy;
+	baseResourceManager->createMaterialDescFunc = &dsGLMaterialDesc_create;
+	baseResourceManager->destroyMaterialDescFunc = &dsGLMaterialDesc_destroy;
+	baseResourceManager->createShaderVariableGroupDescFunc = &dsGLShaderVariableGroupDesc_create;
+	baseResourceManager->destroyShaderVariableGroupDescFunc = &dsGLShaderVariableGroupDesc_destroy;
+	baseResourceManager->createShaderFunc = &dsGLShader_create;
+	baseResourceManager->destroyShaderFunc = &dsGLShader_destroy;
 
 	return resourceManager;
 }

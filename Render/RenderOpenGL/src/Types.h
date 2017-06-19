@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 
 #include "AnyGL/gl.h"
+#include <MSL/Client/TypesC.h>
 #include <DeepSea/RenderOpenGL/Types.h>
 #include <DeepSea/Core/Types.h>
 
@@ -96,6 +97,45 @@ typedef struct dsGLGfxFence
 	dsSpinlock lock;
 	dsGLFenceSyncRef* sync;
 } dsGLGfxFence;
+
+typedef struct dsGLShaderModule
+{
+	dsShaderModule shaderModule;
+	dsGLResource resource;
+} dsGLShaderModule;
+
+typedef struct dsGLMaterialDesc
+{
+	dsMaterialDesc materialDesc;
+	dsGLResource resource;
+} dsGLMaterialDesc;
+
+typedef struct dsGLShaderVariableGroupDesc
+{
+	dsShaderVariableGroupDesc shaderVariableGroupDesc;
+	dsGLResource resource;
+} dsGLShaderVariableGroupDesc;
+
+typedef union dsGLUniformInfo
+{
+	struct
+	{
+		GLint location;
+		GLuint samplerIndex;
+	};
+	GLint* groupLocations;
+} dsGLUniformInfo;
+
+typedef struct dsGLShader
+{
+	dsShader shader;
+	dsGLResource resource;
+	mslPipeline pipeline;
+	GLuint programId;
+	GLuint* samplerIds;
+	dsGLUniformInfo* uniforms;
+	float defaultAnisotropy;
+} dsGLShader;
 
 typedef struct dsGLResourceManager
 {

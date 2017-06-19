@@ -606,6 +606,30 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	dsRenderer* renderer = resourceManager->renderer;
+	if ((pipeline.shaders[mslStage_TessellationControl] != MSL_UNKNOWN ||
+		pipeline.shaders[mslStage_TessellationEvaluation] != MSL_UNKNOWN) &&
+		!renderer->hasTessellationShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support tessellation shaders.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (pipeline.shaders[mslStage_Geometry] != MSL_UNKNOWN && !renderer->hasGeometryShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support geometry shaders.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (pipeline.shaders[mslStage_Compute] != MSL_UNKNOWN && !renderer->hasComputeShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;

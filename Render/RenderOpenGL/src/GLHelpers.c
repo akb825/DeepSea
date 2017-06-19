@@ -168,3 +168,86 @@ bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems, si
 	*buffer = newBuffer;
 	return true;
 }
+
+GLenum dsGetGLMinFilter(mslFilter minFilter, mslMipFilter mipFilter)
+{
+	switch (minFilter)
+	{
+		case mslFilter_Unset:
+		case mslFilter_Nearest:
+			switch (mipFilter)
+			{
+				case mslMipFilter_Unset:
+				case mslMipFilter_None:
+					return GL_NEAREST;
+				case mslMipFilter_Nearest:
+					return GL_NEAREST_MIPMAP_NEAREST;
+				case mslMipFilter_Linear:
+				case mslMipFilter_Anisotropic:
+					return GL_NEAREST_MIPMAP_LINEAR;
+			}
+			break;
+		case mslFilter_Linear:
+			switch (mipFilter)
+			{
+				case mslMipFilter_Unset:
+				case mslMipFilter_None:
+					return GL_LINEAR;
+				case mslMipFilter_Nearest:
+					return GL_LINEAR_MIPMAP_NEAREST;
+				case mslMipFilter_Linear:
+				case mslMipFilter_Anisotropic:
+					return GL_LINEAR_MIPMAP_LINEAR;
+			}
+			break;
+	}
+
+	DS_ASSERT(false);
+	return GL_NEAREST;
+}
+
+GLenum dsGetGLMagFilter(mslFilter magFilter)
+{
+	switch (magFilter)
+	{
+		case mslFilter_Unset:
+		case mslFilter_Nearest:
+			return GL_NEAREST;
+		case mslFilter_Linear:
+			return GL_LINEAR;
+	}
+
+	DS_ASSERT(false);
+	return GL_NEAREST;
+}
+
+GLenum dsGetGLAddressMode(mslAddressMode addressMode)
+{
+	switch (addressMode)
+	{
+		case mslAddressMode_Unset:
+		case mslAddressMode_Repeat:
+			return GL_REPEAT;
+		case mslAddressMode_MirroredRepeat:
+			return GL_MIRRORED_REPEAT;
+		case mslAddressMode_ClampToEdge:
+			return GL_CLAMP_TO_EDGE;
+		case mslAddressMode_ClampToBorder:
+		{
+			if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
+				return GL_CLAMP_TO_BORDER;
+			else
+				return GL_CLAMP_TO_EDGE;
+		}
+		case mslAddressMode_MirrorOnce:
+		{
+			if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_EXT_texture_mirror_clamp)
+				return GL_MIRROR_CLAMP_TO_EDGE;
+			else
+				return GL_MIRRORED_REPEAT;
+		}
+	}
+
+	DS_ASSERT(false);
+	return GL_REPEAT;
+}

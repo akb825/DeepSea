@@ -18,6 +18,7 @@
 
 #include "AnyGL/gl.h"
 #include <DeepSea/Render/Types.h>
+#include <MSL/Client/TypesC.h>
 
 void dsCheckGLErrors(void);
 void dsClearGLErrors(void);
@@ -31,3 +32,7 @@ void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture);
 
 bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems,
 	size_t* maxElems, size_t elemSize, size_t addElems);
+
+GLenum dsGetGLMinFilter(mslFilter minFilter, mslMipFilter mipFilter);
+GLenum dsGetGLMagFilter(mslFilter magFilter);
+GLenum dsGetGLAddressMode(mslAddressMode addressMode);

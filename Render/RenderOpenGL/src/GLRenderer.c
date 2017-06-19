@@ -86,8 +86,11 @@ static size_t dsGLRenderer_fullAllocSize(void)
 
 static bool hasRequiredFunctions(void)
 {
-	if (!ANYGL_SUPPORTED(glGenBuffers) || !ANYGL_SUPPORTED(glGenFramebuffers))
+	if (!ANYGL_SUPPORTED(glGenBuffers) || !ANYGL_SUPPORTED(glGenFramebuffers) ||
+		!ANYGL_SUPPORTED(glCreateShader))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -136,6 +139,7 @@ void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 	options->accelerated = -1;
 	options->debug = ANYGL_ALLOW_DEBUG;
 	options->maxResourceThreads = 0;
+	options->disableFeatures = dsGLDisableFeatures_UniformBlock;
 }
 
 dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* options)
