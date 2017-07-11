@@ -56,11 +56,6 @@ extern "C"
 #define DS_MAX_GEOMETRY_VERTEX_BUFFERS 4
 
 /**
- * @brief Constant for no known material value.
- */
-#define DS_MATERIAL_UNKNOWN (uint32_t)-1
-
-/**
  * @brief Flags used as hints for how graphics memory will be used.
  */
 typedef enum dsGfxMemory

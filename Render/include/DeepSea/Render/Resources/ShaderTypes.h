@@ -34,6 +34,16 @@ extern "C"
  */
 
 /**
+ * @brief Constant for no known material value.
+ */
+#define DS_MATERIAL_UNKNOWN (uint32_t)-1
+
+/**
+ * @brief Constant for an unset commit count.
+ */
+#define DS_VARIABLE_GROUP_UNSET_COMMIT (uint64_t)-1
+
+/**
  * @brief Enum for the type of a material member.
  * @see MaterialType.h
  */

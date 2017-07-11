@@ -18,6 +18,7 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLResource.h"
@@ -33,6 +34,18 @@
 #include <string.h>
 
 #define DS_BUFFER_SIZE 256
+
+static const GLenum compareOpMap[] =
+{
+	GL_NEVER,
+	GL_LESS,
+	GL_EQUAL,
+	GL_LEQUAL,
+	GL_GREATER,
+	GL_NOTEQUAL,
+	GL_GEQUAL,
+	GL_ALWAYS
+};
 
 static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shaderIndex)
 {
@@ -115,6 +128,13 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 				}
 			}
 		}
+
+		mslCompareOp compareOp = samplerState.compareOp;
+		if (compareOp == mslCompareOp_Unset)
+			compareOp = mslCompareOp_Less;
+		DS_ASSERT((unsigned int)compareOp < DS_ARRAY_SIZE(compareOpMap));
+		glSamplerParameteri(shader->samplerIds[i], GL_TEXTURE_COMPARE_FUNC,
+			compareOpMap[compareOp]);
 	}
 }
 
@@ -150,9 +170,27 @@ static uint32_t getUsedTextures(mslModule* module, uint32_t shaderIndex,
 	return mask;
 }
 
+static bool isShadowSampler(mslType type)
+{
+	switch (type)
+	{
+		case mslType_Sampler1DShadow:
+		case mslType_Sampler2DShadow:
+		case mslType_Sampler1DArrayShadow:
+		case mslType_Sampler2DArrayShadow:
+		case mslType_SamplerCubeShadow:
+		case mslType_Sampler2DRectShadow:
+			return true;
+		default:
+			return false;
+	}
+}
+
 static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDesc,
 	mslModule* module, uint32_t shaderIndex, bool useGfxBuffers)
 {
+	GLuint prevProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&prevProgram);
 	glUseProgram(shader->programId);
 
 	uint32_t usedTextures = getUsedTextures(module, shaderIndex, &shader->pipeline);
@@ -172,7 +210,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Uniform name '%s' is too long.",
 						materialDesc->elements[i].name);
 					errno = EINDEX;
-					glUseProgram(0);
+					glUseProgram(prevProgram);
 					return false;
 				}
 
@@ -192,6 +230,12 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					mslUniform uniform;
 					DS_VERIFY(mslModule_uniform(&uniform, module, shaderIndex, uniformIndex));
 					shader->uniforms[i].samplerIndex = uniform.samplerIndex;
+					if (shader->samplerIds && uniform.samplerIndex != MSL_UNKNOWN &&
+						isShadowSampler(uniform.type))
+					{
+						glSamplerParameteri(shader->samplerIds[uniform.samplerIndex],
+							GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+					}
 
 					uint32_t textureIndex = uniform.binding;
 					if (textureIndex == MSL_UNKNOWN)
@@ -212,7 +256,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 								"Ran out of texture indices for shader %s",
 								shader->pipeline.name);
 							errno = EINDEX;
-							glUseProgram(0);
+							glUseProgram(prevProgram);
 							return false;
 						}
 					}
@@ -247,7 +291,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 							DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
 								"Uniform name '%s' is too long.", groupDesc->elements[j].name);
 							errno = EINDEX;
-							glUseProgram(0);
+							glUseProgram(prevProgram);
 							return false;
 						}
 
@@ -266,7 +310,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Uniform name '%s' is too long.",
 						materialDesc->elements[i].name);
 					errno = EINDEX;
-					glUseProgram(0);
+					glUseProgram(prevProgram);
 					return false;
 				}
 
@@ -275,8 +319,108 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 		}
 	}
 
-	glUseProgram(0);
+	glUseProgram(prevProgram);
 	return true;
+}
+
+
+static void resolveDefaultRasterizationState(mslRasterizationState* state)
+{
+	if (state->depthClampEnable == mslBool_Unset)
+		state->depthClampEnable = mslBool_False;
+	if (state->rasterizerDiscardEnable == mslBool_Unset)
+		state->rasterizerDiscardEnable = mslBool_False;
+	if (state->polygonMode == mslPolygonMode_Unset)
+		state->polygonMode = mslPolygonMode_Fill;
+	if (state->cullMode == mslCullMode_Unset)
+		state->cullMode = mslCullMode_None;
+	if (state->frontFace == mslFrontFace_Unset)
+		state->frontFace = mslFrontFace_CounterClockwise;
+	if (state->depthBiasEnable == mslBool_Unset)
+		state->depthBiasEnable = mslBool_False;
+}
+
+static void resolveDefaultMultisampleState(mslMultisampleState* state)
+{
+	if (state->sampleShadingEnable == mslBool_Unset)
+		state->sampleShadingEnable = mslBool_False;
+	if (state->minSampleShading == MSL_UNKNOWN_FLOAT)
+		state->minSampleShading = 1.0f;
+	if (state->sampleMask == MSL_UNKNOWN)
+		state->sampleMask = 0xFFFFFFFF;
+	if (state->alphaToCoverageEnable == mslBool_Unset)
+		state->alphaToCoverageEnable = mslBool_False;
+	if (state->alphaToOneEnable == mslBool_Unset)
+		state->alphaToOneEnable = mslBool_False;
+}
+
+static void resolveDefaultStencilState(mslStencilOpState* state)
+{
+	if (state->failOp == mslStencilOp_Unset)
+		state->failOp = mslStencilOp_Keep;
+	if (state->passOp == mslStencilOp_Unset)
+		state->passOp = mslStencilOp_Keep;
+	if (state->depthFailOp == mslStencilOp_Unset)
+		state->depthFailOp = mslStencilOp_Keep;
+	if (state->compareOp == mslCompareOp_Unset)
+		state->compareOp = mslCompareOp_Always;
+}
+
+static void resolveDefaultDepthStencilState(mslDepthStencilState* state)
+{
+	if (state->depthBoundsTestEnable == mslBool_Unset)
+		state->depthTestEnable = mslBool_False;
+	if (state->depthWriteEnable == mslBool_Unset)
+		state->depthWriteEnable = mslBool_False;
+	if (state->depthCompareOp == mslCompareOp_Unset)
+		state->depthCompareOp = mslCompareOp_Less;
+	if (state->depthBoundsTestEnable == mslBool_Unset)
+		state->depthBoundsTestEnable = mslBool_False;
+	if (state->stencilTestEnable == mslBool_Unset)
+		state->stencilTestEnable = mslBool_False;
+
+	resolveDefaultStencilState(&state->frontStencil);
+	resolveDefaultStencilState(&state->frontStencil);
+}
+
+static void resolveDefaultBlendState(mslBlendState* state)
+{
+	if (state->logicalOpEnable == mslBool_Unset)
+		state->logicalOpEnable = mslBool_False;
+	if (state->logicalOp == mslLogicOp_Unset)
+		state->logicalOp = mslLogicOp_Copy;
+	if (state->separateAttachmentBlendingEnable == mslBool_Unset)
+		state->separateAttachmentBlendingEnable = mslBool_False;
+	for (unsigned int i = 0; i < MSL_MAX_ATTACHMENTS; ++i)
+	{
+		if (state->blendAttachments[i].blendEnable == mslBool_Unset)
+			state->blendAttachments[i].blendEnable = mslBool_False;
+		if (state->blendAttachments[i].srcColorBlendFactor == mslBlendFactor_Unset)
+			state->blendAttachments[i].srcColorBlendFactor = mslBlendFactor_One;
+		if (state->blendAttachments[i].dstColorBlendFactor == mslBlendFactor_Unset)
+			state->blendAttachments[i].dstColorBlendFactor = mslBlendFactor_Zero;
+		if (state->blendAttachments[i].colorBlendOp == mslBlendOp_Unset)
+			state->blendAttachments[i].colorBlendOp = mslBlendOp_Add;
+		if (state->blendAttachments[i].srcAlphaBlendFactor == mslBlendFactor_Unset)
+			state->blendAttachments[i].srcAlphaBlendFactor = mslBlendFactor_One;
+		if (state->blendAttachments[i].dstAlphaBlendFactor == mslBlendFactor_Unset)
+			state->blendAttachments[i].dstAlphaBlendFactor = mslBlendFactor_Zero;
+		if (state->blendAttachments[i].alphaBlendOp == mslBlendOp_Unset)
+			state->blendAttachments[i].alphaBlendOp = mslBlendOp_Add;
+		if (state->blendAttachments[i].colorWriteMask == mslColorMask_Unset)
+		{
+			state->blendAttachments[i].colorWriteMask = (mslColorMask)(mslColorMask_Red |
+				mslColorMask_Green | mslColorMask_Blue | mslColorMask_Alpha);
+		}
+	}
+}
+
+static void resolveDefaultStates(mslRenderState* state)
+{
+	resolveDefaultRasterizationState(&state->rasterizationState);
+	resolveDefaultMultisampleState(&state->multisampleState);
+	resolveDefaultDepthStencilState(&state->depthStencilState);
+	resolveDefaultBlendState(&state->blendState);
 }
 
 dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -344,7 +488,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (hasSamplers && pipeline.samplerStateCount > 0)
 	{
 		shader->samplerIds = (GLuint*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(GLuint)*pipeline.samplerStateCount);
+			sizeof(GLuint)*(pipeline.samplerStateCount + 1));
 		DS_ASSERT(shader->samplerIds);
 		glGenSamplers(shader->pipeline.samplerStateCount, shader->samplerIds);
 		if (!*shader->samplerIds)
@@ -541,7 +685,44 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		return NULL;
 	}
 
+	DS_VERIFY(mslModule_renderState(&shader->renderState, module->module, shaderIndex));
+	resolveDefaultStates(&shader->renderState);
+
 	return baseShader;
+}
+
+bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
+{
+	DS_ASSERT(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(material);
+
+	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, volatileValues,
+		renderStates);
+}
+
+bool dsGLShader_updateVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+
+	return dsGLCommandBuffer_setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+}
+
+bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+
+	return dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 }
 
 static bool destroyImpl(dsShader* shader)
@@ -562,8 +743,8 @@ bool dsGLShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(shader);
 
-	dsGLShader* glModule = (dsGLShader*)shader;
-	if (dsGLResource_destroy(&glModule->resource))
+	dsGLShader* glShader = (dsGLShader*)shader;
+	if (dsGLResource_destroy(&glShader->resource))
 		return destroyImpl(shader);
 
 	return true;

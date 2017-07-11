@@ -105,6 +105,23 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup
 	uint32_t element, const void* data, dsMaterialType type, uint32_t firstIndex, uint32_t count);
 
 /**
+ * @brief Commits any pending changes to the shader variable group to the GPU.
+ *
+ * If uniform blocks are supported, this will perform the actual copy to the GPU buffer. If uniform
+ * blocks aren't supported, this increments the commit count. Render implementations can keep track
+ * of the commit count to avoid uploading all uniforms when updating a dsShaderVariableGRoup used
+ * as part of dsVolatileMaterialValues.
+ *
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer. Whether or not this is used depends on the
+ *     implementation and should not be relied on to be executed with the command buffer.
+ * @param group The shader variable group to commit changes for.
+ * @return False if the variables couldn't be committed.
+ */
+DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer,
+	dsShaderVariableGroup* group);
+
+/**
  * @brief Gets the graphics buffer for the shader variable data.
  *
  * This is generally used by the renderer implementation to bind to the shader.
@@ -131,32 +148,23 @@ DS_RENDER_EXPORT const void* dsShaderVariableGroup_getRawElementData(
  * @brief Gets whether or not an element is dirty.
  *
  * This should be used by the renderer implementation when uniform blocks aren't supported to avoid
- * copying data to uniforms unnecessarily. The dirty flags will be cleared with
- * dsShaderVariableGroup_commit().
+ * copying data to uniforms unnecessarily.
  *
  * @param group The shader variable group.
  * @param element The element index.
+ * @param commitCount The commit count for the last set value.
  * @return True if the element is dirty.
  */
 DS_RENDER_EXPORT bool dsShaderVariableGroup_isElementDirty(const dsShaderVariableGroup* group,
-	uint32_t element);
+	uint32_t element, uint64_t commitCount);
 
 /**
- * @brief Commits any pending changes to the shader variable group to the GPU.
+ * @brief Gets the commit count when uniform blocks aren't supported.
  *
- * This is used by the renderer implementation. If uniform blocks are supported, this will perform
- * the actual copy to the GPU buffer. If uniform blocks aren't supported, this clears the dirty
- * flags. The renderer implementation should do any checks for copying individual unfirom data
- * before calling this function.
- *
- * @remark errno will be set on failure.
- * @param commandBuffer The command buffer. Whether or not this is used depends on the
- *     implementation and should not be relied on to be executed with the command buffer.
- * @param group The shader variable group to commit changes for.
- * @return False if the variables couldn't be committed.
+ * The implementation can keep track of the commit count to avoid uploading setting uniforms that
+ * haven't changed value.
  */
-DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer,
-	dsShaderVariableGroup* group);
+DS_RENDER_EXPORT uint64_t dsShaderVariableGroup_getCommitCount(const dsShaderVariableGroup* group);
 
 /**
  * @brief Destroys a shader variable group.

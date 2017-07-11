@@ -22,6 +22,14 @@
 dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
 	dsPrimitiveType primitiveType);
+bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
+bool dsGLShader_updateVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues);
+bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader);
 bool dsGLShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
 
 void dsGLShader_addInternalRef(dsShader* shader);

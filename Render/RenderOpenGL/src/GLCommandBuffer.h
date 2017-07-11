@@ -19,6 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "Types.h"
 
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer);
+void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer);
+
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size);
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
@@ -35,6 +38,23 @@ bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	size_t syncCount, bool bufferReadback);
+
+bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates);
+bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
+bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture);
+bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
+bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
+bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data);
+bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
+bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

@@ -35,7 +35,7 @@ extern const char* dsResourceManager_noContextError;
 typedef struct PositionInfo
 {
 	dsShaderVariablePos pos;
-	bool dirty;
+	uint64_t commitCount;
 } PositionInfo;
 
 struct dsShaderVariableGroup
@@ -48,6 +48,7 @@ struct dsShaderVariableGroup
 	PositionInfo* rawDataPositions;
 	size_t dirtyStart;
 	size_t dirtyEnd;
+	uint64_t commitCount;
 };
 
 static uint32_t elementSize(const dsShaderVariableElement* element, const dsShaderVariablePos* pos)
@@ -170,7 +171,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	if (!allocator)
@@ -192,8 +193,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, totalSize));
 
-	dsShaderVariableGroup* group = dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsShaderVariableGroup));
+	dsShaderVariableGroup* group = (dsShaderVariableGroup*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableGroup));
 	DS_ASSERT(group);
 
 	group->resourceManager = resourceManager;
@@ -204,6 +205,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	group->rawDataPositions = NULL;
 	group->dirtyStart = (size_t)-1;
 	group->dirtyEnd = 0;
+	group->commitCount = 0;
 
 	size_t bufferSize = getRawBufferSize(description, useGfxBuffer);
 	DS_ASSERT(bufferSize > 0);
@@ -221,7 +223,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 		}
 	}
 
-	group->rawData = dsAllocator_alloc((dsAllocator*)&bufferAllocator, bufferSize);
+	group->rawData = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator, bufferSize);
 	DS_ASSERT(group->rawData);
 
 	// Cache the position of each element.
@@ -242,7 +244,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			group->rawDataPositions[i].pos.stride = stride;
 			group->rawDataPositions[i].pos.matrixColStride = dsMaterialType_cpuSize(
 				dsMaterialType_matrixColumnType(type));
-			group->rawDataPositions[i].dirty = false;
+			group->rawDataPositions[i].commitCount = 0;
 		}
 	}
 
@@ -305,7 +307,7 @@ bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup* group, uint32_t
 
 		// Stride is always set for raw data, even if not an array.
 		stride = pos->stride;
-		group->rawDataPositions[element].dirty = true;
+		group->rawDataPositions[element].commitCount = group->commitCount + 1;
 	}
 	else
 	{
@@ -325,33 +327,6 @@ bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup* group, uint32_t
 	memcpyData(group->rawData + pos->offset + stride*firstIndex,
 		group->description->elements + element, pos, data, count);
 	DS_PROFILE_FUNC_RETURN(true);
-}
-
-dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(const dsShaderVariableGroup* group)
-{
-	if (!group)
-		return NULL;
-
-	return group->buffer;
-}
-
-const void* dsShaderVariableGroup_getRawElementData(const dsShaderVariableGroup* group,
-	uint32_t element)
-{
-	if (!group || !group->rawDataPositions || element >= group->description->elementCount)
-		return NULL;
-
-	DS_ASSERT(group->rawData);
-	return group->rawData + group->rawDataPositions[element].pos.offset;
-}
-
-bool dsShaderVariableGroup_isElementDirty(const dsShaderVariableGroup* group,
-	uint32_t element)
-{
-	if (!group || !group->rawDataPositions || element >= group->description->elementCount)
-		return false;
-
-	return group->rawDataPositions[element].dirty;
 }
 
 bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* group)
@@ -376,12 +351,45 @@ bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariab
 		}
 	}
 	else if (group->rawDataPositions)
-	{
-		for (uint32_t i = 0; i < group->description->elementCount; ++i)
-			group->rawDataPositions[i].dirty = false;
-	}
+		++group->commitCount;
 
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+dsGfxBuffer* dsShaderVariableGroup_getGfxBuffer(const dsShaderVariableGroup* group)
+{
+	if (!group)
+		return NULL;
+
+	return group->buffer;
+}
+
+const void* dsShaderVariableGroup_getRawElementData(const dsShaderVariableGroup* group,
+	uint32_t element)
+{
+	if (!group || !group->rawDataPositions || element >= group->description->elementCount)
+		return NULL;
+
+	DS_ASSERT(group->rawData);
+	return group->rawData + group->rawDataPositions[element].pos.offset;
+}
+
+bool dsShaderVariableGroup_isElementDirty(const dsShaderVariableGroup* group,
+	uint32_t element, uint64_t commitCount)
+{
+	if (!group || !group->rawDataPositions || element >= group->description->elementCount)
+		return false;
+
+	return commitCount == DS_VARIABLE_GROUP_UNSET_COMMIT ||
+		commitCount < group->rawDataPositions[element].commitCount;
+}
+
+uint64_t dsShaderVariableGroup_getCommitCount(const dsShaderVariableGroup* group)
+{
+	if (!group)
+		return 0;
+
+	return group->commitCount;
 }
 
 bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group)

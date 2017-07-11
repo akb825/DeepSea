@@ -15,7 +15,33 @@
  */
 
 #include "GLCommandBuffer.h"
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+#include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(commandBuffer->allocator);
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	glCommandBuffer->commitCounts = NULL;
+	glCommandBuffer->commitCountSize = 0;
+	glCommandBuffer->insideRenderPass = false;
+}
+
+void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
+{
+	DS_ASSERT(commandBuffer);
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->commitCounts)
+		dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+}
 
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
@@ -62,6 +88,356 @@ bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSy
 {
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->setFenceSyncsFunc(commandBuffer, syncs, syncCount, bufferReadback);
+}
+
+bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(material);
+
+	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
+		return false;
+
+	dsGLShader* glShader = (dsGLShader*)shader;
+	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (materialDesc->elements[i].isVolatile)
+			continue;
+
+		switch (materialDesc->elements[i].type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsTexture* texture = dsMaterial_getTexture(material, i);
+				if (texture)
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
+				else
+				{
+					dsGfxFormat format;
+					size_t offset, count;
+					dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
+						material, i);
+					if (buffer)
+					{
+						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
+							format, offset, count);
+					}
+					else
+						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				size_t offset, size;
+				dsGfxBuffer* buffer = dsMaterial_getBuffer(&offset, &size, material, i);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No buffer set for material value '%s'", materialDesc->elements[i].name);
+					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+					return false;
+				}
+				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(material, i);
+				if (!variableGroup)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No variable group set for material value '%s'",
+						materialDesc->elements[i].name);
+					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+					return false;
+				}
+
+				if (useGfxBuffers)
+				{
+					if (glShader->uniforms[i].location < 0)
+						continue;
+
+					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
+					DS_ASSERT(buffer);
+					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
+						buffer->size);
+				}
+				else
+				{
+					const dsShaderVariableGroupDesc* groupDesc =
+						materialDesc->elements[i].shaderVariableGroupDesc;
+					DS_ASSERT(groupDesc);
+					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
+					{
+						if (glShader->uniforms[i].groupLocations[j] < 0)
+							continue;
+
+						dsGLCommandBuffer_setUniform(commandBuffer,
+							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
+							groupDesc->elements[j].count,
+							dsShaderVariableGroup_getRawElementData(variableGroup, j));
+					}
+				}
+				break;
+			}
+			default:
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsGLCommandBuffer_setUniform(commandBuffer, glShader->uniforms[i].location,
+					materialDesc->elements[i].type, materialDesc->elements[i].count,
+					dsMaterial_getRawElementData(material, i));
+				break;
+		}
+	}
+
+	if (!useGfxBuffers)
+	{
+		dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+		if (materialDesc->elementCount > glCommandBuffer->commitCountSize)
+		{
+			dsCommitCountInfo* newCommitCounts = (dsCommitCountInfo*)dsAllocator_alloc(
+				commandBuffer->allocator, sizeof(dsCommitCountInfo)*materialDesc->elementCount);
+			if (!newCommitCounts)
+			{
+				dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+				return false;
+			}
+
+			if (glCommandBuffer->commitCounts)
+				dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+			glCommandBuffer->commitCounts = newCommitCounts;
+			glCommandBuffer->commitCountSize = materialDesc->elementCount;
+		}
+
+		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+		{
+			glCommandBuffer->commitCounts[i].variableGroup = NULL;
+			glCommandBuffer->commitCounts[i].commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
+		}
+	}
+
+	if (!dsGLCommandBuffer_setVolatileMaterialValues(commandBuffer, shader, volatileValues))
+	{
+		dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->bindShaderFunc(commandBuffer, shader, renderStates);
+}
+
+bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setTextureFunc(commandBuffer, shader, element, texture);
+}
+
+bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setTextureBufferFunc(commandBuffer, shader, element, buffer, format, offset,
+		count);
+}
+
+bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setShaderBufferFunc(commandBuffer, shader, element, buffer, offset, size);
+}
+
+bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setUniformFunc(commandBuffer, location, type, count, data);
+}
+
+bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+
+	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	if (!volatileValues)
+		return true;
+
+	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
+	const dsGLShader* glShader = (const dsGLShader*)shader;
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (!materialDesc->elements[i].isVolatile)
+			continue;
+
+		uint32_t nameId = materialDesc->elements[i].nameId;
+		switch (materialDesc->elements[i].type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsTexture* texture = dsVolatileMaterialValues_getTextureId(volatileValues, nameId);
+				if (texture)
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
+				else
+				{
+					dsGfxFormat format;
+					size_t offset, count;
+					dsGfxBuffer* buffer = dsVolatileMaterialValues_getTextureBufferId(&format,
+						&offset, &count, volatileValues, i);
+					if (buffer)
+					{
+						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
+							format, offset, count);
+					}
+					else
+						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				size_t offset, size;
+				dsGfxBuffer* buffer = dsVolatileMaterialValues_getBufferId(&offset, &size,
+					volatileValues, nameId);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No buffer set for volatile material value '%s'",
+						materialDesc->elements[i].name);
+					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+					return false;
+				}
+				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				dsShaderVariableGroup* variableGroup = dsVolatileMaterialValues_getVariableGroupId(
+					volatileValues, nameId);
+				if (!variableGroup)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No variable group set for material value '%s'",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (useGfxBuffers)
+				{
+					if (glShader->uniforms[i].location < 0)
+						continue;
+
+					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
+					DS_ASSERT(buffer);
+					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
+						buffer->size);
+				}
+				else
+				{
+					const dsShaderVariableGroupDesc* groupDesc =
+						materialDesc->elements[i].shaderVariableGroupDesc;
+					DS_ASSERT(groupDesc);
+
+					uint64_t commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
+					if (glCommandBuffer->commitCounts[i].variableGroup == variableGroup)
+						commitCount = glCommandBuffer->commitCounts[i].commitCount;
+
+					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
+					{
+						if (glShader->uniforms[i].groupLocations[j] < 0 ||
+							!dsShaderVariableGroup_isElementDirty(variableGroup, j, commitCount))
+						{
+							continue;
+						}
+
+						dsGLCommandBuffer_setUniform(commandBuffer,
+							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
+							groupDesc->elements[j].count,
+							dsShaderVariableGroup_getRawElementData(variableGroup, j));
+					}
+
+					glCommandBuffer->commitCounts[i].variableGroup = variableGroup;
+					glCommandBuffer->commitCounts[i].commitCount =
+						dsShaderVariableGroup_getCommitCount(variableGroup);
+				}
+				break;
+			}
+			default:
+				DS_ASSERT(false);
+				break;
+		}
+	}
+
+	return true;
+}
+
+bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->unbindShaderFunc(commandBuffer, shader);
 }
 
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

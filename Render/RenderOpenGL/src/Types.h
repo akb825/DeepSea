@@ -131,6 +131,7 @@ typedef struct dsGLShader
 	dsShader shader;
 	dsGLResource resource;
 	mslPipeline pipeline;
+	mslRenderState renderState;
 	GLuint programId;
 	GLuint* samplerIds;
 	dsGLUniformInfo* uniforms;
@@ -221,6 +222,18 @@ typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture*
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	size_t syncCount, bool bufferReadback);
 
+typedef bool (*GLBindShaderFunctiion)(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates);
+typedef bool (*GLSetTextureFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture);
+typedef bool (*GLSetTextureBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
+typedef bool (*GLSetShaderBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
+typedef bool (*GLSetUniformFunction)(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data);
+typedef bool (*GLUnbindShaderFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader);
+
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -235,13 +248,31 @@ typedef struct CommandBufferFunctionTable
 
 	GLSetFenceSyncsFunction setFenceSyncsFunc;
 
+	GLBindShaderFunctiion bindShaderFunc;
+	GLSetTextureFunction setTextureFunc;
+	GLSetTextureBufferFunction setTextureBufferFunc;
+	GLSetShaderBufferFunction setShaderBufferFunc;
+	GLSetUniformFunction setUniformFunc;
+	GLUnbindShaderFunction unbindShaderFunc;
+
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;
+
+typedef struct dsCommitCountInfo
+{
+	const dsShaderVariableGroup* variableGroup;
+	uint64_t commitCount;
+} dsCommitCountInfo;
 
 typedef struct dsGLCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
 	const CommandBufferFunctionTable* functions;
+
+	dsCommitCountInfo* commitCounts;
+	uint32_t commitCountSize;
+
+	bool insideRenderPass;
 } dsGLCommandBuffer;
 
 typedef struct dsGLMainCommandBuffer dsGLMainCommandBuffer;

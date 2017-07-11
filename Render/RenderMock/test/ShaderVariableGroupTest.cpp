@@ -305,8 +305,9 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	EXPECT_FALSE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 1, 1));
 
+	uint64_t commitCount = dsShaderVariableGroup_getCommitCount(group);
 	for (uint32_t i = 0; i < desc->elementCount; ++i)
-		EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, i));
+		EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, i, commitCount));
 
 	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 0, &testValues.vec3Mem,
 		dsMaterialType_Vec3, 0, 1));
@@ -315,17 +316,18 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 2, &testValues.floatMem,
 		dsMaterialType_Float, 0, 1));
 
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 0));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 1));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 2));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 8));
-
+	commitCount = dsShaderVariableGroup_getCommitCount(group);
 	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 8, commitCount));
+
 	const void* elementPtr = dsShaderVariableGroup_getRawElementData(group, 0);
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.vec3Mem, elementPtr, sizeof(testValues.vec3Mem)));
@@ -345,17 +347,18 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 6, &testValues.matrix3x4Mem,
 		dsMaterialType_Mat3x4, 0, 1));
 
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 3));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 4));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 5));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 6));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 8));
-
+	commitCount = dsShaderVariableGroup_getCommitCount(group);
 	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 3, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 4, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 5, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 6, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 8, commitCount));
+
 	elementPtr = dsShaderVariableGroup_getRawElementData(group, 3);
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.intMem, elementPtr, sizeof(testValues.intMem)));
@@ -374,17 +377,18 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem,
 		dsMaterialType_Float, 0, 2));
 
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 7));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 8));
-
+	commitCount = dsShaderVariableGroup_getCommitCount(group);
 	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 7, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 8, commitCount));
+
 	elementPtr = dsShaderVariableGroup_getRawElementData(group, 7);
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.doubleMatrix2x3Mem, elementPtr,
@@ -396,17 +400,18 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	EXPECT_TRUE(dsShaderVariableGroup_setElementData(group, 8, testValues.floatArrayMem + 2,
 		dsMaterialType_Float, 2, 3));
 
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6));
-	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7));
-	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 8));
-
+	commitCount = dsShaderVariableGroup_getCommitCount(group);
 	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 3, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 4, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 5, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 6, commitCount));
+	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 7, commitCount));
+	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 8, commitCount));
+
 	elementPtr = dsShaderVariableGroup_getRawElementData(group, 0);
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.vec3Mem, elementPtr, sizeof(testValues.vec3Mem)));
