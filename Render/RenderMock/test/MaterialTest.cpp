@@ -358,7 +358,8 @@ TEST_F(MaterialTest, TextureBuffers)
 	EXPECT_FALSE(dsMaterial_setTextureBuffer(material, 6, buffer1, format, 0, 256));
 
 	EXPECT_TRUE(dsMaterial_setTextureBuffer(material, 1, buffer1, format, 0, 256));
-	EXPECT_TRUE(dsMaterial_setTextureBuffer(material, 3, buffer2, format, 24, 20));
+	EXPECT_FALSE(dsMaterial_setTextureBuffer(material, 3, buffer2, format, 24, 20));
+	EXPECT_TRUE(dsMaterial_setTextureBuffer(material, 3, buffer2, format, 32, 20));
 
 	dsGfxFormat storedFormat;
 	size_t offset, count;
@@ -372,13 +373,19 @@ TEST_F(MaterialTest, TextureBuffers)
 	EXPECT_FALSE(dsMaterial_getTextureBuffer(NULL, NULL, NULL, material, 2));
 	EXPECT_EQ(buffer2, dsMaterial_getTextureBuffer(&storedFormat, &offset, &count, material, 3));
 	EXPECT_EQ(format, storedFormat);
-	EXPECT_EQ(24U, offset);
+	EXPECT_EQ(32U, offset);
 	EXPECT_EQ(20U, count);
 	EXPECT_FALSE(dsMaterial_getTextureBuffer(NULL, NULL, NULL, material, 4));
 	EXPECT_FALSE(dsMaterial_getTextureBuffer(NULL, NULL, NULL, material, 5));
 
 	resourceManager->maxTextureBufferSize = 256;
 	EXPECT_FALSE(dsMaterial_setTextureBuffer(material, 1, buffer1, format, 0, 256));
+
+	resourceManager->maxTextureBufferSize = 64*1024;
+	resourceManager->hasTextureBufferSubrange = false;
+	EXPECT_FALSE(dsMaterial_setTextureBuffer(material, 1, buffer1, format, 4, 255));
+	EXPECT_FALSE(dsMaterial_setTextureBuffer(material, 1, buffer1, format, 0, 255));
+	EXPECT_TRUE(dsMaterial_setTextureBuffer(material, 1, buffer1, format, 0, 256));
 
 	dsMaterial_destroy(material);
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));

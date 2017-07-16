@@ -1035,6 +1035,12 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->supportedBuffers = getSupportedBuffers(options->disableFeatures);
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
+	baseResourceManager->hasTextureBufferSubrange = ANYGL_SUPPORTED(glTexBufferRange);
+	if (baseResourceManager->hasTextureBufferSubrange)
+	{
+		glGetIntegerv(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT,
+			(GLint*)&baseResourceManager->minTextureBufferAlignment);
+	}
 
 	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_atLeastVersion(3, 0, true) ||
 		AnyGL_OES_element_index_uint)

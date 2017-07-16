@@ -64,7 +64,7 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 	{
 		if (resourceContextCount >= resourceManager->maxResourceContexts)
 		{
-			errno = EINDEX;
+			errno = ESIZE;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Maximum render contexts exceeded.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}

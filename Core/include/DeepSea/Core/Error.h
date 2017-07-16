@@ -37,9 +37,14 @@ extern "C"
 #define EINDEX 10000
 
 /**
+ * @brief Error code for a size that is invalid.
+ */
+#define ESIZE 10001
+
+/**
  * @brief Error code for invalid file format.
  */
-#define EFORMAT 10001
+#define EFORMAT 10002
 
 /**
  * @brief Executes a statement and prints an error if it fails.

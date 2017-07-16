@@ -119,8 +119,10 @@ TEST_F(VolatileMaterialValuesTest, TextureBuffers)
 		format, 0, 256));
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format,
 		0, 256));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferId(values, dsHashString("test2"), buffer2,
+	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferId(values, dsHashString("test2"), buffer2,
 		format, 24, 20));
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferId(values, dsHashString("test2"), buffer2,
+		format, 32, 20));
 
 	EXPECT_EQ(2U, dsVolatileMaterialValues_getValueCount(values));
 
@@ -135,7 +137,7 @@ TEST_F(VolatileMaterialValuesTest, TextureBuffers)
 	EXPECT_EQ(buffer2, dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
 		values, "test2"));
 	EXPECT_EQ(format, storedFormat);
-	EXPECT_EQ(24U, offset);
+	EXPECT_EQ(32U, offset);
 	EXPECT_EQ(20U, count);
 
 	EXPECT_FALSE(dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
@@ -173,6 +175,15 @@ TEST_F(VolatileMaterialValuesTest, TextureBuffers)
 
 	resourceManager->maxTextureBufferSize = 256;
 	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
+		256));
+
+	resourceManager->maxTextureBufferSize = 64*1024;
+	resourceManager->hasTextureBufferSubrange = false;
+	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 4,
+		255));
+	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
+		255));
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test", buffer1, format, 0,
 		256));
 
 	dsVolatileMaterialValues_destroy(values);

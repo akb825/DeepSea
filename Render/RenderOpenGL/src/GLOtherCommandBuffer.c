@@ -18,6 +18,7 @@
 
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLGfxFence.h"
+#include "Resources/GLShader.h"
 #include "Resources/GLTexture.h"
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
@@ -27,6 +28,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/MaterialType.h>
 #include <string.h>
 
 typedef enum CommandType
@@ -36,6 +38,12 @@ typedef enum CommandType
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
 	CommandType_BlitTexture,
+	CommandType_BindShader,
+	CommandType_SetTexture,
+	CommandType_SetTextureBuffer,
+	CommandType_SetShaderBuffer,
+	CommandType_SetUniform,
+	CommandType_UnbindShader
 } CommandType;
 
 typedef struct Command
@@ -93,6 +101,58 @@ typedef struct BlitTextureCommand
 	size_t regionCount;
 	dsTextureBlitRegion regions[];
 } BlitTextureCommand;
+
+typedef struct BindShaderCommand
+{
+	Command command;
+	const dsShader* shader;
+	dsDynamicRenderStates renderStates;
+} BindShaderCommand;
+
+typedef struct SetTextureCommand
+{
+	Command command;
+	const dsShader* shader;
+	dsTexture* texture;
+	uint32_t element;
+} SetTextureCommand;
+
+typedef struct SetTextureBufferCommand
+{
+	Command command;
+	const dsShader* shader;
+	dsGfxBuffer* buffer;
+	uint32_t element;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+} SetTextureBufferCommand;
+
+typedef struct SetShaderBufferCommand
+{
+	Command command;
+	const dsShader* shader;
+	dsGfxBuffer* buffer;
+	uint32_t element;
+	size_t offset;
+	size_t size;
+} SetShaderBufferCommand;
+
+typedef struct SetUniformCommand
+{
+	Command command;
+	GLint location;
+	dsMaterialType type;
+	uint32_t count;
+	// Type with the most strict alignment.
+	double data[];
+} SetUniformCommand;
+
+typedef struct UnbindShaderCommand
+{
+	Command command;
+	const dsShader* shader;
+} UnbindShaderCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -255,6 +315,102 @@ bool dsGLOtherCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFe
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates)
+{
+	BindShaderCommand* command = (BindShaderCommand*)allocateCommand(commandBuffer,
+		CommandType_BindShader, sizeof(BindShaderCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	command->shader = shader;
+	command->renderStates = *renderStates;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture)
+{
+	SetTextureCommand* command = (SetTextureCommand*)allocateCommand(commandBuffer,
+		CommandType_SetTexture, sizeof(SetTextureCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	dsGLTexture_addInternalRef(texture);
+	command->shader = shader;
+	command->texture = texture;
+	command->element = element;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	SetTextureBufferCommand* command = (SetTextureBufferCommand*)allocateCommand(commandBuffer,
+		CommandType_SetTextureBuffer, sizeof(SetTextureBufferCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	dsGLGfxBuffer_addInternalRef(buffer);
+	command->shader = shader;
+	command->buffer = buffer;
+	command->element = element;
+	command->format = format;
+	command->offset = offset;
+	command->count = count;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size)
+{
+	SetShaderBufferCommand* command = (SetShaderBufferCommand*)allocateCommand(commandBuffer,
+		CommandType_SetShaderBuffer, sizeof(SetShaderBufferCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	dsGLGfxBuffer_addInternalRef(buffer);
+	command->shader = shader;
+	command->buffer = buffer;
+	command->element = element;
+	command->offset = offset;
+	command->size = size;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data)
+{
+	size_t dataSize = dsMaterialType_cpuSize(type)*dsMax(1U, count);
+	size_t commandSize = sizeof(SetUniformCommand) + dataSize;
+	SetUniformCommand* command = (SetUniformCommand*)allocateCommand(commandBuffer,
+		CommandType_SetUniform, commandSize);
+	if (!command)
+		return false;
+
+	command->location = location;
+	command->type = type;
+	command->count = count;
+	memcpy(command->data, data, dataSize);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	UnbindShaderCommand* command = (UnbindShaderCommand*)allocateCommand(commandBuffer,
+		CommandType_UnbindShader, sizeof(UnbindShaderCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	command->shader = shader;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	dsGLOtherCommandBuffer* glSubmitBuffer = (dsGLOtherCommandBuffer*)submitBuffer;
@@ -305,6 +461,48 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->filter);
 				break;
 			}
+			case CommandType_BindShader:
+			{
+				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
+				dsGLCommandBuffer_bindShader(commandBuffer, thisCommand->shader,
+					&thisCommand->renderStates);
+				break;
+			}
+			case CommandType_SetTexture:
+			{
+				SetTextureCommand* thisCommand = (SetTextureCommand*)command;
+				dsGLCommandBuffer_setTexture(commandBuffer, thisCommand->shader,
+					thisCommand->element, thisCommand->texture);
+				break;
+			}
+			case CommandType_SetTextureBuffer:
+			{
+				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
+				dsGLCommandBuffer_setTextureBuffer(commandBuffer, thisCommand->shader,
+					thisCommand->element, thisCommand->buffer, thisCommand->format,
+					thisCommand->offset, thisCommand->count);
+				break;
+			}
+			case CommandType_SetShaderBuffer:
+			{
+				SetShaderBufferCommand* thisCommand = (SetShaderBufferCommand*)command;
+				dsGLCommandBuffer_setShaderBuffer(commandBuffer, thisCommand->shader,
+					thisCommand->element, thisCommand->buffer, thisCommand->offset,
+					thisCommand->size);
+			}
+			case CommandType_SetUniform:
+			{
+				SetUniformCommand* thisCommand = (SetUniformCommand*)command;
+				dsGLCommandBuffer_setUniform(commandBuffer, thisCommand->location,
+					thisCommand->type, thisCommand->count, thisCommand->data);
+				break;
+			}
+			case CommandType_UnbindShader:
+			{
+				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
+				dsGLCommandBuffer_unbindShader(commandBuffer, thisCommand->shader);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -334,6 +532,12 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyTexture,
 	&dsGLOtherCommandBuffer_blitTexture,
 	&dsGLOtherCommandBuffer_setFenceSyncs,
+	&dsGLOtherCommandBuffer_bindShader,
+	&dsGLOtherCommandBuffer_setTexture,
+	&dsGLOtherCommandBuffer_setTextureBuffer,
+	&dsGLOtherCommandBuffer_setShaderBuffer,
+	&dsGLOtherCommandBuffer_setUniform,
+	&dsGLOtherCommandBuffer_unbindShader,
 	&dsGLOtherCommandBuffer_submit
 };
 
@@ -422,6 +626,41 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
 				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
 				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_BindShader:
+			{
+				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
+			case CommandType_SetTexture:
+			{
+				SetTextureCommand* thisCommand = (SetTextureCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_SetTextureBuffer:
+			{
+				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_SetShaderBuffer:
+			{
+				SetShaderBufferCommand* thisCommand = (SetShaderBufferCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
+				break;
+			}
+			case CommandType_SetUniform:
+				break;
+			case CommandType_UnbindShader:
+			{
+				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
 				break;
 			}
 			default:

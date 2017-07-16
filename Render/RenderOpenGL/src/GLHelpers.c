@@ -251,3 +251,23 @@ GLenum dsGetGLAddressMode(mslAddressMode addressMode)
 	DS_ASSERT(false);
 	return GL_REPEAT;
 }
+
+GLenum dsGetGLCompareOp(mslCompareOp compareOp)
+{
+	static const GLenum compareOpMap[] =
+	{
+		GL_NEVER,
+		GL_LESS,
+		GL_EQUAL,
+		GL_LEQUAL,
+		GL_GREATER,
+		GL_NOTEQUAL,
+		GL_GEQUAL,
+		GL_ALWAYS
+	};
+
+	if (compareOp == mslCompareOp_Unset)
+		compareOp = mslCompareOp_Less;
+	DS_ASSERT((unsigned int)compareOp < DS_ARRAY_SIZE(compareOpMap));
+	return compareOpMap[compareOp];
+}

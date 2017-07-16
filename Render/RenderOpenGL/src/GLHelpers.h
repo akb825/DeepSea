@@ -36,3 +36,5 @@ bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems,
 GLenum dsGetGLMinFilter(mslFilter minFilter, mslMipFilter mipFilter);
 GLenum dsGetGLMagFilter(mslFilter magFilter);
 GLenum dsGetGLAddressMode(mslAddressMode addressMode);
+
+GLenum dsGetGLCompareOp(mslCompareOp compareOp);

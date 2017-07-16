@@ -1600,6 +1600,11 @@ struct dsResourceManager
 	uint32_t minMappingAlignment;
 
 	/**
+	 * @brief The minimum alignment for texture buffers.
+	 */
+	uint32_t minTextureBufferAlignment;
+
+	/**
 	 * @brief Bitmask for the supported buffer types.
 	 */
 	dsGfxBufferUsage supportedBuffers;
@@ -1613,6 +1618,11 @@ struct dsResourceManager
 	 * @brief Whether or not buffers can be copied between each other.
 	 */
 	bool canCopyBuffers;
+
+	/**
+	 * @brief Whether or not texture buffers can be a subrange of the buffer.
+	 */
+	bool hasTextureBufferSubrange;
 
 	/**
 	 * @brief The maximum number of bits for each index.

@@ -42,6 +42,8 @@ struct dsGLMainCommandBuffer
 	GLuint currentProgram;
 
 	mslRenderState currentState;
+	GLuint defaultSamplers[2];
+	mslSamplerState defaultSamplerState;
 };
 
 static const GLenum polygonModeMap[] =
@@ -894,6 +896,165 @@ static void setRenderStates(const dsRenderer* renderer, mslRenderState* curState
 	setBlendStates(renderer, &curState->blendState, &newState->blendState, dynamicStates);
 }
 
+static void updateSamplers(const dsRenderer* renderer, const dsGLShader* shader)
+{
+	if (AnyGL_EXT_texture_filter_anisotropic &&
+		renderer->defaultAnisotropy != shader->defaultAnisotropy)
+	{
+		for (uint32_t i = 0; i < shader->pipeline.samplerStateCount; ++i)
+		{
+			if (shader->samplerStates[i].maxAnisotropy == MSL_UNKNOWN_FLOAT)
+			{
+				glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_ANISOTROPY_EXT,
+					renderer->defaultAnisotropy);
+			}
+		}
+		((dsGLShader*)shader)->defaultAnisotropy = renderer->defaultAnisotropy;
+	}
+}
+
+static void setTextureState(const dsRenderer* renderer, const mslSamplerState* samplerState,
+	GLenum target, dsGLTexture* texture, bool isShadowSampler)
+{
+	GLenum curEnum = dsGetGLMinFilter(samplerState->minFilter, samplerState->mipFilter);
+	if (texture->minFilter != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_MIN_FILTER, curEnum);
+		texture->minFilter = curEnum;
+	}
+
+	curEnum = dsGetGLMagFilter(samplerState->magFilter);
+	if (texture->magFilter != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_MAG_FILTER, curEnum);
+		texture->magFilter = curEnum;
+	}
+
+	curEnum = dsGetGLAddressMode(samplerState->addressModeU);
+	if (texture->addressModeS != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_WRAP_S, curEnum);
+		texture->addressModeS = curEnum;
+	}
+
+	curEnum = dsGetGLAddressMode(samplerState->addressModeV);
+	if (texture->addressModeT != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_WRAP_T, curEnum);
+		texture->addressModeT = curEnum;
+	}
+
+	if (renderer->resourceManager->maxTextureDepth > 0)
+	{
+		curEnum = dsGetGLAddressMode(samplerState->addressModeW);
+		if (texture->addressModeR != curEnum)
+		{
+			glTextureParameteri(target, GL_TEXTURE_WRAP_R, curEnum);
+			texture->addressModeR = curEnum;
+		}
+	}
+
+	float curFloat;
+	if (AnyGL_EXT_texture_filter_anisotropic)
+	{
+		curFloat = samplerState->maxAnisotropy == MSL_UNKNOWN_FLOAT ?
+			renderer->defaultAnisotropy : samplerState->maxAnisotropy;
+		if (texture->anisotropy != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, curFloat);
+			texture->anisotropy = curFloat;
+		}
+	}
+
+	if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+	{
+		curFloat = samplerState->mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState->mipLodBias;
+		if (texture->mipLodBias != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_LOD_BIAS, curFloat);
+			texture->mipLodBias = curFloat;
+		}
+
+		curFloat = samplerState->minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState->minLod;
+		if (texture->minLod != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MIN_LOD, curFloat);
+			texture->minLod = curFloat;
+		}
+
+		curFloat = samplerState->maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState->maxLod;
+		if (texture->maxLod != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MAX_LOD, curFloat);
+			texture->maxLod = curFloat;
+		}
+	}
+
+	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
+	{
+		if (texture->borderColor != samplerState->borderColor)
+		{
+			switch (samplerState->borderColor)
+			{
+				case mslBorderColor_Unset:
+				case mslBorderColor_TransparentBlack:
+				{
+					float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_TransparentIntZero:
+				{
+					GLint color[4] = {0, 0, 0, 0};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueBlack:
+				{
+					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueIntZero:
+				{
+					GLint color[4] = {0, 0, 0, 1};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueWhite:
+				{
+					float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueIntOne:
+				{
+					GLint color[4] = {1, 1, 1, 1};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+			}
+		}
+	}
+
+	if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+	{
+		if (texture->compareEnabled != isShadowSampler)
+		{
+			glTextureParameteri(target, GL_TEXTURE_COMPARE_MODE,
+				isShadowSampler ? GL_COMPARE_R_TO_TEXTURE : GL_NONE);
+			texture->compareEnabled = isShadowSampler;
+		}
+
+		curEnum = dsGetGLCompareOp(samplerState->compareOp);
+		if (texture->compareOp != curEnum)
+		{
+			glTextureParameteri(target, GL_TEXTURE_COMPARE_FUNC, curEnum);
+			texture->compareOp = curEnum;
+		}
+	}
+}
+
 bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -1227,6 +1388,218 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 
 	setRenderStates(commandBuffer->renderer, &glCommandBuffer->currentState, &glShader->renderState,
 		renderStates);
+	updateSamplers(commandBuffer->renderer, glShader);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture)
+{
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	const dsGLShader* glShader = (const dsGLShader*)shader;
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+
+	uint32_t textureIndex = glShader->uniforms[element].location;
+	uint32_t samplerIndex = glShader->uniforms[element].samplerIndex;
+	GLuint textureId = glTexture ? glTexture->textureId : 0;
+	glActiveTexture(GL_TEXTURE0 + textureIndex);
+	GLenum target = dsGLTexture_target(texture);
+	glBindTexture(target, textureId);
+
+	bool isShadowSampler = glShader->uniforms[element].isShadowSampler != 0;
+	if (ANYGL_SUPPORTED(glBindSampler))
+	{
+		if (samplerIndex == MSL_UNKNOWN)
+			glBindSampler(textureIndex, glCommandBuffer->defaultSamplers[isShadowSampler]);
+		else
+			glBindSampler(textureIndex, glShader->samplerIds[samplerIndex]);
+	}
+	else if (glTexture)
+	{
+		setTextureState(commandBuffer->renderer, glShader->samplerStates + samplerIndex,
+			target, glTexture, isShadowSampler);
+	}
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(buffer);
+	const dsGLShader* glShader = (const dsGLShader*)shader;
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	GLenum internalFormat;
+	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, NULL, NULL,
+		shader->resourceManager, format));
+
+	uint32_t textureIndex = glShader->uniforms[element].location;
+	glActiveTexture(GL_TEXTURE0 + textureIndex);
+	if (ANYGL_SUPPORTED(glTexBufferRange))
+	{
+		glTexBufferRange(GL_TEXTURE_BUFFER, internalFormat, glBuffer->bufferId, offset,
+			dsGfxFormat_size(format)*count);
+	}
+	else
+		glTextureBuffer(GL_TEXTURE_BUFFER, internalFormat, glBuffer->bufferId);
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size)
+{
+	DS_UNUSED(commandBuffer);
+	const dsGLShader* glShader = (const dsGLShader*)shader;
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+
+	GLenum type = 0;
+	switch (shader->materialDesc->elements[element].type)
+	{
+		case dsMaterialType_UniformBlock:
+		case dsMaterialType_VariableGroup:
+			type = GL_UNIFORM_BUFFER;
+			break;
+		case dsMaterialType_UniformBuffer:
+			type = GL_SHADER_STORAGE_BUFFER;
+			break;
+		default:
+			DS_ASSERT(false);
+	}
+
+	glBindBufferRange(type, glShader->uniforms[element].location,
+		glBuffer ? glBuffer->bufferId : 0, offset, size);
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data)
+{
+	DS_UNUSED(commandBuffer);
+	count = dsMax(1U, count);
+	// Compiling and getting the uniform locations should have already given errors for unsupporte
+	// types, so shouldn't have to do error checking here.
+	switch (type)
+	{
+		case dsMaterialType_Float:
+			glUniform1fv(location, count, (const float*)data);
+			break;
+		case dsMaterialType_Vec2:
+			glUniform2fv(location, count, (const float*)data);
+			break;
+		case dsMaterialType_Vec3:
+			glUniform3fv(location, count, (const float*)data);
+			break;
+		case dsMaterialType_Vec4:
+			glUniform4fv(location, count, (const float*)data);
+			break;
+		case dsMaterialType_Double:
+			glUniform1dv(location, count, (const double*)data);
+			break;
+		case dsMaterialType_DVec2:
+			glUniform2dv(location, count, (const double*)data);
+			break;
+		case dsMaterialType_DVec3:
+			glUniform3dv(location, count, (const double*)data);
+			break;
+		case dsMaterialType_DVec4:
+			glUniform4dv(location, count, (const double*)data);
+			break;
+		case dsMaterialType_Int:
+		case dsMaterialType_Bool:
+			glUniform1iv(location, count, (const int*)data);
+			break;
+		case dsMaterialType_IVec2:
+		case dsMaterialType_BVec2:
+			glUniform2iv(location, count, (const int*)data);
+			break;
+		case dsMaterialType_IVec3:
+		case dsMaterialType_BVec3:
+			glUniform3iv(location, count, (const int*)data);
+			break;
+		case dsMaterialType_IVec4:
+		case dsMaterialType_BVec4:
+			glUniform4iv(location, count, (const int*)data);
+			break;
+		case dsMaterialType_UInt:
+			glUniform1uiv(location, count, (const unsigned int*)data);
+			break;
+		case dsMaterialType_UVec2:
+			glUniform2uiv(location, count, (const unsigned int*)data);
+			break;
+		case dsMaterialType_UVec3:
+			glUniform3uiv(location, count, (const unsigned int*)data);
+			break;
+		case dsMaterialType_UVec4:
+			glUniform4uiv(location, count, (const unsigned int*)data);
+			break;
+		case dsMaterialType_Mat2:
+			glUniformMatrix2fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat3:
+			glUniformMatrix3fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat4:
+			glUniformMatrix4fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat2x3:
+			glUniformMatrix2x3fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat2x4:
+			glUniformMatrix2x4fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat3x2:
+			glUniformMatrix3x2fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat3x4:
+			glUniformMatrix3x4fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat4x2:
+			glUniformMatrix4x2fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_Mat4x3:
+			glUniformMatrix4x3fv(location, count, false, (const float*)data);
+			break;
+		case dsMaterialType_DMat2:
+			glUniformMatrix2dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat3:
+			glUniformMatrix3dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat4:
+			glUniformMatrix4dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat2x3:
+			glUniformMatrix2x3dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat2x4:
+			glUniformMatrix2x3dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat3x2:
+			glUniformMatrix3x2dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat3x4:
+			glUniformMatrix3x4dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat4x2:
+			glUniformMatrix4x2dv(location, count, false, (const double*)data);
+			break;
+		case dsMaterialType_DMat4x3:
+			glUniformMatrix4x3dv(location, count, false, (const double*)data);
+			break;
+		default:
+			DS_ASSERT(false);
+	}
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(shader);
 	return true;
 }
 
@@ -1246,6 +1619,11 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_blitTexture,
 	&dsGLMainCommandBuffer_setFenceSyncs,
 	&dsGLMainCommandBuffer_bindShader,
+	&dsGLMainCommandBuffer_setTexture,
+	&dsGLMainCommandBuffer_setTextureBuffer,
+	&dsGLMainCommandBuffer_setShaderBuffer,
+	&dsGLMainCommandBuffer_setUniform,
+	&dsGLMainCommandBuffer_unbindShader,
 	&dsGLMainCommandBuffer_submit
 };
 
@@ -1269,6 +1647,24 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->bufferReadback = false;
 
 	commandBuffer->currentProgram = 0;
+	if (ANYGL_SUPPORTED(glGenSamplers))
+	{
+		glGenSamplers(2, commandBuffer->defaultSamplers);
+		glSamplerParameteri(commandBuffer->defaultSamplers[1], GL_TEXTURE_COMPARE_MODE,
+			GL_COMPARE_R_TO_TEXTURE);
+	}
+
+	commandBuffer->defaultSamplerState.minFilter = mslFilter_Unset;
+	commandBuffer->defaultSamplerState.magFilter = mslFilter_Unset;
+	commandBuffer->defaultSamplerState.mipFilter = mslMipFilter_Unset;
+	commandBuffer->defaultSamplerState.addressModeU = mslAddressMode_Unset;
+	commandBuffer->defaultSamplerState.addressModeV = mslAddressMode_Unset;
+	commandBuffer->defaultSamplerState.addressModeW = mslAddressMode_Unset;
+	commandBuffer->defaultSamplerState.mipLodBias = MSL_UNKNOWN_FLOAT;
+	commandBuffer->defaultSamplerState.minLod = MSL_UNKNOWN_FLOAT;
+	commandBuffer->defaultSamplerState.maxLod = MSL_UNKNOWN_FLOAT;
+	commandBuffer->defaultSamplerState.borderColor = mslBorderColor_Unset;
+	commandBuffer->defaultSamplerState.compareOp = mslCompareOp_Unset;
 
 	dsGLCommandBuffer_initialize(baseCommandBuffer);
 	dsGLMainCommandBuffer_resetState(commandBuffer);
@@ -1284,6 +1680,8 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	resetBlendState(&commandBuffer->currentState.blendState);
 
 	commandBuffer->currentState.patchControlPoints = MSL_UNKNOWN;
+	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_seamless_cube_map)
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
@@ -1299,6 +1697,9 @@ bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
 			dsGLFenceSyncRef_freeRef(commandBuffer->fenceSyncs[i]);
 		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
 	}
+
+	if (ANYGL_SUPPORTED(glDeleteSamplers))
+		glDeleteSamplers(2, commandBuffer->defaultSamplers);
 
 	dsGLCommandBuffer_shutdown((dsCommandBuffer*)commandBuffer);
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer));

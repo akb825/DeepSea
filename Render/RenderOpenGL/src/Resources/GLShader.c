@@ -35,17 +35,21 @@
 
 #define DS_BUFFER_SIZE 256
 
-static const GLenum compareOpMap[] =
+static bool isShadowSampler(mslType type)
 {
-	GL_NEVER,
-	GL_LESS,
-	GL_EQUAL,
-	GL_LEQUAL,
-	GL_GREATER,
-	GL_NOTEQUAL,
-	GL_GEQUAL,
-	GL_ALWAYS
-};
+	switch (type)
+	{
+		case mslType_Sampler1DShadow:
+		case mslType_Sampler2DShadow:
+		case mslType_Sampler1DArrayShadow:
+		case mslType_Sampler2DArrayShadow:
+		case mslType_SamplerCubeShadow:
+		case mslType_Sampler2DRectShadow:
+			return true;
+		default:
+			return false;
+	}
+}
 
 static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shaderIndex)
 {
@@ -70,9 +74,9 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 		}
 		if (AnyGL_EXT_texture_filter_anisotropic)
 		{
-			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_ANISOTROPY_EXT,
-				samplerState.maxAnisotropy == MSL_UNKNOWN_FLOAT ? 1.0f :
-				samplerState.maxAnisotropy);
+			float anisotropy = samplerState.maxAnisotropy == MSL_UNKNOWN_FLOAT ?
+				shader->defaultAnisotropy : samplerState.maxAnisotropy;
+			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 
 		if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
@@ -80,9 +84,9 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_LOD_BIAS,
 				samplerState.mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.mipLodBias);
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MIN_LOD,
-				samplerState.minLod == MSL_UNKNOWN ? -1000 : samplerState.minLod);
+				samplerState.minLod == MSL_UNKNOWN ? -1000.0f : samplerState.minLod);
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_LOD,
-				samplerState.maxLod == MSL_UNKNOWN ? 1000 : samplerState.maxLod);
+				samplerState.maxLod == MSL_UNKNOWN ? 1000.0f : samplerState.maxLod);
 		}
 
 		if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
@@ -129,12 +133,8 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 			}
 		}
 
-		mslCompareOp compareOp = samplerState.compareOp;
-		if (compareOp == mslCompareOp_Unset)
-			compareOp = mslCompareOp_Less;
-		DS_ASSERT((unsigned int)compareOp < DS_ARRAY_SIZE(compareOpMap));
 		glSamplerParameteri(shader->samplerIds[i], GL_TEXTURE_COMPARE_FUNC,
-			compareOpMap[compareOp]);
+			dsGetGLCompareOp(samplerState.compareOp));
 	}
 }
 
@@ -170,22 +170,6 @@ static uint32_t getUsedTextures(mslModule* module, uint32_t shaderIndex,
 	return mask;
 }
 
-static bool isShadowSampler(mslType type)
-{
-	switch (type)
-	{
-		case mslType_Sampler1DShadow:
-		case mslType_Sampler2DShadow:
-		case mslType_Sampler1DArrayShadow:
-		case mslType_Sampler2DArrayShadow:
-		case mslType_SamplerCubeShadow:
-		case mslType_Sampler2DRectShadow:
-			return true;
-		default:
-			return false;
-	}
-}
-
 static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDesc,
 	mslModule* module, uint32_t shaderIndex, bool useGfxBuffers)
 {
@@ -193,6 +177,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 	glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&prevProgram);
 	glUseProgram(shader->programId);
 
+	uint32_t blockBindings = 0;
 	uint32_t usedTextures = getUsedTextures(module, shaderIndex, &shader->pipeline);
 	char nameBuffer[DS_BUFFER_SIZE];
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
@@ -209,7 +194,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				{
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Uniform name '%s' is too long.",
 						materialDesc->elements[i].name);
-					errno = EINDEX;
+					errno = ESIZE;
 					glUseProgram(prevProgram);
 					return false;
 				}
@@ -217,26 +202,34 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline,
 					nameBuffer);
 				if (uniformIndex == MSL_UNKNOWN)
+				{
 					shader->uniforms[i].location = -1;
+					shader->uniforms[i].isShadowSampler = false;
+					shader->uniforms[i].samplerIndex = MSL_UNKNOWN;
+				}
 				else
 				{
 					GLint binding = glGetUniformLocation(shader->programId, nameBuffer);
 					if (binding < 0)
 					{
 						shader->uniforms[i].location = -1;
+						shader->uniforms[i].isShadowSampler = false;
+						shader->uniforms[i].samplerIndex = MSL_UNKNOWN;
 						continue;
 					}
 
 					mslUniform uniform;
 					DS_VERIFY(mslModule_uniform(&uniform, module, shaderIndex, uniformIndex));
 					shader->uniforms[i].samplerIndex = uniform.samplerIndex;
+					shader->uniforms[i].isShadowSampler = isShadowSampler(uniform.type);
 					if (shader->samplerIds && uniform.samplerIndex != MSL_UNKNOWN &&
-						isShadowSampler(uniform.type))
+						shader->uniforms[i].isShadowSampler)
 					{
 						glSamplerParameteri(shader->samplerIds[uniform.samplerIndex],
-							GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+							GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 					}
 
+					// Find a free texture index if not explicitly set.
 					uint32_t textureIndex = uniform.binding;
 					if (textureIndex == MSL_UNKNOWN)
 					{
@@ -267,15 +260,35 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			}
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
-				shader->uniforms[i].location = glGetUniformBlockIndex(shader->programId,
+			{
+				GLint blockIndex = glGetUniformBlockIndex(shader->programId,
 					materialDesc->elements[i].name);
+				if (blockIndex >= 0)
+				{
+					shader->uniforms[i].location = blockBindings;
+					glUniformBlockBinding(shader->programId, blockIndex,
+						shader->uniforms[i].location);
+				}
+				else
+					shader->uniforms[i].location = -1;
+				++blockBindings;
 				break;
+			}
 			case dsMaterialType_VariableGroup:
 			{
 				if (useGfxBuffers)
 				{
-					shader->uniforms[i].location = glGetUniformBlockIndex(shader->programId,
+					GLint blockIndex = glGetUniformBlockIndex(shader->programId,
 						materialDesc->elements[i].name);
+					if (blockIndex >= 0)
+					{
+						shader->uniforms[i].location = blockBindings;
+						glUniformBlockBinding(shader->programId, blockIndex,
+							shader->uniforms[i].location);
+					}
+					else
+						shader->uniforms[i].location = -1;
+					++blockBindings;
 				}
 				else
 				{
@@ -315,6 +328,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				}
 
 				shader->uniforms[i].location = glGetUniformLocation(shader->programId, nameBuffer);
+				break;
 			}
 		}
 	}
@@ -443,10 +457,11 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	bool hasSamplers = ANYGL_SUPPORTED(glGenSamplers);
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(resourceManager);
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShader));
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsGLShader)) +
+		DS_ALIGNED_SIZE(sizeof(mslSamplerState)*pipeline.samplerStateCount) +
+		DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount);
 	if (hasSamplers)
 		fullSize += DS_ALIGNED_SIZE(sizeof(GLuint)*pipeline.samplerStateCount);
-	fullSize += DS_ALIGNED_SIZE(sizeof(dsGLUniformInfo)*materialDesc->elementCount);
 	if (!useGfxBuffers)
 	{
 		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
@@ -504,6 +519,20 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 	else
 		shader->samplerIds = NULL;
+
+	if (pipeline.samplerStateCount > 0)
+	{
+		shader->samplerStates = (mslSamplerState*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+			sizeof(mslSamplerState)*pipeline.samplerStateCount);
+		DS_ASSERT(shader->samplerStates);
+		for (uint32_t i = 0; i < pipeline.samplerStateCount; ++i)
+		{
+			DS_VERIFY(mslModule_samplerState(shader->samplerStates + i, module->module, shaderIndex,
+				i));
+		}
+	}
+	else
+		shader->samplerStates = NULL;
 
 	if (materialDesc->elementCount > 0)
 	{

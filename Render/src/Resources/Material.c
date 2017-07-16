@@ -168,7 +168,8 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, fullSize));
 
-	dsMaterial* material = dsAllocator_alloc((dsAllocator*)&bufferAllocator, sizeof(dsMaterial));
+	dsMaterial* material = (dsMaterial*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
+		sizeof(dsMaterial));
 	DS_ASSERT(material);
 
 	material->allocator = dsAllocator_keepPointer(allocator);
@@ -183,11 +184,11 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 
 	size_t dataSize = getDataSize(description);
 	DS_ASSERT(dataSize > 0);
-	material->data = dsAllocator_alloc((dsAllocator*)&bufferAllocator, dataSize);
+	material->data = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator, dataSize);
 	DS_ASSERT(material->data);
 	memset(material->data, 0, dataSize);
 
-	material->offsets = dsAllocator_alloc((dsAllocator*)&bufferAllocator,
+	material->offsets = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		sizeof(uint32_t)*description->elementCount);
 	DS_ASSERT(material->offsets);
 	size_t curSize = 0;
@@ -249,7 +250,7 @@ const void* dsMaterial_getRawElementData(const dsMaterial* material, uint32_t el
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a primitive, vector, or matrix type.");
-		return false;
+		return NULL;
 	}
 
 	// Only volatile elements should have no offset, and only non-primitives should be volatile.
@@ -403,7 +404,8 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 		return false;
 	}
 
-	if (!dsGfxFormat_textureBufferSupported(material->description->resourceManager, format))
+	dsResourceManager* resourceManager = buffer->resourceManager;
+	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
@@ -436,7 +438,25 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 			return false;
 		}
 
-		if (count*formatSize > buffer->resourceManager->maxTextureBufferSize)
+		if (!resourceManager->hasTextureBufferSubrange && (offset != 0 ||
+			count*formatSize != buffer->size))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Current target doesn't support using a subrange of a texture buffer.");
+			return false;
+		}
+
+		if (resourceManager->minTextureBufferAlignment > 0 &&
+			(offset % resourceManager->minTextureBufferAlignment) != 0)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture buffer offset doesn't match alignment requirements.");
+			return false;
+		}
+
+		if (count*formatSize > resourceManager->maxTextureBufferSize)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

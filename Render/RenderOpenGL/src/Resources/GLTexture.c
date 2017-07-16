@@ -58,6 +58,18 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 	texture->textureId = 0;
 	texture->drawBufferId = 0;
+	texture->minFilter = GL_LINEAR_MIPMAP_LINEAR;
+	texture->magFilter = GL_LINEAR;
+	texture->addressModeS = GL_REPEAT;
+	texture->addressModeT = GL_REPEAT;
+	texture->addressModeR = GL_REPEAT;
+	texture->anisotropy = 1.0f;
+	texture->mipLodBias = 0.0f;
+	texture->minLod = -1000.0f;
+	texture->maxLod = 1000.0f;
+	texture->borderColor = mslBorderColor_Unset;
+	texture->compareEnabled = false;
+	texture->compareOp = GL_LESS;
 	dsGLResource_initialize(&texture->resource);
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();

@@ -59,6 +59,19 @@ typedef struct dsGLTexture
 	dsGLResource resource;
 	GLuint textureId;
 	GLuint drawBufferId;
+
+	GLenum minFilter;
+	GLenum magFilter;
+	GLenum addressModeS;
+	GLenum addressModeT;
+	GLenum addressModeR;
+	float anisotropy;
+	float mipLodBias;
+	float minLod;
+	float maxLod;
+	mslBorderColor borderColor;
+	bool compareEnabled;
+	GLenum compareOp;
 } dsGLTexture;
 
 typedef struct dsGLRenderbuffer
@@ -120,7 +133,8 @@ typedef union dsGLUniformInfo
 {
 	struct
 	{
-		GLint location;
+		GLint location : 31;
+		uint32_t isShadowSampler : 1;
 		GLuint samplerIndex;
 	};
 	GLint* groupLocations;
@@ -134,6 +148,7 @@ typedef struct dsGLShader
 	mslRenderState renderState;
 	GLuint programId;
 	GLuint* samplerIds;
+	mslSamplerState* samplerStates;
 	dsGLUniformInfo* uniforms;
 	float defaultAnisotropy;
 } dsGLShader;

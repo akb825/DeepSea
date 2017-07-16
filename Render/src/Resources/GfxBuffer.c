@@ -127,6 +127,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 		(size != DS_MAP_FULL_BUFFER && !DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size)))
 	{
 		errno = EINDEX;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to map a buffer out of range.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

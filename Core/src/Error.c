@@ -29,6 +29,7 @@ static DS_THREAD_LOCAL char buffer[BUFFER_SIZE];
 static const char* customCodes[] =
 {
 	"Index out of range",
+	"Invalid size",
 	"Invalid file format"
 };
 

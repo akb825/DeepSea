@@ -61,10 +61,10 @@ TEST(PathTest, Combine)
 	EXPECT_STREQ("/test", result);
 #endif
 
-	EXPECT_FALSE_ERRNO(EINDEX, dsPath_combine(result, 11, "path1", "path2"));
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1", "path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1", "path2"));
 
-	EXPECT_FALSE_ERRNO(EINDEX, dsPath_combine(result, 11, "path1//", "//path2"));
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_combine(result, 11, "path1//", "//path2"));
 	EXPECT_TRUE(dsPath_combine(result, 12, "path1//", "//path2"));
 
 	result[0] = 0;
@@ -104,12 +104,12 @@ TEST(PathTest, GetDirectoryName)
 	EXPECT_TRUE(dsPath_getDirectoryName(result, DS_PATH_MAX, "/test/directory/name/"));
 	EXPECT_STREQ("/test/directory/name", result);
 
-	EXPECT_FALSE_ERRNO(EINDEX, dsPath_getDirectoryName(result, strlen("/test/directory"),
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_getDirectoryName(result, strlen("/test/directory"),
 		"/test/directory/name"));
 	EXPECT_TRUE(dsPath_getDirectoryName(result, strlen("/test/directory") + 1,
 		"/test/directory/name"));
 
-	EXPECT_FALSE_ERRNO(EINDEX, dsPath_getDirectoryName(result, 1, "/test"));
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_getDirectoryName(result, 1, "/test"));
 	EXPECT_TRUE(dsPath_getDirectoryName(result, 2, "/test"));
 
 	strncpy(result, "test/directory/name", DS_PATH_MAX);
@@ -168,7 +168,7 @@ TEST(PathTest, RemoveLastExtension)
 	EXPECT_TRUE(dsPath_removeLastExtension(result, DS_PATH_MAX, "test.file/name"));
 	EXPECT_STREQ("test.file/name", result);
 
-	EXPECT_FALSE_ERRNO(EINDEX, dsPath_removeLastExtension(result, strlen("test.file/name"),
+	EXPECT_FALSE_ERRNO(ESIZE, dsPath_removeLastExtension(result, strlen("test.file/name"),
 		"test.file/name.foo"));
 	EXPECT_TRUE(dsPath_removeLastExtension(result, strlen("test.file/name") + 1,
 		"test.file/name.foo"));

@@ -249,7 +249,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
 	if (data && size != textureSize)
 	{
-		errno = EINDEX;
+		errno = ESIZE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
@@ -455,7 +455,7 @@ bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	if (size != dsTexture_size(texture->format, dimension, width, height, layers, 1,
 		texture->samples))
 	{
-		errno = EINDEX;
+		errno = ESIZE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -824,7 +824,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	if (size != dsTexture_size(texture->format, texture->dimension, width, height, 1, 1,
 		texture->samples))
 	{
-		errno = EINDEX;
+		errno = ESIZE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}

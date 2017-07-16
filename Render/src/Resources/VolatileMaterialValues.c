@@ -98,7 +98,7 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 		return true;
 	}
 
-	entry = dsAllocator_alloc((dsAllocator*)&values->entryPool, sizeof(Entry));
+	entry = (Entry*)dsAllocator_alloc((dsAllocator*)&values->entryPool, sizeof(Entry));
 	if (!entry)
 		return false;
 
@@ -118,7 +118,8 @@ static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t 
 	if (!buffer)
 		return true;
 
-	if (!dsGfxFormat_textureBufferSupported(buffer->resourceManager, format))
+	dsResourceManager* resourceManager = buffer->resourceManager;
+	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
@@ -140,7 +141,25 @@ static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t 
 		return false;
 	}
 
-	if (count*formatSize > buffer->resourceManager->maxTextureBufferSize)
+	if (!resourceManager->hasTextureBufferSubrange && (offset != 0 ||
+		count*formatSize != buffer->size))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Current target doesn't support using a subrange of a texture buffer.");
+		return false;
+	}
+
+	if (resourceManager->minTextureBufferAlignment > 0 &&
+		(offset % resourceManager->minTextureBufferAlignment) != 0)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture buffer offset doesn't match alignment requirements.");
+		return false;
+	}
+
+	if (count*formatSize > resourceManager->maxTextureBufferSize)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -211,8 +230,8 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
 
-	dsVolatileMaterialValues* materialValues = dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsVolatileMaterialValues));
+	dsVolatileMaterialValues* materialValues = (dsVolatileMaterialValues*)dsAllocator_alloc(
+		(dsAllocator*)&bufferAllocator, sizeof(dsVolatileMaterialValues));
 	DS_ASSERT(materialValues);
 	materialValues->allocator = dsAllocator_keepPointer(allocator);
 
@@ -223,7 +242,7 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 		poolBuffer, poolSize));
 
 	unsigned int tableSize = getTableSize(maxValues);
-	materialValues->hashTable = dsAllocator_alloc((dsAllocator*)&bufferAllocator,
+	materialValues->hashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
 		dsHashTable_fullAllocSize(tableSize));
 	DS_VERIFY(dsHashTable_initialize(materialValues->hashTable, tableSize, &identityHash,
 		&dsHash32Equal));
