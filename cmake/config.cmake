@@ -119,18 +119,19 @@ macro(ds_add_module_library target)
 endmacro()
 
 macro(ds_add_library target moduleName)
+	get_filename_component(mainModule ${moduleName} NAME)
 	if (DEEPSEA_SINGLE_SHARED)
 		set(DEEPSEA_ALL_SOURCES ${DEEPSEA_ALL_SOURCES} ${ARGN})
 		set(DEEPSEA_INTERFACE_INCLUDES ${DEEPSEA_INTERFACE_INCLUDES}
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/include>
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/${moduleName}/include>)
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/include/DeepSea/${moduleName}
-			FILES ${ARGN} FOLDER ${moduleName})
+			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/include/DeepSea/${mainModule}
+			FILES ${ARGN} FOLDER ${mainModule})
 	else()
 		add_library(${target} ${DEEPSEA_LIB} ${ARGN})
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${moduleName}
+			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
 			FILES ${ARGN})
 	endif()
 endmacro()
