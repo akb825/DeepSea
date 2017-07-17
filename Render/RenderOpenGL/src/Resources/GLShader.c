@@ -30,6 +30,7 @@
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 
@@ -46,6 +47,10 @@
 // DSGL
 #define DS_SHADER_MAGIC_NUMBER 0x68837176
 #define DS_SHADER_VERSION 0
+
+// "tmp#" where # is up to ~4 billion (10 digits) and null terminator
+#define DS_MAX_TEMP_SIZE 14
+static uint32_t tempCounter;
 
 static void hashShader(uint64_t shaderHash[2], const mslModule* module, const mslPipeline* pipeline)
 {
@@ -193,6 +198,14 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 		return false;
 	}
 
+	// Write to a temporary path in case two threads try to load the same shader at once.
+	uint32_t tempIndex = DS_ATOMIC_FETCH_ADD32(&tempCounter, 1);
+	char tempFileName[DS_MAX_TEMP_SIZE];
+	DS_VERIFY((unsigned int)snprintf(tempFileName, DS_MAX_TEMP_SIZE, "tmp%u", tempIndex) <
+		DS_MAX_TEMP_SIZE);
+	char tempPath[DS_PATH_MAX];
+	DS_VERIFY(dsPath_combine(tempPath, DS_PATH_MAX, shaderCacheDir, tempFileName));
+
 	GLint size = 0;
 	glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &size);
 	DS_ASSERT(size > 0);
@@ -204,8 +217,16 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 	glGetProgramBinary(program, size, NULL, &format, data);
 
 	dsFileStream stream;
-	if (!dsFileStream_openPath(&stream, path, "rb"))
+	if (!dsFileStream_openPath(&stream, tempPath, "wb"))
+	{
+		if (!printedError)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG,
+				"Couldn't write to directory '%s': %s", shaderCacheDir, dsErrorString(errno));
+			printedError = true;
+		}
 		return false;
+	}
 
 	uint32_t magicNumber = DS_SHADER_MAGIC_NUMBER;
 	if (!dsFileStream_write(&stream, &magicNumber, sizeof(magicNumber)))
@@ -228,6 +249,10 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 		goto error;
 
 	DS_VERIFY(dsFileStream_close(&stream));
+
+	// Rename the temporary file to the final location once we're done so it's atomic on the
+	// filesystem.
+	DS_VERIFY(rename(tempPath, path));
 	return true;
 
 error:
