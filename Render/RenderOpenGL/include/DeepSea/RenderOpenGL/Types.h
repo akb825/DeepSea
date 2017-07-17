@@ -35,18 +35,6 @@ extern "C"
 #define DS_RENDER_OPENGL_LOG_TAG "opengl"
 
 /**
- * @brief Enum for features to disable.
- *
- * This is useful to workaround for platforms that have issues with specific features. Each value is
- * a bitmask, allowing multiple features to be disabled.
- */
-typedef enum dsGLDisableFeatures
-{
-	dsGLDisableFeatures_None = 0,          ///< Don't disable any features.
-	dsGLDisableFeatures_UniformBlock = 0x1 ///< Disable uniform blocks in shaders.
-} dsGLDisableFeatures;
-
-/**
  * @brief Struct containing the otpions for initializing OpenGL.
  */
 typedef struct dsOpenGLOptions
@@ -125,11 +113,6 @@ typedef struct dsOpenGLOptions
 	 * @brief The maximum number of resource threads.
 	 */
 	uint8_t maxResourceThreads;
-
-	/**
-	 * @brief Features to disable.
-	 */
-	dsGLDisableFeatures disableFeatures;
 
 	/**
 	 * @brief Directory to cache shader binaries.

@@ -141,7 +141,6 @@ void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 	options->accelerated = -1;
 	options->debug = ANYGL_ALLOW_DEBUG;
 	options->maxResourceThreads = 0;
-	options->disableFeatures = dsGLDisableFeatures_UniformBlock;
 	options->shaderCacheDir = NULL;
 }
 
@@ -224,6 +223,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	else
 		DS_VERIFY(sscanf(glslVersion, "%u.%u", &major, &minor) == 2);
 	renderer->shaderVersion = major*100 + minor;
+	renderer->vendorString = (const char*)glGetString(GL_VENDOR);
+	DS_ASSERT(renderer->vendorString);
+	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
+	DS_ASSERT(renderer->rendererString);
 
 	void* display = renderer->options.display;
 	renderer->sharedConfig = dsCreateGLConfig(allocator, display, options, false);
@@ -349,6 +352,30 @@ bool dsGLRenderer_getShaderVersion(uint32_t* outVersion, bool* outGles, const ds
 	if (outGles)
 		*outGles = ANYGL_GLES;
 	return true;
+}
+
+const char* dsGLRenderer_getVendor(const dsRenderer* renderer)
+{
+	if (!renderer)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	return glRenderer->vendorString;
+}
+
+const char* dsGLRenderer_getGLRenderer(const dsRenderer* renderer)
+{
+	if (!renderer)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	return glRenderer->rendererString;
 }
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount)

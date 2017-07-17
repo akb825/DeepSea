@@ -72,7 +72,7 @@ static void glGetSizeT(GLenum pname, size_t* value)
 	}
 }
 
-static dsGfxBufferUsage getSupportedBuffers(dsGLDisableFeatures disableFeatures)
+static dsGfxBufferUsage getSupportedBuffers()
 {
 	dsGfxBufferUsage supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Vertex |
 		dsGfxBufferUsage_Index | dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_CopyFrom);
@@ -94,8 +94,8 @@ static dsGfxBufferUsage getSupportedBuffers(dsGLDisableFeatures disableFeatures)
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_Image);
 	}
 
-	if ((AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
-		AnyGL_ARB_uniform_buffer_object) && !(disableFeatures & dsGLDisableFeatures_UniformBlock))
+	if (AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+		AnyGL_ARB_uniform_buffer_object)
 	{
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBlock);
 	}
@@ -1032,7 +1032,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT,
 			(GLint*)&baseResourceManager->minMappingAlignment);
 	}
-	baseResourceManager->supportedBuffers = getSupportedBuffers(options->disableFeatures);
+	baseResourceManager->supportedBuffers = getSupportedBuffers();
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
 	baseResourceManager->hasTextureBufferSubrange = ANYGL_SUPPORTED(glTexBufferRange);

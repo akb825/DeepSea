@@ -65,11 +65,27 @@ DS_RENDEROPENGL_EXPORT void dsGLRenderer_setEnableErrorChecking(dsRenderer* rend
  * @param[out] outVersion Output for the GLSL version. The numbers will be in the hundreds.
  *     (e.g. 130, 450)
  * @param[out] outGles Output for whether not GLES.
- * @param renderer The renderer to get the version numbers for.
+ * @param renderer The renderer.
  * @return False if renderer is NULL.
  */
 DS_RENDEROPENGL_EXPORT bool dsGLRenderer_getShaderVersion(uint32_t* outVersion, bool* outGles,
 	const dsRenderer* renderer);
+
+/**
+ * @brief Gets the vendor string.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @return The vendor string.
+ */
+DS_RENDEROPENGL_EXPORT const char* dsGLRenderer_getVendor(const dsRenderer* renderer);
+
+/**
+ * @brief Gets the OpenGL renderer string.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @return The OpenGL renderer string.
+ */
+DS_RENDEROPENGL_EXPORT const char* dsGLRenderer_getGLRenderer(const dsRenderer* renderer);
 
 /**
  * @brief Destroys an OpenGL renderer.
