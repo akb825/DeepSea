@@ -19,11 +19,12 @@
 #include <DeepSea/Core/Assert.h>
 
 dsShaderModule* dsMockShaderModule_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, mslModule* module)
+	dsAllocator* allocator, mslModule* module, const char* name)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 	DS_ASSERT(module);
+	DS_ASSERT(name);
 
 	dsShaderModule* shaderModule = (dsShaderModule*)dsAllocator_alloc(allocator,
 		sizeof(dsShaderModule));
@@ -33,6 +34,7 @@ dsShaderModule* dsMockShaderModule_create(dsResourceManager* resourceManager,
 	shaderModule->resourceManager = resourceManager;
 	shaderModule->allocator = dsAllocator_keepPointer(allocator);
 	shaderModule->module = module;
+	shaderModule->name = name;
 
 	return shaderModule;
 }

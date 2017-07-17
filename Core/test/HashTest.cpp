@@ -35,6 +35,38 @@ TEST(HashTest, HashCombineBytes)
 	EXPECT_EQ(0xB0F57EE3, finalHash);
 }
 
+TEST(HashTest, HashCombineBytes128)
+{
+	// Same test as run in reference murmur implementation
+	// https://github.com/aappleby/smhasher/blob/master/src/main.cpp
+	// https://github.com/aappleby/smhasher/blob/master/src/KeysetTest.cpp
+	// This ensures that nothing broke in transferring the implementation.
+	uint8_t key[256];
+	uint32_t hashes[256][4];
+	for (unsigned int i = 0; i < 256; ++i)
+	{
+		key[i] = (uint8_t)i;
+#if DS_64BIT
+		uint64_t seed[2] = {256 - i, 256 - i};
+#else
+		uint32_t seed[4] = {256 - i, 256 - i, 256 - i, 256 - i};
+#endif
+		dsHashCombineBytes128(hashes[i], seed, key, i);
+	}
+
+	uint32_t zeroSeed[4] = {0, 0, 0, 0};
+	uint8_t finalHash[16];
+	dsHashCombineBytes128(finalHash, zeroSeed, hashes, sizeof(hashes));
+
+	uint32_t testResult = finalHash[0] | (finalHash[1] << 8) | (finalHash[2] << 16) |
+		(finalHash[3] << 24);
+#if DS_64BIT
+	EXPECT_EQ(0x6384BA69, testResult);
+#else
+	EXPECT_EQ(0xB3ECE62A, testResult);
+#endif
+}
+
 TEST(HashTest, HashCombine)
 {
 	EXPECT_NE(dsHashCombine(1, 2), dsHashCombine(2, 1));

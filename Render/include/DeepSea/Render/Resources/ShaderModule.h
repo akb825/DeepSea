@@ -45,10 +45,13 @@ extern "C"
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param filePath The file path for the shader module to load.
+ * @param name The name of the module. This will be used for error checking and caching of shader
+ *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
+ *     module. (such as a string constant)
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char* filePath);
+	dsAllocator* allocator, const char* filePath, const char* name);
 
 /**
  * @brief Loads a shader module from a stream.
@@ -61,10 +64,13 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
  *     allocator as the resource manager.
  * @param stream The stream to load the shader module from. This stream will be read from the
  *     current position until the end, and must be seekable.
+ * @param name The name of the module. This will be used for error checking and caching of shader
+ *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
+ *     module. (such as a string constant)
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsStream* stream);
+	dsAllocator* allocator, dsStream* stream, const char* name);
 
 /**
  * @brief Loads a shader module from a data buffer.
@@ -77,10 +83,13 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* re
  *     allocator as the resource manager.
  * @param data The data for the shader module. The data isn't used after this call.
  * @param size The size of the data buffer.
+ * @param name The name of the module. This will be used for error checking and caching of shader
+ *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
+ *     module. (such as a string constant)
  * @return The created shader module, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const void* data, size_t size);
+	dsAllocator* allocator, const void* data, size_t size, const char* name);
 
 
 /**

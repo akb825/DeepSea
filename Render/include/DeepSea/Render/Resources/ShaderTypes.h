@@ -188,6 +188,11 @@ typedef struct dsShaderModule
 	 * This is accessed with the ModularShaderLanguage library.
 	 */
 	mslModule* module;
+
+	/**
+	 * @brief The name of the module.
+	 */
+	const char* name;
 } dsShaderModule;
 
 /**

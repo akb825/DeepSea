@@ -24,16 +24,308 @@
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderModule.h"
 #include "Types.h"
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 
 #include <MSL/Client/ModuleC.h>
+#include <sys/stat.h>
+#include <stdio.h>
 #include <string.h>
 
+#if DS_WINDOWS
+#include <dirent.h>
+#endif
+
 #define DS_BUFFER_SIZE 256
+// DSGL
+#define DS_SHADER_MAGIC_NUMBER 0x68837176
+#define DS_SHADER_VERSION 0
+
+static void hashShader(uint64_t shaderHash[2], const mslModule* module, const mslPipeline* pipeline)
+{
+	shaderHash[0] = 0;
+	shaderHash[1] = 0;
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		uint32_t shaderIndex = pipeline->shaders[i];
+		if (shaderIndex != MSL_UNKNOWN)
+		{
+			dsHashCombineBytes128(shaderHash, shaderHash, mslModule_shaderData(module, shaderIndex),
+				mslModule_shaderSize(module, shaderIndex));
+		}
+	}
+}
+
+static bool makeDir(const char* path)
+{
+#if DS_WINDOWS
+	return mkdir(path) == 0;
+#else
+	return mkdir(path, 0755);
+#endif
+}
+
+static bool shaderPath(char outPath[DS_PATH_MAX], const char* shaderCacheDir,
+	const char* moduleName, const char* pipelineName)
+{
+	if (!dsPath_combine(outPath, DS_PATH_MAX, shaderCacheDir, moduleName))
+		return false;
+
+	size_t pathLength = strlen(outPath);
+	size_t pipelineLength = strlen(pipelineName);
+	if (pathLength + pipelineLength + 2 > DS_PATH_MAX)
+		return false;
+
+	outPath[pathLength++] = '.';
+	memcpy(outPath + pathLength, pipelineName, pipelineLength + 1);
+	return true;
+}
+
+static bool loadShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
+	const char* moduleName, const char* pipelineName, GLuint program, uint64_t shaderHash[2])
+{
+	static bool printedError = false;
+	char path[DS_PATH_MAX];
+	if (!shaderPath(path, shaderCacheDir, moduleName, pipelineName))
+	{
+		if (!printedError)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG, "Shader cache path is too long.");
+			printedError = true;
+		}
+		return false;
+	}
+
+	dsFileStream stream;
+	uint8_t* data = NULL;
+	if (!dsFileStream_openPath(&stream, path, "rb"))
+		return false;
+
+	uint32_t magicNumber;
+	if (!dsFileStream_read(&stream, &magicNumber, sizeof(magicNumber)) ||
+		magicNumber != DS_SHADER_MAGIC_NUMBER)
+	{
+		goto error;
+	}
+
+	uint32_t version;
+	if (!dsFileStream_read(&stream, &version, sizeof(version)) || version != DS_SHADER_VERSION)
+		goto error;
+
+	uint64_t curHash[2];
+	if (!dsFileStream_read(&stream, curHash, sizeof(curHash)) || curHash[0] != shaderHash[0] ||
+		curHash[1] != shaderHash[1])
+	{
+		goto error;
+	}
+
+	GLenum format;
+	if (!dsFileStream_read(&stream, &format, sizeof(format)))
+		goto error;
+
+	uint32_t size;
+	if (!dsFileStream_read(&stream, &size, sizeof(size)))
+		goto error;
+
+	data = (uint8_t*)dsAllocator_alloc(resourceManager->allocator, size);
+	if (!data || !dsFileStream_read(&stream, data, size))
+		goto error;
+
+	DS_VERIFY(dsFileStream_close(&stream));
+	glProgramBinary(program, format, data, size);
+	dsAllocator_free(resourceManager->allocator, data);
+
+	GLint linkSuccess = false;
+	glGetProgramiv(program, GL_LINK_STATUS, &linkSuccess);
+	return linkSuccess;
+
+error:
+	DS_VERIFY(dsFileStream_close(&stream));
+	if (data)
+		dsAllocator_free(resourceManager->allocator, data);
+	return false;
+}
+
+static bool writeShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
+	const char* moduleName, const char* pipelineName, GLuint program, uint64_t shaderHash[2])
+{
+	static bool printedError = false;
+	struct stat statInfo;
+	bool exists = stat(shaderCacheDir, &statInfo) == 0;
+	if (exists && !S_ISDIR(statInfo.st_mode))
+	{
+		if (!printedError)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG,
+				"Shader cache directory '%s' isn't a directory.", shaderCacheDir);
+			printedError = true;
+		}
+		return false;
+	}
+	else if (!exists)
+	{
+		if (!makeDir(shaderCacheDir) && errno != EEXIST)
+		{
+			if (!printedError)
+			{
+				DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG,
+					"Couldn't create directory '%s': %s", shaderCacheDir, dsErrorString(errno));
+				printedError = true;
+			}
+			return false;
+		}
+	}
+
+	char path[DS_PATH_MAX];
+	if (!shaderPath(path, shaderCacheDir, moduleName, pipelineName))
+	{
+		if (!printedError)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG, "Shader cache path is too long.");
+			printedError = true;
+		}
+		return false;
+	}
+
+	GLint size = 0;
+	glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &size);
+	DS_ASSERT(size > 0);
+	uint8_t* data = (uint8_t*)dsAllocator_alloc(resourceManager->allocator, size);
+	if (!data)
+		return false;
+
+	GLenum format;
+	glGetProgramBinary(program, size, NULL, &format, data);
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, path, "rb"))
+		return false;
+
+	uint32_t magicNumber = DS_SHADER_MAGIC_NUMBER;
+	if (!dsFileStream_write(&stream, &magicNumber, sizeof(magicNumber)))
+		goto error;
+
+	uint32_t version = DS_SHADER_VERSION;
+	if (!dsFileStream_write(&stream, &version, sizeof(version)))
+		goto error;
+
+	if (!dsFileStream_write(&stream, shaderHash, sizeof(uint64_t)*2))
+		goto error;
+
+	if (!dsFileStream_write(&stream, &format, sizeof(format)))
+		goto error;
+
+	if (!dsFileStream_write(&stream, &size, sizeof(size)))
+		goto error;
+
+	if (!dsFileStream_write(&stream, data, size))
+		goto error;
+
+	DS_VERIFY(dsFileStream_close(&stream));
+	return true;
+
+error:
+	DS_VERIFY(dsFileStream_close(&stream));
+	if (data)
+		dsAllocator_free(resourceManager->allocator, data);
+	return false;
+}
+
+static bool compileShaders(GLuint shaderIds[mslStage_Count], dsShaderModule* module,
+	const mslPipeline* pipeline)
+{
+	static GLenum stageMap[] =
+	{
+		GL_VERTEX_SHADER,
+		GL_TESS_CONTROL_SHADER,
+		GL_TESS_EVALUATION_SHADER,
+		GL_GEOMETRY_SHADER,
+		GL_FRAGMENT_SHADER,
+		GL_COMPUTE_SHADER
+	};
+
+	memset(shaderIds, 0, sizeof(GLuint)*mslStage_Count);
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (pipeline->shaders[i] == MSL_UNKNOWN)
+			continue;
+
+		if (!dsGLShaderModule_compileShader(shaderIds + i, module, pipeline->shaders[i],
+			stageMap[i], pipeline->name))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline, GLuint programId)
+{
+	for (uint32_t i = 0; i < pipeline->attributeCount; ++i)
+	{
+		mslAttribute attribute;
+		if (!mslModule_attribute(&attribute, module->module, pipeline->shaders[mslStage_Vertex], i))
+		{
+			errno = EFORMAT;
+			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+				"Invalid vertex attribute for shader %s.%s.", module->name, pipeline->name);
+			return false;
+		}
+
+		glBindAttribLocation(programId, attribute.location, attribute.name);
+	}
+
+	return true;
+}
+
+bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* module,
+	dsGLShader* shader,  const mslPipeline* pipeline)
+{
+	// Compile the shaders.
+	GLuint shaderIds[mslStage_Count];
+	if (!compileShaders(shaderIds, module, pipeline))
+		return false;
+
+	// Set the input locations.
+	if (shaderIds[mslStage_Vertex] && !setVertexInputs(module, pipeline, shader->programId))
+		return false;
+
+	// Link the program.
+	glLinkProgram(shader->programId);
+	GLint linkSuccess = false;
+	glGetProgramiv(shader->programId, GL_LINK_STATUS, &linkSuccess);
+	if (!linkSuccess)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error linking shader %s.%s:",
+			module->name, pipeline->name);
+
+		GLint logSize = 0;
+		glGetProgramiv(shader->programId, GL_INFO_LOG_LENGTH, &logSize);
+		char* buffer = (char*)dsAllocator_alloc(resourceManager->allocator, logSize);
+		if (buffer)
+		{
+			glGetProgramInfoLog(shader->programId, logSize, &logSize, buffer);
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
+			DS_VERIFY(dsAllocator_free(resourceManager->allocator, buffer));
+		}
+
+		return false;
+	}
+
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (shaderIds[i])
+			glDetachShader(shader->programId, shaderIds[i]);
+	}
+	return true;
+}
 
 static bool isShadowSampler(mslType type)
 {
@@ -171,7 +463,7 @@ static uint32_t getUsedTextures(mslModule* module, uint32_t shaderIndex,
 }
 
 static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDesc,
-	mslModule* module, uint32_t shaderIndex, bool useGfxBuffers)
+	mslModule* module, uint32_t shaderIndex, bool useGfxBuffers, const char* moduleName)
 {
 	GLuint prevProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&prevProgram);
@@ -246,7 +538,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 						if (textureIndex == MSL_UNKNOWN)
 						{
 							DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-								"Ran out of texture indices for shader %s",
+								"Ran out of texture indices for shader %s.%s", moduleName,
 								shader->pipeline.name);
 							errno = EINDEX;
 							glUseProgram(prevProgram);
@@ -553,7 +845,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 						(dsAllocator*)&bufferAlloc, sizeof(GLint)*groupDesc->elementCount);
 					DS_ASSERT(shader->uniforms[i].groupLocations);
 					memset(shader->uniforms[i].groupLocations, 0xFF,
-						sizeof(GLuint)*groupDesc->elementCount);
+						sizeof(GLint)*groupDesc->elementCount);
 				}
 			}
 		}
@@ -565,157 +857,61 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!shader->programId)
 	{
 		GLenum error = glGetError();
-		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating shader %s: %s", pipeline.name,
-			AnyGL_errorString(error));
+		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating shader %s.%s: %s", module->name,
+			pipeline.name, AnyGL_errorString(error));
 		errno = dsGetGLErrno(error);
 		dsGLShader_destroy(resourceManager, baseShader);
 		AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
 		return NULL;
 	}
 
-	static GLenum stageMap[] =
+	dsGLRenderer* renderer = (dsGLRenderer*)resourceManager->renderer;
+	const char* shaderCacheDir = renderer->options.shaderCacheDir;
+	bool readShader = false;
+	uint64_t shaderHash[2];
+	if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary))
 	{
-		GL_VERTEX_SHADER,
-		GL_TESS_CONTROL_SHADER,
-		GL_TESS_EVALUATION_SHADER,
-		GL_GEOMETRY_SHADER,
-		GL_FRAGMENT_SHADER,
-		GL_COMPUTE_SHADER
-	};
-
-	// Load and compile the shaders.
-	bool success = true;
-	GLuint shaderIds[mslStage_Count];
-	memset(shaderIds, 0, sizeof(shaderIds));
-	for (int i = 0; i < mslStage_Count; ++i)
-	{
-		if (pipeline.shaders[i] == MSL_UNKNOWN)
-			continue;
-
-		shaderIds[i] = glCreateShader(stageMap[i]);
-		if (shaderIds[i])
-		{
-			const char* shaderString = (const char*)mslModule_shaderData(module->module,
-				pipeline.shaders[i]);
-			if (!shaderString)
-			{
-				errno = EFORMAT;
-				DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "No shader string for shader %s.",
-					pipeline.name);
-				success = false;
-			}
-			GLint length = (GLint)mslModule_shaderSize(module->module,
-				pipeline.shaders[i]);
-			while (length > 0 && shaderString[length - 1] == 0)
-				--length;
-			glShaderSource(shaderIds[i], 1, &shaderString, &length);
-
-			GLint compileSuccess = false;
-			glGetShaderiv(shaderIds[i], GL_COMPILE_STATUS, &compileSuccess);
-			if (compileSuccess)
-				glAttachShader(shader->programId, shaderIds[i]);
-			else
-			{
-				success = false;
-				DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error compiling shader %s:",
-					pipeline.name);
-
-				GLint logSize = 0;
-				glGetShaderiv(shaderIds[i], GL_INFO_LOG_LENGTH, &logSize);
-				char* buffer = (char*)dsAllocator_alloc(resourceManager->allocator, logSize);
-				if (buffer)
-				{
-					glGetShaderInfoLog(shaderIds[i], logSize, &logSize, buffer);
-					DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
-					DS_VERIFY(dsAllocator_free(resourceManager->allocator, buffer));
-				}
-			}
-		}
-		else
-		{
-			GLenum error = glGetError();
-			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating shader: %s",
-				AnyGL_errorString(error));
-			errno = dsGetGLErrno(error);
-			success = false;
-		}
-
-		if (!success)
-			break;
+		hashShader(shaderHash, module->module, &pipeline);
+		int prevErrno = errno;
+		readShader = loadShader(resourceManager, shaderCacheDir, module->name, pipeline.name,
+			shader->programId, shaderHash);
+		errno = prevErrno;
 	}
 
-	// Set the input locations.
-	if (success && shaderIds[mslStage_Vertex])
-	{
-		for (uint32_t i = 0; i < pipeline.attributeCount; ++i)
-		{
-			mslAttribute attribute;
-			if (!mslModule_attribute(&attribute, module->module, shaderIndex, i))
-			{
-				errno = EFORMAT;
-				DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Invalid vertex attribute for shader %s.",
-					pipeline.name);
-				success = false;
-				break;
-			}
-
-			glBindAttribLocation(shader->programId, attribute.location, attribute.name);
-		}
-	}
-
-	if (success)
-	{
-		glLinkProgram(shader->programId);
-		GLint linkSuccess = false;
-		glGetProgramiv(shader->programId, GL_LINK_STATUS, &linkSuccess);
-		if (linkSuccess)
-		{
-			for (int i = 0; i < mslStage_Count; ++i)
-			{
-				if (shaderIds[i])
-					glDetachShader(shader->programId, shaderIds[i]);
-			}
-		}
-		else
-		{
-			success = false;
-			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error linking shader %s:",
-				pipeline.name);
-
-			GLint logSize = 0;
-			glGetProgramiv(shader->programId, GL_INFO_LOG_LENGTH, &logSize);
-			char* buffer = (char*)dsAllocator_alloc(resourceManager->allocator, logSize);
-			if (buffer)
-			{
-				glGetProgramInfoLog(shader->programId, logSize, &logSize, buffer);
-				DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
-				DS_VERIFY(dsAllocator_free(resourceManager->allocator, buffer));
-			}
-		}
-	}
-
-	for (int i = 0; i < mslStage_Count; ++i)
-	{
-		if (shaderIds[i])
-			glDeleteShader(shaderIds[i]);
-	}
+	// Compile and link the shader if it wasn't read.
+	bool success = readShader;
+	if (!success)
+		success = compileAndLinkProgram(resourceManager, module, shader, &pipeline);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
-	if (success)
-	{
-		if (hasSamplers)
-			createSamplers(shader, module->module, shaderIndex);
-		success = hookupBindings(shader, materialDesc, module->module, shaderIndex, useGfxBuffers);
-	}
-
 	if (!success)
 	{
 		dsGLShader_destroy(resourceManager, baseShader);
 		return NULL;
 	}
 
+	// Set up the samplers and uniform bindings.
+	if (hasSamplers)
+		createSamplers(shader, module->module, shaderIndex);
+	if (!hookupBindings(shader, materialDesc, module->module, shaderIndex, useGfxBuffers,
+		module->name))
+	{
+		dsGLShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
+
+	// Set up the render states.
 	DS_VERIFY(mslModule_renderState(&shader->renderState, module->module, shaderIndex));
 	resolveDefaultStates(&shader->renderState);
+
+	// Write the shader if caching is enabled and didn't read it before.
+	if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary) && !readShader)
+	{
+		int prevErrno = errno;
+		writeShader(resourceManager, shaderCacheDir, module->name, pipeline.name, shader->programId,
+			shaderHash);
+		errno = prevErrno;
+	}
 
 	return baseShader;
 }

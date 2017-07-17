@@ -79,9 +79,11 @@ static dsGfxFormat getDepthFormat(const dsOpenGLOptions* options)
 	return dsGfxFormat_Unknown;
 }
 
-static size_t dsGLRenderer_fullAllocSize(void)
+static size_t dsGLRenderer_fullAllocSize(const dsOpenGLOptions* options)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer)) + dsMutex_fullAllocSize();
+	size_t pathLen = options->shaderCacheDir ? strlen(options->shaderCacheDir) + 1 : 0;
+	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer)) + dsMutex_fullAllocSize() +
+		DS_ALIGNED_SIZE(pathLen);
 }
 
 static bool hasRequiredFunctions(void)
@@ -140,6 +142,7 @@ void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 	options->debug = ANYGL_ALLOW_DEBUG;
 	options->maxResourceThreads = 0;
 	options->disableFeatures = dsGLDisableFeatures_UniformBlock;
+	options->shaderCacheDir = NULL;
 }
 
 dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* options)
@@ -175,7 +178,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	dsGfxFormat depthFormat = getDepthFormat(options);
 
-	size_t bufferSize = dsGLRenderer_fullAllocSize();
+	size_t bufferSize = dsGLRenderer_fullAllocSize(options);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 	{
@@ -197,13 +200,21 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	DS_VERIFY(dsSpinlock_initialize(&renderer->syncRefPoolLock));
 
 	renderer->options = *options;
-	if (!renderer->options.display)
+	if (options->shaderCacheDir)
+	{
+		size_t length = strlen(options->shaderCacheDir) + 1;
+		char* stringCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, length);
+		memcpy(stringCopy, options->shaderCacheDir, length);
+		renderer->options.shaderCacheDir = stringCopy;
+	}
+
+	if (renderer->options.display)
+		renderer->releaseDisplay = false;
+	else
 	{
 		renderer->options.display = dsGetGLDisplay();
 		renderer->releaseDisplay = true;
 	}
-	else
-		renderer->releaseDisplay = false;
 
 	void* display = renderer->options.display;
 	renderer->sharedConfig = dsCreateGLConfig(allocator, display, options, false);

@@ -33,10 +33,12 @@ public:
 
 TEST_F(ShaderModuleTest, LoadFile)
 {
-	EXPECT_FALSE(dsShaderModule_loadFile(NULL, NULL, getPath("test.mslb")));
-	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, NULL));
-	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, "asdf"));
-	dsShaderModule* module = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"));
+	EXPECT_FALSE(dsShaderModule_loadFile(NULL, NULL, getPath("test.mslb"), "test"));
+	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, NULL, "test"));
+	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"), NULL));
+	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, "asdf", "test"));
+	dsShaderModule* module = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"),
+		"test");
 	ASSERT_TRUE(module);
 	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
 
@@ -53,11 +55,12 @@ TEST_F(ShaderModuleTest, LoadStream)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.mslb"), "rb"));
-	EXPECT_FALSE(dsShaderModule_loadStream(NULL, NULL, (dsStream*)&fileStream));
-	EXPECT_FALSE(dsShaderModule_loadStream(resourceManager, NULL, NULL));
+	EXPECT_FALSE(dsShaderModule_loadStream(NULL, NULL, (dsStream*)&fileStream, "test"));
+	EXPECT_FALSE(dsShaderModule_loadStream(resourceManager, NULL, NULL, "test"));
+	EXPECT_FALSE(dsShaderModule_loadStream(resourceManager, NULL, (dsStream*)&fileStream, NULL));
 
 	dsShaderModule* module = dsShaderModule_loadStream(resourceManager, NULL,
-		(dsStream*)&fileStream);
+		(dsStream*)&fileStream, "test");
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 	ASSERT_TRUE(module);
 	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
@@ -85,11 +88,13 @@ TEST_F(ShaderModuleTest, LoadDta)
 	ASSERT_EQ(size, dsStream_read((dsStream*)&fileStream, data, (size_t)size));
 	ASSERT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_FALSE(dsShaderModule_loadData(NULL, NULL, data, (size_t)size));
-	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, NULL, (size_t)size));
-	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, data, (size_t)size - 10));
+	EXPECT_FALSE(dsShaderModule_loadData(NULL, NULL, data, (size_t)size, "test"));
+	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, NULL, (size_t)size, "test"));
+	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, data, (size_t)size - 10, "test"));
+	EXPECT_FALSE(dsShaderModule_loadData(resourceManager, NULL, data, (size_t)size, NULL));
 
-	dsShaderModule* module = dsShaderModule_loadData(resourceManager, NULL, data, (size_t)size);
+	dsShaderModule* module = dsShaderModule_loadData(resourceManager, NULL, data, (size_t)size,
+		"test");
 	ASSERT_TRUE(module);
 	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
 	dsAllocator_free((dsAllocator*)&allocator, data);

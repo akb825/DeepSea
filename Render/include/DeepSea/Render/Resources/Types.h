@@ -1453,10 +1453,11 @@ typedef bool (*dsResetFenceFunction)(dsResourceManager* resourceManager,
  * @param resourceManager The resource manager to create the shader module from.
  * @param allocator The allocator to create the shader module with.
  * @param module The MSL shader module.
+ * @param name The name of the module.
  * @return The created shader module, or NULL if it couldn't be created.
  */
 typedef dsShaderModule* (*dsCreateShaderModuleFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, mslModule* module);
+	dsAllocator* allocator, mslModule* module, const char* name);
 
 /**
  * @brief Function for destroying a shader module.

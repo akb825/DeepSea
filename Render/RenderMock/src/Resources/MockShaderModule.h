@@ -20,5 +20,5 @@
 #include <DeepSea/Render/Resources/Types.h>
 
 dsShaderModule* dsMockShaderModule_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, mslModule* module);
+	dsAllocator* allocator, mslModule* module, const char* name);
 bool dsMockShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module);

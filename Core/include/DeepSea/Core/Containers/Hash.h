@@ -51,6 +51,21 @@ DS_CORE_EXPORT uint32_t dsHashBytes(const void* buffer, size_t size);
 DS_CORE_EXPORT uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size);
 
 /**
+ * @brief Generic 128-bit hash generation for a list of bytes, combining with a previous hash.
+ *
+ * This is useful for tasks such as comparing file hashes, where more than the typical 32 bits is
+ * desired.
+ *
+ * @param[out] outResult The result. This must be 128 bits.
+ * @param seed The previous hash value. This must be 128 bits.
+ * @param buffer The bytes to hash.
+ * @param size The size of the buffer.
+ * @return The hash.
+ */
+DS_CORE_EXPORT void dsHashCombineBytes128(void* outResult, const void* seed, const void* buffer,
+	size_t size);
+
+/**
  * @brief Combines two hash values.
  *
  * This can be chained to combine as many hash values together as you want. This is preferable to a

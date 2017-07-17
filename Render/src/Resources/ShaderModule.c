@@ -32,10 +32,10 @@
 extern const char* dsResourceManager_noContextError;
 
 static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
-	dsAllocator* allocator, mslModule* module)
+	dsAllocator* allocator, mslModule* module, const char* name)
 {
 	dsShaderModule* shaderModule = resourceManager->createShaderModuleFunc(resourceManager,
-		allocator, module);
+		allocator, module, name);
 	if (shaderModule)
 	{
 		DS_ASSERT(shaderModule->module == module);
@@ -47,13 +47,13 @@ static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
 }
 
 dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAllocator* allocator,
-	const char* filePath)
+	const char* filePath, const char* name)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
 		!resourceManager->createShaderModuleFunc || !resourceManager->destroyShaderModuleFunc ||
-		!filePath)
+		!filePath || !name)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -95,18 +95,18 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module);
+	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module, name);
 	DS_PROFILE_FUNC_RETURN(shaderModule);
 }
 
 dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsStream* stream)
+	dsAllocator* allocator, dsStream* stream, const char* name)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
 		!resourceManager->createShaderModuleFunc || !resourceManager->destroyShaderModuleFunc ||
-		!stream)
+		!stream || !name)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -149,18 +149,18 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module);
+	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module, name);
 	DS_PROFILE_FUNC_RETURN(shaderModule);
 }
 
 dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const void* data, size_t size)
+	dsAllocator* allocator, const void* data, size_t size, const char* name)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
 		!resourceManager->createShaderModuleFunc || !resourceManager->destroyShaderModuleFunc ||
-		!data)
+		!data || !name)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -190,7 +190,7 @@ dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module);
+	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module, name);
 	DS_PROFILE_FUNC_RETURN(shaderModule);
 }
 

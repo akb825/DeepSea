@@ -115,6 +115,7 @@ typedef struct dsGLShaderModule
 {
 	dsShaderModule shaderModule;
 	dsGLResource resource;
+	GLuint* shaders;
 } dsGLShaderModule;
 
 typedef struct dsGLMaterialDesc

@@ -17,10 +17,14 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+
+#include "AnyGL/gl.h"
 #include <DeepSea/Render/Resources/Types.h>
 
 dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	mslModule* module);
+	mslModule* module, const char* name);
+bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, uint32_t shaderIndex,
+	GLenum stage, const char* pipelineName);
 bool dsGLShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module);
 
 void dsGLShaderModule_addInternalRef(dsShaderModule* module);

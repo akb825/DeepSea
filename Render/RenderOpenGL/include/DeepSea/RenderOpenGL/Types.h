@@ -130,6 +130,13 @@ typedef struct dsOpenGLOptions
 	 * @brief Features to disable.
 	 */
 	dsGLDisableFeatures disableFeatures;
+
+	/**
+	 * @brief Directory to cache shader binaries.
+	 *
+	 * This will be copied when the renderer is created so it need not be permanently allocated.
+	 */
+	const char* shaderCacheDir;
 } dsOpenGLOptions;
 
 #ifdef __cplusplus
