@@ -268,12 +268,12 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		{
 			size_t srcOffset = dsTexture_layerOffset(srcTexture->format, srcTexture->dimension,
 				srcTexture->width, srcTexture->height, srcTexture->depth, srcTexture->mipLevels,
-				srcPosLayer, regions[i].srcPosition.mipLevel);
+				srcPosLayer + j, regions[i].srcPosition.mipLevel);
 			srcOffset += srcPosBlockY*srcPitch + srcPosBlockX*blockSize;
 
 			size_t dstOffset = dsTexture_layerOffset(dstTexture->format, dstTexture->dimension,
 				dstTexture->width, dstTexture->height, dstTexture->depth, dstTexture->mipLevels,
-				dstPosLayer, regions[i].dstPosition.mipLevel);
+				dstPosLayer + j, regions[i].dstPosition.mipLevel);
 			dstOffset += dstPosBlockY*dstPitch + dstPosBlockX*blockSize;
 
 			for (uint32_t y = 0; y < blockHeight; ++y, srcOffset += srcPitch, dstOffset += dstPitch)

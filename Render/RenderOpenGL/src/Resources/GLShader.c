@@ -40,7 +40,8 @@
 #include <string.h>
 
 #if DS_WINDOWS
-#include <dirent.h>
+#include <direct.h>
+#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 #endif
 
 #define DS_BUFFER_SIZE 256
@@ -765,7 +766,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	mslPipeline pipeline;
 	DS_VERIFY(mslModule_pipeline(&pipeline, module->module, shaderIndex));
-	mslStruct pushConstantStruct = {};
+	mslStruct pushConstantStruct = {NULL, 0, 0};
 	if (pipeline.pushConstantStruct != MSL_UNKNOWN)
 	{
 		DS_VERIFY(mslModule_struct(&pushConstantStruct, module->module, shaderIndex,

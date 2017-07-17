@@ -567,7 +567,7 @@ TEST_F(TextureTest, Blit)
 					textureData[index].r = (uint8_t)x;
 					textureData[index].g = (uint8_t)y;
 					textureData[index].b = (uint8_t)level;
-					textureData[index].a = (uint8_t)depth;
+					textureData[index].a = (uint8_t)depth + 1;
 				}
 			}
 		}
@@ -633,7 +633,7 @@ TEST_F(TextureTest, Blit)
 			EXPECT_EQ(x + 1, readTextureData[index].r);
 			EXPECT_EQ(y + 2, readTextureData[index].g);
 			EXPECT_EQ(1U, readTextureData[index].b);
-			EXPECT_EQ(2U, readTextureData[index].a);
+			EXPECT_EQ(3U, readTextureData[index].a);
 		}
 	}
 
@@ -647,7 +647,7 @@ TEST_F(TextureTest, Blit)
 			EXPECT_EQ(x + 1, readTextureData[index].r);
 			EXPECT_EQ(y + 2, readTextureData[index].g);
 			EXPECT_EQ(1U, readTextureData[index].b);
-			EXPECT_EQ(3U, readTextureData[index].a);
+			EXPECT_EQ(4U, readTextureData[index].a);
 		}
 	}
 
