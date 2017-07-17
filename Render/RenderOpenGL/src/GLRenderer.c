@@ -216,6 +216,15 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		renderer->releaseDisplay = true;
 	}
 
+	const char* glslVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	DS_ASSERT(glslVersion);
+	unsigned int major, minor;
+	if (ANYGL_GLES)
+		DS_VERIFY(sscanf(glslVersion, "OpenGL ES GLSL ES %u.%u", &major, &minor) == 2);
+	else
+		DS_VERIFY(sscanf(glslVersion, "%u.%u", &major, &minor) == 2);
+	renderer->shaderVersion = major*100 + minor;
+
 	void* display = renderer->options.display;
 	renderer->sharedConfig = dsCreateGLConfig(allocator, display, options, false);
 	renderer->renderConfig = dsCreateGLConfig(allocator, display, options, true);
@@ -324,6 +333,22 @@ void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer, bool enabled)
 		return;
 
 	AnyGL_setDebugEnabled(enabled);
+}
+
+bool dsGLRenderer_getShaderVersion(uint32_t* outVersion, bool* outGles, const dsRenderer* renderer)
+{
+	if (!renderer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (outVersion)
+		*outVersion = glRenderer->shaderVersion;
+	if (outGles)
+		*outGles = ANYGL_GLES;
+	return true;
 }
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount)

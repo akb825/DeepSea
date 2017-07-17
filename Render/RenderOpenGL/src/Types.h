@@ -186,6 +186,7 @@ typedef struct dsGLRenderer
 {
 	dsRenderer renderer;
 	dsOpenGLOptions options;
+	uint32_t shaderVersion;
 	bool releaseDisplay;
 
 	bool renderContextBound;
