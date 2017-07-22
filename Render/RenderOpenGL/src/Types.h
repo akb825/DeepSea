@@ -222,6 +222,8 @@ typedef struct dsGLRenderer
 	size_t curSyncRefPools;
 	size_t maxSyncRefPools;
 	dsSpinlock syncRefPoolLock;
+
+	void* curGLSurface;
 } dsGLRenderer;
 
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -253,6 +255,9 @@ typedef bool (*GLSetUniformFunction)(dsCommandBuffer* commandBuffer, GLint locat
 	dsMaterialType type, uint32_t count, const void* data);
 typedef bool (*GLUnbindShaderFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
+typedef bool (*GLBeginRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
+typedef bool (*GLEndRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
+
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -274,6 +279,9 @@ typedef struct CommandBufferFunctionTable
 	GLSetUniformFunction setUniformFunc;
 	GLUnbindShaderFunction unbindShaderFunc;
 
+	GLBeginRenderSurfaceFunction beginRenderSurfaceFunc;
+	GLEndRenderSurfaceFunction endRenderSurfaceFunc;
+
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;
 
@@ -292,7 +300,14 @@ typedef struct dsGLCommandBuffer
 	uint32_t commitCountSize;
 
 	bool insideRenderPass;
+	void* boundSurface;
 } dsGLCommandBuffer;
 
 typedef struct dsGLMainCommandBuffer dsGLMainCommandBuffer;
 typedef struct dsGLOtherCommandBuffer dsGLOtherCommandBuffer;
+
+typedef struct dsGLRenderSurface
+{
+	dsRenderSurface renderSurface;
+	void* glSurface;
+} dsGLRenderSurface;

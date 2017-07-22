@@ -43,7 +43,9 @@ typedef enum CommandType
 	CommandType_SetTextureBuffer,
 	CommandType_SetShaderBuffer,
 	CommandType_SetUniform,
-	CommandType_UnbindShader
+	CommandType_UnbindShader,
+	CommandType_BeginRenderSurface,
+	CommandType_EndRenderSurface
 } CommandType;
 
 typedef struct Command
@@ -153,6 +155,12 @@ typedef struct UnbindShaderCommand
 	Command command;
 	const dsShader* shader;
 } UnbindShaderCommand;
+
+typedef struct RenderSurfaceCommand
+{
+	Command command;
+	void* glSurface;
+} RenderSurfaceCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -411,6 +419,28 @@ bool dsGLOtherCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const d
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	RenderSurfaceCommand* command = (RenderSurfaceCommand*)allocateCommand(commandBuffer,
+		CommandType_BeginRenderSurface, sizeof(RenderSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->glSurface = glSurface;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	RenderSurfaceCommand* command = (RenderSurfaceCommand*)allocateCommand(commandBuffer,
+		CommandType_EndRenderSurface, sizeof(RenderSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->glSurface = glSurface;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	dsGLOtherCommandBuffer* glSubmitBuffer = (dsGLOtherCommandBuffer*)submitBuffer;
@@ -538,6 +568,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_setShaderBuffer,
 	&dsGLOtherCommandBuffer_setUniform,
 	&dsGLOtherCommandBuffer_unbindShader,
+	&dsGLOtherCommandBuffer_beginRenderSurface,
+	&dsGLOtherCommandBuffer_endRenderSurface,
 	&dsGLOtherCommandBuffer_submit
 };
 

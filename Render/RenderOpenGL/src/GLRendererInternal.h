@@ -19,6 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "Types.h"
 
+bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface);
+void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface);
+
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount);
 void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount);
 

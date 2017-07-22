@@ -295,6 +295,18 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	}
 }
 
+bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, void* surface)
+{
+	DS_ASSERT(outWidth);
+	DS_ASSERT(outHeight);
+	DS_ASSERT(display);
+	DS_ASSERT(surface);
+
+	glXQueryDrawable(display, (GLXDrawable)surface, GLX_WIDTH, outWidth);
+	glXQueryDrawable(display, (GLXDrawable)surface, GLX_HEIGHT, outHeight);
+	return true;
+}
+
 void dsSwapGLBuffers(void* display, void* surface)
 {
 	if (!surface)
@@ -309,7 +321,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 		return;
 
 	if (surfaceType == dsRenderSurfaceType_Window && ANYGL_SUPPORTED(glXDestroyWindow))
-		glXDestroyWindow(display, (GLXWindow)surface);
+		glXDestroyWindow(display, (GLXDrawable)surface);
 }
 
 bool dsBindGLContext(void* display, void* context, void* surface)

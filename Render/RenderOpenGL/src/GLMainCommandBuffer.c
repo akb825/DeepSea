@@ -1603,6 +1603,18 @@ bool dsGLMainCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const ds
 	return true;
 }
 
+bool dsGLMainCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	return dsGLRenderer_bindSurface(commandBuffer->renderer, glSurface);
+}
+
+bool dsGLMainCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(glSurface);
+	return true;
+}
+
 bool dsGLMainCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -1624,6 +1636,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_setShaderBuffer,
 	&dsGLMainCommandBuffer_setUniform,
 	&dsGLMainCommandBuffer_unbindShader,
+	&dsGLMainCommandBuffer_beginRenderSurface,
+	&dsGLMainCommandBuffer_endRenderSurface,
 	&dsGLMainCommandBuffer_submit
 };
 

@@ -32,6 +32,7 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
 	glCommandBuffer->commitCounts = NULL;
 	glCommandBuffer->commitCountSize = 0;
 	glCommandBuffer->insideRenderPass = false;
+	glCommandBuffer->boundSurface = NULL;
 }
 
 void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
@@ -438,6 +439,54 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->unbindShaderFunc(commandBuffer, shader);
+}
+
+bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (!glCommandBuffer->insideRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"The current render surface cannot be changed during a render pass.");
+		return false;
+	}
+
+	if (!glCommandBuffer->boundSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot begin drawing to a render surface when one is already bound.");
+		return false;
+	}
+
+	glCommandBuffer->boundSurface = glSurface;
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	return functions->beginRenderSurfaceFunc(commandBuffer, glSurface);
+}
+
+bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (!glCommandBuffer->insideRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"The current render surface cannot be changed during a render pass.");
+		return false;
+	}
+
+	if (glCommandBuffer->boundSurface != glSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Can only end drawing to the currently bound render surface.");
+		return false;
+	}
+
+	glCommandBuffer->boundSurface = NULL;
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	return functions->endRenderSurfaceFunc(commandBuffer, glSurface);
 }
 
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

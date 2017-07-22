@@ -23,6 +23,7 @@
 #include "Resources/GLResourceManager.h"
 #include "GLMainCommandBuffer.h"
 #include "GLHelpers.h"
+#include "GLRenderSurface.h"
 #include "Types.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -327,6 +328,14 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glVertexAttribDivisor);
 
+	// Render surfaces
+	baseRenderer->createRenderSurfaceFunc = &dsGLRenderSurface_create;
+	baseRenderer->destroyRenderSurfaceFunc = &dsGLRenderSurface_destroy;
+	baseRenderer->updateRenderSurfaceFunc = &dsGLRenderSurface_update;
+	baseRenderer->beginRenderSurfaceFunc = &dsGLRenderSurface_beginDraw;
+	baseRenderer->endRenderSurfaceFunc = &dsGLRenderSurface_endDraw;
+	baseRenderer->swapRenderSurfaceBuffersFunc = &dsGLRenderSurface_swapBuffers;
+
 	return baseRenderer;
 }
 
@@ -376,6 +385,35 @@ const char* dsGLRenderer_getGLRenderer(const dsRenderer* renderer)
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	return glRenderer->rendererString;
+}
+
+bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (glSurface != glRenderer->curGLSurface)
+	{
+		if (!dsBindGLContext(glRenderer->options.display, glRenderer->renderContext,
+			glSurface))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Failed to bind render surface. It may have been"
+				"destroyed before the commands could execute?");
+			return false;
+		}
+		glRenderer->curGLSurface = glSurface;
+	}
+	return true;
+}
+
+void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (glRenderer->curGLSurface == glSurface)
+	{
+		DS_VERIFY(dsBindGLContext(glRenderer->options.display, glRenderer->sharedContext,
+			glRenderer->dummySurface));
+		glRenderer->curGLSurface = NULL;
+	}
 }
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount)
