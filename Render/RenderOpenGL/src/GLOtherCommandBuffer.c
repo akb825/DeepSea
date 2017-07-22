@@ -441,6 +441,22 @@ bool dsGLOtherCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, voi
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
+	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(renderPass);
+	DS_UNUSED(subpassIndex);
+	DS_UNUSED(framebuffer);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_end(dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	dsGLOtherCommandBuffer* glSubmitBuffer = (dsGLOtherCommandBuffer*)submitBuffer;
@@ -570,6 +586,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_unbindShader,
 	&dsGLOtherCommandBuffer_beginRenderSurface,
 	&dsGLOtherCommandBuffer_endRenderSurface,
+	&dsGLOtherCommandBuffer_begin,
+	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
 };
 

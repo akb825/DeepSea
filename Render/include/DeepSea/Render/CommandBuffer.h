@@ -40,7 +40,7 @@ extern "C"
  * @param commandBuffer The command buffer to begin. This should not be the main command buffer.
  * @param renderPass The render pass the command buffer will be drawn with. This should be provided
  *     if the command buffer was created with the dsCommandBufferUsage_Subpass flag to improve
- *     performance on some implementations.
+ *     performance on some implementations. This may be NULL otherwise.
  * @param subpassIndex The subpass within the render pass that will be drawn with.
  * @param framebuffer The framebuffer that will be drawn to. This may be NULL if the command buffer
  *     will be re-played to draw to multiple framebuffers, but can improve performance if provided.

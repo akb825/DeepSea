@@ -1615,10 +1615,34 @@ bool dsGLMainCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void
 	return true;
 }
 
+bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
+	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+{
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(renderPass);
+	DS_UNUSED(subpassIndex);
+	DS_UNUSED(framebuffer);
+
+	errno = EPERM;
+	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot begin or end the main command buffer.");
+	return false;
+}
+
+bool dsGLMainCommandBuffer_end(dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+
+	errno = EPERM;
+	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot begin or end the main command buffer.");
+	return false;
+}
+
 bool dsGLMainCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(submitBuffer);
+	errno = EPERM;
+	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot submit the main command buffer.");
 	return false;
 }
 
@@ -1638,6 +1662,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_unbindShader,
 	&dsGLMainCommandBuffer_beginRenderSurface,
 	&dsGLMainCommandBuffer_endRenderSurface,
+	&dsGLMainCommandBuffer_begin,
+	&dsGLMainCommandBuffer_end,
 	&dsGLMainCommandBuffer_submit
 };
 

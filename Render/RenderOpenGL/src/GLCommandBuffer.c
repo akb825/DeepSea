@@ -489,6 +489,21 @@ bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* gl
 	return functions->endRenderSurfaceFunc(commandBuffer, glSurface);
 }
 
+bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->beginFunc(commandBuffer, renderPass, subpassIndex, framebuffer);
+}
+
+bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->endFunc(commandBuffer);
+}
+
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
 {

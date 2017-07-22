@@ -59,5 +59,8 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
 bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
 
+bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

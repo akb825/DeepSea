@@ -21,8 +21,10 @@
 #include "AnyGL/gl.h"
 #include "Platform/Platform.h"
 #include "Resources/GLResourceManager.h"
-#include "GLMainCommandBuffer.h"
+#include "GLCommandBuffer.h"
+#include "GLCommandBufferPool.h"
 #include "GLHelpers.h"
+#include "GLMainCommandBuffer.h"
 #include "GLRenderSurface.h"
 #include "Types.h"
 
@@ -335,6 +337,14 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->beginRenderSurfaceFunc = &dsGLRenderSurface_beginDraw;
 	baseRenderer->endRenderSurfaceFunc = &dsGLRenderSurface_endDraw;
 	baseRenderer->swapRenderSurfaceBuffersFunc = &dsGLRenderSurface_swapBuffers;
+
+	// Command buffers
+	baseRenderer->createCommandBufferPoolFunc = &dsGLCommandBufferPool_create;
+	baseRenderer->destroyCommandBufferPoolFunc = &dsGLCommandBufferPool_destroy;
+	baseRenderer->resetCommandBufferPoolFunc = &dsGLCommandBufferPool_reset;
+	baseRenderer->beginCommandBufferFunc = &dsGLCommandBuffer_begin;
+	baseRenderer->endCommandBufferFunc = &dsGLCommandBuffer_end;
+	baseRenderer->submitCommandBufferFunc = &dsGLCommandBuffer_submit;
 
 	return baseRenderer;
 }

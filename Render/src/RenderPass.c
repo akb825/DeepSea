@@ -237,7 +237,7 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((!clearValues && clearValues > 0) ||
+	if ((!clearValues && clearValueCount > 0) ||
 		(clearValues != 0 && clearValueCount != renderPass->attachmentCount))
 	{
 		errno = EINVAL;

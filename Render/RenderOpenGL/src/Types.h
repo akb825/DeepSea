@@ -258,6 +258,9 @@ typedef bool (*GLUnbindShaderFunction)(dsCommandBuffer* commandBuffer, const dsS
 typedef bool (*GLBeginRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 typedef bool (*GLEndRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 
+typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+typedef bool (*GLEndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -282,6 +285,8 @@ typedef struct CommandBufferFunctionTable
 	GLBeginRenderSurfaceFunction beginRenderSurfaceFunc;
 	GLEndRenderSurfaceFunction endRenderSurfaceFunc;
 
+	GLBeginCommandBufferFunction beginFunc;
+	GLEndCommandBufferFunction endFunc;
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;
 
