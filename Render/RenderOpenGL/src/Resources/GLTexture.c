@@ -90,6 +90,9 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 	GLenum target = dsGLTexture_target(baseTexture);
 	glBindTexture(target, texture->textureId);
+	// This could happen with some resource context rather than the render context, so always set
+	// the pixel alignment to be tightly packed.
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	// Format should have been validated earlier.
 	GLenum internalFormat;
@@ -637,6 +640,7 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(NULL, &glFormat, &type, resourceManager,
 		texture->format));
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	if (texture->offscreen)
 	{
 		GLuint framebuffer;

@@ -1696,6 +1696,7 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	commandBuffer->currentState.patchControlPoints = MSL_UNKNOWN;
 	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_seamless_cube_map)
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 }
 
 bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
