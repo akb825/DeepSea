@@ -76,12 +76,12 @@ TEST_F(FramebufferTest, CreateLayers)
 {
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 4, 1, 4, true);
+		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 4, 1, 4, false);
 	ASSERT_TRUE(offscreen1);
 
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080,
-		4, 1, 4, true);
+		4, 1, 4, false);
 	ASSERT_TRUE(offscreen2);
 
 	dsFramebufferSurface surfaces[] =

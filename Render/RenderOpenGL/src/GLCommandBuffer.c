@@ -23,7 +23,13 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/VolatileMaterialValues.h>
 
-void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
+static bool insideRenderPass(const dsCommandBuffer* commandBuffer)
+{
+	const dsGLCommandBuffer* glCommandBuffer = (const dsGLCommandBuffer*)commandBuffer;
+	return glCommandBuffer->subpassOnly || glCommandBuffer->boundRenderPass;
+}
+
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly)
 {
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(commandBuffer->allocator);
@@ -31,7 +37,9 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	glCommandBuffer->commitCounts = NULL;
 	glCommandBuffer->commitCountSize = 0;
-	glCommandBuffer->insideRenderPass = false;
+	glCommandBuffer->subpassOnly = subpassOnly;
+	glCommandBuffer->subpassIndex = 0;
+	glCommandBuffer->boundRenderPass = NULL;
 	glCommandBuffer->boundSurface = NULL;
 }
 
@@ -99,7 +107,7 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
 
-	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	if (!insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
@@ -294,7 +302,7 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 
-	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	if (!insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
@@ -306,9 +314,9 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 		return true;
 
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	const dsGLShader* glShader = (const dsGLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
@@ -429,7 +437,7 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
-	if (!((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	if (!insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
@@ -443,8 +451,7 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
 {
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (!glCommandBuffer->insideRenderPass)
+	if (insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
@@ -452,6 +459,7 @@ bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* 
 		return false;
 	}
 
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	if (!glCommandBuffer->boundSurface)
 	{
 		errno = EPERM;
@@ -460,15 +468,17 @@ bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* 
 		return false;
 	}
 
-	glCommandBuffer->boundSurface = glSurface;
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	return functions->beginRenderSurfaceFunc(commandBuffer, glSurface);
+	if (!functions->beginRenderSurfaceFunc(commandBuffer, glSurface))
+		return false;
+
+	glCommandBuffer->boundSurface = glSurface;
+	return true;
 }
 
 bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
 {
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (!glCommandBuffer->insideRenderPass)
+	if (insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
@@ -476,6 +486,7 @@ bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* gl
 		return false;
 	}
 
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	if (glCommandBuffer->boundSurface != glSurface)
 	{
 		errno = EPERM;
@@ -484,9 +495,96 @@ bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* gl
 		return false;
 	}
 
-	glCommandBuffer->boundSurface = NULL;
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	return functions->endRenderSurfaceFunc(commandBuffer, glSurface);
+	if (!functions->endRenderSurfaceFunc(commandBuffer, glSurface))
+		return false;
+
+	glCommandBuffer->boundSurface = NULL;
+	return true;
+}
+
+bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot begin a render pass when already within a render pass.");
+		return false;
+	}
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport,
+		clearValues, clearValueCount))
+	{
+		return false;
+	}
+
+	glCommandBuffer->boundRenderPass = renderPass;
+	glCommandBuffer->subpassIndex = 0;
+	return true;
+}
+
+bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundRenderPass != renderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Can only move to the next subpass of the currently bound render pass.");
+		return false;
+	}
+
+	if (glCommandBuffer->subpassIndex + 1 >= renderPass->subpassCount)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Already reached the last subpass of the current render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->nextRenderSubpassFunc(commandBuffer, renderPass,
+		glCommandBuffer->subpassIndex + 1))
+	{
+		return false;
+	}
+
+	++glCommandBuffer->subpassIndex;
+	return true;
+}
+
+bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundRenderPass != renderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Can only move to the next subpass of the currently bound render pass.");
+		return false;
+	}
+
+	if (glCommandBuffer->subpassIndex != renderPass->subpassCount - 1)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can only end a render pass on the last subpass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	if (!functions->endRenderPassFunc(commandBuffer, renderPass))
+		return false;
+
+	glCommandBuffer->boundRenderPass = NULL;
+	return true;
 }
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

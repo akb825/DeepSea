@@ -1110,10 +1110,18 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->destroyRenderbufferFunc = &dsGLRenderbuffer_destroy;
 
 	// Framebuffers
-	glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, (GLint*)&baseResourceManager->maxFramebufferLayers);
-	baseResourceManager->canMixWithRenderSurface = false;
+	if (ANYGL_SUPPORTED(glFramebufferTexture))
+	{
+		glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS,
+			(GLint*)&baseResourceManager->maxFramebufferLayers);
+	}
+	else
+		baseResourceManager->maxFramebufferLayers = 1;
 	baseResourceManager->requiresColorBuffer = ANYGL_SUPPORTED(glDrawBuffer) ||
 		ANYGL_SUPPORTED(glDrawBuffers);
+	baseResourceManager->requiresAnySurface = !(AnyGL_ARB_framebuffer_no_attachments ||
+		AnyGL_atLeastVersion(4, 3, false));
+	baseResourceManager->canMixWithRenderSurface = false;
 	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
 

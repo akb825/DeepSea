@@ -25,11 +25,6 @@ void dsClearGLErrors(void);
 GLenum dsGetLastGLError(void);
 int dsGetGLErrno(GLenum error);
 
-void dsGLBindFramebufferTexture(GLenum framebuffer, dsTexture* texture, uint32_t mipLevel,
-	uint32_t layer);
-
-void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture);
-
 bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems,
 	size_t* maxElems, size_t elemSize, size_t addElems);
 

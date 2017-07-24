@@ -334,6 +334,8 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
 		samples = resourceManager->renderer->surfaceSamples;
 	samples = dsMax(1U, samples);
+	if (samples == 1)
+		resolve = false;
 
 	unsigned int minWidth, minHeight;
 	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
@@ -359,7 +361,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (samples > 0 && !resolve && !resourceManager->hasMultisampleTextures)
+	if (samples > 1 && !resolve && !resourceManager->hasMultisampleTextures)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -381,7 +383,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->textureCount, 1);
 		size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels,
 			resolve ? 1 : samples);
-		if (resolve && samples > 1)
+		if (resolve)
 			textureSize += dsTexture_size(format, dimension, width, height, 1, 1, samples);
 		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->textureMemorySize, textureSize);
 	}

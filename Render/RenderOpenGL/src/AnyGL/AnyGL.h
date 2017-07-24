@@ -46,7 +46,7 @@ ANYGL_EXPORT void AnyGL_shutdown(void);
 
 /**
  * @brief Gets the string for an OpenGL error.
- * @param error The error code returned from glGetError().
+ * @param error The error code returned from glGetError() or glCheckFramebufferStatus().
  * @return The string for the error, or "UNKNOWN" if not a known error code.
  */
 ANYGL_EXPORT const char* AnyGL_errorString(unsigned int error);

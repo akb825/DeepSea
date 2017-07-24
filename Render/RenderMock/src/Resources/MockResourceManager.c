@@ -135,6 +135,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->hasMultisampleTextures = true;
 	resourceManager->texturesReadable = true;
 	resourceManager->requiresColorBuffer = false;
+	resourceManager->requiresAnySurface = false;
 	resourceManager->canMixWithRenderSurface = true;
 	resourceManager->hasFences = true;
 

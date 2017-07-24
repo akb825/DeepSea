@@ -34,17 +34,15 @@ TEST_F(RenderPassTest, Create)
 			renderer->surfaceDepthStencilFormat, renderer->surfaceSamples},
 		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
 			renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_Resolve),
-			renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_Resolve),
-			renderer->surfaceColorFormat, renderer->surfaceSamples}
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
 	};
 	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
 
-	uint32_t pass0ColorAttachments[] = {2};
-	uint32_t pass1ColorAttachments[] = {3};
+	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	uint32_t pass2ColorAttachments[] = {1};
+	dsColorAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
@@ -128,17 +126,15 @@ TEST_F(RenderPassTest, BeginNextEnd)
 			renderer->surfaceDepthStencilFormat, renderer->surfaceSamples},
 		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
 			renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_Resolve),
-			renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_Resolve),
-			renderer->surfaceColorFormat, renderer->surfaceSamples}
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
 	};
 	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
 
-	uint32_t pass0ColorAttachments[] = {2};
-	uint32_t pass1ColorAttachments[] = {3};
+	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
+	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
 	uint32_t pass2InputAttachments[] = {2, 3};
-	uint32_t pass2ColorAttachments[] = {1};
+	dsColorAttachmentRef pass2ColorAttachments[] = {{1, false}};
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"test1", NULL, pass0ColorAttachments, 0, DS_ARRAY_SIZE(pass0ColorAttachments),
@@ -183,27 +179,40 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		renderer->surfaceSamples, true);
 	ASSERT_TRUE(offscreen3);
 
-	dsFramebufferSurface surfaces[] =
+	dsFramebufferSurface surfaces1[] =
 	{
 		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
 		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
 		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen1},
 		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen2}
 	};
-	uint32_t surfaceCount = (uint32_t)DS_ARRAY_SIZE(surfaces);
+	uint32_t surface1Count = (uint32_t)DS_ARRAY_SIZE(surfaces1);
 
-	dsFramebuffer* framebuffer1 = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		surfaceCount, renderSurface->width, renderSurface->height, 1);
+	dsFramebufferSurface surfaces2[] =
+	{
+		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen1},
+		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen2}
+	};
+	uint32_t surface2Count = (uint32_t)DS_ARRAY_SIZE(surfaces2);
+
+	dsFramebuffer* framebuffer1 = dsFramebuffer_create(resourceManager, NULL, surfaces1,
+		surface1Count, renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer1);
 
-	dsFramebuffer* framebuffer2 = dsFramebuffer_create(resourceManager, NULL, surfaces, 2,
+	dsFramebuffer* framebuffer2 = dsFramebuffer_create(resourceManager, NULL, surfaces1, 2,
 		renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer2);
 
-	surfaces[3].surface = offscreen3;
-	dsFramebuffer* framebuffer3 = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		surfaceCount, renderSurface->width, renderSurface->height, 1);
+	surfaces1[3].surface = offscreen3;
+	dsFramebuffer* framebuffer3 = dsFramebuffer_create(resourceManager, NULL, surfaces1,
+		surface1Count, renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer3);
+
+	dsFramebuffer* framebuffer4 = dsFramebuffer_create(resourceManager, NULL, surfaces2,
+		surface2Count, renderSurface->width, renderSurface->height, 1);
+	ASSERT_TRUE(framebuffer4);
 
 	dsSurfaceClearValue clearValues[4];
 	clearValues[0].depthStencil.depth = 1.0f;
@@ -258,10 +267,21 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	EXPECT_TRUE(dsRenderPass_nextSubpass(renderer->mainCommandBuffer, renderPass, false));
 	EXPECT_TRUE(dsRenderPass_end(renderer->mainCommandBuffer, renderPass));
 
+	EXPECT_TRUE(dsRenderPass_begin(renderer->mainCommandBuffer, renderPass, framebuffer4,
+		&validViewport, clearValues, clearValueCount, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderer->mainCommandBuffer, renderPass, false));
+	EXPECT_TRUE(dsRenderPass_nextSubpass(renderer->mainCommandBuffer, renderPass, false));
+	EXPECT_TRUE(dsRenderPass_end(renderer->mainCommandBuffer, renderPass));
+
+	resourceManager->canMixWithRenderSurface = false;
+	EXPECT_FALSE(dsRenderPass_begin(renderer->mainCommandBuffer, renderPass, framebuffer4,
+		&validViewport, clearValues, clearValueCount, false));
+
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer1));
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer2));
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer3));
+	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer4));
 	EXPECT_TRUE(dsTexture_destroy(offscreen1));
 	EXPECT_TRUE(dsTexture_destroy(offscreen2));
 	EXPECT_TRUE(dsTexture_destroy(offscreen3));

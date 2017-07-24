@@ -17,13 +17,16 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include "Types.h"
 
 dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
 	uint32_t width, uint32_t height, uint32_t layers);
 bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
 
-void dsGLFramebuffer_bind(dsFramebuffer* framebuffer);
+GLSurfaceType dsGLFramebuffer_getSurfaceType(dsFramebufferSurfaceType framebufferSurfaceType);
+GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
+	const dsColorAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
+	uint32_t depthStencilAttachment);
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer);
 void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer);

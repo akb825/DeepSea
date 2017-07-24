@@ -928,6 +928,8 @@ typedef struct dsFramebufferSurface
 	 *
 	 * This is used when a single layer is used with the framebuffer. If multiple layers are used,
 	 * all faces will be used.
+	 *
+	 * @remark This will be ignored when used with a cube map array. Use layer instead.
 	 */
 	dsCubeFace cubeFace;
 
@@ -1700,6 +1702,11 @@ struct dsResourceManager
 	 * @brief True if a color buffer must be provided with a framebuffer.
 	 */
 	bool requiresColorBuffer;
+
+	/**
+	 * @brief True if a surface must be provided with a framebuffer.
+	 */
+	bool requiresAnySurface;
 
 	/**
 	 * @brief True if offscreens or renderbuffers may be mixed with render surfaces in a

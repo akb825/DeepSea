@@ -20,7 +20,5 @@
 #include "Types.h"
 
 dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllocator* allocator);
-
 void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer);
-
 bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer);

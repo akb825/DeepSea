@@ -114,9 +114,14 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 			{
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
 				surfaceFormat = surface->format;
-				surfaceLayers = dsMax(1U, surface->depth);
-				if (surface->dimension == dsTextureDim_Cube)
-					surfaceLayers *= 6;
+				if (surface->resolve)
+					surfaceLayers = 1;
+				else
+				{
+					surfaceLayers = dsMax(1U, surface->depth);
+					if (surface->dimension == dsTextureDim_Cube)
+						surfaceLayers *= 6;
+				}
 
 				if (!surface->offscreen)
 				{

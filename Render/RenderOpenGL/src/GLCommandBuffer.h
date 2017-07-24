@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "Types.h"
 
-void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer);
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly);
 void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer);
 
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -58,6 +58,15 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
 bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
+
+bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount);
+bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass);
+bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass);
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);

@@ -27,6 +27,15 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 
 GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer);
 GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer);
+void dsGLRenderer_restoreFramebuffer(dsRenderer* renderer);
 
 dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync);
 dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer);
+
+void dsGLRenderer_bindTexture(dsRenderer* renderer, unsigned int unit, GLenum target,
+	GLuint texture);
+void dsGLRenderer_beginTextureOp(dsRenderer* renderer, GLenum target, GLuint texture);
+void dsGLRenderer_endTextureOp(dsRenderer* renderer);
+
+void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceType,
+	GLuint framebuffer);

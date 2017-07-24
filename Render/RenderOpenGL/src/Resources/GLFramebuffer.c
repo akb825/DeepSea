@@ -19,6 +19,7 @@
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
 #include "Resources/GLResource.h"
+#include "Resources/GLTexture.h"
 #include "GLHelpers.h"
 #include "GLRendererInternal.h"
 #include "Types.h"
@@ -26,6 +27,70 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
+
+static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface* surface,
+	uint32_t layers, GLuint* curAttachment)
+{
+	if (!surface)
+	{
+		if (*curAttachment == 0)
+			return false;
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
+		*curAttachment = 0;
+		return true;
+	}
+
+	switch (surface->surfaceType)
+	{
+		case dsFramebufferSurfaceType_Offscreen:
+		{
+			dsTexture* texture = (dsTexture*)surface->surface;
+			dsGLTexture* glTexture = (dsGLTexture*)texture;
+			if (glTexture->drawBufferId)
+			{
+				if (*curAttachment == glTexture->drawBufferId)
+					return false;
+
+				*curAttachment = glTexture->drawBufferId;
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment,
+					GL_RENDERBUFFER, glTexture->drawBufferId);\
+			}
+			else
+			{
+				if (*curAttachment == glTexture->textureId)
+					return false;
+
+				*curAttachment = glTexture->textureId;
+				if (layers > 1)
+				{
+					glFramebufferTexture(GL_FRAMEBUFFER, attachment, glTexture->textureId,
+						surface->mipLevel);
+				}
+				else
+				{
+					dsGLTexture_bindFramebufferAttachment(texture, GL_FRAMEBUFFER, attachment,
+						surface->mipLevel, surface->layer);
+				}
+			}
+			return true;
+		}
+		case dsFramebufferSurfaceType_Renderbuffer:
+		{
+			dsGLRenderbuffer* renderbuffer = (dsGLRenderbuffer*)surface->surface;
+			if (*curAttachment == renderbuffer->renderbufferId)
+				return false;
+
+			*curAttachment = renderbuffer->renderbufferId;
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER,
+				renderbuffer->renderbufferId);
+			return true;
+		}
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+}
 
 dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
@@ -66,6 +131,11 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 
 	dsGLResource_initialize(&framebuffer->resource);
 	framebuffer->framebufferId = 0;
+	framebuffer->fboContext = 0;
+	memset(framebuffer->curColorAttachments, 0, sizeof(framebuffer->curColorAttachmentCount));
+	framebuffer->curColorAttachmentCount = 0;
+	framebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
+	framebuffer->framebufferError = false;
 	framebuffer->defaultFramebuffer = true;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
@@ -107,20 +177,149 @@ bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 	return true;
 }
 
-void dsGLFramebuffer_bind(dsFramebuffer* framebuffer)
+GLSurfaceType dsGLFramebuffer_getSurfaceType(dsFramebufferSurfaceType framebufferSurfaceType)
 {
-	dsGLFramebuffer* glFramebuffer = (dsGLFramebuffer*)framebuffer;
-	if (glFramebuffer->defaultFramebuffer)
+	switch (framebufferSurfaceType)
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		return;
+		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+			return GLSurfaceType_Left;
+		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+			return GLSurfaceType_Right;
+		case dsFramebufferSurfaceType_Offscreen:
+		case dsFramebufferSurfaceType_Renderbuffer:
+			return GLSurfaceType_Framebuffer;
+		default:
+			DS_ASSERT(false);
+			return GLSurfaceType_Framebuffer;
+	}
+}
+
+GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
+	const dsColorAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
+	uint32_t depthStencilAttachment)
+{
+	dsRenderer* renderer = framebuffer->resourceManager->renderer;
+	dsGLFramebuffer* glFramebuffer = (dsGLFramebuffer*)framebuffer;
+	if (!glFramebuffer->defaultFramebuffer)
+	{
+		// Framebuffer objects are tied to specific contexts.
+		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+		if (!glFramebuffer->framebufferId || glFramebuffer->fboContext != glRenderer->contextCount)
+		{
+			glGenFramebuffers(1, &glFramebuffer->framebufferId);
+			memset(glFramebuffer->curColorAttachments, 0,
+				sizeof(glFramebuffer->curColorAttachmentCount));
+			glFramebuffer->curColorAttachmentCount = 0;
+			glFramebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
+			glFramebuffer->framebufferError = false;
+		}
 	}
 
-	// Framebuffer objects are tied to specific contexts.
-	dsGLRenderer* renderer = (dsGLRenderer*)framebuffer->resourceManager->renderer;
-	if (!glFramebuffer->framebufferId || glFramebuffer->fboContext != renderer->contextCount)
-		glGenVertexArrays(1, &glFramebuffer->framebufferId);
-	glBindFramebuffer(GL_FRAMEBUFFER, glFramebuffer->framebufferId);
+	DS_ASSERT(colorAttachmentCount > 0);
+	GLSurfaceType surfaceType;
+	if (colorAttachmentCount == 1 && colorAttachments[0].attachmentIndex != DS_NO_ATTACHMENT)
+	{
+		surfaceType = dsGLFramebuffer_getSurfaceType(
+			framebuffer->surfaces[colorAttachments[0].attachmentIndex].surfaceType);
+	}
+	else
+		surfaceType = GLSurfaceType_Framebuffer;
+
+	dsGLRenderer_bindFramebuffer(renderer, surfaceType, glFramebuffer->framebufferId);
+
+	if (surfaceType == GLSurfaceType_Framebuffer)
+	{
+		// Bind the surfaces to the framebuffer.
+		bool hasChanges = false;
+		DS_ASSERT(colorAttachmentCount < MSL_MAX_ATTACHMENTS);
+		for (uint32_t i = 0; i < colorAttachmentCount; ++i)
+		{
+			const dsFramebufferSurface* surface = NULL;
+			if (colorAttachments[i].attachmentIndex != DS_NO_ATTACHMENT)
+				surface = framebuffer->surfaces + colorAttachments[i].attachmentIndex;
+			if (bindFramebufferSurface(GL_COLOR_ATTACHMENT0 + i, surface, framebuffer->layers,
+				glFramebuffer->curColorAttachments + i))
+			{
+				hasChanges = true;
+			}
+		}
+
+		if ((colorAttachmentCount != glFramebuffer->curColorAttachmentCount || hasChanges) &&
+			ANYGL_SUPPORTED(glDrawBuffers))
+		{
+			hasChanges = true;
+			GLenum drawBuffers[MSL_MAX_ATTACHMENTS];
+			for (uint32_t i = 0; i < colorAttachmentCount; ++i)
+			{
+				if (colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
+					drawBuffers[i] = GL_NONE;
+				else
+					drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+			}
+			glDrawBuffers(colorAttachmentCount, drawBuffers);
+
+			// Remove the binding for any remaining previous attachments to avoid holding onto
+			// resources.
+			for (uint32_t i = colorAttachmentCount; i < glFramebuffer->curColorAttachmentCount; ++i)
+			{
+				if (glFramebuffer->curColorAttachments[i])
+				{
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+						0, 0);
+					glFramebuffer->curColorAttachments[i] = 0;
+				}
+			}
+			glFramebuffer->curColorAttachmentCount = colorAttachmentCount;
+		}
+
+		if (depthStencilAttachment == DS_NO_ATTACHMENT)
+		{
+			if (glFramebuffer->curDepthAttachment != depthStencilAttachment)
+			{
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D,
+					0, 0);
+				glFramebuffer->curDepthAttachment = depthStencilAttachment;
+				hasChanges = true;
+			}
+		}
+		else
+		{
+			const dsFramebufferSurface* surface = framebuffer->surfaces + depthStencilAttachment;
+			dsGfxFormat format;
+			if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+				format = ((dsTexture*)surface->surface)->format;
+			else
+				format = ((dsRenderbuffer*)surface->surface)->format;
+			if (bindFramebufferSurface(dsGLTexture_attachment(format), surface, framebuffer->layers,
+				&glFramebuffer->curDepthAttachment))
+			{
+				hasChanges = true;
+			}
+		}
+
+		if (hasChanges)
+		{
+			// Check for completeness if we changed the binding.
+			GLenum result = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if (result != GL_FRAMEBUFFER_COMPLETE)
+			{
+				glFramebuffer->framebufferError = true;
+				DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Framebuffer error: %s",
+					AnyGL_errorString(result));
+				return GLSurfaceType_None;
+			}
+
+			glFramebuffer->framebufferError = false;
+		}
+		else if (glFramebuffer->framebufferError)
+			return GLSurfaceType_None;
+	}
+
+	return surfaceType;
 }
 
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer)

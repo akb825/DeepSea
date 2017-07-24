@@ -23,6 +23,14 @@
 #include <DeepSea/RenderOpenGL/Types.h>
 #include <DeepSea/Core/Types.h>
 
+typedef enum GLSurfaceType
+{
+	GLSurfaceType_None,
+	GLSurfaceType_Left,
+	GLSurfaceType_Right,
+	GLSurfaceType_Framebuffer,
+} GLSurfaceType;
+
 struct dsResourceContext
 {
 	void* context;
@@ -87,6 +95,10 @@ typedef struct dsGLFramebuffer
 	dsGLResource resource;
 	GLuint framebufferId;
 	uint32_t fboContext;
+	GLuint curColorAttachments[MSL_MAX_ATTACHMENTS];
+	GLuint curColorAttachmentCount;
+	GLuint curDepthAttachment;
+	bool framebufferError;
 	bool defaultFramebuffer;
 } dsGLFramebuffer;
 
@@ -224,6 +236,11 @@ typedef struct dsGLRenderer
 	dsSpinlock syncRefPoolLock;
 
 	void* curGLSurface;
+	GLenum curTexture0Target;
+	GLuint curTexture0;
+
+	GLSurfaceType curSurfaceType;
+	GLuint curFbo;
 } dsGLRenderer;
 
 typedef bool (*GLCopyGfxBufferDataFunction)(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -258,6 +275,15 @@ typedef bool (*GLUnbindShaderFunction)(dsCommandBuffer* commandBuffer, const dsS
 typedef bool (*GLBeginRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 typedef bool (*GLEndRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 
+typedef bool (*GLBeginRenderPassFunction)(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount);
+typedef bool (*GLNextRenderSubpassFunction)(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex);
+typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass);
+
 typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
 typedef bool (*GLEndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
@@ -285,6 +311,10 @@ typedef struct CommandBufferFunctionTable
 	GLBeginRenderSurfaceFunction beginRenderSurfaceFunc;
 	GLEndRenderSurfaceFunction endRenderSurfaceFunc;
 
+	GLBeginRenderPassFunction beginRenderPassFunc;
+	GLNextRenderSubpassFunction nextRenderSubpassFunc;
+	GLEndRenderPassFunction endRenderPassFunc;
+
 	GLBeginCommandBufferFunction beginFunc;
 	GLEndCommandBufferFunction endFunc;
 	GLSubmitCommandBufferFunction submitFunc;
@@ -304,7 +334,9 @@ typedef struct dsGLCommandBuffer
 	dsCommitCountInfo* commitCounts;
 	uint32_t commitCountSize;
 
-	bool insideRenderPass;
+	bool subpassOnly;
+	uint32_t subpassIndex;
+	const dsRenderPass* boundRenderPass;
 	void* boundSurface;
 } dsGLCommandBuffer;
 
@@ -316,3 +348,10 @@ typedef struct dsGLRenderSurface
 	dsRenderSurface renderSurface;
 	void* glSurface;
 } dsGLRenderSurface;
+
+typedef struct dsGLRenderPass
+{
+	dsRenderPass renderPass;
+	dsGLResource resource;
+	uint32_t* clearSubpass;
+} dsGLRenderPass;

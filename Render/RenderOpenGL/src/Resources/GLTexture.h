@@ -42,7 +42,13 @@ bool dsGLTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 
 GLenum dsGLTexture_target(const dsTexture* texture);
 GLenum dsGLTexture_copyTarget(const dsTexture* texture);
-GLenum dsGLTexture_attachment(const dsTexture* texture);
+GLenum dsGLTexture_framebufferTarget(const dsTexture* texture);
+GLenum dsGLTexture_attachment(dsGfxFormat format);
 GLbitfield dsGLTexture_buffers(const dsTexture* texture);
+void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,
+	uint32_t layer);
+void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffer,
+	GLenum attachment, uint32_t mipLevel, uint32_t layer);
+void dsGLTexture_unbindFramebuffer(dsTexture* texture, GLenum framebuffer);
 void dsGLTexture_addInternalRef(dsTexture* texture);
 void dsGLTexture_freeInternalRef(dsTexture* texture);

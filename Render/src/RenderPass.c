@@ -23,9 +23,47 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 
+typedef enum SurfaceType
+{
+	SurfaceType_Unset = 0,
+	SurfaceType_Left = 0x1,
+	SurfaceType_Right = 0x2,
+	SurfaceType_Other = 0x4
+} SurfaceType;
+
 static bool isDepthStencil(dsGfxFormat format)
 {
 	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
+}
+
+static SurfaceType getSurfaceType(dsFramebufferSurfaceType framebufferSurfaceType)
+{
+	switch (framebufferSurfaceType)
+	{
+		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+			return SurfaceType_Left;
+		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+			return SurfaceType_Right;
+		case dsFramebufferSurfaceType_Offscreen:
+		case dsFramebufferSurfaceType_Renderbuffer:
+			return SurfaceType_Other;
+		default:
+			DS_ASSERT(false);
+			return SurfaceType_Unset;
+	}
+}
+
+static bool hasMultipleSurfaceTypes(SurfaceType surfaceType)
+{
+	unsigned int count = 0;
+	count += (surfaceType & SurfaceType_Left) != 0;
+	count += (surfaceType & SurfaceType_Right) != 0;
+	count += (surfaceType & SurfaceType_Other) != 0;
+	return count > 0;
 }
 
 static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSurface* surface)
@@ -47,6 +85,27 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSur
 		default:
 			DS_ASSERT(false);
 			return dsGfxFormat_Unknown;
+	}
+}
+
+static uint16_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
+{
+	switch (surface->surfaceType)
+	{
+		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+			return renderer->surfaceSamples;
+		case dsFramebufferSurfaceType_Offscreen:
+			return ((dsOffscreen*)surface->surface)->samples;
+		case dsFramebufferSurfaceType_Renderbuffer:
+			return ((dsRenderbuffer*)surface->surface)->samples;
+		default:
+			DS_ASSERT(false);
+			return 0;
 	}
 }
 
@@ -101,13 +160,25 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (subpasses[i].colorAttachmentCount == 0 &&
-			renderer->resourceManager->requiresColorBuffer)
+		if (renderer->resourceManager->requiresColorBuffer)
 		{
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Current target requires at least one color buffer for each render subplass.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			bool allColorAttachmentsSet = subpasses[i].colorAttachmentCount > 0;
+			for (uint32_t j = 0; j < subpasses[j].colorAttachmentCount; ++j)
+			{
+				if (subpasses[i].colorAttachments[j].attachmentIndex == DS_NO_ATTACHMENT)
+				{
+					allColorAttachmentsSet = false;
+					break;
+				}
+			}
+
+			if (!allColorAttachmentsSet)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target requires at color attachments to "
+					"be set for each render subplass.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
 		}
 
 		if (subpasses[i].colorAttachmentCount > renderer->maxColorAttachments)
@@ -120,14 +191,18 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 		for (uint32_t j = 0; j < subpasses[i].colorAttachmentCount; ++j)
 		{
-			if (subpasses[i].colorAttachments[j] >= attachmentCount)
+			uint32_t attachment = subpasses[i].colorAttachments[j].attachmentIndex;
+			if (attachment == DS_NO_ATTACHMENT)
+				continue;
+
+			if (attachment >= attachmentCount)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass color attachment out of range.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (isDepthStencil(attachments[subpasses[i].colorAttachments[j]].format))
+			if (isDepthStencil(attachments[attachment].format))
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -216,8 +291,65 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
+		uint32_t samples = renderPass->attachments[i].samples;
+		if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			samples = renderer->surfaceSamples;
+		if (getSurfaceSamples(renderer, framebuffer->surfaces + i) != samples)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Framebuffer surface samples don't match attachment samples.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
 		if (renderPass->attachments[i].usage & dsAttachmentUsage_Clear)
 			needsClear = true;
+	}
+
+	if (!renderer->resourceManager->canMixWithRenderSurface)
+	{
+		for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
+		{
+			const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;
+			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
+			{
+				SurfaceType surfaceTypes = SurfaceType_Unset;
+				bool hasAnyColorSurface = false;
+				for (uint32_t k = 0; k < subpass->colorAttachmentCount; ++k)
+				{
+					uint32_t attachment = subpass->colorAttachments[k].attachmentIndex;
+					if (attachment != DS_NO_ATTACHMENT)
+					{
+						hasAnyColorSurface = true;
+						surfaceTypes = (SurfaceType)(surfaceTypes |
+							getSurfaceType(framebuffer->surfaces[attachment].surfaceType));
+					}
+				}
+
+				if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+				{
+					surfaceTypes = (SurfaceType)(surfaceTypes | getSurfaceType(
+						framebuffer->surfaces[subpass->depthStencilAttachment].surfaceType));
+				}
+
+				if (renderer->resourceManager->requiresAnySurface &&
+					!hasAnyColorSurface && subpass->depthStencilAttachment == DS_NO_ATTACHMENT )
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Current target requires at least one surface in a subpass.");
+					DS_PROFILE_FUNC_RETURN(false);
+				}
+
+				if (hasMultipleSurfaceTypes(surfaceTypes))
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support mixing the "
+						"main framebuffer and other render surfaces.");
+					DS_PROFILE_FUNC_RETURN(false);
+				}
+			}
+		}
 	}
 
 	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||

@@ -16,12 +16,14 @@
 
 #include "GLOtherCommandBuffer.h"
 
+#include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLGfxFence.h"
 #include "Resources/GLShader.h"
 #include "Resources/GLTexture.h"
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
+#include "GLRenderPass.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -45,7 +47,10 @@ typedef enum CommandType
 	CommandType_SetUniform,
 	CommandType_UnbindShader,
 	CommandType_BeginRenderSurface,
-	CommandType_EndRenderSurface
+	CommandType_EndRenderSurface,
+	CommandType_BeginRenderPass,
+	CommandType_NextRenderSubpass,
+	CommandType_EndRenderPass
 } CommandType;
 
 typedef struct Command
@@ -161,6 +166,29 @@ typedef struct RenderSurfaceCommand
 	Command command;
 	void* glSurface;
 } RenderSurfaceCommand;
+
+typedef struct BeginRenderPassCommand
+{
+	Command command;
+	const dsRenderPass* renderPass;
+	const dsFramebuffer* framebuffer;
+	dsAlignedBox3f viewport;
+	bool viewportSet;
+	uint32_t clearValueCount;
+	dsSurfaceClearValue clearValues[];
+} BeginRenderPassCommand;
+
+typedef struct NextRenderSubpassCommand
+{
+	Command command;
+	const dsRenderPass* renderPass;
+} NextRenderSubpassCommand;
+
+typedef struct EndRenderPassCommand
+{
+	Command command;
+	const dsRenderPass* renderPass;
+} EndRenderPassCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -441,6 +469,61 @@ bool dsGLOtherCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, voi
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount)
+{
+	size_t commandSize = sizeof(BeginRenderPassCommand) +
+		sizeof(dsSurfaceClearValue)*clearValueCount;
+	BeginRenderPassCommand* command = (BeginRenderPassCommand*)allocateCommand(commandBuffer,
+		CommandType_BeginRenderPass, commandSize);
+	if (!command)
+		return false;
+
+	dsGLRenderPass_addInternalRef((dsRenderPass*)renderPass);
+	dsGLFramebuffer_addInternalRef((dsFramebuffer*)framebuffer);
+	command->renderPass = renderPass;
+	command->framebuffer = framebuffer;
+	if (viewport)
+	{
+		command->viewport = *viewport;
+		command->viewportSet = true;
+	}
+	else
+		command->viewportSet = false;
+	command->clearValueCount = clearValueCount;
+	memcpy(command->clearValues, clearValues, sizeof(dsSurfaceClearValue)*clearValueCount);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	DS_UNUSED(subpassIndex);
+	NextRenderSubpassCommand* command = (NextRenderSubpassCommand*)allocateCommand(commandBuffer,
+		CommandType_NextRenderSubpass, sizeof(NextRenderSubpassCommand));
+	if (!command)
+		return false;
+
+	dsGLRenderPass_addInternalRef((dsRenderPass*)renderPass);
+	command->renderPass = renderPass;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass)
+{
+	EndRenderPassCommand* command = (EndRenderPassCommand*)allocateCommand(commandBuffer,
+		CommandType_EndRenderPass, sizeof(EndRenderPassCommand));
+	if (!command)
+		return false;
+
+	dsGLRenderPass_addInternalRef((dsRenderPass*)renderPass);
+	command->renderPass = renderPass;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -549,6 +632,41 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_unbindShader(commandBuffer, thisCommand->shader);
 				break;
 			}
+			case CommandType_BeginRenderSurface:
+			{
+				RenderSurfaceCommand* thisCommand = (RenderSurfaceCommand*)command;
+				dsGLCommandBuffer_beginRenderSurface(commandBuffer, thisCommand->glSurface);
+				break;
+			}
+			case CommandType_EndRenderSurface:
+			{
+				RenderSurfaceCommand* thisCommand = (RenderSurfaceCommand*)command;
+				dsGLCommandBuffer_endRenderSurface(commandBuffer, thisCommand->glSurface);
+				break;
+			}
+			case CommandType_BeginRenderPass:
+			{
+				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
+				dsAlignedBox3f* viewport = NULL;
+				if (thisCommand->viewportSet)
+					viewport = &thisCommand->viewport;
+				dsGLCommandBuffer_beginRenderPass(commandBuffer, thisCommand->renderPass,
+					thisCommand->framebuffer, viewport, thisCommand->clearValues,
+					thisCommand->clearValueCount);
+				break;
+			}
+			case CommandType_NextRenderSubpass:
+			{
+				NextRenderSubpassCommand* thisCommand = (NextRenderSubpassCommand*)command;
+				dsGLCommandBuffer_nextRenderSubpass(commandBuffer, thisCommand->renderPass);
+				break;
+			}
+			case CommandType_EndRenderPass:
+			{
+				EndRenderPassCommand* thisCommand = (EndRenderPassCommand*)command;
+				dsGLCommandBuffer_endRenderPass(commandBuffer, thisCommand->renderPass);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -586,6 +704,9 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_unbindShader,
 	&dsGLOtherCommandBuffer_beginRenderSurface,
 	&dsGLOtherCommandBuffer_endRenderSurface,
+	&dsGLOtherCommandBuffer_beginRenderPass,
+	&dsGLOtherCommandBuffer_nextRenderSubpass,
+	&dsGLOtherCommandBuffer_endRenderPass,
 	&dsGLOtherCommandBuffer_begin,
 	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
@@ -627,6 +748,7 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	}
 
 	DS_VERIFY(dsBufferAllocator_initialize(&commandBuffer->buffer, bufferData, defaultBufferSize));
+	dsGLCommandBuffer_initialize(baseCommandBuffer, (usage & dsCommandBufferUsage_Subpass) != 0);
 	return commandBuffer;
 }
 
@@ -713,6 +835,29 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
 				break;
 			}
+			case CommandType_BeginRenderSurface:
+				break;
+			case CommandType_EndRenderSurface:
+				break;
+			case CommandType_BeginRenderPass:
+			{
+				BeginRenderPassCommand* thisCommand = (BeginRenderPassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				dsGLFramebuffer_freeInternalRef((dsFramebuffer*)thisCommand->framebuffer);
+				break;
+			}
+			case CommandType_NextRenderSubpass:
+			{
+				NextRenderSubpassCommand* thisCommand = (NextRenderSubpassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				break;
+			}
+			case CommandType_EndRenderPass:
+			{
+				EndRenderPassCommand* thisCommand = (EndRenderPassCommand*)command;
+				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -731,6 +876,7 @@ bool dsGLOtherCommandBuffer_destroy(dsGLOtherCommandBuffer* commandBuffer)
 	DS_ASSERT(commandBuffer);
 	dsAllocator* allocator = ((dsCommandBuffer*)commandBuffer)->allocator;
 	dsGLOtherCommandBuffer_reset(commandBuffer);
+	dsGLCommandBuffer_shutdown((dsCommandBuffer*)commandBuffer);
 
 	DS_ASSERT(commandBuffer->curFenceSyncs == 0);
 	if (commandBuffer->fenceSyncs)

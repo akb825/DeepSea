@@ -60,8 +60,7 @@ typedef enum dsAttachmentUsage
 	dsAttachmentUsage_KeepBefore = 0x2, ///< Keep the existing value before rendering begins.
 	dsAttachmentUsage_KeepAfter = 0x4,  ///< Keep the value after rendering ends.
 	/**
-	 * Resolved multisampled attachment. Writes will be done to the multisample buffer, reads from
-	 * the resolved buffer.
+	 * Resolve multisample attachment once the render pass has completed.
 	 */
 	dsAttachmentUsage_Resolve = 0x8
 } dsAttachmentUsage;
@@ -293,6 +292,28 @@ typedef struct dsAttachmentInfo
 } dsAttachmentInfo;
 
 /**
+ * @brief Reference for a color attachment.
+ * @see RenderPass.h
+ */
+typedef struct dsColorAttachmentRef
+{
+	/**
+	 * @brief The index to the attachment.
+	 *
+	 * If DS_NO_ATTACHMENT, nothing will be written to the attachment.
+	 */
+	uint32_t attachmentIndex;
+
+	/**
+	 * @brief True to resolve a multisampled attachment after the subpass.
+	 *
+	 * This should be set if a multisampled offscreen will be used in a later subpass. If this is
+	 * set, it's best not to set the dsAttachmentUsage_Resolve flag to avoid resolving twice.
+	 */
+	bool resolve;
+} dsColorAttachmentRef;
+
+/**
  * @brief Structure defining what is used for a subpass.
  * @see RenderPass.h
  */
@@ -317,7 +338,7 @@ typedef struct dsRenderSubpassInfo
 	 * @brief List of image attachments to use as inputs as indices to the attachment list for the
 	 * render pass.
 	 */
-	const uint32_t* colorAttachments;
+	const dsColorAttachmentRef* colorAttachments;
 
 	/**
 	 * @brief The number of input attachments.

@@ -25,6 +25,7 @@
 #include "GLCommandBufferPool.h"
 #include "GLHelpers.h"
 #include "GLMainCommandBuffer.h"
+#include "GLRenderPass.h"
 #include "GLRenderSurface.h"
 #include "Types.h"
 
@@ -123,6 +124,14 @@ static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools,
 	dsPoolAllocator* pool = *pools + index;
 	DS_VERIFY(dsPoolAllocator_initialize(pool, elemSize, poolElements, poolBuffer, poolSize));
 	return pool;
+}
+
+static void drawBuffer(GLenum buffer)
+{
+	if (ANYGL_SUPPORTED(glDrawBuffer))
+		glDrawBuffer(buffer);
+	else if (ANYGL_SUPPORTED(glDrawBuffers))
+		glDrawBuffers(1, &buffer);
 }
 
 void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
@@ -287,11 +296,21 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
+	if (ANYGL_SUPPORTED(glDrawBuffers))
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS, (GLint*)&baseRenderer->maxColorAttachments);
+	else
+		baseRenderer->maxColorAttachments = 1;
+
 	GLint maxSamples = 0;
 	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	maxSamples = dsMax(1, maxSamples);
 	baseRenderer->maxSurfaceSamples = (uint16_t)maxSamples;
 	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
+
+	if (AnyGL_EXT_texture_filter_anisotropic)
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);
+	else
+		baseRenderer->maxAnisotropy = 1.0f;
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
 		renderer->sharedContext);
@@ -305,6 +324,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	renderer->contextMutex = dsMutex_create(allocator, "GL context");
 	DS_ASSERT(renderer->contextMutex);
+	renderer->curTexture0Target = GL_TEXTURE_2D;
+	renderer->curSurfaceType = GLSurfaceType_Left;
+	renderer->curFbo = 0;
 
 	baseRenderer->resourceManager = (dsResourceManager*)dsGLResourceManager_create(allocator,
 		renderer);
@@ -345,6 +367,13 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->beginCommandBufferFunc = &dsGLCommandBuffer_begin;
 	baseRenderer->endCommandBufferFunc = &dsGLCommandBuffer_end;
 	baseRenderer->submitCommandBufferFunc = &dsGLCommandBuffer_submit;
+
+	// Render passes
+	baseRenderer->createRenderPassFunc = &dsGLRenderPass_create;
+	baseRenderer->destroyRenderPassFunc = &dsGLRenderPass_destroy;
+	baseRenderer->beginRenderPassFunc = &dsGLRenderPass_begin;
+	baseRenderer->nextRenderSubpassFunc = &dsGLRenderPass_nextSubpass;
+	baseRenderer->endRenderPassFunc = &dsGLRenderPass_end;
 
 	return baseRenderer;
 }
@@ -520,6 +549,12 @@ GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer)
 	return glRenderer->tempCopyFramebuffer;
 }
 
+void dsGLRenderer_restoreFramebuffer(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, glRenderer->curFbo);
+}
+
 dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -598,6 +633,89 @@ dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
 	fenceSyncRef->refCount = 1;
 	fenceSyncRef->sync = NULL;
 	return fenceSyncRef;
+}
+
+void dsGLRenderer_bindTexture(dsRenderer* renderer, unsigned int unit, GLenum target,
+	GLuint texture)
+{
+	glActiveTexture(GL_TEXTURE0 + unit);
+	glBindTexture(target, texture);
+
+	if (unit == 0 && dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+		glRenderer->curTexture0Target = target;
+		glRenderer->curTexture0 = texture;
+	}
+}
+
+void dsGLRenderer_beginTextureOp(dsRenderer* renderer, GLenum target, GLuint texture)
+{
+	DS_UNUSED(renderer);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(target, texture);
+}
+
+void dsGLRenderer_endTextureOp(dsRenderer* renderer)
+{
+	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+		glBindTexture(glRenderer->curTexture0Target, glRenderer->curTexture0);
+	}
+	else
+		glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceType,
+	GLuint framebuffer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (surfaceType == GLSurfaceType_Framebuffer)
+	{
+		if (glRenderer->curFbo != framebuffer)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			glRenderer->curFbo = framebuffer;
+		}
+		glRenderer->curSurfaceType = surfaceType;
+	}
+	else
+	{
+		if (glRenderer->curSurfaceType == surfaceType)
+			return;
+
+		if (glRenderer->curFbo)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glRenderer->curFbo = 0;
+		}
+		glRenderer->curSurfaceType = surfaceType;
+		if (renderer->stereoscopic)
+		{
+			if (renderer->doubleBuffer)
+			{
+				if (surfaceType == GLSurfaceType_Right)
+					drawBuffer(GL_BACK_RIGHT);
+				else
+					drawBuffer(GL_BACK_LEFT);
+			}
+			else
+			{
+				if (surfaceType == GLSurfaceType_Right)
+					drawBuffer(GL_RIGHT);
+				else
+					drawBuffer(GL_LEFT);
+			}
+		}
+		else
+		{
+			if (renderer->doubleBuffer)
+				drawBuffer(GL_BACK);
+			else
+				drawBuffer(GL_FRONT);
+		}
+	}
 }
 
 void dsGLRenderer_destroy(dsRenderer* renderer)

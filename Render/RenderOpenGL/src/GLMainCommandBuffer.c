@@ -18,6 +18,7 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxFence.h"
 #include "Resources/GLResourceManager.h"
 #include "Resources/GLTexture.h"
@@ -29,6 +30,7 @@
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <string.h>
 
 struct dsGLMainCommandBuffer
 {
@@ -38,6 +40,11 @@ struct dsGLMainCommandBuffer
 	size_t curFenceSyncs;
 	size_t maxFenceSyncs;
 	bool bufferReadback;
+
+	const dsFramebuffer* curFramebuffer;
+	dsSurfaceClearValue* clearValues;
+	size_t curClearValues;
+	size_t maxClearValues;
 
 	GLuint currentProgram;
 
@@ -1055,6 +1062,222 @@ static void setTextureState(const dsRenderer* renderer, const mslSamplerState* s
 	}
 }
 
+static GLenum getClearMask(dsGfxFormat format)
+{
+	switch (format)
+	{
+		case dsGfxFormat_D16:
+		case dsGfxFormat_X8D24:
+			return GL_DEPTH_BUFFER_BIT;
+		case dsGfxFormat_S8:
+			return GL_STENCIL_BUFFER_BIT;
+		case dsGfxFormat_D16S8:
+		case dsGfxFormat_D24S8:
+		case dsGfxFormat_D32S8_Float:
+			return GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+		default:
+			return GL_COLOR_BUFFER_BIT;
+	}
+}
+
+static void setClearColor(dsGfxFormat format, const dsSurfaceClearValue* value)
+{
+	switch (format)
+	{
+		case dsGfxFormat_D16:
+		case dsGfxFormat_X8D24:
+		case dsGfxFormat_S8:
+		case dsGfxFormat_D16S8:
+		case dsGfxFormat_D24S8:
+		case dsGfxFormat_D32S8_Float:
+			if (ANYGL_SUPPORTED(glClearDepthf))
+				glClearDepthf(value->depthStencil.depth);
+			else
+				glClearDepth(value->depthStencil.depth);
+			glClearStencil(value->depthStencil.stencil);
+			break;
+		default:
+			DS_ASSERT((format & dsGfxFormat_DecoratorMask) != dsGfxFormat_UInt);
+			DS_ASSERT((format & dsGfxFormat_DecoratorMask) != dsGfxFormat_SInt);
+			glClearColor(value->colorValue.floatValue.r, value->colorValue.floatValue.g,
+				value->colorValue.floatValue.b, value->colorValue.floatValue.a);
+			break;
+	}
+}
+
+static void clearDrawBuffer(const dsRenderPass* renderPass, uint32_t attachment,
+	uint32_t colorIndex, const dsSurfaceClearValue* clearValues)
+{
+	dsGfxFormat format = renderPass->attachments[attachment].format;
+	switch (format)
+	{
+		case dsGfxFormat_D16:
+		case dsGfxFormat_X8D24:
+			glClearBufferfv(GL_DEPTH, 0, &clearValues[attachment].depthStencil.depth);
+			break;
+		case dsGfxFormat_S8:
+			glClearBufferiv(GL_STENCIL, 0,
+				(GLint*)&clearValues[attachment].depthStencil.stencil);
+			break;
+		case dsGfxFormat_D16S8:
+		case dsGfxFormat_D24S8:
+		case dsGfxFormat_D32S8_Float:
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, clearValues[attachment].depthStencil.depth,
+				clearValues[attachment].depthStencil.stencil);
+			break;
+		default:
+		{
+			dsGfxFormat decorator = (dsGfxFormat)(format & dsGfxFormat_DecoratorMask);
+			if (decorator == dsGfxFormat_UInt)
+			{
+				glClearBufferuiv(GL_COLOR, colorIndex,
+					clearValues[attachment].colorValue.uintValue);
+			}
+			else if (decorator == dsGfxFormat_SInt)
+				glClearBufferiv(GL_COLOR, colorIndex, clearValues[attachment].colorValue.intValue);
+			else
+			{
+				glClearBufferfv(GL_COLOR, colorIndex,
+					clearValues[attachment].colorValue.floatValue.values);
+			}
+			break;
+		}
+	}
+}
+
+static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpassIndex,
+	const dsSurfaceClearValue* clearValues)
+{
+	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		uint32_t attachment = subpass->colorAttachments[i].attachmentIndex;
+		if (attachment != DS_NO_ATTACHMENT &&
+			glRenderPass->clearSubpass[attachment] == subpassIndex)
+		{
+			clearDrawBuffer(renderPass, attachment, i, clearValues);
+		}
+	}
+
+	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	{
+		uint32_t attachment = subpass->depthStencilAttachment;
+		if (glRenderPass->clearSubpass[attachment] == subpassIndex)
+			clearDrawBuffer(renderPass, attachment, 0, clearValues);
+	}
+}
+
+static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpassIndex,
+	const dsSurfaceClearValue* clearValues)
+{
+	GLenum clearMask = 0;
+	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		uint32_t attachment = subpass->colorAttachments[i].attachmentIndex;
+		if (attachment == DS_NO_ATTACHMENT ||
+			glRenderPass->clearSubpass[attachment] != subpassIndex)
+		{
+			continue;
+		}
+
+		clearMask |= getClearMask(renderPass->attachments[attachment].format);
+		setClearColor(renderPass->attachments[attachment].format, clearValues + attachment);
+	}
+
+	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	{
+		uint32_t attachment = subpass->depthStencilAttachment;
+		if (glRenderPass->clearSubpass[attachment] == subpassIndex)
+		{
+			clearMask |= getClearMask(renderPass->attachments[attachment].format);
+			setClearColor(renderPass->attachments[attachment].format, clearValues + attachment);
+		}
+	}
+
+	if (clearMask)
+		glClear(clearMask);
+}
+
+static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	// Bind the framebuffer with the surfaces for this subpass.
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	GLSurfaceType surfaceType = dsGLFramebuffer_bind(commandBuffer->curFramebuffer,
+		subpass->colorAttachments, subpass->colorAttachmentCount, subpass->depthStencilAttachment);
+	if (surfaceType == GLSurfaceType_None)
+		return false;
+
+	// Clear the buffers for this framebuffer.
+	if (commandBuffer->curClearValues > 0)
+	{
+		DS_ASSERT(commandBuffer->curClearValues == renderPass->attachmentCount);
+		if (surfaceType == GLSurfaceType_Framebuffer && ANYGL_SUPPORTED(glClearBufferfv))
+			clearOtherFramebuffer(renderPass, subpassIndex, commandBuffer->clearValues);
+		else
+			clearMainFramebuffer(renderPass, subpassIndex, commandBuffer->clearValues);
+	}
+
+	return true;
+}
+
+static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	// Resolve any targets that are set to resolve.
+	GLuint readFbo = 0;
+	GLuint writeFbo = 0;
+	dsTexture* texture = NULL;
+	dsRenderer* renderer = ((dsCommandBuffer*)commandBuffer)->renderer;
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	const dsFramebuffer* framebuffer = commandBuffer->curFramebuffer;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		uint32_t attachment = subpass->colorAttachments[i].attachmentIndex;
+		if (attachment == DS_NO_ATTACHMENT || !subpass->colorAttachments[i].resolve)
+			continue;
+
+		if (framebuffer->surfaces[attachment].surfaceType != dsFramebufferSurfaceType_Offscreen)
+			continue;
+
+		texture = (dsTexture*)framebuffer->surfaces[attachment].surface;
+		dsGLTexture* glTexture = (dsGLTexture*)texture;
+		if (!glTexture->drawBufferId)
+			continue;
+
+		if (!readFbo)
+		{
+			readFbo = dsGLRenderer_tempFramebuffer(renderer);
+			writeFbo = dsGLRenderer_tempCopyFramebuffer(renderer);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
+		}
+
+		GLenum buffers = dsGLTexture_attachment(texture->format);
+		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
+			glTexture->drawBufferId);
+		dsGLTexture_bindFramebufferAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
+			framebuffer->surfaces[attachment].mipLevel, framebuffer->surfaces[attachment].layer);
+
+		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
+			texture->height, buffers, GL_NEAREST);
+	}
+
+	if (readFbo)
+	{
+		DS_ASSERT(writeFbo);
+		DS_ASSERT(texture);
+		dsGLTexture_unbindFramebuffer(texture, GL_DRAW_FRAMEBUFFER);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		dsGLRenderer_restoreFramebuffer(renderer);
+	}
+
+	return true;
+}
+
 bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
@@ -1094,7 +1317,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
 		texture->resourceManager, texture->format));
 
-	glBindTexture(target, glTexture->textureId);
+	dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
 	switch (texture->dimension)
 	{
 		case dsTextureDim_1D:
@@ -1205,7 +1428,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 		default:
 			DS_ASSERT(false);
 	}
-	glBindTexture(target, 0);
+	dsGLRenderer_endTextureOp(commandBuffer->renderer);
 
 	return true;
 }
@@ -1266,9 +1489,9 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 
 			for (uint32_t j = 0; j < regions[i].layers; ++j)
 			{
-				dsGLBindFramebufferTexture(GL_READ_FRAMEBUFFER, srcTexture,
+				dsGLTexture_bindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER,
 					regions[i].srcPosition.mipLevel, srcLayer + j);
-				dsGLBindFramebufferTexture(GL_DRAW_FRAMEBUFFER, dstTexture,
+				dsGLTexture_bindFramebuffer(dstTexture, GL_DRAW_FRAMEBUFFER,
 					regions[i].dstPosition.mipLevel, dstLayer + j);
 				glBlitFramebuffer(regions[i].srcPosition.x, regions[i].srcPosition.y,
 					regions[i].srcPosition.x + regions[i].width,
@@ -1279,11 +1502,11 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 			}
 		}
 
-		dsGLUnbindFramebufferTexture(GL_READ_FRAMEBUFFER, srcTexture);
-		dsGLUnbindFramebufferTexture(GL_DRAW_FRAMEBUFFER, dstTexture);
+		dsGLTexture_unbindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER);
+		dsGLTexture_unbindFramebuffer(dstTexture, GL_DRAW_FRAMEBUFFER);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		dsGLRenderer_restoreFramebuffer(renderer);
 	}
 
 	return true;
@@ -1321,9 +1544,9 @@ bool dsGLMainCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture
 
 		for (uint32_t j = 0; j < regions[i].layers; ++j)
 		{
-			dsGLBindFramebufferTexture(GL_READ_FRAMEBUFFER, srcTexture,
+			dsGLTexture_bindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER,
 				regions[i].srcPosition.mipLevel, srcLayer + j);
-			dsGLBindFramebufferTexture(GL_DRAW_FRAMEBUFFER, dstTexture,
+			dsGLTexture_bindFramebuffer(dstTexture, GL_DRAW_FRAMEBUFFER,
 				regions[i].dstPosition.mipLevel, dstLayer + j);
 			glBlitFramebuffer(regions[i].srcPosition.x, regions[i].srcPosition.y,
 				regions[i].srcPosition.x + regions[i].srcWidth,
@@ -1335,8 +1558,8 @@ bool dsGLMainCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture
 		}
 	}
 
-	dsGLUnbindFramebufferTexture(GL_READ_FRAMEBUFFER, srcTexture);
-	dsGLUnbindFramebufferTexture(GL_DRAW_FRAMEBUFFER, dstTexture);
+	dsGLTexture_unbindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER);
+	dsGLTexture_unbindFramebuffer(dstTexture, GL_DRAW_FRAMEBUFFER);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -1348,7 +1571,7 @@ bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFen
 	size_t syncCount, bool bufferReadback)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
-	if (((dsGLCommandBuffer*)commandBuffer)->insideRenderPass)
+	if (((dsGLCommandBuffer*)commandBuffer)->boundRenderPass)
 	{
 		size_t index = glCommandBuffer->curFenceSyncs;
 		if (!dsGLAddToBuffer(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
@@ -1402,9 +1625,8 @@ bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsSh
 	uint32_t textureIndex = glShader->uniforms[element].location;
 	uint32_t samplerIndex = glShader->uniforms[element].samplerIndex;
 	GLuint textureId = glTexture ? glTexture->textureId : 0;
-	glActiveTexture(GL_TEXTURE0 + textureIndex);
 	GLenum target = dsGLTexture_target(texture);
-	glBindTexture(target, textureId);
+	dsGLRenderer_bindTexture(commandBuffer->renderer, textureIndex, target, textureId);
 
 	bool isShadowSampler = glShader->uniforms[element].isShadowSampler != 0;
 	if (ANYGL_SUPPORTED(glBindSampler))
@@ -1615,6 +1837,140 @@ bool dsGLMainCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void
 	return true;
 }
 
+bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
+	uint32_t clearValueCount)
+{
+	DS_ASSERT(clearValueCount == 0 && clearValueCount == renderPass->attachmentCount);
+	DS_ASSERT(renderPass->attachmentCount == framebuffer->surfaceCount);
+
+	// Cache the clear values so they can be executed when binding the framebuffer.
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	if (clearValueCount > glCommandBuffer->maxClearValues)
+	{
+		if (glCommandBuffer->clearValues)
+			DS_VERIFY(dsAllocator_free(commandBuffer->allocator, glCommandBuffer->clearValues));
+
+		dsSurfaceClearValue* newClearValues = (dsSurfaceClearValue*)dsAllocator_alloc(
+			commandBuffer->allocator, clearValueCount*sizeof(dsSurfaceClearValue));
+		if (!newClearValues)
+		{
+			glCommandBuffer->clearValues = NULL;
+			glCommandBuffer->curClearValues = 0;
+			glCommandBuffer->maxClearValues = 0;
+			return false;
+		}
+
+		glCommandBuffer->clearValues = newClearValues;
+		glCommandBuffer->curClearValues = 0;
+		glCommandBuffer->maxClearValues = clearValueCount;
+	}
+
+	glCommandBuffer->curClearValues = clearValueCount;
+	if (clearValueCount > 0)
+	{
+		memcpy(glCommandBuffer->clearValues, clearValues,
+			clearValueCount*sizeof(dsSurfaceClearValue));
+	}
+
+	// Set the viewport parameters.
+	if (viewport)
+	{
+		glViewport((GLint)viewport->min.x, framebuffer->height - (GLint)viewport->min.y,
+			(GLsizei)(viewport->max.x - viewport->min.x),
+			(GLsizei)(viewport->max.y - viewport->min.y));
+		if (ANYGL_SUPPORTED(glDepthRangef))
+			glDepthRangef(viewport->min.z, viewport->max.z);
+		else
+			glDepthRange(viewport->min.z, viewport->max.z);
+	}
+	else
+	{
+		glViewport(0, 0, framebuffer->width, framebuffer->height);
+		if (ANYGL_SUPPORTED(glDepthRangef))
+			glDepthRangef(0, 1);
+		else
+			glDepthRange(0, 1);
+	}
+
+	glCommandBuffer->curFramebuffer = framebuffer;
+	if (!beginRenderSubpass(glCommandBuffer, renderPass, 0))
+	{
+		glCommandBuffer->curFramebuffer = NULL;
+		return false;
+	}
+
+	return true;
+}
+
+bool dsGLMainCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	DS_ASSERT(subpassIndex > 0);
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	if (!endRenderSubpass(glCommandBuffer, renderPass, subpassIndex - 1))
+		return false;
+	return beginRenderSubpass(glCommandBuffer, renderPass, subpassIndex);
+}
+
+bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass)
+{
+	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
+	if (!endRenderSubpass(glCommandBuffer, renderPass, renderPass->subpassCount - 1))
+		return false;
+
+	// Resolve any remaining attachments.
+	GLuint readFbo = 0;
+	GLuint writeFbo = 0;
+	dsTexture* texture = NULL;
+	dsRenderer* renderer = commandBuffer->renderer;
+	const dsFramebuffer* framebuffer = glCommandBuffer->curFramebuffer;
+	for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
+	{
+		if (!(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve))
+			continue;
+
+		if (framebuffer->surfaces[i].surfaceType != dsFramebufferSurfaceType_Offscreen)
+			continue;
+
+		texture = (dsTexture*)framebuffer->surfaces[i].surface;
+		dsGLTexture* glTexture = (dsGLTexture*)texture;
+		if (!glTexture->drawBufferId)
+			continue;
+
+		if (!readFbo)
+		{
+			readFbo = dsGLRenderer_tempFramebuffer(renderer);
+			writeFbo = dsGLRenderer_tempCopyFramebuffer(renderer);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, readFbo);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
+		}
+
+		GLenum buffers = dsGLTexture_attachment(texture->format);
+		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
+			glTexture->drawBufferId);
+		dsGLTexture_bindFramebufferAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
+			framebuffer->surfaces[i].mipLevel, framebuffer->surfaces[i].layer);
+
+		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
+			texture->height, buffers, GL_NEAREST);
+	}
+
+	if (readFbo)
+	{
+		DS_ASSERT(writeFbo);
+		DS_ASSERT(texture);
+		dsGLTexture_unbindFramebuffer(texture, GL_DRAW_FRAMEBUFFER);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		dsGLRenderer_restoreFramebuffer(renderer);
+	}
+
+	glCommandBuffer->curFramebuffer = NULL;
+	return true;
+}
+
 bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -1662,6 +2018,9 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_unbindShader,
 	&dsGLMainCommandBuffer_beginRenderSurface,
 	&dsGLMainCommandBuffer_endRenderSurface,
+	&dsGLMainCommandBuffer_beginRenderPass,
+	&dsGLMainCommandBuffer_nextRenderSubpass,
+	&dsGLMainCommandBuffer_endRenderPass,
 	&dsGLMainCommandBuffer_begin,
 	&dsGLMainCommandBuffer_end,
 	&dsGLMainCommandBuffer_submit
@@ -1686,6 +2045,10 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->maxFenceSyncs = 0;
 	commandBuffer->bufferReadback = false;
 
+	commandBuffer->clearValues = NULL;
+	commandBuffer->curClearValues = 0;
+	commandBuffer->maxClearValues = 0;
+
 	commandBuffer->currentProgram = 0;
 	if (ANYGL_SUPPORTED(glGenSamplers))
 	{
@@ -1706,7 +2069,7 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->defaultSamplerState.borderColor = mslBorderColor_Unset;
 	commandBuffer->defaultSamplerState.compareOp = mslCompareOp_Unset;
 
-	dsGLCommandBuffer_initialize(baseCommandBuffer);
+	dsGLCommandBuffer_initialize(baseCommandBuffer, false);
 	dsGLMainCommandBuffer_resetState(commandBuffer);
 
 	return commandBuffer;
@@ -1738,6 +2101,9 @@ bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
 			dsGLFenceSyncRef_freeRef(commandBuffer->fenceSyncs[i]);
 		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
 	}
+
+	if (commandBuffer->clearValues)
+		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->clearValues));
 
 	if (ANYGL_SUPPORTED(glDeleteSamplers))
 		glDeleteSamplers(2, commandBuffer->defaultSamplers);

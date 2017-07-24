@@ -22,6 +22,7 @@
 #include "Resources/GLResource.h"
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
+#include "GLRendererInternal.h"
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -89,7 +90,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	GLenum target = dsGLTexture_target(baseTexture);
-	glBindTexture(target, texture->textureId);
+	dsGLRenderer_beginTextureOp(resourceManager->renderer, target, texture->textureId);
 	// This could happen with some resource context rather than the render context, so always set
 	// the pixel alignment to be tightly packed.
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -375,7 +376,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 		if (resourceManager->hasArbitraryMipmapping)
 			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipLevels - 1);
 	}
-	glBindTexture(target, 0);
+	dsGLRenderer_endTextureOp(resourceManager->renderer);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
 	GLenum error = glGetError();
@@ -477,7 +478,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	}
 
 	GLenum target = dsGLTexture_target(baseTexture);
-	glBindTexture(target, texture->textureId);
+	dsGLRenderer_beginTextureOp(resourceManager->renderer, target, texture->textureId);
 
 	DS_ASSERT(mipLevels > 0);
 	if (ANYGL_SUPPORTED(glTexStorage2D))
@@ -570,7 +571,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		if (resourceManager->hasArbitraryMipmapping)
 			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipLevels - 1);
 	}
-	glBindTexture(target, 0);
+	dsGLRenderer_endTextureOp(resourceManager->renderer);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
 	GLenum error = glGetError();
@@ -633,6 +634,7 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 {
 	DS_UNUSED(size);
 	DS_ASSERT(result);
+	DS_ASSERT(resourceManager);
 	DS_ASSERT(texture);
 	DS_ASSERT(position);
 
@@ -652,9 +654,10 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		if (ANYGL_SUPPORTED(glReadBuffer))
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
-		dsGLBindFramebufferTexture(GL_READ_FRAMEBUFFER, texture, position->mipLevel, layer);
 
+		dsGLTexture_bindFramebuffer(texture, GL_READ_FRAMEBUFFER, position->mipLevel, layer);
 		glReadPixels(position->x, position->y, width, height, glFormat, type, result);
+		dsGLTexture_unbindFramebuffer(texture, GL_READ_FRAMEBUFFER);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &framebuffer);
@@ -678,9 +681,9 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 				return false;
 		}
 
-		glBindTexture(target, glTexture->textureId);
+		dsGLRenderer_beginTextureOp(resourceManager->renderer, target, glTexture->textureId);
 		glGetTexImage(target, position->mipLevel, glFormat, type, buffer);
-		glBindTexture(target, 0);
+		dsGLRenderer_endTextureOp(resourceManager->renderer);
 
 		if (buffer != result)
 		{
@@ -763,9 +766,33 @@ GLenum dsGLTexture_copyTarget(const dsTexture* texture)
 	}
 }
 
-GLenum dsGLTexture_attachment(const dsTexture* texture)
+GLenum dsGLTexture_framebufferTarget(const dsTexture* texture)
 {
-	switch (texture->format)
+	switch (texture->dimension)
+	{
+		case dsTextureDim_1D:
+			return texture->depth > 0 ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
+		case dsTextureDim_2D:
+			if (texture->samples > 1 && !texture->resolve)
+			{
+				return texture->depth > 0 ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY :
+					GL_TEXTURE_2D_MULTISAMPLE;
+			}
+			else
+				return texture->depth > 0 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+		case dsTextureDim_3D:
+			return GL_TEXTURE_3D;
+		case dsTextureDim_Cube:
+			return texture->depth > 0 ? GL_TEXTURE_CUBE_MAP_ARRAY : GL_TEXTURE_CUBE_MAP;
+		default:
+			DS_ASSERT(false);
+			return GL_TEXTURE_2D;
+	}
+}
+
+GLenum dsGLTexture_attachment(dsGfxFormat format)
+{
+	switch (format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:
@@ -797,6 +824,71 @@ GLbitfield dsGLTexture_buffers(const dsTexture* texture)
 		default:
 			return GL_COLOR_BUFFER_BIT;
 	}
+}
+
+void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,
+	uint32_t layer)
+{
+	dsGLTexture_bindFramebufferAttachment(texture, framebuffer,
+		dsGLTexture_attachment(texture->format), mipLevel, layer);
+}
+
+void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffer,
+	GLenum attachment, uint32_t mipLevel, uint32_t layer)
+{
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+	GLenum target = dsGLTexture_framebufferTarget(texture);
+	switch (texture->dimension)
+	{
+		case dsTextureDim_1D:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture1D(framebuffer, attachment, target, glTexture->textureId,
+					mipLevel);
+			}
+			break;
+		case dsTextureDim_2D:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture2D(framebuffer, attachment, target, glTexture->textureId,
+					mipLevel);
+			}
+			break;
+		case dsTextureDim_3D:
+			glFramebufferTexture3D(framebuffer, attachment, target, glTexture->textureId, mipLevel,
+				layer);
+			break;
+		case dsTextureDim_Cube:
+			if (texture->depth > 0)
+			{
+				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
+					layer);
+			}
+			else
+			{
+				glFramebufferTexture2D(framebuffer, attachment,
+					GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, glTexture->textureId, mipLevel);
+			}
+			break;
+		default:
+			DS_ASSERT(false);
+	}
+}
+
+void dsGLTexture_unbindFramebuffer(dsTexture* texture, GLenum framebuffer)
+{
+	GLenum attachment = dsGLTexture_attachment(texture->format);
+	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
 }
 
 void dsGLTexture_addInternalRef(dsTexture* texture)

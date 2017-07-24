@@ -77,65 +77,6 @@ int dsGetGLErrno(GLenum error)
 	}
 }
 
-void dsGLBindFramebufferTexture(GLenum framebuffer, dsTexture* texture, uint32_t mipLevel,
-	uint32_t layer)
-{
-	dsGLTexture* glTexture = (dsGLTexture*)texture;
-	GLenum target = dsGLTexture_target(texture);
-	GLenum attachment = dsGLTexture_attachment(texture);
-	switch (texture->dimension)
-	{
-		case dsTextureDim_1D:
-			if (texture->depth > 0)
-			{
-				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
-					layer);
-			}
-			else
-			{
-				glFramebufferTexture1D(framebuffer, attachment, target, glTexture->textureId,
-					mipLevel);
-			}
-			break;
-		case dsTextureDim_2D:
-			if (texture->depth > 0)
-			{
-				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
-					layer);
-			}
-			else
-			{
-				glFramebufferTexture2D(framebuffer, attachment, target, glTexture->textureId,
-					mipLevel);
-			}
-			break;
-		case dsTextureDim_3D:
-			glFramebufferTexture3D(framebuffer, attachment, target, glTexture->textureId, mipLevel,
-				layer);
-			break;
-		case dsTextureDim_Cube:
-			if (texture->depth > 0)
-			{
-				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
-					layer);
-			}
-			else
-			{
-				glFramebufferTexture2D(framebuffer, attachment,
-					GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, glTexture->textureId, mipLevel);
-			}
-			break;
-		default:
-			DS_ASSERT(false);
-	}
-}
-
-void dsGLUnbindFramebufferTexture(GLenum framebuffer, dsTexture* texture)
-{
-	GLenum attachment = dsGLTexture_attachment(texture);
-	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
-}
-
 bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems, size_t* maxElems,
 	size_t elemSize, size_t addElems)
 {

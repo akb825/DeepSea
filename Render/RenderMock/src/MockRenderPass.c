@@ -41,7 +41,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].colorAttachmentCount);
+			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount);
 	}
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
@@ -88,11 +88,12 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			curSubpass->colorAttachments = (uint32_t*)dsAllocator_alloc
-				((dsAllocator*)&bufferAllocator, sizeof(uint32_t)*curSubpass->colorAttachmentCount);
+			curSubpass->colorAttachments = (dsColorAttachmentRef*)dsAllocator_alloc
+				((dsAllocator*)&bufferAllocator,
+				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
-				sizeof(uint32_t)*curSubpass->colorAttachmentCount);
+				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
 		}
 	}
 	renderPass->subpassCount = subpassCount;
@@ -105,28 +106,6 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		memcpy((void*)renderPass->subpassDependencies, dependencies,
 			sizeof(dsSubpassDependency)*dependencyCount);
 		renderPass->subpassDependencyCount = dependencyCount;
-	}
-	else if (subpassCount > 1)
-	{
-		renderPass->subpassDependencies = (dsSubpassDependency*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsSubpassDependency)*finalDependencyCount);
-		DS_ASSERT(renderPass->subpassDependencies);
-		renderPass->subpassDependencyCount = finalDependencyCount;
-		for (uint32_t i = 0; i < finalDependencyCount; ++i)
-		{
-			dsSubpassDependency* dependency =
-				(dsSubpassDependency*)renderPass->subpassDependencies + i;
-			dependency->srcStage = i;
-			dependency->srcSubpass = dsSubpassDependencyStage_Fragment;
-			dependency->dstStage = i + 1;
-			dependency->dstSubpass = dsSubpassDependencyStage_Fragment;
-			dependency->regionDependency = true;
-		}
-	}
-	else
-	{
-		renderPass->subpassDependencies = NULL;
-		renderPass->subpassDependencyCount = 0;
 	}
 
 	return renderPass;
