@@ -337,6 +337,7 @@ typedef struct dsGLCommandBuffer
 	bool subpassOnly;
 	uint32_t subpassIndex;
 	const dsRenderPass* boundRenderPass;
+	const dsShader* boundShader;
 	void* boundSurface;
 } dsGLCommandBuffer;
 

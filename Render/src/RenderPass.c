@@ -306,11 +306,22 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 			needsClear = true;
 	}
 
-	if (!renderer->resourceManager->canMixWithRenderSurface)
+	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 	{
-		for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
+		const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;
+		for (uint32_t j = 0; j < subpass->inputAttachmentCount; ++j)
 		{
-			const dsRenderSubpassInfo* subpass = renderPass->subpasses + i;
+			if (framebuffer->surfaces[subpass->inputAttachments[j]].surfaceType !=
+				dsFramebufferSurfaceType_Offscreen)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+		}
+
+		if (!renderer->resourceManager->canMixWithRenderSurface)
+		{
 			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 			{
 				SurfaceType surfaceTypes = SurfaceType_Unset;

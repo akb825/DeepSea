@@ -190,9 +190,9 @@ TEST_F(RenderPassTest, BeginNextEnd)
 
 	dsFramebufferSurface surfaces2[] =
 	{
-		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen1},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen3},
 		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, renderSurface},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen1},
 		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, offscreen2}
 	};
 	uint32_t surface2Count = (uint32_t)DS_ARRAY_SIZE(surfaces2);

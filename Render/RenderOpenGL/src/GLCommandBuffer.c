@@ -40,6 +40,7 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOn
 	glCommandBuffer->subpassOnly = subpassOnly;
 	glCommandBuffer->subpassIndex = 0;
 	glCommandBuffer->boundRenderPass = NULL;
+	glCommandBuffer->boundShader = NULL;
 	glCommandBuffer->boundSurface = NULL;
 }
 
@@ -106,14 +107,6 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
-
-	if (!insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Shader operations must be done within a render pass.");
-		return false;
-	}
 
 	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
 		return false;
@@ -263,8 +256,29 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates)
 {
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->bindShaderFunc(commandBuffer, shader, renderStates);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader cannot be bound while another shader is already bound.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->bindShaderFunc(commandBuffer, shader, renderStates))
+		return false;
+
+	glCommandBuffer->boundShader = shader;
+	return true;
 }
 
 bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
@@ -302,11 +316,12 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 
-	if (!insideRenderPass(commandBuffer))
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader != shader)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Shader operations must be done within a render pass.");
+			"Volatile material values must only be set on the bound shader.");
 		return false;
 	}
 
@@ -314,7 +329,6 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 		return true;
 
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	const dsGLShader* glShader = (const dsGLShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
@@ -437,16 +451,21 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
-	if (!insideRenderPass(commandBuffer))
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader != shader)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Shader operations must be done within a render pass.");
+			"Can only unbind the currently bound shader.");
 		return false;
 	}
 
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->unbindShaderFunc(commandBuffer, shader);
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->unbindShaderFunc(commandBuffer, shader))
+		return false;
+
+	glCommandBuffer->boundShader = NULL;
+	return true;
 }
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
@@ -517,6 +536,7 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	}
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	DS_ASSERT(!glCommandBuffer->boundShader);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport,
 		clearValues, clearValueCount))
@@ -549,6 +569,13 @@ bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 		return false;
 	}
 
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot end a subpass while a shader is bound.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->nextRenderSubpassFunc(commandBuffer, renderPass,
 		glCommandBuffer->subpassIndex + 1))
@@ -576,6 +603,13 @@ bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Can only end a render pass on the last subpass.");
+		return false;
+	}
+
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot end a render pass while a shader is bound.");
 		return false;
 	}
 
