@@ -567,7 +567,7 @@ TEST_F(TextureTest, Blit)
 					textureData[index].r = (uint8_t)x;
 					textureData[index].g = (uint8_t)y;
 					textureData[index].b = (uint8_t)level;
-					textureData[index].a = (uint8_t)depth + 1;
+					textureData[index].a = (uint8_t)(depth + 1);
 				}
 			}
 		}

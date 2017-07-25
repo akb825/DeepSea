@@ -203,7 +203,7 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	dsMin(samples, (uint8_t)renderer->maxSurfaceSamples);
+	samples = dsMin(samples, (uint8_t)renderer->maxSurfaceSamples);
 	if (samples == renderer->surfaceSamples)
 		return true;
 

@@ -488,6 +488,20 @@ static uint32_t getUsedTextures(mslModule* module, uint32_t shaderIndex,
 	return mask;
 }
 
+static void setLocation(dsGLUniformInfo* info, GLint location)
+{
+#if DS_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
+	info->location = location;
+
+#if DS_GCC
+#pragma GCC diagnostic pop
+#endif
+}
+
 static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDesc,
 	mslModule* module, uint32_t shaderIndex, bool useGfxBuffers, const char* moduleName)
 {
@@ -572,7 +586,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 						}
 					}
 					glUniform1i(binding, textureIndex);
-					shader->uniforms[i].location = textureIndex;
+					setLocation(shader->uniforms + 1, textureIndex);
 				}
 				break;
 			}
@@ -583,7 +597,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					materialDesc->elements[i].name);
 				if (blockIndex >= 0)
 				{
-					shader->uniforms[i].location = blockBindings;
+					setLocation(shader->uniforms + i, blockBindings);
 					glUniformBlockBinding(shader->programId, blockIndex,
 						shader->uniforms[i].location);
 				}
@@ -600,7 +614,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 						materialDesc->elements[i].name);
 					if (blockIndex >= 0)
 					{
-						shader->uniforms[i].location = blockBindings;
+						setLocation(shader->uniforms + i, blockBindings);
 						glUniformBlockBinding(shader->programId, blockIndex,
 							shader->uniforms[i].location);
 					}
@@ -645,7 +659,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					return false;
 				}
 
-				shader->uniforms[i].location = glGetUniformLocation(shader->programId, nameBuffer);
+				setLocation(shader->uniforms + i,
+					glGetUniformLocation(shader->programId, nameBuffer));
 				break;
 			}
 		}

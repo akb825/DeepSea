@@ -898,7 +898,7 @@ static void setBlendStates(const dsRenderer* renderer, mslBlendState* curState,
 		}
 	}
 
-	if (resetBlend)
+	if (resetBlend || blendStateChanged)
 	{
 		if (blendEnabled)
 			glEnable(GL_BLEND);
