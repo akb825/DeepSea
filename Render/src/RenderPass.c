@@ -88,7 +88,7 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSur
 	}
 }
 
-static uint16_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
+static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurface* surface)
 {
 	switch (surface->surfaceType)
 	{

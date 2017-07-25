@@ -31,7 +31,8 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface);
 
 void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, void* SURFACE);
+bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, void* surface);
+void dsSetGLSurfaceVsync(void* display, void* surface, bool vsync);
 void dsSwapGLBuffers(void* display, void* surface);
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface);
 

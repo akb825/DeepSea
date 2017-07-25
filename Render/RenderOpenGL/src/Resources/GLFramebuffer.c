@@ -18,6 +18,7 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "Resources/GLRenderbuffer.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLTexture.h"
 #include "GLHelpers.h"
@@ -64,6 +65,7 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 				*curAttachment = glTexture->textureId;
 				if (layers > 1)
 				{
+					DS_ASSERT(!glTexture->drawBufferId);
 					glFramebufferTexture(GL_FRAMEBUFFER, attachment, glTexture->textureId,
 						surface->mipLevel);
 				}
@@ -327,11 +329,27 @@ void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer)
 	DS_ASSERT(framebuffer);
 	dsGLFramebuffer* glBuffer = (dsGLFramebuffer*)framebuffer;
 	dsGLResource_addRef(&glBuffer->resource);
+
+	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
+	{
+		if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Offscreen)
+			dsGLTexture_addInternalRef((dsTexture*)framebuffer->surfaces[i].surface);
+		else if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+			dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)framebuffer->surfaces[i].surface);
+	}
 }
 
 void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer)
 {
 	DS_ASSERT(framebuffer);
+	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
+	{
+		if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Offscreen)
+			dsGLTexture_freeInternalRef((dsTexture*)framebuffer->surfaces[i].surface);
+		else if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+			dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)framebuffer->surfaces[i].surface);
+	}
+
 	dsGLFramebuffer* glBuffer = (dsGLFramebuffer*)framebuffer;
 	if (dsGLResource_freeRef(&glBuffer->resource))
 		destroyImpl(framebuffer);

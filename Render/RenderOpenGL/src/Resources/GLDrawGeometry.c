@@ -17,6 +17,7 @@
 #include "Resources/GLDrawGeometry.h"
 
 #include "AnyGL/gl.h"
+#include "Resources/GLGfxBuffer.h"
 #include "Resources/GLResourceManager.h"
 #include "Resources/GLResource.h"
 #include "GLRendererInternal.h"
@@ -27,7 +28,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <string.h>
 
-static void bindElements(dsGLDrawGeometry* geometry, bool track)
+static void bindElements(dsGLDrawGeometry* geometry, uint32_t baseVertex, bool track)
 {
 	dsDrawGeometry* baseGeometry = (dsDrawGeometry*)geometry;
 	dsResourceManager* resourceManager = baseGeometry->resourceManager;
@@ -41,6 +42,7 @@ static void bindElements(dsGLDrawGeometry* geometry, bool track)
 		if (!vertexBuffer->buffer)
 			continue;
 
+		size_t offset = baseVertex*vertexBuffer->format.size;
 		dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)vertexBuffer->buffer;
 		glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
 		for (uint32_t mask = vertexBuffer->format.enabledMask; mask;
@@ -62,7 +64,8 @@ static void bindElements(dsGLDrawGeometry* geometry, bool track)
 			if (!track || !renderer->boundAttributes[index])
 				glEnableVertexAttribArray(index);
 			glVertexAttribPointer(index, elements, type, normalized,
-				vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset));
+				vertexBuffer->format.size, (void*)(size_t)(vertexBuffer->offset + element->offset +
+				offset));
 			if (ANYGL_SUPPORTED(glVertexAttribDivisor))
 				glVertexAttribDivisor(index, vertexBuffer->format.divisor);
 		}
@@ -140,24 +143,26 @@ bool dsGLDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry
 	return true;
 }
 
-void dsGLDrawGeometry_bind(dsDrawGeometry* geometry)
+void dsGLDrawGeometry_bind(const dsDrawGeometry* geometry, int32_t baseVertex)
 {
 	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;;
 	if (ANYGL_SUPPORTED(glGenVertexArrays))
 	{
+		DS_ASSERT(baseVertex == 0);
+
 		// Vertex array objects are tied to specific contexts.
 		dsGLRenderer* renderer = (dsGLRenderer*)geometry->resourceManager->renderer;
 		if (!glGeometry->vao || glGeometry->vaoContext != renderer->contextCount)
 		{
 			glGenVertexArrays(1, &glGeometry->vao);
 			glBindVertexArray(glGeometry->vao);
-			bindElements(glGeometry, false);
+			bindElements(glGeometry, baseVertex, false);
 		}
 		else
 			glBindVertexArray(glGeometry->vao);
 	}
 	else
-		bindElements(glGeometry, true);
+		bindElements(glGeometry, baseVertex, true);
 }
 
 void dsGLDrawGeometry_addInternalRef(dsDrawGeometry* geometry)
@@ -165,11 +170,27 @@ void dsGLDrawGeometry_addInternalRef(dsDrawGeometry* geometry)
 	DS_ASSERT(geometry);
 	dsGLDrawGeometry* glBuffer = (dsGLDrawGeometry*)geometry;
 	dsGLResource_addRef(&glBuffer->resource);
+
+	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (geometry->vertexBuffers[i].buffer)
+			dsGLGfxBuffer_addInternalRef(geometry->vertexBuffers[i].buffer);
+	}
+	if (geometry->indexBuffer.buffer)
+		dsGLGfxBuffer_addInternalRef(geometry->indexBuffer.buffer);
 }
 
 void dsGLDrawGeometry_freeInternalRef(dsDrawGeometry* geometry)
 {
 	DS_ASSERT(geometry);
+	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		if (geometry->vertexBuffers[i].buffer)
+			dsGLGfxBuffer_freeInternalRef(geometry->vertexBuffers[i].buffer);
+	}
+	if (geometry->indexBuffer.buffer)
+		dsGLGfxBuffer_freeInternalRef(geometry->indexBuffer.buffer);
+
 	dsGLDrawGeometry* glBuffer = (dsGLDrawGeometry*)geometry;
 	if (dsGLResource_freeRef(&glBuffer->resource))
 		destroyImpl(geometry);

@@ -20,5 +20,5 @@
 #include <DeepSea/Render/Resources/Types.h>
 
 dsRenderbuffer* dsMockRenderbuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint16_t samples);
+	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples);
 bool dsMockRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer);

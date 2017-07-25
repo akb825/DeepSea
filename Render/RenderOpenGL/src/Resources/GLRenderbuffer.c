@@ -26,7 +26,7 @@
 #include <DeepSea/Core/Assert.h>
 
 dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsGfxFormat format, uint32_t width, uint32_t height, uint16_t samples)
+	dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);

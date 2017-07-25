@@ -134,6 +134,142 @@ static void drawBuffer(GLenum buffer)
 		glDrawBuffers(1, &buffer);
 }
 
+static void deleteDestroyedObjects(dsGLRenderer* renderer)
+{
+	if (renderer->curDestroyVaos)
+	{
+		glDeleteVertexArrays((GLsizei)renderer->curDestroyVaos, renderer->destroyVaos);
+		renderer->curDestroyVaos = 0;
+	}
+
+	if (renderer->curDestroyFbos)
+	{
+		glDeleteFramebuffers((GLsizei)renderer->curDestroyFbos, renderer->destroyFbos);
+		renderer->curDestroyFbos = 0;
+	}
+}
+
+static void clearDestroyedObjects(dsGLRenderer* renderer)
+{
+	renderer->curDestroyVaos = 0;
+	renderer->curDestroyFbos = 0;
+}
+
+bool dsGLRenderer_beginFrame(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (glRenderer->withinFrame)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot begin a frame while a frame is currently active.");
+		return false;
+	}
+
+	if (glRenderer->renderContextBound)
+		deleteDestroyedObjects(glRenderer);
+
+	glRenderer->withinFrame = true;
+	return true;
+}
+
+bool dsGLRenderer_endFrame(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (!glRenderer->withinFrame)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot end a frame when a frame isn't currently active.");
+		return false;
+	}
+
+	if (glRenderer->renderContextBound)
+		deleteDestroyedObjects(glRenderer);
+
+	glFlush();
+	glRenderer->withinFrame = false;
+	return true;
+}
+
+bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (glRenderer->withinFrame)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot set the number of surface samples within a frame.");
+		return false;
+	}
+
+	dsMin(samples, (uint8_t)renderer->maxSurfaceSamples);
+	if (samples == renderer->surfaceSamples)
+		return true;
+
+	// Need to re-create the render context.
+	DS_ASSERT(glRenderer->renderContext);
+	DS_ASSERT(glRenderer->renderConfig);
+
+	void* display = glRenderer->options.display;
+	dsOpenGLOptions newOptions = glRenderer->options;
+	newOptions.samples = (uint8_t)samples;
+	void* newConfig = dsCreateGLConfig(renderer->allocator, display, &newOptions, true);
+	if (!newConfig)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL configuration.");
+		return false;
+	}
+
+	void* newContext = dsCreateGLContext(renderer->allocator, display, newConfig,
+		glRenderer->sharedContext);
+	if (!newContext)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
+		dsDestroyGLConfig(display, newConfig);
+		return false;
+	}
+
+	DS_VERIFY(dsBindGLContext(display, glRenderer->sharedContext, glRenderer->dummySurface));
+	dsDestroyGLContext(display, glRenderer->renderContext);
+	dsDestroyGLConfig(display, glRenderer->renderConfig);
+	glRenderer->renderConfig = newConfig;
+	glRenderer->renderContext = newContext;
+	glRenderer->renderContextBound = false;
+	glRenderer->renderContextReset = false;
+	glRenderer->options.samples = (uint8_t)samples;
+	++glRenderer->contextCount;
+
+	// These objects were associated with the now destroyed context.
+	clearDestroyedObjects(glRenderer);
+	glRenderer->tempFramebuffer = 0;
+	glRenderer->tempCopyFramebuffer = 0;
+	memset(glRenderer->boundAttributes, 0, sizeof(glRenderer->boundAttributes));
+
+	return true;
+}
+
+bool dsGLRenderer_setVsync(dsRenderer* renderer, bool vsync)
+{
+	renderer->vsync = vsync;
+	return true;
+}
+
+bool dsGLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
+{
+	renderer->defaultAnisotropy = anisotropy;
+	return true;
+}
+
+bool dsGLRenderer_waitUntilIdle(dsRenderer* renderer)
+{
+	DS_UNUSED(renderer);
+	glFinish();
+	return true;
+}
+
 void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 {
 	if (!options)
@@ -174,7 +310,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	if (!AnyGL_initialize())
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize GL.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize OpenGL.");
 		return NULL;
 	}
 
@@ -246,7 +382,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	if (!renderer->sharedConfig || !renderer->renderConfig)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL configuration.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL configuration.");
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
@@ -256,7 +392,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	if (!renderer->dummySurface)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create dummy GL surface.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create dummy OpenGL surface.");
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
@@ -266,7 +402,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	if (!renderer->sharedContext)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL context.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
@@ -296,6 +432,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
+	// Temporary FBOs used when the shared context
+	glGenFramebuffers(1, &renderer->sharedTempFramebuffer);
+	glGenFramebuffers(1, &renderer->sharedTempCopyFramebuffer);
+
 	if (ANYGL_SUPPORTED(glDrawBuffers))
 		glGetIntegerv(GL_MAX_DRAW_BUFFERS, (GLint*)&baseRenderer->maxColorAttachments);
 	else
@@ -306,11 +446,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	maxSamples = dsMax(1, maxSamples);
 	baseRenderer->maxSurfaceSamples = (uint16_t)maxSamples;
 	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
-
-	if (AnyGL_EXT_texture_filter_anisotropic)
-		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);
-	else
-		baseRenderer->maxAnisotropy = 1.0f;
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
 		renderer->sharedContext);
@@ -349,8 +484,24 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->surfaceSamples = options->samples;
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
+	baseRenderer->vsync = false;
 
-	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glVertexAttribDivisor);
+	baseRenderer->hasGeometryShaders = AnyGL_atLeastVersion(3, 2, false) ||
+		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_geometry_shader4 ||
+		AnyGL_EXT_geometry_shader4 || AnyGL_EXT_geometry_shader;
+	baseRenderer->hasTessellationShaders = AnyGL_atLeastVersion(4, 0, false) ||
+		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_tessellation_shader ||
+		AnyGL_EXT_tessellation_shader;
+	baseRenderer->hasComputeShaders = AnyGL_atLeastVersion(4, 3, false) ||
+		AnyGL_atLeastVersion(3, 1, true) || AnyGL_ARB_compute_shader;
+	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
+	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
+	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
+
+	if (AnyGL_EXT_texture_filter_anisotropic)
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);
+	else
+		baseRenderer->maxAnisotropy = 1.0f;
 
 	// Render surfaces
 	baseRenderer->createRenderSurfaceFunc = &dsGLRenderSurface_create;
@@ -374,6 +525,22 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->beginRenderPassFunc = &dsGLRenderPass_begin;
 	baseRenderer->nextRenderSubpassFunc = &dsGLRenderPass_nextSubpass;
 	baseRenderer->endRenderPassFunc = &dsGLRenderPass_end;
+
+	// Renderer functions
+	baseRenderer->beginFrameFunc = &dsGLRenderer_beginFrame;
+	baseRenderer->endFrameFunc = &dsGLRenderer_endFrame;
+	baseRenderer->setSurfaceSamplesFunc = &dsGLRenderer_setSurfaceSamples;
+	baseRenderer->setVsyncFunc = &dsGLRenderer_setVsync;
+	baseRenderer->setDefaultAnisotropyFunc = &dsGLRenderer_setDefaultAnisotropy;
+	baseRenderer->clearColorSurfaceFunc = &dsGLCommandBuffer_clearColorSurface;
+	baseRenderer->clearDepthStencilSurfaceFunc = &dsGLCommandBuffer_clearDepthStencilSurface;
+	baseRenderer->drawFunc = &dsGLCommandBuffer_draw;
+	baseRenderer->drawIndexedFunc = &dsGLCommandBuffer_drawIndexed;
+	baseRenderer->drawIndirectFunc = &dsGLCommandBuffer_drawIndirect;
+	baseRenderer->drawIndexedIndirectFunc = &dsGLCommandBuffer_drawIndexedIndirect;
+	baseRenderer->dispatchComputeFunc = &dsGLCommandBuffer_dispatchCompute;
+	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
+	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
 
 	return baseRenderer;
 }
@@ -440,7 +607,15 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 			return false;
 		}
 		glRenderer->curGLSurface = glSurface;
+		glRenderer->renderContextBound = true;
+		if (!glRenderer->renderContextReset)
+		{
+			glRenderer->renderContextBound = true;
+			dsGLMainCommandBuffer_resetState((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
+		}
 	}
+	// Now that the context is bound, can destroy the deleted objects.
+	deleteDestroyedObjects(glRenderer);
 	return true;
 }
 
@@ -452,6 +627,7 @@ void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface)
 		DS_VERIFY(dsBindGLContext(glRenderer->options.display, glRenderer->sharedContext,
 			glRenderer->dummySurface));
 		glRenderer->curGLSurface = NULL;
+		glRenderer->renderContextBound = false;
 	}
 }
 
@@ -527,7 +703,7 @@ GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	if (!glRenderer->renderContextBound)
-		return 0;
+		return glRenderer->sharedTempFramebuffer;
 
 	if (glRenderer->tempFramebuffer)
 		return glRenderer->tempFramebuffer;
@@ -540,7 +716,7 @@ GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	if (!glRenderer->renderContextBound)
-		return 0;
+		return glRenderer->sharedTempCopyFramebuffer;
 
 	if (glRenderer->tempCopyFramebuffer)
 		return glRenderer->tempCopyFramebuffer;
@@ -726,6 +902,8 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	dsGLResourceManager_destroy((dsGLResourceManager*)renderer->resourceManager);
 	dsGLMainCommandBuffer_destroy((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
 
+	// Since the context is destroyed, don't worry about deleting any associated OpenGL objects.
+	// (especially since some, like FBOs and VAOs, aren't shared across contexts)
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;
 	dsDestroyGLContext(display, glRenderer->renderContext);

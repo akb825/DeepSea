@@ -16,9 +16,11 @@
 
 #include "GLOtherCommandBuffer.h"
 
+#include "Resources/GLDrawGeometry.h"
 #include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLGfxFence.h"
+#include "Resources/GLRenderbuffer.h"
 #include "Resources/GLShader.h"
 #include "Resources/GLTexture.h"
 #include "GLCommandBuffer.h"
@@ -50,7 +52,15 @@ typedef enum CommandType
 	CommandType_EndRenderSurface,
 	CommandType_BeginRenderPass,
 	CommandType_NextRenderSubpass,
-	CommandType_EndRenderPass
+	CommandType_EndRenderPass,
+	CommandType_ClearColorSurface,
+	CommandType_ClearDepthStencilSurface,
+	CommandType_Draw,
+	CommandType_DrawIndexed,
+	CommandType_DrawIndirect,
+	CommandType_DrawIndexedIndirect,
+	CommandType_DispatchCompute,
+	CommandType_DispatchComputeIndirect
 } CommandType;
 
 typedef struct Command
@@ -189,6 +199,60 @@ typedef struct EndRenderPassCommand
 	Command command;
 	const dsRenderPass* renderPass;
 } EndRenderPassCommand;
+
+typedef struct ClearColorSurfaceCommand
+{
+	Command command;
+	dsFramebufferSurface surface;
+	dsSurfaceColorValue value;
+} ClearColorSurfaceCommand;
+
+typedef struct ClearDepthStencilSurfaceCommand
+{
+	Command command;
+	dsFramebufferSurface surface;
+	dsClearDepthStencil surfaceParts;
+	dsDepthStencilValue value;
+} ClearDepthStencilSurfaceCommand;
+
+typedef struct DrawCommand
+{
+	Command command;
+	const dsDrawGeometry* geometry;
+	dsDrawRange drawRange;
+} DrawCommand;
+
+typedef struct DrawIndexedCommand
+{
+	Command command;
+	const dsDrawGeometry* geometry;
+	dsDrawIndexedRange drawRange;
+} DrawIndexedCommand;
+
+typedef struct DrawIndirectCommand
+{
+	Command command;
+	const dsDrawGeometry* geometry;
+	const dsGfxBuffer* indirectBuffer;
+	size_t offset;
+	uint32_t count;
+	uint32_t stride;
+} DrawIndirectCommand;
+
+typedef struct DispatchComputeCommand
+{
+	Command command;
+	uint32_t x;
+	uint32_t y;
+	uint32_t z;
+} DispatchComputeCommand;
+
+typedef struct DispatchComputeIndirectCommand
+{
+	Command command;
+	const dsGfxBuffer* indirectBuffer;
+	size_t offset;
+} DispatchComputeIndirectCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -524,6 +588,137 @@ bool dsGLOtherCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+{
+	ClearColorSurfaceCommand* command = (ClearColorSurfaceCommand*)allocateCommand(commandBuffer,
+		CommandType_ClearColorSurface, sizeof(ClearColorSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->surface = *surface;
+	if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
+	else if (surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
+	command->value = *colorValue;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue)
+{
+	ClearDepthStencilSurfaceCommand* command = (ClearDepthStencilSurfaceCommand*)allocateCommand(
+		commandBuffer, CommandType_ClearDepthStencilSurface,
+		sizeof(ClearDepthStencilSurfaceCommand));
+	if (!command)
+		return false;
+
+	command->surface = *surface;
+	if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
+	else if (surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
+	command->surfaceParts = surfaceParts;
+	command->value = *depthStencilValue;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
+	const dsDrawRange* drawRange)
+{
+	DrawCommand* command = (DrawCommand*)allocateCommand(commandBuffer, CommandType_Draw,
+		sizeof(DrawCommand));
+	if (!command)
+		return false;
+
+	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
+	command->geometry = geometry;
+	command->drawRange = *drawRange;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+{
+	DrawIndexedCommand* command = (DrawIndexedCommand*)allocateCommand(commandBuffer,
+		CommandType_DrawIndexed, sizeof(DrawIndexedCommand));
+	if (!command)
+		return false;
+
+	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
+	command->geometry = geometry;
+	command->drawRange = *drawRange;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DrawIndirectCommand* command = (DrawIndirectCommand*)allocateCommand(commandBuffer,
+		CommandType_DrawIndirect, sizeof(DrawIndirectCommand));
+	if (!command)
+		return false;
+
+	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
+	dsGLGfxBuffer_addInternalRef((dsGfxBuffer*)indirectBuffer);
+	command->geometry = geometry;
+	command->indirectBuffer = indirectBuffer;
+	command->offset = offset;
+	command->count = count;
+	command->stride = stride;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DrawIndirectCommand* command = (DrawIndirectCommand*)allocateCommand(commandBuffer,
+		CommandType_DrawIndexedIndirect, sizeof(DrawIndirectCommand));
+	if (!command)
+		return false;
+
+	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
+	dsGLGfxBuffer_addInternalRef((dsGfxBuffer*)indirectBuffer);
+	command->geometry = geometry;
+	command->indirectBuffer = indirectBuffer;
+	command->offset = offset;
+	command->count = count;
+	command->stride = stride;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y,
+	uint32_t z)
+{
+	DispatchComputeCommand* command = (DispatchComputeCommand*)allocateCommand(commandBuffer,
+		CommandType_DispatchCompute, sizeof(DispatchComputeCommand));
+	if (!command)
+		return false;
+
+	command->x = x;
+	command->y = y;
+	command->z = z;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset)
+{
+	DispatchComputeIndirectCommand* command = (DispatchComputeIndirectCommand*)allocateCommand(
+		commandBuffer, CommandType_DispatchComputeIndirect, sizeof(DispatchComputeIndirectCommand));
+	if (!command)
+		return false;
+
+	dsGLGfxBuffer_addInternalRef((dsGfxBuffer*)indirectBuffer);
+	command->indirectBuffer = indirectBuffer;
+	command->offset = offset;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -667,6 +862,66 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_endRenderPass(commandBuffer, thisCommand->renderPass);
 				break;
 			}
+			case CommandType_ClearColorSurface:
+			{
+				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
+				dsGLCommandBuffer_clearColorSurface(commandBuffer->renderer, commandBuffer,
+					&thisCommand->surface, &thisCommand->value);
+				break;
+			}
+			case CommandType_ClearDepthStencilSurface:
+			{
+				ClearDepthStencilSurfaceCommand* thisCommand =
+					(ClearDepthStencilSurfaceCommand*)command;
+				dsGLCommandBuffer_clearDepthStencilSurface(commandBuffer->renderer, commandBuffer,
+					&thisCommand->surface, thisCommand->surfaceParts, &thisCommand->value);
+				break;
+			}
+			case CommandType_Draw:
+			{
+				DrawCommand* thisCommand = (DrawCommand*)command;
+				dsGLCommandBuffer_draw(commandBuffer->renderer, commandBuffer,
+					thisCommand->geometry, &thisCommand->drawRange);
+				break;
+			}
+			case CommandType_DrawIndexed:
+			{
+				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
+				dsGLCommandBuffer_drawIndexed(commandBuffer->renderer, commandBuffer,
+					thisCommand->geometry, &thisCommand->drawRange);
+				break;
+			}
+			case CommandType_DrawIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				dsGLCommandBuffer_drawIndirect(commandBuffer->renderer, commandBuffer,
+					thisCommand->geometry, thisCommand->indirectBuffer, thisCommand->offset,
+					thisCommand->count, thisCommand->stride);
+				break;
+			}
+			case CommandType_DrawIndexedIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				dsGLCommandBuffer_drawIndexedIndirect(commandBuffer->renderer, commandBuffer,
+					thisCommand->geometry, thisCommand->indirectBuffer, thisCommand->offset,
+					thisCommand->count, thisCommand->stride);
+				break;
+			}
+			case CommandType_DispatchCompute:
+			{
+				DispatchComputeCommand* thisCommand = (DispatchComputeCommand*)command;
+				dsGLCommandBuffer_dispatchCompute(commandBuffer->renderer, commandBuffer,
+					thisCommand->x, thisCommand->y, thisCommand->z);
+				break;
+			}
+			case CommandType_DispatchComputeIndirect:
+			{
+				DispatchComputeIndirectCommand* thisCommand =
+					(DispatchComputeIndirectCommand*)command;
+				dsGLCommandBuffer_dispatchComputeIndirect(commandBuffer->renderer, commandBuffer,
+					thisCommand->indirectBuffer, thisCommand->offset);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -707,6 +962,14 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_beginRenderPass,
 	&dsGLOtherCommandBuffer_nextRenderSubpass,
 	&dsGLOtherCommandBuffer_endRenderPass,
+	&dsGLOtherCommandBuffer_clearColorSurface,
+	&dsGLOtherCommandBuffer_clearDepthStencilSurface,
+	&dsGLOtherCommandBuffer_draw,
+	&dsGLOtherCommandBuffer_drawIndexed,
+	&dsGLOtherCommandBuffer_drawIndirect,
+	&dsGLOtherCommandBuffer_drawIndexedIndirect,
+	&dsGLOtherCommandBuffer_dispatchCompute,
+	&dsGLOtherCommandBuffer_dispatchComputeIndirect,
 	&dsGLOtherCommandBuffer_begin,
 	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
@@ -856,6 +1119,54 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 			{
 				EndRenderPassCommand* thisCommand = (EndRenderPassCommand*)command;
 				dsGLRenderPass_freeInternalRef((dsRenderPass*)thisCommand->renderPass);
+				break;
+			}
+			case CommandType_ClearColorSurface:
+			{
+				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
+				if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Offscreen)
+					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
+				else if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
+				break;
+			}
+			case CommandType_ClearDepthStencilSurface:
+			{
+				ClearDepthStencilSurfaceCommand* thisCommand =
+					(ClearDepthStencilSurfaceCommand*)command;
+				if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Offscreen)
+					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
+				else if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
+				break;
+			}
+			case CommandType_Draw:
+			{
+				DrawCommand* thisCommand = (DrawCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				break;
+			}
+			case CommandType_DrawIndexed:
+			{
+				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				break;
+			}
+			case CommandType_DrawIndirect:
+			case CommandType_DrawIndexedIndirect:
+			{
+				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
+				dsGLDrawGeometry_freeInternalRef((dsDrawGeometry*)thisCommand->geometry);
+				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
+				break;
+			}
+			case CommandType_DispatchCompute:
+				break;
+			case CommandType_DispatchComputeIndirect:
+			{
+				DispatchComputeIndirectCommand* thisCommand =
+					(DispatchComputeIndirectCommand*)command;
+				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
 				break;
 			}
 			default:

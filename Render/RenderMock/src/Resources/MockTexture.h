@@ -24,7 +24,7 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 	uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data, size_t size);
 dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
 	bool resolve);
 bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,

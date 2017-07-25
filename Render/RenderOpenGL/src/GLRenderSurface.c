@@ -50,6 +50,8 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, glSurface));
 
 	renderSurface->glSurface = glSurface;
+	renderSurface->vsync = renderer->vsync;
+	dsSetGLSurfaceVsync(display, glSurface, renderer->vsync);
 	return baseSurface;
 }
 
@@ -69,6 +71,13 @@ bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 	renderSurface->width = width;
 	renderSurface->height = height;
+
+	dsGLRenderSurface* glSurface = (dsGLRenderSurface*)renderSurface;
+	if (glSurface->vsync != renderer->vsync)
+	{
+		glSurface->vsync = renderer->vsync;
+		dsSetGLSurfaceVsync(glRenderer->options.display, glSurface->glSurface, renderer->vsync);
+	}
 	return true;
 }
 

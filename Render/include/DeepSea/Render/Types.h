@@ -288,7 +288,7 @@ typedef struct dsAttachmentInfo
 	 *
 	 * This may be set to DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer.
 	 */
-	uint16_t samples;
+	uint32_t samples;
 } dsAttachmentInfo;
 
 /**
@@ -778,7 +778,7 @@ typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
  * @param samples The number of anti-alias samples.
  * @return False if the number of samples couldn't be set.
  */
-typedef bool (*dsSetRenderSurfaceSamplesFunction)(dsRenderer* renderer, uint16_t samples);
+typedef bool (*dsSetRenderSurfaceSamplesFunction)(dsRenderer* renderer, uint32_t samples);
 
 /**
  * @brief Function for setting whether or not to wait for vsync.
@@ -1005,6 +1005,11 @@ struct dsRenderer
 	 * @brief Whether or not instanced drawing is supported.
 	 */
 	bool supportsInstancedDrawing;
+
+	/**
+	 * @brief Whether or not the first instance can be set.
+	 */
+	bool supportsStartInstance;
 
 	/**
 	 * @brief The default level of anisotropy for anisotropic filtering.

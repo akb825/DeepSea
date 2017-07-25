@@ -297,14 +297,20 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, void* surface)
 {
-	DS_ASSERT(outWidth);
-	DS_ASSERT(outHeight);
-	DS_ASSERT(display);
-	DS_ASSERT(surface);
+	if (!outWidth || !outHeight || !surface)
+		return false;
 
 	glXQueryDrawable(display, (GLXDrawable)surface, GLX_WIDTH, outWidth);
 	glXQueryDrawable(display, (GLXDrawable)surface, GLX_HEIGHT, outHeight);
 	return true;
+}
+
+void dsSetGLSurfaceVsync(void* display, void* surface, bool vsync)
+{
+	if (!surface || !ANYGL_SUPPORTED(glXSwapIntervalEXT))
+		return;
+
+	glXSwapIntervalEXT(display, (GLXDrawable)surface, vsync);
 }
 
 void dsSwapGLBuffers(void* display, void* surface)

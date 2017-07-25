@@ -44,7 +44,7 @@ bool dsMockRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsMockRenderer_setSurfaceSamples(dsRenderer* renderer, uint16_t samples)
+bool dsMockRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -263,6 +263,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->hasComputeShaders = true;
 	renderer->hasNativeMultidraw = true;
 	renderer->supportsInstancedDrawing = true;
+	renderer->supportsStartInstance = true;
 
 	renderer->createRenderSurfaceFunc = &dsMockRenderSurface_create;
 	renderer->destroyRenderSurfaceFunc = &dsMockRenderSurface_destroy;

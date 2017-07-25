@@ -24,6 +24,6 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager,
 	dsIndexBuffer* indexBuffer);
 bool dsGLDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry* geometry);
 
-void dsGLDrawGeometry_bind(dsDrawGeometry* geometry);
+void dsGLDrawGeometry_bind(const dsDrawGeometry* geometry, int32_t baseVertex);
 void dsGLDrawGeometry_addInternalRef(dsDrawGeometry* geometry);
 void dsGLDrawGeometry_freeInternalRef(dsDrawGeometry* geometry);

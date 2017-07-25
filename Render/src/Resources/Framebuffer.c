@@ -115,7 +115,16 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
 				surfaceFormat = surface->format;
 				if (surface->resolve)
+				{
 					surfaceLayers = 1;
+					if (surfaces[i].mipLevel != 0)
+					{
+						errno = EPERM;
+						DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only draw to the first mip level of a "
+							"resolved offscreen in a framebuffer.");
+						DS_PROFILE_FUNC_RETURN(NULL);
+					}
+				}
 				else
 				{
 					surfaceLayers = dsMax(1U, surface->depth);

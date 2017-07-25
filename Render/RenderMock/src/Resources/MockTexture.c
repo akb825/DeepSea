@@ -22,6 +22,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <limits.h>
 #include <string.h>
 
 typedef struct dsMockTexture
@@ -68,7 +69,7 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 
 dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
 	bool resolve)
 {
 	DS_ASSERT(resourceManager);
@@ -92,7 +93,8 @@ dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	texture->texture.mipLevels = mipLevels;
 	texture->texture.offscreen = true;
 	texture->texture.resolve = resolve;
-	texture->texture.samples = samples;
+	DS_ASSERT(samples < USHRT_MAX);
+	texture->texture.samples = (uint16_t)samples;
 	((dsMockTexture*)texture)->dataSize = textureSize;
 
 	return &texture->texture;

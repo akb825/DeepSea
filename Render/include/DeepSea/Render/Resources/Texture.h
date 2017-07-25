@@ -67,7 +67,7 @@ DS_RENDER_EXPORT uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t hei
  * @return The size of the texture in bytes, or 0 if invalid.
  */
 DS_RENDER_EXPORT size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples);
+	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples);
 
 /**
  * @brief Gets the offset for a surface within a texture.
@@ -175,7 +175,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
 	bool resolve);
 
 /**

@@ -73,7 +73,7 @@ DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
  * @param samples The number of anti-alias samples.
  * @return False if the number of samples couldn't be set.
  */
-DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint16_t samples);
+DS_RENDER_EXPORT bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples);
 
 /**
  * @brief Sets whether or not to wait for vsync.

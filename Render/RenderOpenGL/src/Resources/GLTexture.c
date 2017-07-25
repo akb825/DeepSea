@@ -29,6 +29,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <limits.h>
 #include <string.h>
 
 dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator, int usage,
@@ -395,7 +396,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint16_t samples, bool resolve)
+	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples, bool resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -417,7 +418,8 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	baseTexture->mipLevels = mipLevels;
 	baseTexture->offscreen = false;
 	baseTexture->resolve = resolve;
-	baseTexture->samples = samples;
+	DS_ASSERT(samples < USHRT_MAX);
+	baseTexture->samples = (uint16_t)samples;
 
 	texture->textureId = 0;
 	texture->drawBufferId = 0;
@@ -655,7 +657,7 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		if (ANYGL_SUPPORTED(glReadBuffer))
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-		dsGLTexture_bindFramebuffer(texture, GL_READ_FRAMEBUFFER, position->mipLevel, layer);
+		dsGLTexture_bindFramebufferTexture(texture, GL_READ_FRAMEBUFFER, position->mipLevel, layer);
 		glReadPixels(position->x, position->y, width, height, glFormat, type, result);
 		dsGLTexture_unbindFramebuffer(texture, GL_READ_FRAMEBUFFER);
 
@@ -834,6 +836,28 @@ void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_
 }
 
 void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffer,
+	GLenum attachment, uint32_t mipLevel, uint32_t layer)
+{
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+	if (glTexture->drawBufferId)
+	{
+		DS_ASSERT(mipLevel == 0);
+		glFramebufferRenderbuffer(framebuffer, attachment, GL_RENDERBUFFER,
+			glTexture->drawBufferId);
+	}
+	else
+		dsGLTexture_bindFramebufferTextureAttachment(texture, framebuffer, attachment, mipLevel,
+			layer);
+}
+
+void dsGLTexture_bindFramebufferTexture(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,
+	uint32_t layer)
+{
+	dsGLTexture_bindFramebufferTextureAttachment(texture, framebuffer,
+		dsGLTexture_attachment(texture->format), mipLevel, layer);
+}
+
+void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum framebuffer,
 	GLenum attachment, uint32_t mipLevel, uint32_t layer)
 {
 	dsGLTexture* glTexture = (dsGLTexture*)texture;

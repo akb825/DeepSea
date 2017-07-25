@@ -29,7 +29,7 @@
 extern const char* dsResourceManager_noContextError;
 
 dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsGfxFormat format, uint32_t width, uint32_t height, uint16_t samples)
+	dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
 {
 	DS_PROFILE_FUNC_START();
 

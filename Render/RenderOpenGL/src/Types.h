@@ -204,6 +204,8 @@ typedef struct dsGLRenderer
 	bool releaseDisplay;
 
 	bool renderContextBound;
+	bool renderContextReset;
+	bool withinFrame;
 	uint32_t contextCount;
 	void* sharedConfig;
 	void* sharedContext;
@@ -222,6 +224,8 @@ typedef struct dsGLRenderer
 	size_t maxDestroyFbos;
 	size_t curDestroyFbos;
 
+	GLuint sharedTempFramebuffer;
+	GLuint sharedTempCopyFramebuffer;
 	GLuint tempFramebuffer;
 	GLuint tempCopyFramebuffer;
 
@@ -284,6 +288,27 @@ typedef bool (*GLNextRenderSubpassFunction)(dsCommandBuffer* commandBuffer,
 typedef bool (*GLEndRenderPassFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
+typedef bool (*GLClearColorSurfaceFunction)(dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue);
+typedef bool (*GLClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue);
+
+typedef bool (*GLDrawFunction)(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
+	const dsDrawRange* drawRange);
+typedef bool (*GLDrawIndexedFunction)(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+typedef bool (*GLDrawIndirectFunction)(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride);
+typedef bool (*GLDrawIndexedIndirectFunction)(dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride);
+typedef bool (*GLDispatchComputeFunction)(dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y,
+	uint32_t z);
+typedef bool (*GLDispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset);
+
 typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
 typedef bool (*GLEndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
@@ -314,6 +339,16 @@ typedef struct CommandBufferFunctionTable
 	GLBeginRenderPassFunction beginRenderPassFunc;
 	GLNextRenderSubpassFunction nextRenderSubpassFunc;
 	GLEndRenderPassFunction endRenderPassFunc;
+
+	GLClearColorSurfaceFunction clearColorSurfaceFunc;
+	GLClearDepthStencilSurfaceFunction clearDepthStencilSurfaceFunc;
+
+	GLDrawFunction drawFunc;
+	GLDrawIndexedFunction drawIndexedFunc;
+	GLDrawIndirectFunction drawIndirectFunc;
+	GLDrawIndexedIndirectFunction drawIndexedIndirectFunc;
+	GLDispatchComputeFunction dispatchComputeFunc;
+	GLDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
 
 	GLBeginCommandBufferFunction beginFunc;
 	GLEndCommandBufferFunction endFunc;
@@ -348,6 +383,7 @@ typedef struct dsGLRenderSurface
 {
 	dsRenderSurface renderSurface;
 	void* glSurface;
+	bool vsync;
 } dsGLRenderSurface;
 
 typedef struct dsGLRenderPass

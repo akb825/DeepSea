@@ -68,6 +68,28 @@ bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 
+bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	const dsSurfaceColorValue* colorValue);
+bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
+
+bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
+bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+bool dsGLCommandBuffer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride);
+bool dsGLCommandBuffer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride);
+bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	uint32_t x, uint32_t y, uint32_t z);
+bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset);
+
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);

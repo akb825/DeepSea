@@ -621,6 +621,135 @@ bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	const dsSurfaceColorValue* colorValue)
+{
+	DS_UNUSED(renderer);
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Surfaces cannot be explicitly cleared inside a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->clearColorSurfaceFunc(commandBuffer, surface, colorValue);
+}
+
+bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue)
+{
+	DS_UNUSED(renderer);
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Surfaces cannot be explicitly cleared inside a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->clearDepthStencilSurfaceFunc(commandBuffer, surface, surfaceParts,
+		depthStencilValue);
+}
+
+bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawFunc(commandBuffer, geometry, drawRange);
+}
+
+bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndexedFunc(commandBuffer, geometry, drawRange);
+}
+
+bool dsGLCommandBuffer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
+		stride);
+}
+
+bool dsGLCommandBuffer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
+		stride);
+}
+
+bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	uint32_t x, uint32_t y, uint32_t z)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->dispatchComputeFunc(commandBuffer, x, y, z);
+}
+
+bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset)
+{
+	DS_UNUSED(renderer);
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->dispatchComputeIndirectFunc(commandBuffer, indirectBuffer, offset);
+}
+
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {

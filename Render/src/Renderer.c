@@ -71,7 +71,7 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 	return success;
 }
 
-bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint16_t samples)
+bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -312,6 +312,14 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!renderer->supportsStartInstance && drawRange->firstInstance != 0 )
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Current target doesn't support setting the start instance.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = renderer->drawFunc(renderer, commandBuffer, geometry, drawRange);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -348,6 +356,14 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support instanced drawing. Must "
 			"draw a single instance of index 0.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!renderer->supportsStartInstance && drawRange->firstInstance != 0 )
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Current target doesn't support setting the start instance.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

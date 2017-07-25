@@ -50,7 +50,7 @@ extern "C"
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint16_t samples);
+	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples);
 
 /**
  * @brief Destroys a renderbuffer.

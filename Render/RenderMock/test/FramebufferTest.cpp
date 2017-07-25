@@ -106,12 +106,12 @@ TEST_F(FramebufferTest, CreateMipmaps)
 {
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 2, 4, true);
+		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 2, 1, false);
 	ASSERT_TRUE(offscreen1);
 
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_D24S8, dsTextureDim_2D, 960, 540,
-		0, 1, 4, true);
+		0, 1, 1, false);
 	ASSERT_TRUE(offscreen2);
 
 	dsFramebufferSurface surfaces[] =
