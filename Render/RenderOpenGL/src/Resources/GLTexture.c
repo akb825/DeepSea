@@ -631,6 +631,16 @@ bool dsGLTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		regionCount, filter);
 }
 
+bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsTexture* texture)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(texture);
+
+	return dsGLCommandBuffer_generateTextureMipmaps(commandBuffer, texture);
+}
+
 bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height)
 {
@@ -737,42 +747,6 @@ GLenum dsGLTexture_target(const dsTexture* texture)
 	switch (texture->dimension)
 	{
 		case dsTextureDim_1D:
-			return GL_TEXTURE_1D;
-		case dsTextureDim_2D:
-			return GL_TEXTURE_2D;
-		case dsTextureDim_3D:
-			return GL_TEXTURE_3D;
-		case dsTextureDim_Cube:
-			return GL_TEXTURE_CUBE_MAP;
-		default:
-			DS_ASSERT(false);
-			return GL_TEXTURE_2D;
-	}
-}
-
-GLenum dsGLTexture_copyTarget(const dsTexture* texture)
-{
-	switch (texture->dimension)
-	{
-		case dsTextureDim_1D:
-			return texture->depth > 0 ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
-		case dsTextureDim_2D:
-			return texture->depth > 0 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
-		case dsTextureDim_3D:
-			return GL_TEXTURE_3D;
-		case dsTextureDim_Cube:
-			return texture->depth > 0 ? GL_TEXTURE_CUBE_MAP_ARRAY : GL_TEXTURE_CUBE_MAP;
-		default:
-			DS_ASSERT(false);
-			return GL_TEXTURE_2D;
-	}
-}
-
-GLenum dsGLTexture_framebufferTarget(const dsTexture* texture)
-{
-	switch (texture->dimension)
-	{
-		case dsTextureDim_1D:
 			return texture->depth > 0 ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
 		case dsTextureDim_2D:
 			if (texture->samples > 1 && !texture->resolve)
@@ -861,7 +835,7 @@ void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum fra
 	GLenum attachment, uint32_t mipLevel, uint32_t layer)
 {
 	dsGLTexture* glTexture = (dsGLTexture*)texture;
-	GLenum target = dsGLTexture_framebufferTarget(texture);
+	GLenum target = dsGLTexture_target(texture);
 	switch (texture->dimension)
 	{
 		case dsTextureDim_1D:
@@ -913,6 +887,151 @@ void dsGLTexture_unbindFramebuffer(dsTexture* texture, GLenum framebuffer)
 {
 	GLenum attachment = dsGLTexture_attachment(texture->format);
 	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
+}
+
+void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerState,
+	bool isShadowSampler)
+{
+	GLenum target = dsGLTexture_target(texture);
+	dsGLTexture* glTexture = (dsGLTexture*)texture;
+
+	GLenum curEnum = dsGetGLMinFilter(samplerState->minFilter, samplerState->mipFilter);
+	if (glTexture->minFilter != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_MIN_FILTER, curEnum);
+		glTexture->minFilter = curEnum;
+	}
+
+	curEnum = dsGetGLMagFilter(samplerState->magFilter);
+	if (glTexture->magFilter != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_MAG_FILTER, curEnum);
+		glTexture->magFilter = curEnum;
+	}
+
+	curEnum = dsGetGLAddressMode(samplerState->addressModeU);
+	if (glTexture->addressModeS != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_WRAP_S, curEnum);
+		glTexture->addressModeS = curEnum;
+	}
+
+	curEnum = dsGetGLAddressMode(samplerState->addressModeV);
+	if (glTexture->addressModeT != curEnum)
+	{
+		glTextureParameteri(target, GL_TEXTURE_WRAP_T, curEnum);
+		glTexture->addressModeT = curEnum;
+	}
+
+	if (texture->resourceManager->maxTextureDepth > 0)
+	{
+		curEnum = dsGetGLAddressMode(samplerState->addressModeW);
+		if (glTexture->addressModeR != curEnum)
+		{
+			glTextureParameteri(target, GL_TEXTURE_WRAP_R, curEnum);
+			glTexture->addressModeR = curEnum;
+		}
+	}
+
+	float curFloat;
+	if (AnyGL_EXT_texture_filter_anisotropic)
+	{
+		curFloat = samplerState->maxAnisotropy == MSL_UNKNOWN_FLOAT ?
+			texture->resourceManager->renderer->defaultAnisotropy : samplerState->maxAnisotropy;
+		if (glTexture->anisotropy != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, curFloat);
+			glTexture->anisotropy = curFloat;
+		}
+	}
+
+	if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+	{
+		curFloat = samplerState->mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState->mipLodBias;
+		if (glTexture->mipLodBias != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_LOD_BIAS, curFloat);
+			glTexture->mipLodBias = curFloat;
+		}
+
+		curFloat = samplerState->minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState->minLod;
+		if (glTexture->minLod != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MIN_LOD, curFloat);
+			glTexture->minLod = curFloat;
+		}
+
+		curFloat = samplerState->maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState->maxLod;
+		if (glTexture->maxLod != curFloat)
+		{
+			glTextureParameterf(target, GL_TEXTURE_MAX_LOD, curFloat);
+			glTexture->maxLod = curFloat;
+		}
+	}
+
+	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
+	{
+		if (glTexture->borderColor != samplerState->borderColor)
+		{
+			switch (samplerState->borderColor)
+			{
+				case mslBorderColor_Unset:
+				case mslBorderColor_TransparentBlack:
+				{
+					float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_TransparentIntZero:
+				{
+					GLint color[4] = {0, 0, 0, 0};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueBlack:
+				{
+					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueIntZero:
+				{
+					GLint color[4] = {0, 0, 0, 1};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueWhite:
+				{
+					float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+				case mslBorderColor_OpaqueIntOne:
+				{
+					GLint color[4] = {1, 1, 1, 1};
+					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					break;
+				}
+			}
+		}
+	}
+
+	if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+	{
+		if (glTexture->compareEnabled != isShadowSampler)
+		{
+			glTextureParameteri(target, GL_TEXTURE_COMPARE_MODE,
+				isShadowSampler ? GL_COMPARE_R_TO_TEXTURE : GL_NONE);
+			glTexture->compareEnabled = isShadowSampler;
+		}
+
+		curEnum = dsGetGLCompareOp(samplerState->compareOp);
+		if (glTexture->compareOp != curEnum)
+		{
+			glTextureParameteri(target, GL_TEXTURE_COMPARE_FUNC, curEnum);
+			glTexture->compareOp = curEnum;
+		}
+	}
 }
 
 void dsGLTexture_addInternalRef(dsTexture* texture)

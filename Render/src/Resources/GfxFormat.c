@@ -425,6 +425,18 @@ bool dsGfxFormat_textureBufferSupported(const dsResourceManager* resourceManager
 	return resourceManager->textureBufferFormatSupportedFunc(resourceManager, format);
 }
 
+bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	if (!resourceManager || !resourceManager->generateMipmapFormatSupportedFunc ||
+		!dsGfxFormat_isValid(format))
+	{
+		return false;
+	}
+
+	return resourceManager->generateMipmapFormatSupportedFunc(resourceManager, format);
+}
+
 bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat)
 {

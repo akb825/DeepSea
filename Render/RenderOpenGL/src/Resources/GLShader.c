@@ -319,6 +319,12 @@ bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* m
 	if (!compileShaders(shaderIds, module, pipeline))
 		return false;
 
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (pipeline->shaders[i] != MSL_UNKNOWN)
+			glAttachShader(shader->programId, shaderIds[i]);
+	}
+
 	// Set the input locations.
 	if (shaderIds[mslStage_Vertex] && !setVertexInputs(module, pipeline, shader->programId))
 		return false;
@@ -898,7 +904,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!shader->programId)
 	{
 		GLenum error = glGetError();
-		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating shader %s.%s: %s", module->name,
+		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error creating program %s.%s: %s", module->name,
 			pipeline.name, AnyGL_errorString(error));
 		errno = dsGetGLErrno(error);
 		dsGLShader_destroy(resourceManager, baseShader);

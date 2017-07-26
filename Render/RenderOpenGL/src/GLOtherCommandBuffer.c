@@ -42,6 +42,7 @@ typedef enum CommandType
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
 	CommandType_BlitTexture,
+	CommandType_GenerateTextureMipmaps,
 	CommandType_BindShader,
 	CommandType_SetTexture,
 	CommandType_SetTextureBuffer,
@@ -118,6 +119,12 @@ typedef struct BlitTextureCommand
 	size_t regionCount;
 	dsTextureBlitRegion regions[];
 } BlitTextureCommand;
+
+typedef struct GenerateTextureMipmapsCommand
+{
+	Command command;
+	dsTexture* texture;
+} GenerateTextureMipmapsCommand;
 
 typedef struct BindShaderCommand
 {
@@ -386,6 +393,19 @@ bool dsGLOtherCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTextur
 	command->filter = filter;
 	command->regionCount = regionCount;
 	memcpy(command->regions, regions, sizeof(dsTextureBlitRegion)*regionCount);
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer,
+	dsTexture* texture)
+{
+	GenerateTextureMipmapsCommand* command = (GenerateTextureMipmapsCommand*)allocateCommand(
+		commandBuffer, CommandType_GenerateTextureMipmaps, sizeof(GenerateTextureMipmapsCommand));
+	if (!command)
+		return false;
+
+	dsGLTexture_addInternalRef(texture);
+	command->texture = texture;
 	return true;
 }
 
@@ -785,6 +805,13 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->filter);
 				break;
 			}
+			case CommandType_GenerateTextureMipmaps:
+			{
+				GenerateTextureMipmapsCommand* thisCommand =
+					(GenerateTextureMipmapsCommand*)command;
+				dsGLCommandBuffer_generateTextureMipmaps(commandBuffer, thisCommand->texture);
+				break;
+			}
 			case CommandType_BindShader:
 			{
 				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
@@ -950,6 +977,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyTextureData,
 	&dsGLOtherCommandBuffer_copyTexture,
 	&dsGLOtherCommandBuffer_blitTexture,
+	&dsGLOtherCommandBuffer_generateTextureMipmaps,
 	&dsGLOtherCommandBuffer_setFenceSyncs,
 	&dsGLOtherCommandBuffer_bindShader,
 	&dsGLOtherCommandBuffer_setTexture,
@@ -1061,6 +1089,13 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
 				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
 				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
+				break;
+			}
+			case CommandType_GenerateTextureMipmaps:
+			{
+				GenerateTextureMipmapsCommand* thisCommand =
+					(GenerateTextureMipmapsCommand*)command;
+				dsGLTexture_freeInternalRef(thisCommand->texture);
 				break;
 			}
 			case CommandType_BindShader:

@@ -71,8 +71,11 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 				}
 				else
 				{
+					uint32_t layer = surface->layer;
+					if (texture->dimension == dsTextureDim_Cube)
+						layer = layer*6 + surface->cubeFace;
 					dsGLTexture_bindFramebufferAttachment(texture, GL_FRAMEBUFFER, attachment,
-						surface->mipLevel, surface->layer);
+						surface->mipLevel, layer);
 				}
 			}
 			return true;

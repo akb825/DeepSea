@@ -234,6 +234,18 @@ DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* 
 	dsBlitFilter filter);
 
 /**
+ * @brief Generates mipmaps for a texture based on the first mip level.
+ *
+ * This will only populate data for already allocated mipmaps. Most commonly, this will be used to
+ * generate mipmaps for an offscreen after rendering to the first mip level.
+ *
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to process the generation on.
+ * @param texture The texture to generate mipmaps for.
+ */
+DS_RENDER_EXPORT bool dsTexture_generateMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
+
+/**
  * @brief Grabs texture data.
  *
  * This is generally used to read data back from an offscreen to the CPU.

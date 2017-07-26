@@ -20,6 +20,7 @@
 
 #include "AnyGL/gl.h"
 #include <DeepSea/Render/Resources/Types.h>
+#include <MSL/Client/TypesC.h>
 
 dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator, int usage,
 	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width, uint32_t height,
@@ -36,13 +37,13 @@ bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 bool dsGLTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
 	size_t regionCount, dsBlitFilter filter);
+bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsTexture* texture);
 bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height);
 bool dsGLTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture);
 
 GLenum dsGLTexture_target(const dsTexture* texture);
-GLenum dsGLTexture_copyTarget(const dsTexture* texture);
-GLenum dsGLTexture_framebufferTarget(const dsTexture* texture);
 GLenum dsGLTexture_attachment(dsGfxFormat format);
 GLbitfield dsGLTexture_buffers(const dsTexture* texture);
 void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,
@@ -54,5 +55,7 @@ void dsGLTexture_bindFramebufferTexture(dsTexture* texture, GLenum framebuffer, 
 void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum framebuffer,
 	GLenum attachment, uint32_t mipLevel, uint32_t layer);
 void dsGLTexture_unbindFramebuffer(dsTexture* texture, GLenum framebuffer);
+void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerState,
+	bool isShadowSampler);
 void dsGLTexture_addInternalRef(dsTexture* texture);
 void dsGLTexture_freeInternalRef(dsTexture* texture);

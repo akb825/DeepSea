@@ -76,6 +76,13 @@ static bool blitFormatsSupported(const dsResourceManager* resourceManager, dsGfx
 		filter == dsBlitFilter_Nearest;
 }
 
+static bool generateMipmapsFormatSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	DS_UNUSED(resourceManager);
+	return !dsGfxFormat_compressedIndex(format) && !dsGfxFormat_specialIndex(format);
+}
+
 static dsResourceContext* createResourceContext(dsResourceManager* resourceManager)
 {
 	DS_ASSERT(resourceManager && resourceManager->allocator);
@@ -143,6 +150,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
 	resourceManager->offscreenFormatSupportedFunc = &offscreenFormatSupported;
 	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
+	resourceManager->generateMipmapFormatSupportedFunc = &generateMipmapsFormatSupported;
 	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
 	resourceManager->textureBlitFormatsSupportedFunc = &blitFormatsSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
@@ -166,6 +174,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->copyTextureDataFunc = &dsMockTexture_copyData;
 	resourceManager->copyTextureFunc = &dsMockTexture_copy;
 	resourceManager->blitTextureFunc = &dsMockTexture_blit;
+	resourceManager->generateTextureMipmapsFunc = &dsMockTexture_generateMipmaps;
 	resourceManager->getTextureDataFunc = &dsMockTexture_getData;
 
 	resourceManager->createRenderbufferFunc = &dsMockRenderbuffer_create;

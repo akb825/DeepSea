@@ -694,3 +694,25 @@ TEST_F(TextureTest, Blit)
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 }
+
+TEST_F(TextureTest, GenerateMipmaps)
+{
+	dsTexture* texture1 = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 32, 16, 0, DS_ALL_MIP_LEVELS, NULL, 0);
+	ASSERT_TRUE(texture1);
+
+	dsTexture* texture2 = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 32, 16, 0, DS_ALL_MIP_LEVELS, NULL, 0);
+	ASSERT_TRUE(texture1);
+
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	EXPECT_FALSE(dsTexture_generateMipmaps(NULL, texture1));
+	EXPECT_FALSE(dsTexture_generateMipmaps(commandBuffer, NULL));
+	EXPECT_TRUE(dsTexture_generateMipmaps(commandBuffer, texture1));
+	EXPECT_FALSE(dsTexture_generateMipmaps(commandBuffer, texture2));
+
+	EXPECT_TRUE(dsTexture_destroy(texture1));
+	EXPECT_TRUE(dsTexture_destroy(texture2));
+}

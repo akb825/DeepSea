@@ -56,6 +56,14 @@ void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of buffers must be done outside of a render pass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyBufferDataFunc(commandBuffer, buffer, offset, data, size);
 }
@@ -63,6 +71,14 @@ bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffe
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
 {
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of buffers must be done outside of a render pass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyBufferFunc(commandBuffer, srcBuffer, srcOffset, dstBuffer, dstOffset,
 		size);
@@ -72,6 +88,14 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
 {
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of textures must be done outside of a render pass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
 		data, size);
@@ -80,6 +104,14 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
 {
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of textures must be done outside of a render pass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
 }
@@ -88,9 +120,31 @@ bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
 	dsBlitFilter filter)
 {
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Blitting of textures must be done outside of a render pass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->blitTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount,
 		filter);
+}
+
+bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Generating of mipmaps must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->generateTextureMipmapsFunc(commandBuffer, texture);
 }
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,

@@ -291,6 +291,18 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 	return true;
 }
 
+bool dsMockTexture_generateMipmaps(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* texture)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(resourceManager);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(texture);
+	DS_ASSERT(texture);
+	return true;
+}
+
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height)
 {

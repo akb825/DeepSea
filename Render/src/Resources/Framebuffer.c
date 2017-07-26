@@ -153,7 +153,10 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceHeight = surface->height >> surfaces[i].mipLevel;
 				surfaceHeight = dsMax(1U, surfaceHeight);
 
-				if (layers == 1 && surface->depth > 0 && surfaces[i].layer >= surfaceLayers)
+				uint32_t layer = surfaces[i].layer;
+				if (surface->dimension == dsTextureDim_Cube)
+					layer = layer*6 + surfaces[i].cubeFace;
+				if (layers == 1 && surface->depth > 0 && layer >= surfaceLayers)
 				{
 					errno = EINDEX;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,

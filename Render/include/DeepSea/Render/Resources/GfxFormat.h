@@ -201,6 +201,15 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureBufferSupported(const dsResourceManager
 	dsGfxFormat format);
 
 /**
+ * @brief Checks whether or not a format can have mipmaps generated.
+ * @param resourceManager The resource manager.
+ * @param format The graphics format to check.
+ * @return True if the format can be used for texture buffers.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
+
+/**
  * @brief Checks whether or not a pair of graphics formats is supported for copying textures.
  * @remark You should not assume that just because two formats are equal they can be copied.
  * @param resourceManager The resource manager.

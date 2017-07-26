@@ -1021,6 +1021,15 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		&dsGLResourceManager_offscreenFormatSupported;
 	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsGLResourceManager_textureBufferFormatSupported;
+	if (ANYGL_SUPPORTED(glGenerateMipmap))
+	{
+		baseResourceManager->generateMipmapFormatSupportedFunc =
+			&dsGLResourceManager_offscreenFormatSupported;
+	}
+	baseResourceManager->textureCopyFormatsSupportedFunc =
+		&dsGLResourceManager_textureCopyFormatsSupported;
+	baseResourceManager->textureBlitFormatsSupportedFunc =
+		&dsGLResourceManager_textureBlitFormatsSupported;
 
 	// Resource contexts
 	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;
@@ -1068,8 +1077,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		}
 	}
 	baseResourceManager->copyBufferDataFunc = &dsGLGfxBuffer_copyData;
-	if (ANYGL_SUPPORTED(glCopyBufferSubData))
-		baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
+	baseResourceManager->copyBufferFunc = &dsGLGfxBuffer_copy;
 
 	// Draw geometry
 	GLint maxVertexAttribs = 0;
@@ -1102,6 +1110,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsGLTexture_copy;
 	baseResourceManager->blitTextureFunc = &dsGLTexture_blit;
+	baseResourceManager->generateTextureMipmapsFunc = &dsGLTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsGLTexture_getData;
 
 	// Renderbuffers

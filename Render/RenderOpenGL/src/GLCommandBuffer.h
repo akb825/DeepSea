@@ -35,6 +35,7 @@ bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
 	size_t regionCount, dsBlitFilter filter);
+bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	size_t syncCount, bool bufferReadback);

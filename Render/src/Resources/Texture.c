@@ -487,7 +487,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Textures cannot be copied between each other on the current device.");
+			"Textures cannot be copied between each other on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -623,7 +623,7 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Textures cannot be blit between each other on the current device.");
+			"Textures cannot be blit between each other on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -640,6 +640,13 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data to a texture without the copy to usage flag set.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (srcTexture->samples > 1 || dstTexture->samples > 1)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped textures.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -747,6 +754,41 @@ bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	bool success = resourceManager->blitTextureFunc(resourceManager, commandBuffer, srcTexture,
 		dstTexture, regions, regionCount, filter);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsTexture_generateMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !texture || !texture->resourceManager ||
+		!texture->resourceManager->generateTextureMipmapsFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = texture->resourceManager;
+	if (!dsGfxFormat_generateMipmapsSupported(resourceManager, texture->format))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture cannot have mipmaps generated on the current target.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (texture->samples > 1)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot generate mipmaps for multisampled textures.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (texture->mipLevels == 1)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	bool success = resourceManager->generateTextureMipmapsFunc(resourceManager, commandBuffer,
+		texture);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

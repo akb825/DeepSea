@@ -260,6 +260,7 @@ typedef bool (*GLCopyTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture*
 typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
 	size_t regionCount, dsBlitFilter filter);
+typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	size_t syncCount, bool bufferReadback);
@@ -323,6 +324,7 @@ typedef struct CommandBufferFunctionTable
 	GLCopyTextureDataFunction copyTextureDataFunc;
 	GLCopyTextureFunction copyTextureFunc;
 	GLBlitTextureFunction blitTextureFunc;
+	GLGenerateTextureMipmaps generateTextureMipmapsFunc;
 
 	GLSetFenceSyncsFunction setFenceSyncsFunc;
 

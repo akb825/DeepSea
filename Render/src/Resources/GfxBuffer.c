@@ -88,14 +88,14 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size
 	if (support == dsGfxBufferMapSupport_None)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer mapping not supported on the current device.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer mapping not supported on the current target.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 	else if ((flags & dsGfxBufferMap_Persistent) && support != dsGfxBufferMapSupport_Persistent)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current device.");
+			"Persistent buffer mapping not supported on the current target.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -206,7 +206,7 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current device.");
+			"Persistent buffer mapping not supported on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -241,7 +241,7 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Persistent buffer mapping not supported on the current device.");
+			"Persistent buffer mapping not supported on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -312,7 +312,7 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Buffers cannot be copied between each other on the current device.");
+			"Buffers cannot be copied between each other on the current target.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

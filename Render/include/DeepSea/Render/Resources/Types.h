@@ -928,8 +928,6 @@ typedef struct dsFramebufferSurface
 	 *
 	 * This is used when a single layer is used with the framebuffer. If multiple layers are used,
 	 * all faces will be used.
-	 *
-	 * @remark This will be ignored when used with a cube map array. Use layer instead.
 	 */
 	dsCubeFace cubeFace;
 
@@ -1328,7 +1326,7 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
 /**
  * @brief Function for blitting from one texture to another, scaling when necessary.
  * @param resourceManager The resource manager the textures were created with.
- * @param commandBuffer The command buffer to process the copy on.
+ * @param commandBuffer The command buffer to process the blit on.
  * @param srcTexture The texture to blit from.
  * @param dstTexture The texture to blit to.
  * @param regions The regions to blit.
@@ -1339,6 +1337,16 @@ typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
 	const dsTextureBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+
+/**
+ * @brief Function for generating mipmaps for textures.
+ * @param resourceManager The resource manager the texture was created with.
+ * @param commandBuffer The command buffer to process the generate mipmaps on.
+ * @param texture The texture to generate mipmaps for.
+ * @return False if the mipmaps couldn't be generated.
+ */
+typedef bool (*dsGenerateTextureMipmapsFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 /**
  * @brief Function for getting texture data.
@@ -1830,6 +1838,11 @@ struct dsResourceManager
 	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
 
 	/**
+	 * @brief Texture mipmap generation validity check function.
+	 */
+	dsFormatSupportedFunction generateMipmapFormatSupportedFunc;
+
+	/**
 	 * @brief Texture copy validity check function.
 	 */
 	dsCopySupportedFunction textureCopyFormatsSupportedFunc;
@@ -1928,6 +1941,11 @@ struct dsResourceManager
 	 * @brief Texture blitting function.
 	 */
 	dsBlitTextureFunction blitTextureFunc;
+
+	/**
+	 * @brief Texture mipmap generation function.
+	 */
+	dsGenerateTextureMipmapsFunction generateTextureMipmapsFunc;
 
 	/**
 	 * @brief Texture data getting function.
