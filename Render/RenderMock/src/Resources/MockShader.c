@@ -24,7 +24,7 @@
 
 dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsPrimitiveType primitiveType, uint32_t samples)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -40,7 +40,8 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
 
-	dsShader* shader = dsAllocator_alloc((dsAllocator*)&bufferAllocator, sizeof(dsShader));
+	dsShader* shader = (dsShader*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
+		sizeof(dsShader));
 	DS_ASSERT(shader);
 
 	shader->resourceManager = resourceManager;
@@ -53,6 +54,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_VERIFY(mslModule_pipeline(shader->pipeline, module->module, shaderIndex));
 	shader->materialDesc = materialDesc;
 	shader->primitiveType = primitiveType;
+	shader->samples = samples;
 
 	return shader;
 }

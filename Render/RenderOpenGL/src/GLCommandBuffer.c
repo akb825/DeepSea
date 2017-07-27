@@ -29,6 +29,33 @@ static bool insideRenderPass(const dsCommandBuffer* commandBuffer)
 	return glCommandBuffer->subpassOnly || glCommandBuffer->boundRenderPass;
 }
 
+static uint32_t getSubpassSamples(const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		if (subpass->colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
+			continue;
+
+		const dsAttachmentInfo* attachment = renderPass->attachments +
+			subpass->colorAttachments[i].attachmentIndex;
+		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			return renderPass->renderer->surfaceSamples;
+		return attachment->samples;
+	}
+
+	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	{
+		const dsAttachmentInfo* attachment = renderPass->attachments +
+			subpass->depthStencilAttachment;
+		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			return renderPass->renderer->surfaceSamples;
+		return attachment->samples;
+	}
+
+	return 0;
+}
+
 void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly)
 {
 	DS_ASSERT(commandBuffer);
@@ -39,6 +66,7 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOn
 	glCommandBuffer->commitCountSize = 0;
 	glCommandBuffer->subpassOnly = subpassOnly;
 	glCommandBuffer->subpassIndex = 0;
+	glCommandBuffer->subpassSamples = 0;
 	glCommandBuffer->boundRenderPass = NULL;
 	glCommandBuffer->boundShader = NULL;
 	glCommandBuffer->boundSurface = NULL;
@@ -327,6 +355,17 @@ bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader
 		return false;
 	}
 
+	uint32_t shaderSamples = shader->samples;
+	if (shader->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		shaderSamples = commandBuffer->renderer->surfaceSamples;
+	if (glCommandBuffer->subpassSamples && glCommandBuffer->subpassSamples != shaderSamples)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Shader anti-alias samples don't match the "
+			"attachments for the current render subpass.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->bindShaderFunc(commandBuffer, shader, renderStates))
 		return false;
@@ -600,6 +639,8 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 
 	glCommandBuffer->boundRenderPass = renderPass;
 	glCommandBuffer->subpassIndex = 0;
+	glCommandBuffer->subpassSamples = getSubpassSamples(glCommandBuffer->boundRenderPass,
+		glCommandBuffer->subpassIndex);
 	return true;
 }
 
@@ -638,6 +679,8 @@ bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 	}
 
 	++glCommandBuffer->subpassIndex;
+	glCommandBuffer->subpassSamples = getSubpassSamples(glCommandBuffer->boundRenderPass,
+		glCommandBuffer->subpassIndex);
 	return true;
 }
 

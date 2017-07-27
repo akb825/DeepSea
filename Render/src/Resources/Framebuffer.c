@@ -44,11 +44,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
-	if (surfaceCount == 0)
-		width = height = layers = 0;
-	else
-		layers = dsMax(1U, layers);
-
+	layers = dsMax(1U, layers);
 	if (layers > resourceManager->maxFramebufferLayers)
 	{
 		errno = EINVAL;

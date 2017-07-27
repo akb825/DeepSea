@@ -46,11 +46,14 @@ extern "C"
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
  * @param primitiveType The type of primitive the shader will be drawn with.
+ * @param samples The number of samples to use for multisampling. This may be set to
+ *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. Unlike offscreens and
+ *     renderbuffers, the shader need not be re-created when the renderer samplers are changed.
  * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, const char* name,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType, uint32_t samples);
 
 /**
  * @brief Creates a shader by index.
@@ -64,12 +67,14 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
  * @param primitiveType The type of primitive the shader will be drawn with.
+ * @param samples The number of samples to use for multisampling. This may be set to
+ *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. Unlike offscreens and
+ *     renderbuffers, the shader need not be re-created when the renderer samplers are changed.
  * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, uint32_t index,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
-
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType, uint32_t samples);
 
 /**
  * @brief Binds a shader to be drawn to.

@@ -140,6 +140,7 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	memset(framebuffer->curColorAttachments, 0, sizeof(framebuffer->curColorAttachmentCount));
 	framebuffer->curColorAttachmentCount = 0;
 	framebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
+	framebuffer->curDefaultSamples = 0;
 	framebuffer->framebufferError = false;
 	framebuffer->defaultFramebuffer = true;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
@@ -220,7 +221,20 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 				sizeof(glFramebuffer->curColorAttachmentCount));
 			glFramebuffer->curColorAttachmentCount = 0;
 			glFramebuffer->curDepthAttachment = DS_NO_ATTACHMENT;
+			glFramebuffer->curDefaultSamples = 0;
 			glFramebuffer->framebufferError = false;
+
+			if (!renderer->resourceManager->requiresAnySurface)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, glFramebuffer->framebufferId);
+				glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH,
+					framebuffer->width);
+				glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH,
+					framebuffer->height);
+				glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_LAYERS,
+					framebuffer->layers);
+				dsGLRenderer_restoreFramebuffer(renderer);
+			}
 		}
 	}
 
@@ -325,6 +339,26 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	}
 
 	return surfaceType;
+}
+
+void dsGLFramebuffer_setDefaultSamples(const dsFramebuffer* framebuffer, uint32_t samples)
+{
+	dsRenderer* renderer = framebuffer->resourceManager->renderer;
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	if (glRenderer->curSurfaceType != GLSurfaceType_Framebuffer ||
+		!framebuffer->resourceManager->requiresAnySurface)
+	{
+		return;
+	}
+
+	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->surfaceSamples;
+	dsGLFramebuffer* glFramebuffer = (dsGLFramebuffer*)framebuffer;
+	if (glFramebuffer->curDefaultSamples != samples)
+	{
+		glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, samples);
+		glFramebuffer->curDefaultSamples = samples;
+	}
 }
 
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer)

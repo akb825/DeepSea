@@ -63,7 +63,7 @@ static bool hasMultipleSurfaceTypes(SurfaceType surfaceType)
 	count += (surfaceType & SurfaceType_Left) != 0;
 	count += (surfaceType & SurfaceType_Right) != 0;
 	count += (surfaceType & SurfaceType_Other) != 0;
-	return count > 0;
+	return count > 1;
 }
 
 static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSurface* surface)
@@ -129,11 +129,20 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 		if (!dsGfxFormat_offscreenSupported(renderer->resourceManager, attachments[i].format))
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Input attachment format cannot be rendered to.");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attachment format cannot be rendered to.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		if (attachments[i].samples == 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Attachment samples must be set to a value greater than 0.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}
 
+	dsResourceManager* resourceManager = renderer->resourceManager;
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		if (!subpasses[i].inputAttachments && subpasses[i].inputAttachmentCount > 0)
@@ -160,27 +169,6 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (renderer->resourceManager->requiresColorBuffer)
-		{
-			bool allColorAttachmentsSet = subpasses[i].colorAttachmentCount > 0;
-			for (uint32_t j = 0; j < subpasses[j].colorAttachmentCount; ++j)
-			{
-				if (subpasses[i].colorAttachments[j].attachmentIndex == DS_NO_ATTACHMENT)
-				{
-					allColorAttachmentsSet = false;
-					break;
-				}
-			}
-
-			if (!allColorAttachmentsSet)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target requires at color attachments to "
-					"be set for each render subplass.");
-				DS_PROFILE_FUNC_RETURN(NULL);
-			}
-		}
-
 		if (subpasses[i].colorAttachmentCount > renderer->maxColorAttachments)
 		{
 			errno = EPERM;
@@ -189,12 +177,15 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
+		bool anyColorAttachmentSet = false;
+		uint32_t samples = 0;
 		for (uint32_t j = 0; j < subpasses[i].colorAttachmentCount; ++j)
 		{
 			uint32_t attachment = subpasses[i].colorAttachments[j].attachmentIndex;
 			if (attachment == DS_NO_ATTACHMENT)
 				continue;
 
+			anyColorAttachmentSet = true;
 			if (attachment >= attachmentCount)
 			{
 				errno = EINDEX;
@@ -209,6 +200,24 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 					"Cannot use a depth-stencil surface as a color attachment.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
+
+			if (samples == 0)
+				samples = attachments[attachment].samples;
+			else if (samples != attachments[attachment].samples)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
+					"same number of anti-alias samples.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+		}
+
+		if (resourceManager->requiresColorBuffer && !anyColorAttachmentSet)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Current target requires a color buffer to be set in a render subpass.");
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
 		if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
@@ -227,6 +236,23 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 					"Cannot use a color surface as a depth-stencil attachment.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
+
+			if (samples && samples != attachments[subpasses[i].depthStencilAttachment].samples)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
+					"same number of anti-alias samples.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+		}
+
+		if (resourceManager->requiresAnySurface && !anyColorAttachmentSet &&
+			subpasses[i].depthStencilAttachment == DS_NO_ATTACHMENT)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Current target requires at least one surface in a render subpass.");
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}
 
@@ -325,13 +351,11 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 			{
 				SurfaceType surfaceTypes = SurfaceType_Unset;
-				bool hasAnyColorSurface = false;
 				for (uint32_t k = 0; k < subpass->colorAttachmentCount; ++k)
 				{
 					uint32_t attachment = subpass->colorAttachments[k].attachmentIndex;
 					if (attachment != DS_NO_ATTACHMENT)
 					{
-						hasAnyColorSurface = true;
 						surfaceTypes = (SurfaceType)(surfaceTypes |
 							getSurfaceType(framebuffer->surfaces[attachment].surfaceType));
 					}
@@ -341,15 +365,6 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 				{
 					surfaceTypes = (SurfaceType)(surfaceTypes | getSurfaceType(
 						framebuffer->surfaces[subpass->depthStencilAttachment].surfaceType));
-				}
-
-				if (renderer->resourceManager->requiresAnySurface &&
-					!hasAnyColorSurface && subpass->depthStencilAttachment == DS_NO_ATTACHMENT )
-				{
-					errno = EPERM;
-					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-						"Current target requires at least one surface in a subpass.");
-					DS_PROFILE_FUNC_RETURN(false);
 				}
 
 				if (hasMultipleSurfaceTypes(surfaceTypes))

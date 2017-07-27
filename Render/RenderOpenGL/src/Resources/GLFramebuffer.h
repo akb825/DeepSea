@@ -28,5 +28,6 @@ GLSurfaceType dsGLFramebuffer_getSurfaceType(dsFramebufferSurfaceType framebuffe
 GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	const dsColorAttachmentRef* colorAttachments, uint32_t colorAttachmentCount,
 	uint32_t depthStencilAttachment);
+void dsGLFramebuffer_setDefaultSamples(const dsFramebuffer* framebuffer, uint32_t samples);
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer);
 void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer);

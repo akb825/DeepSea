@@ -719,7 +719,10 @@ bool dsGLMainCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer
 		DS_ASSERT(ANYGL_SUPPORTED(glGenerateMipmap));
 		GLenum target = dsGLTexture_target(texture);
 		dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
+		// Some drivers may need the texture to be enabled.
+		glEnable(target);
 		glGenerateMipmap(target);
+		glDisable(target);
 		dsGLRenderer_endTextureOp(commandBuffer->renderer);
 	}
 
@@ -771,6 +774,8 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 	dsGLRenderStates_updateGLState(commandBuffer->renderer, &glCommandBuffer->currentState,
 		&glShader->renderState, renderStates);
 	updateSamplers(commandBuffer->renderer, glShader);
+	DS_ASSERT(glCommandBuffer->curFramebuffer);
+	dsGLFramebuffer_setDefaultSamples(glCommandBuffer->curFramebuffer, shader->samples);
 	return true;
 }
 

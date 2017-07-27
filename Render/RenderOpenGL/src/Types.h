@@ -98,6 +98,7 @@ typedef struct dsGLFramebuffer
 	GLuint curColorAttachments[MSL_MAX_ATTACHMENTS];
 	GLuint curColorAttachmentCount;
 	GLuint curDepthAttachment;
+	uint32_t curDefaultSamples;
 	bool framebufferError;
 	bool defaultFramebuffer;
 } dsGLFramebuffer;
@@ -373,6 +374,7 @@ typedef struct dsGLCommandBuffer
 
 	bool subpassOnly;
 	uint32_t subpassIndex;
+	uint32_t subpassSamples;
 	const dsRenderPass* boundRenderPass;
 	const dsShader* boundShader;
 	void* boundSurface;

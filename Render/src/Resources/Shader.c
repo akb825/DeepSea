@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
@@ -546,7 +547,7 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsPrimitiveType primitiveType, uint32_t samples)
 {
 	if (!resourceManager || !resourceManager->createShaderFunc ||
 		!resourceManager->destroyShaderFunc || !shaderModule || !name || !materialDesc)
@@ -570,12 +571,12 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc,
-		primitiveType);
+		primitiveType, samples);
 }
 
 dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsPrimitiveType primitiveType, uint32_t samples)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -637,8 +638,9 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	samples = dsMax(1U, samples);
 	dsShader* shader = resourceManager->createShaderFunc(resourceManager, allocator, shaderModule,
-		index, materialDesc, primitiveType);
+		index, materialDesc, primitiveType, samples);
 	if (shader)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, 1);
 	DS_PROFILE_FUNC_RETURN(shader);
