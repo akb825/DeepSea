@@ -31,11 +31,11 @@ TEST_F(RenderPassTest, Create)
 	dsAttachmentInfo attachments[] =
 	{
 		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceDepthStencilFormat, renderer->surfaceSamples},
+			renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{(dsAttachmentUsage)(dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter),
-			renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
+			renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
 
@@ -106,6 +106,11 @@ TEST_F(RenderPassTest, Create)
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
 	dependencies[0].dstSubpass = 2;
+
+	attachments[0].samples = 2;
+	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
+		subpasses, subpassCount, dependencies, dependencyCount));
+	attachments[0].samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
 
 	dsRenderPass* renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount);
