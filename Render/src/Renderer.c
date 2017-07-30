@@ -21,7 +21,9 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Geometry/Frustum3.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <string.h>
@@ -29,6 +31,61 @@
 static bool isDepthStencil(dsGfxFormat format)
 {
 	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
+}
+
+bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float left, float right,
+	float bottom, float top, float near, float far)
+{
+	if (!result || !renderer ||  left == right || bottom == top || near == far)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, renderer->clipHalfDepth,
+		renderer->clipInvertY);
+	return true;
+}
+
+bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer, float left,
+	float right, float bottom, float top, float near, float far)
+{
+	if (!result || !renderer ||  left == right || bottom == top || near == far)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsMatrix44f_makeFrustum(result, left, right, bottom, top, near, far, renderer->clipHalfDepth,
+		renderer->clipInvertY);
+	return true;
+}
+
+bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer, float fovy,
+	float aspect, float near, float far)
+{
+	if (!result || !renderer ||  fovy == 0 || aspect == 0|| near == far)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, renderer->clipHalfDepth,
+		renderer->clipInvertY);
+	return true;
+}
+
+bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* renderer,
+	const dsMatrix44f* matrix)
+{
+	if (!result || !renderer || !matrix)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsFrustum3_fromMatrix(*result, *matrix, renderer->clipHalfDepth, renderer->clipInvertY);
+	return true;
 }
 
 bool dsRenderer_beginFrame(dsRenderer* renderer)

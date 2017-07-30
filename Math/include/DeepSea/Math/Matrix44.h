@@ -448,14 +448,15 @@ DS_MATH_EXPORT void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double 
  * @param near The near plane.
  * @param far The far plane.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
- * [-1, 1]. An example where this would be true is for Direct3D.
+ *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
+ * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
  */
 DS_MATH_EXPORT void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right,
-	float bottom, float top, float near, float far, bool halfDepth);
+	float bottom, float top, float near, float far, bool halfDepth, bool invertY);
 
 /** @copydoc dsMatrix44f_makeOrtho() */
 DS_MATH_EXPORT void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right,
-	double bottom, double top, double near, double far, bool halfDepth);
+	double bottom, double top, double near, double far, bool halfDepth, bool invertY);
 
 /**
  * @brief Makes a projection matrix for a frustum.
@@ -467,14 +468,15 @@ DS_MATH_EXPORT void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, doub
  * @param near The near plane.
  * @param far The far plane.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
- * [-1, 1]. An example where this would be true is for Direct3D.
+ *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
+ * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
  */
 DS_MATH_EXPORT void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right,
-	float bottom, float top, float near, float far, bool halfDepth);
+	float bottom, float top, float near, float far, bool halfDepth, bool invertY);
 
 /** @copydoc dsMatrix44f_makeFrustum() */
 DS_MATH_EXPORT void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right,
-	double bottom, double top, double near, double far, bool halfDepth);
+	double bottom, double top, double near, double far, bool halfDepth, bool invertY);
 
 /**
  * @brief Makes a perspective projection matrix.
@@ -484,14 +486,15 @@ DS_MATH_EXPORT void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, do
  * @param near The near plane.
  * @param far The far plane.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
- * [-1, 1]. An example where this would be true is for Direct3D.
+ *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
+ * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
  */
 DS_MATH_EXPORT void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect,
-	float near, float far, bool halfDepth);
+	float near, float far, bool halfDepth, bool invertY);
 
 /** @copydoc dsMatrix44f_makePerspective() */
 DS_MATH_EXPORT void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect,
-	double near, double far, bool halfDepth);
+	double near, double far, bool halfDepth, bool invertY);
 
 /** @copydoc dsMatrix44_identity() */
 DS_MATH_EXPORT inline void dsMatrix44f_identity(dsMatrix44f* result)

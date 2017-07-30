@@ -143,27 +143,27 @@ inline void dsMatrix44_inverseTranspose(dsMatrix44d* result, const dsMatrix44d* 
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right,
-	float bottom, float top, float near, float far, bool halfDepth)
+	float bottom, float top, float near, float far, bool halfDepth, bool invertY)
 {
-	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, halfDepth);
+	dsMatrix44f_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
 }
 
 inline void dsMatrix44_makeOrtho(dsMatrix44d* result, double left, double right,
-	double bottom, double top, double near, double far, bool halfDepth)
+	double bottom, double top, double near, double far, bool halfDepth, bool invertY)
 {
-	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, halfDepth);
+	dsMatrix44d_makeOrtho(result, left, right, bottom, top, near, far, halfDepth, invertY);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44f* result, float fovy, float aspect,
-	float near, float far, bool halfDepth)
+	float near, float far, bool halfDepth, bool invertY)
 {
-	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, halfDepth);
+	dsMatrix44f_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
 }
 
 inline void dsMatrix44_makePerspective(dsMatrix44d* result, double fovy, double aspect,
-	double near, double far, bool halfDepth)
+	double near, double far, bool halfDepth, bool invertY)
 {
-	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, halfDepth);
+	dsMatrix44d_makePerspective(result, fovy, aspect, near, far, halfDepth, invertY);
 }
 
 inline void dsMatrix33_makeRotate3D(dsMatrix33f* result, float x, float y, float z)
@@ -217,10 +217,10 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, true);
+	dsFrustum3_fromMatrix(frustum, matrix, true, false);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -264,8 +264,98 @@ TYPED_TEST(Frustum3Test, FromOrtho)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
+		frustum.planes + dsFrustumPlanes_Left);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.z, epsilon);
+	EXPECT_NEAR(-2, frustum.planes[dsFrustumPlanes_Left].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Right,
+		frustum.planes + dsFrustumPlanes_Right);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Right].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.z, epsilon);
+	EXPECT_NEAR(-3, frustum.planes[dsFrustumPlanes_Right].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Bottom,
+		frustum.planes + dsFrustumPlanes_Bottom);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.x, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Bottom].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.z, epsilon);
+	EXPECT_NEAR(-4, frustum.planes[dsFrustumPlanes_Bottom].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Top,
+		frustum.planes + dsFrustumPlanes_Top);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.x, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Top].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.z, epsilon);
+	EXPECT_NEAR(-5, frustum.planes[dsFrustumPlanes_Top].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Near,
+		frustum.planes + dsFrustumPlanes_Near);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.y, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Near].n.z, epsilon);
+	EXPECT_NEAR(-6, frustum.planes[dsFrustumPlanes_Near].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Far,
+		frustum.planes + dsFrustumPlanes_Far);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.y, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
+	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
+
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, true, true);
+	dsFrustum3_fromMatrix(frustum, matrix, true, true);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
+		frustum.planes + dsFrustumPlanes_Left);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.z, epsilon);
+	EXPECT_NEAR(-2, frustum.planes[dsFrustumPlanes_Left].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Right,
+		frustum.planes + dsFrustumPlanes_Right);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Right].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.z, epsilon);
+	EXPECT_NEAR(-3, frustum.planes[dsFrustumPlanes_Right].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Bottom,
+		frustum.planes + dsFrustumPlanes_Bottom);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.x, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Bottom].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.z, epsilon);
+	EXPECT_NEAR(-4, frustum.planes[dsFrustumPlanes_Bottom].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Top,
+		frustum.planes + dsFrustumPlanes_Top);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.x, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Top].n.y, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.z, epsilon);
+	EXPECT_NEAR(-5, frustum.planes[dsFrustumPlanes_Top].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Near,
+		frustum.planes + dsFrustumPlanes_Near);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.y, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Near].n.z, epsilon);
+	EXPECT_NEAR(-6, frustum.planes[dsFrustumPlanes_Near].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Far,
+		frustum.planes + dsFrustumPlanes_Far);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.y, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
+	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
+
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, true);
+	dsFrustum3_fromMatrix(frustum, matrix, false, true);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -320,10 +410,10 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	TypeParam aspect = (TypeParam)1.5;
 	TypeParam halfFovX = std::atan(std::tan(fovY/2)*aspect);
 	Matrix44Type matrix;
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, true);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, true, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, true);
+	dsFrustum3_fromMatrix(frustum, matrix, true, false);
 
 	TypeParam horizNormX = std::cos(halfFovX);
 	TypeParam horizNormY = std::sin(halfFovX);
@@ -372,8 +462,98 @@ TYPED_TEST(Frustum3Test, FromPerspective)
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
 	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
 
-	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, false);
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, false, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
+		frustum.planes + dsFrustumPlanes_Left);
+	EXPECT_NEAR(horizNormX, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.y, epsilon);
+	EXPECT_NEAR(-horizNormY, frustum.planes[dsFrustumPlanes_Left].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Right,
+		frustum.planes + dsFrustumPlanes_Right);
+	EXPECT_NEAR(-horizNormX, frustum.planes[dsFrustumPlanes_Right].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.y, epsilon);
+	EXPECT_NEAR(-horizNormY, frustum.planes[dsFrustumPlanes_Right].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Bottom,
+		frustum.planes + dsFrustumPlanes_Bottom);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.x, epsilon);
+	EXPECT_NEAR(vertNormX, frustum.planes[dsFrustumPlanes_Bottom].n.y, epsilon);
+	EXPECT_NEAR(-vertNormY, frustum.planes[dsFrustumPlanes_Bottom].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Top,
+		frustum.planes + dsFrustumPlanes_Top);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.x, epsilon);
+	EXPECT_NEAR(-vertNormX, frustum.planes[dsFrustumPlanes_Top].n.y, epsilon);
+	EXPECT_NEAR(-vertNormY, frustum.planes[dsFrustumPlanes_Top].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Near,
+		frustum.planes + dsFrustumPlanes_Near);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.y, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Near].n.z, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Near].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Far,
+		frustum.planes + dsFrustumPlanes_Far);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.y, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
+	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
+
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, true, true);
+	dsFrustum3_fromMatrix(frustum, matrix, true, true);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
+		frustum.planes + dsFrustumPlanes_Left);
+	EXPECT_NEAR(horizNormX, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].n.y, epsilon);
+	EXPECT_NEAR(-horizNormY, frustum.planes[dsFrustumPlanes_Left].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Left].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Right,
+		frustum.planes + dsFrustumPlanes_Right);
+	EXPECT_NEAR(-horizNormX, frustum.planes[dsFrustumPlanes_Right].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].n.y, epsilon);
+	EXPECT_NEAR(-horizNormY, frustum.planes[dsFrustumPlanes_Right].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Right].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Bottom,
+		frustum.planes + dsFrustumPlanes_Bottom);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].n.x, epsilon);
+	EXPECT_NEAR(vertNormX, frustum.planes[dsFrustumPlanes_Bottom].n.y, epsilon);
+	EXPECT_NEAR(-vertNormY, frustum.planes[dsFrustumPlanes_Bottom].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Bottom].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Top,
+		frustum.planes + dsFrustumPlanes_Top);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].n.x, epsilon);
+	EXPECT_NEAR(-vertNormX, frustum.planes[dsFrustumPlanes_Top].n.y, epsilon);
+	EXPECT_NEAR(-vertNormY, frustum.planes[dsFrustumPlanes_Top].n.z, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Top].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Near,
+		frustum.planes + dsFrustumPlanes_Near);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Near].n.y, epsilon);
+	EXPECT_NEAR(-1, frustum.planes[dsFrustumPlanes_Near].n.z, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Near].d, epsilon);
+
+	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Far,
+		frustum.planes + dsFrustumPlanes_Far);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.x, epsilon);
+	EXPECT_NEAR(0, frustum.planes[dsFrustumPlanes_Far].n.y, epsilon);
+	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Far].n.z, epsilon);
+	EXPECT_NEAR(-7, frustum.planes[dsFrustumPlanes_Far].d, epsilon);
+
+	dsMatrix44_makePerspective(&matrix, fovY, aspect, 1, 7, false, true);
+	dsFrustum3_fromMatrix(frustum, matrix, false, true);
 
 	dsPlane3_normalize(frustum.planes + dsFrustumPlanes_Left,
 		frustum.planes + dsFrustumPlanes_Left);
@@ -425,10 +605,10 @@ TYPED_TEST(Frustum3Test, Normalize)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 	dsFrustum3_normalize(&frustum);
 
 	EXPECT_NEAR(1, frustum.planes[dsFrustumPlanes_Left].n.x, epsilon);
@@ -470,10 +650,10 @@ TYPED_TEST(Frustum3Test, Transform)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	Matrix44Type rotate, translate, transform;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
@@ -505,10 +685,10 @@ TYPED_TEST(Frustum3Test, TransformInverseTranspose)
 	TypeParam epsilon = Frustum3TypeSelector<TypeParam>::epsilon;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	Matrix44Type rotate, translate, transform, inverseTranspose;
 	dsMatrix44_makeRotate(&rotate, (TypeParam)dsDegreesToRadians(30),
@@ -541,10 +721,10 @@ TYPED_TEST(Frustum3Test, IntersectAlignedBox)
 	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	AlignedBox3Type box = {{{0, 1, 2}}, {{2, 3, 4}}};
 
@@ -628,10 +808,10 @@ TYPED_TEST(Frustum3Test, OrientedAlignedBox)
 	typedef typename Frustum3TypeSelector<TypeParam>::Frustum3Type Frustum3Type;
 
 	Matrix44Type matrix;
-	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false);
+	dsMatrix44_makeOrtho(&matrix, -2, 3, -4, 5, -6, 7, false, false);
 
 	Frustum3Type frustum;
-	dsFrustum3_fromMatrix(frustum, matrix, false);
+	dsFrustum3_fromMatrix(frustum, matrix, false, false);
 
 	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{1, (TypeParam)2.5, (TypeParam)3.5}}};
 	OrientedBox3Type box;

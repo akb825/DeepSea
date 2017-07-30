@@ -485,6 +485,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
+	baseRenderer->clipHalfDepth = false;
+	baseRenderer->clipInvertY = false;
 
 	baseRenderer->hasGeometryShaders = AnyGL_atLeastVersion(3, 2, false) ||
 		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_geometry_shader4 ||

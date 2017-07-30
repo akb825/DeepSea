@@ -672,6 +672,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 		}
 	}
 
+	shader->internalUniform = glGetUniformLocation(shader->programId, "_dsInternal");
 	glUseProgram(prevProgram);
 	return true;
 }

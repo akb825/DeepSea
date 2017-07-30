@@ -50,11 +50,13 @@ extern "C"
  * @param[out] result The resulting frustum.
  * @param matrix The projection matrix to extract the frustum planes from.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
- * [-1, 1]. An example where this would be true is for Direct3D.
+ *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
+ * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
  */
-#define dsFrustum3_fromMatrix(result, matrix, halfDepth) \
+#define dsFrustum3_fromMatrix(result, matrix, halfDepth, invertY) \
 	do \
 	{ \
+		int8_t _yMult = invertY ? -1 : 1; \
 		(result).planes[dsFrustumPlanes_Left].n.x = (matrix).values[0][3] + (matrix).values[0][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.y = (matrix).values[1][3] + (matrix).values[1][0]; \
 		(result).planes[dsFrustumPlanes_Left].n.z = (matrix).values[2][3] + (matrix).values[2][0]; \
@@ -69,21 +71,22 @@ extern "C"
 		(result).planes[dsFrustumPlanes_Right].d = (matrix).values[3][0] - (matrix).values[3][3]; \
 		\
 		(result).planes[dsFrustumPlanes_Bottom].n.x = (matrix).values[0][3] + \
-			(matrix).values[0][1]; \
+			(matrix).values[0][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Bottom].n.y = (matrix).values[1][3] + \
-			(matrix).values[1][1]; \
+			(matrix).values[1][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Bottom].n.z = (matrix).values[2][3] + \
-			(matrix).values[2][1]; \
+			(matrix).values[2][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Bottom].d = -(matrix).values[3][3] - \
-			(matrix).values[3][1]; \
+			(matrix).values[3][1]*_yMult; \
 		\
 		(result).planes[dsFrustumPlanes_Top].n.x = (matrix).values[0][3] - \
-			(matrix).values[0][1]; \
+			(matrix).values[0][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Top].n.y = (matrix).values[1][3] - \
-			(matrix).values[1][1]; \
+			(matrix).values[1][1]*_yMult; \
 		(result).planes[dsFrustumPlanes_Top].n.z = (matrix).values[2][3] - \
-			(matrix).values[2][1]; \
-		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][1] - (matrix).values[3][3]; \
+			(matrix).values[2][1]*_yMult; \
+		(result).planes[dsFrustumPlanes_Top].d = (matrix).values[3][1]*_yMult - \
+			(matrix).values[3][3]; \
 		\
 		if (halfDepth) \
 		{ \
@@ -179,20 +182,20 @@ DS_GEOMETRY_EXPORT dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFr
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3f_fromMatrix(dsFrustum3f* result,
-	const dsMatrix44f* matrix, bool halfDepth)
+	const dsMatrix44f* matrix, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-	dsFrustum3_fromMatrix(*result, *matrix, halfDepth);
+	dsFrustum3_fromMatrix(*result, *matrix, halfDepth, invertY);
 }
 
 /** @copydoc dsFrustum3_fromMatrix() */
 DS_GEOMETRY_EXPORT inline void dsFrustum3d_fromMatrix(dsFrustum3d* result,
-	const dsMatrix44d* matrix, bool halfDepth)
+	const dsMatrix44d* matrix, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(matrix);
-	dsFrustum3_fromMatrix(*result, *matrix, halfDepth);
+	dsFrustum3_fromMatrix(*result, *matrix, halfDepth, invertY);
 }
 
 #ifdef __cplusplus

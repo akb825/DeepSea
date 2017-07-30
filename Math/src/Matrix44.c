@@ -428,12 +428,14 @@ void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
 }
 
 void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
-	float top, float near, float far, bool halfDepth)
+	float top, float near, float far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
+
+	float yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -441,7 +443,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = 2/(top - bottom);
+	result->values[1][1] = 2/(top - bottom)*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 
@@ -454,7 +456,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 	result->values[2][3] = 0;
 
 	result->values[3][0] = (left + right)/(left - right);
-	result->values[3][1] = (bottom + top)/(bottom - top);
+	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;;
 	if (halfDepth)
 		result->values[3][2] = near/(near - far);
 	else
@@ -463,12 +465,14 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 }
 
 void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth)
+	double top, double near, double far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
+
+	double yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -476,7 +480,7 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = 2/(top - bottom);
+	result->values[1][1] = 2/(top - bottom)*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 
@@ -489,7 +493,7 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 	result->values[2][3] = 0;
 
 	result->values[3][0] = (left + right)/(left - right);
-	result->values[3][1] = (bottom + top)/(bottom - top);
+	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;
 	if (halfDepth)
 		result->values[3][2] = near/(near - far);
 	else
@@ -498,12 +502,14 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 }
 
 void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float bottom, float top,
-	float near, float far, bool halfDepth)
+	float near, float far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
+
+	float yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -511,12 +517,12 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = 2*near/(top - bottom);
+	result->values[1][1] = 2*near/(top - bottom)*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 
 	result->values[2][0] = (right + left)/(right - left);
-	result->values[2][1] = (top + bottom)/(top - bottom);
+	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
 	if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
@@ -533,12 +539,14 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 }
 
 void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, double bottom,
-	double top, double near, double far, bool halfDepth)
+	double top, double near, double far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(left != right);
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
+
+	double yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -546,12 +554,12 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = 2*near/(top - bottom);
+	result->values[1][1] = 2*near/(top - bottom)*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 
 	result->values[2][0] = (right + left)/(right - left);
-	result->values[2][1] = (top + bottom)/(top - bottom);
+	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
 	if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
@@ -568,14 +576,16 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 }
 
 void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, float near,
-	float far, bool halfDepth)
+	float far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
-	DS_ASSERT(fovy != 0);
-	DS_ASSERT(aspect != 0);
+	DS_ASSERT(fovy > 0);
+	DS_ASSERT(aspect > 0);
+	DS_ASSERT(near != far);
 
 	float height = 1/tanf(fovy/2);
 	float width = height/aspect;
+	float yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
@@ -583,7 +593,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = height;
+	result->values[1][1] = height*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 
@@ -605,14 +615,16 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 }
 
 void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect, double near,
-	double far, bool halfDepth)
+	double far, bool halfDepth, bool invertY)
 {
 	DS_ASSERT(result);
 	DS_ASSERT(fovy != 0);
 	DS_ASSERT(aspect != 0);
+	DS_ASSERT(near != far);
 
 	double height = 1/tan(fovy/2);
 	double width = height/aspect;
+	double yMult = invertY ? -1 : 1;
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
@@ -620,7 +632,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	result->values[0][3] = 0;
 
 	result->values[1][0] = 0;
-	result->values[1][1] = height;
+	result->values[1][1] = height*yMult;
 	result->values[1][2] = 0;
 	result->values[1][3] = 0;
 

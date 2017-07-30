@@ -258,6 +258,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->doubleBuffer = true;
 	renderer->stereoscopic = false;
 	renderer->vsync = true;
+	renderer->clipHalfDepth = true;
+	renderer->clipInvertY = false;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
 	renderer->hasComputeShaders = true;

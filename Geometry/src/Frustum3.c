@@ -180,5 +180,7 @@ dsIntersectResult dsFrustum3d_intersectOrientedBox(const dsFrustum3d* frustum,
 	return intersects ? dsIntersectResult_Intersects : dsIntersectResult_Inside;
 }
 
-void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth);
-void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth);
+void dsFrustum3f_fromMatrix(dsFrustum3f* result, const dsMatrix44f* matrix, bool halfDepth,
+	bool invertY);
+void dsFrustum3d_fromMatrix(dsFrustum3d* result, const dsMatrix44d* matrix, bool halfDepth,
+	bool invertY);

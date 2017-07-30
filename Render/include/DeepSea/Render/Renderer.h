@@ -39,6 +39,83 @@ extern "C"
  * @see dsRenderer
  */
 
+
+/**
+ * @brief Makes an orthographic projection matrix.
+ *
+ * The matrix is generated assuming looking down the -Z axis. As a result, the near and far plane
+ * distances are negated compared to world space.
+ *
+ * The coordinate space of the matrix will depend on the clipHalfDepth and clipInvertY parameters
+ * stored in renderer.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] result The matrix for the result.
+ * @param renderer The renderer to create the matrix for.
+ * @param left The left plane.
+ * @param right The right plane.
+ * @param bottom The bottom plane.
+ * @param top The top plane.
+ * @param near The near plane.
+ * @param far The far plane.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer,
+	float left, float right, float bottom, float top, float near, float far);
+
+/**
+ * @brief Makes a projection matrix for a frustum.
+ *
+ * The coordinate space of the matrix will depend on the clipHalfDepth and clipInvertY parameters
+ * stored in renderer.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] result The matrix for the result.
+ * @param renderer The renderer to create the matrix for.
+ * @param left The left plane.
+ * @param right The right plane.
+ * @param bottom The bottom plane.
+ * @param top The top plane.
+ * @param near The near plane.
+ * @param far The far plane.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer,
+	float left, float right, float bottom, float top, float near, float far);
+
+/**
+ * @brief Makes a perspective projection matrix.
+ *
+ * The coordinate space of the matrix will depend on the clipHalfDepth and clipInvertY parameters
+ * stored in renderer.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] result The matrix for the result.
+ * @param renderer The renderer to create the matrix for.
+ * @param fovy The field of view in the Y direction in radians.
+ * @param aspect The aspect ratio as X/Y.
+ * @param near The near plane.
+ * @param far The far plane.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer,
+	float fovy, float aspect, float near, float far);
+
+/**
+ * @brief Makes a frustum from a projection matrix.
+ *
+ * This will take the coordinate space of projection matricies for the renderer into account.
+ *
+ * @remark errno will be set on failure.
+ * @remark The planes aren't guaranteed to be normalized.
+ * @param renderer The renderer to create the frustum for.
+ * @param[out] result The resulting frustum.
+ * @param matrix The projection matrix to extract the frustum planes from.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* renderer,
+	const dsMatrix44f* matrix);
+
 /**
  * @brief Begins a frame.
  *

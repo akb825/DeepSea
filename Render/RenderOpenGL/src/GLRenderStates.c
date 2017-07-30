@@ -17,6 +17,7 @@
 #include "GLRenderStates.h"
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
+#include "Types.h"
 #include <DeepSea/Core/Assert.h>
 
 static const GLenum polygonModeMap[] =
@@ -187,7 +188,8 @@ static void resetBlendState(mslBlendState* state)
 }
 
 static void setRasterizationStates(mslRasterizationState* curState,
-	const mslRasterizationState* newState, const dsDynamicRenderStates* dynamicStates)
+	const mslRasterizationState* newState, const dsDynamicRenderStates* dynamicStates,
+	bool offscreen)
 {
 	if (curState->depthClampEnable != newState->depthClampEnable &&
 		(AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp))
@@ -206,9 +208,19 @@ static void setRasterizationStates(mslRasterizationState* curState,
 		glPolygonMode(GL_FRONT_AND_BACK, polygonModeMap[curState->polygonMode]);
 	}
 
-	if (curState->cullMode != newState->cullMode)
+	// Need to reverse cull mode for offscreens since Y is inverted.
+	mslCullMode adjustedCull = newState->cullMode;
+	if (offscreen)
 	{
-		curState->cullMode = newState->cullMode;
+		if (adjustedCull == mslCullMode_Front)
+			adjustedCull = mslCullMode_Back;
+		else if (adjustedCull == mslCullMode_Back)
+			adjustedCull = mslCullMode_Front;
+	}
+
+	if (curState->cullMode != adjustedCull)
+	{
+		curState->cullMode = adjustedCull;
 		if (curState->cullMode == mslCullMode_None)
 			glDisable(GL_CULL_FACE);
 		else
@@ -781,11 +793,12 @@ void dsGLRenderStates_initialize(mslRenderState* state)
 	state->patchControlPoints = MSL_UNKNOWN;
 }
 
-void updateGlState(const dsRenderer* renderer, mslRenderState* curState,
+void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* curState,
 	const mslRenderState* newState, const dsDynamicRenderStates* dynamicStates)
 {
+	const dsGLRenderer* glRenderer = (const dsGLRenderer*)renderer;
 	setRasterizationStates(&curState->rasterizationState, &newState->rasterizationState,
-		dynamicStates);
+		dynamicStates, glRenderer->curSurfaceType == GLSurfaceType_Framebuffer);
 	setMultisampleStates(&curState->multisampleState, &newState->multisampleState);
 	setDepthStencilStates(&curState->depthStencilState, &newState->depthStencilState,
 		dynamicStates);

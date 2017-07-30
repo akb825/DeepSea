@@ -161,6 +161,7 @@ typedef struct dsGLShader
 	mslPipeline pipeline;
 	mslRenderState renderState;
 	GLuint programId;
+	GLint internalUniform;
 	GLuint* samplerIds;
 	mslSamplerState* samplerStates;
 	dsGLUniformInfo* uniforms;

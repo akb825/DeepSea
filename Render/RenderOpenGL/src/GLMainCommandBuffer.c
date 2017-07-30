@@ -776,6 +776,19 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 	updateSamplers(commandBuffer->renderer, glShader);
 	DS_ASSERT(glCommandBuffer->curFramebuffer);
 	dsGLFramebuffer_setDefaultSamples(glCommandBuffer->curFramebuffer, shader->samples);
+
+	// Set the internal information on the shader.
+	if (glShader->internalUniform >= 0)
+	{
+		DS_ASSERT(glCommandBuffer->curFramebuffer);
+		dsGLRenderer* renderer = (dsGLRenderer*)commandBuffer->renderer;
+		bool offscreen = renderer->curSurfaceType == GLSurfaceType_Framebuffer;
+		float invertY = offscreen ? -1 : 1;
+		float height = (float)glCommandBuffer->curFramebuffer->height;
+		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
+		float invHeight = 1.0f/height;
+		glUniform4f(glShader->internalUniform, invertY, height, invWidth, invHeight);
+	}
 	return true;
 }
 
