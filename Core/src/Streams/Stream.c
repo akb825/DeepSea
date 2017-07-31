@@ -20,8 +20,8 @@ size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
 size_t dsStream_skip(dsStream* stream, uint64_t size)
 {
-	const uint32_t smallSize = 256;
-	if (stream->seekFunc && size > smallSize)
+	uint8_t buffer[1024];
+	if (stream->seekFunc && size > sizeof(buffer))
 	{
 		if (!dsStream_seek(stream, size, dsStreamSeekWay_Current))
 			return 0;
@@ -29,7 +29,6 @@ size_t dsStream_skip(dsStream* stream, uint64_t size)
 	else
 	{
 		uint64_t totalSize = 0;
-		uint8_t buffer[1024];
 		while (totalSize < size)
 		{
 			uint64_t readSize = size - totalSize;
