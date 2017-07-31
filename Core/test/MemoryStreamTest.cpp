@@ -130,6 +130,14 @@ TEST(MemoryStream, ReadWriteStreamFunctions)
 		(uint8_t*)&dummyData + sizeof(dummyData)/2, sizeof(dummyData)));
 	EXPECT_EQ(2, dummyData);
 
+	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ(2U, dsStream_skip((dsStream*)&stream, 2));
+	EXPECT_EQ(2U, dsStream_tell((dsStream*)&stream));
+	EXPECT_EQ(6U, dsStream_skip((dsStream*)&stream, 10));
+
+	EXPECT_TRUE(dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_Beginning));
+	EXPECT_EQ(0U, dsStream_skip((dsStream*)&stream, 1000000));
+
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 

@@ -17,6 +17,35 @@
 #include <DeepSea/Core/Streams/Stream.h>
 
 size_t dsStream_read(dsStream* stream, void* data, size_t size);
+
+size_t dsStream_skip(dsStream* stream, uint64_t size)
+{
+	const uint32_t smallSize = 256;
+	if (stream->seekFunc && size > smallSize)
+	{
+		if (!dsStream_seek(stream, size, dsStreamSeekWay_Current))
+			return 0;
+	}
+	else
+	{
+		uint64_t totalSize = 0;
+		uint8_t buffer[1024];
+		while (totalSize < size)
+		{
+			uint64_t readSize = size - totalSize;
+			if (readSize > sizeof(buffer))
+				readSize = sizeof(buffer);
+
+			uint64_t thisReadSize = dsStream_read(stream, buffer, readSize);
+			totalSize += thisReadSize;
+			if (thisReadSize != readSize)
+				return totalSize;
+		}
+	}
+
+	return size;
+}
+
 size_t dsStream_write(dsStream* stream, const void* data, size_t size);
 
 bool dsStream_seek(dsStream* stream, int64_t offset, dsStreamSeekWay way);

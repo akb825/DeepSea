@@ -43,6 +43,19 @@ extern "C"
 DS_CORE_EXPORT inline size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
 /**
+ * @brief Skips bytes in a stream.
+ *
+ * This will attempt to do a seek, otherwise it will read the bytes to an empty buffer to skip them.
+ *
+ * @remark Some implementations will seek past the end and not throw an error until the next read.
+ * @remark errno will be set on failure.
+ * @param stream The stream to read from.
+ * @param size The number of bytes to skip.
+ * @return The number of bytes skipped. If implemented as a seek, this will be 0 if the seek fails.
+ */
+DS_CORE_EXPORT uint64_t dsStream_skip(dsStream* stream, uint64_t size);
+
+/**
  * @brief Writes to a stream.
  * @remark errno will be set on failure.
  * @param stream The stream to write to.
