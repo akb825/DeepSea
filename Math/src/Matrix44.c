@@ -435,7 +435,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	float yMult = invertY ? -1 : 1;
+	float yMult = invertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -472,7 +472,7 @@ void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, double right, doubl
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	double yMult = invertY ? -1 : 1;
+	double yMult = invertY ? -1.0 : 1.0;
 
 	result->values[0][0] = 2/(right - left);
 	result->values[0][1] = 0;
@@ -509,7 +509,7 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	float yMult = invertY ? -1 : 1;
+	float yMult = invertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -546,7 +546,7 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 	DS_ASSERT(bottom != top);
 	DS_ASSERT(near != far);
 
-	double yMult = invertY ? -1 : 1;
+	double yMult = invertY ? -1.0 : 1.0;
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -585,7 +585,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 
 	float height = 1/tanf(fovy/2);
 	float width = height/aspect;
-	float yMult = invertY ? -1 : 1;
+	float yMult = invertY ? -1.0f : 1.0f;
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
@@ -624,7 +624,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 	double height = 1/tan(fovy/2);
 	double width = height/aspect;
-	double yMult = invertY ? -1 : 1;
+	double yMult = invertY ? -1.0 : 1.0;
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
