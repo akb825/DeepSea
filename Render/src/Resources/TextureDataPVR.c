@@ -210,9 +210,9 @@ DS_STATIC_ASSERT(PvrChannelTypeCount == 13, invalidpvr_channel_type_enum);
 static void pvrError(const char* errorString, const char* filePath)
 {
 	if (filePath)
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s when reading file '%s'", errorString, filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s when reading file '%s'.", errorString, filePath);
 	else
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, errorString);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s.", errorString);
 }
 
 static void pvrSizeError(const char* filePath)

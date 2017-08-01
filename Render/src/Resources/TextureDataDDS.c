@@ -237,9 +237,9 @@ typedef struct DdsHeaderDxt10
 static void ddsError(const char* errorString, const char* filePath)
 {
 	if (filePath)
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s when reading file '%s'", errorString, filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s when reading file '%s'.", errorString, filePath);
 	else
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, errorString);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%s.", errorString);
 }
 
 static void ddsFormatError(const char* filePath)
@@ -515,7 +515,7 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 			return dsGfxFormat_decorate(dsGfxFormat_A1R5G5B5, dsGfxFormat_UNorm);
 		case DdsDxt10Format_B8G8R8A8_UNORM:
 		case DdsDxt10Format_B8G8R8X8_UNORM:
-			return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+			return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm);
 		case DdsDxt10Format_R10G10B10_XR_BIAS_A2_UNORM:
 			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
 		case DdsDxt10Format_B8G8R8A8_TYPELESS:
