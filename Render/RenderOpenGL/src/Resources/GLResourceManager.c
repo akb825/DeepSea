@@ -589,7 +589,8 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		}
 
 		// SRGB
-		if (AnyGL_EXT_texture_sRGB || AnyGL_EXT_sRGB)
+		if (AnyGL_atLeastVersion(2, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+			AnyGL_EXT_texture_sRGB || AnyGL_EXT_sRGB)
 		{
 			setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
 				FormatBit_Texture | FormatBit_Offscreen, GL_SRGB8_ALPHA8, GL_RGBA,
