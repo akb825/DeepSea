@@ -654,22 +654,39 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 	{
 		setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, GL_RGBA);
-		if (AnyGL_EXT_texture_sRGB)
-		{
-			setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_SRGB,
-				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGB);
-		}
-	}
-
-	if (AnyGL_EXT_texture_compression_s3tc)
-	{
 		setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, GL_RGBA);
 		if (AnyGL_EXT_texture_sRGB)
 		{
+			setCompressedFormat(resourceManager, dsGfxFormat_BC2, dsGfxFormat_SRGB,
+				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, GL_RGB);
 			setCompressedFormat(resourceManager, dsGfxFormat_BC3, dsGfxFormat_SRGB,
 				FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGB);
 		}
+	}
+
+	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_EXT_texture_compression_rgtc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_BC4, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RED_RGTC1, GL_RED);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC4, dsGfxFormat_SNorm,
+			FormatBit_Texture, GL_COMPRESSED_SIGNED_RED_RGTC1, GL_RED);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC5, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RG_RGTC2, GL_RG);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC5, dsGfxFormat_SNorm,
+			FormatBit_Texture, GL_COMPRESSED_SIGNED_RG_RGTC2, GL_RED);
+	}
+
+	if (AnyGL_atLeastVersion(4, 2, false) || AnyGL_ARB_texture_compression_bptc)
+	{
+		setCompressedFormat(resourceManager, dsGfxFormat_BC6H, dsGfxFormat_Float,
+			FormatBit_Texture, GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT, GL_RGB);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC6H, dsGfxFormat_UFloat,
+			FormatBit_Texture, GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT, GL_RGB);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC7, dsGfxFormat_UNorm,
+			FormatBit_Texture, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_RGBA);
+		setCompressedFormat(resourceManager, dsGfxFormat_BC7, dsGfxFormat_SRGB,
+			FormatBit_Texture, GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM, GL_RGBA);
 	}
 
 	if (AnyGL_OES_compressed_ETC1_RGB8_texture)
