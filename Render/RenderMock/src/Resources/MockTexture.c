@@ -111,16 +111,17 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	DS_UNUSED(commandBuffer);
 	DS_UNUSED(size);
 
-	unsigned int blockX, blockY;
+	unsigned int blockX, blockY, minX, minY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, texture->format));
 	unsigned int blockSize = dsGfxFormat_size(texture->format);
 	DS_ASSERT(blockSize > 0);
 
 	DS_ASSERT(position->x % blockX == 0 && position->y % blockY == 0);
 	uint32_t posBlockX = position->x/blockX;
 	uint32_t posBlockY = position->y/blockY;
-	uint32_t blockWidth = (width + blockX - 1)/blockX;
-	uint32_t blockHeight = (height + blockY - 1)/blockY;
+	uint32_t blockWidth = (dsMax(width, minX) + blockX - 1)/blockX;
+	uint32_t blockHeight = (dsMax(height, minY) + blockY - 1)/blockY;
 	uint32_t dataPitch = blockWidth*blockSize;
 	const uint8_t* dataBytes = (const uint8_t*)data;
 
@@ -155,8 +156,9 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_UNUSED(commandBuffer);
 
 	DS_ASSERT(srcTexture->format == dstTexture->format);
-	unsigned int blockX, blockY;
+	unsigned int blockX, blockY, minX, minY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, srcTexture->format));
 	unsigned int blockSize = dsGfxFormat_size(srcTexture->format);
 	DS_ASSERT(blockSize > 0);
 
@@ -169,7 +171,7 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		if (srcTexture->dimension == dsTextureDim_Cube)
 			srcPosLayer = srcPosLayer*6 + regions[i].srcPosition.face;
 		uint32_t srcMipWidth = srcTexture->width >> regions[i].srcPosition.mipLevel;
-		uint32_t srcPitch = (srcMipWidth + blockX - 1)/blockX*blockSize;
+		uint32_t srcPitch = (dsMax(srcMipWidth, minX) + blockX - 1)/blockX*blockSize;
 
 		DS_ASSERT(regions[i].dstPosition.x % blockX == 0 && regions[i].dstPosition.y % blockY == 0);
 		uint32_t dstPosBlockX = regions[i].dstPosition.x/blockX;
@@ -178,7 +180,7 @@ bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		if (srcTexture->dimension == dsTextureDim_Cube)
 			dstPosLayer = dstPosLayer*6 + regions[i].dstPosition.face;
 		uint32_t dstMipWidth = dstTexture->width >> regions[i].dstPosition.mipLevel;
-		uint32_t dstPitch = (dstMipWidth + blockX - 1)/blockX*blockSize;
+		uint32_t dstPitch = (dsMax(dstMipWidth, minX) + blockX - 1)/blockX*blockSize;
 
 		uint32_t copySize = (regions[i].width + blockX - 1)/blockX*blockSize;
 		uint32_t blockHeight = (regions[i].height + blockY - 1)/blockY;
@@ -239,8 +241,9 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 	}
 
 	DS_ASSERT(srcTexture->format == dstTexture->format);
-	unsigned int blockX, blockY;
+	unsigned int blockX, blockY, minX, minY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, srcTexture->format));
 	unsigned int blockSize = dsGfxFormat_size(srcTexture->format);
 	DS_ASSERT(blockSize > 0);
 
@@ -253,7 +256,7 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		if (srcTexture->dimension == dsTextureDim_Cube)
 			srcPosLayer = srcPosLayer*6 + regions[i].srcPosition.face;
 		uint32_t srcMipWidth = srcTexture->width >> regions[i].srcPosition.mipLevel;
-		uint32_t srcPitch = (srcMipWidth + blockX - 1)/blockX*blockSize;
+		uint32_t srcPitch = (dsMax(srcMipWidth, minX) + blockX - 1)/blockX*blockSize;
 
 		DS_ASSERT(regions[i].dstPosition.x % blockX == 0 && regions[i].dstPosition.y % blockY == 0);
 		uint32_t dstPosBlockX = regions[i].dstPosition.x/blockX;
@@ -262,7 +265,7 @@ bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* com
 		if (srcTexture->dimension == dsTextureDim_Cube)
 			dstPosLayer = dstPosLayer*6 + regions[i].dstPosition.face;
 		uint32_t dstMipWidth = dstTexture->width >> regions[i].dstPosition.mipLevel;
-		uint32_t dstPitch = (dstMipWidth + blockX - 1)/blockX*blockSize;
+		uint32_t dstPitch = (dsMax(dstMipWidth, minX) + blockX - 1)/blockX*blockSize;
 
 		uint32_t copySize = (regions[i].srcWidth + blockX - 1)/blockX*blockSize;
 		uint32_t blockHeight = (regions[i].srcHeight + blockY - 1)/blockY;

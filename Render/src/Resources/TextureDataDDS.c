@@ -537,6 +537,10 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 			return dsGfxFormat_decorate(dsGfxFormat_BC7, dsGfxFormat_UNorm);
 		case DdsDxt10Format_BC7_UNORM_SRGB:
 			return dsGfxFormat_decorate(dsGfxFormat_BC7, dsGfxFormat_SRGB);
+		case DdsDxt10Format_B4G4R4A4_UNORM:
+			return dsGfxFormat_decorate(dsGfxFormat_B4G4R4A4, dsGfxFormat_UNorm);
+		case DdsDxt10Format_IA44:
+			return dsGfxFormat_decorate(dsGfxFormat_R4G4, dsGfxFormat_UNorm);
 		case DdsDxt10Format_AYUV:
 		case DdsDxt10Format_Y410:
 		case DdsDxt10Format_Y416:
@@ -549,10 +553,8 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 		case DdsDxt10Format_Y216:
 		case DdsDxt10Format_NV11:
 		case DdsDxt10Format_AI44:
-		case DdsDxt10Format_IA44:
 		case DdsDxt10Format_P8:
 		case DdsDxt10Format_A8P8:
-		case DdsDxt10Format_B4G4R4A4_UNORM:
 		case DdsDxt10Format_P208:
 		case DdsDxt10Format_V208:
 		case DdsDxt10Format_V408:
