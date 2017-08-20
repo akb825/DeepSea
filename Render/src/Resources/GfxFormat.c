@@ -114,7 +114,7 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 		8,  // dsGfxFormat_BC1_RGBA
 		16, // dsGfxFormat_BC2
 		16, // dsGfxFormat_BC3
-		16, // dsGfxFormat_BC4
+		8,  // dsGfxFormat_BC4
 		16, // dsGfxFormat_BC5
 		16, // dsGfxFormat_BC6H
 		16, // dsGfxFormat_BC7
