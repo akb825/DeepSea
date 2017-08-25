@@ -67,7 +67,7 @@ extern "C"
  * @param max The maximum value.
  * @return The clamped value.
  */
-#define dsClamp(x, min, max) dsMin(dsMax(x, min), max)
+#define dsClamp(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
 
 /**
  * @brief Linearly interpolates between two values.
