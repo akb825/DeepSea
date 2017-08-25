@@ -219,28 +219,28 @@ DS_MATH_EXPORT inline void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t val
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-DS_MATH_EXPORT inline uint16_t dsPackIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackIntZ4Y4X4W4(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit integer in WZYX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-DS_MATH_EXPORT inline void dsUnpackIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackIntZ4Y4X4W4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs four floats into a 16-bit unsigned integer in WZYX order, 4 bits each.
  * @param wxyz The values to pack.
  * @return The packed integer.
  */
-DS_MATH_EXPORT inline uint16_t dsPackUIntW4Z4Y4X4(const dsVector4f* wxyz);
+DS_MATH_EXPORT inline uint16_t dsPackUIntZ4Y4X4W4(const dsVector4f* wxyz);
 
 /**
  * @brief Unpacks four floats from a 16-bit unsigned integer in WZYX order, 4 bits each.
  * @param[out] result The unpacked values.
  * @param value The values to unpack.
  */
-DS_MATH_EXPORT inline void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value);
+DS_MATH_EXPORT inline void dsUnpackUIntZ4Y4X4W4(dsVector4f* result, uint16_t value);
 
 /**
  * @brief Packs three floats into a 16-bit integer in XYZ order, with 5, 6, 5 bits.
@@ -462,14 +462,14 @@ DS_MATH_EXPORT inline void dsUnpackUIntW2Z10Y10X10(dsVector4f* result, uint32_t 
 #define dsPackUIntR4G4B4A4 dsPackUIntX4Y4Z4W4
 /** @see dsUnpackUIntX4Y4Z4W4 */
 #define dsUnpackUIntR4G4B4A4 dsUnpackUIntX4Y4Z4W4
-/** @see dsPackIntW4Z4Y4X4 */
-#define dsPackIntA4B4G4R4 dsPackIntW4Z4Y4X4
-/** @see dsUnpackIntW4Z4Y4X4 */
-#define dsUnpackIntA4B4G4R4 dsUnpackIntW4Z4Y4X4
-/** @see dsPackUIntW4Z4Y4X4 */
-#define dsPackUIntA4B4G4R4 dsPackUIntW4Z4Y4X4
-/** @see dsUnpackUIntW4Z4Y4X4 */
-#define dsUnpackUIntA4B4G4R4 dsUnpackUIntW4Z4Y4X4
+/** @see dsPackIntZ4Y4X4W4 */
+#define dsPackIntB4G4R4A4 dsPackIntZ4Y4X4W4
+/** @see dsUnpackIntZ4Y4X4W4 */
+#define dsUnpackIntB4G4R4A4 dsUnpackIntZ4Y4X4W4
+/** @see dsPackUIntZ4Y4X4W4 */
+#define dsPackUIntB4G4R4A4 dsPackUIntZ4Y4X4W4
+/** @see dsUnpackUIntZ4Y4X4W4 */
+#define dsUnpackUIntB4G4R4A4 dsUnpackUIntZ4Y4X4W4
 /** @see dsPackIntX5Y6Z5 */
 #define dsPackIntR5G6B5 dsPackIntX5Y6Z5
 /** @see dsUnpackIntX5Y6Z5 */
@@ -714,57 +714,57 @@ inline void dsUnpackUIntX4Y4Z4W4(dsVector4f* result, uint16_t value)
 	result->x = (float)((value >> 12) & 0xF)/0xF;
 }
 
-inline uint16_t dsPackIntW4Z4Y4X4(const dsVector4f* wzyx)
+inline uint16_t dsPackIntZ4Y4X4W4(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
 	uint16_t x = (int16_t)(roundf(dsClamp(wzyx->x, -1, 1)*0x7)) & 0xF;
 	uint16_t y = (int16_t)(roundf(dsClamp(wzyx->y, -1, 1)*0x7)) & 0xF;
 	uint16_t z = (int16_t)(roundf(dsClamp(wzyx->z, -1, 1)*0x7)) & 0xF;
 	uint16_t w = (int16_t)(roundf(dsClamp(wzyx->w, -1, 1)*0x7)) & 0xF;
-	return (uint16_t)(x | (y << 4) | (z << 8) | (w << 12));
+	return (uint16_t)(w | (x << 4) | (y << 8) | (z << 12));
 }
 
-inline void dsUnpackIntW4Z4Y4X4(dsVector4f* result, uint16_t value)
+inline void dsUnpackIntZ4Y4X4W4(dsVector4f* result, uint16_t value)
 {
 	DS_ASSERT(result);
 	int8_t component = (int8_t)(value & 0xF);
 	if (component & 0x8)
 		component |= (int8_t)0xF0;
-	result->x = (float)component/0x7;
+	result->w = (float)component/0x7;
 
 	component = (int8_t)((value >> 4) & 0xF);
 	if (component & 0x8)
 		component |= (int8_t)0xF0;
-	result->y = (float)component/0x7;
+	result->x = (float)component/0x7;
 
 	component = (int8_t)((value >> 8) & 0xF);
 	if (component & 0x8)
 		component |= (int8_t)0xF0;
-	result->z = (float)component/0x7;
+	result->y = (float)component/0x7;
 
 	component = (int8_t)((value >> 12) & 0xF);
 	if (component & 0x8)
 		component |= (int8_t)0xF0;
-	result->w = (float)component/0x7;
+	result->z = (float)component/0x7;
 }
 
-inline uint16_t dsPackUIntW4Z4Y4X4(const dsVector4f* wzyx)
+inline uint16_t dsPackUIntZ4Y4X4W4(const dsVector4f* wzyx)
 {
 	DS_ASSERT(wzyx);
 	uint16_t x = (uint16_t)(roundf(dsClamp(wzyx->x, 0, 1)*0xF)) & 0xF;
 	uint16_t y = (uint16_t)(roundf(dsClamp(wzyx->y, 0, 1)*0xF)) & 0xF;
 	uint16_t z = (uint16_t)(roundf(dsClamp(wzyx->z, 0, 1)*0xF)) & 0xF;
 	uint16_t w = (uint16_t)(roundf(dsClamp(wzyx->w, 0, 1)*0xF)) & 0xF;
-	return (uint16_t)(x | (y << 4) | (z << 8) | (w << 12));
+	return (uint16_t)(w | (x << 4) | (y << 8) | (z << 12));
 }
 
-inline void dsUnpackUIntW4Z4Y4X4(dsVector4f* result, uint16_t value)
+inline void dsUnpackUIntZ4Y4X4W4(dsVector4f* result, uint16_t value)
 {
 	DS_ASSERT(result);
-	result->x = (float)(value & 0xF)/0xF;
-	result->y = (float)((value >> 4) & 0xF)/0xF;
-	result->z = (float)((value >> 8) & 0xF)/0xF;
-	result->w = (float)((value >> 12) & 0xF)/0xF;
+	result->w = (float)(value & 0xF)/0xF;
+	result->x = (float)((value >> 4) & 0xF)/0xF;
+	result->y = (float)((value >> 8) & 0xF)/0xF;
+	result->z = (float)((value >> 12) & 0xF)/0xF;
 }
 
 inline uint16_t dsPackIntX5Y6Z5(const dsVector3f* xyz)
