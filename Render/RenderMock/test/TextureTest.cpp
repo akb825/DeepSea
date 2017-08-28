@@ -138,9 +138,6 @@ TEST_F(TextureTest, Create)
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
-	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
-		dsTextureDim_2D, 127, 255, 0, 1, NULL, 0));
 	texture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm), dsTextureDim_2D, 128, 256, 0, 1,
 		NULL, 0);

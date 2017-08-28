@@ -236,8 +236,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	unsigned int blockX, blockY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
-	if (width % blockX != 0 || height % blockY != 0 || width < minWidth || height < minHeight ||
-		width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
+	if (width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
 		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
 		depth > resourceManager->maxTextureArrayLevels))
 	{
@@ -344,8 +343,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 
 	unsigned int blockX, blockY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
-	if (width % blockX != 0 || height % blockY != 0 || width < minWidth || height < minHeight ||
-		width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
+	if (width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
 		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
 		depth > resourceManager->maxTextureArrayLevels))
 	{
