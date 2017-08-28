@@ -563,17 +563,6 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 	}
 }
 
-static bool skipBytes(dsStream* stream, uint64_t size, const char* filePath)
-{
-	if (dsStream_skip(stream, size) != size)
-	{
-		ddsSizeError(filePath);
-		return false;
-	}
-
-	return true;
-}
-
 static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
@@ -670,7 +659,6 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 		volumes = depth;
 	else
 		elements = dsMax(1U, depth);
-	uint32_t pitch = header.flags & DdsFlags_Pitch ? header.pitchOrLinearSize : 0;
 	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
 	unsigned int blockX, blockY;
 	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
@@ -686,29 +674,16 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 				uint32_t curVolumes = dsMax(1U, volumes >> level);
 				unsigned int curBlocksX = (curWidth + blockX - 1)/blockX;
 				unsigned int curBlocksY = (curHeight + blockY - 1)/blockY;
-				uint32_t lineSize = formatSize*curBlocksX;
-				uint32_t skipSize = 0;
-				if (pitch && pitch < lineSize)
-				{
-					ddsFormatError(filePath);
-					DS_PROFILE_FUNC_RETURN(NULL);
-				}
 
 				for (uint32_t volume = 0; volume < curVolumes; ++volume)
 				{
 					uint8_t* curData = textureData->data + dsTexture_surfaceOffset(format,
 						dimension, width, height, depth, mipLevels, (dsCubeFace)face,
 						dimension == dsTextureDim_3D ? volume : element, level);
-					for (uint32_t y = 0; y < curBlocksY; ++y, curData += lineSize)
+					if (!dsStream_read(stream, curData, curBlocksX*curBlocksY*formatSize))
 					{
-						if (!dsStream_read(stream, curData, lineSize))
-						{
-							ddsSizeError(filePath);
-							DS_PROFILE_FUNC_RETURN(NULL);
-						}
-
-						if (skipSize && !skipBytes(stream, skipSize, filePath))
-							DS_PROFILE_FUNC_RETURN(NULL);
+						ddsSizeError(filePath);
+						DS_PROFILE_FUNC_RETURN(NULL);
 					}
 				}
 			}
