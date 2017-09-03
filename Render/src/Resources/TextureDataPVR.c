@@ -24,6 +24,8 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Types.h>
 
+#define PVR_FOURCC(a, b, c, d) \
+	((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24 ))
 #define PVR_GENERIC_FORMAT(channel0, bits0, channel1, bits1, channel2, bits2, channel3, bits3) \
 	(((uint64_t)(channel0) | ((uint64_t)(channel1) << 8) | ((uint64_t)(channel2) << 16) | \
 		((uint64_t)(channel3) << 24) | \
@@ -255,6 +257,43 @@ static bool skipBytes(dsStream* stream, uint64_t size, const char* filePath)
 	return true;
 }
 
+static bool readMetadata(dsStream* stream, dsGfxFormat* format, const char* filePath)
+{
+	uint32_t metadataSize;
+	if (!readUInt32(stream, &metadataSize, filePath))
+		return false;
+
+	uint32_t readSize = 0;
+	while (readSize < metadataSize)
+	{
+		uint32_t fourcc, key, dataSize;
+		if (!readUInt32(stream, &fourcc, filePath) || !readUInt32(stream, &key, filePath) ||
+			!readUInt32(stream, &dataSize, filePath))
+		{
+			return false;
+		}
+
+		// Check metadata to see if there's alpha for BC1.
+		if ((*format & dsGfxFormat_CompressedMask) == dsGfxFormat_BC1_RGBA &&
+			fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('B', 'C', '1', 0))
+		{
+			*format = (dsGfxFormat)(dsGfxFormat_BC1_RGB | (*format & ~dsGfxFormat_CompressedMask));
+		}
+
+		if (!skipBytes(stream, dataSize, filePath))
+			return false;
+		readSize += sizeof(fourcc) + sizeof(key) + sizeof(dataSize) + dataSize;
+	}
+
+	if (readSize != metadataSize)
+	{
+		pvrError("Invalid PVR metadata", filePath);
+		return false;
+	}
+
+	return true;
+}
+
 static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
@@ -428,10 +467,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			textureDim = dsTextureDim_1D;
 	}
 
-	uint32_t metadataSize;
-	if (!readUInt32(stream, &metadataSize, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
-	if (!skipBytes(stream, metadataSize, filePath))
+	if (!readMetadata(stream, &format, filePath))
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,

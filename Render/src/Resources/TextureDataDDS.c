@@ -195,6 +195,15 @@ typedef enum DdsDxt10MiscFlag
 	DdsDxt10MiscFlag_CubeMap = 0x4
 } DdsDxt10MiscFlag;
 
+typedef enum DdsDxt10MiscFlags2
+{
+	DdsDxt10MiscFlags2_AlphaModeUnknown       = 0,
+	DdsDxt10MiscFlags2_AlphaModeStraight      = 1,
+	DdsDxt10MiscFlags2_AlphaModePreMultiplied = 2,
+	DdsDxt10MiscFlags2_AlphaModeOpaque        = 3,
+	DdsDxt10MiscFlags2_AlphaModeCustom        = 4,
+} DdsDxt10MiscFlags2;
+
 typedef struct DdsPixelFormat
 {
 	uint32_t size;
@@ -486,9 +495,15 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 			return dsGfxFormat_Unknown;
 		case DdsDxt10Format_BC1_TYPELESS:
 		case DdsDxt10Format_BC1_UNORM:
-			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm);
+			if (format->miscFlags2 == DdsDxt10MiscFlags2_AlphaModeOpaque)
+				return dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm);
+			else
+				return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm);
 		case DdsDxt10Format_BC1_UNORM_SRGB:
-			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_SRGB);
+			if (format->miscFlags2 == DdsDxt10MiscFlags2_AlphaModeOpaque)
+				return dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB);
+			else
+				return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_SRGB);
 		case DdsDxt10Format_BC2_TYPELESS:
 		case DdsDxt10Format_BC2_UNORM:
 			return dsGfxFormat_decorate(dsGfxFormat_BC2, dsGfxFormat_UNorm);
