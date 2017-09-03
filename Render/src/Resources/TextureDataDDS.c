@@ -486,9 +486,9 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 			return dsGfxFormat_Unknown;
 		case DdsDxt10Format_BC1_TYPELESS:
 		case DdsDxt10Format_BC1_UNORM:
-			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm);
+			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm);
 		case DdsDxt10Format_BC1_UNORM_SRGB:
-			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB);
+			return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_SRGB);
 		case DdsDxt10Format_BC2_TYPELESS:
 		case DdsDxt10Format_BC2_UNORM:
 			return dsGfxFormat_decorate(dsGfxFormat_BC2, dsGfxFormat_UNorm);
