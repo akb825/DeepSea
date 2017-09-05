@@ -205,10 +205,11 @@ typedef enum PvrChannelType
 	UInt,
 	SInt,
 	Float,
+	UFloat,
 	PvrChannelTypeCount
 } PvrChannelType;
 
-DS_STATIC_ASSERT(PvrChannelTypeCount == 13, invalidpvr_channel_type_enum);
+DS_STATIC_ASSERT(PvrChannelTypeCount == 14, invalidpvr_channel_type_enum);
 
 static void pvrError(const char* errorString, const char* filePath)
 {
@@ -360,9 +361,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	if (!readUInt32(stream, &colorSpace, filePath))
 		DS_PROFILE_FUNC_RETURN(NULL);
 
-	if (colorSpace == 1)
-		format = dsGfxFormat_decorate(format, dsGfxFormat_SRGB);
-	else if (colorSpace != 0)
+	if (colorSpace != 0 && colorSpace != 1)
 	{
 		pvrError("Unknown color space for PVR texture", filePath);
 		errno = EFORMAT;
@@ -373,14 +372,24 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	if (!readUInt32(stream, &channelType, filePath))
 		DS_PROFILE_FUNC_RETURN(NULL);
 
-	if (dsGfxFormat_standardIndex(format) != 0)
+	if (dsGfxFormat_standardIndex(format) != 0 || dsGfxFormat_compressedIndex(format) != 0)
 	{
+		// UNorm and UFloat are the same for ASTC
+		if (format >= dsGfxFormat_ASTC_4x4 && format <= dsGfxFormat_ASTC_12x12 &&
+			channelType == UFloat)
+		{
+			channelType = UByteN;
+		}
+
 		switch (channelType)
 		{
 			case UByteN:
 			case UShortN:
 			case UIntN:
-				format = dsGfxFormat_decorate(format, dsGfxFormat_UNorm);
+				if (colorSpace == 1)
+					format = dsGfxFormat_decorate(format, dsGfxFormat_SRGB);
+				else
+					format = dsGfxFormat_decorate(format, dsGfxFormat_UNorm);
 				break;
 			case SByteN:
 			case SShortN:
@@ -400,14 +409,15 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			case Float:
 				format = dsGfxFormat_decorate(format, dsGfxFormat_Float);
 				break;
+			case UFloat:
+				format = dsGfxFormat_decorate(format, dsGfxFormat_UFloat);
+				break;
 			default:
 				pvrError("Unknown channel type for PVR texture", filePath);
 				errno = EFORMAT;
 				DS_PROFILE_FUNC_RETURN(NULL);
 		}
 	}
-	if (dsGfxFormat_compressedIndex(format) != 0 && colorSpace == 0)
-		format = dsGfxFormat_decorate(format, dsGfxFormat_UNorm);
 
 	uint32_t width, height, depth, surfaces, faces, mipLevels;
 	if (!readUInt32(stream, &height, filePath) || !readUInt32(stream, &width, filePath) ||
