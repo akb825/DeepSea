@@ -259,7 +259,8 @@ static bool skipBytes(dsStream* stream, uint64_t size, const char* filePath)
 	return true;
 }
 
-static bool readMetadata(dsStream* stream, dsGfxFormat* format, const char* filePath)
+static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
+	const char* filePath)
 {
 	uint32_t metadataSize;
 	if (!readUInt32(stream, &metadataSize, filePath))
@@ -280,6 +281,12 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, const char* file
 			fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('B', 'C', '1', 0))
 		{
 			*format = (dsGfxFormat)(dsGfxFormat_BC1_RGB | (*format & ~dsGfxFormat_CompressedMask));
+		}
+
+		if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('A', 'R', 'R', 'Y') &&
+			*depth == 0)
+		{
+			*depth = 1;
 		}
 
 		if (!skipBytes(stream, dataSize, filePath))
@@ -478,7 +485,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			textureDim = dsTextureDim_1D;
 	}
 
-	if (!readMetadata(stream, &format, filePath))
+	if (!readMetadata(stream, &format, &depth, filePath))
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,
