@@ -319,6 +319,8 @@ static dsGfxFormat getDdsFormat(const DdsPixelFormat* format)
 		return dsGfxFormat_decorate(dsGfxFormat_R4G4B4A4, dsGfxFormat_UNorm);
 	else if (DDS_CHECK_BITS(0x00F0, 0x0F00, 0xF000, 0x000F))
 		return dsGfxFormat_decorate(dsGfxFormat_B4G4R4A4, dsGfxFormat_UNorm);
+	else if (DDS_CHECK_BITS(0x0F00, 0x00F0, 0x000F, 0xF000))
+		return dsGfxFormat_decorate(dsGfxFormat_A4R4G4B4, dsGfxFormat_UNorm);
 	else if (DDS_CHECK_BITS(0xF800, 0x7E0, 0x1F, 0))
 		return dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm);
 	else if (DDS_CHECK_BITS(0x1F, 0x7E0, 0xF800, 0))
@@ -553,7 +555,7 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 		case DdsDxt10Format_BC7_UNORM_SRGB:
 			return dsGfxFormat_decorate(dsGfxFormat_BC7, dsGfxFormat_SRGB);
 		case DdsDxt10Format_B4G4R4A4_UNORM:
-			return dsGfxFormat_decorate(dsGfxFormat_B4G4R4A4, dsGfxFormat_UNorm);
+			return dsGfxFormat_decorate(dsGfxFormat_A4R4G4B4, dsGfxFormat_UNorm);
 		case DdsDxt10Format_IA44:
 			return dsGfxFormat_decorate(dsGfxFormat_R4G4, dsGfxFormat_UNorm);
 		case DdsDxt10Format_AYUV:

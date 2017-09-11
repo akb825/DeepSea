@@ -61,6 +61,7 @@ unsigned int dsGfxFormat_size(dsGfxFormat format)
 		1,  // dsGfxFormat_R4G4
 		2,  // dsGfxFormat_R4G4B4A4
 		2,  // dsGfxFormat_B4G4R4A4
+		2,  // dsGfxFormat_A4R4G4B4
 		2,  // dsGfxFormat_R5G6B5
 		2,  // dsGfxFormat_B5G6R5
 		2,  // dsGfxFormat_R5G5B5A1

@@ -215,6 +215,40 @@ TEST(PackingTest, UIntZ4Y4X4W4)
 	EXPECT_NEAR(1.0f, result.w, 1e-1f);
 }
 
+TEST(PackingTest, IntW4X4Y4Z4)
+{
+	dsVector4f value = {{1.0f, -1.0f, 1.0f, -1.0f}};
+	EXPECT_EQ(0x9797, dsPackIntW4X4Y4Z4(&value));
+
+	value.x = -0.3f;
+	value.y = 0.3f;
+	value.z = -0.7f;
+	value.w = 0.7f;
+	dsVector4f result;
+	dsUnpackIntW4X4Y4Z4(&result, dsPackIntW4X4Y4Z4(&value));
+	EXPECT_NEAR(-0.3f, result.x, 1e-1f);
+	EXPECT_NEAR(0.3f, result.y, 1e-1f);
+	EXPECT_NEAR(-0.7f, result.z, 1e-1f);
+	EXPECT_NEAR(0.7f, result.w, 1e-1f);
+}
+
+TEST(PackingTest, UIntW4X4Y4Z4)
+{
+	dsVector4f value = {{1.0f, 0.0f, 1.0f, 0.0f}};
+	EXPECT_EQ(0x0F0F, dsPackUIntW4X4Y4Z4(&value));
+
+	value.x = 0.0f;
+	value.y = 0.3f;
+	value.z = 0.7f;
+	value.w = 1.0f;
+	dsVector4f result;
+	dsUnpackIntW4X4Y4Z4(&result, dsPackIntW4X4Y4Z4(&value));
+	EXPECT_NEAR(0.0f, result.x, 1e-1f);
+	EXPECT_NEAR(0.3f, result.y, 1e-1f);
+	EXPECT_NEAR(0.7f, result.z, 1e-1f);
+	EXPECT_NEAR(1.0f, result.w, 1e-1f);
+}
+
 TEST(PackingTest, IntX5Y6Z5)
 {
 	dsVector3f value = {{-1.0f, 1.0f, 1.0f}};

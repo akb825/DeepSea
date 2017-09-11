@@ -161,6 +161,7 @@ static GenericFormat genericFormats[] =
 	{PVR_GENERIC_FORMAT('r', 4, 'g', 4, 0, 0, 0, 0), dsGfxFormat_R4G4},
 	{PVR_GENERIC_FORMAT('r', 4, 'g', 4, 'b', 4, 'a', 4), dsGfxFormat_R4G4B4A4},
 	{PVR_GENERIC_FORMAT('b', 4, 'g', 4, 'r', 4, 'a', 4), dsGfxFormat_B4G4R4A4},
+	{PVR_GENERIC_FORMAT('a', 4, 'r', 4, 'g', 4, 'b', 4), dsGfxFormat_A4R4G4B4},
 	{PVR_GENERIC_FORMAT('r', 5, 'g', 6, 'b', 5, 0, 0), dsGfxFormat_R5G6B5},
 	{PVR_GENERIC_FORMAT('b', 5, 'g', 6, 'r', 5, 0, 0), dsGfxFormat_B5G6R5},
 	{PVR_GENERIC_FORMAT('r', 5, 'g', 5, 'b', 5, 'a', 1), dsGfxFormat_R5G5B5A1},

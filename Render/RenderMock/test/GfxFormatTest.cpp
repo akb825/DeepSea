@@ -44,10 +44,10 @@ TEST_F(GfxFormatTest, IsValid)
 
 TEST_F(GfxFormatTest, Indices)
 {
-	EXPECT_EQ(5U, dsGfxFormat_standardIndex(dsGfxFormat_decorate(dsGfxFormat_B5G6R5,
+	EXPECT_EQ(6U, dsGfxFormat_standardIndex(dsGfxFormat_decorate(dsGfxFormat_B5G6R5,
 		dsGfxFormat_SInt)));
 	EXPECT_EQ(0U, dsGfxFormat_standardIndex(dsGfxFormat_D16));
-	EXPECT_EQ(dsGfxFormat_B5G6R5, dsGfxFormat_standardEnum(5));
+	EXPECT_EQ(dsGfxFormat_B5G6R5, dsGfxFormat_standardEnum(6));
 	EXPECT_EQ(dsGfxFormat_Unknown, dsGfxFormat_standardEnum(dsGfxFormat_StandardCount));
 
 	EXPECT_EQ(5U, dsGfxFormat_specialIndex(dsGfxFormat_D32_Float));

@@ -150,6 +150,7 @@ typedef enum dsGfxFormat
 	dsGfxFormat_R4G4 = 1,            ///< RG 4 bits each.
 	dsGfxFormat_R4G4B4A4,            ///< RGBA 4 bits each.
 	dsGfxFormat_B4G4R4A4,            ///< BGRA 4 bits each.
+	dsGfxFormat_A4R4G4B4,            ///< ARGB 4 bits each.
 	dsGfxFormat_R5G6B5,              ///< RGB with 5, 6, 5 bits.
 	dsGfxFormat_B5G6R5,              ///< BGR with 5, 6, 5 bits.
 	dsGfxFormat_R5G5B5A1,            ///< RGBA with 5, 5, 5, 1 bits.
