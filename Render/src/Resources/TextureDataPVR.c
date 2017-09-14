@@ -259,7 +259,7 @@ static bool skipBytes(dsStream* stream, uint64_t size, const char* filePath)
 	return true;
 }
 
-static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
+static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth, dsTextureDim* dim,
 	const char* filePath)
 {
 	uint32_t metadataSize;
@@ -282,12 +282,13 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
 		{
 			*format = (dsGfxFormat)(dsGfxFormat_BC1_RGB | (*format & ~dsGfxFormat_CompressedMask));
 		}
-
-		if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('A', 'R', 'R', 'Y') &&
-			*depth == 0)
+		else if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') &&
+			key == PVR_FOURCC('A', 'R', 'R', 'Y') && *depth == 0)
 		{
 			*depth = 1;
 		}
+		else if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('D', 'I', 'M', '1'))
+			*dim = dsTextureDim_1D;
 
 		if (!skipBytes(stream, dataSize, filePath))
 			return false;
@@ -485,7 +486,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			textureDim = dsTextureDim_1D;
 	}
 
-	if (!readMetadata(stream, &format, &depth, filePath))
+	if (!readMetadata(stream, &format, &depth, &textureDim, filePath))
 		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,
