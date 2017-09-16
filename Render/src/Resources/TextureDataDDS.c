@@ -753,8 +753,8 @@ dsTextureData* dsTextureData_loadDdsStream(dsAllocator* allocator, dsStream* str
 }
 
 dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath, int usage,
-	int memoryHints)
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints)
 {
 	if (!resourceManager || !filePath)
 	{
@@ -775,14 +775,14 @@ dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager
 		return NULL;
 
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		usage, memoryHints);
+		options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }
 
 dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream, int usage,
-	int memoryHints)
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints)
 {
 	if (!resourceManager || !stream)
 	{
@@ -803,7 +803,7 @@ dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManag
 		return NULL;
 
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
-		usage, memoryHints);
+		options, usage, memoryHints);
 	dsTextureData_destroy(textureData);
 	return texture;
 }

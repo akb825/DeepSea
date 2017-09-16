@@ -59,13 +59,18 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
  * @param allocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param textureData The texture data to create the texture from.
+ * @param flags Flags for creating the texture from the data. This should be a combination of
+ *     dsTextureDataFlags flags.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
  * @return The created texture, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsTextureData* textureData, int usage, int memoryHints);
+	dsAllocator* allocator, const dsTextureData* textureData, const dsTextureDataOptions* options,
+	int usage, int memoryHints);
 
 /**
  * @brief Loads a DDS texture file to a new texture data instance.
@@ -96,14 +101,16 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDdsStream(dsAllocator* allocat
  * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
  * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath, int usage,
-	int memoryHints);
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
 
 /**
  * @brief Loads a DDS texture file from a stream to a new texture instance.
@@ -114,14 +121,16 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager
  * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
  * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream, int usage,
-	int memoryHints);
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
 
 /**
  * @brief Loads a PVR texture file to a new texture data instance.
@@ -152,14 +161,16 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocat
  * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
  *     allocator as the texture.
  * @param filePath The file to load.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
  * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath, int usage,
-	int memoryHints);
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
 
 /**
  * @brief Loads a PVR texture file from a stream to a new texture instance.
@@ -170,14 +181,16 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager
  * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
  *     allocator as the texture.
  * @param stream The file to load the texture from.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
  * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManager,
-	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream, int usage,
-	int memoryHints);
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
 
 /**
  * @brief Destroys a texture data.

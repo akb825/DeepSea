@@ -872,6 +872,44 @@ typedef struct dsTextureData
 } dsTextureData;
 
 /**
+ * @brief Options for converting a dsTextureData structure to a dsTexture.
+ */
+typedef struct dsTextureDataOptions
+{
+	/**
+	 * @brief Number of mip-map levels to skip.
+	 *
+	 * @remark This will be ignored if targetWidth or targetHeight is not 0.
+	 */
+	uint32_t skipLevels;
+
+	/**
+	 * @brief The target height for mip level 0.
+	 *
+	 * This will skip mip levels until it reaches the level height a dimension closest to
+     * targetHeight. This check will not be performed if set to 0.
+	 *
+	 * @remark This will be ignored if targetWidth is not 0. If not 0, this will disable skipLevels.
+	 */
+	uint32_t targetHeight;
+
+	/**
+	 * @brief The target width for mip level 0.
+	 *
+	 * This will skip mip levels until it reaches the level with a dimension closest to
+     * targetWidth. This check will not be performed if set to 0.
+	 *
+	 * @remark If not 0, this will disable skipLevels and targetHeight.
+	 */
+	uint32_t targetWidth;
+
+	/**
+	 * @brief Fall back to linear texture formats for sRGB textures when sRGB isn't supported.
+	 */
+	bool srgbFallback;
+} dsTextureDataOptions;
+
+/**
  * @brief Structure defining a buffer to render to without having to access the contents directly.
  *
  * Render implementations can effectively subclass this type by having it as the first member of

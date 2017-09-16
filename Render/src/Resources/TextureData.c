@@ -21,8 +21,29 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Types.h>
+#include <math.h>
+
+static uint32_t getSkipLevels(uint32_t dim, uint32_t targetDim)
+{
+	uint32_t curDiff = abs((int32_t)(dim - targetDim));
+	uint32_t skip = 0;
+
+	while (dim > 0)
+	{
+		dim /= 2;
+		uint32_t diff = abs((int32_t)(dim - targetDim));
+		if (diff > curDiff)
+			break;
+
+		curDiff = diff;
+		++skip;
+	}
+
+	return skip;
+}
 
 dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels)
@@ -35,6 +56,7 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 
 	uint32_t maxLevels = dsTexture_maxMipmapLevels(width, height, DS_MIP_DEPTH(dimension, depth));
 	mipLevels = dsMin(maxLevels, mipLevels);
+	mipLevels = dsMax(mipLevels, 1U);
 	size_t dataSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
 	if (dataSize == 0)
 	{
@@ -60,7 +82,8 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
 }
 
 dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsTextureData* textureData, int usage, int memoryHints)
+	dsAllocator* allocator, const dsTextureData* textureData, const dsTextureDataOptions* options,
+	int usage, int memoryHints)
 {
 	if (!resourceManager || !textureData)
 	{
@@ -68,9 +91,51 @@ dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 		return NULL;
 	}
 
-	return dsTexture_create(resourceManager, allocator, usage, memoryHints, textureData->format,
-		textureData->dimension, textureData->width, textureData->height, textureData->depth,
-		textureData->mipLevels, textureData->data, textureData->dataSize);
+	dsGfxFormat format = textureData->format;
+	uint32_t width = textureData->width;
+	uint32_t height = textureData->height;
+	uint32_t depth = textureData->depth;
+	uint32_t mipLevels = textureData->mipLevels;
+	const uint8_t* data = textureData->data;
+	size_t dataSize = textureData->dataSize;
+	if (options)
+	{
+		if (options->srgbFallback && (format & dsGfxFormat_DecoratorMask) == dsGfxFormat_SRGB &&
+			!dsGfxFormat_textureSupported(resourceManager, format))
+		{
+			format = (dsGfxFormat)((format & ~dsGfxFormat_DecoratorMask) | dsGfxFormat_UNorm);
+		}
+
+		uint32_t skipLevels = 0;
+		if (options->targetWidth)
+			skipLevels = getSkipLevels(width, options->targetWidth);
+		else if (options->targetHeight)
+			skipLevels = getSkipLevels(height, options->targetHeight);
+		else
+			skipLevels = options->skipLevels;
+
+		DS_ASSERT(textureData->mipLevels > 0);
+		if (skipLevels >= textureData->mipLevels)
+			skipLevels = textureData->mipLevels - 1;
+
+		if (skipLevels)
+		{
+			size_t skipData = dsTexture_size(format, textureData->dimension, width, height, depth,
+				skipLevels, 1);
+			DS_ASSERT(skipData < dataSize);
+			data += skipData;
+			dataSize -= skipData;
+
+			width = dsMax(width >> skipLevels, 1U);
+			height = dsMax(height >> skipLevels, 1U);
+			if (textureData->dimension == dsTextureDim_3D)
+				depth = dsMax(depth >> skipLevels, 1U);
+			mipLevels -= skipLevels;
+		}
+	}
+
+	return dsTexture_create(resourceManager, allocator, usage, memoryHints, format,
+		textureData->dimension, width, height, depth, mipLevels, data, dataSize);
 }
 
 void dsTextureData_destroy(dsTextureData* textureData)
