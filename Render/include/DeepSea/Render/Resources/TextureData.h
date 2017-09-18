@@ -59,8 +59,6 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
  * @param allocator The allocator to create the texture with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param textureData The texture data to create the texture from.
- * @param flags Flags for creating the texture from the data. This should be a combination of
- *     dsTextureDataFlags flags.
  * @param options Options for converting the texture data to a texture. If NULL, the texture will be
  *     created from the data without any modifications.
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
@@ -71,6 +69,77 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
 DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsTextureData* textureData, const dsTextureDataOptions* options,
 	int usage, int memoryHints);
+
+/**
+ * @brief Loads a texture file to a new texture data instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the texture data with.
+ * @param filePath The file to load.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadFile(dsAllocator* allocator,
+	const char* filePath);
+
+/**
+ * @brief Loads a texture file from a stream to a new texture data instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the texture data with.
+ * @param stream The file to load the texture from. This must support seeking.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadStream(dsAllocator* allocator, dsStream* stream);
+
+/**
+ * @brief Loads a texture file to a new texture instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ *     allocator as the texture.
+ * @param filePath The file to load.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
+
+/**
+ * @brief Loads a texture file from a stream to a new texture instance.
+ *
+ * This will try each of the supported texture file formats.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ *     allocator as the texture.
+ * @param stream The file to load the texture from. This must support seeking.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
 
 /**
  * @brief Loads a DDS texture file to a new texture data instance.
@@ -129,6 +198,66 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager
  * @return The created texture data, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
+
+/**
+ * @brief Loads a KTX texture file to a new texture data instance.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the texture data with.
+ * @param filePath The file to load.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKtxFile(dsAllocator* allocator,
+	const char* filePath);
+
+/**
+ * @brief Loads a KTX texture file from a stream to a new texture data instance.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the texture data with.
+ * @param stream The file to load the texture from.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKtxStream(dsAllocator* allocator,
+	dsStream* stream);
+
+/**
+ * @brief Loads a KTX texture file to a new texture instance.
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ *     allocator as the texture.
+ * @param filePath The file to load.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any mordifications.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints);
+
+/**
+ * @brief Loads a KTX texture file from a stream to a new texture instance.
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the texture from.
+ * @param textureAllocator The allocator to create the texture with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param tempAllocator The allocator to use for temporary memory.  If NULL, it will use the same
+ *     allocator as the texture.
+ * @param stream The file to load the texture from.
+ * @param options Options for converting the texture data to a texture. If NULL, the texture will be
+ *     created from the data without any modifications.
+ * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
+ * @param memoryHints Hints for how the memory for the texture will be used. This should be a
+ *     combination of dsGfxMemory flags.
+ * @return The created texture data, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsTexture* dsTextureData_loadKtxStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
 	const dsTextureDataOptions* options, int usage, int memoryHints);
 

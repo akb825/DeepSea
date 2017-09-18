@@ -580,22 +580,26 @@ static dsGfxFormat getDdsDxt10Format(const DdsHeaderDxt10* format)
 	}
 }
 
-static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const char* filePath)
+dsTextureData* dsTextureData_loadDds(bool* isDds, dsAllocator* allocator, dsStream* stream,
+	const char* filePath)
 {
-	DS_PROFILE_FUNC_START();
-
+	if (isDds)
+		*isDds = true;
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	uint32_t magicNumber;
 	if (!dsStream_read(stream, &magicNumber, sizeof(magicNumber)) ||
 		magicNumber != DDS_MAGIC_NUMBER)
 	{
-		ddsFormatError(filePath);
-		DS_PROFILE_FUNC_RETURN(NULL);
+		if (isDds)
+			*isDds = false;
+		else
+			ddsFormatError(filePath);
+		return NULL;
 	}
 
 	DdsHeader header;
@@ -603,7 +607,7 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 		header.ddspf.size != sizeof(DdsPixelFormat))
 	{
 		ddsFormatError(filePath);
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	uint32_t width = header.width;
@@ -631,7 +635,7 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 		if (!dsStream_read(stream, &headerDxt10, sizeof(headerDxt10)))
 		{
 			ddsFormatError(filePath);
-			DS_PROFILE_FUNC_RETURN(NULL);
+			return NULL;
 		}
 
 		format = getDdsDxt10Format(&headerDxt10);
@@ -662,13 +666,13 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 	{
 		ddsError("Unsupported DDS texture format", filePath);
 		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	dsTextureData* textureData = dsTextureData_create(allocator, format, dimension, width, height,
 		depth, mipLevels);
 	if (!textureData)
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	uint32_t elements = 1;
 	uint32_t volumes = 1;
@@ -700,32 +704,36 @@ static dsTextureData* loadDds(dsAllocator* allocator, dsStream* stream, const ch
 					if (!dsStream_read(stream, curData, curBlocksX*curBlocksY*formatSize))
 					{
 						ddsSizeError(filePath);
-						DS_PROFILE_FUNC_RETURN(NULL);
+						dsTextureData_destroy(textureData);
+						return NULL;
 					}
 				}
 			}
 		}
 	}
 
-	DS_PROFILE_FUNC_RETURN(textureData);
+	return textureData;
 }
 
 dsTextureData* dsTextureData_loadDdsFile(dsAllocator* allocator, const char* filePath)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!allocator || !filePath)
 	{
 		errno = EINVAL;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsFileStream fileStream;
 	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open DDS file '%s'.", filePath);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* textureData = loadDds(allocator, (dsStream*)&fileStream, filePath);
+	dsTextureData* textureData = dsTextureData_loadDds(NULL, allocator, (dsStream*)&fileStream,
+		filePath);
 	if (textureData)
 	{
 		uint64_t pos = dsStream_tell((dsStream*)&fileStream);
@@ -738,18 +746,21 @@ dsTextureData* dsTextureData_loadDdsFile(dsAllocator* allocator, const char* fil
 		}
 	}
 	DS_VERIFY(dsStream_close((dsStream*)&fileStream));
-	return textureData;
+	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
 dsTextureData* dsTextureData_loadDdsStream(dsAllocator* allocator, dsStream* stream)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	return loadDds(allocator, stream, NULL);
+	dsTextureData* result = dsTextureData_loadDds(NULL, allocator, stream, NULL);
+	DS_PROFILE_FUNC_RETURN(result);
 }
 
 dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager,

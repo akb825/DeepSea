@@ -17,14 +17,32 @@
 #include <DeepSea/Render/Resources/TextureData.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/Stream.h>
+#include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Types.h>
 #include <math.h>
+
+dsTextureData* dsTextureData_loadDds(bool* isDds, dsAllocator* allocator, dsStream* stream,
+	const char* filePath);
+dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStream* stream,
+	const char* filePath);
+dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStream* stream,
+	const char* filePath);
+
+// Order from most to fewest supported formats to attempt to process the most common formats first.
+static dsTextureData* (*loadTextureFuncs[])(bool*, dsAllocator*, dsStream*, const char*) =
+{
+	&dsTextureData_loadPvr,
+	&dsTextureData_loadKtx,
+	&dsTextureData_loadDds
+};
 
 static uint32_t getSkipLevels(uint32_t dim, uint32_t targetDim)
 {
@@ -136,6 +154,146 @@ dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 
 	return dsTexture_create(resourceManager, allocator, usage, memoryHints, format,
 		textureData->dimension, width, height, depth, mipLevels, data, dataSize);
+}
+
+dsTextureData* dsTextureData_loadFile(dsAllocator* allocator, const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsFileStream fileStream;
+	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open PVR file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	bool isFormat = true;
+	dsTextureData* textureData = NULL;
+	for (size_t i = 0; i < DS_ARRAY_SIZE(loadTextureFuncs); ++i)
+	{
+		textureData = loadTextureFuncs[i](&isFormat, allocator, (dsStream*)&fileStream, filePath);
+		if (textureData || isFormat)
+			break;
+
+		if (i < DS_ARRAY_SIZE(loadTextureFuncs) - 1)
+			dsFileStream_seek(&fileStream, 0, dsStreamSeekWay_Beginning);
+	}
+
+	// If check is false, we couldn't find the format.
+	if (!isFormat)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Unknown texture file format when reading file '%s'.",
+			filePath);
+		errno = EFORMAT;
+	}
+
+	DS_VERIFY(dsFileStream_close(&fileStream));
+	DS_PROFILE_FUNC_RETURN(textureData);
+}
+
+dsTextureData* dsTextureData_loadStream(dsAllocator* allocator, dsStream* stream)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !stream)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!stream->seekFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Stream must be seekable to determine the texture file format.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint64_t streamPos = dsStream_tell(stream);
+	DS_ASSERT(streamPos != DS_STREAM_INVALID_POS);
+
+	bool isFormat = true;
+	dsTextureData* textureData = NULL;
+	for (size_t i = 0; i < DS_ARRAY_SIZE(loadTextureFuncs); ++i)
+	{
+		textureData = loadTextureFuncs[i](&isFormat, allocator, stream, NULL);
+		if (textureData || isFormat)
+			break;
+
+		if (i < DS_ARRAY_SIZE(loadTextureFuncs) - 1)
+			dsStream_seek(stream, streamPos, dsStreamSeekWay_Beginning);
+	}
+
+	// If check is false, we couldn't find the format.
+	if (!isFormat)
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Unknown texture file format.");
+		errno = EFORMAT;
+	}
+
+	DS_PROFILE_FUNC_RETURN(textureData);
+}
+
+dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
+	const dsTextureDataOptions* options, int usage, int memoryHints)
+{
+	if (!resourceManager || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!tempAllocator)
+	{
+		if (textureAllocator)
+			tempAllocator = textureAllocator;
+		else
+			tempAllocator = resourceManager->allocator;
+	}
+
+	dsTextureData* textureData = dsTextureData_loadFile(tempAllocator, filePath);
+	if (!textureData)
+		return NULL;
+
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
+		options, usage, memoryHints);
+	dsTextureData_destroy(textureData);
+	return texture;
+}
+
+dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
+	const dsTextureDataOptions* options, int usage, int memoryHints)
+{
+	if (!resourceManager || !stream)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!tempAllocator)
+	{
+		if (textureAllocator)
+			tempAllocator = textureAllocator;
+		else
+			tempAllocator = resourceManager->allocator;
+	}
+
+	dsTextureData* textureData = dsTextureData_loadStream(tempAllocator, stream);
+	if (!textureData)
+		return NULL;
+
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
+		options, usage, memoryHints);
+	dsTextureData_destroy(textureData);
+	return texture;
 }
 
 void dsTextureData_destroy(dsTextureData* textureData)

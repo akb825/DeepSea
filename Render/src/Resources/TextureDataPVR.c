@@ -304,35 +304,41 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
 	return true;
 }
 
-static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const char* filePath)
+dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStream* stream,
+	const char* filePath)
 {
-	DS_PROFILE_FUNC_START();
-
+	if (isPvr)
+		*isPvr = true;
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	uint32_t version;
 	if (!readUInt32(stream, &version, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	const uint32_t expectedVersion = 0x03525650;
 	if (version != expectedVersion)
 	{
-		pvrError("Invalid PVR file", filePath);
-		errno = EFORMAT;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		if (isPvr)
+			*isPvr = false;
+		else
+		{
+			pvrError("Invalid PVR file", filePath);
+			errno = EFORMAT;
+		}
+		return NULL;
 	}
 
 	uint32_t flags;
 	if (!readUInt32(stream, &flags, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	uint64_t pvrFormat;
 	if (!readUInt64(stream, &pvrFormat, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	dsGfxFormat format = dsGfxFormat_Unknown;
 	if (pvrFormat & 0xFFFFFFFF00000000ULL)
@@ -350,7 +356,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 		{
 			pvrError("Unsupported PVR texture format", filePath);
 			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(NULL);
+			return NULL;
 		}
 	}
 	else
@@ -360,7 +366,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 		{
 			pvrError("Unsupported PVR texture format", filePath);
 			errno = EPERM;
-			DS_PROFILE_FUNC_RETURN(NULL);
+			return NULL;
 		}
 
 		format = formatMap[(size_t)pvrFormat];
@@ -368,18 +374,18 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 
 	uint32_t colorSpace;
 	if (!readUInt32(stream, &colorSpace, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	if (colorSpace != 0 && colorSpace != 1)
 	{
 		pvrError("Unknown color space for PVR texture", filePath);
 		errno = EFORMAT;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	uint32_t channelType;
 	if (!readUInt32(stream, &channelType, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	if (dsGfxFormat_standardIndex(format) != 0 || dsGfxFormat_compressedIndex(format) != 0)
 	{
@@ -424,7 +430,7 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 			default:
 				pvrError("Unknown channel type for PVR texture", filePath);
 				errno = EFORMAT;
-				DS_PROFILE_FUNC_RETURN(NULL);
+				return NULL;
 		}
 	}
 
@@ -433,35 +439,35 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 		!readUInt32(stream, &depth, filePath) || !readUInt32(stream, &surfaces, filePath) ||
 		!readUInt32(stream, &faces, filePath) || !readUInt32(stream, &mipLevels, filePath))
 	{
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	if (width == 0 || height == 0 || depth == 0 || surfaces == 0 || faces == 0 || mipLevels == 0)
 	{
 		pvrError("Invalid dimensions for PVR texture", filePath);
 		errno = EFORMAT;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	if (surfaces > 1 && depth > 1)
 	{
 		pvrError("Cannot have a 3D texture array for PVR texture", filePath);
 		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	if (faces != 1 && faces != 6)
 	{
 		pvrError("Must have a single face or full cube map for PVR texture", filePath);
 		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	if (depth > 1 && faces == 6)
 	{
 		pvrError("Cannot have a 3D cube map for PVR texture", filePath);
 		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	dsTextureDim textureDim;
@@ -487,18 +493,18 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 	}
 
 	if (!readMetadata(stream, &format, &depth, &textureDim, filePath))
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,
 		depth, mipLevels);
 	if (!textureData)
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 
 	if (dsStream_read(stream, textureData->data, textureData->dataSize) != textureData->dataSize)
 	{
 		pvrSizeError(filePath);
 		dsTextureData_destroy(textureData);
-		DS_PROFILE_FUNC_RETURN(NULL);
+		return NULL;
 	}
 
 	return textureData;
@@ -506,20 +512,23 @@ static dsTextureData* loadPvr(dsAllocator* allocator, dsStream* stream, const ch
 
 dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator, const char* filePath)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!allocator || !filePath)
 	{
 		errno = EINVAL;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsFileStream fileStream;
 	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open PVR file '%s'.", filePath);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* textureData = loadPvr(allocator, (dsStream*)&fileStream, filePath);
+	dsTextureData* textureData = dsTextureData_loadPvr(NULL, allocator, (dsStream*)&fileStream,
+		filePath);
 	if (textureData)
 	{
 		uint64_t pos = dsStream_tell((dsStream*)&fileStream);
@@ -532,18 +541,21 @@ dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator, const char* fil
 		}
 	}
 	DS_VERIFY(dsStream_close((dsStream*)&fileStream));
-	return textureData;
+	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
 dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocator, dsStream* stream)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	return loadPvr(allocator, stream, NULL);
+	dsTextureData* result = dsTextureData_loadPvr(NULL, allocator, stream, NULL);
+	DS_PROFILE_FUNC_RETURN(result);
 }
 
 dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,

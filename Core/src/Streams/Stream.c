@@ -20,6 +20,9 @@ size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
 size_t dsStream_skip(dsStream* stream, uint64_t size)
 {
+	if (size == 0)
+		return 0;
+
 	uint8_t buffer[1024];
 	if (stream->seekFunc && size > sizeof(buffer))
 	{
