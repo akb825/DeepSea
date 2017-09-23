@@ -2,7 +2,9 @@
 
 DeepSea Render contains the interface for the rendering engine. This will be implemented for the various system graphics APIs to be used in the final application.
 
-The central object is provided by dsRenderer. From this, dsResourceManager can be used to create resources such as graphics buffers, textures, shaders, etc.
+The central object is provided by `dsRenderer`. From this, `dsResourceManager` can be used to create resources such as graphics buffers, textures, shaders, etc.
+
+All rendering must be done withing a `dsRenderPass`. This provides information about the framebuffer to render to. A render pass contains one or more subpasses. This is the same as Vulkan's subpass concept, where you can read the result of the current pixel from previous subpasses. This can improve rendering performance on some platforms compared to using independent render passes.
 
 # Shader Notes
 
