@@ -29,6 +29,7 @@
 #include "GLRenderSurface.h"
 #include "Types.h"
 
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
@@ -117,8 +118,11 @@ static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools,
 		return NULL;
 
 	size_t index = *curPools;
-	if (!dsGLAddToBuffer(allocator, (void**)pools, curPools, maxPools, sizeof(dsPoolAllocator), 1))
+	if (!dsResizeableArray_add(allocator, (void**)pools, curPools, maxPools,
+		sizeof(dsPoolAllocator), 1))
+	{
 		return NULL;
+	}
 
 	DS_ASSERT(index < *maxPools);
 	dsPoolAllocator* pool = *pools + index;
@@ -655,7 +659,7 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 	}
 
 	size_t index = glRenderer->curDestroyVaos;
-	if (!dsGLAddToBuffer(renderer->allocator, (void**)&glRenderer->destroyVaos,
+	if (!dsResizeableArray_add(renderer->allocator, (void**)&glRenderer->destroyVaos,
 		&glRenderer->curDestroyVaos, &glRenderer->maxDestroyVaos, sizeof(GLuint), 1))
 	{
 		dsMutex_unlock(glRenderer->contextMutex);
@@ -689,7 +693,7 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 	}
 
 	size_t index = glRenderer->curDestroyFbos;
-	if (!dsGLAddToBuffer(renderer->allocator, (void**)&glRenderer->destroyFbos,
+	if (!dsResizeableArray_add(renderer->allocator, (void**)&glRenderer->destroyFbos,
 		&glRenderer->curDestroyFbos, &glRenderer->maxDestroyFbos, sizeof(GLuint), 1))
 	{
 		dsMutex_unlock(glRenderer->contextMutex);

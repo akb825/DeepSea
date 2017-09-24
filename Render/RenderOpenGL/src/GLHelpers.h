@@ -25,9 +25,6 @@ void dsClearGLErrors(void);
 GLenum dsGetLastGLError(void);
 int dsGetGLErrno(GLenum error);
 
-bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems,
-	size_t* maxElems, size_t elemSize, size_t addElems);
-
 GLenum dsGetGLMinFilter(mslFilter minFilter, mslMipFilter mipFilter);
 GLenum dsGetGLMagFilter(mslFilter magFilter);
 GLenum dsGetGLAddressMode(mslAddressMode addressMode);

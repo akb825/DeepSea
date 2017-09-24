@@ -77,39 +77,6 @@ int dsGetGLErrno(GLenum error)
 	}
 }
 
-bool dsGLAddToBuffer(dsAllocator* allocator, void** buffer, size_t* curElems, size_t* maxElems,
-	size_t elemSize, size_t addElems)
-{
-	DS_ASSERT(allocator);
-	DS_ASSERT(buffer);
-	DS_ASSERT(curElems);
-	DS_ASSERT(maxElems);
-	DS_ASSERT(*buffer || *curElems == 0);
-
-	if (*curElems + addElems <= *maxElems)
-	{
-		*curElems += addElems;
-		return true;
-	}
-
-	size_t newMaxElems = dsMax(16U, addElems);
-	newMaxElems = dsMax(newMaxElems, *maxElems*2);
-	DS_ASSERT(newMaxElems >= *curElems + addElems);
-	void* newBuffer = dsAllocator_alloc(allocator, newMaxElems*elemSize);
-	if (!newBuffer)
-		return false;
-
-	if (*buffer)
-	{
-		memcpy(newBuffer, *buffer, *curElems*elemSize);
-		DS_VERIFY(dsAllocator_free(allocator, buffer));
-	}
-	*curElems += addElems;
-	*maxElems = newMaxElems;
-	*buffer = newBuffer;
-	return true;
-}
-
 GLenum dsGetGLMinFilter(mslFilter minFilter, mslMipFilter mipFilter)
 {
 	switch (minFilter)

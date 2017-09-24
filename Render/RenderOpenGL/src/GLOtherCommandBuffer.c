@@ -26,6 +26,7 @@
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "GLRenderPass.h"
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -414,7 +415,7 @@ bool dsGLOtherCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFe
 {
 	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
 	size_t index = glCommandBuffer->curFenceSyncs;
-	if (!dsGLAddToBuffer(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
+	if (!dsResizeableArray_add(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
 		&glCommandBuffer->curFenceSyncs, &glCommandBuffer->maxFenceSyncs, sizeof(dsGLFenceSyncRef*),
 		syncCount))
 	{

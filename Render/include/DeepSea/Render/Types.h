@@ -229,7 +229,7 @@ typedef struct dsRenderer dsRenderer;
 typedef struct dsRenderSurface
 {
 	/**
-	 * The renderer this is used with.
+	 * @brief The renderer this is used with.
 	 */
 	dsRenderer* renderer;
 
