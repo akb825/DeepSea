@@ -21,11 +21,11 @@
 #include <DeepSea/Core/Error.h>
 #include <string.h>
 
-bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, size_t* elementCount,
-	size_t* maxElements, size_t elementSize, size_t addCount)
+bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elementCount,
+	uint32_t* maxElements, uint32_t elementSize, uint32_t addCount)
 {
-	if (!allocator || !buffer || !elementCount || !maxElements || elementSize == 0 ||
-		(!*buffer && *maxElements > 0) || *elementCount > *maxElements)
+	if (!allocator || !allocator->freeFunc || !buffer || !elementCount || !maxElements ||
+		elementSize == 0 || (!*buffer && *maxElements > 0) || *elementCount > *maxElements)
 	{
 		errno = EINVAL;
 		return false;
@@ -37,11 +37,11 @@ bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, size_t* elemen
 		return true;
 	}
 
-	size_t newMaxElements = *maxElements*2;
+	uint32_t newMaxElements = *maxElements*2;
 	if (newMaxElements < *elementCount + addCount)
 		newMaxElements = *elementCount + addCount;
 
-	const size_t minElements = 16;
+	const uint32_t minElements = 16;
 	if (newMaxElements < minElements)
 		newMaxElements = minElements;
 

@@ -102,8 +102,8 @@ static bool hasRequiredFunctions(void)
 	return true;
 }
 
-static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools, size_t* curPools,
-	size_t* maxPools, size_t elemSize, size_t poolElements)
+static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools, uint32_t* curPools,
+	uint32_t* maxPools, uint32_t elemSize, uint32_t poolElements)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(pools);
@@ -474,6 +474,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
+	baseRenderer->rendererType = DS_GL_RENDERER_TYPE;
 
 	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
 		allocator);

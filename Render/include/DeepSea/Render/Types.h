@@ -920,6 +920,13 @@ struct dsRenderer
 	dsResourceManager* resourceManager;
 
 	/**
+	 * @brief The type of the renderer.
+	 *
+	 * This is typically created with DS_FOURCC() to describe the type.
+	 */
+	uint32_t rendererType;
+
+	/**
 	 * @brief Thread ID for the main thread.
 	 *
 	 * Some operations may only be done from the main thread.

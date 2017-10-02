@@ -22,8 +22,8 @@
 TEST(ResizeableArray, Add)
 {
 	uint32_t* buffer = NULL;
-	size_t count = 0;
-	size_t capacity = 0;
+	uint32_t count = 0;
+	uint32_t capacity = 0;
 
 	dsSystemAllocator allocator;
 	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
@@ -49,7 +49,7 @@ TEST(ResizeableArray, Add)
 
 	EXPECT_TRUE(dsResizeableArray_add((dsAllocator*)&allocator, (void**)&buffer, &count, &capacity,
 		sizeof(*buffer), 1));
-	const size_t minSize = 16;
+	const uint32_t minSize = 16;
 	EXPECT_TRUE(buffer);
 	EXPECT_EQ(1U, count);
 	EXPECT_EQ(minSize, capacity);

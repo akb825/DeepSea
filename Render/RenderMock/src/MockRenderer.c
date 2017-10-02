@@ -241,6 +241,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	renderer->allocator = dsAllocator_keepPointer(allocator);
 	renderer->resourceManager = resourceManager;
+	renderer->rendererType = DS_MOCK_RENDERER_TYPE;
 
 	renderer->mainCommandBuffer = (dsCommandBuffer*)dsAllocator_alloc(
 		(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));

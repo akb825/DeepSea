@@ -52,8 +52,8 @@ struct dsGLMainCommandBuffer
 	dsGLCommandBuffer commandBuffer;
 
 	dsGLFenceSyncRef** fenceSyncs;
-	size_t curFenceSyncs;
-	size_t maxFenceSyncs;
+	uint32_t curFenceSyncs;
+	uint32_t maxFenceSyncs;
 	bool bufferReadback;
 
 	const dsFramebuffer* curFramebuffer;
@@ -731,7 +731,7 @@ bool dsGLMainCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer
 }
 
 bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	size_t syncCount, bool bufferReadback)
+	uint32_t syncCount, bool bufferReadback)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (((dsGLCommandBuffer*)commandBuffer)->boundRenderPass)

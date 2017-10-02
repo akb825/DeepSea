@@ -176,7 +176,7 @@ bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, ds
 }
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	size_t syncCount, bool bufferReadback)
+	uint32_t syncCount, bool bufferReadback)
 {
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->setFenceSyncsFunc(commandBuffer, syncs, syncCount, bufferReadback);

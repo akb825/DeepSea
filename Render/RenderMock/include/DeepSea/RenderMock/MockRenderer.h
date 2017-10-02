@@ -33,6 +33,11 @@ extern "C"
  */
 
 /**
+ * @brief Constant for the renderer type ID of the mock renderer.
+ */
+#define DS_MOCK_RENDERER_TYPE DS_FOURCC('M', 'O', 'C', 'K')
+
+/**
  * @brief Creates a mock renderer.
  * @param allocator The allocator to use.
  * @return The renderer.

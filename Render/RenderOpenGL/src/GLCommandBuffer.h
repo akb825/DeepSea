@@ -38,7 +38,7 @@ bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	size_t syncCount, bool bufferReadback);
+	uint32_t syncCount, bool bufferReadback);
 
 bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,

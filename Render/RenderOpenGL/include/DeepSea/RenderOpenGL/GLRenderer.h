@@ -31,6 +31,11 @@ extern "C"
  */
 
 /**
+ * @brief Constant for the renderer type ID of the OpenGL renderer.
+ */
+#define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
+
+/**
  * @brief Initializes the dsOpenGLOptions structure with the default options.
  * @param options The options to initialize.
  */

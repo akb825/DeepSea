@@ -268,8 +268,8 @@ struct dsGLOtherCommandBuffer
 	dsBufferAllocator buffer;
 
 	dsGLFenceSyncRef** fenceSyncs;
-	size_t curFenceSyncs;
-	size_t maxFenceSyncs;
+	uint32_t curFenceSyncs;
+	uint32_t maxFenceSyncs;
 	bool bufferReadback;
 };
 
@@ -411,7 +411,7 @@ bool dsGLOtherCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffe
 }
 
 bool dsGLOtherCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	size_t syncCount, bool bufferReadback)
+	uint32_t syncCount, bool bufferReadback)
 {
 	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
 	size_t index = glCommandBuffer->curFenceSyncs;

@@ -141,6 +141,17 @@
 #define DS_IS_BUFFER_RANGE_VALID(offset, rangeSize, bufferSize) \
 	((offset) <= (bufferSize) && ((bufferSize) - (offset)) >= (rangeSize))
 
+/**
+ * @brief Packs four characters into an integer.
+ * @param a The first character.
+ * @param b The second character.
+ * @param c The third character.
+ * @param d The fourth character.
+ * @return The combined integer.
+ */
+#define DS_FOURCC(a, b, c, d) ((unsigned int)(a) | ((unsigned int)(b) << 8) | \
+	((unsigned int)(c) << 16) | ((unsigned int)(d) << 24 ))
+
 #if DS_MSC
 #pragma warning(disable: 4200) // nonstandard extension used : zero-sized array in struct/union
 #endif

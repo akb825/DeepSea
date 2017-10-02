@@ -24,8 +24,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Types.h>
 
-#define PVR_FOURCC(a, b, c, d) \
-	((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24 ))
 #define PVR_GENERIC_FORMAT(channel0, bits0, channel1, bits1, channel2, bits2, channel3, bits3) \
 	(((uint64_t)(channel0) | ((uint64_t)(channel1) << 8) | ((uint64_t)(channel2) << 16) | \
 		((uint64_t)(channel3) << 24) | \
@@ -278,16 +276,16 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
 
 		// Check metadata to see if there's alpha for BC1.
 		if ((*format & dsGfxFormat_CompressedMask) == dsGfxFormat_BC1_RGBA &&
-			fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('B', 'C', '1', 0))
+			fourcc == DS_FOURCC('C', 'T', 'F', 'S') && key == DS_FOURCC('B', 'C', '1', 0))
 		{
 			*format = (dsGfxFormat)(dsGfxFormat_BC1_RGB | (*format & ~dsGfxFormat_CompressedMask));
 		}
-		else if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') &&
-			key == PVR_FOURCC('A', 'R', 'R', 'Y') && *depth == 0)
+		else if (fourcc == DS_FOURCC('C', 'T', 'F', 'S') &&
+			key == DS_FOURCC('A', 'R', 'R', 'Y') && *depth == 0)
 		{
 			*depth = 1;
 		}
-		else if (fourcc == PVR_FOURCC('C', 'T', 'F', 'S') && key == PVR_FOURCC('D', 'I', 'M', '1'))
+		else if (fourcc == DS_FOURCC('C', 'T', 'F', 'S') && key == DS_FOURCC('D', 'I', 'M', '1'))
 			*dim = dsTextureDim_1D;
 
 		if (!skipBytes(stream, dataSize, filePath))

@@ -218,13 +218,13 @@ typedef struct dsGLRenderer
 	dsMutex* contextMutex;
 
 	GLuint* destroyVaos;
-	size_t maxDestroyVaos;
-	size_t curDestroyVaos;
+	uint32_t maxDestroyVaos;
+	uint32_t curDestroyVaos;
 	bool boundAttributes[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
 
 	GLuint* destroyFbos;
-	size_t maxDestroyFbos;
-	size_t curDestroyFbos;
+	uint32_t maxDestroyFbos;
+	uint32_t curDestroyFbos;
 
 	GLuint sharedTempFramebuffer;
 	GLuint sharedTempCopyFramebuffer;
@@ -232,13 +232,13 @@ typedef struct dsGLRenderer
 	GLuint tempCopyFramebuffer;
 
 	dsPoolAllocator* syncPools;
-	size_t curSyncPools;
-	size_t maxSyncPools;
+	uint32_t curSyncPools;
+	uint32_t maxSyncPools;
 	dsSpinlock syncPoolLock;
 
 	dsPoolAllocator* syncRefPools;
-	size_t curSyncRefPools;
-	size_t maxSyncRefPools;
+	uint32_t curSyncRefPools;
+	uint32_t maxSyncRefPools;
 	dsSpinlock syncRefPoolLock;
 
 	void* curGLSurface;
@@ -265,7 +265,7 @@ typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture*
 typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	size_t syncCount, bool bufferReadback);
+	uint32_t syncCount, bool bufferReadback);
 
 typedef bool (*GLBindShaderFunctiion)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);

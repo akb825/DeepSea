@@ -8,6 +8,7 @@ The following software is required to build DeepSea:
 
 * [cmake](https://cmake.org/) 3.0.2 or later
 * Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies)
+* [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
@@ -26,14 +27,28 @@ DeepSea has been built for and tested on the following platforms:
 
 # Building
 
-Building is done with CMake. To build a release build, execute the following commands:
+[CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
+
+## Linux/Mac OS X
+
+To create a release build, execute the following commands:
 
 	DeepSea$ mkdir build
 	DeepSea$ cd build
 	DeepSea/build$ cmake .. -DCMAKE_BUILD_TYPE=Release
 	DeepSea/build$ make
 
-The following options may be used when running cmake:
+The tests can be run by running the command:
+
+	DeepSea/build$ ctest
+
+## Windows
+
+Building is generally performed through Visual Studio. This can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
+
+	DeepSea$ mkdir build
+	DeepSea$ cd build
+	DeepSea\build$ cmake .. -G "Visual Studio 15 2017 Win64"
 
 ## Compile Options:
 
@@ -50,6 +65,7 @@ The following options may be used when running cmake:
 * `-DDEEPSEA_BUILD_RENDER=ON|OFF`: Set to `ON` to build the libraries related to rendering. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 
 ## OpenGL specific Options
 
@@ -79,6 +95,7 @@ DeepSea contains the following modules:
 * [Render](Render/README.md): (Optional) Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
 * [RenderMock](Render/RenderMock/README.md): (Optional) Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](Render/RenderOpenGL/README.md): (Optional) OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
+* [Application](Application/README.md): (Optional) Application library, providing functionality such as input and window events.
 
 The directory structure of the include files is:
 

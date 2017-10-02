@@ -301,6 +301,7 @@ DS_RENDER_EXPORT bool dsRenderer_waitUntilIdle(dsRenderer* renderer);
  * render implementation.
  *
  * @remark errno will be set on failure.
+ * @param renderer The renderer.
  * @return False if an error occurred.
  */
 DS_RENDER_EXPORT bool dsRenderer_initialize(dsRenderer* renderer);
@@ -309,6 +310,8 @@ DS_RENDER_EXPORT bool dsRenderer_initialize(dsRenderer* renderer);
  * @brief Destroys the private members of a renderer.
  *
  * This is called by the render implementation.
+ *
+ * @param renderer The renderer.
  */
 DS_RENDER_EXPORT void dsRenderer_shutdown(dsRenderer* renderer);
 

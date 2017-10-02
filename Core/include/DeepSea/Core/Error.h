@@ -47,6 +47,11 @@ extern "C"
 #define EFORMAT 10002
 
 /**
+ * @brief Error for an element not found.
+ */
+#define ENOTFOUND 10003
+
+/**
  * @brief Executes a statement and prints an error if it fails.
  *
  * This will do the following:

@@ -24,13 +24,14 @@
 static DS_THREAD_LOCAL char buffer[BUFFER_SIZE];
 
 #define FIRST_CUSTOM EINDEX
-#define LAST_CUSTOM EFORMAT
+#define LAST_CUSTOM ENOTFOUND
 
 static const char* customCodes[] =
 {
 	"Index out of range",
 	"Invalid size",
-	"Invalid file format"
+	"Invalid file format",
+	"Element not found"
 };
 
 const char* dsErrorString(int errorCode)

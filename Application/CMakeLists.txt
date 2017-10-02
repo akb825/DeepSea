@@ -1,0 +1,2 @@
+ds_add_module_library(deepsea_application deepsea_render)
+ds_install_library(TARGET deepsea_application MODULE Application DEPENDENCIES Render)

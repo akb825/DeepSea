@@ -51,8 +51,8 @@ extern "C"
  * @param addCount The number of elements to add.
  * @return False if the parameters are invalid or the buffer couldn't be allocated.
  */
-bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, size_t* elementCount,
-	size_t* maxElements, size_t elementSize, size_t addCount);
+bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elementCount,
+	uint32_t* maxElements, uint32_t elementSize, uint32_t addCount);
 
 #ifdef __cplusplus
 }

@@ -26,8 +26,6 @@
 #include <DeepSea/Render/Types.h>
 
 #define DDS_MAGIC_NUMBER 0x20534444
-#define DDS_FOURCC(a, b, c, d) \
-	((uint32_t)(a) | ((uint32_t)(b) << 8) | ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24 ))
 
 typedef enum DdsFlags
 {
@@ -269,26 +267,26 @@ static dsGfxFormat getDdsFormat(const DdsPixelFormat* format)
 	{
 		switch (format->fourCC)
 		{
-			case DDS_FOURCC('D', 'X', 'T', '1'):
+			case DS_FOURCC('D', 'X', 'T', '1'):
 			{
 				if (format->flags & DdsFormatFlags_AlphaPixels)
 					return dsGfxFormat_decorate(dsGfxFormat_BC1_RGBA, dsGfxFormat_UNorm);
 				else
 					return dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm);
 			}
-			case DDS_FOURCC('D', 'X', 'T', '2'):
-			case DDS_FOURCC('D', 'X', 'T', '3'):
+			case DS_FOURCC('D', 'X', 'T', '2'):
+			case DS_FOURCC('D', 'X', 'T', '3'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC2, dsGfxFormat_UNorm);
-			case DDS_FOURCC('D', 'X', 'T', '4'):
-			case DDS_FOURCC('D', 'X', 'T', '5'):
+			case DS_FOURCC('D', 'X', 'T', '4'):
+			case DS_FOURCC('D', 'X', 'T', '5'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm);
-			case DDS_FOURCC('B', 'C', '4', 'U'):
+			case DS_FOURCC('B', 'C', '4', 'U'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC4, dsGfxFormat_UNorm);
-			case DDS_FOURCC('B', 'C', '4', 'S'):
+			case DS_FOURCC('B', 'C', '4', 'S'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC4, dsGfxFormat_SNorm);
-			case DDS_FOURCC('B', 'C', '5', 'U'):
+			case DS_FOURCC('B', 'C', '5', 'U'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC5, dsGfxFormat_UNorm);
-			case DDS_FOURCC('B', 'C', '5', 'S'):
+			case DS_FOURCC('B', 'C', '5', 'S'):
 				return dsGfxFormat_decorate(dsGfxFormat_BC5, dsGfxFormat_SNorm);
 			case 36:
 				return dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_UNorm);
@@ -629,7 +627,7 @@ dsTextureData* dsTextureData_loadDds(bool* isDds, dsAllocator* allocator, dsStre
 
 	dsGfxFormat format;
 	if ((header.ddspf.flags & DdsFormatFlags_FourCC) &&
-		header.ddspf.fourCC == DDS_FOURCC('D', 'X', '1', '0'))
+		header.ddspf.fourCC == DS_FOURCC('D', 'X', '1', '0'))
 	{
 		DdsHeaderDxt10 headerDxt10;
 		if (!dsStream_read(stream, &headerDxt10, sizeof(headerDxt10)))
