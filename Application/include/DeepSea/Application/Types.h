@@ -45,6 +45,11 @@ extern "C"
 #endif
 
 /**
+ * @brief Constant for no message box button.
+ */
+#define DS_MESSAGE_BOX_NO_BUTTON (uint32_t)-1
+
+/**
  * @brief Log tag used by the render library.
  */
 #define DS_APPLICATION_LOG_TAG "application"
@@ -71,10 +76,14 @@ typedef enum dsEventType
 	dsEventType_WindowRestored,  ///< A window has been restored after minimized. No event field
 	                             ///< will be set.
 	dsEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
+	dsEventType_SurfaceInvalidated, ///< A window surface has been invalidated and re-created.
+	                             ///< Any references to the surface must be updated. No event field
+	                             ///< will be set.
 	dsEventType_MouseEnter,      ///< Mouse has entered a window. No event field will be set.
 	dsEventType_MouseLeave,      ///< Mouse has leaved a window. No event field will be set.
 	dsEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
 	dsEventType_FocusLost,       ///< Window focus has been lost. No event field will be set.
+	dsEventType_Custom,          ///< Custom event. The custom field will be set.
 } dsEventType;
 
 /**
@@ -105,6 +114,16 @@ typedef enum dsWindowFlags
 	dsWindowFlags_GrabInput = 0x10, ///< Grab input and lock to the window.
 	dsWindowFlags_Center = 0x20     ///< Center the window on the target display.
 } dsWindowFlags;
+
+/**
+ * @brief Enum for the type of a message box.
+ */
+typedef enum dsMessageBoxType
+{
+	dsMessageBoxType_Info,    ///< Information box.
+	dsMessageBoxType_Warning, ///< Non-critical warning.
+	dsMessageBoxType_Error    ///< Error message.
+} dsMessageBoxType;
 
 /**
  * @brief Enum for the cursor to be displayed.
@@ -231,6 +250,34 @@ typedef struct dsResizeEvent
 } dsResizeEvent;
 
 /**
+ * @brief Function for cleaning up a custom event.
+ * @param eventId User-specified ID describing the event.
+ * @param userData The user data to clean up.
+ */
+typedef void (*dsCustomEventCleanupFunction)(uint32_t eventId, void* userData);
+
+/**
+ * @brief Struct containing information about a custom event.
+ */
+typedef struct dsCustomEvent
+{
+	/**
+	 * @brief User-specified ID describing the event.
+	 */
+	uint32_t eventId;
+
+	/**
+	 * @brief User data provided with the event.
+	 */
+	void* userData;
+
+	/**
+	 * @brief Function for cleaning up the event user data.
+	 */
+	dsCustomEventCleanupFunction cleanupFunc;
+} dsCustomEvent;
+
+/**
  * @brief Base object for an application that uses DeepSea.
  *
  * Application implementations can effectively subclass this type by having it as the first member
@@ -326,8 +373,17 @@ typedef struct dsEvent
 
 		/**
 		 * @brief Information about a window resize.
+		 *
+		 * This is set for dsEventType_Resize.
 		 */
 		dsResizeEvent resize;
+
+		/**
+		 * @brief Information about a custom event.
+		 *
+		 * This is set for dsEventType_Custom.
+		 */
+		dsCustomEvent custom;
 	};
 } dsEvent;
 
@@ -441,6 +497,35 @@ typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* windo
  * @return True to close the window, false to leave it open.
  */
 typedef bool (*dsWindowCloseFunction)(dsWindow* window, void* userData);
+
+/**
+ * @brief Function to add a custom event.
+ * @param application The application.
+ * @param window The window associated with the event.
+ * @param event The custom event to queue.
+ * @return False if the event couldn't be added.
+ */
+typedef bool (*dsAddCustomEventFunction)(dsApplication* application, dsWindow* window,
+	const dsCustomEvent* event);
+
+/**
+ * @brief Function to show a message box.
+ * @param application The application.
+ * @param parentWindow The parent window for the dialog, or NULL to be unparented.
+ * @param type The type of the message box.
+ * @param title The title of the message box.
+ * @param message The message to display.
+ * @param buttons The list of button names.
+ * @param buttonCount The number of buttons.
+ * @param enterButton The index of the button to trigger with the enter key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @param escapeButton The index of the button to trigger with the escape key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @return The index of the pressed button, or DS_MESSAGE_BOX_NO_BUTTON if an error occurred.
+ */
+typedef uint32_t (*dsShowApplicationMessageBoxFunction)(dsApplication* application,
+	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
+	const char** buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
 
 /**
  * @brief Function for running an application.
@@ -933,6 +1018,16 @@ struct dsApplication
 	 * @brief User data for update function.
 	 */
 	void* updateUserData;
+
+	/**
+	 * @brief Function for adding a custom event.
+	 */
+	dsAddCustomEventFunction addCustomEventFunc;
+
+	/**
+	 * @brief Function for showing a message box.
+	 */
+	dsShowApplicationMessageBoxFunction showMessageBoxFunc;
 
 	/**
 	 * @brief Function for running the application.

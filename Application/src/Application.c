@@ -201,6 +201,35 @@ bool dsApplication_removeWindow(dsApplication* application, dsWindow* window)
 	return false;
 }
 
+bool dsApplication_addCustomEvent(dsApplication* application, dsWindow* window,
+	const dsCustomEvent* event)
+{
+	if (!application || !application->addCustomEventFunc || !event)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return application->addCustomEventFunc(application, window, event);
+}
+
+uint32_t dsApplication_showMessageBox(dsApplication* application, dsWindow* parentWindow,
+	dsMessageBoxType type, const char* title, const char* message, const char** buttons,
+	uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton)
+{
+	if (!application || !application->showMessageBoxFunc || !title || !message || !buttons ||
+		buttonCount == 0 ||
+		(enterButton != DS_MESSAGE_BOX_NO_BUTTON && enterButton >= buttonCount) ||
+		(escapeButton != DS_MESSAGE_BOX_NO_BUTTON && escapeButton >= buttonCount))
+	{
+		errno = EINVAL;
+		return DS_MESSAGE_BOX_NO_BUTTON;
+	}
+
+	return application->showMessageBoxFunc(application, parentWindow, type, title, message, buttons,
+		buttonCount, enterButton, escapeButton);
+}
+
 int dsApplication_run(dsApplication* application)
 {
 	if (!application || !application->runFunc)
@@ -363,6 +392,9 @@ bool dsApplication_dispatchEvent(dsApplication* application, dsWindow* window,
 		if (!responder->eventFunc(application, window, event, responder->userData))
 			break;
 	}
+
+	if (event->type == dsEventType_Custom && event->custom.cleanupFunc)
+		event->custom.cleanupFunc(event->custom.eventId, event->custom.userData);
 
 	return true;
 }

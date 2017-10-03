@@ -88,22 +88,6 @@ DS_APPLICATION_EXPORT bool dsApplication_setUpdateFunction(dsApplication* applic
 	dsUpdateApplicationFunction function, void* userData);
 
 /**
- * @brief Creates a new window and adds it to the application.
- * @remark errno will be set on failure.
- * @param application The application.
- * @param title The title of the window.
- * @param position The position of the window in screen space, or NULL if the default position.
- *     If flags contains the dsWindowFlags_Center flag, then the x coordinate of the position is the
- *     display index.
- * @param width The width of the window.
- * @param height The height of the window.
- * @param flags Combination of dsWindowFlags values.
- * @return The created window or NULL if an error occurred.
- */
-DS_APPLICATION_EXPORT dsWindow* dsApplication_createWindow(dsApplication* application,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height, int flags);
-
-/**
  * @brief Adds an existing window to the application.
  *
  * This is useful when more control is required when setting up a window. For example, if it's
@@ -124,6 +108,36 @@ DS_APPLICATION_EXPORT bool dsApplication_addWindow(dsApplication* application, d
  * @return True if the window was removed.
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeWindow(dsApplication* application, dsWindow* window);
+
+/**
+ * @brief Adds a custom event to be placed on the event queue.
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param window The window associated with the event.
+ * @param event The custom event to queue.
+ * @return False if the event couldn't be added.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_addCustomEvent(dsApplication* application,
+	dsWindow* window, const dsCustomEvent* event);
+
+/**
+ * @brief Shows a message box and blocks execution until it's dismissed.
+ * @param application The application.
+ * @param parentWindow The parent window for the dialog, or NULL to be unparented.
+ * @param type The type of the message box.
+ * @param title The title of the message box.
+ * @param message The message to display.
+ * @param buttons The list of button names.
+ * @param buttonCount The number of buttons.
+ * @param enterButton The index of the button to trigger with the enter key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @param escapeButton The index of the button to trigger with the escape key, or
+ *     DS_MESSAGE_BOX_NO_BUTTON for no button.
+ * @return The index of the pressed button, or DS_MESSAGE_BOX_NO_BUTTON if an error occurred.
+ */
+DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* application,
+	dsWindow* parentWindow, dsMessageBoxType type, const char* title, const char* message,
+	const char** buttons, uint32_t buttonCount, uint32_t enterButton, uint32_t escapeButton);
 
 /**
  * @brief Runs the application.
