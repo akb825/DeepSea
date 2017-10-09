@@ -227,12 +227,7 @@ static void updateWindowSamples(dsApplication* application)
 		dsVector2i position;
 		dsSDLWindow_getPosition(&position, application, window);
 
-		dsAllocator* allocator = window->allocator;
 		const char* title = window->title;
-		dsDrawWindowFunction drawFunc = window->drawFunc;
-		void* drawUserData = window->drawUserData;
-		dsWindowCloseFunction closeFunc = window->closeFunc;
-		void* closeUserData = window->closeUserData;
 		dsDisplayMode displayMode = window->displayMode;
 		dsWindowStyle style = window->style;
 
@@ -248,10 +243,7 @@ static void updateWindowSamples(dsApplication* application)
 		if (dsSDLWindow_getGrabbedInput(application, window))
 			flags |= dsWindowFlags_GrabInput;
 
-		DS_VERIFY(dsSDLWindow_destroy(application, window));
-		window = dsSDLWindow_create(application, allocator, title, &position, width, height,
-			flags);
-		if (!window)
+		if (!dsSDLWindow_createComponents(window, title, &position, width, height, flags))
 		{
 			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s",
 				dsErrorString(errno));
@@ -261,12 +253,6 @@ static void updateWindowSamples(dsApplication* application)
 		DS_VERIFY(dsSDLWindow_setDisplayMode(application, window, &displayMode));
 		if (style != dsWindowStyle_Normal)
 			DS_VERIFY(dsSDLWindow_setStyle(application, window, style));
-		window->drawFunc = drawFunc;
-		window->drawUserData = drawUserData;
-		window->closeFunc = closeFunc;
-		window->closeUserData = closeUserData;
-
-		application->windows[i] = window;
 
 		dsEvent event;
 		event.type = dsEventType_SurfaceInvalidated;

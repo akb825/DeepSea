@@ -41,10 +41,12 @@ static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, boo
 		*outX = *outY = SDL_WINDOWPOS_UNDEFINED;
 }
 
-dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
-	unsigned int flags)
+bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsVector2i* position,
+	uint32_t width, uint32_t height, unsigned int flags)
 {
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	dsApplication* application = window->application;
+
 	unsigned int sdlFlags = 0;
 	int x, y;
 	getSdlPosition(&x, &y, position, (flags & dsWindowFlags_Center) != 0);
@@ -60,32 +62,33 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
 
-	SDL_Window* sdlWindow = SDL_CreateWindow(title, x, y, width, height, sdlFlags);
+	if (window->surface)
+	{
+		if (!dsRenderSurface_destroy(window->surface))
+			return false;
+		window->surface = NULL;
+	}
+
+	if (sdlWindow->sdlWindow)
+	{
+		SDL_DestroyWindow(sdlWindow->sdlWindow);
+		sdlWindow->sdlWindow = NULL;
+	}
+
+
+	SDL_Window* internalWindow = SDL_CreateWindow(title, x, y, width, height, sdlFlags);
 	if (!sdlWindow)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
-		return NULL;
+		return false;
 	}
 
-	dsSDLWindow* window = (dsSDLWindow*)dsAllocator_alloc(allocator, sizeof(dsSDLWindow));
-	if (!window)
-	{
-		SDL_DestroyWindow(sdlWindow);
-		return NULL;
-	}
-
-	memset(window, 0, sizeof(dsWindow));
-	window->sdlWindow = sdlWindow;
-	window->samples = application->renderer->surfaceSamples;
-
-	dsWindow* baseWindow = (dsWindow*)window;
-	baseWindow->application = application;
-	baseWindow->allocator = allocator;
-	baseWindow->title = title;
+	sdlWindow->samples = application->renderer->surfaceSamples;
+	sdlWindow->sdlWindow = internalWindow;
 
 	SDL_SysWMinfo info;
-	DS_VERIFY(SDL_GetWindowWMInfo(sdlWindow, &info));
+	DS_VERIFY(SDL_GetWindowWMInfo(internalWindow, &info));
 	void* windowHandle = NULL;
 	switch (info.subsystem)
 	{
@@ -117,23 +120,46 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 		default:
 			errno = EPERM;
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
-			dsSDLWindow_destroy(application, baseWindow);
-			return NULL;
+			SDL_DestroyWindow(internalWindow);
+			return false;
 	}
 
-	baseWindow->surface = dsRenderSurface_create(application->renderer, application->allocator,
-		window, dsRenderSurfaceType_Window);
-	if (!baseWindow->surface)
+	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
+		windowHandle, dsRenderSurfaceType_Window);
+	if (!window->surface)
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
-		dsSDLWindow_destroy(application, baseWindow);
-		return NULL;
+		SDL_DestroyWindow(internalWindow);
+		return false;
 	}
 
-	baseWindow->style = dsWindowStyle_Normal;
+	sdlWindow->sdlWindow = internalWindow;
+
+	window->style = dsWindowStyle_Normal;
 	DS_ASSERT(application->displayCount > 0);
-	baseWindow->displayMode = application->displays[0].displayModes[
+	window->displayMode = application->displays[0].displayModes[
 		application->displays[0].defaultMode];
+	return true;
+}
+
+dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
+	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
+	unsigned int flags)
+{
+	dsSDLWindow* window = (dsSDLWindow*)dsAllocator_alloc(allocator, sizeof(dsSDLWindow));
+	if (!window)
+		return NULL;
+
+	memset(window, 0, sizeof(dsSDLWindow));
+	dsWindow* baseWindow = (dsWindow*)window;
+	baseWindow->application = application;
+	baseWindow->allocator = allocator;
+
+	if (!dsSDLWindow_createComponents(baseWindow, title, position, width, height, flags))
+	{
+		DS_VERIFY(dsAllocator_free(allocator, window));
+		return NULL;
+	}
 
 	return baseWindow;
 }

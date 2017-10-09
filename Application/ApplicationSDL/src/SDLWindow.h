@@ -29,6 +29,9 @@ typedef struct dsSDLWindow
 	uint32_t samples;
 } dsSDLWindow;
 
+bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsVector2i* position,
+	uint32_t width, uint32_t height, unsigned int flags);
+
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
 	unsigned int flags);
