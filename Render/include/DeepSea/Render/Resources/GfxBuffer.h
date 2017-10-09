@@ -65,7 +65,8 @@ DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceMana
  *     offset to the end of the buffer.
  * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped.
  */
-DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size);
+DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset,
+	size_t size);
 
 /**
  * @brief Unmaps previously mapped memory from a graphics buffer.

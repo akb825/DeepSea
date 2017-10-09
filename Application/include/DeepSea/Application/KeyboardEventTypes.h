@@ -44,6 +44,7 @@ typedef enum dsKeyCode
 	dsKeyCode_G,
 	dsKeyCode_H,
 	dsKeyCode_I,
+	dsKeyCode_J,
 	dsKeyCode_K,
 	dsKeyCode_L,
 	dsKeyCode_M,
@@ -149,8 +150,8 @@ typedef enum dsKeyCode
 	dsKeyCode_KpComma,
 	dsKeyCode_KpLeftParen,
 	dsKeyCode_KpRightParen,
-	dsKeyCode_KpLeftSpace,
-	dsKeyCode_KpRightSpace,
+	dsKeyCode_KpLeftBrace,
+	dsKeyCode_KpRightBrace,
 	dsKeyCode_KpTab,
 	dsKeyCode_KpBackspace,
 	dsKeyCode_KpA,
@@ -160,7 +161,6 @@ typedef enum dsKeyCode
 	dsKeyCode_KpE,
 	dsKeyCode_KpF,
 	dsKeyCode_KpXOr,
-	dsKeyCode_KpCarot,
 	dsKeyCode_KpPercent,
 	dsKeyCode_KpLess,
 	dsKeyCode_KpGreater,
@@ -187,6 +187,7 @@ typedef enum dsKeyCode
 	dsKeyCode_KpOctal,
 	dsKeyCode_KpDecimal,
 	dsKeyCode_KpHex,
+	dsKeyCode_KpPower,
 	dsKeyCode_NonUSBackslash,
 	dsKeyCode_ContextMenu,
 	dsKeyCode_Power,
@@ -252,6 +253,8 @@ typedef enum dsKeyCode
 	dsKeyCode_AudioStop,
 	dsKeyCode_AudioPlay,
 	dsKeyCode_AudioMute,
+	dsKeyCode_AudioRewind,
+	dsKeyCode_AudioFastForward,
 	dsKeyCode_MediaSelect,
 	dsKeyCode_WWW,
 	dsKeyCode_Mail,
@@ -272,6 +275,8 @@ typedef enum dsKeyCode
 	dsKeyCode_KbdIllumUp,
 	dsKeyCode_Eject,
 	dsKeyCode_Sleep,
+	dsKeyCode_App1,
+	dsKeyCode_App2,
 
 	dsKeyCode_Count
 } dsKeyCode;
@@ -310,6 +315,11 @@ typedef struct dsKeyEvent
 	 * @brief The key that was pressed or released.
 	 */
 	dsKeyCode key;
+
+	/**
+	 * @brief The key modifiers currently pressed.
+	 */
+	dsKeyModifier modifiers;
 
 	/**
 	 * @brief True if the press was due to the key still being pressed.

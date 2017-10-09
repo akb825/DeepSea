@@ -924,7 +924,7 @@ struct dsRenderer
 	 *
 	 * This is typically created with DS_FOURCC() to describe the type.
 	 */
-	uint32_t rendererType;
+	uint32_t type;
 
 	/**
 	 * @brief Thread ID for the main thread.

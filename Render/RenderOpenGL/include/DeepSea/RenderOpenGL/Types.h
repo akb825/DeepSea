@@ -35,6 +35,16 @@ extern "C"
 #define DS_RENDER_OPENGL_LOG_TAG "opengl"
 
 /**
+ * @brief Constant for the renderer type ID of the OpenGL renderer using desktop OpenGL.
+ */
+#define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
+
+/**
+ * @brief Constant for the renderer type ID of the OpenGL renderer using OpenGL ES.
+ */
+#define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
+
+/**
  * @brief Struct containing the otpions for initializing OpenGL.
  */
 typedef struct dsOpenGLOptions

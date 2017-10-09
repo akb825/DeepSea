@@ -78,6 +78,9 @@ DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* app
 
 /**
  * @brief Sets the update function for the application.
+ *
+ * This function will be called before drawing all of the windows.
+ *
  * @remark errno will be set on failure.
  * @param application The application.
  * @param function The udpate function.
@@ -86,6 +89,20 @@ DS_APPLICATION_EXPORT bool dsApplication_removeEventResponder(dsApplication* app
  */
 DS_APPLICATION_EXPORT bool dsApplication_setUpdateFunction(dsApplication* application,
 	dsUpdateApplicationFunction function, void* userData);
+
+/**
+ * @brief Sets the function for finishing a frame in the application.
+ *
+ * This function will be called after drawing all of the windows.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param function The finish frame function.
+ * @param userData The user data to provide to the function.
+ * @return True if the function was set.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_setFinishFrameFunction(dsApplication* application,
+	dsFinishApplicationFrameFunction function, void* userData);
 
 /**
  * @brief Adds an existing window to the application.
@@ -108,6 +125,32 @@ DS_APPLICATION_EXPORT bool dsApplication_addWindow(dsApplication* application, d
  * @return True if the window was removed.
  */
 DS_APPLICATION_EXPORT bool dsApplication_removeWindow(dsApplication* application, dsWindow* window);
+
+/**
+ * @brief Adds an existing controller to the application.
+ *
+ * This is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param controller The controller to add.
+ * @return True if the controller that was added.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_addController(dsApplication* application,
+	dsController* controller);
+
+/**
+ * @brief Removes a controller from the application without destroying it.
+ *
+ * THis is usually called by the implementation and not directly.
+ *
+ * @remark errno will be set on failure.
+ * @param application The application.
+ * @param controller The controller to remove.
+ * @return True if the controller was removed.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_removeController(dsApplication* application,
+	dsController* controller);
 
 /**
  * @brief Adds a custom event to be placed on the event queue.
@@ -312,6 +355,7 @@ DS_APPLICATION_EXPORT bool dsApplication_initialize(dsApplication* application);
  * - windowResponders
  * - eventResponders
  * - windows
+ * - controllers
  * Only the base pointers are destroyed, not the elements within the arrays.
  *
  * @param application The application.

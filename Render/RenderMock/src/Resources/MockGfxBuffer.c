@@ -46,8 +46,8 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 	return &buffer->buffer;
 }
 
-void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, int flags,
-	size_t offset, size_t size)
+void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
+	unsigned int flags, size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(flags);

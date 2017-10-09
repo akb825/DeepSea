@@ -65,6 +65,14 @@ static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
 				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
 		}
 	}
+	else if (options->redBits == 10 && options->greenBits == 10 && options->blueBits == 10 &&
+		options->alphaBits == 2)
+	{
+		if (options->srgb)
+			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_SRGB);
+		else
+			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
+	}
 	else if (options->redBits == 5 && options->greenBits == 6 && options->blueBits == 5 &&
 		options->alphaBits == 0 && !options->srgb)
 	{
@@ -474,7 +482,11 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
-	baseRenderer->rendererType = DS_GL_RENDERER_TYPE;
+
+	if (ANYGL_GLES)
+		baseRenderer->type = DS_GLES_RENDERER_TYPE;
+	else
+		baseRenderer->type = DS_GL_RENDERER_TYPE;
 
 	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
 		allocator);

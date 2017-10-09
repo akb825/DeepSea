@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Error.h>
 
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
-	const dsVector2i* position, uint32_t width, uint32_t height, int flags)
+	const dsVector2i* position, uint32_t width, uint32_t height, unsigned int flags)
 {
 	if (!application || (!allocator && application->allocator) || !application->createWindowFunc ||
 		!application->destroyWindowFunc)
@@ -271,6 +271,5 @@ bool dsWindow_destroy(dsWindow* window)
 		errno = prevErrno;
 	}
 
-	application->destroyWindowFunc(application, window);
-	return true;
+	return application->destroyWindowFunc(application, window);
 }

@@ -27,6 +27,12 @@
 #	define DS_LINUX 1
 #elif defined(__APPLE__)
 #	define DS_APPLE 1
+#	include <TargetConditionals.h>
+#	if TARGET_OS_MAC
+#		define DS_MAC
+#	else
+#		define DS_IOS
+#	endif
 #endif
 
 // Android is also Linux, so separate.
@@ -60,9 +66,25 @@
 
 /**
  * @brief Define for whether the platform is Apple.
+ *
+ * Either DS_MAC or DS_IOS will also be defined.
  */
 #ifndef DS_APPLE
 #	define DS_APPLE 0
+#endif
+
+/**
+ * @brief Define for whether the platform is Mac OS.
+ */
+#ifndef DS_MAC
+#	define DS_MAC 0
+#endif
+
+/**
+ * @brief Define for whether the platform is iOS.
+ */
+#ifndef DS_IOS
+#	define DS_IOS 0
 #endif
 
 /**

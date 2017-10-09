@@ -137,6 +137,20 @@ bool dsApplication_setUpdateFunction(dsApplication* application,
 	return true;
 }
 
+bool dsApplication_setFinishFrameFunction(dsApplication* application,
+	dsFinishApplicationFrameFunction function, void* userData)
+{
+	if (!application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	application->finishFrameFunc = function;
+	application->finishFrameUserData = userData;
+	return true;
+}
+
 bool dsApplication_addWindow(dsApplication* application, dsWindow* window)
 {
 	if (!application || !application->destroyWindowFunc || !window ||
@@ -193,6 +207,57 @@ bool dsApplication_removeWindow(dsApplication* application, dsWindow* window)
 			}
 			memmove(application->windows + i, application->windows + i + 1,
 				sizeof(dsWindow*)*(application->windowCount - i - 1));
+			return true;
+		}
+	}
+
+	errno = ENOTFOUND;
+	return false;
+}
+
+bool dsApplication_addController(dsApplication* application, dsController* controller)
+{
+	if (!application || !controller || controller->application != application)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->controllerCount; ++i)
+	{
+		if (application->controllers[i] == controller)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_APPLICATION_LOG_TAG, "Controller has already been added.");
+			return false;
+		}
+	}
+
+	uint32_t index = application->controllerCount;
+	if (!dsResizeableArray_add(application->allocator, (void**)&application->controllers,
+		&application->controllerCount, &application->controllerCapacity, sizeof(dsController*), 1))
+	{
+		return false;
+	}
+
+	application->controllers[index] = controller;
+	return true;
+}
+
+bool dsApplication_removeController(dsApplication* application, dsController* controller)
+{
+	if (!application || !controller)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (uint32_t i = 0; i < application->controllerCount; ++i)
+	{
+		if (application->controllers[i] == controller)
+		{
+			memmove(application->controllers + i, application->controllers + i + 1,
+				sizeof(dsController*)*(application->controllerCount - i - 1));
 			return true;
 		}
 	}
@@ -422,4 +487,6 @@ void dsApplication_shutdown(dsApplication* application)
 		DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
 	if (application->windows)
 		DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
+	if (application->controllers)
+		DS_VERIFY(dsAllocator_free(application->allocator, application->controllers));
 }

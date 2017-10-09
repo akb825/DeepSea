@@ -72,7 +72,7 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 	DS_PROFILE_FUNC_RETURN(buffer);
 }
 
-void* dsGfxBuffer_map(dsGfxBuffer* buffer, int flags, size_t offset, size_t size)
+void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

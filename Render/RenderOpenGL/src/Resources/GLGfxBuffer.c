@@ -144,7 +144,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	return baseBuffer;
 }
 
-void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, int flags,
+void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, unsigned int flags,
 	size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);

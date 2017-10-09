@@ -51,7 +51,8 @@ extern "C"
  * @return The created window or NULL if an error occurred.
  */
 DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height, int flags);
+	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
+	unsigned int flags);
 
 /**
  * @brief Sets the title of a window.

@@ -20,6 +20,7 @@ set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation
 set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")
 
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
+set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implementation.")
 
 # OpenGL specific options.
 set(DEEPSEA_GLES OFF CACHE BOOL "Use OpenGL ES rather than desktop OpenGL.")
@@ -90,6 +91,9 @@ if (DEEPSEA_BUILD_RENDER)
 
 	if (DEEPSEA_BUILD_APPLICATION)
 		ds_add_module(Application)
+		if (DEEPSEA_BUILD_APPLICATION_SDL)
+			ds_add_module(Application/ApplicationSDL)
+		endif()
 	endif()
 endif()
 

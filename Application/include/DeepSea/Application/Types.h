@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Application/ControllerEventTypes.h>
 #include <DeepSea/Application/MouseEventTypes.h>
 #include <DeepSea/Application/KeyboardEventTypes.h>
 #include <DeepSea/Application/TouchEventTypes.h>
@@ -67,22 +68,53 @@ typedef enum dsEventType
 	dsEventType_KeyUp,           ///< Keyboard key was released. The key field will be set.
 	dsEventType_TextEdit,        ///< Text is being edited. The textEdit field will be set.
 	dsEventType_TextInput,       ///< Text has been input. The textInput field will be set.
-	dsEventType_Touch,           ///< Touchscreen was used. The touch field will be set.
+	dsEventType_TouchFingerDown, ///< A finger was pressed on the touchscreen.. The touch field will
+	                             ///< be set.
+	dsEventType_TouchFingerUp,   ///< A finger was released on the touchscreen.. The touch field
+	                             ///< will be set.
+	dsEventType_TouchMoved,      ///< Fingers moved on the touchscreen. The touch event will be set.
 	dsEventType_MultiTouch,      ///< Multi-touch gesture was input. The multiTouch field will be
 	                             ///< set.
+
+	dsEventType_ControllerConnected,    ///< A controller was disconnected. The controllerConnect
+	                                    ///< field will be set.
+	dsEventType_ControllerDisconnected, ///< A controller was connected. The controllerConnect field
+	                                    ///< will be set.
+	dsEventType_ControllerAxis,         ///< A controller axis was moved. The controllerAxis field
+	                                    ///< will be set.
+	dsEventType_ControllerButtonDown,   ///< A controller axis was pressed. The controllerButton
+	                                    ///< field will be set.
+	dsEventType_ControllerButtonUp,     ///< A controller axis was released. The controllerButton
+	                                    ///< field will be set.
+	dsEventType_JoystickBall,           ///< A joystick ball was moved. The joystickBall field will
+	                                    ///< be set.
+	dsEventType_JoystickHat,            ///< A joystick hat was moved. The joystickHat field will
+	                                    ///< be set.
+
 	dsEventType_WindowShown,     ///< A window has been shown. No event field will be set.
 	dsEventType_WindowHidden,    ///< A window has been hidden. No event field will be set.
 	dsEventType_WindowMinimized, ///< A window has been minimized. No event field will be set.
 	dsEventType_WindowRestored,  ///< A window has been restored after minimized. No event field
 	                             ///< will be set.
 	dsEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
-	dsEventType_SurfaceInvalidated, ///< A window surface has been invalidated and re-created.
-	                             ///< Any references to the surface must be updated. No event field
 	                             ///< will be set.
-	dsEventType_MouseEnter,      ///< Mouse has entered a window. No event field will be set.
-	dsEventType_MouseLeave,      ///< Mouse has leaved a window. No event field will be set.
+	dsEventType_MouseEntered,    ///< Mouse has entered a window. No event field will be set.
+	dsEventType_MouseLeft,       ///< Mouse has leaved a window. No event field will be set.
 	dsEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
 	dsEventType_FocusLost,       ///< Window focus has been lost. No event field will be set.
+
+	dsEventType_SurfaceInvalidated,  ///< A window surface has been invalidated and re-created.
+	                                 ///< Any references to the surface must be updated. No event
+	                                 ///< field will be set.
+	dsEventType_WillEnterBackground, ///< The application will enter the background. This No event
+	                                 ///< field will be set.
+	dsEventType_DidEnterBackground,  ///< The application did enter the background. This No event
+	                                 ///< field will be set.
+	dsEventType_WillEnterForeground, ///< The application will enter the foreground. This No event
+	                                 ///< field will be set.
+	dsEventType_DidEnterForeground,  ///< The application did enter the foreground. This No event
+	                                 ///< field will be set.
+
 	dsEventType_Custom,          ///< Custom event. The custom field will be set.
 } dsEventType;
 
@@ -110,7 +142,7 @@ typedef enum dsWindowFlags
 	dsWindowFlags_Hidden = 0x1,     ///< Window is hidden.
 	dsWindowFlags_Resizeable = 0x2, ///< Window can be resized.
 	dsWindowFlags_Minimized = 0x4,  ///< Window is minimized.
-	dsWindowFlags_Maximize = 0x8,   ///< Window is maximized.
+	dsWindowFlags_Maximized = 0x8,  ///< Window is maximized.
 	dsWindowFlags_GrabInput = 0x10, ///< Grab input and lock to the window.
 	dsWindowFlags_Center = 0x20     ///< Center the window on the target display.
 } dsWindowFlags;
@@ -141,7 +173,8 @@ typedef enum dsCursor
 	dsCursor_SizeLR,    ///< Size arrow pointer to the left and right.
 	dsCursor_SizeAll,   ///< Size arrow pointer in all directions.
 	dsCursor_No,        ///< No cursor, such as a circle with a slash.
-	dsCursor_Hand       ///< Hand cursor.
+	dsCursor_Hand,      ///< Hand cursor.
+	dsCursor_Count      ///< The number of cursors.
 } dsCursor;
 
 /**
@@ -221,16 +254,16 @@ typedef struct dsDisplayInfo
 	uint32_t displayModeCount;
 
 	/**
+	 * @brief The default display mode.
+	 */
+	uint32_t defaultMode;
+
+	/**
 	 * @brief The display DPI.
 	 *
 	 * This can be compared to DS_DEFAULT_DPI to determine a scale factor.
 	 */
 	float dpi;
-
-	/**
-	 * @brief The dimensions of the display.
-	 */
-	dsAlignedBox2i dimensions;
 } dsDisplayInfo;
 
 /**
@@ -318,7 +351,7 @@ typedef struct dsEvent
 		/**
 		 * @brief Information about a mouse button press or release.
 		 *
-		 * This is set for dsEventType_MouseButtonUp and dsEventType_MouseButtonDown.
+		 * This is set for dsEventType_MouseButtonDown and dsEventType_MouseButtonUp.
 		 */
 		dsMouseButtonEvent mouseButton;
 
@@ -339,7 +372,7 @@ typedef struct dsEvent
 		/**
 		 * @brief Information about a key press or release.
 		 *
-		 * This is set for dsEventType_KeyDown and dsEventType_KeyDown.
+		 * This is set for dsEventType_KeyDown and dsEventType_KeyUp.
 		 */
 		dsKeyEvent key;
 
@@ -360,7 +393,8 @@ typedef struct dsEvent
 		/**
 		 * @brief Information about a touch input.
 		 *
-		 * This is set for dsEventType_Touch.
+		 * This is set for dsEventType_TouchFingerDown, dsEventType_TouchFingerUp, and
+		 * dsEventType_TouchMoved.
 		 */
 		dsTouchEvent touch;
 
@@ -370,6 +404,41 @@ typedef struct dsEvent
 		 * This is set for dsEventType_MultiTouch.
 		 */
 		dsMultiTouchEvent multiTouch;
+
+		/**
+		 * @brief Information about a controller being connected or disconnected.
+		 *
+		 * This is set for dsEventType_ControllerConnected and dsEventType_ControllerDisconnected.
+		 */
+		dsControllerConnectEvent controllerConnect;
+
+		/**
+		 * @brief Information about a controller axis being moved.
+		 *
+		 * This is set for dsEventType_ControllerAxis.
+		 */
+		dsControllerAxisEvent controllerAxis;
+
+		/**
+		 * @brief Information about a controller button being pressed or released.
+		 *
+		 * This is set for dsEventType_ControllerButtonDown and dsEventType_ControllerButtonDown.
+		 */
+		dsControllerButtonEvent controllerButton;
+
+		/**
+		 * @brief Information about a joystick ball being moved.
+		 *
+		 * This is set for dsEventType_JoystickBall.
+		 */
+		dsJoystickBallEvent joystickBall;
+
+		/**
+		 * @brief Information about a joystick hat being moved.
+		 *
+		 * This is set for dsEventType_JoystickHat.
+		 */
+		dsJoystickHatEvent joystickHat;
 
 		/**
 		 * @brief Information about a window resize.
@@ -481,6 +550,13 @@ typedef bool (*dsWindowEventFunction)(dsApplication* application, dsWindow* wind
  */
 typedef void (*dsUpdateApplicationFunction)(dsApplication* application, double lastFrameTime,
 	void* userData);
+
+/**
+ * @brief Function to finish the frame in the application.
+ * @param application The application.
+ * @param userData The user data registered with the function.
+ */
+typedef void (*dsFinishApplicationFrameFunction)(dsApplication* application, void* userData);
 
 /**
  * @brief Function to draw a window.
@@ -647,14 +723,16 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  * @param flags Combination of dsWindowFlags values to create the window.
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height, int flags);
+	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
+	unsigned int flags);
 
 /**
  * @brief Function for destroying a window.
  * @param application The application.
  * @param window The window to destroy.
+ * @return False if the window couldn't be destroyed.
  */
-typedef void (*dsDestroyWindowFunction)(dsApplication* application, dsWindow* window);
+typedef bool (*dsDestroyWindowFunction)(dsApplication* application, dsWindow* window);
 
 /**
  * @brief Function for getting the window with focus.
@@ -697,7 +775,7 @@ typedef bool (*dsResizeWindowFunction)(dsApplication* application, dsWindow* win
  * @brief Function for getting the size of a window.
  * @param[out] outWidth The width of the window. This may be NULL.
  * @param[out] outHeight THe height of the window. This may be NULL.
- * @param application The resi.
+ * @param application The application.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.
  */
@@ -955,16 +1033,6 @@ struct dsApplication
 	uint32_t displayCount;
 
 	/**
-	 * @brief The controllers in the application.
-	 */
-	dsController** controllers;
-
-	/**
-	 * @brief The number of controllers.
-	 */
-	uint32_t controllerCount;
-
-	/**
 	 * @brief The window responders.
 	 */
 	dsWindowResponder* windowResponders;
@@ -1010,14 +1078,39 @@ struct dsApplication
 	uint32_t windowCapacity;
 
 	/**
+	 * @brief The controllers in the application.
+	 */
+	dsController** controllers;
+
+	/**
+	 * @brief The number of controllers.
+	 */
+	uint32_t controllerCount;
+
+	/**
+	 * @brief The number of controllers that can be held before the buffer is re-allocated.
+	 */
+	uint32_t controllerCapacity;
+
+	/**
 	 * @brief Function for updating the application.
 	 */
 	dsUpdateApplicationFunction updateFunc;
 
 	/**
-	 * @brief User data for update function.
+	 * @brief User data for the update function.
 	 */
 	void* updateUserData;
+
+	/**
+	 * @brief Function for finishing a frame in the application.
+	 */
+	dsFinishApplicationFrameFunction finishFrameFunc;
+
+	/**
+	 * @brief User data for the finish frame function.
+	 */
+	void* finishFrameUserData;
 
 	/**
 	 * @brief Function for adding a custom event.
@@ -1244,39 +1337,34 @@ struct dsWindow
 	const char* title;
 
 	/**
-	 * @brief The color surface for the window.
+	 * @brief The surface for the window.
 	 */
-	dsRenderSurface* colorSurface;
-
-	/**
-	 * @brief The depth/stencil surface for the window.
-	 */
-	dsRenderSurface* depthStencilSurface;
+	dsRenderSurface* surface;
 
 	/**
 	 * @brief Function for drawing the window.
 	 */
-	dsDrawWindowFunction drawWindowFunc;
+	dsDrawWindowFunction drawFunc;
 
 	/**
 	 * @brief User data for drawing the window.
 	 */
-	void* drawWindowUserData;
+	void* drawUserData;
 
 	/**
 	 * @brief The function to intercept closing the window.
 	 */
-	dsWindowCloseFunction windowCloseFunc;
+	dsWindowCloseFunction closeFunc;
 
 	/**
 	 * @brief User data to provide when calling windowCloseFunc.
 	 */
-	void* windowCloseUserData;
+	void* closeUserData;
 
 	/**
 	 * @brief The style of the window.
 	 */
-	dsWindowStyle windowStyle;
+	dsWindowStyle style;
 
 	/**
 	 * @brief The display mode of the window.

@@ -72,17 +72,12 @@ typedef struct dsController dsController;
 /**
  * @brief Struct containing information about connecting a controller.
  */
-typedef struct dsConrollerConnectEvent
+typedef struct dsControllerConnectEvent
 {
 	/**
 	 * @brief The controller.
 	 */
 	const dsController* controller;
-
-	/**
-	 * @brief True if the controller was connected, false if disconnected.
-	 */
-	bool connected;
 } dsControllerConnectEvent;
 
 /**
@@ -98,7 +93,7 @@ typedef struct dsControllerAxisEvent
 	/**
 	 * @brief The axis that was modified.
 	 */
-	dsControllerAxis axis;
+	uint32_t axis;
 
 	/**
 	 * @brief The value of the axis.
@@ -119,7 +114,7 @@ typedef struct dsControllerButtonEvent
 	/**
 	 * @brief The button that was pressed or released.
 	 */
-	dsControllerButton button;
+	uint32_t button;
 } dsControllerButtonEvent;
 
 /**

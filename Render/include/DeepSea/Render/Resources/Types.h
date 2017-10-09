@@ -1161,7 +1161,7 @@ typedef bool (*dsDestroyGfxBufferFunction)(dsResourceManager* resourceManager, d
  * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped.
  */
 typedef void* (*dsMapGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	int flags, size_t offset, size_t size);
+	unsigned int flags, size_t offset, size_t size);
 
 /**
  * @brief Function for unmapping previously mapped memory from a buffer.

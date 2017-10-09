@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -43,6 +44,13 @@ typedef enum dsMouseButton
 } dsMouseButton;
 
 /**
+ * @brief Gets a mouse button by index.
+ * @param x The mouse button index.
+ * @return The mouse button bit.
+ */
+#define DS_MOUSE_BUTTON(x) (dsMouseButton)(1 << x)
+
+/**
  * @brief Structure containing information about a mouse button event.
  */
 typedef struct dsMouseButtonEvent
@@ -52,7 +60,7 @@ typedef struct dsMouseButtonEvent
 	 *
 	 * Only a single bit will be set.
 	 */
-	uint32_t button;
+	dsMouseButton button;
 
 	/**
 	 * @brief The X position of the mouse, relative to the window.
@@ -81,14 +89,19 @@ typedef struct dsMouseMoveEvent
 	int32_t y;
 
 	/**
-	 * @brief The amount moved in the X direction.
+	 * @brief The amount scrolled in the X direction.
 	 */
 	int32_t deltaX;
 
 	/**
-	 * @brief The amount moved in the Y direction.
+	 * @brief The amount scrolled in the Y direction.
 	 */
 	int32_t deltaY;
+
+	/**
+	 * @brief True if the Y direction is flipped due to "natural" scrolling.
+	 */
+	bool yFlipped;
 } dsMouseMoveEvent;
 
 /**

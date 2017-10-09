@@ -21,7 +21,7 @@
 
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	int usage, int memoryHints, const void* data, size_t size);
-void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, int flags,
+void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, unsigned int flags,
 	size_t offset, size_t size);
 bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,

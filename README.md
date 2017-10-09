@@ -66,6 +66,7 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
 
 ## OpenGL specific Options
 
@@ -96,6 +97,7 @@ DeepSea contains the following modules:
 * [RenderMock](Render/RenderMock/README.md): (Optional) Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](Render/RenderOpenGL/README.md): (Optional) OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
 * [Application](Application/README.md): (Optional) Application library, providing functionality such as input and window events.
+* [ApplicationSDL](Application/ApplicationSDL/README.md): (Optional) SDL implementation of the Application library..
 
 The directory structure of the include files is:
 
