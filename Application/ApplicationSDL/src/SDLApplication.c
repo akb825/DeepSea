@@ -242,6 +242,7 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_Maximized;
 		if (dsSDLWindow_getGrabbedInput(application, window))
 			flags |= dsWindowFlags_GrabInput;
+		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, &position, width, height, flags))
 		{
@@ -253,6 +254,8 @@ static void updateWindowSamples(dsApplication* application)
 		DS_VERIFY(dsSDLWindow_setDisplayMode(application, window, &displayMode));
 		if (style != dsWindowStyle_Normal)
 			DS_VERIFY(dsSDLWindow_setStyle(application, window, style));
+		if (hasFocus)
+			dsSDLWindow_raise(application, window);
 
 		dsEvent event;
 		event.type = dsEventType_SurfaceInvalidated;
