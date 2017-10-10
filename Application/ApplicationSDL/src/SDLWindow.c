@@ -20,7 +20,9 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
-#include <SDL2/SDL_syswm.h>
+
+#include <math.h>
+#include <SDL_syswm.h>
 #include <string.h>
 
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)

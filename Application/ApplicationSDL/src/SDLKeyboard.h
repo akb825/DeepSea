@@ -19,7 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
 #include <DeepSea/ApplicationSDL/Export.h>
-#include <SDL2/SDL.h>
+
+#include <math.h>
+#include <SDL.h>
 
 #ifdef __cplusplus
 extern "C"

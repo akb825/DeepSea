@@ -27,8 +27,11 @@
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
-#include <SDL2/SDL.h>
+
+#include <math.h>
+#include <SDL.h>
 #include <limits.h>
+#include <string.h>
 
 #define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
 #define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')

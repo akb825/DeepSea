@@ -18,7 +18,9 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Application/Types.h>
-#include <SDL2/SDL.h>
+
+#include <math.h>
+#include <SDL.h>
 
 typedef struct dsSDLController
 {
