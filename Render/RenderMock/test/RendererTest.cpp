@@ -79,7 +79,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	ASSERT_TRUE(depthBuffer);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Unknown);
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsSurfaceColorValue colorValue;
@@ -163,7 +163,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	ASSERT_TRUE(depthBuffer);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Unknown);
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsDepthStencilValue depthStencilValue = {1.0f, 0};

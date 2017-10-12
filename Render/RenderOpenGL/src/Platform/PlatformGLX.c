@@ -286,10 +286,16 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 			if (configPtr->config)
 			{
 				DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
-				return (void*)glXCreateWindow(display, configPtr->config, (GLXWindow)handle, NULL);
+				return (void*)glXCreateWindow(display, configPtr->config, (Window)handle, NULL);
 			}
-			else
-				return handle;
+			return handle;
+		case dsRenderSurfaceType_Pixmap:
+			if (configPtr->config)
+			{
+				DS_ASSERT(ANYGL_SUPPORTED(glXCreatePixmap));
+				return (void*)glXCreatePixmap(display, configPtr->config, (Pixmap)handle, NULL);
+			}
+			return handle;
 		default:
 			return handle;
 	}
@@ -326,8 +332,19 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	if (!surface)
 		return;
 
-	if (surfaceType == dsRenderSurfaceType_Window && ANYGL_SUPPORTED(glXDestroyWindow))
-		glXDestroyWindow(display, (GLXDrawable)surface);
+	switch (surfaceType)
+	{
+		case dsRenderSurfaceType_Window:
+			if (ANYGL_SUPPORTED(glXDestroyWindow))
+				glXDestroyWindow(display, (GLXWindow)surface);
+			break;
+		case dsRenderSurfaceType_Pixmap:
+			if (ANYGL_SUPPORTED(glXDestroyPixmap))
+				glXDestroyPixmap(display, (GLXPixmap)surface);
+			break;
+		default:
+			break;
+	}
 }
 
 bool dsBindGLContext(void* display, void* context, void* surface)

@@ -81,9 +81,8 @@ typedef enum dsSubpassDependencyStage
  */
 typedef enum dsRenderSurfaceType
 {
-	dsRenderSurfaceType_Unknown, ///< Unknown surface type.
+	dsRenderSurfaceType_Direct,  ///< Surface was already set up to be used directly for rendering.
 	dsRenderSurfaceType_Window,  ///< Window surface.
-	dsRenderSurfaceType_PBuffer, ///< Pixel buffer surface.
 	dsRenderSurfaceType_Pixmap   ///< Pixmap surface.
 } dsRenderSurfaceType;
 

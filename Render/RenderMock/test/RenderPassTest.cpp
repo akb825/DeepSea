@@ -163,7 +163,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	ASSERT_TRUE(renderPass);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Unknown);
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, 0,
