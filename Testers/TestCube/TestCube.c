@@ -134,28 +134,28 @@ static Vertex vertices[] =
 static uint16_t indices[] =
 {
 	// Front face
-	0, 1, 2,
-	2, 3, 0,
+	0, 2, 1,
+	2, 0, 3,
 
 	// Right face
-	4, 5, 6,
-	6, 7, 4,
+	4, 6, 5,
+	6, 4, 7,
 
 	// Back face
-	8, 9, 10,
-	10, 11, 8,
+	8, 10, 9,
+	10, 8, 11,
 
 	// Left face
-	12, 13, 14,
-	14, 15, 12,
+	12, 14, 13,
+	14, 12, 15,
 
 	// Top face
-	16, 17, 18,
-	18, 19, 16,
+	16, 18, 17,
+	18, 16, 19,
 
 	// Bottom face
-	20, 21, 22,
-	22, 23, 20,
+	20, 22, 21,
+	22, 20, 23,
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -256,8 +256,8 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44f modelView, modelViewProjection;
 	dsMatrix44_affineMul(modelView, testCube->view, model);
 	dsMatrix44_mul(modelViewProjection, testCube->projection, modelView);
-	DS_VERIFY(dsMaterial_setElementData(testCube->material, 0, &modelView, dsMaterialType_Mat4, 0,
-		1));
+	DS_VERIFY(dsMaterial_setElementData(testCube->material, 0, &modelViewProjection,
+		dsMaterialType_Mat4, 0,  1));
 }
 
 static void draw(dsApplication* application, dsWindow* window, void* userData)

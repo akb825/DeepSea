@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
 uniform mat4 modelViewProjection;
 
 uniform sampler2D tex;
@@ -26,8 +28,8 @@ sampler_state tex
 	mip_filter = anisotropic;
 };
 
-[[vertex]] in vec3 position;
-[[vertex]] in vec2 texCoord;
+[[vertex]] layout(location = DS_POSITION) in vec3 position;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
 
 [[vertex]] out VertexOut
 {
@@ -59,4 +61,5 @@ pipeline Default
 	vertex = vertexShader;
 	fragment = fragmentShader;
 	depth_test_enable = true;
+	cull_mode = back;
 }

@@ -115,7 +115,7 @@ function(ds_compile_shaders container)
 		list(APPEND commandLineArgs -o ${output})
 		list(APPEND outputs ${output})
 
-		foreach (inc ${ARGS_INCLUDES})
+		foreach (inc ${ARGS_INCLUDE})
 			list(APPEND commandLineArgs -I ${inc})
 		endforeach()
 

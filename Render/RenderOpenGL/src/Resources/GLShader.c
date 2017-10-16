@@ -413,9 +413,9 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_LOD_BIAS,
 				samplerState.mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.mipLodBias);
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MIN_LOD,
-				samplerState.minLod == MSL_UNKNOWN ? -1000.0f : samplerState.minLod);
+				samplerState.minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState.minLod);
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_LOD,
-				samplerState.maxLod == MSL_UNKNOWN ? 1000.0f : samplerState.maxLod);
+				samplerState.maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState.maxLod);
 		}
 
 		if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
@@ -531,19 +531,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "Uniforms.%s",
-					materialDesc->elements[i].name);
-				if (len < 0 || len >= DS_BUFFER_SIZE)
-				{
-					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Uniform name '%s' is too long.",
-						materialDesc->elements[i].name);
-					errno = ESIZE;
-					glUseProgram(prevProgram);
-					return false;
-				}
-
-				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline,
-					nameBuffer);
+				const char* name = materialDesc->elements[i].name;
+				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline, name);
 				if (uniformIndex == MSL_UNKNOWN)
 				{
 					shader->uniforms[i].location = -1;
@@ -552,7 +541,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				}
 				else
 				{
-					GLint binding = glGetUniformLocation(shader->programId, nameBuffer);
+					GLint binding = glGetUniformLocation(shader->programId, name);
 					if (binding < 0)
 					{
 						shader->uniforms[i].location = -1;
@@ -697,6 +686,8 @@ static void resolveDefaultRasterizationState(mslRasterizationState* state)
 		state->frontFace = mslFrontFace_CounterClockwise;
 	if (state->depthBiasEnable == mslBool_Unset)
 		state->depthBiasEnable = mslBool_False;
+	if (state->lineWidth == MSL_UNKNOWN_FLOAT)
+		state->lineWidth = 1.0f;
 }
 
 static void resolveDefaultMultisampleState(mslMultisampleState* state)

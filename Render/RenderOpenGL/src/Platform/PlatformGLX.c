@@ -77,7 +77,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	if (ANYGL_SUPPORTED(glXChooseFBConfig))
 	{
 		addOption2(attr, &optionCount, GLX_RENDER_TYPE, GLX_RGBA_BIT);
-		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PIXMAP_BIT |
+		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT |
 			GLX_PBUFFER_BIT);
 	}
 	else
@@ -120,8 +120,8 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 		}
 	}
 
-	if (hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
-		addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, options->srgb);
+	if (options->srgb && hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
+		addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, true);
 
 	addOption(attr, &optionCount, None);
 
@@ -256,8 +256,24 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 		InputOutput, configPtr->visualInfo->visual, CWColormap, &attr);
 	XFreeColormap(display, attr.colormap);
 
-	*osSurface = NULL;
-	return (void*)window;
+	if (configPtr->config)
+	{
+		DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
+		GLXWindow glxWindow = glXCreateWindow(display, configPtr->config, window, NULL);
+		if (!glxWindow)
+		{
+			XDestroyWindow(display, window);
+			return NULL;
+		}
+
+		*osSurface = (void*)window;
+		return (void*)glxWindow;
+	}
+	else
+	{
+		*osSurface = NULL;
+		return (void*)window;
+	}
 }
 
 void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
@@ -265,7 +281,14 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 	if (!surface)
 		return;
 
-	XDestroyWindow(display, (Window)surface);
+	if (osSurface)
+	{
+		DS_ASSERT(ANYGL_SUPPORTED(glXDestroyWindow));
+		glXDestroyWindow(display, (GLXWindow)surface);
+		XDestroyWindow(display, (Window)osSurface);
+	}
+	else
+		XDestroyWindow(display, (Window)surface);
 }
 
 void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
@@ -279,6 +302,11 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
+			if (configPtr->config)
+			{
+				DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
+				return (void*)glXCreateWindow(display, configPtr->config, (Window)handle, NULL);
+			}
 			return handle;
 		case dsRenderSurfaceType_Pixmap:
 			if (configPtr->config)
@@ -326,6 +354,8 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
+			if (ANYGL_SUPPORTED(glXDestroyWindow))
+				glXDestroyWindow(display, (GLXWindow)surface);
 			break;
 		case dsRenderSurfaceType_Pixmap:
 			if (ANYGL_SUPPORTED(glXDestroyPixmap))

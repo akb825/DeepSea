@@ -305,9 +305,12 @@ int dsSDLApplication_run(dsApplication* application)
 {
 	dsTimer timer = dsTimer_create();
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	double lastTime = dsTimer_time(timer);
 	while (!sdlApplication->quit || application->windowCount > 0)
 	{
-		double lastFrameTime = dsTimer_time(timer);
+		double curTime = dsTimer_time(timer);
+		double lastFrameTime = curTime - lastTime;
+		lastTime = curTime;
 
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
@@ -752,6 +755,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	const char* driver = NULL;
 #if DS_LINUX && !DS_ANDROID
+	setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
 	driver = "x11";
 #elif DS_WINDOWS
 	driver = "windows";

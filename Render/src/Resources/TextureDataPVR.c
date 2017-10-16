@@ -290,7 +290,7 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
 
 		if (!skipBytes(stream, dataSize, filePath))
 			return false;
-		readSize += sizeof(fourcc) + sizeof(key) + sizeof(dataSize) + dataSize;
+		readSize += (uint32_t)(sizeof(fourcc) + sizeof(key) + sizeof(dataSize) + dataSize);
 	}
 
 	if (readSize != metadataSize)
