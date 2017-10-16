@@ -55,12 +55,15 @@ ds_convert_textures_target(deepsea_test_cube_textures textures DEPENDS deepsea_t
 add_dependencies(deepsea_test_cube deepsea_test_cube_textures)
 
 set(assetsDir $<TARGET_FILE_DIR:deepsea_test_cube>/TestCube-assets)
-add_custom_command(TARGET deepsea_test_cube POST_BUILD
-	COMMAND ${CMAKE_COMMAND} ARGS -E remove_directory ${assetsDir}
-	COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${assetsDir}
-	COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${shaderDir} ${assetsDir}
-	COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory ${textureDir} ${assetsDir})
+add_custom_target(deepsea_test_cube_assets ALL DEPENDS deepsea_test_cube
+	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${textureDir} ${assetsDir}
+	COMMENT "Copying assets for TestCube")
 
 ds_set_folder(deepsea_test_cube tests)
+ds_set_folder(deepsea_test_cube_prepare tests/Resources)
 ds_set_folder(deepsea_test_cube_shaders tests/Resources)
 ds_set_folder(deepsea_test_cube_textures tests/Resources)
+ds_set_folder(deepsea_test_cube_assets tests/Resources)

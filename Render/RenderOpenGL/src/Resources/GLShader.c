@@ -640,7 +640,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 					DS_ASSERT(groupDesc);
 					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
 					{
-						int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "Uniforms.%s",
+						int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "uniforms.%s",
 							groupDesc->elements[j].name);
 						if (len < 0 || len >= DS_BUFFER_SIZE)
 						{
@@ -659,7 +659,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			}
 			default:
 			{
-				int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "Uniforms.%s",
+				int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "uniforms.%s",
 					materialDesc->elements[i].name);
 				if (len < 0 || len >= DS_BUFFER_SIZE)
 				{
