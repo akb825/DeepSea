@@ -905,6 +905,13 @@ typedef bool (*dsRenderDispatchComputeIndirectFunction)(dsRenderer* renderer,
  */
 typedef bool (*dsRenderWaitUntilIdleFunction)(dsRenderer* renderer);
 
+/**
+ * @brief Function for restoring the global state.
+ * @param renderer The renderer.
+ * @return False if the state couldn't be restored.
+ */
+typedef bool (*dsRenderRestoreGlobalState)(dsRenderer* renderer);
+
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
@@ -1193,6 +1200,11 @@ struct dsRenderer
 	 * @brief Idle waiting function.
 	 */
 	dsRenderWaitUntilIdleFunction waitUntilIdleFunc;
+
+	/**
+	 * @brief Global state restore function.
+	 */
+	dsRenderRestoreGlobalState restoreGlobalStateFunc;
 };
 
 #ifdef __cplusplus

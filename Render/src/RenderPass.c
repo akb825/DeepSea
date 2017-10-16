@@ -126,7 +126,9 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 	for (uint32_t i = 0; i < attachmentCount; ++i)
 	{
-		if (!dsGfxFormat_offscreenSupported(renderer->resourceManager, attachments[i].format))
+		if (attachments[i].format != renderer->surfaceColorFormat &&
+			attachments[i].format != renderer->surfaceDepthStencilFormat &&
+			!dsGfxFormat_offscreenSupported(renderer->resourceManager, attachments[i].format))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attachment format cannot be rendered to.");

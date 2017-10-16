@@ -572,7 +572,7 @@ bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* 
 	}
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (!glCommandBuffer->boundSurface)
+	if (glCommandBuffer->boundSurface)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,

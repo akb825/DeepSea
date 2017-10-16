@@ -435,6 +435,20 @@ DS_MATH_EXPORT void dsMatrix44f_makeScale(dsMatrix44f* result, float x, float y,
 DS_MATH_EXPORT void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z);
 
 /**
+ * @brief Makes a matrix that looks at a position.
+ * @param[out] result The matrix for the result.
+ * @param eyePos The eye position for the center of the transform.
+ * @param lookAtPos The position to look at.
+ * @param upDir The reference up direction.
+ */
+DS_MATH_EXPORT void dsMatrix44f_lookAt(dsMatrix44f* result, const dsVector3f* eyePos,
+	const dsVector3f* lookAtPos, const dsVector3f* upDir);
+
+/** @copydoc dsMatrix44f_lookAt() */
+DS_MATH_EXPORT void dsMatrix44d_lookAt(dsMatrix44d* result, const dsVector3d* eyePos,
+	const dsVector3d* lookAtPos, const dsVector3d* upDir);
+
+/**
  * @brief Makes an orthographic projection matrix.
  *
  * The matrix is generated assuming looking down the -Z axis. As a result, the near and far plane

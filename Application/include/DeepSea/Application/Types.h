@@ -98,6 +98,8 @@ typedef enum dsEventType
 	                             ///< will be set.
 	dsEventType_WindowResized,   ///< A window has been resized. The resize field will be set.
 	                             ///< will be set.
+	dsEventType_WindowClosed,    ///< A window has been closed. The window will be hidden, and may
+	                             ///< either be kept or destroyed. No event field will be set.
 	dsEventType_MouseEntered,    ///< Mouse has entered a window. No event field will be set.
 	dsEventType_MouseLeft,       ///< Mouse has leaved a window. No event field will be set.
 	dsEventType_FocusGained,     ///< Window focus has been gained. No event field will be set.
@@ -572,7 +574,7 @@ typedef void (*dsDrawWindowFunction)(dsApplication* application, dsWindow* windo
  * @param userData The user data registered with the function.
  * @return True to close the window, false to leave it open.
  */
-typedef bool (*dsWindowCloseFunction)(dsWindow* window, void* userData);
+typedef bool (*dsInterceptCloseWindowFunction)(dsWindow* window, void* userData);
 
 /**
  * @brief Function to add a custom event.
@@ -1354,7 +1356,7 @@ struct dsWindow
 	/**
 	 * @brief The function to intercept closing the window.
 	 */
-	dsWindowCloseFunction closeFunc;
+	dsInterceptCloseWindowFunction closeFunc;
 
 	/**
 	 * @brief User data to provide when calling windowCloseFunc.

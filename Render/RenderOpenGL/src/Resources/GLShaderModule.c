@@ -115,22 +115,27 @@ bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, u
 	while (length > 0 && shaderString[length - 1] == 0)
 		--length;
 	glShaderSource(shaderId, 1, &shaderString, &length);
+	glCompileShader(shaderId);
 
 	GLint compileSuccess = false;
 	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compileSuccess);
 	if (!compileSuccess)
 	{
+		errno = EFORMAT;
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error compiling shader %s.%s:",
 			module->name, pipelineName);
 
 		GLint logSize = 0;
 		glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logSize);
-		char* buffer = (char*)dsAllocator_alloc(module->resourceManager->allocator, logSize);
-		if (buffer)
+		if (logSize > 0)
 		{
-			glGetShaderInfoLog(shaderId, logSize, &logSize, buffer);
-			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
-			DS_VERIFY(dsAllocator_free(module->resourceManager->allocator, buffer));
+			char* buffer = (char*)dsAllocator_alloc(module->resourceManager->allocator, logSize);
+			if (buffer)
+			{
+				glGetShaderInfoLog(shaderId, logSize, &logSize, buffer);
+				DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
+				DS_VERIFY(dsAllocator_free(module->resourceManager->allocator, buffer));
+			}
 		}
 
 		glDeleteShader(shaderId);

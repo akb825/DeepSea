@@ -105,20 +105,22 @@ bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer, const dsRenderSurfa
 
 bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface)
 {
-	DS_PROFILE_FUNC_START();
+	DS_PROFILE_WAIT_START(__FUNCTION__);
 
 	if (!renderSurface || !renderSurface->renderer ||
 		!renderSurface->renderer->swapRenderSurfaceBuffersFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_WAIT_END();
+		return false;
 	}
 
 	dsRenderer* renderer = renderSurface->renderer;
 	if (!renderer->doubleBuffer)
 	{
 		errno = EPERM;
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_WAIT_END();
+		return false;
 	}
 
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
@@ -126,11 +128,13 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Render surfaces may only be swapped on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_WAIT_END();
+		return false;
 	}
 
 	bool swapped = renderer->swapRenderSurfaceBuffersFunc(renderer, renderSurface);
-	DS_PROFILE_FUNC_RETURN(swapped);
+	DS_PROFILE_WAIT_END();
+	return swapped;
 }
 
 bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)

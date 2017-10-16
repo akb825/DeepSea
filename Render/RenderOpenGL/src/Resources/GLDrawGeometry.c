@@ -103,12 +103,12 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 	dsDrawGeometry* baseGeometry = (dsDrawGeometry*)geometry;
 	baseGeometry->resourceManager = resourceManager;
 	baseGeometry->allocator = dsAllocator_keepPointer(allocator);
-	memcpy(baseGeometry->vertexBuffers, vertexBuffers, sizeof(baseGeometry->vertexBuffers));
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
-		dsVertexBuffer* vertexBuffer = baseGeometry->vertexBuffers + i;
-		if (vertexBuffer->buffer)
-			DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer->format));
+		if (vertexBuffers[i])
+			baseGeometry->vertexBuffers[i] = *vertexBuffers[i];
+		else
+			memset(baseGeometry->vertexBuffers + i, 0, sizeof(dsVertexBuffer));
 	}
 	memcpy(&baseGeometry->indexBuffer, indexBuffer, sizeof(dsIndexBuffer));
 

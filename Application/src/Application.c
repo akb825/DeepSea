@@ -68,6 +68,7 @@ bool dsApplication_removeWindowResponder(dsApplication* application, uint32_t re
 		{
 			memmove(application->windowResponders + i, application->windowResponders + i + 1,
 				sizeof(dsWindowResponder)*(application->windowResponderCount - i - 1));
+			--application->windowResponderCount;
 			return true;
 		}
 	}
@@ -115,6 +116,7 @@ bool dsApplication_removeEventResponder(dsApplication* application, uint32_t res
 		{
 			memmove(application->eventResponders + i, application->eventResponders + i + 1,
 				sizeof(dsEventResponder)*(application->eventResponderCount - i - 1));
+			--application->eventResponderCount;
 			return true;
 		}
 	}
@@ -207,6 +209,7 @@ bool dsApplication_removeWindow(dsApplication* application, dsWindow* window)
 			}
 			memmove(application->windows + i, application->windows + i + 1,
 				sizeof(dsWindow*)*(application->windowCount - i - 1));
+			--application->windowCount;
 			return true;
 		}
 	}
@@ -258,6 +261,7 @@ bool dsApplication_removeController(dsApplication* application, dsController* co
 		{
 			memmove(application->controllers + i, application->controllers + i + 1,
 				sizeof(dsController*)*(application->controllerCount - i - 1));
+			--application->controllerCount;
 			return true;
 		}
 	}

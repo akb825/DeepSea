@@ -77,7 +77,8 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	if (ANYGL_SUPPORTED(glXChooseFBConfig))
 	{
 		addOption2(attr, &optionCount, GLX_RENDER_TYPE, GLX_RGBA_BIT);
-		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PBUFFER_BIT);
+		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PIXMAP_BIT |
+			GLX_PBUFFER_BIT);
 	}
 	else
 		addOption(attr, &optionCount, GLX_RGBA);
@@ -88,21 +89,39 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	addOption2(attr, &optionCount, GLX_DEPTH_SIZE, options->depthBits);
 	addOption2(attr, &optionCount, GLX_STENCIL_SIZE, options->stencilBits);
 	if (options->doubleBuffer)
-		addOption(attr, &optionCount, GLX_DOUBLEBUFFER);
+	{
+		if (ANYGL_SUPPORTED(glXChooseFBConfig))
+			addOption2(attr, &optionCount, GLX_DOUBLEBUFFER, true);
+		else
+			addOption(attr, &optionCount, GLX_DOUBLEBUFFER);
+	}
 	if (options->stereoscopic)
-		addOption(attr, &optionCount, GLX_STEREO);
+	{
+		if (ANYGL_SUPPORTED(glXChooseFBConfig))
+			addOption2(attr, &optionCount, GLX_STEREO, true);
+		else
+			addOption(attr, &optionCount, GLX_STEREO);
+	}
 
 	int major, minor;
 	glXQueryVersion(display, &major, &minor);
-	if (render && options->samples > 1 && ((major > 1 || (major == 1 && minor >= 4)) ||
+	if (render && ((major > 1 || (major == 1 && minor >= 4)) ||
 		hasExtension(extensions, "GLX_ARB_multisample")))
 	{
-		addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
-		addOption2(attr, &optionCount, GLX_SAMPLES, options->samples);
+		if (options->samples > 1)
+		{
+			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 1);
+			addOption2(attr, &optionCount, GLX_SAMPLES, options->samples);
+		}
+		else
+		{
+			addOption2(attr, &optionCount, GLX_SAMPLE_BUFFERS, 0);
+			addOption2(attr, &optionCount, GLX_SAMPLES, 0);
+		}
 	}
 
-	if (options->srgb && hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
-		addOption(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT);
+	if (hasExtension(extensions, "GLX_EXT_framebuffer_sRGB"))
+		addOption2(attr, &optionCount, GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, options->srgb);
 
 	addOption(attr, &optionCount, None);
 
@@ -237,24 +256,8 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 		InputOutput, configPtr->visualInfo->visual, CWColormap, &attr);
 	XFreeColormap(display, attr.colormap);
 
-	if (configPtr->config)
-	{
-		DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
-		GLXWindow glxWindow = glXCreateWindow(display, configPtr->config, window, NULL);
-		if (!glxWindow)
-		{
-			XDestroyWindow(display, window);
-			return NULL;
-		}
-
-		*osSurface = (void*)window;
-		return (void*)glxWindow;
-	}
-	else
-	{
-		*osSurface = NULL;
-		return (void*)window;
-	}
+	*osSurface = NULL;
+	return (void*)window;
 }
 
 void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
@@ -262,14 +265,7 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 	if (!surface)
 		return;
 
-	if (osSurface)
-	{
-		DS_ASSERT(ANYGL_SUPPORTED(glXDestroyWindow));
-		glXDestroyWindow(display, (GLXWindow)surface);
-		XDestroyWindow(display, (Window)osSurface);
-	}
-	else
-		XDestroyWindow(display, (Window)surface);
+	XDestroyWindow(display, (Window)surface);
 }
 
 void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
@@ -283,11 +279,6 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
-			if (configPtr->config)
-			{
-				DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
-				return (void*)glXCreateWindow(display, configPtr->config, (Window)handle, NULL);
-			}
 			return handle;
 		case dsRenderSurfaceType_Pixmap:
 			if (configPtr->config)
@@ -335,8 +326,6 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
-			if (ANYGL_SUPPORTED(glXDestroyWindow))
-				glXDestroyWindow(display, (GLXWindow)surface);
 			break;
 		case dsRenderSurfaceType_Pixmap:
 			if (ANYGL_SUPPORTED(glXDestroyPixmap))

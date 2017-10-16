@@ -204,6 +204,13 @@ bool dsMockRenderer_waitUntilIdle(dsRenderer* renderer)
 	return true;
 }
 
+bool dsMockRenderer_restoreGlobalState(dsRenderer* renderer)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	return true;
+}
+
 dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 {
 	if (!allocator)
@@ -303,6 +310,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->dispatchComputeFunc = &dsMockRenderer_dispatchCompute;
 	renderer->dispatchComputeIndirectFunc = &dsMockRenderer_dispatchComputeIndirect;
 	renderer->waitUntilIdleFunc = &dsMockRenderer_waitUntilIdle;
+	renderer->restoreGlobalStateFunc = &dsMockRenderer_restoreGlobalState;
 
 	return renderer;
 }

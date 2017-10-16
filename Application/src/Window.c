@@ -24,7 +24,7 @@
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
 	const dsVector2i* position, uint32_t width, uint32_t height, unsigned int flags)
 {
-	if (!application || (!allocator && application->allocator) || !application->createWindowFunc ||
+	if (!application || (!allocator && !application->allocator) || !application->createWindowFunc ||
 		!application->destroyWindowFunc)
 	{
 		errno = EINVAL;
@@ -55,6 +55,33 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 	}
 
 	return window;
+}
+
+bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData)
+{
+	if (!window)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	window->drawFunc = drawFunc;
+	window->drawUserData = userData;
+	return true;
+}
+
+bool dsWindow_setCloseFunction(dsWindow* window, dsInterceptCloseWindowFunction closeFunc,
+	void* userData)
+{
+	if (!window)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	window->closeFunc = closeFunc;
+	window->closeUserData = userData;
+	return true;
 }
 
 bool dsWindow_setTtile(dsWindow* window, const char* title)

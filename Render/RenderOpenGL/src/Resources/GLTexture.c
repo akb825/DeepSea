@@ -124,7 +124,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_1D, mipLevels, internalFormat, width, height);
+					glTexStorage2D(GL_TEXTURE_2D, mipLevels, internalFormat, width, height);
 				break;
 			case dsTextureDim_3D:
 				glTexStorage3D(GL_TEXTURE_3D, mipLevels, internalFormat, width, height, depth);

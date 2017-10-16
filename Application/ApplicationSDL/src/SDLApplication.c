@@ -20,10 +20,12 @@
 #include "SDLKeyboard.h"
 #include "SDLWindow.h"
 #include <DeepSea/Application/Application.h>
+#include <DeepSea/Application/Window.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
@@ -245,6 +247,11 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_Maximized;
 		if (dsSDLWindow_getGrabbedInput(application, window))
 			flags |= dsWindowFlags_GrabInput;
+		if (application->renderer->type == DS_GL_RENDERER_TYPE ||
+			application->renderer->type == DS_GLES_RENDERER_TYPE)
+		{
+			flags |= SDL_WINDOW_OPENGL;
+		}
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, &position, width, height, flags))
@@ -304,6 +311,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
+		DS_PROFILE_SCOPE_START("Process Events");
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent))
 		{
@@ -360,6 +368,16 @@ int dsSDLApplication_run(dsApplication* application)
 							break;
 						case SDL_WINDOWEVENT_FOCUS_LOST:
 							event.type = dsEventType_FocusLost;
+							break;
+						case SDL_WINDOWEVENT_CLOSE:
+							if (!window->closeFunc ||
+								window->closeFunc(window, window->closeUserData))
+							{
+								event.type = dsEventType_WindowClosed;
+								dsWindow_setHidden(window, true);
+							}
+							else
+								continue;
 							break;
 						default:
 							continue;
@@ -541,25 +559,39 @@ int dsSDLApplication_run(dsApplication* application)
 					sdlEvent.user.data1);
 			}
 		}
+		DS_PROFILE_SCOPE_END();
 
 		if (application->updateFunc)
+		{
+			DS_PROFILE_SCOPE_START("Update");
 			application->updateFunc(application, lastFrameTime, application->updateUserData);
+			DS_PROFILE_SCOPE_END();
+		}
 
 		// If the samples have changed, need to re-create the windows. Do between update and draw
 		// since update is most likely to have changed the samples.
 		updateWindowSamples(application);
 
+		DS_PROFILE_SCOPE_START("Draw");
+		dsCommandBuffer* commandBuffer = application->renderer->mainCommandBuffer;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
-			if (application->windows[i]->drawFunc)
+			dsWindow* window = application->windows[i];
+			if (window->drawFunc)
 			{
-				application->windows[i]->drawFunc(application, application->windows[i],
-					application->windows[i]->drawUserData);
+				dsRenderSurface_beginDraw(commandBuffer, window->surface);
+				window->drawFunc(application, window, window->drawUserData);
+				dsRenderSurface_endDraw(commandBuffer, window->surface);
 			}
 		}
+		DS_PROFILE_SCOPE_END();
 
 		if (application->finishFrameFunc)
+		{
+			DS_PROFILE_SCOPE_START("Finish Frame");
 			application->finishFrameFunc(application, application->finishFrameUserData);
+			DS_PROFILE_SCOPE_END();
+		}
 
 		// Swap the buffers for all the window surfaces at the end.
 		if (application->renderer->doubleBuffer)
@@ -734,6 +766,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		SDL_Quit();
 		return NULL;
 	}
+	dsRenderer_restoreGlobalState(renderer);
 
 	if (renderer->type == DS_GL_RENDERER_TYPE || renderer->type == DS_GLES_RENDERER_TYPE)
 	{
@@ -815,8 +848,11 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 					displayModes[curIndex].height = mode.h;
 					displayModes[curIndex].refreshRate = mode.refresh_rate;
 
-					if (memcmp(&mode, &defaultMode, sizeof(mode)) == 0)
+					if (mode.format == defaultMode.format && mode.w == defaultMode.w &&
+						mode.h == defaultMode.h && mode.refresh_rate == defaultMode.refresh_rate)
+					{
 						displays[i].defaultMode = curIndex;
+					}
 
 					++curIndex;
 				}
@@ -926,6 +962,7 @@ void dsSDLApplication_destroy(dsApplication* application)
 
 	dsSDLController_freeAll(application->controllers, application->controllerCount);
 	dsApplication_shutdown(application);
+	dsAllocator_free(application->allocator, application);
 
 	SDL_VideoQuit();
 	SDL_Quit();

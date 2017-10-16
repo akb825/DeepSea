@@ -1017,7 +1017,7 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount)
 {
-	DS_ASSERT(clearValueCount == 0 && clearValueCount == renderPass->attachmentCount);
+	DS_ASSERT(clearValueCount == 0 || clearValueCount == renderPass->attachmentCount);
 	DS_ASSERT(renderPass->attachmentCount == framebuffer->surfaceCount);
 
 	// Cache the clear values so they can be executed when binding the framebuffer.
@@ -1634,11 +1634,8 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glDisable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
-	glDisable(GL_DEPTH_BIAS);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(0, 0);
-	if (AnyGL_EXT_polygon_offset_clamp)
-		glDisable(GL_POLYGON_OFFSET_CLAMP_EXT);
 	glLineWidth(1.0f);
 
 	glEnable(GL_MULTISAMPLE);
@@ -1671,12 +1668,12 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 
 	if (ANYGL_SUPPORTED(glLogicOp))
 	{
-		glDisable(GL_LOGIC_OP);
+		glDisable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_COPY);
 	}
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ZERO);
-	glBlendEquation(GL_ADD);
+	glBlendEquation(GL_FUNC_ADD);
 	glColorMask(true, true, true, true);
 	glBlendColor(0, 0, 0, 0);
 

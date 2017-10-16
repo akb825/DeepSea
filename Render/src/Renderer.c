@@ -205,7 +205,7 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
 {
 	DS_PROFILE_FUNC_START();
@@ -274,7 +274,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
 	const dsDepthStencilValue* depthStencilValue)
 {
@@ -341,7 +341,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_draw(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
 {
 	DS_PROFILE_FUNC_START();
@@ -381,7 +381,7 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_drawIndexed(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
 {
 	DS_PROFILE_FUNC_START();
@@ -428,7 +428,7 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_drawIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride)
 {
@@ -474,7 +474,7 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_drawIndexedIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride)
 {
@@ -528,7 +528,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x,
+bool dsRenderer_dispatchCompute(dsCommandBuffer* commandBuffer, dsRenderer* renderer, uint32_t x,
 	uint32_t y, uint32_t z)
 {
 	DS_PROFILE_FUNC_START();
@@ -550,7 +550,7 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	const dsGfxBuffer* indirectBuffer, size_t offset)
 {
 	DS_PROFILE_FUNC_START();
@@ -610,6 +610,29 @@ bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 	}
 
 	return renderer->waitUntilIdleFunc(renderer);
+}
+
+bool dsRenderer_restoreGlobalState(dsRenderer* renderer)
+{
+	if (!renderer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	// It's valid if there's no global state to restore.
+	if (!renderer->restoreGlobalStateFunc)
+		return true;
+
+	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Restoring the global state must be done on the main thread.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	return renderer->restoreGlobalStateFunc(renderer);
 }
 
 bool dsRenderer_initialize(dsRenderer* renderer)

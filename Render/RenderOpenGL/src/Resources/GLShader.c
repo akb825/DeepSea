@@ -23,6 +23,7 @@
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderModule.h"
+#include "Platform/Platform.h"
 #include "Types.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -335,17 +336,21 @@ bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* m
 	glGetProgramiv(shader->programId, GL_LINK_STATUS, &linkSuccess);
 	if (!linkSuccess)
 	{
+		errno = EFORMAT;
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Error linking shader %s.%s:",
 			module->name, pipeline->name);
 
 		GLint logSize = 0;
 		glGetProgramiv(shader->programId, GL_INFO_LOG_LENGTH, &logSize);
-		char* buffer = (char*)dsAllocator_alloc(resourceManager->allocator, logSize);
-		if (buffer)
+		if (logSize > 0)
 		{
-			glGetProgramInfoLog(shader->programId, logSize, &logSize, buffer);
-			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
-			DS_VERIFY(dsAllocator_free(resourceManager->allocator, buffer));
+			char* buffer = (char*)dsAllocator_alloc(resourceManager->allocator, logSize);
+			if (buffer)
+			{
+				glGetProgramInfoLog(shader->programId, logSize, &logSize, buffer);
+				DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, buffer);
+				DS_VERIFY(dsAllocator_free(resourceManager->allocator, buffer));
+			}
 		}
 
 		return false;
@@ -725,7 +730,7 @@ static void resolveDefaultDepthStencilState(mslDepthStencilState* state)
 	if (state->depthBoundsTestEnable == mslBool_Unset)
 		state->depthTestEnable = mslBool_False;
 	if (state->depthWriteEnable == mslBool_Unset)
-		state->depthWriteEnable = mslBool_False;
+		state->depthWriteEnable = mslBool_True;
 	if (state->depthCompareOp == mslCompareOp_Unset)
 		state->depthCompareOp = mslCompareOp_Less;
 	if (state->depthBoundsTestEnable == mslBool_Unset)

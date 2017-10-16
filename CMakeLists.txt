@@ -38,7 +38,7 @@ set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
 	if (NOT GTEST_FOUND)
-		message("GTest not installed. Skipping tests.")
+		message("GTest not installed. Skipping unit tests.")
 	endif()
 endif()
 
@@ -98,6 +98,10 @@ if (DEEPSEA_BUILD_RENDER)
 endif()
 
 ds_finish_modules()
+
+if (DEEPSEA_BUILD_TESTS)
+	add_subdirectory(Testers)
+endif()
 
 # Documentation. (populated by built libraries)
 add_subdirectory(doc)

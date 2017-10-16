@@ -19,7 +19,7 @@ int AnyGL_atLeastVersion(int major, int minor, int es)
 	if ((es != 0) != (ANYGL_GLES != 0))
 		return 0;
 
-	if (major > majorVersion || (major == majorVersion && minor >= minorVersion))
+	if (majorVersion > major || (majorVersion == major && minorVersion >= minor))
 		return 1;
 
 	return 0;

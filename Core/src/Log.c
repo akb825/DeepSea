@@ -77,7 +77,10 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	OutputDebugStringA(buffer);
 #else
 	if (level < dsLogLevel_Warning)
+	{
 		fprintf(stdout, "%s: [%s] %s\n", logLevelStrings[level], tag, message);
+		fflush(stdout);
+	}
 	else
 	{
 		fprintf(stderr, "%s:%u %s(): %s: [%s] %s\n", file, line, function, logLevelStrings[level],

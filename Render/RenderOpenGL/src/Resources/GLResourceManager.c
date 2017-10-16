@@ -126,7 +126,7 @@ static void setStandardVertexFormat(dsGLResourceManager* resourceManager, dsGfxF
 	dsGfxFormat decorator, GLenum glFormat, GLint elements)
 {
 	unsigned int index = dsGfxFormat_standardIndex(format);
-	unsigned int decoratorIndex = dsGfxFormat_standardIndex(decorator);
+	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(decorator);
 	resourceManager->standardFormats[index][decoratorIndex] |= (uint8_t)FormatBit_Vertex;
 	resourceManager->standardVertexFormats[index][decoratorIndex] = glFormat;
 	resourceManager->standardVertexElements[index][decoratorIndex] = elements;
@@ -145,7 +145,7 @@ static void setStandardFormat(dsGLResourceManager* resourceManager, dsGfxFormat 
 	dsGfxFormat decorator, int bits, GLenum internalFormat, GLenum glFormat, GLenum type)
 {
 	unsigned int index = dsGfxFormat_standardIndex(format);
-	unsigned int decoratorIndex = dsGfxFormat_standardIndex(decorator);
+	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(decorator);
 	resourceManager->standardFormats[index][decoratorIndex] |= (uint8_t)bits;
 	resourceManager->standardInternalFormats[index][decoratorIndex] = internalFormat;
 	resourceManager->standardGlFormats[index][decoratorIndex] = glFormat;
@@ -166,7 +166,7 @@ static void setCompressedFormat(dsGLResourceManager* resourceManager, dsGfxForma
 	dsGfxFormat decorator, int bits, GLenum internalFormat, GLenum glFormat)
 {
 	unsigned int index = dsGfxFormat_compressedIndex(format);
-	unsigned int decoratorIndex = dsGfxFormat_standardIndex(decorator);
+	unsigned int decoratorIndex = dsGfxFormat_decoratorIndex(decorator);
 	resourceManager->compressedFormats[index][decoratorIndex] |= (uint8_t)bits;
 	resourceManager->compressedInternalFormats[index][decoratorIndex] = internalFormat;
 	resourceManager->compressedGlFormats[index][decoratorIndex] = glFormat;
@@ -401,28 +401,28 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			GL_UNSIGNED_SHORT);
 
 		// SNorm
-		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8_SNORM, GL_RGBA, GL_BYTE);
-		setStandardFormat(resourceManager, dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_B8G8R8A8, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8_SNORM, GL_BGRA,
 				GL_UNSIGNED_INT_8_8_8_8);
-		setStandardFormat(resourceManager, dsGfxFormat_A8B8G8R8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_A8B8G8R8, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8_SNORM, GL_RGBA,
 				GL_UNSIGNED_INT_8_8_8_8_REV);
-		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_SNorm,
 			FormatBit_Texture, GL_RGB8_SNORM, GL_RGB, GL_BYTE);
-		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RG8_SNORM, GL_RG, GL_BYTE);
-		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_R8_SNORM, GL_RED, GL_BYTE);
 
-		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA16_SNORM, GL_RGBA, GL_SHORT);
-		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_SNorm,
 			FormatBit_Texture, GL_RGB16_SNORM, GL_RGB, GL_SHORT);
-		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RG16_SNORM, GL_RG, GL_SHORT);
-		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_UNorm,
+		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_SNorm,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_R16_SNORM, GL_RED, GL_SHORT);
 
 		// UInt

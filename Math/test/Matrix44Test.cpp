@@ -126,6 +126,18 @@ inline void dsMatrix44_makeScale(dsMatrix44d* result, double x, double y, double
 	dsMatrix44d_makeScale(result, x, y, z);
 }
 
+inline void dsMatrix44_lookAt(dsMatrix44f* result, const dsVector3f* eyePos,
+	const dsVector3f* lookAtPos, const dsVector3f* upDir)
+{
+	dsMatrix44f_lookAt(result, eyePos, lookAtPos, upDir);
+}
+
+inline void dsMatrix44_lookAt(dsMatrix44d* result, const dsVector3d* eyePos,
+	const dsVector3d* lookAtPos, const dsVector3d* upDir)
+{
+	dsMatrix44d_lookAt(result, eyePos, lookAtPos, upDir);
+}
+
 inline void dsMatrix44_makeOrtho(dsMatrix44f* result, float left, float right, float bottom,
 	float top, float near, float far, bool halfDepth, bool invertY)
 {
@@ -419,7 +431,6 @@ TYPED_TEST(Matrix44Test, Invert)
 	Matrix44Type result;
 	dsMatrix44_mul(result, inverse, matrix);
 
-
 	EXPECT_NEAR((TypeParam)0.08204279638656, inverse.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.105776528857303, inverse.values[0][1], epsilon);
 	EXPECT_NEAR((TypeParam)-0.0109040608614341, inverse.values[0][2], epsilon);
@@ -652,6 +663,45 @@ TYPED_TEST(Matrix44Test, MakeScale)
 	EXPECT_EQ(0, matrix.values[3][1]);
 	EXPECT_EQ(0, matrix.values[3][2]);
 	EXPECT_EQ(1, matrix.values[3][3]);
+}
+
+TYPED_TEST(Matrix44Test, LookAt)
+{
+	typedef typename Matrix44TypeSelector<TypeParam>::MatrixType Matrix44Type;
+	typedef typename Matrix44TypeSelector<TypeParam>::Vector3Type Vector3Type;
+	TypeParam epsilon = Matrix44TypeSelector<TypeParam>::epsilon;
+
+	Vector3Type eyePos = {{0, -1, 1}};
+	Vector3Type lookAtPos = {{0, 0, 0}};
+	Vector3Type upDir = {{0, 1, 0}};
+
+	Matrix44Type matrix;
+	dsMatrix44_lookAt(&matrix, &eyePos, &lookAtPos, &upDir);
+
+	Matrix44Type rotation, translation, reference;
+	dsMatrix44_makeRotate(&rotation, (TypeParam)dsDegreesToRadians(45), 0, 0);
+	dsMatrix44_makeTranslate(&translation, eyePos.x, eyePos.y, eyePos.z);
+	dsMatrix44_mul(reference, translation, rotation);
+
+	EXPECT_NEAR(reference.values[0][0], matrix.values[0][0], epsilon);
+	EXPECT_NEAR(reference.values[0][1], matrix.values[0][1], epsilon);
+	EXPECT_NEAR(reference.values[0][2], matrix.values[0][2], epsilon);
+	EXPECT_NEAR(reference.values[0][3], matrix.values[0][3], epsilon);
+
+	EXPECT_NEAR(reference.values[1][0], matrix.values[1][0], epsilon);
+	EXPECT_NEAR(reference.values[1][1], matrix.values[1][1], epsilon);
+	EXPECT_NEAR(reference.values[1][2], matrix.values[1][2], epsilon);
+	EXPECT_NEAR(reference.values[1][3], matrix.values[1][3], epsilon);
+
+	EXPECT_NEAR(reference.values[2][0], matrix.values[2][0], epsilon);
+	EXPECT_NEAR(reference.values[2][1], matrix.values[2][1], epsilon);
+	EXPECT_NEAR(reference.values[2][2], matrix.values[2][2], epsilon);
+	EXPECT_NEAR(reference.values[2][3], matrix.values[2][3], epsilon);
+
+	EXPECT_NEAR(reference.values[3][0], matrix.values[3][0], epsilon);
+	EXPECT_NEAR(reference.values[3][1], matrix.values[3][1], epsilon);
+	EXPECT_NEAR(reference.values[3][2], matrix.values[3][2], epsilon);
+	EXPECT_NEAR(reference.values[3][3], matrix.values[3][3], epsilon);
 }
 
 TYPED_TEST(Matrix44Test, FastInvert)

@@ -18,6 +18,7 @@
 
 #include "Matrix33Impl.h"
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector3.h>
 
 #define dsMatrix44_invertImpl(result, a, invDet) \
 	do \
@@ -424,6 +425,86 @@ void dsMatrix44d_makeScale(dsMatrix44d* result, double x, double y, double z)
 	result->values[3][0] = 0;
 	result->values[3][1] = 0;
 	result->values[3][2] = 0;
+	result->values[3][3] = 1;
+}
+
+void dsMatrix44f_lookAt(dsMatrix44f* result, const dsVector3f* eyePos, const dsVector3f* lookAtPos,
+	const dsVector3f* upDir)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(eyePos);
+	DS_ASSERT(lookAtPos);
+	DS_ASSERT(upDir);
+
+	dsVector3f zDir;
+	dsVector3_sub(zDir, *eyePos, *lookAtPos);
+	dsVector3f_normalize(&zDir, &zDir);
+
+	dsVector3f xDir;
+	dsVector3_cross(xDir, *upDir, zDir);
+	dsVector3f_normalize(&xDir, &xDir);
+
+	dsVector3f yDir;
+	dsVector3_cross(yDir, zDir, xDir);
+
+	result->values[0][0] = xDir.x;
+	result->values[0][1] = xDir.y;
+	result->values[0][2] = xDir.z;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = yDir.x;
+	result->values[1][1] = yDir.y;
+	result->values[1][2] = yDir.z;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = zDir.x;
+	result->values[2][1] = zDir.y;
+	result->values[2][2] = zDir.z;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = eyePos->x;
+	result->values[3][1] = eyePos->y;
+	result->values[3][2] = eyePos->z;
+	result->values[3][3] = 1;
+}
+
+void dsMatrix44d_lookAt(dsMatrix44d* result, const dsVector3d* eyePos, const dsVector3d* lookAtPos,
+	const dsVector3d* upDir)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(eyePos);
+	DS_ASSERT(lookAtPos);
+	DS_ASSERT(upDir);
+
+	dsVector3d zDir;
+	dsVector3_sub(zDir, *eyePos, *lookAtPos);
+	dsVector3d_normalize(&zDir, &zDir);
+
+	dsVector3d xDir;
+	dsVector3_cross(xDir, *upDir, zDir);
+	dsVector3d_normalize(&xDir, &xDir);
+
+	dsVector3d yDir;
+	dsVector3_cross(yDir, zDir, xDir);
+
+	result->values[0][0] = xDir.x;
+	result->values[0][1] = xDir.y;
+	result->values[0][2] = xDir.z;
+	result->values[0][3] = 0;
+
+	result->values[1][0] = yDir.x;
+	result->values[1][1] = yDir.y;
+	result->values[1][2] = yDir.z;
+	result->values[1][3] = 0;
+
+	result->values[2][0] = zDir.x;
+	result->values[2][1] = zDir.y;
+	result->values[2][2] = zDir.z;
+	result->values[2][3] = 0;
+
+	result->values[3][0] = eyePos->x;
+	result->values[3][1] = eyePos->y;
+	result->values[3][2] = eyePos->z;
 	result->values[3][3] = 1;
 }
 

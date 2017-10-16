@@ -48,7 +48,8 @@ extern "C"
  * @param primitiveType The type of primitive the shader will be drawn with.
  * @param samples The number of samples to use for multisampling. This may be set to
  *     DS_DEFAULT_ANTIALIAS_SAMPLES to use the default set on the renderer. Unlike offscreens and
- *     renderbuffers, the shader need not be re-created when the renderer samplers are changed.
+ *     renderbuffers, the shader need not be re-created when the renderer's anti-alias samples field
+ *     is changed.
  * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,

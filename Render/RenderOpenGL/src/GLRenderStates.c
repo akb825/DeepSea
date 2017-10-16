@@ -22,7 +22,7 @@
 
 static const GLenum polygonModeMap[] =
 {
-	GL_FLOAT,
+	GL_FILL,
 	GL_LINE,
 	GL_POINT
 };
@@ -203,7 +203,7 @@ static void setRasterizationStates(mslRasterizationState* curState,
 
 	if (curState->polygonMode != newState->polygonMode && ANYGL_SUPPORTED(glPolygonMode))
 	{
-		curState->polygonMode = curState->polygonMode;
+		curState->polygonMode = newState->polygonMode;
 		DS_ASSERT((unsigned int)curState->polygonMode < DS_ARRAY_SIZE(polygonModeMap));
 		glPolygonMode(GL_FRONT_AND_BACK, polygonModeMap[curState->polygonMode]);
 	}
@@ -549,9 +549,9 @@ static void setBlendStates(const dsRenderer* renderer, mslBlendState* curState,
 	{
 		curState->logicalOpEnable = newState->logicalOpEnable;
 		if (curState->logicalOpEnable)
-			glEnable(GL_LOGIC_OP);
+			glEnable(GL_COLOR_LOGIC_OP);
 		else
-			glDisable(GL_LOGIC_OP);
+			glDisable(GL_COLOR_LOGIC_OP);
 	}
 
 	if (curState->logicalOpEnable && curState->logicalOp != newState->logicalOp &&
@@ -674,8 +674,8 @@ static void setBlendStates(const dsRenderer* renderer, mslBlendState* curState,
 					newState->blendAttachments[i].srcColorBlendFactor ||
 				curState->blendAttachments[i].dstColorBlendFactor !=
 					newState->blendAttachments[i].dstColorBlendFactor ||
-				curState->blendAttachments[i].dstColorBlendFactor !=
-					newState->blendAttachments[i].dstColorBlendFactor ||
+				curState->blendAttachments[i].srcAlphaBlendFactor !=
+					newState->blendAttachments[i].srcAlphaBlendFactor ||
 				curState->blendAttachments[i].dstAlphaBlendFactor !=
 					newState->blendAttachments[i].dstAlphaBlendFactor)
 			{
@@ -683,8 +683,8 @@ static void setBlendStates(const dsRenderer* renderer, mslBlendState* curState,
 					newState->blendAttachments[i].srcColorBlendFactor;
 				curState->blendAttachments[i].dstColorBlendFactor =
 					newState->blendAttachments[i].dstColorBlendFactor;
-				curState->blendAttachments[i].dstColorBlendFactor =
-					newState->blendAttachments[i].dstColorBlendFactor;
+				curState->blendAttachments[i].srcAlphaBlendFactor =
+					newState->blendAttachments[i].srcAlphaBlendFactor;
 				curState->blendAttachments[i].dstAlphaBlendFactor =
 					newState->blendAttachments[i].dstAlphaBlendFactor;
 

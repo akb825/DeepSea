@@ -5778,10 +5778,10 @@ static ANYGL_THREAD unsigned int lastLine;
 
 static void APIENTRY debug_glActiveTexture(GLenum texture)
 {
-	glActiveTexture(texture);
+	default_glActiveTexture(texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5795,10 +5795,10 @@ static void APIENTRY debug_glActiveTexture(GLenum texture)
 
 static void APIENTRY debug_glAttachShader(GLuint program, GLuint shader)
 {
-	glAttachShader(program, shader);
+	default_glAttachShader(program, shader);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5812,10 +5812,10 @@ static void APIENTRY debug_glAttachShader(GLuint program, GLuint shader)
 
 static void APIENTRY debug_glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
 {
-	glBindAttribLocation(program, index, name);
+	default_glBindAttribLocation(program, index, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5829,10 +5829,10 @@ static void APIENTRY debug_glBindAttribLocation(GLuint program, GLuint index, co
 
 static void APIENTRY debug_glBindBuffer(GLenum target, GLuint buffer)
 {
-	glBindBuffer(target, buffer);
+	default_glBindBuffer(target, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5846,10 +5846,10 @@ static void APIENTRY debug_glBindBuffer(GLenum target, GLuint buffer)
 
 static void APIENTRY debug_glBindFramebuffer(GLenum target, GLuint framebuffer)
 {
-	glBindFramebuffer(target, framebuffer);
+	default_glBindFramebuffer(target, framebuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5863,10 +5863,10 @@ static void APIENTRY debug_glBindFramebuffer(GLenum target, GLuint framebuffer)
 
 static void APIENTRY debug_glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
-	glBindRenderbuffer(target, renderbuffer);
+	default_glBindRenderbuffer(target, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5880,10 +5880,10 @@ static void APIENTRY debug_glBindRenderbuffer(GLenum target, GLuint renderbuffer
 
 static void APIENTRY debug_glBindTexture(GLenum target, GLuint texture)
 {
-	glBindTexture(target, texture);
+	default_glBindTexture(target, texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5897,10 +5897,10 @@ static void APIENTRY debug_glBindTexture(GLenum target, GLuint texture)
 
 static void APIENTRY debug_glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	glBlendColor(red, green, blue, alpha);
+	default_glBlendColor(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5914,10 +5914,10 @@ static void APIENTRY debug_glBlendColor(GLfloat red, GLfloat green, GLfloat blue
 
 static void APIENTRY debug_glBlendEquation(GLenum mode)
 {
-	glBlendEquation(mode);
+	default_glBlendEquation(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5931,10 +5931,10 @@ static void APIENTRY debug_glBlendEquation(GLenum mode)
 
 static void APIENTRY debug_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
-	glBlendEquationSeparate(modeRGB, modeAlpha);
+	default_glBlendEquationSeparate(modeRGB, modeAlpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5948,10 +5948,10 @@ static void APIENTRY debug_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAl
 
 static void APIENTRY debug_glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
-	glBlendFunc(sfactor, dfactor);
+	default_glBlendFunc(sfactor, dfactor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5965,10 +5965,10 @@ static void APIENTRY debug_glBlendFunc(GLenum sfactor, GLenum dfactor)
 
 static void APIENTRY debug_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
-	glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
+	default_glBlendFuncSeparate(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5982,10 +5982,10 @@ static void APIENTRY debug_glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactor
 
 static void APIENTRY debug_glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
 {
-	glBufferData(target, size, data, usage);
+	default_glBufferData(target, size, data, usage);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -5999,10 +5999,10 @@ static void APIENTRY debug_glBufferData(GLenum target, GLsizeiptr size, const vo
 
 static void APIENTRY debug_glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
 {
-	glBufferSubData(target, offset, size, data);
+	default_glBufferSubData(target, offset, size, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6019,7 +6019,7 @@ static GLenum APIENTRY debug_glCheckFramebufferStatus(GLenum target)
 	GLenum retVal = default_glCheckFramebufferStatus(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6034,10 +6034,10 @@ static GLenum APIENTRY debug_glCheckFramebufferStatus(GLenum target)
 
 static void APIENTRY debug_glClear(GLbitfield mask)
 {
-	glClear(mask);
+	default_glClear(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6051,10 +6051,10 @@ static void APIENTRY debug_glClear(GLbitfield mask)
 
 static void APIENTRY debug_glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	glClearColor(red, green, blue, alpha);
+	default_glClearColor(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6068,10 +6068,10 @@ static void APIENTRY debug_glClearColor(GLfloat red, GLfloat green, GLfloat blue
 
 static void APIENTRY debug_glClearDepthf(GLfloat d)
 {
-	glClearDepthf(d);
+	default_glClearDepthf(d);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6085,10 +6085,10 @@ static void APIENTRY debug_glClearDepthf(GLfloat d)
 
 static void APIENTRY debug_glClearStencil(GLint s)
 {
-	glClearStencil(s);
+	default_glClearStencil(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6102,10 +6102,10 @@ static void APIENTRY debug_glClearStencil(GLint s)
 
 static void APIENTRY debug_glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
-	glColorMask(red, green, blue, alpha);
+	default_glColorMask(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6119,10 +6119,10 @@ static void APIENTRY debug_glColorMask(GLboolean red, GLboolean green, GLboolean
 
 static void APIENTRY debug_glCompileShader(GLuint shader)
 {
-	glCompileShader(shader);
+	default_glCompileShader(shader);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6136,10 +6136,10 @@ static void APIENTRY debug_glCompileShader(GLuint shader)
 
 static void APIENTRY debug_glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data)
 {
-	glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
+	default_glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6153,10 +6153,10 @@ static void APIENTRY debug_glCompressedTexImage2D(GLenum target, GLint level, GL
 
 static void APIENTRY debug_glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
+	default_glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6170,10 +6170,10 @@ static void APIENTRY debug_glCompressedTexSubImage2D(GLenum target, GLint level,
 
 static void APIENTRY debug_glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
-	glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
+	default_glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6187,10 +6187,10 @@ static void APIENTRY debug_glCopyTexImage2D(GLenum target, GLint level, GLenum i
 
 static void APIENTRY debug_glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+	default_glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6207,7 +6207,7 @@ static GLuint APIENTRY debug_glCreateProgram()
 	GLuint retVal = default_glCreateProgram();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6225,7 +6225,7 @@ static GLuint APIENTRY debug_glCreateShader(GLenum type)
 	GLuint retVal = default_glCreateShader(type);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6240,10 +6240,10 @@ static GLuint APIENTRY debug_glCreateShader(GLenum type)
 
 static void APIENTRY debug_glCullFace(GLenum mode)
 {
-	glCullFace(mode);
+	default_glCullFace(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6257,10 +6257,10 @@ static void APIENTRY debug_glCullFace(GLenum mode)
 
 static void APIENTRY debug_glDeleteBuffers(GLsizei n, const GLuint *buffers)
 {
-	glDeleteBuffers(n, buffers);
+	default_glDeleteBuffers(n, buffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6274,10 +6274,10 @@ static void APIENTRY debug_glDeleteBuffers(GLsizei n, const GLuint *buffers)
 
 static void APIENTRY debug_glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
 {
-	glDeleteFramebuffers(n, framebuffers);
+	default_glDeleteFramebuffers(n, framebuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6291,10 +6291,10 @@ static void APIENTRY debug_glDeleteFramebuffers(GLsizei n, const GLuint *framebu
 
 static void APIENTRY debug_glDeleteProgram(GLuint program)
 {
-	glDeleteProgram(program);
+	default_glDeleteProgram(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6308,10 +6308,10 @@ static void APIENTRY debug_glDeleteProgram(GLuint program)
 
 static void APIENTRY debug_glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
 {
-	glDeleteRenderbuffers(n, renderbuffers);
+	default_glDeleteRenderbuffers(n, renderbuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6325,10 +6325,10 @@ static void APIENTRY debug_glDeleteRenderbuffers(GLsizei n, const GLuint *render
 
 static void APIENTRY debug_glDeleteShader(GLuint shader)
 {
-	glDeleteShader(shader);
+	default_glDeleteShader(shader);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6342,10 +6342,10 @@ static void APIENTRY debug_glDeleteShader(GLuint shader)
 
 static void APIENTRY debug_glDeleteTextures(GLsizei n, const GLuint *textures)
 {
-	glDeleteTextures(n, textures);
+	default_glDeleteTextures(n, textures);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6359,10 +6359,10 @@ static void APIENTRY debug_glDeleteTextures(GLsizei n, const GLuint *textures)
 
 static void APIENTRY debug_glDepthFunc(GLenum func)
 {
-	glDepthFunc(func);
+	default_glDepthFunc(func);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6376,10 +6376,10 @@ static void APIENTRY debug_glDepthFunc(GLenum func)
 
 static void APIENTRY debug_glDepthMask(GLboolean flag)
 {
-	glDepthMask(flag);
+	default_glDepthMask(flag);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6393,10 +6393,10 @@ static void APIENTRY debug_glDepthMask(GLboolean flag)
 
 static void APIENTRY debug_glDepthRangef(GLfloat n, GLfloat f)
 {
-	glDepthRangef(n, f);
+	default_glDepthRangef(n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6410,10 +6410,10 @@ static void APIENTRY debug_glDepthRangef(GLfloat n, GLfloat f)
 
 static void APIENTRY debug_glDetachShader(GLuint program, GLuint shader)
 {
-	glDetachShader(program, shader);
+	default_glDetachShader(program, shader);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6427,10 +6427,10 @@ static void APIENTRY debug_glDetachShader(GLuint program, GLuint shader)
 
 static void APIENTRY debug_glDisable(GLenum cap)
 {
-	glDisable(cap);
+	default_glDisable(cap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6444,10 +6444,10 @@ static void APIENTRY debug_glDisable(GLenum cap)
 
 static void APIENTRY debug_glDisableVertexAttribArray(GLuint index)
 {
-	glDisableVertexAttribArray(index);
+	default_glDisableVertexAttribArray(index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6461,10 +6461,10 @@ static void APIENTRY debug_glDisableVertexAttribArray(GLuint index)
 
 static void APIENTRY debug_glDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
-	glDrawArrays(mode, first, count);
+	default_glDrawArrays(mode, first, count);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6478,10 +6478,10 @@ static void APIENTRY debug_glDrawArrays(GLenum mode, GLint first, GLsizei count)
 
 static void APIENTRY debug_glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
-	glDrawElements(mode, count, type, indices);
+	default_glDrawElements(mode, count, type, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6495,10 +6495,10 @@ static void APIENTRY debug_glDrawElements(GLenum mode, GLsizei count, GLenum typ
 
 static void APIENTRY debug_glEnable(GLenum cap)
 {
-	glEnable(cap);
+	default_glEnable(cap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6512,10 +6512,10 @@ static void APIENTRY debug_glEnable(GLenum cap)
 
 static void APIENTRY debug_glEnableVertexAttribArray(GLuint index)
 {
-	glEnableVertexAttribArray(index);
+	default_glEnableVertexAttribArray(index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6529,10 +6529,10 @@ static void APIENTRY debug_glEnableVertexAttribArray(GLuint index)
 
 static void APIENTRY debug_glFinish()
 {
-	glFinish();
+	default_glFinish();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6546,10 +6546,10 @@ static void APIENTRY debug_glFinish()
 
 static void APIENTRY debug_glFlush()
 {
-	glFlush();
+	default_glFlush();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6563,10 +6563,10 @@ static void APIENTRY debug_glFlush()
 
 static void APIENTRY debug_glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
-	glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+	default_glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6580,10 +6580,10 @@ static void APIENTRY debug_glFramebufferRenderbuffer(GLenum target, GLenum attac
 
 static void APIENTRY debug_glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
-	glFramebufferTexture2D(target, attachment, textarget, texture, level);
+	default_glFramebufferTexture2D(target, attachment, textarget, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6597,10 +6597,10 @@ static void APIENTRY debug_glFramebufferTexture2D(GLenum target, GLenum attachme
 
 static void APIENTRY debug_glFrontFace(GLenum mode)
 {
-	glFrontFace(mode);
+	default_glFrontFace(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6614,10 +6614,10 @@ static void APIENTRY debug_glFrontFace(GLenum mode)
 
 static void APIENTRY debug_glGenBuffers(GLsizei n, GLuint *buffers)
 {
-	glGenBuffers(n, buffers);
+	default_glGenBuffers(n, buffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6631,10 +6631,10 @@ static void APIENTRY debug_glGenBuffers(GLsizei n, GLuint *buffers)
 
 static void APIENTRY debug_glGenerateMipmap(GLenum target)
 {
-	glGenerateMipmap(target);
+	default_glGenerateMipmap(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6648,10 +6648,10 @@ static void APIENTRY debug_glGenerateMipmap(GLenum target)
 
 static void APIENTRY debug_glGenFramebuffers(GLsizei n, GLuint *framebuffers)
 {
-	glGenFramebuffers(n, framebuffers);
+	default_glGenFramebuffers(n, framebuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6665,10 +6665,10 @@ static void APIENTRY debug_glGenFramebuffers(GLsizei n, GLuint *framebuffers)
 
 static void APIENTRY debug_glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
-	glGenRenderbuffers(n, renderbuffers);
+	default_glGenRenderbuffers(n, renderbuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6682,10 +6682,10 @@ static void APIENTRY debug_glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 
 static void APIENTRY debug_glGenTextures(GLsizei n, GLuint *textures)
 {
-	glGenTextures(n, textures);
+	default_glGenTextures(n, textures);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6699,10 +6699,10 @@ static void APIENTRY debug_glGenTextures(GLsizei n, GLuint *textures)
 
 static void APIENTRY debug_glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
-	glGetActiveAttrib(program, index, bufSize, length, size, type, name);
+	default_glGetActiveAttrib(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6716,10 +6716,10 @@ static void APIENTRY debug_glGetActiveAttrib(GLuint program, GLuint index, GLsiz
 
 static void APIENTRY debug_glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type, GLchar *name)
 {
-	glGetActiveUniform(program, index, bufSize, length, size, type, name);
+	default_glGetActiveUniform(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6733,10 +6733,10 @@ static void APIENTRY debug_glGetActiveUniform(GLuint program, GLuint index, GLsi
 
 static void APIENTRY debug_glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
 {
-	glGetAttachedShaders(program, maxCount, count, shaders);
+	default_glGetAttachedShaders(program, maxCount, count, shaders);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6753,7 +6753,7 @@ static GLint APIENTRY debug_glGetAttribLocation(GLuint program, const GLchar *na
 	GLint retVal = default_glGetAttribLocation(program, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6768,10 +6768,10 @@ static GLint APIENTRY debug_glGetAttribLocation(GLuint program, const GLchar *na
 
 static void APIENTRY debug_glGetBooleanv(GLenum pname, GLboolean *data)
 {
-	glGetBooleanv(pname, data);
+	default_glGetBooleanv(pname, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6785,10 +6785,10 @@ static void APIENTRY debug_glGetBooleanv(GLenum pname, GLboolean *data)
 
 static void APIENTRY debug_glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetBufferParameteriv(target, pname, params);
+	default_glGetBufferParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6802,10 +6802,10 @@ static void APIENTRY debug_glGetBufferParameteriv(GLenum target, GLenum pname, G
 
 static void APIENTRY debug_glGetFloatv(GLenum pname, GLfloat *data)
 {
-	glGetFloatv(pname, data);
+	default_glGetFloatv(pname, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6819,10 +6819,10 @@ static void APIENTRY debug_glGetFloatv(GLenum pname, GLfloat *data)
 
 static void APIENTRY debug_glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params)
 {
-	glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
+	default_glGetFramebufferAttachmentParameteriv(target, attachment, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6836,10 +6836,10 @@ static void APIENTRY debug_glGetFramebufferAttachmentParameteriv(GLenum target, 
 
 static void APIENTRY debug_glGetIntegerv(GLenum pname, GLint *data)
 {
-	glGetIntegerv(pname, data);
+	default_glGetIntegerv(pname, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6853,10 +6853,10 @@ static void APIENTRY debug_glGetIntegerv(GLenum pname, GLint *data)
 
 static void APIENTRY debug_glGetProgramiv(GLuint program, GLenum pname, GLint *params)
 {
-	glGetProgramiv(program, pname, params);
+	default_glGetProgramiv(program, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6870,10 +6870,10 @@ static void APIENTRY debug_glGetProgramiv(GLuint program, GLenum pname, GLint *p
 
 static void APIENTRY debug_glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
-	glGetProgramInfoLog(program, bufSize, length, infoLog);
+	default_glGetProgramInfoLog(program, bufSize, length, infoLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6887,10 +6887,10 @@ static void APIENTRY debug_glGetProgramInfoLog(GLuint program, GLsizei bufSize, 
 
 static void APIENTRY debug_glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetRenderbufferParameteriv(target, pname, params);
+	default_glGetRenderbufferParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6904,10 +6904,10 @@ static void APIENTRY debug_glGetRenderbufferParameteriv(GLenum target, GLenum pn
 
 static void APIENTRY debug_glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
 {
-	glGetShaderiv(shader, pname, params);
+	default_glGetShaderiv(shader, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6921,10 +6921,10 @@ static void APIENTRY debug_glGetShaderiv(GLuint shader, GLenum pname, GLint *par
 
 static void APIENTRY debug_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
-	glGetShaderInfoLog(shader, bufSize, length, infoLog);
+	default_glGetShaderInfoLog(shader, bufSize, length, infoLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6938,10 +6938,10 @@ static void APIENTRY debug_glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GL
 
 static void APIENTRY debug_glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
 {
-	glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision);
+	default_glGetShaderPrecisionFormat(shadertype, precisiontype, range, precision);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6955,10 +6955,10 @@ static void APIENTRY debug_glGetShaderPrecisionFormat(GLenum shadertype, GLenum 
 
 static void APIENTRY debug_glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
 {
-	glGetShaderSource(shader, bufSize, length, source);
+	default_glGetShaderSource(shader, bufSize, length, source);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6975,7 +6975,7 @@ static const GLubyte * APIENTRY debug_glGetString(GLenum name)
 	const GLubyte * retVal = default_glGetString(name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -6990,10 +6990,10 @@ static const GLubyte * APIENTRY debug_glGetString(GLenum name)
 
 static void APIENTRY debug_glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetTexParameterfv(target, pname, params);
+	default_glGetTexParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7007,10 +7007,10 @@ static void APIENTRY debug_glGetTexParameterfv(GLenum target, GLenum pname, GLfl
 
 static void APIENTRY debug_glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetTexParameteriv(target, pname, params);
+	default_glGetTexParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7024,10 +7024,10 @@ static void APIENTRY debug_glGetTexParameteriv(GLenum target, GLenum pname, GLin
 
 static void APIENTRY debug_glGetUniformfv(GLuint program, GLint location, GLfloat *params)
 {
-	glGetUniformfv(program, location, params);
+	default_glGetUniformfv(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7041,10 +7041,10 @@ static void APIENTRY debug_glGetUniformfv(GLuint program, GLint location, GLfloa
 
 static void APIENTRY debug_glGetUniformiv(GLuint program, GLint location, GLint *params)
 {
-	glGetUniformiv(program, location, params);
+	default_glGetUniformiv(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7061,7 +7061,7 @@ static GLint APIENTRY debug_glGetUniformLocation(GLuint program, const GLchar *n
 	GLint retVal = default_glGetUniformLocation(program, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7076,10 +7076,10 @@ static GLint APIENTRY debug_glGetUniformLocation(GLuint program, const GLchar *n
 
 static void APIENTRY debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
 {
-	glGetVertexAttribfv(index, pname, params);
+	default_glGetVertexAttribfv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7093,10 +7093,10 @@ static void APIENTRY debug_glGetVertexAttribfv(GLuint index, GLenum pname, GLflo
 
 static void APIENTRY debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
 {
-	glGetVertexAttribiv(index, pname, params);
+	default_glGetVertexAttribiv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7110,10 +7110,10 @@ static void APIENTRY debug_glGetVertexAttribiv(GLuint index, GLenum pname, GLint
 
 static void APIENTRY debug_glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
 {
-	glGetVertexAttribPointerv(index, pname, pointer);
+	default_glGetVertexAttribPointerv(index, pname, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7127,10 +7127,10 @@ static void APIENTRY debug_glGetVertexAttribPointerv(GLuint index, GLenum pname,
 
 static void APIENTRY debug_glHint(GLenum target, GLenum mode)
 {
-	glHint(target, mode);
+	default_glHint(target, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7147,7 +7147,7 @@ static GLboolean APIENTRY debug_glIsBuffer(GLuint buffer)
 	GLboolean retVal = default_glIsBuffer(buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7165,7 +7165,7 @@ static GLboolean APIENTRY debug_glIsEnabled(GLenum cap)
 	GLboolean retVal = default_glIsEnabled(cap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7183,7 +7183,7 @@ static GLboolean APIENTRY debug_glIsFramebuffer(GLuint framebuffer)
 	GLboolean retVal = default_glIsFramebuffer(framebuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7201,7 +7201,7 @@ static GLboolean APIENTRY debug_glIsProgram(GLuint program)
 	GLboolean retVal = default_glIsProgram(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7219,7 +7219,7 @@ static GLboolean APIENTRY debug_glIsRenderbuffer(GLuint renderbuffer)
 	GLboolean retVal = default_glIsRenderbuffer(renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7237,7 +7237,7 @@ static GLboolean APIENTRY debug_glIsShader(GLuint shader)
 	GLboolean retVal = default_glIsShader(shader);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7255,7 +7255,7 @@ static GLboolean APIENTRY debug_glIsTexture(GLuint texture)
 	GLboolean retVal = default_glIsTexture(texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7270,10 +7270,10 @@ static GLboolean APIENTRY debug_glIsTexture(GLuint texture)
 
 static void APIENTRY debug_glLineWidth(GLfloat width)
 {
-	glLineWidth(width);
+	default_glLineWidth(width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7287,10 +7287,10 @@ static void APIENTRY debug_glLineWidth(GLfloat width)
 
 static void APIENTRY debug_glLinkProgram(GLuint program)
 {
-	glLinkProgram(program);
+	default_glLinkProgram(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7304,10 +7304,10 @@ static void APIENTRY debug_glLinkProgram(GLuint program)
 
 static void APIENTRY debug_glPixelStorei(GLenum pname, GLint param)
 {
-	glPixelStorei(pname, param);
+	default_glPixelStorei(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7321,10 +7321,10 @@ static void APIENTRY debug_glPixelStorei(GLenum pname, GLint param)
 
 static void APIENTRY debug_glPolygonOffset(GLfloat factor, GLfloat units)
 {
-	glPolygonOffset(factor, units);
+	default_glPolygonOffset(factor, units);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7338,10 +7338,10 @@ static void APIENTRY debug_glPolygonOffset(GLfloat factor, GLfloat units)
 
 static void APIENTRY debug_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
 {
-	glReadPixels(x, y, width, height, format, type, pixels);
+	default_glReadPixels(x, y, width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7355,10 +7355,10 @@ static void APIENTRY debug_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei
 
 static void APIENTRY debug_glReleaseShaderCompiler()
 {
-	glReleaseShaderCompiler();
+	default_glReleaseShaderCompiler();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7372,10 +7372,10 @@ static void APIENTRY debug_glReleaseShaderCompiler()
 
 static void APIENTRY debug_glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glRenderbufferStorage(target, internalformat, width, height);
+	default_glRenderbufferStorage(target, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7389,10 +7389,10 @@ static void APIENTRY debug_glRenderbufferStorage(GLenum target, GLenum internalf
 
 static void APIENTRY debug_glSampleCoverage(GLfloat value, GLboolean invert)
 {
-	glSampleCoverage(value, invert);
+	default_glSampleCoverage(value, invert);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7406,10 +7406,10 @@ static void APIENTRY debug_glSampleCoverage(GLfloat value, GLboolean invert)
 
 static void APIENTRY debug_glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glScissor(x, y, width, height);
+	default_glScissor(x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7423,10 +7423,10 @@ static void APIENTRY debug_glScissor(GLint x, GLint y, GLsizei width, GLsizei he
 
 static void APIENTRY debug_glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length)
 {
-	glShaderBinary(count, shaders, binaryformat, binary, length);
+	default_glShaderBinary(count, shaders, binaryformat, binary, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7440,10 +7440,10 @@ static void APIENTRY debug_glShaderBinary(GLsizei count, const GLuint *shaders, 
 
 static void APIENTRY debug_glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length)
 {
-	glShaderSource(shader, count, string, length);
+	default_glShaderSource(shader, count, string, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7457,10 +7457,10 @@ static void APIENTRY debug_glShaderSource(GLuint shader, GLsizei count, const GL
 
 static void APIENTRY debug_glStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
-	glStencilFunc(func, ref, mask);
+	default_glStencilFunc(func, ref, mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7474,10 +7474,10 @@ static void APIENTRY debug_glStencilFunc(GLenum func, GLint ref, GLuint mask)
 
 static void APIENTRY debug_glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 {
-	glStencilFuncSeparate(face, func, ref, mask);
+	default_glStencilFuncSeparate(face, func, ref, mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7491,10 +7491,10 @@ static void APIENTRY debug_glStencilFuncSeparate(GLenum face, GLenum func, GLint
 
 static void APIENTRY debug_glStencilMask(GLuint mask)
 {
-	glStencilMask(mask);
+	default_glStencilMask(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7508,10 +7508,10 @@ static void APIENTRY debug_glStencilMask(GLuint mask)
 
 static void APIENTRY debug_glStencilMaskSeparate(GLenum face, GLuint mask)
 {
-	glStencilMaskSeparate(face, mask);
+	default_glStencilMaskSeparate(face, mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7525,10 +7525,10 @@ static void APIENTRY debug_glStencilMaskSeparate(GLenum face, GLuint mask)
 
 static void APIENTRY debug_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
-	glStencilOp(fail, zfail, zpass);
+	default_glStencilOp(fail, zfail, zpass);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7542,10 +7542,10 @@ static void APIENTRY debug_glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 
 static void APIENTRY debug_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
 {
-	glStencilOpSeparate(face, sfail, dpfail, dppass);
+	default_glStencilOpSeparate(face, sfail, dpfail, dppass);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7559,10 +7559,10 @@ static void APIENTRY debug_glStencilOpSeparate(GLenum face, GLenum sfail, GLenum
 
 static void APIENTRY debug_glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+	default_glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7576,10 +7576,10 @@ static void APIENTRY debug_glTexImage2D(GLenum target, GLint level, GLint intern
 
 static void APIENTRY debug_glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
-	glTexParameterf(target, pname, param);
+	default_glTexParameterf(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7593,10 +7593,10 @@ static void APIENTRY debug_glTexParameterf(GLenum target, GLenum pname, GLfloat 
 
 static void APIENTRY debug_glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
-	glTexParameterfv(target, pname, params);
+	default_glTexParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7610,10 +7610,10 @@ static void APIENTRY debug_glTexParameterfv(GLenum target, GLenum pname, const G
 
 static void APIENTRY debug_glTexParameteri(GLenum target, GLenum pname, GLint param)
 {
-	glTexParameteri(target, pname, param);
+	default_glTexParameteri(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7627,10 +7627,10 @@ static void APIENTRY debug_glTexParameteri(GLenum target, GLenum pname, GLint pa
 
 static void APIENTRY debug_glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
-	glTexParameteriv(target, pname, params);
+	default_glTexParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7644,10 +7644,10 @@ static void APIENTRY debug_glTexParameteriv(GLenum target, GLenum pname, const G
 
 static void APIENTRY debug_glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
-	glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
+	default_glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7661,10 +7661,10 @@ static void APIENTRY debug_glTexSubImage2D(GLenum target, GLint level, GLint xof
 
 static void APIENTRY debug_glUniform1f(GLint location, GLfloat v0)
 {
-	glUniform1f(location, v0);
+	default_glUniform1f(location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7678,10 +7678,10 @@ static void APIENTRY debug_glUniform1f(GLint location, GLfloat v0)
 
 static void APIENTRY debug_glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
 {
-	glUniform1fv(location, count, value);
+	default_glUniform1fv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7695,10 +7695,10 @@ static void APIENTRY debug_glUniform1fv(GLint location, GLsizei count, const GLf
 
 static void APIENTRY debug_glUniform1i(GLint location, GLint v0)
 {
-	glUniform1i(location, v0);
+	default_glUniform1i(location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7712,10 +7712,10 @@ static void APIENTRY debug_glUniform1i(GLint location, GLint v0)
 
 static void APIENTRY debug_glUniform1iv(GLint location, GLsizei count, const GLint *value)
 {
-	glUniform1iv(location, count, value);
+	default_glUniform1iv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7729,10 +7729,10 @@ static void APIENTRY debug_glUniform1iv(GLint location, GLsizei count, const GLi
 
 static void APIENTRY debug_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 {
-	glUniform2f(location, v0, v1);
+	default_glUniform2f(location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7746,10 +7746,10 @@ static void APIENTRY debug_glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 
 static void APIENTRY debug_glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
 {
-	glUniform2fv(location, count, value);
+	default_glUniform2fv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7763,10 +7763,10 @@ static void APIENTRY debug_glUniform2fv(GLint location, GLsizei count, const GLf
 
 static void APIENTRY debug_glUniform2i(GLint location, GLint v0, GLint v1)
 {
-	glUniform2i(location, v0, v1);
+	default_glUniform2i(location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7780,10 +7780,10 @@ static void APIENTRY debug_glUniform2i(GLint location, GLint v0, GLint v1)
 
 static void APIENTRY debug_glUniform2iv(GLint location, GLsizei count, const GLint *value)
 {
-	glUniform2iv(location, count, value);
+	default_glUniform2iv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7797,10 +7797,10 @@ static void APIENTRY debug_glUniform2iv(GLint location, GLsizei count, const GLi
 
 static void APIENTRY debug_glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
-	glUniform3f(location, v0, v1, v2);
+	default_glUniform3f(location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7814,10 +7814,10 @@ static void APIENTRY debug_glUniform3f(GLint location, GLfloat v0, GLfloat v1, G
 
 static void APIENTRY debug_glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
 {
-	glUniform3fv(location, count, value);
+	default_glUniform3fv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7831,10 +7831,10 @@ static void APIENTRY debug_glUniform3fv(GLint location, GLsizei count, const GLf
 
 static void APIENTRY debug_glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
 {
-	glUniform3i(location, v0, v1, v2);
+	default_glUniform3i(location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7848,10 +7848,10 @@ static void APIENTRY debug_glUniform3i(GLint location, GLint v0, GLint v1, GLint
 
 static void APIENTRY debug_glUniform3iv(GLint location, GLsizei count, const GLint *value)
 {
-	glUniform3iv(location, count, value);
+	default_glUniform3iv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7865,10 +7865,10 @@ static void APIENTRY debug_glUniform3iv(GLint location, GLsizei count, const GLi
 
 static void APIENTRY debug_glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
-	glUniform4f(location, v0, v1, v2, v3);
+	default_glUniform4f(location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7882,10 +7882,10 @@ static void APIENTRY debug_glUniform4f(GLint location, GLfloat v0, GLfloat v1, G
 
 static void APIENTRY debug_glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
 {
-	glUniform4fv(location, count, value);
+	default_glUniform4fv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7899,10 +7899,10 @@ static void APIENTRY debug_glUniform4fv(GLint location, GLsizei count, const GLf
 
 static void APIENTRY debug_glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
-	glUniform4i(location, v0, v1, v2, v3);
+	default_glUniform4i(location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7916,10 +7916,10 @@ static void APIENTRY debug_glUniform4i(GLint location, GLint v0, GLint v1, GLint
 
 static void APIENTRY debug_glUniform4iv(GLint location, GLsizei count, const GLint *value)
 {
-	glUniform4iv(location, count, value);
+	default_glUniform4iv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7933,10 +7933,10 @@ static void APIENTRY debug_glUniform4iv(GLint location, GLsizei count, const GLi
 
 static void APIENTRY debug_glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix2fv(location, count, transpose, value);
+	default_glUniformMatrix2fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7950,10 +7950,10 @@ static void APIENTRY debug_glUniformMatrix2fv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix3fv(location, count, transpose, value);
+	default_glUniformMatrix3fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7967,10 +7967,10 @@ static void APIENTRY debug_glUniformMatrix3fv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix4fv(location, count, transpose, value);
+	default_glUniformMatrix4fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -7984,10 +7984,10 @@ static void APIENTRY debug_glUniformMatrix4fv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUseProgram(GLuint program)
 {
-	glUseProgram(program);
+	default_glUseProgram(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8001,10 +8001,10 @@ static void APIENTRY debug_glUseProgram(GLuint program)
 
 static void APIENTRY debug_glValidateProgram(GLuint program)
 {
-	glValidateProgram(program);
+	default_glValidateProgram(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8018,10 +8018,10 @@ static void APIENTRY debug_glValidateProgram(GLuint program)
 
 static void APIENTRY debug_glVertexAttrib1f(GLuint index, GLfloat x)
 {
-	glVertexAttrib1f(index, x);
+	default_glVertexAttrib1f(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8035,10 +8035,10 @@ static void APIENTRY debug_glVertexAttrib1f(GLuint index, GLfloat x)
 
 static void APIENTRY debug_glVertexAttrib1fv(GLuint index, const GLfloat *v)
 {
-	glVertexAttrib1fv(index, v);
+	default_glVertexAttrib1fv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8052,10 +8052,10 @@ static void APIENTRY debug_glVertexAttrib1fv(GLuint index, const GLfloat *v)
 
 static void APIENTRY debug_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 {
-	glVertexAttrib2f(index, x, y);
+	default_glVertexAttrib2f(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8069,10 +8069,10 @@ static void APIENTRY debug_glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 
 static void APIENTRY debug_glVertexAttrib2fv(GLuint index, const GLfloat *v)
 {
-	glVertexAttrib2fv(index, v);
+	default_glVertexAttrib2fv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8086,10 +8086,10 @@ static void APIENTRY debug_glVertexAttrib2fv(GLuint index, const GLfloat *v)
 
 static void APIENTRY debug_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 {
-	glVertexAttrib3f(index, x, y, z);
+	default_glVertexAttrib3f(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8103,10 +8103,10 @@ static void APIENTRY debug_glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, 
 
 static void APIENTRY debug_glVertexAttrib3fv(GLuint index, const GLfloat *v)
 {
-	glVertexAttrib3fv(index, v);
+	default_glVertexAttrib3fv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8120,10 +8120,10 @@ static void APIENTRY debug_glVertexAttrib3fv(GLuint index, const GLfloat *v)
 
 static void APIENTRY debug_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glVertexAttrib4f(index, x, y, z, w);
+	default_glVertexAttrib4f(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8137,10 +8137,10 @@ static void APIENTRY debug_glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, 
 
 static void APIENTRY debug_glVertexAttrib4fv(GLuint index, const GLfloat *v)
 {
-	glVertexAttrib4fv(index, v);
+	default_glVertexAttrib4fv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8154,10 +8154,10 @@ static void APIENTRY debug_glVertexAttrib4fv(GLuint index, const GLfloat *v)
 
 static void APIENTRY debug_glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer)
 {
-	glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+	default_glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8171,10 +8171,10 @@ static void APIENTRY debug_glVertexAttribPointer(GLuint index, GLint size, GLenu
 
 static void APIENTRY debug_glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glViewport(x, y, width, height);
+	default_glViewport(x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8188,10 +8188,10 @@ static void APIENTRY debug_glViewport(GLint x, GLint y, GLsizei width, GLsizei h
 
 static void APIENTRY debug_glReadBuffer(GLenum src)
 {
-	glReadBuffer(src);
+	default_glReadBuffer(src);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8205,10 +8205,10 @@ static void APIENTRY debug_glReadBuffer(GLenum src)
 
 static void APIENTRY debug_glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
 {
-	glDrawRangeElements(mode, start, end, count, type, indices);
+	default_glDrawRangeElements(mode, start, end, count, type, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8222,10 +8222,10 @@ static void APIENTRY debug_glDrawRangeElements(GLenum mode, GLuint start, GLuint
 
 static void APIENTRY debug_glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
+	default_glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8239,10 +8239,10 @@ static void APIENTRY debug_glTexImage3D(GLenum target, GLint level, GLint intern
 
 static void APIENTRY debug_glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
-	glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	default_glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8256,10 +8256,10 @@ static void APIENTRY debug_glTexSubImage3D(GLenum target, GLint level, GLint xof
 
 static void APIENTRY debug_glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
+	default_glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8273,10 +8273,10 @@ static void APIENTRY debug_glCopyTexSubImage3D(GLenum target, GLint level, GLint
 
 static void APIENTRY debug_glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *data)
 {
-	glCompressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, data);
+	default_glCompressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8290,10 +8290,10 @@ static void APIENTRY debug_glCompressedTexImage3D(GLenum target, GLint level, GL
 
 static void APIENTRY debug_glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+	default_glCompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8307,10 +8307,10 @@ static void APIENTRY debug_glCompressedTexSubImage3D(GLenum target, GLint level,
 
 static void APIENTRY debug_glGenQueries(GLsizei n, GLuint *ids)
 {
-	glGenQueries(n, ids);
+	default_glGenQueries(n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8324,10 +8324,10 @@ static void APIENTRY debug_glGenQueries(GLsizei n, GLuint *ids)
 
 static void APIENTRY debug_glDeleteQueries(GLsizei n, const GLuint *ids)
 {
-	glDeleteQueries(n, ids);
+	default_glDeleteQueries(n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8344,7 +8344,7 @@ static GLboolean APIENTRY debug_glIsQuery(GLuint id)
 	GLboolean retVal = default_glIsQuery(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8359,10 +8359,10 @@ static GLboolean APIENTRY debug_glIsQuery(GLuint id)
 
 static void APIENTRY debug_glBeginQuery(GLenum target, GLuint id)
 {
-	glBeginQuery(target, id);
+	default_glBeginQuery(target, id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8376,10 +8376,10 @@ static void APIENTRY debug_glBeginQuery(GLenum target, GLuint id)
 
 static void APIENTRY debug_glEndQuery(GLenum target)
 {
-	glEndQuery(target);
+	default_glEndQuery(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8393,10 +8393,10 @@ static void APIENTRY debug_glEndQuery(GLenum target)
 
 static void APIENTRY debug_glGetQueryiv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetQueryiv(target, pname, params);
+	default_glGetQueryiv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8410,10 +8410,10 @@ static void APIENTRY debug_glGetQueryiv(GLenum target, GLenum pname, GLint *para
 
 static void APIENTRY debug_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 {
-	glGetQueryObjectuiv(id, pname, params);
+	default_glGetQueryObjectuiv(id, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8430,7 +8430,7 @@ static GLboolean APIENTRY debug_glUnmapBuffer(GLenum target)
 	GLboolean retVal = default_glUnmapBuffer(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8445,10 +8445,10 @@ static GLboolean APIENTRY debug_glUnmapBuffer(GLenum target)
 
 static void APIENTRY debug_glGetBufferPointerv(GLenum target, GLenum pname, void **params)
 {
-	glGetBufferPointerv(target, pname, params);
+	default_glGetBufferPointerv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8462,10 +8462,10 @@ static void APIENTRY debug_glGetBufferPointerv(GLenum target, GLenum pname, void
 
 static void APIENTRY debug_glDrawBuffers(GLsizei n, const GLenum *bufs)
 {
-	glDrawBuffers(n, bufs);
+	default_glDrawBuffers(n, bufs);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8479,10 +8479,10 @@ static void APIENTRY debug_glDrawBuffers(GLsizei n, const GLenum *bufs)
 
 static void APIENTRY debug_glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix2x3fv(location, count, transpose, value);
+	default_glUniformMatrix2x3fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8496,10 +8496,10 @@ static void APIENTRY debug_glUniformMatrix2x3fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix3x2fv(location, count, transpose, value);
+	default_glUniformMatrix3x2fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8513,10 +8513,10 @@ static void APIENTRY debug_glUniformMatrix3x2fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix2x4fv(location, count, transpose, value);
+	default_glUniformMatrix2x4fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8530,10 +8530,10 @@ static void APIENTRY debug_glUniformMatrix2x4fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix4x2fv(location, count, transpose, value);
+	default_glUniformMatrix4x2fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8547,10 +8547,10 @@ static void APIENTRY debug_glUniformMatrix4x2fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix3x4fv(location, count, transpose, value);
+	default_glUniformMatrix3x4fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8564,10 +8564,10 @@ static void APIENTRY debug_glUniformMatrix3x4fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glUniformMatrix4x3fv(location, count, transpose, value);
+	default_glUniformMatrix4x3fv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8581,10 +8581,10 @@ static void APIENTRY debug_glUniformMatrix4x3fv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
-	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+	default_glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8598,10 +8598,10 @@ static void APIENTRY debug_glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint src
 
 static void APIENTRY debug_glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
+	default_glRenderbufferStorageMultisample(target, samples, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8615,10 +8615,10 @@ static void APIENTRY debug_glRenderbufferStorageMultisample(GLenum target, GLsiz
 
 static void APIENTRY debug_glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
-	glFramebufferTextureLayer(target, attachment, texture, level, layer);
+	default_glFramebufferTextureLayer(target, attachment, texture, level, layer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8635,7 +8635,7 @@ static void * APIENTRY debug_glMapBufferRange(GLenum target, GLintptr offset, GL
 	void * retVal = default_glMapBufferRange(target, offset, length, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8650,10 +8650,10 @@ static void * APIENTRY debug_glMapBufferRange(GLenum target, GLintptr offset, GL
 
 static void APIENTRY debug_glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
 {
-	glFlushMappedBufferRange(target, offset, length);
+	default_glFlushMappedBufferRange(target, offset, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8667,10 +8667,10 @@ static void APIENTRY debug_glFlushMappedBufferRange(GLenum target, GLintptr offs
 
 static void APIENTRY debug_glBindVertexArray(GLuint array)
 {
-	glBindVertexArray(array);
+	default_glBindVertexArray(array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8684,10 +8684,10 @@ static void APIENTRY debug_glBindVertexArray(GLuint array)
 
 static void APIENTRY debug_glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 {
-	glDeleteVertexArrays(n, arrays);
+	default_glDeleteVertexArrays(n, arrays);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8701,10 +8701,10 @@ static void APIENTRY debug_glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 
 static void APIENTRY debug_glGenVertexArrays(GLsizei n, GLuint *arrays)
 {
-	glGenVertexArrays(n, arrays);
+	default_glGenVertexArrays(n, arrays);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8721,7 +8721,7 @@ static GLboolean APIENTRY debug_glIsVertexArray(GLuint array)
 	GLboolean retVal = default_glIsVertexArray(array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8736,10 +8736,10 @@ static GLboolean APIENTRY debug_glIsVertexArray(GLuint array)
 
 static void APIENTRY debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
 {
-	glGetIntegeri_v(target, index, data);
+	default_glGetIntegeri_v(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8753,10 +8753,10 @@ static void APIENTRY debug_glGetIntegeri_v(GLenum target, GLuint index, GLint *d
 
 static void APIENTRY debug_glBeginTransformFeedback(GLenum primitiveMode)
 {
-	glBeginTransformFeedback(primitiveMode);
+	default_glBeginTransformFeedback(primitiveMode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8770,10 +8770,10 @@ static void APIENTRY debug_glBeginTransformFeedback(GLenum primitiveMode)
 
 static void APIENTRY debug_glEndTransformFeedback()
 {
-	glEndTransformFeedback();
+	default_glEndTransformFeedback();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8787,10 +8787,10 @@ static void APIENTRY debug_glEndTransformFeedback()
 
 static void APIENTRY debug_glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	glBindBufferRange(target, index, buffer, offset, size);
+	default_glBindBufferRange(target, index, buffer, offset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8804,10 +8804,10 @@ static void APIENTRY debug_glBindBufferRange(GLenum target, GLuint index, GLuint
 
 static void APIENTRY debug_glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
 {
-	glBindBufferBase(target, index, buffer);
+	default_glBindBufferBase(target, index, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8821,10 +8821,10 @@ static void APIENTRY debug_glBindBufferBase(GLenum target, GLuint index, GLuint 
 
 static void APIENTRY debug_glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode)
 {
-	glTransformFeedbackVaryings(program, count, varyings, bufferMode);
+	default_glTransformFeedbackVaryings(program, count, varyings, bufferMode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8838,10 +8838,10 @@ static void APIENTRY debug_glTransformFeedbackVaryings(GLuint program, GLsizei c
 
 static void APIENTRY debug_glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name)
 {
-	glGetTransformFeedbackVarying(program, index, bufSize, length, size, type, name);
+	default_glGetTransformFeedbackVarying(program, index, bufSize, length, size, type, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8855,10 +8855,10 @@ static void APIENTRY debug_glGetTransformFeedbackVarying(GLuint program, GLuint 
 
 static void APIENTRY debug_glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glVertexAttribIPointer(index, size, type, stride, pointer);
+	default_glVertexAttribIPointer(index, size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8872,10 +8872,10 @@ static void APIENTRY debug_glVertexAttribIPointer(GLuint index, GLint size, GLen
 
 static void APIENTRY debug_glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 {
-	glGetVertexAttribIiv(index, pname, params);
+	default_glGetVertexAttribIiv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8889,10 +8889,10 @@ static void APIENTRY debug_glGetVertexAttribIiv(GLuint index, GLenum pname, GLin
 
 static void APIENTRY debug_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
 {
-	glGetVertexAttribIuiv(index, pname, params);
+	default_glGetVertexAttribIuiv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8906,10 +8906,10 @@ static void APIENTRY debug_glGetVertexAttribIuiv(GLuint index, GLenum pname, GLu
 
 static void APIENTRY debug_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
 {
-	glVertexAttribI4i(index, x, y, z, w);
+	default_glVertexAttribI4i(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8923,10 +8923,10 @@ static void APIENTRY debug_glVertexAttribI4i(GLuint index, GLint x, GLint y, GLi
 
 static void APIENTRY debug_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
-	glVertexAttribI4ui(index, x, y, z, w);
+	default_glVertexAttribI4ui(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8940,10 +8940,10 @@ static void APIENTRY debug_glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, 
 
 static void APIENTRY debug_glVertexAttribI4iv(GLuint index, const GLint *v)
 {
-	glVertexAttribI4iv(index, v);
+	default_glVertexAttribI4iv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8957,10 +8957,10 @@ static void APIENTRY debug_glVertexAttribI4iv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttribI4uiv(GLuint index, const GLuint *v)
 {
-	glVertexAttribI4uiv(index, v);
+	default_glVertexAttribI4uiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8974,10 +8974,10 @@ static void APIENTRY debug_glVertexAttribI4uiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glGetUniformuiv(GLuint program, GLint location, GLuint *params)
 {
-	glGetUniformuiv(program, location, params);
+	default_glGetUniformuiv(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -8994,7 +8994,7 @@ static GLint APIENTRY debug_glGetFragDataLocation(GLuint program, const GLchar *
 	GLint retVal = default_glGetFragDataLocation(program, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9009,10 +9009,10 @@ static GLint APIENTRY debug_glGetFragDataLocation(GLuint program, const GLchar *
 
 static void APIENTRY debug_glUniform1ui(GLint location, GLuint v0)
 {
-	glUniform1ui(location, v0);
+	default_glUniform1ui(location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9026,10 +9026,10 @@ static void APIENTRY debug_glUniform1ui(GLint location, GLuint v0)
 
 static void APIENTRY debug_glUniform2ui(GLint location, GLuint v0, GLuint v1)
 {
-	glUniform2ui(location, v0, v1);
+	default_glUniform2ui(location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9043,10 +9043,10 @@ static void APIENTRY debug_glUniform2ui(GLint location, GLuint v0, GLuint v1)
 
 static void APIENTRY debug_glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
-	glUniform3ui(location, v0, v1, v2);
+	default_glUniform3ui(location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9060,10 +9060,10 @@ static void APIENTRY debug_glUniform3ui(GLint location, GLuint v0, GLuint v1, GL
 
 static void APIENTRY debug_glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
-	glUniform4ui(location, v0, v1, v2, v3);
+	default_glUniform4ui(location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9077,10 +9077,10 @@ static void APIENTRY debug_glUniform4ui(GLint location, GLuint v0, GLuint v1, GL
 
 static void APIENTRY debug_glUniform1uiv(GLint location, GLsizei count, const GLuint *value)
 {
-	glUniform1uiv(location, count, value);
+	default_glUniform1uiv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9094,10 +9094,10 @@ static void APIENTRY debug_glUniform1uiv(GLint location, GLsizei count, const GL
 
 static void APIENTRY debug_glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
 {
-	glUniform2uiv(location, count, value);
+	default_glUniform2uiv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9111,10 +9111,10 @@ static void APIENTRY debug_glUniform2uiv(GLint location, GLsizei count, const GL
 
 static void APIENTRY debug_glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
 {
-	glUniform3uiv(location, count, value);
+	default_glUniform3uiv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9128,10 +9128,10 @@ static void APIENTRY debug_glUniform3uiv(GLint location, GLsizei count, const GL
 
 static void APIENTRY debug_glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
 {
-	glUniform4uiv(location, count, value);
+	default_glUniform4uiv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9145,10 +9145,10 @@ static void APIENTRY debug_glUniform4uiv(GLint location, GLsizei count, const GL
 
 static void APIENTRY debug_glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)
 {
-	glClearBufferiv(buffer, drawbuffer, value);
+	default_glClearBufferiv(buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9162,10 +9162,10 @@ static void APIENTRY debug_glClearBufferiv(GLenum buffer, GLint drawbuffer, cons
 
 static void APIENTRY debug_glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
-	glClearBufferuiv(buffer, drawbuffer, value);
+	default_glClearBufferuiv(buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9179,10 +9179,10 @@ static void APIENTRY debug_glClearBufferuiv(GLenum buffer, GLint drawbuffer, con
 
 static void APIENTRY debug_glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
-	glClearBufferfv(buffer, drawbuffer, value);
+	default_glClearBufferfv(buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9196,10 +9196,10 @@ static void APIENTRY debug_glClearBufferfv(GLenum buffer, GLint drawbuffer, cons
 
 static void APIENTRY debug_glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
-	glClearBufferfi(buffer, drawbuffer, depth, stencil);
+	default_glClearBufferfi(buffer, drawbuffer, depth, stencil);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9216,7 +9216,7 @@ static const GLubyte * APIENTRY debug_glGetStringi(GLenum name, GLuint index)
 	const GLubyte * retVal = default_glGetStringi(name, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9231,10 +9231,10 @@ static const GLubyte * APIENTRY debug_glGetStringi(GLenum name, GLuint index)
 
 static void APIENTRY debug_glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
-	glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
+	default_glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9248,10 +9248,10 @@ static void APIENTRY debug_glCopyBufferSubData(GLenum readTarget, GLenum writeTa
 
 static void APIENTRY debug_glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices)
 {
-	glGetUniformIndices(program, uniformCount, uniformNames, uniformIndices);
+	default_glGetUniformIndices(program, uniformCount, uniformNames, uniformIndices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9265,10 +9265,10 @@ static void APIENTRY debug_glGetUniformIndices(GLuint program, GLsizei uniformCo
 
 static void APIENTRY debug_glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params)
 {
-	glGetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params);
+	default_glGetActiveUniformsiv(program, uniformCount, uniformIndices, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9285,7 +9285,7 @@ static GLuint APIENTRY debug_glGetUniformBlockIndex(GLuint program, const GLchar
 	GLuint retVal = default_glGetUniformBlockIndex(program, uniformBlockName);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9300,10 +9300,10 @@ static GLuint APIENTRY debug_glGetUniformBlockIndex(GLuint program, const GLchar
 
 static void APIENTRY debug_glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
 {
-	glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
+	default_glGetActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9317,10 +9317,10 @@ static void APIENTRY debug_glGetActiveUniformBlockiv(GLuint program, GLuint unif
 
 static void APIENTRY debug_glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName)
 {
-	glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName);
+	default_glGetActiveUniformBlockName(program, uniformBlockIndex, bufSize, length, uniformBlockName);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9334,10 +9334,10 @@ static void APIENTRY debug_glGetActiveUniformBlockName(GLuint program, GLuint un
 
 static void APIENTRY debug_glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 {
-	glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
+	default_glUniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9351,10 +9351,10 @@ static void APIENTRY debug_glUniformBlockBinding(GLuint program, GLuint uniformB
 
 static void APIENTRY debug_glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
 {
-	glDrawArraysInstanced(mode, first, count, instancecount);
+	default_glDrawArraysInstanced(mode, first, count, instancecount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9368,10 +9368,10 @@ static void APIENTRY debug_glDrawArraysInstanced(GLenum mode, GLint first, GLsiz
 
 static void APIENTRY debug_glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
 {
-	glDrawElementsInstanced(mode, count, type, indices, instancecount);
+	default_glDrawElementsInstanced(mode, count, type, indices, instancecount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9388,7 +9388,7 @@ static GLsync APIENTRY debug_glFenceSync(GLenum condition, GLbitfield flags)
 	GLsync retVal = default_glFenceSync(condition, flags);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9406,7 +9406,7 @@ static GLboolean APIENTRY debug_glIsSync(GLsync sync)
 	GLboolean retVal = default_glIsSync(sync);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9421,10 +9421,10 @@ static GLboolean APIENTRY debug_glIsSync(GLsync sync)
 
 static void APIENTRY debug_glDeleteSync(GLsync sync)
 {
-	glDeleteSync(sync);
+	default_glDeleteSync(sync);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9441,7 +9441,7 @@ static GLenum APIENTRY debug_glClientWaitSync(GLsync sync, GLbitfield flags, GLu
 	GLenum retVal = default_glClientWaitSync(sync, flags, timeout);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9456,10 +9456,10 @@ static GLenum APIENTRY debug_glClientWaitSync(GLsync sync, GLbitfield flags, GLu
 
 static void APIENTRY debug_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 {
-	glWaitSync(sync, flags, timeout);
+	default_glWaitSync(sync, flags, timeout);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9473,10 +9473,10 @@ static void APIENTRY debug_glWaitSync(GLsync sync, GLbitfield flags, GLuint64 ti
 
 static void APIENTRY debug_glGetInteger64v(GLenum pname, GLint64 *data)
 {
-	glGetInteger64v(pname, data);
+	default_glGetInteger64v(pname, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9490,10 +9490,10 @@ static void APIENTRY debug_glGetInteger64v(GLenum pname, GLint64 *data)
 
 static void APIENTRY debug_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei *length, GLint *values)
 {
-	glGetSynciv(sync, pname, bufSize, length, values);
+	default_glGetSynciv(sync, pname, bufSize, length, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9507,10 +9507,10 @@ static void APIENTRY debug_glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSiz
 
 static void APIENTRY debug_glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 {
-	glGetInteger64i_v(target, index, data);
+	default_glGetInteger64i_v(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9524,10 +9524,10 @@ static void APIENTRY debug_glGetInteger64i_v(GLenum target, GLuint index, GLint6
 
 static void APIENTRY debug_glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
 {
-	glGetBufferParameteri64v(target, pname, params);
+	default_glGetBufferParameteri64v(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9541,10 +9541,10 @@ static void APIENTRY debug_glGetBufferParameteri64v(GLenum target, GLenum pname,
 
 static void APIENTRY debug_glGenSamplers(GLsizei count, GLuint *samplers)
 {
-	glGenSamplers(count, samplers);
+	default_glGenSamplers(count, samplers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9558,10 +9558,10 @@ static void APIENTRY debug_glGenSamplers(GLsizei count, GLuint *samplers)
 
 static void APIENTRY debug_glDeleteSamplers(GLsizei count, const GLuint *samplers)
 {
-	glDeleteSamplers(count, samplers);
+	default_glDeleteSamplers(count, samplers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9578,7 +9578,7 @@ static GLboolean APIENTRY debug_glIsSampler(GLuint sampler)
 	GLboolean retVal = default_glIsSampler(sampler);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9593,10 +9593,10 @@ static GLboolean APIENTRY debug_glIsSampler(GLuint sampler)
 
 static void APIENTRY debug_glBindSampler(GLuint unit, GLuint sampler)
 {
-	glBindSampler(unit, sampler);
+	default_glBindSampler(unit, sampler);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9610,10 +9610,10 @@ static void APIENTRY debug_glBindSampler(GLuint unit, GLuint sampler)
 
 static void APIENTRY debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
 {
-	glSamplerParameteri(sampler, pname, param);
+	default_glSamplerParameteri(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9627,10 +9627,10 @@ static void APIENTRY debug_glSamplerParameteri(GLuint sampler, GLenum pname, GLi
 
 static void APIENTRY debug_glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint *param)
 {
-	glSamplerParameteriv(sampler, pname, param);
+	default_glSamplerParameteriv(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9644,10 +9644,10 @@ static void APIENTRY debug_glSamplerParameteriv(GLuint sampler, GLenum pname, co
 
 static void APIENTRY debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
 {
-	glSamplerParameterf(sampler, pname, param);
+	default_glSamplerParameterf(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9661,10 +9661,10 @@ static void APIENTRY debug_glSamplerParameterf(GLuint sampler, GLenum pname, GLf
 
 static void APIENTRY debug_glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat *param)
 {
-	glSamplerParameterfv(sampler, pname, param);
+	default_glSamplerParameterfv(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9678,10 +9678,10 @@ static void APIENTRY debug_glSamplerParameterfv(GLuint sampler, GLenum pname, co
 
 static void APIENTRY debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
 {
-	glGetSamplerParameteriv(sampler, pname, params);
+	default_glGetSamplerParameteriv(sampler, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9695,10 +9695,10 @@ static void APIENTRY debug_glGetSamplerParameteriv(GLuint sampler, GLenum pname,
 
 static void APIENTRY debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
 {
-	glGetSamplerParameterfv(sampler, pname, params);
+	default_glGetSamplerParameterfv(sampler, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9712,10 +9712,10 @@ static void APIENTRY debug_glGetSamplerParameterfv(GLuint sampler, GLenum pname,
 
 static void APIENTRY debug_glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
-	glVertexAttribDivisor(index, divisor);
+	default_glVertexAttribDivisor(index, divisor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9729,10 +9729,10 @@ static void APIENTRY debug_glVertexAttribDivisor(GLuint index, GLuint divisor)
 
 static void APIENTRY debug_glBindTransformFeedback(GLenum target, GLuint id)
 {
-	glBindTransformFeedback(target, id);
+	default_glBindTransformFeedback(target, id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9746,10 +9746,10 @@ static void APIENTRY debug_glBindTransformFeedback(GLenum target, GLuint id)
 
 static void APIENTRY debug_glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
 {
-	glDeleteTransformFeedbacks(n, ids);
+	default_glDeleteTransformFeedbacks(n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9763,10 +9763,10 @@ static void APIENTRY debug_glDeleteTransformFeedbacks(GLsizei n, const GLuint *i
 
 static void APIENTRY debug_glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 {
-	glGenTransformFeedbacks(n, ids);
+	default_glGenTransformFeedbacks(n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9783,7 +9783,7 @@ static GLboolean APIENTRY debug_glIsTransformFeedback(GLuint id)
 	GLboolean retVal = default_glIsTransformFeedback(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9798,10 +9798,10 @@ static GLboolean APIENTRY debug_glIsTransformFeedback(GLuint id)
 
 static void APIENTRY debug_glPauseTransformFeedback()
 {
-	glPauseTransformFeedback();
+	default_glPauseTransformFeedback();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9815,10 +9815,10 @@ static void APIENTRY debug_glPauseTransformFeedback()
 
 static void APIENTRY debug_glResumeTransformFeedback()
 {
-	glResumeTransformFeedback();
+	default_glResumeTransformFeedback();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9832,10 +9832,10 @@ static void APIENTRY debug_glResumeTransformFeedback()
 
 static void APIENTRY debug_glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)
 {
-	glGetProgramBinary(program, bufSize, length, binaryFormat, binary);
+	default_glGetProgramBinary(program, bufSize, length, binaryFormat, binary);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9849,10 +9849,10 @@ static void APIENTRY debug_glGetProgramBinary(GLuint program, GLsizei bufSize, G
 
 static void APIENTRY debug_glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
 {
-	glProgramBinary(program, binaryFormat, binary, length);
+	default_glProgramBinary(program, binaryFormat, binary, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9866,10 +9866,10 @@ static void APIENTRY debug_glProgramBinary(GLuint program, GLenum binaryFormat, 
 
 static void APIENTRY debug_glProgramParameteri(GLuint program, GLenum pname, GLint value)
 {
-	glProgramParameteri(program, pname, value);
+	default_glProgramParameteri(program, pname, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9883,10 +9883,10 @@ static void APIENTRY debug_glProgramParameteri(GLuint program, GLenum pname, GLi
 
 static void APIENTRY debug_glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments)
 {
-	glInvalidateFramebuffer(target, numAttachments, attachments);
+	default_glInvalidateFramebuffer(target, numAttachments, attachments);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9900,10 +9900,10 @@ static void APIENTRY debug_glInvalidateFramebuffer(GLenum target, GLsizei numAtt
 
 static void APIENTRY debug_glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glInvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);
+	default_glInvalidateSubFramebuffer(target, numAttachments, attachments, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9917,10 +9917,10 @@ static void APIENTRY debug_glInvalidateSubFramebuffer(GLenum target, GLsizei num
 
 static void APIENTRY debug_glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glTexStorage2D(target, levels, internalformat, width, height);
+	default_glTexStorage2D(target, levels, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9934,10 +9934,10 @@ static void APIENTRY debug_glTexStorage2D(GLenum target, GLsizei levels, GLenum 
 
 static void APIENTRY debug_glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
-	glTexStorage3D(target, levels, internalformat, width, height, depth);
+	default_glTexStorage3D(target, levels, internalformat, width, height, depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9951,10 +9951,10 @@ static void APIENTRY debug_glTexStorage3D(GLenum target, GLsizei levels, GLenum 
 
 static void APIENTRY debug_glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params)
 {
-	glGetInternalformativ(target, internalformat, pname, bufSize, params);
+	default_glGetInternalformativ(target, internalformat, pname, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9968,10 +9968,10 @@ static void APIENTRY debug_glGetInternalformativ(GLenum target, GLenum internalf
 
 static void APIENTRY debug_glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
 {
-	glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
+	default_glDispatchCompute(num_groups_x, num_groups_y, num_groups_z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -9985,10 +9985,10 @@ static void APIENTRY debug_glDispatchCompute(GLuint num_groups_x, GLuint num_gro
 
 static void APIENTRY debug_glDispatchComputeIndirect(GLintptr indirect)
 {
-	glDispatchComputeIndirect(indirect);
+	default_glDispatchComputeIndirect(indirect);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10002,10 +10002,10 @@ static void APIENTRY debug_glDispatchComputeIndirect(GLintptr indirect)
 
 static void APIENTRY debug_glDrawArraysIndirect(GLenum mode, const void *indirect)
 {
-	glDrawArraysIndirect(mode, indirect);
+	default_glDrawArraysIndirect(mode, indirect);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10019,10 +10019,10 @@ static void APIENTRY debug_glDrawArraysIndirect(GLenum mode, const void *indirec
 
 static void APIENTRY debug_glDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect)
 {
-	glDrawElementsIndirect(mode, type, indirect);
+	default_glDrawElementsIndirect(mode, type, indirect);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10036,10 +10036,10 @@ static void APIENTRY debug_glDrawElementsIndirect(GLenum mode, GLenum type, cons
 
 static void APIENTRY debug_glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
 {
-	glFramebufferParameteri(target, pname, param);
+	default_glFramebufferParameteri(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10053,10 +10053,10 @@ static void APIENTRY debug_glFramebufferParameteri(GLenum target, GLenum pname, 
 
 static void APIENTRY debug_glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetFramebufferParameteriv(target, pname, params);
+	default_glGetFramebufferParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10070,10 +10070,10 @@ static void APIENTRY debug_glGetFramebufferParameteriv(GLenum target, GLenum pna
 
 static void APIENTRY debug_glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint *params)
 {
-	glGetProgramInterfaceiv(program, programInterface, pname, params);
+	default_glGetProgramInterfaceiv(program, programInterface, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10090,7 +10090,7 @@ static GLuint APIENTRY debug_glGetProgramResourceIndex(GLuint program, GLenum pr
 	GLuint retVal = default_glGetProgramResourceIndex(program, programInterface, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10105,10 +10105,10 @@ static GLuint APIENTRY debug_glGetProgramResourceIndex(GLuint program, GLenum pr
 
 static void APIENTRY debug_glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name)
 {
-	glGetProgramResourceName(program, programInterface, index, bufSize, length, name);
+	default_glGetProgramResourceName(program, programInterface, index, bufSize, length, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10122,10 +10122,10 @@ static void APIENTRY debug_glGetProgramResourceName(GLuint program, GLenum progr
 
 static void APIENTRY debug_glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum *props, GLsizei bufSize, GLsizei *length, GLint *params)
 {
-	glGetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);
+	default_glGetProgramResourceiv(program, programInterface, index, propCount, props, bufSize, length, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10142,7 +10142,7 @@ static GLint APIENTRY debug_glGetProgramResourceLocation(GLuint program, GLenum 
 	GLint retVal = default_glGetProgramResourceLocation(program, programInterface, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10157,10 +10157,10 @@ static GLint APIENTRY debug_glGetProgramResourceLocation(GLuint program, GLenum 
 
 static void APIENTRY debug_glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 {
-	glUseProgramStages(pipeline, stages, program);
+	default_glUseProgramStages(pipeline, stages, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10174,10 +10174,10 @@ static void APIENTRY debug_glUseProgramStages(GLuint pipeline, GLbitfield stages
 
 static void APIENTRY debug_glActiveShaderProgram(GLuint pipeline, GLuint program)
 {
-	glActiveShaderProgram(pipeline, program);
+	default_glActiveShaderProgram(pipeline, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10194,7 +10194,7 @@ static GLuint APIENTRY debug_glCreateShaderProgramv(GLenum type, GLsizei count, 
 	GLuint retVal = default_glCreateShaderProgramv(type, count, strings);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10209,10 +10209,10 @@ static GLuint APIENTRY debug_glCreateShaderProgramv(GLenum type, GLsizei count, 
 
 static void APIENTRY debug_glBindProgramPipeline(GLuint pipeline)
 {
-	glBindProgramPipeline(pipeline);
+	default_glBindProgramPipeline(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10226,10 +10226,10 @@ static void APIENTRY debug_glBindProgramPipeline(GLuint pipeline)
 
 static void APIENTRY debug_glDeleteProgramPipelines(GLsizei n, const GLuint *pipelines)
 {
-	glDeleteProgramPipelines(n, pipelines);
+	default_glDeleteProgramPipelines(n, pipelines);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10243,10 +10243,10 @@ static void APIENTRY debug_glDeleteProgramPipelines(GLsizei n, const GLuint *pip
 
 static void APIENTRY debug_glGenProgramPipelines(GLsizei n, GLuint *pipelines)
 {
-	glGenProgramPipelines(n, pipelines);
+	default_glGenProgramPipelines(n, pipelines);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10263,7 +10263,7 @@ static GLboolean APIENTRY debug_glIsProgramPipeline(GLuint pipeline)
 	GLboolean retVal = default_glIsProgramPipeline(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10278,10 +10278,10 @@ static GLboolean APIENTRY debug_glIsProgramPipeline(GLuint pipeline)
 
 static void APIENTRY debug_glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint *params)
 {
-	glGetProgramPipelineiv(pipeline, pname, params);
+	default_glGetProgramPipelineiv(pipeline, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10295,10 +10295,10 @@ static void APIENTRY debug_glGetProgramPipelineiv(GLuint pipeline, GLenum pname,
 
 static void APIENTRY debug_glProgramUniform1i(GLuint program, GLint location, GLint v0)
 {
-	glProgramUniform1i(program, location, v0);
+	default_glProgramUniform1i(program, location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10312,10 +10312,10 @@ static void APIENTRY debug_glProgramUniform1i(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
 {
-	glProgramUniform2i(program, location, v0, v1);
+	default_glProgramUniform2i(program, location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10329,10 +10329,10 @@ static void APIENTRY debug_glProgramUniform2i(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
 {
-	glProgramUniform3i(program, location, v0, v1, v2);
+	default_glProgramUniform3i(program, location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10346,10 +10346,10 @@ static void APIENTRY debug_glProgramUniform3i(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
-	glProgramUniform4i(program, location, v0, v1, v2, v3);
+	default_glProgramUniform4i(program, location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10363,10 +10363,10 @@ static void APIENTRY debug_glProgramUniform4i(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
 {
-	glProgramUniform1ui(program, location, v0);
+	default_glProgramUniform1ui(program, location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10380,10 +10380,10 @@ static void APIENTRY debug_glProgramUniform1ui(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
 {
-	glProgramUniform2ui(program, location, v0, v1);
+	default_glProgramUniform2ui(program, location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10397,10 +10397,10 @@ static void APIENTRY debug_glProgramUniform2ui(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
-	glProgramUniform3ui(program, location, v0, v1, v2);
+	default_glProgramUniform3ui(program, location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10414,10 +10414,10 @@ static void APIENTRY debug_glProgramUniform3ui(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
-	glProgramUniform4ui(program, location, v0, v1, v2, v3);
+	default_glProgramUniform4ui(program, location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10431,10 +10431,10 @@ static void APIENTRY debug_glProgramUniform4ui(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
 {
-	glProgramUniform1f(program, location, v0);
+	default_glProgramUniform1f(program, location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10448,10 +10448,10 @@ static void APIENTRY debug_glProgramUniform1f(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
 {
-	glProgramUniform2f(program, location, v0, v1);
+	default_glProgramUniform2f(program, location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10465,10 +10465,10 @@ static void APIENTRY debug_glProgramUniform2f(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
-	glProgramUniform3f(program, location, v0, v1, v2);
+	default_glProgramUniform3f(program, location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10482,10 +10482,10 @@ static void APIENTRY debug_glProgramUniform3f(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
-	glProgramUniform4f(program, location, v0, v1, v2, v3);
+	default_glProgramUniform4f(program, location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10499,10 +10499,10 @@ static void APIENTRY debug_glProgramUniform4f(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
-	glProgramUniform1iv(program, location, count, value);
+	default_glProgramUniform1iv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10516,10 +10516,10 @@ static void APIENTRY debug_glProgramUniform1iv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
-	glProgramUniform2iv(program, location, count, value);
+	default_glProgramUniform2iv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10533,10 +10533,10 @@ static void APIENTRY debug_glProgramUniform2iv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
-	glProgramUniform3iv(program, location, count, value);
+	default_glProgramUniform3iv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10550,10 +10550,10 @@ static void APIENTRY debug_glProgramUniform3iv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
-	glProgramUniform4iv(program, location, count, value);
+	default_glProgramUniform4iv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10567,10 +10567,10 @@ static void APIENTRY debug_glProgramUniform4iv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
-	glProgramUniform1uiv(program, location, count, value);
+	default_glProgramUniform1uiv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10584,10 +10584,10 @@ static void APIENTRY debug_glProgramUniform1uiv(GLuint program, GLint location, 
 
 static void APIENTRY debug_glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
-	glProgramUniform2uiv(program, location, count, value);
+	default_glProgramUniform2uiv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10601,10 +10601,10 @@ static void APIENTRY debug_glProgramUniform2uiv(GLuint program, GLint location, 
 
 static void APIENTRY debug_glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
-	glProgramUniform3uiv(program, location, count, value);
+	default_glProgramUniform3uiv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10618,10 +10618,10 @@ static void APIENTRY debug_glProgramUniform3uiv(GLuint program, GLint location, 
 
 static void APIENTRY debug_glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
-	glProgramUniform4uiv(program, location, count, value);
+	default_glProgramUniform4uiv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10635,10 +10635,10 @@ static void APIENTRY debug_glProgramUniform4uiv(GLuint program, GLint location, 
 
 static void APIENTRY debug_glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
-	glProgramUniform1fv(program, location, count, value);
+	default_glProgramUniform1fv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10652,10 +10652,10 @@ static void APIENTRY debug_glProgramUniform1fv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
-	glProgramUniform2fv(program, location, count, value);
+	default_glProgramUniform2fv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10669,10 +10669,10 @@ static void APIENTRY debug_glProgramUniform2fv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
-	glProgramUniform3fv(program, location, count, value);
+	default_glProgramUniform3fv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10686,10 +10686,10 @@ static void APIENTRY debug_glProgramUniform3fv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
-	glProgramUniform4fv(program, location, count, value);
+	default_glProgramUniform4fv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10703,10 +10703,10 @@ static void APIENTRY debug_glProgramUniform4fv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix2fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10720,10 +10720,10 @@ static void APIENTRY debug_glProgramUniformMatrix2fv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix3fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10737,10 +10737,10 @@ static void APIENTRY debug_glProgramUniformMatrix3fv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix4fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10754,10 +10754,10 @@ static void APIENTRY debug_glProgramUniformMatrix4fv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix2x3fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x3fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10771,10 +10771,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x3fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix3x2fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x2fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10788,10 +10788,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x2fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix2x4fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x4fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10805,10 +10805,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x4fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix4x2fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x2fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10822,10 +10822,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x2fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix3x4fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x4fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10839,10 +10839,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x4fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
-	glProgramUniformMatrix4x3fv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x3fv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10856,10 +10856,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x3fv(GLuint program, GLint loc
 
 static void APIENTRY debug_glValidateProgramPipeline(GLuint pipeline)
 {
-	glValidateProgramPipeline(pipeline);
+	default_glValidateProgramPipeline(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10873,10 +10873,10 @@ static void APIENTRY debug_glValidateProgramPipeline(GLuint pipeline)
 
 static void APIENTRY debug_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
-	glGetProgramPipelineInfoLog(pipeline, bufSize, length, infoLog);
+	default_glGetProgramPipelineInfoLog(pipeline, bufSize, length, infoLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10890,10 +10890,10 @@ static void APIENTRY debug_glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei 
 
 static void APIENTRY debug_glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format)
 {
-	glBindImageTexture(unit, texture, level, layered, layer, access, format);
+	default_glBindImageTexture(unit, texture, level, layered, layer, access, format);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10907,10 +10907,10 @@ static void APIENTRY debug_glBindImageTexture(GLuint unit, GLuint texture, GLint
 
 static void APIENTRY debug_glGetBooleani_v(GLenum target, GLuint index, GLboolean *data)
 {
-	glGetBooleani_v(target, index, data);
+	default_glGetBooleani_v(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10924,10 +10924,10 @@ static void APIENTRY debug_glGetBooleani_v(GLenum target, GLuint index, GLboolea
 
 static void APIENTRY debug_glMemoryBarrier(GLbitfield barriers)
 {
-	glMemoryBarrier(barriers);
+	default_glMemoryBarrier(barriers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10941,10 +10941,10 @@ static void APIENTRY debug_glMemoryBarrier(GLbitfield barriers)
 
 static void APIENTRY debug_glMemoryBarrierByRegion(GLbitfield barriers)
 {
-	glMemoryBarrierByRegion(barriers);
+	default_glMemoryBarrierByRegion(barriers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10958,10 +10958,10 @@ static void APIENTRY debug_glMemoryBarrierByRegion(GLbitfield barriers)
 
 static void APIENTRY debug_glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
-	glTexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
+	default_glTexStorage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10975,10 +10975,10 @@ static void APIENTRY debug_glTexStorage2DMultisample(GLenum target, GLsizei samp
 
 static void APIENTRY debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val)
 {
-	glGetMultisamplefv(pname, index, val);
+	default_glGetMultisamplefv(pname, index, val);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -10992,10 +10992,10 @@ static void APIENTRY debug_glGetMultisamplefv(GLenum pname, GLuint index, GLfloa
 
 static void APIENTRY debug_glSampleMaski(GLuint maskNumber, GLbitfield mask)
 {
-	glSampleMaski(maskNumber, mask);
+	default_glSampleMaski(maskNumber, mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11009,10 +11009,10 @@ static void APIENTRY debug_glSampleMaski(GLuint maskNumber, GLbitfield mask)
 
 static void APIENTRY debug_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
 {
-	glGetTexLevelParameteriv(target, level, pname, params);
+	default_glGetTexLevelParameteriv(target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11026,10 +11026,10 @@ static void APIENTRY debug_glGetTexLevelParameteriv(GLenum target, GLint level, 
 
 static void APIENTRY debug_glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
-	glGetTexLevelParameterfv(target, level, pname, params);
+	default_glGetTexLevelParameterfv(target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11043,10 +11043,10 @@ static void APIENTRY debug_glGetTexLevelParameterfv(GLenum target, GLint level, 
 
 static void APIENTRY debug_glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
-	glBindVertexBuffer(bindingindex, buffer, offset, stride);
+	default_glBindVertexBuffer(bindingindex, buffer, offset, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11060,10 +11060,10 @@ static void APIENTRY debug_glBindVertexBuffer(GLuint bindingindex, GLuint buffer
 
 static void APIENTRY debug_glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
-	glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
+	default_glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11077,10 +11077,10 @@ static void APIENTRY debug_glVertexAttribFormat(GLuint attribindex, GLint size, 
 
 static void APIENTRY debug_glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexAttribIFormat(attribindex, size, type, relativeoffset);
+	default_glVertexAttribIFormat(attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11094,10 +11094,10 @@ static void APIENTRY debug_glVertexAttribIFormat(GLuint attribindex, GLint size,
 
 static void APIENTRY debug_glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
 {
-	glVertexAttribBinding(attribindex, bindingindex);
+	default_glVertexAttribBinding(attribindex, bindingindex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11111,10 +11111,10 @@ static void APIENTRY debug_glVertexAttribBinding(GLuint attribindex, GLuint bind
 
 static void APIENTRY debug_glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
 {
-	glVertexBindingDivisor(bindingindex, divisor);
+	default_glVertexBindingDivisor(bindingindex, divisor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11128,10 +11128,10 @@ static void APIENTRY debug_glVertexBindingDivisor(GLuint bindingindex, GLuint di
 
 static void APIENTRY debug_glBlendBarrier()
 {
-	glBlendBarrier();
+	default_glBlendBarrier();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11145,10 +11145,10 @@ static void APIENTRY debug_glBlendBarrier()
 
 static void APIENTRY debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
 {
-	glCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
+	default_glCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11162,10 +11162,10 @@ static void APIENTRY debug_glCopyImageSubData(GLuint srcName, GLenum srcTarget, 
 
 static void APIENTRY debug_glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled)
 {
-	glDebugMessageControl(source, type, severity, count, ids, enabled);
+	default_glDebugMessageControl(source, type, severity, count, ids, enabled);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11179,10 +11179,10 @@ static void APIENTRY debug_glDebugMessageControl(GLenum source, GLenum type, GLe
 
 static void APIENTRY debug_glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf)
 {
-	glDebugMessageInsert(source, type, id, severity, length, buf);
+	default_glDebugMessageInsert(source, type, id, severity, length, buf);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11196,10 +11196,10 @@ static void APIENTRY debug_glDebugMessageInsert(GLenum source, GLenum type, GLui
 
 static void APIENTRY debug_glDebugMessageCallback(GLDEBUGPROC callback, const void *userParam)
 {
-	glDebugMessageCallback(callback, userParam);
+	default_glDebugMessageCallback(callback, userParam);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11216,7 +11216,7 @@ static GLuint APIENTRY debug_glGetDebugMessageLog(GLuint count, GLsizei bufSize,
 	GLuint retVal = default_glGetDebugMessageLog(count, bufSize, sources, types, ids, severities, lengths, messageLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11231,10 +11231,10 @@ static GLuint APIENTRY debug_glGetDebugMessageLog(GLuint count, GLsizei bufSize,
 
 static void APIENTRY debug_glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *message)
 {
-	glPushDebugGroup(source, id, length, message);
+	default_glPushDebugGroup(source, id, length, message);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11248,10 +11248,10 @@ static void APIENTRY debug_glPushDebugGroup(GLenum source, GLuint id, GLsizei le
 
 static void APIENTRY debug_glPopDebugGroup()
 {
-	glPopDebugGroup();
+	default_glPopDebugGroup();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11265,10 +11265,10 @@ static void APIENTRY debug_glPopDebugGroup()
 
 static void APIENTRY debug_glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
 {
-	glObjectLabel(identifier, name, length, label);
+	default_glObjectLabel(identifier, name, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11282,10 +11282,10 @@ static void APIENTRY debug_glObjectLabel(GLenum identifier, GLuint name, GLsizei
 
 static void APIENTRY debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
-	glGetObjectLabel(identifier, name, bufSize, length, label);
+	default_glGetObjectLabel(identifier, name, bufSize, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11299,10 +11299,10 @@ static void APIENTRY debug_glGetObjectLabel(GLenum identifier, GLuint name, GLsi
 
 static void APIENTRY debug_glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
 {
-	glObjectPtrLabel(ptr, length, label);
+	default_glObjectPtrLabel(ptr, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11316,10 +11316,10 @@ static void APIENTRY debug_glObjectPtrLabel(const void *ptr, GLsizei length, con
 
 static void APIENTRY debug_glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
-	glGetObjectPtrLabel(ptr, bufSize, length, label);
+	default_glGetObjectPtrLabel(ptr, bufSize, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11333,10 +11333,10 @@ static void APIENTRY debug_glGetObjectPtrLabel(const void *ptr, GLsizei bufSize,
 
 static void APIENTRY debug_glGetPointerv(GLenum pname, void **params)
 {
-	glGetPointerv(pname, params);
+	default_glGetPointerv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11350,10 +11350,10 @@ static void APIENTRY debug_glGetPointerv(GLenum pname, void **params)
 
 static void APIENTRY debug_glEnablei(GLenum target, GLuint index)
 {
-	glEnablei(target, index);
+	default_glEnablei(target, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11367,10 +11367,10 @@ static void APIENTRY debug_glEnablei(GLenum target, GLuint index)
 
 static void APIENTRY debug_glDisablei(GLenum target, GLuint index)
 {
-	glDisablei(target, index);
+	default_glDisablei(target, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11384,10 +11384,10 @@ static void APIENTRY debug_glDisablei(GLenum target, GLuint index)
 
 static void APIENTRY debug_glBlendEquationi(GLuint buf, GLenum mode)
 {
-	glBlendEquationi(buf, mode);
+	default_glBlendEquationi(buf, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11401,10 +11401,10 @@ static void APIENTRY debug_glBlendEquationi(GLuint buf, GLenum mode)
 
 static void APIENTRY debug_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
 {
-	glBlendEquationSeparatei(buf, modeRGB, modeAlpha);
+	default_glBlendEquationSeparatei(buf, modeRGB, modeAlpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11418,10 +11418,10 @@ static void APIENTRY debug_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, 
 
 static void APIENTRY debug_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 {
-	glBlendFunci(buf, src, dst);
+	default_glBlendFunci(buf, src, dst);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11435,10 +11435,10 @@ static void APIENTRY debug_glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 
 static void APIENTRY debug_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
 {
-	glBlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
+	default_glBlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11452,10 +11452,10 @@ static void APIENTRY debug_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenu
 
 static void APIENTRY debug_glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
 {
-	glColorMaski(index, r, g, b, a);
+	default_glColorMaski(index, r, g, b, a);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11472,7 +11472,7 @@ static GLboolean APIENTRY debug_glIsEnabledi(GLenum target, GLuint index)
 	GLboolean retVal = default_glIsEnabledi(target, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11487,10 +11487,10 @@ static GLboolean APIENTRY debug_glIsEnabledi(GLenum target, GLuint index)
 
 static void APIENTRY debug_glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
-	glDrawElementsBaseVertex(mode, count, type, indices, basevertex);
+	default_glDrawElementsBaseVertex(mode, count, type, indices, basevertex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11504,10 +11504,10 @@ static void APIENTRY debug_glDrawElementsBaseVertex(GLenum mode, GLsizei count, 
 
 static void APIENTRY debug_glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
-	glDrawRangeElementsBaseVertex(mode, start, end, count, type, indices, basevertex);
+	default_glDrawRangeElementsBaseVertex(mode, start, end, count, type, indices, basevertex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11521,10 +11521,10 @@ static void APIENTRY debug_glDrawRangeElementsBaseVertex(GLenum mode, GLuint sta
 
 static void APIENTRY debug_glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex)
 {
-	glDrawElementsInstancedBaseVertex(mode, count, type, indices, instancecount, basevertex);
+	default_glDrawElementsInstancedBaseVertex(mode, count, type, indices, instancecount, basevertex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11538,10 +11538,10 @@ static void APIENTRY debug_glDrawElementsInstancedBaseVertex(GLenum mode, GLsize
 
 static void APIENTRY debug_glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
 {
-	glFramebufferTexture(target, attachment, texture, level);
+	default_glFramebufferTexture(target, attachment, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11555,10 +11555,10 @@ static void APIENTRY debug_glFramebufferTexture(GLenum target, GLenum attachment
 
 static void APIENTRY debug_glPrimitiveBoundingBox(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW)
 {
-	glPrimitiveBoundingBox(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW);
+	default_glPrimitiveBoundingBox(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11575,7 +11575,7 @@ static GLenum APIENTRY debug_glGetGraphicsResetStatus()
 	GLenum retVal = default_glGetGraphicsResetStatus();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11590,10 +11590,10 @@ static GLenum APIENTRY debug_glGetGraphicsResetStatus()
 
 static void APIENTRY debug_glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize, void *data)
 {
-	glReadnPixels(x, y, width, height, format, type, bufSize, data);
+	default_glReadnPixels(x, y, width, height, format, type, bufSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11607,10 +11607,10 @@ static void APIENTRY debug_glReadnPixels(GLint x, GLint y, GLsizei width, GLsize
 
 static void APIENTRY debug_glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat *params)
 {
-	glGetnUniformfv(program, location, bufSize, params);
+	default_glGetnUniformfv(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11624,10 +11624,10 @@ static void APIENTRY debug_glGetnUniformfv(GLuint program, GLint location, GLsiz
 
 static void APIENTRY debug_glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint *params)
 {
-	glGetnUniformiv(program, location, bufSize, params);
+	default_glGetnUniformiv(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11641,10 +11641,10 @@ static void APIENTRY debug_glGetnUniformiv(GLuint program, GLint location, GLsiz
 
 static void APIENTRY debug_glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint *params)
 {
-	glGetnUniformuiv(program, location, bufSize, params);
+	default_glGetnUniformuiv(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11658,10 +11658,10 @@ static void APIENTRY debug_glGetnUniformuiv(GLuint program, GLint location, GLsi
 
 static void APIENTRY debug_glMinSampleShading(GLfloat value)
 {
-	glMinSampleShading(value);
+	default_glMinSampleShading(value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11675,10 +11675,10 @@ static void APIENTRY debug_glMinSampleShading(GLfloat value)
 
 static void APIENTRY debug_glPatchParameteri(GLenum pname, GLint value)
 {
-	glPatchParameteri(pname, value);
+	default_glPatchParameteri(pname, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11692,10 +11692,10 @@ static void APIENTRY debug_glPatchParameteri(GLenum pname, GLint value)
 
 static void APIENTRY debug_glTexParameterIiv(GLenum target, GLenum pname, const GLint *params)
 {
-	glTexParameterIiv(target, pname, params);
+	default_glTexParameterIiv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11709,10 +11709,10 @@ static void APIENTRY debug_glTexParameterIiv(GLenum target, GLenum pname, const 
 
 static void APIENTRY debug_glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params)
 {
-	glTexParameterIuiv(target, pname, params);
+	default_glTexParameterIuiv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11726,10 +11726,10 @@ static void APIENTRY debug_glTexParameterIuiv(GLenum target, GLenum pname, const
 
 static void APIENTRY debug_glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetTexParameterIiv(target, pname, params);
+	default_glGetTexParameterIiv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11743,10 +11743,10 @@ static void APIENTRY debug_glGetTexParameterIiv(GLenum target, GLenum pname, GLi
 
 static void APIENTRY debug_glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params)
 {
-	glGetTexParameterIuiv(target, pname, params);
+	default_glGetTexParameterIuiv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11760,10 +11760,10 @@ static void APIENTRY debug_glGetTexParameterIuiv(GLenum target, GLenum pname, GL
 
 static void APIENTRY debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint *param)
 {
-	glSamplerParameterIiv(sampler, pname, param);
+	default_glSamplerParameterIiv(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11777,10 +11777,10 @@ static void APIENTRY debug_glSamplerParameterIiv(GLuint sampler, GLenum pname, c
 
 static void APIENTRY debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint *param)
 {
-	glSamplerParameterIuiv(sampler, pname, param);
+	default_glSamplerParameterIuiv(sampler, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11794,10 +11794,10 @@ static void APIENTRY debug_glSamplerParameterIuiv(GLuint sampler, GLenum pname, 
 
 static void APIENTRY debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint *params)
 {
-	glGetSamplerParameterIiv(sampler, pname, params);
+	default_glGetSamplerParameterIiv(sampler, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11811,10 +11811,10 @@ static void APIENTRY debug_glGetSamplerParameterIiv(GLuint sampler, GLenum pname
 
 static void APIENTRY debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint *params)
 {
-	glGetSamplerParameterIuiv(sampler, pname, params);
+	default_glGetSamplerParameterIuiv(sampler, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11828,10 +11828,10 @@ static void APIENTRY debug_glGetSamplerParameterIuiv(GLuint sampler, GLenum pnam
 
 static void APIENTRY debug_glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
 {
-	glTexBuffer(target, internalformat, buffer);
+	default_glTexBuffer(target, internalformat, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11845,10 +11845,10 @@ static void APIENTRY debug_glTexBuffer(GLenum target, GLenum internalformat, GLu
 
 static void APIENTRY debug_glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	glTexBufferRange(target, internalformat, buffer, offset, size);
+	default_glTexBufferRange(target, internalformat, buffer, offset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11862,10 +11862,10 @@ static void APIENTRY debug_glTexBufferRange(GLenum target, GLenum internalformat
 
 static void APIENTRY debug_glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
-	glTexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
+	default_glTexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11879,10 +11879,10 @@ static void APIENTRY debug_glTexStorage3DMultisample(GLenum target, GLsizei samp
 
 static void APIENTRY debug_glPointSize(GLfloat size)
 {
-	glPointSize(size);
+	default_glPointSize(size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11896,10 +11896,10 @@ static void APIENTRY debug_glPointSize(GLfloat size)
 
 static void APIENTRY debug_glPolygonMode(GLenum face, GLenum mode)
 {
-	glPolygonMode(face, mode);
+	default_glPolygonMode(face, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11913,10 +11913,10 @@ static void APIENTRY debug_glPolygonMode(GLenum face, GLenum mode)
 
 static void APIENTRY debug_glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTexImage1D(target, level, internalformat, width, border, format, type, pixels);
+	default_glTexImage1D(target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11930,10 +11930,10 @@ static void APIENTRY debug_glTexImage1D(GLenum target, GLint level, GLint intern
 
 static void APIENTRY debug_glDrawBuffer(GLenum buf)
 {
-	glDrawBuffer(buf);
+	default_glDrawBuffer(buf);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11947,10 +11947,10 @@ static void APIENTRY debug_glDrawBuffer(GLenum buf)
 
 static void APIENTRY debug_glClearDepth(GLdouble depth)
 {
-	glClearDepth(depth);
+	default_glClearDepth(depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11964,10 +11964,10 @@ static void APIENTRY debug_glClearDepth(GLdouble depth)
 
 static void APIENTRY debug_glLogicOp(GLenum opcode)
 {
-	glLogicOp(opcode);
+	default_glLogicOp(opcode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11981,10 +11981,10 @@ static void APIENTRY debug_glLogicOp(GLenum opcode)
 
 static void APIENTRY debug_glPixelStoref(GLenum pname, GLfloat param)
 {
-	glPixelStoref(pname, param);
+	default_glPixelStoref(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -11998,10 +11998,10 @@ static void APIENTRY debug_glPixelStoref(GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glGetDoublev(GLenum pname, GLdouble *data)
 {
-	glGetDoublev(pname, data);
+	default_glGetDoublev(pname, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12015,10 +12015,10 @@ static void APIENTRY debug_glGetDoublev(GLenum pname, GLdouble *data)
 
 static void APIENTRY debug_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
-	glGetTexImage(target, level, format, type, pixels);
+	default_glGetTexImage(target, level, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12032,10 +12032,10 @@ static void APIENTRY debug_glGetTexImage(GLenum target, GLint level, GLenum form
 
 static void APIENTRY debug_glDepthRange(GLdouble near, GLdouble far)
 {
-	glDepthRange(near, far);
+	default_glDepthRange(near, far);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12049,10 +12049,10 @@ static void APIENTRY debug_glDepthRange(GLdouble near, GLdouble far)
 
 static void APIENTRY debug_glNewList(GLuint list, GLenum mode)
 {
-	glNewList(list, mode);
+	default_glNewList(list, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12066,10 +12066,10 @@ static void APIENTRY debug_glNewList(GLuint list, GLenum mode)
 
 static void APIENTRY debug_glEndList()
 {
-	glEndList();
+	default_glEndList();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12083,10 +12083,10 @@ static void APIENTRY debug_glEndList()
 
 static void APIENTRY debug_glCallList(GLuint list)
 {
-	glCallList(list);
+	default_glCallList(list);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12100,10 +12100,10 @@ static void APIENTRY debug_glCallList(GLuint list)
 
 static void APIENTRY debug_glCallLists(GLsizei n, GLenum type, const void *lists)
 {
-	glCallLists(n, type, lists);
+	default_glCallLists(n, type, lists);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12117,10 +12117,10 @@ static void APIENTRY debug_glCallLists(GLsizei n, GLenum type, const void *lists
 
 static void APIENTRY debug_glDeleteLists(GLuint list, GLsizei range)
 {
-	glDeleteLists(list, range);
+	default_glDeleteLists(list, range);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12137,7 +12137,7 @@ static GLuint APIENTRY debug_glGenLists(GLsizei range)
 	GLuint retVal = default_glGenLists(range);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12152,10 +12152,10 @@ static GLuint APIENTRY debug_glGenLists(GLsizei range)
 
 static void APIENTRY debug_glListBase(GLuint base)
 {
-	glListBase(base);
+	default_glListBase(base);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12169,10 +12169,10 @@ static void APIENTRY debug_glListBase(GLuint base)
 
 static void APIENTRY debug_glBegin(GLenum mode)
 {
-	glBegin(mode);
+	default_glBegin(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12186,10 +12186,10 @@ static void APIENTRY debug_glBegin(GLenum mode)
 
 static void APIENTRY debug_glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap)
 {
-	glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+	default_glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12203,10 +12203,10 @@ static void APIENTRY debug_glBitmap(GLsizei width, GLsizei height, GLfloat xorig
 
 static void APIENTRY debug_glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
-	glColor3b(red, green, blue);
+	default_glColor3b(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12220,10 +12220,10 @@ static void APIENTRY debug_glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 
 static void APIENTRY debug_glColor3bv(const GLbyte *v)
 {
-	glColor3bv(v);
+	default_glColor3bv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12237,10 +12237,10 @@ static void APIENTRY debug_glColor3bv(const GLbyte *v)
 
 static void APIENTRY debug_glColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
-	glColor3d(red, green, blue);
+	default_glColor3d(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12254,10 +12254,10 @@ static void APIENTRY debug_glColor3d(GLdouble red, GLdouble green, GLdouble blue
 
 static void APIENTRY debug_glColor3dv(const GLdouble *v)
 {
-	glColor3dv(v);
+	default_glColor3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12271,10 +12271,10 @@ static void APIENTRY debug_glColor3dv(const GLdouble *v)
 
 static void APIENTRY debug_glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
-	glColor3f(red, green, blue);
+	default_glColor3f(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12288,10 +12288,10 @@ static void APIENTRY debug_glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 
 static void APIENTRY debug_glColor3fv(const GLfloat *v)
 {
-	glColor3fv(v);
+	default_glColor3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12305,10 +12305,10 @@ static void APIENTRY debug_glColor3fv(const GLfloat *v)
 
 static void APIENTRY debug_glColor3i(GLint red, GLint green, GLint blue)
 {
-	glColor3i(red, green, blue);
+	default_glColor3i(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12322,10 +12322,10 @@ static void APIENTRY debug_glColor3i(GLint red, GLint green, GLint blue)
 
 static void APIENTRY debug_glColor3iv(const GLint *v)
 {
-	glColor3iv(v);
+	default_glColor3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12339,10 +12339,10 @@ static void APIENTRY debug_glColor3iv(const GLint *v)
 
 static void APIENTRY debug_glColor3s(GLshort red, GLshort green, GLshort blue)
 {
-	glColor3s(red, green, blue);
+	default_glColor3s(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12356,10 +12356,10 @@ static void APIENTRY debug_glColor3s(GLshort red, GLshort green, GLshort blue)
 
 static void APIENTRY debug_glColor3sv(const GLshort *v)
 {
-	glColor3sv(v);
+	default_glColor3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12373,10 +12373,10 @@ static void APIENTRY debug_glColor3sv(const GLshort *v)
 
 static void APIENTRY debug_glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
-	glColor3ub(red, green, blue);
+	default_glColor3ub(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12390,10 +12390,10 @@ static void APIENTRY debug_glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 
 static void APIENTRY debug_glColor3ubv(const GLubyte *v)
 {
-	glColor3ubv(v);
+	default_glColor3ubv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12407,10 +12407,10 @@ static void APIENTRY debug_glColor3ubv(const GLubyte *v)
 
 static void APIENTRY debug_glColor3ui(GLuint red, GLuint green, GLuint blue)
 {
-	glColor3ui(red, green, blue);
+	default_glColor3ui(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12424,10 +12424,10 @@ static void APIENTRY debug_glColor3ui(GLuint red, GLuint green, GLuint blue)
 
 static void APIENTRY debug_glColor3uiv(const GLuint *v)
 {
-	glColor3uiv(v);
+	default_glColor3uiv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12441,10 +12441,10 @@ static void APIENTRY debug_glColor3uiv(const GLuint *v)
 
 static void APIENTRY debug_glColor3us(GLushort red, GLushort green, GLushort blue)
 {
-	glColor3us(red, green, blue);
+	default_glColor3us(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12458,10 +12458,10 @@ static void APIENTRY debug_glColor3us(GLushort red, GLushort green, GLushort blu
 
 static void APIENTRY debug_glColor3usv(const GLushort *v)
 {
-	glColor3usv(v);
+	default_glColor3usv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12475,10 +12475,10 @@ static void APIENTRY debug_glColor3usv(const GLushort *v)
 
 static void APIENTRY debug_glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
 {
-	glColor4b(red, green, blue, alpha);
+	default_glColor4b(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12492,10 +12492,10 @@ static void APIENTRY debug_glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLby
 
 static void APIENTRY debug_glColor4bv(const GLbyte *v)
 {
-	glColor4bv(v);
+	default_glColor4bv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12509,10 +12509,10 @@ static void APIENTRY debug_glColor4bv(const GLbyte *v)
 
 static void APIENTRY debug_glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
 {
-	glColor4d(red, green, blue, alpha);
+	default_glColor4d(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12526,10 +12526,10 @@ static void APIENTRY debug_glColor4d(GLdouble red, GLdouble green, GLdouble blue
 
 static void APIENTRY debug_glColor4dv(const GLdouble *v)
 {
-	glColor4dv(v);
+	default_glColor4dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12543,10 +12543,10 @@ static void APIENTRY debug_glColor4dv(const GLdouble *v)
 
 static void APIENTRY debug_glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	glColor4f(red, green, blue, alpha);
+	default_glColor4f(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12560,10 +12560,10 @@ static void APIENTRY debug_glColor4f(GLfloat red, GLfloat green, GLfloat blue, G
 
 static void APIENTRY debug_glColor4fv(const GLfloat *v)
 {
-	glColor4fv(v);
+	default_glColor4fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12577,10 +12577,10 @@ static void APIENTRY debug_glColor4fv(const GLfloat *v)
 
 static void APIENTRY debug_glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
 {
-	glColor4i(red, green, blue, alpha);
+	default_glColor4i(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12594,10 +12594,10 @@ static void APIENTRY debug_glColor4i(GLint red, GLint green, GLint blue, GLint a
 
 static void APIENTRY debug_glColor4iv(const GLint *v)
 {
-	glColor4iv(v);
+	default_glColor4iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12611,10 +12611,10 @@ static void APIENTRY debug_glColor4iv(const GLint *v)
 
 static void APIENTRY debug_glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
 {
-	glColor4s(red, green, blue, alpha);
+	default_glColor4s(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12628,10 +12628,10 @@ static void APIENTRY debug_glColor4s(GLshort red, GLshort green, GLshort blue, G
 
 static void APIENTRY debug_glColor4sv(const GLshort *v)
 {
-	glColor4sv(v);
+	default_glColor4sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12645,10 +12645,10 @@ static void APIENTRY debug_glColor4sv(const GLshort *v)
 
 static void APIENTRY debug_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 {
-	glColor4ub(red, green, blue, alpha);
+	default_glColor4ub(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12662,10 +12662,10 @@ static void APIENTRY debug_glColor4ub(GLubyte red, GLubyte green, GLubyte blue, 
 
 static void APIENTRY debug_glColor4ubv(const GLubyte *v)
 {
-	glColor4ubv(v);
+	default_glColor4ubv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12679,10 +12679,10 @@ static void APIENTRY debug_glColor4ubv(const GLubyte *v)
 
 static void APIENTRY debug_glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 {
-	glColor4ui(red, green, blue, alpha);
+	default_glColor4ui(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12696,10 +12696,10 @@ static void APIENTRY debug_glColor4ui(GLuint red, GLuint green, GLuint blue, GLu
 
 static void APIENTRY debug_glColor4uiv(const GLuint *v)
 {
-	glColor4uiv(v);
+	default_glColor4uiv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12713,10 +12713,10 @@ static void APIENTRY debug_glColor4uiv(const GLuint *v)
 
 static void APIENTRY debug_glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
 {
-	glColor4us(red, green, blue, alpha);
+	default_glColor4us(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12730,10 +12730,10 @@ static void APIENTRY debug_glColor4us(GLushort red, GLushort green, GLushort blu
 
 static void APIENTRY debug_glColor4usv(const GLushort *v)
 {
-	glColor4usv(v);
+	default_glColor4usv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12747,10 +12747,10 @@ static void APIENTRY debug_glColor4usv(const GLushort *v)
 
 static void APIENTRY debug_glEdgeFlag(GLboolean flag)
 {
-	glEdgeFlag(flag);
+	default_glEdgeFlag(flag);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12764,10 +12764,10 @@ static void APIENTRY debug_glEdgeFlag(GLboolean flag)
 
 static void APIENTRY debug_glEdgeFlagv(const GLboolean *flag)
 {
-	glEdgeFlagv(flag);
+	default_glEdgeFlagv(flag);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12781,10 +12781,10 @@ static void APIENTRY debug_glEdgeFlagv(const GLboolean *flag)
 
 static void APIENTRY debug_glEnd()
 {
-	glEnd();
+	default_glEnd();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12798,10 +12798,10 @@ static void APIENTRY debug_glEnd()
 
 static void APIENTRY debug_glIndexd(GLdouble c)
 {
-	glIndexd(c);
+	default_glIndexd(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12815,10 +12815,10 @@ static void APIENTRY debug_glIndexd(GLdouble c)
 
 static void APIENTRY debug_glIndexdv(const GLdouble *c)
 {
-	glIndexdv(c);
+	default_glIndexdv(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12832,10 +12832,10 @@ static void APIENTRY debug_glIndexdv(const GLdouble *c)
 
 static void APIENTRY debug_glIndexf(GLfloat c)
 {
-	glIndexf(c);
+	default_glIndexf(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12849,10 +12849,10 @@ static void APIENTRY debug_glIndexf(GLfloat c)
 
 static void APIENTRY debug_glIndexfv(const GLfloat *c)
 {
-	glIndexfv(c);
+	default_glIndexfv(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12866,10 +12866,10 @@ static void APIENTRY debug_glIndexfv(const GLfloat *c)
 
 static void APIENTRY debug_glIndexi(GLint c)
 {
-	glIndexi(c);
+	default_glIndexi(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12883,10 +12883,10 @@ static void APIENTRY debug_glIndexi(GLint c)
 
 static void APIENTRY debug_glIndexiv(const GLint *c)
 {
-	glIndexiv(c);
+	default_glIndexiv(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12900,10 +12900,10 @@ static void APIENTRY debug_glIndexiv(const GLint *c)
 
 static void APIENTRY debug_glIndexs(GLshort c)
 {
-	glIndexs(c);
+	default_glIndexs(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12917,10 +12917,10 @@ static void APIENTRY debug_glIndexs(GLshort c)
 
 static void APIENTRY debug_glIndexsv(const GLshort *c)
 {
-	glIndexsv(c);
+	default_glIndexsv(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12934,10 +12934,10 @@ static void APIENTRY debug_glIndexsv(const GLshort *c)
 
 static void APIENTRY debug_glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 {
-	glNormal3b(nx, ny, nz);
+	default_glNormal3b(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12951,10 +12951,10 @@ static void APIENTRY debug_glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 
 static void APIENTRY debug_glNormal3bv(const GLbyte *v)
 {
-	glNormal3bv(v);
+	default_glNormal3bv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12968,10 +12968,10 @@ static void APIENTRY debug_glNormal3bv(const GLbyte *v)
 
 static void APIENTRY debug_glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 {
-	glNormal3d(nx, ny, nz);
+	default_glNormal3d(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -12985,10 +12985,10 @@ static void APIENTRY debug_glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 
 static void APIENTRY debug_glNormal3dv(const GLdouble *v)
 {
-	glNormal3dv(v);
+	default_glNormal3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13002,10 +13002,10 @@ static void APIENTRY debug_glNormal3dv(const GLdouble *v)
 
 static void APIENTRY debug_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
-	glNormal3f(nx, ny, nz);
+	default_glNormal3f(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13019,10 +13019,10 @@ static void APIENTRY debug_glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 
 static void APIENTRY debug_glNormal3fv(const GLfloat *v)
 {
-	glNormal3fv(v);
+	default_glNormal3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13036,10 +13036,10 @@ static void APIENTRY debug_glNormal3fv(const GLfloat *v)
 
 static void APIENTRY debug_glNormal3i(GLint nx, GLint ny, GLint nz)
 {
-	glNormal3i(nx, ny, nz);
+	default_glNormal3i(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13053,10 +13053,10 @@ static void APIENTRY debug_glNormal3i(GLint nx, GLint ny, GLint nz)
 
 static void APIENTRY debug_glNormal3iv(const GLint *v)
 {
-	glNormal3iv(v);
+	default_glNormal3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13070,10 +13070,10 @@ static void APIENTRY debug_glNormal3iv(const GLint *v)
 
 static void APIENTRY debug_glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 {
-	glNormal3s(nx, ny, nz);
+	default_glNormal3s(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13087,10 +13087,10 @@ static void APIENTRY debug_glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 
 static void APIENTRY debug_glNormal3sv(const GLshort *v)
 {
-	glNormal3sv(v);
+	default_glNormal3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13104,10 +13104,10 @@ static void APIENTRY debug_glNormal3sv(const GLshort *v)
 
 static void APIENTRY debug_glRasterPos2d(GLdouble x, GLdouble y)
 {
-	glRasterPos2d(x, y);
+	default_glRasterPos2d(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13121,10 +13121,10 @@ static void APIENTRY debug_glRasterPos2d(GLdouble x, GLdouble y)
 
 static void APIENTRY debug_glRasterPos2dv(const GLdouble *v)
 {
-	glRasterPos2dv(v);
+	default_glRasterPos2dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13138,10 +13138,10 @@ static void APIENTRY debug_glRasterPos2dv(const GLdouble *v)
 
 static void APIENTRY debug_glRasterPos2f(GLfloat x, GLfloat y)
 {
-	glRasterPos2f(x, y);
+	default_glRasterPos2f(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13155,10 +13155,10 @@ static void APIENTRY debug_glRasterPos2f(GLfloat x, GLfloat y)
 
 static void APIENTRY debug_glRasterPos2fv(const GLfloat *v)
 {
-	glRasterPos2fv(v);
+	default_glRasterPos2fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13172,10 +13172,10 @@ static void APIENTRY debug_glRasterPos2fv(const GLfloat *v)
 
 static void APIENTRY debug_glRasterPos2i(GLint x, GLint y)
 {
-	glRasterPos2i(x, y);
+	default_glRasterPos2i(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13189,10 +13189,10 @@ static void APIENTRY debug_glRasterPos2i(GLint x, GLint y)
 
 static void APIENTRY debug_glRasterPos2iv(const GLint *v)
 {
-	glRasterPos2iv(v);
+	default_glRasterPos2iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13206,10 +13206,10 @@ static void APIENTRY debug_glRasterPos2iv(const GLint *v)
 
 static void APIENTRY debug_glRasterPos2s(GLshort x, GLshort y)
 {
-	glRasterPos2s(x, y);
+	default_glRasterPos2s(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13223,10 +13223,10 @@ static void APIENTRY debug_glRasterPos2s(GLshort x, GLshort y)
 
 static void APIENTRY debug_glRasterPos2sv(const GLshort *v)
 {
-	glRasterPos2sv(v);
+	default_glRasterPos2sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13240,10 +13240,10 @@ static void APIENTRY debug_glRasterPos2sv(const GLshort *v)
 
 static void APIENTRY debug_glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
-	glRasterPos3d(x, y, z);
+	default_glRasterPos3d(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13257,10 +13257,10 @@ static void APIENTRY debug_glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 
 static void APIENTRY debug_glRasterPos3dv(const GLdouble *v)
 {
-	glRasterPos3dv(v);
+	default_glRasterPos3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13274,10 +13274,10 @@ static void APIENTRY debug_glRasterPos3dv(const GLdouble *v)
 
 static void APIENTRY debug_glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
-	glRasterPos3f(x, y, z);
+	default_glRasterPos3f(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13291,10 +13291,10 @@ static void APIENTRY debug_glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 
 static void APIENTRY debug_glRasterPos3fv(const GLfloat *v)
 {
-	glRasterPos3fv(v);
+	default_glRasterPos3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13308,10 +13308,10 @@ static void APIENTRY debug_glRasterPos3fv(const GLfloat *v)
 
 static void APIENTRY debug_glRasterPos3i(GLint x, GLint y, GLint z)
 {
-	glRasterPos3i(x, y, z);
+	default_glRasterPos3i(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13325,10 +13325,10 @@ static void APIENTRY debug_glRasterPos3i(GLint x, GLint y, GLint z)
 
 static void APIENTRY debug_glRasterPos3iv(const GLint *v)
 {
-	glRasterPos3iv(v);
+	default_glRasterPos3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13342,10 +13342,10 @@ static void APIENTRY debug_glRasterPos3iv(const GLint *v)
 
 static void APIENTRY debug_glRasterPos3s(GLshort x, GLshort y, GLshort z)
 {
-	glRasterPos3s(x, y, z);
+	default_glRasterPos3s(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13359,10 +13359,10 @@ static void APIENTRY debug_glRasterPos3s(GLshort x, GLshort y, GLshort z)
 
 static void APIENTRY debug_glRasterPos3sv(const GLshort *v)
 {
-	glRasterPos3sv(v);
+	default_glRasterPos3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13376,10 +13376,10 @@ static void APIENTRY debug_glRasterPos3sv(const GLshort *v)
 
 static void APIENTRY debug_glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glRasterPos4d(x, y, z, w);
+	default_glRasterPos4d(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13393,10 +13393,10 @@ static void APIENTRY debug_glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLd
 
 static void APIENTRY debug_glRasterPos4dv(const GLdouble *v)
 {
-	glRasterPos4dv(v);
+	default_glRasterPos4dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13410,10 +13410,10 @@ static void APIENTRY debug_glRasterPos4dv(const GLdouble *v)
 
 static void APIENTRY debug_glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glRasterPos4f(x, y, z, w);
+	default_glRasterPos4f(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13427,10 +13427,10 @@ static void APIENTRY debug_glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloa
 
 static void APIENTRY debug_glRasterPos4fv(const GLfloat *v)
 {
-	glRasterPos4fv(v);
+	default_glRasterPos4fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13444,10 +13444,10 @@ static void APIENTRY debug_glRasterPos4fv(const GLfloat *v)
 
 static void APIENTRY debug_glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 {
-	glRasterPos4i(x, y, z, w);
+	default_glRasterPos4i(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13461,10 +13461,10 @@ static void APIENTRY debug_glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 
 static void APIENTRY debug_glRasterPos4iv(const GLint *v)
 {
-	glRasterPos4iv(v);
+	default_glRasterPos4iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13478,10 +13478,10 @@ static void APIENTRY debug_glRasterPos4iv(const GLint *v)
 
 static void APIENTRY debug_glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
-	glRasterPos4s(x, y, z, w);
+	default_glRasterPos4s(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13495,10 +13495,10 @@ static void APIENTRY debug_glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshor
 
 static void APIENTRY debug_glRasterPos4sv(const GLshort *v)
 {
-	glRasterPos4sv(v);
+	default_glRasterPos4sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13512,10 +13512,10 @@ static void APIENTRY debug_glRasterPos4sv(const GLshort *v)
 
 static void APIENTRY debug_glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 {
-	glRectd(x1, y1, x2, y2);
+	default_glRectd(x1, y1, x2, y2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13529,10 +13529,10 @@ static void APIENTRY debug_glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdoub
 
 static void APIENTRY debug_glRectdv(const GLdouble *v1, const GLdouble *v2)
 {
-	glRectdv(v1, v2);
+	default_glRectdv(v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13546,10 +13546,10 @@ static void APIENTRY debug_glRectdv(const GLdouble *v1, const GLdouble *v2)
 
 static void APIENTRY debug_glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 {
-	glRectf(x1, y1, x2, y2);
+	default_glRectf(x1, y1, x2, y2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13563,10 +13563,10 @@ static void APIENTRY debug_glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y
 
 static void APIENTRY debug_glRectfv(const GLfloat *v1, const GLfloat *v2)
 {
-	glRectfv(v1, v2);
+	default_glRectfv(v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13580,10 +13580,10 @@ static void APIENTRY debug_glRectfv(const GLfloat *v1, const GLfloat *v2)
 
 static void APIENTRY debug_glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 {
-	glRecti(x1, y1, x2, y2);
+	default_glRecti(x1, y1, x2, y2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13597,10 +13597,10 @@ static void APIENTRY debug_glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 
 static void APIENTRY debug_glRectiv(const GLint *v1, const GLint *v2)
 {
-	glRectiv(v1, v2);
+	default_glRectiv(v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13614,10 +13614,10 @@ static void APIENTRY debug_glRectiv(const GLint *v1, const GLint *v2)
 
 static void APIENTRY debug_glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
 {
-	glRects(x1, y1, x2, y2);
+	default_glRects(x1, y1, x2, y2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13631,10 +13631,10 @@ static void APIENTRY debug_glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y
 
 static void APIENTRY debug_glRectsv(const GLshort *v1, const GLshort *v2)
 {
-	glRectsv(v1, v2);
+	default_glRectsv(v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13648,10 +13648,10 @@ static void APIENTRY debug_glRectsv(const GLshort *v1, const GLshort *v2)
 
 static void APIENTRY debug_glTexCoord1d(GLdouble s)
 {
-	glTexCoord1d(s);
+	default_glTexCoord1d(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13665,10 +13665,10 @@ static void APIENTRY debug_glTexCoord1d(GLdouble s)
 
 static void APIENTRY debug_glTexCoord1dv(const GLdouble *v)
 {
-	glTexCoord1dv(v);
+	default_glTexCoord1dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13682,10 +13682,10 @@ static void APIENTRY debug_glTexCoord1dv(const GLdouble *v)
 
 static void APIENTRY debug_glTexCoord1f(GLfloat s)
 {
-	glTexCoord1f(s);
+	default_glTexCoord1f(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13699,10 +13699,10 @@ static void APIENTRY debug_glTexCoord1f(GLfloat s)
 
 static void APIENTRY debug_glTexCoord1fv(const GLfloat *v)
 {
-	glTexCoord1fv(v);
+	default_glTexCoord1fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13716,10 +13716,10 @@ static void APIENTRY debug_glTexCoord1fv(const GLfloat *v)
 
 static void APIENTRY debug_glTexCoord1i(GLint s)
 {
-	glTexCoord1i(s);
+	default_glTexCoord1i(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13733,10 +13733,10 @@ static void APIENTRY debug_glTexCoord1i(GLint s)
 
 static void APIENTRY debug_glTexCoord1iv(const GLint *v)
 {
-	glTexCoord1iv(v);
+	default_glTexCoord1iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13750,10 +13750,10 @@ static void APIENTRY debug_glTexCoord1iv(const GLint *v)
 
 static void APIENTRY debug_glTexCoord1s(GLshort s)
 {
-	glTexCoord1s(s);
+	default_glTexCoord1s(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13767,10 +13767,10 @@ static void APIENTRY debug_glTexCoord1s(GLshort s)
 
 static void APIENTRY debug_glTexCoord1sv(const GLshort *v)
 {
-	glTexCoord1sv(v);
+	default_glTexCoord1sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13784,10 +13784,10 @@ static void APIENTRY debug_glTexCoord1sv(const GLshort *v)
 
 static void APIENTRY debug_glTexCoord2d(GLdouble s, GLdouble t)
 {
-	glTexCoord2d(s, t);
+	default_glTexCoord2d(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13801,10 +13801,10 @@ static void APIENTRY debug_glTexCoord2d(GLdouble s, GLdouble t)
 
 static void APIENTRY debug_glTexCoord2dv(const GLdouble *v)
 {
-	glTexCoord2dv(v);
+	default_glTexCoord2dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13818,10 +13818,10 @@ static void APIENTRY debug_glTexCoord2dv(const GLdouble *v)
 
 static void APIENTRY debug_glTexCoord2f(GLfloat s, GLfloat t)
 {
-	glTexCoord2f(s, t);
+	default_glTexCoord2f(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13835,10 +13835,10 @@ static void APIENTRY debug_glTexCoord2f(GLfloat s, GLfloat t)
 
 static void APIENTRY debug_glTexCoord2fv(const GLfloat *v)
 {
-	glTexCoord2fv(v);
+	default_glTexCoord2fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13852,10 +13852,10 @@ static void APIENTRY debug_glTexCoord2fv(const GLfloat *v)
 
 static void APIENTRY debug_glTexCoord2i(GLint s, GLint t)
 {
-	glTexCoord2i(s, t);
+	default_glTexCoord2i(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13869,10 +13869,10 @@ static void APIENTRY debug_glTexCoord2i(GLint s, GLint t)
 
 static void APIENTRY debug_glTexCoord2iv(const GLint *v)
 {
-	glTexCoord2iv(v);
+	default_glTexCoord2iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13886,10 +13886,10 @@ static void APIENTRY debug_glTexCoord2iv(const GLint *v)
 
 static void APIENTRY debug_glTexCoord2s(GLshort s, GLshort t)
 {
-	glTexCoord2s(s, t);
+	default_glTexCoord2s(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13903,10 +13903,10 @@ static void APIENTRY debug_glTexCoord2s(GLshort s, GLshort t)
 
 static void APIENTRY debug_glTexCoord2sv(const GLshort *v)
 {
-	glTexCoord2sv(v);
+	default_glTexCoord2sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13920,10 +13920,10 @@ static void APIENTRY debug_glTexCoord2sv(const GLshort *v)
 
 static void APIENTRY debug_glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 {
-	glTexCoord3d(s, t, r);
+	default_glTexCoord3d(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13937,10 +13937,10 @@ static void APIENTRY debug_glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 
 static void APIENTRY debug_glTexCoord3dv(const GLdouble *v)
 {
-	glTexCoord3dv(v);
+	default_glTexCoord3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13954,10 +13954,10 @@ static void APIENTRY debug_glTexCoord3dv(const GLdouble *v)
 
 static void APIENTRY debug_glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 {
-	glTexCoord3f(s, t, r);
+	default_glTexCoord3f(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13971,10 +13971,10 @@ static void APIENTRY debug_glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 
 static void APIENTRY debug_glTexCoord3fv(const GLfloat *v)
 {
-	glTexCoord3fv(v);
+	default_glTexCoord3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -13988,10 +13988,10 @@ static void APIENTRY debug_glTexCoord3fv(const GLfloat *v)
 
 static void APIENTRY debug_glTexCoord3i(GLint s, GLint t, GLint r)
 {
-	glTexCoord3i(s, t, r);
+	default_glTexCoord3i(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14005,10 +14005,10 @@ static void APIENTRY debug_glTexCoord3i(GLint s, GLint t, GLint r)
 
 static void APIENTRY debug_glTexCoord3iv(const GLint *v)
 {
-	glTexCoord3iv(v);
+	default_glTexCoord3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14022,10 +14022,10 @@ static void APIENTRY debug_glTexCoord3iv(const GLint *v)
 
 static void APIENTRY debug_glTexCoord3s(GLshort s, GLshort t, GLshort r)
 {
-	glTexCoord3s(s, t, r);
+	default_glTexCoord3s(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14039,10 +14039,10 @@ static void APIENTRY debug_glTexCoord3s(GLshort s, GLshort t, GLshort r)
 
 static void APIENTRY debug_glTexCoord3sv(const GLshort *v)
 {
-	glTexCoord3sv(v);
+	default_glTexCoord3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14056,10 +14056,10 @@ static void APIENTRY debug_glTexCoord3sv(const GLshort *v)
 
 static void APIENTRY debug_glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
-	glTexCoord4d(s, t, r, q);
+	default_glTexCoord4d(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14073,10 +14073,10 @@ static void APIENTRY debug_glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdo
 
 static void APIENTRY debug_glTexCoord4dv(const GLdouble *v)
 {
-	glTexCoord4dv(v);
+	default_glTexCoord4dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14090,10 +14090,10 @@ static void APIENTRY debug_glTexCoord4dv(const GLdouble *v)
 
 static void APIENTRY debug_glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
-	glTexCoord4f(s, t, r, q);
+	default_glTexCoord4f(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14107,10 +14107,10 @@ static void APIENTRY debug_glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat
 
 static void APIENTRY debug_glTexCoord4fv(const GLfloat *v)
 {
-	glTexCoord4fv(v);
+	default_glTexCoord4fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14124,10 +14124,10 @@ static void APIENTRY debug_glTexCoord4fv(const GLfloat *v)
 
 static void APIENTRY debug_glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 {
-	glTexCoord4i(s, t, r, q);
+	default_glTexCoord4i(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14141,10 +14141,10 @@ static void APIENTRY debug_glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 
 static void APIENTRY debug_glTexCoord4iv(const GLint *v)
 {
-	glTexCoord4iv(v);
+	default_glTexCoord4iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14158,10 +14158,10 @@ static void APIENTRY debug_glTexCoord4iv(const GLint *v)
 
 static void APIENTRY debug_glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
 {
-	glTexCoord4s(s, t, r, q);
+	default_glTexCoord4s(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14175,10 +14175,10 @@ static void APIENTRY debug_glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort
 
 static void APIENTRY debug_glTexCoord4sv(const GLshort *v)
 {
-	glTexCoord4sv(v);
+	default_glTexCoord4sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14192,10 +14192,10 @@ static void APIENTRY debug_glTexCoord4sv(const GLshort *v)
 
 static void APIENTRY debug_glVertex2d(GLdouble x, GLdouble y)
 {
-	glVertex2d(x, y);
+	default_glVertex2d(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14209,10 +14209,10 @@ static void APIENTRY debug_glVertex2d(GLdouble x, GLdouble y)
 
 static void APIENTRY debug_glVertex2dv(const GLdouble *v)
 {
-	glVertex2dv(v);
+	default_glVertex2dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14226,10 +14226,10 @@ static void APIENTRY debug_glVertex2dv(const GLdouble *v)
 
 static void APIENTRY debug_glVertex2f(GLfloat x, GLfloat y)
 {
-	glVertex2f(x, y);
+	default_glVertex2f(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14243,10 +14243,10 @@ static void APIENTRY debug_glVertex2f(GLfloat x, GLfloat y)
 
 static void APIENTRY debug_glVertex2fv(const GLfloat *v)
 {
-	glVertex2fv(v);
+	default_glVertex2fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14260,10 +14260,10 @@ static void APIENTRY debug_glVertex2fv(const GLfloat *v)
 
 static void APIENTRY debug_glVertex2i(GLint x, GLint y)
 {
-	glVertex2i(x, y);
+	default_glVertex2i(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14277,10 +14277,10 @@ static void APIENTRY debug_glVertex2i(GLint x, GLint y)
 
 static void APIENTRY debug_glVertex2iv(const GLint *v)
 {
-	glVertex2iv(v);
+	default_glVertex2iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14294,10 +14294,10 @@ static void APIENTRY debug_glVertex2iv(const GLint *v)
 
 static void APIENTRY debug_glVertex2s(GLshort x, GLshort y)
 {
-	glVertex2s(x, y);
+	default_glVertex2s(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14311,10 +14311,10 @@ static void APIENTRY debug_glVertex2s(GLshort x, GLshort y)
 
 static void APIENTRY debug_glVertex2sv(const GLshort *v)
 {
-	glVertex2sv(v);
+	default_glVertex2sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14328,10 +14328,10 @@ static void APIENTRY debug_glVertex2sv(const GLshort *v)
 
 static void APIENTRY debug_glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 {
-	glVertex3d(x, y, z);
+	default_glVertex3d(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14345,10 +14345,10 @@ static void APIENTRY debug_glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 
 static void APIENTRY debug_glVertex3dv(const GLdouble *v)
 {
-	glVertex3dv(v);
+	default_glVertex3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14362,10 +14362,10 @@ static void APIENTRY debug_glVertex3dv(const GLdouble *v)
 
 static void APIENTRY debug_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 {
-	glVertex3f(x, y, z);
+	default_glVertex3f(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14379,10 +14379,10 @@ static void APIENTRY debug_glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 
 static void APIENTRY debug_glVertex3fv(const GLfloat *v)
 {
-	glVertex3fv(v);
+	default_glVertex3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14396,10 +14396,10 @@ static void APIENTRY debug_glVertex3fv(const GLfloat *v)
 
 static void APIENTRY debug_glVertex3i(GLint x, GLint y, GLint z)
 {
-	glVertex3i(x, y, z);
+	default_glVertex3i(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14413,10 +14413,10 @@ static void APIENTRY debug_glVertex3i(GLint x, GLint y, GLint z)
 
 static void APIENTRY debug_glVertex3iv(const GLint *v)
 {
-	glVertex3iv(v);
+	default_glVertex3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14430,10 +14430,10 @@ static void APIENTRY debug_glVertex3iv(const GLint *v)
 
 static void APIENTRY debug_glVertex3s(GLshort x, GLshort y, GLshort z)
 {
-	glVertex3s(x, y, z);
+	default_glVertex3s(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14447,10 +14447,10 @@ static void APIENTRY debug_glVertex3s(GLshort x, GLshort y, GLshort z)
 
 static void APIENTRY debug_glVertex3sv(const GLshort *v)
 {
-	glVertex3sv(v);
+	default_glVertex3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14464,10 +14464,10 @@ static void APIENTRY debug_glVertex3sv(const GLshort *v)
 
 static void APIENTRY debug_glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glVertex4d(x, y, z, w);
+	default_glVertex4d(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14481,10 +14481,10 @@ static void APIENTRY debug_glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdoub
 
 static void APIENTRY debug_glVertex4dv(const GLdouble *v)
 {
-	glVertex4dv(v);
+	default_glVertex4dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14498,10 +14498,10 @@ static void APIENTRY debug_glVertex4dv(const GLdouble *v)
 
 static void APIENTRY debug_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glVertex4f(x, y, z, w);
+	default_glVertex4f(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14515,10 +14515,10 @@ static void APIENTRY debug_glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w
 
 static void APIENTRY debug_glVertex4fv(const GLfloat *v)
 {
-	glVertex4fv(v);
+	default_glVertex4fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14532,10 +14532,10 @@ static void APIENTRY debug_glVertex4fv(const GLfloat *v)
 
 static void APIENTRY debug_glVertex4i(GLint x, GLint y, GLint z, GLint w)
 {
-	glVertex4i(x, y, z, w);
+	default_glVertex4i(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14549,10 +14549,10 @@ static void APIENTRY debug_glVertex4i(GLint x, GLint y, GLint z, GLint w)
 
 static void APIENTRY debug_glVertex4iv(const GLint *v)
 {
-	glVertex4iv(v);
+	default_glVertex4iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14566,10 +14566,10 @@ static void APIENTRY debug_glVertex4iv(const GLint *v)
 
 static void APIENTRY debug_glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
-	glVertex4s(x, y, z, w);
+	default_glVertex4s(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14583,10 +14583,10 @@ static void APIENTRY debug_glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w
 
 static void APIENTRY debug_glVertex4sv(const GLshort *v)
 {
-	glVertex4sv(v);
+	default_glVertex4sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14600,10 +14600,10 @@ static void APIENTRY debug_glVertex4sv(const GLshort *v)
 
 static void APIENTRY debug_glClipPlane(GLenum plane, const GLdouble *equation)
 {
-	glClipPlane(plane, equation);
+	default_glClipPlane(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14617,10 +14617,10 @@ static void APIENTRY debug_glClipPlane(GLenum plane, const GLdouble *equation)
 
 static void APIENTRY debug_glColorMaterial(GLenum face, GLenum mode)
 {
-	glColorMaterial(face, mode);
+	default_glColorMaterial(face, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14634,10 +14634,10 @@ static void APIENTRY debug_glColorMaterial(GLenum face, GLenum mode)
 
 static void APIENTRY debug_glFogf(GLenum pname, GLfloat param)
 {
-	glFogf(pname, param);
+	default_glFogf(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14651,10 +14651,10 @@ static void APIENTRY debug_glFogf(GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glFogfv(GLenum pname, const GLfloat *params)
 {
-	glFogfv(pname, params);
+	default_glFogfv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14668,10 +14668,10 @@ static void APIENTRY debug_glFogfv(GLenum pname, const GLfloat *params)
 
 static void APIENTRY debug_glFogi(GLenum pname, GLint param)
 {
-	glFogi(pname, param);
+	default_glFogi(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14685,10 +14685,10 @@ static void APIENTRY debug_glFogi(GLenum pname, GLint param)
 
 static void APIENTRY debug_glFogiv(GLenum pname, const GLint *params)
 {
-	glFogiv(pname, params);
+	default_glFogiv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14702,10 +14702,10 @@ static void APIENTRY debug_glFogiv(GLenum pname, const GLint *params)
 
 static void APIENTRY debug_glLightf(GLenum light, GLenum pname, GLfloat param)
 {
-	glLightf(light, pname, param);
+	default_glLightf(light, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14719,10 +14719,10 @@ static void APIENTRY debug_glLightf(GLenum light, GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
-	glLightfv(light, pname, params);
+	default_glLightfv(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14736,10 +14736,10 @@ static void APIENTRY debug_glLightfv(GLenum light, GLenum pname, const GLfloat *
 
 static void APIENTRY debug_glLighti(GLenum light, GLenum pname, GLint param)
 {
-	glLighti(light, pname, param);
+	default_glLighti(light, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14753,10 +14753,10 @@ static void APIENTRY debug_glLighti(GLenum light, GLenum pname, GLint param)
 
 static void APIENTRY debug_glLightiv(GLenum light, GLenum pname, const GLint *params)
 {
-	glLightiv(light, pname, params);
+	default_glLightiv(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14770,10 +14770,10 @@ static void APIENTRY debug_glLightiv(GLenum light, GLenum pname, const GLint *pa
 
 static void APIENTRY debug_glLightModelf(GLenum pname, GLfloat param)
 {
-	glLightModelf(pname, param);
+	default_glLightModelf(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14787,10 +14787,10 @@ static void APIENTRY debug_glLightModelf(GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glLightModelfv(GLenum pname, const GLfloat *params)
 {
-	glLightModelfv(pname, params);
+	default_glLightModelfv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14804,10 +14804,10 @@ static void APIENTRY debug_glLightModelfv(GLenum pname, const GLfloat *params)
 
 static void APIENTRY debug_glLightModeli(GLenum pname, GLint param)
 {
-	glLightModeli(pname, param);
+	default_glLightModeli(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14821,10 +14821,10 @@ static void APIENTRY debug_glLightModeli(GLenum pname, GLint param)
 
 static void APIENTRY debug_glLightModeliv(GLenum pname, const GLint *params)
 {
-	glLightModeliv(pname, params);
+	default_glLightModeliv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14838,10 +14838,10 @@ static void APIENTRY debug_glLightModeliv(GLenum pname, const GLint *params)
 
 static void APIENTRY debug_glLineStipple(GLint factor, GLushort pattern)
 {
-	glLineStipple(factor, pattern);
+	default_glLineStipple(factor, pattern);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14855,10 +14855,10 @@ static void APIENTRY debug_glLineStipple(GLint factor, GLushort pattern)
 
 static void APIENTRY debug_glMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
-	glMaterialf(face, pname, param);
+	default_glMaterialf(face, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14872,10 +14872,10 @@ static void APIENTRY debug_glMaterialf(GLenum face, GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
-	glMaterialfv(face, pname, params);
+	default_glMaterialfv(face, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14889,10 +14889,10 @@ static void APIENTRY debug_glMaterialfv(GLenum face, GLenum pname, const GLfloat
 
 static void APIENTRY debug_glMateriali(GLenum face, GLenum pname, GLint param)
 {
-	glMateriali(face, pname, param);
+	default_glMateriali(face, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14906,10 +14906,10 @@ static void APIENTRY debug_glMateriali(GLenum face, GLenum pname, GLint param)
 
 static void APIENTRY debug_glMaterialiv(GLenum face, GLenum pname, const GLint *params)
 {
-	glMaterialiv(face, pname, params);
+	default_glMaterialiv(face, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14923,10 +14923,10 @@ static void APIENTRY debug_glMaterialiv(GLenum face, GLenum pname, const GLint *
 
 static void APIENTRY debug_glPolygonStipple(const GLubyte *mask)
 {
-	glPolygonStipple(mask);
+	default_glPolygonStipple(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14940,10 +14940,10 @@ static void APIENTRY debug_glPolygonStipple(const GLubyte *mask)
 
 static void APIENTRY debug_glShadeModel(GLenum mode)
 {
-	glShadeModel(mode);
+	default_glShadeModel(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14957,10 +14957,10 @@ static void APIENTRY debug_glShadeModel(GLenum mode)
 
 static void APIENTRY debug_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
-	glTexEnvf(target, pname, param);
+	default_glTexEnvf(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14974,10 +14974,10 @@ static void APIENTRY debug_glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 {
-	glTexEnvfv(target, pname, params);
+	default_glTexEnvfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -14991,10 +14991,10 @@ static void APIENTRY debug_glTexEnvfv(GLenum target, GLenum pname, const GLfloat
 
 static void APIENTRY debug_glTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-	glTexEnvi(target, pname, param);
+	default_glTexEnvi(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15008,10 +15008,10 @@ static void APIENTRY debug_glTexEnvi(GLenum target, GLenum pname, GLint param)
 
 static void APIENTRY debug_glTexEnviv(GLenum target, GLenum pname, const GLint *params)
 {
-	glTexEnviv(target, pname, params);
+	default_glTexEnviv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15025,10 +15025,10 @@ static void APIENTRY debug_glTexEnviv(GLenum target, GLenum pname, const GLint *
 
 static void APIENTRY debug_glTexGend(GLenum coord, GLenum pname, GLdouble param)
 {
-	glTexGend(coord, pname, param);
+	default_glTexGend(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15042,10 +15042,10 @@ static void APIENTRY debug_glTexGend(GLenum coord, GLenum pname, GLdouble param)
 
 static void APIENTRY debug_glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
 {
-	glTexGendv(coord, pname, params);
+	default_glTexGendv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15059,10 +15059,10 @@ static void APIENTRY debug_glTexGendv(GLenum coord, GLenum pname, const GLdouble
 
 static void APIENTRY debug_glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 {
-	glTexGenf(coord, pname, param);
+	default_glTexGenf(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15076,10 +15076,10 @@ static void APIENTRY debug_glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
 {
-	glTexGenfv(coord, pname, params);
+	default_glTexGenfv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15093,10 +15093,10 @@ static void APIENTRY debug_glTexGenfv(GLenum coord, GLenum pname, const GLfloat 
 
 static void APIENTRY debug_glTexGeni(GLenum coord, GLenum pname, GLint param)
 {
-	glTexGeni(coord, pname, param);
+	default_glTexGeni(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15110,10 +15110,10 @@ static void APIENTRY debug_glTexGeni(GLenum coord, GLenum pname, GLint param)
 
 static void APIENTRY debug_glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 {
-	glTexGeniv(coord, pname, params);
+	default_glTexGeniv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15127,10 +15127,10 @@ static void APIENTRY debug_glTexGeniv(GLenum coord, GLenum pname, const GLint *p
 
 static void APIENTRY debug_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
 {
-	glFeedbackBuffer(size, type, buffer);
+	default_glFeedbackBuffer(size, type, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15144,10 +15144,10 @@ static void APIENTRY debug_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *
 
 static void APIENTRY debug_glSelectBuffer(GLsizei size, GLuint *buffer)
 {
-	glSelectBuffer(size, buffer);
+	default_glSelectBuffer(size, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15164,7 +15164,7 @@ static GLint APIENTRY debug_glRenderMode(GLenum mode)
 	GLint retVal = default_glRenderMode(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15179,10 +15179,10 @@ static GLint APIENTRY debug_glRenderMode(GLenum mode)
 
 static void APIENTRY debug_glInitNames()
 {
-	glInitNames();
+	default_glInitNames();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15196,10 +15196,10 @@ static void APIENTRY debug_glInitNames()
 
 static void APIENTRY debug_glLoadName(GLuint name)
 {
-	glLoadName(name);
+	default_glLoadName(name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15213,10 +15213,10 @@ static void APIENTRY debug_glLoadName(GLuint name)
 
 static void APIENTRY debug_glPassThrough(GLfloat token)
 {
-	glPassThrough(token);
+	default_glPassThrough(token);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15230,10 +15230,10 @@ static void APIENTRY debug_glPassThrough(GLfloat token)
 
 static void APIENTRY debug_glPopName()
 {
-	glPopName();
+	default_glPopName();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15247,10 +15247,10 @@ static void APIENTRY debug_glPopName()
 
 static void APIENTRY debug_glPushName(GLuint name)
 {
-	glPushName(name);
+	default_glPushName(name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15264,10 +15264,10 @@ static void APIENTRY debug_glPushName(GLuint name)
 
 static void APIENTRY debug_glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-	glClearAccum(red, green, blue, alpha);
+	default_glClearAccum(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15281,10 +15281,10 @@ static void APIENTRY debug_glClearAccum(GLfloat red, GLfloat green, GLfloat blue
 
 static void APIENTRY debug_glClearIndex(GLfloat c)
 {
-	glClearIndex(c);
+	default_glClearIndex(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15298,10 +15298,10 @@ static void APIENTRY debug_glClearIndex(GLfloat c)
 
 static void APIENTRY debug_glIndexMask(GLuint mask)
 {
-	glIndexMask(mask);
+	default_glIndexMask(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15315,10 +15315,10 @@ static void APIENTRY debug_glIndexMask(GLuint mask)
 
 static void APIENTRY debug_glAccum(GLenum op, GLfloat value)
 {
-	glAccum(op, value);
+	default_glAccum(op, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15332,10 +15332,10 @@ static void APIENTRY debug_glAccum(GLenum op, GLfloat value)
 
 static void APIENTRY debug_glPopAttrib()
 {
-	glPopAttrib();
+	default_glPopAttrib();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15349,10 +15349,10 @@ static void APIENTRY debug_glPopAttrib()
 
 static void APIENTRY debug_glPushAttrib(GLbitfield mask)
 {
-	glPushAttrib(mask);
+	default_glPushAttrib(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15366,10 +15366,10 @@ static void APIENTRY debug_glPushAttrib(GLbitfield mask)
 
 static void APIENTRY debug_glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)
 {
-	glMap1d(target, u1, u2, stride, order, points);
+	default_glMap1d(target, u1, u2, stride, order, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15383,10 +15383,10 @@ static void APIENTRY debug_glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLin
 
 static void APIENTRY debug_glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points)
 {
-	glMap1f(target, u1, u2, stride, order, points);
+	default_glMap1f(target, u1, u2, stride, order, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15400,10 +15400,10 @@ static void APIENTRY debug_glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint 
 
 static void APIENTRY debug_glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2, GLint vstride, GLint vorder, const GLdouble *points)
 {
-	glMap2d(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+	default_glMap2d(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15417,10 +15417,10 @@ static void APIENTRY debug_glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLin
 
 static void APIENTRY debug_glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride, GLint vorder, const GLfloat *points)
 {
-	glMap2f(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+	default_glMap2f(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15434,10 +15434,10 @@ static void APIENTRY debug_glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint 
 
 static void APIENTRY debug_glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 {
-	glMapGrid1d(un, u1, u2);
+	default_glMapGrid1d(un, u1, u2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15451,10 +15451,10 @@ static void APIENTRY debug_glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 
 static void APIENTRY debug_glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 {
-	glMapGrid1f(un, u1, u2);
+	default_glMapGrid1f(un, u1, u2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15468,10 +15468,10 @@ static void APIENTRY debug_glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 
 static void APIENTRY debug_glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2)
 {
-	glMapGrid2d(un, u1, u2, vn, v1, v2);
+	default_glMapGrid2d(un, u1, u2, vn, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15485,10 +15485,10 @@ static void APIENTRY debug_glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint
 
 static void APIENTRY debug_glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2)
 {
-	glMapGrid2f(un, u1, u2, vn, v1, v2);
+	default_glMapGrid2f(un, u1, u2, vn, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15502,10 +15502,10 @@ static void APIENTRY debug_glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint v
 
 static void APIENTRY debug_glEvalCoord1d(GLdouble u)
 {
-	glEvalCoord1d(u);
+	default_glEvalCoord1d(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15519,10 +15519,10 @@ static void APIENTRY debug_glEvalCoord1d(GLdouble u)
 
 static void APIENTRY debug_glEvalCoord1dv(const GLdouble *u)
 {
-	glEvalCoord1dv(u);
+	default_glEvalCoord1dv(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15536,10 +15536,10 @@ static void APIENTRY debug_glEvalCoord1dv(const GLdouble *u)
 
 static void APIENTRY debug_glEvalCoord1f(GLfloat u)
 {
-	glEvalCoord1f(u);
+	default_glEvalCoord1f(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15553,10 +15553,10 @@ static void APIENTRY debug_glEvalCoord1f(GLfloat u)
 
 static void APIENTRY debug_glEvalCoord1fv(const GLfloat *u)
 {
-	glEvalCoord1fv(u);
+	default_glEvalCoord1fv(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15570,10 +15570,10 @@ static void APIENTRY debug_glEvalCoord1fv(const GLfloat *u)
 
 static void APIENTRY debug_glEvalCoord2d(GLdouble u, GLdouble v)
 {
-	glEvalCoord2d(u, v);
+	default_glEvalCoord2d(u, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15587,10 +15587,10 @@ static void APIENTRY debug_glEvalCoord2d(GLdouble u, GLdouble v)
 
 static void APIENTRY debug_glEvalCoord2dv(const GLdouble *u)
 {
-	glEvalCoord2dv(u);
+	default_glEvalCoord2dv(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15604,10 +15604,10 @@ static void APIENTRY debug_glEvalCoord2dv(const GLdouble *u)
 
 static void APIENTRY debug_glEvalCoord2f(GLfloat u, GLfloat v)
 {
-	glEvalCoord2f(u, v);
+	default_glEvalCoord2f(u, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15621,10 +15621,10 @@ static void APIENTRY debug_glEvalCoord2f(GLfloat u, GLfloat v)
 
 static void APIENTRY debug_glEvalCoord2fv(const GLfloat *u)
 {
-	glEvalCoord2fv(u);
+	default_glEvalCoord2fv(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15638,10 +15638,10 @@ static void APIENTRY debug_glEvalCoord2fv(const GLfloat *u)
 
 static void APIENTRY debug_glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 {
-	glEvalMesh1(mode, i1, i2);
+	default_glEvalMesh1(mode, i1, i2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15655,10 +15655,10 @@ static void APIENTRY debug_glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 
 static void APIENTRY debug_glEvalPoint1(GLint i)
 {
-	glEvalPoint1(i);
+	default_glEvalPoint1(i);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15672,10 +15672,10 @@ static void APIENTRY debug_glEvalPoint1(GLint i)
 
 static void APIENTRY debug_glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
 {
-	glEvalMesh2(mode, i1, i2, j1, j2);
+	default_glEvalMesh2(mode, i1, i2, j1, j2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15689,10 +15689,10 @@ static void APIENTRY debug_glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1
 
 static void APIENTRY debug_glEvalPoint2(GLint i, GLint j)
 {
-	glEvalPoint2(i, j);
+	default_glEvalPoint2(i, j);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15706,10 +15706,10 @@ static void APIENTRY debug_glEvalPoint2(GLint i, GLint j)
 
 static void APIENTRY debug_glAlphaFunc(GLenum func, GLfloat ref)
 {
-	glAlphaFunc(func, ref);
+	default_glAlphaFunc(func, ref);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15723,10 +15723,10 @@ static void APIENTRY debug_glAlphaFunc(GLenum func, GLfloat ref)
 
 static void APIENTRY debug_glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 {
-	glPixelZoom(xfactor, yfactor);
+	default_glPixelZoom(xfactor, yfactor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15740,10 +15740,10 @@ static void APIENTRY debug_glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 
 static void APIENTRY debug_glPixelTransferf(GLenum pname, GLfloat param)
 {
-	glPixelTransferf(pname, param);
+	default_glPixelTransferf(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15757,10 +15757,10 @@ static void APIENTRY debug_glPixelTransferf(GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glPixelTransferi(GLenum pname, GLint param)
 {
-	glPixelTransferi(pname, param);
+	default_glPixelTransferi(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15774,10 +15774,10 @@ static void APIENTRY debug_glPixelTransferi(GLenum pname, GLint param)
 
 static void APIENTRY debug_glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
 {
-	glPixelMapfv(map, mapsize, values);
+	default_glPixelMapfv(map, mapsize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15791,10 +15791,10 @@ static void APIENTRY debug_glPixelMapfv(GLenum map, GLsizei mapsize, const GLflo
 
 static void APIENTRY debug_glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
 {
-	glPixelMapuiv(map, mapsize, values);
+	default_glPixelMapuiv(map, mapsize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15808,10 +15808,10 @@ static void APIENTRY debug_glPixelMapuiv(GLenum map, GLsizei mapsize, const GLui
 
 static void APIENTRY debug_glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
 {
-	glPixelMapusv(map, mapsize, values);
+	default_glPixelMapusv(map, mapsize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15825,10 +15825,10 @@ static void APIENTRY debug_glPixelMapusv(GLenum map, GLsizei mapsize, const GLus
 
 static void APIENTRY debug_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
 {
-	glCopyPixels(x, y, width, height, type);
+	default_glCopyPixels(x, y, width, height, type);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15842,10 +15842,10 @@ static void APIENTRY debug_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei
 
 static void APIENTRY debug_glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
-	glDrawPixels(width, height, format, type, pixels);
+	default_glDrawPixels(width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15859,10 +15859,10 @@ static void APIENTRY debug_glDrawPixels(GLsizei width, GLsizei height, GLenum fo
 
 static void APIENTRY debug_glGetClipPlane(GLenum plane, GLdouble *equation)
 {
-	glGetClipPlane(plane, equation);
+	default_glGetClipPlane(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15876,10 +15876,10 @@ static void APIENTRY debug_glGetClipPlane(GLenum plane, GLdouble *equation)
 
 static void APIENTRY debug_glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
 {
-	glGetLightfv(light, pname, params);
+	default_glGetLightfv(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15893,10 +15893,10 @@ static void APIENTRY debug_glGetLightfv(GLenum light, GLenum pname, GLfloat *par
 
 static void APIENTRY debug_glGetLightiv(GLenum light, GLenum pname, GLint *params)
 {
-	glGetLightiv(light, pname, params);
+	default_glGetLightiv(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15910,10 +15910,10 @@ static void APIENTRY debug_glGetLightiv(GLenum light, GLenum pname, GLint *param
 
 static void APIENTRY debug_glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 {
-	glGetMapdv(target, query, v);
+	default_glGetMapdv(target, query, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15927,10 +15927,10 @@ static void APIENTRY debug_glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 
 static void APIENTRY debug_glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 {
-	glGetMapfv(target, query, v);
+	default_glGetMapfv(target, query, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15944,10 +15944,10 @@ static void APIENTRY debug_glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 
 static void APIENTRY debug_glGetMapiv(GLenum target, GLenum query, GLint *v)
 {
-	glGetMapiv(target, query, v);
+	default_glGetMapiv(target, query, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15961,10 +15961,10 @@ static void APIENTRY debug_glGetMapiv(GLenum target, GLenum query, GLint *v)
 
 static void APIENTRY debug_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
 {
-	glGetMaterialfv(face, pname, params);
+	default_glGetMaterialfv(face, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15978,10 +15978,10 @@ static void APIENTRY debug_glGetMaterialfv(GLenum face, GLenum pname, GLfloat *p
 
 static void APIENTRY debug_glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
 {
-	glGetMaterialiv(face, pname, params);
+	default_glGetMaterialiv(face, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -15995,10 +15995,10 @@ static void APIENTRY debug_glGetMaterialiv(GLenum face, GLenum pname, GLint *par
 
 static void APIENTRY debug_glGetPixelMapfv(GLenum map, GLfloat *values)
 {
-	glGetPixelMapfv(map, values);
+	default_glGetPixelMapfv(map, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16012,10 +16012,10 @@ static void APIENTRY debug_glGetPixelMapfv(GLenum map, GLfloat *values)
 
 static void APIENTRY debug_glGetPixelMapuiv(GLenum map, GLuint *values)
 {
-	glGetPixelMapuiv(map, values);
+	default_glGetPixelMapuiv(map, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16029,10 +16029,10 @@ static void APIENTRY debug_glGetPixelMapuiv(GLenum map, GLuint *values)
 
 static void APIENTRY debug_glGetPixelMapusv(GLenum map, GLushort *values)
 {
-	glGetPixelMapusv(map, values);
+	default_glGetPixelMapusv(map, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16046,10 +16046,10 @@ static void APIENTRY debug_glGetPixelMapusv(GLenum map, GLushort *values)
 
 static void APIENTRY debug_glGetPolygonStipple(GLubyte *mask)
 {
-	glGetPolygonStipple(mask);
+	default_glGetPolygonStipple(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16063,10 +16063,10 @@ static void APIENTRY debug_glGetPolygonStipple(GLubyte *mask)
 
 static void APIENTRY debug_glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetTexEnvfv(target, pname, params);
+	default_glGetTexEnvfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16080,10 +16080,10 @@ static void APIENTRY debug_glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *p
 
 static void APIENTRY debug_glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetTexEnviv(target, pname, params);
+	default_glGetTexEnviv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16097,10 +16097,10 @@ static void APIENTRY debug_glGetTexEnviv(GLenum target, GLenum pname, GLint *par
 
 static void APIENTRY debug_glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
 {
-	glGetTexGendv(coord, pname, params);
+	default_glGetTexGendv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16114,10 +16114,10 @@ static void APIENTRY debug_glGetTexGendv(GLenum coord, GLenum pname, GLdouble *p
 
 static void APIENTRY debug_glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
 {
-	glGetTexGenfv(coord, pname, params);
+	default_glGetTexGenfv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16131,10 +16131,10 @@ static void APIENTRY debug_glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *pa
 
 static void APIENTRY debug_glGetTexGeniv(GLenum coord, GLenum pname, GLint *params)
 {
-	glGetTexGeniv(coord, pname, params);
+	default_glGetTexGeniv(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16151,7 +16151,7 @@ static GLboolean APIENTRY debug_glIsList(GLuint list)
 	GLboolean retVal = default_glIsList(list);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16166,10 +16166,10 @@ static GLboolean APIENTRY debug_glIsList(GLuint list)
 
 static void APIENTRY debug_glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
-	glFrustum(left, right, bottom, top, zNear, zFar);
+	default_glFrustum(left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16183,10 +16183,10 @@ static void APIENTRY debug_glFrustum(GLdouble left, GLdouble right, GLdouble bot
 
 static void APIENTRY debug_glLoadIdentity()
 {
-	glLoadIdentity();
+	default_glLoadIdentity();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16200,10 +16200,10 @@ static void APIENTRY debug_glLoadIdentity()
 
 static void APIENTRY debug_glLoadMatrixf(const GLfloat *m)
 {
-	glLoadMatrixf(m);
+	default_glLoadMatrixf(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16217,10 +16217,10 @@ static void APIENTRY debug_glLoadMatrixf(const GLfloat *m)
 
 static void APIENTRY debug_glLoadMatrixd(const GLdouble *m)
 {
-	glLoadMatrixd(m);
+	default_glLoadMatrixd(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16234,10 +16234,10 @@ static void APIENTRY debug_glLoadMatrixd(const GLdouble *m)
 
 static void APIENTRY debug_glMatrixMode(GLenum mode)
 {
-	glMatrixMode(mode);
+	default_glMatrixMode(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16251,10 +16251,10 @@ static void APIENTRY debug_glMatrixMode(GLenum mode)
 
 static void APIENTRY debug_glMultMatrixf(const GLfloat *m)
 {
-	glMultMatrixf(m);
+	default_glMultMatrixf(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16268,10 +16268,10 @@ static void APIENTRY debug_glMultMatrixf(const GLfloat *m)
 
 static void APIENTRY debug_glMultMatrixd(const GLdouble *m)
 {
-	glMultMatrixd(m);
+	default_glMultMatrixd(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16285,10 +16285,10 @@ static void APIENTRY debug_glMultMatrixd(const GLdouble *m)
 
 static void APIENTRY debug_glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
-	glOrtho(left, right, bottom, top, zNear, zFar);
+	default_glOrtho(left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16302,10 +16302,10 @@ static void APIENTRY debug_glOrtho(GLdouble left, GLdouble right, GLdouble botto
 
 static void APIENTRY debug_glPopMatrix()
 {
-	glPopMatrix();
+	default_glPopMatrix();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16319,10 +16319,10 @@ static void APIENTRY debug_glPopMatrix()
 
 static void APIENTRY debug_glPushMatrix()
 {
-	glPushMatrix();
+	default_glPushMatrix();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16336,10 +16336,10 @@ static void APIENTRY debug_glPushMatrix()
 
 static void APIENTRY debug_glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 {
-	glRotated(angle, x, y, z);
+	default_glRotated(angle, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16353,10 +16353,10 @@ static void APIENTRY debug_glRotated(GLdouble angle, GLdouble x, GLdouble y, GLd
 
 static void APIENTRY debug_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
-	glRotatef(angle, x, y, z);
+	default_glRotatef(angle, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16370,10 +16370,10 @@ static void APIENTRY debug_glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloa
 
 static void APIENTRY debug_glScaled(GLdouble x, GLdouble y, GLdouble z)
 {
-	glScaled(x, y, z);
+	default_glScaled(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16387,10 +16387,10 @@ static void APIENTRY debug_glScaled(GLdouble x, GLdouble y, GLdouble z)
 
 static void APIENTRY debug_glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
-	glScalef(x, y, z);
+	default_glScalef(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16404,10 +16404,10 @@ static void APIENTRY debug_glScalef(GLfloat x, GLfloat y, GLfloat z)
 
 static void APIENTRY debug_glTranslated(GLdouble x, GLdouble y, GLdouble z)
 {
-	glTranslated(x, y, z);
+	default_glTranslated(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16421,10 +16421,10 @@ static void APIENTRY debug_glTranslated(GLdouble x, GLdouble y, GLdouble z)
 
 static void APIENTRY debug_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
-	glTranslatef(x, y, z);
+	default_glTranslatef(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16438,10 +16438,10 @@ static void APIENTRY debug_glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 
 static void APIENTRY debug_glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
-	glCopyTexImage1D(target, level, internalformat, x, y, width, border);
+	default_glCopyTexImage1D(target, level, internalformat, x, y, width, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16455,10 +16455,10 @@ static void APIENTRY debug_glCopyTexImage1D(GLenum target, GLint level, GLenum i
 
 static void APIENTRY debug_glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
-	glCopyTexSubImage1D(target, level, xoffset, x, y, width);
+	default_glCopyTexSubImage1D(target, level, xoffset, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16472,10 +16472,10 @@ static void APIENTRY debug_glCopyTexSubImage1D(GLenum target, GLint level, GLint
 
 static void APIENTRY debug_glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
-	glTexSubImage1D(target, level, xoffset, width, format, type, pixels);
+	default_glTexSubImage1D(target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16489,10 +16489,10 @@ static void APIENTRY debug_glTexSubImage1D(GLenum target, GLint level, GLint xof
 
 static void APIENTRY debug_glArrayElement(GLint i)
 {
-	glArrayElement(i);
+	default_glArrayElement(i);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16506,10 +16506,10 @@ static void APIENTRY debug_glArrayElement(GLint i)
 
 static void APIENTRY debug_glColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glColorPointer(size, type, stride, pointer);
+	default_glColorPointer(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16523,10 +16523,10 @@ static void APIENTRY debug_glColorPointer(GLint size, GLenum type, GLsizei strid
 
 static void APIENTRY debug_glDisableClientState(GLenum array)
 {
-	glDisableClientState(array);
+	default_glDisableClientState(array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16540,10 +16540,10 @@ static void APIENTRY debug_glDisableClientState(GLenum array)
 
 static void APIENTRY debug_glEdgeFlagPointer(GLsizei stride, const void *pointer)
 {
-	glEdgeFlagPointer(stride, pointer);
+	default_glEdgeFlagPointer(stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16557,10 +16557,10 @@ static void APIENTRY debug_glEdgeFlagPointer(GLsizei stride, const void *pointer
 
 static void APIENTRY debug_glEnableClientState(GLenum array)
 {
-	glEnableClientState(array);
+	default_glEnableClientState(array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16574,10 +16574,10 @@ static void APIENTRY debug_glEnableClientState(GLenum array)
 
 static void APIENTRY debug_glIndexPointer(GLenum type, GLsizei stride, const void *pointer)
 {
-	glIndexPointer(type, stride, pointer);
+	default_glIndexPointer(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16591,10 +16591,10 @@ static void APIENTRY debug_glIndexPointer(GLenum type, GLsizei stride, const voi
 
 static void APIENTRY debug_glInterleavedArrays(GLenum format, GLsizei stride, const void *pointer)
 {
-	glInterleavedArrays(format, stride, pointer);
+	default_glInterleavedArrays(format, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16608,10 +16608,10 @@ static void APIENTRY debug_glInterleavedArrays(GLenum format, GLsizei stride, co
 
 static void APIENTRY debug_glNormalPointer(GLenum type, GLsizei stride, const void *pointer)
 {
-	glNormalPointer(type, stride, pointer);
+	default_glNormalPointer(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16625,10 +16625,10 @@ static void APIENTRY debug_glNormalPointer(GLenum type, GLsizei stride, const vo
 
 static void APIENTRY debug_glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glTexCoordPointer(size, type, stride, pointer);
+	default_glTexCoordPointer(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16642,10 +16642,10 @@ static void APIENTRY debug_glTexCoordPointer(GLint size, GLenum type, GLsizei st
 
 static void APIENTRY debug_glVertexPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glVertexPointer(size, type, stride, pointer);
+	default_glVertexPointer(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16662,7 +16662,7 @@ static GLboolean APIENTRY debug_glAreTexturesResident(GLsizei n, const GLuint *t
 	GLboolean retVal = default_glAreTexturesResident(n, textures, residences);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16677,10 +16677,10 @@ static GLboolean APIENTRY debug_glAreTexturesResident(GLsizei n, const GLuint *t
 
 static void APIENTRY debug_glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLfloat *priorities)
 {
-	glPrioritizeTextures(n, textures, priorities);
+	default_glPrioritizeTextures(n, textures, priorities);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16694,10 +16694,10 @@ static void APIENTRY debug_glPrioritizeTextures(GLsizei n, const GLuint *texture
 
 static void APIENTRY debug_glIndexub(GLubyte c)
 {
-	glIndexub(c);
+	default_glIndexub(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16711,10 +16711,10 @@ static void APIENTRY debug_glIndexub(GLubyte c)
 
 static void APIENTRY debug_glIndexubv(const GLubyte *c)
 {
-	glIndexubv(c);
+	default_glIndexubv(c);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16728,10 +16728,10 @@ static void APIENTRY debug_glIndexubv(const GLubyte *c)
 
 static void APIENTRY debug_glPopClientAttrib()
 {
-	glPopClientAttrib();
+	default_glPopClientAttrib();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16745,10 +16745,10 @@ static void APIENTRY debug_glPopClientAttrib()
 
 static void APIENTRY debug_glPushClientAttrib(GLbitfield mask)
 {
-	glPushClientAttrib(mask);
+	default_glPushClientAttrib(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16762,10 +16762,10 @@ static void APIENTRY debug_glPushClientAttrib(GLbitfield mask)
 
 static void APIENTRY debug_glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data)
 {
-	glCompressedTexImage1D(target, level, internalformat, width, border, imageSize, data);
+	default_glCompressedTexImage1D(target, level, internalformat, width, border, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16779,10 +16779,10 @@ static void APIENTRY debug_glCompressedTexImage1D(GLenum target, GLint level, GL
 
 static void APIENTRY debug_glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data);
+	default_glCompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16796,10 +16796,10 @@ static void APIENTRY debug_glCompressedTexSubImage1D(GLenum target, GLint level,
 
 static void APIENTRY debug_glGetCompressedTexImage(GLenum target, GLint level, void *img)
 {
-	glGetCompressedTexImage(target, level, img);
+	default_glGetCompressedTexImage(target, level, img);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16813,10 +16813,10 @@ static void APIENTRY debug_glGetCompressedTexImage(GLenum target, GLint level, v
 
 static void APIENTRY debug_glClientActiveTexture(GLenum texture)
 {
-	glClientActiveTexture(texture);
+	default_glClientActiveTexture(texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16830,10 +16830,10 @@ static void APIENTRY debug_glClientActiveTexture(GLenum texture)
 
 static void APIENTRY debug_glMultiTexCoord1d(GLenum target, GLdouble s)
 {
-	glMultiTexCoord1d(target, s);
+	default_glMultiTexCoord1d(target, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16847,10 +16847,10 @@ static void APIENTRY debug_glMultiTexCoord1d(GLenum target, GLdouble s)
 
 static void APIENTRY debug_glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 {
-	glMultiTexCoord1dv(target, v);
+	default_glMultiTexCoord1dv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16864,10 +16864,10 @@ static void APIENTRY debug_glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 
 static void APIENTRY debug_glMultiTexCoord1f(GLenum target, GLfloat s)
 {
-	glMultiTexCoord1f(target, s);
+	default_glMultiTexCoord1f(target, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16881,10 +16881,10 @@ static void APIENTRY debug_glMultiTexCoord1f(GLenum target, GLfloat s)
 
 static void APIENTRY debug_glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 {
-	glMultiTexCoord1fv(target, v);
+	default_glMultiTexCoord1fv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16898,10 +16898,10 @@ static void APIENTRY debug_glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 
 static void APIENTRY debug_glMultiTexCoord1i(GLenum target, GLint s)
 {
-	glMultiTexCoord1i(target, s);
+	default_glMultiTexCoord1i(target, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16915,10 +16915,10 @@ static void APIENTRY debug_glMultiTexCoord1i(GLenum target, GLint s)
 
 static void APIENTRY debug_glMultiTexCoord1iv(GLenum target, const GLint *v)
 {
-	glMultiTexCoord1iv(target, v);
+	default_glMultiTexCoord1iv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16932,10 +16932,10 @@ static void APIENTRY debug_glMultiTexCoord1iv(GLenum target, const GLint *v)
 
 static void APIENTRY debug_glMultiTexCoord1s(GLenum target, GLshort s)
 {
-	glMultiTexCoord1s(target, s);
+	default_glMultiTexCoord1s(target, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16949,10 +16949,10 @@ static void APIENTRY debug_glMultiTexCoord1s(GLenum target, GLshort s)
 
 static void APIENTRY debug_glMultiTexCoord1sv(GLenum target, const GLshort *v)
 {
-	glMultiTexCoord1sv(target, v);
+	default_glMultiTexCoord1sv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16966,10 +16966,10 @@ static void APIENTRY debug_glMultiTexCoord1sv(GLenum target, const GLshort *v)
 
 static void APIENTRY debug_glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t)
 {
-	glMultiTexCoord2d(target, s, t);
+	default_glMultiTexCoord2d(target, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -16983,10 +16983,10 @@ static void APIENTRY debug_glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble
 
 static void APIENTRY debug_glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 {
-	glMultiTexCoord2dv(target, v);
+	default_glMultiTexCoord2dv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17000,10 +17000,10 @@ static void APIENTRY debug_glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 
 static void APIENTRY debug_glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 {
-	glMultiTexCoord2f(target, s, t);
+	default_glMultiTexCoord2f(target, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17017,10 +17017,10 @@ static void APIENTRY debug_glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t
 
 static void APIENTRY debug_glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 {
-	glMultiTexCoord2fv(target, v);
+	default_glMultiTexCoord2fv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17034,10 +17034,10 @@ static void APIENTRY debug_glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 
 static void APIENTRY debug_glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 {
-	glMultiTexCoord2i(target, s, t);
+	default_glMultiTexCoord2i(target, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17051,10 +17051,10 @@ static void APIENTRY debug_glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 
 static void APIENTRY debug_glMultiTexCoord2iv(GLenum target, const GLint *v)
 {
-	glMultiTexCoord2iv(target, v);
+	default_glMultiTexCoord2iv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17068,10 +17068,10 @@ static void APIENTRY debug_glMultiTexCoord2iv(GLenum target, const GLint *v)
 
 static void APIENTRY debug_glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
 {
-	glMultiTexCoord2s(target, s, t);
+	default_glMultiTexCoord2s(target, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17085,10 +17085,10 @@ static void APIENTRY debug_glMultiTexCoord2s(GLenum target, GLshort s, GLshort t
 
 static void APIENTRY debug_glMultiTexCoord2sv(GLenum target, const GLshort *v)
 {
-	glMultiTexCoord2sv(target, v);
+	default_glMultiTexCoord2sv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17102,10 +17102,10 @@ static void APIENTRY debug_glMultiTexCoord2sv(GLenum target, const GLshort *v)
 
 static void APIENTRY debug_glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r)
 {
-	glMultiTexCoord3d(target, s, t, r);
+	default_glMultiTexCoord3d(target, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17119,10 +17119,10 @@ static void APIENTRY debug_glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble
 
 static void APIENTRY debug_glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 {
-	glMultiTexCoord3dv(target, v);
+	default_glMultiTexCoord3dv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17136,10 +17136,10 @@ static void APIENTRY debug_glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 
 static void APIENTRY debug_glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
 {
-	glMultiTexCoord3f(target, s, t, r);
+	default_glMultiTexCoord3f(target, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17153,10 +17153,10 @@ static void APIENTRY debug_glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t
 
 static void APIENTRY debug_glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 {
-	glMultiTexCoord3fv(target, v);
+	default_glMultiTexCoord3fv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17170,10 +17170,10 @@ static void APIENTRY debug_glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 
 static void APIENTRY debug_glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
 {
-	glMultiTexCoord3i(target, s, t, r);
+	default_glMultiTexCoord3i(target, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17187,10 +17187,10 @@ static void APIENTRY debug_glMultiTexCoord3i(GLenum target, GLint s, GLint t, GL
 
 static void APIENTRY debug_glMultiTexCoord3iv(GLenum target, const GLint *v)
 {
-	glMultiTexCoord3iv(target, v);
+	default_glMultiTexCoord3iv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17204,10 +17204,10 @@ static void APIENTRY debug_glMultiTexCoord3iv(GLenum target, const GLint *v)
 
 static void APIENTRY debug_glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
 {
-	glMultiTexCoord3s(target, s, t, r);
+	default_glMultiTexCoord3s(target, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17221,10 +17221,10 @@ static void APIENTRY debug_glMultiTexCoord3s(GLenum target, GLshort s, GLshort t
 
 static void APIENTRY debug_glMultiTexCoord3sv(GLenum target, const GLshort *v)
 {
-	glMultiTexCoord3sv(target, v);
+	default_glMultiTexCoord3sv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17238,10 +17238,10 @@ static void APIENTRY debug_glMultiTexCoord3sv(GLenum target, const GLshort *v)
 
 static void APIENTRY debug_glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
-	glMultiTexCoord4d(target, s, t, r, q);
+	default_glMultiTexCoord4d(target, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17255,10 +17255,10 @@ static void APIENTRY debug_glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble
 
 static void APIENTRY debug_glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 {
-	glMultiTexCoord4dv(target, v);
+	default_glMultiTexCoord4dv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17272,10 +17272,10 @@ static void APIENTRY debug_glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 
 static void APIENTRY debug_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
-	glMultiTexCoord4f(target, s, t, r, q);
+	default_glMultiTexCoord4f(target, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17289,10 +17289,10 @@ static void APIENTRY debug_glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t
 
 static void APIENTRY debug_glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 {
-	glMultiTexCoord4fv(target, v);
+	default_glMultiTexCoord4fv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17306,10 +17306,10 @@ static void APIENTRY debug_glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 
 static void APIENTRY debug_glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
 {
-	glMultiTexCoord4i(target, s, t, r, q);
+	default_glMultiTexCoord4i(target, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17323,10 +17323,10 @@ static void APIENTRY debug_glMultiTexCoord4i(GLenum target, GLint s, GLint t, GL
 
 static void APIENTRY debug_glMultiTexCoord4iv(GLenum target, const GLint *v)
 {
-	glMultiTexCoord4iv(target, v);
+	default_glMultiTexCoord4iv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17340,10 +17340,10 @@ static void APIENTRY debug_glMultiTexCoord4iv(GLenum target, const GLint *v)
 
 static void APIENTRY debug_glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q)
 {
-	glMultiTexCoord4s(target, s, t, r, q);
+	default_glMultiTexCoord4s(target, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17357,10 +17357,10 @@ static void APIENTRY debug_glMultiTexCoord4s(GLenum target, GLshort s, GLshort t
 
 static void APIENTRY debug_glMultiTexCoord4sv(GLenum target, const GLshort *v)
 {
-	glMultiTexCoord4sv(target, v);
+	default_glMultiTexCoord4sv(target, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17374,10 +17374,10 @@ static void APIENTRY debug_glMultiTexCoord4sv(GLenum target, const GLshort *v)
 
 static void APIENTRY debug_glLoadTransposeMatrixf(const GLfloat *m)
 {
-	glLoadTransposeMatrixf(m);
+	default_glLoadTransposeMatrixf(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17391,10 +17391,10 @@ static void APIENTRY debug_glLoadTransposeMatrixf(const GLfloat *m)
 
 static void APIENTRY debug_glLoadTransposeMatrixd(const GLdouble *m)
 {
-	glLoadTransposeMatrixd(m);
+	default_glLoadTransposeMatrixd(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17408,10 +17408,10 @@ static void APIENTRY debug_glLoadTransposeMatrixd(const GLdouble *m)
 
 static void APIENTRY debug_glMultTransposeMatrixf(const GLfloat *m)
 {
-	glMultTransposeMatrixf(m);
+	default_glMultTransposeMatrixf(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17425,10 +17425,10 @@ static void APIENTRY debug_glMultTransposeMatrixf(const GLfloat *m)
 
 static void APIENTRY debug_glMultTransposeMatrixd(const GLdouble *m)
 {
-	glMultTransposeMatrixd(m);
+	default_glMultTransposeMatrixd(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17442,10 +17442,10 @@ static void APIENTRY debug_glMultTransposeMatrixd(const GLdouble *m)
 
 static void APIENTRY debug_glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount)
 {
-	glMultiDrawArrays(mode, first, count, drawcount);
+	default_glMultiDrawArrays(mode, first, count, drawcount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17459,10 +17459,10 @@ static void APIENTRY debug_glMultiDrawArrays(GLenum mode, const GLint *first, co
 
 static void APIENTRY debug_glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount)
 {
-	glMultiDrawElements(mode, count, type, indices, drawcount);
+	default_glMultiDrawElements(mode, count, type, indices, drawcount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17476,10 +17476,10 @@ static void APIENTRY debug_glMultiDrawElements(GLenum mode, const GLsizei *count
 
 static void APIENTRY debug_glPointParameterf(GLenum pname, GLfloat param)
 {
-	glPointParameterf(pname, param);
+	default_glPointParameterf(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17493,10 +17493,10 @@ static void APIENTRY debug_glPointParameterf(GLenum pname, GLfloat param)
 
 static void APIENTRY debug_glPointParameterfv(GLenum pname, const GLfloat *params)
 {
-	glPointParameterfv(pname, params);
+	default_glPointParameterfv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17510,10 +17510,10 @@ static void APIENTRY debug_glPointParameterfv(GLenum pname, const GLfloat *param
 
 static void APIENTRY debug_glPointParameteri(GLenum pname, GLint param)
 {
-	glPointParameteri(pname, param);
+	default_glPointParameteri(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17527,10 +17527,10 @@ static void APIENTRY debug_glPointParameteri(GLenum pname, GLint param)
 
 static void APIENTRY debug_glPointParameteriv(GLenum pname, const GLint *params)
 {
-	glPointParameteriv(pname, params);
+	default_glPointParameteriv(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17544,10 +17544,10 @@ static void APIENTRY debug_glPointParameteriv(GLenum pname, const GLint *params)
 
 static void APIENTRY debug_glFogCoordf(GLfloat coord)
 {
-	glFogCoordf(coord);
+	default_glFogCoordf(coord);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17561,10 +17561,10 @@ static void APIENTRY debug_glFogCoordf(GLfloat coord)
 
 static void APIENTRY debug_glFogCoordfv(const GLfloat *coord)
 {
-	glFogCoordfv(coord);
+	default_glFogCoordfv(coord);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17578,10 +17578,10 @@ static void APIENTRY debug_glFogCoordfv(const GLfloat *coord)
 
 static void APIENTRY debug_glFogCoordd(GLdouble coord)
 {
-	glFogCoordd(coord);
+	default_glFogCoordd(coord);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17595,10 +17595,10 @@ static void APIENTRY debug_glFogCoordd(GLdouble coord)
 
 static void APIENTRY debug_glFogCoorddv(const GLdouble *coord)
 {
-	glFogCoorddv(coord);
+	default_glFogCoorddv(coord);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17612,10 +17612,10 @@ static void APIENTRY debug_glFogCoorddv(const GLdouble *coord)
 
 static void APIENTRY debug_glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer)
 {
-	glFogCoordPointer(type, stride, pointer);
+	default_glFogCoordPointer(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17629,10 +17629,10 @@ static void APIENTRY debug_glFogCoordPointer(GLenum type, GLsizei stride, const 
 
 static void APIENTRY debug_glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
-	glSecondaryColor3b(red, green, blue);
+	default_glSecondaryColor3b(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17646,10 +17646,10 @@ static void APIENTRY debug_glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte b
 
 static void APIENTRY debug_glSecondaryColor3bv(const GLbyte *v)
 {
-	glSecondaryColor3bv(v);
+	default_glSecondaryColor3bv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17663,10 +17663,10 @@ static void APIENTRY debug_glSecondaryColor3bv(const GLbyte *v)
 
 static void APIENTRY debug_glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
-	glSecondaryColor3d(red, green, blue);
+	default_glSecondaryColor3d(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17680,10 +17680,10 @@ static void APIENTRY debug_glSecondaryColor3d(GLdouble red, GLdouble green, GLdo
 
 static void APIENTRY debug_glSecondaryColor3dv(const GLdouble *v)
 {
-	glSecondaryColor3dv(v);
+	default_glSecondaryColor3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17697,10 +17697,10 @@ static void APIENTRY debug_glSecondaryColor3dv(const GLdouble *v)
 
 static void APIENTRY debug_glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
-	glSecondaryColor3f(red, green, blue);
+	default_glSecondaryColor3f(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17714,10 +17714,10 @@ static void APIENTRY debug_glSecondaryColor3f(GLfloat red, GLfloat green, GLfloa
 
 static void APIENTRY debug_glSecondaryColor3fv(const GLfloat *v)
 {
-	glSecondaryColor3fv(v);
+	default_glSecondaryColor3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17731,10 +17731,10 @@ static void APIENTRY debug_glSecondaryColor3fv(const GLfloat *v)
 
 static void APIENTRY debug_glSecondaryColor3i(GLint red, GLint green, GLint blue)
 {
-	glSecondaryColor3i(red, green, blue);
+	default_glSecondaryColor3i(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17748,10 +17748,10 @@ static void APIENTRY debug_glSecondaryColor3i(GLint red, GLint green, GLint blue
 
 static void APIENTRY debug_glSecondaryColor3iv(const GLint *v)
 {
-	glSecondaryColor3iv(v);
+	default_glSecondaryColor3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17765,10 +17765,10 @@ static void APIENTRY debug_glSecondaryColor3iv(const GLint *v)
 
 static void APIENTRY debug_glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
 {
-	glSecondaryColor3s(red, green, blue);
+	default_glSecondaryColor3s(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17782,10 +17782,10 @@ static void APIENTRY debug_glSecondaryColor3s(GLshort red, GLshort green, GLshor
 
 static void APIENTRY debug_glSecondaryColor3sv(const GLshort *v)
 {
-	glSecondaryColor3sv(v);
+	default_glSecondaryColor3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17799,10 +17799,10 @@ static void APIENTRY debug_glSecondaryColor3sv(const GLshort *v)
 
 static void APIENTRY debug_glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
-	glSecondaryColor3ub(red, green, blue);
+	default_glSecondaryColor3ub(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17816,10 +17816,10 @@ static void APIENTRY debug_glSecondaryColor3ub(GLubyte red, GLubyte green, GLuby
 
 static void APIENTRY debug_glSecondaryColor3ubv(const GLubyte *v)
 {
-	glSecondaryColor3ubv(v);
+	default_glSecondaryColor3ubv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17833,10 +17833,10 @@ static void APIENTRY debug_glSecondaryColor3ubv(const GLubyte *v)
 
 static void APIENTRY debug_glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
 {
-	glSecondaryColor3ui(red, green, blue);
+	default_glSecondaryColor3ui(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17850,10 +17850,10 @@ static void APIENTRY debug_glSecondaryColor3ui(GLuint red, GLuint green, GLuint 
 
 static void APIENTRY debug_glSecondaryColor3uiv(const GLuint *v)
 {
-	glSecondaryColor3uiv(v);
+	default_glSecondaryColor3uiv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17867,10 +17867,10 @@ static void APIENTRY debug_glSecondaryColor3uiv(const GLuint *v)
 
 static void APIENTRY debug_glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
 {
-	glSecondaryColor3us(red, green, blue);
+	default_glSecondaryColor3us(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17884,10 +17884,10 @@ static void APIENTRY debug_glSecondaryColor3us(GLushort red, GLushort green, GLu
 
 static void APIENTRY debug_glSecondaryColor3usv(const GLushort *v)
 {
-	glSecondaryColor3usv(v);
+	default_glSecondaryColor3usv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17901,10 +17901,10 @@ static void APIENTRY debug_glSecondaryColor3usv(const GLushort *v)
 
 static void APIENTRY debug_glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glSecondaryColorPointer(size, type, stride, pointer);
+	default_glSecondaryColorPointer(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17918,10 +17918,10 @@ static void APIENTRY debug_glSecondaryColorPointer(GLint size, GLenum type, GLsi
 
 static void APIENTRY debug_glWindowPos2d(GLdouble x, GLdouble y)
 {
-	glWindowPos2d(x, y);
+	default_glWindowPos2d(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17935,10 +17935,10 @@ static void APIENTRY debug_glWindowPos2d(GLdouble x, GLdouble y)
 
 static void APIENTRY debug_glWindowPos2dv(const GLdouble *v)
 {
-	glWindowPos2dv(v);
+	default_glWindowPos2dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17952,10 +17952,10 @@ static void APIENTRY debug_glWindowPos2dv(const GLdouble *v)
 
 static void APIENTRY debug_glWindowPos2f(GLfloat x, GLfloat y)
 {
-	glWindowPos2f(x, y);
+	default_glWindowPos2f(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17969,10 +17969,10 @@ static void APIENTRY debug_glWindowPos2f(GLfloat x, GLfloat y)
 
 static void APIENTRY debug_glWindowPos2fv(const GLfloat *v)
 {
-	glWindowPos2fv(v);
+	default_glWindowPos2fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -17986,10 +17986,10 @@ static void APIENTRY debug_glWindowPos2fv(const GLfloat *v)
 
 static void APIENTRY debug_glWindowPos2i(GLint x, GLint y)
 {
-	glWindowPos2i(x, y);
+	default_glWindowPos2i(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18003,10 +18003,10 @@ static void APIENTRY debug_glWindowPos2i(GLint x, GLint y)
 
 static void APIENTRY debug_glWindowPos2iv(const GLint *v)
 {
-	glWindowPos2iv(v);
+	default_glWindowPos2iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18020,10 +18020,10 @@ static void APIENTRY debug_glWindowPos2iv(const GLint *v)
 
 static void APIENTRY debug_glWindowPos2s(GLshort x, GLshort y)
 {
-	glWindowPos2s(x, y);
+	default_glWindowPos2s(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18037,10 +18037,10 @@ static void APIENTRY debug_glWindowPos2s(GLshort x, GLshort y)
 
 static void APIENTRY debug_glWindowPos2sv(const GLshort *v)
 {
-	glWindowPos2sv(v);
+	default_glWindowPos2sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18054,10 +18054,10 @@ static void APIENTRY debug_glWindowPos2sv(const GLshort *v)
 
 static void APIENTRY debug_glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
-	glWindowPos3d(x, y, z);
+	default_glWindowPos3d(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18071,10 +18071,10 @@ static void APIENTRY debug_glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 
 static void APIENTRY debug_glWindowPos3dv(const GLdouble *v)
 {
-	glWindowPos3dv(v);
+	default_glWindowPos3dv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18088,10 +18088,10 @@ static void APIENTRY debug_glWindowPos3dv(const GLdouble *v)
 
 static void APIENTRY debug_glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
-	glWindowPos3f(x, y, z);
+	default_glWindowPos3f(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18105,10 +18105,10 @@ static void APIENTRY debug_glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 
 static void APIENTRY debug_glWindowPos3fv(const GLfloat *v)
 {
-	glWindowPos3fv(v);
+	default_glWindowPos3fv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18122,10 +18122,10 @@ static void APIENTRY debug_glWindowPos3fv(const GLfloat *v)
 
 static void APIENTRY debug_glWindowPos3i(GLint x, GLint y, GLint z)
 {
-	glWindowPos3i(x, y, z);
+	default_glWindowPos3i(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18139,10 +18139,10 @@ static void APIENTRY debug_glWindowPos3i(GLint x, GLint y, GLint z)
 
 static void APIENTRY debug_glWindowPos3iv(const GLint *v)
 {
-	glWindowPos3iv(v);
+	default_glWindowPos3iv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18156,10 +18156,10 @@ static void APIENTRY debug_glWindowPos3iv(const GLint *v)
 
 static void APIENTRY debug_glWindowPos3s(GLshort x, GLshort y, GLshort z)
 {
-	glWindowPos3s(x, y, z);
+	default_glWindowPos3s(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18173,10 +18173,10 @@ static void APIENTRY debug_glWindowPos3s(GLshort x, GLshort y, GLshort z)
 
 static void APIENTRY debug_glWindowPos3sv(const GLshort *v)
 {
-	glWindowPos3sv(v);
+	default_glWindowPos3sv(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18190,10 +18190,10 @@ static void APIENTRY debug_glWindowPos3sv(const GLshort *v)
 
 static void APIENTRY debug_glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
 {
-	glGetQueryObjectiv(id, pname, params);
+	default_glGetQueryObjectiv(id, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18207,10 +18207,10 @@ static void APIENTRY debug_glGetQueryObjectiv(GLuint id, GLenum pname, GLint *pa
 
 static void APIENTRY debug_glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void *data)
 {
-	glGetBufferSubData(target, offset, size, data);
+	default_glGetBufferSubData(target, offset, size, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18227,7 +18227,7 @@ static void * APIENTRY debug_glMapBuffer(GLenum target, GLenum access)
 	void * retVal = default_glMapBuffer(target, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18242,10 +18242,10 @@ static void * APIENTRY debug_glMapBuffer(GLenum target, GLenum access)
 
 static void APIENTRY debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params)
 {
-	glGetVertexAttribdv(index, pname, params);
+	default_glGetVertexAttribdv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18259,10 +18259,10 @@ static void APIENTRY debug_glGetVertexAttribdv(GLuint index, GLenum pname, GLdou
 
 static void APIENTRY debug_glVertexAttrib1d(GLuint index, GLdouble x)
 {
-	glVertexAttrib1d(index, x);
+	default_glVertexAttrib1d(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18276,10 +18276,10 @@ static void APIENTRY debug_glVertexAttrib1d(GLuint index, GLdouble x)
 
 static void APIENTRY debug_glVertexAttrib1dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttrib1dv(index, v);
+	default_glVertexAttrib1dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18293,10 +18293,10 @@ static void APIENTRY debug_glVertexAttrib1dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttrib1s(GLuint index, GLshort x)
 {
-	glVertexAttrib1s(index, x);
+	default_glVertexAttrib1s(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18310,10 +18310,10 @@ static void APIENTRY debug_glVertexAttrib1s(GLuint index, GLshort x)
 
 static void APIENTRY debug_glVertexAttrib1sv(GLuint index, const GLshort *v)
 {
-	glVertexAttrib1sv(index, v);
+	default_glVertexAttrib1sv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18327,10 +18327,10 @@ static void APIENTRY debug_glVertexAttrib1sv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
 {
-	glVertexAttrib2d(index, x, y);
+	default_glVertexAttrib2d(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18344,10 +18344,10 @@ static void APIENTRY debug_glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y
 
 static void APIENTRY debug_glVertexAttrib2dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttrib2dv(index, v);
+	default_glVertexAttrib2dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18361,10 +18361,10 @@ static void APIENTRY debug_glVertexAttrib2dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 {
-	glVertexAttrib2s(index, x, y);
+	default_glVertexAttrib2s(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18378,10 +18378,10 @@ static void APIENTRY debug_glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 
 static void APIENTRY debug_glVertexAttrib2sv(GLuint index, const GLshort *v)
 {
-	glVertexAttrib2sv(index, v);
+	default_glVertexAttrib2sv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18395,10 +18395,10 @@ static void APIENTRY debug_glVertexAttrib2sv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
-	glVertexAttrib3d(index, x, y, z);
+	default_glVertexAttrib3d(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18412,10 +18412,10 @@ static void APIENTRY debug_glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y
 
 static void APIENTRY debug_glVertexAttrib3dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttrib3dv(index, v);
+	default_glVertexAttrib3dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18429,10 +18429,10 @@ static void APIENTRY debug_glVertexAttrib3dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
 {
-	glVertexAttrib3s(index, x, y, z);
+	default_glVertexAttrib3s(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18446,10 +18446,10 @@ static void APIENTRY debug_glVertexAttrib3s(GLuint index, GLshort x, GLshort y, 
 
 static void APIENTRY debug_glVertexAttrib3sv(GLuint index, const GLshort *v)
 {
-	glVertexAttrib3sv(index, v);
+	default_glVertexAttrib3sv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18463,10 +18463,10 @@ static void APIENTRY debug_glVertexAttrib3sv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 {
-	glVertexAttrib4Nbv(index, v);
+	default_glVertexAttrib4Nbv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18480,10 +18480,10 @@ static void APIENTRY debug_glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 
 static void APIENTRY debug_glVertexAttrib4Niv(GLuint index, const GLint *v)
 {
-	glVertexAttrib4Niv(index, v);
+	default_glVertexAttrib4Niv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18497,10 +18497,10 @@ static void APIENTRY debug_glVertexAttrib4Niv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 {
-	glVertexAttrib4Nsv(index, v);
+	default_glVertexAttrib4Nsv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18514,10 +18514,10 @@ static void APIENTRY debug_glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
 {
-	glVertexAttrib4Nub(index, x, y, z, w);
+	default_glVertexAttrib4Nub(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18531,10 +18531,10 @@ static void APIENTRY debug_glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y
 
 static void APIENTRY debug_glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 {
-	glVertexAttrib4Nubv(index, v);
+	default_glVertexAttrib4Nubv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18548,10 +18548,10 @@ static void APIENTRY debug_glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 
 static void APIENTRY debug_glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 {
-	glVertexAttrib4Nuiv(index, v);
+	default_glVertexAttrib4Nuiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18565,10 +18565,10 @@ static void APIENTRY debug_glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 {
-	glVertexAttrib4Nusv(index, v);
+	default_glVertexAttrib4Nusv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18582,10 +18582,10 @@ static void APIENTRY debug_glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 
 static void APIENTRY debug_glVertexAttrib4bv(GLuint index, const GLbyte *v)
 {
-	glVertexAttrib4bv(index, v);
+	default_glVertexAttrib4bv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18599,10 +18599,10 @@ static void APIENTRY debug_glVertexAttrib4bv(GLuint index, const GLbyte *v)
 
 static void APIENTRY debug_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glVertexAttrib4d(index, x, y, z, w);
+	default_glVertexAttrib4d(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18616,10 +18616,10 @@ static void APIENTRY debug_glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y
 
 static void APIENTRY debug_glVertexAttrib4dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttrib4dv(index, v);
+	default_glVertexAttrib4dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18633,10 +18633,10 @@ static void APIENTRY debug_glVertexAttrib4dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttrib4iv(GLuint index, const GLint *v)
 {
-	glVertexAttrib4iv(index, v);
+	default_glVertexAttrib4iv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18650,10 +18650,10 @@ static void APIENTRY debug_glVertexAttrib4iv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
 {
-	glVertexAttrib4s(index, x, y, z, w);
+	default_glVertexAttrib4s(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18667,10 +18667,10 @@ static void APIENTRY debug_glVertexAttrib4s(GLuint index, GLshort x, GLshort y, 
 
 static void APIENTRY debug_glVertexAttrib4sv(GLuint index, const GLshort *v)
 {
-	glVertexAttrib4sv(index, v);
+	default_glVertexAttrib4sv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18684,10 +18684,10 @@ static void APIENTRY debug_glVertexAttrib4sv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 {
-	glVertexAttrib4ubv(index, v);
+	default_glVertexAttrib4ubv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18701,10 +18701,10 @@ static void APIENTRY debug_glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 
 static void APIENTRY debug_glVertexAttrib4uiv(GLuint index, const GLuint *v)
 {
-	glVertexAttrib4uiv(index, v);
+	default_glVertexAttrib4uiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18718,10 +18718,10 @@ static void APIENTRY debug_glVertexAttrib4uiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glVertexAttrib4usv(GLuint index, const GLushort *v)
 {
-	glVertexAttrib4usv(index, v);
+	default_glVertexAttrib4usv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18735,10 +18735,10 @@ static void APIENTRY debug_glVertexAttrib4usv(GLuint index, const GLushort *v)
 
 static void APIENTRY debug_glClampColor(GLenum target, GLenum clamp)
 {
-	glClampColor(target, clamp);
+	default_glClampColor(target, clamp);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18752,10 +18752,10 @@ static void APIENTRY debug_glClampColor(GLenum target, GLenum clamp)
 
 static void APIENTRY debug_glBeginConditionalRender(GLuint id, GLenum mode)
 {
-	glBeginConditionalRender(id, mode);
+	default_glBeginConditionalRender(id, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18769,10 +18769,10 @@ static void APIENTRY debug_glBeginConditionalRender(GLuint id, GLenum mode)
 
 static void APIENTRY debug_glEndConditionalRender()
 {
-	glEndConditionalRender();
+	default_glEndConditionalRender();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18786,10 +18786,10 @@ static void APIENTRY debug_glEndConditionalRender()
 
 static void APIENTRY debug_glVertexAttribI1i(GLuint index, GLint x)
 {
-	glVertexAttribI1i(index, x);
+	default_glVertexAttribI1i(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18803,10 +18803,10 @@ static void APIENTRY debug_glVertexAttribI1i(GLuint index, GLint x)
 
 static void APIENTRY debug_glVertexAttribI2i(GLuint index, GLint x, GLint y)
 {
-	glVertexAttribI2i(index, x, y);
+	default_glVertexAttribI2i(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18820,10 +18820,10 @@ static void APIENTRY debug_glVertexAttribI2i(GLuint index, GLint x, GLint y)
 
 static void APIENTRY debug_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
 {
-	glVertexAttribI3i(index, x, y, z);
+	default_glVertexAttribI3i(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18837,10 +18837,10 @@ static void APIENTRY debug_glVertexAttribI3i(GLuint index, GLint x, GLint y, GLi
 
 static void APIENTRY debug_glVertexAttribI1ui(GLuint index, GLuint x)
 {
-	glVertexAttribI1ui(index, x);
+	default_glVertexAttribI1ui(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18854,10 +18854,10 @@ static void APIENTRY debug_glVertexAttribI1ui(GLuint index, GLuint x)
 
 static void APIENTRY debug_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 {
-	glVertexAttribI2ui(index, x, y);
+	default_glVertexAttribI2ui(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18871,10 +18871,10 @@ static void APIENTRY debug_glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 
 static void APIENTRY debug_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
 {
-	glVertexAttribI3ui(index, x, y, z);
+	default_glVertexAttribI3ui(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18888,10 +18888,10 @@ static void APIENTRY debug_glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, 
 
 static void APIENTRY debug_glVertexAttribI1iv(GLuint index, const GLint *v)
 {
-	glVertexAttribI1iv(index, v);
+	default_glVertexAttribI1iv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18905,10 +18905,10 @@ static void APIENTRY debug_glVertexAttribI1iv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttribI2iv(GLuint index, const GLint *v)
 {
-	glVertexAttribI2iv(index, v);
+	default_glVertexAttribI2iv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18922,10 +18922,10 @@ static void APIENTRY debug_glVertexAttribI2iv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttribI3iv(GLuint index, const GLint *v)
 {
-	glVertexAttribI3iv(index, v);
+	default_glVertexAttribI3iv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18939,10 +18939,10 @@ static void APIENTRY debug_glVertexAttribI3iv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glVertexAttribI1uiv(GLuint index, const GLuint *v)
 {
-	glVertexAttribI1uiv(index, v);
+	default_glVertexAttribI1uiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18956,10 +18956,10 @@ static void APIENTRY debug_glVertexAttribI1uiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glVertexAttribI2uiv(GLuint index, const GLuint *v)
 {
-	glVertexAttribI2uiv(index, v);
+	default_glVertexAttribI2uiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18973,10 +18973,10 @@ static void APIENTRY debug_glVertexAttribI2uiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glVertexAttribI3uiv(GLuint index, const GLuint *v)
 {
-	glVertexAttribI3uiv(index, v);
+	default_glVertexAttribI3uiv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -18990,10 +18990,10 @@ static void APIENTRY debug_glVertexAttribI3uiv(GLuint index, const GLuint *v)
 
 static void APIENTRY debug_glVertexAttribI4bv(GLuint index, const GLbyte *v)
 {
-	glVertexAttribI4bv(index, v);
+	default_glVertexAttribI4bv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19007,10 +19007,10 @@ static void APIENTRY debug_glVertexAttribI4bv(GLuint index, const GLbyte *v)
 
 static void APIENTRY debug_glVertexAttribI4sv(GLuint index, const GLshort *v)
 {
-	glVertexAttribI4sv(index, v);
+	default_glVertexAttribI4sv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19024,10 +19024,10 @@ static void APIENTRY debug_glVertexAttribI4sv(GLuint index, const GLshort *v)
 
 static void APIENTRY debug_glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 {
-	glVertexAttribI4ubv(index, v);
+	default_glVertexAttribI4ubv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19041,10 +19041,10 @@ static void APIENTRY debug_glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 
 static void APIENTRY debug_glVertexAttribI4usv(GLuint index, const GLushort *v)
 {
-	glVertexAttribI4usv(index, v);
+	default_glVertexAttribI4usv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19058,10 +19058,10 @@ static void APIENTRY debug_glVertexAttribI4usv(GLuint index, const GLushort *v)
 
 static void APIENTRY debug_glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
 {
-	glBindFragDataLocation(program, color, name);
+	default_glBindFragDataLocation(program, color, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19075,10 +19075,10 @@ static void APIENTRY debug_glBindFragDataLocation(GLuint program, GLuint color, 
 
 static void APIENTRY debug_glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
-	glFramebufferTexture1D(target, attachment, textarget, texture, level);
+	default_glFramebufferTexture1D(target, attachment, textarget, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19092,10 +19092,10 @@ static void APIENTRY debug_glFramebufferTexture1D(GLenum target, GLenum attachme
 
 static void APIENTRY debug_glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
-	glFramebufferTexture3D(target, attachment, textarget, texture, level, zoffset);
+	default_glFramebufferTexture3D(target, attachment, textarget, texture, level, zoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19109,10 +19109,10 @@ static void APIENTRY debug_glFramebufferTexture3D(GLenum target, GLenum attachme
 
 static void APIENTRY debug_glPrimitiveRestartIndex(GLuint index)
 {
-	glPrimitiveRestartIndex(index);
+	default_glPrimitiveRestartIndex(index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19126,10 +19126,10 @@ static void APIENTRY debug_glPrimitiveRestartIndex(GLuint index)
 
 static void APIENTRY debug_glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName)
 {
-	glGetActiveUniformName(program, uniformIndex, bufSize, length, uniformName);
+	default_glGetActiveUniformName(program, uniformIndex, bufSize, length, uniformName);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19143,10 +19143,10 @@ static void APIENTRY debug_glGetActiveUniformName(GLuint program, GLuint uniform
 
 static void APIENTRY debug_glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex)
 {
-	glMultiDrawElementsBaseVertex(mode, count, type, indices, drawcount, basevertex);
+	default_glMultiDrawElementsBaseVertex(mode, count, type, indices, drawcount, basevertex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19160,10 +19160,10 @@ static void APIENTRY debug_glMultiDrawElementsBaseVertex(GLenum mode, const GLsi
 
 static void APIENTRY debug_glProvokingVertex(GLenum mode)
 {
-	glProvokingVertex(mode);
+	default_glProvokingVertex(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19177,10 +19177,10 @@ static void APIENTRY debug_glProvokingVertex(GLenum mode)
 
 static void APIENTRY debug_glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
-	glTexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
+	default_glTexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19194,10 +19194,10 @@ static void APIENTRY debug_glTexImage2DMultisample(GLenum target, GLsizei sample
 
 static void APIENTRY debug_glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
-	glTexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
+	default_glTexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19211,10 +19211,10 @@ static void APIENTRY debug_glTexImage3DMultisample(GLenum target, GLsizei sample
 
 static void APIENTRY debug_glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar *name)
 {
-	glBindFragDataLocationIndexed(program, colorNumber, index, name);
+	default_glBindFragDataLocationIndexed(program, colorNumber, index, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19231,7 +19231,7 @@ static GLint APIENTRY debug_glGetFragDataIndex(GLuint program, const GLchar *nam
 	GLint retVal = default_glGetFragDataIndex(program, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19246,10 +19246,10 @@ static GLint APIENTRY debug_glGetFragDataIndex(GLuint program, const GLchar *nam
 
 static void APIENTRY debug_glQueryCounter(GLuint id, GLenum target)
 {
-	glQueryCounter(id, target);
+	default_glQueryCounter(id, target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19263,10 +19263,10 @@ static void APIENTRY debug_glQueryCounter(GLuint id, GLenum target)
 
 static void APIENTRY debug_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params)
 {
-	glGetQueryObjecti64v(id, pname, params);
+	default_glGetQueryObjecti64v(id, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19280,10 +19280,10 @@ static void APIENTRY debug_glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64
 
 static void APIENTRY debug_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params)
 {
-	glGetQueryObjectui64v(id, pname, params);
+	default_glGetQueryObjectui64v(id, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19297,10 +19297,10 @@ static void APIENTRY debug_glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint
 
 static void APIENTRY debug_glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	glVertexAttribP1ui(index, type, normalized, value);
+	default_glVertexAttribP1ui(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19314,10 +19314,10 @@ static void APIENTRY debug_glVertexAttribP1ui(GLuint index, GLenum type, GLboole
 
 static void APIENTRY debug_glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
-	glVertexAttribP1uiv(index, type, normalized, value);
+	default_glVertexAttribP1uiv(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19331,10 +19331,10 @@ static void APIENTRY debug_glVertexAttribP1uiv(GLuint index, GLenum type, GLbool
 
 static void APIENTRY debug_glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	glVertexAttribP2ui(index, type, normalized, value);
+	default_glVertexAttribP2ui(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19348,10 +19348,10 @@ static void APIENTRY debug_glVertexAttribP2ui(GLuint index, GLenum type, GLboole
 
 static void APIENTRY debug_glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
-	glVertexAttribP2uiv(index, type, normalized, value);
+	default_glVertexAttribP2uiv(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19365,10 +19365,10 @@ static void APIENTRY debug_glVertexAttribP2uiv(GLuint index, GLenum type, GLbool
 
 static void APIENTRY debug_glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	glVertexAttribP3ui(index, type, normalized, value);
+	default_glVertexAttribP3ui(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19382,10 +19382,10 @@ static void APIENTRY debug_glVertexAttribP3ui(GLuint index, GLenum type, GLboole
 
 static void APIENTRY debug_glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
-	glVertexAttribP3uiv(index, type, normalized, value);
+	default_glVertexAttribP3uiv(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19399,10 +19399,10 @@ static void APIENTRY debug_glVertexAttribP3uiv(GLuint index, GLenum type, GLbool
 
 static void APIENTRY debug_glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
-	glVertexAttribP4ui(index, type, normalized, value);
+	default_glVertexAttribP4ui(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19416,10 +19416,10 @@ static void APIENTRY debug_glVertexAttribP4ui(GLuint index, GLenum type, GLboole
 
 static void APIENTRY debug_glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
-	glVertexAttribP4uiv(index, type, normalized, value);
+	default_glVertexAttribP4uiv(index, type, normalized, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19433,10 +19433,10 @@ static void APIENTRY debug_glVertexAttribP4uiv(GLuint index, GLenum type, GLbool
 
 static void APIENTRY debug_glVertexP2ui(GLenum type, GLuint value)
 {
-	glVertexP2ui(type, value);
+	default_glVertexP2ui(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19450,10 +19450,10 @@ static void APIENTRY debug_glVertexP2ui(GLenum type, GLuint value)
 
 static void APIENTRY debug_glVertexP2uiv(GLenum type, const GLuint *value)
 {
-	glVertexP2uiv(type, value);
+	default_glVertexP2uiv(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19467,10 +19467,10 @@ static void APIENTRY debug_glVertexP2uiv(GLenum type, const GLuint *value)
 
 static void APIENTRY debug_glVertexP3ui(GLenum type, GLuint value)
 {
-	glVertexP3ui(type, value);
+	default_glVertexP3ui(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19484,10 +19484,10 @@ static void APIENTRY debug_glVertexP3ui(GLenum type, GLuint value)
 
 static void APIENTRY debug_glVertexP3uiv(GLenum type, const GLuint *value)
 {
-	glVertexP3uiv(type, value);
+	default_glVertexP3uiv(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19501,10 +19501,10 @@ static void APIENTRY debug_glVertexP3uiv(GLenum type, const GLuint *value)
 
 static void APIENTRY debug_glVertexP4ui(GLenum type, GLuint value)
 {
-	glVertexP4ui(type, value);
+	default_glVertexP4ui(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19518,10 +19518,10 @@ static void APIENTRY debug_glVertexP4ui(GLenum type, GLuint value)
 
 static void APIENTRY debug_glVertexP4uiv(GLenum type, const GLuint *value)
 {
-	glVertexP4uiv(type, value);
+	default_glVertexP4uiv(type, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19535,10 +19535,10 @@ static void APIENTRY debug_glVertexP4uiv(GLenum type, const GLuint *value)
 
 static void APIENTRY debug_glTexCoordP1ui(GLenum type, GLuint coords)
 {
-	glTexCoordP1ui(type, coords);
+	default_glTexCoordP1ui(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19552,10 +19552,10 @@ static void APIENTRY debug_glTexCoordP1ui(GLenum type, GLuint coords)
 
 static void APIENTRY debug_glTexCoordP1uiv(GLenum type, const GLuint *coords)
 {
-	glTexCoordP1uiv(type, coords);
+	default_glTexCoordP1uiv(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19569,10 +19569,10 @@ static void APIENTRY debug_glTexCoordP1uiv(GLenum type, const GLuint *coords)
 
 static void APIENTRY debug_glTexCoordP2ui(GLenum type, GLuint coords)
 {
-	glTexCoordP2ui(type, coords);
+	default_glTexCoordP2ui(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19586,10 +19586,10 @@ static void APIENTRY debug_glTexCoordP2ui(GLenum type, GLuint coords)
 
 static void APIENTRY debug_glTexCoordP2uiv(GLenum type, const GLuint *coords)
 {
-	glTexCoordP2uiv(type, coords);
+	default_glTexCoordP2uiv(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19603,10 +19603,10 @@ static void APIENTRY debug_glTexCoordP2uiv(GLenum type, const GLuint *coords)
 
 static void APIENTRY debug_glTexCoordP3ui(GLenum type, GLuint coords)
 {
-	glTexCoordP3ui(type, coords);
+	default_glTexCoordP3ui(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19620,10 +19620,10 @@ static void APIENTRY debug_glTexCoordP3ui(GLenum type, GLuint coords)
 
 static void APIENTRY debug_glTexCoordP3uiv(GLenum type, const GLuint *coords)
 {
-	glTexCoordP3uiv(type, coords);
+	default_glTexCoordP3uiv(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19637,10 +19637,10 @@ static void APIENTRY debug_glTexCoordP3uiv(GLenum type, const GLuint *coords)
 
 static void APIENTRY debug_glTexCoordP4ui(GLenum type, GLuint coords)
 {
-	glTexCoordP4ui(type, coords);
+	default_glTexCoordP4ui(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19654,10 +19654,10 @@ static void APIENTRY debug_glTexCoordP4ui(GLenum type, GLuint coords)
 
 static void APIENTRY debug_glTexCoordP4uiv(GLenum type, const GLuint *coords)
 {
-	glTexCoordP4uiv(type, coords);
+	default_glTexCoordP4uiv(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19671,10 +19671,10 @@ static void APIENTRY debug_glTexCoordP4uiv(GLenum type, const GLuint *coords)
 
 static void APIENTRY debug_glMultiTexCoordP1ui(GLenum texture, GLenum type, GLuint coords)
 {
-	glMultiTexCoordP1ui(texture, type, coords);
+	default_glMultiTexCoordP1ui(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19688,10 +19688,10 @@ static void APIENTRY debug_glMultiTexCoordP1ui(GLenum texture, GLenum type, GLui
 
 static void APIENTRY debug_glMultiTexCoordP1uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
-	glMultiTexCoordP1uiv(texture, type, coords);
+	default_glMultiTexCoordP1uiv(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19705,10 +19705,10 @@ static void APIENTRY debug_glMultiTexCoordP1uiv(GLenum texture, GLenum type, con
 
 static void APIENTRY debug_glMultiTexCoordP2ui(GLenum texture, GLenum type, GLuint coords)
 {
-	glMultiTexCoordP2ui(texture, type, coords);
+	default_glMultiTexCoordP2ui(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19722,10 +19722,10 @@ static void APIENTRY debug_glMultiTexCoordP2ui(GLenum texture, GLenum type, GLui
 
 static void APIENTRY debug_glMultiTexCoordP2uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
-	glMultiTexCoordP2uiv(texture, type, coords);
+	default_glMultiTexCoordP2uiv(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19739,10 +19739,10 @@ static void APIENTRY debug_glMultiTexCoordP2uiv(GLenum texture, GLenum type, con
 
 static void APIENTRY debug_glMultiTexCoordP3ui(GLenum texture, GLenum type, GLuint coords)
 {
-	glMultiTexCoordP3ui(texture, type, coords);
+	default_glMultiTexCoordP3ui(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19756,10 +19756,10 @@ static void APIENTRY debug_glMultiTexCoordP3ui(GLenum texture, GLenum type, GLui
 
 static void APIENTRY debug_glMultiTexCoordP3uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
-	glMultiTexCoordP3uiv(texture, type, coords);
+	default_glMultiTexCoordP3uiv(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19773,10 +19773,10 @@ static void APIENTRY debug_glMultiTexCoordP3uiv(GLenum texture, GLenum type, con
 
 static void APIENTRY debug_glMultiTexCoordP4ui(GLenum texture, GLenum type, GLuint coords)
 {
-	glMultiTexCoordP4ui(texture, type, coords);
+	default_glMultiTexCoordP4ui(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19790,10 +19790,10 @@ static void APIENTRY debug_glMultiTexCoordP4ui(GLenum texture, GLenum type, GLui
 
 static void APIENTRY debug_glMultiTexCoordP4uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
-	glMultiTexCoordP4uiv(texture, type, coords);
+	default_glMultiTexCoordP4uiv(texture, type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19807,10 +19807,10 @@ static void APIENTRY debug_glMultiTexCoordP4uiv(GLenum texture, GLenum type, con
 
 static void APIENTRY debug_glNormalP3ui(GLenum type, GLuint coords)
 {
-	glNormalP3ui(type, coords);
+	default_glNormalP3ui(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19824,10 +19824,10 @@ static void APIENTRY debug_glNormalP3ui(GLenum type, GLuint coords)
 
 static void APIENTRY debug_glNormalP3uiv(GLenum type, const GLuint *coords)
 {
-	glNormalP3uiv(type, coords);
+	default_glNormalP3uiv(type, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19841,10 +19841,10 @@ static void APIENTRY debug_glNormalP3uiv(GLenum type, const GLuint *coords)
 
 static void APIENTRY debug_glColorP3ui(GLenum type, GLuint color)
 {
-	glColorP3ui(type, color);
+	default_glColorP3ui(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19858,10 +19858,10 @@ static void APIENTRY debug_glColorP3ui(GLenum type, GLuint color)
 
 static void APIENTRY debug_glColorP3uiv(GLenum type, const GLuint *color)
 {
-	glColorP3uiv(type, color);
+	default_glColorP3uiv(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19875,10 +19875,10 @@ static void APIENTRY debug_glColorP3uiv(GLenum type, const GLuint *color)
 
 static void APIENTRY debug_glColorP4ui(GLenum type, GLuint color)
 {
-	glColorP4ui(type, color);
+	default_glColorP4ui(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19892,10 +19892,10 @@ static void APIENTRY debug_glColorP4ui(GLenum type, GLuint color)
 
 static void APIENTRY debug_glColorP4uiv(GLenum type, const GLuint *color)
 {
-	glColorP4uiv(type, color);
+	default_glColorP4uiv(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19909,10 +19909,10 @@ static void APIENTRY debug_glColorP4uiv(GLenum type, const GLuint *color)
 
 static void APIENTRY debug_glSecondaryColorP3ui(GLenum type, GLuint color)
 {
-	glSecondaryColorP3ui(type, color);
+	default_glSecondaryColorP3ui(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19926,10 +19926,10 @@ static void APIENTRY debug_glSecondaryColorP3ui(GLenum type, GLuint color)
 
 static void APIENTRY debug_glSecondaryColorP3uiv(GLenum type, const GLuint *color)
 {
-	glSecondaryColorP3uiv(type, color);
+	default_glSecondaryColorP3uiv(type, color);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19943,10 +19943,10 @@ static void APIENTRY debug_glSecondaryColorP3uiv(GLenum type, const GLuint *colo
 
 static void APIENTRY debug_glUniform1d(GLint location, GLdouble x)
 {
-	glUniform1d(location, x);
+	default_glUniform1d(location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19960,10 +19960,10 @@ static void APIENTRY debug_glUniform1d(GLint location, GLdouble x)
 
 static void APIENTRY debug_glUniform2d(GLint location, GLdouble x, GLdouble y)
 {
-	glUniform2d(location, x, y);
+	default_glUniform2d(location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19977,10 +19977,10 @@ static void APIENTRY debug_glUniform2d(GLint location, GLdouble x, GLdouble y)
 
 static void APIENTRY debug_glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
-	glUniform3d(location, x, y, z);
+	default_glUniform3d(location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -19994,10 +19994,10 @@ static void APIENTRY debug_glUniform3d(GLint location, GLdouble x, GLdouble y, G
 
 static void APIENTRY debug_glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glUniform4d(location, x, y, z, w);
+	default_glUniform4d(location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20011,10 +20011,10 @@ static void APIENTRY debug_glUniform4d(GLint location, GLdouble x, GLdouble y, G
 
 static void APIENTRY debug_glUniform1dv(GLint location, GLsizei count, const GLdouble *value)
 {
-	glUniform1dv(location, count, value);
+	default_glUniform1dv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20028,10 +20028,10 @@ static void APIENTRY debug_glUniform1dv(GLint location, GLsizei count, const GLd
 
 static void APIENTRY debug_glUniform2dv(GLint location, GLsizei count, const GLdouble *value)
 {
-	glUniform2dv(location, count, value);
+	default_glUniform2dv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20045,10 +20045,10 @@ static void APIENTRY debug_glUniform2dv(GLint location, GLsizei count, const GLd
 
 static void APIENTRY debug_glUniform3dv(GLint location, GLsizei count, const GLdouble *value)
 {
-	glUniform3dv(location, count, value);
+	default_glUniform3dv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20062,10 +20062,10 @@ static void APIENTRY debug_glUniform3dv(GLint location, GLsizei count, const GLd
 
 static void APIENTRY debug_glUniform4dv(GLint location, GLsizei count, const GLdouble *value)
 {
-	glUniform4dv(location, count, value);
+	default_glUniform4dv(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20079,10 +20079,10 @@ static void APIENTRY debug_glUniform4dv(GLint location, GLsizei count, const GLd
 
 static void APIENTRY debug_glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix2dv(location, count, transpose, value);
+	default_glUniformMatrix2dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20096,10 +20096,10 @@ static void APIENTRY debug_glUniformMatrix2dv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix3dv(location, count, transpose, value);
+	default_glUniformMatrix3dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20113,10 +20113,10 @@ static void APIENTRY debug_glUniformMatrix3dv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix4dv(location, count, transpose, value);
+	default_glUniformMatrix4dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20130,10 +20130,10 @@ static void APIENTRY debug_glUniformMatrix4dv(GLint location, GLsizei count, GLb
 
 static void APIENTRY debug_glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix2x3dv(location, count, transpose, value);
+	default_glUniformMatrix2x3dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20147,10 +20147,10 @@ static void APIENTRY debug_glUniformMatrix2x3dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix2x4dv(location, count, transpose, value);
+	default_glUniformMatrix2x4dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20164,10 +20164,10 @@ static void APIENTRY debug_glUniformMatrix2x4dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix3x2dv(location, count, transpose, value);
+	default_glUniformMatrix3x2dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20181,10 +20181,10 @@ static void APIENTRY debug_glUniformMatrix3x2dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix3x4dv(location, count, transpose, value);
+	default_glUniformMatrix3x4dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20198,10 +20198,10 @@ static void APIENTRY debug_glUniformMatrix3x4dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix4x2dv(location, count, transpose, value);
+	default_glUniformMatrix4x2dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20215,10 +20215,10 @@ static void APIENTRY debug_glUniformMatrix4x2dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glUniformMatrix4x3dv(location, count, transpose, value);
+	default_glUniformMatrix4x3dv(location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20232,10 +20232,10 @@ static void APIENTRY debug_glUniformMatrix4x3dv(GLint location, GLsizei count, G
 
 static void APIENTRY debug_glGetUniformdv(GLuint program, GLint location, GLdouble *params)
 {
-	glGetUniformdv(program, location, params);
+	default_glGetUniformdv(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20252,7 +20252,7 @@ static GLint APIENTRY debug_glGetSubroutineUniformLocation(GLuint program, GLenu
 	GLint retVal = default_glGetSubroutineUniformLocation(program, shadertype, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20270,7 +20270,7 @@ static GLuint APIENTRY debug_glGetSubroutineIndex(GLuint program, GLenum shadert
 	GLuint retVal = default_glGetSubroutineIndex(program, shadertype, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20285,10 +20285,10 @@ static GLuint APIENTRY debug_glGetSubroutineIndex(GLuint program, GLenum shadert
 
 static void APIENTRY debug_glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values)
 {
-	glGetActiveSubroutineUniformiv(program, shadertype, index, pname, values);
+	default_glGetActiveSubroutineUniformiv(program, shadertype, index, pname, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20302,10 +20302,10 @@ static void APIENTRY debug_glGetActiveSubroutineUniformiv(GLuint program, GLenum
 
 static void APIENTRY debug_glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
 {
-	glGetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name);
+	default_glGetActiveSubroutineUniformName(program, shadertype, index, bufsize, length, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20319,10 +20319,10 @@ static void APIENTRY debug_glGetActiveSubroutineUniformName(GLuint program, GLen
 
 static void APIENTRY debug_glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei *length, GLchar *name)
 {
-	glGetActiveSubroutineName(program, shadertype, index, bufsize, length, name);
+	default_glGetActiveSubroutineName(program, shadertype, index, bufsize, length, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20336,10 +20336,10 @@ static void APIENTRY debug_glGetActiveSubroutineName(GLuint program, GLenum shad
 
 static void APIENTRY debug_glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
 {
-	glUniformSubroutinesuiv(shadertype, count, indices);
+	default_glUniformSubroutinesuiv(shadertype, count, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20353,10 +20353,10 @@ static void APIENTRY debug_glUniformSubroutinesuiv(GLenum shadertype, GLsizei co
 
 static void APIENTRY debug_glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
 {
-	glGetUniformSubroutineuiv(shadertype, location, params);
+	default_glGetUniformSubroutineuiv(shadertype, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20370,10 +20370,10 @@ static void APIENTRY debug_glGetUniformSubroutineuiv(GLenum shadertype, GLint lo
 
 static void APIENTRY debug_glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint *values)
 {
-	glGetProgramStageiv(program, shadertype, pname, values);
+	default_glGetProgramStageiv(program, shadertype, pname, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20387,10 +20387,10 @@ static void APIENTRY debug_glGetProgramStageiv(GLuint program, GLenum shadertype
 
 static void APIENTRY debug_glPatchParameterfv(GLenum pname, const GLfloat *values)
 {
-	glPatchParameterfv(pname, values);
+	default_glPatchParameterfv(pname, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20404,10 +20404,10 @@ static void APIENTRY debug_glPatchParameterfv(GLenum pname, const GLfloat *value
 
 static void APIENTRY debug_glDrawTransformFeedback(GLenum mode, GLuint id)
 {
-	glDrawTransformFeedback(mode, id);
+	default_glDrawTransformFeedback(mode, id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20421,10 +20421,10 @@ static void APIENTRY debug_glDrawTransformFeedback(GLenum mode, GLuint id)
 
 static void APIENTRY debug_glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
 {
-	glDrawTransformFeedbackStream(mode, id, stream);
+	default_glDrawTransformFeedbackStream(mode, id, stream);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20438,10 +20438,10 @@ static void APIENTRY debug_glDrawTransformFeedbackStream(GLenum mode, GLuint id,
 
 static void APIENTRY debug_glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
 {
-	glBeginQueryIndexed(target, index, id);
+	default_glBeginQueryIndexed(target, index, id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20455,10 +20455,10 @@ static void APIENTRY debug_glBeginQueryIndexed(GLenum target, GLuint index, GLui
 
 static void APIENTRY debug_glEndQueryIndexed(GLenum target, GLuint index)
 {
-	glEndQueryIndexed(target, index);
+	default_glEndQueryIndexed(target, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20472,10 +20472,10 @@ static void APIENTRY debug_glEndQueryIndexed(GLenum target, GLuint index)
 
 static void APIENTRY debug_glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *params)
 {
-	glGetQueryIndexediv(target, index, pname, params);
+	default_glGetQueryIndexediv(target, index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20489,10 +20489,10 @@ static void APIENTRY debug_glGetQueryIndexediv(GLenum target, GLuint index, GLen
 
 static void APIENTRY debug_glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
 {
-	glProgramUniform1d(program, location, v0);
+	default_glProgramUniform1d(program, location, v0);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20506,10 +20506,10 @@ static void APIENTRY debug_glProgramUniform1d(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform1dv(program, location, count, value);
+	default_glProgramUniform1dv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20523,10 +20523,10 @@ static void APIENTRY debug_glProgramUniform1dv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1)
 {
-	glProgramUniform2d(program, location, v0, v1);
+	default_glProgramUniform2d(program, location, v0, v1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20540,10 +20540,10 @@ static void APIENTRY debug_glProgramUniform2d(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform2dv(program, location, count, value);
+	default_glProgramUniform2dv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20557,10 +20557,10 @@ static void APIENTRY debug_glProgramUniform2dv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2)
 {
-	glProgramUniform3d(program, location, v0, v1, v2);
+	default_glProgramUniform3d(program, location, v0, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20574,10 +20574,10 @@ static void APIENTRY debug_glProgramUniform3d(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform3dv(program, location, count, value);
+	default_glProgramUniform3dv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20591,10 +20591,10 @@ static void APIENTRY debug_glProgramUniform3dv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3)
 {
-	glProgramUniform4d(program, location, v0, v1, v2, v3);
+	default_glProgramUniform4d(program, location, v0, v1, v2, v3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20608,10 +20608,10 @@ static void APIENTRY debug_glProgramUniform4d(GLuint program, GLint location, GL
 
 static void APIENTRY debug_glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform4dv(program, location, count, value);
+	default_glProgramUniform4dv(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20625,10 +20625,10 @@ static void APIENTRY debug_glProgramUniform4dv(GLuint program, GLint location, G
 
 static void APIENTRY debug_glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20642,10 +20642,10 @@ static void APIENTRY debug_glProgramUniformMatrix2dv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20659,10 +20659,10 @@ static void APIENTRY debug_glProgramUniformMatrix3dv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20676,10 +20676,10 @@ static void APIENTRY debug_glProgramUniformMatrix4dv(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2x3dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x3dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20693,10 +20693,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x3dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3x2dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x2dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20710,10 +20710,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x2dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2x4dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x4dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20727,10 +20727,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x4dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4x2dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x2dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20744,10 +20744,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x2dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3x4dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x4dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20761,10 +20761,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x4dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4x3dv(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x3dv(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20778,10 +20778,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x3dv(GLuint program, GLint loc
 
 static void APIENTRY debug_glVertexAttribL1d(GLuint index, GLdouble x)
 {
-	glVertexAttribL1d(index, x);
+	default_glVertexAttribL1d(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20795,10 +20795,10 @@ static void APIENTRY debug_glVertexAttribL1d(GLuint index, GLdouble x)
 
 static void APIENTRY debug_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
 {
-	glVertexAttribL2d(index, x, y);
+	default_glVertexAttribL2d(index, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20812,10 +20812,10 @@ static void APIENTRY debug_glVertexAttribL2d(GLuint index, GLdouble x, GLdouble 
 
 static void APIENTRY debug_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
-	glVertexAttribL3d(index, x, y, z);
+	default_glVertexAttribL3d(index, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20829,10 +20829,10 @@ static void APIENTRY debug_glVertexAttribL3d(GLuint index, GLdouble x, GLdouble 
 
 static void APIENTRY debug_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glVertexAttribL4d(index, x, y, z, w);
+	default_glVertexAttribL4d(index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20846,10 +20846,10 @@ static void APIENTRY debug_glVertexAttribL4d(GLuint index, GLdouble x, GLdouble 
 
 static void APIENTRY debug_glVertexAttribL1dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttribL1dv(index, v);
+	default_glVertexAttribL1dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20863,10 +20863,10 @@ static void APIENTRY debug_glVertexAttribL1dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttribL2dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttribL2dv(index, v);
+	default_glVertexAttribL2dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20880,10 +20880,10 @@ static void APIENTRY debug_glVertexAttribL2dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttribL3dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttribL3dv(index, v);
+	default_glVertexAttribL3dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20897,10 +20897,10 @@ static void APIENTRY debug_glVertexAttribL3dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttribL4dv(GLuint index, const GLdouble *v)
 {
-	glVertexAttribL4dv(index, v);
+	default_glVertexAttribL4dv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20914,10 +20914,10 @@ static void APIENTRY debug_glVertexAttribL4dv(GLuint index, const GLdouble *v)
 
 static void APIENTRY debug_glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glVertexAttribLPointer(index, size, type, stride, pointer);
+	default_glVertexAttribLPointer(index, size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20931,10 +20931,10 @@ static void APIENTRY debug_glVertexAttribLPointer(GLuint index, GLint size, GLen
 
 static void APIENTRY debug_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble *params)
 {
-	glGetVertexAttribLdv(index, pname, params);
+	default_glGetVertexAttribLdv(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20948,10 +20948,10 @@ static void APIENTRY debug_glGetVertexAttribLdv(GLuint index, GLenum pname, GLdo
 
 static void APIENTRY debug_glViewportArrayv(GLuint first, GLsizei count, const GLfloat *v)
 {
-	glViewportArrayv(first, count, v);
+	default_glViewportArrayv(first, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20965,10 +20965,10 @@ static void APIENTRY debug_glViewportArrayv(GLuint first, GLsizei count, const G
 
 static void APIENTRY debug_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 {
-	glViewportIndexedf(index, x, y, w, h);
+	default_glViewportIndexedf(index, x, y, w, h);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20982,10 +20982,10 @@ static void APIENTRY debug_glViewportIndexedf(GLuint index, GLfloat x, GLfloat y
 
 static void APIENTRY debug_glViewportIndexedfv(GLuint index, const GLfloat *v)
 {
-	glViewportIndexedfv(index, v);
+	default_glViewportIndexedfv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -20999,10 +20999,10 @@ static void APIENTRY debug_glViewportIndexedfv(GLuint index, const GLfloat *v)
 
 static void APIENTRY debug_glScissorArrayv(GLuint first, GLsizei count, const GLint *v)
 {
-	glScissorArrayv(first, count, v);
+	default_glScissorArrayv(first, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21016,10 +21016,10 @@ static void APIENTRY debug_glScissorArrayv(GLuint first, GLsizei count, const GL
 
 static void APIENTRY debug_glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
 {
-	glScissorIndexed(index, left, bottom, width, height);
+	default_glScissorIndexed(index, left, bottom, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21033,10 +21033,10 @@ static void APIENTRY debug_glScissorIndexed(GLuint index, GLint left, GLint bott
 
 static void APIENTRY debug_glScissorIndexedv(GLuint index, const GLint *v)
 {
-	glScissorIndexedv(index, v);
+	default_glScissorIndexedv(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21050,10 +21050,10 @@ static void APIENTRY debug_glScissorIndexedv(GLuint index, const GLint *v)
 
 static void APIENTRY debug_glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble *v)
 {
-	glDepthRangeArrayv(first, count, v);
+	default_glDepthRangeArrayv(first, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21067,10 +21067,10 @@ static void APIENTRY debug_glDepthRangeArrayv(GLuint first, GLsizei count, const
 
 static void APIENTRY debug_glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
 {
-	glDepthRangeIndexed(index, n, f);
+	default_glDepthRangeIndexed(index, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21084,10 +21084,10 @@ static void APIENTRY debug_glDepthRangeIndexed(GLuint index, GLdouble n, GLdoubl
 
 static void APIENTRY debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *data)
 {
-	glGetFloati_v(target, index, data);
+	default_glGetFloati_v(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21101,10 +21101,10 @@ static void APIENTRY debug_glGetFloati_v(GLenum target, GLuint index, GLfloat *d
 
 static void APIENTRY debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble *data)
 {
-	glGetDoublei_v(target, index, data);
+	default_glGetDoublei_v(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21118,10 +21118,10 @@ static void APIENTRY debug_glGetDoublei_v(GLenum target, GLuint index, GLdouble 
 
 static void APIENTRY debug_glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance)
 {
-	glDrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance);
+	default_glDrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21135,10 +21135,10 @@ static void APIENTRY debug_glDrawArraysInstancedBaseInstance(GLenum mode, GLint 
 
 static void APIENTRY debug_glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance)
 {
-	glDrawElementsInstancedBaseInstance(mode, count, type, indices, instancecount, baseinstance);
+	default_glDrawElementsInstancedBaseInstance(mode, count, type, indices, instancecount, baseinstance);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21152,10 +21152,10 @@ static void APIENTRY debug_glDrawElementsInstancedBaseInstance(GLenum mode, GLsi
 
 static void APIENTRY debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance)
 {
-	glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instancecount, basevertex, baseinstance);
+	default_glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instancecount, basevertex, baseinstance);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21169,10 +21169,10 @@ static void APIENTRY debug_glDrawElementsInstancedBaseVertexBaseInstance(GLenum 
 
 static void APIENTRY debug_glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint *params)
 {
-	glGetActiveAtomicCounterBufferiv(program, bufferIndex, pname, params);
+	default_glGetActiveAtomicCounterBufferiv(program, bufferIndex, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21186,10 +21186,10 @@ static void APIENTRY debug_glGetActiveAtomicCounterBufferiv(GLuint program, GLui
 
 static void APIENTRY debug_glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {
-	glTexStorage1D(target, levels, internalformat, width);
+	default_glTexStorage1D(target, levels, internalformat, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21203,10 +21203,10 @@ static void APIENTRY debug_glTexStorage1D(GLenum target, GLsizei levels, GLenum 
 
 static void APIENTRY debug_glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
 {
-	glDrawTransformFeedbackInstanced(mode, id, instancecount);
+	default_glDrawTransformFeedbackInstanced(mode, id, instancecount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21220,10 +21220,10 @@ static void APIENTRY debug_glDrawTransformFeedbackInstanced(GLenum mode, GLuint 
 
 static void APIENTRY debug_glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
 {
-	glDrawTransformFeedbackStreamInstanced(mode, id, stream, instancecount);
+	default_glDrawTransformFeedbackStreamInstanced(mode, id, stream, instancecount);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21237,10 +21237,10 @@ static void APIENTRY debug_glDrawTransformFeedbackStreamInstanced(GLenum mode, G
 
 static void APIENTRY debug_glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
-	glClearBufferData(target, internalformat, format, type, data);
+	default_glClearBufferData(target, internalformat, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21254,10 +21254,10 @@ static void APIENTRY debug_glClearBufferData(GLenum target, GLenum internalforma
 
 static void APIENTRY debug_glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
-	glClearBufferSubData(target, internalformat, offset, size, format, type, data);
+	default_glClearBufferSubData(target, internalformat, offset, size, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21271,10 +21271,10 @@ static void APIENTRY debug_glClearBufferSubData(GLenum target, GLenum internalfo
 
 static void APIENTRY debug_glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint64 *params)
 {
-	glGetInternalformati64v(target, internalformat, pname, bufSize, params);
+	default_glGetInternalformati64v(target, internalformat, pname, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21288,10 +21288,10 @@ static void APIENTRY debug_glGetInternalformati64v(GLenum target, GLenum interna
 
 static void APIENTRY debug_glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth)
 {
-	glInvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);
+	default_glInvalidateTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21305,10 +21305,10 @@ static void APIENTRY debug_glInvalidateTexSubImage(GLuint texture, GLint level, 
 
 static void APIENTRY debug_glInvalidateTexImage(GLuint texture, GLint level)
 {
-	glInvalidateTexImage(texture, level);
+	default_glInvalidateTexImage(texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21322,10 +21322,10 @@ static void APIENTRY debug_glInvalidateTexImage(GLuint texture, GLint level)
 
 static void APIENTRY debug_glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
-	glInvalidateBufferSubData(buffer, offset, length);
+	default_glInvalidateBufferSubData(buffer, offset, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21339,10 +21339,10 @@ static void APIENTRY debug_glInvalidateBufferSubData(GLuint buffer, GLintptr off
 
 static void APIENTRY debug_glInvalidateBufferData(GLuint buffer)
 {
-	glInvalidateBufferData(buffer);
+	default_glInvalidateBufferData(buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21356,10 +21356,10 @@ static void APIENTRY debug_glInvalidateBufferData(GLuint buffer)
 
 static void APIENTRY debug_glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
-	glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
+	default_glMultiDrawArraysIndirect(mode, indirect, drawcount, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21373,10 +21373,10 @@ static void APIENTRY debug_glMultiDrawArraysIndirect(GLenum mode, const void *in
 
 static void APIENTRY debug_glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
-	glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride);
+	default_glMultiDrawElementsIndirect(mode, type, indirect, drawcount, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21393,7 +21393,7 @@ static GLint APIENTRY debug_glGetProgramResourceLocationIndex(GLuint program, GL
 	GLint retVal = default_glGetProgramResourceLocationIndex(program, programInterface, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21408,10 +21408,10 @@ static GLint APIENTRY debug_glGetProgramResourceLocationIndex(GLuint program, GL
 
 static void APIENTRY debug_glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
 {
-	glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
+	default_glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21425,10 +21425,10 @@ static void APIENTRY debug_glShaderStorageBlockBinding(GLuint program, GLuint st
 
 static void APIENTRY debug_glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel, GLuint numlevels, GLuint minlayer, GLuint numlayers)
 {
-	glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
+	default_glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21442,10 +21442,10 @@ static void APIENTRY debug_glTextureView(GLuint texture, GLenum target, GLuint o
 
 static void APIENTRY debug_glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexAttribLFormat(attribindex, size, type, relativeoffset);
+	default_glVertexAttribLFormat(attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21459,10 +21459,10 @@ static void APIENTRY debug_glVertexAttribLFormat(GLuint attribindex, GLint size,
 
 static void APIENTRY debug_glBufferStorage(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags)
 {
-	glBufferStorage(target, size, data, flags);
+	default_glBufferStorage(target, size, data, flags);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21476,10 +21476,10 @@ static void APIENTRY debug_glBufferStorage(GLenum target, GLsizeiptr size, const
 
 static void APIENTRY debug_glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
 {
-	glClearTexImage(texture, level, format, type, data);
+	default_glClearTexImage(texture, level, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21493,10 +21493,10 @@ static void APIENTRY debug_glClearTexImage(GLuint texture, GLint level, GLenum f
 
 static void APIENTRY debug_glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
 {
-	glClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
+	default_glClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21510,10 +21510,10 @@ static void APIENTRY debug_glClearTexSubImage(GLuint texture, GLint level, GLint
 
 static void APIENTRY debug_glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint *buffers)
 {
-	glBindBuffersBase(target, first, count, buffers);
+	default_glBindBuffersBase(target, first, count, buffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21527,10 +21527,10 @@ static void APIENTRY debug_glBindBuffersBase(GLenum target, GLuint first, GLsize
 
 static void APIENTRY debug_glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizeiptr *sizes)
 {
-	glBindBuffersRange(target, first, count, buffers, offsets, sizes);
+	default_glBindBuffersRange(target, first, count, buffers, offsets, sizes);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21544,10 +21544,10 @@ static void APIENTRY debug_glBindBuffersRange(GLenum target, GLuint first, GLsiz
 
 static void APIENTRY debug_glBindTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
-	glBindTextures(first, count, textures);
+	default_glBindTextures(first, count, textures);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21561,10 +21561,10 @@ static void APIENTRY debug_glBindTextures(GLuint first, GLsizei count, const GLu
 
 static void APIENTRY debug_glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers)
 {
-	glBindSamplers(first, count, samplers);
+	default_glBindSamplers(first, count, samplers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21578,10 +21578,10 @@ static void APIENTRY debug_glBindSamplers(GLuint first, GLsizei count, const GLu
 
 static void APIENTRY debug_glBindImageTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
-	glBindImageTextures(first, count, textures);
+	default_glBindImageTextures(first, count, textures);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21595,10 +21595,10 @@ static void APIENTRY debug_glBindImageTextures(GLuint first, GLsizei count, cons
 
 static void APIENTRY debug_glBindVertexBuffers(GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
 {
-	glBindVertexBuffers(first, count, buffers, offsets, strides);
+	default_glBindVertexBuffers(first, count, buffers, offsets, strides);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21612,10 +21612,10 @@ static void APIENTRY debug_glBindVertexBuffers(GLuint first, GLsizei count, cons
 
 static void APIENTRY debug_glClipControl(GLenum origin, GLenum depth)
 {
-	glClipControl(origin, depth);
+	default_glClipControl(origin, depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21629,10 +21629,10 @@ static void APIENTRY debug_glClipControl(GLenum origin, GLenum depth)
 
 static void APIENTRY debug_glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 {
-	glCreateTransformFeedbacks(n, ids);
+	default_glCreateTransformFeedbacks(n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21646,10 +21646,10 @@ static void APIENTRY debug_glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 
 static void APIENTRY debug_glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
 {
-	glTransformFeedbackBufferBase(xfb, index, buffer);
+	default_glTransformFeedbackBufferBase(xfb, index, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21663,10 +21663,10 @@ static void APIENTRY debug_glTransformFeedbackBufferBase(GLuint xfb, GLuint inde
 
 static void APIENTRY debug_glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	glTransformFeedbackBufferRange(xfb, index, buffer, offset, size);
+	default_glTransformFeedbackBufferRange(xfb, index, buffer, offset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21680,10 +21680,10 @@ static void APIENTRY debug_glTransformFeedbackBufferRange(GLuint xfb, GLuint ind
 
 static void APIENTRY debug_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 {
-	glGetTransformFeedbackiv(xfb, pname, param);
+	default_glGetTransformFeedbackiv(xfb, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21697,10 +21697,10 @@ static void APIENTRY debug_glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GL
 
 static void APIENTRY debug_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint *param)
 {
-	glGetTransformFeedbacki_v(xfb, pname, index, param);
+	default_glGetTransformFeedbacki_v(xfb, pname, index, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21714,10 +21714,10 @@ static void APIENTRY debug_glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, G
 
 static void APIENTRY debug_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 *param)
 {
-	glGetTransformFeedbacki64_v(xfb, pname, index, param);
+	default_glGetTransformFeedbacki64_v(xfb, pname, index, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21731,10 +21731,10 @@ static void APIENTRY debug_glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname,
 
 static void APIENTRY debug_glCreateBuffers(GLsizei n, GLuint *buffers)
 {
-	glCreateBuffers(n, buffers);
+	default_glCreateBuffers(n, buffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21748,10 +21748,10 @@ static void APIENTRY debug_glCreateBuffers(GLsizei n, GLuint *buffers)
 
 static void APIENTRY debug_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags)
 {
-	glNamedBufferStorage(buffer, size, data, flags);
+	default_glNamedBufferStorage(buffer, size, data, flags);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21765,10 +21765,10 @@ static void APIENTRY debug_glNamedBufferStorage(GLuint buffer, GLsizeiptr size, 
 
 static void APIENTRY debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
 {
-	glNamedBufferData(buffer, size, data, usage);
+	default_glNamedBufferData(buffer, size, data, usage);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21782,10 +21782,10 @@ static void APIENTRY debug_glNamedBufferData(GLuint buffer, GLsizeiptr size, con
 
 static void APIENTRY debug_glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
 {
-	glNamedBufferSubData(buffer, offset, size, data);
+	default_glNamedBufferSubData(buffer, offset, size, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21799,10 +21799,10 @@ static void APIENTRY debug_glNamedBufferSubData(GLuint buffer, GLintptr offset, 
 
 static void APIENTRY debug_glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
-	glCopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);
+	default_glCopyNamedBufferSubData(readBuffer, writeBuffer, readOffset, writeOffset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21816,10 +21816,10 @@ static void APIENTRY debug_glCopyNamedBufferSubData(GLuint readBuffer, GLuint wr
 
 static void APIENTRY debug_glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
-	glClearNamedBufferData(buffer, internalformat, format, type, data);
+	default_glClearNamedBufferData(buffer, internalformat, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21833,10 +21833,10 @@ static void APIENTRY debug_glClearNamedBufferData(GLuint buffer, GLenum internal
 
 static void APIENTRY debug_glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
-	glClearNamedBufferSubData(buffer, internalformat, offset, size, format, type, data);
+	default_glClearNamedBufferSubData(buffer, internalformat, offset, size, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21853,7 +21853,7 @@ static void * APIENTRY debug_glMapNamedBuffer(GLuint buffer, GLenum access)
 	void * retVal = default_glMapNamedBuffer(buffer, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21871,7 +21871,7 @@ static void * APIENTRY debug_glMapNamedBufferRange(GLuint buffer, GLintptr offse
 	void * retVal = default_glMapNamedBufferRange(buffer, offset, length, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21889,7 +21889,7 @@ static GLboolean APIENTRY debug_glUnmapNamedBuffer(GLuint buffer)
 	GLboolean retVal = default_glUnmapNamedBuffer(buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21904,10 +21904,10 @@ static GLboolean APIENTRY debug_glUnmapNamedBuffer(GLuint buffer)
 
 static void APIENTRY debug_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
-	glFlushMappedNamedBufferRange(buffer, offset, length);
+	default_glFlushMappedNamedBufferRange(buffer, offset, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21921,10 +21921,10 @@ static void APIENTRY debug_glFlushMappedNamedBufferRange(GLuint buffer, GLintptr
 
 static void APIENTRY debug_glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint *params)
 {
-	glGetNamedBufferParameteriv(buffer, pname, params);
+	default_glGetNamedBufferParameteriv(buffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21938,10 +21938,10 @@ static void APIENTRY debug_glGetNamedBufferParameteriv(GLuint buffer, GLenum pna
 
 static void APIENTRY debug_glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 *params)
 {
-	glGetNamedBufferParameteri64v(buffer, pname, params);
+	default_glGetNamedBufferParameteri64v(buffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21955,10 +21955,10 @@ static void APIENTRY debug_glGetNamedBufferParameteri64v(GLuint buffer, GLenum p
 
 static void APIENTRY debug_glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void **params)
 {
-	glGetNamedBufferPointerv(buffer, pname, params);
+	default_glGetNamedBufferPointerv(buffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21972,10 +21972,10 @@ static void APIENTRY debug_glGetNamedBufferPointerv(GLuint buffer, GLenum pname,
 
 static void APIENTRY debug_glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
 {
-	glGetNamedBufferSubData(buffer, offset, size, data);
+	default_glGetNamedBufferSubData(buffer, offset, size, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -21989,10 +21989,10 @@ static void APIENTRY debug_glGetNamedBufferSubData(GLuint buffer, GLintptr offse
 
 static void APIENTRY debug_glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 {
-	glCreateFramebuffers(n, framebuffers);
+	default_glCreateFramebuffers(n, framebuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22006,10 +22006,10 @@ static void APIENTRY debug_glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 
 static void APIENTRY debug_glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
-	glNamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);
+	default_glNamedFramebufferRenderbuffer(framebuffer, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22023,10 +22023,10 @@ static void APIENTRY debug_glNamedFramebufferRenderbuffer(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 {
-	glNamedFramebufferParameteri(framebuffer, pname, param);
+	default_glNamedFramebufferParameteri(framebuffer, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22040,10 +22040,10 @@ static void APIENTRY debug_glNamedFramebufferParameteri(GLuint framebuffer, GLen
 
 static void APIENTRY debug_glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
-	glNamedFramebufferTexture(framebuffer, attachment, texture, level);
+	default_glNamedFramebufferTexture(framebuffer, attachment, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22057,10 +22057,10 @@ static void APIENTRY debug_glNamedFramebufferTexture(GLuint framebuffer, GLenum 
 
 static void APIENTRY debug_glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
-	glNamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);
+	default_glNamedFramebufferTextureLayer(framebuffer, attachment, texture, level, layer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22074,10 +22074,10 @@ static void APIENTRY debug_glNamedFramebufferTextureLayer(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
 {
-	glNamedFramebufferDrawBuffer(framebuffer, buf);
+	default_glNamedFramebufferDrawBuffer(framebuffer, buf);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22091,10 +22091,10 @@ static void APIENTRY debug_glNamedFramebufferDrawBuffer(GLuint framebuffer, GLen
 
 static void APIENTRY debug_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs)
 {
-	glNamedFramebufferDrawBuffers(framebuffer, n, bufs);
+	default_glNamedFramebufferDrawBuffers(framebuffer, n, bufs);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22108,10 +22108,10 @@ static void APIENTRY debug_glNamedFramebufferDrawBuffers(GLuint framebuffer, GLs
 
 static void APIENTRY debug_glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
 {
-	glNamedFramebufferReadBuffer(framebuffer, src);
+	default_glNamedFramebufferReadBuffer(framebuffer, src);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22125,10 +22125,10 @@ static void APIENTRY debug_glNamedFramebufferReadBuffer(GLuint framebuffer, GLen
 
 static void APIENTRY debug_glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments)
 {
-	glInvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);
+	default_glInvalidateNamedFramebufferData(framebuffer, numAttachments, attachments);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22142,10 +22142,10 @@ static void APIENTRY debug_glInvalidateNamedFramebufferData(GLuint framebuffer, 
 
 static void APIENTRY debug_glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glInvalidateNamedFramebufferSubData(framebuffer, numAttachments, attachments, x, y, width, height);
+	default_glInvalidateNamedFramebufferSubData(framebuffer, numAttachments, attachments, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22159,10 +22159,10 @@ static void APIENTRY debug_glInvalidateNamedFramebufferSubData(GLuint framebuffe
 
 static void APIENTRY debug_glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value)
 {
-	glClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);
+	default_glClearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22176,10 +22176,10 @@ static void APIENTRY debug_glClearNamedFramebufferiv(GLuint framebuffer, GLenum 
 
 static void APIENTRY debug_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
-	glClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);
+	default_glClearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22193,10 +22193,10 @@ static void APIENTRY debug_glClearNamedFramebufferuiv(GLuint framebuffer, GLenum
 
 static void APIENTRY debug_glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
-	glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
+	default_glClearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22210,10 +22210,10 @@ static void APIENTRY debug_glClearNamedFramebufferfv(GLuint framebuffer, GLenum 
 
 static void APIENTRY debug_glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
-	glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
+	default_glClearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth, stencil);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22227,10 +22227,10 @@ static void APIENTRY debug_glClearNamedFramebufferfi(GLuint framebuffer, GLenum 
 
 static void APIENTRY debug_glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
-	glBlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+	default_glBlitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22247,7 +22247,7 @@ static GLenum APIENTRY debug_glCheckNamedFramebufferStatus(GLuint framebuffer, G
 	GLenum retVal = default_glCheckNamedFramebufferStatus(framebuffer, target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22262,10 +22262,10 @@ static GLenum APIENTRY debug_glCheckNamedFramebufferStatus(GLuint framebuffer, G
 
 static void APIENTRY debug_glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *param)
 {
-	glGetNamedFramebufferParameteriv(framebuffer, pname, param);
+	default_glGetNamedFramebufferParameteriv(framebuffer, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22279,10 +22279,10 @@ static void APIENTRY debug_glGetNamedFramebufferParameteriv(GLuint framebuffer, 
 
 static void APIENTRY debug_glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
 {
-	glGetNamedFramebufferAttachmentParameteriv(framebuffer, attachment, pname, params);
+	default_glGetNamedFramebufferAttachmentParameteriv(framebuffer, attachment, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22296,10 +22296,10 @@ static void APIENTRY debug_glGetNamedFramebufferAttachmentParameteriv(GLuint fra
 
 static void APIENTRY debug_glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
-	glCreateRenderbuffers(n, renderbuffers);
+	default_glCreateRenderbuffers(n, renderbuffers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22313,10 +22313,10 @@ static void APIENTRY debug_glCreateRenderbuffers(GLsizei n, GLuint *renderbuffer
 
 static void APIENTRY debug_glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
+	default_glNamedRenderbufferStorage(renderbuffer, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22330,10 +22330,10 @@ static void APIENTRY debug_glNamedRenderbufferStorage(GLuint renderbuffer, GLenu
 
 static void APIENTRY debug_glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glNamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);
+	default_glNamedRenderbufferStorageMultisample(renderbuffer, samples, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22347,10 +22347,10 @@ static void APIENTRY debug_glNamedRenderbufferStorageMultisample(GLuint renderbu
 
 static void APIENTRY debug_glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint *params)
 {
-	glGetNamedRenderbufferParameteriv(renderbuffer, pname, params);
+	default_glGetNamedRenderbufferParameteriv(renderbuffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22364,10 +22364,10 @@ static void APIENTRY debug_glGetNamedRenderbufferParameteriv(GLuint renderbuffer
 
 static void APIENTRY debug_glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
 {
-	glCreateTextures(target, n, textures);
+	default_glCreateTextures(target, n, textures);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22381,10 +22381,10 @@ static void APIENTRY debug_glCreateTextures(GLenum target, GLsizei n, GLuint *te
 
 static void APIENTRY debug_glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
 {
-	glTextureBuffer(texture, internalformat, buffer);
+	default_glTextureBuffer(texture, internalformat, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22398,10 +22398,10 @@ static void APIENTRY debug_glTextureBuffer(GLuint texture, GLenum internalformat
 
 static void APIENTRY debug_glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	glTextureBufferRange(texture, internalformat, buffer, offset, size);
+	default_glTextureBufferRange(texture, internalformat, buffer, offset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22415,10 +22415,10 @@ static void APIENTRY debug_glTextureBufferRange(GLuint texture, GLenum internalf
 
 static void APIENTRY debug_glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
 {
-	glTextureStorage1D(texture, levels, internalformat, width);
+	default_glTextureStorage1D(texture, levels, internalformat, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22432,10 +22432,10 @@ static void APIENTRY debug_glTextureStorage1D(GLuint texture, GLsizei levels, GL
 
 static void APIENTRY debug_glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glTextureStorage2D(texture, levels, internalformat, width, height);
+	default_glTextureStorage2D(texture, levels, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22449,10 +22449,10 @@ static void APIENTRY debug_glTextureStorage2D(GLuint texture, GLsizei levels, GL
 
 static void APIENTRY debug_glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
-	glTextureStorage3D(texture, levels, internalformat, width, height, depth);
+	default_glTextureStorage3D(texture, levels, internalformat, width, height, depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22466,10 +22466,10 @@ static void APIENTRY debug_glTextureStorage3D(GLuint texture, GLsizei levels, GL
 
 static void APIENTRY debug_glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
-	glTextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);
+	default_glTextureStorage2DMultisample(texture, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22483,10 +22483,10 @@ static void APIENTRY debug_glTextureStorage2DMultisample(GLuint texture, GLsizei
 
 static void APIENTRY debug_glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
-	glTextureStorage3DMultisample(texture, samples, internalformat, width, height, depth, fixedsamplelocations);
+	default_glTextureStorage3DMultisample(texture, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22500,10 +22500,10 @@ static void APIENTRY debug_glTextureStorage3DMultisample(GLuint texture, GLsizei
 
 static void APIENTRY debug_glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage1D(texture, level, xoffset, width, format, type, pixels);
+	default_glTextureSubImage1D(texture, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22517,10 +22517,10 @@ static void APIENTRY debug_glTextureSubImage1D(GLuint texture, GLint level, GLin
 
 static void APIENTRY debug_glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);
+	default_glTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22534,10 +22534,10 @@ static void APIENTRY debug_glTextureSubImage2D(GLuint texture, GLint level, GLin
 
 static void APIENTRY debug_glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	default_glTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22551,10 +22551,10 @@ static void APIENTRY debug_glTextureSubImage3D(GLuint texture, GLint level, GLin
 
 static void APIENTRY debug_glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTextureSubImage1D(texture, level, xoffset, width, format, imageSize, data);
+	default_glCompressedTextureSubImage1D(texture, level, xoffset, width, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22568,10 +22568,10 @@ static void APIENTRY debug_glCompressedTextureSubImage1D(GLuint texture, GLint l
 
 static void APIENTRY debug_glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, imageSize, data);
+	default_glCompressedTextureSubImage2D(texture, level, xoffset, yoffset, width, height, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22585,10 +22585,10 @@ static void APIENTRY debug_glCompressedTextureSubImage2D(GLuint texture, GLint l
 
 static void APIENTRY debug_glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
-	glCompressedTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+	default_glCompressedTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22602,10 +22602,10 @@ static void APIENTRY debug_glCompressedTextureSubImage3D(GLuint texture, GLint l
 
 static void APIENTRY debug_glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
-	glCopyTextureSubImage1D(texture, level, xoffset, x, y, width);
+	default_glCopyTextureSubImage1D(texture, level, xoffset, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22619,10 +22619,10 @@ static void APIENTRY debug_glCopyTextureSubImage1D(GLuint texture, GLint level, 
 
 static void APIENTRY debug_glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTextureSubImage2D(texture, level, xoffset, yoffset, x, y, width, height);
+	default_glCopyTextureSubImage2D(texture, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22636,10 +22636,10 @@ static void APIENTRY debug_glCopyTextureSubImage2D(GLuint texture, GLint level, 
 
 static void APIENTRY debug_glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y, width, height);
+	default_glCopyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22653,10 +22653,10 @@ static void APIENTRY debug_glCopyTextureSubImage3D(GLuint texture, GLint level, 
 
 static void APIENTRY debug_glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
 {
-	glTextureParameterf(texture, pname, param);
+	default_glTextureParameterf(texture, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22670,10 +22670,10 @@ static void APIENTRY debug_glTextureParameterf(GLuint texture, GLenum pname, GLf
 
 static void APIENTRY debug_glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat *param)
 {
-	glTextureParameterfv(texture, pname, param);
+	default_glTextureParameterfv(texture, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22687,10 +22687,10 @@ static void APIENTRY debug_glTextureParameterfv(GLuint texture, GLenum pname, co
 
 static void APIENTRY debug_glTextureParameteri(GLuint texture, GLenum pname, GLint param)
 {
-	glTextureParameteri(texture, pname, param);
+	default_glTextureParameteri(texture, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22704,10 +22704,10 @@ static void APIENTRY debug_glTextureParameteri(GLuint texture, GLenum pname, GLi
 
 static void APIENTRY debug_glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params)
 {
-	glTextureParameterIiv(texture, pname, params);
+	default_glTextureParameterIiv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22721,10 +22721,10 @@ static void APIENTRY debug_glTextureParameterIiv(GLuint texture, GLenum pname, c
 
 static void APIENTRY debug_glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params)
 {
-	glTextureParameterIuiv(texture, pname, params);
+	default_glTextureParameterIuiv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22738,10 +22738,10 @@ static void APIENTRY debug_glTextureParameterIuiv(GLuint texture, GLenum pname, 
 
 static void APIENTRY debug_glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param)
 {
-	glTextureParameteriv(texture, pname, param);
+	default_glTextureParameteriv(texture, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22755,10 +22755,10 @@ static void APIENTRY debug_glTextureParameteriv(GLuint texture, GLenum pname, co
 
 static void APIENTRY debug_glGenerateTextureMipmap(GLuint texture)
 {
-	glGenerateTextureMipmap(texture);
+	default_glGenerateTextureMipmap(texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22772,10 +22772,10 @@ static void APIENTRY debug_glGenerateTextureMipmap(GLuint texture)
 
 static void APIENTRY debug_glBindTextureUnit(GLuint unit, GLuint texture)
 {
-	glBindTextureUnit(unit, texture);
+	default_glBindTextureUnit(unit, texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22789,10 +22789,10 @@ static void APIENTRY debug_glBindTextureUnit(GLuint unit, GLuint texture)
 
 static void APIENTRY debug_glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
-	glGetTextureImage(texture, level, format, type, bufSize, pixels);
+	default_glGetTextureImage(texture, level, format, type, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22806,10 +22806,10 @@ static void APIENTRY debug_glGetTextureImage(GLuint texture, GLint level, GLenum
 
 static void APIENTRY debug_glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void *pixels)
 {
-	glGetCompressedTextureImage(texture, level, bufSize, pixels);
+	default_glGetCompressedTextureImage(texture, level, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22823,10 +22823,10 @@ static void APIENTRY debug_glGetCompressedTextureImage(GLuint texture, GLint lev
 
 static void APIENTRY debug_glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat *params)
 {
-	glGetTextureLevelParameterfv(texture, level, pname, params);
+	default_glGetTextureLevelParameterfv(texture, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22840,10 +22840,10 @@ static void APIENTRY debug_glGetTextureLevelParameterfv(GLuint texture, GLint le
 
 static void APIENTRY debug_glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint *params)
 {
-	glGetTextureLevelParameteriv(texture, level, pname, params);
+	default_glGetTextureLevelParameteriv(texture, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22857,10 +22857,10 @@ static void APIENTRY debug_glGetTextureLevelParameteriv(GLuint texture, GLint le
 
 static void APIENTRY debug_glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params)
 {
-	glGetTextureParameterfv(texture, pname, params);
+	default_glGetTextureParameterfv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22874,10 +22874,10 @@ static void APIENTRY debug_glGetTextureParameterfv(GLuint texture, GLenum pname,
 
 static void APIENTRY debug_glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params)
 {
-	glGetTextureParameterIiv(texture, pname, params);
+	default_glGetTextureParameterIiv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22891,10 +22891,10 @@ static void APIENTRY debug_glGetTextureParameterIiv(GLuint texture, GLenum pname
 
 static void APIENTRY debug_glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params)
 {
-	glGetTextureParameterIuiv(texture, pname, params);
+	default_glGetTextureParameterIuiv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22908,10 +22908,10 @@ static void APIENTRY debug_glGetTextureParameterIuiv(GLuint texture, GLenum pnam
 
 static void APIENTRY debug_glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params)
 {
-	glGetTextureParameteriv(texture, pname, params);
+	default_glGetTextureParameteriv(texture, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22925,10 +22925,10 @@ static void APIENTRY debug_glGetTextureParameteriv(GLuint texture, GLenum pname,
 
 static void APIENTRY debug_glCreateVertexArrays(GLsizei n, GLuint *arrays)
 {
-	glCreateVertexArrays(n, arrays);
+	default_glCreateVertexArrays(n, arrays);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22942,10 +22942,10 @@ static void APIENTRY debug_glCreateVertexArrays(GLsizei n, GLuint *arrays)
 
 static void APIENTRY debug_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
-	glDisableVertexArrayAttrib(vaobj, index);
+	default_glDisableVertexArrayAttrib(vaobj, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22959,10 +22959,10 @@ static void APIENTRY debug_glDisableVertexArrayAttrib(GLuint vaobj, GLuint index
 
 static void APIENTRY debug_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
-	glEnableVertexArrayAttrib(vaobj, index);
+	default_glEnableVertexArrayAttrib(vaobj, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22976,10 +22976,10 @@ static void APIENTRY debug_glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 
 static void APIENTRY debug_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
 {
-	glVertexArrayElementBuffer(vaobj, buffer);
+	default_glVertexArrayElementBuffer(vaobj, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -22993,10 +22993,10 @@ static void APIENTRY debug_glVertexArrayElementBuffer(GLuint vaobj, GLuint buffe
 
 static void APIENTRY debug_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
-	glVertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
+	default_glVertexArrayVertexBuffer(vaobj, bindingindex, buffer, offset, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23010,10 +23010,10 @@ static void APIENTRY debug_glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindin
 
 static void APIENTRY debug_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets, const GLsizei *strides)
 {
-	glVertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);
+	default_glVertexArrayVertexBuffers(vaobj, first, count, buffers, offsets, strides);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23027,10 +23027,10 @@ static void APIENTRY debug_glVertexArrayVertexBuffers(GLuint vaobj, GLuint first
 
 static void APIENTRY debug_glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
 {
-	glVertexArrayAttribBinding(vaobj, attribindex, bindingindex);
+	default_glVertexArrayAttribBinding(vaobj, attribindex, bindingindex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23044,10 +23044,10 @@ static void APIENTRY debug_glVertexArrayAttribBinding(GLuint vaobj, GLuint attri
 
 static void APIENTRY debug_glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
-	glVertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);
+	default_glVertexArrayAttribFormat(vaobj, attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23061,10 +23061,10 @@ static void APIENTRY debug_glVertexArrayAttribFormat(GLuint vaobj, GLuint attrib
 
 static void APIENTRY debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexArrayAttribIFormat(vaobj, attribindex, size, type, relativeoffset);
+	default_glVertexArrayAttribIFormat(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23078,10 +23078,10 @@ static void APIENTRY debug_glVertexArrayAttribIFormat(GLuint vaobj, GLuint attri
 
 static void APIENTRY debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexArrayAttribLFormat(vaobj, attribindex, size, type, relativeoffset);
+	default_glVertexArrayAttribLFormat(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23095,10 +23095,10 @@ static void APIENTRY debug_glVertexArrayAttribLFormat(GLuint vaobj, GLuint attri
 
 static void APIENTRY debug_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
 {
-	glVertexArrayBindingDivisor(vaobj, bindingindex, divisor);
+	default_glVertexArrayBindingDivisor(vaobj, bindingindex, divisor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23112,10 +23112,10 @@ static void APIENTRY debug_glVertexArrayBindingDivisor(GLuint vaobj, GLuint bind
 
 static void APIENTRY debug_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint *param)
 {
-	glGetVertexArrayiv(vaobj, pname, param);
+	default_glGetVertexArrayiv(vaobj, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23129,10 +23129,10 @@ static void APIENTRY debug_glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint 
 
 static void APIENTRY debug_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
 {
-	glGetVertexArrayIndexediv(vaobj, index, pname, param);
+	default_glGetVertexArrayIndexediv(vaobj, index, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23146,10 +23146,10 @@ static void APIENTRY debug_glGetVertexArrayIndexediv(GLuint vaobj, GLuint index,
 
 static void APIENTRY debug_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 *param)
 {
-	glGetVertexArrayIndexed64iv(vaobj, index, pname, param);
+	default_glGetVertexArrayIndexed64iv(vaobj, index, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23163,10 +23163,10 @@ static void APIENTRY debug_glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint inde
 
 static void APIENTRY debug_glCreateSamplers(GLsizei n, GLuint *samplers)
 {
-	glCreateSamplers(n, samplers);
+	default_glCreateSamplers(n, samplers);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23180,10 +23180,10 @@ static void APIENTRY debug_glCreateSamplers(GLsizei n, GLuint *samplers)
 
 static void APIENTRY debug_glCreateProgramPipelines(GLsizei n, GLuint *pipelines)
 {
-	glCreateProgramPipelines(n, pipelines);
+	default_glCreateProgramPipelines(n, pipelines);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23197,10 +23197,10 @@ static void APIENTRY debug_glCreateProgramPipelines(GLsizei n, GLuint *pipelines
 
 static void APIENTRY debug_glCreateQueries(GLenum target, GLsizei n, GLuint *ids)
 {
-	glCreateQueries(target, n, ids);
+	default_glCreateQueries(target, n, ids);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23214,10 +23214,10 @@ static void APIENTRY debug_glCreateQueries(GLenum target, GLsizei n, GLuint *ids
 
 static void APIENTRY debug_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	glGetQueryBufferObjecti64v(id, buffer, pname, offset);
+	default_glGetQueryBufferObjecti64v(id, buffer, pname, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23231,10 +23231,10 @@ static void APIENTRY debug_glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, 
 
 static void APIENTRY debug_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	glGetQueryBufferObjectiv(id, buffer, pname, offset);
+	default_glGetQueryBufferObjectiv(id, buffer, pname, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23248,10 +23248,10 @@ static void APIENTRY debug_glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GL
 
 static void APIENTRY debug_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	glGetQueryBufferObjectui64v(id, buffer, pname, offset);
+	default_glGetQueryBufferObjectui64v(id, buffer, pname, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23265,10 +23265,10 @@ static void APIENTRY debug_glGetQueryBufferObjectui64v(GLuint id, GLuint buffer,
 
 static void APIENTRY debug_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
-	glGetQueryBufferObjectuiv(id, buffer, pname, offset);
+	default_glGetQueryBufferObjectuiv(id, buffer, pname, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23282,10 +23282,10 @@ static void APIENTRY debug_glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, G
 
 static void APIENTRY debug_glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
-	glGetTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, bufSize, pixels);
+	default_glGetTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23299,10 +23299,10 @@ static void APIENTRY debug_glGetTextureSubImage(GLuint texture, GLint level, GLi
 
 static void APIENTRY debug_glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels)
 {
-	glGetCompressedTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, bufSize, pixels);
+	default_glGetCompressedTextureSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23316,10 +23316,10 @@ static void APIENTRY debug_glGetCompressedTextureSubImage(GLuint texture, GLint 
 
 static void APIENTRY debug_glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void *pixels)
 {
-	glGetnCompressedTexImage(target, lod, bufSize, pixels);
+	default_glGetnCompressedTexImage(target, lod, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23333,10 +23333,10 @@ static void APIENTRY debug_glGetnCompressedTexImage(GLenum target, GLint lod, GL
 
 static void APIENTRY debug_glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
-	glGetnTexImage(target, level, format, type, bufSize, pixels);
+	default_glGetnTexImage(target, level, format, type, bufSize, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23350,10 +23350,10 @@ static void APIENTRY debug_glGetnTexImage(GLenum target, GLint level, GLenum for
 
 static void APIENTRY debug_glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble *params)
 {
-	glGetnUniformdv(program, location, bufSize, params);
+	default_glGetnUniformdv(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23367,10 +23367,10 @@ static void APIENTRY debug_glGetnUniformdv(GLuint program, GLint location, GLsiz
 
 static void APIENTRY debug_glGetnMapdv(GLenum target, GLenum query, GLsizei bufSize, GLdouble *v)
 {
-	glGetnMapdv(target, query, bufSize, v);
+	default_glGetnMapdv(target, query, bufSize, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23384,10 +23384,10 @@ static void APIENTRY debug_glGetnMapdv(GLenum target, GLenum query, GLsizei bufS
 
 static void APIENTRY debug_glGetnMapfv(GLenum target, GLenum query, GLsizei bufSize, GLfloat *v)
 {
-	glGetnMapfv(target, query, bufSize, v);
+	default_glGetnMapfv(target, query, bufSize, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23401,10 +23401,10 @@ static void APIENTRY debug_glGetnMapfv(GLenum target, GLenum query, GLsizei bufS
 
 static void APIENTRY debug_glGetnMapiv(GLenum target, GLenum query, GLsizei bufSize, GLint *v)
 {
-	glGetnMapiv(target, query, bufSize, v);
+	default_glGetnMapiv(target, query, bufSize, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23418,10 +23418,10 @@ static void APIENTRY debug_glGetnMapiv(GLenum target, GLenum query, GLsizei bufS
 
 static void APIENTRY debug_glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat *values)
 {
-	glGetnPixelMapfv(map, bufSize, values);
+	default_glGetnPixelMapfv(map, bufSize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23435,10 +23435,10 @@ static void APIENTRY debug_glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat
 
 static void APIENTRY debug_glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint *values)
 {
-	glGetnPixelMapuiv(map, bufSize, values);
+	default_glGetnPixelMapuiv(map, bufSize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23452,10 +23452,10 @@ static void APIENTRY debug_glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint
 
 static void APIENTRY debug_glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLushort *values)
 {
-	glGetnPixelMapusv(map, bufSize, values);
+	default_glGetnPixelMapusv(map, bufSize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23469,10 +23469,10 @@ static void APIENTRY debug_glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLusho
 
 static void APIENTRY debug_glGetnPolygonStipple(GLsizei bufSize, GLubyte *pattern)
 {
-	glGetnPolygonStipple(bufSize, pattern);
+	default_glGetnPolygonStipple(bufSize, pattern);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23486,10 +23486,10 @@ static void APIENTRY debug_glGetnPolygonStipple(GLsizei bufSize, GLubyte *patter
 
 static void APIENTRY debug_glGetnColorTable(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table)
 {
-	glGetnColorTable(target, format, type, bufSize, table);
+	default_glGetnColorTable(target, format, type, bufSize, table);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23503,10 +23503,10 @@ static void APIENTRY debug_glGetnColorTable(GLenum target, GLenum format, GLenum
 
 static void APIENTRY debug_glGetnConvolutionFilter(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image)
 {
-	glGetnConvolutionFilter(target, format, type, bufSize, image);
+	default_glGetnConvolutionFilter(target, format, type, bufSize, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23520,10 +23520,10 @@ static void APIENTRY debug_glGetnConvolutionFilter(GLenum target, GLenum format,
 
 static void APIENTRY debug_glGetnSeparableFilter(GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row, GLsizei columnBufSize, void *column, void *span)
 {
-	glGetnSeparableFilter(target, format, type, rowBufSize, row, columnBufSize, column, span);
+	default_glGetnSeparableFilter(target, format, type, rowBufSize, row, columnBufSize, column, span);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23537,10 +23537,10 @@ static void APIENTRY debug_glGetnSeparableFilter(GLenum target, GLenum format, G
 
 static void APIENTRY debug_glGetnHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
-	glGetnHistogram(target, reset, format, type, bufSize, values);
+	default_glGetnHistogram(target, reset, format, type, bufSize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23554,10 +23554,10 @@ static void APIENTRY debug_glGetnHistogram(GLenum target, GLboolean reset, GLenu
 
 static void APIENTRY debug_glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
-	glGetnMinmax(target, reset, format, type, bufSize, values);
+	default_glGetnMinmax(target, reset, format, type, bufSize, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23571,10 +23571,10 @@ static void APIENTRY debug_glGetnMinmax(GLenum target, GLboolean reset, GLenum f
 
 static void APIENTRY debug_glTextureBarrier()
 {
-	glTextureBarrier();
+	default_glTextureBarrier();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23591,7 +23591,7 @@ static GLuint64 APIENTRY debug_glGetTextureHandleARB(GLuint texture)
 	GLuint64 retVal = default_glGetTextureHandleARB(texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23609,7 +23609,7 @@ static GLuint64 APIENTRY debug_glGetTextureSamplerHandleARB(GLuint texture, GLui
 	GLuint64 retVal = default_glGetTextureSamplerHandleARB(texture, sampler);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23624,10 +23624,10 @@ static GLuint64 APIENTRY debug_glGetTextureSamplerHandleARB(GLuint texture, GLui
 
 static void APIENTRY debug_glMakeTextureHandleResidentARB(GLuint64 handle)
 {
-	glMakeTextureHandleResidentARB(handle);
+	default_glMakeTextureHandleResidentARB(handle);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23641,10 +23641,10 @@ static void APIENTRY debug_glMakeTextureHandleResidentARB(GLuint64 handle)
 
 static void APIENTRY debug_glMakeTextureHandleNonResidentARB(GLuint64 handle)
 {
-	glMakeTextureHandleNonResidentARB(handle);
+	default_glMakeTextureHandleNonResidentARB(handle);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23661,7 +23661,7 @@ static GLuint64 APIENTRY debug_glGetImageHandleARB(GLuint texture, GLint level, 
 	GLuint64 retVal = default_glGetImageHandleARB(texture, level, layered, layer, format);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23676,10 +23676,10 @@ static GLuint64 APIENTRY debug_glGetImageHandleARB(GLuint texture, GLint level, 
 
 static void APIENTRY debug_glMakeImageHandleResidentARB(GLuint64 handle, GLenum access)
 {
-	glMakeImageHandleResidentARB(handle, access);
+	default_glMakeImageHandleResidentARB(handle, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23693,10 +23693,10 @@ static void APIENTRY debug_glMakeImageHandleResidentARB(GLuint64 handle, GLenum 
 
 static void APIENTRY debug_glMakeImageHandleNonResidentARB(GLuint64 handle)
 {
-	glMakeImageHandleNonResidentARB(handle);
+	default_glMakeImageHandleNonResidentARB(handle);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23710,10 +23710,10 @@ static void APIENTRY debug_glMakeImageHandleNonResidentARB(GLuint64 handle)
 
 static void APIENTRY debug_glUniformHandleui64ARB(GLint location, GLuint64 value)
 {
-	glUniformHandleui64ARB(location, value);
+	default_glUniformHandleui64ARB(location, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23727,10 +23727,10 @@ static void APIENTRY debug_glUniformHandleui64ARB(GLint location, GLuint64 value
 
 static void APIENTRY debug_glUniformHandleui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
-	glUniformHandleui64vARB(location, count, value);
+	default_glUniformHandleui64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23744,10 +23744,10 @@ static void APIENTRY debug_glUniformHandleui64vARB(GLint location, GLsizei count
 
 static void APIENTRY debug_glProgramUniformHandleui64ARB(GLuint program, GLint location, GLuint64 value)
 {
-	glProgramUniformHandleui64ARB(program, location, value);
+	default_glProgramUniformHandleui64ARB(program, location, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23761,10 +23761,10 @@ static void APIENTRY debug_glProgramUniformHandleui64ARB(GLuint program, GLint l
 
 static void APIENTRY debug_glProgramUniformHandleui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *values)
 {
-	glProgramUniformHandleui64vARB(program, location, count, values);
+	default_glProgramUniformHandleui64vARB(program, location, count, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23781,7 +23781,7 @@ static GLboolean APIENTRY debug_glIsTextureHandleResidentARB(GLuint64 handle)
 	GLboolean retVal = default_glIsTextureHandleResidentARB(handle);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23799,7 +23799,7 @@ static GLboolean APIENTRY debug_glIsImageHandleResidentARB(GLuint64 handle)
 	GLboolean retVal = default_glIsImageHandleResidentARB(handle);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23814,10 +23814,10 @@ static GLboolean APIENTRY debug_glIsImageHandleResidentARB(GLuint64 handle)
 
 static void APIENTRY debug_glVertexAttribL1ui64ARB(GLuint index, GLuint64EXT x)
 {
-	glVertexAttribL1ui64ARB(index, x);
+	default_glVertexAttribL1ui64ARB(index, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23831,10 +23831,10 @@ static void APIENTRY debug_glVertexAttribL1ui64ARB(GLuint index, GLuint64EXT x)
 
 static void APIENTRY debug_glVertexAttribL1ui64vARB(GLuint index, const GLuint64EXT *v)
 {
-	glVertexAttribL1ui64vARB(index, v);
+	default_glVertexAttribL1ui64vARB(index, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23848,10 +23848,10 @@ static void APIENTRY debug_glVertexAttribL1ui64vARB(GLuint index, const GLuint64
 
 static void APIENTRY debug_glGetVertexAttribLui64vARB(GLuint index, GLenum pname, GLuint64EXT *params)
 {
-	glGetVertexAttribLui64vARB(index, pname, params);
+	default_glGetVertexAttribLui64vARB(index, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23868,7 +23868,7 @@ static GLsync APIENTRY debug_glCreateSyncFromCLeventARB(struct _cl_context *cont
 	GLsync retVal = default_glCreateSyncFromCLeventARB(context, event, flags);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23883,10 +23883,10 @@ static GLsync APIENTRY debug_glCreateSyncFromCLeventARB(struct _cl_context *cont
 
 static void APIENTRY debug_glDispatchComputeGroupSizeARB(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z)
 {
-	glDispatchComputeGroupSizeARB(num_groups_x, num_groups_y, num_groups_z, group_size_x, group_size_y, group_size_z);
+	default_glDispatchComputeGroupSizeARB(num_groups_x, num_groups_y, num_groups_z, group_size_x, group_size_y, group_size_z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23900,10 +23900,10 @@ static void APIENTRY debug_glDispatchComputeGroupSizeARB(GLuint num_groups_x, GL
 
 static void APIENTRY debug_glProgramStringARB(GLenum target, GLenum format, GLsizei len, const void *string)
 {
-	glProgramStringARB(target, format, len, string);
+	default_glProgramStringARB(target, format, len, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23917,10 +23917,10 @@ static void APIENTRY debug_glProgramStringARB(GLenum target, GLenum format, GLsi
 
 static void APIENTRY debug_glBindProgramARB(GLenum target, GLuint program)
 {
-	glBindProgramARB(target, program);
+	default_glBindProgramARB(target, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23934,10 +23934,10 @@ static void APIENTRY debug_glBindProgramARB(GLenum target, GLuint program)
 
 static void APIENTRY debug_glDeleteProgramsARB(GLsizei n, const GLuint *programs)
 {
-	glDeleteProgramsARB(n, programs);
+	default_glDeleteProgramsARB(n, programs);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23951,10 +23951,10 @@ static void APIENTRY debug_glDeleteProgramsARB(GLsizei n, const GLuint *programs
 
 static void APIENTRY debug_glGenProgramsARB(GLsizei n, GLuint *programs)
 {
-	glGenProgramsARB(n, programs);
+	default_glGenProgramsARB(n, programs);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23968,10 +23968,10 @@ static void APIENTRY debug_glGenProgramsARB(GLsizei n, GLuint *programs)
 
 static void APIENTRY debug_glProgramEnvParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glProgramEnvParameter4dARB(target, index, x, y, z, w);
+	default_glProgramEnvParameter4dARB(target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -23985,10 +23985,10 @@ static void APIENTRY debug_glProgramEnvParameter4dARB(GLenum target, GLuint inde
 
 static void APIENTRY debug_glProgramEnvParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
 {
-	glProgramEnvParameter4dvARB(target, index, params);
+	default_glProgramEnvParameter4dvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24002,10 +24002,10 @@ static void APIENTRY debug_glProgramEnvParameter4dvARB(GLenum target, GLuint ind
 
 static void APIENTRY debug_glProgramEnvParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glProgramEnvParameter4fARB(target, index, x, y, z, w);
+	default_glProgramEnvParameter4fARB(target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24019,10 +24019,10 @@ static void APIENTRY debug_glProgramEnvParameter4fARB(GLenum target, GLuint inde
 
 static void APIENTRY debug_glProgramEnvParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
 {
-	glProgramEnvParameter4fvARB(target, index, params);
+	default_glProgramEnvParameter4fvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24036,10 +24036,10 @@ static void APIENTRY debug_glProgramEnvParameter4fvARB(GLenum target, GLuint ind
 
 static void APIENTRY debug_glProgramLocalParameter4dARB(GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glProgramLocalParameter4dARB(target, index, x, y, z, w);
+	default_glProgramLocalParameter4dARB(target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24053,10 +24053,10 @@ static void APIENTRY debug_glProgramLocalParameter4dARB(GLenum target, GLuint in
 
 static void APIENTRY debug_glProgramLocalParameter4dvARB(GLenum target, GLuint index, const GLdouble *params)
 {
-	glProgramLocalParameter4dvARB(target, index, params);
+	default_glProgramLocalParameter4dvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24070,10 +24070,10 @@ static void APIENTRY debug_glProgramLocalParameter4dvARB(GLenum target, GLuint i
 
 static void APIENTRY debug_glProgramLocalParameter4fARB(GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glProgramLocalParameter4fARB(target, index, x, y, z, w);
+	default_glProgramLocalParameter4fARB(target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24087,10 +24087,10 @@ static void APIENTRY debug_glProgramLocalParameter4fARB(GLenum target, GLuint in
 
 static void APIENTRY debug_glProgramLocalParameter4fvARB(GLenum target, GLuint index, const GLfloat *params)
 {
-	glProgramLocalParameter4fvARB(target, index, params);
+	default_glProgramLocalParameter4fvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24104,10 +24104,10 @@ static void APIENTRY debug_glProgramLocalParameter4fvARB(GLenum target, GLuint i
 
 static void APIENTRY debug_glGetProgramEnvParameterdvARB(GLenum target, GLuint index, GLdouble *params)
 {
-	glGetProgramEnvParameterdvARB(target, index, params);
+	default_glGetProgramEnvParameterdvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24121,10 +24121,10 @@ static void APIENTRY debug_glGetProgramEnvParameterdvARB(GLenum target, GLuint i
 
 static void APIENTRY debug_glGetProgramEnvParameterfvARB(GLenum target, GLuint index, GLfloat *params)
 {
-	glGetProgramEnvParameterfvARB(target, index, params);
+	default_glGetProgramEnvParameterfvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24138,10 +24138,10 @@ static void APIENTRY debug_glGetProgramEnvParameterfvARB(GLenum target, GLuint i
 
 static void APIENTRY debug_glGetProgramLocalParameterdvARB(GLenum target, GLuint index, GLdouble *params)
 {
-	glGetProgramLocalParameterdvARB(target, index, params);
+	default_glGetProgramLocalParameterdvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24155,10 +24155,10 @@ static void APIENTRY debug_glGetProgramLocalParameterdvARB(GLenum target, GLuint
 
 static void APIENTRY debug_glGetProgramLocalParameterfvARB(GLenum target, GLuint index, GLfloat *params)
 {
-	glGetProgramLocalParameterfvARB(target, index, params);
+	default_glGetProgramLocalParameterfvARB(target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24172,10 +24172,10 @@ static void APIENTRY debug_glGetProgramLocalParameterfvARB(GLenum target, GLuint
 
 static void APIENTRY debug_glGetProgramivARB(GLenum target, GLenum pname, GLint *params)
 {
-	glGetProgramivARB(target, pname, params);
+	default_glGetProgramivARB(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24189,10 +24189,10 @@ static void APIENTRY debug_glGetProgramivARB(GLenum target, GLenum pname, GLint 
 
 static void APIENTRY debug_glGetProgramStringARB(GLenum target, GLenum pname, void *string)
 {
-	glGetProgramStringARB(target, pname, string);
+	default_glGetProgramStringARB(target, pname, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24209,7 +24209,7 @@ static GLboolean APIENTRY debug_glIsProgramARB(GLuint program)
 	GLboolean retVal = default_glIsProgramARB(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24224,10 +24224,10 @@ static GLboolean APIENTRY debug_glIsProgramARB(GLuint program)
 
 static void APIENTRY debug_glFramebufferTextureFaceARB(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face)
 {
-	glFramebufferTextureFaceARB(target, attachment, texture, level, face);
+	default_glFramebufferTextureFaceARB(target, attachment, texture, level, face);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24241,10 +24241,10 @@ static void APIENTRY debug_glFramebufferTextureFaceARB(GLenum target, GLenum att
 
 static void APIENTRY debug_glSpecializeShaderARB(GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue)
 {
-	glSpecializeShaderARB(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue);
+	default_glSpecializeShaderARB(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24258,10 +24258,10 @@ static void APIENTRY debug_glSpecializeShaderARB(GLuint shader, const GLchar *pE
 
 static void APIENTRY debug_glUniform1i64ARB(GLint location, GLint64 x)
 {
-	glUniform1i64ARB(location, x);
+	default_glUniform1i64ARB(location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24275,10 +24275,10 @@ static void APIENTRY debug_glUniform1i64ARB(GLint location, GLint64 x)
 
 static void APIENTRY debug_glUniform2i64ARB(GLint location, GLint64 x, GLint64 y)
 {
-	glUniform2i64ARB(location, x, y);
+	default_glUniform2i64ARB(location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24292,10 +24292,10 @@ static void APIENTRY debug_glUniform2i64ARB(GLint location, GLint64 x, GLint64 y
 
 static void APIENTRY debug_glUniform3i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z)
 {
-	glUniform3i64ARB(location, x, y, z);
+	default_glUniform3i64ARB(location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24309,10 +24309,10 @@ static void APIENTRY debug_glUniform3i64ARB(GLint location, GLint64 x, GLint64 y
 
 static void APIENTRY debug_glUniform4i64ARB(GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
 {
-	glUniform4i64ARB(location, x, y, z, w);
+	default_glUniform4i64ARB(location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24326,10 +24326,10 @@ static void APIENTRY debug_glUniform4i64ARB(GLint location, GLint64 x, GLint64 y
 
 static void APIENTRY debug_glUniform1i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
-	glUniform1i64vARB(location, count, value);
+	default_glUniform1i64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24343,10 +24343,10 @@ static void APIENTRY debug_glUniform1i64vARB(GLint location, GLsizei count, cons
 
 static void APIENTRY debug_glUniform2i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
-	glUniform2i64vARB(location, count, value);
+	default_glUniform2i64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24360,10 +24360,10 @@ static void APIENTRY debug_glUniform2i64vARB(GLint location, GLsizei count, cons
 
 static void APIENTRY debug_glUniform3i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
-	glUniform3i64vARB(location, count, value);
+	default_glUniform3i64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24377,10 +24377,10 @@ static void APIENTRY debug_glUniform3i64vARB(GLint location, GLsizei count, cons
 
 static void APIENTRY debug_glUniform4i64vARB(GLint location, GLsizei count, const GLint64 *value)
 {
-	glUniform4i64vARB(location, count, value);
+	default_glUniform4i64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24394,10 +24394,10 @@ static void APIENTRY debug_glUniform4i64vARB(GLint location, GLsizei count, cons
 
 static void APIENTRY debug_glUniform1ui64ARB(GLint location, GLuint64 x)
 {
-	glUniform1ui64ARB(location, x);
+	default_glUniform1ui64ARB(location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24411,10 +24411,10 @@ static void APIENTRY debug_glUniform1ui64ARB(GLint location, GLuint64 x)
 
 static void APIENTRY debug_glUniform2ui64ARB(GLint location, GLuint64 x, GLuint64 y)
 {
-	glUniform2ui64ARB(location, x, y);
+	default_glUniform2ui64ARB(location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24428,10 +24428,10 @@ static void APIENTRY debug_glUniform2ui64ARB(GLint location, GLuint64 x, GLuint6
 
 static void APIENTRY debug_glUniform3ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
 {
-	glUniform3ui64ARB(location, x, y, z);
+	default_glUniform3ui64ARB(location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24445,10 +24445,10 @@ static void APIENTRY debug_glUniform3ui64ARB(GLint location, GLuint64 x, GLuint6
 
 static void APIENTRY debug_glUniform4ui64ARB(GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
 {
-	glUniform4ui64ARB(location, x, y, z, w);
+	default_glUniform4ui64ARB(location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24462,10 +24462,10 @@ static void APIENTRY debug_glUniform4ui64ARB(GLint location, GLuint64 x, GLuint6
 
 static void APIENTRY debug_glUniform1ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
-	glUniform1ui64vARB(location, count, value);
+	default_glUniform1ui64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24479,10 +24479,10 @@ static void APIENTRY debug_glUniform1ui64vARB(GLint location, GLsizei count, con
 
 static void APIENTRY debug_glUniform2ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
-	glUniform2ui64vARB(location, count, value);
+	default_glUniform2ui64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24496,10 +24496,10 @@ static void APIENTRY debug_glUniform2ui64vARB(GLint location, GLsizei count, con
 
 static void APIENTRY debug_glUniform3ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
-	glUniform3ui64vARB(location, count, value);
+	default_glUniform3ui64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24513,10 +24513,10 @@ static void APIENTRY debug_glUniform3ui64vARB(GLint location, GLsizei count, con
 
 static void APIENTRY debug_glUniform4ui64vARB(GLint location, GLsizei count, const GLuint64 *value)
 {
-	glUniform4ui64vARB(location, count, value);
+	default_glUniform4ui64vARB(location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24530,10 +24530,10 @@ static void APIENTRY debug_glUniform4ui64vARB(GLint location, GLsizei count, con
 
 static void APIENTRY debug_glGetUniformi64vARB(GLuint program, GLint location, GLint64 *params)
 {
-	glGetUniformi64vARB(program, location, params);
+	default_glGetUniformi64vARB(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24547,10 +24547,10 @@ static void APIENTRY debug_glGetUniformi64vARB(GLuint program, GLint location, G
 
 static void APIENTRY debug_glGetUniformui64vARB(GLuint program, GLint location, GLuint64 *params)
 {
-	glGetUniformui64vARB(program, location, params);
+	default_glGetUniformui64vARB(program, location, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24564,10 +24564,10 @@ static void APIENTRY debug_glGetUniformui64vARB(GLuint program, GLint location, 
 
 static void APIENTRY debug_glGetnUniformi64vARB(GLuint program, GLint location, GLsizei bufSize, GLint64 *params)
 {
-	glGetnUniformi64vARB(program, location, bufSize, params);
+	default_glGetnUniformi64vARB(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24581,10 +24581,10 @@ static void APIENTRY debug_glGetnUniformi64vARB(GLuint program, GLint location, 
 
 static void APIENTRY debug_glGetnUniformui64vARB(GLuint program, GLint location, GLsizei bufSize, GLuint64 *params)
 {
-	glGetnUniformui64vARB(program, location, bufSize, params);
+	default_glGetnUniformui64vARB(program, location, bufSize, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24598,10 +24598,10 @@ static void APIENTRY debug_glGetnUniformui64vARB(GLuint program, GLint location,
 
 static void APIENTRY debug_glProgramUniform1i64ARB(GLuint program, GLint location, GLint64 x)
 {
-	glProgramUniform1i64ARB(program, location, x);
+	default_glProgramUniform1i64ARB(program, location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24615,10 +24615,10 @@ static void APIENTRY debug_glProgramUniform1i64ARB(GLuint program, GLint locatio
 
 static void APIENTRY debug_glProgramUniform2i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y)
 {
-	glProgramUniform2i64ARB(program, location, x, y);
+	default_glProgramUniform2i64ARB(program, location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24632,10 +24632,10 @@ static void APIENTRY debug_glProgramUniform2i64ARB(GLuint program, GLint locatio
 
 static void APIENTRY debug_glProgramUniform3i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z)
 {
-	glProgramUniform3i64ARB(program, location, x, y, z);
+	default_glProgramUniform3i64ARB(program, location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24649,10 +24649,10 @@ static void APIENTRY debug_glProgramUniform3i64ARB(GLuint program, GLint locatio
 
 static void APIENTRY debug_glProgramUniform4i64ARB(GLuint program, GLint location, GLint64 x, GLint64 y, GLint64 z, GLint64 w)
 {
-	glProgramUniform4i64ARB(program, location, x, y, z, w);
+	default_glProgramUniform4i64ARB(program, location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24666,10 +24666,10 @@ static void APIENTRY debug_glProgramUniform4i64ARB(GLuint program, GLint locatio
 
 static void APIENTRY debug_glProgramUniform1i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
-	glProgramUniform1i64vARB(program, location, count, value);
+	default_glProgramUniform1i64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24683,10 +24683,10 @@ static void APIENTRY debug_glProgramUniform1i64vARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform2i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
-	glProgramUniform2i64vARB(program, location, count, value);
+	default_glProgramUniform2i64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24700,10 +24700,10 @@ static void APIENTRY debug_glProgramUniform2i64vARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform3i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
-	glProgramUniform3i64vARB(program, location, count, value);
+	default_glProgramUniform3i64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24717,10 +24717,10 @@ static void APIENTRY debug_glProgramUniform3i64vARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform4i64vARB(GLuint program, GLint location, GLsizei count, const GLint64 *value)
 {
-	glProgramUniform4i64vARB(program, location, count, value);
+	default_glProgramUniform4i64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24734,10 +24734,10 @@ static void APIENTRY debug_glProgramUniform4i64vARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform1ui64ARB(GLuint program, GLint location, GLuint64 x)
 {
-	glProgramUniform1ui64ARB(program, location, x);
+	default_glProgramUniform1ui64ARB(program, location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24751,10 +24751,10 @@ static void APIENTRY debug_glProgramUniform1ui64ARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform2ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y)
 {
-	glProgramUniform2ui64ARB(program, location, x, y);
+	default_glProgramUniform2ui64ARB(program, location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24768,10 +24768,10 @@ static void APIENTRY debug_glProgramUniform2ui64ARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform3ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z)
 {
-	glProgramUniform3ui64ARB(program, location, x, y, z);
+	default_glProgramUniform3ui64ARB(program, location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24785,10 +24785,10 @@ static void APIENTRY debug_glProgramUniform3ui64ARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform4ui64ARB(GLuint program, GLint location, GLuint64 x, GLuint64 y, GLuint64 z, GLuint64 w)
 {
-	glProgramUniform4ui64ARB(program, location, x, y, z, w);
+	default_glProgramUniform4ui64ARB(program, location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24802,10 +24802,10 @@ static void APIENTRY debug_glProgramUniform4ui64ARB(GLuint program, GLint locati
 
 static void APIENTRY debug_glProgramUniform1ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
-	glProgramUniform1ui64vARB(program, location, count, value);
+	default_glProgramUniform1ui64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24819,10 +24819,10 @@ static void APIENTRY debug_glProgramUniform1ui64vARB(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniform2ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
-	glProgramUniform2ui64vARB(program, location, count, value);
+	default_glProgramUniform2ui64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24836,10 +24836,10 @@ static void APIENTRY debug_glProgramUniform2ui64vARB(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniform3ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
-	glProgramUniform3ui64vARB(program, location, count, value);
+	default_glProgramUniform3ui64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24853,10 +24853,10 @@ static void APIENTRY debug_glProgramUniform3ui64vARB(GLuint program, GLint locat
 
 static void APIENTRY debug_glProgramUniform4ui64vARB(GLuint program, GLint location, GLsizei count, const GLuint64 *value)
 {
-	glProgramUniform4ui64vARB(program, location, count, value);
+	default_glProgramUniform4ui64vARB(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24870,10 +24870,10 @@ static void APIENTRY debug_glProgramUniform4ui64vARB(GLuint program, GLint locat
 
 static void APIENTRY debug_glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table)
 {
-	glColorTable(target, internalformat, width, format, type, table);
+	default_glColorTable(target, internalformat, width, format, type, table);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24887,10 +24887,10 @@ static void APIENTRY debug_glColorTable(GLenum target, GLenum internalformat, GL
 
 static void APIENTRY debug_glColorTableParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
-	glColorTableParameterfv(target, pname, params);
+	default_glColorTableParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24904,10 +24904,10 @@ static void APIENTRY debug_glColorTableParameterfv(GLenum target, GLenum pname, 
 
 static void APIENTRY debug_glColorTableParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
-	glColorTableParameteriv(target, pname, params);
+	default_glColorTableParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24921,10 +24921,10 @@ static void APIENTRY debug_glColorTableParameteriv(GLenum target, GLenum pname, 
 
 static void APIENTRY debug_glCopyColorTable(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
 {
-	glCopyColorTable(target, internalformat, x, y, width);
+	default_glCopyColorTable(target, internalformat, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24938,10 +24938,10 @@ static void APIENTRY debug_glCopyColorTable(GLenum target, GLenum internalformat
 
 static void APIENTRY debug_glGetColorTable(GLenum target, GLenum format, GLenum type, void *table)
 {
-	glGetColorTable(target, format, type, table);
+	default_glGetColorTable(target, format, type, table);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24955,10 +24955,10 @@ static void APIENTRY debug_glGetColorTable(GLenum target, GLenum format, GLenum 
 
 static void APIENTRY debug_glGetColorTableParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetColorTableParameterfv(target, pname, params);
+	default_glGetColorTableParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24972,10 +24972,10 @@ static void APIENTRY debug_glGetColorTableParameterfv(GLenum target, GLenum pnam
 
 static void APIENTRY debug_glGetColorTableParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetColorTableParameteriv(target, pname, params);
+	default_glGetColorTableParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -24989,10 +24989,10 @@ static void APIENTRY debug_glGetColorTableParameteriv(GLenum target, GLenum pnam
 
 static void APIENTRY debug_glColorSubTable(GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void *data)
 {
-	glColorSubTable(target, start, count, format, type, data);
+	default_glColorSubTable(target, start, count, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25006,10 +25006,10 @@ static void APIENTRY debug_glColorSubTable(GLenum target, GLsizei start, GLsizei
 
 static void APIENTRY debug_glCopyColorSubTable(GLenum target, GLsizei start, GLint x, GLint y, GLsizei width)
 {
-	glCopyColorSubTable(target, start, x, y, width);
+	default_glCopyColorSubTable(target, start, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25023,10 +25023,10 @@ static void APIENTRY debug_glCopyColorSubTable(GLenum target, GLsizei start, GLi
 
 static void APIENTRY debug_glConvolutionFilter1D(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *image)
 {
-	glConvolutionFilter1D(target, internalformat, width, format, type, image);
+	default_glConvolutionFilter1D(target, internalformat, width, format, type, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25040,10 +25040,10 @@ static void APIENTRY debug_glConvolutionFilter1D(GLenum target, GLenum internalf
 
 static void APIENTRY debug_glConvolutionFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *image)
 {
-	glConvolutionFilter2D(target, internalformat, width, height, format, type, image);
+	default_glConvolutionFilter2D(target, internalformat, width, height, format, type, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25057,10 +25057,10 @@ static void APIENTRY debug_glConvolutionFilter2D(GLenum target, GLenum internalf
 
 static void APIENTRY debug_glConvolutionParameterf(GLenum target, GLenum pname, GLfloat params)
 {
-	glConvolutionParameterf(target, pname, params);
+	default_glConvolutionParameterf(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25074,10 +25074,10 @@ static void APIENTRY debug_glConvolutionParameterf(GLenum target, GLenum pname, 
 
 static void APIENTRY debug_glConvolutionParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
-	glConvolutionParameterfv(target, pname, params);
+	default_glConvolutionParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25091,10 +25091,10 @@ static void APIENTRY debug_glConvolutionParameterfv(GLenum target, GLenum pname,
 
 static void APIENTRY debug_glConvolutionParameteri(GLenum target, GLenum pname, GLint params)
 {
-	glConvolutionParameteri(target, pname, params);
+	default_glConvolutionParameteri(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25108,10 +25108,10 @@ static void APIENTRY debug_glConvolutionParameteri(GLenum target, GLenum pname, 
 
 static void APIENTRY debug_glConvolutionParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
-	glConvolutionParameteriv(target, pname, params);
+	default_glConvolutionParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25125,10 +25125,10 @@ static void APIENTRY debug_glConvolutionParameteriv(GLenum target, GLenum pname,
 
 static void APIENTRY debug_glCopyConvolutionFilter1D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width)
 {
-	glCopyConvolutionFilter1D(target, internalformat, x, y, width);
+	default_glCopyConvolutionFilter1D(target, internalformat, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25142,10 +25142,10 @@ static void APIENTRY debug_glCopyConvolutionFilter1D(GLenum target, GLenum inter
 
 static void APIENTRY debug_glCopyConvolutionFilter2D(GLenum target, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyConvolutionFilter2D(target, internalformat, x, y, width, height);
+	default_glCopyConvolutionFilter2D(target, internalformat, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25159,10 +25159,10 @@ static void APIENTRY debug_glCopyConvolutionFilter2D(GLenum target, GLenum inter
 
 static void APIENTRY debug_glGetConvolutionFilter(GLenum target, GLenum format, GLenum type, void *image)
 {
-	glGetConvolutionFilter(target, format, type, image);
+	default_glGetConvolutionFilter(target, format, type, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25176,10 +25176,10 @@ static void APIENTRY debug_glGetConvolutionFilter(GLenum target, GLenum format, 
 
 static void APIENTRY debug_glGetConvolutionParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetConvolutionParameterfv(target, pname, params);
+	default_glGetConvolutionParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25193,10 +25193,10 @@ static void APIENTRY debug_glGetConvolutionParameterfv(GLenum target, GLenum pna
 
 static void APIENTRY debug_glGetConvolutionParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetConvolutionParameteriv(target, pname, params);
+	default_glGetConvolutionParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25210,10 +25210,10 @@ static void APIENTRY debug_glGetConvolutionParameteriv(GLenum target, GLenum pna
 
 static void APIENTRY debug_glGetSeparableFilter(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
 {
-	glGetSeparableFilter(target, format, type, row, column, span);
+	default_glGetSeparableFilter(target, format, type, row, column, span);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25227,10 +25227,10 @@ static void APIENTRY debug_glGetSeparableFilter(GLenum target, GLenum format, GL
 
 static void APIENTRY debug_glSeparableFilter2D(GLenum target, GLenum internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *row, const void *column)
 {
-	glSeparableFilter2D(target, internalformat, width, height, format, type, row, column);
+	default_glSeparableFilter2D(target, internalformat, width, height, format, type, row, column);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25244,10 +25244,10 @@ static void APIENTRY debug_glSeparableFilter2D(GLenum target, GLenum internalfor
 
 static void APIENTRY debug_glGetHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
-	glGetHistogram(target, reset, format, type, values);
+	default_glGetHistogram(target, reset, format, type, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25261,10 +25261,10 @@ static void APIENTRY debug_glGetHistogram(GLenum target, GLboolean reset, GLenum
 
 static void APIENTRY debug_glGetHistogramParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetHistogramParameterfv(target, pname, params);
+	default_glGetHistogramParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25278,10 +25278,10 @@ static void APIENTRY debug_glGetHistogramParameterfv(GLenum target, GLenum pname
 
 static void APIENTRY debug_glGetHistogramParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetHistogramParameteriv(target, pname, params);
+	default_glGetHistogramParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25295,10 +25295,10 @@ static void APIENTRY debug_glGetHistogramParameteriv(GLenum target, GLenum pname
 
 static void APIENTRY debug_glGetMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
-	glGetMinmax(target, reset, format, type, values);
+	default_glGetMinmax(target, reset, format, type, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25312,10 +25312,10 @@ static void APIENTRY debug_glGetMinmax(GLenum target, GLboolean reset, GLenum fo
 
 static void APIENTRY debug_glGetMinmaxParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetMinmaxParameterfv(target, pname, params);
+	default_glGetMinmaxParameterfv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25329,10 +25329,10 @@ static void APIENTRY debug_glGetMinmaxParameterfv(GLenum target, GLenum pname, G
 
 static void APIENTRY debug_glGetMinmaxParameteriv(GLenum target, GLenum pname, GLint *params)
 {
-	glGetMinmaxParameteriv(target, pname, params);
+	default_glGetMinmaxParameteriv(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25346,10 +25346,10 @@ static void APIENTRY debug_glGetMinmaxParameteriv(GLenum target, GLenum pname, G
 
 static void APIENTRY debug_glHistogram(GLenum target, GLsizei width, GLenum internalformat, GLboolean sink)
 {
-	glHistogram(target, width, internalformat, sink);
+	default_glHistogram(target, width, internalformat, sink);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25363,10 +25363,10 @@ static void APIENTRY debug_glHistogram(GLenum target, GLsizei width, GLenum inte
 
 static void APIENTRY debug_glMinmax(GLenum target, GLenum internalformat, GLboolean sink)
 {
-	glMinmax(target, internalformat, sink);
+	default_glMinmax(target, internalformat, sink);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25380,10 +25380,10 @@ static void APIENTRY debug_glMinmax(GLenum target, GLenum internalformat, GLbool
 
 static void APIENTRY debug_glResetHistogram(GLenum target)
 {
-	glResetHistogram(target);
+	default_glResetHistogram(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25397,10 +25397,10 @@ static void APIENTRY debug_glResetHistogram(GLenum target)
 
 static void APIENTRY debug_glResetMinmax(GLenum target)
 {
-	glResetMinmax(target);
+	default_glResetMinmax(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25414,10 +25414,10 @@ static void APIENTRY debug_glResetMinmax(GLenum target)
 
 static void APIENTRY debug_glMultiDrawArraysIndirectCountARB(GLenum mode, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
 {
-	glMultiDrawArraysIndirectCountARB(mode, indirect, drawcount, maxdrawcount, stride);
+	default_glMultiDrawArraysIndirectCountARB(mode, indirect, drawcount, maxdrawcount, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25431,10 +25431,10 @@ static void APIENTRY debug_glMultiDrawArraysIndirectCountARB(GLenum mode, GLintp
 
 static void APIENTRY debug_glMultiDrawElementsIndirectCountARB(GLenum mode, GLenum type, GLintptr indirect, GLintptr drawcount, GLsizei maxdrawcount, GLsizei stride)
 {
-	glMultiDrawElementsIndirectCountARB(mode, type, indirect, drawcount, maxdrawcount, stride);
+	default_glMultiDrawElementsIndirectCountARB(mode, type, indirect, drawcount, maxdrawcount, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25448,10 +25448,10 @@ static void APIENTRY debug_glMultiDrawElementsIndirectCountARB(GLenum mode, GLen
 
 static void APIENTRY debug_glCurrentPaletteMatrixARB(GLint index)
 {
-	glCurrentPaletteMatrixARB(index);
+	default_glCurrentPaletteMatrixARB(index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25465,10 +25465,10 @@ static void APIENTRY debug_glCurrentPaletteMatrixARB(GLint index)
 
 static void APIENTRY debug_glMatrixIndexubvARB(GLint size, const GLubyte *indices)
 {
-	glMatrixIndexubvARB(size, indices);
+	default_glMatrixIndexubvARB(size, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25482,10 +25482,10 @@ static void APIENTRY debug_glMatrixIndexubvARB(GLint size, const GLubyte *indice
 
 static void APIENTRY debug_glMatrixIndexusvARB(GLint size, const GLushort *indices)
 {
-	glMatrixIndexusvARB(size, indices);
+	default_glMatrixIndexusvARB(size, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25499,10 +25499,10 @@ static void APIENTRY debug_glMatrixIndexusvARB(GLint size, const GLushort *indic
 
 static void APIENTRY debug_glMatrixIndexuivARB(GLint size, const GLuint *indices)
 {
-	glMatrixIndexuivARB(size, indices);
+	default_glMatrixIndexuivARB(size, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25516,10 +25516,10 @@ static void APIENTRY debug_glMatrixIndexuivARB(GLint size, const GLuint *indices
 
 static void APIENTRY debug_glMatrixIndexPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glMatrixIndexPointerARB(size, type, stride, pointer);
+	default_glMatrixIndexPointerARB(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25533,10 +25533,10 @@ static void APIENTRY debug_glMatrixIndexPointerARB(GLint size, GLenum type, GLsi
 
 static void APIENTRY debug_glMaxShaderCompilerThreadsARB(GLuint count)
 {
-	glMaxShaderCompilerThreadsARB(count);
+	default_glMaxShaderCompilerThreadsARB(count);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25550,10 +25550,10 @@ static void APIENTRY debug_glMaxShaderCompilerThreadsARB(GLuint count)
 
 static void APIENTRY debug_glFramebufferSampleLocationsfvARB(GLenum target, GLuint start, GLsizei count, const GLfloat *v)
 {
-	glFramebufferSampleLocationsfvARB(target, start, count, v);
+	default_glFramebufferSampleLocationsfvARB(target, start, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25567,10 +25567,10 @@ static void APIENTRY debug_glFramebufferSampleLocationsfvARB(GLenum target, GLui
 
 static void APIENTRY debug_glNamedFramebufferSampleLocationsfvARB(GLuint framebuffer, GLuint start, GLsizei count, const GLfloat *v)
 {
-	glNamedFramebufferSampleLocationsfvARB(framebuffer, start, count, v);
+	default_glNamedFramebufferSampleLocationsfvARB(framebuffer, start, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25584,10 +25584,10 @@ static void APIENTRY debug_glNamedFramebufferSampleLocationsfvARB(GLuint framebu
 
 static void APIENTRY debug_glEvaluateDepthValuesARB()
 {
-	glEvaluateDepthValuesARB();
+	default_glEvaluateDepthValuesARB();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25601,10 +25601,10 @@ static void APIENTRY debug_glEvaluateDepthValuesARB()
 
 static void APIENTRY debug_glDeleteObjectARB(GLhandleARB obj)
 {
-	glDeleteObjectARB(obj);
+	default_glDeleteObjectARB(obj);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25621,7 +25621,7 @@ static GLhandleARB APIENTRY debug_glGetHandleARB(GLenum pname)
 	GLhandleARB retVal = default_glGetHandleARB(pname);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25636,10 +25636,10 @@ static GLhandleARB APIENTRY debug_glGetHandleARB(GLenum pname)
 
 static void APIENTRY debug_glGetObjectParameterfvARB(GLhandleARB obj, GLenum pname, GLfloat *params)
 {
-	glGetObjectParameterfvARB(obj, pname, params);
+	default_glGetObjectParameterfvARB(obj, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25653,10 +25653,10 @@ static void APIENTRY debug_glGetObjectParameterfvARB(GLhandleARB obj, GLenum pna
 
 static void APIENTRY debug_glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params)
 {
-	glGetObjectParameterivARB(obj, pname, params);
+	default_glGetObjectParameterivARB(obj, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25670,10 +25670,10 @@ static void APIENTRY debug_glGetObjectParameterivARB(GLhandleARB obj, GLenum pna
 
 static void APIENTRY debug_glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog)
 {
-	glGetInfoLogARB(obj, maxLength, length, infoLog);
+	default_glGetInfoLogARB(obj, maxLength, length, infoLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25687,10 +25687,10 @@ static void APIENTRY debug_glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, G
 
 static void APIENTRY debug_glGetAttachedObjectsARB(GLhandleARB containerObj, GLsizei maxCount, GLsizei *count, GLhandleARB *obj)
 {
-	glGetAttachedObjectsARB(containerObj, maxCount, count, obj);
+	default_glGetAttachedObjectsARB(containerObj, maxCount, count, obj);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25704,10 +25704,10 @@ static void APIENTRY debug_glGetAttachedObjectsARB(GLhandleARB containerObj, GLs
 
 static void APIENTRY debug_glNamedStringARB(GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string)
 {
-	glNamedStringARB(type, namelen, name, stringlen, string);
+	default_glNamedStringARB(type, namelen, name, stringlen, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25721,10 +25721,10 @@ static void APIENTRY debug_glNamedStringARB(GLenum type, GLint namelen, const GL
 
 static void APIENTRY debug_glDeleteNamedStringARB(GLint namelen, const GLchar *name)
 {
-	glDeleteNamedStringARB(namelen, name);
+	default_glDeleteNamedStringARB(namelen, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25738,10 +25738,10 @@ static void APIENTRY debug_glDeleteNamedStringARB(GLint namelen, const GLchar *n
 
 static void APIENTRY debug_glCompileShaderIncludeARB(GLuint shader, GLsizei count, const GLchar *const*path, const GLint *length)
 {
-	glCompileShaderIncludeARB(shader, count, path, length);
+	default_glCompileShaderIncludeARB(shader, count, path, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25758,7 +25758,7 @@ static GLboolean APIENTRY debug_glIsNamedStringARB(GLint namelen, const GLchar *
 	GLboolean retVal = default_glIsNamedStringARB(namelen, name);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25773,10 +25773,10 @@ static GLboolean APIENTRY debug_glIsNamedStringARB(GLint namelen, const GLchar *
 
 static void APIENTRY debug_glGetNamedStringARB(GLint namelen, const GLchar *name, GLsizei bufSize, GLint *stringlen, GLchar *string)
 {
-	glGetNamedStringARB(namelen, name, bufSize, stringlen, string);
+	default_glGetNamedStringARB(namelen, name, bufSize, stringlen, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25790,10 +25790,10 @@ static void APIENTRY debug_glGetNamedStringARB(GLint namelen, const GLchar *name
 
 static void APIENTRY debug_glGetNamedStringivARB(GLint namelen, const GLchar *name, GLenum pname, GLint *params)
 {
-	glGetNamedStringivARB(namelen, name, pname, params);
+	default_glGetNamedStringivARB(namelen, name, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25807,10 +25807,10 @@ static void APIENTRY debug_glGetNamedStringivARB(GLint namelen, const GLchar *na
 
 static void APIENTRY debug_glBufferPageCommitmentARB(GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
-	glBufferPageCommitmentARB(target, offset, size, commit);
+	default_glBufferPageCommitmentARB(target, offset, size, commit);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25824,10 +25824,10 @@ static void APIENTRY debug_glBufferPageCommitmentARB(GLenum target, GLintptr off
 
 static void APIENTRY debug_glNamedBufferPageCommitmentEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
-	glNamedBufferPageCommitmentEXT(buffer, offset, size, commit);
+	default_glNamedBufferPageCommitmentEXT(buffer, offset, size, commit);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25841,10 +25841,10 @@ static void APIENTRY debug_glNamedBufferPageCommitmentEXT(GLuint buffer, GLintpt
 
 static void APIENTRY debug_glNamedBufferPageCommitmentARB(GLuint buffer, GLintptr offset, GLsizeiptr size, GLboolean commit)
 {
-	glNamedBufferPageCommitmentARB(buffer, offset, size, commit);
+	default_glNamedBufferPageCommitmentARB(buffer, offset, size, commit);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25858,10 +25858,10 @@ static void APIENTRY debug_glNamedBufferPageCommitmentARB(GLuint buffer, GLintpt
 
 static void APIENTRY debug_glTexPageCommitmentARB(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
 {
-	glTexPageCommitmentARB(target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
+	default_glTexPageCommitmentARB(target, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25875,10 +25875,10 @@ static void APIENTRY debug_glTexPageCommitmentARB(GLenum target, GLint level, GL
 
 static void APIENTRY debug_glWeightbvARB(GLint size, const GLbyte *weights)
 {
-	glWeightbvARB(size, weights);
+	default_glWeightbvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25892,10 +25892,10 @@ static void APIENTRY debug_glWeightbvARB(GLint size, const GLbyte *weights)
 
 static void APIENTRY debug_glWeightsvARB(GLint size, const GLshort *weights)
 {
-	glWeightsvARB(size, weights);
+	default_glWeightsvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25909,10 +25909,10 @@ static void APIENTRY debug_glWeightsvARB(GLint size, const GLshort *weights)
 
 static void APIENTRY debug_glWeightivARB(GLint size, const GLint *weights)
 {
-	glWeightivARB(size, weights);
+	default_glWeightivARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25926,10 +25926,10 @@ static void APIENTRY debug_glWeightivARB(GLint size, const GLint *weights)
 
 static void APIENTRY debug_glWeightfvARB(GLint size, const GLfloat *weights)
 {
-	glWeightfvARB(size, weights);
+	default_glWeightfvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25943,10 +25943,10 @@ static void APIENTRY debug_glWeightfvARB(GLint size, const GLfloat *weights)
 
 static void APIENTRY debug_glWeightdvARB(GLint size, const GLdouble *weights)
 {
-	glWeightdvARB(size, weights);
+	default_glWeightdvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25960,10 +25960,10 @@ static void APIENTRY debug_glWeightdvARB(GLint size, const GLdouble *weights)
 
 static void APIENTRY debug_glWeightubvARB(GLint size, const GLubyte *weights)
 {
-	glWeightubvARB(size, weights);
+	default_glWeightubvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25977,10 +25977,10 @@ static void APIENTRY debug_glWeightubvARB(GLint size, const GLubyte *weights)
 
 static void APIENTRY debug_glWeightusvARB(GLint size, const GLushort *weights)
 {
-	glWeightusvARB(size, weights);
+	default_glWeightusvARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -25994,10 +25994,10 @@ static void APIENTRY debug_glWeightusvARB(GLint size, const GLushort *weights)
 
 static void APIENTRY debug_glWeightuivARB(GLint size, const GLuint *weights)
 {
-	glWeightuivARB(size, weights);
+	default_glWeightuivARB(size, weights);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26011,10 +26011,10 @@ static void APIENTRY debug_glWeightuivARB(GLint size, const GLuint *weights)
 
 static void APIENTRY debug_glWeightPointerARB(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glWeightPointerARB(size, type, stride, pointer);
+	default_glWeightPointerARB(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26028,10 +26028,10 @@ static void APIENTRY debug_glWeightPointerARB(GLint size, GLenum type, GLsizei s
 
 static void APIENTRY debug_glVertexBlendARB(GLint count)
 {
-	glVertexBlendARB(count);
+	default_glVertexBlendARB(count);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26045,10 +26045,10 @@ static void APIENTRY debug_glVertexBlendARB(GLint count)
 
 static void APIENTRY debug_glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 {
-	glEGLImageTargetTexture2DOES(target, image);
+	default_glEGLImageTargetTexture2DOES(target, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26062,10 +26062,10 @@ static void APIENTRY debug_glEGLImageTargetTexture2DOES(GLenum target, GLeglImag
 
 static void APIENTRY debug_glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
 {
-	glEGLImageTargetRenderbufferStorageOES(target, image);
+	default_glEGLImageTargetRenderbufferStorageOES(target, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26079,10 +26079,10 @@ static void APIENTRY debug_glEGLImageTargetRenderbufferStorageOES(GLenum target,
 
 static void APIENTRY debug_glMultiTexCoord1bOES(GLenum texture, GLbyte s)
 {
-	glMultiTexCoord1bOES(texture, s);
+	default_glMultiTexCoord1bOES(texture, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26096,10 +26096,10 @@ static void APIENTRY debug_glMultiTexCoord1bOES(GLenum texture, GLbyte s)
 
 static void APIENTRY debug_glMultiTexCoord1bvOES(GLenum texture, const GLbyte *coords)
 {
-	glMultiTexCoord1bvOES(texture, coords);
+	default_glMultiTexCoord1bvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26113,10 +26113,10 @@ static void APIENTRY debug_glMultiTexCoord1bvOES(GLenum texture, const GLbyte *c
 
 static void APIENTRY debug_glMultiTexCoord2bOES(GLenum texture, GLbyte s, GLbyte t)
 {
-	glMultiTexCoord2bOES(texture, s, t);
+	default_glMultiTexCoord2bOES(texture, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26130,10 +26130,10 @@ static void APIENTRY debug_glMultiTexCoord2bOES(GLenum texture, GLbyte s, GLbyte
 
 static void APIENTRY debug_glMultiTexCoord2bvOES(GLenum texture, const GLbyte *coords)
 {
-	glMultiTexCoord2bvOES(texture, coords);
+	default_glMultiTexCoord2bvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26147,10 +26147,10 @@ static void APIENTRY debug_glMultiTexCoord2bvOES(GLenum texture, const GLbyte *c
 
 static void APIENTRY debug_glMultiTexCoord3bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r)
 {
-	glMultiTexCoord3bOES(texture, s, t, r);
+	default_glMultiTexCoord3bOES(texture, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26164,10 +26164,10 @@ static void APIENTRY debug_glMultiTexCoord3bOES(GLenum texture, GLbyte s, GLbyte
 
 static void APIENTRY debug_glMultiTexCoord3bvOES(GLenum texture, const GLbyte *coords)
 {
-	glMultiTexCoord3bvOES(texture, coords);
+	default_glMultiTexCoord3bvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26181,10 +26181,10 @@ static void APIENTRY debug_glMultiTexCoord3bvOES(GLenum texture, const GLbyte *c
 
 static void APIENTRY debug_glMultiTexCoord4bOES(GLenum texture, GLbyte s, GLbyte t, GLbyte r, GLbyte q)
 {
-	glMultiTexCoord4bOES(texture, s, t, r, q);
+	default_glMultiTexCoord4bOES(texture, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26198,10 +26198,10 @@ static void APIENTRY debug_glMultiTexCoord4bOES(GLenum texture, GLbyte s, GLbyte
 
 static void APIENTRY debug_glMultiTexCoord4bvOES(GLenum texture, const GLbyte *coords)
 {
-	glMultiTexCoord4bvOES(texture, coords);
+	default_glMultiTexCoord4bvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26215,10 +26215,10 @@ static void APIENTRY debug_glMultiTexCoord4bvOES(GLenum texture, const GLbyte *c
 
 static void APIENTRY debug_glTexCoord1bOES(GLbyte s)
 {
-	glTexCoord1bOES(s);
+	default_glTexCoord1bOES(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26232,10 +26232,10 @@ static void APIENTRY debug_glTexCoord1bOES(GLbyte s)
 
 static void APIENTRY debug_glTexCoord1bvOES(const GLbyte *coords)
 {
-	glTexCoord1bvOES(coords);
+	default_glTexCoord1bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26249,10 +26249,10 @@ static void APIENTRY debug_glTexCoord1bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glTexCoord2bOES(GLbyte s, GLbyte t)
 {
-	glTexCoord2bOES(s, t);
+	default_glTexCoord2bOES(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26266,10 +26266,10 @@ static void APIENTRY debug_glTexCoord2bOES(GLbyte s, GLbyte t)
 
 static void APIENTRY debug_glTexCoord2bvOES(const GLbyte *coords)
 {
-	glTexCoord2bvOES(coords);
+	default_glTexCoord2bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26283,10 +26283,10 @@ static void APIENTRY debug_glTexCoord2bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glTexCoord3bOES(GLbyte s, GLbyte t, GLbyte r)
 {
-	glTexCoord3bOES(s, t, r);
+	default_glTexCoord3bOES(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26300,10 +26300,10 @@ static void APIENTRY debug_glTexCoord3bOES(GLbyte s, GLbyte t, GLbyte r)
 
 static void APIENTRY debug_glTexCoord3bvOES(const GLbyte *coords)
 {
-	glTexCoord3bvOES(coords);
+	default_glTexCoord3bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26317,10 +26317,10 @@ static void APIENTRY debug_glTexCoord3bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glTexCoord4bOES(GLbyte s, GLbyte t, GLbyte r, GLbyte q)
 {
-	glTexCoord4bOES(s, t, r, q);
+	default_glTexCoord4bOES(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26334,10 +26334,10 @@ static void APIENTRY debug_glTexCoord4bOES(GLbyte s, GLbyte t, GLbyte r, GLbyte 
 
 static void APIENTRY debug_glTexCoord4bvOES(const GLbyte *coords)
 {
-	glTexCoord4bvOES(coords);
+	default_glTexCoord4bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26351,10 +26351,10 @@ static void APIENTRY debug_glTexCoord4bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glVertex2bOES(GLbyte x, GLbyte y)
 {
-	glVertex2bOES(x, y);
+	default_glVertex2bOES(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26368,10 +26368,10 @@ static void APIENTRY debug_glVertex2bOES(GLbyte x, GLbyte y)
 
 static void APIENTRY debug_glVertex2bvOES(const GLbyte *coords)
 {
-	glVertex2bvOES(coords);
+	default_glVertex2bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26385,10 +26385,10 @@ static void APIENTRY debug_glVertex2bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glVertex3bOES(GLbyte x, GLbyte y, GLbyte z)
 {
-	glVertex3bOES(x, y, z);
+	default_glVertex3bOES(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26402,10 +26402,10 @@ static void APIENTRY debug_glVertex3bOES(GLbyte x, GLbyte y, GLbyte z)
 
 static void APIENTRY debug_glVertex3bvOES(const GLbyte *coords)
 {
-	glVertex3bvOES(coords);
+	default_glVertex3bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26419,10 +26419,10 @@ static void APIENTRY debug_glVertex3bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glVertex4bOES(GLbyte x, GLbyte y, GLbyte z, GLbyte w)
 {
-	glVertex4bOES(x, y, z, w);
+	default_glVertex4bOES(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26436,10 +26436,10 @@ static void APIENTRY debug_glVertex4bOES(GLbyte x, GLbyte y, GLbyte z, GLbyte w)
 
 static void APIENTRY debug_glVertex4bvOES(const GLbyte *coords)
 {
-	glVertex4bvOES(coords);
+	default_glVertex4bvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26453,10 +26453,10 @@ static void APIENTRY debug_glVertex4bvOES(const GLbyte *coords)
 
 static void APIENTRY debug_glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshort width, GLshort height)
 {
-	glDrawTexsOES(x, y, z, width, height);
+	default_glDrawTexsOES(x, y, z, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26470,10 +26470,10 @@ static void APIENTRY debug_glDrawTexsOES(GLshort x, GLshort y, GLshort z, GLshor
 
 static void APIENTRY debug_glDrawTexiOES(GLint x, GLint y, GLint z, GLint width, GLint height)
 {
-	glDrawTexiOES(x, y, z, width, height);
+	default_glDrawTexiOES(x, y, z, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26487,10 +26487,10 @@ static void APIENTRY debug_glDrawTexiOES(GLint x, GLint y, GLint z, GLint width,
 
 static void APIENTRY debug_glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed width, GLfixed height)
 {
-	glDrawTexxOES(x, y, z, width, height);
+	default_glDrawTexxOES(x, y, z, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26504,10 +26504,10 @@ static void APIENTRY debug_glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixe
 
 static void APIENTRY debug_glDrawTexsvOES(const GLshort *coords)
 {
-	glDrawTexsvOES(coords);
+	default_glDrawTexsvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26521,10 +26521,10 @@ static void APIENTRY debug_glDrawTexsvOES(const GLshort *coords)
 
 static void APIENTRY debug_glDrawTexivOES(const GLint *coords)
 {
-	glDrawTexivOES(coords);
+	default_glDrawTexivOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26538,10 +26538,10 @@ static void APIENTRY debug_glDrawTexivOES(const GLint *coords)
 
 static void APIENTRY debug_glDrawTexxvOES(const GLfixed *coords)
 {
-	glDrawTexxvOES(coords);
+	default_glDrawTexxvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26555,10 +26555,10 @@ static void APIENTRY debug_glDrawTexxvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
 {
-	glDrawTexfOES(x, y, z, width, height);
+	default_glDrawTexfOES(x, y, z, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26572,10 +26572,10 @@ static void APIENTRY debug_glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z, GLfloa
 
 static void APIENTRY debug_glDrawTexfvOES(const GLfloat *coords)
 {
-	glDrawTexfvOES(coords);
+	default_glDrawTexfvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26589,10 +26589,10 @@ static void APIENTRY debug_glDrawTexfvOES(const GLfloat *coords)
 
 static void APIENTRY debug_glAlphaFuncxOES(GLenum func, GLfixed ref)
 {
-	glAlphaFuncxOES(func, ref);
+	default_glAlphaFuncxOES(func, ref);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26606,10 +26606,10 @@ static void APIENTRY debug_glAlphaFuncxOES(GLenum func, GLfixed ref)
 
 static void APIENTRY debug_glClearColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
-	glClearColorxOES(red, green, blue, alpha);
+	default_glClearColorxOES(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26623,10 +26623,10 @@ static void APIENTRY debug_glClearColorxOES(GLfixed red, GLfixed green, GLfixed 
 
 static void APIENTRY debug_glClearDepthxOES(GLfixed depth)
 {
-	glClearDepthxOES(depth);
+	default_glClearDepthxOES(depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26640,10 +26640,10 @@ static void APIENTRY debug_glClearDepthxOES(GLfixed depth)
 
 static void APIENTRY debug_glClipPlanexOES(GLenum plane, const GLfixed *equation)
 {
-	glClipPlanexOES(plane, equation);
+	default_glClipPlanexOES(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26657,10 +26657,10 @@ static void APIENTRY debug_glClipPlanexOES(GLenum plane, const GLfixed *equation
 
 static void APIENTRY debug_glColor4xOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
-	glColor4xOES(red, green, blue, alpha);
+	default_glColor4xOES(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26674,10 +26674,10 @@ static void APIENTRY debug_glColor4xOES(GLfixed red, GLfixed green, GLfixed blue
 
 static void APIENTRY debug_glDepthRangexOES(GLfixed n, GLfixed f)
 {
-	glDepthRangexOES(n, f);
+	default_glDepthRangexOES(n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26691,10 +26691,10 @@ static void APIENTRY debug_glDepthRangexOES(GLfixed n, GLfixed f)
 
 static void APIENTRY debug_glFogxOES(GLenum pname, GLfixed param)
 {
-	glFogxOES(pname, param);
+	default_glFogxOES(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26708,10 +26708,10 @@ static void APIENTRY debug_glFogxOES(GLenum pname, GLfixed param)
 
 static void APIENTRY debug_glFogxvOES(GLenum pname, const GLfixed *param)
 {
-	glFogxvOES(pname, param);
+	default_glFogxvOES(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26725,10 +26725,10 @@ static void APIENTRY debug_glFogxvOES(GLenum pname, const GLfixed *param)
 
 static void APIENTRY debug_glFrustumxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
 {
-	glFrustumxOES(l, r, b, t, n, f);
+	default_glFrustumxOES(l, r, b, t, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26742,10 +26742,10 @@ static void APIENTRY debug_glFrustumxOES(GLfixed l, GLfixed r, GLfixed b, GLfixe
 
 static void APIENTRY debug_glGetClipPlanexOES(GLenum plane, GLfixed *equation)
 {
-	glGetClipPlanexOES(plane, equation);
+	default_glGetClipPlanexOES(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26759,10 +26759,10 @@ static void APIENTRY debug_glGetClipPlanexOES(GLenum plane, GLfixed *equation)
 
 static void APIENTRY debug_glGetFixedvOES(GLenum pname, GLfixed *params)
 {
-	glGetFixedvOES(pname, params);
+	default_glGetFixedvOES(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26776,10 +26776,10 @@ static void APIENTRY debug_glGetFixedvOES(GLenum pname, GLfixed *params)
 
 static void APIENTRY debug_glGetTexEnvxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
-	glGetTexEnvxvOES(target, pname, params);
+	default_glGetTexEnvxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26793,10 +26793,10 @@ static void APIENTRY debug_glGetTexEnvxvOES(GLenum target, GLenum pname, GLfixed
 
 static void APIENTRY debug_glGetTexParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
-	glGetTexParameterxvOES(target, pname, params);
+	default_glGetTexParameterxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26810,10 +26810,10 @@ static void APIENTRY debug_glGetTexParameterxvOES(GLenum target, GLenum pname, G
 
 static void APIENTRY debug_glLightModelxOES(GLenum pname, GLfixed param)
 {
-	glLightModelxOES(pname, param);
+	default_glLightModelxOES(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26827,10 +26827,10 @@ static void APIENTRY debug_glLightModelxOES(GLenum pname, GLfixed param)
 
 static void APIENTRY debug_glLightModelxvOES(GLenum pname, const GLfixed *param)
 {
-	glLightModelxvOES(pname, param);
+	default_glLightModelxvOES(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26844,10 +26844,10 @@ static void APIENTRY debug_glLightModelxvOES(GLenum pname, const GLfixed *param)
 
 static void APIENTRY debug_glLightxOES(GLenum light, GLenum pname, GLfixed param)
 {
-	glLightxOES(light, pname, param);
+	default_glLightxOES(light, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26861,10 +26861,10 @@ static void APIENTRY debug_glLightxOES(GLenum light, GLenum pname, GLfixed param
 
 static void APIENTRY debug_glLightxvOES(GLenum light, GLenum pname, const GLfixed *params)
 {
-	glLightxvOES(light, pname, params);
+	default_glLightxvOES(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26878,10 +26878,10 @@ static void APIENTRY debug_glLightxvOES(GLenum light, GLenum pname, const GLfixe
 
 static void APIENTRY debug_glLineWidthxOES(GLfixed width)
 {
-	glLineWidthxOES(width);
+	default_glLineWidthxOES(width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26895,10 +26895,10 @@ static void APIENTRY debug_glLineWidthxOES(GLfixed width)
 
 static void APIENTRY debug_glLoadMatrixxOES(const GLfixed *m)
 {
-	glLoadMatrixxOES(m);
+	default_glLoadMatrixxOES(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26912,10 +26912,10 @@ static void APIENTRY debug_glLoadMatrixxOES(const GLfixed *m)
 
 static void APIENTRY debug_glMaterialxOES(GLenum face, GLenum pname, GLfixed param)
 {
-	glMaterialxOES(face, pname, param);
+	default_glMaterialxOES(face, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26929,10 +26929,10 @@ static void APIENTRY debug_glMaterialxOES(GLenum face, GLenum pname, GLfixed par
 
 static void APIENTRY debug_glMaterialxvOES(GLenum face, GLenum pname, const GLfixed *param)
 {
-	glMaterialxvOES(face, pname, param);
+	default_glMaterialxvOES(face, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26946,10 +26946,10 @@ static void APIENTRY debug_glMaterialxvOES(GLenum face, GLenum pname, const GLfi
 
 static void APIENTRY debug_glMultMatrixxOES(const GLfixed *m)
 {
-	glMultMatrixxOES(m);
+	default_glMultMatrixxOES(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26963,10 +26963,10 @@ static void APIENTRY debug_glMultMatrixxOES(const GLfixed *m)
 
 static void APIENTRY debug_glMultiTexCoord4xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r, GLfixed q)
 {
-	glMultiTexCoord4xOES(texture, s, t, r, q);
+	default_glMultiTexCoord4xOES(texture, s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26980,10 +26980,10 @@ static void APIENTRY debug_glMultiTexCoord4xOES(GLenum texture, GLfixed s, GLfix
 
 static void APIENTRY debug_glNormal3xOES(GLfixed nx, GLfixed ny, GLfixed nz)
 {
-	glNormal3xOES(nx, ny, nz);
+	default_glNormal3xOES(nx, ny, nz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -26997,10 +26997,10 @@ static void APIENTRY debug_glNormal3xOES(GLfixed nx, GLfixed ny, GLfixed nz)
 
 static void APIENTRY debug_glOrthoxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed t, GLfixed n, GLfixed f)
 {
-	glOrthoxOES(l, r, b, t, n, f);
+	default_glOrthoxOES(l, r, b, t, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27014,10 +27014,10 @@ static void APIENTRY debug_glOrthoxOES(GLfixed l, GLfixed r, GLfixed b, GLfixed 
 
 static void APIENTRY debug_glPointParameterxvOES(GLenum pname, const GLfixed *params)
 {
-	glPointParameterxvOES(pname, params);
+	default_glPointParameterxvOES(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27031,10 +27031,10 @@ static void APIENTRY debug_glPointParameterxvOES(GLenum pname, const GLfixed *pa
 
 static void APIENTRY debug_glPointSizexOES(GLfixed size)
 {
-	glPointSizexOES(size);
+	default_glPointSizexOES(size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27048,10 +27048,10 @@ static void APIENTRY debug_glPointSizexOES(GLfixed size)
 
 static void APIENTRY debug_glPolygonOffsetxOES(GLfixed factor, GLfixed units)
 {
-	glPolygonOffsetxOES(factor, units);
+	default_glPolygonOffsetxOES(factor, units);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27065,10 +27065,10 @@ static void APIENTRY debug_glPolygonOffsetxOES(GLfixed factor, GLfixed units)
 
 static void APIENTRY debug_glRotatexOES(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
 {
-	glRotatexOES(angle, x, y, z);
+	default_glRotatexOES(angle, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27082,10 +27082,10 @@ static void APIENTRY debug_glRotatexOES(GLfixed angle, GLfixed x, GLfixed y, GLf
 
 static void APIENTRY debug_glScalexOES(GLfixed x, GLfixed y, GLfixed z)
 {
-	glScalexOES(x, y, z);
+	default_glScalexOES(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27099,10 +27099,10 @@ static void APIENTRY debug_glScalexOES(GLfixed x, GLfixed y, GLfixed z)
 
 static void APIENTRY debug_glTexEnvxOES(GLenum target, GLenum pname, GLfixed param)
 {
-	glTexEnvxOES(target, pname, param);
+	default_glTexEnvxOES(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27116,10 +27116,10 @@ static void APIENTRY debug_glTexEnvxOES(GLenum target, GLenum pname, GLfixed par
 
 static void APIENTRY debug_glTexEnvxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
-	glTexEnvxvOES(target, pname, params);
+	default_glTexEnvxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27133,10 +27133,10 @@ static void APIENTRY debug_glTexEnvxvOES(GLenum target, GLenum pname, const GLfi
 
 static void APIENTRY debug_glTexParameterxOES(GLenum target, GLenum pname, GLfixed param)
 {
-	glTexParameterxOES(target, pname, param);
+	default_glTexParameterxOES(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27150,10 +27150,10 @@ static void APIENTRY debug_glTexParameterxOES(GLenum target, GLenum pname, GLfix
 
 static void APIENTRY debug_glTexParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
-	glTexParameterxvOES(target, pname, params);
+	default_glTexParameterxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27167,10 +27167,10 @@ static void APIENTRY debug_glTexParameterxvOES(GLenum target, GLenum pname, cons
 
 static void APIENTRY debug_glTranslatexOES(GLfixed x, GLfixed y, GLfixed z)
 {
-	glTranslatexOES(x, y, z);
+	default_glTranslatexOES(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27184,10 +27184,10 @@ static void APIENTRY debug_glTranslatexOES(GLfixed x, GLfixed y, GLfixed z)
 
 static void APIENTRY debug_glAccumxOES(GLenum op, GLfixed value)
 {
-	glAccumxOES(op, value);
+	default_glAccumxOES(op, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27201,10 +27201,10 @@ static void APIENTRY debug_glAccumxOES(GLenum op, GLfixed value)
 
 static void APIENTRY debug_glBitmapxOES(GLsizei width, GLsizei height, GLfixed xorig, GLfixed yorig, GLfixed xmove, GLfixed ymove, const GLubyte *bitmap)
 {
-	glBitmapxOES(width, height, xorig, yorig, xmove, ymove, bitmap);
+	default_glBitmapxOES(width, height, xorig, yorig, xmove, ymove, bitmap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27218,10 +27218,10 @@ static void APIENTRY debug_glBitmapxOES(GLsizei width, GLsizei height, GLfixed x
 
 static void APIENTRY debug_glBlendColorxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
-	glBlendColorxOES(red, green, blue, alpha);
+	default_glBlendColorxOES(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27235,10 +27235,10 @@ static void APIENTRY debug_glBlendColorxOES(GLfixed red, GLfixed green, GLfixed 
 
 static void APIENTRY debug_glClearAccumxOES(GLfixed red, GLfixed green, GLfixed blue, GLfixed alpha)
 {
-	glClearAccumxOES(red, green, blue, alpha);
+	default_glClearAccumxOES(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27252,10 +27252,10 @@ static void APIENTRY debug_glClearAccumxOES(GLfixed red, GLfixed green, GLfixed 
 
 static void APIENTRY debug_glColor3xOES(GLfixed red, GLfixed green, GLfixed blue)
 {
-	glColor3xOES(red, green, blue);
+	default_glColor3xOES(red, green, blue);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27269,10 +27269,10 @@ static void APIENTRY debug_glColor3xOES(GLfixed red, GLfixed green, GLfixed blue
 
 static void APIENTRY debug_glColor3xvOES(const GLfixed *components)
 {
-	glColor3xvOES(components);
+	default_glColor3xvOES(components);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27286,10 +27286,10 @@ static void APIENTRY debug_glColor3xvOES(const GLfixed *components)
 
 static void APIENTRY debug_glColor4xvOES(const GLfixed *components)
 {
-	glColor4xvOES(components);
+	default_glColor4xvOES(components);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27303,10 +27303,10 @@ static void APIENTRY debug_glColor4xvOES(const GLfixed *components)
 
 static void APIENTRY debug_glConvolutionParameterxOES(GLenum target, GLenum pname, GLfixed param)
 {
-	glConvolutionParameterxOES(target, pname, param);
+	default_glConvolutionParameterxOES(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27320,10 +27320,10 @@ static void APIENTRY debug_glConvolutionParameterxOES(GLenum target, GLenum pnam
 
 static void APIENTRY debug_glConvolutionParameterxvOES(GLenum target, GLenum pname, const GLfixed *params)
 {
-	glConvolutionParameterxvOES(target, pname, params);
+	default_glConvolutionParameterxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27337,10 +27337,10 @@ static void APIENTRY debug_glConvolutionParameterxvOES(GLenum target, GLenum pna
 
 static void APIENTRY debug_glEvalCoord1xOES(GLfixed u)
 {
-	glEvalCoord1xOES(u);
+	default_glEvalCoord1xOES(u);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27354,10 +27354,10 @@ static void APIENTRY debug_glEvalCoord1xOES(GLfixed u)
 
 static void APIENTRY debug_glEvalCoord1xvOES(const GLfixed *coords)
 {
-	glEvalCoord1xvOES(coords);
+	default_glEvalCoord1xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27371,10 +27371,10 @@ static void APIENTRY debug_glEvalCoord1xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glEvalCoord2xOES(GLfixed u, GLfixed v)
 {
-	glEvalCoord2xOES(u, v);
+	default_glEvalCoord2xOES(u, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27388,10 +27388,10 @@ static void APIENTRY debug_glEvalCoord2xOES(GLfixed u, GLfixed v)
 
 static void APIENTRY debug_glEvalCoord2xvOES(const GLfixed *coords)
 {
-	glEvalCoord2xvOES(coords);
+	default_glEvalCoord2xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27405,10 +27405,10 @@ static void APIENTRY debug_glEvalCoord2xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glFeedbackBufferxOES(GLsizei n, GLenum type, const GLfixed *buffer)
 {
-	glFeedbackBufferxOES(n, type, buffer);
+	default_glFeedbackBufferxOES(n, type, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27422,10 +27422,10 @@ static void APIENTRY debug_glFeedbackBufferxOES(GLsizei n, GLenum type, const GL
 
 static void APIENTRY debug_glGetConvolutionParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
-	glGetConvolutionParameterxvOES(target, pname, params);
+	default_glGetConvolutionParameterxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27439,10 +27439,10 @@ static void APIENTRY debug_glGetConvolutionParameterxvOES(GLenum target, GLenum 
 
 static void APIENTRY debug_glGetHistogramParameterxvOES(GLenum target, GLenum pname, GLfixed *params)
 {
-	glGetHistogramParameterxvOES(target, pname, params);
+	default_glGetHistogramParameterxvOES(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27456,10 +27456,10 @@ static void APIENTRY debug_glGetHistogramParameterxvOES(GLenum target, GLenum pn
 
 static void APIENTRY debug_glGetLightxOES(GLenum light, GLenum pname, GLfixed *params)
 {
-	glGetLightxOES(light, pname, params);
+	default_glGetLightxOES(light, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27473,10 +27473,10 @@ static void APIENTRY debug_glGetLightxOES(GLenum light, GLenum pname, GLfixed *p
 
 static void APIENTRY debug_glGetMapxvOES(GLenum target, GLenum query, GLfixed *v)
 {
-	glGetMapxvOES(target, query, v);
+	default_glGetMapxvOES(target, query, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27490,10 +27490,10 @@ static void APIENTRY debug_glGetMapxvOES(GLenum target, GLenum query, GLfixed *v
 
 static void APIENTRY debug_glGetMaterialxOES(GLenum face, GLenum pname, GLfixed param)
 {
-	glGetMaterialxOES(face, pname, param);
+	default_glGetMaterialxOES(face, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27507,10 +27507,10 @@ static void APIENTRY debug_glGetMaterialxOES(GLenum face, GLenum pname, GLfixed 
 
 static void APIENTRY debug_glGetPixelMapxv(GLenum map, GLint size, GLfixed *values)
 {
-	glGetPixelMapxv(map, size, values);
+	default_glGetPixelMapxv(map, size, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27524,10 +27524,10 @@ static void APIENTRY debug_glGetPixelMapxv(GLenum map, GLint size, GLfixed *valu
 
 static void APIENTRY debug_glGetTexGenxvOES(GLenum coord, GLenum pname, GLfixed *params)
 {
-	glGetTexGenxvOES(coord, pname, params);
+	default_glGetTexGenxvOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27541,10 +27541,10 @@ static void APIENTRY debug_glGetTexGenxvOES(GLenum coord, GLenum pname, GLfixed 
 
 static void APIENTRY debug_glGetTexLevelParameterxvOES(GLenum target, GLint level, GLenum pname, GLfixed *params)
 {
-	glGetTexLevelParameterxvOES(target, level, pname, params);
+	default_glGetTexLevelParameterxvOES(target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27558,10 +27558,10 @@ static void APIENTRY debug_glGetTexLevelParameterxvOES(GLenum target, GLint leve
 
 static void APIENTRY debug_glIndexxOES(GLfixed component)
 {
-	glIndexxOES(component);
+	default_glIndexxOES(component);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27575,10 +27575,10 @@ static void APIENTRY debug_glIndexxOES(GLfixed component)
 
 static void APIENTRY debug_glIndexxvOES(const GLfixed *component)
 {
-	glIndexxvOES(component);
+	default_glIndexxvOES(component);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27592,10 +27592,10 @@ static void APIENTRY debug_glIndexxvOES(const GLfixed *component)
 
 static void APIENTRY debug_glLoadTransposeMatrixxOES(const GLfixed *m)
 {
-	glLoadTransposeMatrixxOES(m);
+	default_glLoadTransposeMatrixxOES(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27609,10 +27609,10 @@ static void APIENTRY debug_glLoadTransposeMatrixxOES(const GLfixed *m)
 
 static void APIENTRY debug_glMap1xOES(GLenum target, GLfixed u1, GLfixed u2, GLint stride, GLint order, GLfixed points)
 {
-	glMap1xOES(target, u1, u2, stride, order, points);
+	default_glMap1xOES(target, u1, u2, stride, order, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27626,10 +27626,10 @@ static void APIENTRY debug_glMap1xOES(GLenum target, GLfixed u1, GLfixed u2, GLi
 
 static void APIENTRY debug_glMap2xOES(GLenum target, GLfixed u1, GLfixed u2, GLint ustride, GLint uorder, GLfixed v1, GLfixed v2, GLint vstride, GLint vorder, GLfixed points)
 {
-	glMap2xOES(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
+	default_glMap2xOES(target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27643,10 +27643,10 @@ static void APIENTRY debug_glMap2xOES(GLenum target, GLfixed u1, GLfixed u2, GLi
 
 static void APIENTRY debug_glMapGrid1xOES(GLint n, GLfixed u1, GLfixed u2)
 {
-	glMapGrid1xOES(n, u1, u2);
+	default_glMapGrid1xOES(n, u1, u2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27660,10 +27660,10 @@ static void APIENTRY debug_glMapGrid1xOES(GLint n, GLfixed u1, GLfixed u2)
 
 static void APIENTRY debug_glMapGrid2xOES(GLint n, GLfixed u1, GLfixed u2, GLfixed v1, GLfixed v2)
 {
-	glMapGrid2xOES(n, u1, u2, v1, v2);
+	default_glMapGrid2xOES(n, u1, u2, v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27677,10 +27677,10 @@ static void APIENTRY debug_glMapGrid2xOES(GLint n, GLfixed u1, GLfixed u2, GLfix
 
 static void APIENTRY debug_glMultTransposeMatrixxOES(const GLfixed *m)
 {
-	glMultTransposeMatrixxOES(m);
+	default_glMultTransposeMatrixxOES(m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27694,10 +27694,10 @@ static void APIENTRY debug_glMultTransposeMatrixxOES(const GLfixed *m)
 
 static void APIENTRY debug_glMultiTexCoord1xOES(GLenum texture, GLfixed s)
 {
-	glMultiTexCoord1xOES(texture, s);
+	default_glMultiTexCoord1xOES(texture, s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27711,10 +27711,10 @@ static void APIENTRY debug_glMultiTexCoord1xOES(GLenum texture, GLfixed s)
 
 static void APIENTRY debug_glMultiTexCoord1xvOES(GLenum texture, const GLfixed *coords)
 {
-	glMultiTexCoord1xvOES(texture, coords);
+	default_glMultiTexCoord1xvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27728,10 +27728,10 @@ static void APIENTRY debug_glMultiTexCoord1xvOES(GLenum texture, const GLfixed *
 
 static void APIENTRY debug_glMultiTexCoord2xOES(GLenum texture, GLfixed s, GLfixed t)
 {
-	glMultiTexCoord2xOES(texture, s, t);
+	default_glMultiTexCoord2xOES(texture, s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27745,10 +27745,10 @@ static void APIENTRY debug_glMultiTexCoord2xOES(GLenum texture, GLfixed s, GLfix
 
 static void APIENTRY debug_glMultiTexCoord2xvOES(GLenum texture, const GLfixed *coords)
 {
-	glMultiTexCoord2xvOES(texture, coords);
+	default_glMultiTexCoord2xvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27762,10 +27762,10 @@ static void APIENTRY debug_glMultiTexCoord2xvOES(GLenum texture, const GLfixed *
 
 static void APIENTRY debug_glMultiTexCoord3xOES(GLenum texture, GLfixed s, GLfixed t, GLfixed r)
 {
-	glMultiTexCoord3xOES(texture, s, t, r);
+	default_glMultiTexCoord3xOES(texture, s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27779,10 +27779,10 @@ static void APIENTRY debug_glMultiTexCoord3xOES(GLenum texture, GLfixed s, GLfix
 
 static void APIENTRY debug_glMultiTexCoord3xvOES(GLenum texture, const GLfixed *coords)
 {
-	glMultiTexCoord3xvOES(texture, coords);
+	default_glMultiTexCoord3xvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27796,10 +27796,10 @@ static void APIENTRY debug_glMultiTexCoord3xvOES(GLenum texture, const GLfixed *
 
 static void APIENTRY debug_glMultiTexCoord4xvOES(GLenum texture, const GLfixed *coords)
 {
-	glMultiTexCoord4xvOES(texture, coords);
+	default_glMultiTexCoord4xvOES(texture, coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27813,10 +27813,10 @@ static void APIENTRY debug_glMultiTexCoord4xvOES(GLenum texture, const GLfixed *
 
 static void APIENTRY debug_glNormal3xvOES(const GLfixed *coords)
 {
-	glNormal3xvOES(coords);
+	default_glNormal3xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27830,10 +27830,10 @@ static void APIENTRY debug_glNormal3xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glPassThroughxOES(GLfixed token)
 {
-	glPassThroughxOES(token);
+	default_glPassThroughxOES(token);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27847,10 +27847,10 @@ static void APIENTRY debug_glPassThroughxOES(GLfixed token)
 
 static void APIENTRY debug_glPixelMapx(GLenum map, GLint size, const GLfixed *values)
 {
-	glPixelMapx(map, size, values);
+	default_glPixelMapx(map, size, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27864,10 +27864,10 @@ static void APIENTRY debug_glPixelMapx(GLenum map, GLint size, const GLfixed *va
 
 static void APIENTRY debug_glPixelStorex(GLenum pname, GLfixed param)
 {
-	glPixelStorex(pname, param);
+	default_glPixelStorex(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27881,10 +27881,10 @@ static void APIENTRY debug_glPixelStorex(GLenum pname, GLfixed param)
 
 static void APIENTRY debug_glPixelTransferxOES(GLenum pname, GLfixed param)
 {
-	glPixelTransferxOES(pname, param);
+	default_glPixelTransferxOES(pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27898,10 +27898,10 @@ static void APIENTRY debug_glPixelTransferxOES(GLenum pname, GLfixed param)
 
 static void APIENTRY debug_glPixelZoomxOES(GLfixed xfactor, GLfixed yfactor)
 {
-	glPixelZoomxOES(xfactor, yfactor);
+	default_glPixelZoomxOES(xfactor, yfactor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27915,10 +27915,10 @@ static void APIENTRY debug_glPixelZoomxOES(GLfixed xfactor, GLfixed yfactor)
 
 static void APIENTRY debug_glPrioritizeTexturesxOES(GLsizei n, const GLuint *textures, const GLfixed *priorities)
 {
-	glPrioritizeTexturesxOES(n, textures, priorities);
+	default_glPrioritizeTexturesxOES(n, textures, priorities);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27932,10 +27932,10 @@ static void APIENTRY debug_glPrioritizeTexturesxOES(GLsizei n, const GLuint *tex
 
 static void APIENTRY debug_glRasterPos2xOES(GLfixed x, GLfixed y)
 {
-	glRasterPos2xOES(x, y);
+	default_glRasterPos2xOES(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27949,10 +27949,10 @@ static void APIENTRY debug_glRasterPos2xOES(GLfixed x, GLfixed y)
 
 static void APIENTRY debug_glRasterPos2xvOES(const GLfixed *coords)
 {
-	glRasterPos2xvOES(coords);
+	default_glRasterPos2xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27966,10 +27966,10 @@ static void APIENTRY debug_glRasterPos2xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glRasterPos3xOES(GLfixed x, GLfixed y, GLfixed z)
 {
-	glRasterPos3xOES(x, y, z);
+	default_glRasterPos3xOES(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -27983,10 +27983,10 @@ static void APIENTRY debug_glRasterPos3xOES(GLfixed x, GLfixed y, GLfixed z)
 
 static void APIENTRY debug_glRasterPos3xvOES(const GLfixed *coords)
 {
-	glRasterPos3xvOES(coords);
+	default_glRasterPos3xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28000,10 +28000,10 @@ static void APIENTRY debug_glRasterPos3xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glRasterPos4xOES(GLfixed x, GLfixed y, GLfixed z, GLfixed w)
 {
-	glRasterPos4xOES(x, y, z, w);
+	default_glRasterPos4xOES(x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28017,10 +28017,10 @@ static void APIENTRY debug_glRasterPos4xOES(GLfixed x, GLfixed y, GLfixed z, GLf
 
 static void APIENTRY debug_glRasterPos4xvOES(const GLfixed *coords)
 {
-	glRasterPos4xvOES(coords);
+	default_glRasterPos4xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28034,10 +28034,10 @@ static void APIENTRY debug_glRasterPos4xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glRectxOES(GLfixed x1, GLfixed y1, GLfixed x2, GLfixed y2)
 {
-	glRectxOES(x1, y1, x2, y2);
+	default_glRectxOES(x1, y1, x2, y2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28051,10 +28051,10 @@ static void APIENTRY debug_glRectxOES(GLfixed x1, GLfixed y1, GLfixed x2, GLfixe
 
 static void APIENTRY debug_glRectxvOES(const GLfixed *v1, const GLfixed *v2)
 {
-	glRectxvOES(v1, v2);
+	default_glRectxvOES(v1, v2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28068,10 +28068,10 @@ static void APIENTRY debug_glRectxvOES(const GLfixed *v1, const GLfixed *v2)
 
 static void APIENTRY debug_glTexCoord1xOES(GLfixed s)
 {
-	glTexCoord1xOES(s);
+	default_glTexCoord1xOES(s);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28085,10 +28085,10 @@ static void APIENTRY debug_glTexCoord1xOES(GLfixed s)
 
 static void APIENTRY debug_glTexCoord1xvOES(const GLfixed *coords)
 {
-	glTexCoord1xvOES(coords);
+	default_glTexCoord1xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28102,10 +28102,10 @@ static void APIENTRY debug_glTexCoord1xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glTexCoord2xOES(GLfixed s, GLfixed t)
 {
-	glTexCoord2xOES(s, t);
+	default_glTexCoord2xOES(s, t);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28119,10 +28119,10 @@ static void APIENTRY debug_glTexCoord2xOES(GLfixed s, GLfixed t)
 
 static void APIENTRY debug_glTexCoord2xvOES(const GLfixed *coords)
 {
-	glTexCoord2xvOES(coords);
+	default_glTexCoord2xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28136,10 +28136,10 @@ static void APIENTRY debug_glTexCoord2xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glTexCoord3xOES(GLfixed s, GLfixed t, GLfixed r)
 {
-	glTexCoord3xOES(s, t, r);
+	default_glTexCoord3xOES(s, t, r);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28153,10 +28153,10 @@ static void APIENTRY debug_glTexCoord3xOES(GLfixed s, GLfixed t, GLfixed r)
 
 static void APIENTRY debug_glTexCoord3xvOES(const GLfixed *coords)
 {
-	glTexCoord3xvOES(coords);
+	default_glTexCoord3xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28170,10 +28170,10 @@ static void APIENTRY debug_glTexCoord3xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glTexCoord4xOES(GLfixed s, GLfixed t, GLfixed r, GLfixed q)
 {
-	glTexCoord4xOES(s, t, r, q);
+	default_glTexCoord4xOES(s, t, r, q);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28187,10 +28187,10 @@ static void APIENTRY debug_glTexCoord4xOES(GLfixed s, GLfixed t, GLfixed r, GLfi
 
 static void APIENTRY debug_glTexCoord4xvOES(const GLfixed *coords)
 {
-	glTexCoord4xvOES(coords);
+	default_glTexCoord4xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28204,10 +28204,10 @@ static void APIENTRY debug_glTexCoord4xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glTexGenxOES(GLenum coord, GLenum pname, GLfixed param)
 {
-	glTexGenxOES(coord, pname, param);
+	default_glTexGenxOES(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28221,10 +28221,10 @@ static void APIENTRY debug_glTexGenxOES(GLenum coord, GLenum pname, GLfixed para
 
 static void APIENTRY debug_glTexGenxvOES(GLenum coord, GLenum pname, const GLfixed *params)
 {
-	glTexGenxvOES(coord, pname, params);
+	default_glTexGenxvOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28238,10 +28238,10 @@ static void APIENTRY debug_glTexGenxvOES(GLenum coord, GLenum pname, const GLfix
 
 static void APIENTRY debug_glVertex2xOES(GLfixed x)
 {
-	glVertex2xOES(x);
+	default_glVertex2xOES(x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28255,10 +28255,10 @@ static void APIENTRY debug_glVertex2xOES(GLfixed x)
 
 static void APIENTRY debug_glVertex2xvOES(const GLfixed *coords)
 {
-	glVertex2xvOES(coords);
+	default_glVertex2xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28272,10 +28272,10 @@ static void APIENTRY debug_glVertex2xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glVertex3xOES(GLfixed x, GLfixed y)
 {
-	glVertex3xOES(x, y);
+	default_glVertex3xOES(x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28289,10 +28289,10 @@ static void APIENTRY debug_glVertex3xOES(GLfixed x, GLfixed y)
 
 static void APIENTRY debug_glVertex3xvOES(const GLfixed *coords)
 {
-	glVertex3xvOES(coords);
+	default_glVertex3xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28306,10 +28306,10 @@ static void APIENTRY debug_glVertex3xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glVertex4xOES(GLfixed x, GLfixed y, GLfixed z)
 {
-	glVertex4xOES(x, y, z);
+	default_glVertex4xOES(x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28323,10 +28323,10 @@ static void APIENTRY debug_glVertex4xOES(GLfixed x, GLfixed y, GLfixed z)
 
 static void APIENTRY debug_glVertex4xvOES(const GLfixed *coords)
 {
-	glVertex4xvOES(coords);
+	default_glVertex4xvOES(coords);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28340,10 +28340,10 @@ static void APIENTRY debug_glVertex4xvOES(const GLfixed *coords)
 
 static void APIENTRY debug_glCurrentPaletteMatrixOES(GLuint matrixpaletteindex)
 {
-	glCurrentPaletteMatrixOES(matrixpaletteindex);
+	default_glCurrentPaletteMatrixOES(matrixpaletteindex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28357,10 +28357,10 @@ static void APIENTRY debug_glCurrentPaletteMatrixOES(GLuint matrixpaletteindex)
 
 static void APIENTRY debug_glLoadPaletteFromModelViewMatrixOES()
 {
-	glLoadPaletteFromModelViewMatrixOES();
+	default_glLoadPaletteFromModelViewMatrixOES();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28374,10 +28374,10 @@ static void APIENTRY debug_glLoadPaletteFromModelViewMatrixOES()
 
 static void APIENTRY debug_glMatrixIndexPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glMatrixIndexPointerOES(size, type, stride, pointer);
+	default_glMatrixIndexPointerOES(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28391,10 +28391,10 @@ static void APIENTRY debug_glMatrixIndexPointerOES(GLint size, GLenum type, GLsi
 
 static void APIENTRY debug_glWeightPointerOES(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glWeightPointerOES(size, type, stride, pointer);
+	default_glWeightPointerOES(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28408,10 +28408,10 @@ static void APIENTRY debug_glWeightPointerOES(GLint size, GLenum type, GLsizei s
 
 static void APIENTRY debug_glPointSizePointerOES(GLenum type, GLsizei stride, const void *pointer)
 {
-	glPointSizePointerOES(type, stride, pointer);
+	default_glPointSizePointerOES(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28428,7 +28428,7 @@ static GLbitfield APIENTRY debug_glQueryMatrixxOES(GLfixed *mantissa, GLint *exp
 	GLbitfield retVal = default_glQueryMatrixxOES(mantissa, exponent);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28443,10 +28443,10 @@ static GLbitfield APIENTRY debug_glQueryMatrixxOES(GLfixed *mantissa, GLint *exp
 
 static void APIENTRY debug_glClipPlanefOES(GLenum plane, const GLfloat *equation)
 {
-	glClipPlanefOES(plane, equation);
+	default_glClipPlanefOES(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28460,10 +28460,10 @@ static void APIENTRY debug_glClipPlanefOES(GLenum plane, const GLfloat *equation
 
 static void APIENTRY debug_glFrustumfOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
 {
-	glFrustumfOES(l, r, b, t, n, f);
+	default_glFrustumfOES(l, r, b, t, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28477,10 +28477,10 @@ static void APIENTRY debug_glFrustumfOES(GLfloat l, GLfloat r, GLfloat b, GLfloa
 
 static void APIENTRY debug_glGetClipPlanefOES(GLenum plane, GLfloat *equation)
 {
-	glGetClipPlanefOES(plane, equation);
+	default_glGetClipPlanefOES(plane, equation);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28494,10 +28494,10 @@ static void APIENTRY debug_glGetClipPlanefOES(GLenum plane, GLfloat *equation)
 
 static void APIENTRY debug_glOrthofOES(GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
 {
-	glOrthofOES(l, r, b, t, n, f);
+	default_glOrthofOES(l, r, b, t, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28511,10 +28511,10 @@ static void APIENTRY debug_glOrthofOES(GLfloat l, GLfloat r, GLfloat b, GLfloat 
 
 static void APIENTRY debug_glTexGenfOES(GLenum coord, GLenum pname, GLfloat param)
 {
-	glTexGenfOES(coord, pname, param);
+	default_glTexGenfOES(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28528,10 +28528,10 @@ static void APIENTRY debug_glTexGenfOES(GLenum coord, GLenum pname, GLfloat para
 
 static void APIENTRY debug_glTexGenfvOES(GLenum coord, GLenum pname, const GLfloat *params)
 {
-	glTexGenfvOES(coord, pname, params);
+	default_glTexGenfvOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28545,10 +28545,10 @@ static void APIENTRY debug_glTexGenfvOES(GLenum coord, GLenum pname, const GLflo
 
 static void APIENTRY debug_glTexGeniOES(GLenum coord, GLenum pname, GLint param)
 {
-	glTexGeniOES(coord, pname, param);
+	default_glTexGeniOES(coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28562,10 +28562,10 @@ static void APIENTRY debug_glTexGeniOES(GLenum coord, GLenum pname, GLint param)
 
 static void APIENTRY debug_glTexGenivOES(GLenum coord, GLenum pname, const GLint *params)
 {
-	glTexGenivOES(coord, pname, params);
+	default_glTexGenivOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28579,10 +28579,10 @@ static void APIENTRY debug_glTexGenivOES(GLenum coord, GLenum pname, const GLint
 
 static void APIENTRY debug_glGetTexGenfvOES(GLenum coord, GLenum pname, GLfloat *params)
 {
-	glGetTexGenfvOES(coord, pname, params);
+	default_glGetTexGenfvOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28596,10 +28596,10 @@ static void APIENTRY debug_glGetTexGenfvOES(GLenum coord, GLenum pname, GLfloat 
 
 static void APIENTRY debug_glGetTexGenivOES(GLenum coord, GLenum pname, GLint *params)
 {
-	glGetTexGenivOES(coord, pname, params);
+	default_glGetTexGenivOES(coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28613,10 +28613,10 @@ static void APIENTRY debug_glGetTexGenivOES(GLenum coord, GLenum pname, GLint *p
 
 static void APIENTRY debug_glDepthRangeArrayfvOES(GLuint first, GLsizei count, const GLfloat *v)
 {
-	glDepthRangeArrayfvOES(first, count, v);
+	default_glDepthRangeArrayfvOES(first, count, v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28630,10 +28630,10 @@ static void APIENTRY debug_glDepthRangeArrayfvOES(GLuint first, GLsizei count, c
 
 static void APIENTRY debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfloat f)
 {
-	glDepthRangeIndexedfOES(index, n, f);
+	default_glDepthRangeIndexedfOES(index, n, f);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28647,10 +28647,10 @@ static void APIENTRY debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfl
 
 static void APIENTRY debug_glUniformBufferEXT(GLuint program, GLint location, GLuint buffer)
 {
-	glUniformBufferEXT(program, location, buffer);
+	default_glUniformBufferEXT(program, location, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28667,7 +28667,7 @@ static GLint APIENTRY debug_glGetUniformBufferSizeEXT(GLuint program, GLint loca
 	GLint retVal = default_glGetUniformBufferSizeEXT(program, location);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28685,7 +28685,7 @@ static GLintptr APIENTRY debug_glGetUniformOffsetEXT(GLuint program, GLint locat
 	GLintptr retVal = default_glGetUniformOffsetEXT(program, location);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28700,10 +28700,10 @@ static GLintptr APIENTRY debug_glGetUniformOffsetEXT(GLuint program, GLint locat
 
 static void APIENTRY debug_glLockArraysEXT(GLint first, GLsizei count)
 {
-	glLockArraysEXT(first, count);
+	default_glLockArraysEXT(first, count);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28717,10 +28717,10 @@ static void APIENTRY debug_glLockArraysEXT(GLint first, GLsizei count)
 
 static void APIENTRY debug_glUnlockArraysEXT()
 {
-	glUnlockArraysEXT();
+	default_glUnlockArraysEXT();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28734,10 +28734,10 @@ static void APIENTRY debug_glUnlockArraysEXT()
 
 static void APIENTRY debug_glGetConvolutionFilterEXT(GLenum target, GLenum format, GLenum type, void *image)
 {
-	glGetConvolutionFilterEXT(target, format, type, image);
+	default_glGetConvolutionFilterEXT(target, format, type, image);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28751,10 +28751,10 @@ static void APIENTRY debug_glGetConvolutionFilterEXT(GLenum target, GLenum forma
 
 static void APIENTRY debug_glGetConvolutionParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetConvolutionParameterfvEXT(target, pname, params);
+	default_glGetConvolutionParameterfvEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28768,10 +28768,10 @@ static void APIENTRY debug_glGetConvolutionParameterfvEXT(GLenum target, GLenum 
 
 static void APIENTRY debug_glGetConvolutionParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
-	glGetConvolutionParameterivEXT(target, pname, params);
+	default_glGetConvolutionParameterivEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28785,10 +28785,10 @@ static void APIENTRY debug_glGetConvolutionParameterivEXT(GLenum target, GLenum 
 
 static void APIENTRY debug_glGetSeparableFilterEXT(GLenum target, GLenum format, GLenum type, void *row, void *column, void *span)
 {
-	glGetSeparableFilterEXT(target, format, type, row, column, span);
+	default_glGetSeparableFilterEXT(target, format, type, row, column, span);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28802,10 +28802,10 @@ static void APIENTRY debug_glGetSeparableFilterEXT(GLenum target, GLenum format,
 
 static void APIENTRY debug_glTangent3bEXT(GLbyte tx, GLbyte ty, GLbyte tz)
 {
-	glTangent3bEXT(tx, ty, tz);
+	default_glTangent3bEXT(tx, ty, tz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28819,10 +28819,10 @@ static void APIENTRY debug_glTangent3bEXT(GLbyte tx, GLbyte ty, GLbyte tz)
 
 static void APIENTRY debug_glTangent3bvEXT(const GLbyte *v)
 {
-	glTangent3bvEXT(v);
+	default_glTangent3bvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28836,10 +28836,10 @@ static void APIENTRY debug_glTangent3bvEXT(const GLbyte *v)
 
 static void APIENTRY debug_glTangent3dEXT(GLdouble tx, GLdouble ty, GLdouble tz)
 {
-	glTangent3dEXT(tx, ty, tz);
+	default_glTangent3dEXT(tx, ty, tz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28853,10 +28853,10 @@ static void APIENTRY debug_glTangent3dEXT(GLdouble tx, GLdouble ty, GLdouble tz)
 
 static void APIENTRY debug_glTangent3dvEXT(const GLdouble *v)
 {
-	glTangent3dvEXT(v);
+	default_glTangent3dvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28870,10 +28870,10 @@ static void APIENTRY debug_glTangent3dvEXT(const GLdouble *v)
 
 static void APIENTRY debug_glTangent3fEXT(GLfloat tx, GLfloat ty, GLfloat tz)
 {
-	glTangent3fEXT(tx, ty, tz);
+	default_glTangent3fEXT(tx, ty, tz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28887,10 +28887,10 @@ static void APIENTRY debug_glTangent3fEXT(GLfloat tx, GLfloat ty, GLfloat tz)
 
 static void APIENTRY debug_glTangent3fvEXT(const GLfloat *v)
 {
-	glTangent3fvEXT(v);
+	default_glTangent3fvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28904,10 +28904,10 @@ static void APIENTRY debug_glTangent3fvEXT(const GLfloat *v)
 
 static void APIENTRY debug_glTangent3iEXT(GLint tx, GLint ty, GLint tz)
 {
-	glTangent3iEXT(tx, ty, tz);
+	default_glTangent3iEXT(tx, ty, tz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28921,10 +28921,10 @@ static void APIENTRY debug_glTangent3iEXT(GLint tx, GLint ty, GLint tz)
 
 static void APIENTRY debug_glTangent3ivEXT(const GLint *v)
 {
-	glTangent3ivEXT(v);
+	default_glTangent3ivEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28938,10 +28938,10 @@ static void APIENTRY debug_glTangent3ivEXT(const GLint *v)
 
 static void APIENTRY debug_glTangent3sEXT(GLshort tx, GLshort ty, GLshort tz)
 {
-	glTangent3sEXT(tx, ty, tz);
+	default_glTangent3sEXT(tx, ty, tz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28955,10 +28955,10 @@ static void APIENTRY debug_glTangent3sEXT(GLshort tx, GLshort ty, GLshort tz)
 
 static void APIENTRY debug_glTangent3svEXT(const GLshort *v)
 {
-	glTangent3svEXT(v);
+	default_glTangent3svEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28972,10 +28972,10 @@ static void APIENTRY debug_glTangent3svEXT(const GLshort *v)
 
 static void APIENTRY debug_glBinormal3bEXT(GLbyte bx, GLbyte by, GLbyte bz)
 {
-	glBinormal3bEXT(bx, by, bz);
+	default_glBinormal3bEXT(bx, by, bz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -28989,10 +28989,10 @@ static void APIENTRY debug_glBinormal3bEXT(GLbyte bx, GLbyte by, GLbyte bz)
 
 static void APIENTRY debug_glBinormal3bvEXT(const GLbyte *v)
 {
-	glBinormal3bvEXT(v);
+	default_glBinormal3bvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29006,10 +29006,10 @@ static void APIENTRY debug_glBinormal3bvEXT(const GLbyte *v)
 
 static void APIENTRY debug_glBinormal3dEXT(GLdouble bx, GLdouble by, GLdouble bz)
 {
-	glBinormal3dEXT(bx, by, bz);
+	default_glBinormal3dEXT(bx, by, bz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29023,10 +29023,10 @@ static void APIENTRY debug_glBinormal3dEXT(GLdouble bx, GLdouble by, GLdouble bz
 
 static void APIENTRY debug_glBinormal3dvEXT(const GLdouble *v)
 {
-	glBinormal3dvEXT(v);
+	default_glBinormal3dvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29040,10 +29040,10 @@ static void APIENTRY debug_glBinormal3dvEXT(const GLdouble *v)
 
 static void APIENTRY debug_glBinormal3fEXT(GLfloat bx, GLfloat by, GLfloat bz)
 {
-	glBinormal3fEXT(bx, by, bz);
+	default_glBinormal3fEXT(bx, by, bz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29057,10 +29057,10 @@ static void APIENTRY debug_glBinormal3fEXT(GLfloat bx, GLfloat by, GLfloat bz)
 
 static void APIENTRY debug_glBinormal3fvEXT(const GLfloat *v)
 {
-	glBinormal3fvEXT(v);
+	default_glBinormal3fvEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29074,10 +29074,10 @@ static void APIENTRY debug_glBinormal3fvEXT(const GLfloat *v)
 
 static void APIENTRY debug_glBinormal3iEXT(GLint bx, GLint by, GLint bz)
 {
-	glBinormal3iEXT(bx, by, bz);
+	default_glBinormal3iEXT(bx, by, bz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29091,10 +29091,10 @@ static void APIENTRY debug_glBinormal3iEXT(GLint bx, GLint by, GLint bz)
 
 static void APIENTRY debug_glBinormal3ivEXT(const GLint *v)
 {
-	glBinormal3ivEXT(v);
+	default_glBinormal3ivEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29108,10 +29108,10 @@ static void APIENTRY debug_glBinormal3ivEXT(const GLint *v)
 
 static void APIENTRY debug_glBinormal3sEXT(GLshort bx, GLshort by, GLshort bz)
 {
-	glBinormal3sEXT(bx, by, bz);
+	default_glBinormal3sEXT(bx, by, bz);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29125,10 +29125,10 @@ static void APIENTRY debug_glBinormal3sEXT(GLshort bx, GLshort by, GLshort bz)
 
 static void APIENTRY debug_glBinormal3svEXT(const GLshort *v)
 {
-	glBinormal3svEXT(v);
+	default_glBinormal3svEXT(v);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29142,10 +29142,10 @@ static void APIENTRY debug_glBinormal3svEXT(const GLshort *v)
 
 static void APIENTRY debug_glTangentPointerEXT(GLenum type, GLsizei stride, const void *pointer)
 {
-	glTangentPointerEXT(type, stride, pointer);
+	default_glTangentPointerEXT(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29159,10 +29159,10 @@ static void APIENTRY debug_glTangentPointerEXT(GLenum type, GLsizei stride, cons
 
 static void APIENTRY debug_glBinormalPointerEXT(GLenum type, GLsizei stride, const void *pointer)
 {
-	glBinormalPointerEXT(type, stride, pointer);
+	default_glBinormalPointerEXT(type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29176,10 +29176,10 @@ static void APIENTRY debug_glBinormalPointerEXT(GLenum type, GLsizei stride, con
 
 static void APIENTRY debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
 {
-	glCullParameterdvEXT(pname, params);
+	default_glCullParameterdvEXT(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29193,10 +29193,10 @@ static void APIENTRY debug_glCullParameterdvEXT(GLenum pname, GLdouble *params)
 
 static void APIENTRY debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
 {
-	glCullParameterfvEXT(pname, params);
+	default_glCullParameterfvEXT(pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29210,10 +29210,10 @@ static void APIENTRY debug_glCullParameterfvEXT(GLenum pname, GLfloat *params)
 
 static void APIENTRY debug_glLabelObjectEXT(GLenum type, GLuint object, GLsizei length, const GLchar *label)
 {
-	glLabelObjectEXT(type, object, length, label);
+	default_glLabelObjectEXT(type, object, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29227,10 +29227,10 @@ static void APIENTRY debug_glLabelObjectEXT(GLenum type, GLuint object, GLsizei 
 
 static void APIENTRY debug_glGetObjectLabelEXT(GLenum type, GLuint object, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
-	glGetObjectLabelEXT(type, object, bufSize, length, label);
+	default_glGetObjectLabelEXT(type, object, bufSize, length, label);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29244,10 +29244,10 @@ static void APIENTRY debug_glGetObjectLabelEXT(GLenum type, GLuint object, GLsiz
 
 static void APIENTRY debug_glInsertEventMarkerEXT(GLsizei length, const GLchar *marker)
 {
-	glInsertEventMarkerEXT(length, marker);
+	default_glInsertEventMarkerEXT(length, marker);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29261,10 +29261,10 @@ static void APIENTRY debug_glInsertEventMarkerEXT(GLsizei length, const GLchar *
 
 static void APIENTRY debug_glPushGroupMarkerEXT(GLsizei length, const GLchar *marker)
 {
-	glPushGroupMarkerEXT(length, marker);
+	default_glPushGroupMarkerEXT(length, marker);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29278,10 +29278,10 @@ static void APIENTRY debug_glPushGroupMarkerEXT(GLsizei length, const GLchar *ma
 
 static void APIENTRY debug_glPopGroupMarkerEXT()
 {
-	glPopGroupMarkerEXT();
+	default_glPopGroupMarkerEXT();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29295,10 +29295,10 @@ static void APIENTRY debug_glPopGroupMarkerEXT()
 
 static void APIENTRY debug_glDepthBoundsEXT(GLclampd zmin, GLclampd zmax)
 {
-	glDepthBoundsEXT(zmin, zmax);
+	default_glDepthBoundsEXT(zmin, zmax);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29312,10 +29312,10 @@ static void APIENTRY debug_glDepthBoundsEXT(GLclampd zmin, GLclampd zmax)
 
 static void APIENTRY debug_glMatrixLoadfEXT(GLenum mode, const GLfloat *m)
 {
-	glMatrixLoadfEXT(mode, m);
+	default_glMatrixLoadfEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29329,10 +29329,10 @@ static void APIENTRY debug_glMatrixLoadfEXT(GLenum mode, const GLfloat *m)
 
 static void APIENTRY debug_glMatrixLoaddEXT(GLenum mode, const GLdouble *m)
 {
-	glMatrixLoaddEXT(mode, m);
+	default_glMatrixLoaddEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29346,10 +29346,10 @@ static void APIENTRY debug_glMatrixLoaddEXT(GLenum mode, const GLdouble *m)
 
 static void APIENTRY debug_glMatrixMultfEXT(GLenum mode, const GLfloat *m)
 {
-	glMatrixMultfEXT(mode, m);
+	default_glMatrixMultfEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29363,10 +29363,10 @@ static void APIENTRY debug_glMatrixMultfEXT(GLenum mode, const GLfloat *m)
 
 static void APIENTRY debug_glMatrixMultdEXT(GLenum mode, const GLdouble *m)
 {
-	glMatrixMultdEXT(mode, m);
+	default_glMatrixMultdEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29380,10 +29380,10 @@ static void APIENTRY debug_glMatrixMultdEXT(GLenum mode, const GLdouble *m)
 
 static void APIENTRY debug_glMatrixLoadIdentityEXT(GLenum mode)
 {
-	glMatrixLoadIdentityEXT(mode);
+	default_glMatrixLoadIdentityEXT(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29397,10 +29397,10 @@ static void APIENTRY debug_glMatrixLoadIdentityEXT(GLenum mode)
 
 static void APIENTRY debug_glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
-	glMatrixRotatefEXT(mode, angle, x, y, z);
+	default_glMatrixRotatefEXT(mode, angle, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29414,10 +29414,10 @@ static void APIENTRY debug_glMatrixRotatefEXT(GLenum mode, GLfloat angle, GLfloa
 
 static void APIENTRY debug_glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 {
-	glMatrixRotatedEXT(mode, angle, x, y, z);
+	default_glMatrixRotatedEXT(mode, angle, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29431,10 +29431,10 @@ static void APIENTRY debug_glMatrixRotatedEXT(GLenum mode, GLdouble angle, GLdou
 
 static void APIENTRY debug_glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
 {
-	glMatrixScalefEXT(mode, x, y, z);
+	default_glMatrixScalefEXT(mode, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29448,10 +29448,10 @@ static void APIENTRY debug_glMatrixScalefEXT(GLenum mode, GLfloat x, GLfloat y, 
 
 static void APIENTRY debug_glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
 {
-	glMatrixScaledEXT(mode, x, y, z);
+	default_glMatrixScaledEXT(mode, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29465,10 +29465,10 @@ static void APIENTRY debug_glMatrixScaledEXT(GLenum mode, GLdouble x, GLdouble y
 
 static void APIENTRY debug_glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat y, GLfloat z)
 {
-	glMatrixTranslatefEXT(mode, x, y, z);
+	default_glMatrixTranslatefEXT(mode, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29482,10 +29482,10 @@ static void APIENTRY debug_glMatrixTranslatefEXT(GLenum mode, GLfloat x, GLfloat
 
 static void APIENTRY debug_glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdouble y, GLdouble z)
 {
-	glMatrixTranslatedEXT(mode, x, y, z);
+	default_glMatrixTranslatedEXT(mode, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29499,10 +29499,10 @@ static void APIENTRY debug_glMatrixTranslatedEXT(GLenum mode, GLdouble x, GLdoub
 
 static void APIENTRY debug_glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
-	glMatrixFrustumEXT(mode, left, right, bottom, top, zNear, zFar);
+	default_glMatrixFrustumEXT(mode, left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29516,10 +29516,10 @@ static void APIENTRY debug_glMatrixFrustumEXT(GLenum mode, GLdouble left, GLdoub
 
 static void APIENTRY debug_glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
-	glMatrixOrthoEXT(mode, left, right, bottom, top, zNear, zFar);
+	default_glMatrixOrthoEXT(mode, left, right, bottom, top, zNear, zFar);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29533,10 +29533,10 @@ static void APIENTRY debug_glMatrixOrthoEXT(GLenum mode, GLdouble left, GLdouble
 
 static void APIENTRY debug_glMatrixPopEXT(GLenum mode)
 {
-	glMatrixPopEXT(mode);
+	default_glMatrixPopEXT(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29550,10 +29550,10 @@ static void APIENTRY debug_glMatrixPopEXT(GLenum mode)
 
 static void APIENTRY debug_glMatrixPushEXT(GLenum mode)
 {
-	glMatrixPushEXT(mode);
+	default_glMatrixPushEXT(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29567,10 +29567,10 @@ static void APIENTRY debug_glMatrixPushEXT(GLenum mode)
 
 static void APIENTRY debug_glClientAttribDefaultEXT(GLbitfield mask)
 {
-	glClientAttribDefaultEXT(mask);
+	default_glClientAttribDefaultEXT(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29584,10 +29584,10 @@ static void APIENTRY debug_glClientAttribDefaultEXT(GLbitfield mask)
 
 static void APIENTRY debug_glPushClientAttribDefaultEXT(GLbitfield mask)
 {
-	glPushClientAttribDefaultEXT(mask);
+	default_glPushClientAttribDefaultEXT(mask);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29601,10 +29601,10 @@ static void APIENTRY debug_glPushClientAttribDefaultEXT(GLbitfield mask)
 
 static void APIENTRY debug_glTextureParameterfEXT(GLuint texture, GLenum target, GLenum pname, GLfloat param)
 {
-	glTextureParameterfEXT(texture, target, pname, param);
+	default_glTextureParameterfEXT(texture, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29618,10 +29618,10 @@ static void APIENTRY debug_glTextureParameterfEXT(GLuint texture, GLenum target,
 
 static void APIENTRY debug_glTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, const GLfloat *params)
 {
-	glTextureParameterfvEXT(texture, target, pname, params);
+	default_glTextureParameterfvEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29635,10 +29635,10 @@ static void APIENTRY debug_glTextureParameterfvEXT(GLuint texture, GLenum target
 
 static void APIENTRY debug_glTextureParameteriEXT(GLuint texture, GLenum target, GLenum pname, GLint param)
 {
-	glTextureParameteriEXT(texture, target, pname, param);
+	default_glTextureParameteriEXT(texture, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29652,10 +29652,10 @@ static void APIENTRY debug_glTextureParameteriEXT(GLuint texture, GLenum target,
 
 static void APIENTRY debug_glTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
 {
-	glTextureParameterivEXT(texture, target, pname, params);
+	default_glTextureParameterivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29669,10 +29669,10 @@ static void APIENTRY debug_glTextureParameterivEXT(GLuint texture, GLenum target
 
 static void APIENTRY debug_glTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureImage1DEXT(texture, target, level, internalformat, width, border, format, type, pixels);
+	default_glTextureImage1DEXT(texture, target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29686,10 +29686,10 @@ static void APIENTRY debug_glTextureImage1DEXT(GLuint texture, GLenum target, GL
 
 static void APIENTRY debug_glTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
+	default_glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29703,10 +29703,10 @@ static void APIENTRY debug_glTextureImage2DEXT(GLuint texture, GLenum target, GL
 
 static void APIENTRY debug_glTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage1DEXT(texture, target, level, xoffset, width, format, type, pixels);
+	default_glTextureSubImage1DEXT(texture, target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29720,10 +29720,10 @@ static void APIENTRY debug_glTextureSubImage1DEXT(GLuint texture, GLenum target,
 
 static void APIENTRY debug_glTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, type, pixels);
+	default_glTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29737,10 +29737,10 @@ static void APIENTRY debug_glTextureSubImage2DEXT(GLuint texture, GLenum target,
 
 static void APIENTRY debug_glCopyTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
-	glCopyTextureImage1DEXT(texture, target, level, internalformat, x, y, width, border);
+	default_glCopyTextureImage1DEXT(texture, target, level, internalformat, x, y, width, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29754,10 +29754,10 @@ static void APIENTRY debug_glCopyTextureImage1DEXT(GLuint texture, GLenum target
 
 static void APIENTRY debug_glCopyTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
-	glCopyTextureImage2DEXT(texture, target, level, internalformat, x, y, width, height, border);
+	default_glCopyTextureImage2DEXT(texture, target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29771,10 +29771,10 @@ static void APIENTRY debug_glCopyTextureImage2DEXT(GLuint texture, GLenum target
 
 static void APIENTRY debug_glCopyTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
-	glCopyTextureSubImage1DEXT(texture, target, level, xoffset, x, y, width);
+	default_glCopyTextureSubImage1DEXT(texture, target, level, xoffset, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29788,10 +29788,10 @@ static void APIENTRY debug_glCopyTextureSubImage1DEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glCopyTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, x, y, width, height);
+	default_glCopyTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29805,10 +29805,10 @@ static void APIENTRY debug_glCopyTextureSubImage2DEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glGetTextureImageEXT(GLuint texture, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
-	glGetTextureImageEXT(texture, target, level, format, type, pixels);
+	default_glGetTextureImageEXT(texture, target, level, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29822,10 +29822,10 @@ static void APIENTRY debug_glGetTextureImageEXT(GLuint texture, GLenum target, G
 
 static void APIENTRY debug_glGetTextureParameterfvEXT(GLuint texture, GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetTextureParameterfvEXT(texture, target, pname, params);
+	default_glGetTextureParameterfvEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29839,10 +29839,10 @@ static void APIENTRY debug_glGetTextureParameterfvEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glGetTextureParameterivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
 {
-	glGetTextureParameterivEXT(texture, target, pname, params);
+	default_glGetTextureParameterivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29856,10 +29856,10 @@ static void APIENTRY debug_glGetTextureParameterivEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glGetTextureLevelParameterfvEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
-	glGetTextureLevelParameterfvEXT(texture, target, level, pname, params);
+	default_glGetTextureLevelParameterfvEXT(texture, target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29873,10 +29873,10 @@ static void APIENTRY debug_glGetTextureLevelParameterfvEXT(GLuint texture, GLenu
 
 static void APIENTRY debug_glGetTextureLevelParameterivEXT(GLuint texture, GLenum target, GLint level, GLenum pname, GLint *params)
 {
-	glGetTextureLevelParameterivEXT(texture, target, level, pname, params);
+	default_glGetTextureLevelParameterivEXT(texture, target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29890,10 +29890,10 @@ static void APIENTRY debug_glGetTextureLevelParameterivEXT(GLuint texture, GLenu
 
 static void APIENTRY debug_glTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, format, type, pixels);
+	default_glTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29907,10 +29907,10 @@ static void APIENTRY debug_glTextureImage3DEXT(GLuint texture, GLenum target, GL
 
 static void APIENTRY debug_glTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
-	glTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	default_glTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29924,10 +29924,10 @@ static void APIENTRY debug_glTextureSubImage3DEXT(GLuint texture, GLenum target,
 
 static void APIENTRY debug_glCopyTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, x, y, width, height);
+	default_glCopyTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29941,10 +29941,10 @@ static void APIENTRY debug_glCopyTextureSubImage3DEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glBindMultiTextureEXT(GLenum texunit, GLenum target, GLuint texture)
 {
-	glBindMultiTextureEXT(texunit, target, texture);
+	default_glBindMultiTextureEXT(texunit, target, texture);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29958,10 +29958,10 @@ static void APIENTRY debug_glBindMultiTextureEXT(GLenum texunit, GLenum target, 
 
 static void APIENTRY debug_glMultiTexCoordPointerEXT(GLenum texunit, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glMultiTexCoordPointerEXT(texunit, size, type, stride, pointer);
+	default_glMultiTexCoordPointerEXT(texunit, size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29975,10 +29975,10 @@ static void APIENTRY debug_glMultiTexCoordPointerEXT(GLenum texunit, GLint size,
 
 static void APIENTRY debug_glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
 {
-	glMultiTexEnvfEXT(texunit, target, pname, param);
+	default_glMultiTexEnvfEXT(texunit, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -29992,10 +29992,10 @@ static void APIENTRY debug_glMultiTexEnvfEXT(GLenum texunit, GLenum target, GLen
 
 static void APIENTRY debug_glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
 {
-	glMultiTexEnvfvEXT(texunit, target, pname, params);
+	default_glMultiTexEnvfvEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30009,10 +30009,10 @@ static void APIENTRY debug_glMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLe
 
 static void APIENTRY debug_glMultiTexEnviEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
 {
-	glMultiTexEnviEXT(texunit, target, pname, param);
+	default_glMultiTexEnviEXT(texunit, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30026,10 +30026,10 @@ static void APIENTRY debug_glMultiTexEnviEXT(GLenum texunit, GLenum target, GLen
 
 static void APIENTRY debug_glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
-	glMultiTexEnvivEXT(texunit, target, pname, params);
+	default_glMultiTexEnvivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30043,10 +30043,10 @@ static void APIENTRY debug_glMultiTexEnvivEXT(GLenum texunit, GLenum target, GLe
 
 static void APIENTRY debug_glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble param)
 {
-	glMultiTexGendEXT(texunit, coord, pname, param);
+	default_glMultiTexGendEXT(texunit, coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30060,10 +30060,10 @@ static void APIENTRY debug_glMultiTexGendEXT(GLenum texunit, GLenum coord, GLenu
 
 static void APIENTRY debug_glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLdouble *params)
 {
-	glMultiTexGendvEXT(texunit, coord, pname, params);
+	default_glMultiTexGendvEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30077,10 +30077,10 @@ static void APIENTRY debug_glMultiTexGendvEXT(GLenum texunit, GLenum coord, GLen
 
 static void APIENTRY debug_glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat param)
 {
-	glMultiTexGenfEXT(texunit, coord, pname, param);
+	default_glMultiTexGenfEXT(texunit, coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30094,10 +30094,10 @@ static void APIENTRY debug_glMultiTexGenfEXT(GLenum texunit, GLenum coord, GLenu
 
 static void APIENTRY debug_glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, const GLfloat *params)
 {
-	glMultiTexGenfvEXT(texunit, coord, pname, params);
+	default_glMultiTexGenfvEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30111,10 +30111,10 @@ static void APIENTRY debug_glMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLen
 
 static void APIENTRY debug_glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenum pname, GLint param)
 {
-	glMultiTexGeniEXT(texunit, coord, pname, param);
+	default_glMultiTexGeniEXT(texunit, coord, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30128,10 +30128,10 @@ static void APIENTRY debug_glMultiTexGeniEXT(GLenum texunit, GLenum coord, GLenu
 
 static void APIENTRY debug_glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, const GLint *params)
 {
-	glMultiTexGenivEXT(texunit, coord, pname, params);
+	default_glMultiTexGenivEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30145,10 +30145,10 @@ static void APIENTRY debug_glMultiTexGenivEXT(GLenum texunit, GLenum coord, GLen
 
 static void APIENTRY debug_glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetMultiTexEnvfvEXT(texunit, target, pname, params);
+	default_glGetMultiTexEnvfvEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30162,10 +30162,10 @@ static void APIENTRY debug_glGetMultiTexEnvfvEXT(GLenum texunit, GLenum target, 
 
 static void APIENTRY debug_glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
-	glGetMultiTexEnvivEXT(texunit, target, pname, params);
+	default_glGetMultiTexEnvivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30179,10 +30179,10 @@ static void APIENTRY debug_glGetMultiTexEnvivEXT(GLenum texunit, GLenum target, 
 
 static void APIENTRY debug_glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, GLenum pname, GLdouble *params)
 {
-	glGetMultiTexGendvEXT(texunit, coord, pname, params);
+	default_glGetMultiTexGendvEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30196,10 +30196,10 @@ static void APIENTRY debug_glGetMultiTexGendvEXT(GLenum texunit, GLenum coord, G
 
 static void APIENTRY debug_glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, GLenum pname, GLfloat *params)
 {
-	glGetMultiTexGenfvEXT(texunit, coord, pname, params);
+	default_glGetMultiTexGenfvEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30213,10 +30213,10 @@ static void APIENTRY debug_glGetMultiTexGenfvEXT(GLenum texunit, GLenum coord, G
 
 static void APIENTRY debug_glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, GLenum pname, GLint *params)
 {
-	glGetMultiTexGenivEXT(texunit, coord, pname, params);
+	default_glGetMultiTexGenivEXT(texunit, coord, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30230,10 +30230,10 @@ static void APIENTRY debug_glGetMultiTexGenivEXT(GLenum texunit, GLenum coord, G
 
 static void APIENTRY debug_glMultiTexParameteriEXT(GLenum texunit, GLenum target, GLenum pname, GLint param)
 {
-	glMultiTexParameteriEXT(texunit, target, pname, param);
+	default_glMultiTexParameteriEXT(texunit, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30247,10 +30247,10 @@ static void APIENTRY debug_glMultiTexParameteriEXT(GLenum texunit, GLenum target
 
 static void APIENTRY debug_glMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
-	glMultiTexParameterivEXT(texunit, target, pname, params);
+	default_glMultiTexParameterivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30264,10 +30264,10 @@ static void APIENTRY debug_glMultiTexParameterivEXT(GLenum texunit, GLenum targe
 
 static void APIENTRY debug_glMultiTexParameterfEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat param)
 {
-	glMultiTexParameterfEXT(texunit, target, pname, param);
+	default_glMultiTexParameterfEXT(texunit, target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30281,10 +30281,10 @@ static void APIENTRY debug_glMultiTexParameterfEXT(GLenum texunit, GLenum target
 
 static void APIENTRY debug_glMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, const GLfloat *params)
 {
-	glMultiTexParameterfvEXT(texunit, target, pname, params);
+	default_glMultiTexParameterfvEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30298,10 +30298,10 @@ static void APIENTRY debug_glMultiTexParameterfvEXT(GLenum texunit, GLenum targe
 
 static void APIENTRY debug_glMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, format, type, pixels);
+	default_glMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30315,10 +30315,10 @@ static void APIENTRY debug_glMultiTexImage1DEXT(GLenum texunit, GLenum target, G
 
 static void APIENTRY debug_glMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, format, type, pixels);
+	default_glMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30332,10 +30332,10 @@ static void APIENTRY debug_glMultiTexImage2DEXT(GLenum texunit, GLenum target, G
 
 static void APIENTRY debug_glMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, type, pixels);
+	default_glMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30349,10 +30349,10 @@ static void APIENTRY debug_glMultiTexSubImage1DEXT(GLenum texunit, GLenum target
 
 static void APIENTRY debug_glMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, type, pixels);
+	default_glMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30366,10 +30366,10 @@ static void APIENTRY debug_glMultiTexSubImage2DEXT(GLenum texunit, GLenum target
 
 static void APIENTRY debug_glCopyMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
-	glCopyMultiTexImage1DEXT(texunit, target, level, internalformat, x, y, width, border);
+	default_glCopyMultiTexImage1DEXT(texunit, target, level, internalformat, x, y, width, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30383,10 +30383,10 @@ static void APIENTRY debug_glCopyMultiTexImage1DEXT(GLenum texunit, GLenum targe
 
 static void APIENTRY debug_glCopyMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border)
 {
-	glCopyMultiTexImage2DEXT(texunit, target, level, internalformat, x, y, width, height, border);
+	default_glCopyMultiTexImage2DEXT(texunit, target, level, internalformat, x, y, width, height, border);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30400,10 +30400,10 @@ static void APIENTRY debug_glCopyMultiTexImage2DEXT(GLenum texunit, GLenum targe
 
 static void APIENTRY debug_glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
-	glCopyMultiTexSubImage1DEXT(texunit, target, level, xoffset, x, y, width);
+	default_glCopyMultiTexSubImage1DEXT(texunit, target, level, xoffset, x, y, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30417,10 +30417,10 @@ static void APIENTRY debug_glCopyMultiTexSubImage1DEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, x, y, width, height);
+	default_glCopyMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30434,10 +30434,10 @@ static void APIENTRY debug_glCopyMultiTexSubImage2DEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glGetMultiTexImageEXT(GLenum texunit, GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
-	glGetMultiTexImageEXT(texunit, target, level, format, type, pixels);
+	default_glGetMultiTexImageEXT(texunit, target, level, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30451,10 +30451,10 @@ static void APIENTRY debug_glGetMultiTexImageEXT(GLenum texunit, GLenum target, 
 
 static void APIENTRY debug_glGetMultiTexParameterfvEXT(GLenum texunit, GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetMultiTexParameterfvEXT(texunit, target, pname, params);
+	default_glGetMultiTexParameterfvEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30468,10 +30468,10 @@ static void APIENTRY debug_glGetMultiTexParameterfvEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glGetMultiTexParameterivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
-	glGetMultiTexParameterivEXT(texunit, target, pname, params);
+	default_glGetMultiTexParameterivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30485,10 +30485,10 @@ static void APIENTRY debug_glGetMultiTexParameterivEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
-	glGetMultiTexLevelParameterfvEXT(texunit, target, level, pname, params);
+	default_glGetMultiTexLevelParameterfvEXT(texunit, target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30502,10 +30502,10 @@ static void APIENTRY debug_glGetMultiTexLevelParameterfvEXT(GLenum texunit, GLen
 
 static void APIENTRY debug_glGetMultiTexLevelParameterivEXT(GLenum texunit, GLenum target, GLint level, GLenum pname, GLint *params)
 {
-	glGetMultiTexLevelParameterivEXT(texunit, target, level, pname, params);
+	default_glGetMultiTexLevelParameterivEXT(texunit, target, level, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30519,10 +30519,10 @@ static void APIENTRY debug_glGetMultiTexLevelParameterivEXT(GLenum texunit, GLen
 
 static void APIENTRY debug_glMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, format, type, pixels);
+	default_glMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30536,10 +30536,10 @@ static void APIENTRY debug_glMultiTexImage3DEXT(GLenum texunit, GLenum target, G
 
 static void APIENTRY debug_glMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
-	glMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	default_glMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30553,10 +30553,10 @@ static void APIENTRY debug_glMultiTexSubImage3DEXT(GLenum texunit, GLenum target
 
 static void APIENTRY debug_glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
-	glCopyMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, x, y, width, height);
+	default_glCopyMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, x, y, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30570,10 +30570,10 @@ static void APIENTRY debug_glCopyMultiTexSubImage3DEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glEnableClientStateIndexedEXT(GLenum array, GLuint index)
 {
-	glEnableClientStateIndexedEXT(array, index);
+	default_glEnableClientStateIndexedEXT(array, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30587,10 +30587,10 @@ static void APIENTRY debug_glEnableClientStateIndexedEXT(GLenum array, GLuint in
 
 static void APIENTRY debug_glDisableClientStateIndexedEXT(GLenum array, GLuint index)
 {
-	glDisableClientStateIndexedEXT(array, index);
+	default_glDisableClientStateIndexedEXT(array, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30604,10 +30604,10 @@ static void APIENTRY debug_glDisableClientStateIndexedEXT(GLenum array, GLuint i
 
 static void APIENTRY debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, void **data)
 {
-	glGetPointerIndexedvEXT(target, index, data);
+	default_glGetPointerIndexedvEXT(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30621,10 +30621,10 @@ static void APIENTRY debug_glGetPointerIndexedvEXT(GLenum target, GLuint index, 
 
 static void APIENTRY debug_glCompressedTextureImage3DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, imageSize, bits);
+	default_glCompressedTextureImage3DEXT(texture, target, level, internalformat, width, height, depth, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30638,10 +30638,10 @@ static void APIENTRY debug_glCompressedTextureImage3DEXT(GLuint texture, GLenum 
 
 static void APIENTRY debug_glCompressedTextureImage2DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureImage2DEXT(texture, target, level, internalformat, width, height, border, imageSize, bits);
+	default_glCompressedTextureImage2DEXT(texture, target, level, internalformat, width, height, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30655,10 +30655,10 @@ static void APIENTRY debug_glCompressedTextureImage2DEXT(GLuint texture, GLenum 
 
 static void APIENTRY debug_glCompressedTextureImage1DEXT(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureImage1DEXT(texture, target, level, internalformat, width, border, imageSize, bits);
+	default_glCompressedTextureImage1DEXT(texture, target, level, internalformat, width, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30672,10 +30672,10 @@ static void APIENTRY debug_glCompressedTextureImage1DEXT(GLuint texture, GLenum 
 
 static void APIENTRY debug_glCompressedTextureSubImage3DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
+	default_glCompressedTextureSubImage3DEXT(texture, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30689,10 +30689,10 @@ static void APIENTRY debug_glCompressedTextureSubImage3DEXT(GLuint texture, GLen
 
 static void APIENTRY debug_glCompressedTextureSubImage2DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
+	default_glCompressedTextureSubImage2DEXT(texture, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30706,10 +30706,10 @@ static void APIENTRY debug_glCompressedTextureSubImage2DEXT(GLuint texture, GLen
 
 static void APIENTRY debug_glCompressedTextureSubImage1DEXT(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedTextureSubImage1DEXT(texture, target, level, xoffset, width, format, imageSize, bits);
+	default_glCompressedTextureSubImage1DEXT(texture, target, level, xoffset, width, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30723,10 +30723,10 @@ static void APIENTRY debug_glCompressedTextureSubImage1DEXT(GLuint texture, GLen
 
 static void APIENTRY debug_glGetCompressedTextureImageEXT(GLuint texture, GLenum target, GLint lod, void *img)
 {
-	glGetCompressedTextureImageEXT(texture, target, lod, img);
+	default_glGetCompressedTextureImageEXT(texture, target, lod, img);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30740,10 +30740,10 @@ static void APIENTRY debug_glGetCompressedTextureImageEXT(GLuint texture, GLenum
 
 static void APIENTRY debug_glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, imageSize, bits);
+	default_glCompressedMultiTexImage3DEXT(texunit, target, level, internalformat, width, height, depth, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30757,10 +30757,10 @@ static void APIENTRY debug_glCompressedMultiTexImage3DEXT(GLenum texunit, GLenum
 
 static void APIENTRY debug_glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, imageSize, bits);
+	default_glCompressedMultiTexImage2DEXT(texunit, target, level, internalformat, width, height, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30774,10 +30774,10 @@ static void APIENTRY debug_glCompressedMultiTexImage2DEXT(GLenum texunit, GLenum
 
 static void APIENTRY debug_glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, imageSize, bits);
+	default_glCompressedMultiTexImage1DEXT(texunit, target, level, internalformat, width, border, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30791,10 +30791,10 @@ static void APIENTRY debug_glCompressedMultiTexImage1DEXT(GLenum texunit, GLenum
 
 static void APIENTRY debug_glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
+	default_glCompressedMultiTexSubImage3DEXT(texunit, target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30808,10 +30808,10 @@ static void APIENTRY debug_glCompressedMultiTexSubImage3DEXT(GLenum texunit, GLe
 
 static void APIENTRY debug_glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
+	default_glCompressedMultiTexSubImage2DEXT(texunit, target, level, xoffset, yoffset, width, height, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30825,10 +30825,10 @@ static void APIENTRY debug_glCompressedMultiTexSubImage2DEXT(GLenum texunit, GLe
 
 static void APIENTRY debug_glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *bits)
 {
-	glCompressedMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, imageSize, bits);
+	default_glCompressedMultiTexSubImage1DEXT(texunit, target, level, xoffset, width, format, imageSize, bits);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30842,10 +30842,10 @@ static void APIENTRY debug_glCompressedMultiTexSubImage1DEXT(GLenum texunit, GLe
 
 static void APIENTRY debug_glGetCompressedMultiTexImageEXT(GLenum texunit, GLenum target, GLint lod, void *img)
 {
-	glGetCompressedMultiTexImageEXT(texunit, target, lod, img);
+	default_glGetCompressedMultiTexImageEXT(texunit, target, lod, img);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30859,10 +30859,10 @@ static void APIENTRY debug_glGetCompressedMultiTexImageEXT(GLenum texunit, GLenu
 
 static void APIENTRY debug_glMatrixLoadTransposefEXT(GLenum mode, const GLfloat *m)
 {
-	glMatrixLoadTransposefEXT(mode, m);
+	default_glMatrixLoadTransposefEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30876,10 +30876,10 @@ static void APIENTRY debug_glMatrixLoadTransposefEXT(GLenum mode, const GLfloat 
 
 static void APIENTRY debug_glMatrixLoadTransposedEXT(GLenum mode, const GLdouble *m)
 {
-	glMatrixLoadTransposedEXT(mode, m);
+	default_glMatrixLoadTransposedEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30893,10 +30893,10 @@ static void APIENTRY debug_glMatrixLoadTransposedEXT(GLenum mode, const GLdouble
 
 static void APIENTRY debug_glMatrixMultTransposefEXT(GLenum mode, const GLfloat *m)
 {
-	glMatrixMultTransposefEXT(mode, m);
+	default_glMatrixMultTransposefEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30910,10 +30910,10 @@ static void APIENTRY debug_glMatrixMultTransposefEXT(GLenum mode, const GLfloat 
 
 static void APIENTRY debug_glMatrixMultTransposedEXT(GLenum mode, const GLdouble *m)
 {
-	glMatrixMultTransposedEXT(mode, m);
+	default_glMatrixMultTransposedEXT(mode, m);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30927,10 +30927,10 @@ static void APIENTRY debug_glMatrixMultTransposedEXT(GLenum mode, const GLdouble
 
 static void APIENTRY debug_glNamedBufferDataEXT(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
 {
-	glNamedBufferDataEXT(buffer, size, data, usage);
+	default_glNamedBufferDataEXT(buffer, size, data, usage);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30947,7 +30947,7 @@ static void * APIENTRY debug_glMapNamedBufferEXT(GLuint buffer, GLenum access)
 	void * retVal = default_glMapNamedBufferEXT(buffer, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30965,7 +30965,7 @@ static GLboolean APIENTRY debug_glUnmapNamedBufferEXT(GLuint buffer)
 	GLboolean retVal = default_glUnmapNamedBufferEXT(buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30980,10 +30980,10 @@ static GLboolean APIENTRY debug_glUnmapNamedBufferEXT(GLuint buffer)
 
 static void APIENTRY debug_glGetNamedBufferParameterivEXT(GLuint buffer, GLenum pname, GLint *params)
 {
-	glGetNamedBufferParameterivEXT(buffer, pname, params);
+	default_glGetNamedBufferParameterivEXT(buffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -30997,10 +30997,10 @@ static void APIENTRY debug_glGetNamedBufferParameterivEXT(GLuint buffer, GLenum 
 
 static void APIENTRY debug_glGetNamedBufferPointervEXT(GLuint buffer, GLenum pname, void **params)
 {
-	glGetNamedBufferPointervEXT(buffer, pname, params);
+	default_glGetNamedBufferPointervEXT(buffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31014,10 +31014,10 @@ static void APIENTRY debug_glGetNamedBufferPointervEXT(GLuint buffer, GLenum pna
 
 static void APIENTRY debug_glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
 {
-	glGetNamedBufferSubDataEXT(buffer, offset, size, data);
+	default_glGetNamedBufferSubDataEXT(buffer, offset, size, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31031,10 +31031,10 @@ static void APIENTRY debug_glGetNamedBufferSubDataEXT(GLuint buffer, GLintptr of
 
 static void APIENTRY debug_glTextureBufferEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer)
 {
-	glTextureBufferEXT(texture, target, internalformat, buffer);
+	default_glTextureBufferEXT(texture, target, internalformat, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31048,10 +31048,10 @@ static void APIENTRY debug_glTextureBufferEXT(GLuint texture, GLenum target, GLe
 
 static void APIENTRY debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GLenum internalformat, GLuint buffer)
 {
-	glMultiTexBufferEXT(texunit, target, internalformat, buffer);
+	default_glMultiTexBufferEXT(texunit, target, internalformat, buffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31065,10 +31065,10 @@ static void APIENTRY debug_glMultiTexBufferEXT(GLenum texunit, GLenum target, GL
 
 static void APIENTRY debug_glTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, const GLint *params)
 {
-	glTextureParameterIivEXT(texture, target, pname, params);
+	default_glTextureParameterIivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31082,10 +31082,10 @@ static void APIENTRY debug_glTextureParameterIivEXT(GLuint texture, GLenum targe
 
 static void APIENTRY debug_glTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, const GLuint *params)
 {
-	glTextureParameterIuivEXT(texture, target, pname, params);
+	default_glTextureParameterIuivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31099,10 +31099,10 @@ static void APIENTRY debug_glTextureParameterIuivEXT(GLuint texture, GLenum targ
 
 static void APIENTRY debug_glGetTextureParameterIivEXT(GLuint texture, GLenum target, GLenum pname, GLint *params)
 {
-	glGetTextureParameterIivEXT(texture, target, pname, params);
+	default_glGetTextureParameterIivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31116,10 +31116,10 @@ static void APIENTRY debug_glGetTextureParameterIivEXT(GLuint texture, GLenum ta
 
 static void APIENTRY debug_glGetTextureParameterIuivEXT(GLuint texture, GLenum target, GLenum pname, GLuint *params)
 {
-	glGetTextureParameterIuivEXT(texture, target, pname, params);
+	default_glGetTextureParameterIuivEXT(texture, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31133,10 +31133,10 @@ static void APIENTRY debug_glGetTextureParameterIuivEXT(GLuint texture, GLenum t
 
 static void APIENTRY debug_glMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, const GLint *params)
 {
-	glMultiTexParameterIivEXT(texunit, target, pname, params);
+	default_glMultiTexParameterIivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31150,10 +31150,10 @@ static void APIENTRY debug_glMultiTexParameterIivEXT(GLenum texunit, GLenum targ
 
 static void APIENTRY debug_glMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, const GLuint *params)
 {
-	glMultiTexParameterIuivEXT(texunit, target, pname, params);
+	default_glMultiTexParameterIuivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31167,10 +31167,10 @@ static void APIENTRY debug_glMultiTexParameterIuivEXT(GLenum texunit, GLenum tar
 
 static void APIENTRY debug_glGetMultiTexParameterIivEXT(GLenum texunit, GLenum target, GLenum pname, GLint *params)
 {
-	glGetMultiTexParameterIivEXT(texunit, target, pname, params);
+	default_glGetMultiTexParameterIivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31184,10 +31184,10 @@ static void APIENTRY debug_glGetMultiTexParameterIivEXT(GLenum texunit, GLenum t
 
 static void APIENTRY debug_glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum target, GLenum pname, GLuint *params)
 {
-	glGetMultiTexParameterIuivEXT(texunit, target, pname, params);
+	default_glGetMultiTexParameterIuivEXT(texunit, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31201,10 +31201,10 @@ static void APIENTRY debug_glGetMultiTexParameterIuivEXT(GLenum texunit, GLenum 
 
 static void APIENTRY debug_glNamedProgramLocalParameters4fvEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
-	glNamedProgramLocalParameters4fvEXT(program, target, index, count, params);
+	default_glNamedProgramLocalParameters4fvEXT(program, target, index, count, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31218,10 +31218,10 @@ static void APIENTRY debug_glNamedProgramLocalParameters4fvEXT(GLuint program, G
 
 static void APIENTRY debug_glNamedProgramLocalParameterI4iEXT(GLuint program, GLenum target, GLuint index, GLint x, GLint y, GLint z, GLint w)
 {
-	glNamedProgramLocalParameterI4iEXT(program, target, index, x, y, z, w);
+	default_glNamedProgramLocalParameterI4iEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31235,10 +31235,10 @@ static void APIENTRY debug_glNamedProgramLocalParameterI4iEXT(GLuint program, GL
 
 static void APIENTRY debug_glNamedProgramLocalParameterI4ivEXT(GLuint program, GLenum target, GLuint index, const GLint *params)
 {
-	glNamedProgramLocalParameterI4ivEXT(program, target, index, params);
+	default_glNamedProgramLocalParameterI4ivEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31252,10 +31252,10 @@ static void APIENTRY debug_glNamedProgramLocalParameterI4ivEXT(GLuint program, G
 
 static void APIENTRY debug_glNamedProgramLocalParametersI4ivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLint *params)
 {
-	glNamedProgramLocalParametersI4ivEXT(program, target, index, count, params);
+	default_glNamedProgramLocalParametersI4ivEXT(program, target, index, count, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31269,10 +31269,10 @@ static void APIENTRY debug_glNamedProgramLocalParametersI4ivEXT(GLuint program, 
 
 static void APIENTRY debug_glNamedProgramLocalParameterI4uiEXT(GLuint program, GLenum target, GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
-	glNamedProgramLocalParameterI4uiEXT(program, target, index, x, y, z, w);
+	default_glNamedProgramLocalParameterI4uiEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31286,10 +31286,10 @@ static void APIENTRY debug_glNamedProgramLocalParameterI4uiEXT(GLuint program, G
 
 static void APIENTRY debug_glNamedProgramLocalParameterI4uivEXT(GLuint program, GLenum target, GLuint index, const GLuint *params)
 {
-	glNamedProgramLocalParameterI4uivEXT(program, target, index, params);
+	default_glNamedProgramLocalParameterI4uivEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31303,10 +31303,10 @@ static void APIENTRY debug_glNamedProgramLocalParameterI4uivEXT(GLuint program, 
 
 static void APIENTRY debug_glNamedProgramLocalParametersI4uivEXT(GLuint program, GLenum target, GLuint index, GLsizei count, const GLuint *params)
 {
-	glNamedProgramLocalParametersI4uivEXT(program, target, index, count, params);
+	default_glNamedProgramLocalParametersI4uivEXT(program, target, index, count, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31320,10 +31320,10 @@ static void APIENTRY debug_glNamedProgramLocalParametersI4uivEXT(GLuint program,
 
 static void APIENTRY debug_glGetNamedProgramLocalParameterIivEXT(GLuint program, GLenum target, GLuint index, GLint *params)
 {
-	glGetNamedProgramLocalParameterIivEXT(program, target, index, params);
+	default_glGetNamedProgramLocalParameterIivEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31337,10 +31337,10 @@ static void APIENTRY debug_glGetNamedProgramLocalParameterIivEXT(GLuint program,
 
 static void APIENTRY debug_glGetNamedProgramLocalParameterIuivEXT(GLuint program, GLenum target, GLuint index, GLuint *params)
 {
-	glGetNamedProgramLocalParameterIuivEXT(program, target, index, params);
+	default_glGetNamedProgramLocalParameterIuivEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31354,10 +31354,10 @@ static void APIENTRY debug_glGetNamedProgramLocalParameterIuivEXT(GLuint program
 
 static void APIENTRY debug_glEnableClientStateiEXT(GLenum array, GLuint index)
 {
-	glEnableClientStateiEXT(array, index);
+	default_glEnableClientStateiEXT(array, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31371,10 +31371,10 @@ static void APIENTRY debug_glEnableClientStateiEXT(GLenum array, GLuint index)
 
 static void APIENTRY debug_glDisableClientStateiEXT(GLenum array, GLuint index)
 {
-	glDisableClientStateiEXT(array, index);
+	default_glDisableClientStateiEXT(array, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31388,10 +31388,10 @@ static void APIENTRY debug_glDisableClientStateiEXT(GLenum array, GLuint index)
 
 static void APIENTRY debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void **params)
 {
-	glGetPointeri_vEXT(pname, index, params);
+	default_glGetPointeri_vEXT(pname, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31405,10 +31405,10 @@ static void APIENTRY debug_glGetPointeri_vEXT(GLenum pname, GLuint index, void *
 
 static void APIENTRY debug_glNamedProgramStringEXT(GLuint program, GLenum target, GLenum format, GLsizei len, const void *string)
 {
-	glNamedProgramStringEXT(program, target, format, len, string);
+	default_glNamedProgramStringEXT(program, target, format, len, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31422,10 +31422,10 @@ static void APIENTRY debug_glNamedProgramStringEXT(GLuint program, GLenum target
 
 static void APIENTRY debug_glNamedProgramLocalParameter4dEXT(GLuint program, GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glNamedProgramLocalParameter4dEXT(program, target, index, x, y, z, w);
+	default_glNamedProgramLocalParameter4dEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31439,10 +31439,10 @@ static void APIENTRY debug_glNamedProgramLocalParameter4dEXT(GLuint program, GLe
 
 static void APIENTRY debug_glNamedProgramLocalParameter4dvEXT(GLuint program, GLenum target, GLuint index, const GLdouble *params)
 {
-	glNamedProgramLocalParameter4dvEXT(program, target, index, params);
+	default_glNamedProgramLocalParameter4dvEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31456,10 +31456,10 @@ static void APIENTRY debug_glNamedProgramLocalParameter4dvEXT(GLuint program, GL
 
 static void APIENTRY debug_glNamedProgramLocalParameter4fEXT(GLuint program, GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	glNamedProgramLocalParameter4fEXT(program, target, index, x, y, z, w);
+	default_glNamedProgramLocalParameter4fEXT(program, target, index, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31473,10 +31473,10 @@ static void APIENTRY debug_glNamedProgramLocalParameter4fEXT(GLuint program, GLe
 
 static void APIENTRY debug_glNamedProgramLocalParameter4fvEXT(GLuint program, GLenum target, GLuint index, const GLfloat *params)
 {
-	glNamedProgramLocalParameter4fvEXT(program, target, index, params);
+	default_glNamedProgramLocalParameter4fvEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31490,10 +31490,10 @@ static void APIENTRY debug_glNamedProgramLocalParameter4fvEXT(GLuint program, GL
 
 static void APIENTRY debug_glGetNamedProgramLocalParameterdvEXT(GLuint program, GLenum target, GLuint index, GLdouble *params)
 {
-	glGetNamedProgramLocalParameterdvEXT(program, target, index, params);
+	default_glGetNamedProgramLocalParameterdvEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31507,10 +31507,10 @@ static void APIENTRY debug_glGetNamedProgramLocalParameterdvEXT(GLuint program, 
 
 static void APIENTRY debug_glGetNamedProgramLocalParameterfvEXT(GLuint program, GLenum target, GLuint index, GLfloat *params)
 {
-	glGetNamedProgramLocalParameterfvEXT(program, target, index, params);
+	default_glGetNamedProgramLocalParameterfvEXT(program, target, index, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31524,10 +31524,10 @@ static void APIENTRY debug_glGetNamedProgramLocalParameterfvEXT(GLuint program, 
 
 static void APIENTRY debug_glGetNamedProgramivEXT(GLuint program, GLenum target, GLenum pname, GLint *params)
 {
-	glGetNamedProgramivEXT(program, target, pname, params);
+	default_glGetNamedProgramivEXT(program, target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31541,10 +31541,10 @@ static void APIENTRY debug_glGetNamedProgramivEXT(GLuint program, GLenum target,
 
 static void APIENTRY debug_glGetNamedProgramStringEXT(GLuint program, GLenum target, GLenum pname, void *string)
 {
-	glGetNamedProgramStringEXT(program, target, pname, string);
+	default_glGetNamedProgramStringEXT(program, target, pname, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31558,10 +31558,10 @@ static void APIENTRY debug_glGetNamedProgramStringEXT(GLuint program, GLenum tar
 
 static void APIENTRY debug_glNamedRenderbufferStorageEXT(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glNamedRenderbufferStorageEXT(renderbuffer, internalformat, width, height);
+	default_glNamedRenderbufferStorageEXT(renderbuffer, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31575,10 +31575,10 @@ static void APIENTRY debug_glNamedRenderbufferStorageEXT(GLuint renderbuffer, GL
 
 static void APIENTRY debug_glGetNamedRenderbufferParameterivEXT(GLuint renderbuffer, GLenum pname, GLint *params)
 {
-	glGetNamedRenderbufferParameterivEXT(renderbuffer, pname, params);
+	default_glGetNamedRenderbufferParameterivEXT(renderbuffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31592,10 +31592,10 @@ static void APIENTRY debug_glGetNamedRenderbufferParameterivEXT(GLuint renderbuf
 
 static void APIENTRY debug_glNamedRenderbufferStorageMultisampleEXT(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glNamedRenderbufferStorageMultisampleEXT(renderbuffer, samples, internalformat, width, height);
+	default_glNamedRenderbufferStorageMultisampleEXT(renderbuffer, samples, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31609,10 +31609,10 @@ static void APIENTRY debug_glNamedRenderbufferStorageMultisampleEXT(GLuint rende
 
 static void APIENTRY debug_glNamedRenderbufferStorageMultisampleCoverageEXT(GLuint renderbuffer, GLsizei coverageSamples, GLsizei colorSamples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glNamedRenderbufferStorageMultisampleCoverageEXT(renderbuffer, coverageSamples, colorSamples, internalformat, width, height);
+	default_glNamedRenderbufferStorageMultisampleCoverageEXT(renderbuffer, coverageSamples, colorSamples, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31629,7 +31629,7 @@ static GLenum APIENTRY debug_glCheckNamedFramebufferStatusEXT(GLuint framebuffer
 	GLenum retVal = default_glCheckNamedFramebufferStatusEXT(framebuffer, target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31644,10 +31644,10 @@ static GLenum APIENTRY debug_glCheckNamedFramebufferStatusEXT(GLuint framebuffer
 
 static void APIENTRY debug_glNamedFramebufferTexture1DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
-	glNamedFramebufferTexture1DEXT(framebuffer, attachment, textarget, texture, level);
+	default_glNamedFramebufferTexture1DEXT(framebuffer, attachment, textarget, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31661,10 +31661,10 @@ static void APIENTRY debug_glNamedFramebufferTexture1DEXT(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedFramebufferTexture2DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
-	glNamedFramebufferTexture2DEXT(framebuffer, attachment, textarget, texture, level);
+	default_glNamedFramebufferTexture2DEXT(framebuffer, attachment, textarget, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31678,10 +31678,10 @@ static void APIENTRY debug_glNamedFramebufferTexture2DEXT(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedFramebufferTexture3DEXT(GLuint framebuffer, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
 {
-	glNamedFramebufferTexture3DEXT(framebuffer, attachment, textarget, texture, level, zoffset);
+	default_glNamedFramebufferTexture3DEXT(framebuffer, attachment, textarget, texture, level, zoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31695,10 +31695,10 @@ static void APIENTRY debug_glNamedFramebufferTexture3DEXT(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedFramebufferRenderbufferEXT(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
-	glNamedFramebufferRenderbufferEXT(framebuffer, attachment, renderbuffertarget, renderbuffer);
+	default_glNamedFramebufferRenderbufferEXT(framebuffer, attachment, renderbuffertarget, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31712,10 +31712,10 @@ static void APIENTRY debug_glNamedFramebufferRenderbufferEXT(GLuint framebuffer,
 
 static void APIENTRY debug_glGetNamedFramebufferAttachmentParameterivEXT(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
 {
-	glGetNamedFramebufferAttachmentParameterivEXT(framebuffer, attachment, pname, params);
+	default_glGetNamedFramebufferAttachmentParameterivEXT(framebuffer, attachment, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31729,10 +31729,10 @@ static void APIENTRY debug_glGetNamedFramebufferAttachmentParameterivEXT(GLuint 
 
 static void APIENTRY debug_glGenerateTextureMipmapEXT(GLuint texture, GLenum target)
 {
-	glGenerateTextureMipmapEXT(texture, target);
+	default_glGenerateTextureMipmapEXT(texture, target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31746,10 +31746,10 @@ static void APIENTRY debug_glGenerateTextureMipmapEXT(GLuint texture, GLenum tar
 
 static void APIENTRY debug_glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum target)
 {
-	glGenerateMultiTexMipmapEXT(texunit, target);
+	default_glGenerateMultiTexMipmapEXT(texunit, target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31763,10 +31763,10 @@ static void APIENTRY debug_glGenerateMultiTexMipmapEXT(GLenum texunit, GLenum ta
 
 static void APIENTRY debug_glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum mode)
 {
-	glFramebufferDrawBufferEXT(framebuffer, mode);
+	default_glFramebufferDrawBufferEXT(framebuffer, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31780,10 +31780,10 @@ static void APIENTRY debug_glFramebufferDrawBufferEXT(GLuint framebuffer, GLenum
 
 static void APIENTRY debug_glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsizei n, const GLenum *bufs)
 {
-	glFramebufferDrawBuffersEXT(framebuffer, n, bufs);
+	default_glFramebufferDrawBuffersEXT(framebuffer, n, bufs);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31797,10 +31797,10 @@ static void APIENTRY debug_glFramebufferDrawBuffersEXT(GLuint framebuffer, GLsiz
 
 static void APIENTRY debug_glFramebufferReadBufferEXT(GLuint framebuffer, GLenum mode)
 {
-	glFramebufferReadBufferEXT(framebuffer, mode);
+	default_glFramebufferReadBufferEXT(framebuffer, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31814,10 +31814,10 @@ static void APIENTRY debug_glFramebufferReadBufferEXT(GLuint framebuffer, GLenum
 
 static void APIENTRY debug_glGetFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
 {
-	glGetFramebufferParameterivEXT(framebuffer, pname, params);
+	default_glGetFramebufferParameterivEXT(framebuffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31831,10 +31831,10 @@ static void APIENTRY debug_glGetFramebufferParameterivEXT(GLuint framebuffer, GL
 
 static void APIENTRY debug_glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
 {
-	glNamedCopyBufferSubDataEXT(readBuffer, writeBuffer, readOffset, writeOffset, size);
+	default_glNamedCopyBufferSubDataEXT(readBuffer, writeBuffer, readOffset, writeOffset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31848,10 +31848,10 @@ static void APIENTRY debug_glNamedCopyBufferSubDataEXT(GLuint readBuffer, GLuint
 
 static void APIENTRY debug_glNamedFramebufferTextureEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
-	glNamedFramebufferTextureEXT(framebuffer, attachment, texture, level);
+	default_glNamedFramebufferTextureEXT(framebuffer, attachment, texture, level);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31865,10 +31865,10 @@ static void APIENTRY debug_glNamedFramebufferTextureEXT(GLuint framebuffer, GLen
 
 static void APIENTRY debug_glNamedFramebufferTextureLayerEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
-	glNamedFramebufferTextureLayerEXT(framebuffer, attachment, texture, level, layer);
+	default_glNamedFramebufferTextureLayerEXT(framebuffer, attachment, texture, level, layer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31882,10 +31882,10 @@ static void APIENTRY debug_glNamedFramebufferTextureLayerEXT(GLuint framebuffer,
 
 static void APIENTRY debug_glNamedFramebufferTextureFaceEXT(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLenum face)
 {
-	glNamedFramebufferTextureFaceEXT(framebuffer, attachment, texture, level, face);
+	default_glNamedFramebufferTextureFaceEXT(framebuffer, attachment, texture, level, face);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31899,10 +31899,10 @@ static void APIENTRY debug_glNamedFramebufferTextureFaceEXT(GLuint framebuffer, 
 
 static void APIENTRY debug_glTextureRenderbufferEXT(GLuint texture, GLenum target, GLuint renderbuffer)
 {
-	glTextureRenderbufferEXT(texture, target, renderbuffer);
+	default_glTextureRenderbufferEXT(texture, target, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31916,10 +31916,10 @@ static void APIENTRY debug_glTextureRenderbufferEXT(GLuint texture, GLenum targe
 
 static void APIENTRY debug_glMultiTexRenderbufferEXT(GLenum texunit, GLenum target, GLuint renderbuffer)
 {
-	glMultiTexRenderbufferEXT(texunit, target, renderbuffer);
+	default_glMultiTexRenderbufferEXT(texunit, target, renderbuffer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31933,10 +31933,10 @@ static void APIENTRY debug_glMultiTexRenderbufferEXT(GLenum texunit, GLenum targ
 
 static void APIENTRY debug_glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayVertexOffsetEXT(vaobj, buffer, size, type, stride, offset);
+	default_glVertexArrayVertexOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31950,10 +31950,10 @@ static void APIENTRY debug_glVertexArrayVertexOffsetEXT(GLuint vaobj, GLuint buf
 
 static void APIENTRY debug_glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
+	default_glVertexArrayColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31967,10 +31967,10 @@ static void APIENTRY debug_glVertexArrayColorOffsetEXT(GLuint vaobj, GLuint buff
 
 static void APIENTRY debug_glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint buffer, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayEdgeFlagOffsetEXT(vaobj, buffer, stride, offset);
+	default_glVertexArrayEdgeFlagOffsetEXT(vaobj, buffer, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -31984,10 +31984,10 @@ static void APIENTRY debug_glVertexArrayEdgeFlagOffsetEXT(GLuint vaobj, GLuint b
 
 static void APIENTRY debug_glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayIndexOffsetEXT(vaobj, buffer, type, stride, offset);
+	default_glVertexArrayIndexOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32001,10 +32001,10 @@ static void APIENTRY debug_glVertexArrayIndexOffsetEXT(GLuint vaobj, GLuint buff
 
 static void APIENTRY debug_glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayNormalOffsetEXT(vaobj, buffer, type, stride, offset);
+	default_glVertexArrayNormalOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32018,10 +32018,10 @@ static void APIENTRY debug_glVertexArrayNormalOffsetEXT(GLuint vaobj, GLuint buf
 
 static void APIENTRY debug_glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayTexCoordOffsetEXT(vaobj, buffer, size, type, stride, offset);
+	default_glVertexArrayTexCoordOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32035,10 +32035,10 @@ static void APIENTRY debug_glVertexArrayTexCoordOffsetEXT(GLuint vaobj, GLuint b
 
 static void APIENTRY debug_glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum texunit, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayMultiTexCoordOffsetEXT(vaobj, buffer, texunit, size, type, stride, offset);
+	default_glVertexArrayMultiTexCoordOffsetEXT(vaobj, buffer, texunit, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32052,10 +32052,10 @@ static void APIENTRY debug_glVertexArrayMultiTexCoordOffsetEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint buffer, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayFogCoordOffsetEXT(vaobj, buffer, type, stride, offset);
+	default_glVertexArrayFogCoordOffsetEXT(vaobj, buffer, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32069,10 +32069,10 @@ static void APIENTRY debug_glVertexArrayFogCoordOffsetEXT(GLuint vaobj, GLuint b
 
 static void APIENTRY debug_glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GLuint buffer, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArraySecondaryColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
+	default_glVertexArraySecondaryColorOffsetEXT(vaobj, buffer, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32086,10 +32086,10 @@ static void APIENTRY debug_glVertexArraySecondaryColorOffsetEXT(GLuint vaobj, GL
 
 static void APIENTRY debug_glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayVertexAttribOffsetEXT(vaobj, buffer, index, size, type, normalized, stride, offset);
+	default_glVertexArrayVertexAttribOffsetEXT(vaobj, buffer, index, size, type, normalized, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32103,10 +32103,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribOffsetEXT(GLuint vaobj, GLui
 
 static void APIENTRY debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayVertexAttribIOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
+	default_glVertexArrayVertexAttribIOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32120,10 +32120,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribIOffsetEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glEnableVertexArrayEXT(GLuint vaobj, GLenum array)
 {
-	glEnableVertexArrayEXT(vaobj, array);
+	default_glEnableVertexArrayEXT(vaobj, array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32137,10 +32137,10 @@ static void APIENTRY debug_glEnableVertexArrayEXT(GLuint vaobj, GLenum array)
 
 static void APIENTRY debug_glDisableVertexArrayEXT(GLuint vaobj, GLenum array)
 {
-	glDisableVertexArrayEXT(vaobj, array);
+	default_glDisableVertexArrayEXT(vaobj, array);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32154,10 +32154,10 @@ static void APIENTRY debug_glDisableVertexArrayEXT(GLuint vaobj, GLenum array)
 
 static void APIENTRY debug_glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
 {
-	glEnableVertexArrayAttribEXT(vaobj, index);
+	default_glEnableVertexArrayAttribEXT(vaobj, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32171,10 +32171,10 @@ static void APIENTRY debug_glEnableVertexArrayAttribEXT(GLuint vaobj, GLuint ind
 
 static void APIENTRY debug_glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint index)
 {
-	glDisableVertexArrayAttribEXT(vaobj, index);
+	default_glDisableVertexArrayAttribEXT(vaobj, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32188,10 +32188,10 @@ static void APIENTRY debug_glDisableVertexArrayAttribEXT(GLuint vaobj, GLuint in
 
 static void APIENTRY debug_glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pname, GLint *param)
 {
-	glGetVertexArrayIntegervEXT(vaobj, pname, param);
+	default_glGetVertexArrayIntegervEXT(vaobj, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32205,10 +32205,10 @@ static void APIENTRY debug_glGetVertexArrayIntegervEXT(GLuint vaobj, GLenum pnam
 
 static void APIENTRY debug_glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pname, void **param)
 {
-	glGetVertexArrayPointervEXT(vaobj, pname, param);
+	default_glGetVertexArrayPointervEXT(vaobj, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32222,10 +32222,10 @@ static void APIENTRY debug_glGetVertexArrayPointervEXT(GLuint vaobj, GLenum pnam
 
 static void APIENTRY debug_glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
 {
-	glGetVertexArrayIntegeri_vEXT(vaobj, index, pname, param);
+	default_glGetVertexArrayIntegeri_vEXT(vaobj, index, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32239,10 +32239,10 @@ static void APIENTRY debug_glGetVertexArrayIntegeri_vEXT(GLuint vaobj, GLuint in
 
 static void APIENTRY debug_glGetVertexArrayPointeri_vEXT(GLuint vaobj, GLuint index, GLenum pname, void **param)
 {
-	glGetVertexArrayPointeri_vEXT(vaobj, index, pname, param);
+	default_glGetVertexArrayPointeri_vEXT(vaobj, index, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32259,7 +32259,7 @@ static void * APIENTRY debug_glMapNamedBufferRangeEXT(GLuint buffer, GLintptr of
 	void * retVal = default_glMapNamedBufferRangeEXT(buffer, offset, length, access);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32274,10 +32274,10 @@ static void * APIENTRY debug_glMapNamedBufferRangeEXT(GLuint buffer, GLintptr of
 
 static void APIENTRY debug_glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
-	glFlushMappedNamedBufferRangeEXT(buffer, offset, length);
+	default_glFlushMappedNamedBufferRangeEXT(buffer, offset, length);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32291,10 +32291,10 @@ static void APIENTRY debug_glFlushMappedNamedBufferRangeEXT(GLuint buffer, GLint
 
 static void APIENTRY debug_glClearNamedBufferDataEXT(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
-	glClearNamedBufferDataEXT(buffer, internalformat, format, type, data);
+	default_glClearNamedBufferDataEXT(buffer, internalformat, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32308,10 +32308,10 @@ static void APIENTRY debug_glClearNamedBufferDataEXT(GLuint buffer, GLenum inter
 
 static void APIENTRY debug_glClearNamedBufferSubDataEXT(GLuint buffer, GLenum internalformat, GLsizeiptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data)
 {
-	glClearNamedBufferSubDataEXT(buffer, internalformat, offset, size, format, type, data);
+	default_glClearNamedBufferSubDataEXT(buffer, internalformat, offset, size, format, type, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32325,10 +32325,10 @@ static void APIENTRY debug_glClearNamedBufferSubDataEXT(GLuint buffer, GLenum in
 
 static void APIENTRY debug_glNamedFramebufferParameteriEXT(GLuint framebuffer, GLenum pname, GLint param)
 {
-	glNamedFramebufferParameteriEXT(framebuffer, pname, param);
+	default_glNamedFramebufferParameteriEXT(framebuffer, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32342,10 +32342,10 @@ static void APIENTRY debug_glNamedFramebufferParameteriEXT(GLuint framebuffer, G
 
 static void APIENTRY debug_glGetNamedFramebufferParameterivEXT(GLuint framebuffer, GLenum pname, GLint *params)
 {
-	glGetNamedFramebufferParameterivEXT(framebuffer, pname, params);
+	default_glGetNamedFramebufferParameterivEXT(framebuffer, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32359,10 +32359,10 @@ static void APIENTRY debug_glGetNamedFramebufferParameterivEXT(GLuint framebuffe
 
 static void APIENTRY debug_glProgramUniform1dEXT(GLuint program, GLint location, GLdouble x)
 {
-	glProgramUniform1dEXT(program, location, x);
+	default_glProgramUniform1dEXT(program, location, x);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32376,10 +32376,10 @@ static void APIENTRY debug_glProgramUniform1dEXT(GLuint program, GLint location,
 
 static void APIENTRY debug_glProgramUniform2dEXT(GLuint program, GLint location, GLdouble x, GLdouble y)
 {
-	glProgramUniform2dEXT(program, location, x, y);
+	default_glProgramUniform2dEXT(program, location, x, y);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32393,10 +32393,10 @@ static void APIENTRY debug_glProgramUniform2dEXT(GLuint program, GLint location,
 
 static void APIENTRY debug_glProgramUniform3dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
-	glProgramUniform3dEXT(program, location, x, y, z);
+	default_glProgramUniform3dEXT(program, location, x, y, z);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32410,10 +32410,10 @@ static void APIENTRY debug_glProgramUniform3dEXT(GLuint program, GLint location,
 
 static void APIENTRY debug_glProgramUniform4dEXT(GLuint program, GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
-	glProgramUniform4dEXT(program, location, x, y, z, w);
+	default_glProgramUniform4dEXT(program, location, x, y, z, w);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32427,10 +32427,10 @@ static void APIENTRY debug_glProgramUniform4dEXT(GLuint program, GLint location,
 
 static void APIENTRY debug_glProgramUniform1dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform1dvEXT(program, location, count, value);
+	default_glProgramUniform1dvEXT(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32444,10 +32444,10 @@ static void APIENTRY debug_glProgramUniform1dvEXT(GLuint program, GLint location
 
 static void APIENTRY debug_glProgramUniform2dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform2dvEXT(program, location, count, value);
+	default_glProgramUniform2dvEXT(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32461,10 +32461,10 @@ static void APIENTRY debug_glProgramUniform2dvEXT(GLuint program, GLint location
 
 static void APIENTRY debug_glProgramUniform3dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform3dvEXT(program, location, count, value);
+	default_glProgramUniform3dvEXT(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32478,10 +32478,10 @@ static void APIENTRY debug_glProgramUniform3dvEXT(GLuint program, GLint location
 
 static void APIENTRY debug_glProgramUniform4dvEXT(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
-	glProgramUniform4dvEXT(program, location, count, value);
+	default_glProgramUniform4dvEXT(program, location, count, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32495,10 +32495,10 @@ static void APIENTRY debug_glProgramUniform4dvEXT(GLuint program, GLint location
 
 static void APIENTRY debug_glProgramUniformMatrix2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32512,10 +32512,10 @@ static void APIENTRY debug_glProgramUniformMatrix2dvEXT(GLuint program, GLint lo
 
 static void APIENTRY debug_glProgramUniformMatrix3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32529,10 +32529,10 @@ static void APIENTRY debug_glProgramUniformMatrix3dvEXT(GLuint program, GLint lo
 
 static void APIENTRY debug_glProgramUniformMatrix4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32546,10 +32546,10 @@ static void APIENTRY debug_glProgramUniformMatrix4dvEXT(GLuint program, GLint lo
 
 static void APIENTRY debug_glProgramUniformMatrix2x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2x3dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32563,10 +32563,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x3dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glProgramUniformMatrix2x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix2x4dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix2x4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32580,10 +32580,10 @@ static void APIENTRY debug_glProgramUniformMatrix2x4dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glProgramUniformMatrix3x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3x2dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32597,10 +32597,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x2dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glProgramUniformMatrix3x4dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix3x4dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix3x4dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32614,10 +32614,10 @@ static void APIENTRY debug_glProgramUniformMatrix3x4dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glProgramUniformMatrix4x2dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4x2dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x2dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32631,10 +32631,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x2dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glProgramUniformMatrix4x3dvEXT(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
-	glProgramUniformMatrix4x3dvEXT(program, location, count, transpose, value);
+	default_glProgramUniformMatrix4x3dvEXT(program, location, count, transpose, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32648,10 +32648,10 @@ static void APIENTRY debug_glProgramUniformMatrix4x3dvEXT(GLuint program, GLint 
 
 static void APIENTRY debug_glTextureBufferRangeEXT(GLuint texture, GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
-	glTextureBufferRangeEXT(texture, target, internalformat, buffer, offset, size);
+	default_glTextureBufferRangeEXT(texture, target, internalformat, buffer, offset, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32665,10 +32665,10 @@ static void APIENTRY debug_glTextureBufferRangeEXT(GLuint texture, GLenum target
 
 static void APIENTRY debug_glTextureStorage1DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {
-	glTextureStorage1DEXT(texture, target, levels, internalformat, width);
+	default_glTextureStorage1DEXT(texture, target, levels, internalformat, width);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32682,10 +32682,10 @@ static void APIENTRY debug_glTextureStorage1DEXT(GLuint texture, GLenum target, 
 
 static void APIENTRY debug_glTextureStorage2DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	glTextureStorage2DEXT(texture, target, levels, internalformat, width, height);
+	default_glTextureStorage2DEXT(texture, target, levels, internalformat, width, height);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32699,10 +32699,10 @@ static void APIENTRY debug_glTextureStorage2DEXT(GLuint texture, GLenum target, 
 
 static void APIENTRY debug_glTextureStorage3DEXT(GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
-	glTextureStorage3DEXT(texture, target, levels, internalformat, width, height, depth);
+	default_glTextureStorage3DEXT(texture, target, levels, internalformat, width, height, depth);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32716,10 +32716,10 @@ static void APIENTRY debug_glTextureStorage3DEXT(GLuint texture, GLenum target, 
 
 static void APIENTRY debug_glTextureStorage2DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
 {
-	glTextureStorage2DMultisampleEXT(texture, target, samples, internalformat, width, height, fixedsamplelocations);
+	default_glTextureStorage2DMultisampleEXT(texture, target, samples, internalformat, width, height, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32733,10 +32733,10 @@ static void APIENTRY debug_glTextureStorage2DMultisampleEXT(GLuint texture, GLen
 
 static void APIENTRY debug_glTextureStorage3DMultisampleEXT(GLuint texture, GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
-	glTextureStorage3DMultisampleEXT(texture, target, samples, internalformat, width, height, depth, fixedsamplelocations);
+	default_glTextureStorage3DMultisampleEXT(texture, target, samples, internalformat, width, height, depth, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32750,10 +32750,10 @@ static void APIENTRY debug_glTextureStorage3DMultisampleEXT(GLuint texture, GLen
 
 static void APIENTRY debug_glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
-	glVertexArrayBindVertexBufferEXT(vaobj, bindingindex, buffer, offset, stride);
+	default_glVertexArrayBindVertexBufferEXT(vaobj, bindingindex, buffer, offset, stride);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32767,10 +32767,10 @@ static void APIENTRY debug_glVertexArrayBindVertexBufferEXT(GLuint vaobj, GLuint
 
 static void APIENTRY debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
-	glVertexArrayVertexAttribFormatEXT(vaobj, attribindex, size, type, normalized, relativeoffset);
+	default_glVertexArrayVertexAttribFormatEXT(vaobj, attribindex, size, type, normalized, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32784,10 +32784,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribFormatEXT(GLuint vaobj, GLui
 
 static void APIENTRY debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexArrayVertexAttribIFormatEXT(vaobj, attribindex, size, type, relativeoffset);
+	default_glVertexArrayVertexAttribIFormatEXT(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32801,10 +32801,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribIFormatEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
-	glVertexArrayVertexAttribLFormatEXT(vaobj, attribindex, size, type, relativeoffset);
+	default_glVertexArrayVertexAttribLFormatEXT(vaobj, attribindex, size, type, relativeoffset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32818,10 +32818,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribLFormatEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
 {
-	glVertexArrayVertexAttribBindingEXT(vaobj, attribindex, bindingindex);
+	default_glVertexArrayVertexAttribBindingEXT(vaobj, attribindex, bindingindex);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32835,10 +32835,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribBindingEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GLuint bindingindex, GLuint divisor)
 {
-	glVertexArrayVertexBindingDivisorEXT(vaobj, bindingindex, divisor);
+	default_glVertexArrayVertexBindingDivisorEXT(vaobj, bindingindex, divisor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32852,10 +32852,10 @@ static void APIENTRY debug_glVertexArrayVertexBindingDivisorEXT(GLuint vaobj, GL
 
 static void APIENTRY debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
 {
-	glVertexArrayVertexAttribLOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
+	default_glVertexArrayVertexAttribLOffsetEXT(vaobj, buffer, index, size, type, stride, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32869,10 +32869,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribLOffsetEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glTexturePageCommitmentEXT(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit)
 {
-	glTexturePageCommitmentEXT(texture, level, xoffset, yoffset, zoffset, width, height, depth, commit);
+	default_glTexturePageCommitmentEXT(texture, level, xoffset, yoffset, zoffset, width, height, depth, commit);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32886,10 +32886,10 @@ static void APIENTRY debug_glTexturePageCommitmentEXT(GLuint texture, GLint leve
 
 static void APIENTRY debug_glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLuint index, GLuint divisor)
 {
-	glVertexArrayVertexAttribDivisorEXT(vaobj, index, divisor);
+	default_glVertexArrayVertexAttribDivisorEXT(vaobj, index, divisor);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32903,10 +32903,10 @@ static void APIENTRY debug_glVertexArrayVertexAttribDivisorEXT(GLuint vaobj, GLu
 
 static void APIENTRY debug_glDiscardFramebufferEXT(GLenum target, GLsizei numAttachments, const GLenum *attachments)
 {
-	glDiscardFramebufferEXT(target, numAttachments, attachments);
+	default_glDiscardFramebufferEXT(target, numAttachments, attachments);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32920,10 +32920,10 @@ static void APIENTRY debug_glDiscardFramebufferEXT(GLenum target, GLsizei numAtt
 
 static void APIENTRY debug_glProgramEnvParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
-	glProgramEnvParameters4fvEXT(target, index, count, params);
+	default_glProgramEnvParameters4fvEXT(target, index, count, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32937,10 +32937,10 @@ static void APIENTRY debug_glProgramEnvParameters4fvEXT(GLenum target, GLuint in
 
 static void APIENTRY debug_glProgramLocalParameters4fvEXT(GLenum target, GLuint index, GLsizei count, const GLfloat *params)
 {
-	glProgramLocalParameters4fvEXT(target, index, count, params);
+	default_glProgramLocalParameters4fvEXT(target, index, count, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32954,10 +32954,10 @@ static void APIENTRY debug_glProgramLocalParameters4fvEXT(GLenum target, GLuint 
 
 static void APIENTRY debug_glGetHistogramEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
-	glGetHistogramEXT(target, reset, format, type, values);
+	default_glGetHistogramEXT(target, reset, format, type, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32971,10 +32971,10 @@ static void APIENTRY debug_glGetHistogramEXT(GLenum target, GLboolean reset, GLe
 
 static void APIENTRY debug_glGetHistogramParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetHistogramParameterfvEXT(target, pname, params);
+	default_glGetHistogramParameterfvEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -32988,10 +32988,10 @@ static void APIENTRY debug_glGetHistogramParameterfvEXT(GLenum target, GLenum pn
 
 static void APIENTRY debug_glGetHistogramParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
-	glGetHistogramParameterivEXT(target, pname, params);
+	default_glGetHistogramParameterivEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33005,10 +33005,10 @@ static void APIENTRY debug_glGetHistogramParameterivEXT(GLenum target, GLenum pn
 
 static void APIENTRY debug_glGetMinmaxEXT(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values)
 {
-	glGetMinmaxEXT(target, reset, format, type, values);
+	default_glGetMinmaxEXT(target, reset, format, type, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33022,10 +33022,10 @@ static void APIENTRY debug_glGetMinmaxEXT(GLenum target, GLboolean reset, GLenum
 
 static void APIENTRY debug_glGetMinmaxParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetMinmaxParameterfvEXT(target, pname, params);
+	default_glGetMinmaxParameterfvEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33039,10 +33039,10 @@ static void APIENTRY debug_glGetMinmaxParameterfvEXT(GLenum target, GLenum pname
 
 static void APIENTRY debug_glGetMinmaxParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
-	glGetMinmaxParameterivEXT(target, pname, params);
+	default_glGetMinmaxParameterivEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33056,10 +33056,10 @@ static void APIENTRY debug_glGetMinmaxParameterivEXT(GLenum target, GLenum pname
 
 static void APIENTRY debug_glIndexFuncEXT(GLenum func, GLclampf ref)
 {
-	glIndexFuncEXT(func, ref);
+	default_glIndexFuncEXT(func, ref);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33073,10 +33073,10 @@ static void APIENTRY debug_glIndexFuncEXT(GLenum func, GLclampf ref)
 
 static void APIENTRY debug_glIndexMaterialEXT(GLenum face, GLenum mode)
 {
-	glIndexMaterialEXT(face, mode);
+	default_glIndexMaterialEXT(face, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33090,10 +33090,10 @@ static void APIENTRY debug_glIndexMaterialEXT(GLenum face, GLenum mode)
 
 static void APIENTRY debug_glApplyTextureEXT(GLenum mode)
 {
-	glApplyTextureEXT(mode);
+	default_glApplyTextureEXT(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33107,10 +33107,10 @@ static void APIENTRY debug_glApplyTextureEXT(GLenum mode)
 
 static void APIENTRY debug_glTextureLightEXT(GLenum pname)
 {
-	glTextureLightEXT(pname);
+	default_glTextureLightEXT(pname);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33124,10 +33124,10 @@ static void APIENTRY debug_glTextureLightEXT(GLenum pname)
 
 static void APIENTRY debug_glTextureMaterialEXT(GLenum face, GLenum mode)
 {
-	glTextureMaterialEXT(face, mode);
+	default_glTextureMaterialEXT(face, mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33141,10 +33141,10 @@ static void APIENTRY debug_glTextureMaterialEXT(GLenum face, GLenum mode)
 
 static void APIENTRY debug_glSampleMaskEXT(GLclampf value, GLboolean invert)
 {
-	glSampleMaskEXT(value, invert);
+	default_glSampleMaskEXT(value, invert);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33158,10 +33158,10 @@ static void APIENTRY debug_glSampleMaskEXT(GLclampf value, GLboolean invert)
 
 static void APIENTRY debug_glSamplePatternEXT(GLenum pattern)
 {
-	glSamplePatternEXT(pattern);
+	default_glSamplePatternEXT(pattern);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33175,10 +33175,10 @@ static void APIENTRY debug_glSamplePatternEXT(GLenum pattern)
 
 static void APIENTRY debug_glFramebufferTexture2DMultisampleEXT(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples)
 {
-	glFramebufferTexture2DMultisampleEXT(target, attachment, textarget, texture, level, samples);
+	default_glFramebufferTexture2DMultisampleEXT(target, attachment, textarget, texture, level, samples);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33192,10 +33192,10 @@ static void APIENTRY debug_glFramebufferTexture2DMultisampleEXT(GLenum target, G
 
 static void APIENTRY debug_glReadBufferIndexedEXT(GLenum src, GLint index)
 {
-	glReadBufferIndexedEXT(src, index);
+	default_glReadBufferIndexedEXT(src, index);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33209,10 +33209,10 @@ static void APIENTRY debug_glReadBufferIndexedEXT(GLenum src, GLint index)
 
 static void APIENTRY debug_glDrawBuffersIndexedEXT(GLint n, const GLenum *location, const GLint *indices)
 {
-	glDrawBuffersIndexedEXT(n, location, indices);
+	default_glDrawBuffersIndexedEXT(n, location, indices);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33226,10 +33226,10 @@ static void APIENTRY debug_glDrawBuffersIndexedEXT(GLint n, const GLenum *locati
 
 static void APIENTRY debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint *data)
 {
-	glGetIntegeri_vEXT(target, index, data);
+	default_glGetIntegeri_vEXT(target, index, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33243,10 +33243,10 @@ static void APIENTRY debug_glGetIntegeri_vEXT(GLenum target, GLuint index, GLint
 
 static void APIENTRY debug_glPixelTransformParameteriEXT(GLenum target, GLenum pname, GLint param)
 {
-	glPixelTransformParameteriEXT(target, pname, param);
+	default_glPixelTransformParameteriEXT(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33260,10 +33260,10 @@ static void APIENTRY debug_glPixelTransformParameteriEXT(GLenum target, GLenum p
 
 static void APIENTRY debug_glPixelTransformParameterfEXT(GLenum target, GLenum pname, GLfloat param)
 {
-	glPixelTransformParameterfEXT(target, pname, param);
+	default_glPixelTransformParameterfEXT(target, pname, param);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33277,10 +33277,10 @@ static void APIENTRY debug_glPixelTransformParameterfEXT(GLenum target, GLenum p
 
 static void APIENTRY debug_glPixelTransformParameterivEXT(GLenum target, GLenum pname, const GLint *params)
 {
-	glPixelTransformParameterivEXT(target, pname, params);
+	default_glPixelTransformParameterivEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33294,10 +33294,10 @@ static void APIENTRY debug_glPixelTransformParameterivEXT(GLenum target, GLenum 
 
 static void APIENTRY debug_glPixelTransformParameterfvEXT(GLenum target, GLenum pname, const GLfloat *params)
 {
-	glPixelTransformParameterfvEXT(target, pname, params);
+	default_glPixelTransformParameterfvEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33311,10 +33311,10 @@ static void APIENTRY debug_glPixelTransformParameterfvEXT(GLenum target, GLenum 
 
 static void APIENTRY debug_glGetPixelTransformParameterivEXT(GLenum target, GLenum pname, GLint *params)
 {
-	glGetPixelTransformParameterivEXT(target, pname, params);
+	default_glGetPixelTransformParameterivEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33328,10 +33328,10 @@ static void APIENTRY debug_glGetPixelTransformParameterivEXT(GLenum target, GLen
 
 static void APIENTRY debug_glGetPixelTransformParameterfvEXT(GLenum target, GLenum pname, GLfloat *params)
 {
-	glGetPixelTransformParameterfvEXT(target, pname, params);
+	default_glGetPixelTransformParameterfvEXT(target, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33345,10 +33345,10 @@ static void APIENTRY debug_glGetPixelTransformParameterfvEXT(GLenum target, GLen
 
 static void APIENTRY debug_glPolygonOffsetEXT(GLfloat factor, GLfloat bias)
 {
-	glPolygonOffsetEXT(factor, bias);
+	default_glPolygonOffsetEXT(factor, bias);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33362,10 +33362,10 @@ static void APIENTRY debug_glPolygonOffsetEXT(GLfloat factor, GLfloat bias)
 
 static void APIENTRY debug_glPolygonOffsetClampEXT(GLfloat factor, GLfloat units, GLfloat clamp)
 {
-	glPolygonOffsetClampEXT(factor, units, clamp);
+	default_glPolygonOffsetClampEXT(factor, units, clamp);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33379,10 +33379,10 @@ static void APIENTRY debug_glPolygonOffsetClampEXT(GLfloat factor, GLfloat units
 
 static void APIENTRY debug_glRasterSamplesEXT(GLuint samples, GLboolean fixedsamplelocations)
 {
-	glRasterSamplesEXT(samples, fixedsamplelocations);
+	default_glRasterSamplesEXT(samples, fixedsamplelocations);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33396,10 +33396,10 @@ static void APIENTRY debug_glRasterSamplesEXT(GLuint samples, GLboolean fixedsam
 
 static void APIENTRY debug_glUseShaderProgramEXT(GLenum type, GLuint program)
 {
-	glUseShaderProgramEXT(type, program);
+	default_glUseShaderProgramEXT(type, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33413,10 +33413,10 @@ static void APIENTRY debug_glUseShaderProgramEXT(GLenum type, GLuint program)
 
 static void APIENTRY debug_glActiveProgramEXT(GLuint program)
 {
-	glActiveProgramEXT(program);
+	default_glActiveProgramEXT(program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33433,7 +33433,7 @@ static GLuint APIENTRY debug_glCreateShaderProgramEXT(GLenum type, const GLchar 
 	GLuint retVal = default_glCreateShaderProgramEXT(type, string);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33448,10 +33448,10 @@ static GLuint APIENTRY debug_glCreateShaderProgramEXT(GLenum type, const GLchar 
 
 static void APIENTRY debug_glActiveShaderProgramEXT(GLuint pipeline, GLuint program)
 {
-	glActiveShaderProgramEXT(pipeline, program);
+	default_glActiveShaderProgramEXT(pipeline, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33465,10 +33465,10 @@ static void APIENTRY debug_glActiveShaderProgramEXT(GLuint pipeline, GLuint prog
 
 static void APIENTRY debug_glBindProgramPipelineEXT(GLuint pipeline)
 {
-	glBindProgramPipelineEXT(pipeline);
+	default_glBindProgramPipelineEXT(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33485,7 +33485,7 @@ static GLuint APIENTRY debug_glCreateShaderProgramvEXT(GLenum type, GLsizei coun
 	GLuint retVal = default_glCreateShaderProgramvEXT(type, count, strings);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33500,10 +33500,10 @@ static GLuint APIENTRY debug_glCreateShaderProgramvEXT(GLenum type, GLsizei coun
 
 static void APIENTRY debug_glDeleteProgramPipelinesEXT(GLsizei n, const GLuint *pipelines)
 {
-	glDeleteProgramPipelinesEXT(n, pipelines);
+	default_glDeleteProgramPipelinesEXT(n, pipelines);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33517,10 +33517,10 @@ static void APIENTRY debug_glDeleteProgramPipelinesEXT(GLsizei n, const GLuint *
 
 static void APIENTRY debug_glGenProgramPipelinesEXT(GLsizei n, GLuint *pipelines)
 {
-	glGenProgramPipelinesEXT(n, pipelines);
+	default_glGenProgramPipelinesEXT(n, pipelines);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33534,10 +33534,10 @@ static void APIENTRY debug_glGenProgramPipelinesEXT(GLsizei n, GLuint *pipelines
 
 static void APIENTRY debug_glGetProgramPipelineInfoLogEXT(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
-	glGetProgramPipelineInfoLogEXT(pipeline, bufSize, length, infoLog);
+	default_glGetProgramPipelineInfoLogEXT(pipeline, bufSize, length, infoLog);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33551,10 +33551,10 @@ static void APIENTRY debug_glGetProgramPipelineInfoLogEXT(GLuint pipeline, GLsiz
 
 static void APIENTRY debug_glGetProgramPipelineivEXT(GLuint pipeline, GLenum pname, GLint *params)
 {
-	glGetProgramPipelineivEXT(pipeline, pname, params);
+	default_glGetProgramPipelineivEXT(pipeline, pname, params);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33571,7 +33571,7 @@ static GLboolean APIENTRY debug_glIsProgramPipelineEXT(GLuint pipeline)
 	GLboolean retVal = default_glIsProgramPipelineEXT(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33586,10 +33586,10 @@ static GLboolean APIENTRY debug_glIsProgramPipelineEXT(GLuint pipeline)
 
 static void APIENTRY debug_glUseProgramStagesEXT(GLuint pipeline, GLbitfield stages, GLuint program)
 {
-	glUseProgramStagesEXT(pipeline, stages, program);
+	default_glUseProgramStagesEXT(pipeline, stages, program);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33603,10 +33603,10 @@ static void APIENTRY debug_glUseProgramStagesEXT(GLuint pipeline, GLbitfield sta
 
 static void APIENTRY debug_glValidateProgramPipelineEXT(GLuint pipeline)
 {
-	glValidateProgramPipelineEXT(pipeline);
+	default_glValidateProgramPipelineEXT(pipeline);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33620,10 +33620,10 @@ static void APIENTRY debug_glValidateProgramPipelineEXT(GLuint pipeline)
 
 static void APIENTRY debug_glFramebufferPixelLocalStorageSizeEXT(GLuint target, GLsizei size)
 {
-	glFramebufferPixelLocalStorageSizeEXT(target, size);
+	default_glFramebufferPixelLocalStorageSizeEXT(target, size);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33640,7 +33640,7 @@ static GLsizei APIENTRY debug_glGetFramebufferPixelLocalStorageSizeEXT(GLuint ta
 	GLsizei retVal = default_glGetFramebufferPixelLocalStorageSizeEXT(target);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33655,10 +33655,10 @@ static GLsizei APIENTRY debug_glGetFramebufferPixelLocalStorageSizeEXT(GLuint ta
 
 static void APIENTRY debug_glClearPixelLocalStorageuiEXT(GLsizei offset, GLsizei n, const GLuint *values)
 {
-	glClearPixelLocalStorageuiEXT(offset, n, values);
+	default_glClearPixelLocalStorageuiEXT(offset, n, values);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33672,10 +33672,10 @@ static void APIENTRY debug_glClearPixelLocalStorageuiEXT(GLsizei offset, GLsizei
 
 static void APIENTRY debug_glStencilClearTagEXT(GLsizei stencilTagBits, GLuint stencilClearTag)
 {
-	glStencilClearTagEXT(stencilTagBits, stencilClearTag);
+	default_glStencilClearTagEXT(stencilTagBits, stencilClearTag);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33689,10 +33689,10 @@ static void APIENTRY debug_glStencilClearTagEXT(GLsizei stencilTagBits, GLuint s
 
 static void APIENTRY debug_glActiveStencilFaceEXT(GLenum face)
 {
-	glActiveStencilFaceEXT(face);
+	default_glActiveStencilFaceEXT(face);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33706,10 +33706,10 @@ static void APIENTRY debug_glActiveStencilFaceEXT(GLenum face)
 
 static void APIENTRY debug_glClearColorIiEXT(GLint red, GLint green, GLint blue, GLint alpha)
 {
-	glClearColorIiEXT(red, green, blue, alpha);
+	default_glClearColorIiEXT(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33723,10 +33723,10 @@ static void APIENTRY debug_glClearColorIiEXT(GLint red, GLint green, GLint blue,
 
 static void APIENTRY debug_glClearColorIuiEXT(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 {
-	glClearColorIuiEXT(red, green, blue, alpha);
+	default_glClearColorIuiEXT(red, green, blue, alpha);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33743,7 +33743,7 @@ static GLboolean APIENTRY debug_glAreTexturesResidentEXT(GLsizei n, const GLuint
 	GLboolean retVal = default_glAreTexturesResidentEXT(n, textures, residences);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33758,10 +33758,10 @@ static GLboolean APIENTRY debug_glAreTexturesResidentEXT(GLsizei n, const GLuint
 
 static void APIENTRY debug_glTextureNormalEXT(GLenum mode)
 {
-	glTextureNormalEXT(mode);
+	default_glTextureNormalEXT(mode);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33775,10 +33775,10 @@ static void APIENTRY debug_glTextureNormalEXT(GLenum mode)
 
 static void APIENTRY debug_glBindBufferOffsetEXT(GLenum target, GLuint index, GLuint buffer, GLintptr offset)
 {
-	glBindBufferOffsetEXT(target, index, buffer, offset);
+	default_glBindBufferOffsetEXT(target, index, buffer, offset);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33792,10 +33792,10 @@ static void APIENTRY debug_glBindBufferOffsetEXT(GLenum target, GLuint index, GL
 
 static void APIENTRY debug_glColorPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
-	glColorPointerEXT(size, type, stride, count, pointer);
+	default_glColorPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33809,10 +33809,10 @@ static void APIENTRY debug_glColorPointerEXT(GLint size, GLenum type, GLsizei st
 
 static void APIENTRY debug_glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, const GLboolean *pointer)
 {
-	glEdgeFlagPointerEXT(stride, count, pointer);
+	default_glEdgeFlagPointerEXT(stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33826,10 +33826,10 @@ static void APIENTRY debug_glEdgeFlagPointerEXT(GLsizei stride, GLsizei count, c
 
 static void APIENTRY debug_glIndexPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
-	glIndexPointerEXT(type, stride, count, pointer);
+	default_glIndexPointerEXT(type, stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33843,10 +33843,10 @@ static void APIENTRY debug_glIndexPointerEXT(GLenum type, GLsizei stride, GLsize
 
 static void APIENTRY debug_glNormalPointerEXT(GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
-	glNormalPointerEXT(type, stride, count, pointer);
+	default_glNormalPointerEXT(type, stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33860,10 +33860,10 @@ static void APIENTRY debug_glNormalPointerEXT(GLenum type, GLsizei stride, GLsiz
 
 static void APIENTRY debug_glTexCoordPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
-	glTexCoordPointerEXT(size, type, stride, count, pointer);
+	default_glTexCoordPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33877,10 +33877,10 @@ static void APIENTRY debug_glTexCoordPointerEXT(GLint size, GLenum type, GLsizei
 
 static void APIENTRY debug_glVertexPointerEXT(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer)
 {
-	glVertexPointerEXT(size, type, stride, count, pointer);
+	default_glVertexPointerEXT(size, type, stride, count, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33894,10 +33894,10 @@ static void APIENTRY debug_glVertexPointerEXT(GLint size, GLenum type, GLsizei s
 
 static void APIENTRY debug_glBeginVertexShaderEXT()
 {
-	glBeginVertexShaderEXT();
+	default_glBeginVertexShaderEXT();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33911,10 +33911,10 @@ static void APIENTRY debug_glBeginVertexShaderEXT()
 
 static void APIENTRY debug_glEndVertexShaderEXT()
 {
-	glEndVertexShaderEXT();
+	default_glEndVertexShaderEXT();
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33928,10 +33928,10 @@ static void APIENTRY debug_glEndVertexShaderEXT()
 
 static void APIENTRY debug_glBindVertexShaderEXT(GLuint id)
 {
-	glBindVertexShaderEXT(id);
+	default_glBindVertexShaderEXT(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33948,7 +33948,7 @@ static GLuint APIENTRY debug_glGenVertexShadersEXT(GLuint range)
 	GLuint retVal = default_glGenVertexShadersEXT(range);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33963,10 +33963,10 @@ static GLuint APIENTRY debug_glGenVertexShadersEXT(GLuint range)
 
 static void APIENTRY debug_glDeleteVertexShaderEXT(GLuint id)
 {
-	glDeleteVertexShaderEXT(id);
+	default_glDeleteVertexShaderEXT(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33980,10 +33980,10 @@ static void APIENTRY debug_glDeleteVertexShaderEXT(GLuint id)
 
 static void APIENTRY debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
 {
-	glShaderOp1EXT(op, res, arg1);
+	default_glShaderOp1EXT(op, res, arg1);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -33997,10 +33997,10 @@ static void APIENTRY debug_glShaderOp1EXT(GLenum op, GLuint res, GLuint arg1)
 
 static void APIENTRY debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2)
 {
-	glShaderOp2EXT(op, res, arg1, arg2);
+	default_glShaderOp2EXT(op, res, arg1, arg2);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34014,10 +34014,10 @@ static void APIENTRY debug_glShaderOp2EXT(GLenum op, GLuint res, GLuint arg1, GL
 
 static void APIENTRY debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GLuint arg2, GLuint arg3)
 {
-	glShaderOp3EXT(op, res, arg1, arg2, arg3);
+	default_glShaderOp3EXT(op, res, arg1, arg2, arg3);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34031,10 +34031,10 @@ static void APIENTRY debug_glShaderOp3EXT(GLenum op, GLuint res, GLuint arg1, GL
 
 static void APIENTRY debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
 {
-	glSwizzleEXT(res, in, outX, outY, outZ, outW);
+	default_glSwizzleEXT(res, in, outX, outY, outZ, outW);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34048,10 +34048,10 @@ static void APIENTRY debug_glSwizzleEXT(GLuint res, GLuint in, GLenum outX, GLen
 
 static void APIENTRY debug_glWriteMaskEXT(GLuint res, GLuint in, GLenum outX, GLenum outY, GLenum outZ, GLenum outW)
 {
-	glWriteMaskEXT(res, in, outX, outY, outZ, outW);
+	default_glWriteMaskEXT(res, in, outX, outY, outZ, outW);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34065,10 +34065,10 @@ static void APIENTRY debug_glWriteMaskEXT(GLuint res, GLuint in, GLenum outX, GL
 
 static void APIENTRY debug_glInsertComponentEXT(GLuint res, GLuint src, GLuint num)
 {
-	glInsertComponentEXT(res, src, num);
+	default_glInsertComponentEXT(res, src, num);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34082,10 +34082,10 @@ static void APIENTRY debug_glInsertComponentEXT(GLuint res, GLuint src, GLuint n
 
 static void APIENTRY debug_glExtractComponentEXT(GLuint res, GLuint src, GLuint num)
 {
-	glExtractComponentEXT(res, src, num);
+	default_glExtractComponentEXT(res, src, num);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34102,7 +34102,7 @@ static GLuint APIENTRY debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype
 	GLuint retVal = default_glGenSymbolsEXT(datatype, storagetype, range, components);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34117,10 +34117,10 @@ static GLuint APIENTRY debug_glGenSymbolsEXT(GLenum datatype, GLenum storagetype
 
 static void APIENTRY debug_glSetInvariantEXT(GLuint id, GLenum type, const void *addr)
 {
-	glSetInvariantEXT(id, type, addr);
+	default_glSetInvariantEXT(id, type, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34134,10 +34134,10 @@ static void APIENTRY debug_glSetInvariantEXT(GLuint id, GLenum type, const void 
 
 static void APIENTRY debug_glSetLocalConstantEXT(GLuint id, GLenum type, const void *addr)
 {
-	glSetLocalConstantEXT(id, type, addr);
+	default_glSetLocalConstantEXT(id, type, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34151,10 +34151,10 @@ static void APIENTRY debug_glSetLocalConstantEXT(GLuint id, GLenum type, const v
 
 static void APIENTRY debug_glVariantbvEXT(GLuint id, const GLbyte *addr)
 {
-	glVariantbvEXT(id, addr);
+	default_glVariantbvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34168,10 +34168,10 @@ static void APIENTRY debug_glVariantbvEXT(GLuint id, const GLbyte *addr)
 
 static void APIENTRY debug_glVariantsvEXT(GLuint id, const GLshort *addr)
 {
-	glVariantsvEXT(id, addr);
+	default_glVariantsvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34185,10 +34185,10 @@ static void APIENTRY debug_glVariantsvEXT(GLuint id, const GLshort *addr)
 
 static void APIENTRY debug_glVariantivEXT(GLuint id, const GLint *addr)
 {
-	glVariantivEXT(id, addr);
+	default_glVariantivEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34202,10 +34202,10 @@ static void APIENTRY debug_glVariantivEXT(GLuint id, const GLint *addr)
 
 static void APIENTRY debug_glVariantfvEXT(GLuint id, const GLfloat *addr)
 {
-	glVariantfvEXT(id, addr);
+	default_glVariantfvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34219,10 +34219,10 @@ static void APIENTRY debug_glVariantfvEXT(GLuint id, const GLfloat *addr)
 
 static void APIENTRY debug_glVariantdvEXT(GLuint id, const GLdouble *addr)
 {
-	glVariantdvEXT(id, addr);
+	default_glVariantdvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34236,10 +34236,10 @@ static void APIENTRY debug_glVariantdvEXT(GLuint id, const GLdouble *addr)
 
 static void APIENTRY debug_glVariantubvEXT(GLuint id, const GLubyte *addr)
 {
-	glVariantubvEXT(id, addr);
+	default_glVariantubvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34253,10 +34253,10 @@ static void APIENTRY debug_glVariantubvEXT(GLuint id, const GLubyte *addr)
 
 static void APIENTRY debug_glVariantusvEXT(GLuint id, const GLushort *addr)
 {
-	glVariantusvEXT(id, addr);
+	default_glVariantusvEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34270,10 +34270,10 @@ static void APIENTRY debug_glVariantusvEXT(GLuint id, const GLushort *addr)
 
 static void APIENTRY debug_glVariantuivEXT(GLuint id, const GLuint *addr)
 {
-	glVariantuivEXT(id, addr);
+	default_glVariantuivEXT(id, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34287,10 +34287,10 @@ static void APIENTRY debug_glVariantuivEXT(GLuint id, const GLuint *addr)
 
 static void APIENTRY debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint stride, const void *addr)
 {
-	glVariantPointerEXT(id, type, stride, addr);
+	default_glVariantPointerEXT(id, type, stride, addr);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34304,10 +34304,10 @@ static void APIENTRY debug_glVariantPointerEXT(GLuint id, GLenum type, GLuint st
 
 static void APIENTRY debug_glEnableVariantClientStateEXT(GLuint id)
 {
-	glEnableVariantClientStateEXT(id);
+	default_glEnableVariantClientStateEXT(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34321,10 +34321,10 @@ static void APIENTRY debug_glEnableVariantClientStateEXT(GLuint id)
 
 static void APIENTRY debug_glDisableVariantClientStateEXT(GLuint id)
 {
-	glDisableVariantClientStateEXT(id);
+	default_glDisableVariantClientStateEXT(id);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34341,7 +34341,7 @@ static GLuint APIENTRY debug_glBindLightParameterEXT(GLenum light, GLenum value)
 	GLuint retVal = default_glBindLightParameterEXT(light, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34359,7 +34359,7 @@ static GLuint APIENTRY debug_glBindMaterialParameterEXT(GLenum face, GLenum valu
 	GLuint retVal = default_glBindMaterialParameterEXT(face, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34377,7 +34377,7 @@ static GLuint APIENTRY debug_glBindTexGenParameterEXT(GLenum unit, GLenum coord,
 	GLuint retVal = default_glBindTexGenParameterEXT(unit, coord, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34395,7 +34395,7 @@ static GLuint APIENTRY debug_glBindTextureUnitParameterEXT(GLenum unit, GLenum v
 	GLuint retVal = default_glBindTextureUnitParameterEXT(unit, value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34413,7 +34413,7 @@ static GLuint APIENTRY debug_glBindParameterEXT(GLenum value)
 	GLuint retVal = default_glBindParameterEXT(value);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34431,7 +34431,7 @@ static GLboolean APIENTRY debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
 	GLboolean retVal = default_glIsVariantEnabledEXT(id, cap);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34446,10 +34446,10 @@ static GLboolean APIENTRY debug_glIsVariantEnabledEXT(GLuint id, GLenum cap)
 
 static void APIENTRY debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
-	glGetVariantBooleanvEXT(id, value, data);
+	default_glGetVariantBooleanvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34463,10 +34463,10 @@ static void APIENTRY debug_glGetVariantBooleanvEXT(GLuint id, GLenum value, GLbo
 
 static void APIENTRY debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
-	glGetVariantIntegervEXT(id, value, data);
+	default_glGetVariantIntegervEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34480,10 +34480,10 @@ static void APIENTRY debug_glGetVariantIntegervEXT(GLuint id, GLenum value, GLin
 
 static void APIENTRY debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
-	glGetVariantFloatvEXT(id, value, data);
+	default_glGetVariantFloatvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34497,10 +34497,10 @@ static void APIENTRY debug_glGetVariantFloatvEXT(GLuint id, GLenum value, GLfloa
 
 static void APIENTRY debug_glGetVariantPointervEXT(GLuint id, GLenum value, void **data)
 {
-	glGetVariantPointervEXT(id, value, data);
+	default_glGetVariantPointervEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34514,10 +34514,10 @@ static void APIENTRY debug_glGetVariantPointervEXT(GLuint id, GLenum value, void
 
 static void APIENTRY debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
-	glGetInvariantBooleanvEXT(id, value, data);
+	default_glGetInvariantBooleanvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34531,10 +34531,10 @@ static void APIENTRY debug_glGetInvariantBooleanvEXT(GLuint id, GLenum value, GL
 
 static void APIENTRY debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
-	glGetInvariantIntegervEXT(id, value, data);
+	default_glGetInvariantIntegervEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34548,10 +34548,10 @@ static void APIENTRY debug_glGetInvariantIntegervEXT(GLuint id, GLenum value, GL
 
 static void APIENTRY debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
-	glGetInvariantFloatvEXT(id, value, data);
+	default_glGetInvariantFloatvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34565,10 +34565,10 @@ static void APIENTRY debug_glGetInvariantFloatvEXT(GLuint id, GLenum value, GLfl
 
 static void APIENTRY debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value, GLboolean *data)
 {
-	glGetLocalConstantBooleanvEXT(id, value, data);
+	default_glGetLocalConstantBooleanvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34582,10 +34582,10 @@ static void APIENTRY debug_glGetLocalConstantBooleanvEXT(GLuint id, GLenum value
 
 static void APIENTRY debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value, GLint *data)
 {
-	glGetLocalConstantIntegervEXT(id, value, data);
+	default_glGetLocalConstantIntegervEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34599,10 +34599,10 @@ static void APIENTRY debug_glGetLocalConstantIntegervEXT(GLuint id, GLenum value
 
 static void APIENTRY debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, GLfloat *data)
 {
-	glGetLocalConstantFloatvEXT(id, value, data);
+	default_glGetLocalConstantFloatvEXT(id, value, data);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34616,10 +34616,10 @@ static void APIENTRY debug_glGetLocalConstantFloatvEXT(GLuint id, GLenum value, 
 
 static void APIENTRY debug_glVertexWeightfEXT(GLfloat weight)
 {
-	glVertexWeightfEXT(weight);
+	default_glVertexWeightfEXT(weight);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34633,10 +34633,10 @@ static void APIENTRY debug_glVertexWeightfEXT(GLfloat weight)
 
 static void APIENTRY debug_glVertexWeightfvEXT(const GLfloat *weight)
 {
-	glVertexWeightfvEXT(weight);
+	default_glVertexWeightfvEXT(weight);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34650,10 +34650,10 @@ static void APIENTRY debug_glVertexWeightfvEXT(const GLfloat *weight)
 
 static void APIENTRY debug_glVertexWeightPointerEXT(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
-	glVertexWeightPointerEXT(size, type, stride, pointer);
+	default_glVertexWeightPointerEXT(size, type, stride, pointer);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34667,10 +34667,10 @@ static void APIENTRY debug_glVertexWeightPointerEXT(GLint size, GLenum type, GLs
 
 static void APIENTRY debug_glWindowRectanglesEXT(GLenum mode, GLsizei count, const GLint *box)
 {
-	glWindowRectanglesEXT(mode, count, box);
+	default_glWindowRectanglesEXT(mode, count, box);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
@@ -34687,7 +34687,7 @@ static GLsync APIENTRY debug_glImportSyncEXT(GLenum external_sync_type, GLintptr
 	GLsync retVal = default_glImportSyncEXT(external_sync_type, external_sync, flags);
 	if (checkErrors)
 	{
-		GLenum _error = glGetError();
+		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];

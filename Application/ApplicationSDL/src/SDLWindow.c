@@ -25,6 +25,9 @@
 #include <SDL_syswm.h>
 #include <string.h>
 
+#define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
+#define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
+
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)
 {
 	if (center)
@@ -63,6 +66,11 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
+	if (application->renderer->type == DS_GL_RENDERER_TYPE ||
+		application->renderer->type == DS_GLES_RENDERER_TYPE)
+	{
+		sdlFlags |= SDL_WINDOW_OPENGL;
+	}
 
 	if (window->surface)
 	{
@@ -77,7 +85,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 		sdlWindow->sdlWindow = NULL;
 	}
 
-
 	SDL_Window* internalWindow = SDL_CreateWindow(title, x, y, width, height, sdlFlags);
 	if (!sdlWindow)
 	{
@@ -85,11 +92,13 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
 		return false;
 	}
+	dsRenderer_restoreGlobalState(application->renderer);
 
 	sdlWindow->samples = application->renderer->surfaceSamples;
 	sdlWindow->sdlWindow = internalWindow;
 
 	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
 	DS_VERIFY(SDL_GetWindowWMInfo(internalWindow, &info));
 	void* windowHandle = NULL;
 	switch (info.subsystem)
@@ -123,6 +132,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 			errno = EPERM;
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
 			SDL_DestroyWindow(internalWindow);
+			dsRenderer_restoreGlobalState(application->renderer);
 			return false;
 	}
 
@@ -132,6 +142,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
 		SDL_DestroyWindow(internalWindow);
+		dsRenderer_restoreGlobalState(application->renderer);
 		return false;
 	}
 
@@ -155,7 +166,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	memset(window, 0, sizeof(dsSDLWindow));
 	dsWindow* baseWindow = (dsWindow*)window;
 	baseWindow->application = application;
-	baseWindow->allocator = allocator;
+	baseWindow->allocator = dsAllocator_keepPointer(allocator);
 
 	if (!dsSDLWindow_createComponents(baseWindow, title, position, width, height, flags))
 	{
@@ -377,6 +388,8 @@ bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window)
 		return false;
 	if (sdlWindow->sdlWindow)
 		SDL_DestroyWindow(sdlWindow->sdlWindow);
-	DS_VERIFY(dsAllocator_free(application->allocator, window));
+	dsRenderer_restoreGlobalState(application->renderer);
+	if (window->allocator)
+		DS_VERIFY(dsAllocator_free(window->allocator, window));
 	return true;
 }

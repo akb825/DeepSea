@@ -48,7 +48,7 @@
 
 static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
 {
-	if (options->redBits == 8 && options->greenBits == 0 && options->blueBits == 0)
+	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
 	{
 		if (options->alphaBits == 8)
 		{
@@ -282,6 +282,30 @@ bool dsGLRenderer_waitUntilIdle(dsRenderer* renderer)
 	return true;
 }
 
+bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	void* context;
+	void* surface;
+	if (glRenderer->curGLSurface)
+	{
+		context = glRenderer->renderContext;
+		surface = glRenderer->curGLSurface;
+	}
+	else
+	{
+		context = glRenderer->sharedContext;
+		surface = glRenderer->dummySurface;
+	}
+
+	if (!dsBindGLContext(glRenderer->options.display, context, surface))
+	{
+		errno = EPERM;
+		return false;
+	}
+	return true;
+}
+
 void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 {
 	if (!options)
@@ -375,19 +399,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		renderer->releaseDisplay = true;
 	}
 
-	const char* glslVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-	DS_ASSERT(glslVersion);
-	unsigned int major, minor;
-	if (ANYGL_GLES)
-		DS_VERIFY(sscanf(glslVersion, "OpenGL ES GLSL ES %u.%u", &major, &minor) == 2);
-	else
-		DS_VERIFY(sscanf(glslVersion, "%u.%u", &major, &minor) == 2);
-	renderer->shaderVersion = major*100 + minor;
-	renderer->vendorString = (const char*)glGetString(GL_VENDOR);
-	DS_ASSERT(renderer->vendorString);
-	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
-	DS_ASSERT(renderer->rendererString);
-
 	void* display = renderer->options.display;
 	renderer->sharedConfig = dsCreateGLConfig(allocator, display, options, false);
 	renderer->renderConfig = dsCreateGLConfig(allocator, display, options, true);
@@ -434,15 +445,33 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
+	int major, minor;
+	AnyGL_getGLVersion(&major, &minor, NULL);
 	if (!hasRequiredFunctions())
 	{
 		errno = EPERM;
-		int major, minor;
-		AnyGL_getGLVersion(&major, &minor, NULL);
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL %d.%d is too old.", major, minor);
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
 	}
+
+	const char* glslVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	DS_ASSERT(glslVersion);
+	unsigned int glslMajor, glslMinor;
+	if (ANYGL_GLES)
+		DS_VERIFY(sscanf(glslVersion, "OpenGL ES GLSL ES %u.%u", &glslMajor, &glslMinor) == 2);
+	else
+		DS_VERIFY(sscanf(glslVersion, "%u.%u", &glslMajor, &glslMinor) == 2);
+	renderer->shaderVersion = major*100 + minor;
+	renderer->vendorString = (const char*)glGetString(GL_VENDOR);
+	DS_ASSERT(renderer->vendorString);
+	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
+	DS_ASSERT(renderer->rendererString);
+
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
+		minor);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", renderer->vendorString);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Renderer: %s", renderer->rendererString);
 
 	// Temporary FBOs used when the shared context
 	glGenFramebuffers(1, &renderer->sharedTempFramebuffer);
@@ -504,6 +533,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->vsync = false;
 	baseRenderer->clipHalfDepth = false;
 	baseRenderer->clipInvertY = false;
+	baseRenderer->defaultAnisotropy = 1;
 
 	baseRenderer->hasGeometryShaders = AnyGL_atLeastVersion(3, 2, false) ||
 		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_geometry_shader4 ||
@@ -560,6 +590,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->dispatchComputeFunc = &dsGLCommandBuffer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
+	baseRenderer->restoreGlobalStateFunc = &dsGLRenderer_restoreGlobalState;
 
 	return baseRenderer;
 }

@@ -136,7 +136,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		memcpy((void*)baseRenderPass->subpassDependencies, dependencies, dependencyArraySize);
 	}
 	else
-		baseRenderPass->subpasses = NULL;
+		baseRenderPass->subpassDependencies = NULL;
 
 	baseRenderPass->attachmentCount = attachmentCount;
 	baseRenderPass->subpassCount = subpassCount;

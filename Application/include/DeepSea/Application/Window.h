@@ -55,6 +55,31 @@ DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAl
 	unsigned int flags);
 
 /**
+ * @brief Sets the draw function for a window.
+ * @remark errno will be set on failure.
+ * @param window The window.
+ * @param drawFunc The draw function to set.
+ * @param userData The user data to provide to the draw function.
+ * @return True if the draw function was set.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc,
+	void* userData);
+
+/**
+ * @brief Sets the function to respond to closing the window.
+ *
+ * This function may be used to avoid closing the window when requested by the user.
+ *
+ * @remark errno will be set on failure.
+ * @param window The window.
+ * @param closeFunc The close function to set.
+ * @param userData The user data to provide to the draw function.
+ * @return True if the draw function was set.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_setCloseFunction(dsWindow* window,
+	dsInterceptCloseWindowFunction closeFunc, void* userData);
+
+/**
  * @brief Sets the title of a window.
  * @remark errno will be set on failure.
  * @param window The window to set the title on.

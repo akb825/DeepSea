@@ -1,10 +1,21 @@
+# Copyright 2017 Aaron Barany
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 find_program(MSLC mslc)
-if (NOT MSLC)
-	message(FATAL_ERROR "Program 'mslc' not found on the path.")
-endif()
 
 if (DEEPSEA_BUILD_RENDER_OPENGL)
-	include(${DEEPSEA_SOURCE_DIR}/Render/RenderOpenGL/mslc-conf/ConfigPaths.cmake)
+	include(${DEEPSEA_SOURCE_DIR}/Render/RenderOpenGL/msl-config/ConfigPaths.cmake)
 endif()
 
 # ds_compile_shaders(container
@@ -42,10 +53,14 @@ endif()
 # OPTIMIZE - if specified, enables optimizations.
 # WORKING_DIR - the working directory for running the shader compiler.
 function(ds_compile_shaders container)
+	if (NOT MSLC)
+		message(FATAL_ERROR "Program 'mslc' not found on the path.")
+	endif()
+
 	set(options WARN_NONE WARN_ERROR STRIP_SYMBOLS OPTIMIZE)
 	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIR)
 	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDENCY DEPENDENCY_RECURSE)
-	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}")
+	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_OUTPUT)
 		message(FATAL_ERROR "Required option OUTPUT not specified.")
 		return()
@@ -91,7 +106,7 @@ function(ds_compile_shaders container)
 		set(commandLineArgs ${ARGS_FILE} -c ${${config}})
 		if (ARGS_OUTPUT_DIR)
 			set(output ${ARGS_OUTPUT_DIR}/${config})
-			set(outputCommand COMMAND ${CMAKE_COMMAND} ARGS -E ${output})
+			set(outputCommand COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${output})
 			set(output ${output}/${ARGS_OUTPUT})
 		else()
 			set(outputCommand "")
@@ -100,22 +115,22 @@ function(ds_compile_shaders container)
 		list(APPEND commandLineArgs -o ${output})
 		list(APPEND outputs ${output})
 
-		foreach (inc in ${ARGS_INCLUDES})
+		foreach (inc ${ARGS_INCLUDES})
 			list(APPEND commandLineArgs -I ${inc})
-		endif()
+		endforeach()
 
-		foreach (define in ${ARGS_DEFINE})
+		foreach (define ${ARGS_DEFINE})
 			list(APPEND commandLineArgs -D ${define})
-		endif()
+		endforeach()
 
 		add_custom_command(OUTPUT ${output}
 			${outputCommand}
 			COMMAND ${MSLC} ARGS ${commandLineArgs} ${extraArgs}
-			DEPENDS ${deps} ${recursiveDeps}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE}
 			COMMENT "Building ${config} shader: ${output}")
 	endforeach()
 
-	set(${container} ${outputs} PARENT_SCOPE)
+	set(${container} ${${container}} ${outputs} PARENT_SCOPE)
 endfunction()
 
 # ds_compile_shaders_target(target container)
@@ -125,5 +140,5 @@ endfunction()
 # target - the name of the target.
 # container - the container previously passed to ds_compile_shaders().
 function(ds_compile_shaders_target target container)
-	add_custom_target(${target} DEPENDS ${container})
+	add_custom_target(${target} DEPENDS ${${container}})
 endfunction()
