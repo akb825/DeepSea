@@ -139,6 +139,7 @@ endfunction()
 #
 # target - the name of the target.
 # container - the container previously passed to ds_compile_shaders().
+# All following arguments are forwarded to add_custom_target().
 function(ds_compile_shaders_target target container)
-	add_custom_target(${target} DEPENDS ${${container}})
+	add_custom_target(${target} DEPENDS ${${container}} ${ARGN})
 endfunction()
