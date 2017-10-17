@@ -201,6 +201,18 @@ static bool setGLAttributes(dsRenderer* renderer)
 	return true;
 }
 
+static bool shouldSetOpenGL(const dsRenderer* renderer)
+{
+	if (renderer->type != DS_GL_RENDERER_TYPE && renderer->type != DS_GLES_RENDERER_TYPE)
+		return false;
+
+	const char* driver = SDL_GetCurrentVideoDriver();
+	if (strcmp(driver, "x11") == 0)
+		return true;
+
+	return false;
+}
+
 static void updateWindowSamples(dsApplication* application)
 {
 	bool setSamples = false;
@@ -247,11 +259,8 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_Maximized;
 		if (dsSDLWindow_getGrabbedInput(application, window))
 			flags |= dsWindowFlags_GrabInput;
-		if (application->renderer->type == DS_GL_RENDERER_TYPE ||
-			application->renderer->type == DS_GLES_RENDERER_TYPE)
-		{
+		if (shouldSetOpenGL(application->renderer))
 			flags |= SDL_WINDOW_OPENGL;
-		}
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, &position, width, height, flags))

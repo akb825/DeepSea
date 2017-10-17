@@ -108,13 +108,6 @@ typedef struct dsOpenGLOptions
 	bool stereoscopic;
 
 	/**
-	 * @brief Whether or not to use an accelerated target.
-	 *
-	 * Set to true to force accelerated, false to force software, or -1 to not care.
-	 */
-	int8_t accelerated;
-
-	/**
 	 * @brief True to enable debugging.
 	 */
 	bool debug;

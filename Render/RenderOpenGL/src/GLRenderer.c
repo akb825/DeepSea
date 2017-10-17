@@ -322,7 +322,6 @@ void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
 	options->doubleBuffer = true;
 	options->srgb = false;
 	options->stereoscopic = false;
-	options->accelerated = -1;
 	options->debug = ANYGL_ALLOW_DEBUG;
 	options->maxResourceThreads = 0;
 	options->shaderCacheDir = NULL;

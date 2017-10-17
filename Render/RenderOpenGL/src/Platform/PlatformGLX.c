@@ -39,7 +39,7 @@ static bool hasExtension(const char* extensions, const char* extension)
 	while (extensions[begin])
 	{
 		for (end = begin; extensions[end] && extensions[end] != ' '; ++end)
-			/* empty */
+			; /* empty */
 		if (strncmp(extensions + begin, extension, end - begin) == 0)
 			return true;
 
@@ -320,8 +320,10 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	}
 }
 
-bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, void* surface)
+bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
+	dsRenderSurfaceType surfaceType, void* surface)
 {
+	DS_UNUSED(surfaceType)
 	if (!outWidth || !outHeight || !surface)
 		return false;
 
@@ -330,16 +332,18 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display, 
 	return true;
 }
 
-void dsSetGLSurfaceVsync(void* display, void* surface, bool vsync)
+void dsSetGLSurfaceVsync(void* display, dsRenderSurfaceType surfaceType, void* surface, bool vsync)
 {
+	DS_UNUSED(surfaceType);
 	if (!surface || !ANYGL_SUPPORTED(glXSwapIntervalEXT))
 		return;
 
 	glXSwapIntervalEXT(display, (GLXDrawable)surface, vsync);
 }
 
-void dsSwapGLBuffers(void* display, void* surface)
+void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
+	DS_UNUSED(surfaceType);
 	if (!surface)
 		return;
 
