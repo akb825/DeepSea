@@ -530,6 +530,8 @@ int main(int argc, const char** argv)
 		DS_LOG_ERROR_F("TestCube", "Couldn't create renderer: %s", dsErrorString(errno));
 		return 2;
 	}
+	dsRenderer_setVsync(renderer, true);
+	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
 
 	shaderDir = getShaderDirFunc(renderer);
 

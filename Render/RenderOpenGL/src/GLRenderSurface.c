@@ -51,8 +51,6 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 		glSurface));
 
 	renderSurface->glSurface = glSurface;
-	renderSurface->vsync = renderer->vsync;
-	dsSetGLSurfaceVsync(display, type, glSurface, renderer->vsync);
 	return baseSurface;
 }
 
@@ -72,14 +70,6 @@ bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 	renderSurface->width = width;
 	renderSurface->height = height;
-
-	dsGLRenderSurface* glSurface = (dsGLRenderSurface*)renderSurface;
-	if (glSurface->vsync != renderer->vsync)
-	{
-		glSurface->vsync = renderer->vsync;
-		dsSetGLSurfaceVsync(glRenderer->options.display, renderSurface->surfaceType,
-			glSurface->glSurface, renderer->vsync);
-	}
 	return true;
 }
 
@@ -90,8 +80,16 @@ bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(renderSurface);
 
-	return dsGLCommandBuffer_beginRenderSurface(commandBuffer,
-		((const dsGLRenderSurface*)renderSurface)->glSurface);
+	const dsGLRenderSurface* glSurface = (const dsGLRenderSurface*)renderSurface;
+	if (!dsGLCommandBuffer_beginRenderSurface(commandBuffer, glSurface->glSurface))
+	{
+		return false;
+	}
+
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	dsSetGLSurfaceVsync(glRenderer->options.display, renderSurface->surfaceType,
+		glSurface->glSurface, renderer->vsync);
+	return true;
 }
 
 bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

@@ -388,7 +388,6 @@ typedef struct dsGLRenderSurface
 {
 	dsRenderSurface renderSurface;
 	void* glSurface;
-	bool vsync;
 } dsGLRenderSurface;
 
 typedef struct dsGLRenderPass
