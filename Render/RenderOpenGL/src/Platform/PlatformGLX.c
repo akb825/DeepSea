@@ -323,7 +323,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
-	DS_UNUSED(surfaceType)
+	DS_UNUSED(surfaceType);
 	if (!outWidth || !outHeight || !surface)
 		return false;
 

@@ -31,15 +31,13 @@ sampler_state tex
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
 
-[[vertex]] out VertexOut
+struct VertexOut
 {
 	vec2 texCoord;
-} outputs;
+};
 
-[[fragment]] in VertexOut
-{
-	vec2 texCoord;
-} inputs;
+[[vertex]] out VertexOut outputs;
+[[fragment]] in VertexOut inputs;
 
 [[fragment]] out vec4 color;
 
