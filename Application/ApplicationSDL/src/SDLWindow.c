@@ -28,6 +28,10 @@
 #define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
 #define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
+#if DS_MAC
+void* dsSDLWindow_getUsableWindowHandle(void* window);
+#endif
+
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)
 {
 	if (center)
@@ -115,17 +119,17 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 #endif
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 		case SDL_SYSWM_COCOA:
-			windowHandle = (void*)info.info.cocoa.window;
+			windowHandle = dsSDLWindow_getUsableWindowHandle(info.info.cocoa.window);
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_UIKIT)
 		case SDL_SYSWM_UIKIT:
-			windowHandle = (void*)info.info.uikit.window;
+			windowHandle = info.info.uikit.window;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_ANDROID)
 		case SDL_SYSWM_ANDROID:
-			windowHandle = (void*)info.info.android.window;
+			windowHandle = info.info.android.window;
 			break;
 #endif
 		default:

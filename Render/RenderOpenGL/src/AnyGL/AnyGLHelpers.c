@@ -1,5 +1,6 @@
 #include "gl.h"
 #include <string.h>
+#include <stdio.h>
 
 static int majorVersion;
 static int minorVersion;
@@ -34,7 +35,18 @@ int AnyGL_updateGLVersion(void)
 	minorVersion = 0;
 	glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
 	glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
-	return majorVersion > 0;
+	if (majorVersion == 0)
+	{
+		// This may have caused a GL error for older versions of OpenGL.
+		glGetError();
+		glGetError();
+		const char* version = (const char*)glGetString(GL_VERSION);
+		if (!version)
+			return 0;
+		if (sscanf(version, "%u.%u", &majorVersion, &minorVersion) != 2)
+			return 0;
+	}
+	return 1;
 }
 
 int AnyGL_queryExtension(const char* name)

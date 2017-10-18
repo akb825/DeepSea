@@ -1217,7 +1217,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->destroyRenderbufferFunc = &dsGLRenderbuffer_destroy;
 
 	// Framebuffers
-	if (ANYGL_SUPPORTED(glFramebufferTexture))
+	if (ANYGL_SUPPORTED(glFramebufferParameteri))
 	{
 		glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS,
 			(GLint*)&baseResourceManager->maxFramebufferLayers);

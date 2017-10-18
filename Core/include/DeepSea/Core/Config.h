@@ -29,9 +29,9 @@
 #	define DS_APPLE 1
 #	include <TargetConditionals.h>
 #	if TARGET_OS_MAC
-#		define DS_MAC
+#		define DS_MAC 1
 #	else
-#		define DS_IOS
+#		define DS_IOS 1
 #	endif
 #endif
 

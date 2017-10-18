@@ -59,7 +59,7 @@ void* dsGetGLDisplay(void)
 
 void dsReleaseGLDisplay(void* display)
 {
-	ReleaseDC(NULL, display);;
+	ReleaseDC(NULL, display);
 }
 
 void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,

@@ -18,7 +18,7 @@
 
 size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
-size_t dsStream_skip(dsStream* stream, uint64_t size)
+uint64_t dsStream_skip(dsStream* stream, uint64_t size)
 {
 	if (size == 0)
 		return 0;

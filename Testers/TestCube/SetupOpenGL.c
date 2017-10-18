@@ -47,10 +47,15 @@ void dsTestCube_destroyGLRenderer(dsRenderer* renderer)
 
 const char* dsTestCube_getGLShaderDir(dsRenderer* renderer)
 {
+	uint32_t version;
 	bool gles;
-	DS_VERIFY(dsGLRenderer_getShaderVersion(NULL, &gles, renderer));
+	DS_VERIFY(dsGLRenderer_getShaderVersion(&version, &gles, renderer));
 	if (gles)
 		return "glsl-es-1.0";
 	else
+	{
+		if (version >= 330)
+			return "glsl-3.3";
 		return "glsl-1.1";
+	}
 }

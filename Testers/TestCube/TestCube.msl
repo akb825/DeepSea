@@ -36,8 +36,8 @@ struct VertexOut
 	vec2 texCoord;
 };
 
-[[vertex]] out VertexOut outputs;
-[[fragment]] in VertexOut inputs;
+[[vertex]] out VertexOut vertexOut;
+[[fragment]] in VertexOut vertexOut;
 
 [[fragment]] out vec4 color;
 
@@ -45,13 +45,13 @@ struct VertexOut
 void vertexShader()
 {
 	gl_Position = uniforms.modelViewProjection*vec4(position, 1.0);
-	outputs.texCoord = texCoord;
+	vertexOut.texCoord = texCoord;
 }
 
 [[fragment]]
 void fragmentShader()
 {
-	color = texture(tex, inputs.texCoord);
+	color = texture(tex, vertexOut.texCoord);
 }
 
 pipeline Default
