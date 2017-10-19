@@ -1639,7 +1639,10 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	glLineWidth(1.0f);
 
 	if (AnyGL_atLeastVersion(1, 3, false))
+	{
 		glEnable(GL_MULTISAMPLE);
+		glDisable(GL_SAMPLE_ALPHA_TO_ONE);
+	}
 	if (ANYGL_SUPPORTED(glMinSampleShading))
 	{
 		glDisable(GL_SAMPLE_SHADING);
@@ -1653,7 +1656,6 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	}
 
 	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-	glDisable(GL_SAMPLE_ALPHA_TO_ONE);
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(true);
