@@ -293,12 +293,13 @@ static bool compileShaders(GLuint shaderIds[mslStage_Count], dsShaderModule* mod
 	return true;
 }
 
-static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline, GLuint programId)
+static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline,
+	uint32_t pipelineIndex, GLuint programId)
 {
 	for (uint32_t i = 0; i < pipeline->attributeCount; ++i)
 	{
 		mslAttribute attribute;
-		if (!mslModule_attribute(&attribute, module->module, pipeline->shaders[mslStage_Vertex], i))
+		if (!mslModule_attribute(&attribute, module->module, pipelineIndex, i))
 		{
 			errno = EFORMAT;
 			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
@@ -312,8 +313,31 @@ static bool setVertexInputs(dsShaderModule* module, const mslPipeline* pipeline,
 	return true;
 }
 
-bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* module,
-	dsGLShader* shader,  const mslPipeline* pipeline)
+static bool setFragmentOutputs(dsShaderModule* module, const mslPipeline* pipeline,
+	uint32_t pipelineIndex, GLuint programId)
+{
+	if (!ANYGL_SUPPORTED(glBindFragDataLocation))
+		return true;
+
+	for (uint32_t i = 0; i < pipeline->fragmentOutputCount; ++i)
+	{
+		mslFragmentOutput fragmentOutput;
+		if (!mslModule_fragmentOutput(&fragmentOutput, module->module, pipelineIndex, i))
+		{
+			errno = EFORMAT;
+			DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+				"Invalid vertex pipeline index for shader %s.%s.", module->name, pipeline->name);
+			return false;
+		}
+
+		glBindFragDataLocation(programId, fragmentOutput.location, fragmentOutput.name);
+	}
+
+	return true;
+}
+
+static bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* module,
+	dsGLShader* shader,  const mslPipeline* pipeline, uint32_t pipelineIndex)
 {
 	// Compile the shaders.
 	GLuint shaderIds[mslStage_Count];
@@ -326,8 +350,10 @@ bool compileAndLinkProgram(dsResourceManager* resourceManager, dsShaderModule* m
 			glAttachShader(shader->programId, shaderIds[i]);
 	}
 
-	// Set the input locations.
-	if (shaderIds[mslStage_Vertex] && !setVertexInputs(module, pipeline, shader->programId))
+	// Set the input and output locations.
+	if (!setVertexInputs(module, pipeline, pipelineIndex, shader->programId))
+		return false;
+	if (!setFragmentOutputs(module, pipeline, pipelineIndex, shader->programId))
 		return false;
 
 	// Link the program.
@@ -926,7 +952,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	// Compile and link the shader if it wasn't read.
 	bool success = readShader;
 	if (!success)
-		success = compileAndLinkProgram(resourceManager, module, shader, &pipeline);
+		success = compileAndLinkProgram(resourceManager, module, shader, &pipeline, shaderIndex);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
 	if (!success)
