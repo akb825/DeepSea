@@ -55,8 +55,8 @@ const char* dsTestCube_getGLShaderDir(dsRenderer* renderer)
 		return "glsl-es-1.0";
 	else
 	{
-		if (version >= 330)
-			return "glsl-3.3";
+		if (version >= 150)
+			return "glsl-1.5";
 		return "glsl-1.1";
 	}
 }
