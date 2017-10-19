@@ -331,13 +331,16 @@ static void setMultisampleStates(mslMultisampleState* curState,
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 	}
 
-	if (curState->alphaToOneEnable != newState->alphaToOneEnable)
+	if (AnyGL_atLeastVersion(1, 3, false))
 	{
-		curState->alphaToOneEnable = newState->alphaToOneEnable;
-		if (curState->alphaToOneEnable)
-			glEnable(GL_SAMPLE_ALPHA_TO_ONE);
-		else
-			glDisable(GL_SAMPLE_ALPHA_TO_ONE);
+		if (curState->alphaToOneEnable != newState->alphaToOneEnable)
+		{
+			curState->alphaToOneEnable = newState->alphaToOneEnable;
+			if (curState->alphaToOneEnable)
+				glEnable(GL_SAMPLE_ALPHA_TO_ONE);
+			else
+				glDisable(GL_SAMPLE_ALPHA_TO_ONE);
+		}
 	}
 }
 

@@ -1638,7 +1638,8 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	glPolygonOffset(0, 0);
 	glLineWidth(1.0f);
 
-	glEnable(GL_MULTISAMPLE);
+	if (AnyGL_atLeastVersion(1, 3, false))
+		glEnable(GL_MULTISAMPLE);
 	if (ANYGL_SUPPORTED(glMinSampleShading))
 	{
 		glDisable(GL_SAMPLE_SHADING);

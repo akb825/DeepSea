@@ -196,8 +196,6 @@ static bool setGLAttributes(dsRenderer* renderer)
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, renderer->type == DS_GLES_RENDERER_TYPE);
-
 	return true;
 }
 
@@ -762,6 +760,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		return NULL;
 	}
 
+	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");
 	const char* driver = NULL;
 #if DS_LINUX && !DS_ANDROID
 	setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);

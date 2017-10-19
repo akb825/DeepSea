@@ -29,6 +29,7 @@ dsRenderer* dsTestCube_createGLRenderer(dsAllocator* allocator)
 	{
 		DS_LOG_INFO("TestCube",
 			"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
+		options.samples = 1;
 		renderer = dsGLRenderer_create(allocator, &options);
 	}
 
