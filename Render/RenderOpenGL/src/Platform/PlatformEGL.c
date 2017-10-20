@@ -62,7 +62,11 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	unsigned int optionCount = 0;
 	GLint attr[MAX_OPTION_SIZE];
 	addOption(attr, &optionCount, EGL_RENDERABLE_TYPE, 0);
-	addOption(attr, &optionCount, EGL_SURFACE_TYPE, EGL_WINDOW_BIT);
+	GLint surfaces = EGL_WINDOW_BIT;
+	// Use pbuffer as a dummy surface.
+	if (!render)
+		surfaces |= EGL_PBUFFER_BIT;
+	addOption(attr, &optionCount, EGL_SURFACE_TYPE, surfaces);
 	addOption(attr, &optionCount, EGL_RED_SIZE, options->redBits);
 	addOption(attr, &optionCount, EGL_GREEN_SIZE, options->greenBits);
 	addOption(attr, &optionCount, EGL_BLUE_SIZE, options->blueBits);

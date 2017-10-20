@@ -77,8 +77,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	if (ANYGL_SUPPORTED(glXChooseFBConfig))
 	{
 		addOption2(attr, &optionCount, GLX_RENDER_TYPE, GLX_RGBA_BIT);
-		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT |
-			GLX_PBUFFER_BIT);
+		addOption2(attr, &optionCount, GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
 	}
 	else
 		addOption(attr, &optionCount, GLX_RGBA);
