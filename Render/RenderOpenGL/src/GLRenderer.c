@@ -46,6 +46,48 @@
 
 #define DS_SYNC_POOL_COUNT 100
 
+static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity,
+	GLsizei length, const GLchar* message, const void* userParam)
+{
+	DS_UNUSED(type);
+	DS_UNUSED(id);
+	DS_UNUSED(length);
+	DS_UNUSED(userParam);
+	const char* tag = DS_RENDER_OPENGL_LOG_TAG;
+	switch (source)
+	{
+		case GL_DEBUG_SOURCE_SHADER_COMPILER:
+			tag = "opengl-shader";
+			break;
+		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+			tag = "opengl-window";
+			break;
+	}
+
+	dsLogLevel level = dsLogLevel_Info;
+	switch (severity)
+	{
+		case GL_DEBUG_SEVERITY_HIGH:
+			level = dsLogLevel_Error;
+			break;
+		case GL_DEBUG_SEVERITY_MEDIUM:
+			level = dsLogLevel_Warning;
+			break;
+		case GL_DEBUG_SEVERITY_LOW:
+			level = dsLogLevel_Info;
+			break;
+		case GL_DEBUG_SEVERITY_NOTIFICATION:
+			level = dsLogLevel_Debug;
+			break;
+	}
+
+	const char* file;
+	const char* function;
+	unsigned int line;
+	AnyGL_getLastCallsite(&file, &function, &line);
+	dsLog_message(level, tag, file, line, function, (const char*)message);
+}
+
 static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
 {
 	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
@@ -452,6 +494,12 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL %d.%d is too old.", major, minor);
 		dsGLRenderer_destroy(baseRenderer);
 		return NULL;
+	}
+
+	if (options->debug && ANYGL_ALLOW_DEBUG && ANYGL_SUPPORTED(glDebugMessageCallback))
+	{
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(&debugOutput, NULL);
 	}
 
 	const char* glslVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
