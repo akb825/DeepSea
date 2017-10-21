@@ -88,7 +88,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	attr[optionCount] = EGL_NONE;
 
 #if ANYGL_GLES_VERSION >= 30
-	GLint versions[] = {EGL_OPENGL_ES3_BIT, EGL_OPENGL_ES3_BIT};
+	GLint versions[] = {EGL_OPENGL_ES3_BIT, EGL_OPENGL_ES2_BIT};
 #else
 	GLint versions[] = {EGL_OPENGL_ES3_BIT};
 #endif

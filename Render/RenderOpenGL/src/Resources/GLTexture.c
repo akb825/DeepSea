@@ -898,28 +898,28 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 	GLenum curEnum = dsGetGLMinFilter(samplerState->minFilter, samplerState->mipFilter);
 	if (glTexture->minFilter != curEnum)
 	{
-		glTextureParameteri(target, GL_TEXTURE_MIN_FILTER, curEnum);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, curEnum);
 		glTexture->minFilter = curEnum;
 	}
 
 	curEnum = dsGetGLMagFilter(samplerState->magFilter);
 	if (glTexture->magFilter != curEnum)
 	{
-		glTextureParameteri(target, GL_TEXTURE_MAG_FILTER, curEnum);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, curEnum);
 		glTexture->magFilter = curEnum;
 	}
 
 	curEnum = dsGetGLAddressMode(samplerState->addressModeU);
 	if (glTexture->addressModeS != curEnum)
 	{
-		glTextureParameteri(target, GL_TEXTURE_WRAP_S, curEnum);
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, curEnum);
 		glTexture->addressModeS = curEnum;
 	}
 
 	curEnum = dsGetGLAddressMode(samplerState->addressModeV);
 	if (glTexture->addressModeT != curEnum)
 	{
-		glTextureParameteri(target, GL_TEXTURE_WRAP_T, curEnum);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, curEnum);
 		glTexture->addressModeT = curEnum;
 	}
 
@@ -928,7 +928,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 		curEnum = dsGetGLAddressMode(samplerState->addressModeW);
 		if (glTexture->addressModeR != curEnum)
 		{
-			glTextureParameteri(target, GL_TEXTURE_WRAP_R, curEnum);
+			glTexParameteri(target, GL_TEXTURE_WRAP_R, curEnum);
 			glTexture->addressModeR = curEnum;
 		}
 	}
@@ -940,7 +940,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 			texture->resourceManager->renderer->defaultAnisotropy : samplerState->maxAnisotropy;
 		if (glTexture->anisotropy != curFloat)
 		{
-			glTextureParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, curFloat);
+			glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, curFloat);
 			glTexture->anisotropy = curFloat;
 		}
 	}
@@ -950,21 +950,21 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 		curFloat = samplerState->mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState->mipLodBias;
 		if (glTexture->mipLodBias != curFloat)
 		{
-			glTextureParameterf(target, GL_TEXTURE_LOD_BIAS, curFloat);
+			glTexParameterf(target, GL_TEXTURE_LOD_BIAS, curFloat);
 			glTexture->mipLodBias = curFloat;
 		}
 
 		curFloat = samplerState->minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState->minLod;
 		if (glTexture->minLod != curFloat)
 		{
-			glTextureParameterf(target, GL_TEXTURE_MIN_LOD, curFloat);
+			glTexParameterf(target, GL_TEXTURE_MIN_LOD, curFloat);
 			glTexture->minLod = curFloat;
 		}
 
 		curFloat = samplerState->maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState->maxLod;
 		if (glTexture->maxLod != curFloat)
 		{
-			glTextureParameterf(target, GL_TEXTURE_MAX_LOD, curFloat);
+			glTexParameterf(target, GL_TEXTURE_MAX_LOD, curFloat);
 			glTexture->maxLod = curFloat;
 		}
 	}
@@ -979,37 +979,37 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 				case mslBorderColor_TransparentBlack:
 				{
 					float color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 				case mslBorderColor_TransparentIntZero:
 				{
 					GLint color[4] = {0, 0, 0, 0};
-					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 				case mslBorderColor_OpaqueBlack:
 				{
 					float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 				case mslBorderColor_OpaqueIntZero:
 				{
 					GLint color[4] = {0, 0, 0, 1};
-					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 				case mslBorderColor_OpaqueWhite:
 				{
 					float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-					glTextureParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterfv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 				case mslBorderColor_OpaqueIntOne:
 				{
 					GLint color[4] = {1, 1, 1, 1};
-					glTextureParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
+					glTexParameterIiv(target, GL_TEXTURE_BORDER_COLOR, color);
 					break;
 				}
 			}
@@ -1020,7 +1020,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 	{
 		if (glTexture->compareEnabled != isShadowSampler)
 		{
-			glTextureParameteri(target, GL_TEXTURE_COMPARE_MODE,
+			glTexParameteri(target, GL_TEXTURE_COMPARE_MODE,
 				isShadowSampler ? GL_COMPARE_R_TO_TEXTURE : GL_NONE);
 			glTexture->compareEnabled = isShadowSampler;
 		}
@@ -1028,7 +1028,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 		curEnum = dsGetGLCompareOp(samplerState->compareOp);
 		if (glTexture->compareOp != curEnum)
 		{
-			glTextureParameteri(target, GL_TEXTURE_COMPARE_FUNC, curEnum);
+			glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, curEnum);
 			glTexture->compareOp = curEnum;
 		}
 	}
