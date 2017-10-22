@@ -509,7 +509,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		DS_VERIFY(sscanf(glslVersion, "OpenGL ES GLSL ES %u.%u", &glslMajor, &glslMinor) == 2);
 	else
 		DS_VERIFY(sscanf(glslVersion, "%u.%u", &glslMajor, &glslMinor) == 2);
-	renderer->shaderVersion = major*100 + minor;
+	renderer->shaderVersion = glslMajor*100 + glslMinor;
 	renderer->vendorString = (const char*)glGetString(GL_VENDOR);
 	DS_ASSERT(renderer->vendorString);
 	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
@@ -517,6 +517,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
 		minor);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
+		glslMajor, glslMinor);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", renderer->vendorString);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Renderer: %s", renderer->rendererString);
 

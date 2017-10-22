@@ -72,7 +72,7 @@ static void glGetSizeT(GLenum pname, size_t* value)
 	}
 }
 
-static dsGfxBufferUsage getSupportedBuffers()
+static dsGfxBufferUsage getSupportedBuffers(uint32_t shaderVersion)
 {
 	dsGfxBufferUsage supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Vertex |
 		dsGfxBufferUsage_Index | dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_CopyFrom);
@@ -94,11 +94,11 @@ static dsGfxBufferUsage getSupportedBuffers()
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_Image);
 	}
 
-	if (AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
-		AnyGL_ARB_uniform_buffer_object)
-	{
+	// Use shader version to determine if uniform blocks are enabled. MSL requires named uniform
+	// blocks, and it's possible that the extension is supported but the shaders loaded wouldn't
+	// use uniform blocks.
+	if ((ANYGL_GLES && shaderVersion >= 300) || (!ANYGL_GLES && shaderVersion >= 150))
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBlock);
-	}
 
 	if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_atLeastVersion(3, 1, true) ||
 		AnyGL_ARB_shader_storage_buffer_object)
@@ -910,7 +910,7 @@ static bool formatSupported(const dsGLResourceManager* resourceManager, dsGfxFor
 	if (standardIndex > 0)
 		return (resourceManager->standardFormats[standardIndex][decoratorIndex] & bit) != 0;
 
-	unsigned int specialIndex = dsGfxFormat_compressedIndex(format);
+	unsigned int specialIndex = dsGfxFormat_specialIndex(format);
 	if (specialIndex > 0)
 		return (resourceManager->specialFormats[specialIndex] & bit) != 0;
 
@@ -1139,7 +1139,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT,
 			(GLint*)&baseResourceManager->minMappingAlignment);
 	}
-	baseResourceManager->supportedBuffers = getSupportedBuffers();
+	baseResourceManager->supportedBuffers = getSupportedBuffers(renderer->shaderVersion);
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
 	baseResourceManager->hasTextureBufferSubrange = ANYGL_SUPPORTED(glTexBufferRange);
@@ -1204,6 +1204,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->hasMultisampleTextures = ANYGL_SUPPORTED(glTexStorage2DMultisample);
 	baseResourceManager->texturesReadable = ANYGL_SUPPORTED(glGetTexImage);
 	baseResourceManager->createTextureFunc = &dsGLTexture_create;
+	baseResourceManager->createOffscreenFunc = &dsGLTexture_createOffscreen;
 	baseResourceManager->destroyTextureFunc = &dsGLTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsGLTexture_copy;
@@ -1227,7 +1228,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->requiresColorBuffer = ANYGL_SUPPORTED(glDrawBuffer) ||
 		ANYGL_SUPPORTED(glDrawBuffers);
 	baseResourceManager->requiresAnySurface = !AnyGL_atLeastVersion(4, 3, false) &&
-		!AnyGL_ARB_framebuffer_no_attachments;
+		(!ANYGL_SUPPORTED(glFramebufferParameteri) || !AnyGL_ARB_framebuffer_no_attachments);
 	baseResourceManager->canMixWithRenderSurface = false;
 	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
@@ -1243,6 +1244,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	// Shaders and materials
 	baseResourceManager->createShaderModuleFunc = &dsGLShaderModule_create;
 	baseResourceManager->destroyShaderModuleFunc = &dsGLShaderModule_destroy;
+	baseResourceManager->isShaderUniformInternalFunc = &dsGLShader_isUniformInternal;
 	baseResourceManager->createMaterialDescFunc = &dsGLMaterialDesc_create;
 	baseResourceManager->destroyMaterialDescFunc = &dsGLMaterialDesc_destroy;
 	baseResourceManager->createShaderVariableGroupDescFunc = &dsGLShaderVariableGroupDesc_create;

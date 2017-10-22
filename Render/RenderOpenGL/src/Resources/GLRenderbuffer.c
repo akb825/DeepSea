@@ -51,7 +51,7 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	AnyGL_setErrorCheckingEnabled(false);
 	dsClearGLErrors();
 
-	glGenTextures(1, &renderbuffer->renderbufferId);
+	glGenRenderbuffers(1, &renderbuffer->renderbufferId);
 	if (!renderbuffer->renderbufferId)
 	{
 		GLenum error = glGetError();

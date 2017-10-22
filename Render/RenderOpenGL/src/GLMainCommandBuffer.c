@@ -364,13 +364,14 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		}
 
 		GLenum buffers = dsGLTexture_attachment(texture->format);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
 			framebuffer->surfaces[attachment].mipLevel, framebuffer->surfaces[attachment].layer);
 
 		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
-			texture->height, buffers, GL_NEAREST);
+			texture->height, bufferMask, GL_NEAREST);
 	}
 
 	if (readFbo)
@@ -815,7 +816,12 @@ bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsSh
 			glBindSampler(textureIndex, glShader->samplerIds[samplerIndex]);
 	}
 	else if (glTexture)
-		dsGLTexture_setState(texture, glShader->samplerStates + samplerIndex, isShadowSampler);
+	{
+		mslSamplerState* samplerState = NULL;;
+		if (samplerIndex != MSL_UNKNOWN)
+			samplerState = glShader->samplerStates + samplerIndex;
+		dsGLTexture_setState(texture, samplerState, isShadowSampler);
+	}
 
 	return true;
 }
@@ -1124,13 +1130,14 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 		}
 
 		GLenum buffers = dsGLTexture_attachment(texture->format);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
 			framebuffer->surfaces[i].mipLevel, framebuffer->surfaces[i].layer);
 
 		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
-			texture->height, buffers, GL_NEAREST);
+			texture->height, bufferMask, GL_NEAREST);
 	}
 
 	if (readFbo)

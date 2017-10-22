@@ -343,7 +343,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	testCube->shaderModule = dsShaderModule_loadFile(resourceManager, allocator, path, "TestCube");
 	if (!testCube->shaderModule)
 	{
-		DS_LOG_ERROR_F("TestCube", "Couldn't create shader path: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestCube", "Couldn't load shader: %s", dsErrorString(errno));
 		return false;
 	}
 

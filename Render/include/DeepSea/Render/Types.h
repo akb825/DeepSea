@@ -56,6 +56,7 @@ extern "C"
  */
 typedef enum dsAttachmentUsage
 {
+	dsAttachmentUsage_Standard = 0,     ///< No special usage.
 	dsAttachmentUsage_Clear = 0x1,      ///< Clear the contents of the attachment before rendering.
 	dsAttachmentUsage_KeepBefore = 0x2, ///< Keep the existing value before rendering begins.
 	dsAttachmentUsage_KeepAfter = 0x4,  ///< Keep the value after rendering ends.

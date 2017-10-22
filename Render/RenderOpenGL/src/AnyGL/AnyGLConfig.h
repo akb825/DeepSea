@@ -32,7 +32,7 @@
 
 /* #define this to override whether or not to use OpenGL ES. */
 #ifndef ANYGL_GLES
-#define ANYGL_GLES ANYGL_ANDROID || ANYGL_IOS
+#define ANYGL_GLES (ANYGL_ANDROID || ANYGL_IOS)
 #endif
 
 /* #define this to the OpenGL version (times 10) to include when loading via function pointer. */

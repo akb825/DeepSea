@@ -346,7 +346,7 @@ void dsGLFramebuffer_setDefaultSamples(const dsFramebuffer* framebuffer, uint32_
 	dsRenderer* renderer = framebuffer->resourceManager->renderer;
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	if (glRenderer->curSurfaceType != GLSurfaceType_Framebuffer ||
-		!framebuffer->resourceManager->requiresAnySurface)
+		framebuffer->resourceManager->requiresAnySurface)
 	{
 		return;
 	}

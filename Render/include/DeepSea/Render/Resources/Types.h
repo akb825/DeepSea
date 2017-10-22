@@ -1586,6 +1586,16 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsDestroyShaderFunction)(dsResourceManager* resourceManager, dsShader* shader);
 
 /**
+ * @brief Function to check if a uniform is internal, removing the requirement for the user
+ *     to set it in the material description.
+ * @param resourceManager The resource manager.
+ * @param name The name of the uniform.
+ * @return True if the uniform is internal.
+ */
+typedef bool (*dsIsShaderUniformInternalFunction)(dsResourceManager* resourceManager,
+	const char* name);
+
+/**
  * @brief Function for binding a shader for drawing.
  * @param resourceManager The resource manager the shader was created with.
  * @param commandBuffer The command buffer to queue commands onto.
@@ -2077,6 +2087,11 @@ struct dsResourceManager
 	 * @brief Shader destruction function.
 	 */
 	dsDestroyShaderFunction destroyShaderFunc;
+
+	/**
+	 * @brief Internal shader name function.
+	 */
+	dsIsShaderUniformInternalFunction isShaderUniformInternalFunc;
 
 	/**
 	 * @brief Shader binding function.

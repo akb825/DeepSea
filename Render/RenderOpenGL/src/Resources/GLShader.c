@@ -612,7 +612,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 						}
 					}
 					glUniform1i(binding, textureIndex);
-					setLocation(shader->uniforms + 1, textureIndex);
+					setLocation(shader->uniforms + i, textureIndex);
 				}
 				break;
 			}
@@ -692,7 +692,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 		}
 	}
 
-	shader->internalUniform = glGetUniformLocation(shader->programId, "_dsInternal");
+	shader->internalUniform = glGetUniformLocation(shader->programId, "uniforms._dsInternal");
 	glUseProgram(prevProgram);
 	return true;
 }
@@ -985,6 +985,12 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	return baseShader;
+}
+
+bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char* name)
+{
+	DS_UNUSED(resourceManager);
+	return strcmp(name, "_dsInternal") == 0;
 }
 
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

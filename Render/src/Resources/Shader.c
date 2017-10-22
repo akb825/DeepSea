@@ -207,9 +207,9 @@ static const dsShaderVariableElement* findShaderVariableElement(const dsMaterial
 	return element;
 }
 
-static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelineIndex,
-	uint32_t structIndex, const dsMaterialDesc* materialDesc, bool supportsBuffers,
-	const char* uniformName)
+static bool arePushConstantsCompatible(dsResourceManager* resourceManager, const mslModule* module,
+	uint32_t pipelineIndex, uint32_t structIndex, const dsMaterialDesc* materialDesc,
+	bool supportsBuffers, const char* uniformName)
 {
 	DS_ASSERT(materialDesc);
 	mslStruct structInfo;
@@ -220,6 +220,11 @@ static bool arePushConstantsCompatible(const mslModule* module, uint32_t pipelin
 	{
 		mslStructMember structMember;
 		DS_VERIFY(mslModule_structMember(&structMember, module, pipelineIndex, structIndex, i));
+		if (resourceManager->isShaderUniformInternalFunc &&
+			resourceManager->isShaderUniformInternalFunc(resourceManager, structMember.name))
+		{
+			continue;
+		}
 
 		dsMaterialType type = dsMaterialType_Count;
 		uint32_t arrayCount = 0;
@@ -349,9 +354,11 @@ static bool isShaderVariableGroupCompatible(const mslModule* module, uint32_t pi
 	return success;
 }
 
-static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline* pipeline,
-	uint32_t index, const dsMaterialDesc* materialDesc, bool supportsBuffers)
+static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const mslModule* module,
+	const mslPipeline* pipeline, uint32_t index, const dsMaterialDesc* materialDesc,
+	bool supportsBuffers)
 {
+	bool nativeSubpassInput = mslModule_targetId(module) == DS_FOURCC('S', 'P', 'R', 'V');
 	bool success = true;
 	for (uint32_t i = 0; i < pipeline->uniformCount; ++i)
 	{
@@ -359,7 +366,7 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 		DS_VERIFY(mslModule_uniform(&uniform, module, index, i));
 		if (uniform.uniformType == mslUniformType_PushConstant)
 		{
-			if (!arePushConstantsCompatible(module, index, uniform.structIndex,
+			if (!arePushConstantsCompatible(resourceManager, module, index, uniform.structIndex,
 				materialDesc, supportsBuffers, uniform.name))
 			{
 				success = false;
@@ -404,9 +411,13 @@ static bool isMaterialDescCompatible(const mslModule* module, const mslPipeline*
 				break;
 			case mslUniformType_Image:
 				typesMatch = element->type == dsMaterialType_Image;
+				if (!nativeSubpassInput && element->type == dsMaterialType_SubpassInput)
+					typesMatch = true;
 				break;
 			case mslUniformType_SampledImage:
 				typesMatch = element->type == dsMaterialType_Texture;
+				if (!nativeSubpassInput && element->type == dsMaterialType_SubpassInput)
+					typesMatch = true;
 				break;
 			case mslUniformType_SubpassInput:
 				typesMatch = element->type == dsMaterialType_SubpassInput;
@@ -598,8 +609,9 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 
 	mslPipeline pipeline;
 	DS_VERIFY(mslModule_pipeline(&pipeline, shaderModule->module, index));
-	if (!isMaterialDescCompatible(shaderModule->module, &pipeline, index, materialDesc,
-		(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock) != 0))
+	if (!isMaterialDescCompatible(resourceManager, shaderModule->module, &pipeline,
+		index, materialDesc, (resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
+		!= 0))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Material description isn't compatible with shader '%s'.",

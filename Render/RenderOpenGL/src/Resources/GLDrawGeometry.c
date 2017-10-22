@@ -110,7 +110,10 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 		else
 			memset(baseGeometry->vertexBuffers + i, 0, sizeof(dsVertexBuffer));
 	}
-	memcpy(&baseGeometry->indexBuffer, indexBuffer, sizeof(dsIndexBuffer));
+	if (indexBuffer)
+		memcpy(&baseGeometry->indexBuffer, indexBuffer, sizeof(dsIndexBuffer));
+	else
+		memset(&baseGeometry->indexBuffer, 0, sizeof(dsIndexBuffer));
 
 	dsGLResource_initialize(&geometry->resource);
 	geometry->vao = 0;

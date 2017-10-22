@@ -16,20 +16,11 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 
-uniform mat4 modelViewProjection;
+[[fragment]] uniform subpassInput(0) channelR;
+[[fragment]] uniform subpassInput(1) channelG;
+[[fragment]] uniform subpassInput(2) channelB;
 
-uniform sampler2D tex;
-sampler_state tex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	mip_filter = anisotropic;
-};
-
-[[vertex]] layout(location = DS_POSITION) in vec3 position;
-[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
+[[vertex]] layout(location = DS_POSITION) in vec2 position;
 
 struct VertexOut
 {
@@ -44,20 +35,18 @@ struct VertexOut
 [[vertex]]
 void vertexShader()
 {
-	gl_Position = DS_ADJUST_CLIP(uniforms.modelViewProjection*vec4(position, 1.0));
-	vertexOut.texCoord = texCoord;
+	gl_Position = DS_ADJUST_CLIP(vec4(position, 0.0, 1.0));
+	vertexOut.texCoord = position;
 }
 
 [[fragment]]
 void fragmentShader()
 {
-	color = texture(tex, vertexOut.texCoord);
+	color = vec4(subpassLoad(channelR).r, subpassLoad(channelG).r, subpassLoad(channelB).r, 1.0);
 }
 
-pipeline Default
+pipeline Resolve
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;
-	depth_test_enable = true;
-	cull_mode = back;
 }

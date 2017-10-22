@@ -16,7 +16,12 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 
-uniform mat4 modelViewProjection;
+uniform Transform
+{
+	mat4 modelViewProjection;
+} transform;
+
+uniform int channel;
 
 uniform sampler2D tex;
 sampler_state tex
@@ -44,17 +49,17 @@ struct VertexOut
 [[vertex]]
 void vertexShader()
 {
-	gl_Position = DS_ADJUST_CLIP(uniforms.modelViewProjection*vec4(position, 1.0));
+	gl_Position = DS_ADJUST_CLIP(INSTANCE(transform).modelViewProjection*vec4(position, 1.0));
 	vertexOut.texCoord = texCoord;
 }
 
 [[fragment]]
 void fragmentShader()
 {
-	color = texture(tex, vertexOut.texCoord);
+	color = vec4(texture(tex, vertexOut.texCoord)[uniforms.channel]);
 }
 
-pipeline Default
+pipeline Cube
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;

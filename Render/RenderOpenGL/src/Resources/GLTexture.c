@@ -416,7 +416,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	baseTexture->height = height;
 	baseTexture->depth = depth;
 	baseTexture->mipLevels = mipLevels;
-	baseTexture->offscreen = false;
+	baseTexture->offscreen = true;
 	baseTexture->resolve = resolve;
 	DS_ASSERT(samples < USHRT_MAX);
 	baseTexture->samples = (uint16_t)samples;
@@ -500,7 +500,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 						depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_1D, mipLevels, internalFormat, width, height);
+					glTexStorage2D(GL_TEXTURE_2D, mipLevels, internalFormat, width, height);
 				break;
 			case dsTextureDim_3D:
 				glTexStorage3D(GL_TEXTURE_3D, mipLevels, internalFormat, width, height, depth);
@@ -895,28 +895,29 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 	GLenum target = dsGLTexture_target(texture);
 	dsGLTexture* glTexture = (dsGLTexture*)texture;
 
-	GLenum curEnum = dsGetGLMinFilter(samplerState->minFilter, samplerState->mipFilter);
+	GLenum curEnum = samplerState ?
+		dsGetGLMinFilter(samplerState->minFilter, samplerState->mipFilter) : GL_NEAREST;
 	if (glTexture->minFilter != curEnum)
 	{
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, curEnum);
 		glTexture->minFilter = curEnum;
 	}
 
-	curEnum = dsGetGLMagFilter(samplerState->magFilter);
+	curEnum = samplerState ? dsGetGLMagFilter(samplerState->magFilter) : GL_NEAREST;
 	if (glTexture->magFilter != curEnum)
 	{
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, curEnum);
 		glTexture->magFilter = curEnum;
 	}
 
-	curEnum = dsGetGLAddressMode(samplerState->addressModeU);
+	curEnum = samplerState ? dsGetGLAddressMode(samplerState->addressModeU) : GL_REPEAT;
 	if (glTexture->addressModeS != curEnum)
 	{
 		glTexParameteri(target, GL_TEXTURE_WRAP_S, curEnum);
 		glTexture->addressModeS = curEnum;
 	}
 
-	curEnum = dsGetGLAddressMode(samplerState->addressModeV);
+	curEnum = samplerState ? dsGetGLAddressMode(samplerState->addressModeV) : GL_REPEAT;
 	if (glTexture->addressModeT != curEnum)
 	{
 		glTexParameteri(target, GL_TEXTURE_WRAP_T, curEnum);
@@ -925,7 +926,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 
 	if (texture->resourceManager->maxTextureDepth > 0)
 	{
-		curEnum = dsGetGLAddressMode(samplerState->addressModeW);
+		curEnum = samplerState ? dsGetGLAddressMode(samplerState->addressModeW) : GL_REPEAT;
 		if (glTexture->addressModeR != curEnum)
 		{
 			glTexParameteri(target, GL_TEXTURE_WRAP_R, curEnum);
@@ -936,7 +937,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 	float curFloat;
 	if (AnyGL_EXT_texture_filter_anisotropic)
 	{
-		curFloat = samplerState->maxAnisotropy == MSL_UNKNOWN_FLOAT ?
+		curFloat = !samplerState || samplerState->maxAnisotropy == MSL_UNKNOWN_FLOAT ?
 			texture->resourceManager->renderer->defaultAnisotropy : samplerState->maxAnisotropy;
 		if (glTexture->anisotropy != curFloat)
 		{
@@ -947,21 +948,24 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 
 	if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
 	{
-		curFloat = samplerState->mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState->mipLodBias;
+		curFloat = !samplerState || samplerState->mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f :
+			samplerState->mipLodBias;
 		if (glTexture->mipLodBias != curFloat)
 		{
 			glTexParameterf(target, GL_TEXTURE_LOD_BIAS, curFloat);
 			glTexture->mipLodBias = curFloat;
 		}
 
-		curFloat = samplerState->minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState->minLod;
+		curFloat = !samplerState || samplerState->minLod == MSL_UNKNOWN_FLOAT ? -1000.0f :
+			samplerState->minLod;
 		if (glTexture->minLod != curFloat)
 		{
 			glTexParameterf(target, GL_TEXTURE_MIN_LOD, curFloat);
 			glTexture->minLod = curFloat;
 		}
 
-		curFloat = samplerState->maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState->maxLod;
+		curFloat = !samplerState || samplerState->maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f :
+			samplerState->maxLod;
 		if (glTexture->maxLod != curFloat)
 		{
 			glTexParameterf(target, GL_TEXTURE_MAX_LOD, curFloat);
@@ -971,7 +975,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 
 	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_OES_texture_border_clamp)
 	{
-		if (glTexture->borderColor != samplerState->borderColor)
+		if (samplerState && glTexture->borderColor != samplerState->borderColor)
 		{
 			switch (samplerState->borderColor)
 			{
@@ -1025,7 +1029,7 @@ void dsGLTexture_setState(dsTexture* texture, const mslSamplerState* samplerStat
 			glTexture->compareEnabled = isShadowSampler;
 		}
 
-		curEnum = dsGetGLCompareOp(samplerState->compareOp);
+		curEnum = samplerState ? dsGetGLCompareOp(samplerState->compareOp) : GL_LESS;
 		if (glTexture->compareOp != curEnum)
 		{
 			glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, curEnum);

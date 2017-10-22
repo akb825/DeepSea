@@ -14,6 +14,7 @@ DeepSea uses Modular Shader Language for shaders. Shaders should either be compi
 * Use the `DS_ADJUST_CLIP(x)` macro with the clip position (such as that assigned to gl_Position) to ensure the clip position x is transformed to the correct space.
 * Use the `DS_RG_SWZL` macro for RG-format textures. (e.g. `color.DS_RG_SWZL`) This ensures compatibility with targets that use luminance-alpha textures instead.
 * Subpass inputs may always be used. Defines are provided to fall back to a standard texture lookup on targets that don't support them directly.
+* When declaring subpass inputs, instead of using `layout(input_attachment_index = i) uniform subpassInput input`, declare as `inputAttachment(i) input`.
 
 # CMake Helpers
 
