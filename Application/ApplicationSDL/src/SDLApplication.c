@@ -124,6 +124,82 @@ static dsController* findController(dsApplication* application, SDL_JoystickID j
 	return NULL;
 }
 
+static bool setGLAttributes(dsRenderer* renderer)
+{
+	switch (renderer->surfaceColorFormat & dsGfxFormat_StandardMask)
+	{
+		case dsGfxFormat_R5G6B5:
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+			break;
+		case dsGfxFormat_R8G8B8:
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+			break;
+		case dsGfxFormat_R8G8B8A8:
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+			break;
+		case dsGfxFormat_A2B10G10R10:
+			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 10);
+			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
+			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 10);
+			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 2);
+			break;
+		default:
+			return false;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
+		(renderer->surfaceColorFormat & dsGfxFormat_DecoratorMask) == dsGfxFormat_SRGB);
+
+	switch (renderer->surfaceDepthStencilFormat)
+	{
+		case dsGfxFormat_Unknown:
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+			break;
+		case dsGfxFormat_D16:
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+			break;
+		case dsGfxFormat_X8D24:
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
+			break;
+		case dsGfxFormat_D16S8:
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+			break;
+		case dsGfxFormat_D24S8:
+			SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+			break;
+		default:
+			return false;
+	}
+
+	SDL_GL_SetAttribute(SDL_GL_STEREO, renderer->stereoscopic);
+	if (renderer->surfaceSamples > 1)
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, renderer->surfaceSamples);
+	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+	}
+
+	return true;
+}
+
 static bool shouldSetOpenGL(const dsRenderer* renderer)
 {
 	if (renderer->type != DS_GL_RENDERER_TYPE && renderer->type != DS_GLES_RENDERER_TYPE)
@@ -709,6 +785,17 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		return NULL;
 	}
 	dsRenderer_restoreGlobalState(renderer);
+
+	if (renderer->type == DS_GL_RENDERER_TYPE || renderer->type == DS_GLES_RENDERER_TYPE)
+	{
+		if (!setGLAttributes(renderer))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid renderer attributes.");
+			SDL_Quit();
+			return NULL;
+		}
+	}
 
 	dsSDLApplication* application = (dsSDLApplication*)dsAllocator_alloc(allocator,
 		sizeof(dsSDLApplication));
