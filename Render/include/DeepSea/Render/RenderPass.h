@@ -56,10 +56,11 @@ extern "C"
  * @param subpasses The subpasses within the render pass. At least one subpass must be provided.
  *     This array will be copied.
  * @param subpassCount The number of subpasses.
- * @param dependencies The dependencies between subpasses. If NULL it will use the default behavior,
- *     where each subpass' fragment stage depends on the previous subpass' fragment stage. This
- *     array will be copied.
- * @param dependencyCount The number of dependencies.
+ * @param dependencies The dependencies between subpasses. If the implementation keeps the
+ *     dependencies, this array will be copied.
+ * @param dependencyCount The number of dependencies. This may be set to
+ *     DS_DEFAULT_SUBPASS_DEPENDENCIES, in which case each subpass' fragment stage depends on the
+ *     previous subpass' fragment stage, with the first subpass having an external dependency.
  * @return The created render pass, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,

@@ -56,6 +56,8 @@ TEST_F(RenderPassTest, Create)
 
 	dsSubpassDependency dependencies[] =
 	{
+		{DS_EXTERNAL_SUBPASS, dsSubpassDependencyStage_Fragment, 0,
+			dsSubpassDependencyStage_Fragment, false},
 		{0, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true},
 		{1, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true}
 	};
@@ -97,15 +99,20 @@ TEST_F(RenderPassTest, Create)
 		subpasses, subpassCount, dependencies, dependencyCount));
 	subpasses[2].depthStencilAttachment = 0;
 
-	dependencies[0].srcSubpass = 4;
+	dependencies[1].srcSubpass = 4;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
-	dependencies[0].srcSubpass = 0;
+	dependencies[1].srcSubpass = 0;
 
-	dependencies[0].dstSubpass = 4;
+	dependencies[1].srcSubpass = 3;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
-	dependencies[0].dstSubpass = 2;
+	dependencies[1].srcSubpass = 2;
+
+	dependencies[1].dstSubpass = 4;
+	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
+		subpasses, subpassCount, dependencies, dependencyCount));
+	dependencies[1].dstSubpass = 2;
 
 	attachments[0].samples = 2;
 	EXPECT_FALSE(dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
@@ -120,6 +127,13 @@ TEST_F(RenderPassTest, Create)
 	renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount, subpasses,
 		subpassCount, NULL, 0);
 	ASSERT_TRUE(renderPass);
+	EXPECT_EQ(0U, renderPass->subpassDependencyCount);
+	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
+
+	renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount, subpasses,
+		subpassCount, NULL, DS_DEFAULT_SUBPASS_DEPENDENCIES);
+	ASSERT_TRUE(renderPass);
+	EXPECT_EQ(subpassCount, renderPass->subpassDependencyCount);
 	EXPECT_TRUE(dsRenderPass_destroy(renderPass));
 }
 

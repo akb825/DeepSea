@@ -29,11 +29,14 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	DS_ASSERT(allocator);
 	DS_ASSERT(attachments || attachmentCount == 0);
 	DS_ASSERT(subpasses && subpassCount > 0);
-	DS_ASSERT(dependencies || dependencyCount == 0);
+	DS_ASSERT(dependencies || dependencyCount == 0 ||
+		dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES);
 
 	uint32_t finalDependencyCount = dependencyCount;
 	if (dependencyCount == 0)
-		finalDependencyCount = subpassCount - 1;
+		finalDependencyCount = 0;
+	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+		finalDependencyCount = subpassCount;
 	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderPass)) +
 		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
 		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
@@ -98,14 +101,35 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 	}
 	renderPass->subpassCount = subpassCount;
 
-	if (dependencyCount > 0)
+	if (finalDependencyCount > 0)
 	{
 		renderPass->subpassDependencies = (dsSubpassDependency*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsSubpassDependency)*dependencyCount);
-		DS_ASSERT(renderPass->subpassDependencies);
-		memcpy((void*)renderPass->subpassDependencies, dependencies,
-			sizeof(dsSubpassDependency)*dependencyCount);
-		renderPass->subpassDependencyCount = dependencyCount;
+			(dsAllocator*)&bufferAllocator, sizeof(dsSubpassDependency)*finalDependencyCount);
+		if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
+		{
+			for (uint32_t i = 0; i < subpassCount; ++i)
+			{
+				dsSubpassDependency* dependency =
+					(dsSubpassDependency*)(renderPass->subpassDependencies + i);
+				dependency->srcSubpass = i == 0 ? DS_EXTERNAL_SUBPASS : i - 1;
+				dependency->srcStage = dsSubpassDependencyStage_Fragment;
+				dependency->dstSubpass = i;
+				dependency->dstStage = dsSubpassDependencyStage_Fragment;
+				dependency->regionDependency = i > 0;
+			}
+		}
+		else
+		{
+			DS_ASSERT(renderPass->subpassDependencies);
+			memcpy((void*)renderPass->subpassDependencies, dependencies,
+				sizeof(dsSubpassDependency)*dependencyCount);
+		}
+		renderPass->subpassDependencyCount = finalDependencyCount;
+	}
+	else
+	{
+		renderPass->subpassDependencies = NULL;
+		renderPass->subpassDependencyCount = 0;
 	}
 
 	return renderPass;

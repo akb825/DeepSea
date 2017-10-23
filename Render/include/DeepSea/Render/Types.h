@@ -44,6 +44,16 @@ extern "C"
 #define DS_NO_ATTACHMENT (uint32_t)-1
 
 /**
+ * @brief Constant for an external subpass.
+ */
+#define DS_EXTERNAL_SUBPASS (uint32_t)-1
+
+/**
+ * @brief Constant to use default subpass dependencies.
+ */
+#define DS_DEFAULT_SUBPASS_DEPENDENCIES (uint32_t)-1
+
+/**
  * @brief Constant for the default number of anti-alias samples.
  */
 #define DS_DEFAULT_ANTIALIAS_SAMPLES (uint16_t)-1
@@ -370,6 +380,8 @@ typedef struct dsSubpassDependency
 {
 	/**
 	 * @brief The index of the source subpass.
+	 *
+	 * This may be DS_EXTERNAL_SUBPASS to be a subpass outside of the current render pass.
 	 */
 	uint32_t srcSubpass;
 
@@ -385,6 +397,8 @@ typedef struct dsSubpassDependency
 
 	/**
 	 * @brief The stage to wait executing for in the destination subpass.
+	 *
+	 * This may be DS_EXTERNAL_SUBPASS to be a subpass outside of the current render pass.
 	 */
 	dsSubpassDependencyStage dstStage;
 

@@ -118,7 +118,8 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 	if (!renderer || (!allocator && !renderer->allocator) || !renderer->createRenderPassFunc ||
 		!renderer->destroyRenderPassFunc || (!attachments && attachmentCount > 0) || !subpasses ||
-		subpassCount == 0 || (!dependencies && dependencyCount > 0))
+		subpassCount == 0 || (!dependencies && dependencyCount > 0 &&
+			dependencyCount != DS_DEFAULT_SUBPASS_DEPENDENCIES))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -258,14 +259,37 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 		}
 	}
 
-	for (uint32_t i = 0; i < dependencyCount; ++i)
+	if (dependencyCount != DS_DEFAULT_SUBPASS_DEPENDENCIES)
 	{
-		if (dependencies[i].srcSubpass >= subpassCount ||
-			dependencies[i].dstSubpass >= subpassCount)
+		for (uint32_t i = 0; i < dependencyCount; ++i)
 		{
-			errno = EINDEX;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass dependencies out of range.");
-			DS_PROFILE_FUNC_RETURN(NULL);
+			if (dependencies[i].srcSubpass == DS_EXTERNAL_SUBPASS &&
+				dependencies[i].dstSubpass == DS_EXTERNAL_SUBPASS)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Source and destination subpasses for a dependency cannot both be external.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+
+			if ((dependencies[i].srcSubpass != DS_EXTERNAL_SUBPASS &&
+					dependencies[i].srcSubpass >= subpassCount) ||
+				(dependencies[i].dstSubpass != DS_EXTERNAL_SUBPASS &&
+					dependencies[i].dstSubpass >= subpassCount))
+			{
+				errno = EINDEX;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass dependencies out of range.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+
+			if (dependencies[i].srcSubpass != DS_EXTERNAL_SUBPASS &&
+				dependencies[i].dstSubpass != DS_EXTERNAL_SUBPASS &&
+				dependencies[i].srcSubpass > dependencies[i].dstSubpass)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpasses may only depend on previous subpasses.");
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
 		}
 	}
 
