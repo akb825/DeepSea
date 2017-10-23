@@ -146,5 +146,4 @@ void dsLog_vmessagef(dsLogLevel level, const char* tag, const char* file,
 		dsLog_message(level, tag, file, line, function, buffer);
 	}
 	va_end(argsCopy);
-	va_end(args);
 }

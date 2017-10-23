@@ -50,39 +50,48 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 		return NULL;
 	}
 
-	NSOpenGLPixelFormatAttribute versions[] = {0x4100, 0x3200, 0x1000};
-
-	unsigned int optionCount = 0;
-	NSOpenGLPixelFormatAttribute attr[MAX_OPTION_SIZE];
-	addOption2(attr, &optionCount, NSOpenGLPFAOpenGLProfile, 0);
-	addOption2(attr, &optionCount, NSOpenGLPFAColorSize, options->redBits + options->greenBits +
-		options->blueBits);
-	addOption2(attr, &optionCount, NSOpenGLPFAAlphaSize, options->alphaBits);
-	addOption2(attr, &optionCount, NSOpenGLPFADepthSize, options->depthBits);
-	addOption2(attr, &optionCount, NSOpenGLPFAStencilSize, options->stencilBits);
-	if (options->doubleBuffer)
-		addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
-
-	if (render && options->samples > 1)
+	@autoreleasepool
 	{
-		addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
-		addOption2(attr, &optionCount, NSOpenGLPFASamples, options->samples);
-	}
-	else
-	{
-		addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 0);
-		addOption2(attr, &optionCount, NSOpenGLPFASamples, 0);
-	}
+		NSOpenGLPixelFormatAttribute versions[] =
+		{
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1010
+			NSOpenGLProfileVersion4_1Core,
+#endif
+			NSOpenGLProfileVersion3_2Core, NSOpenGLProfileVersionLegacy
+		};
 
-	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
-	attr[optionCount] = 0;
+		unsigned int optionCount = 0;
+		NSOpenGLPixelFormatAttribute attr[MAX_OPTION_SIZE];
+		addOption2(attr, &optionCount, NSOpenGLPFAOpenGLProfile, 0);
+		addOption2(attr, &optionCount, NSOpenGLPFAColorSize, options->redBits +
+			options->greenBits + options->blueBits);
+		addOption2(attr, &optionCount, NSOpenGLPFAAlphaSize, options->alphaBits);
+		addOption2(attr, &optionCount, NSOpenGLPFADepthSize, options->depthBits);
+		addOption2(attr, &optionCount, NSOpenGLPFAStencilSize, options->stencilBits);
+		if (options->doubleBuffer)
+			addOption(attr, &optionCount, NSOpenGLPFADoubleBuffer);
 
-	for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
-	{
-		attr[1] = versions[i];
-		NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attr];
-		if (format)
-			return format;
+		if (render && options->samples > 1)
+		{
+			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 1);
+			addOption2(attr, &optionCount, NSOpenGLPFASamples, options->samples);
+		}
+		else
+		{
+			addOption2(attr, &optionCount, NSOpenGLPFASampleBuffers, 0);
+			addOption2(attr, &optionCount, NSOpenGLPFASamples, 0);
+		}
+
+		DS_ASSERT(optionCount < MAX_OPTION_SIZE);
+		attr[optionCount] = 0;
+
+		for (size_t i = 0; i < DS_ARRAY_SIZE(versions); ++i)
+		{
+			attr[1] = versions[i];
+			NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attr];
+			if (format)
+				return format;
+		}
 	}
 
 	errno = EPERM;
@@ -110,8 +119,11 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 	if (!config)
 		return NULL;
 
-	return [[NSOpenGLContext alloc] initWithFormat: (NSOpenGLPixelFormat*)config
-		shareContext: (NSOpenGLContext*)shareContext];
+	@autoreleasepool
+	{
+		return [[NSOpenGLContext alloc] initWithFormat: (NSOpenGLPixelFormat*)config
+			shareContext: (NSOpenGLContext*)shareContext];
+	}
 }
 
 void dsDestroyGLContext(void* display, void* context)
