@@ -23,6 +23,7 @@ void* dsGetGLDisplay(void);
 void dsReleaseGLDisplay(void* display);
 void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,
 	bool render);
+void* dsGetPublicGLConfig(void* config);
 void dsDestroyGLConfig(void* display, void* config);
 void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext);
 void dsDestroyGLContext(void* display, void* context);

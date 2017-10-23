@@ -196,6 +196,15 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	return config;
 }
 
+void* dsGetPublicGLConfig(void* config)
+{
+	Config* configPtr = (Config*)config;
+	if (!configPtr)
+		return NULL;
+
+	return (void*)configPtr->visualInfo->visualid;
+}
+
 void dsDestroyGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);

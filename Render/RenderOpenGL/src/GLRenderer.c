@@ -578,6 +578,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
+	baseRenderer->surfaceConfig = dsGetPublicGLConfig(renderer->renderConfig);
 	baseRenderer->surfaceSamples = options->samples;
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;

@@ -973,6 +973,13 @@ struct dsRenderer
 	uint16_t maxSurfaceSamples;
 
 	/**
+	 * @brief The configuration for the surface.
+	 *
+	 * This will be the visual ID for X11. It is currently undefined for other platforms.
+	 */
+	void* surfaceConfig;
+
+	/**
 	 * @brief The maximum anisitropy level for anisotropic texture filtering.
 	 */
 	float maxAnisotropy;

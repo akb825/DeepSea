@@ -120,6 +120,12 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	return config;
 }
 
+void* dsGetPublicGLConfig(void* config)
+{
+	DS_UNUSED(config);
+	return NULL;
+}
+
 void dsDestroyGLConfig(void* display, void* config)
 {
 	DS_UNUSED(display);
