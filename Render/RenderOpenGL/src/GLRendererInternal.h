@@ -24,6 +24,7 @@ void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface);
 
 void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextCount);
 void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextCount);
+void dsGLRenderer_destroyTexture(dsRenderer* renderer, GLuint texture);
 
 GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer);
 GLuint dsGLRenderer_tempCopyFramebuffer(dsRenderer* renderer);

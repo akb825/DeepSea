@@ -721,7 +721,7 @@ static bool destroyImpl(dsTexture* texture)
 {
 	dsGLTexture* glTexture = (dsGLTexture*)texture;
 	if (glTexture->textureId)
-		glDeleteTextures(1, &glTexture->textureId);
+		dsGLRenderer_destroyTexture(texture->resourceManager->renderer, glTexture->textureId);
 	if (glTexture->drawBufferId)
 		glDeleteRenderbuffers(1, &glTexture->drawBufferId);
 	if (texture->allocator)

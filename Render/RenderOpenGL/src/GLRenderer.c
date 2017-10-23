@@ -798,6 +798,19 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 	dsMutex_unlock(glRenderer->contextMutex);
 }
 
+void dsGLRenderer_destroyTexture(dsRenderer* renderer, GLuint texture)
+{
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+
+	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+		texture == glRenderer->curTexture0)
+	{
+		glRenderer->curTexture0 = 0;
+	}
+
+	glDeleteTextures(1, &texture);
+}
+
 GLuint dsGLRenderer_tempFramebuffer(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
