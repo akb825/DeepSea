@@ -243,6 +243,8 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 
 	glFlush();
 	glRenderer->withinFrame = false;
+	// Force the context to be re-bound next frame.
+	glRenderer->curGLSurface = NULL;
 	return true;
 }
 
@@ -547,7 +549,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
-	renderer->contextMutex = dsMutex_create(allocator, "GL context");
+	renderer->contextMutex = dsMutex_create((dsAllocator*)&bufferAlloc, "GL context");
 	DS_ASSERT(renderer->contextMutex);
 	renderer->curTexture0Target = GL_TEXTURE_2D;
 	renderer->curSurfaceType = GLSurfaceType_Left;
@@ -736,7 +738,7 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
 		glRenderer->renderContextBound)
 	{
 		if (contextCount == glRenderer->contextCount)
@@ -770,7 +772,7 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
 		glRenderer->renderContextBound)
 	{
 		if (contextCount == glRenderer->contextCount)

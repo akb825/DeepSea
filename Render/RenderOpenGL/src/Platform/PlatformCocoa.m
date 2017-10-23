@@ -140,11 +140,11 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
-			return handle;
+			return [(NSView*)handle retain];
 		case dsRenderSurfaceType_Pixmap:
 			return NULL;
 		default:
-			return handle;
+			return [(NSView*)handle retain];
 	}
 }
 
@@ -188,7 +188,10 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 {
 	DS_UNUSED(display);
 	DS_UNUSED(surfaceType);
-	DS_UNUSED(surface);
+	if (!surface)
+		return;
+
+	[(NSView*)surface release];
 }
 
 bool dsBindGLContext(void* display, void* context, void* surface)
@@ -203,7 +206,10 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 		if (surface == &dummyValue)
 			[nsContext setView: NULL];
 		else
+		{
 			[nsContext setView: (NSView*)surface];
+			[nsContext update];
+		}
 	}
 	else
 		[NSOpenGLContext clearCurrentContext];

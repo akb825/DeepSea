@@ -445,7 +445,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testRenderSubpass));
 
-	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Cube",
+	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
 		NULL, 800, 600, dsWindowFlags_Resizeable);
 	if (!testRenderSubpass->window)
 	{

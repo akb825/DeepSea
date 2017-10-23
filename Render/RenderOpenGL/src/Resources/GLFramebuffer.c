@@ -55,7 +55,7 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 
 				*curAttachment = glTexture->drawBufferId;
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment,
-					GL_RENDERBUFFER, glTexture->drawBufferId);\
+					GL_RENDERBUFFER, glTexture->drawBufferId);
 			}
 			else
 			{
