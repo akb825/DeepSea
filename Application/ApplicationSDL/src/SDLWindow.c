@@ -30,6 +30,7 @@
 
 #if DS_MAC
 void* dsSDLWindow_getUsableWindowHandle(void* window);
+void dsSDLWindow_releaseUsableWindowHandle(void* handle);
 #endif
 
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)
@@ -139,6 +140,12 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
 		windowHandle, dsRenderSurfaceType_Window);
+
+#if defined(SDL_VIDEO_DRIVER_COCOA)
+	if (info.subsystem == SDL_SYSWM_COCOA)
+		dsSDLWindow_releaseUsableWindowHandle(windowHandle);
+#endif
+
 	if (!window->surface)
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");

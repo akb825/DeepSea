@@ -90,7 +90,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 			attr[1] = versions[i];
 			NSOpenGLPixelFormat* format = [[NSOpenGLPixelFormat alloc] initWithAttributes: attr];
 			if (format)
-				return format;
+				return (void*)CFBridgingRetain(format);
 		}
 	}
 
@@ -110,7 +110,7 @@ void dsDestroyGLConfig(void* display, void* config)
 	if (!config)
 		return;
 
-	[(NSOpenGLPixelFormat*)config release];
+	CFRelease(config);
 }
 
 void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
@@ -121,8 +121,9 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 
 	@autoreleasepool
 	{
-		return [[NSOpenGLContext alloc] initWithFormat: (NSOpenGLPixelFormat*)config
-			shareContext: (NSOpenGLContext*)shareContext];
+		return (void*)CFBridgingRetain([[NSOpenGLContext alloc]
+			initWithFormat: (__bridge NSOpenGLPixelFormat*)config
+			shareContext: (__bridge NSOpenGLContext*)shareContext]);
 	}
 }
 
@@ -132,7 +133,7 @@ void dsDestroyGLContext(void* display, void* context)
 	if (!context)
 		return;
 
-	[(NSOpenGLContext*)context release];
+	CFRelease(context);
 }
 
 void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config, void** osSurface)
@@ -157,12 +158,11 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	DS_UNUSED(allocator);
 	switch (surfaceType)
 	{
-		case dsRenderSurfaceType_Window:
-			return [(NSView*)handle retain];
 		case dsRenderSurfaceType_Pixmap:
 			return NULL;
+		case dsRenderSurfaceType_Window:
 		default:
-			return [(NSView*)handle retain];
+			return (void*)CFBridgingRetain((__bridge NSView*)handle);
 	}
 }
 
@@ -173,7 +173,7 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	if (!outWidth || !outHeight || !surface)
 		return false;
 
-	NSRect bounds = [(NSView*)surface bounds];
+	NSRect bounds = [(__bridge NSView*)surface bounds];
 	*outWidth = (uint32_t)bounds.size.width;
 	*outHeight = (uint32_t)bounds.size.height;
 	return true;
@@ -196,9 +196,13 @@ void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surfa
 	if (!surface)
 		return;
 
-	glFlush();
 	NSOpenGLContext* context = [NSOpenGLContext currentContext];
-	[context setView: (NSView*)surface];
+	NSView* view = (__bridge NSView*)surface;
+	if ([context view] != view)
+	{
+		glFlush();
+		[context setView: view];
+	}
 	[context flushBuffer];
 }
 
@@ -209,28 +213,36 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	if (!surface)
 		return;
 
-	[(NSView*)surface release];
+	CFBridgingRelease(surface);
 }
 
 bool dsBindGLContext(void* display, void* context, void* surface)
 {
-	if ([NSOpenGLContext currentContext])
+	NSOpenGLContext* nsContext = (__bridge NSOpenGLContext*)context;
+	NSOpenGLContext* curContext = [NSOpenGLContext currentContext];
+	NSView* view = surface == &dummyValue ? NULL : (__bridge NSView*)surface;
+	NSView* curView = nsContext ? [nsContext view] : NULL;
+
+	// Flush if we're changing contexts or views. (assuming a context is bound)
+	if (curContext && (curContext != nsContext || (nsContext && curView != view)))
 		glFlush();
 
-	if (context)
+	// Update the context if different.
+	if (curContext != nsContext)
 	{
-		NSOpenGLContext* nsContext = (NSOpenGLContext*)context;
-		[nsContext makeCurrentContext];
-		if (surface == &dummyValue)
-			[nsContext setView: NULL];
+		if (nsContext)
+			[nsContext makeCurrentContext];
 		else
-		{
-			[nsContext setView: (NSView*)surface];
-			[nsContext update];
-		}
+			[NSOpenGLContext clearCurrentContext];
 	}
-	else
-		[NSOpenGLContext clearCurrentContext];
+
+	// Update the view if different.
+	if (nsContext && curView != view)
+		[nsContext setView: view];
+
+	// Update the context if set.
+	if (nsContext)
+		[nsContext update];
 
 	return true;
 }
@@ -238,7 +250,7 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 void* dsGetCurrentGLContext(void* display)
 {
 	DS_UNUSED(display);
-	return [NSOpenGLContext currentContext];
+	return (__bridge void*)[NSOpenGLContext currentContext];
 }
 
 #endif // DS_MAC

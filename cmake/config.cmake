@@ -28,7 +28,7 @@ else()
 
 	set(commonFlags "-fPIC -Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing")
 	if (APPLE)
-		set(commonFlags "${commonFlags} -fno-objc-arc")
+		set(commonFlags "${commonFlags} -fobjc-arc")
 	endif()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags} ${otherCFlags}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags} -std=c++11 ${otherCXXFlags}")

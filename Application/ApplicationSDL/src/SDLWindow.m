@@ -22,7 +22,12 @@
 
 void* dsSDLWindow_getUsableWindowHandle(void* window)
 {
-	return [(NSWindow*)window contentView];
+	return (void*)CFBridgingRetain([(__bridge NSWindow*)window contentView]);
+}
+
+void dsSDLWindow_releaseUsableWindowHandle(void* handle)
+{
+	CFBridgingRelease(handle);
 }
 
 #endif // DS_MAC
