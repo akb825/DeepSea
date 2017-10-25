@@ -30,3 +30,5 @@ GLenum dsGetGLMagFilter(mslFilter magFilter);
 GLenum dsGetGLAddressMode(mslAddressMode addressMode);
 
 GLenum dsGetGLCompareOp(mslCompareOp compareOp);
+
+GLenum dsGetGLBufferType(int ugsage);

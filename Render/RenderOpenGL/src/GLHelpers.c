@@ -179,3 +179,13 @@ GLenum dsGetGLCompareOp(mslCompareOp compareOp)
 	DS_ASSERT((unsigned int)compareOp < DS_ARRAY_SIZE(compareOpMap));
 	return compareOpMap[compareOp];
 }
+
+GLenum dsGetGLBufferType(int usage)
+{
+	if (usage & dsGfxBufferUsage_UniformBuffer)
+		return GL_SHADER_STORAGE_BUFFER;
+	else if (usage & dsGfxBufferUsage_UniformBlock)
+		return GL_UNIFORM_BUFFER;
+	else
+		return GL_ARRAY_BUFFER;
+}

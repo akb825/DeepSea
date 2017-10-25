@@ -437,9 +437,10 @@ bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxB
 	DS_UNUSED(commandBuffer);
 
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
-	glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLenum bufferType = dsGetGLBufferType(buffer->usage);
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	glBufferSubData(bufferType, offset, size, data);
+	glBindBuffer(bufferType, 0);
 	return true;
 }
 

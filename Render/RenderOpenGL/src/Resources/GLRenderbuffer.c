@@ -70,7 +70,7 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	if (samples > 1 && ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internalFormat, width, height);
 	else
-		glRenderbufferStorage(GL_RENDERBUFFER, samples, width, height);
+		glRenderbufferStorage(GL_RENDERBUFFER, internalFormat, width, height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);

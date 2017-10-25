@@ -65,7 +65,8 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		return NULL;
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, buffer->bufferId);
+	GLenum bufferType = dsGetGLBufferType(usage);
+	glBindBuffer(bufferType, buffer->bufferId);
 	if (ANYGL_SUPPORTED(glBufferStorage))
 	{
 		GLbitfield flags = 0;
@@ -89,7 +90,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 			}
 		}
 
-		glBufferStorage(GL_ARRAY_BUFFER, size, data, flags);
+		glBufferStorage(bufferType, size, data, flags);
 	}
 	else
 	{
@@ -124,10 +125,10 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 				glUsage = GL_DYNAMIC_COPY;
 		}
 
-		glBufferData(GL_ARRAY_BUFFER, size, data, glUsage);
+		glBufferData(bufferType, size, data, glUsage);
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(bufferType, 0);
 
 	AnyGL_setErrorCheckingEnabled(prevChecksEnabled);
 	GLenum error = glGetError();
@@ -151,6 +152,7 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	GLenum bufferType = dsGetGLBufferType(buffer->usage);
 	void* ptr = NULL;
 	if (ANYGL_SUPPORTED(glMapBufferRange))
 	{
@@ -171,9 +173,9 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		if (!(buffer->memoryHints & dsGfxMemory_Synchronize))
 			access |= GL_MAP_UNSYNCHRONIZED_BIT;
 
-		glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
-		ptr = glMapBufferRange(GL_ARRAY_BUFFER, offset, size, access);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(bufferType, glBuffer->bufferId);
+		ptr = glMapBufferRange(bufferType, offset, size, access);
+		glBindBuffer(bufferType, 0);
 	}
 	else
 	{
@@ -186,9 +188,9 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			access = GL_WRITE_ONLY;
 
 		DS_ASSERT(ANYGL_SUPPORTED(glMapBuffer));
-		glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
-		ptr = glMapBuffer(GL_ARRAY_BUFFER, access);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(bufferType, glBuffer->bufferId);
+		ptr = glMapBuffer(bufferType, access);
+		glBindBuffer(bufferType, 0);
 	}
 
 	return ptr;
@@ -200,10 +202,11 @@ bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	GLenum bufferType = dsGetGLBufferType(buffer->usage);
 	DS_ASSERT(ANYGL_SUPPORTED(glUnmapBuffer));
-	glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
-	bool success = glUnmapBuffer(GL_ARRAY_BUFFER);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	bool success = glUnmapBuffer(bufferType);
+	glBindBuffer(bufferType, 0);
 
 	return success;
 }
@@ -215,10 +218,11 @@ bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
 	DS_ASSERT(glBuffer && glBuffer->bufferId);
 
+	GLenum bufferType = dsGetGLBufferType(buffer->usage);
 	DS_ASSERT(ANYGL_SUPPORTED(glFlushMappedBufferRange));
-	glBindBuffer(GL_ARRAY_BUFFER, glBuffer->bufferId);
-	glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset, size);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(bufferType, glBuffer->bufferId);
+	glFlushMappedBufferRange(bufferType, offset, size);
+	glBindBuffer(bufferType, 0);
 
 	return true;
 }
