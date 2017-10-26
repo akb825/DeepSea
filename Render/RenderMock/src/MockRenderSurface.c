@@ -81,12 +81,15 @@ bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	return true;
 }
 
-bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
+	size_t count)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
-	DS_ASSERT(renderSurface);
-	DS_UNUSED(renderSurface);
+	DS_ASSERT(renderSurfaces);
+	DS_UNUSED(renderSurfaces);
+	DS_ASSERT(count > 0);
+	DS_UNUSED(count);
 	return true;
 }
 

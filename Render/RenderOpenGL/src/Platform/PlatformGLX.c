@@ -307,25 +307,35 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	if (!display || !configPtr || !handle)
 		return NULL;
 
+	GLXDrawable drawable;
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
 			if (configPtr->config)
 			{
 				DS_ASSERT(ANYGL_SUPPORTED(glXCreateWindow));
-				return (void*)glXCreateWindow(display, configPtr->config, (Window)handle, NULL);
+				drawable = glXCreateWindow(display, configPtr->config, (Window)handle, NULL);
+				break;
 			}
-			return handle;
+			drawable = (GLXDrawable)handle;
+			break;
 		case dsRenderSurfaceType_Pixmap:
 			if (configPtr->config)
 			{
 				DS_ASSERT(ANYGL_SUPPORTED(glXCreatePixmap));
-				return (void*)glXCreatePixmap(display, configPtr->config, (Pixmap)handle, NULL);
+				drawable = glXCreatePixmap(display, configPtr->config, (Pixmap)handle, NULL);
+				break;
 			}
-			return handle;
+			drawable = (GLXDrawable)handle;
+			break;
 		default:
-			return handle;
+			drawable = (GLXDrawable)handle;
+			break;
 	}
+
+	if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
+		glXJoinSwapGroupNV(display, drawable, 1);
+	return (void*)drawable;
 }
 
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
@@ -340,28 +350,47 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSetGLSurfaceVsync(void* display, dsRenderSurfaceType surfaceType, void* surface, bool vsync)
+void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync)
 {
-	DS_UNUSED(surfaceType);
-	if (!surface || !ANYGL_SUPPORTED(glXSwapIntervalEXT))
-		return;
+	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
+	// Allow vsync for all surfaces if swap groups are supported.
+	if (ANYGL_SUPPORTED(glXSwapIntervalEXT))
+	{
+		if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
+		{
+			for (size_t i = 0; i < count; ++i)
+			{
+				GLXDrawable drawable =
+					(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+				glXSwapIntervalEXT(display, drawable, vsync);
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < count; ++i)
+			{
+				GLXDrawable drawable =
+					(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+				glXSwapIntervalEXT(display, drawable, vsync && i == 0);
+			}
+		}
+	}
 
-	glXSwapIntervalEXT(display, (GLXDrawable)surface, vsync);
-}
-
-void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surface)
-{
-	DS_UNUSED(surfaceType);
-	if (!surface)
-		return;
-
-	glXSwapBuffers(display, (GLXDrawable)surface);
+	for (size_t i = 0; i < count; ++i)
+	{
+		GLXDrawable drawable =
+			(GLXDrawable)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+		glXSwapBuffers(display, drawable);
+	}
 }
 
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
 {
 	if (!surface)
 		return;
+
+	if (ANYGL_SUPPORTED(glXJoinSwapGroupNV))
+		glXJoinSwapGroupNV(display, (GLXDrawable)surface, 0);
 
 	switch (surfaceType)
 	{

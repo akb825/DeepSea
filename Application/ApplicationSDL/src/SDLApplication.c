@@ -39,6 +39,8 @@
 #define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
 #define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
+#define DS_MAX_WINDOWS 100U
+
 typedef struct dsSDLApplication
 {
 	dsApplication application;
@@ -605,11 +607,17 @@ int dsSDLApplication_run(dsApplication* application)
 		}
 
 		// Swap the buffers for all the window surfaces at the end.
-		if (application->renderer->doubleBuffer)
+		dsRenderSurface* swapSurfaces[DS_MAX_WINDOWS];
+		if (application->windowCount > DS_MAX_WINDOWS)
 		{
-			for (uint32_t i = 0; i < application->windowCount; ++i)
-				DS_VERIFY(dsRenderSurface_swapBuffers(application->windows[i]->surface));
+			DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "A maximum of %u windows is supported.",
+				DS_MAX_WINDOWS);
+			abort();
 		}
+
+		for (uint32_t i = 0; i < application->windowCount; ++i)
+			swapSurfaces[i] = application->windows[i]->surface;
+		DS_VERIFY(dsRenderSurface_swapBuffers(swapSurfaces, application->windowCount));
 
 		DS_VERIFY(dsRenderer_endFrame(application->renderer));
 	}

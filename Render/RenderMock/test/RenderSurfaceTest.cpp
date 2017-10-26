@@ -82,11 +82,10 @@ TEST_F(RenderSurfaceTest, SwapBuffers)
 		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
-	EXPECT_FALSE(dsRenderSurface_swapBuffers(NULL));
-	EXPECT_TRUE(dsRenderSurface_swapBuffers(renderSurface));
-
-	renderer->doubleBuffer = false;
-	EXPECT_FALSE(dsRenderSurface_swapBuffers(renderSurface));
+	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));
+	dsRenderSurface* nullSurface = NULL;
+	EXPECT_FALSE(dsRenderSurface_swapBuffers(&nullSurface, 1));
+	EXPECT_TRUE(dsRenderSurface_swapBuffers(&renderSurface, 1));
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
 }

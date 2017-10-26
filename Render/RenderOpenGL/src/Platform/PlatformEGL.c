@@ -219,21 +219,18 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSetGLSurfaceVsync(void* display, dsRenderSurfaceType surfaceType, void* surface, bool vsync)
+void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync)
 {
-	DS_UNUSED(surfaceType);
-	DS_UNUSED(surface);
-
+	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
 	eglSwapInterval((EGLDisplay)display, vsync);
-}
+	for (size_t i = 0; i < count; ++i)
+	{
+		if (i == 1 && vsync)
+			eglSwapInterval((EGLDisplay)display, 0);
 
-void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surface)
-{
-	DS_UNUSED(surfaceType);
-	if (!surface)
-		return;
-
-	eglSwapBuffers((EGLDisplay)display, (EGLSurface)surface);
+		EGLSurface surface = (EGLSurface)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+		eglSwapBuffers((EGLDisplay)display, surface);
+	}
 }
 
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)

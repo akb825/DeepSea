@@ -326,21 +326,22 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	if (!display || !configPtr || !handle)
 		return NULL;
 
+	HDC dc;
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
 		{
-			HDC dc = GetDC(handle);
+			dc = GetDC(handle);
 			if (!SetPixelFormat(dc, configPtr->pixelFormat, &configPtr->pfd))
 			{
 				ReleaseDC(handle, dc);
 				return NULL;
 			}
-			return dc;
+			break;
 		}
 		case dsRenderSurfaceType_Pixmap:
 		{
-			HDC dc = CreateCompatibleDC(configPtr->dc);
+			dc = CreateCompatibleDC(configPtr->dc);
 			if (!dc)
 				return NULL;
 
@@ -349,12 +350,15 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 				DeleteDC(dc);
 				return NULL;
 			}
-
-			return dc;
+			break;
 		}
 		default:
-			return handle;
+			dc = (HDC)handle;
 	}
+
+	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
+		wglJoinSwapGroupNV(dc, 1);
+	return dc;
 }
 
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
@@ -386,24 +390,33 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSetGLSurfaceVsync(void* display, dsRenderSurfaceType surfaceType, void* surface, bool vsync)
+void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync)
 {
 	DS_UNUSED(display);
-	DS_UNUSED(surfaceType);
-	DS_UNUSED(surface);
-	if (!ANYGL_SUPPORTED(wglSwapIntervalEXT))
-		return;
 
-	wglSwapIntervalEXT(vsync);
-}
+	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
+	// Allow vsync for all surfaces if swap groups are supported.
+	if (ANYGL_SUPPORTED(wglSwapIntervalEXT))
+		wglSwapIntervalEXT(vsync);
+	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			HDC dc = (HDC)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+			wglSwapLayerBuffers(dc, WGL_SWAP_MAIN_PLANE);
+		}
+	}
+	else
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			if (i == 1 && vsync && ANYGL_SUPPORTED(wglSwapIntervalEXT))
+				wglSwapIntervalEXT(0);
 
-void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surface)
-{
-	DS_UNUSED(surfaceType);
-	if (!surface)
-		return;
-
-	wglSwapLayerBuffers(surface, WGL_SWAP_MAIN_PLANE);
+			HDC dc = (HDC)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+			wglSwapLayerBuffers(dc, WGL_SWAP_MAIN_PLANE);
+		}
+	}
 }
 
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)
@@ -411,6 +424,8 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 	if (!surface)
 		return;
 
+	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
+		wglJoinSwapGroupNV(dc, 0);
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:

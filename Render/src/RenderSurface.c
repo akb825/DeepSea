@@ -103,26 +103,42 @@ bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer, const dsRenderSurfa
 	DS_PROFILE_FUNC_RETURN(ended);
 }
 
-bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface)
+bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)
 {
 	DS_PROFILE_WAIT_START(__FUNCTION__);
 
-	if (!renderSurface || !renderSurface->renderer ||
-		!renderSurface->renderer->swapRenderSurfaceBuffersFunc)
+	if (count > 0 && !renderSurfaces)
 	{
 		errno = EINVAL;
 		DS_PROFILE_WAIT_END();
 		return false;
 	}
 
-	dsRenderer* renderer = renderSurface->renderer;
-	if (!renderer->doubleBuffer)
+	if (count == 0)
 	{
-		errno = EPERM;
+		DS_PROFILE_WAIT_END();
+		return true;
+	}
+
+	if (!renderSurfaces[0] || !renderSurfaces[0]->renderer ||
+		!renderSurfaces[0]->renderer->swapRenderSurfaceBuffersFunc)
+	{
+		errno = EINVAL;
 		DS_PROFILE_WAIT_END();
 		return false;
 	}
 
+	for (size_t i = 1; i < count; ++i)
+	{
+		if (!renderSurfaces[i] || renderSurfaces[i]->renderer != renderSurfaces[0]->renderer)
+		{
+			errno = EINVAL;
+			DS_PROFILE_WAIT_END();
+			return false;
+		}
+	}
+
+	dsRenderer* renderer = renderSurfaces[0]->renderer;
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
@@ -132,7 +148,7 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface)
 		return false;
 	}
 
-	bool swapped = renderer->swapRenderSurfaceBuffersFunc(renderer, renderSurface);
+	bool swapped = renderer->swapRenderSurfaceBuffersFunc(renderer, renderSurfaces, count);
 	DS_PROFILE_WAIT_END();
 	return swapped;
 }

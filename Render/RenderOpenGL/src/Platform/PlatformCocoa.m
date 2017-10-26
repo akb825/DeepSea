@@ -179,31 +179,35 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSetGLSurfaceVsync(void* display, dsRenderSurfaceType surfaceType, void* surface, bool vsync)
+dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync)
 {
 	DS_UNUSED(display);
-	DS_UNUSED(surfaceType);
-	DS_UNUSED(surface);
-
-	GLint parameter = vsync;
-	[[NSOpenGLContext currentContext] setValues: &parameter
-		forParameter: NSOpenGLContextParameterSwapInterval];
-}
-
-void dsSwapGLBuffers(void* display, dsRenderSurfaceType surfaceType, void* surface)
-{
-	DS_UNUSED(surfaceType);
 	if (!surface)
 		return;
 
 	NSOpenGLContext* context = [NSOpenGLContext currentContext];
-	NSView* view = (__bridge NSView*)surface;
-	if ([context view] != view)
+
+	// vsync on the first surface to avoid waiting for multiple swaps with multiple surfaces.
+	GLint parameter = vsync;
+	[[NSOpenGLContext currentContext] setValues: &parameter
+		forParameter: NSOpenGLContextParameterSwapInterval];
+	for (size_t i = 0; i < count; ++i)
 	{
-		glFlush();
-		[context setView: view];
+		if (i == 1 && vsync)
+		{
+			parameter = false;
+			[[NSOpenGLContext currentContext] setValues: &parameter
+				forParameter: NSOpenGLContextParameterSwapInterval];
+		}
+
+		NSView* view = (__bridge NSView*)((dsGLRenderSurface*)renderSurfaces[i])->glSurface;
+		if ([context view] != view)
+		{
+			glFlush();
+			[context setView: view];
+		}
+		[context flushBuffer];
 	}
-	[context flushBuffer];
 }
 
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface)

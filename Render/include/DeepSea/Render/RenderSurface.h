@@ -82,12 +82,13 @@ DS_RENDER_EXPORT bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
 
 /**
- * @brief Swaps the front and back buffers for a render surface.
+ * @brief Swaps the front and back buffers for a list of render surfaces.
  * @remark errno will be set on failure.
- * @param renderSurface The render surface to swap buffers on.
+ * @param renderSurfaces The render surfaces to swap buffers on.
+ * @param count The number of render surfaces to swap.
  * @return False if the buffers couldn't be swapped.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface* renderSurface);
+DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count);
 
 /**
  * @brief Destroys a render surface.

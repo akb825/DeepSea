@@ -85,10 +85,6 @@ bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	{
 		return false;
 	}
-
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	dsSetGLSurfaceVsync(glRenderer->options.display, renderSurface->surfaceType,
-		glSurface->glSurface, renderer->vsync);
 	return true;
 }
 
@@ -103,13 +99,15 @@ bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuf
 		((const dsGLRenderSurface*)renderSurface)->glSurface);
 }
 
-bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface* renderSurface)
+bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
+	size_t count)
 {
 	DS_ASSERT(renderer);
-	DS_ASSERT(renderSurface);
+	DS_ASSERT(renderSurfaces);
+	DS_ASSERT(count > 0);
 
-	dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurface->surfaceType,
-		((dsGLRenderSurface*)renderSurface)->glSurface);
+	dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurfaces, count,
+		renderer->vsync);
 	return true;
 }
 
