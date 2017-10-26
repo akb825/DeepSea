@@ -425,7 +425,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 		return;
 
 	if (ANYGL_SUPPORTED(wglJoinSwapGroupNV))
-		wglJoinSwapGroupNV(dc, 0);
+		wglJoinSwapGroupNV((HDC)surface, 0);
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
