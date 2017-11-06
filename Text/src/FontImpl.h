@@ -55,15 +55,23 @@ struct dsFont
 	uint32_t faceCount;
 	uint16_t glyphSize;
 	uint16_t usedGlyphCount;
+
+	uint32_t maxWidth;
+	uint32_t maxHeight;
+	// This gives up thread safety, but is already not an option for FreeType.
+	uint8_t* tempImage;
+	float* tempSdf;
+
 	dsTexture* texture;
 	dsGlyphInfo glyphPool[DS_GLYPH_SLOTS];
 	DS_STATIC_HASH_TABLE(DS_TABLE_SIZE) glyphTable;
 };
 
 const char* dsFontFace_getName(const dsFontFace* face);
+void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face);
 void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
-	uint32_t glyphSize);
+	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf);
 
 dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
@@ -75,5 +83,5 @@ uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
 // Pixel values are 0 or 1, +Y points down.
 void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
-	unsigned int height);
+	unsigned int height, float* tempSdf);
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize);

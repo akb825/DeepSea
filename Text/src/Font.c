@@ -37,6 +37,7 @@ static float computeSignedDistance(const uint8_t* pixels, unsigned int width, un
 	if (x >= 0 && y >= 0 && x < (int)width && y < (int)height)
 		inside = pixels[y*width + x] != 0;
 
+	// Compute the closest distance to a pixel that is the opposite state.
 	float maxDistance = (float)(windowSize*windowSize);
 	float distance = maxDistance;
 	for (uint32_t j = 0; j < windowSize*2 + 1; ++j)
@@ -56,6 +57,7 @@ static float computeSignedDistance(const uint8_t* pixels, unsigned int width, un
 		}
 	}
 
+	// Normalize to a [0, 1] value to be placed into the texture.
 	distance = distance/maxDistance;
 	if (!inside)
 		distance = -distance;
@@ -97,7 +99,8 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, u
 	}
 
 	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
-		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize);
+		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font->tempImage,
+		font->tempSdf);
 	return glyphInfo;
 }
 
@@ -108,7 +111,7 @@ uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph)
 
 void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
-	unsigned int height)
+	unsigned int height, float* tempSdf)
 {
 	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 
@@ -119,19 +122,19 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	float scaleY = (float)adjustedHeight/(float)(glyphSize + windowSize*2);
 
 	// Compute signed distnace field.
-	float* distances = (float*)alloca(adjustedWidth*adjustedHeight*sizeof(float));
 	for (unsigned int y = 0; y < adjustedWidth; ++y)
 	{
 		for (unsigned int x = 0; x < adjustedHeight; ++x)
 		{
-			distances[y*adjustedWidth + x] = computeSignedDistance(pixels, width, height,
+			tempSdf[y*adjustedWidth + x] = computeSignedDistance(pixels, width, height,
 				x - windowSize, y - windowSize, windowSize);
 		}
 	}
 
 	// Scale the glyph into the texture.
 	const dsVector2i offsets[4] = {{{0, 0}}, {{1, 0}}, {{0, 1}}, {{1, 1}}};
-	uint8_t* textureData = (uint8_t*)alloca(glyphSize*glyphSize);
+	DS_ASSERT(glyphSize <= DS_HIGH_SIZE);
+	uint8_t textureData[DS_HIGH_SIZE*DS_HIGH_SIZE];
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
 		float origY = (float)(int)(y - windowSize)*scaleY + (float)windowSize;
@@ -151,7 +154,7 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 				if (curX >= 0 && curY >= 0 && curX < (int)adjustedWidth &&
 					curY < (int)adjustedHeight)
 				{
-					samples[i] = distances[curY*adjustedWidth + curX];
+					samples[i] = tempSdf[curY*adjustedWidth + curX];
 				}
 
 				samples[0] = dsLerp(samples[0], samples[1], tX);
@@ -211,20 +214,55 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		return NULL;
 	}
 
+	uint32_t maxWidth = 0, maxHeight = 0;
 	for (uint32_t i = 0; i < faceCount; ++i)
 	{
 		if (!faceNames[i])
 		{
-			errno = EINVAL;
+			errno = EPERM;
+			DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Empty face name.");
 			return NULL;
 		}
+
+		dsFontFace* face = dsFaceGroup_findFace(group, faceNames[i]);
+		if (!face)
+		{
+			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face '%s' not found.", faceNames[i]);
+			errno = ENOTFOUND;
+			return NULL;
+		}
+
+		uint32_t curWidth, curHeight;
+		dsFontFace_getMaxSize(&curWidth, &curHeight, face);
+		maxWidth = dsMax(curWidth, maxWidth);
+		maxHeight = dsMax(curHeight, maxHeight);
 	}
 
 	if (!allocator)
 		allocator = dsFaceGroup_getAllocator(group);
 
+	uint16_t glyphSize;
+	switch (dsFaceGroup_getTextQuality(group))
+	{
+		case dsTextQuality_Low:
+			glyphSize = DS_LOW_SIZE;
+			break;
+		case dsTextQuality_High:
+			glyphSize = DS_HIGH_SIZE;
+			break;
+		case dsTextQuality_Medium:
+		default:
+			glyphSize = DS_MEDIUM_SIZE;
+			break;
+	}
+
+	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	size_t tempImageSize = maxWidth*maxHeight*sizeof(uint8_t);
+	size_t tempSdfSize = (maxWidth + windowSize)*(maxHeight + windowSize)*sizeof(float);
+
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsFont)) +
-		DS_ALIGNED_SIZE(sizeof(dsFontFace*)*faceCount);
+		DS_ALIGNED_SIZE(sizeof(dsFontFace*)*faceCount) + DS_ALIGNED_SIZE(tempImageSize) +
+		DS_ALIGNED_SIZE(tempSdfSize);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -242,36 +280,21 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	for (uint32_t i = 0; i < faceCount; ++i)
 	{
 		font->faces[i] = dsFaceGroup_findFace(group, faceNames[i]);
-		if (!font->faces[i])
-		{
-			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face '%s' not found.", faceNames[i]);
-			errno = ENOTFOUND;
-			if (font->allocator)
-				dsAllocator_free(font->allocator, font);
-			return NULL;
-		}
+		DS_ASSERT(font->faces[i]);
 	}
 
 	font->faceCount = faceCount;
+	font->glyphSize = glyphSize;
 	font->usedGlyphCount = 0;
+
+	font->maxWidth = maxWidth;
+	font->maxHeight = maxHeight;
+	font->tempImage = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, tempImageSize);
+	font->tempSdf = (float*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, tempSdfSize);
 
 	DS_STATIC_ASSERT(sizeof(dsGlyphKey) == sizeof(uint64_t), unexpected_glyph_key_size);
 	DS_VERIFY(dsHashTable_initialize(&font->glyphTable.hashTable, DS_TABLE_SIZE,
 		&dsHash64, &dsHash64Equal));
-
-	switch (dsFaceGroup_getTextQuality(group))
-	{
-		case dsTextQuality_Low:
-			font->glyphSize = DS_LOW_SIZE;
-			break;
-		case dsTextQuality_High:
-			font->glyphSize = DS_HIGH_SIZE;
-			break;
-		case dsTextQuality_Medium:
-		default:
-			font->glyphSize = DS_MEDIUM_SIZE;
-			break;
-	}
 
 	uint32_t textureSize = font->glyphSize*DS_TEX_MULTIPLIER;
 	uint32_t mipLevels = resourceManager->hasArbitraryMipmapping ?

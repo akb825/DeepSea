@@ -19,7 +19,6 @@
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
-#include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -42,16 +41,20 @@ struct dsFontFace
 	dsAllocator* bufferAllocator;
 	void* buffer;
 	hb_font_t* font;
+	unsigned int maxWidth;
+	unsigned int maxHeight;
 };
 
 struct dsFaceGroup
 {
 	dsAllocator* allocator;
 	dsHashTable* faceHashTable;
-	dsPoolAllocator faces;
 	struct FT_MemoryRec_ memory;
 	FT_Library library;
 	dsTextQuality quality;
+	uint32_t maxFaces;
+	uint32_t faceCount;
+	dsFontFace faces[];
 };
 
 static void* ftAlloc(FT_Memory memory, long size)
@@ -103,6 +106,12 @@ static bool setFontLoadErrno(FT_Error error)
 
 static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFace)
 {
+	if (group->faceCount >= group->maxFaces)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Exceeded maximum number of faces.");
+		return NULL;
+	}
 	if (!(ftFace->face_flags & FT_FACE_FLAG_SCALABLE))
 	{
 		errno = EPERM;
@@ -129,29 +138,33 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	switch (group->quality)
 	{
 		case dsTextQuality_Low:
-			FT_Set_Pixel_Sizes(ftFace, DS_LOW_SIZE, DS_LOW_SIZE);
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_LOW_SIZE);
 			break;
 		case dsTextQuality_High:
-			FT_Set_Pixel_Sizes(ftFace, DS_HIGH_SIZE, DS_HIGH_SIZE);
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_HIGH_SIZE);
 			break;
 		case dsTextQuality_Medium:
 		default:
-			FT_Set_Pixel_Sizes(ftFace, DS_MEDIUM_SIZE, DS_MEDIUM_SIZE);
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_MEDIUM_SIZE);
 			break;
 	}
 	hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
 	if (!hbFont)
 		return NULL;
 
-	dsFontFace* face = (dsFontFace*)dsAllocator_alloc((dsAllocator*)&group->faces,
-		sizeof(dsFontFace));
-	if (!face)
-		return NULL;
+	const unsigned int fixedScale = 1 << 6;
+	FT_Pos widthU = ftFace->bbox.xMax - ftFace->bbox.xMin;
+	FT_Pos heightU = ftFace->bbox.yMax - ftFace->bbox.yMin;
+	FT_Fixed width = widthU*ftFace->size->metrics.x_scale;
+	FT_Fixed height = heightU*ftFace->size->metrics.y_scale;
 
+	dsFontFace* face = group->faces + group->faceCount++;
 	strncpy(face->name, name, sizeof(face->name));
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
-	face->font= hbFont;
+	face->font = hbFont;
+	face->maxWidth = (unsigned int)FT_CeilFix(width)/fixedScale;
+	face->maxHeight = (unsigned int)FT_CeilFix(height)/fixedScale;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
 	return face;
 }
@@ -164,9 +177,18 @@ const char* dsFontFace_getName(const dsFontFace* face)
 	return face->name;
 }
 
+void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face)
+{
+	if (!face)
+		return;
+
+	*maxWidth = face->maxWidth;
+	*maxHeight = face->maxHeight;
+}
+
 void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
-	uint32_t glyphSize)
+	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf)
 {
 	FT_Face ftFace = hb_ft_font_get_face(face->font);
 	DS_ASSERT(ftFace);
@@ -174,23 +196,24 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 
 	float scale = 1.0f/(float)glyphSize;
 	FT_Bitmap* bitmap = &ftFace->glyph->bitmap;
+	DS_ASSERT(bitmap->width <= face->maxWidth);
+	DS_ASSERT(bitmap->rows <= face->maxHeight);
 	outBounds->min.x = (float)ftFace->glyph->bitmap_left*scale;
 	outBounds->min.y = (float)(ftFace->glyph->bitmap_top - bitmap->rows)*scale;
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
 	outBounds->min.y = outBounds->min.y + (float)bitmap->rows*scale;
 
 	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO);
-	uint8_t* pixels = (uint8_t*)alloca(bitmap->width*bitmap->rows);
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
 	{
 		const uint8_t* row = bitmap->buffer + abs(bitmap->pitch)*y;
 		unsigned int destY = bitmap->pitch > 0 ? y : bitmap->rows - y - 1;
 		for (unsigned int x = 0; x < bitmap->width; ++x)
-			pixels[destY*bitmap->width + x] = (row[x/8] & 1 << (7 - x)) != 0;
+			tempImage[destY*bitmap->width + x] = (row[x/8] & 1 << (7 - x)) != 0;
 	}
 
-	dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize, pixels, bitmap->width,
-		bitmap->rows);
+	dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize, tempImage,
+		bitmap->width, bitmap->rows, tempSdf);
 }
 
 dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group)
@@ -208,9 +231,8 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) +
-		dsHashTable_fullAllocSize(getTableSize(maxFaces)) +
-		dsPoolAllocator_bufferSize(sizeof(dsFontFace), maxFaces);
+	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces) +
+		dsHashTable_fullAllocSize(getTableSize(maxFaces));
 }
 
 dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTextQuality quality)
@@ -240,12 +262,6 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 	DS_VERIFY(dsHashTable_initialize(faceGroup->faceHashTable, hashTableSize, &dsHashString,
 		dsHashStringEqual));
 
-	size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsFontFace), maxFaces);
-	void* poolBuffer = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
-	DS_ASSERT(poolBuffer);
-	DS_VERIFY(dsPoolAllocator_initialize(&faceGroup->faces, sizeof(dsFontFace), maxFaces,
-		poolBuffer, poolSize));
-
 	if (faceGroup->allocator)
 	{
 		faceGroup->memory.user = allocator;
@@ -272,6 +288,8 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 		}
 	}
 
+	faceGroup->maxFaces = maxFaces;
+	faceGroup->faceCount = 0;
 	faceGroup->quality = quality;
 	return faceGroup;
 }
@@ -281,7 +299,7 @@ uint32_t dsFaceGroup_getRemainingFaces(const dsFaceGroup* group)
 	if (!group)
 		return 0;
 
-	return (uint32_t)group->faces.freeCount;
+	return group->maxFaces - group->faceCount;
 }
 
 bool dsFaceGroup_hasFace(const dsFaceGroup* group, const char* name)
