@@ -58,7 +58,7 @@ extern "C"
  * @param x The original size.
  * @return The aligned size.
  */
-#define DS_ALIGNED_SIZE(x) ((((x) + DS_ALLOC_ALIGNMENT - 1)/DS_ALLOC_ALIGNMENT)*DS_ALLOC_ALIGNMENT)
+#define DS_ALIGNED_SIZE(x) (((x) + DS_ALLOC_ALIGNMENT - 1) & ~(DS_ALLOC_ALIGNMENT - 1))
 
 #ifdef __cplusplus
 }

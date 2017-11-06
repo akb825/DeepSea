@@ -20,6 +20,13 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 
+TEST(Allocator, AlignedSize)
+{
+	EXPECT_EQ(16U, DS_ALIGNED_SIZE(1U));
+	EXPECT_EQ(16U, DS_ALIGNED_SIZE(16U));
+	EXPECT_EQ(32U, DS_ALIGNED_SIZE(17U));
+}
+
 TEST(Allocator, Empty)
 {
 	dsAllocator allocator = {};

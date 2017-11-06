@@ -9,6 +9,9 @@ The following software is required to build DeepSea:
 * [cmake](https://cmake.org/) 3.0.2 or later
 * Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies)
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
+* [FreeType](https://www.freetype.org/) (required for text except for Apple and Windows platforms)
+* [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text except for Apple and Windows platforms)
+* [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 
@@ -65,6 +68,7 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_BUILD_RENDER=ON|OFF`: Set to `ON` to build the libraries related to rendering. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
 
@@ -78,7 +82,8 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_OUTPUT_DIR=directory`: The folder to place the output files. This may be explicitly left empty in order to output to the defaults used by cmake, but this may prevent tests and executables from running properly when `DEEPSEA_SHARED` is set to `ON`. Defaults to `${CMAKE_BINARY_DIR}/output`.
 * `-DDEEPSEA_EXPORTS_DIR=directory`: The folder to place the cmake exports when building. This directory can be added to the module path when embedding in other projects to be able to use the `library_find()` cmake function. Defaults to `${CMAKE_BINARY_DIR}/cmake`.
 * `-DDEEPSEA_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding DeepSea in another project. Defaults to DeepSea.
-* `-DDEEPSEA_INSTALL=ON|OFF`: Allow installation for DeepSea components. This can be useful when embedding in other projects to prevent installations from including DeepSea. For example, when statically linking into a shared library. Default is `ON`.
+* `-DDEEPSEA_INSTALL=ON|OFF`: Allow installation for DeepSea components. This can be useful when embedding in other projects to prevent installations from including DeepSea. For example, when statically linking into a shared library. Defaults to `ON`.
+* `-DDEEPSEA_FORCE_OSS_TEXT=ON|OFF`: Force the usage of OSS text libraries. (FreeType and HarfBuzz) Otherwise, platform-specific libraries will be used for Apple and Windows platforms. Defaults to `OFF`.
 
 Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea` directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 

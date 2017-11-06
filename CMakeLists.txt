@@ -19,6 +19,8 @@ set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
 set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation, used by tests.")
 set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")
 
+set(DEEPSEA_BUILD_TEXT ON CACHE BOOL "Build text rendering library.")
+
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
 set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implementation.")
 
@@ -34,6 +36,7 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
+set(DEEPSEA_FORCE_OSS_TEXT OFF CACHE BOOL "Force using OSS text libraries. (FreeType and HarfBuzz)")
 
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
@@ -87,6 +90,10 @@ if (DEEPSEA_BUILD_RENDER)
 	endif()
 	if (DEEPSEA_BUILD_RENDER_OPENGL)
 		ds_add_module(Render/RenderOpenGL)
+	endif()
+
+	if (DEEPSEA_BUILD_TEXT)
+		ds_add_module(Text)
 	endif()
 
 	if (DEEPSEA_BUILD_APPLICATION)
