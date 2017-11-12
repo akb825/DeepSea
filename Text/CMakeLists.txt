@@ -1,2 +1,4 @@
 ds_add_module_library(deepsea_text deepsea_render)
 ds_install_library(TARGET deepsea_text MODULE Text DEPENDENCIES Render)
+
+add_subdirectory(test)
