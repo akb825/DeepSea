@@ -9,8 +9,8 @@ The following software is required to build DeepSea:
 * [cmake](https://cmake.org/) 3.0.2 or later
 * Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies)
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
-* [FreeType](https://www.freetype.org/) (required for text except for Apple and Windows platforms)
-* [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text except for Apple and Windows platforms)
+* [FreeType](https://www.freetype.org/) (required for text)
+* [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 

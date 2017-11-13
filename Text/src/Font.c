@@ -98,9 +98,9 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, u
 			(dsHashTableNode*)glyphInfo, NULL));
 	}
 
-	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
-		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font->tempImage,
-		font->tempSdf);
+	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, &glyphInfo->advance, font->faces[face],
+		commandBuffer, font->texture, glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize,
+		font->tempImage, font->tempSdf);
 	return glyphInfo;
 }
 

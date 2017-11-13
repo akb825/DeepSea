@@ -27,7 +27,6 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef DS_OSS_TEXT
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_MODULE_H
@@ -56,6 +55,8 @@ struct dsFaceGroup
 	uint32_t faceCount;
 	dsFontFace faces[];
 };
+
+static const unsigned int fixedScale = 1 << 6;
 
 static void* ftAlloc(FT_Memory memory, long size)
 {
@@ -152,7 +153,6 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	if (!hbFont)
 		return NULL;
 
-	const unsigned int fixedScale = 1 << 6;
 	FT_Pos widthU = ftFace->bbox.xMax - ftFace->bbox.xMin;
 	FT_Pos heightU = ftFace->bbox.yMax - ftFace->bbox.yMin;
 	FT_Fixed width = widthU*ftFace->size->metrics.x_scale;
@@ -186,7 +186,7 @@ void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFont
 	*maxHeight = face->maxHeight;
 }
 
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
+void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf)
 {
@@ -202,6 +202,7 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	outBounds->min.y = (float)(ftFace->glyph->bitmap_top - bitmap->rows)*scale;
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
 	outBounds->min.y = outBounds->min.y + (float)bitmap->rows*scale;
+	*outAdvance = ftFace->glyph->metrics.horiAdvance*fixedScale;
 
 	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO);
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
@@ -398,5 +399,3 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	else
 		FT_Done_FreeType(group->library);
 }
-
-#endif // DS_OSS_TEXT

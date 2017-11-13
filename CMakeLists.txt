@@ -36,7 +36,6 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
-set(DEEPSEA_FORCE_OSS_TEXT OFF CACHE BOOL "Force using OSS text libraries. (FreeType and HarfBuzz)")
 
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
