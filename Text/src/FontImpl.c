@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -40,6 +41,7 @@ struct dsFontFace
 	dsAllocator* bufferAllocator;
 	void* buffer;
 	hb_font_t* font;
+	hb_buffer_t* shapeBuffer;
 	unsigned int maxWidth;
 	unsigned int maxHeight;
 };
@@ -47,9 +49,11 @@ struct dsFontFace
 struct dsFaceGroup
 {
 	dsAllocator* allocator;
+	dsMutex* mutex;
 	dsHashTable* faceHashTable;
 	struct FT_MemoryRec_ memory;
 	FT_Library library;
+	hb_unicode_funcs_t* unicode;
 	dsTextQuality quality;
 	uint32_t maxFaces;
 	uint32_t faceCount;
@@ -152,6 +156,12 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
 	if (!hbFont)
 		return NULL;
+	hb_buffer_t* hbBuffer = hb_buffer_create();
+	if (!hbBuffer)
+	{
+		hb_font_destroy(hbFont);
+		return NULL;
+	}
 
 	FT_Pos widthU = ftFace->bbox.xMax - ftFace->bbox.xMin;
 	FT_Pos heightU = ftFace->bbox.yMax - ftFace->bbox.yMin;
@@ -163,6 +173,7 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;
+	face->shapeBuffer = hbBuffer;
 	face->maxWidth = (unsigned int)FT_CeilFix(width)/fixedScale;
 	face->maxHeight = (unsigned int)FT_CeilFix(height)/fixedScale;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
@@ -217,9 +228,14 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontF
 		bitmap->width, bitmap->rows, tempSdf);
 }
 
-dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group)
+void dsFaceGroup_lock(const dsFaceGroup* group)
 {
-	return group->allocator;
+	DS_VERIFY(dsMutex_lock(group->mutex));
+}
+
+void dsFaceGroup_unlock(const dsFaceGroup* group)
+{
+	DS_VERIFY(dsMutex_unlock(group->mutex));
 }
 
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
@@ -230,10 +246,21 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 	return (dsFontFace*)dsHashTable_find(group->faceHashTable, name);
 }
 
+uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
+{
+	return hb_unicode_script(group->unicode, codepoint);
+}
+
+bool dsFaceGroup_isScriptUnique(uint32_t script)
+{
+	return script != HB_SCRIPT_COMMON && script != HB_SCRIPT_INHERITED &&
+		script != HB_SCRIPT_UNKNOWN;
+}
+
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces) +
-		dsHashTable_fullAllocSize(getTableSize(maxFaces));
+		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(getTableSize(maxFaces));
 }
 
 dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTextQuality quality)
@@ -262,6 +289,9 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 	DS_ASSERT(faceGroup->faceHashTable);
 	DS_VERIFY(dsHashTable_initialize(faceGroup->faceHashTable, hashTableSize, &dsHashString,
 		dsHashStringEqual));
+
+	faceGroup->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "dsFaceGroup");
+	faceGroup->unicode = hb_unicode_funcs_get_default();
 
 	if (faceGroup->allocator)
 	{
@@ -295,17 +325,34 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 	return faceGroup;
 }
 
+dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group)
+{
+	if (!group)
+		return NULL;
+
+	return group->allocator;
+}
+
 uint32_t dsFaceGroup_getRemainingFaces(const dsFaceGroup* group)
 {
 	if (!group)
 		return 0;
 
-	return group->maxFaces - group->faceCount;
+	DS_VERIFY(dsMutex_lock(group->mutex));
+	uint32_t count = group->maxFaces - group->faceCount;
+	DS_VERIFY(dsMutex_unlock(group->mutex));
+	return count;
 }
 
 bool dsFaceGroup_hasFace(const dsFaceGroup* group, const char* name)
 {
-	return dsFaceGroup_findFace(group, name) != NULL;
+	if (!group)
+		return false;
+
+	DS_VERIFY(dsMutex_lock(group->mutex));
+	bool found = dsFaceGroup_findFace(group, name) != NULL;
+	DS_VERIFY(dsMutex_unlock(group->mutex));
+	return found;
 }
 
 bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fileName, const char* name)
@@ -316,16 +363,22 @@ bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fileName, const ch
 		return false;
 	}
 
+	DS_VERIFY(dsMutex_lock(group->mutex));
 	FT_Face ftFace;
 	if (setFontLoadErrno(FT_New_Face(group->library, fileName, 0, &ftFace)))
+	{
+		DS_VERIFY(dsMutex_unlock(group->mutex));
 		return false;
+	}
 
 	if (insertFace(group, name, ftFace) == NULL)
 	{
 		FT_Done_Face(ftFace);
+		DS_VERIFY(dsMutex_unlock(group->mutex));
 		return false;
 	}
 
+	DS_VERIFY(dsMutex_unlock(group->mutex));
 	return true;
 }
 
@@ -338,6 +391,7 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 		return false;
 	}
 
+	DS_VERIFY(dsMutex_lock(group->mutex));
 	void* loadBuffer;
 	if (allocator)
 	{
@@ -355,12 +409,16 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 	args.memory_size = (FT_Long)size;
 	FT_Face ftFace;
 	if (setFontLoadErrno(FT_Open_Face(group->library, &args, 0, &ftFace)))
+	{
+		DS_VERIFY(dsMutex_unlock(group->mutex));
 		return false;
+	}
 
 	dsFontFace* face = insertFace(group, name, ftFace);
 	if (!face)
 	{
 		FT_Done_Face(ftFace);
+		DS_VERIFY(dsMutex_unlock(group->mutex));
 		return false;
 	}
 
@@ -370,6 +428,7 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 		face->buffer = loadBuffer;
 	}
 
+	DS_VERIFY(dsMutex_unlock(group->mutex));
 	return true;
 }
 
@@ -390,6 +449,8 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 		if (face->buffer)
 			DS_VERIFY(dsAllocator_free(face->bufferAllocator, face->buffer));
 	}
+	dsMutex_destroy(group->mutex);
+	hb_unicode_funcs_destroy(group->unicode);
 
 	if (group->allocator)
 	{
@@ -398,4 +459,71 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	}
 	else
 		FT_Done_FreeType(group->library);
+}
+
+bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
+	uint32_t firstCodepoint, uint32_t start, uint32_t count)
+{
+	dsFontFace* face = font->faces[0];;
+	for (uint32_t i = 0; i < font->faceCount; ++i)
+	{
+		if (FT_Get_Char_Index(hb_ft_font_get_face(font->faces[i]->font), firstCodepoint))
+		{
+			face = font->faces[i];
+			break;
+		}
+	}
+
+	hb_buffer_add_codepoints(face->shapeBuffer, text->characters, text->characterCount, start,
+		count);
+	hb_shape(face->font, face->shapeBuffer, NULL, 0);
+	if (!hb_buffer_allocation_successful(face->shapeBuffer))
+	{
+		hb_buffer_reset(face->shapeBuffer);
+		errno = ENOMEM;
+		return false;
+	}
+
+	hb_buffer_guess_segment_properties(face->shapeBuffer);
+	unsigned int glyphCount = 0;
+	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(face->shapeBuffer, &glyphCount);
+	unsigned int glyphPosCount;
+	hb_glyph_position_t* glyphPos = hb_buffer_get_glyph_positions(face->shapeBuffer,
+		&glyphPosCount);
+	DS_ASSERT(glyphCount == glyphPosCount);
+	if (text->glyphCount + glyphCount > text->characterCount)
+	{
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "More glyphs were created than expected.");
+		errno = EINDEX;
+		return false;
+	}
+
+	hb_segment_properties_t properties;
+	hb_buffer_get_segment_properties(face->shapeBuffer, &properties);
+
+	dsTextRange* range = (dsTextRange*)(text->ranges + rangeIndex);
+	range->face = face;
+	range->firstChar = start;
+	range->charCount = count;
+	range->firstGlyph = text->glyphCount;
+	range->glyphCount = glyphCount;
+	range->vertical = HB_DIRECTION_IS_VERTICAL(properties.direction);
+	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
+
+	float scale = 1.0f/(float)(fixedScale*font->glyphSize);
+	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + text->glyphCount);
+	for (unsigned int i = 0; i < glyphCount; ++i)
+	{
+		glyphs[i].glyphId = glyphInfos[i].codepoint;
+		glyphs[i].charIndex = glyphInfos[i].cluster;
+		glyphs[i].canBreak = (glyphInfos[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK) == 0;
+		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
+		glyphs[i].offset.y = (float)glyphPos[i].y_offset*scale;
+		glyphs[i].advance.x = (float)glyphPos[i].x_advance*scale;
+		glyphs[i].advance.y = (float)glyphPos[i].y_advance*scale;
+	}
+
+	text->glyphCount += glyphCount;
+	hb_buffer_reset(face->shapeBuffer);
+	return true;
 }

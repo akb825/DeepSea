@@ -32,6 +32,8 @@ extern "C"
  * At least one face group will be needed to create fonts with. Faces used across multiple fonts
  * inside the same group will be shared.
  *
+ * @remark Opertions on dsFaceGroup are thread-safe and mutex protected with other font operations.
+ *
  * @see dsFaceGroup
  */
 
@@ -63,6 +65,13 @@ DS_TEXT_EXPORT size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces);
  */
 DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces,
 	dsTextQuality quality);
+
+/**
+ * @brief Gets the allocator for a face group.
+ * @param group The face group.
+ * @return The allocator.
+ */
+DS_TEXT_EXPORT dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group);
 
 /**
  * @brief Gets the number of remaining faces that can be loaded.

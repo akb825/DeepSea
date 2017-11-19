@@ -32,8 +32,6 @@
 #define DS_TABLE_SIZE 1823
 #define DS_BASE_WINDOW_SIZE 2
 
-typedef struct dsFontFace dsFontFace;
-
 typedef struct dsGlyphKey
 {
 	uint32_t face;
@@ -74,12 +72,19 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontF
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf);
 
-dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group);
+void dsFaceGroup_lock(const dsFaceGroup* group);
+void dsFaceGroup_unlock(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
+
+// Locking not needed for these two functions.
+uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
+bool dsFaceGroup_isScriptUnique(uint32_t script);
 
 dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, uint32_t face,
 	uint32_t glyph);
 uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
+bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
+	uint32_t firstCodepoint, uint32_t start, uint32_t count);
 
 // Pixel values are 0 or 1, +Y points down.
 void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,

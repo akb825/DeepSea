@@ -29,7 +29,8 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating fonts.
- *
+ * @remark Opertions on dsFont are thread-safe and mutex protected with the parent dsFaceGroup and
+ *     other font operations.
  * @see dsFont
  */
 
@@ -38,8 +39,8 @@ extern "C"
  * @remark errno will be set on failure.
  * @param group The face group to get the faces from.
  * @param resourceManager The resource manager to create the graphics resources.
- * @param allocator The allocator for the font. If NULL, it will use the same allocator as the font
- *     group.
+ * @param allocator The allocator to create the font with. If NULL, it will use the same allocator
+ *     as the font group.
  * @param faceNames The names of the faces to use from the face group. When a glyph is requested, it
  *     will use the first face that contains that glyph. This way multiple faces may be used
  *     for different language sets.
@@ -48,6 +49,13 @@ extern "C"
  */
 DS_TEXT_EXPORT dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	dsAllocator* allocator, const char** faceNames, uint32_t faceCount);
+
+/**
+ * @brief Gets the allocator for a font.
+ * @param font The font.
+ * @return The allocator.
+ */
+DS_TEXT_EXPORT dsAllocator* dsFont_getAllocator(const dsFont* font);
 
 /**
  * @brief Gets the face group for a font.

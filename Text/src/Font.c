@@ -214,6 +214,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		return NULL;
 	}
 
+	dsFaceGroup_lock(group);
 	uint32_t maxWidth = 0, maxHeight = 0;
 	for (uint32_t i = 0; i < faceCount; ++i)
 	{
@@ -221,6 +222,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Empty face name.");
+			dsFaceGroup_unlock(group);
 			return NULL;
 		}
 
@@ -229,6 +231,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		{
 			DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face '%s' not found.", faceNames[i]);
 			errno = ENOTFOUND;
+			dsFaceGroup_unlock(group);
 			return NULL;
 		}
 
@@ -265,7 +268,10 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		DS_ALIGNED_SIZE(tempSdfSize);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		dsFaceGroup_unlock(group);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -307,10 +313,19 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	{
 		if (font->allocator)
 			dsAllocator_free(font->allocator, font);
+		dsFaceGroup_unlock(group);
 		return NULL;
 	}
 
 	return font;
+}
+
+dsAllocator* dsFont_getAllocator(const dsFont* font)
+{
+	if (!font)
+		return NULL;
+
+	return font->allocator;
 }
 
 const dsFaceGroup* dsFont_getFaceGroup(const dsFont* font)
