@@ -34,30 +34,6 @@ extern "C"
  */
 
 /**
- * @brief Gets the full allocation size for a text object.
- * @param font The font to draw the text with.
- * @param string The string in UTF-8.
- * @return The full allocation size.
- */
-DS_TEXT_EXPORT size_t dsText_fullAllocSizeUTF8(const dsFont* font, const char* string);
-
-/**
- * @brief Gets the full allocation size for a text object.
- * @param font The font to draw the text with.
- * @param string The string in UTF-16.
- * @return The full allocation size.
- */
-DS_TEXT_EXPORT size_t dsText_fullAllocSizeUTF16(const dsFont* font, const uint16_t* string);
-
-/**
- * @brief Gets the full allocation size for a text object.
- * @param font The font to draw the text with.
- * @param string The string in UTF-32.
- * @return The full allocation size.
- */
-DS_TEXT_EXPORT size_t dsText_fullAllocSizeUTF32(const dsFont* font, const uint32_t* string);
-
-/**
  * @brief Creates a text object from a string.
  * @remark errno will be set on failure.
  * @param font The font to draw the text with.

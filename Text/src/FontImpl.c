@@ -17,6 +17,7 @@
 #include "FontImpl.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
+#include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Thread/Mutex.h>
@@ -41,7 +42,6 @@ struct dsFontFace
 	dsAllocator* bufferAllocator;
 	void* buffer;
 	hb_font_t* font;
-	hb_buffer_t* shapeBuffer;
 	unsigned int maxWidth;
 	unsigned int maxHeight;
 };
@@ -49,12 +49,23 @@ struct dsFontFace
 struct dsFaceGroup
 {
 	dsAllocator* allocator;
+	dsAllocator* scratchAllocator;
 	dsMutex* mutex;
 	dsHashTable* faceHashTable;
 	struct FT_MemoryRec_ memory;
 	FT_Library library;
 	hb_unicode_funcs_t* unicode;
+	hb_buffer_t* shapeBuffer;
 	dsTextQuality quality;
+
+	dsText* scratchText;
+	uint32_t scratchLength;
+	uint32_t scratchRangeCount;
+
+	dsGlyph* scratchGlyphs;
+	uint32_t scratchMaxGlyphs;
+	uint32_t scratchGlyphCount;
+
 	uint32_t maxFaces;
 	uint32_t faceCount;
 	dsFontFace faces[];
@@ -156,12 +167,6 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
 	if (!hbFont)
 		return NULL;
-	hb_buffer_t* hbBuffer = hb_buffer_create();
-	if (!hbBuffer)
-	{
-		hb_font_destroy(hbFont);
-		return NULL;
-	}
 
 	FT_Pos widthU = ftFace->bbox.xMax - ftFace->bbox.xMin;
 	FT_Pos heightU = ftFace->bbox.yMax - ftFace->bbox.yMin;
@@ -173,7 +178,6 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;
-	face->shapeBuffer = hbBuffer;
 	face->maxWidth = (unsigned int)FT_CeilFix(width)/fixedScale;
 	face->maxHeight = (unsigned int)FT_CeilFix(height)/fixedScale;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
@@ -246,6 +250,69 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 	return (dsFontFace*)dsHashTable_find(group->faceHashTable, name);
 }
 
+dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount)
+{
+	if (group->scratchText && length <= group->scratchLength &&
+		rangeCount <= group->scratchRangeCount)
+	{
+		group->scratchText->characterCount = length;
+		group->scratchText->rangeCount = rangeCount;
+		return group->scratchText;
+	}
+
+	group->scratchLength = dsMax(length, group->scratchLength);
+	group->scratchRangeCount = dsMax(rangeCount, group->scratchRangeCount);
+	if (group->scratchText)
+	{
+		dsAllocator_free(group->scratchAllocator, group->scratchText);
+		group->scratchText = NULL;
+	}
+
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) +
+		DS_ALIGNED_SIZE(group->scratchLength*sizeof(uint32_t)) +
+		DS_ALIGNED_SIZE(group->scratchRangeCount*sizeof(dsTextRange));
+	void* buffer = dsAllocator_alloc(group->scratchAllocator, fullSize);
+	if (!buffer)
+		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+	group->scratchText = (dsText*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, sizeof(dsText));
+	DS_ASSERT(group->scratchText);
+
+	group->scratchText->allocator = group->scratchAllocator;
+	group->scratchText->font = NULL;
+
+	group->scratchText->characters = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		group->scratchLength*sizeof(uint32_t));
+	DS_ASSERT(group->scratchText->characters);
+	group->scratchText->characterCount = length;
+
+	group->scratchText->ranges = (dsTextRange*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		group->scratchRangeCount*sizeof(dsTextRange));
+	DS_ASSERT(group->scratchText->ranges);
+	group->scratchText->rangeCount = rangeCount;
+
+	// Pre-allocate glyphs. This will also be used as a temporary buffer during shaping.
+	group->scratchText->glyphs = dsFaceGroup_scratchGlyphs(group, length);
+	// Keep memory around to be freed later.
+	if (!group->scratchGlyphs)
+		return NULL;
+
+	return group->scratchText;
+}
+
+dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
+{
+	if (length <= group->scratchGlyphCount)
+		return group->scratchGlyphs;
+
+	group->scratchGlyphs = (dsGlyph*)dsResizeableArray_add(group->scratchAllocator,
+		(void**)&group->scratchGlyphs, &group->scratchGlyphCount, &group->scratchMaxGlyphs,
+		sizeof(dsGlyph), length - group->scratchGlyphCount);
+	return group->scratchGlyphs;
+}
+
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
 {
 	return hb_unicode_script(group->unicode, codepoint);
@@ -263,11 +330,21 @@ size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 		dsMutex_fullAllocSize() + dsHashTable_fullAllocSize(getTableSize(maxFaces));
 }
 
-dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTextQuality quality)
+dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	uint32_t maxFaces, dsTextQuality quality)
 {
 	if (!allocator || maxFaces == 0)
 	{
 		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+	if (!scratchAllocator->freeFunc)
+	{
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Face group scratch allocator must support freeing memory.");
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -284,6 +361,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 
 	uint32_t hashTableSize = getTableSize(maxFaces);
 	faceGroup->allocator = dsAllocator_keepPointer(allocator);
+	faceGroup->scratchAllocator = scratchAllocator;
 	faceGroup->faceHashTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 		dsHashTable_fullAllocSize(hashTableSize));
 	DS_ASSERT(faceGroup->faceHashTable);
@@ -292,32 +370,43 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces, dsTex
 
 	faceGroup->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "dsFaceGroup");
 	faceGroup->unicode = hb_unicode_funcs_get_default();
-
-	if (faceGroup->allocator)
+	if (!faceGroup->unicode)
 	{
-		faceGroup->memory.user = allocator;
-		faceGroup->memory.alloc = &ftAlloc;
-		faceGroup->memory.free = &ftFree;
-		faceGroup->memory.realloc = &ftRealloc;
-		if (FT_New_Library(&faceGroup->memory, &faceGroup->library) != 0)
-		{
-			if (faceGroup->allocator)
-				dsAllocator_free(allocator, faceGroup);
-			return NULL;
-		}
+		if (faceGroup->allocator)
+			dsAllocator_free(allocator, faceGroup);
+		return NULL;
+	}
 
-		FT_Add_Default_Modules(faceGroup->library);
-		FT_Set_Default_Properties(faceGroup->library);
-	}
-	else
+	faceGroup->shapeBuffer = hb_buffer_create();
 	{
-		if (FT_Init_FreeType(&faceGroup->library) != 0)
-		{
-			if (faceGroup->allocator)
-				dsAllocator_free(allocator, faceGroup);
-			return NULL;
-		}
+		hb_unicode_funcs_destroy(faceGroup->unicode);
+		if (faceGroup->allocator)
+			dsAllocator_free(allocator, faceGroup);
+		return NULL;
 	}
+
+	faceGroup->memory.user = scratchAllocator;
+	faceGroup->memory.alloc = &ftAlloc;
+	faceGroup->memory.free = &ftFree;
+	faceGroup->memory.realloc = &ftRealloc;
+	if (FT_New_Library(&faceGroup->memory, &faceGroup->library) != 0)
+	{
+		hb_unicode_funcs_destroy(faceGroup->unicode);
+		hb_buffer_destroy(faceGroup->shapeBuffer);
+		if (faceGroup->allocator)
+			dsAllocator_free(allocator, faceGroup);
+		return NULL;
+	}
+
+	FT_Add_Default_Modules(faceGroup->library);
+	FT_Set_Default_Properties(faceGroup->library);
+
+	faceGroup->scratchText = NULL;
+	faceGroup->scratchLength = 0;
+	faceGroup->scratchGlyphCount = 0;
+	faceGroup->scratchGlyphs = NULL;
+	faceGroup->scratchMaxGlyphs = 0;
+	faceGroup->scratchGlyphCount = 0;
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
@@ -451,19 +540,27 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	}
 	dsMutex_destroy(group->mutex);
 	hb_unicode_funcs_destroy(group->unicode);
+	hb_buffer_destroy(group->shapeBuffer);
+
+	FT_Done_Library(group->library);
+	DS_VERIFY(dsAllocator_free(group->allocator, group));
+
+	if (group->scratchText)
+		dsAllocator_free(group->scratchAllocator, group->scratchText);
+	if (group->scratchGlyphs)
+		dsAllocator_free(group->scratchAllocator, group->scratchGlyphs);
 
 	if (group->allocator)
-	{
-		FT_Done_Library(group->library);
-		DS_VERIFY(dsAllocator_free(group->allocator, group));
-	}
-	else
-		FT_Done_FreeType(group->library);
+		dsAllocator_free(group->allocator, group);
 }
 
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t firstCodepoint, uint32_t start, uint32_t count)
 {
+	DS_ASSERT(text == font->group->scratchText);
+	if (count == 0)
+		return true;
+
 	dsFontFace* face = font->faces[0];;
 	for (uint32_t i = 0; i < font->faceCount; ++i)
 	{
@@ -474,32 +571,39 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		}
 	}
 
-	hb_buffer_add_codepoints(face->shapeBuffer, text->characters, text->characterCount, start,
+	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
+	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
 		count);
-	hb_shape(face->font, face->shapeBuffer, NULL, 0);
-	if (!hb_buffer_allocation_successful(face->shapeBuffer))
+	hb_shape(face->font, shapeBuffer, NULL, 0);
+	if (!hb_buffer_allocation_successful(shapeBuffer))
 	{
-		hb_buffer_reset(face->shapeBuffer);
+		hb_buffer_reset(shapeBuffer);
 		errno = ENOMEM;
 		return false;
 	}
 
-	hb_buffer_guess_segment_properties(face->shapeBuffer);
+	hb_buffer_guess_segment_properties(shapeBuffer);
 	unsigned int glyphCount = 0;
-	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(face->shapeBuffer, &glyphCount);
+	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(shapeBuffer, &glyphCount);
 	unsigned int glyphPosCount;
-	hb_glyph_position_t* glyphPos = hb_buffer_get_glyph_positions(face->shapeBuffer,
-		&glyphPosCount);
+	hb_glyph_position_t* glyphPos = hb_buffer_get_glyph_positions(shapeBuffer, &glyphPosCount);
 	DS_ASSERT(glyphCount == glyphPosCount);
-	if (text->glyphCount + glyphCount > text->characterCount)
+	if (glyphCount == 0)
 	{
-		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "More glyphs were created than expected.");
-		errno = EINDEX;
+		hb_buffer_reset(shapeBuffer);
+		return true;
+	}
+
+	// Make sure the glyph buffer is large enough.
+	text->glyphs = dsFaceGroup_scratchGlyphs(font->group, text->glyphCount + glyphCount);
+	if (!text->glyphs)
+	{
+		hb_buffer_reset(shapeBuffer);
 		return false;
 	}
 
 	hb_segment_properties_t properties;
-	hb_buffer_get_segment_properties(face->shapeBuffer, &properties);
+	hb_buffer_get_segment_properties(shapeBuffer, &properties);
 
 	dsTextRange* range = (dsTextRange*)(text->ranges + rangeIndex);
 	range->face = face;
@@ -524,6 +628,6 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	}
 
 	text->glyphCount += glyphCount;
-	hb_buffer_reset(face->shapeBuffer);
+	hb_buffer_reset(shapeBuffer);
 	return true;
 }

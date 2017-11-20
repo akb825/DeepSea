@@ -28,7 +28,6 @@
 #include <string.h>
 
 typedef uint32_t (*dsNextCodepointFunction)(const void* string, uint32_t* index);
-typedef uint32_t (*dsCodepointCountFunction)(const void* string);
 
 typedef struct dsScriptInfo
 {
@@ -37,11 +36,14 @@ typedef struct dsScriptInfo
 	uint32_t count;
 } dsScriptInfo;
 
-static size_t fullAllocSizeImpl(const dsFaceGroup* group, const void* string,
-	dsNextCodepointFunction nextCodepoint, uint32_t* outScriptRangeCount)
+static void getTextLengths(uint32_t* outLength, uint32_t* outRangeCount, const dsFaceGroup* group,
+	const void* string, dsNextCodepointFunction nextCodepoint)
 {
-	uint32_t length = 0;
-	uint32_t scriptRangeCount = 0;
+	*outLength = 0;
+	*outRangeCount = 0;
+	if (!string)
+		return;
+
 	uint32_t lastScript = 0;
 	uint32_t index = 0;
 	bool hasLastScript = false;
@@ -49,28 +51,24 @@ static size_t fullAllocSizeImpl(const dsFaceGroup* group, const void* string,
 	{
 		uint32_t codepoint = nextCodepoint(string, &index);
 		if (codepoint == DS_UNICODE_INVALID)
-			return 0;
+		{
+			*outLength = DS_UNICODE_INVALID;
+		}
 		else if (codepoint == DS_UNICODE_END)
 			break;
 
-		++length;
+		++*outLength;
 		uint32_t script = dsFaceGroup_codepointScript(group, codepoint);
 		if (!dsFaceGroup_isScriptUnique(script) || (hasLastScript && lastScript == script))
 			continue;
 
-		++scriptRangeCount;
+		++*outRangeCount;
 		lastScript = script;
 		hasLastScript = true;
 	} while (true);
 
-	if (scriptRangeCount == 0)
-		scriptRangeCount = 1;
-	if (outScriptRangeCount)
-		*outScriptRangeCount = scriptRangeCount;
-
-	return DS_ALIGNED_SIZE(sizeof(dsText)) + DS_ALIGNED_SIZE(sizeof(uint32_t)*length) +
-		DS_ALIGNED_SIZE(sizeof(dsGlyph)*length) +
-		DS_ALIGNED_SIZE(sizeof(dsScriptInfo)*scriptRangeCount);
+	if (*outRangeCount == 0)
+		*outRangeCount = 1;
 }
 
 static dsScriptInfo* getScriptInfo(dsText* text, uint32_t i)
@@ -98,6 +96,9 @@ static bool shapeText(dsText* text)
 	 *   (e.g. https://github.com/mta452/SheenBidi) and combine it with the script boundaries for
 	 *   choosing the face.
 	 */
+
+	if (text->characterCount == 0)
+		return true;
 
 	const dsFaceGroup* group = dsFont_getFaceGroup(text->font);
 
@@ -140,8 +141,6 @@ static bool shapeText(dsText* text)
 	scriptInfo = getScriptInfo(text, curInfo - 1);
 	scriptInfo->count = text->characterCount - scriptInfo->start;
 
-	// Shape the ranges of text. Lock only needs to be acquired for this portion.
-	dsFaceGroup_lock(group);
 	for (uint32_t i = 0; i < text->rangeCount; ++i)
 	{
 		scriptInfo = getScriptInfo(text, i);
@@ -151,13 +150,12 @@ static bool shapeText(dsText* text)
 			return false;
 		}
 	}
-	dsFaceGroup_unlock(group);
 
 	return true;
 }
 
 static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* string,
-	dsNextCodepointFunction nextCodepoint, dsCodepointCountFunction codepointCount)
+	dsNextCodepointFunction nextCodepoint)
 {
 	DS_PROFILE_FUNC_START();
 	if (!allocator->freeFunc)
@@ -167,7 +165,8 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t length = string ? codepointCount(string) : 0;
+	uint32_t length, rangeCount;
+	getTextLengths(&length, &rangeCount, font->group, string, nextCodepoint);
 	if (length == DS_UNICODE_INVALID)
 	{
 		errno = EFORMAT;
@@ -175,12 +174,35 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t scriptRangeCount = 0;
-	size_t fullSize = fullAllocSizeImpl(dsFont_getFaceGroup(font), string, nextCodepoint,
-		&scriptRangeCount);
+	// Do the initial work in a temporary dsText instance. This allows us to re-use temporary memory
+	// and use a single allocation for the final object. We already need to mutex lock for shaping,
+	// so it doesn't require additional locks.
+	dsFaceGroup_lock(font->group);
+
+	dsText* scratchText = dsFaceGroup_scratchText(font->group, length, rangeCount);
+	if (!scratchText)
+	{
+		dsFaceGroup_unlock(font->group);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+	scratchText->font = font;
+
+	uint32_t index = 0;
+	for (uint32_t i = 0; i < length; ++i)
+		((uint32_t*)scratchText->characters)[i] = nextCodepoint(string, &index);
+	bool shapeSucceeded = shapeText(scratchText);
+
+	dsFaceGroup_unlock(font->group);
+	if (!shapeSucceeded)
+		DS_PROFILE_FUNC_RETURN(NULL);
+
+	// Now copy the contents into the final text object.
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) + DS_ALIGNED_SIZE(length*sizeof(uint32_t)) +
+		DS_ALIGNED_SIZE(sizeof(dsGlyph)*scratchText->glyphCount) +
+		DS_ALIGNED_SIZE(rangeCount*sizeof(dsTextRange));
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -192,28 +214,22 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	if (length > 0)
 	{
 		text->characters = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(uint32_t)*length);
+			length*sizeof(uint32_t));
 		DS_ASSERT(text->characters);
-		text->glyphs = (dsGlyph*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(dsGlyph)*length);
-		DS_ASSERT(text->glyphs);
-		text->ranges = (dsTextRange*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(dsTextRange)*length);
-		DS_ASSERT(text->ranges);
-
 		text->characterCount = length;
-		text->glyphCount = 0; // will be set later
-		text->rangeCount = scriptRangeCount;
+		memcpy((void*)text->characters, scratchText->characters, length*sizeof(uint32_t));
 
-		uint32_t index = 0;
-		for (uint32_t i = 0; i < length; ++i)
-			((uint32_t*)text->characters)[i] = nextCodepoint(string, &index);
-		if (!shapeText(text))
-		{
-			if (text->allocator)
-				dsAllocator_free(text->allocator, text);
-			return NULL;
-		}
+		text->glyphs = (dsGlyph*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+			sizeof(dsGlyph)*scratchText->glyphCount);
+		DS_ASSERT(text->glyphs);
+		text->glyphCount = scratchText->glyphCount;
+		memcpy((void*)text->glyphs, scratchText->glyphs, scratchText->glyphCount*sizeof(dsGlyph));
+
+		text->ranges = (dsTextRange*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+			rangeCount*sizeof(dsTextRange));
+		DS_ASSERT(text->ranges);
+		text->rangeCount = rangeCount;
+		memcpy((void*)text->ranges, scratchText->ranges, rangeCount*sizeof(dsTextRange));
 	}
 	else
 	{
@@ -228,24 +244,6 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	DS_PROFILE_FUNC_RETURN(text);
 }
 
-size_t dsText_fullAllocSizeUTF8(const dsFont* font, const char* string)
-{
-	return fullAllocSizeImpl(dsFont_getFaceGroup(font), string,
-		(dsNextCodepointFunction)&dsUTF8_nextCodepoint, NULL);
-}
-
-size_t dsText_fullAllocSizeUTF16(const dsFont* font, const uint16_t* string)
-{
-	return fullAllocSizeImpl(dsFont_getFaceGroup(font), string,
-		(dsNextCodepointFunction)&dsUTF16_nextCodepoint, NULL);
-}
-
-size_t dsText_fullAllocSizeUTF32(const dsFont* font, const uint32_t* string)
-{
-	return fullAllocSizeImpl(dsFont_getFaceGroup(font), string,
-		(dsNextCodepointFunction)&dsUTF32_nextCodepoint, NULL);
-}
-
 dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
@@ -256,8 +254,7 @@ dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* stri
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF8_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF8_codepointCount);
+	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF8_nextCodepoint);
 }
 
 dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t* string)
@@ -270,8 +267,7 @@ dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t*
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF16_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF16_codepointCount);
+	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF16_nextCodepoint);
 }
 
 dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t* string)
@@ -284,6 +280,5 @@ dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t*
 
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
-	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF32_nextCodepoint,
-		(dsCodepointCountFunction)&dsUTF32_codepointCount);
+	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF32_nextCodepoint);
 }

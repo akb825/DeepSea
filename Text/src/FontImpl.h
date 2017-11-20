@@ -75,6 +75,8 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontF
 void dsFaceGroup_lock(const dsFaceGroup* group);
 void dsFaceGroup_unlock(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
+dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount);
+dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 
 // Locking not needed for these two functions.
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);

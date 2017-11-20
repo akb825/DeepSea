@@ -57,14 +57,16 @@ DS_TEXT_EXPORT size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces);
 /**
  * @brief Creates a face group.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the face group with. If the allocator supports freeing
- *     memory, it will also be used for the internal font library when possible.
+ * @param allocator The allocator to create the face group with.
+ * @param scratchAllocator The allocator used for temporary memory. It is also used for the system
+ *     font allocations that support a custom allocator. If NULL it will use allocator, and must
+ *     support freeing memory.
  * @param maxFaces The maximum number of font faces to be used with the face group.
  * @param quality The quality of the rendered text.
  * @return The face group, or NULL if it couldn't be created.
  */
-DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, uint32_t maxFaces,
-	dsTextQuality quality);
+DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, uint32_t maxFaces, dsTextQuality quality);
 
 /**
  * @brief Gets the allocator for a face group.
