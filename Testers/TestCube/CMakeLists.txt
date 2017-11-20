@@ -33,7 +33,7 @@ endif()
 
 add_executable(deepsea_test_cube ${source})
 target_link_libraries(deepsea_test_cube PRIVATE
-	deepsea_application_sdl
+	deepsea_application_sdl deepsea_application_sdl_main
 	${libraries})
 target_compile_definitions(deepsea_test_cube PRIVATE ${defines})
 

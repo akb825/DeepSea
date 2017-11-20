@@ -825,7 +825,7 @@ static void shutdown(TestRenderSubpass* testRenderSubpass)
 		dsWindow_destroy(testRenderSubpass->window);
 }
 
-int main(int argc, const char** argv)
+int dsMain(int argc, const char** argv)
 {
 	dsRenderType renderType = defaultRenderType;
 	for (int i = 1; i < argc; ++argv)

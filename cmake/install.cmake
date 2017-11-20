@@ -15,7 +15,7 @@
 function(ds_install_library)
 	# This function is called from a file included into the main CMakeLists.txt from a macro, so setting
 	# variables in the parent scope will be for the main CMakeLists.txt.
-	set(options)
+	set(options STATIC)
 	set(oneValueArgs TARGET MODULE)
 	set(multiValueArgs DEPENDENCIES EXTERNAL_PREFIXES EXTERNAL_DEPENDENCIES)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -38,48 +38,50 @@ function(ds_install_library)
 	set_property(TARGET ${ARGS_TARGET} PROPERTY INTERFACE_${moduleName}_PATCH_VERSION
 		${DEEPSEA_PATCH_VERSION})
 
-	if (NOT DEEPSEA_SINGLE_SHARED)
-		set(interfaceIncludes
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-		set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-			${interfaceIncludes})
-	endif()
+	if (NOT ARGS_STATIC)
+		if (NOT DEEPSEA_SINGLE_SHARED)
+			set(interfaceIncludes
+				$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+				$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+				${interfaceIncludes})
+		endif()
 
-	set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/DeepSea/${ARGS_MODULE}/Export.h)
-	if (NOT DEEPSEA_SINGLE_SHARED)
-		set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
-			${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
-	endif()
-	if (DEEPSEA_SHARED)
-		if (MSVC)
-			if (DEEPSEA_SINGLE_SHARED)
-				set(buildMacro "DS_BUILD")
+		set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/DeepSea/${ARGS_MODULE}/Export.h)
+		if (NOT DEEPSEA_SINGLE_SHARED)
+			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INCLUDE_DIRECTORIES
+				${CMAKE_CURRENT_BINARY_DIR}/include ${interfaceIncludes})
+		endif()
+		if (DEEPSEA_SHARED)
+			if (MSVC)
+				if (DEEPSEA_SINGLE_SHARED)
+					set(buildMacro "DS_BUILD")
+				else()
+					set(buildMacro "DS_${moduleUpper}_BUILD")
+					set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
+						DS_${moduleUpper}_BUILD)
+				endif()
+				file(WRITE ${exportPath}
+					"#pragma once\n\n"
+					"#ifdef ${buildMacro}\n"
+					"#define DS_${moduleUpper}_EXPORT __declspec(dllexport)\n"
+					"#else\n"
+					"#define DS_${moduleUpper}_EXPORT __declspec(dllimport)\n"
+					"#endif\n")
+			elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+				file(WRITE ${exportPath}
+					"#pragma once\n\n"
+					"#define DS_${moduleUpper}_EXPORT __attribute__((visibility(\"default\")))\n")
 			else()
-				set(buildMacro "DS_${moduleUpper}_BUILD")
-				set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY COMPILE_DEFINITIONS
-					DS_${moduleUpper}_BUILD)
+				file(WRITE ${exportPath}
+					"#pragma once\n\n"
+					"#define DS_${moduleUpper}_EXPORT\n")
 			endif()
-			file(WRITE ${exportPath}
-				"#pragma once\n\n"
-				"#ifdef ${buildMacro}\n"
-				"#define DS_${moduleUpper}_EXPORT __declspec(dllexport)\n"
-				"#else\n"
-				"#define DS_${moduleUpper}_EXPORT __declspec(dllimport)\n"
-				"#endif\n")
-		elseif (CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-			file(WRITE ${exportPath}
-				"#pragma once\n\n"
-				"#define DS_${moduleUpper}_EXPORT __attribute__((visibility(\"default\")))\n")
 		else()
 			file(WRITE ${exportPath}
 				"#pragma once\n\n"
 				"#define DS_${moduleUpper}_EXPORT\n")
 		endif()
-	else()
-		file(WRITE ${exportPath}
-			"#pragma once\n\n"
-			"#define DS_${moduleUpper}_EXPORT\n")
 	endif()
 
 	if (NOT DEEPSEA_INSTALL)
@@ -111,13 +113,13 @@ function(ds_install_library)
 		endforeach()
 	endif()
 
-	if (DEEPSEA_SINGLE_SHARED)
+	if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
 		set(DEEPSEA_EXTERNAL_PREFIXES "${DEEPSEA_EXTERNAL_PREFIXES}${externalPrefixes}" PARENT_SCOPE)
 		unset(externalPrefixes)
 	endif()
 
 	set(dependencies "include(CMakeFindDependencyMacro)\n")
-	if (DEEPSEA_SINGLE_SHARED)
+	if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
 		set(dependencies "${dependencies}find_dependency(DeepSea ${DEEPSEA_VERSION} EXACT)\n")
 	endif()
 	foreach (dependency ${ARGS_DEPENDENCIES})
@@ -125,7 +127,7 @@ function(ds_install_library)
 	endforeach()
 
 	foreach (dependency ${ARGS_EXTERNAL_DEPENDENCIES})
-		if (DEEPSEA_SINGLE_SHARED)
+		if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
 			set(DEEPSEA_EXTERNAL_DEPENDENCIES "${DEEPSEA_EXTERNAL_DEPENDENCIES}find_dependency(${dependency})\n")
 		else()
 			set(dependencies "${dependencies}find_dependency(${dependency})\n")

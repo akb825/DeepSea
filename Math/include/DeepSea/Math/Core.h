@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Export.h>
 #include <math.h>
 
 #ifdef __cplusplus
@@ -208,21 +209,21 @@ extern "C"
  * @param degrees The angle in degrees.
  * @return The angle in radians.
  */
-inline double dsDegreesToRadians(double degrees);
+DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees);
 
 /**
  * @brief Converts radians to degrees.
  * @param radians The angle in radians.
  * @return The angle in degrees.
  */
-inline double dsRadiansToDegrees(double radians);
+DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians);
 
-inline double dsDegreesToRadians(double degrees)
+DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
 {
 	return degrees*M_PI/180;
 }
 
-inline double dsRadiansToDegrees(double radians)
+DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians)
 {
 	return radians*180/M_PI;
 }

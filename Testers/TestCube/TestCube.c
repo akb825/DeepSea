@@ -473,7 +473,7 @@ static void shutdown(TestCube* testCube)
 		dsWindow_destroy(testCube->window);
 }
 
-int main(int argc, const char** argv)
+int dsMain(int argc, const char** argv)
 {
 	dsRenderType renderType = defaultRenderType;
 	for (int i = 1; i < argc; ++argv)
