@@ -186,21 +186,27 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	{
 		// When using uniform script, has a single run and range that spans the full string.
 		length = 0;
-		if (string)
+		switch (type)
 		{
-			switch (type)
-			{
-				case dsUnicodeType_UTF8:
-					length = dsUTF8_codepointCount((const char*)string);
-					break;
-				case dsUnicodeType_UTF16:
-					length = dsUTF16_codepointCount((const uint16_t*)string);
-					break;
-				case dsUnicodeType_UTF32:
-					length = dsUTF32_codepointCount((const uint32_t*)string);
-					break;
-			}
+			case dsUnicodeType_UTF8:
+				length = dsUTF8_codepointCount((const char*)string);
+				break;
+			case dsUnicodeType_UTF16:
+				length = dsUTF16_codepointCount((const uint16_t*)string);
+				break;
+			case dsUnicodeType_UTF32:
+				length = dsUTF32_codepointCount((const uint32_t*)string);
+				break;
 		}
+
+		if (length == DS_UNICODE_INVALID)
+		{
+			dsFaceGroup_unlock(font->group);
+			errno = EFORMAT;
+			DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid Unicode string.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
 		runCount = length == 0 ? 0 : 1;
 		dummyRun.start = 0;
 		dummyRun.count = length;
