@@ -26,6 +26,8 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Text/FaceGroup.h>
+#include <DeepSea/Text/Unicode.h>
+#include <SheenBidi.h>
 #include <math.h>
 #include <string.h>
 
@@ -46,6 +48,12 @@ struct dsFontFace
 	unsigned int maxHeight;
 };
 
+typedef struct dsParagraphInfo
+{
+	SBParagraphRef paragraph;
+	SBLineRef line;
+} dsParagraphInfo;
+
 struct dsFaceGroup
 {
 	dsAllocator* allocator;
@@ -65,6 +73,12 @@ struct dsFaceGroup
 	dsGlyph* scratchGlyphs;
 	uint32_t scratchMaxGlyphs;
 	uint32_t scratchGlyphCount;
+
+	dsParagraphInfo* paragraphs;
+	uint32_t maxParagraphs;
+
+	dsRunInfo* runs;
+	uint32_t maxRuns;
 
 	uint32_t maxFaces;
 	uint32_t faceCount;
@@ -250,6 +264,153 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 	return (dsFontFace*)dsHashTable_find(group->faceHashTable, name);
 }
 
+dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
+	dsUnicodeType type)
+{
+	*outCount = DS_UNICODE_INVALID;
+	if (!string)
+	{
+		*outCount = 0;
+		return NULL;
+	}
+
+	SBCodepointSequence sequence;
+	sequence.stringBuffer = (void*)string;
+	switch (type)
+	{
+		case dsUnicodeType_UTF8:
+			sequence.stringEncoding = SBStringEncodingUTF8;
+			sequence.stringLength = dsUTF8_length((const char*)string);
+			break;
+		case dsUnicodeType_UTF16:
+			sequence.stringEncoding = SBStringEncodingUTF16;
+			sequence.stringLength = dsUTF16_length((const uint16_t*)string);
+			break;
+		case dsUnicodeType_UTF32:
+			sequence.stringEncoding = SBStringEncodingUTF32;
+			sequence.stringLength = dsUTF32_length((const uint32_t*)string);
+			break;
+	}
+	if (sequence.stringLength == 0)
+	{
+		outCount = 0;
+		return NULL;
+	}
+
+	SBAlgorithmRef algorithm = SBAlgorithmCreate(&sequence);
+	if (!algorithm)
+		return NULL;
+
+	// Count the paragraphs to allocate the array.
+	SBUInteger offset = 0;
+	unsigned int paragraphCount = 0;
+	while (offset < sequence.stringLength)
+	{
+		SBUInteger length, separatorLength;
+		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
+			&separatorLength);
+		++paragraphCount;
+		offset += length + separatorLength;
+	}
+
+	if (!group->paragraphs || paragraphCount > group->maxParagraphs)
+	{
+		dsAllocator_free(group->scratchAllocator, group->paragraphs);
+		group->paragraphs = (dsParagraphInfo*)dsAllocator_alloc(group->scratchAllocator,
+			paragraphCount*sizeof(dsParagraphInfo));
+		if (!group->paragraphs)
+		{
+			SBAlgorithmRelease(algorithm);
+			return NULL;
+		}
+		group->maxParagraphs = paragraphCount;
+	}
+
+	// Create the paragraphs and lines.
+	*outCount = 0;
+	memset(group->paragraphs, 0, paragraphCount*sizeof(dsParagraphInfo));
+	offset = 0;
+	for (unsigned int i = 0; i < paragraphCount; ++i)
+	{
+		SBUInteger length, separatorLength;
+		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
+			&separatorLength);
+		group->paragraphs[i].paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
+			SBLevelDefaultLTR);
+		if (group->paragraphs[i].paragraph)
+		{
+			group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
+				offset, length);
+			if (!group->paragraphs[i].line)
+			{
+				SBParagraphRelease(group->paragraphs[i].paragraph);
+				group->paragraphs[i].paragraph = NULL;
+			}
+		}
+
+		if (!group->paragraphs[i].paragraph)
+		{
+			for (unsigned int j = 0; j < i; ++j)
+			{
+				SBLineRelease(group->paragraphs[j].line);
+				SBParagraphRelease(group->paragraphs[j].paragraph);
+			}
+			SBAlgorithmRelease(algorithm);
+			return NULL;
+		}
+
+		offset += length + separatorLength;
+		*outCount += (uint32_t)SBLineGetRunCount(group->paragraphs[i].line);
+	}
+
+	// Create the runs.
+	if (!group->runs || group->maxRuns < *outCount)
+	{
+		dsAllocator_free(group->scratchAllocator, group->runs);
+		group->runs = (dsRunInfo*)dsAllocator_alloc(group->scratchAllocator,
+			*outCount*sizeof(dsRunInfo));
+		if (!group->runs)
+		{
+			for (unsigned int i = 0; i < paragraphCount; ++i)
+			{
+				SBLineRelease(group->paragraphs[i].line);
+				SBParagraphRelease(group->paragraphs[i].paragraph);
+			}
+			SBAlgorithmRelease(algorithm);
+			return NULL;
+		}
+		group->maxRuns = *outCount;
+	}
+
+	uint32_t run = 0;
+	for (uint32_t i = 0; i < paragraphCount; ++i)
+	{
+		SBUInteger curCount = SBLineGetRunCount(group->paragraphs[i].line);
+		const SBRun* runArray = SBLineGetRunsPtr(group->paragraphs[i].line);
+		for (SBUInteger j = 0; j < curCount; ++j, ++run)
+		{
+			group->runs[run].start = (uint32_t)runArray[j].offset;
+			// Include line endings with the runs, so don't use the length directly.
+			if (run > 0)
+				group->runs[run - 1].count = group->runs[run].start - group->runs[run - 1].start;
+		}
+	}
+
+	// Set the length for the last run.
+	DS_ASSERT(run == *outCount);
+	group->runs[run - 1].count = (uint32_t)(sequence.stringLength - group->runs[run - 1].start);
+
+	// Free temporary objects.
+	for (unsigned int i = 0; i < paragraphCount; ++i)
+	{
+		SBLineRelease(group->paragraphs[i].line);
+		SBParagraphRelease(group->paragraphs[i].paragraph);
+	}
+	SBAlgorithmRelease(algorithm);
+
+	return group->runs;
+}
+
 dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount)
 {
 	if (group->scratchText && length <= group->scratchLength &&
@@ -378,6 +539,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	}
 
 	faceGroup->shapeBuffer = hb_buffer_create();
+	if (!faceGroup->shapeBuffer)
 	{
 		hb_unicode_funcs_destroy(faceGroup->unicode);
 		if (faceGroup->allocator)
@@ -407,6 +569,10 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	faceGroup->scratchGlyphs = NULL;
 	faceGroup->scratchMaxGlyphs = 0;
 	faceGroup->scratchGlyphCount = 0;
+	faceGroup->paragraphs = NULL;
+	faceGroup->maxParagraphs = 0;
+	faceGroup->runs = NULL;
+	faceGroup->maxRuns = 0;
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
@@ -549,6 +715,10 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 		dsAllocator_free(group->scratchAllocator, group->scratchText);
 	if (group->scratchGlyphs)
 		dsAllocator_free(group->scratchAllocator, group->scratchGlyphs);
+	if (group->paragraphs)
+		dsAllocator_free(group->scratchAllocator, group->paragraphs);
+	if (group->runs)
+		dsAllocator_free(group->scratchAllocator, group->runs);
 
 	if (group->allocator)
 		dsAllocator_free(group->allocator, group);

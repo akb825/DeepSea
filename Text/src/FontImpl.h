@@ -32,6 +32,19 @@
 #define DS_TABLE_SIZE 1823
 #define DS_BASE_WINDOW_SIZE 2
 
+typedef enum dsUnicodeType
+{
+	dsUnicodeType_UTF8,
+	dsUnicodeType_UTF16,
+	dsUnicodeType_UTF32
+} dsUnicodeType;
+
+typedef struct dsRunInfo
+{
+	uint32_t start;
+	uint32_t count;
+} dsRunInfo;
+
 typedef struct dsGlyphKey
 {
 	uint32_t face;
@@ -75,6 +88,9 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontF
 void dsFaceGroup_lock(const dsFaceGroup* group);
 void dsFaceGroup_unlock(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
+// Runs are in characters rather than codepoints.
+dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
+	dsUnicodeType type);
 dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount);
 dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 
