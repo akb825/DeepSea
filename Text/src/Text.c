@@ -89,7 +89,7 @@ static dsScriptInfo* getScriptInfo(dsText* text, uint32_t i)
 	return (dsScriptInfo*)(text->ranges + i);
 }
 
-static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount)
+static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bool uniformScript)
 {
 	if (text->characterCount == 0)
 		return true;
@@ -143,6 +143,11 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount)
 				// first codepoint.
 				scriptInfo->firstCodepoint = text->characters[index];
 				hasLastScript = true;
+
+				// When we know the script will be uniform, just need to find the first unique
+				// script codepoint.
+				if (uniformScript)
+					break;
 			}
 
 			lastScript = scripts[index];
@@ -164,7 +169,7 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount)
 }
 
 static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* string,
-	dsNextCodepointFunction nextCodepoint, dsUnicodeType type)
+	dsNextCodepointFunction nextCodepoint, dsUnicodeType type, bool uniformScript)
 {
 	DS_PROFILE_FUNC_START();
 	if (!allocator->freeFunc)
@@ -179,27 +184,55 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	// so it doesn't require additional locks.
 	dsFaceGroup_lock(font->group);;
 
-	uint32_t runCount;
-	dsRunInfo* runs = dsFaceGroup_findBidiRuns(&runCount, font->group, string, type);
-	if (runCount == DS_UNICODE_INVALID)
+	uint32_t runCount, length, rangeCount;
+	dsRunInfo* runs;
+	dsRunInfo dummyRun;
+	if (uniformScript)
 	{
-		dsFaceGroup_unlock(font->group);
-		if (errno != ENOMEM)
+		// When using uniform script, has a single run and range that spans the full string.
+		length = 0;
+		if (string)
 		{
+			switch (type)
+			{
+				case dsUnicodeType_UTF8:
+					length = dsUTF8_codepointCount((const char*)string);
+					break;
+				case dsUnicodeType_UTF16:
+					length = dsUTF16_codepointCount((const uint16_t*)string);
+					break;
+				case dsUnicodeType_UTF32:
+					length = dsUTF32_codepointCount((const uint32_t*)string);
+					break;
+			}
+		}
+		runCount = length == 0 ? 0 : 1;
+		dummyRun.start = 0;
+		dummyRun.count = length;
+		rangeCount = runCount;
+	}
+	else
+	{
+		runs = dsFaceGroup_findBidiRuns(&runCount, font->group, string, type);
+		if (runCount == DS_UNICODE_INVALID)
+		{
+			dsFaceGroup_unlock(font->group);
+			if (errno != ENOMEM)
+			{
+				errno = EFORMAT;
+				DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid Unicode string.");
+			}
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+
+		getTextLengths(&length, &rangeCount, font->group, string, nextCodepoint, runs, runCount);
+		if (length == DS_UNICODE_INVALID)
+		{
+			dsFaceGroup_unlock(font->group);
 			errno = EFORMAT;
 			DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid Unicode string.");
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
-	uint32_t length, rangeCount;
-	getTextLengths(&length, &rangeCount, font->group, string, nextCodepoint, runs, runCount);
-	if (length == DS_UNICODE_INVALID)
-	{
-		dsFaceGroup_unlock(font->group);
-		errno = EFORMAT;
-		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid Unicode string.");
-		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsText* scratchText = dsFaceGroup_scratchText(font->group, length, rangeCount);
@@ -213,7 +246,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	uint32_t index = 0;
 	for (uint32_t i = 0; i < length; ++i)
 		((uint32_t*)scratchText->characters)[i] = nextCodepoint(string, &index);
-	bool shapeSucceeded = shapeText(scratchText, runs, runCount);
+	bool shapeSucceeded = shapeText(scratchText, runs, runCount, uniformScript);
 
 	dsFaceGroup_unlock(font->group);
 	if (!shapeSucceeded)
@@ -267,7 +300,8 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	DS_PROFILE_FUNC_RETURN(text);
 }
 
-dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string)
+dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string,
+	bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -278,10 +312,11 @@ dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* stri
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
 	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF8_nextCodepoint,
-		dsUnicodeType_UTF8);
+		dsUnicodeType_UTF8, uniformScript);
 }
 
-dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t* string)
+dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t* string,
+	bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -292,10 +327,11 @@ dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator, const uint16_t*
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
 	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF16_nextCodepoint,
-		dsUnicodeType_UTF16);
+		dsUnicodeType_UTF16, uniformScript);
 }
 
-dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t* string)
+dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t* string,
+	bool uniformScript)
 {
 	if (!font || (!allocator && !dsFont_getAllocator(font)))
 	{
@@ -306,5 +342,5 @@ dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t*
 	if (!allocator)
 		allocator = dsFont_getAllocator(font);
 	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF32_nextCodepoint,
-		dsUnicodeType_UTF32);
+		dsUnicodeType_UTF32, uniformScript);
 }

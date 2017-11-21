@@ -40,9 +40,12 @@ extern "C"
  * @param allocator The allocator to create the text with. If NULL, it will use the same allocator
  *     as the font.
  * @param string The string in UTF-8. This will be copied.
+ * @param uniformScript True if the text will have a uniform script. This will skip bi-directional
+ *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
-DS_TEXT_EXPORT dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string);
+DS_TEXT_EXPORT dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string,
+	bool uniformScript);
 
 /**
  * @brief Creates a text object from a string.
@@ -51,10 +54,12 @@ DS_TEXT_EXPORT dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, c
  * @param allocator The allocator to create the text with. If NULL, it will use the same allocator
  *     as the font.
  * @param string The string in UTF-16. This will be copied.
+ * @param uniformScript True if the text will have a uniform script. This will skip bi-directional
+ *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator,
-	const uint16_t* string);
+	const uint16_t* string, bool uniformScript);
 
 /**
  * @brief Creates a text object from a string.
@@ -63,10 +68,12 @@ DS_TEXT_EXPORT dsText* dsText_createUTF16(dsFont* font, dsAllocator* allocator,
  * @param allocator The allocator to create the text with. If NULL, it will use the same allocator
  *     as the font.
  * @param string The string in UTF-32. This will be copied.
+ * @param uniformScript True if the text will have a uniform script. This will skip bi-directional
+ *     text detection and using different faces based on different scripts within the same string.
  * @return The text, or NULL if an error occurred.
  */
 DS_TEXT_EXPORT dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator,
-	const uint32_t* string);
+	const uint32_t* string, bool uniformScript);
 
 /**
  * @brief Destroys a text object.
