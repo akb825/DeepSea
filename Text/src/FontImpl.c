@@ -454,11 +454,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t ra
 	DS_ASSERT(group->scratchText->ranges);
 	group->scratchText->rangeCount = rangeCount;
 
-	// Pre-allocate glyphs. This will also be used as a temporary buffer during shaping.
-	group->scratchText->glyphs = dsFaceGroup_scratchGlyphs(group, length);
-	// Keep memory around to be freed later.
-	if (!group->scratchGlyphs)
-		return NULL;
+	group->scratchText->glyphs = NULL;
 
 	return group->scratchText;
 }
@@ -468,9 +464,13 @@ dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 	if (length <= group->scratchGlyphCount)
 		return group->scratchGlyphs;
 
-	group->scratchGlyphs = (dsGlyph*)dsResizeableArray_add(group->scratchAllocator,
+	if (!dsResizeableArray_add(group->scratchAllocator,
 		(void**)&group->scratchGlyphs, &group->scratchGlyphCount, &group->scratchMaxGlyphs,
-		sizeof(dsGlyph), length - group->scratchGlyphCount);
+		sizeof(dsGlyph), length - group->scratchGlyphCount))
+	{
+		return NULL;
+	}
+
 	return group->scratchGlyphs;
 }
 

@@ -96,12 +96,6 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 
 	const dsFaceGroup* group = dsFont_getFaceGroup(text->font);
 
-	// Re-use glyph memory to store scripts. It's guaranteed to be large enough and will be
-	// populated later.
-	uint32_t* scripts = (uint32_t*)text->glyphs;
-	for (uint32_t i = 0; i < text->characterCount; ++i)
-		scripts[i] = dsFaceGroup_codepointScript(group, text->characters[i]);
-
 	// Store the script info in the text ranges memory. This will be converted in place to the final text
 	// ranges later.
 	dsScriptInfo* scriptInfo = NULL;
@@ -119,8 +113,9 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 		for (uint32_t j = 0; j < runs[i].count; ++j)
 		{
 			uint32_t index = runs[i].start + j;
-			if (!dsFaceGroup_isScriptUnique(scripts[index]) ||
-				(hasLastScript && lastScript == scripts[index]))
+			uint32_t script = dsFaceGroup_codepointScript(group, text->characters[index]);
+			if (!dsFaceGroup_isScriptUnique(script) ||
+				(hasLastScript && lastScript == script))
 			{
 				continue;
 			}
@@ -150,7 +145,7 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 					break;
 			}
 
-			lastScript = scripts[index];
+			lastScript = script;
 		}
 	}
 	DS_ASSERT(curInfo == text->rangeCount);
