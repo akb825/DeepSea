@@ -56,7 +56,6 @@ typedef struct dsGlyphInfo
 	dsHashTableNode node;
 	dsGlyphKey key;
 	dsAlignedBox2f glyphBounds;
-	float advance;
 } dsGlyphInfo;
 
 struct dsFont
@@ -81,7 +80,7 @@ struct dsFont
 
 const char* dsFontFace_getName(const dsFontFace* face);
 void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face);
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontFace* face,
+void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf);
 
@@ -98,7 +97,7 @@ dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
 bool dsFaceGroup_isScriptUnique(uint32_t script);
 
-dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, uint32_t face,
+dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
 	uint32_t glyph);
 uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
@@ -108,4 +107,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
 	unsigned int height, float* tempSdf);
-void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize);
+void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex,
+	uint32_t glyphSize);
+void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
+	uint32_t glyphSize);

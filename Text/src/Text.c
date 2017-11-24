@@ -345,3 +345,11 @@ dsText* dsText_createUTF32(dsFont* font, dsAllocator* allocator, const uint32_t*
 	return createTextImpl(font, allocator, string, (dsNextCodepointFunction)&dsUTF32_nextCodepoint,
 		dsUnicodeType_UTF32, uniformScript);
 }
+
+void dsText_destroy(dsText* text)
+{
+	if (!text || !text->allocator)
+		return;
+
+	dsAllocator_free(text->allocator, text);
+}

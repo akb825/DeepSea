@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Geometry/Types.h>
+#include <DeepSea/Math/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -36,6 +37,15 @@ extern "C"
 #define DS_TEXT_LOG_TAG "text"
 
 /**
+ * @brief The number of slots available for glyphs.
+ *
+ * This is based on the number of slots available in different mip levels of the texture used for
+ * storage. (32*32 + 16*16 + 8*8 + 4*4 + 2*2 + 1, using mip levels large enough for glyphs) This is
+ * the number of unique glyphs that can be drawn before slots are overwritten.
+ */
+#define DS_GLYPH_SLOTS 1365
+
+/**
  * @brief Enum for the quality of the text.
  *
  * The text quality will directly correlate to how much texture memory is required for each font.
@@ -49,6 +59,16 @@ typedef enum dsTextQuality
 	dsTextQuality_Medium, ///< Tradeoff between quality and memory and CPU usage.
 	dsTextQuality_High    ///< High quality with more memory and CPU usage.
 } dsTextQuality;
+
+/**
+ * @brief Enum for the justification of text.
+ */
+typedef enum dsTextJustification
+{
+	dsTextJustification_Left,  ///< Align in the left of the bounds.
+	dsTextJustification_Right, ///< Align in the right of the bounds.
+	dsTextJustification_Center ///< Align in the center of the bounds.
+} dsTextJustification;
 
 /**
  * @brief Struct containing a shared group of faces for fonts.
@@ -95,7 +115,7 @@ typedef struct dsGlyph
 	/**
 	 * @brief The amount to advance to the next glyph.
 	 */
-	dsVector2f advance;
+	float advance;
 } dsGlyph;
 
 /**
@@ -109,7 +129,7 @@ typedef struct dsTextRange
 	/**
 	 * @brief The face that the range will be drawn with.
 	 */
-	dsFontFace* face;
+	uint32_t face;
 
 	/**
 	 * @brief The first character in the range.
@@ -130,11 +150,6 @@ typedef struct dsTextRange
 	 * @brief The number of glyphes in the range.
 	 */
 	uint32_t glyphCount;
-
-	/**
-	 * @brief True if the text is vertical.
-	 */
-	bool vertical;
 
 	/**
 	 * @brief True if the text goes backward.
@@ -188,6 +203,147 @@ typedef struct dsText
 	 */
 	uint32_t rangeCount;
 } dsText;
+
+/**
+ * @brief Struct containing the style of the text.
+ * @see TextLayout.h
+ */
+typedef struct dsTextStyle
+{
+	/**
+	 * @brief The scale of the text.
+	 */
+	float scale;
+
+	/**
+	 * @brief The amount to embolden the text.
+	 *
+	 * This should be in the range [-1, 1], where 0 is a standard thickness.
+	 */
+	float embolden;
+
+	/**
+	 * @brief The amount to slant the text.
+	 *
+	 * A value of -1 will slant 45 degrees to the left, and a value of 1 will be 45 degrees to the
+	 * right.
+	 */
+	float slant;
+
+	/**
+	 * @brief The amount to outline the text.
+	 *
+	 * A value of 0 will have no outline, while a value of 1 will cover the full size of embolden
+	 * with a value of 1.
+	 */
+	float outline;
+
+	/**
+	 * @brief The color of the text.
+	 */
+	dsColor color;
+
+	/**
+	 * @brief The color of the text outline.
+	 */
+	dsColor outlineColor;
+} dsTextStyle;
+
+/**
+ * @brief Struct containing layout information for a range of the text.
+ * @see TextLayout.h
+ */
+typedef struct dsTextStyleRange
+{
+	/**
+	 * @brief The first character in the range.
+	 */
+	uint32_t start;
+
+	/**
+	 * @brief The number of characters in the range.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The style to apply to the range.
+	 */
+	dsTextStyle style;
+} dsTextStyleRange;
+
+/**
+ * @brief Struct containing information about a glyph in the layout.
+ * @see TextLayout.h
+ */
+typedef struct dsGlyphLayout
+{
+	/**
+	 * @brief The position of the glyph.
+	 */
+	dsVector2f position;
+
+	/**
+	 * @brief The geometry of the glyph.
+	 *
+	 * This will not have any slanting applied. The origin as at the origin of the glyph, and
+	 * positive Y points up.
+	 */
+	dsAlignedBox2f geometry;
+
+	/**
+	 * @brief The texture coordinates for the glyph.
+	 */
+	dsAlignedBox2f texCoords;
+
+	/**
+	 * @brief The mip level in the texture that contains the glyph.
+	 */
+	uint32_t mipLevel;
+
+	/**
+	 * @brief The index for the style.
+	 *
+	 * This indexes into the styles array in dsTextLayout.
+	 */
+	uint32_t styleIndex;
+} dsGlyphLayout;
+
+/**
+ * @brief Struct containing layout information for a piece of text
+ * @see TextLayout.h
+ */
+typedef struct dsTextLayout
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The text to lay out.
+	 */
+	const dsText* text;
+
+	/**
+	 * @brief The list of laid out glyphs.
+	 *
+	 * This will be of size text->glyphCount.
+	 */
+	const dsGlyphLayout* glyphs;
+
+	/**
+	 * @brief The styles that are used with the text.
+	 *
+	 * The style values may be changed after the layout has been created. However, the ranges should
+	 * remain the same.
+	 */
+	dsTextStyleRange* styles;
+
+	/**
+	 * @brief The number of styles.
+	 */
+	uint32_t styleCount;
+} dsTextLayout;
 
 #ifdef __cplusplus
 }

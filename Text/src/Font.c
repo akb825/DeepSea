@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Text/FaceGroup.h>
@@ -64,7 +65,7 @@ static float computeSignedDistance(const uint8_t* pixels, unsigned int width, un
 	return distance*0.5f + 0.5f;
 }
 
-dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, uint32_t face,
+dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
 	uint32_t glyph)
 {
 	dsGlyphKey key = {face, glyph};
@@ -98,9 +99,9 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsCommandBuffer* commandBuffer, dsFont* font, u
 			(dsHashTableNode*)glyphInfo, NULL));
 	}
 
-	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, &glyphInfo->advance, font->faces[face],
-		commandBuffer, font->texture, glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize,
-		font->tempImage, font->tempSdf);
+	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
+		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font->tempImage,
+		font->tempSdf);
 	return glyphInfo;
 }
 
@@ -202,6 +203,16 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 		prevLimit = curLimit;
 	}
 	DS_ASSERT(false);
+}
+
+void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
+	uint32_t glyphSize)
+{
+	float levelSize = (float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
+	outBounds->min.x = (float)texturePos->x*levelSize;
+	outBounds->min.y = (float)texturePos->y*levelSize;
+	dsVector2f levelSize2 = {{levelSize, levelSize}};
+	dsVector2_add(outBounds->max, outBounds->min, levelSize2);
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,

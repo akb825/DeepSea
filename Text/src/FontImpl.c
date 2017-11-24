@@ -215,7 +215,7 @@ void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFont
 	*maxHeight = face->maxHeight;
 }
 
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontFace* face,
+void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf)
 {
@@ -231,7 +231,6 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, float* outAdvance, dsFontF
 	outBounds->min.y = (float)(ftFace->glyph->bitmap_top - bitmap->rows)*scale;
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
 	outBounds->min.y = outBounds->min.y + (float)bitmap->rows*scale;
-	*outAdvance = ftFace->glyph->metrics.horiAdvance*fixedScale;
 
 	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO);
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
@@ -731,12 +730,12 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	if (count == 0)
 		return true;
 
-	dsFontFace* face = font->faces[0];;
+	uint32_t face = 0;
 	for (uint32_t i = 0; i < font->faceCount; ++i)
 	{
 		if (FT_Get_Char_Index(hb_ft_font_get_face(font->faces[i]->font), firstCodepoint))
 		{
-			face = font->faces[i];
+			face = i;
 			break;
 		}
 	}
@@ -744,7 +743,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
 	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
 		count);
-	hb_shape(face->font, shapeBuffer, NULL, 0);
+	hb_shape(font->faces[face]->font, shapeBuffer, NULL, 0);
 	if (!hb_buffer_allocation_successful(shapeBuffer))
 	{
 		hb_buffer_reset(shapeBuffer);
@@ -781,7 +780,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	range->charCount = count;
 	range->firstGlyph = text->glyphCount;
 	range->glyphCount = glyphCount;
-	range->vertical = HB_DIRECTION_IS_VERTICAL(properties.direction);
+	DS_ASSERT(!HB_DIRECTION_IS_VERTICAL(properties.direction));
 	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
 
 	float scale = 1.0f/(float)(fixedScale*font->glyphSize);
@@ -793,8 +792,8 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		glyphs[i].canBreak = (glyphInfos[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK) == 0;
 		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
 		glyphs[i].offset.y = (float)glyphPos[i].y_offset*scale;
-		glyphs[i].advance.x = (float)glyphPos[i].x_advance*scale;
-		glyphs[i].advance.y = (float)glyphPos[i].y_advance*scale;
+		glyphs[i].advance = (float)glyphPos[i].x_advance*scale;
+		DS_ASSERT(glyphPos[i].y_advance == 0);
 	}
 
 	text->glyphCount += glyphCount;
