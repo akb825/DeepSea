@@ -123,11 +123,20 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 
 	// Scale down if needed, but not up.
 	float scaleX = 1.0f;
+	float offsetX = 1.0f;
 	if (width > glyphSize)
+	{
 		scaleX = (float)adjustedWidth/(float)(glyphSize + windowSize*2);
+		offsetX = 1.0f/scaleX;
+	}
+
 	float scaleY = 1.0f;
+	float offsetY = 1.0f;
 	if (height > glyphSize)
+	{
 		scaleY = (float)adjustedHeight/(float)(glyphSize + windowSize*2);
+		offsetY = 1.0f/scaleY;
+	}
 
 	// Compute signed distnace field.
 	for (unsigned int y = 0; y < adjustedWidth; ++y)
@@ -140,7 +149,6 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	}
 
 	// Scale the glyph into the texture.
-	const dsVector2i offsets[4] = {{{0, 0}}, {{1, 0}}, {{0, 1}}, {{1, 1}}};
 	DS_ASSERT(glyphSize <= DS_HIGH_SIZE);
 	uint8_t textureData[DS_HIGH_SIZE*DS_HIGH_SIZE];
 	memset(textureData, 0, sizeof(textureData));
@@ -148,36 +156,61 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	{
 		float origY = (float)(int)(y - windowSize)*scaleY + (float)windowSize;
 		int startY = (int)origY;
-		float tY = origY - (float)startY;
+
+		// Calculate factors for linear filter.
+		float centerY = ((float)y + 0.5f)/scaleY;
+		unsigned int bottom = (int)(centerY - offsetY + 0.5f);
+		bottom = dsMax((int)bottom, 0);
+		unsigned int top = (unsigned int)(centerY + offsetY + 0.5f);
+		top = dsMin(top, adjustedHeight);
+
 		for (uint32_t x = 0; x < glyphSize; ++x)
 		{
 			float origX = (float)(int)(x - windowSize)*scaleX + (float)windowSize;
 			int startX = (int)origX;
-			float tX = origX - (float)startX;
 
+			// Flip when writing into the data.
+			uint32_t dstIndex = (glyphSize - y - 1)*glyphSize + x;
 			if (scaleX == 1.0f && scaleY == 1.0f)
 			{
-				textureData[y*glyphSize + x] =
-					(uint8_t)roundf(tempSdf[startY*adjustedWidth + startX]*255.0f);
+				uint32_t srcIndex = startY*adjustedWidth + startX;
+				textureData[dstIndex] = (uint8_t)roundf(tempSdf[srcIndex]*255.0f);
 			}
 			else
 			{
-				float samples[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-				for (unsigned int i = 0; i < 4; ++i)
+				// Linear filter.
+				float centerX = ((float)x + 0.5f)/scaleX;
+				unsigned int left = (int)(centerX - offsetX + 0.5f);
+				left = dsMax((int)left, 0);
+				unsigned int right = (unsigned int)(centerX + offsetX + 0.5f);
+				right = dsMax(right, adjustedWidth);
+
+				float weightedDistance = 0.0f;
+				float totalWeight = 0.0f;
+				for (unsigned int y2 = bottom; y2 < top; ++y2)
 				{
-					int curX = startX + offsets[i].x;
-					int curY = startY + offsets[i].y;
-					if (curX >= 0 && curY >= 0 && curX < (int)adjustedWidth &&
-						curY < (int)adjustedHeight)
+					float weightY = 1.0f - fabsf((float)y2 + 0.5f - centerY)*scaleY;
+					weightY = dsMax(weightY, 0.0f);
+					if (weightY == 0.0)
+						continue;
+
+					for (unsigned int x2 = left; x2 < right; ++x2)
 					{
-						samples[i] = tempSdf[curY*adjustedWidth + curX];
+						float weightX = 1.0f - fabsf((float)x2 + 0.5f - centerX)*scaleX;
+						weightX = dsMax(weightX, 0.0f);
+						if (weightX == 0.0)
+							continue;
+
+						uint32_t srcIndex = y2*adjustedWidth + x2;
+						float weight = weightX*weightY;
+						weightedDistance += tempSdf[srcIndex]*weight;
+						totalWeight += weight;
 					}
 
-					samples[0] = dsLerp(samples[0], samples[1], tX);
-					samples[1] = dsLerp(samples[2], samples[3], tX);
-					samples[0] = dsLerp(samples[0], samples[1], tY);
-					textureData[y*glyphSize + x] = (uint8_t)roundf(samples[0]*255.0f);
 				}
+
+				DS_ASSERT(totalWeight > 0.0f);
+				textureData[dstIndex] = (uint8_t)roundf(weightedDistance*255.0f/totalWeight);
 			}
 		}
 	}
@@ -231,11 +264,6 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	dsVector2f offset = {{(float)texSize->x/(float)glyphSize, (float)texSize->y/(float)glyphSize}};
 	dsVector2_mul(offset, offset, levelSize2);
 	dsVector2_add(outBounds->max, outBounds->min, offset);
-
-	// The original texture is upside-down, so flip the min and max Y values.
-	float temp = outBounds->min.y;
-	outBounds->min.x = outBounds->max.y;
-	outBounds->max.x = temp;
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
