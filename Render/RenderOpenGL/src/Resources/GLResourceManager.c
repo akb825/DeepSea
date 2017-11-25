@@ -1152,10 +1152,10 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_atLeastVersion(3, 0, true) ||
 		AnyGL_OES_element_index_uint)
 	{
-		baseResourceManager->maxIndexBits = 32;
+		baseResourceManager->maxIndexSize = (uint32_t)sizeof(uint32_t);
 	}
 	else
-		baseResourceManager->maxIndexBits = 16;
+		baseResourceManager->maxIndexSize = (uint32_t)sizeof(uint16_t);
 
 	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
 		glGetSizeT(GL_MAX_UNIFORM_BLOCK_SIZE, &baseResourceManager->maxUniformBlockSize);

@@ -128,7 +128,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	resourceManager->canCopyBuffers = true;
 	resourceManager->hasTextureBufferSubrange = true;
-	resourceManager->maxIndexBits = 32;
+	resourceManager->maxIndexSize = (uint32_t)sizeof(uint32_t);
 	resourceManager->maxUniformBlockSize = 1024*1024*1024;
 	resourceManager->maxTextureBufferSize = 64*1024;
 	resourceManager->maxVertexAttribs = 16;

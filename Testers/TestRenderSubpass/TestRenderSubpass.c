@@ -709,7 +709,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, NULL, NULL,
 			NULL};
 		dsIndexBuffer indexBuffer = {testRenderSubpass->cubeBuffer, sizeof(vertices),
-			(uint32_t)DS_ARRAY_SIZE(indices), 16};
+			(uint32_t)DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
 		testRenderSubpass->cubeGeometry = dsDrawGeometry_create(resourceManager, allocator,
 			vertexBuffers, &indexBuffer);
 		if (!testRenderSubpass->cubeGeometry)

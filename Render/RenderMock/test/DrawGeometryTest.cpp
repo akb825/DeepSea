@@ -90,10 +90,10 @@ TEST_F(DrawGeometryTest, Create)
 	indexBuffer.buffer = indexGfxBuffer;
 	indexBuffer.offset = 0;
 	indexBuffer.count = 20;
-	indexBuffer.indexBits = 10;
+	indexBuffer.indexSize = 5;
 	EXPECT_FALSE(dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer));
 
-	indexBuffer.indexBits = 16;
+	indexBuffer.indexSize = 2;
 	drawGeometry = dsDrawGeometry_create(resourceManager, NULL, vertexBufferArray, &indexBuffer);
 	ASSERT_TRUE(drawGeometry);
 	EXPECT_EQ(10U, dsDrawGeometry_getVertexCount(drawGeometry));

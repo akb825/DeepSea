@@ -129,15 +129,16 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		uint32_t indexBits = indexBuffer->indexBits;
-		if (indexBits > resourceManager->maxIndexBits || (indexBits != 16 && indexBits != 32))
+		uint32_t indexSize = indexBuffer->indexSize;
+		if (indexSize > resourceManager->maxIndexSize ||
+			(indexSize != sizeof(uint16_t) && indexSize!= sizeof(uint32_t)))
 		{
 			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid number of index bits.");
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid index size.");
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (!DS_IS_BUFFER_RANGE_VALID(indexBuffer->offset, indexBuffer->count*indexBits/8,
+		if (!DS_IS_BUFFER_RANGE_VALID(indexBuffer->offset, indexBuffer->count*indexSize,
 			indexBuffer->buffer->size))
 		{
 			errno = EINDEX;

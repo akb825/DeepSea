@@ -1381,7 +1381,8 @@ bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 
 	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
-	GLenum indexType = geometry->indexBuffer.indexBits == 32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+	GLenum indexType = geometry->indexBuffer.indexSize == sizeof(uint32_t) ? GL_UNSIGNED_INT :
+		GL_UNSIGNED_SHORT;
 	if (drawRange->instanceCount == 1)
 	{
 		if (ANYGL_SUPPORTED(glDrawElementsBaseVertex))
@@ -1471,7 +1472,8 @@ bool dsGLMainCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 
 	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
-	GLenum indexType = geometry->indexBuffer.indexBits == 32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+	GLenum indexType = geometry->indexBuffer.indexSize == sizeof(uint32_t) ? GL_UNSIGNED_INT :
+		GL_UNSIGNED_SHORT;
 	if (ANYGL_SUPPORTED(glMultiDrawElementsIndirect))
 	{
 		glMultiDrawElementsIndirect(primitiveTypeMap[primitiveType], indexType,

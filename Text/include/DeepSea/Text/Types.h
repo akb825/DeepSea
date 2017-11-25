@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Geometry/Types.h>
 #include <DeepSea/Math/Types.h>
+#include <DeepSea/Render/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -344,6 +345,61 @@ typedef struct dsTextLayout
 	 */
 	uint32_t styleCount;
 } dsTextLayout;
+
+/**
+ * @brief Function for getting the data for a glyph.
+ * @param userData The user data for the function.
+ * @param layout The text layout that will be added.
+ * @param glyphIndex The index of the glyph to add.
+ * @param data The vertex data to write to.
+ * @param dataSize The size that's valid to write to the data. This will always be for 4 vertices
+ *    for the quad with counter-clockwise winding.
+ * @param format The vertex format.
+ */
+typedef void (*dsGlyphDataFunction)(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
+	void* vertexData, size_t dataSize, const dsVertexFormat* format);
+
+/**
+ * @brief Struct containing a buffer for rendering text.
+ * @see TextRenderBuffer.h
+ */
+typedef struct dsTextRenderBuffer
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The geometry that will be drawn.
+	 */
+	dsDrawGeometry* geometry;
+
+	/**
+	 * @brief Function for getting the data for a glyph.
+	 */
+	dsGlyphDataFunction glyphDataFunc;
+
+	/**
+	 * @brief The user data for getting the glyph data.
+	 */
+	void* userData;
+
+	/**
+	 * @brief The maximum number of glyphs that can be drawn at once.
+	 */
+	uint32_t maxGlyphs;
+
+	/**
+	 * @brief The number of glyphs that have been queued so far.
+	 */
+	uint32_t queuedGlyphs;
+
+	/**
+	 * @brief Temporary data.
+	 */
+	void* tempData;
+} dsTextRenderBuffer;
 
 #ifdef __cplusplus
 }

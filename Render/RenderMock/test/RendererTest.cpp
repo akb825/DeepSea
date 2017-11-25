@@ -287,7 +287,7 @@ TEST_F(RendererTest, DrawIndexed)
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	EXPECT_TRUE(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
 
-	dsIndexBuffer indexBuffer = {indexGfxBuffer, 0, 16, 16};
+	dsIndexBuffer indexBuffer = {indexGfxBuffer, 0, 16, (uint32_t)sizeof(uint16_t)};
 
 	dsVertexBuffer* vertexBufferArray[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {};
 	vertexBufferArray[0] = &vertexBuffer;
@@ -408,7 +408,7 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	EXPECT_TRUE(dsVertexFormat_computeOffsetsAndSize(&vertexBuffer.format));
 
-	dsIndexBuffer indexBuffer = {indexGfxBuffer, 0, 16, 16};
+	dsIndexBuffer indexBuffer = {indexGfxBuffer, 0, 16, (uint32_t)sizeof(uint16_t)};
 
 	dsVertexBuffer* vertexBufferArray[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {};
 	vertexBufferArray[0] = &vertexBuffer;

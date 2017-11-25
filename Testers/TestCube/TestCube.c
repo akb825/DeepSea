@@ -426,7 +426,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, NULL, NULL,
 		NULL};
 	dsIndexBuffer indexBuffer = {testCube->drawBuffer, sizeof(vertices),
-		(uint32_t)DS_ARRAY_SIZE(indices), 16};
+		(uint32_t)DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
 	testCube->geometry = dsDrawGeometry_create(resourceManager, allocator, vertexBuffers,
 		&indexBuffer);
 	if (!testCube->geometry)

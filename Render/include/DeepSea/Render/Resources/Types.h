@@ -547,9 +547,9 @@ typedef struct dsIndexBuffer
 	uint32_t count;
 
 	/**
-	 * @brief The number of bits for each index.
+	 * @brief The size of each index in bytes.
 	 */
-	uint32_t indexBits;
+	uint32_t indexSize;
 } dsIndexBuffer;
 
 /**
@@ -1687,9 +1687,9 @@ struct dsResourceManager
 	bool hasTextureBufferSubrange;
 
 	/**
-	 * @brief The maximum number of bits for each index.
+	 * @brief The maximum size for each index in bytes.
 	 */
-	uint32_t maxIndexBits;
+	uint32_t maxIndexSize;
 
 	/**
 	 * @brief The maximum size of a uniform block.
