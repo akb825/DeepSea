@@ -162,7 +162,8 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 			font->glyphSize);
 		curGlyph->mipLevel = texturePos.mipLevel;
-		dsFont_getGlyphTextureBounds(&curGlyph->texCoords, &texturePos, font->glyphSize);
+		dsFont_getGlyphTextureBounds(&curGlyph->texCoords, &texturePos, &glyphInfo->texSize,
+			font->glyphSize);
 		curGlyph->styleIndex = (uint32_t)(style - layout->styles);
 	}
 

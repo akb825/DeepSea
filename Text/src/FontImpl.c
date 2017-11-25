@@ -215,7 +215,7 @@ void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFont
 	*maxHeight = face->maxHeight;
 }
 
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
+void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf)
 {
@@ -231,6 +231,10 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	outBounds->min.y = (float)(ftFace->glyph->bitmap_top - bitmap->rows)*scale;
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
 	outBounds->min.y = outBounds->min.y + (float)bitmap->rows*scale;
+
+	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	outTexSize->x = dsMin(glyphSize, bitmap->width + windowSize*2);
+	outTexSize->y = dsMin(glyphSize, bitmap->rows + windowSize*2);
 
 	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO);
 	for (unsigned int y = 0; y < bitmap->rows; ++y)

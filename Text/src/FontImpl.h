@@ -56,6 +56,7 @@ typedef struct dsGlyphInfo
 	dsHashTableNode node;
 	dsGlyphKey key;
 	dsAlignedBox2f glyphBounds;
+	dsVector2i texSize;
 } dsGlyphInfo;
 
 struct dsFont
@@ -80,7 +81,7 @@ struct dsFont
 
 const char* dsFontFace_getName(const dsFontFace* face);
 void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face);
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
+void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf);
 
@@ -110,4 +111,4 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex,
 	uint32_t glyphSize);
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	uint32_t glyphSize);
+	const dsVector2i* texSize, uint32_t glyphSize);

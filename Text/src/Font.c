@@ -30,6 +30,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Text/FaceGroup.h>
+#include <string.h>
 
 static float computeSignedDistance(const uint8_t* pixels, unsigned int width, unsigned int height,
 	int x, int y, uint32_t windowSize)
@@ -39,7 +40,7 @@ static float computeSignedDistance(const uint8_t* pixels, unsigned int width, un
 		inside = pixels[y*width + x] != 0;
 
 	// Compute the closest distance to a pixel that is the opposite state.
-	float maxDistance = (float)(windowSize*windowSize);
+	float maxDistance = sqrtf((float)(windowSize*windowSize));
 	float distance = maxDistance;
 	for (uint32_t j = 0; j < windowSize*2 + 1; ++j)
 	{
@@ -99,9 +100,9 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, u
 			(dsHashTableNode*)glyphInfo, NULL));
 	}
 
-	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
-		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font->tempImage,
-		font->tempSdf);
+	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, &glyphInfo->texSize, font->faces[face],
+		commandBuffer, font->texture, glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize,
+		font->tempImage, font->tempSdf);
 	return glyphInfo;
 }
 
@@ -119,8 +120,14 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	// Pad by the window size on each side.
 	unsigned int adjustedWidth = width + windowSize*2;
 	unsigned int adjustedHeight = height + windowSize*2;
-	float scaleX = (float)adjustedWidth/(float)(glyphSize + windowSize*2);
-	float scaleY = (float)adjustedHeight/(float)(glyphSize + windowSize*2);
+
+	// Scale down if needed, but not up.
+	float scaleX = 1.0f;
+	if (width > glyphSize)
+		scaleX = (float)adjustedWidth/(float)(glyphSize + windowSize*2);
+	float scaleY = 1.0f;
+	if (height > glyphSize)
+		scaleY = (float)adjustedHeight/(float)(glyphSize + windowSize*2);
 
 	// Compute signed distnace field.
 	for (unsigned int y = 0; y < adjustedWidth; ++y)
@@ -136,6 +143,7 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	const dsVector2i offsets[4] = {{{0, 0}}, {{1, 0}}, {{0, 1}}, {{1, 1}}};
 	DS_ASSERT(glyphSize <= DS_HIGH_SIZE);
 	uint8_t textureData[DS_HIGH_SIZE*DS_HIGH_SIZE];
+	memset(textureData, 0, sizeof(textureData));
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
 		float origY = (float)(int)(y - windowSize)*scaleY + (float)windowSize;
@@ -147,21 +155,29 @@ void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 			int startX = (int)origX;
 			float tX = origX - (float)startX;
 
-			float samples[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-			for (unsigned int i = 0; i < 4; ++i)
+			if (scaleX == 1.0f && scaleY == 1.0f)
 			{
-				int curX = startX + offsets[i].x;
-				int curY = startY + offsets[i].y;
-				if (curX >= 0 && curY >= 0 && curX < (int)adjustedWidth &&
-					curY < (int)adjustedHeight)
+				textureData[y*glyphSize + x] =
+					(uint8_t)roundf(tempSdf[startY*adjustedWidth + startX]*255.0f);
+			}
+			else
+			{
+				float samples[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+				for (unsigned int i = 0; i < 4; ++i)
 				{
-					samples[i] = tempSdf[curY*adjustedWidth + curX];
-				}
+					int curX = startX + offsets[i].x;
+					int curY = startY + offsets[i].y;
+					if (curX >= 0 && curY >= 0 && curX < (int)adjustedWidth &&
+						curY < (int)adjustedHeight)
+					{
+						samples[i] = tempSdf[curY*adjustedWidth + curX];
+					}
 
-				samples[0] = dsLerp(samples[0], samples[1], tX);
-				samples[1] = dsLerp(samples[2], samples[3], tX);
-				samples[0] = dsLerp(samples[0], samples[1], tY);
-				textureData[y*glyphSize + x] = (uint8_t)roundf(samples[0]*255.0f);
+					samples[0] = dsLerp(samples[0], samples[1], tX);
+					samples[1] = dsLerp(samples[2], samples[3], tX);
+					samples[0] = dsLerp(samples[0], samples[1], tY);
+					textureData[y*glyphSize + x] = (uint8_t)roundf(samples[0]*255.0f);
+				}
 			}
 		}
 	}
@@ -206,13 +222,20 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 }
 
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	uint32_t glyphSize)
+	const dsVector2i* texSize, uint32_t glyphSize)
 {
 	float levelSize = (float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
 	dsVector2f levelSize2 = {{levelSize, levelSize}};
-	dsVector2_add(outBounds->max, outBounds->min, levelSize2);
+	dsVector2f offset = {{(float)texSize->x/(float)glyphSize, (float)texSize->y/(float)glyphSize}};
+	dsVector2_mul(offset, offset, levelSize2);
+	dsVector2_add(outBounds->max, outBounds->min, offset);
+
+	// The original texture is upside-down, so flip the min and max Y values.
+	float temp = outBounds->min.y;
+	outBounds->min.x = outBounds->max.y;
+	outBounds->max.x = temp;
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
@@ -272,7 +295,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 
 	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 	size_t tempImageSize = maxWidth*maxHeight*sizeof(uint8_t);
-	size_t tempSdfSize = (maxWidth + windowSize)*(maxHeight + windowSize)*sizeof(float);
+	size_t tempSdfSize = (maxWidth + windowSize*2)*(maxHeight + windowSize*2)*sizeof(float);
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsFont)) +
 		DS_ALIGNED_SIZE(sizeof(dsFontFace*)*faceCount) + DS_ALIGNED_SIZE(tempImageSize) +
