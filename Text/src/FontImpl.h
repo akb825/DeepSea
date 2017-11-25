@@ -27,8 +27,6 @@
 // 512 for low, 1024 for medium, 2048 for high
 #define DS_TEX_MULTIPLIER 32
 #define DS_TEX_MIP_LEVELS 6
-// 32*32 + 16*16 + 8*8 + 4*4 + 2*2 + 1 (mip levels large enough for glyphs)
-#define DS_GLYPH_SLOTS 1365
 #define DS_TABLE_SIZE 1823
 #define DS_BASE_WINDOW_SIZE 2
 
