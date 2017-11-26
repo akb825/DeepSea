@@ -139,9 +139,9 @@ DS_RENDER_EXPORT size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim d
  * @return The created texture, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
-	size_t size);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
+	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+	const void* data, size_t size);
 
 /**
  * @brief Creates an offscreen texture.
@@ -174,9 +174,9 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
-	bool resolve);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
+	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+	uint32_t samples, bool resolve);
 
 /**
  * @brief Copies data to a texture.

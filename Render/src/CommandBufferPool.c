@@ -22,7 +22,7 @@
 #include <DeepSea/Core/Profile.h>
 
 dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	int usage, uint32_t count)
+	unsigned int usage, uint32_t count)
 {
 	DS_PROFILE_FUNC_START();
 

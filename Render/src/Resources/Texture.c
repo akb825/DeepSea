@@ -169,9 +169,10 @@ size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim dimension, uint32_
 	return DS_INVALID_TEXTURE_OFFSET;
 }
 
-dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator, int usage,
-	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width, uint32_t height,
-	uint32_t depth, uint32_t mipLevels, const void* data, size_t size)
+dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
+	size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -271,8 +272,9 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 }
 
 dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples, bool resolve)
+	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
+	bool resolve)
 {
 	DS_PROFILE_FUNC_START();
 

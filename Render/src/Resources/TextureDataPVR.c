@@ -558,7 +558,7 @@ dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocator, dsStream* str
 
 dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, int usage, int memoryHints)
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
 {
 	if (!resourceManager || !filePath)
 	{
@@ -586,7 +586,7 @@ dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager
 
 dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, int usage, int memoryHints)
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
 {
 	if (!resourceManager || !stream)
 	{

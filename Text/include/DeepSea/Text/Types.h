@@ -352,12 +352,12 @@ typedef struct dsTextLayout
  * @param layout The text layout that will be added.
  * @param glyphIndex The index of the glyph to add.
  * @param data The vertex data to write to.
- * @param dataSize The size that's valid to write to the data. This will always be for 4 vertices
- *    for the quad with counter-clockwise winding.
  * @param format The vertex format.
+ * @param vertexCount The number of vertices to write. This will either be 4 vertices for a quad,
+ *     which should follow winding order, or 1 vertex when using the tessellation shader.
  */
 typedef void (*dsGlyphDataFunction)(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
-	void* vertexData, size_t dataSize, const dsVertexFormat* format);
+	void* vertexData, const dsVertexFormat* format, uint32_t vertexCount);
 
 /**
  * @brief Struct containing a buffer for rendering text.

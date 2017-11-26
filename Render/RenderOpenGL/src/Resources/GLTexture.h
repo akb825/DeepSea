@@ -22,12 +22,14 @@
 #include <DeepSea/Render/Resources/Types.h>
 #include <MSL/Client/TypesC.h>
 
-dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator, int usage,
-	int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width, uint32_t height,
-	uint32_t depth, uint32_t mipLevels, const void* data, size_t size);
+dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
+	size_t size);
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples, bool resolve);
+	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
+	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
+	bool resolve);
 bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size);

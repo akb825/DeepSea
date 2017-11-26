@@ -20,7 +20,7 @@
 #include <DeepSea/Render/Resources/Types.h>
 
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, const void* data, size_t size);
+	unsigned int usage, unsigned int memoryHints, const void* data, size_t size);
 void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, unsigned int flags,
 	size_t offset, size_t size);
 bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer);

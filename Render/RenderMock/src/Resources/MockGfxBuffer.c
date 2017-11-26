@@ -26,7 +26,7 @@ typedef struct dsMockGfxBuffer
 } dsMockGfxBuffer;
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, const void* data, size_t size)
+	unsigned int usage, unsigned int memoryHints, const void* data, size_t size)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);

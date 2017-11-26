@@ -51,7 +51,8 @@ extern "C"
  * @return The created buffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const void* data,
+	size_t size);
 
 /**
  * @brief Maps a range of a graphics buffer to memory.

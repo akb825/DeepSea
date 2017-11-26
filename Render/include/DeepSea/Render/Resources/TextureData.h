@@ -68,7 +68,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsG
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsTextureData* textureData, const dsTextureDataOptions* options,
-	int usage, int memoryHints);
+	unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a texture file to a new texture data instance.
@@ -116,7 +116,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadStream(dsAllocator* allocator,
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a texture file from a stream to a new texture instance.
@@ -139,7 +139,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* r
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a DDS texture file to a new texture data instance.
@@ -179,7 +179,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadDdsStream(dsAllocator* allocat
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a DDS texture file from a stream to a new texture instance.
@@ -199,7 +199,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a KTX texture file to a new texture data instance.
@@ -239,7 +239,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadKtxStream(dsAllocator* allocat
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a KTX texture file from a stream to a new texture instance.
@@ -259,7 +259,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadKtxStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a PVR texture file to a new texture data instance.
@@ -299,7 +299,7 @@ DS_RENDER_EXPORT dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocat
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Loads a PVR texture file from a stream to a new texture instance.
@@ -319,7 +319,7 @@ DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager
  */
 DS_RENDER_EXPORT dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, int usage, int memoryHints);
+	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints);
 
 /**
  * @brief Destroys a texture data.

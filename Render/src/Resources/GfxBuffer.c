@@ -26,7 +26,7 @@
 extern const char* dsResourceManager_noContextError;
 
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	int usage, int memoryHints, const void* data, size_t size)
+	unsigned int usage, unsigned int memoryHints, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

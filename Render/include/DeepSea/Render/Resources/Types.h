@@ -1138,7 +1138,8 @@ typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceMana
  * @return The created buffer, or NULL if it couldn't be created.
  */
 typedef dsGfxBuffer* (*dsCreateGfxBufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, const void* data, size_t size);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const void* data,
+	size_t size);
 
 /**
  * @brief Function for destroying a graphics buffer.
@@ -1285,9 +1286,9 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  * @return The created texture, or NULL if it couldn't be created.
  */
 typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
-	size_t size);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
+	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+	const void* data, size_t size);
 
 /**
  * @brief Function for creating an offscreen texture.
@@ -1311,9 +1312,9 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, int usage, int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
-	bool resolve);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
+	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+	uint32_t samples, bool resolve);
 
 /**
  * @brief Function for destroying a texture or offscreen.

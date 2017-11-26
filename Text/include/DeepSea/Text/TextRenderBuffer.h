@@ -37,13 +37,15 @@ extern "C"
  * @param resourceManager The resource manager to create the graphics resources with.
  * @param maxGlyphs The maximum number of glyphs to draw at once.
  * @param vertexFormat The vertex format to use.
+ * @param tessellationShader True if the tessellation shader will create the quad instead of storing
+ *     quads in the vertex buffer.
  * @param glyphDataFunc The function to get the data for a glyph.
  * @param userData The user data for the glyph data.
  * @return The render buffer, or NULL if it couldn't be created.
  */
 DS_TEXT_EXPORT dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	dsResourceManager* resourceManager, uint32_t maxGlyphs, const dsVertexFormat* vertexFormat,
-	dsGlyphDataFunction glyphDataFunc, void* userData);
+	bool tessellationShader, dsGlyphDataFunction glyphDataFunc, void* userData);
 
 /**
  * @brief Queues text onto the render buffer.
