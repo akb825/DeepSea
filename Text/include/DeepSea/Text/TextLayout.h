@@ -30,6 +30,20 @@ extern "C"
 /**
  * @file
  * @brief Functions for laying out text to prepare it for rendering.
+ *
+ * The reuslts from text layout can be re-used so long DS_GLYPH_SLOTS unique glyphs aren't used.
+ * After that point, glyphs will be replaced with their new values.
+ *
+ * In order to guarantee that the glyphs are correct, either dsTextLayout_layout() or
+ * dsTextLayout_refresh() will need to be called. In the extremely * unlikely event that a single
+ * piece of text exceeds this limit, it will need to be split. In the still very unlikely, but
+ * slightly more plausable event that multiple pieces of text exceed this limit in a single frame,
+ * some text will need to be drawn before laying out or refreshing more text to avoid glyphs from
+ * being evicted before they are drawn.
+ *
+ * In more realistic situations, dsTextLayout_refresh() should be called when there are major
+ * changes in text being drawn. This will account for cases where enough new glyphs are added that
+ * could evict existing glyphs.
  */
 
 /**
@@ -62,20 +76,6 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 
 /**
  * @brief Performs layout on the text, preparing it to be rendered.
- *
- * The reuslts from text layout can be re-used so long DS_GLYPH_SLOTS unique glyphs aren't used.
- * After that point, glyphs will be replaced with their new values.
- *
- * In order to guarantee that the glyphs are correct, the layout can be re-run. In the extremely
- * unlikely event that a single piece of text exceeds this limit, it will need to be split. In the
- * still very unlikely, but slightly more plausable event that multiple pieces of text exceed this
- * limit in a single frame, some text will need to be drawn before laying out more text to avoid
- * glyphs from being evicted before they are drawn.
- *
- * In more realistic situations, layout should be re-run when there are major changes in text being
- * drawn. This will account for cases where enough new glyphs are added that could evict existing
- * glyphs.
- *
  * @remark errno will be set on failure.
  * @param[out] outBounds The bounds of the resulting layed out text. This will be the logical size
  *     of the text, not including embolding or slanting. The origin will be on the bottom of the
@@ -93,6 +93,15 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 	dsCommandBuffer* commandBuffer, dsTextJustification justification, float maxWidth,
 	float lineScale);
+
+/**
+ * @brief Refreshes the glyphs in the cache, ensuring they are available to be rendered.
+ * @remark errno will be set on failure.
+ * @param layout The layout to refresh.
+ * @param commandBuffer The command buffer to queue any texture operations on.
+ * @return False if an error occurred.
+ */
+bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys a text layout object.

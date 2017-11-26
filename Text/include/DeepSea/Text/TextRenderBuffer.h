@@ -64,8 +64,8 @@ DS_TEXT_EXPORT bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffe
 /**
  * @brief Flushes any remaining queued text.
  * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer to draw with.
  * @param commandBuffer The command buffer to queue commands onto.
- * @param renderer The renderer to draw with.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_flush(dsTextRenderBuffer* renderBuffer,

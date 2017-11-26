@@ -102,7 +102,6 @@ bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffer, dsCommandBuf
 	const dsTextLayout* text, uint32_t firstGlyph, uint32_t glyphCount)
 {
 	DS_PROFILE_FUNC_START();
-
 	if (!renderBuffer || !commandBuffer || !text)
 	{
 		errno = EINVAL;

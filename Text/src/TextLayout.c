@@ -154,17 +154,16 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
 			text->glyphs[i].glyphId);
 
-		dsGlyphLayout* curGlyph = (dsGlyphLayout*)(layout->glyphs + i);
 		dsVector2_scale(glyphs[i].geometry.min, glyphInfo->glyphBounds.min, scale);
 		dsVector2_scale(glyphs[i].geometry.max, glyphInfo->glyphBounds.max, scale);
 
 		dsTexturePosition texturePos;
 		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 			font->glyphSize);
-		curGlyph->mipLevel = texturePos.mipLevel;
-		dsFont_getGlyphTextureBounds(&curGlyph->texCoords, &texturePos, &glyphInfo->texSize,
+		glyphs[i].mipLevel = texturePos.mipLevel;
+		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &glyphInfo->texSize,
 			font->glyphSize);
-		curGlyph->styleIndex = (uint32_t)(style - layout->styles);
+		glyphs[i].styleIndex = (uint32_t)(style - layout->styles);
 	}
 
 	dsFaceGroup_unlock(font->group);
@@ -352,6 +351,54 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 			dsAlignedBox2_addBox(*outBounds, lineBounds);
 		}
 	}
+
+	DS_PROFILE_FUNC_RETURN(true);
+}
+
+bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
+{
+	DS_PROFILE_FUNC_START();
+	if (!layout || !commandBuffer)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	const dsText* text = layout->text;
+	dsFont* font = text->font;
+	dsGlyphLayout* glyphs = (dsGlyphLayout*)layout->glyphs;
+
+	if (text->glyphCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	dsFaceGroup_lock(font->group);
+
+	DS_ASSERT(text->rangeCount > 0);
+	const dsTextRange* textRange = text->ranges;
+	uint32_t textRangeLimit = textRange->glyphCount;
+	for (uint32_t i = 0; i < layout->text->glyphCount; ++i)
+	{
+		// Advance the text range and style.
+		while (i >= textRangeLimit)
+		{
+			++textRange;
+			DS_ASSERT(textRange < text->ranges + text->rangeCount);
+			DS_ASSERT(textRange->firstGlyph == textRangeLimit);
+			textRangeLimit += textRange->glyphCount;
+		}
+
+		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
+			text->glyphs[i].glyphId);
+
+		dsTexturePosition texturePos;
+		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
+			font->glyphSize);
+		glyphs[i].mipLevel = texturePos.mipLevel;
+		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &glyphInfo->texSize,
+			font->glyphSize);
+	}
+
+	dsFaceGroup_unlock(font->group);
 
 	DS_PROFILE_FUNC_RETURN(true);
 }
