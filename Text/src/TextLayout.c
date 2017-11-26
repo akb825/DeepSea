@@ -100,12 +100,13 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	memcpy(layout->styles, styles, styleCount*sizeof(dsTextStyleRange));
 	layout->styleCount = styleCount;
 
+	dsAlignedBox2f_makeInvalid(&layout->bounds);
+
 	return layout;
 }
 
-bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
-	dsCommandBuffer* commandBuffer, dsTextJustification justification, float maxWidth,
-	float lineScale)
+bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+	dsTextJustification justification, float maxWidth, float lineScale)
 {
 	DS_PROFILE_FUNC_START();
 	if (!layout || !commandBuffer)
@@ -230,6 +231,7 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 	// Third pass: find the offsets, resolving boundaries between forward and reverse text.
 	dsAlignedBox2f lineBounds;
 	dsAlignedBox2f_makeInvalid(&lineBounds);
+	dsAlignedBox2f_makeInvalid(&layout->bounds);
 	float lastY = 0.0f;
 	uint32_t sectionStart = 0;
 	uint32_t reverseSectionEnd = 0;
@@ -259,14 +261,11 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 					}
 				}
 
-				if (outBounds)
-				{
-					// Negate Y
-					float temp = lineBounds.min.y;
-					lineBounds.min.y = -lineBounds.max.y;
-					lineBounds.max.y = -temp;
-					dsAlignedBox2_addBox(*outBounds, lineBounds);
-				}
+				// Negate Y before adding to the full bounds.
+				float temp = lineBounds.min.y;
+				lineBounds.min.y = -lineBounds.max.y;
+				lineBounds.max.y = -temp;
+				dsAlignedBox2_addBox(layout->bounds, lineBounds);
 
 				dsAlignedBox2f_makeInvalid(&lineBounds);
 			}
@@ -342,14 +341,11 @@ bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
 			}
 		}
 
-		if (outBounds)
-		{
-			// Negate Y
-			float temp = lineBounds.min.y;
-			lineBounds.min.y = -lineBounds.max.y;
-			lineBounds.max.y = -temp;
-			dsAlignedBox2_addBox(*outBounds, lineBounds);
-		}
+		// Negate Y before adding to the full bounds.
+		float temp = lineBounds.min.y;
+		lineBounds.min.y = -lineBounds.max.y;
+		lineBounds.max.y = -temp;
+		dsAlignedBox2_addBox(layout->bounds, lineBounds);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

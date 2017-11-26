@@ -77,11 +77,6 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 /**
  * @brief Performs layout on the text, preparing it to be rendered.
  * @remark errno will be set on failure.
- * @param[out] outBounds The bounds of the resulting layed out text. This will be the logical size
- *     of the text, not including embolding or slanting. The origin will be on the bottom of the
- *     first line at the base justification position. (i.e. left, right, or center of text) Positive
- *     Y points down. The intent for this box is to place the block of text on the screen. This may
- *     be NULL if the bounds aren't needed.
  * @param layout The layout to process.
  * @param commandBuffer The command buffer to queue any texture operations on.
  * @param justification The justification to follow when laying out the text.
@@ -90,9 +85,8 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
  *     font height directly.
  * @return False if an error occurred.
  */
-bool dsTextLayout_layout(dsAlignedBox2f* outBounds, dsTextLayout* layout,
-	dsCommandBuffer* commandBuffer, dsTextJustification justification, float maxWidth,
-	float lineScale);
+bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+	dsTextJustification justification, float maxWidth, float lineScale);
 
 /**
  * @brief Refreshes the glyphs in the cache, ensuring they are available to be rendered.

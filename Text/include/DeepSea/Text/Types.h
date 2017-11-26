@@ -344,6 +344,16 @@ typedef struct dsTextLayout
 	 * @brief The number of styles.
 	 */
 	uint32_t styleCount;
+
+	/**
+	 * @brief The bounds of the layed out text.
+	 *
+	 * This will be the logical size of the text, not including embolding or slanting. The origin
+	 * will be on the bottom of the first line at the base justification position.
+	 * (i.e. left, right, or center of text) Positive Y points down. The intent for this box is to
+	 * place the block of text on the screen.
+	 */
+	dsAlignedBox2f bounds;
 } dsTextLayout;
 
 /**
