@@ -50,8 +50,8 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/TestCube.msl
 ds_compile_shaders_target(deepsea_test_cube_shaders shaders DEPENDS deepsea_test_cube_prepare)
 add_dependencies(deepsea_test_cube deepsea_test_cube_shaders)
 
-ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/texture.png FORMAT R8G8B8A8
-	MIPMAP OUTPUT ${textureDir}/texture.pvr)
+ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/SimpleTexture.png
+	FORMAT R8G8B8A8 MIPMAP OUTPUT ${textureDir}/texture.pvr)
 ds_convert_textures_target(deepsea_test_cube_textures textures DEPENDS deepsea_test_cube_prepare)
 add_dependencies(deepsea_test_cube deepsea_test_cube_textures)
 

@@ -36,6 +36,10 @@ void dsVector4f_scale(dsVector4f* result, const dsVector4f* a, float s);
 void dsVector4d_scale(dsVector4d* result, const dsVector4d* a, double s);
 void dsVector4i_scale(dsVector4i* result, const dsVector4i* a, int s);
 
+void dsVector4f_neg(dsVector4f* result, const dsVector4f* a);
+void dsVector4d_neg(dsVector4d* result, const dsVector4d* a);
+void dsVector4i_neg(dsVector4i* result, const dsVector4i* a);
+
 float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b);
 double dsVector4d_dot(const dsVector4d* a, const dsVector4d* b);
 int dsVector4i_dot(const dsVector4i* a, const dsVector4i* b);

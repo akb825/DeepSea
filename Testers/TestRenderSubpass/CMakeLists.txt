@@ -52,8 +52,8 @@ ds_compile_shaders_target(deepsea_test_render_subpass_shaders shaders
 	DEPENDS deepsea_test_render_subpass_prepare)
 add_dependencies(deepsea_test_render_subpass deepsea_test_render_subpass_shaders)
 
-ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/texture.png FORMAT R8G8B8A8
-	MIPMAP OUTPUT ${textureDir}/texture.pvr)
+ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/SimpleTexture.png
+	FORMAT R8G8B8A8 MIPMAP OUTPUT ${textureDir}/texture.pvr)
 ds_convert_textures_target(deepsea_test_render_subpass_textures textures
 	DEPENDS deepsea_test_render_subpass_prepare)
 add_dependencies(deepsea_test_render_subpass deepsea_test_render_subpass_textures)

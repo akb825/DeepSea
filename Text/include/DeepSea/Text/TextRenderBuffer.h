@@ -48,36 +48,53 @@ DS_TEXT_EXPORT dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* alloca
 	bool tessellationShader, dsGlyphDataFunction glyphDataFunc, void* userData);
 
 /**
- * @brief Queues text onto the render buffer.
+ * @brief Adds text to the render buffer.
  * @remark errno will be set on failure.
- * @param renderBuffer The text render buffer to draw with.
- * @param commandBuffer The command buffer to queue commands onto.
+ * @param renderBuffer The text render buffer.
  * @param text The lain out text to draw.
  * @param firstGlyph The first glyph to draw.
  * @param glyphCount The number of glyphs to draw.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffer,
-	dsCommandBuffer* commandBuffer, const dsTextLayout* text, uint32_t firstGlyph,
-	uint32_t glyphCount);
+DS_TEXT_EXPORT bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
+	const dsTextLayout* text, uint32_t firstGlyph, uint32_t glyphCount);
 
 /**
- * @brief Flushes any remaining queued text.
+ * @brief Commits added text to be rendered.
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
- * @param renderBuffer The text render buffer to draw with.
+ * @param renderBuffer The text render buffer.
  * @param commandBuffer The command buffer to queue commands onto.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_flush(dsTextRenderBuffer* renderBuffer,
+DS_TEXT_EXPORT bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer,
+	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Clears the text currently pushed onto the buffer.
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer);
+
+/**
+ * @brief Draws the text that has been placed onto the buffer.
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer,
 	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroy a text render buffer.
  * @remark errno will be set on failure.
- * @param renderBuffer The render buffer to destroy.
+ * @param renderBuffer The render buffer.
  * @return False if the render buffer can't be destroyed.
  */
-DS_TEXT_EXPORT bool dsTextBuffer_destroy(dsTextRenderBuffer* renderBuffer);
+DS_TEXT_EXPORT bool dsTextRenderBuffer_destroy(dsTextRenderBuffer* renderBuffer);
 
 #ifdef __cplusplus
 }

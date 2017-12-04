@@ -187,6 +187,20 @@ TYPED_TEST(Vector4Test, Scale)
 	EXPECT_EQ((TypeParam)8.9 * (TypeParam)3.2, result.w);
 }
 
+TYPED_TEST(Vector4Test, Neg)
+{
+	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type result;
+
+	dsVector4_neg(result, a);
+	EXPECT_EQ(-a.x, result.x);
+	EXPECT_EQ(-a.y, result.y);
+	EXPECT_EQ(-a.z, result.z);
+	EXPECT_EQ(-a.w, result.w);
+}
+
 TYPED_TEST(Vector4Test, Dot)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;

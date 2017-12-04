@@ -110,6 +110,8 @@ typedef struct dsGlyph
 
 	/**
 	 * @brief The offset before drawing the glyph.
+	 *
+	 * Positive Y points down.
 	 */
 	dsVector2f offset;
 
@@ -212,6 +214,16 @@ typedef struct dsText
 typedef struct dsTextStyle
 {
 	/**
+	 * @brief The first character in the range for this style.
+	 */
+	uint32_t start;
+
+	/**
+	 * @brief The number of characters in the range for this style.
+	 */
+	uint32_t count;
+
+	/**
 	 * @brief The scale of the text.
 	 */
 	float scale;
@@ -232,12 +244,16 @@ typedef struct dsTextStyle
 	float slant;
 
 	/**
-	 * @brief The amount to outline the text.
-	 *
-	 * A value of 0 will have no outline, while a value of 1 will cover the full size of embolden
-	 * with a value of 1.
+	 * @brief The position of the outline in the range [0, 1], where 1 is further from the center.
 	 */
-	float outline;
+	float outlinePosition;
+
+	/**
+	 * @brief The thickness of the outline in the range [0, 1].
+	 *
+	 * Set to 0 to have no outline.
+	 */
+	float outlineThickness;
 
 	/**
 	 * @brief The color of the text.
@@ -249,28 +265,6 @@ typedef struct dsTextStyle
 	 */
 	dsColor outlineColor;
 } dsTextStyle;
-
-/**
- * @brief Struct containing layout information for a range of the text.
- * @see TextLayout.h
- */
-typedef struct dsTextStyleRange
-{
-	/**
-	 * @brief The first character in the range.
-	 */
-	uint32_t start;
-
-	/**
-	 * @brief The number of characters in the range.
-	 */
-	uint32_t count;
-
-	/**
-	 * @brief The style to apply to the range.
-	 */
-	dsTextStyle style;
-} dsTextStyleRange;
 
 /**
  * @brief Struct containing information about a glyph in the layout.
@@ -287,7 +281,7 @@ typedef struct dsGlyphLayout
 	 * @brief The geometry of the glyph.
 	 *
 	 * This will not have any slanting applied. The origin as at the origin of the glyph, and
-	 * positive Y points up.
+	 * positive Y points down.
 	 */
 	dsAlignedBox2f geometry;
 
@@ -338,7 +332,7 @@ typedef struct dsTextLayout
 	 * The style values may be changed after the layout has been created. However, the ranges should
 	 * remain the same.
 	 */
-	dsTextStyleRange* styles;
+	dsTextStyle* styles;
 
 	/**
 	 * @brief The number of styles.

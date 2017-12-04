@@ -178,6 +178,19 @@ TYPED_TEST(Vector3Test, Scale)
 	EXPECT_EQ((TypeParam)-6.7 * (TypeParam)3.2, result.z);
 }
 
+TYPED_TEST(Vector3Test, Neg)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type result;
+
+	dsVector3_neg(result, a);
+	EXPECT_EQ(-a.x, result.x);
+	EXPECT_EQ(-a.y, result.y);
+	EXPECT_EQ(-a.z, result.z);
+}
+
 TYPED_TEST(Vector3Test, Dot)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;

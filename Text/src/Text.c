@@ -96,8 +96,8 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 
 	const dsFaceGroup* group = dsFont_getFaceGroup(text->font);
 
-	// Store the script info in the text ranges memory. This will be converted in place to the final text
-	// ranges later.
+	// Store the script info in the text ranges memory. This will be converted in place to the final
+	// text ranges later.
 	dsScriptInfo* scriptInfo = NULL;
 	uint32_t curInfo = 0;
 	for (uint32_t i = 0; i < runCount; ++i)

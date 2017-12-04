@@ -1,0 +1,55 @@
+/*
+ * Copyright 2017 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @brief Computes the text color based on a signed distance field.
+ * @param distance The signed distance in the range [0, 1] to the closest edge. (from the texture
+ *     lookup)
+ * @param embolden The amount to embolden the text.
+ * @param outlinePosition The position of the outline in the range [0, 1], where 1 is further from
+ *     the center.
+ * @param outlineThickness The thickness of the outline in the range [0, 1]..
+ * @param textColor The color of the text.
+ * @param outlineColor The color of the text outline.
+ * @return The text color.
+ */
+vec4 computeTextColor(float distance, float embolden, float outlinePosition, float outlineThickness,
+	vec4 textColor, vec4 outlineColor)
+{
+	const float antiAlias = 0.01;
+	float insideThreshold = embolden*0.5 + 0.5;
+	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
+	vec4 color = vec4(textColor.rgb, textColor.a*inside);
+
+	if (outlineThickness > 0.0 && outlineColor.a > 0)
+	{
+		float outlineMinThreshold = outlinePosition - outlineThickness*0.5;
+		float outlineMaxThreshold = outlinePosition + outlineThickness*0.5;
+
+		float insideMinOutline = smoothstep(outlineMinThreshold - antiAlias,
+			outlineMinThreshold + antiAlias, distance);
+		float insideMaxOutline = smoothstep(outlineMaxThreshold - antiAlias,
+			outlineMaxThreshold + antiAlias, distance);
+		float insideOutline = insideMinOutline*insideMaxOutline;
+
+		color.rgb = mix(color.rgb, outlineColor.rgb, insideOutline*outlineColor.a);
+		color.a = mix(color.a, outlineColor.a, insideOutline);
+	}
+
+	return color;
+}

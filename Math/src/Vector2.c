@@ -36,6 +36,10 @@ void dsVector2f_scale(dsVector2f* result, const dsVector2f* a, float s);
 void dsVector2d_scale(dsVector2d* result, const dsVector2d* a, double s);
 void dsVector2i_scale(dsVector2i* result, const dsVector2i* a, int s);
 
+void dsVector2f_neg(dsVector2f* result, const dsVector2f* a);
+void dsVector2d_neg(dsVector2d* result, const dsVector2d* a);
+void dsVector2i_neg(dsVector2i* result, const dsVector2i* a);
+
 float dsVector2f_dot(const dsVector2f* a, const dsVector2f* b);
 double dsVector2d_dot(const dsVector2d* a, const dsVector2d* b);
 int dsVector2i_dot(const dsVector2i* a, const dsVector2i* b);

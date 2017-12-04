@@ -108,6 +108,18 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Negates the components of a vector.
+ * @param result The result of -a.
+ * @param a The vector.
+ */
+#define dsVector2_neg(result, a) \
+	do \
+	{ \
+		(result).values[0] = -(a).values[0]; \
+		(result).values[1] = -(a).values[1]; \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -314,6 +326,30 @@ DS_MATH_EXPORT inline void dsVector2i_scale(dsVector2i* result, const dsVector2i
 	DS_ASSERT(result);
 	DS_ASSERT(a);
 	dsVector2_scale(*result, *a, s);
+}
+
+/** @copydoc dsVector2_neg() */
+DS_MATH_EXPORT inline void dsVector2f_neg(dsVector2f* result, const dsVector2f* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_neg(*result, *a);
+}
+
+/** @copydoc dsVector2_neg() */
+DS_MATH_EXPORT inline void dsVector2d_neg(dsVector2d* result, const dsVector2d* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_neg(*result, *a);
+}
+
+/** @copydoc dsVector2_neg() */
+DS_MATH_EXPORT inline void dsVector2i_neg(dsVector2i* result, const dsVector2i* a)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	dsVector2_neg(*result, *a);
 }
 
 /** @copydoc dsVector2_dot() */

@@ -57,7 +57,7 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	if (!gfxBuffer)
 		return NULL;
 
-	dsVertexBuffer vertexBuffer = {gfxBuffer, 0, maxGlyphs*4, *vertexFormat};
+	dsVertexBuffer vertexBuffer = {gfxBuffer, 0, maxGlyphs*vertexCount, *vertexFormat};
 	dsVertexBuffer* vertexBufferPtrs[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
 		{&vertexBuffer, NULL, NULL, NULL};
 	dsIndexBuffer indexBuffer = {gfxBuffer, vertexBufferSize, maxGlyphs*6, indexSize};
@@ -98,11 +98,11 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	return renderBuffer;
 }
 
-bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer,
-	const dsTextLayout* text, uint32_t firstGlyph, uint32_t glyphCount)
+bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLayout* text,
+	uint32_t firstGlyph, uint32_t glyphCount)
 {
 	DS_PROFILE_FUNC_START();
-	if (!renderBuffer || !commandBuffer || !text)
+	if (!renderBuffer || !text)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -114,18 +114,18 @@ bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffer, dsCommandBuf
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount, renderBuffer->maxGlyphs))
+	{
+		errno = EINDEX;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	uint32_t vertexSize = renderBuffer->geometry->vertexBuffers[0].format.size;
 	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	unsigned int vertexCount = indexSize == 0 ? 1 : 4;
 	DS_ASSERT(renderBuffer->queuedGlyphs <= renderBuffer->maxGlyphs);
 	for (uint32_t i = 0; i < glyphCount; ++i, ++renderBuffer->queuedGlyphs)
 	{
-		if (renderBuffer->queuedGlyphs == renderBuffer->maxGlyphs)
-		{
-			if (!dsTextRenderBuffer_flush(renderBuffer, commandBuffer))
-				DS_PROFILE_FUNC_RETURN(false);
-		}
-
 		uint32_t vertexOffset = vertexSize*renderBuffer->queuedGlyphs*vertexCount;
 		renderBuffer->glyphDataFunc(renderBuffer->userData, text, firstGlyph + i,
 			(uint8_t*)renderBuffer->tempData + vertexOffset,
@@ -160,7 +160,7 @@ bool dsTextRenderBuffer_queueText(dsTextRenderBuffer* renderBuffer, dsCommandBuf
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-bool dsTextRenderBuffer_flush(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
+bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
 	if (!renderBuffer || !commandBuffer)
 	{
@@ -204,6 +204,33 @@ bool dsTextRenderBuffer_flush(dsTextRenderBuffer* renderBuffer, dsCommandBuffer*
 		}
 	}
 
+	return true;
+}
+
+bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer)
+{
+	if (!renderBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	renderBuffer->queuedGlyphs = 0;
+	return true;
+}
+
+bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
+{
+	if (!renderBuffer || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (renderBuffer->queuedGlyphs == 0)
+		return true;
+
+	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	if (indexSize == 0)
 	{
 		dsDrawRange drawRange = {renderBuffer->queuedGlyphs, 1, 0, 0};
@@ -222,7 +249,6 @@ bool dsTextRenderBuffer_flush(dsTextRenderBuffer* renderBuffer, dsCommandBuffer*
 			return false;
 		}
 	}
-	renderBuffer->queuedGlyphs = 0;
 
 	return true;
 }

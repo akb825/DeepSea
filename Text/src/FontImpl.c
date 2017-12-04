@@ -164,6 +164,12 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face '%s' has already been loaded.", name);
 		return NULL;
 	}
+	else if (group->faceHashTable->list.length == group->faceHashTable->tableSize)
+	{
+		errno = ESIZE;
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Maximum number of faces has been exceeded.");
+		return NULL;
+	}
 
 	switch (group->quality)
 	{
@@ -228,15 +234,16 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 	DS_ASSERT(bitmap->width <= face->maxWidth);
 	DS_ASSERT(bitmap->rows <= face->maxHeight);
 	outBounds->min.x = (float)ftFace->glyph->bitmap_left*scale;
-	outBounds->min.y = (float)(ftFace->glyph->bitmap_top - bitmap->rows)*scale;
+	outBounds->min.y = ((float)ftFace->glyph->bitmap_top - (float)bitmap->rows)*scale;
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
-	outBounds->min.y = outBounds->min.y + (float)bitmap->rows*scale;
+	outBounds->max.y = outBounds->min.y + (float)bitmap->rows*scale;
 
 	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 	outTexSize->x = dsMin(glyphSize, bitmap->width + windowSize*2);
 	outTexSize->y = dsMin(glyphSize, bitmap->rows + windowSize*2);
 
-	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO);
+	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO ||
+		(bitmap->rows == 0 && bitmap->width == 0));
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
 	{
 		const uint8_t* row = bitmap->buffer + abs(bitmap->pitch)*y;
@@ -421,6 +428,8 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t ra
 	{
 		group->scratchText->characterCount = length;
 		group->scratchText->rangeCount = rangeCount;
+		group->scratchText->glyphCount = group->scratchGlyphCount = 0;
+		group->scratchText->rangeCount = group->scratchRangeCount = 0;
 		return group->scratchText;
 	}
 
@@ -458,6 +467,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t ra
 	group->scratchText->rangeCount = rangeCount;
 
 	group->scratchText->glyphs = NULL;
+	group->scratchText->glyphCount = 0;
 
 	return group->scratchText;
 }
@@ -520,7 +530,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsFaceGroup* faceGroup = (dsFaceGroup*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsFaceGroup));
+		sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces);
 	DS_ASSERT(faceGroup);
 
 	uint32_t hashTableSize = getTableSize(maxFaces);
@@ -712,7 +722,6 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	hb_buffer_destroy(group->shapeBuffer);
 
 	FT_Done_Library(group->library);
-	DS_VERIFY(dsAllocator_free(group->allocator, group));
 
 	if (group->scratchText)
 		dsAllocator_free(group->scratchAllocator, group->scratchText);
@@ -747,6 +756,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
 	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
 		count);
+	hb_buffer_guess_segment_properties(shapeBuffer);
 	hb_shape(font->faces[face]->font, shapeBuffer, NULL, 0);
 	if (!hb_buffer_allocation_successful(shapeBuffer))
 	{
@@ -755,7 +765,6 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		return false;
 	}
 
-	hb_buffer_guess_segment_properties(shapeBuffer);
 	unsigned int glyphCount = 0;
 	hb_glyph_info_t* glyphInfos = hb_buffer_get_glyph_infos(shapeBuffer, &glyphCount);
 	unsigned int glyphPosCount;
@@ -795,7 +804,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		glyphs[i].charIndex = glyphInfos[i].cluster;
 		glyphs[i].canBreak = (glyphInfos[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK) == 0;
 		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
-		glyphs[i].offset.y = (float)glyphPos[i].y_offset*scale;
+		glyphs[i].offset.y = -(float)glyphPos[i].y_offset*scale;
 		glyphs[i].advance = (float)glyphPos[i].x_advance*scale;
 		DS_ASSERT(glyphPos[i].y_advance == 0);
 	}

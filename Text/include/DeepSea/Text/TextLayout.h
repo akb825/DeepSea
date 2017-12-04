@@ -72,7 +72,7 @@ size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount);
  * @param styleCount The number of styles.
  */
 dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
-	const dsTextStyleRange* styles, uint32_t styleCount);
+	const dsTextStyle* styles, uint32_t styleCount);
 
 /**
  * @brief Performs layout on the text, preparing it to be rendered.

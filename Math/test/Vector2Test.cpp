@@ -169,6 +169,18 @@ TYPED_TEST(Vector2Test, Scale)
 	EXPECT_EQ((TypeParam)4.5 * (TypeParam)3.2, result.y);
 }
 
+TYPED_TEST(Vector2Test, Neg)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type result;
+
+	dsVector2_neg(result, a);
+	EXPECT_EQ(-a.x, result.x);
+	EXPECT_EQ(-a.y, result.y);
+}
+
 TYPED_TEST(Vector2Test, Dot)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;

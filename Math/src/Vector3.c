@@ -36,6 +36,10 @@ void dsVector3f_scale(dsVector3f* result, const dsVector3f* a, float s);
 void dsVector3d_scale(dsVector3d* result, const dsVector3d* a, double s);
 void dsVector3i_scale(dsVector3i* result, const dsVector3i* a, int s);
 
+void dsVector3f_neg(dsVector3f* result, const dsVector3f* a);
+void dsVector3d_neg(dsVector3d* result, const dsVector3d* a);
+void dsVector3i_neg(dsVector3i* result, const dsVector3i* a);
+
 float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b);
 double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b);
 int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b);

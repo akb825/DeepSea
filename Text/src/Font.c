@@ -379,6 +379,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		return NULL;
 	}
 
+	dsFaceGroup_unlock(group);
 	return font;
 }
 

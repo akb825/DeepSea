@@ -1,2 +1,3 @@
 add_subdirectory(TestCube)
 add_subdirectory(TestRenderSubpass)
+add_subdirectory(TestText)
