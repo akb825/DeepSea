@@ -428,8 +428,8 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t ra
 	{
 		group->scratchText->characterCount = length;
 		group->scratchText->rangeCount = rangeCount;
-		group->scratchText->glyphCount = group->scratchGlyphCount = 0;
-		group->scratchText->rangeCount = group->scratchRangeCount = 0;
+		group->scratchText->glyphCount = 0;
+		group->scratchText->rangeCount = 0;
 		return group->scratchText;
 	}
 

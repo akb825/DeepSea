@@ -37,14 +37,14 @@ uniform vec2 position;
 [[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
 [[vertex]] layout(location = DS_COLOR0) in vec4 textColor;
 [[vertex]] layout(location = DS_COLOR1) in vec4 outlineColor;
-[[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoords;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec3 texCoords;
 [[vertex]] layout(location = DS_TEXCOORD1) in vec3 style;
 
 struct VertexOut
 {
 	vec4 textColor;
 	vec4 outlineColor;
-	vec2 texCoords;
+	vec3 texCoords;
 	vec3 style;
 };
 
@@ -69,7 +69,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = texture(fontTex, vertexOut.texCoords).r;
+	float distance = textureLod(fontTex, vertexOut.texCoords.xy, vertexOut.texCoords.z).r;
 	color = computeTextColor(distance, vertexOut.style.x, vertexOut.style.y, vertexOut.style.z,
 		vertexOut.textColor, vertexOut.outlineColor);
 }

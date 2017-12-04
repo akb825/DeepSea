@@ -514,7 +514,12 @@ typedef union dsVector4f
 		 */
 		float a;
 	};
-} DS_ALIGN(16) dsVector4f;
+} dsVector4f;
+
+/**
+ * @brief Version of dsVector4f that's aligned to 16 bytes for usage with SIMD.
+ */
+typedef union dsVector4f DS_ALIGN(16) dsVector4fSIMD;
 
 /**
  * @brief Structure for a 4D vector holding doubles.
@@ -850,6 +855,11 @@ typedef union dsMatrix44f
 	 */
 	dsVector4f columns[4];
 } dsMatrix44f;
+
+/**
+ * @brief Version of dsMatrix44f that's aligned to 16 bytes for usage with SIMD.
+ */
+typedef union dsMatrix44f DS_ALIGN(16) dsMatrix44fSIMD;
 
 /**
  * @brief Structure for a 4x4 matrix of doubles.

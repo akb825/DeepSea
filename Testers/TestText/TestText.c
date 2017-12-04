@@ -102,13 +102,13 @@ typedef struct StandardVertex
 	dsVector2f position;
 	dsColor textColor;
 	dsColor outlineColor;
-	dsVector2f texCoords;
+	dsVector3f texCoords;
 	dsVector3f style;
 } StandardVertex;
 
 typedef struct TessVertex
 {
-	dsVector2f position;
+	dsVector3f position;
 	dsAlignedBox2f geometry;
 	dsColor textColor;
 	dsColor outlineColor;
@@ -177,6 +177,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[0].outlineColor = style->outlineColor;
 	vertices[0].texCoords.x = glyph->texCoords.min.x;
 	vertices[0].texCoords.y = glyph->texCoords.min.y;
+	vertices[0].texCoords.z = (float)glyph->mipLevel;
 	vertices[0].style.x = style->embolden;
 	vertices[0].style.y = style->outlinePosition;
 	vertices[0].style.z = style->outlineThickness;
@@ -188,6 +189,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[1].outlineColor = style->outlineColor;
 	vertices[1].texCoords.x = glyph->texCoords.min.x;
 	vertices[1].texCoords.y = glyph->texCoords.max.y;
+	vertices[1].texCoords.z = (float)glyph->mipLevel;
 	vertices[1].style.x = style->embolden;
 	vertices[1].style.y = style->outlinePosition;
 	vertices[1].style.z = style->outlineThickness;
@@ -199,6 +201,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[2].outlineColor = style->outlineColor;
 	vertices[2].texCoords.x = glyph->texCoords.max.x;
 	vertices[2].texCoords.y = glyph->texCoords.max.y;
+	vertices[2].texCoords.z = (float)glyph->mipLevel;
 	vertices[2].style.x = style->embolden;
 	vertices[2].style.y = style->outlinePosition;
 	vertices[2].style.z = style->outlineThickness;
@@ -210,6 +213,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[3].outlineColor = style->outlineColor;
 	vertices[3].texCoords.x = glyph->texCoords.max.x;
 	vertices[3].texCoords.y = glyph->texCoords.min.y;
+	vertices[3].texCoords.z = (float)glyph->mipLevel;
 	vertices[3].style.x = style->embolden;
 	vertices[3].style.y = style->outlinePosition;
 	vertices[3].style.z = style->outlineThickness;
@@ -237,7 +241,9 @@ static void addTessTextVertex(void* userData, const dsTextLayout* layout, uint32
 	TessVertex* vertex = (TessVertex*)vertexData;
 	const dsTextStyle* style = layout->styles + layout->glyphs[glyphIndex].styleIndex;
 	const dsGlyphLayout* glyph = layout->glyphs + glyphIndex;
-	vertex->position = layout->glyphs[glyphIndex].position;
+	vertex->position.x = layout->glyphs[glyphIndex].position.x;
+	vertex->position.y = layout->glyphs[glyphIndex].position.y;
+	vertex->position.z = (float)layout->glyphs[glyphIndex].mipLevel;
 	vertex->geometry = glyph->geometry;
 	vertex->texCoords = glyph->texCoords;
 	vertex->textColor = style->color;
@@ -604,7 +610,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	vertexFormat.elements[dsVertexAttrib_Color1].format = dsGfxFormat_decorate(
 		dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32, dsGfxFormat_Float);
+		dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord1].format = dsGfxFormat_decorate(
 		dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
@@ -643,7 +649,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 		DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
 		vertexFormat.elements[dsVertexAttrib_Position0].format = dsGfxFormat_decorate(
-			dsGfxFormat_X32Y32, dsGfxFormat_Float);
+			dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 		vertexFormat.elements[dsVertexAttrib_Position1].format = dsGfxFormat_decorate(
 			dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		vertexFormat.elements[dsVertexAttrib_Color0].format = dsGfxFormat_decorate(
