@@ -21,6 +21,7 @@
  * @param distance The signed distance in the range [0, 1] to the closest edge. (from the texture
  *     lookup)
  * @param embolden The amount to embolden the text.
+ * @param antiAlias The amount to anti-alias the text.
  * @param outlinePosition The position of the outline in the range [0, 1], where 1 is further from
  *     the center.
  * @param outlineThickness The thickness of the outline in the range [0, 1]..
@@ -29,11 +30,11 @@
  * @return The text color.
  */
 vec4 computeTextColor(float distance, float embolden, float outlinePosition, float outlineThickness,
-	vec4 textColor, vec4 outlineColor)
+	float antiAlias, vec4 textColor, vec4 outlineColor)
 {
-	const float antiAlias = 0.01;
 	float insideThreshold = embolden*0.5 + 0.5;
 	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
+	return vec4(textColor.rgb, inside);
 	vec4 color = vec4(textColor.rgb, textColor.a*inside);
 
 	if (outlineThickness > 0.0 && outlineColor.a > 0)

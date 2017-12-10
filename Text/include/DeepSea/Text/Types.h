@@ -256,6 +256,13 @@ typedef struct dsTextStyle
 	float outlineThickness;
 
 	/**
+	 * @brief The amount to anti-alias the text in a range [0, 1].
+	 *
+	 * Set to 0 for no anti-aliasing.
+	 */
+	float antiAlias;
+
+	/**
 	 * @brief The color of the text.
 	 */
 	dsColor color;

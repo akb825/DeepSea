@@ -36,7 +36,7 @@ uniform SharedInfo
 
 uniform vec2 position;
 
-[[vertex]] layout(location = DS_POSITION0) in vec3 vertexPos;
+[[vertex]] layout(location = DS_POSITION0) in vec4 vertexPos;
 [[vertex]] layout(location = DS_POSITION1) in vec4 geometry;
 [[vertex]] layout(location = DS_COLOR0) in vec4 textColor;
 [[vertex]] layout(location = DS_COLOR1) in vec4 outlineColor;
@@ -49,7 +49,7 @@ struct VertexOut
 	vec4 textColor;
 	vec4 outlineColor;
 	vec4 texCoords;
-	float mipLevel;
+	vec2 mipAntiAlias;
 	vec4 style;
 };
 
@@ -59,7 +59,7 @@ struct TessControlOut
 	vec4 textColor;
 	vec4 outlineColor;
 	vec4 texCoords;
-	float mipLevel;
+	vec2 mipAntiAlias;
 	vec4 style;
 };
 
@@ -68,7 +68,7 @@ struct TessEvalOut
 	vec4 textColor;
 	vec4 outlineColor;
 	vec3 texCoords;
-	vec3 style;
+	vec4 style;
 };
 
 [[vertex]] out VertexOut vertexOut;
@@ -92,18 +92,19 @@ void vertexShader()
 	vertexOut.textColor = textColor;
 	vertexOut.outlineColor = outlineColor;
 	vertexOut.texCoords = texCoords;
-	vertexOut.mipLevel = vertexPos.z;
+	vertexOut.mipAntiAlias = vertexPos.zw;
 	vertexOut.style = style;
 }
 
 [[tessellation_control]]
 void tessellationControl()
 {
+	gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
 	tessControlOut.geometry = vertexOut[0].geometry;
 	tessControlOut.textColor = vertexOut[0].textColor;
 	tessControlOut.outlineColor = vertexOut[0].outlineColor;
 	tessControlOut.texCoords = vertexOut[0].texCoords;
-	tessControlOut.mipLevel = vertexOut[0].mipLevel;
+	tessControlOut.mipAntiAlias = vertexOut[0].mipAntiAlias;
 	tessControlOut.style = vertexOut[0].style;
 
 	gl_TessLevelOuter[0] = 1.0;
@@ -121,10 +122,11 @@ void tessellationEvaluation()
 	tessEvalOut.outlineColor = tessControlOut.outlineColor;
 	tessEvalOut.texCoords.xy = mix(tessControlOut.texCoords.xy, tessControlOut.texCoords.zw,
 		gl_TessCoord.xy);
-	tessEvalOut.texCoords.z = tessControlOut.mipLevel;
-	tessEvalOut.style = tessControlOut.style.yzw;
+	tessEvalOut.texCoords.z = tessControlOut.mipAntiAlias.x;
+	tessEvalOut.style = vec4(tessControlOut.style.yzw, tessControlOut.mipAntiAlias.y);
 
-	vec2 vertexPos = mix(tessControlOut.geometry.xy, tessControlOut.geometry.zw, gl_TessCoord.xy);
+	vec2 vertexPos = gl_in[0].gl_Position.xy;
+	vertexPos += mix(tessControlOut.geometry.xy, tessControlOut.geometry.zw, gl_TessCoord.xy);
 	vertexPos.x -= vertexPos.y*tessControlOut.style.x;
 	vec2 normalizedPos = (uniforms.position + vertexPos)/vec2(INSTANCE(sharedInfo).screenSize);
 	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
@@ -136,7 +138,7 @@ void fragmentShader()
 {
 	float distance = textureLod(fontTex, tessEvalOut.texCoords.xy, tessEvalOut.texCoords.z).r;
 	color = computeTextColor(distance, tessEvalOut.style.x, tessEvalOut.style.y,
-		tessEvalOut.style.z, tessEvalOut.textColor, tessEvalOut.outlineColor);
+		tessEvalOut.style.z, tessEvalOut.style.w, tessEvalOut.textColor, tessEvalOut.outlineColor);
 }
 
 pipeline FontTess

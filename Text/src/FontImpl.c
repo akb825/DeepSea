@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
 #include <SheenBidi.h>
@@ -44,8 +45,8 @@ struct dsFontFace
 	dsAllocator* bufferAllocator;
 	void* buffer;
 	hb_font_t* font;
-	unsigned int maxWidth;
-	unsigned int maxHeight;
+	uint32_t maxWidth;
+	uint32_t maxHeight;
 };
 
 typedef struct dsParagraphInfo
@@ -198,8 +199,8 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;
-	face->maxWidth = (unsigned int)FT_CeilFix(width)/fixedScale;
-	face->maxHeight = (unsigned int)FT_CeilFix(height)/fixedScale;
+	face->maxWidth = (uint32_t)FT_CeilFix(width) >> 16;
+	face->maxHeight = (uint32_t)FT_CeilFix(height) >> 16;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
 	return face;
 }
@@ -212,18 +213,9 @@ const char* dsFontFace_getName(const dsFontFace* face)
 	return face->name;
 }
 
-void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face)
-{
-	if (!face)
-		return;
-
-	*maxWidth = face->maxWidth;
-	*maxHeight = face->maxHeight;
-}
-
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
+bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
-	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf)
+	uint32_t glyphSize, dsFont* font)
 {
 	FT_Face ftFace = hb_ft_font_get_face(face->font);
 	DS_ASSERT(ftFace);
@@ -242,6 +234,43 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 	outTexSize->x = dsMin(glyphSize, bitmap->width + windowSize*2);
 	outTexSize->y = dsMin(glyphSize, bitmap->rows + windowSize*2);
 
+	dsVector2f windowSize2 = {{(float)windowSize*scale, (float)windowSize*scale}};
+	dsVector2_sub(outBounds->min, outBounds->min, windowSize2);
+	dsVector2_add(outBounds->max, outBounds->max, windowSize2);
+
+	// May need to re-allocate the temporary images.
+	if (bitmap->width > font->maxWidth || bitmap->rows > font->maxHeight)
+	{
+		font->maxWidth = dsMax(bitmap->width, font->maxWidth);
+		font->maxHeight = dsMax(bitmap->rows, font->maxHeight);
+
+		dsAllocator* scratchAllocator = font->group->scratchAllocator;
+		dsAllocator_free(scratchAllocator, font->tempImage);
+		dsAllocator_free(scratchAllocator, font->tempSdf);
+		font->tempImage = NULL;
+		font->tempSdf = NULL;
+
+		font->tempImage = (uint8_t*)dsAllocator_alloc(scratchAllocator,
+			font->maxWidth*font->maxHeight*sizeof(uint8_t));
+		if (!font->tempImage)
+		{
+			font->maxWidth = font->maxHeight = 0;
+			return false;
+		}
+
+		uint32_t sdfWidth = font->maxWidth + windowSize*2;
+		uint32_t sdfHeight= font->maxHeight + windowSize*2;
+		font->tempSdf = (float*)dsAllocator_alloc(scratchAllocator,
+			sdfWidth*sdfHeight*sizeof(float));
+		if (!font->tempSdf)
+		{
+			dsAllocator_free(scratchAllocator, font->tempImage);
+			font->tempImage = NULL;
+			font->maxWidth = font->maxHeight = 0;
+			return false;
+		}
+	}
+
 	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO ||
 		(bitmap->rows == 0 && bitmap->width == 0));
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
@@ -249,11 +278,14 @@ void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 		const uint8_t* row = bitmap->buffer + abs(bitmap->pitch)*y;
 		unsigned int destY = bitmap->pitch > 0 ? y : bitmap->rows - y - 1;
 		for (unsigned int x = 0; x < bitmap->width; ++x)
-			tempImage[destY*bitmap->width + x] = (row[x/8] & 1 << (7 - x)) != 0;
+		{
+			uint32_t mask = (1 << (7 - (x % 8)));
+			font->tempImage[destY*bitmap->width + x] = (row[x/8] & mask) != 0;
+		}
 	}
 
-	dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize, tempImage,
-		bitmap->width, bitmap->rows, tempSdf);
+	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize,
+		font->tempImage, bitmap->width, bitmap->rows, font->tempSdf);
 }
 
 void dsFaceGroup_lock(const dsFaceGroup* group)
@@ -264,6 +296,11 @@ void dsFaceGroup_lock(const dsFaceGroup* group)
 void dsFaceGroup_unlock(const dsFaceGroup* group)
 {
 	DS_VERIFY(dsMutex_unlock(group->mutex));
+}
+
+dsAllocator* dsFaceGroup_getScratchAllocator(const dsFaceGroup* group)
+{
+	return group->scratchAllocator;
 }
 
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)

@@ -78,13 +78,13 @@ struct dsFont
 };
 
 const char* dsFontFace_getName(const dsFontFace* face);
-void dsFontFace_getMaxSize(uint32_t* maxWidth, uint32_t* maxHeight, const dsFontFace* face);
-void dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
+bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
-	uint32_t glyphSize, uint8_t* tempImage, float* tempSdf);
+	uint32_t glyphSize, dsFont* font);
 
 void dsFaceGroup_lock(const dsFaceGroup* group);
 void dsFaceGroup_unlock(const dsFaceGroup* group);
+dsAllocator* dsFaceGroup_getScratchAllocator(const dsFaceGroup* group);
 dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
 // Runs are in characters rather than codepoints.
 dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
@@ -103,7 +103,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t firstCodepoint, uint32_t start, uint32_t count);
 
 // Pixel values are 0 or 1, +Y points down.
-void dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
+bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
 	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
 	unsigned int height, float* tempSdf);
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex,

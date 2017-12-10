@@ -806,4 +806,12 @@ void dsGLRenderStates_updateGLState(const dsRenderer* renderer, mslRenderState* 
 	setDepthStencilStates(&curState->depthStencilState, &newState->depthStencilState,
 		dynamicStates);
 	setBlendStates(renderer, &curState->blendState, &newState->blendState, dynamicStates);
+
+	if (newState->patchControlPoints != MSL_UNKNOWN &&
+		curState->patchControlPoints != newState->patchControlPoints &&
+		ANYGL_SUPPORTED(glPatchParameteri))
+	{
+		glPatchParameteri(GL_PATCH_VERTICES, newState->patchControlPoints);
+		curState->patchControlPoints = newState->patchControlPoints;
+	}
 }

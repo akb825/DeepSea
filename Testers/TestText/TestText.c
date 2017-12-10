@@ -103,12 +103,12 @@ typedef struct StandardVertex
 	dsColor textColor;
 	dsColor outlineColor;
 	dsVector3f texCoords;
-	dsVector3f style;
+	dsVector4f style;
 } StandardVertex;
 
 typedef struct TessVertex
 {
-	dsVector3f position;
+	dsVector4f position;
 	dsAlignedBox2f geometry;
 	dsColor textColor;
 	dsColor outlineColor;
@@ -125,15 +125,15 @@ typedef struct TextInfo
 	dsTextStyle styles[3];
 } TextInfo;
 
-#define NO_STYLE {UINT_MAX, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{0, 0, 0, 0}}, {{0, 0, 0, 0}}}
+#define NO_STYLE {UINT_MAX, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{0, 0, 0, 0}}, {{0, 0, 0, 0}}}
 
 static TextInfo textStrings[] =
 {
 	{"Top text is standard quads.", "Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.2f, {{255, 255, 255, 255}},
 			{{255, 255, 255,255}}},
-		NO_STYLE, NO_STYLE}}
+			NO_STYLE, NO_STYLE}}
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -181,6 +181,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[0].style.x = style->embolden;
 	vertices[0].style.y = style->outlinePosition;
 	vertices[0].style.z = style->outlineThickness;
+	vertices[0].style.w = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.min.x;
 	geometryPos.y = glyph->geometry.max.y;
@@ -193,6 +194,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[1].style.x = style->embolden;
 	vertices[1].style.y = style->outlinePosition;
 	vertices[1].style.z = style->outlineThickness;
+	vertices[1].style.w = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.max.y;
@@ -205,6 +207,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[2].style.x = style->embolden;
 	vertices[2].style.y = style->outlinePosition;
 	vertices[2].style.z = style->outlineThickness;
+	vertices[2].style.w = style->antiAlias;
 
 	geometryPos.x = glyph->geometry.max.x;
 	geometryPos.y = glyph->geometry.min.y;
@@ -217,6 +220,7 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[3].style.x = style->embolden;
 	vertices[3].style.y = style->outlinePosition;
 	vertices[3].style.z = style->outlineThickness;
+	vertices[3].style.w = style->antiAlias;
 }
 
 static void addTessTextVertex(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
@@ -244,6 +248,7 @@ static void addTessTextVertex(void* userData, const dsTextLayout* layout, uint32
 	vertex->position.x = layout->glyphs[glyphIndex].position.x;
 	vertex->position.y = layout->glyphs[glyphIndex].position.y;
 	vertex->position.z = (float)layout->glyphs[glyphIndex].mipLevel;
+	vertex->position.w = style->antiAlias;
 	vertex->geometry = glyph->geometry;
 	vertex->texCoords = glyph->texCoords;
 	vertex->textColor = style->color;
@@ -612,7 +617,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format = dsGfxFormat_decorate(
 		dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord1].format = dsGfxFormat_decorate(
-		dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+		dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Color0, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Color1, true));
@@ -649,7 +654,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 		DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
 		vertexFormat.elements[dsVertexAttrib_Position0].format = dsGfxFormat_decorate(
-			dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+			dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		vertexFormat.elements[dsVertexAttrib_Position1].format = dsGfxFormat_decorate(
 			dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		vertexFormat.elements[dsVertexAttrib_Color0].format = dsGfxFormat_decorate(
