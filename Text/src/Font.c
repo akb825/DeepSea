@@ -126,7 +126,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	float offsetX = 1.0f;
 	if (adjustedWidth > glyphSize)
 	{
-		scaleX = (float)adjustedWidth/(float)glyphSize;
+		scaleX = (float)glyphSize/(float)adjustedWidth;
 		offsetX = 1.0f/scaleX;
 	}
 
@@ -134,7 +134,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	float offsetY = 1.0f;
 	if (adjustedHeight > glyphSize)
 	{
-		scaleY = (float)adjustedHeight/(float)glyphSize;
+		scaleY = (float)glyphSize/(float)adjustedHeight;
 		offsetY = 1.0f/scaleY;
 	}
 
@@ -149,8 +149,8 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	}
 
 	// Scale the glyph into the texture.
-	DS_ASSERT(glyphSize <= DS_HIGH_SIZE);
-	uint8_t textureData[DS_HIGH_SIZE*DS_HIGH_SIZE];
+	DS_ASSERT(glyphSize <= DS_VERY_HIGH_SIZE);
+	uint8_t textureData[DS_VERY_HIGH_SIZE*DS_VERY_HIGH_SIZE];
 	memset(textureData, 0, sizeof(textureData));
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
@@ -229,7 +229,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize)
 {
-	outPos->face = dsCubeFace_PosX;
+	outPos->face = dsCubeFace_None;
 	outPos->depth = 0;
 
 	static const uint32_t limits[DS_TEX_MIP_LEVELS] =
@@ -263,11 +263,16 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
 	const dsVector2i* texSize, uint32_t glyphSize)
 {
+	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 	float levelSize = 1.0f/(float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
+
+	dsVector2f offset = {{(float)(texSize->x + windowSize*2), (float)(texSize->y + windowSize*2)}};
+	offset.x = dsMin(offset.x, (float)glyphSize);
+	offset.y = dsMin(offset.y, (float)glyphSize);
+
 	dsVector2f levelSize2 = {{levelSize, levelSize}};
-	dsVector2f offset = {{(float)texSize->x, (float)texSize->y}};
 	dsVector2_mul(offset, offset, levelSize2);
 	dsVector2_add(outBounds->max, outBounds->min, offset);
 }
@@ -314,6 +319,9 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 			break;
 		case dsTextQuality_High:
 			glyphSize = DS_HIGH_SIZE;
+			break;
+		case dsTextQuality_VeryHigh:
+			glyphSize = DS_VERY_HIGH_SIZE;
 			break;
 		case dsTextQuality_Medium:
 		default:

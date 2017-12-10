@@ -148,7 +148,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 				uint32_t mipWidth = dsMax(1U, width >> i);
 				uint32_t mipHeight = dsMax(1U, height >> i);
 				size_t offset = dsTexture_surfaceOffset(format, dimension, width, height,
-					depth, mipLevels, dsCubeFace_PosX, 0, i);
+					depth, mipLevels, dsCubeFace_None, 0, i);
 
 				switch (dimension)
 				{

@@ -287,13 +287,13 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsRenderSurface* surface = testRenderSubpass->window->surface;
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, surface},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, testRenderSubpass->rColor},
-		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_PosX, 0, 0, testRenderSubpass->rDepth},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, testRenderSubpass->gColor},
-		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_PosX, 0, 0, testRenderSubpass->gDepth},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0, testRenderSubpass->bColor},
-		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_PosX, 0, 0, testRenderSubpass->bDepth},
+		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->rColor},
+		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->rDepth},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->gColor},
+		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->gDepth},
+		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, testRenderSubpass->bColor},
+		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth},
 	};
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
 		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, surfaces,

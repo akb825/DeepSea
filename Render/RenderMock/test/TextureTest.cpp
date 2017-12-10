@@ -61,18 +61,18 @@ TEST_F(TextureTest, Size)
 TEST_F(TextureTest, SurfaceOffset)
 {
 	EXPECT_EQ(0U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, 1, dsCubeFace_PosX, 0, 0));
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, 1, dsCubeFace_None, 0, 0));
 	EXPECT_EQ(1048576U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 0,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, dsCubeFace_None, 0,
 		1));
 	EXPECT_EQ(1310720U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 0,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 1, DS_ALL_MIP_LEVELS, dsCubeFace_None, 0,
 		2));
 	EXPECT_EQ(4063232U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 3, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 2,
+		dsGfxFormat_SNorm), dsTextureDim_2D, 512, 512, 3, DS_ALL_MIP_LEVELS, dsCubeFace_None, 2,
 		2));
 	EXPECT_EQ(151191552U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, dsCubeFace_PosX, 3,
+		dsGfxFormat_SNorm), dsTextureDim_3D, 512, 512, 128, DS_ALL_MIP_LEVELS, dsCubeFace_None, 3,
 		2));
 	EXPECT_EQ(24576000U, dsTexture_surfaceOffset(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_SNorm), dsTextureDim_Cube, 512, 512, 3, DS_ALL_MIP_LEVELS, dsCubeFace_NegY, 2,
@@ -285,7 +285,7 @@ TEST_F(TextureTest, GetData)
 	ASSERT_TRUE(texture);
 
 	dsColor readTextureData[sizeof(textureData)];
-	dsTexturePosition position = {dsCubeFace_PosX, 3, 4, 0, 1};
+	dsTexturePosition position = {dsCubeFace_None, 3, 4, 0, 1};
 	EXPECT_FALSE(dsTexture_getData(readTextureData, 8*4*4, texture, &position, 8, 4));
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -353,7 +353,7 @@ TEST_F(TextureTest, CopyData)
 			textureData[index].a = 1;
 		}
 	}
-	dsTexturePosition position = {dsCubeFace_PosX, 3, 4, 0, 1};
+	dsTexturePosition position = {dsCubeFace_None, 3, 4, 0, 1};
 	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
 		8*4*4));
 	EXPECT_TRUE(dsTexture_destroy(texture));
@@ -448,8 +448,8 @@ TEST_F(TextureTest, Copy)
 
 	dsTextureCopyRegion copyRegion =
 	{
-		{dsCubeFace_PosX, 1, 2, 2, 1},
-		{dsCubeFace_PosX, 3, 4, 1, 0},
+		{dsCubeFace_None, 1, 2, 2, 1},
+		{dsCubeFace_None, 3, 4, 1, 0},
 		8, 4, 2
 	};
 
@@ -583,8 +583,8 @@ TEST_F(TextureTest, Blit)
 
 	dsTextureBlitRegion blitRegion =
 	{
-		{dsCubeFace_PosX, 1, 2, 2, 1},
-		{dsCubeFace_PosX, 3, 4, 1, 0},
+		{dsCubeFace_None, 1, 2, 2, 1},
+		{dsCubeFace_None, 3, 4, 1, 0},
 		8, 4, 8, 4, 2
 	};
 

@@ -296,7 +296,9 @@ typedef enum dsCubeFace
 	dsCubeFace_PosY, ///< +Y
 	dsCubeFace_NegY, ///< -Y
 	dsCubeFace_PosZ, ///< +Z
-	dsCubeFace_NegZ  ///< -Z
+	dsCubeFace_NegZ, ///< -Z
+
+	dsCubeFace_None = 0 ///< No cube face.
 } dsCubeFace;
 
 /**

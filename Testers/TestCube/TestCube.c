@@ -198,8 +198,8 @@ static bool createFramebuffer(TestCube* testCube)
 	dsRenderSurface* surface = testCube->window->surface;
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, surface},
-		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_PosX, 0, 0, surface}
+		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface},
+		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testCube->framebuffer = dsFramebuffer_create(testCube->renderer->resourceManager,
 		testCube->allocator, surfaces, 2, width, height, 1);

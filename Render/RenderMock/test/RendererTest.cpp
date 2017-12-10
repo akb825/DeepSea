@@ -88,7 +88,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	colorValue.floatValue.b = 0.0f;
 	colorValue.floatValue.a = 1.0f;
 
-	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0,
+	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
 		offscreen1};
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, NULL, &surface,
 		&colorValue));
@@ -167,7 +167,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	ASSERT_TRUE(renderSurface);
 
 	dsDepthStencilValue depthStencilValue = {1.0f, 0};
-	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_PosX, 0, 0,
+	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
 		offscreen1};
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, NULL, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));

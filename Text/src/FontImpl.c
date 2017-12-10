@@ -180,6 +180,9 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		case dsTextQuality_High:
 			FT_Set_Pixel_Sizes(ftFace, 0, DS_HIGH_SIZE);
 			break;
+		case dsTextQuality_VeryHigh:
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_VERY_HIGH_SIZE);
+			break;
 		case dsTextQuality_Medium:
 		default:
 			FT_Set_Pixel_Sizes(ftFace, 0, DS_MEDIUM_SIZE);
@@ -230,13 +233,8 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
 	outBounds->max.y = outBounds->min.y + (float)bitmap->rows*scale;
 
-	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
-	outTexSize->x = dsMin(glyphSize, bitmap->width + windowSize*2);
-	outTexSize->y = dsMin(glyphSize, bitmap->rows + windowSize*2);
-
-	dsVector2f windowSize2 = {{(float)windowSize*scale, (float)windowSize*scale}};
-	dsVector2_sub(outBounds->min, outBounds->min, windowSize2);
-	dsVector2_add(outBounds->max, outBounds->max, windowSize2);
+	outTexSize->x = bitmap->width;
+	outTexSize->y = bitmap->rows;
 
 	// May need to re-allocate the temporary images.
 	if (bitmap->width > font->maxWidth || bitmap->rows > font->maxHeight)
@@ -258,6 +256,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 			return false;
 		}
 
+		uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 		uint32_t sdfWidth = font->maxWidth + windowSize*2;
 		uint32_t sdfHeight= font->maxHeight + windowSize*2;
 		font->tempSdf = (float*)dsAllocator_alloc(scratchAllocator,

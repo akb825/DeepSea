@@ -23,12 +23,13 @@
 
 #define DS_LOW_SIZE 16
 #define DS_MEDIUM_SIZE 32
-#define DS_HIGH_SIZE 64
-// 512 for low, 1024 for medium, 2048 for high
+#define DS_HIGH_SIZE 48
+#define DS_VERY_HIGH_SIZE 64
+// 512 for low, 1024 for medium, 1536 for high, and 2048 for very high
 #define DS_TEX_MULTIPLIER 32
 #define DS_TEX_MIP_LEVELS 6
 #define DS_TABLE_SIZE 1823
-#define DS_BASE_WINDOW_SIZE 2
+#define DS_BASE_WINDOW_SIZE 3
 
 typedef enum dsUnicodeType
 {

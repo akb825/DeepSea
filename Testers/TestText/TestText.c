@@ -131,7 +131,7 @@ static TextInfo textStrings[] =
 {
 	{"Top text is standard quads.", "Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.2f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255,255}}},
 			NO_STYLE, NO_STYLE}}
 };
@@ -319,7 +319,7 @@ static bool createFramebuffer(TestText* testText)
 	dsRenderSurface* surface = testText->window->surface;
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_PosX, 0, 0, surface}
+		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testText->framebuffer = dsFramebuffer_create(testText->renderer->resourceManager,
 		testText->allocator, surfaces, 1, width, height, 1);

@@ -56,9 +56,10 @@ extern "C"
  */
 typedef enum dsTextQuality
 {
-	dsTextQuality_Low,    ///< Low quality with lower memory and CPU usage.
-	dsTextQuality_Medium, ///< Tradeoff between quality and memory and CPU usage.
-	dsTextQuality_High    ///< High quality with more memory and CPU usage.
+	dsTextQuality_Low,     ///< Low quality with lower memory and CPU usage.
+	dsTextQuality_Medium,  ///< Tradeoff between quality and memory and CPU usage.
+	dsTextQuality_High,    ///< High quality with more memory and CPU usage.
+	dsTextQuality_VeryHigh ///< Even higher quality with more memory usage.
 } dsTextQuality;
 
 /**

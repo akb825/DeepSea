@@ -398,7 +398,7 @@ TEST_F(TextureDataTest, LoadDdsFileToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -448,7 +448,7 @@ TEST_F(TextureDataTest, LoadDdsStreamToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -774,7 +774,7 @@ TEST_F(TextureDataTest, LoadKtxFileToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -824,7 +824,7 @@ TEST_F(TextureDataTest, LoadKtxStreamToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -1150,7 +1150,7 @@ TEST_F(TextureDataTest, LoadPvrFileToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -1200,7 +1200,7 @@ TEST_F(TextureDataTest, LoadPvrStreamToTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
@@ -1386,7 +1386,7 @@ TEST_F(TextureDataTest, CreateTexture)
 	EXPECT_EQ(1U, texture->mipLevels);
 
 	dsColor textureColors[4*4];
-	dsTexturePosition position = {dsCubeFace_PosX, 0, 0, 0, 0};
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
 	ASSERT_TRUE(dsTexture_getData(textureColors, sizeof(textureColors), texture, &position, 4, 4));
 
 	EXPECT_EQ((dsColor{{0, 0, 0, 255}}), textureColors[0]);
