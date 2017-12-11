@@ -353,19 +353,24 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	// Fourth pass: add padding to the bounds and compute the final texture coordinates.
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
-		float scale = layout->styles[glyphs[i].styleIndex].scale;
-		uint32_t glyphWidth = (uint32_t)glyphs[i].texCoords.max.x + windowSize*2;
-		uint32_t glyphHeight = (uint32_t)glyphs[i].texCoords.max.y + windowSize*2;
-		glyphWidth = dsMax(glyphWidth, font->glyphSize);
-		glyphHeight = dsMax(glyphHeight, font->glyphSize);
-		dsVector2f glyphScale = {{(float)font->glyphSize/(float)glyphWidth,
-			(float)font->glyphSize/(float)glyphHeight}};
-		dsVector2f padding = {{basePadding, basePadding}};
-		dsVector2_mul(padding, padding, glyphScale);
-		dsVector2_scale(padding, padding, scale);
+		// Don't add padding if the geometry is degenerate.
+		if (glyphs[i].geometry.min.x != glyphs[i].geometry.max.x &&
+			glyphs[i].geometry.min.y != glyphs[i].geometry.max.y)
+		{
+			float scale = layout->styles[glyphs[i].styleIndex].scale;
+			uint32_t glyphWidth = (uint32_t)glyphs[i].texCoords.max.x + windowSize*2;
+			uint32_t glyphHeight = (uint32_t)glyphs[i].texCoords.max.y + windowSize*2;
+			glyphWidth = dsMax(glyphWidth, font->glyphSize);
+			glyphHeight = dsMax(glyphHeight, font->glyphSize);
+			dsVector2f glyphScale = {{(float)font->glyphSize/(float)glyphWidth,
+				(float)font->glyphSize/(float)glyphHeight}};
+			dsVector2f padding = {{basePadding, basePadding}};
+			dsVector2_mul(padding, padding, glyphScale);
+			dsVector2_scale(padding, padding, scale);
 
-		dsVector2_sub(glyphs[i].geometry.min, glyphs[i].geometry.min, padding);
-		dsVector2_add(glyphs[i].geometry.max, glyphs[i].geometry.max, padding);
+			dsVector2_sub(glyphs[i].geometry.min, glyphs[i].geometry.min, padding);
+			dsVector2_add(glyphs[i].geometry.max, glyphs[i].geometry.max, padding);
+		}
 
 		dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyphs[i].texCoords.min.x,
 			(uint32_t)glyphs[i].texCoords.min.y, 0, glyphs[i].mipLevel};

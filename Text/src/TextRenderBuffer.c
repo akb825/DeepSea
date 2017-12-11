@@ -114,7 +114,19 @@ bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLa
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount, renderBuffer->maxGlyphs))
+	uint32_t emptyGlyphs = 0;
+	for (uint32_t i = 0; i < glyphCount; ++i)
+	{
+		const dsGlyphLayout* glyph = text->glyphs + firstGlyph + i;
+		if (glyph->geometry.min.x == glyph->geometry.max.x ||
+			glyph->geometry.min.y == glyph->geometry.max.y)
+		{
+			++emptyGlyphs;
+		}
+	}
+
+	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount - emptyGlyphs,
+		renderBuffer->maxGlyphs))
 	{
 		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -124,8 +136,16 @@ bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLa
 	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	unsigned int vertexCount = indexSize == 0 ? 1 : 4;
 	DS_ASSERT(renderBuffer->queuedGlyphs <= renderBuffer->maxGlyphs);
-	for (uint32_t i = 0; i < glyphCount; ++i, ++renderBuffer->queuedGlyphs)
+	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
+		// Skip empty glyphs.
+		const dsGlyphLayout* glyph = text->glyphs + firstGlyph + i;
+		if (glyph->geometry.min.x == glyph->geometry.max.x ||
+			glyph->geometry.min.y == glyph->geometry.max.y)
+		{
+			continue;
+		}
+
 		uint32_t vertexOffset = vertexSize*renderBuffer->queuedGlyphs*vertexCount;
 		renderBuffer->glyphDataFunc(renderBuffer->userData, text, firstGlyph + i,
 			(uint8_t*)renderBuffer->tempData + vertexOffset,
@@ -155,6 +175,7 @@ bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLa
 			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4 + 3;
 			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4;
 		}
+		++renderBuffer->queuedGlyphs;
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);
