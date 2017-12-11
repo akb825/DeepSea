@@ -151,6 +151,18 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			styleRangeLimit += style->count;
 		}
 
+		// Skip whitespace.
+		uint32_t charcode = text->characters[text->glyphs[i].charIndex];
+		if (isspace(charcode))
+		{
+			glyphs[i].geometry.min.x = glyphs[i].geometry.min.y = 0;
+			glyphs[i].geometry.max = glyphs[i].geometry.min;
+			glyphs[i].texCoords = glyphs[i].geometry;
+			glyphs[i].mipLevel = 0;
+			glyphs[i].styleIndex = (uint32_t)(style - layout->styles);
+			continue;
+		}
+
 		float scale = style->scale;
 		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
 			text->glyphs[i].glyphId);
@@ -272,12 +284,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 					}
 				}
 
-				// Negate Y before adding to the full bounds.
-				float temp = lineBounds.min.y;
-				lineBounds.min.y = -lineBounds.max.y;
-				lineBounds.max.y = -temp;
 				dsAlignedBox2_addBox(layout->bounds, lineBounds);
-
 				dsAlignedBox2f_makeInvalid(&lineBounds);
 			}
 
@@ -320,10 +327,14 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		glyphs[i].position.y += text->glyphs[i].offset.y*scale;
 
 		// Add to the line bounds.
-		dsAlignedBox2f glyphBounds;
-		dsVector2_add(glyphBounds.min, glyphs[i].position, glyphs[i].geometry.min);
-		dsVector2_add(glyphBounds.max, glyphs[i].position, glyphs[i].geometry.max);
-		dsAlignedBox2_addBox(lineBounds, glyphBounds);
+		if (glyphs[i].geometry.min.x != glyphs[i].geometry.max.x &&
+			glyphs[i].geometry.min.y != glyphs[i].geometry.max.y)
+		{
+			dsAlignedBox2f glyphBounds;
+			dsVector2_add(glyphBounds.min, glyphs[i].position, glyphs[i].geometry.min);
+			dsVector2_add(glyphBounds.max, glyphs[i].position, glyphs[i].geometry.max);
+			dsAlignedBox2_addBox(lineBounds, glyphBounds);
+		}
 	}
 
 	// Last line.

@@ -129,7 +129,8 @@ typedef struct TextInfo
 
 static TextInfo textStrings[] =
 {
-	{"Top text is standard quads.", "Bottom text, if visible, is tessellated.",
+	{"Top text is standard quads.\nUse arrow keys or touch to cycle text.",
+		"Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},

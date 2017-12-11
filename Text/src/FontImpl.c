@@ -840,7 +840,12 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		glyphs[i].canBreak = (glyphInfos[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK) == 0;
 		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
 		glyphs[i].offset.y = -(float)glyphPos[i].y_offset*scale;
-		glyphs[i].advance = (float)glyphPos[i].x_advance*scale;
+		// Special handling for newlines, since they are used in layout but will have an invalid
+		// glyph.
+		if (text->characters[glyphs[i].charIndex] == '\n')
+			glyphs[i].advance = 0;
+		else
+			glyphs[i].advance = (float)glyphPos[i].x_advance*scale;
 		DS_ASSERT(glyphPos[i].y_advance == 0);
 	}
 
