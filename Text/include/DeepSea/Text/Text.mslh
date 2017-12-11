@@ -47,7 +47,7 @@ vec4 computeTextColor(float distance, float embolden, float outlinePosition, flo
 			outlineMaxThreshold + antiAlias, distance);
 		float insideOutline = insideMinOutline*insideMaxOutline;
 
-		color.rgb = mix(color.rgb, outlineColor.rgb, insideOutline*outlineColor.a);
+		color.rgb = mix(color.rgb, outlineColor.rgb, insideOutline);
 		color.a = mix(color.a, outlineColor.a, insideOutline);
 	}
 
