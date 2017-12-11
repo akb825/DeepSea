@@ -32,19 +32,18 @@
 vec4 computeTextColor(float distance, float embolden, float outlinePosition, float outlineThickness,
 	float antiAlias, vec4 textColor, vec4 outlineColor)
 {
-	float insideThreshold = embolden*0.5 + 0.5;
+	float insideThreshold = -embolden*0.5 + 0.5;
 	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
-	return vec4(textColor.rgb, inside);
 	vec4 color = vec4(textColor.rgb, textColor.a*inside);
 
 	if (outlineThickness > 0.0 && outlineColor.a > 0)
 	{
-		float outlineMinThreshold = outlinePosition - outlineThickness*0.5;
-		float outlineMaxThreshold = outlinePosition + outlineThickness*0.5;
+		float outlineMinThreshold = 1.0 - outlinePosition - outlineThickness*0.5;
+		float outlineMaxThreshold = 1.0 - outlinePosition + outlineThickness*0.5;
 
 		float insideMinOutline = smoothstep(outlineMinThreshold - antiAlias,
 			outlineMinThreshold + antiAlias, distance);
-		float insideMaxOutline = smoothstep(outlineMaxThreshold - antiAlias,
+		float insideMaxOutline = 1.0 - smoothstep(outlineMaxThreshold - antiAlias,
 			outlineMaxThreshold + antiAlias, distance);
 		float insideOutline = insideMinOutline*insideMaxOutline;
 

@@ -106,7 +106,7 @@ typedef struct StandardVertex
 	dsVector4f style;
 } StandardVertex;
 
-typedef struct TessVertex
+typedef struct TessVertexx
 {
 	dsVector4f position;
 	dsAlignedBox2f geometry;
@@ -132,8 +132,28 @@ static TextInfo textStrings[] =
 	{"Top text is standard quads.", "Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
-			{{255, 255, 255,255}}},
-			NO_STYLE, NO_STYLE}}
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"This text has been emboldened.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"This text is slanted forward.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"This text is slanted backward.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"This text has outlines.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
+			{{255, 255, 0, 255}}},
+		NO_STYLE, NO_STYLE}}
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -383,6 +403,7 @@ static void createText(TestText* testText)
 		return;
 	}
 
+	DS_VERIFY(dsTextRenderBuffer_clear(testText->textRender));
 	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, 0,
 		testText->text->text->glyphCount))
 	{
@@ -419,6 +440,7 @@ static void createText(TestText* testText)
 			return;
 		}
 
+		DS_VERIFY(dsTextRenderBuffer_clear(testText->tessTextRender));
 		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, 0,
 			testText->tessText->text->glyphCount))
 		{
@@ -430,6 +452,23 @@ static void createText(TestText* testText)
 	}
 
 	setPositions(testText);
+}
+
+static void nextText(TestText* testText)
+{
+	++testText->curString;
+	if (testText->curString >= DS_ARRAY_SIZE(textStrings))
+		testText->curString = 0;
+	createText(testText);
+}
+
+static void prevText(TestText* testText)
+{
+	if (testText->curString == 0)
+		testText->curString = DS_ARRAY_SIZE(textStrings) - 1;
+	else
+		--testText->curString;
+	createText(testText);
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
@@ -448,6 +487,21 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsEventType_WindowResized:
 			if (!createFramebuffer(testText))
 				abort();
+			return true;
+		case dsEventType_KeyDown:
+			switch (event->key.key)
+			{
+				case dsKeyCode_Right:
+					nextText(testText);
+					return false;
+				case dsKeyCode_Left:
+					prevText(testText);
+					return false;
+				default:
+					return true;
+			}
+		case dsEventType_TouchFingerDown:
+			nextText(testText);
 			return true;
 		default:
 			return true;
