@@ -31,40 +31,42 @@ if (NOT libraries)
 	return()
 endif()
 
-add_executable(deepsea_test_cube ${source})
-target_link_libraries(deepsea_test_cube PRIVATE
+add_executable(deepsea_test_cube_app ${source})
+target_link_libraries(deepsea_test_cube_app PRIVATE
 	deepsea_application_sdl deepsea_application_sdl_main
 	${libraries})
-target_compile_definitions(deepsea_test_cube PRIVATE ${defines})
+target_compile_definitions(deepsea_test_cube_app PRIVATE ${defines})
 
 # Cannot use generator expressions for the custom commands.
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 set(textureDir ${CMAKE_CURRENT_BINARY_DIR}/textues)
-add_custom_target(deepsea_test_cube_prepare
+add_custom_target(deepsea_test_cube_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${textureDir})
 
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/TestCube.msl
 	OUTPUT TestCube.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_SOURCE_DIR}/Render/include)
-ds_compile_shaders_target(deepsea_test_cube_shaders shaders DEPENDS deepsea_test_cube_prepare)
-add_dependencies(deepsea_test_cube deepsea_test_cube_shaders)
+ds_compile_shaders_target(deepsea_test_cube_app_shaders shaders
+	DEPENDS deepsea_test_cube_app_prepare)
+add_dependencies(deepsea_test_cube_app deepsea_test_cube_app_shaders)
 
 ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/SimpleTexture.png
 	FORMAT R8G8B8A8 MIPMAP OUTPUT ${textureDir}/texture.pvr)
-ds_convert_textures_target(deepsea_test_cube_textures textures DEPENDS deepsea_test_cube_prepare)
-add_dependencies(deepsea_test_cube deepsea_test_cube_textures)
+ds_convert_textures_target(deepsea_test_cube_app_textures textures
+	DEPENDS deepsea_test_cube_app_prepare)
+add_dependencies(deepsea_test_cube_app deepsea_test_cube_app_textures)
 
-set(assetsDir $<TARGET_FILE_DIR:deepsea_test_cube>/TestCube-assets)
-add_custom_target(deepsea_test_cube_assets ALL DEPENDS deepsea_test_cube
+set(assetsDir $<TARGET_FILE_DIR:deepsea_test_cube_app>/TestCube-assets)
+add_custom_target(deepsea_test_cube_app_assets ALL DEPENDS deepsea_test_cube_app
 	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${textureDir} ${assetsDir}
 	COMMENT "Copying assets for TestCube")
 
-ds_set_folder(deepsea_test_cube tests)
-ds_set_folder(deepsea_test_cube_prepare tests/Resources)
-ds_set_folder(deepsea_test_cube_shaders tests/Resources)
-ds_set_folder(deepsea_test_cube_textures tests/Resources)
-ds_set_folder(deepsea_test_cube_assets tests/Resources)
+ds_set_folder(deepsea_test_cube_app tests)
+ds_set_folder(deepsea_test_cube_app_prepare tests/Resources)
+ds_set_folder(deepsea_test_cube_app_shaders tests/Resources)
+ds_set_folder(deepsea_test_cube_app_textures tests/Resources)
+ds_set_folder(deepsea_test_cube_app_assets tests/Resources)

@@ -31,16 +31,16 @@ if (NOT libraries)
 	return()
 endif()
 
-add_executable(deepsea_test_render_subpass ${source})
-target_link_libraries(deepsea_test_render_subpass PRIVATE
+add_executable(deepsea_test_render_subpass_app ${source})
+target_link_libraries(deepsea_test_render_subpass_app PRIVATE
 	deepsea_application_sdl deepsea_application_sdl_main
 	${libraries})
-target_compile_definitions(deepsea_test_render_subpass PRIVATE ${defines})
+target_compile_definitions(deepsea_test_render_subpass_app PRIVATE ${defines})
 
 # Cannot use generator expressions for the custom commands.
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 set(textureDir ${CMAKE_CURRENT_BINARY_DIR}/textues)
-add_custom_target(deepsea_test_render_subpass_prepare
+add_custom_target(deepsea_test_render_subpass_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${textureDir})
 
@@ -48,26 +48,27 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Cube.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/Resolve.msl
 	OUTPUT TestRenderSubpass.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_SOURCE_DIR}/Render/include)
-ds_compile_shaders_target(deepsea_test_render_subpass_shaders shaders
-	DEPENDS deepsea_test_render_subpass_prepare)
-add_dependencies(deepsea_test_render_subpass deepsea_test_render_subpass_shaders)
+ds_compile_shaders_target(deepsea_test_render_subpass_app_shaders shaders
+	DEPENDS deepsea_test_render_subpass_app_prepare)
+add_dependencies(deepsea_test_render_subpass_app deepsea_test_render_subpass_app_shaders)
 
 ds_convert_texture(textures IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/SimpleTexture.png
 	FORMAT R8G8B8A8 MIPMAP OUTPUT ${textureDir}/texture.pvr)
-ds_convert_textures_target(deepsea_test_render_subpass_textures textures
-	DEPENDS deepsea_test_render_subpass_prepare)
-add_dependencies(deepsea_test_render_subpass deepsea_test_render_subpass_textures)
+ds_convert_textures_target(deepsea_test_render_subpass_app_textures textures
+	DEPENDS deepsea_test_render_subpass_app_prepare)
+add_dependencies(deepsea_test_render_subpass_app deepsea_test_render_subpass_app_textures)
 
-set(assetsDir $<TARGET_FILE_DIR:deepsea_test_render_subpass>/TestRenderSubpass-assets)
-add_custom_target(deepsea_test_render_subpass_assets ALL DEPENDS deepsea_test_render_subpass
+set(assetsDir $<TARGET_FILE_DIR:deepsea_test_render_subpass_app>/TestRenderSubpass-assets)
+add_custom_target(deepsea_test_render_subpass_app_assets ALL
+	DEPENDS deepsea_test_render_subpass_app
 	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${textureDir} ${assetsDir}
 	COMMENT "Copying assets for TestRenderSubpass")
 
-ds_set_folder(deepsea_test_render_subpass tests)
-ds_set_folder(deepsea_test_render_subpass_prepare tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_shaders tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_textures tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_assets tests/Resources)
+ds_set_folder(deepsea_test_render_subpass_app tests)
+ds_set_folder(deepsea_test_render_subpass_app_prepare tests/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_shaders tests/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_textures tests/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_assets tests/Resources)
