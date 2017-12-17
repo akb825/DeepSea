@@ -36,9 +36,6 @@ bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	size_t regionCount);
-bool dsGLTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsBlitFilter filter);
 bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture);
 bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
@@ -47,7 +44,7 @@ bool dsGLTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 
 GLenum dsGLTexture_target(const dsTexture* texture);
 GLenum dsGLTexture_attachment(dsGfxFormat format);
-GLbitfield dsGLTexture_buffers(const dsTexture* texture);
+GLbitfield dsGLTexture_buffers(dsGfxFormat format);
 void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,
 	uint32_t layer);
 void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffer,

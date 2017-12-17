@@ -44,7 +44,7 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 
 	switch (surface->surfaceType)
 	{
-		case dsFramebufferSurfaceType_Offscreen:
+		case dsGfxSurfaceType_Texture:
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			dsGLTexture* glTexture = (dsGLTexture*)texture;
@@ -80,7 +80,7 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 			}
 			return true;
 		}
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Renderbuffer:
 		{
 			dsGLRenderbuffer* renderbuffer = (dsGLRenderbuffer*)surface->surface;
 			if (*curAttachment == renderbuffer->renderbufferId)
@@ -147,8 +147,8 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	{
 		switch (surfaces[i].surfaceType)
 		{
-			case dsFramebufferSurfaceType_Offscreen:
-			case dsFramebufferSurfaceType_Renderbuffer:
+			case dsGfxSurfaceType_Texture:
+			case dsGfxSurfaceType_Renderbuffer:
 				framebuffer->defaultFramebuffer = false;
 				break;
 			default:
@@ -183,20 +183,20 @@ bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 	return true;
 }
 
-GLSurfaceType dsGLFramebuffer_getSurfaceType(dsFramebufferSurfaceType framebufferSurfaceType)
+GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType)
 {
 	switch (framebufferSurfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_DepthRenderSurface:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 			return GLSurfaceType_Left;
-		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return GLSurfaceType_Right;
-		case dsFramebufferSurfaceType_Offscreen:
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Renderbuffer:
 			return GLSurfaceType_Framebuffer;
 		default:
 			DS_ASSERT(false);
@@ -248,7 +248,8 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	else
 		surfaceType = GLSurfaceType_Framebuffer;
 
-	dsGLRenderer_bindFramebuffer(renderer, surfaceType, glFramebuffer->framebufferId);
+	dsGLRenderer_bindFramebuffer(renderer, surfaceType, glFramebuffer->framebufferId,
+		GLFramebufferFlags_Default);
 
 	if (surfaceType == GLSurfaceType_Framebuffer)
 	{
@@ -309,7 +310,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 		{
 			const dsFramebufferSurface* surface = framebuffer->surfaces + depthStencilAttachment;
 			dsGfxFormat format;
-			if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+			if (surface->surfaceType == dsGfxSurfaceType_Texture)
 				format = ((dsTexture*)surface->surface)->format;
 			else
 				format = ((dsRenderbuffer*)surface->surface)->format;
@@ -369,9 +370,9 @@ void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer)
 
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (framebuffer->surfaces[i].surfaceType == dsGfxSurfaceType_Texture)
 			dsGLTexture_addInternalRef((dsTexture*)framebuffer->surfaces[i].surface);
-		else if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+		else if (framebuffer->surfaces[i].surfaceType == dsGfxSurfaceType_Renderbuffer)
 			dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)framebuffer->surfaces[i].surface);
 	}
 }
@@ -381,9 +382,9 @@ void dsGLFramebuffer_freeInternalRef(dsFramebuffer* framebuffer)
 	DS_ASSERT(framebuffer);
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
-		if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (framebuffer->surfaces[i].surfaceType == dsGfxSurfaceType_Texture)
 			dsGLTexture_freeInternalRef((dsTexture*)framebuffer->surfaces[i].surface);
-		else if (framebuffer->surfaces[i].surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+		else if (framebuffer->surfaces[i].surfaceType == dsGfxSurfaceType_Renderbuffer)
 			dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)framebuffer->surfaces[i].surface);
 	}
 

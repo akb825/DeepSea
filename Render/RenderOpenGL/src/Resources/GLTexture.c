@@ -619,20 +619,6 @@ bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		regionCount);
 }
 
-bool dsGLTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsBlitFilter filter)
-{
-	DS_UNUSED(resourceManager);
-	DS_ASSERT(commandBuffer);
-	DS_ASSERT(srcTexture);
-	DS_ASSERT(dstTexture);
-	DS_ASSERT(regions || regionCount == 0);
-
-	return dsGLCommandBuffer_blitTexture(commandBuffer, srcTexture, dstTexture, regions,
-		regionCount, filter);
-}
-
 bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture)
 {
@@ -786,9 +772,9 @@ GLenum dsGLTexture_attachment(dsGfxFormat format)
 	}
 }
 
-GLbitfield dsGLTexture_buffers(const dsTexture* texture)
+GLbitfield dsGLTexture_buffers(dsGfxFormat format)
 {
-	switch (texture->format)
+	switch (format)
 	{
 		case dsGfxFormat_D16:
 		case dsGfxFormat_X8D24:

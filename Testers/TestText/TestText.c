@@ -154,7 +154,23 @@ static TextInfo textStrings[] =
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}},
-		NO_STYLE, NO_STYLE}}
+		NO_STYLE, NO_STYLE}},
+	{"Embolded, slanted, and outlined.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
+			{{255, 255, 0, 255}}}}},
+	{"After this line\nhas larger text in the middle.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}}}}
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -340,7 +356,7 @@ static bool createFramebuffer(TestText* testText)
 	dsRenderSurface* surface = testText->window->surface;
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface}
+		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testText->framebuffer = dsFramebuffer_create(testText->renderer->resourceManager,
 		testText->allocator, surfaces, 1, width, height, 1);

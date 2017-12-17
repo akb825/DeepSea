@@ -219,21 +219,6 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
 
 /**
- * @brief Blits from one texture to another, scaling when necessary.
- * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to process the copy on.
- * @param srcTexture The texture to blit from.
- * @param dstTexture The texture to blit to.
- * @param regions The regions to blit.
- * @param regionCount The number of regions to blit.
- * @param filter The filter to use when scaling is required.
- * @return False if the data couldn't be blitted.
- */
-DS_RENDER_EXPORT bool dsTexture_blit(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
-	dsBlitFilter filter);
-
-/**
  * @brief Generates mipmaps for a texture based on the first mip level.
  *
  * This will only populate data for already allocated mipmaps. Most commonly, this will be used to

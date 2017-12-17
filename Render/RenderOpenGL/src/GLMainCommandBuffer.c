@@ -347,7 +347,7 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		if (attachment == DS_NO_ATTACHMENT || !subpass->colorAttachments[i].resolve)
 			continue;
 
-		if (framebuffer->surfaces[attachment].surfaceType != dsFramebufferSurfaceType_Offscreen)
+		if (framebuffer->surfaces[attachment].surfaceType != dsGfxSurfaceType_Texture)
 			continue;
 
 		texture = (dsTexture*)framebuffer->surfaces[attachment].surface;
@@ -364,7 +364,7 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 		}
 
 		GLenum buffers = dsGLTexture_attachment(texture->format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture->format);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
@@ -429,6 +429,77 @@ static GLuint createTempRenderbuffer(dsGLMainCommandBuffer* commandBuffer, uint3
 	renderbuffers[index].width = width;
 	renderbuffers[index].lruCounter = commandBuffer->tempRenderbufferCounter++;
 	return renderbuffers[index].id;
+}
+
+static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfaceType, void* surface)
+{
+	switch (surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			return renderer->surfaceColorFormat;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			return renderer->surfaceDepthStencilFormat;
+		case dsGfxSurfaceType_Texture:
+			return ((dsTexture*)surface)->format;
+		case dsGfxSurfaceType_Renderbuffer:
+			return ((dsRenderbuffer*)surface)->format;
+		default:
+			DS_ASSERT(false);
+			return dsGfxFormat_Unknown;
+	}
+}
+
+static uint32_t getSurfaceFaces(dsGfxSurfaceType surfaceType, void* surface)
+{
+	if (surfaceType == dsGfxSurfaceType_Texture)
+		return ((dsTexture*)surface)->dimension == dsTextureDim_Cube ? 6 : 1;
+
+	return 1;
+}
+
+static void bindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceType, void* surface,
+	uint32_t mipLevel, uint32_t layer)
+{
+	switch (surfaceType)
+	{
+		case dsGfxSurfaceType_Texture:
+			dsGLTexture_bindFramebufferTexture((dsTexture*)surface, framebufferType, mipLevel,
+				layer);
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsGLRenderbuffer* renderbuffer = (dsGLRenderbuffer*)surface;
+			glFramebufferRenderbuffer(framebufferType,
+				dsGLTexture_attachment(renderbuffer->renderbuffer.format), GL_RENDERBUFFER,
+				renderbuffer->renderbufferId);
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+static void unbindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceType, void* surface)
+{
+	switch (surfaceType)
+	{
+		case dsGfxSurfaceType_Texture:
+			dsGLTexture_unbindFramebuffer((dsTexture*)surface, framebufferType);
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			glFramebufferRenderbuffer(framebufferType, dsGLTexture_attachment(renderbuffer->format),
+				GL_RENDERBUFFER, 0);
+			break;
+		}
+		default:
+			break;
+	}
 }
 
 bool dsGLMainCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -626,7 +697,7 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, tempFramebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, tempCopyFramebuffer);
 
-		GLbitfield buffers = dsGLTexture_buffers(srcTexture);
+		GLbitfield buffers = dsGLTexture_buffers(srcTexture->format);
 		for (uint32_t i = 0; i < regionCount; ++i)
 		{
 			uint32_t srcLayer = regions[i].srcPosition.depth;
@@ -657,56 +728,6 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		dsGLRenderer_restoreFramebuffer(renderer);
 	}
-
-	return true;
-}
-
-bool dsGLMainCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
-	dsBlitFilter filter)
-{
-	DS_UNUSED(commandBuffer);
-
-	dsRenderer* renderer = commandBuffer->renderer;
-	GLuint tempFramebuffer = dsGLRenderer_tempFramebuffer(renderer);
-	GLuint tempCopyFramebuffer = dsGLRenderer_tempCopyFramebuffer(renderer);
-	DS_ASSERT(tempFramebuffer);
-	DS_ASSERT(tempCopyFramebuffer);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, tempFramebuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, tempCopyFramebuffer);
-
-	GLbitfield buffers = dsGLTexture_buffers(srcTexture);
-	for (uint32_t i = 0; i < regionCount; ++i)
-	{
-		uint32_t srcLayer = regions[i].srcPosition.depth;
-		if (srcTexture->dimension == dsTextureDim_Cube)
-			srcLayer = srcLayer*6 + regions[i].dstPosition.face;
-		uint32_t dstLayer = regions[i].dstPosition.depth;
-		if (dstTexture->dimension == dsTextureDim_Cube)
-			dstLayer = dstLayer*6 + regions[i].dstPosition.face;
-
-		for (uint32_t j = 0; j < regions[i].layers; ++j)
-		{
-			dsGLTexture_bindFramebufferTexture(srcTexture, GL_READ_FRAMEBUFFER,
-				regions[i].srcPosition.mipLevel, srcLayer + j);
-			dsGLTexture_bindFramebufferTexture(dstTexture, GL_DRAW_FRAMEBUFFER,
-				regions[i].dstPosition.mipLevel, dstLayer + j);
-			glBlitFramebuffer(regions[i].srcPosition.x, regions[i].srcPosition.y,
-				regions[i].srcPosition.x + regions[i].srcWidth,
-				regions[i].srcPosition.y + regions[i].srcHeight,
-				regions[i].dstPosition.x, regions[i].dstPosition.y,
-				regions[i].dstPosition.x + regions[i].dstWidth,
-				regions[i].dstPosition.y + regions[i].dstHeight, buffers,
-				filter == dsBlitFilter_Linear ? GL_LINEAR : GL_NEAREST);
-		}
-	}
-
-	dsGLTexture_unbindFramebuffer(srcTexture, GL_READ_FRAMEBUFFER);
-	dsGLTexture_unbindFramebuffer(dstTexture, GL_DRAW_FRAMEBUFFER);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	return true;
 }
@@ -1114,7 +1135,7 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 		if (!(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve))
 			continue;
 
-		if (framebuffer->surfaces[i].surfaceType != dsFramebufferSurfaceType_Offscreen)
+		if (framebuffer->surfaces[i].surfaceType != dsGfxSurfaceType_Texture)
 			continue;
 
 		texture = (dsTexture*)framebuffer->surfaces[i].surface;
@@ -1131,7 +1152,7 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 		}
 
 		GLenum buffers = dsGLTexture_attachment(texture->format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture->format);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
@@ -1174,7 +1195,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		DS_ASSERT(fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		dsGfxFormat format;
-		if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			format = texture->format;
@@ -1183,7 +1204,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		}
 		else
 		{
-			DS_ASSERT(surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer);
+			DS_ASSERT(surface->surfaceType == dsGfxSurfaceType_Renderbuffer);
 			format = ((dsRenderbuffer*)surface->surface)->format;
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
 				((dsGLRenderbuffer*)surface->surface)->renderbufferId);
@@ -1193,13 +1214,14 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 			clearDrawBuffer(format, 0, &value);
 		else
 		{
-			dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0);
+			dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
+				GLFramebufferFlags_Default);
 			setClearColor(format, &value);
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 0, 0);
-		if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);
@@ -1208,7 +1230,8 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 	}
 	else
 	{
-		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0);
+		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
+			GLFramebufferFlags_Default);
 		setClearColor(commandBuffer->renderer->surfaceColorFormat, &value);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
@@ -1246,7 +1269,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		uint32_t width;
 		uint32_t height;
 		uint32_t samples;
-		if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			format = texture->format;
@@ -1257,7 +1280,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		}
 		else
 		{
-			DS_ASSERT(surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer);
+			DS_ASSERT(surface->surfaceType == dsGfxSurfaceType_Renderbuffer);
 			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
 			format = renderbuffer->format;
 			width = renderbuffer->width;
@@ -1301,7 +1324,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		}
 
 		glFramebufferTexture(GL_FRAMEBUFFER, attachment, 0, 0);
-		if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
 			dsGLTexture_unbindFramebuffer(texture, GL_FRAMEBUFFER);
@@ -1310,7 +1333,8 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 	}
 	else
 	{
-		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0);
+		dsGLRenderer_bindFramebuffer(commandBuffer->renderer, surfaceType, 0,
+			GLFramebufferFlags_Default);
 		setClearColor(commandBuffer->renderer->surfaceColorFormat, &value);
 		switch (surfaceParts)
 		{
@@ -1513,6 +1537,72 @@ bool dsGLMainCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffe
 	return true;
 }
 
+bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+{
+	dsRenderer* renderer = commandBuffer->renderer;
+
+	GLSurfaceType srcGLSurfaceType = dsGLFramebuffer_getSurfaceType(srcSurfaceType);
+	GLSurfaceType dstGLSurfaceType = dsGLFramebuffer_getSurfaceType(dstSurfaceType);
+
+	GLuint srcFramebuffer = 0;
+	if (srcGLSurfaceType == GLSurfaceType_Framebuffer)
+	{
+		srcFramebuffer = dsGLRenderer_tempFramebuffer(renderer);
+		DS_ASSERT(srcFramebuffer);
+	}
+
+	GLuint dstFramebuffer = 0;
+	if (dstGLSurfaceType == GLSurfaceType_Framebuffer)
+	{
+		dstFramebuffer = dsGLRenderer_tempCopyFramebuffer(renderer);
+		DS_ASSERT(dstFramebuffer);
+	}
+
+	dsGLRenderer_bindFramebuffer(renderer, srcGLSurfaceType, srcFramebuffer,
+		GLFramebufferFlags_Read | GLFramebufferFlags_Temporary);
+	dsGLRenderer_bindFramebuffer(renderer, dstGLSurfaceType, dstFramebuffer,
+		GLFramebufferFlags_Temporary);
+
+	GLbitfield buffers = dsGLTexture_buffers(
+		getSurfaceFormat(renderer, srcSurfaceType, srcSurface));
+	uint32_t srcFaces = getSurfaceFaces(srcSurfaceType, srcSurface);
+	uint32_t dstFaces = getSurfaceFaces(dstSurfaceType, dstSurface);
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		uint32_t srcLayer = regions[i].srcPosition.depth;
+		if (srcFaces == 6)
+			srcLayer = srcLayer*6 + regions[i].dstPosition.face;
+		uint32_t dstLayer = regions[i].dstPosition.depth;
+		if (dstFaces == 6)
+			dstLayer = dstLayer*6 + regions[i].dstPosition.face;
+
+		for (uint32_t j = 0; j < regions[i].layers; ++j)
+		{
+			bindBlitSurface(GL_READ_FRAMEBUFFER, srcSurfaceType, srcSurface,
+				regions[i].srcPosition.mipLevel, srcLayer + j);
+			bindBlitSurface(GL_DRAW_FRAMEBUFFER, dstSurfaceType, dstSurface,
+				regions[i].srcPosition.mipLevel, srcLayer + j);
+			glBlitFramebuffer(regions[i].srcPosition.x, regions[i].srcPosition.y,
+				regions[i].srcPosition.x + regions[i].srcWidth,
+				regions[i].srcPosition.y + regions[i].srcHeight,
+				regions[i].dstPosition.x, regions[i].dstPosition.y,
+				regions[i].dstPosition.x + regions[i].dstWidth,
+				regions[i].dstPosition.y + regions[i].dstHeight, buffers,
+				filter == dsBlitFilter_Linear ? GL_LINEAR : GL_NEAREST);
+		}
+	}
+
+	unbindBlitSurface(GL_READ_FRAMEBUFFER, srcSurfaceType, srcSurface);
+	unbindBlitSurface(GL_DRAW_FRAMEBUFFER, dstSurfaceType, dstSurface);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	dsGLRenderer_restoreFramebuffer(renderer);
+
+	return true;
+}
+
 bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -1550,7 +1640,6 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_copyBuffer,
 	&dsGLMainCommandBuffer_copyTextureData,
 	&dsGLMainCommandBuffer_copyTexture,
-	&dsGLMainCommandBuffer_blitTexture,
 	&dsGLMainCommandBuffer_generateTextureMipmaps,
 	&dsGLMainCommandBuffer_setFenceSyncs,
 	&dsGLMainCommandBuffer_bindShader,
@@ -1572,6 +1661,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_drawIndexedIndirect,
 	&dsGLMainCommandBuffer_dispatchCompute,
 	&dsGLMainCommandBuffer_dispatchComputeIndirect,
+	&dsGLMainCommandBuffer_blitSurface,
 	&dsGLMainCommandBuffer_begin,
 	&dsGLMainCommandBuffer_end,
 	&dsGLMainCommandBuffer_submit

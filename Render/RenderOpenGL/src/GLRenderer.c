@@ -180,14 +180,6 @@ static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools,
 	return pool;
 }
 
-static void drawBuffer(GLenum buffer)
-{
-	if (ANYGL_SUPPORTED(glDrawBuffer))
-		glDrawBuffer(buffer);
-	else if (ANYGL_SUPPORTED(glDrawBuffers))
-		glDrawBuffers(1, &buffer);
-}
-
 static void deleteDestroyedObjects(dsGLRenderer* renderer)
 {
 	if (renderer->curDestroyVaos)
@@ -641,6 +633,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->drawIndexedIndirectFunc = &dsGLCommandBuffer_drawIndexedIndirect;
 	baseRenderer->dispatchComputeFunc = &dsGLCommandBuffer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
+	baseRenderer->blitSurfaceFunc = &dsGLCommandBuffer_blitSurface;
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
 	baseRenderer->restoreGlobalStateFunc = &dsGLRenderer_restoreGlobalState;
 
@@ -959,15 +952,18 @@ void dsGLRenderer_endTextureOp(dsRenderer* renderer)
 }
 
 void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceType,
-	GLuint framebuffer)
+	GLuint framebuffer, int flags)
 {
+	bool draw = (flags & GLFramebufferFlags_Read) == 0;
+	GLenum framebufferType = draw ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	if (surfaceType == GLSurfaceType_Framebuffer)
 	{
 		if (glRenderer->curFbo != framebuffer)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-			glRenderer->curFbo = framebuffer;
+			glBindFramebuffer(framebufferType, framebuffer);
+			if (flags == GLFramebufferFlags_Default)
+				glRenderer->curFbo = framebuffer;
 		}
 		glRenderer->curSurfaceType = surfaceType;
 	}
@@ -978,34 +974,46 @@ void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceTyp
 
 		if (glRenderer->curFbo)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glRenderer->curFbo = 0;
+			glBindFramebuffer(framebufferType, 0);
+			if (flags == GLFramebufferFlags_Default)
+				glRenderer->curFbo = 0;
 		}
 		glRenderer->curSurfaceType = surfaceType;
+		GLenum bufferType;
 		if (renderer->stereoscopic)
 		{
 			if (renderer->doubleBuffer)
 			{
 				if (surfaceType == GLSurfaceType_Right)
-					drawBuffer(GL_BACK_RIGHT);
+					bufferType = GL_BACK_RIGHT;
 				else
-					drawBuffer(GL_BACK_LEFT);
+					bufferType = GL_BACK_LEFT;
 			}
 			else
 			{
 				if (surfaceType == GLSurfaceType_Right)
-					drawBuffer(GL_RIGHT);
+					bufferType = GL_RIGHT;
 				else
-					drawBuffer(GL_LEFT);
+					bufferType = GL_LEFT;
 			}
 		}
 		else
 		{
 			if (renderer->doubleBuffer)
-				drawBuffer(GL_BACK);
+				bufferType = GL_BACK;
 			else
-				drawBuffer(GL_FRONT);
+				bufferType = GL_FRONT;
 		}
+
+		if (draw)
+		{
+			if (ANYGL_SUPPORTED(glDrawBuffer))
+				glDrawBuffer(bufferType);
+			else if (ANYGL_SUPPORTED(glDrawBuffers))
+				glDrawBuffers(1, &bufferType);
+		}
+		else if (ANYGL_SUPPORTED(glReadBuffer))
+			glReadBuffer(bufferType);
 	}
 }
 

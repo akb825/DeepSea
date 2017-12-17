@@ -39,4 +39,4 @@ void dsGLRenderer_beginTextureOp(dsRenderer* renderer, GLenum target, GLuint tex
 void dsGLRenderer_endTextureOp(dsRenderer* renderer);
 
 void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceType,
-	GLuint framebuffer);
+	GLuint framebuffer, int flags);

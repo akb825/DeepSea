@@ -31,6 +31,13 @@ typedef enum GLSurfaceType
 	GLSurfaceType_Framebuffer,
 } GLSurfaceType;
 
+typedef enum GLFramebufferFlags
+{
+	GLFramebufferFlags_Default = 0,
+	GLFramebufferFlags_Read = 0x1,
+	GLFramebufferFlags_Temporary = 0x2
+} GLFramebufferFlags;
+
 struct dsResourceContext
 {
 	void* context;
@@ -259,9 +266,6 @@ typedef bool (*GLCopyTextureDataFunction)(dsCommandBuffer* commandBuffer, dsText
 	const void* data, size_t size);
 typedef bool (*GLCopyTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
-typedef bool (*GLBlitTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsBlitFilter filter);
 typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
@@ -311,6 +315,9 @@ typedef bool (*GLDispatchComputeFunction)(dsCommandBuffer* commandBuffer, uint32
 	uint32_t z);
 typedef bool (*GLDispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer,
 	const dsGfxBuffer* indirectBuffer, size_t offset);
+typedef bool (*GLBlitSurfaceFunction)(dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 
 typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
@@ -325,7 +332,6 @@ typedef struct CommandBufferFunctionTable
 
 	GLCopyTextureDataFunction copyTextureDataFunc;
 	GLCopyTextureFunction copyTextureFunc;
-	GLBlitTextureFunction blitTextureFunc;
 	GLGenerateTextureMipmaps generateTextureMipmapsFunc;
 
 	GLSetFenceSyncsFunction setFenceSyncsFunc;
@@ -353,6 +359,7 @@ typedef struct CommandBufferFunctionTable
 	GLDrawIndexedIndirectFunction drawIndexedIndirectFunc;
 	GLDispatchComputeFunction dispatchComputeFunc;
 	GLDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
+	GLBlitSurfaceFunction blitSurfaceFunc;
 
 	GLBeginCommandBufferFunction beginFunc;
 	GLEndCommandBufferFunction endFunc;

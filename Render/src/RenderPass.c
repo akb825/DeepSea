@@ -36,20 +36,20 @@ static bool isDepthStencil(dsGfxFormat format)
 	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
 }
 
-static SurfaceType getSurfaceType(dsFramebufferSurfaceType framebufferSurfaceType)
+static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)
 {
-	switch (framebufferSurfaceType)
+	switch (surfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_DepthRenderSurface:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 			return SurfaceType_Left;
-		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return SurfaceType_Right;
-		case dsFramebufferSurfaceType_Offscreen:
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Texture:
+		case dsGfxSurfaceType_Renderbuffer:
 			return SurfaceType_Other;
 		default:
 			DS_ASSERT(false);
@@ -70,17 +70,17 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSur
 {
 	switch (surface->surfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			return renderer->surfaceColorFormat;
-		case dsFramebufferSurfaceType_DepthRenderSurface:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceDepthStencilFormat;
-		case dsFramebufferSurfaceType_Offscreen:
+		case dsGfxSurfaceType_Texture:
 			return ((dsOffscreen*)surface->surface)->format;
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface->surface)->format;
 		default:
 			DS_ASSERT(false);
@@ -92,16 +92,16 @@ static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurfa
 {
 	switch (surface->surfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
-		case dsFramebufferSurfaceType_DepthRenderSurface:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceSamples;
-		case dsFramebufferSurfaceType_Offscreen:
+		case dsGfxSurfaceType_Texture:
 			return ((dsOffscreen*)surface->surface)->samples;
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface->surface)->samples;
 		default:
 			DS_ASSERT(false);
@@ -364,7 +364,7 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 		for (uint32_t j = 0; j < subpass->inputAttachmentCount; ++j)
 		{
 			if (framebuffer->surfaces[subpass->inputAttachments[j]].surfaceType !=
-				dsFramebufferSurfaceType_Offscreen)
+				dsGfxSurfaceType_Texture)
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");

@@ -342,25 +342,25 @@ typedef enum dsVertexAttrib
 } dsVertexAttrib;
 
 /**
- * @brief Enum for the type of a surface used within a framebuffer.
+ * @brief Enum for the type of a graphics surface used within a framebuffer or blitting.
  * @see Framebuffer.h
  */
-typedef enum dsFramebufferSurfaceType
+typedef enum dsGfxSurfaceType
 {
-	dsFramebufferSurfaceType_ColorRenderSurface,      ///< The color portion of a render surface.
+	dsGfxSurfaceType_ColorRenderSurface,      ///< The color portion of a render surface.
 	/// The left color portion of a render surface.
-	dsFramebufferSurfaceType_ColorRenderSurfaceLeft,
+	dsGfxSurfaceType_ColorRenderSurfaceLeft,
 	/// The right color portion of a render surface.
-	dsFramebufferSurfaceType_ColorRenderSurfaceRight,
+	dsGfxSurfaceType_ColorRenderSurfaceRight,
 	/// The depth/stencil portion of a render surface.
-	dsFramebufferSurfaceType_DepthRenderSurface,
+	dsGfxSurfaceType_DepthRenderSurface,
 	/// The left depth/stencil portion of a render surface.
-	dsFramebufferSurfaceType_DepthRenderSurfaceLeft,
+	dsGfxSurfaceType_DepthRenderSurfaceLeft,
 	/// The right depth/stencil portion of a render surface.
-	dsFramebufferSurfaceType_DepthRenderSurfaceRight,
-	dsFramebufferSurfaceType_Offscreen,               ///< Offscreen texture.
-	dsFramebufferSurfaceType_Renderbuffer             ///< Color or depth renderbuffer.
-} dsFramebufferSurfaceType;
+	dsGfxSurfaceType_DepthRenderSurfaceRight,
+	dsGfxSurfaceType_Texture,                 ///< Texture or offscreen.
+	dsGfxSurfaceType_Renderbuffer             ///< Color or depth renderbuffer.
+} dsGfxSurfaceType;
 
 /**
  * @brief Enum for the result of waiting for a fence.
@@ -761,58 +761,6 @@ typedef struct dsTextureCopyRegion
 } dsTextureCopyRegion;
 
 /**
- * @brief Structure defining the region to blit for a texture.
- * @see Texture.h
- */
-typedef struct dsTextureBlitRegion
-{
-	/**
-	 * @brief The position for the source texture.
-	 */
-	dsTexturePosition srcPosition;
-
-	/**
-	 * @brief The position for the destination texture.
-	 */
-	dsTexturePosition dstPosition;
-
-	/**
-	 * @brief The width of the source image to blit from.
-	 *
-	 * This must always be a multiple of the format's block size or reach the edge of the image.
-	 */
-	uint32_t srcWidth;
-
-	/**
-	 * @brief The height of the source image to blit from.
-	 *
-	 * This must always be a multiple of the format's block size or reach the edge of the image.
-	 */
-	uint32_t srcHeight;
-
-	/**
-	 * @brief The width of the destination image to blit to.
-	 *
-	 * This must always be a multiple of the format's block size or reach the edge of the image.
-	 */
-	uint32_t dstWidth;
-
-	/**
-	 * @brief The height of the destination image to blit to.
-	 *
-	 * This must always be a multiple of the format's block size or reach the edge of the image.
-	 */
-	uint32_t dstHeight;
-
-	/**
-	 * @brief The number of layers to blit.
-	 *
-	 * This is the depth multiplied by the number of faces.
-	 */
-	uint32_t layers;
-} dsTextureBlitRegion;
-
-/**
  * @brief Struct for holding data for a texture.
  *
  * This is generally loaded from a file in order to create a final renderable texture.
@@ -962,7 +910,7 @@ typedef struct dsFramebufferSurface
 	/**
 	 * @brief The type of the surface.
 	 */
-	dsFramebufferSurfaceType surfaceType;
+	dsGfxSurfaceType surfaceType;
 
 	/**
 	 * @brief The cube face to use for cubemap offscreens.
@@ -1364,21 +1312,6 @@ typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
 typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
 	const dsTextureCopyRegion* regions, size_t regionCount);
-
-/**
- * @brief Function for blitting from one texture to another, scaling when necessary.
- * @param resourceManager The resource manager the textures were created with.
- * @param commandBuffer The command buffer to process the blit on.
- * @param srcTexture The texture to blit from.
- * @param dstTexture The texture to blit to.
- * @param regions The regions to blit.
- * @param regionCount The number of regions to blit.
- * @param filter The filter to use when scaling is required.
- * @return False if the data couldn't be blitted.
- */
-typedef bool (*dsBlitTextureFunction)(dsResourceManager* resourceManager,
-	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
-	const dsTextureBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 
 /**
  * @brief Function for generating mipmaps for textures.
@@ -1990,11 +1923,6 @@ struct dsResourceManager
 	 * @brief Texture to texture copying function.
 	 */
 	dsCopyTextureFunction copyTextureFunc;
-
-	/**
-	 * @brief Texture blitting function.
-	 */
-	dsBlitTextureFunction blitTextureFunc;
 
 	/**
 	 * @brief Texture mipmap generation function.

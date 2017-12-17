@@ -144,23 +144,6 @@ bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
 }
 
-bool dsGLCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
-	dsBlitFilter filter)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Blitting of textures must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->blitTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount,
-		filter);
-}
-
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
 {
 	if (insideRenderPass(commandBuffer))
@@ -731,7 +714,21 @@ bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
 		return false;
 	}
 
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	DS_ASSERT(surface);
+	if (surface->surfaceType != dsGfxSurfaceType_Texture &&
+		surface->surfaceType != dsGfxSurfaceType_Renderbuffer)
+	{
+		if (((dsGLRenderSurface*)surface->surface)->glSurface != glCommandBuffer->boundSurface)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+				"Only the currently bound surface can be bound.");
+			return false;
+		}
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	return functions->clearColorSurfaceFunc(commandBuffer, surface, colorValue);
 }
 
@@ -748,7 +745,21 @@ bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
 		return false;
 	}
 
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	DS_ASSERT(surface);
+	if (surface->surfaceType != dsGfxSurfaceType_Texture &&
+		surface->surfaceType != dsGfxSurfaceType_Renderbuffer)
+	{
+		if (((dsGLRenderSurface*)surface->surface)->glSurface != glCommandBuffer->boundSurface)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+				"Only the currently bound surface can be bound.");
+			return false;
+		}
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	return functions->clearDepthStencilSurfaceFunc(commandBuffer, surface, surfaceParts,
 		depthStencilValue);
 }
@@ -845,6 +856,51 @@ bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBu
 
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->dispatchComputeIndirectFunc(commandBuffer, indirectBuffer, offset);
+}
+
+bool dsGLCommandBuffer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+{
+	DS_UNUSED(renderer);
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Blitting of surfaces must be done outside of a render pass.");
+		return false;
+	}
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	DS_ASSERT(srcSurface);
+	if (srcSurfaceType != dsGfxSurfaceType_Texture &&
+		srcSurfaceType != dsGfxSurfaceType_Renderbuffer)
+	{
+		if (((dsGLRenderSurface*)srcSurface)->glSurface != glCommandBuffer->boundSurface)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Only the currently bound render surface, or "
+				"texture or renderbuffer surface, can be blit.");
+			return false;
+		}
+	}
+
+	DS_ASSERT(dstSurface);
+	if (dstSurfaceType != dsGfxSurfaceType_Texture &&
+		dstSurfaceType != dsGfxSurfaceType_Renderbuffer)
+	{
+		if (((dsGLRenderSurface*)dstSurface)->glSurface != glCommandBuffer->boundSurface)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Only the currently bound render surface, or "
+				"texture or renderbuffer surface, can be blit.");
+			return false;
+		}
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->blitSurfaceFunc(commandBuffer, srcSurfaceType, srcSurface, dstSurfaceType,
+		dstSurface, regions, regionCount, filter);
 }
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

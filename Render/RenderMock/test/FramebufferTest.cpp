@@ -48,11 +48,11 @@ TEST_F(FramebufferTest, Create)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen},
-		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer},
-		{dsFramebufferSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
-		{dsFramebufferSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, texture}
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen},
+		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer},
+		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
+		{dsGfxSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, renderSurface},
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, texture}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
@@ -86,8 +86,8 @@ TEST_F(FramebufferTest, CreateLayers)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 15, 0, offscreen1},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 15, 0, offscreen1},
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
@@ -116,8 +116,8 @@ TEST_F(FramebufferTest, CreateMipmaps)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 2, offscreen1},
-		{dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0, offscreen2}
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 2, offscreen1},
+		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
@@ -141,7 +141,7 @@ TEST_F(FramebufferTest, NoColorSurface)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer}
+		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, depthBuffer}
 	};
 
 	resourceManager->requiresColorBuffer = true;
@@ -165,8 +165,8 @@ TEST_F(FramebufferTest, Stereoscopic)
 
 	dsFramebufferSurface surfaces[] =
 	{
-		{dsFramebufferSurfaceType_ColorRenderSurfaceLeft, dsCubeFace_None, 0, 0, renderSurface},
-		{dsFramebufferSurfaceType_DepthRenderSurfaceLeft, dsCubeFace_None, 0, 0, renderSurface}
+		{dsGfxSurfaceType_ColorRenderSurfaceLeft, dsCubeFace_None, 0, 0, renderSurface},
+		{dsGfxSurfaceType_DepthRenderSurfaceLeft, dsCubeFace_None, 0, 0, renderSurface}
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,

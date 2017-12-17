@@ -19,6 +19,13 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Resources/Types.h>
 
+typedef struct dsMockTexture
+{
+	dsTexture texture;
+	size_t dataSize;
+	uint8_t data[];
+} dsMockTexture;
+
 dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
 	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
@@ -33,9 +40,6 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	size_t regionCount);
-bool dsMockTexture_blit(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureBlitRegion* regions,
-	size_t regionCount, dsBlitFilter filter);
 bool dsMockTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture);
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

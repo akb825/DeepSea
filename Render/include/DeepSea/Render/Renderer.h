@@ -280,6 +280,24 @@ DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* comman
 	dsRenderer* renderer, const dsGfxBuffer* indirectBuffer, size_t offset);
 
 /**
+ * @brief Blits from one surface to another, scaling when necessary.
+ * @remark errno will be set on failure.
+ * @param commandBuffer The command buffer to process the blit on.
+ * @param renderer The renderer.
+ * @param srcSurfaceType The type of the source surface.
+ * @param srcSurface The surface to blit from.
+ * @param dstSurfaceType The type of the source surface.
+ * @param dstSurface The surface to blit from.
+ * @param regions The regions to blit.
+ * @param regionCount The number of regions to blit.
+ * @param filter The filter to use when scaling is required.
+ * @return False if the data couldn't be blitted.
+ */
+DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+
+/**
  * @brief Waits until the GPU is idle.
  *
  * Waiting until idle is useful when destroying large numbers of graphics resources (e.g. unloading

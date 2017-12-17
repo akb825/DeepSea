@@ -25,12 +25,125 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Render/Resources/DrawGeometry.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <string.h>
 
 static bool isDepthStencil(dsGfxFormat format)
 {
 	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
+}
+
+static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
+	uint32_t* outHeight, uint32_t* outLayers, uint32_t* outMipLevels, const dsRenderer* renderer,
+	dsGfxSurfaceType surfaceType, void* surface, bool read)
+{
+	switch (surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			if (!renderer->stereoscopic)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to use a stereoscopic render surface for a blit when  not using "
+					"stereoscopic rendering.");
+				return false;
+			}
+			// fall through
+		case dsGfxSurfaceType_ColorRenderSurface:
+		{
+			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
+			*outFormat = renderer->surfaceColorFormat;
+			*outDim = dsTextureDim_2D;
+			*outWidth = realSurface->width;
+			*outHeight = realSurface->height;
+			*outLayers = 1;
+			*outMipLevels = 1;
+			break;
+		}
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			if (!renderer->stereoscopic)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to use a stereoscopic render surface for a blit when  not using "
+					"stereoscopic rendering.");
+				return false;
+			}
+			// fall through
+		case dsGfxSurfaceType_DepthRenderSurface:
+		{
+			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
+			*outFormat = renderer->surfaceDepthStencilFormat;
+			*outDim = dsTextureDim_2D;
+			*outWidth = realSurface->width;
+			*outHeight = realSurface->height;
+			*outLayers = 1;
+			*outMipLevels = 1;
+			break;
+		}
+		case dsGfxSurfaceType_Texture:
+		{
+			dsTexture* realSurface = (dsTexture*)surface;
+			*outFormat = realSurface->format;
+			*outDim = realSurface->dimension;
+			*outWidth = realSurface->width;
+			*outHeight = realSurface->height;
+			if (realSurface->resolve)
+			{
+				*outLayers = 1;
+				*outMipLevels = realSurface->mipLevels;
+			}
+			else
+			{
+				*outLayers = dsMax(1U, realSurface->depth);
+				*outMipLevels = realSurface->mipLevels;
+			}
+
+			if (read && !(realSurface->usage & dsTextureUsage_CopyFrom))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to copy data from a texture without the copy from usage flag set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+			else if (!read && !(realSurface->usage & dsTextureUsage_CopyTo))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to copy data to a texture without the copy to usage flag set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
+			if (realSurface->samples > 1)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped textures.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* realSurface = (dsRenderbuffer*)surface;
+			*outFormat = realSurface->format;
+			*outDim = dsTextureDim_2D;
+			*outWidth = realSurface->width;
+			*outHeight = realSurface->height;
+			*outLayers = 1;
+			*outMipLevels = 1;
+			break;
+		}
+		default:
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Unknown surface type.");
+			return false;
+	}
+
+	return true;
 }
 
 bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float left, float right,
@@ -220,19 +333,26 @@ bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer, dsRenderer* re
 	bool valid;
 	switch (surface->surfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			valid = true;
 			break;
-		case dsFramebufferSurfaceType_DepthRenderSurface:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
-		case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			valid = false;
 			break;
-		case dsFramebufferSurfaceType_Offscreen:
+		case dsGfxSurfaceType_Texture:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
+			if (!offscreen->offscreen)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			uint32_t surfaceLayers = dsMax(1U, offscreen->depth);
 			if (offscreen->dimension == dsTextureDim_Cube)
 				surfaceLayers *= 6;
@@ -254,7 +374,7 @@ bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer, dsRenderer* re
 			valid = !isDepthStencil(offscreen->format);
 			break;
 		}
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Renderbuffer:
 			valid = !isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
 		default:
@@ -290,15 +410,22 @@ bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer, dsRende
 	bool valid;
 	switch (surface->surfaceType)
 	{
-		case dsFramebufferSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurface:
 			valid = false;
 			break;
-		case dsFramebufferSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurface:
 			valid = true;
 			break;
-		case dsFramebufferSurfaceType_Offscreen:
+		case dsGfxSurfaceType_Texture:
 		{
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
+			if (!offscreen->offscreen)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			uint32_t surfaceLayers = dsMax(1U, offscreen->depth);
 			if (offscreen->dimension == dsTextureDim_Cube)
 				surfaceLayers *= 6;
@@ -320,7 +447,7 @@ bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer, dsRende
 			valid = isDepthStencil(offscreen->format);
 			break;
 		}
-		case dsFramebufferSurfaceType_Renderbuffer:
+		case dsGfxSurfaceType_Renderbuffer:
 			valid = isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
 		default:
@@ -591,6 +718,153 @@ bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer, dsRender
 
 	bool success = renderer->dispatchComputeIndirectFunc(renderer, commandBuffer, indirectBuffer,
 		offset);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsRenderer_blitSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !renderer || !srcSurface || !dstSurface || !renderer->blitSurfaceFunc ||
+		(!regions && regionCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsGfxFormat srcFormat;
+	dsTextureDim srcDim;
+	uint32_t srcWidth, srcHeight, srcLayers, srcMipLevels;
+	if (!getBlitSurfaceInfo(&srcFormat, &srcDim, &srcWidth, &srcHeight, &srcLayers, &srcMipLevels,
+		renderer, srcSurfaceType, srcSurface, true))
+	{
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsGfxFormat dstFormat;
+	dsTextureDim dstDim;
+	uint32_t dstWidth, dstHeight, dstLayers, dstMipLevels;
+	if (!getBlitSurfaceInfo(&dstFormat, &dstDim, &dstWidth, &dstHeight, &dstLayers, &dstMipLevels,
+		renderer, dstSurfaceType, dstSurface, false))
+	{
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = renderer->resourceManager;
+	if (!dsGfxFormat_textureBlitSupported(resourceManager, srcFormat, dstFormat, filter))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Textures cannot be blit between each other on the current target.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	unsigned int srcBlockX, srcBlockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&srcBlockX, &srcBlockY, srcFormat));
+	unsigned int dstBlockX, dstBlockY;
+	DS_VERIFY(dsGfxFormat_blockDimensions(&dstBlockX, &dstBlockY, dstFormat));
+
+	for (size_t i = 0; i < regionCount; ++i)
+	{
+		if (regions[i].srcPosition.x % srcBlockX != 0 || regions[i].srcPosition.y % srcBlockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
+		if (srcPosition->mipLevel >= srcMipLevels)
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		uint32_t srcMipWidth = dsMax(1U, srcWidth >> srcPosition->mipLevel);
+		uint32_t srcMipHeight = dsMax(1U, srcHeight >> srcPosition->mipLevel);
+		uint32_t srcMipLayers = dsMax(1U, srcLayers);
+		uint32_t srcLayerOffset = srcPosition->depth;
+		if (srcDim == dsTextureDim_3D)
+			srcMipLayers = dsMax(1U, srcMipLayers >> srcPosition->mipLevel);
+		else if (srcDim == dsTextureDim_Cube)
+		{
+			srcMipLayers *= 6;
+			srcLayerOffset = srcLayerOffset*6 + srcPosition->face;
+		}
+		uint32_t srcEndX = srcPosition->x + regions[i].srcWidth;
+		uint32_t srcEndY = srcPosition->y + regions[i].srcHeight;
+		uint32_t srcEndLayer = srcLayerOffset + regions[i].layers;
+		if (srcEndX > srcMipWidth || srcEndY > srcMipHeight || srcEndLayer > srcMipLayers)
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((srcEndX % srcBlockX != 0 && srcEndX != srcMipWidth) ||
+			(srcEndY % srcBlockY != 0 && srcEndY != srcMipHeight))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (regions[i].dstPosition.x % dstBlockX != 0 || regions[i].dstPosition.y % dstBlockY != 0)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data position must be a multiple of the block size.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
+		if (dstPosition->mipLevel >= dstMipLevels)
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		uint32_t dstMipWidth = dsMax(1U, dstWidth >> dstPosition->mipLevel);
+		uint32_t dstMipHeight = dsMax(1U, dstHeight >> dstPosition->mipLevel);
+		uint32_t dstMipLayers = dsMax(1U, dstLayers);
+		uint32_t dstLayerOffset = dstPosition->depth;
+		if (dstDim == dsTextureDim_3D)
+			dstMipLayers = dsMax(1U, dstMipLayers >> dstPosition->mipLevel);
+		else if (dstDim == dsTextureDim_Cube)
+		{
+			dstMipLayers *= 6;
+			dstLayerOffset = dstLayerOffset*6 + dstPosition->face;
+		}
+		uint32_t dstEndX = regions[i].dstPosition.x + regions[i].dstWidth;
+		uint32_t dstEndY = regions[i].dstPosition.y + regions[i].dstHeight;
+		uint32_t dstEndLayer = dstLayerOffset + regions[i].layers;
+		if (dstEndX > dstMipWidth || dstEndY > dstMipHeight || dstEndLayer > dstMipLayers)
+		{
+			errno = EINDEX;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if ((dstEndX % dstBlockX != 0 && dstEndX != dstMipWidth) ||
+			(dstEndY % dstBlockY != 0 && dstEndY != dstMipHeight))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Texture data width and height must be a multiple of the block size or reach the "
+				"edge of the image.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	bool success = renderer->blitSurfaceFunc(renderer, commandBuffer, srcSurfaceType, srcSurface,
+		dstSurfaceType, dstSurface, regions, regionCount, filter);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

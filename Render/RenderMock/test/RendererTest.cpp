@@ -88,7 +88,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	colorValue.floatValue.b = 0.0f;
 	colorValue.floatValue.a = 1.0f;
 
-	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
+	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0,
 		offscreen1};
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, NULL, &surface,
 		&colorValue));
@@ -115,7 +115,7 @@ TEST_F(RendererTest, ClearColorSurface)
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
 		&colorValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_Renderbuffer;
+	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
 	surface.surface = colorBuffer;
 	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
 		&colorValue));
@@ -124,12 +124,12 @@ TEST_F(RendererTest, ClearColorSurface)
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
 		&colorValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_ColorRenderSurface;
+	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surface.surface = renderSurface;
 	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
 		&colorValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_DepthRenderSurface;
+	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
 	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
 		&colorValue));
 
@@ -167,8 +167,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	ASSERT_TRUE(renderSurface);
 
 	dsDepthStencilValue depthStencilValue = {1.0f, 0};
-	dsFramebufferSurface surface = {dsFramebufferSurfaceType_Offscreen, dsCubeFace_None, 0, 0,
-		offscreen1};
+	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1};
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, NULL, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(NULL, renderer, &surface,
@@ -195,7 +194,7 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_Renderbuffer;
+	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
 	surface.surface = colorBuffer;
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
@@ -204,12 +203,12 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_ColorRenderSurface;
+	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surface.surface = renderSurface;
 	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
-	surface.surfaceType = dsFramebufferSurfaceType_DepthRenderSurface;
+	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
 	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
@@ -490,6 +489,152 @@ TEST_F(RendererTest, DispatchComputeIndirect)
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
 	EXPECT_TRUE(dsGfxBuffer_destroy(indirectBuffer));
+}
+
+TEST_F(RendererTest, Blit)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	dsColor textureData[(32*16 + 16*8 + 8*4)*4];
+	for (unsigned int level = 0, index = 0; level < 3; ++level)
+	{
+		unsigned int width = 32 >> level;
+		unsigned int height = 16 >> level;
+		for (unsigned int depth = 0; depth < 4; ++depth)
+		{
+			for (unsigned int y = 0; y < height; ++y)
+			{
+				for (unsigned int x = 0; x < width; ++x, ++index)
+				{
+					textureData[index].r = (uint8_t)x;
+					textureData[index].g = (uint8_t)y;
+					textureData[index].b = (uint8_t)level;
+					textureData[index].a = (uint8_t)(depth + 1);
+				}
+			}
+		}
+	}
+
+	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	dsTexture* fromTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 32, 16, 4, 3, textureData,
+		sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+	ASSERT_TRUE(toTexture);
+
+	dsSurfaceBlitRegion blitRegion =
+	{
+		{dsCubeFace_None, 1, 2, 2, 1},
+		{dsCubeFace_None, 3, 4, 1, 0},
+		8, 4, 8, 4, 2
+	};
+
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsTexture_destroy(toTexture));
+
+	fromTexture = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, format,
+		dsTextureDim_2D, 32, 16, 4, 3, textureData, sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	toTexture = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+	ASSERT_TRUE(toTexture);
+
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsTexture_destroy(toTexture));
+
+	fromTexture = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, format,
+		dsTextureDim_2D, 32, 16, 4, 3, textureData, sizeof(textureData));
+	ASSERT_TRUE(fromTexture);
+
+	toTexture = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+	ASSERT_TRUE(toTexture);
+
+	EXPECT_TRUE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	dsColor readTextureData[8*4];
+	EXPECT_TRUE(dsTexture_getData(readTextureData, sizeof(readTextureData), toTexture,
+		&blitRegion.dstPosition, 8, 4));
+	for (unsigned int y = 0, index = 0; y < 4; ++y)
+	{
+		for (unsigned int x = 0; x < 8; ++x, ++index)
+		{
+			EXPECT_EQ(x + 1, readTextureData[index].r);
+			EXPECT_EQ(y + 2, readTextureData[index].g);
+			EXPECT_EQ(1U, readTextureData[index].b);
+			EXPECT_EQ(3U, readTextureData[index].a);
+		}
+	}
+
+	blitRegion.dstPosition.depth = 2;
+	EXPECT_TRUE(dsTexture_getData(readTextureData, sizeof(readTextureData), toTexture,
+		&blitRegion.dstPosition, 8, 4));
+	for (unsigned int y = 0, index = 0; y < 4; ++y)
+	{
+		for (unsigned int x = 0; x < 8; ++x, ++index)
+		{
+			EXPECT_EQ(x + 1, readTextureData[index].r);
+			EXPECT_EQ(y + 2, readTextureData[index].g);
+			EXPECT_EQ(1U, readTextureData[index].b);
+			EXPECT_EQ(4U, readTextureData[index].a);
+		}
+	}
+
+	blitRegion.srcPosition.x = 25;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.srcPosition.x = 1;
+	blitRegion.srcPosition.y = 13;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.srcPosition.x = 0;
+	blitRegion.srcPosition.y = 0;
+	blitRegion.srcPosition.mipLevel = 5;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.srcPosition.mipLevel = 0;
+	blitRegion.srcPosition.depth = 3;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.srcPosition.depth = 0;
+	blitRegion.dstPosition.x = 17;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.dstPosition.x = 3;
+	blitRegion.dstPosition.y = 29;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.dstPosition.y = 4;
+	blitRegion.dstPosition.mipLevel = 3;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	blitRegion.dstPosition.mipLevel = 0;
+	blitRegion.dstPosition.depth = 4;
+	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
+
+	EXPECT_TRUE(dsTexture_destroy(fromTexture));
+	EXPECT_TRUE(dsTexture_destroy(toTexture));
 }
 
 TEST_F(RendererTest, WaitUntilIdle)

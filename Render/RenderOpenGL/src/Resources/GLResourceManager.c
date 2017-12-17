@@ -1214,7 +1214,6 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->destroyTextureFunc = &dsGLTexture_destroy;
 	baseResourceManager->copyTextureDataFunc = &dsGLTexture_copyData;
 	baseResourceManager->copyTextureFunc = &dsGLTexture_copy;
-	baseResourceManager->blitTextureFunc = &dsGLTexture_blit;
 	baseResourceManager->generateTextureMipmapsFunc = &dsGLTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsGLTexture_getData;
 

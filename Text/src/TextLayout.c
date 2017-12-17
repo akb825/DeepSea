@@ -59,6 +59,7 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 			rangesValid = false;
 			break;
 		}
+
 		maxRangeChar += styles[i].count;
 	}
 

@@ -575,6 +575,58 @@ typedef struct dsDrawIndexedRange
 } dsDrawIndexedRange;
 
 /**
+ * @brief Structure defining the region to blit for a surface.
+ * @see Renderer.h
+ */
+typedef struct dsSurfaceBlitRegion
+{
+	/**
+	 * @brief The position for the source surface.
+	 */
+	dsTexturePosition srcPosition;
+
+	/**
+	 * @brief The position for the destination surface.
+	 */
+	dsTexturePosition dstPosition;
+
+	/**
+	 * @brief The width of the source image to blit from.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t srcWidth;
+
+	/**
+	 * @brief The height of the source image to blit from.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t srcHeight;
+
+	/**
+	 * @brief The width of the destination image to blit to.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t dstWidth;
+
+	/**
+	 * @brief The height of the destination image to blit to.
+	 *
+	 * This must always be a multiple of the format's block size or reach the edge of the image.
+	 */
+	uint32_t dstHeight;
+
+	/**
+	 * @brief The number of layers to blit.
+	 *
+	 * This is the depth multiplied by the number of faces.
+	 */
+	uint32_t layers;
+} dsSurfaceBlitRegion;
+
+/**
  * @brief Function for creating a render surface.
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface.
@@ -914,6 +966,23 @@ typedef bool (*dsRenderDispatchComputeIndirectFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset);
 
 /**
+ * @brief Function for blitting from one image to another, scaling when necessary.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to process the blit on.
+ * @param srcSurfaceType The type of the source surface.
+ * @param srcSurface The surface to blit from.
+ * @param dstSurfaceType The type of the source surface.
+ * @param dstSurface The surface to blit from.
+ * @param regions The regions to blit.
+ * @param regionCount The number of regions to blit.
+ * @param filter The filter to use when scaling is required.
+ * @return False if the data couldn't be blitted.
+ */
+typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+
+/**
  * @brief Function for waiting until the GPU is idle.
  * @param renderer The renderer.
  * @return False if the renderer is in an invalid state.
@@ -1217,6 +1286,11 @@ struct dsRenderer
 	 * @brief Compute shader indirect dispatch function.
 	 */
 	dsRenderDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
+
+	/**
+	 * @brief Surface blitting function.
+	 */
+	dsBlitSurfaceFunction blitSurfaceFunc;
 
 	/**
 	 * @brief Idle waiting function.

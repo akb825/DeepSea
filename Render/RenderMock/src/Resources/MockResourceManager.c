@@ -173,7 +173,6 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->destroyTextureFunc = &dsMockTexture_destroy;
 	resourceManager->copyTextureDataFunc = &dsMockTexture_copyData;
 	resourceManager->copyTextureFunc = &dsMockTexture_copy;
-	resourceManager->blitTextureFunc = &dsMockTexture_blit;
 	resourceManager->generateTextureMipmapsFunc = &dsMockTexture_generateMipmaps;
 	resourceManager->getTextureDataFunc = &dsMockTexture_getData;
 

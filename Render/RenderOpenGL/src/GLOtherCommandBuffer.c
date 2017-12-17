@@ -42,7 +42,6 @@ typedef enum CommandType
 	CommandType_CopyBuffer,
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
-	CommandType_BlitTexture,
 	CommandType_GenerateTextureMipmaps,
 	CommandType_BindShader,
 	CommandType_SetTexture,
@@ -62,7 +61,8 @@ typedef enum CommandType
 	CommandType_DrawIndirect,
 	CommandType_DrawIndexedIndirect,
 	CommandType_DispatchCompute,
-	CommandType_DispatchComputeIndirect
+	CommandType_DispatchComputeIndirect,
+	CommandType_BlitSurface
 } CommandType;
 
 typedef struct Command
@@ -110,16 +110,6 @@ typedef struct CopyTextureCommand
 	size_t regionCount;
 	dsTextureCopyRegion regions[];
 } CopyTextureCommand;
-
-typedef struct BlitTextureCommand
-{
-	Command command;
-	dsTexture* srcTexture;
-	dsTexture* dstTexture;
-	dsBlitFilter filter;
-	size_t regionCount;
-	dsTextureBlitRegion regions[];
-} BlitTextureCommand;
 
 typedef struct GenerateTextureMipmapsCommand
 {
@@ -262,6 +252,18 @@ typedef struct DispatchComputeIndirectCommand
 	size_t offset;
 } DispatchComputeIndirectCommand;
 
+typedef struct BlitSurfaceCommand
+{
+	Command command;
+	void* srcSurface;
+	void* dstSurface;
+	dsGfxSurfaceType srcSurfaceType;
+	dsGfxSurfaceType dstSurfaceType;
+	dsBlitFilter filter;
+	size_t regionCount;
+	dsSurfaceBlitRegion regions[];
+} BlitSurfaceCommand;
+
 struct dsGLOtherCommandBuffer
 {
 	dsGLCommandBuffer commandBuffer;
@@ -272,6 +274,36 @@ struct dsGLOtherCommandBuffer
 	uint32_t maxFenceSyncs;
 	bool bufferReadback;
 };
+
+static void addSurfaceRef(dsGfxSurfaceType type, void* surface)
+{
+	switch (type)
+	{
+		case dsGfxSurfaceType_Texture:
+			dsGLTexture_addInternalRef((dsTexture*)surface);
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+			dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface);
+			break;
+		default:
+			break;
+	}
+}
+
+static void freeSurfaceRef(dsGfxSurfaceType type, void* surface)
+{
+	switch (type)
+	{
+		case dsGfxSurfaceType_Texture:
+			dsGLTexture_freeInternalRef((dsTexture*)surface);
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+			dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)surface);
+			break;
+		default:
+			break;
+	}
+}
 
 static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type, size_t size)
 {
@@ -374,26 +406,6 @@ bool dsGLOtherCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTextur
 	command->dstTexture = dstTexture;
 	command->regionCount = regionCount;
 	memcpy(command->regions, regions, sizeof(dsTextureCopyRegion)*regionCount);
-	return true;
-}
-
-bool dsGLOtherCommandBuffer_blitTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureBlitRegion* regions, size_t regionCount,
-	dsBlitFilter filter)
-{
-	size_t commandSize = sizeof(BlitTextureCommand) + sizeof(dsTextureBlitRegion)*regionCount;
-	BlitTextureCommand* command = (BlitTextureCommand*)allocateCommand(commandBuffer,
-		CommandType_BlitTexture, commandSize);
-	if (!command)
-		return false;
-
-	dsGLTexture_addInternalRef(srcTexture);
-	dsGLTexture_addInternalRef(dstTexture);
-	command->srcTexture = srcTexture;
-	command->dstTexture = dstTexture;
-	command->filter = filter;
-	command->regionCount = regionCount;
-	memcpy(command->regions, regions, sizeof(dsTextureBlitRegion)*regionCount);
 	return true;
 }
 
@@ -618,9 +630,9 @@ bool dsGLOtherCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		return false;
 
 	command->surface = *surface;
-	if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+	if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
-	else if (surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
 		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
 	command->value = *colorValue;
 	return true;
@@ -637,9 +649,9 @@ bool dsGLOtherCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuf
 		return false;
 
 	command->surface = *surface;
-	if (surface->surfaceType == dsFramebufferSurfaceType_Offscreen)
+	if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		dsGLTexture_addInternalRef((dsTexture*)surface->surface);
-	else if (surface->surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+	else if (surface->surfaceType == dsGfxSurfaceType_Renderbuffer)
 		dsGLRenderbuffer_addInternalRef((dsRenderbuffer*)surface->surface);
 	command->surfaceParts = surfaceParts;
 	command->value = *depthStencilValue;
@@ -740,6 +752,28 @@ bool dsGLOtherCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuff
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+{
+	size_t commandSize = sizeof(BlitSurfaceCommand) + sizeof(dsSurfaceBlitRegion)*regionCount;
+	BlitSurfaceCommand* command = (BlitSurfaceCommand*)allocateCommand(commandBuffer,
+		CommandType_BlitSurface, commandSize);
+	if (!command)
+		return false;
+
+	addSurfaceRef(srcSurfaceType, srcSurface);
+	addSurfaceRef(dstSurfaceType, dstSurface);
+	command->srcSurface = srcSurface;
+	command->dstSurface = dstSurface;
+	command->srcSurfaceType = srcSurfaceType;
+	command->dstSurfaceType = dstSurfaceType;
+	command->filter = filter;
+	command->regionCount = regionCount;
+	memcpy(command->regions, regions, sizeof(dsSurfaceBlitRegion)*regionCount);
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -796,14 +830,6 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				CopyTextureCommand* thisCommand = (CopyTextureCommand*)command;
 				dsGLCommandBuffer_copyTexture(commandBuffer, thisCommand->srcTexture,
 					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount);
-				break;
-			}
-			case CommandType_BlitTexture:
-			{
-				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
-				dsGLCommandBuffer_blitTexture(commandBuffer, thisCommand->srcTexture,
-					thisCommand->dstTexture, thisCommand->regions, thisCommand->regionCount,
-					thisCommand->filter);
 				break;
 			}
 			case CommandType_GenerateTextureMipmaps:
@@ -950,6 +976,15 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->indirectBuffer, thisCommand->offset);
 				break;
 			}
+			case CommandType_BlitSurface:
+			{
+				BlitSurfaceCommand* thisCommand = (BlitSurfaceCommand*)command;
+				dsGLCommandBuffer_blitSurface(commandBuffer->renderer, commandBuffer,
+					thisCommand->srcSurfaceType, thisCommand->srcSurface,
+					thisCommand->dstSurfaceType, thisCommand->dstSurface, thisCommand->regions,
+					thisCommand->regionCount, thisCommand->filter);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -977,7 +1012,6 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyBuffer,
 	&dsGLOtherCommandBuffer_copyTextureData,
 	&dsGLOtherCommandBuffer_copyTexture,
-	&dsGLOtherCommandBuffer_blitTexture,
 	&dsGLOtherCommandBuffer_generateTextureMipmaps,
 	&dsGLOtherCommandBuffer_setFenceSyncs,
 	&dsGLOtherCommandBuffer_bindShader,
@@ -999,6 +1033,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_drawIndexedIndirect,
 	&dsGLOtherCommandBuffer_dispatchCompute,
 	&dsGLOtherCommandBuffer_dispatchComputeIndirect,
+	&dsGLOtherCommandBuffer_blitSurface,
 	&dsGLOtherCommandBuffer_begin,
 	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
@@ -1085,13 +1120,6 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
 				break;
 			}
-			case CommandType_BlitTexture:
-			{
-				BlitTextureCommand* thisCommand = (BlitTextureCommand*)command;
-				dsGLTexture_freeInternalRef(thisCommand->srcTexture);
-				dsGLTexture_freeInternalRef(thisCommand->dstTexture);
-				break;
-			}
 			case CommandType_GenerateTextureMipmaps:
 			{
 				GenerateTextureMipmapsCommand* thisCommand =
@@ -1160,9 +1188,9 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 			case CommandType_ClearColorSurface:
 			{
 				ClearColorSurfaceCommand* thisCommand = (ClearColorSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Offscreen)
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
 					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
 					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
 				break;
 			}
@@ -1170,9 +1198,9 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 			{
 				ClearDepthStencilSurfaceCommand* thisCommand =
 					(ClearDepthStencilSurfaceCommand*)command;
-				if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Offscreen)
+				if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Texture)
 					dsGLTexture_freeInternalRef((dsTexture*)thisCommand->surface.surface);
-				else if (thisCommand->surface.surfaceType == dsFramebufferSurfaceType_Renderbuffer)
+				else if (thisCommand->surface.surfaceType == dsGfxSurfaceType_Renderbuffer)
 					dsGLRenderbuffer_freeInternalRef((dsRenderbuffer*)thisCommand->surface.surface);
 				break;
 			}
@@ -1203,6 +1231,13 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				DispatchComputeIndirectCommand* thisCommand =
 					(DispatchComputeIndirectCommand*)command;
 				dsGLGfxBuffer_freeInternalRef((dsGfxBuffer*)thisCommand->indirectBuffer);
+				break;
+			}
+			case CommandType_BlitSurface:
+			{
+				BlitSurfaceCommand* thisCommand = (BlitSurfaceCommand*)command;
+				freeSurfaceRef(thisCommand->srcSurfaceType, thisCommand->srcSurface);
+				freeSurfaceRef(thisCommand->dstSurfaceType, thisCommand->dstSurface);
 				break;
 			}
 			default:

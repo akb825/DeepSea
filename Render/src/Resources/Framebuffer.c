@@ -66,8 +66,8 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 		uint32_t surfaceWidth, surfaceHeight, surfaceLayers;
 		switch (surfaces[i].surfaceType)
 		{
-			case dsFramebufferSurfaceType_ColorRenderSurfaceLeft:
-			case dsFramebufferSurfaceType_ColorRenderSurfaceRight:
+			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+			case dsGfxSurfaceType_ColorRenderSurfaceRight:
 				if (!resourceManager->renderer->stereoscopic)
 				{
 					errno = EPERM;
@@ -77,7 +77,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 				// fall through
-			case dsFramebufferSurfaceType_ColorRenderSurface:
+			case dsGfxSurfaceType_ColorRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
 				surfaceFormat = surface->renderer->surfaceColorFormat;
@@ -86,8 +86,8 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceLayers = 1;
 				break;
 			}
-			case dsFramebufferSurfaceType_DepthRenderSurfaceLeft:
-			case dsFramebufferSurfaceType_DepthRenderSurfaceRight:
+			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+			case dsGfxSurfaceType_DepthRenderSurfaceRight:
 				if (!resourceManager->renderer->stereoscopic)
 				{
 					errno = EPERM;
@@ -97,7 +97,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 				// fall through
-			case dsFramebufferSurfaceType_DepthRenderSurface:
+			case dsGfxSurfaceType_DepthRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
 				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
@@ -106,9 +106,17 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				surfaceLayers = 1;
 				break;
 			}
-			case dsFramebufferSurfaceType_Offscreen:
+			case dsGfxSurfaceType_Texture:
 			{
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
+				if (!surface->offscreen)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Attempting to use a non-offscreen texture for a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+
 				surfaceFormat = surface->format;
 				if (surface->resolve)
 				{
@@ -126,14 +134,6 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					surfaceLayers = dsMax(1U, surface->depth);
 					if (surface->dimension == dsTextureDim_Cube)
 						surfaceLayers *= 6;
-				}
-
-				if (!surface->offscreen)
-				{
-					errno = EPERM;
-					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-						"Attempting to use a non-offscreen texture for a framebuffer.");
-					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
 				if (surfaces[i].mipLevel >= surface->mipLevels)
@@ -162,7 +162,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 
 				break;
 			}
-			case dsFramebufferSurfaceType_Renderbuffer:
+			case dsGfxSurfaceType_Renderbuffer:
 			{
 				dsRenderbuffer* surface = (dsRenderbuffer*)surfaces[i].surface;
 				surfaceFormat = surface->format;
