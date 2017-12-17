@@ -80,8 +80,8 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
 /**
  * @brief Binds a shader to be drawn to.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
+ * @param commandBuffer The command buffer to queue commands onto.
  * @param material The material values to apply to the shader.
  * @param volatileValues The volatile values to apply to the shader. This may be NULL if the
  *     material description doesn't use volatile values.
@@ -89,7 +89,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
  *     values.
  * @return False if the values couldn't be bound.
  */
-DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShader* shader,
+DS_RENDER_EXPORT bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates);
 
@@ -99,22 +99,22 @@ DS_RENDER_EXPORT bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShad
  * This will try to only update the values that have changed.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to update the values on.
+ * @param commandBuffer The command buffer to queue commands onto.
  * @param volatileValues The volatile values to updte.
  * @return False if the values couldn't be updated.
  */
-DS_RENDER_EXPORT bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
+DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
+	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
 
 /**
  * @brief Un-binds a shader that was previously bound.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to update the values on.
+ * @param commandBuffer The command buffer to queue commands onto.
  * @return False if the values couldn't be unbound.
  */
-DS_RENDER_EXPORT bool dsShader_unbind(dsCommandBuffer* commandBuffer, const dsShader* shader);
+DS_RENDER_EXPORT bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys a shader.

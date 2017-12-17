@@ -59,7 +59,7 @@ dsGfxFence* dsGfxFence_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_PROFILE_FUNC_RETURN(fence);
 }
 
-bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence* fence, bool bufferReadback)
+bool dsGfxFence_set(dsGfxFence* fence, dsCommandBuffer* commandBuffer, bool bufferReadback)
 {
 	DS_PROFILE_FUNC_START();
 

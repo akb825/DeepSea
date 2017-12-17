@@ -66,12 +66,12 @@ DS_RENDER_EXPORT dsGfxFence* dsGfxFence_create(dsResourceManager* resourceManage
  * fence must be reset before being set again.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to queue the fence on.
  * @param fence The fence.
+ * @param commandBuffer The command buffer to queue the fence on.
  * @param bufferReadback True if persistently mapped buffers will be read back.
  * @return False if the fence couldn't be set.
  */
-DS_RENDER_EXPORT bool dsGfxFence_set(dsCommandBuffer* commandBuffer, dsGfxFence* fence,
+DS_RENDER_EXPORT bool dsGfxFence_set(dsGfxFence* fence, dsCommandBuffer* commandBuffer,
 	bool bufferReadback);
 
 /**

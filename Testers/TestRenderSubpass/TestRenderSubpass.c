@@ -385,8 +385,8 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44_mul(modelViewProjection, testRenderSubpass->projection, modelView);
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testRenderSubpass->transformGroup, 0,
 		&modelViewProjection, dsMaterialType_Mat4, 0,  1));
-	DS_VERIFY(dsShaderVariableGroup_commit(testRenderSubpass->renderer->mainCommandBuffer,
-		testRenderSubpass->transformGroup));
+	DS_VERIFY(dsShaderVariableGroup_commit(testRenderSubpass->transformGroup,
+		testRenderSubpass->renderer->mainCommandBuffer));
 }
 
 static void draw(dsApplication* application, dsWindow* window, void* userData)
@@ -416,47 +416,47 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	uint32_t clearValueCount = (uint32_t)DS_ARRAY_SIZE(clearValues);
 	if (!testRenderSubpass->combinedColor)
 		--clearValueCount;
-	DS_VERIFY(dsRenderPass_begin(commandBuffer, testRenderSubpass->renderPass,
+	DS_VERIFY(dsRenderPass_begin(testRenderSubpass->renderPass, commandBuffer,
 		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount, false));
 
 	// Draw red channel
 	dsDrawIndexedRange drawRange = {testRenderSubpass->cubeGeometry->indexBuffer.count, 1, 0, 0, 0};
-	DS_VERIFY(dsShader_bind(commandBuffer, testRenderSubpass->cubeShader,
+	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->rMaterial, testRenderSubpass->volatileValues, NULL));
-	DS_VERIFY(dsRenderer_drawIndexed(commandBuffer,renderer, testRenderSubpass->cubeGeometry,
+	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange));
-	DS_VERIFY(dsShader_unbind(commandBuffer, testRenderSubpass->cubeShader));
+	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(commandBuffer, testRenderSubpass->renderPass, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
 
 	// Draw green channel
-	DS_VERIFY(dsShader_bind(commandBuffer, testRenderSubpass->cubeShader,
+	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->gMaterial, testRenderSubpass->volatileValues, NULL));
-	DS_VERIFY(dsRenderer_drawIndexed(commandBuffer,renderer, testRenderSubpass->cubeGeometry,
+	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange));
-	DS_VERIFY(dsShader_unbind(commandBuffer, testRenderSubpass->cubeShader));
+	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(commandBuffer, testRenderSubpass->renderPass, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
 
 	// Draw blue channel
-	DS_VERIFY(dsShader_bind(commandBuffer, testRenderSubpass->cubeShader,
+	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->bMaterial, testRenderSubpass->volatileValues, NULL));
-	DS_VERIFY(dsRenderer_drawIndexed(commandBuffer,renderer, testRenderSubpass->cubeGeometry,
+	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange));
-	DS_VERIFY(dsShader_unbind(commandBuffer, testRenderSubpass->cubeShader));
+	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(commandBuffer, testRenderSubpass->renderPass, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
 
 	// Resolve the final result
 	dsDrawRange resolveRange = {testRenderSubpass->resolveGeometry->vertexBuffers[0].count, 1, 0,
 		0};
-	DS_VERIFY(dsShader_bind(commandBuffer, testRenderSubpass->resolveShader,
+	DS_VERIFY(dsShader_bind(testRenderSubpass->resolveShader, commandBuffer,
 		testRenderSubpass->resolveMaterial, NULL, NULL));
-	DS_VERIFY(dsRenderer_draw(commandBuffer,renderer, testRenderSubpass->resolveGeometry,
+	DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testRenderSubpass->resolveGeometry,
 		&resolveRange));
-	DS_VERIFY(dsShader_unbind(commandBuffer, testRenderSubpass->resolveShader));
+	DS_VERIFY(dsShader_unbind(testRenderSubpass->resolveShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_end(commandBuffer, testRenderSubpass->renderPass));
+	DS_VERIFY(dsRenderPass_end(testRenderSubpass->renderPass, commandBuffer));
 
 	// Blit the 3 sub buffers and final buffer to the window if supported.
 	if (testRenderSubpass->combinedColor)
@@ -471,13 +471,13 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 			width/2, height/2,
 			1
 		};
-		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 			testRenderSubpass->rColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 
 		region.dstPosition.x = width/2;
 		region.dstWidth = width - region.dstPosition.x;
-		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 			testRenderSubpass->gColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 
@@ -485,13 +485,13 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		region.dstPosition.y = height/2;
 		region.dstWidth = width/2;
 		region.dstHeight = height - region.dstPosition.y;
-		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 			testRenderSubpass->bColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 
 		region.dstPosition.x = width/2;
 		region.dstWidth = width - region.dstPosition.x;
-		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Renderbuffer,
+		dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Renderbuffer,
 			testRenderSubpass->combinedColor, dsGfxSurfaceType_ColorRenderSurface,
 			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
 	}

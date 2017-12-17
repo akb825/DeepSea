@@ -261,7 +261,7 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer, size_t offset,
+bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer, size_t offset,
 	const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();

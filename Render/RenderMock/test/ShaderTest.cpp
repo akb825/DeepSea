@@ -391,56 +391,56 @@ TEST_F(ShaderTest, BindAndUpdate)
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
 
-	EXPECT_FALSE(dsShader_bind(NULL, shader, material, volatileValues, NULL));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, NULL, material, volatileValues, NULL));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, NULL, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, NULL, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(NULL, commandBuffer, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, NULL, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "diffuseTexture"));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
 		texture2));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
 		texture1));
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		group));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
-	EXPECT_TRUE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, NULL));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "diffuseTexture"));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
 		texture2));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
 		texture1));
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		group));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
-	EXPECT_TRUE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_TRUE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
-	EXPECT_FALSE(dsShader_unbind(NULL, shader));
-	EXPECT_FALSE(dsShader_unbind(commandBuffer, NULL));
+	EXPECT_FALSE(dsShader_unbind(shader, NULL));
+	EXPECT_FALSE(dsShader_unbind(NULL, commandBuffer));
 
-	EXPECT_TRUE(dsShader_unbind(commandBuffer, shader));
+	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 
 	EXPECT_TRUE(dsShader_destroy(shader));
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
@@ -496,31 +496,31 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		(dsAllocator*)&allocator, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
 	ASSERT_TRUE(volatileValues);
 
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer2, 0,
 		buffer2->size));
-	EXPECT_FALSE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
 		buffer1->size));
-	EXPECT_TRUE(dsShader_bind(commandBuffer, shader, material, volatileValues, NULL));
+	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer2, 0,
 		buffer2->size));
-	EXPECT_FALSE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_FALSE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
 		buffer1->size));
-	EXPECT_TRUE(dsShader_updateVolatileValues(commandBuffer, shader, volatileValues));
+	EXPECT_TRUE(dsShader_updateVolatileValues(shader, commandBuffer, volatileValues));
 
-	EXPECT_FALSE(dsShader_unbind(NULL, shader));
-	EXPECT_FALSE(dsShader_unbind(commandBuffer, NULL));
+	EXPECT_FALSE(dsShader_unbind(shader, NULL));
+	EXPECT_FALSE(dsShader_unbind(NULL, commandBuffer));
 
-	EXPECT_TRUE(dsShader_unbind(commandBuffer, shader));
+	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 
 	EXPECT_TRUE(dsShader_destroy(shader));
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));

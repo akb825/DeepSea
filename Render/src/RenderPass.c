@@ -308,7 +308,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	DS_PROFILE_FUNC_RETURN(renderPass);
 }
 
-bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
+bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool indirectCommands)
 {
@@ -435,7 +435,7 @@ bool dsRenderPass_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* rend
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderPass_nextSubpass(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
+bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	bool indirectCommands)
 {
 	DS_PROFILE_FUNC_START();
@@ -453,7 +453,7 @@ bool dsRenderPass_nextSubpass(dsCommandBuffer* commandBuffer, const dsRenderPass
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderPass_end(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass)
+bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

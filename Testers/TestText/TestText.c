@@ -370,8 +370,8 @@ static bool createFramebuffer(TestText* testText)
 	unsigned int screenSize[] = {width, height};
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedInfoGroup,
 		testText->screenSizeElement, &screenSize, dsMaterialType_UVec2, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_commit(testText->renderer->mainCommandBuffer,
-		testText->sharedInfoGroup));
+	DS_VERIFY(dsShaderVariableGroup_commit(testText->sharedInfoGroup,
+		testText->renderer->mainCommandBuffer));
 
 	setPositions(testText);
 	return true;
@@ -539,25 +539,25 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	clearValue.colorValue.floatValue.g = 0.0f;
 	clearValue.colorValue.floatValue.b = 0.0f;
 	clearValue.colorValue.floatValue.a = 1.0f;
-	DS_VERIFY(dsRenderPass_begin(commandBuffer, testText->renderPass, testText->framebuffer, NULL,
+	DS_VERIFY(dsRenderPass_begin(testText->renderPass, commandBuffer, testText->framebuffer, NULL,
 		&clearValue, 1, false));
 
 	if (testText->text)
 	{
-		DS_VERIFY(dsShader_bind(commandBuffer, testText->shader, testText->material, NULL, NULL));
+		DS_VERIFY(dsShader_bind(testText->shader, commandBuffer, testText->material, NULL, NULL));
 		DS_VERIFY(dsTextRenderBuffer_draw(testText->textRender, commandBuffer));
-		DS_VERIFY(dsShader_unbind(commandBuffer, testText->shader));
+		DS_VERIFY(dsShader_unbind(testText->shader, commandBuffer));
 	}
 
 	if (testText->tessText)
 	{
-		DS_VERIFY(dsShader_bind(commandBuffer, testText->tessShader, testText->tessMaterial, NULL,
+		DS_VERIFY(dsShader_bind(testText->tessShader, commandBuffer, testText->tessMaterial, NULL,
 			NULL));
 		DS_VERIFY(dsTextRenderBuffer_draw(testText->tessTextRender, commandBuffer));
-		DS_VERIFY(dsShader_unbind(commandBuffer, testText->tessShader));
+		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
 	}
 
-	DS_VERIFY(dsRenderPass_end(commandBuffer, testText->renderPass));
+	DS_VERIFY(dsRenderPass_end(testText->renderPass, commandBuffer));
 }
 
 static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator)

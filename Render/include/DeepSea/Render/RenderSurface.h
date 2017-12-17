@@ -64,22 +64,22 @@ DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface);
 /**
  * @brief Begins drawing to a render surface.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to push the commands on.
  * @param renderSurface The render surface to draw to.
+ * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't begin.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
+DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Ends drawing to a render surface.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to push the commands on.
  * @param renderSurface The render surface to draw to.
+ * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't end.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
+DS_RENDER_EXPORT bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Swaps the front and back buffers for a list of render surfaces.

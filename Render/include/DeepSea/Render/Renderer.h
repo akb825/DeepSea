@@ -172,58 +172,59 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, floa
 /**
  * @brief Clears a color surface.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the clear command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the clear command on.
  * @param surface The surface to clear.
  * @param colorValue The color value to clear with.
  * @return False if the surface couldn't be cleared.
  */
-DS_RENDER_EXPORT bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer,
-	dsRenderer* renderer, const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue);
+DS_RENDER_EXPORT bool dsRenderer_clearColorSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
+	const dsSurfaceColorValue* colorValue);
 
 /**
  * @brief Clears a depth-stencil surface.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the clear command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the clear command on.
  * @param surface The surface to clear.
  * @param surfaceParts The parts of the surface to clear.
  * @param depthStencilValue The depth-stencil value to clear with.
  * @return False if the surface couldn't be cleared.
  */
-DS_RENDER_EXPORT bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer,
-	dsRenderer* renderer, const dsFramebufferSurface* surface,
+DS_RENDER_EXPORT bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebufferSurface* surface,
 	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
 
 /**
  * @brief Draws vertex geometry with the currently bound shader.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the draw command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
  * @return False if the geometry couldn't be drawn.
  */
-DS_RENDER_EXPORT bool dsRenderer_draw(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+DS_RENDER_EXPORT bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
 
 /**
  * @brief Draws indexed geometry with the currently bound shader.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the draw command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
  * @return False if the geometry couldn't be drawn.
  */
-DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
 
 /**
  * @brief Indirectly draws vertex geometry with the currently bound shader.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the draw command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param indirectBuffer The buffer containing the draw information. The contents should be the same
  *     layout as dsDrawRange.
@@ -232,15 +233,15 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsCommandBuffer* commandBuffer, dsR
  * @param stride The stride for each element in the indirect buffer.
  * @return False if the geometry couldn't be drawn.
  */
-DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride);
 
 /**
  * @brief Indirectly draws indexed geometry with the currently bound shader.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the draw command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param indirectBuffer The buffer containing the draw information. The contents should be the same
  *     layout as dsDrawRange.
@@ -249,41 +250,41 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsCommandBuffer* commandBuffer, ds
  * @param stride The stride for each element in the indirect buffer.
  * @return False if the geometry couldn't be drawn.
  */
-DS_RENDER_EXPORT bool dsRenderer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
-	dsRenderer* renderer, const dsDrawGeometry* geometry,
+DS_RENDER_EXPORT bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
 	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride);
 
 /**
  * @brief Dispatches a compute job.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the dispatch command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the dispatch command on.
  * @param x The number of working groups in the X direction.
  * @param y The number of working groups in the Y direction.
  * @param z The number of working groups in the Z direction.
  * @return False if the compute job couldn't be dispatched.
  */
-DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(dsCommandBuffer* commandBuffer,
-	dsRenderer* renderer, uint32_t x, uint32_t y, uint32_t z);
+DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y, uint32_t z);
 
 /**
  * @brief Dispatches an indirect compute job.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to place the dispatch command on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to place the dispatch command on.
  * @param indirectBuffer The buffer that contains the number of working groups in the X, Y, and Z
  *     dimensions as 4-byte unsigned integers.
  * @param offset The offset into the indirect buffer.
  * @return False if the compute job couldn't be dispatched.
  */
-DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer,
-	dsRenderer* renderer, const dsGfxBuffer* indirectBuffer, size_t offset);
+DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsGfxBuffer* indirectBuffer, size_t offset);
 
 /**
  * @brief Blits from one surface to another, scaling when necessary.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to process the blit on.
  * @param renderer The renderer.
+ * @param commandBuffer The command buffer to process the blit on.
  * @param srcSurfaceType The type of the source surface.
  * @param srcSurface The surface to blit from.
  * @param dstSurfaceType The type of the source surface.
@@ -293,7 +294,7 @@ DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* comman
  * @param filter The filter to use when scaling is required.
  * @return False if the data couldn't be blitted.
  */
-DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 

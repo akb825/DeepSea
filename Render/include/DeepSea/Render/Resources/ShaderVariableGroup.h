@@ -113,13 +113,13 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup
  * as part of dsVolatileMaterialValues.
  *
  * @remark errno will be set on failure.
+ * @param group The shader variable group to commit changes for.
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
  *     implementation and should not be relied on to be executed with the command buffer.
- * @param group The shader variable group to commit changes for.
  * @return False if the variables couldn't be committed.
  */
-DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer,
-	dsShaderVariableGroup* group);
+DS_RENDER_EXPORT bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Gets the graphics buffer for the shader variable data.

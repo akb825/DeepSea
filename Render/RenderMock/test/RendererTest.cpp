@@ -90,47 +90,47 @@ TEST_F(RendererTest, ClearColorSurface)
 
 	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0,
 		offscreen1};
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, NULL, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(NULL, renderer->mainCommandBuffer, &surface,
 		&colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(NULL, renderer, &surface, &colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, NULL,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, NULL, &surface, &colorValue));
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, NULL,
 		&colorValue));
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		NULL));
 
 	surface.layer = 2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.layer = 0;
 	surface.mipLevel = 2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.mipLevel = 0;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.surface = offscreen2;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
 	surface.surface = colorBuffer;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.surface = depthBuffer;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surface.surface = renderSurface;
-	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
-	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearColorSurface(renderer, renderer->mainCommandBuffer, &surface,
 		&colorValue));
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -168,48 +168,48 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 
 	dsDepthStencilValue depthStencilValue = {1.0f, 0};
 	dsFramebufferSurface surface = {dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1};
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, NULL, &surface,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(NULL, renderer->mainCommandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(NULL, renderer, &surface,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, NULL, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, NULL,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer, NULL,
 		dsClearDepthStencil_Both, &depthStencilValue));
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, NULL));
 
 	surface.layer = 2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.layer = 0;
 	surface.mipLevel = 2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.mipLevel = 0;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.surface = offscreen2;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.surfaceType = dsGfxSurfaceType_Renderbuffer;
 	surface.surface = colorBuffer;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.surface = depthBuffer;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.surfaceType = dsGfxSurfaceType_ColorRenderSurface;
 	surface.surface = renderSurface;
-	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer,
 		&surface, dsClearDepthStencil_Both, &depthStencilValue));
 
 	surface.surfaceType = dsGfxSurfaceType_DepthRenderSurface;
-	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer->mainCommandBuffer, renderer, &surface,
+	EXPECT_TRUE(dsRenderer_clearDepthStencilSurface(renderer, renderer->mainCommandBuffer, &surface,
 		dsClearDepthStencil_Both, &depthStencilValue));
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -244,22 +244,22 @@ TEST_F(RendererTest, Draw)
 	ASSERT_TRUE(geometry);
 
 	dsDrawRange drawRange = {10, 1, 0, 0};
-	EXPECT_FALSE(dsRenderer_draw(renderer->mainCommandBuffer, NULL, geometry, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(NULL, renderer, geometry, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, NULL, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, geometry, NULL));
+	EXPECT_FALSE(dsRenderer_draw(NULL, renderer->mainCommandBuffer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, NULL, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, NULL, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, geometry, NULL));
 
-	EXPECT_TRUE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, geometry, &drawRange));
+	EXPECT_TRUE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, geometry, &drawRange));
 
 	drawRange.firstVertex = 4;
-	EXPECT_FALSE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, geometry, &drawRange));
 
 	drawRange.firstVertex = 0;
 	drawRange.instanceCount = 10;
-	EXPECT_TRUE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, geometry, &drawRange));
+	EXPECT_TRUE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, geometry, &drawRange));
 
 	renderer->supportsInstancedDrawing = false;
-	EXPECT_FALSE(dsRenderer_draw(renderer->mainCommandBuffer, renderer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, renderer->mainCommandBuffer, geometry, &drawRange));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
@@ -300,27 +300,27 @@ TEST_F(RendererTest, DrawIndexed)
 	ASSERT_TRUE(geometry2);
 
 	dsDrawIndexedRange drawRange = {16, 1, 0, 0, 0};
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, NULL, geometry1, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(NULL, renderer, geometry1, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, NULL, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry1, NULL));
+	EXPECT_FALSE(dsRenderer_drawIndexed(NULL, renderer->mainCommandBuffer, geometry1, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, NULL, geometry1, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, NULL, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry1, NULL));
 
-	EXPECT_TRUE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry1,
 		&drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry2,
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry2,
 		&drawRange));
 
 	drawRange.firstIndex = 4;
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry1,
 		&drawRange));
 
 	drawRange.firstIndex = 0;
 	drawRange.instanceCount = 10;
-	EXPECT_TRUE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry1,
 		&drawRange));
 
 	renderer->supportsInstancedDrawing = false;
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, renderer->mainCommandBuffer, geometry1,
 		&drawRange));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry1));
@@ -358,22 +358,22 @@ TEST_F(RendererTest, DrawIndirect)
 		NULL);
 	ASSERT_TRUE(geometry);
 
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, NULL, geometry,
+	EXPECT_FALSE(dsRenderer_drawIndirect(NULL, renderer->mainCommandBuffer, geometry,
 		indirectBuffer, 0, 4, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(NULL, renderer, geometry, indirectBuffer, 0, 4,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, NULL, geometry, indirectBuffer, 0, 4,
 		sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, NULL,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, NULL,
 		indirectBuffer, 0, 4, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, geometry, NULL, 0,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, geometry, NULL, 0,
 		4, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, geometry,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, geometry,
 		indirectBuffer, 1, 3, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, geometry,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, geometry,
 		indirectBuffer, 0, 5, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, geometry,
+	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, geometry,
 		indirectBuffer, 0, 4, 1));
 
-	EXPECT_TRUE(dsRenderer_drawIndirect(renderer->mainCommandBuffer, renderer, geometry,
+	EXPECT_TRUE(dsRenderer_drawIndirect(renderer, renderer->mainCommandBuffer, geometry,
 		indirectBuffer, 0, 4, sizeof(dsDrawRange)));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry));
@@ -420,24 +420,24 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 		NULL);
 	ASSERT_TRUE(geometry2);
 
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, NULL, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(NULL, renderer->mainCommandBuffer, geometry1,
 		indirectBuffer, 0, 4, sizeof(dsDrawRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(NULL, renderer, geometry1, indirectBuffer, 0, 4,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, NULL, geometry1, indirectBuffer, 0, 4,
 		sizeof(dsDrawIndexedRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, NULL,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, NULL,
 		indirectBuffer, 0, 4, sizeof(dsDrawIndexedRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry1,
 		NULL, 0, 4, sizeof(dsDrawIndexedRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry1,
 		indirectBuffer, 1, 3, sizeof(dsDrawIndexedRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry1,
 		indirectBuffer, 0, 5, sizeof(dsDrawIndexedRange)));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry1,
 		indirectBuffer, 0, 4, 1));
-	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry2,
+	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry2,
 		indirectBuffer, 0, 4, sizeof(dsDrawIndexedRange)));
 
-	EXPECT_TRUE(dsRenderer_drawIndexedIndirect(renderer->mainCommandBuffer, renderer, geometry1,
+	EXPECT_TRUE(dsRenderer_drawIndexedIndirect(renderer, renderer->mainCommandBuffer, geometry1,
 		indirectBuffer, 0, 4, sizeof(dsDrawIndexedRange)));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry1));
@@ -449,12 +449,12 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 
 TEST_F(RendererTest, DispatchCompute)
 {
-	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer->mainCommandBuffer, NULL, 1, 1, 1));
-	EXPECT_FALSE(dsRenderer_dispatchCompute(NULL, renderer, 1, 1, 1));
+	EXPECT_FALSE(dsRenderer_dispatchCompute(NULL, renderer->mainCommandBuffer, 1, 1, 1));
+	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer, NULL, 1, 1, 1));
 
-	EXPECT_TRUE(dsRenderer_dispatchCompute(renderer->mainCommandBuffer, renderer, 1, 1, 1));
+	EXPECT_TRUE(dsRenderer_dispatchCompute(renderer, renderer->mainCommandBuffer, 1, 1, 1));
 	renderer->hasComputeShaders = false;
-	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer->mainCommandBuffer, renderer, 1, 1, 1));
+	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer, renderer->mainCommandBuffer, 1, 1, 1));
 }
 
 TEST_F(RendererTest, DispatchComputeIndirect)
@@ -468,23 +468,23 @@ TEST_F(RendererTest, DispatchComputeIndirect)
 		sizeof(uint32_t)*4);
 	ASSERT_TRUE(indirectBuffer);
 
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, NULL,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(NULL, renderer->mainCommandBuffer,
 		indirectBuffer, sizeof(uint32_t)));
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(NULL, renderer, indirectBuffer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, NULL, indirectBuffer,
 		sizeof(uint32_t)));
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		NULL, sizeof(uint32_t)));
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		vertexGfxBuffer, sizeof(uint32_t)));
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		indirectBuffer, 1));
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		indirectBuffer, 2*sizeof(uint32_t)));
 
-	EXPECT_TRUE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_TRUE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		indirectBuffer, sizeof(uint32_t)));
 	renderer->hasComputeShaders = false;
-	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer->mainCommandBuffer, renderer,
+	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, renderer->mainCommandBuffer,
 		indirectBuffer, sizeof(uint32_t)));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
@@ -533,7 +533,7 @@ TEST_F(RendererTest, Blit)
 		8, 4, 8, 4, 2
 	};
 
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
@@ -547,7 +547,7 @@ TEST_F(RendererTest, Blit)
 		dsTextureUsage_Texture, dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
@@ -562,7 +562,7 @@ TEST_F(RendererTest, Blit)
 		dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_TRUE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_TRUE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	dsColor readTextureData[8*4];
@@ -594,43 +594,43 @@ TEST_F(RendererTest, Blit)
 	}
 
 	blitRegion.srcPosition.x = 25;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 1;
 	blitRegion.srcPosition.y = 13;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.x = 0;
 	blitRegion.srcPosition.y = 0;
 	blitRegion.srcPosition.mipLevel = 5;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.mipLevel = 0;
 	blitRegion.srcPosition.depth = 3;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.srcPosition.depth = 0;
 	blitRegion.dstPosition.x = 17;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.x = 3;
 	blitRegion.dstPosition.y = 29;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.y = 4;
 	blitRegion.dstPosition.mipLevel = 3;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	blitRegion.dstPosition.mipLevel = 0;
 	blitRegion.dstPosition.depth = 4;
-	EXPECT_FALSE(dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
 		fromTexture, dsGfxSurfaceType_Texture, toTexture, &blitRegion, 1, dsBlitFilter_Nearest));
 
 	EXPECT_TRUE(dsTexture_destroy(fromTexture));

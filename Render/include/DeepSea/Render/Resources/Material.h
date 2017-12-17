@@ -208,11 +208,11 @@ DS_RENDER_EXPORT bool dsMaterial_setBuffer(dsMaterial* material, uint32_t elemen
  * threads, consider dsVolatileMaterialValues.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to commit the changes on.
  * @param material The material to commit the changes for.
+ * @param commandBuffer The command buffer to commit the changes on.
  * @return False if the values couldn't be committed.
  */
-DS_RENDER_EXPORT bool dsMaterial_commit(dsCommandBuffer* commandBuffer, dsMaterial* material);
+DS_RENDER_EXPORT bool dsMaterial_commit(dsMaterial* material, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys a material.

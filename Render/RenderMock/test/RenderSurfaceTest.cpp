@@ -65,13 +65,13 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
-	EXPECT_FALSE(dsRenderSurface_beginDraw(NULL, renderSurface));
-	EXPECT_FALSE(dsRenderSurface_beginDraw(commandBuffer, NULL));
-	EXPECT_TRUE(dsRenderSurface_beginDraw(commandBuffer, renderSurface));
+	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
+	EXPECT_FALSE(dsRenderSurface_beginDraw(NULL, commandBuffer));
+	EXPECT_TRUE(dsRenderSurface_beginDraw(renderSurface, commandBuffer));
 
-	EXPECT_FALSE(dsRenderSurface_endDraw(NULL, renderSurface));
-	EXPECT_FALSE(dsRenderSurface_endDraw(commandBuffer, NULL));
-	EXPECT_TRUE(dsRenderSurface_endDraw(commandBuffer, renderSurface));
+	EXPECT_FALSE(dsRenderSurface_endDraw(renderSurface, NULL));
+	EXPECT_FALSE(dsRenderSurface_endDraw(NULL, commandBuffer));
+	EXPECT_TRUE(dsRenderSurface_endDraw(renderSurface, commandBuffer));
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
 }

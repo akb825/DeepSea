@@ -276,15 +276,15 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	clearValues[0].colorValue.floatValue.a = 1.0f;
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
-	DS_VERIFY(dsRenderPass_begin(commandBuffer, testCube->renderPass, testCube->framebuffer, NULL,
+	DS_VERIFY(dsRenderPass_begin(testCube->renderPass, commandBuffer, testCube->framebuffer, NULL,
 		clearValues, 2, false));
-	DS_VERIFY(dsShader_bind(commandBuffer, testCube->shader, testCube->material, NULL, NULL));
+	DS_VERIFY(dsShader_bind(testCube->shader, commandBuffer, testCube->material, NULL, NULL));
 
 	dsDrawIndexedRange drawRange = {testCube->geometry->indexBuffer.count, 1, 0, 0, 0};
-	DS_VERIFY(dsRenderer_drawIndexed(commandBuffer,renderer, testCube->geometry, &drawRange));
+	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testCube->geometry, &drawRange));
 
-	DS_VERIFY(dsShader_unbind(commandBuffer, testCube->shader));
-	DS_VERIFY(dsRenderPass_end(commandBuffer, testCube->renderPass));
+	DS_VERIFY(dsShader_unbind(testCube->shader, commandBuffer));
+	DS_VERIFY(dsRenderPass_end(testCube->renderPass, commandBuffer));
 }
 
 static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* allocator)

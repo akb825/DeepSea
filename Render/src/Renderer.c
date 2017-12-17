@@ -332,7 +332,7 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
 {
 	DS_PROFILE_FUNC_START();
@@ -408,7 +408,7 @@ bool dsRenderer_clearColorSurface(dsCommandBuffer* commandBuffer, dsRenderer* re
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
 	const dsDepthStencilValue* depthStencilValue)
 {
@@ -482,7 +482,7 @@ bool dsRenderer_clearDepthStencilSurface(dsCommandBuffer* commandBuffer, dsRende
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_draw(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
 {
 	DS_PROFILE_FUNC_START();
@@ -522,7 +522,7 @@ bool dsRenderer_draw(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndexed(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
 {
 	DS_PROFILE_FUNC_START();
@@ -569,7 +569,7 @@ bool dsRenderer_drawIndexed(dsCommandBuffer* commandBuffer, dsRenderer* renderer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride)
 {
@@ -615,7 +615,7 @@ bool dsRenderer_drawIndirect(dsCommandBuffer* commandBuffer, dsRenderer* rendere
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_drawIndexedIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride)
 {
@@ -669,7 +669,7 @@ bool dsRenderer_drawIndexedIndirect(dsCommandBuffer* commandBuffer, dsRenderer* 
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_dispatchCompute(dsCommandBuffer* commandBuffer, dsRenderer* renderer, uint32_t x,
+bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x,
 	uint32_t y, uint32_t z)
 {
 	DS_PROFILE_FUNC_START();
@@ -691,7 +691,7 @@ bool dsRenderer_dispatchCompute(dsCommandBuffer* commandBuffer, dsRenderer* rend
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxBuffer* indirectBuffer, size_t offset)
 {
 	DS_PROFILE_FUNC_START();
@@ -735,7 +735,7 @@ bool dsRenderer_dispatchComputeIndirect(dsCommandBuffer* commandBuffer, dsRender
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsRenderer_blitSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
 {

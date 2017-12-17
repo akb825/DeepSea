@@ -658,7 +658,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	DS_PROFILE_FUNC_RETURN(shader);
 }
 
-bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates)
 {
@@ -691,7 +691,7 @@ bool dsShader_bind(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	const dsVolatileMaterialValues* volatileValues)
 {
 	DS_PROFILE_FUNC_START();
@@ -715,7 +715,7 @@ bool dsShader_updateVolatileValues(dsCommandBuffer* commandBuffer, const dsShade
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_unbind(dsCommandBuffer* commandBuffer, const dsShader* shader)
+bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

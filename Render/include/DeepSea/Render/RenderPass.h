@@ -71,8 +71,8 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
 /**
  * @brief Begins drawing a render pass.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to begin.
+ * @param commandBuffer The command buffer to push the commands on.
  * @param framebuffer The framebuffer to draw the render pass to.
  * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
  *     in the range [0, 1]. If NULL, the full range is used.
@@ -85,32 +85,32 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
  *     command buffers, false if the render commands will be inlined.
  * @return False if the render pass couldn't be begun.
  */
-DS_RENDER_EXPORT bool dsRenderPass_begin(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
+DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
+	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount, bool indirectCommands);
 
 /**
  * @brief Advances to the next subpass in a render pass.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to continue.
+ * @param commandBuffer The command buffer to push the commands on.
  * @param indirectCommands True if the render commands for the subpass will be provided with command
  *     buffers, false if the render commands will be inlined.
  * @return False if the render pass couldn't be advanced.
  */
-DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, bool indirectCommands);
+DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass,
+	dsCommandBuffer* commandBuffer, bool indirectCommands);
 
 /**
  * @brief Ends drawing to a render pass.
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to end.
+ * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render pass couldn't be ended.
  */
-DS_RENDER_EXPORT bool dsRenderPass_end(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass);
+DS_RENDER_EXPORT bool dsRenderPass_end(const dsRenderPass* renderPass,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys .

@@ -70,7 +70,7 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 	DS_PROFILE_FUNC_RETURN(resized);
 }
 
-bool dsRenderSurface_beginDraw(dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
+bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -87,7 +87,7 @@ bool dsRenderSurface_beginDraw(dsCommandBuffer* commandBuffer, const dsRenderSur
 	DS_PROFILE_FUNC_RETURN(begun);
 }
 
-bool dsRenderSurface_endDraw(dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
+bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

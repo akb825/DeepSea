@@ -185,8 +185,8 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * resource context.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to process the copy on.
  * @param texture The texture to copy the data to.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param position The position of the texture to copy to.
  * @param width The width of the texture data. This must be a multiple of the format block size or
  *     reach the end of the image.
@@ -197,7 +197,7 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied.
  */
-DS_RENDER_EXPORT bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+DS_RENDER_EXPORT bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size);
 
@@ -225,10 +225,10 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
  * generate mipmaps for an offscreen after rendering to the first mip level.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to process the generation on.
  * @param texture The texture to generate mipmaps for.
+ * @param commandBuffer The command buffer to process the generation on.
  */
-DS_RENDER_EXPORT bool dsTexture_generateMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
+DS_RENDER_EXPORT bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Grabs texture data.

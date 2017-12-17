@@ -149,7 +149,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 		dsMaterialType_Float, 0, 1));
 	EXPECT_EQ(0.0f, gfxBufferValues->floatMem);
 
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_EQ(0.1f, gfxBufferValues->vec3Mem[0]);
 	EXPECT_EQ(0.2f, gfxBufferValues->vec3Mem[1]);
 	EXPECT_EQ(0.3f, gfxBufferValues->vec3Mem[2]);
@@ -184,7 +184,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	EXPECT_EQ(0.0f, gfxBufferValues->matrix3x4Mem[2][2]);
 	EXPECT_EQ(0.0f, gfxBufferValues->matrix3x4Mem[2][3]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_EQ(-7, gfxBufferValues->intMem);
 	EXPECT_EQ(8U, gfxBufferValues->uintMem);
 	EXPECT_EQ(0.9, gfxBufferValues->doubleMem);
@@ -215,7 +215,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[0][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[1][0]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_EQ(2.2, gfxBufferValues->doubleMatrix2x3Mem[0][0]);
 	EXPECT_EQ(2.3, gfxBufferValues->doubleMatrix2x3Mem[0][1]);
 	EXPECT_EQ(2.4, gfxBufferValues->doubleMatrix2x3Mem[0][2]);
@@ -231,7 +231,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[3][0]);
 	EXPECT_EQ(0.0f, gfxBufferValues->floatArrayMem[4][0]);
 
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_EQ(0.1f, gfxBufferValues->vec3Mem[0]);
 	EXPECT_EQ(0.2f, gfxBufferValues->vec3Mem[1]);
 	EXPECT_EQ(0.3f, gfxBufferValues->vec3Mem[2]);
@@ -317,7 +317,7 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 		dsMaterialType_Float, 0, 1));
 
 	commitCount = dsShaderVariableGroup_getCommitCount(group);
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
 	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
 	EXPECT_TRUE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
@@ -348,7 +348,7 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 		dsMaterialType_Mat3x4, 0, 1));
 
 	commitCount = dsShaderVariableGroup_getCommitCount(group);
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
@@ -378,7 +378,7 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 		dsMaterialType_Float, 0, 2));
 
 	commitCount = dsShaderVariableGroup_getCommitCount(group);
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));
@@ -401,7 +401,7 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 		dsMaterialType_Float, 2, 3));
 
 	commitCount = dsShaderVariableGroup_getCommitCount(group);
-	EXPECT_TRUE(dsShaderVariableGroup_commit(commandBuffer, group));
+	EXPECT_TRUE(dsShaderVariableGroup_commit(group, commandBuffer));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 0, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 1, commitCount));
 	EXPECT_FALSE(dsShaderVariableGroup_isElementDirty(group, 2, commitCount));

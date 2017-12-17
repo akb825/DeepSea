@@ -592,9 +592,9 @@ int dsSDLApplication_run(dsApplication* application)
 			dsWindow* window = application->windows[i];
 			if (window->drawFunc)
 			{
-				dsRenderSurface_beginDraw(commandBuffer, window->surface);
+				dsRenderSurface_beginDraw(window->surface, commandBuffer);
 				window->drawFunc(application, window, window->drawUserData);
-				dsRenderSurface_endDraw(commandBuffer, window->surface);
+				dsRenderSurface_endDraw(window->surface, commandBuffer);
 			}
 		}
 		DS_PROFILE_SCOPE_END();

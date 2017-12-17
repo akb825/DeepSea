@@ -146,15 +146,15 @@ TEST_F(GfxBufferTest, CopyData)
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Vertex,
 		dsGfxMemory_Static | dsGfxMemory_Read, &testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
-	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, &copyData, sizeof(copyData)));
+	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 
 	buffer = dsGfxBuffer_create(resourceManager, NULL,
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static | dsGfxMemory_Read,
 		&testData, sizeof(testData));
 	ASSERT_TRUE(buffer);
-	EXPECT_FALSE(dsGfxBuffer_copyData(commandBuffer, buffer, 4, &copyData, sizeof(copyData)));
-	EXPECT_TRUE(dsGfxBuffer_copyData(commandBuffer, buffer, 0, &copyData, sizeof(copyData)));
+	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 4, &copyData, sizeof(copyData)));
+	EXPECT_TRUE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(copyData));
 	ASSERT_TRUE(data);

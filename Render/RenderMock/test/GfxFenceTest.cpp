@@ -50,16 +50,16 @@ TEST_F(GfxFenceTest, Set)
 	dsGfxFence* fence = dsGfxFence_create(resourceManager, NULL);
 	ASSERT_TRUE(fence);
 
-	EXPECT_FALSE(dsGfxFence_set(NULL, fence, false));
-	EXPECT_FALSE(dsGfxFence_set(renderer->mainCommandBuffer, NULL, false));
-	EXPECT_TRUE(dsGfxFence_set(renderer->mainCommandBuffer, fence, false));
+	EXPECT_FALSE(dsGfxFence_set(fence, NULL, false));
+	EXPECT_FALSE(dsGfxFence_set(NULL, renderer->mainCommandBuffer, false));
+	EXPECT_TRUE(dsGfxFence_set(fence, renderer->mainCommandBuffer, false));
 
 	EXPECT_FALSE(dsGfxFence_reset(NULL));
 	EXPECT_TRUE(dsGfxFence_reset(fence));
-	EXPECT_TRUE(dsGfxFence_set(pool1->currentBuffers[0], fence, false));
+	EXPECT_TRUE(dsGfxFence_set(fence, pool1->currentBuffers[0], false));
 
 	EXPECT_TRUE(dsGfxFence_reset(fence));
-	EXPECT_FALSE(dsGfxFence_set(pool2->currentBuffers[0], fence, false));
+	EXPECT_FALSE(dsGfxFence_set(fence, pool2->currentBuffers[0], false));
 
 	EXPECT_TRUE(dsGfxFence_destroy(fence));
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool1));
@@ -111,7 +111,7 @@ TEST_F(GfxFenceTest, Wait)
 	dsGfxFence* fence = dsGfxFence_create(resourceManager, NULL);
 	ASSERT_TRUE(fence);
 
-	EXPECT_TRUE(dsGfxFence_set(renderer->mainCommandBuffer, fence, false));
+	EXPECT_TRUE(dsGfxFence_set(fence, renderer->mainCommandBuffer, false));
 	EXPECT_EQ(dsGfxFenceResult_Error, dsGfxFence_wait(NULL, 0));
 	EXPECT_EQ(dsGfxFenceResult_Success, dsGfxFence_wait(fence, 0));
 

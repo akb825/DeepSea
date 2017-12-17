@@ -390,7 +390,7 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 	DS_PROFILE_FUNC_RETURN(offscreen);
 }
 
-bool dsTexture_copyData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
 {
@@ -605,7 +605,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsTexture_generateMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
+bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

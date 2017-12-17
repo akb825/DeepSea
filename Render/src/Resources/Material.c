@@ -624,9 +624,9 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	return true;
 }
 
-bool dsMaterial_commit(dsCommandBuffer* commandBuffer, dsMaterial* material)
+bool dsMaterial_commit(dsMaterial* material, dsCommandBuffer* commandBuffer)
 {
-	if (!commandBuffer || !material)
+	if (!material || !commandBuffer)
 	{
 		errno = EINVAL;
 		return false;
@@ -635,7 +635,7 @@ bool dsMaterial_commit(dsCommandBuffer* commandBuffer, dsMaterial* material)
 	for (uint32_t i = 0; i < material->description->elementCount; ++i)
 	{
 		dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(material, i);
-		if (variableGroup && !dsShaderVariableGroup_commit(commandBuffer, variableGroup))
+		if (variableGroup && !dsShaderVariableGroup_commit(variableGroup, commandBuffer))
 			return false;
 	}
 

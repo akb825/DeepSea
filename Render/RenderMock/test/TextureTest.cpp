@@ -354,7 +354,7 @@ TEST_F(TextureTest, CopyData)
 		}
 	}
 	dsTexturePosition position = {dsCubeFace_None, 3, 4, 0, 1};
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		8*4*4));
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -362,17 +362,17 @@ TEST_F(TextureTest, CopyData)
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static, format, dsTextureDim_2D, 32, 16, 0, 3, NULL, 0);
 	ASSERT_TRUE(texture);
-	EXPECT_FALSE(dsTexture_copyData(NULL, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, NULL, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, NULL, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, NULL, 8, 4, 1, textureData,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, NULL,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, NULL,
 		sizeof(textureData)));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		100));
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 2, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 2, textureData,
 		sizeof(textureData)));
-	EXPECT_TRUE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_TRUE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	memset(textureData, 0, sizeof(textureData));
@@ -389,23 +389,23 @@ TEST_F(TextureTest, CopyData)
 	}
 
 	position.x = 9;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.x = 3;
 	position.y = 5;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.x = 0;
 	position.y = 0;
 	position.mipLevel = 5;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	position.mipLevel = 0;
 	position.depth = 1;
-	EXPECT_FALSE(dsTexture_copyData(commandBuffer, texture, &position, 8, 4, 1, textureData,
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
@@ -559,10 +559,10 @@ TEST_F(TextureTest, GenerateMipmaps)
 	ASSERT_TRUE(texture1);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
-	EXPECT_FALSE(dsTexture_generateMipmaps(NULL, texture1));
-	EXPECT_FALSE(dsTexture_generateMipmaps(commandBuffer, NULL));
-	EXPECT_TRUE(dsTexture_generateMipmaps(commandBuffer, texture1));
-	EXPECT_FALSE(dsTexture_generateMipmaps(commandBuffer, texture2));
+	EXPECT_FALSE(dsTexture_generateMipmaps(texture1, NULL));
+	EXPECT_FALSE(dsTexture_generateMipmaps(NULL, commandBuffer));
+	EXPECT_TRUE(dsTexture_generateMipmaps(texture1, commandBuffer));
+	EXPECT_FALSE(dsTexture_generateMipmaps(texture2, commandBuffer));
 
 	EXPECT_TRUE(dsTexture_destroy(texture1));
 	EXPECT_TRUE(dsTexture_destroy(texture2));

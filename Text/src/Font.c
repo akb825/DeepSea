@@ -223,7 +223,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 
 	dsTexturePosition texturePos;
 	dsFont_getGlyphTexturePos(&texturePos, glyphIndex, glyphSize);
-	return dsTexture_copyData(commandBuffer, texture, &texturePos, glyphSize, glyphSize, 1,
+	return dsTexture_copyData(texture, commandBuffer, &texturePos, glyphSize, glyphSize, 1,
 		textureData, glyphSize*glyphSize);
 }
 

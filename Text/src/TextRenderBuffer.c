@@ -199,7 +199,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 	dsGfxBuffer* gfxBuffer = renderBuffer->geometry->vertexBuffers[0].buffer;
 	if (renderBuffer->queuedGlyphs >= renderBuffer->maxGlyphs/4*3)
 	{
-		if (!dsGfxBuffer_copyData(commandBuffer, gfxBuffer, 0, renderBuffer->tempData,
+		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
 			renderBuffer->geometry->vertexBuffers[0].count*vertexSize +
 			renderBuffer->geometry->indexBuffer.count*indexSize))
 		{
@@ -208,7 +208,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 	}
 	else
 	{
-		if (!dsGfxBuffer_copyData(commandBuffer, gfxBuffer, 0, renderBuffer->tempData,
+		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
 			renderBuffer->queuedGlyphs*vertexSize*vertexCount))
 		{
 			return false;
@@ -217,7 +217,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 		if (indexSize > 0)
 		{
 			uint32_t offset = renderBuffer->geometry->indexBuffer.offset;
-			if (!dsGfxBuffer_copyData(commandBuffer, gfxBuffer, offset,
+			if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, offset,
 				(uint8_t*)renderBuffer->tempData + offset, renderBuffer->queuedGlyphs*indexSize*6))
 			{
 				return false;
@@ -255,7 +255,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	if (indexSize == 0)
 	{
 		dsDrawRange drawRange = {renderBuffer->queuedGlyphs, 1, 0, 0};
-		if (!dsRenderer_draw(commandBuffer, commandBuffer->renderer, renderBuffer->geometry,
+		if (!dsRenderer_draw(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 			&drawRange))
 		{
 			return false;
@@ -264,7 +264,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 	else
 	{
 		dsDrawIndexedRange drawRange = {renderBuffer->queuedGlyphs*6, 1, 0, 0, 0};
-		if (!dsRenderer_drawIndexed(commandBuffer, commandBuffer->renderer, renderBuffer->geometry,
+		if (!dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 			&drawRange))
 		{
 			return false;

@@ -112,15 +112,15 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * resource context.
  *
  * @remark errno will be set on failure.
- * @param commandBuffer The command buffer to process the copy on.
  * @param buffer The buffer to copy the data to. This must have been created with
  *     dsGfxBufferUsage_CopyTo.
+ * @param commandBuffer The command buffer to process the copy on.
  * @param offset The offset into the buffer.
  * @param data The data to copy to the buffer.
  * @param size The size of the data to copy.
  * @return False if the data couldn't be copied.
  */
-DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer,
 	size_t offset, const void* data, size_t size);
 
 /**

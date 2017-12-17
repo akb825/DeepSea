@@ -329,7 +329,7 @@ bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup* group, uint32_t
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
-bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariableGroup* group)
+bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -342,7 +342,7 @@ bool dsShaderVariableGroup_commit(dsCommandBuffer* commandBuffer, dsShaderVariab
 	bool success = true;
 	if (group->buffer && group->dirtyStart < group->dirtyEnd)
 	{
-		success = dsGfxBuffer_copyData(commandBuffer, group->buffer, group->dirtyStart,
+		success = dsGfxBuffer_copyData(group->buffer, commandBuffer, group->dirtyStart,
 			group->rawData + group->dirtyStart, group->dirtyEnd - group->dirtyStart);
 		if (success)
 		{
