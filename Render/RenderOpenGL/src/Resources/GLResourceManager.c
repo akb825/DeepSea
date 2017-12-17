@@ -345,6 +345,17 @@ static void cacheVertexFormats(dsGLResourceManager* resourceManager)
 
 static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 {
+	unsigned int intOffscreen = FormatBit_Offscreen;
+	unsigned int float16Offscreen = FormatBit_Offscreen;
+	unsigned int floatOffscreen = FormatBit_Offscreen;
+	if (ANYGL_GLES)
+	{
+		intOffscreen = 0;
+		if (!AnyGL_EXT_color_buffer_float)
+			floatOffscreen = 0;
+		if (!AnyGL_EXT_color_buffer_half_float && !AnyGL_EXT_color_buffer_float)
+			float16Offscreen = 0;
+	}
 	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_atLeastVersion(3, 0, true))
 	{
 		// Standard formats
@@ -433,14 +444,14 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 
 		// UInt
 		setStandardFormat(resourceManager, dsGfxFormat_A2B10G10R10, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen, GL_RGB10_A2UI, GL_RGBA_INTEGER,
+			FormatBit_Texture | intOffscreen, GL_RGB10_A2UI, GL_RGBA_INTEGER,
 			GL_UNSIGNED_INT_2_10_10_10_REV);
 		setStandardFormat(resourceManager, dsGfxFormat_A2R10G10B10, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen, GL_RGB10_A2UI, GL_BGRA_INTEGER,
+			FormatBit_Texture | intOffscreen, GL_RGB10_A2UI, GL_BGRA_INTEGER,
 			GL_UNSIGNED_INT_2_10_10_10_REV);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA8UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA8UI,
 			GL_RGBA_INTEGER, GL_UNSIGNED_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_B8G8R8A8, dsGfxFormat_UInt,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8UI, GL_BGRA_INTEGER,
@@ -451,40 +462,40 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_UInt,
 			FormatBit_Texture, GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG8UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG8UI,
 			GL_RG_INTEGER, GL_UNSIGNED_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R8UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R8UI,
 			GL_RED_INTEGER, GL_UNSIGNED_BYTE);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA16UI,
 			GL_RGBA_INTEGER, GL_UNSIGNED_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_UInt,
 			FormatBit_Texture, GL_RGB16UI, GL_RGB_INTEGER, GL_UNSIGNED_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG16UI,
 			GL_RG_INTEGER, GL_UNSIGNED_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R16UI,
 			GL_RED_INTEGER, GL_UNSIGNED_SHORT);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA32UI,
 			GL_RGBA_INTEGER, GL_UNSIGNED_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_UInt,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32UI, GL_RGB_INTEGER,
 			GL_UNSIGNED_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG32UI,
 			GL_RG_INTEGER, GL_UNSIGNED_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_UInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32UI,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R32UI,
 			GL_RED_INTEGER, GL_UNSIGNED_INT);
 
 		// SInt
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8A8, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA8I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA8I,
 			GL_RGBA_INTEGER, GL_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_B8G8R8A8, dsGfxFormat_UInt,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGBA8I, GL_BGRA_INTEGER,
@@ -495,59 +506,59 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8B8, dsGfxFormat_SInt,
 			FormatBit_Texture, GL_RGB8I, GL_RGB_INTEGER, GL_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_R8G8, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG8I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG8I,
 			GL_RG_INTEGER, GL_BYTE);
 		setStandardFormat(resourceManager, dsGfxFormat_R8, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R8I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R8I,
 			GL_RED_INTEGER, GL_BYTE);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA16I,
 			GL_RGBA_INTEGER, GL_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_SInt,
 			FormatBit_Texture, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG16I,
 			GL_RG_INTEGER, GL_SHORT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R16I,
 			GL_RED_INTEGER, GL_SHORT);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RGBA32I,
 			GL_RGBA_INTEGER, GL_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_SInt,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32I, GL_RGB_INTEGER, GL_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_RG32I,
 			GL_RG_INTEGER, GL_INT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_SInt,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32I,
+			FormatBit_Texture | intOffscreen | FormatBit_TextureBuffer, GL_R32I,
 			GL_RED_INTEGER, GL_INT);
 
 		// Float
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA16F, GL_RGBA,
+			FormatBit_Texture | float16Offscreen | FormatBit_TextureBuffer, GL_RGBA16F, GL_RGBA,
 			AnyGL_HALF_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_Float,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB16F, GL_RGB, AnyGL_HALF_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG16F, GL_RG,
+			FormatBit_Texture | float16Offscreen | FormatBit_TextureBuffer, GL_RG16F, GL_RG,
 			AnyGL_HALF_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R16F, GL_RED,
+			FormatBit_Texture | float16Offscreen | FormatBit_TextureBuffer, GL_R16F, GL_RED,
 			AnyGL_HALF_FLOAT);
 
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RGBA32F, GL_RGBA,
+			FormatBit_Texture | floatOffscreen | FormatBit_TextureBuffer, GL_RGBA32F, GL_RGBA,
 			GL_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_Float,
 			FormatBit_Texture | FormatBit_TextureBuffer, GL_RGB32F, GL_RGB, GL_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_RG32F, GL_RG,
+			FormatBit_Texture | floatOffscreen | FormatBit_TextureBuffer, GL_RG32F, GL_RG,
 			GL_FLOAT);
 		setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_Float,
-			FormatBit_Texture | FormatBit_Offscreen | FormatBit_TextureBuffer, GL_R32F, GL_RED,
+			FormatBit_Texture | floatOffscreen | FormatBit_TextureBuffer, GL_R32F, GL_RED,
 			GL_FLOAT);
 
 		// SRGB
@@ -564,7 +575,7 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 
 		// Special formats
 		setSpecialFormat(resourceManager, dsGfxFormat_B10G11R11_UFloat,
-			FormatBit_Texture | FormatBit_Offscreen, GL_R11F_G11F_B10F, GL_RGB,
+			FormatBit_Texture | floatOffscreen, GL_R11F_G11F_B10F, GL_RGB,
 			GL_UNSIGNED_INT_10F_11F_11F_REV);
 		setSpecialFormat(resourceManager, dsGfxFormat_E5B9G9R9_UFloat, FormatBit_Texture,
 			GL_RGB9_E5, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV);
@@ -642,26 +653,26 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		if (AnyGL_ARB_texture_float || AnyGL_OES_texture_float)
 		{
 			setStandardFormat(resourceManager, dsGfxFormat_R32G32B32A32, dsGfxFormat_Float,
-				FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA, GL_FLOAT);
+				FormatBit_Texture | floatOffscreen, GL_RGBA, GL_RGBA, GL_FLOAT);
 			setStandardFormat(resourceManager, dsGfxFormat_R32G32B32, dsGfxFormat_Float,
 				FormatBit_Texture, GL_RGB, GL_RGB, GL_FLOAT);
 			setStandardFormat(resourceManager, dsGfxFormat_R32G32, dsGfxFormat_Float,
-				FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA,
+				FormatBit_Texture | floatOffscreen, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA,
 				GL_FLOAT);
 			setStandardFormat(resourceManager, dsGfxFormat_R32, dsGfxFormat_Float,
-				FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE, GL_LUMINANCE, GL_FLOAT);
+				FormatBit_Texture | floatOffscreen, GL_LUMINANCE, GL_LUMINANCE, GL_FLOAT);
 
 			if (AnyGL_ARB_half_float_pixel || AnyGL_OES_texture_half_float)
 			{
 				setStandardFormat(resourceManager, dsGfxFormat_R16G16B16A16, dsGfxFormat_Float,
-					FormatBit_Texture | FormatBit_Offscreen, GL_RGBA, GL_RGBA, AnyGL_HALF_FLOAT);
+					FormatBit_Texture | float16Offscreen, GL_RGBA, GL_RGBA, AnyGL_HALF_FLOAT);
 				setStandardFormat(resourceManager, dsGfxFormat_R16G16B16, dsGfxFormat_Float,
 					FormatBit_Texture, GL_RGB, GL_RGB, AnyGL_HALF_FLOAT);
 				setStandardFormat(resourceManager, dsGfxFormat_R16G16, dsGfxFormat_Float,
-					FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE_ALPHA,
+					FormatBit_Texture | float16Offscreen, GL_LUMINANCE_ALPHA,
 					GL_LUMINANCE_ALPHA, AnyGL_HALF_FLOAT);
 				setStandardFormat(resourceManager, dsGfxFormat_R16, dsGfxFormat_Float,
-					FormatBit_Texture | FormatBit_Offscreen, GL_LUMINANCE, GL_LUMINANCE,
+					FormatBit_Texture | float16Offscreen, GL_LUMINANCE, GL_LUMINANCE,
 					AnyGL_HALF_FLOAT);
 			}
 		}
@@ -689,7 +700,7 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		if (AnyGL_EXT_packed_float)
 		{
 			setSpecialFormat(resourceManager, dsGfxFormat_B10G11R11_UFloat,
-				FormatBit_Texture | FormatBit_Offscreen, GL_RGB, GL_RGB,
+				FormatBit_Texture | floatOffscreen, GL_RGB, GL_RGB,
 				GL_UNSIGNED_INT_10F_11F_11F_REV);
 			setSpecialFormat(resourceManager, dsGfxFormat_E5B9G9R9_UFloat, FormatBit_Texture,
 				GL_RGB, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV);
