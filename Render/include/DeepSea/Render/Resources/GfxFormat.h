@@ -221,7 +221,7 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* 
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
 
 /**
- * @brief Checks whether or not a pair of graphics formats are supported for blitting textures.
+ * @brief Checks whether or not a pair of graphics formats are supported for blitting surfaces.
  * @remark You should not assume that just because two formats are equal they can be blitted.
  * @param resourceManager The resource manager.
  * @param srcFormat The graphics format to blit from.
@@ -229,7 +229,7 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* 
  * @param filter The filter to blit with.
  * @return True if the format can be used for copying textures.
  */
-DS_RENDER_EXPORT bool dsGfxFormat_textureBlitSupported(const dsResourceManager* resourceManager,
+DS_RENDER_EXPORT bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
 
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)

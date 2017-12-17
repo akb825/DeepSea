@@ -192,19 +192,19 @@ TEST_F(GfxFormatTest, TextureCopySupported)
 
 TEST_F(GfxFormatTest, TextureBlitSupported)
 {
-	EXPECT_FALSE(dsGfxFormat_textureBlitSupported(nullptr, dsGfxFormat_X32, dsGfxFormat_X32,
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(nullptr, dsGfxFormat_X32, dsGfxFormat_X32,
 	dsBlitFilter_Nearest));
-	EXPECT_FALSE(dsGfxFormat_textureBlitSupported(resourceManager,
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager,
 		dsGfxFormat_X32, dsGfxFormat_X32, dsBlitFilter_Nearest));
-	EXPECT_TRUE(dsGfxFormat_textureBlitSupported(resourceManager,
+	EXPECT_TRUE(dsGfxFormat_surfaceBlitSupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float),
 		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_Float),
 		dsBlitFilter_Nearest));
-	EXPECT_TRUE(dsGfxFormat_textureBlitSupported(resourceManager, dsGfxFormat_D16,
+	EXPECT_TRUE(dsGfxFormat_surfaceBlitSupported(resourceManager, dsGfxFormat_D16,
 		dsGfxFormat_D16, dsBlitFilter_Nearest));
-	EXPECT_FALSE(dsGfxFormat_textureBlitSupported(resourceManager, dsGfxFormat_D16,
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager, dsGfxFormat_D16,
 		dsGfxFormat_D16, dsBlitFilter_Linear));
-	EXPECT_FALSE(dsGfxFormat_textureBlitSupported(resourceManager,
+	EXPECT_FALSE(dsGfxFormat_surfaceBlitSupported(resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
 		dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm),
 		dsBlitFilter_Nearest));

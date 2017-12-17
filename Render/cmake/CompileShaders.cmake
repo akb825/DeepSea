@@ -126,7 +126,7 @@ function(ds_compile_shaders container)
 		add_custom_command(OUTPUT ${output}
 			${outputCommand}
 			COMMAND ${MSLC} ARGS ${commandLineArgs} ${extraArgs}
-			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${${config}} ${MSLC}
 			COMMENT "Building ${config} shader: ${output}")
 	endforeach()
 

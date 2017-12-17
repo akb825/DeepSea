@@ -152,7 +152,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->textureBufferFormatSupportedFunc = &textureBufferFormatSupported;
 	resourceManager->generateMipmapFormatSupportedFunc = &generateMipmapsFormatSupported;
 	resourceManager->textureCopyFormatsSupportedFunc = &copyFormatsSupported;
-	resourceManager->textureBlitFormatsSupportedFunc = &blitFormatsSupported;
+	resourceManager->surfaceBlitFormatsSupportedFunc = &blitFormatsSupported;
 	resourceManager->createResourceContextFunc = &createResourceContext;
 	resourceManager->destroyResourceContextFunc = &destroyResourceContext;
 

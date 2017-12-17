@@ -85,6 +85,7 @@ typedef struct TestRenderSubpass
 	dsRenderbuffer* gDepth;
 	dsOffscreen* bColor;
 	dsRenderbuffer* bDepth;
+	dsRenderbuffer* combinedColor;
 
 	dsGfxBuffer* cubeBuffer;
 	dsGfxBuffer* resolveBuffer;
@@ -248,6 +249,8 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		dsTexture_destroy(testRenderSubpass->bColor);
 	if (testRenderSubpass->bDepth)
 		dsRenderbuffer_destroy(testRenderSubpass->bDepth);
+	if (testRenderSubpass->combinedColor)
+		dsRenderbuffer_destroy(testRenderSubpass->combinedColor);
 
 	dsAllocator* allocator = testRenderSubpass->allocator;
 	dsResourceManager* resourceManager = testRenderSubpass->renderer->resourceManager;
@@ -255,15 +258,19 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
 		depthFormat = dsGfxFormat_D16;
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
+	dsGfxFormat combinedColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput, dsGfxMemory_Static | dsGfxMemory_GpuOnly,
-		colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
+		SAMPLE_COUNT, true);
 	testRenderSubpass->gColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput, dsGfxMemory_Static | dsGfxMemory_GpuOnly,
-		colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
+		SAMPLE_COUNT, true);
 	testRenderSubpass->bColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput, dsGfxMemory_Static | dsGfxMemory_GpuOnly,
-		colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
+		SAMPLE_COUNT, true);
 	if (!testRenderSubpass->rColor || !testRenderSubpass->gColor || !testRenderSubpass->bColor)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create offscreen: %s",
@@ -284,6 +291,19 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		return false;
 	}
 
+	if (dsGfxFormat_surfaceBlitSupported(resourceManager, combinedColorFormat,
+		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear))
+	{
+		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
+			combinedColorFormat, width, height, 1);
+		if (!testRenderSubpass->combinedColor)
+		{
+			DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",
+				dsErrorString(errno));
+			return false;
+		}
+	}
+
 	dsRenderSurface* surface = testRenderSubpass->window->surface;
 	dsFramebufferSurface surfaces[] =
 	{
@@ -294,10 +314,14 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->gDepth},
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->bColor},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth},
+		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->combinedColor},
 	};
+	uint32_t surfaceCount = (uint32_t)DS_ARRAY_SIZE(surfaces);
+	if (!testRenderSubpass->combinedColor)
+		--surfaceCount;
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
 		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), width, height, 1);
+		surfaceCount, width, height, 1);
 
 	if (!testRenderSubpass->framebuffer)
 	{
@@ -374,7 +398,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testRenderSubpass->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	dsSurfaceClearValue clearValues[7];
+	dsSurfaceClearValue clearValues[8];
 	clearValues[0].colorValue.floatValue.r = 0.0f;
 	clearValues[0].colorValue.floatValue.g = 0.0f;
 	clearValues[0].colorValue.floatValue.b = 0.0f;
@@ -389,9 +413,11 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		clearValues[i*2 + 2].depthStencil.depth = 1.0f;
 		clearValues[i*2 + 2].depthStencil.stencil = 0;
 	}
+	uint32_t clearValueCount = (uint32_t)DS_ARRAY_SIZE(clearValues);
+	if (!testRenderSubpass->combinedColor)
+		--clearValueCount;
 	DS_VERIFY(dsRenderPass_begin(commandBuffer, testRenderSubpass->renderPass,
-		testRenderSubpass->framebuffer, NULL, clearValues, (uint32_t)DS_ARRAY_SIZE(clearValues),
-		false));
+		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount, false));
 
 	// Draw red channel
 	dsDrawIndexedRange drawRange = {testRenderSubpass->cubeGeometry->indexBuffer.count, 1, 0, 0, 0};
@@ -431,6 +457,44 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_unbind(commandBuffer, testRenderSubpass->resolveShader));
 
 	DS_VERIFY(dsRenderPass_end(commandBuffer, testRenderSubpass->renderPass));
+
+	// Blit the 3 sub buffers and final buffer to the window if supported.
+	if (testRenderSubpass->combinedColor)
+	{
+		uint32_t width, height;
+		DS_VERIFY(dsWindow_getSize(&width, &height, testRenderSubpass->window));
+		dsSurfaceBlitRegion region =
+		{
+			{dsCubeFace_None, 0, 0, 0, 0},
+			{dsCubeFace_None, 0, 0, 0, 0},
+			width, height,
+			width/2, height/2,
+			1
+		};
+		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+			testRenderSubpass->rColor, dsGfxSurfaceType_ColorRenderSurface,
+			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
+
+		region.dstPosition.x = width/2;
+		region.dstWidth = width - region.dstPosition.x;
+		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+			testRenderSubpass->gColor, dsGfxSurfaceType_ColorRenderSurface,
+			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
+
+		region.dstPosition.x = 0;
+		region.dstPosition.y = height/2;
+		region.dstWidth = width/2;
+		region.dstHeight = height - region.dstPosition.y;
+		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Texture,
+			testRenderSubpass->bColor, dsGfxSurfaceType_ColorRenderSurface,
+			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
+
+		region.dstPosition.x = width/2;
+		region.dstWidth = width - region.dstPosition.x;
+		dsRenderer_blitSurface(commandBuffer, renderer, dsGfxSurfaceType_Renderbuffer,
+			testRenderSubpass->combinedColor, dsGfxSurfaceType_ColorRenderSurface,
+			testRenderSubpass->window->surface, &region, 1, dsBlitFilter_Linear);
+	}
 }
 
 static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* application,
@@ -475,8 +539,11 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},
 		{dsAttachmentUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
 			SAMPLE_COUNT},
-		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT}
+		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},
+		{dsAttachmentUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+			1}
 	};
+	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
 
 	dsColorAttachmentRef rColorAttachment = {1, true};
 	uint32_t rDepthStencilAttachment = 2;
@@ -485,6 +552,14 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	dsColorAttachmentRef bColorAttachment = {5, true};
 	uint32_t bDepthStencilAttachment = 6;
 	dsColorAttachmentRef resolveColorAttachment = {0, false};
+	if (dsGfxFormat_surfaceBlitSupported(resourceManager, renderer->surfaceColorFormat,
+		renderer->surfaceColorFormat, dsBlitFilter_Linear))
+	{
+		resolveColorAttachment.attachmentIndex = 7;
+	}
+	else
+		--attachmentCount;
+
 	dsRenderSubpassInfo subpasses[] =
 	{
 		{"R channel", NULL, &rColorAttachment, 0, 1, rDepthStencilAttachment},
@@ -500,8 +575,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		{2, dsSubpassDependencyStage_Fragment, 3, dsSubpassDependencyStage_Fragment, true},
 	};
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
-		(uint32_t)DS_ARRAY_SIZE(attachments), subpasses, (uint32_t)DS_ARRAY_SIZE(subpasses),
-		dependencies, (uint32_t)DS_ARRAY_SIZE(dependencies));
+		attachmentCount, subpasses, (uint32_t)DS_ARRAY_SIZE(subpasses), dependencies,
+		(uint32_t)DS_ARRAY_SIZE(dependencies));
 	if (!testRenderSubpass->renderPass)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create render pass: %s",
@@ -779,6 +854,8 @@ static void shutdown(TestRenderSubpass* testRenderSubpass)
 		dsGfxBuffer_destroy(testRenderSubpass->resolveBuffer);
 	if (testRenderSubpass->cubeBuffer)
 		dsGfxBuffer_destroy(testRenderSubpass->cubeBuffer);
+	if (testRenderSubpass->combinedColor)
+		dsRenderbuffer_destroy(testRenderSubpass->combinedColor);
 	if (testRenderSubpass->bDepth)
 		dsRenderbuffer_destroy(testRenderSubpass->bDepth);
 	if (testRenderSubpass->bColor)

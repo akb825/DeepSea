@@ -453,12 +453,39 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfa
 	}
 }
 
-static uint32_t getSurfaceFaces(dsGfxSurfaceType surfaceType, void* surface)
+static void getSurfaceInfo(uint32_t* outWidth, uint32_t* outHeight, uint32_t* outFaces,
+	bool* outInvertY, dsGfxSurfaceType surfaceType, void* surface)
 {
-	if (surfaceType == dsGfxSurfaceType_Texture)
-		return ((dsTexture*)surface)->dimension == dsTextureDim_Cube ? 6 : 1;
-
-	return 1;
+	switch (surfaceType)
+	{;
+		case dsGfxSurfaceType_Texture:
+		{
+			dsTexture* texture = (dsTexture*)surface;
+			*outWidth = texture->width;
+			*outHeight = texture->height;
+			*outFaces = texture->dimension == dsTextureDim_Cube ? 6 : 1;
+			*outInvertY = false;
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			*outWidth = renderbuffer->width;
+			*outHeight = renderbuffer->height;
+			*outFaces = 1;
+			*outInvertY = false;
+			break;
+		}
+		default:
+		{
+			dsRenderSurface* renderSurface = (dsRenderSurface*)surface;
+			*outWidth = renderSurface->width;
+			*outHeight = renderSurface->height;
+			*outFaces = 1;
+			*outInvertY = true;
+			break;
+		}
+	}
 }
 
 static void bindBlitSurface(GLenum framebufferType, dsGfxSurfaceType surfaceType, void* surface,
@@ -1567,8 +1594,12 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 
 	GLbitfield buffers = dsGLTexture_buffers(
 		getSurfaceFormat(renderer, srcSurfaceType, srcSurface));
-	uint32_t srcFaces = getSurfaceFaces(srcSurfaceType, srcSurface);
-	uint32_t dstFaces = getSurfaceFaces(dstSurfaceType, dstSurface);
+	uint32_t srcWidth, srcHeight, srcFaces;
+	bool srcInvertY;
+	uint32_t dstWidth, dstHeight, dstFaces;
+	bool dstInvertY;
+	getSurfaceInfo(&srcWidth, &srcHeight, &srcFaces, &srcInvertY, srcSurfaceType, srcSurface);
+	getSurfaceInfo(&dstWidth, &dstHeight, &dstFaces, &dstInvertY, dstSurfaceType, dstSurface);
 	for (uint32_t i = 0; i < regionCount; ++i)
 	{
 		uint32_t srcLayer = regions[i].srcPosition.depth;
@@ -1578,19 +1609,39 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 		if (dstFaces == 6)
 			dstLayer = dstLayer*6 + regions[i].dstPosition.face;
 
+		uint32_t curSrcHeight = dsMax(srcHeight >> regions[i].srcPosition.mipLevel, 1U);
+		uint32_t curDstHeight = dsMax(dstHeight >> regions[i].dstPosition.mipLevel, 1U);
+
 		for (uint32_t j = 0; j < regions[i].layers; ++j)
 		{
 			bindBlitSurface(GL_READ_FRAMEBUFFER, srcSurfaceType, srcSurface,
 				regions[i].srcPosition.mipLevel, srcLayer + j);
 			bindBlitSurface(GL_DRAW_FRAMEBUFFER, dstSurfaceType, dstSurface,
 				regions[i].srcPosition.mipLevel, srcLayer + j);
-			glBlitFramebuffer(regions[i].srcPosition.x, regions[i].srcPosition.y,
+
+			uint32_t srcY = regions[i].srcPosition.y;
+			int srcYMult = 1;
+			if (srcInvertY)
+			{
+				srcY = curSrcHeight - srcY;
+				srcYMult = -1;
+			}
+
+			uint32_t dstY = regions[i].dstPosition.y;
+			int dstYMult = 1;
+			if (dstInvertY)
+			{
+				dstY = curDstHeight - dstY;
+				dstYMult = -1;
+			}
+
+			glBlitFramebuffer(regions[i].srcPosition.x, srcY,
 				regions[i].srcPosition.x + regions[i].srcWidth,
-				regions[i].srcPosition.y + regions[i].srcHeight,
-				regions[i].dstPosition.x, regions[i].dstPosition.y,
+				srcY + srcYMult*regions[i].srcHeight,
+				regions[i].dstPosition.x, dstY,
 				regions[i].dstPosition.x + regions[i].dstWidth,
-				regions[i].dstPosition.y + regions[i].dstHeight, buffers,
-				filter == dsBlitFilter_Linear ? GL_LINEAR : GL_NEAREST);
+				dstY + dstYMult*regions[i].dstHeight,
+				buffers, filter == dsBlitFilter_Linear ? GL_LINEAR : GL_NEAREST);
 		}
 	}
 

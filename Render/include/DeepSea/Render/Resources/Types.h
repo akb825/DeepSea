@@ -1837,7 +1837,7 @@ struct dsResourceManager
 	/**
 	 * @brief Texture blit validity check function.
 	 */
-	dsBlitSupportedFunction textureBlitFormatsSupportedFunc;
+	dsBlitSupportedFunction surfaceBlitFormatsSupportedFunc;
 
 	/**
 	 * @brief Resource context creation function.

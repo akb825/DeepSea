@@ -82,6 +82,13 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outHeight = realSurface->height;
 			*outLayers = 1;
 			*outMipLevels = 1;
+
+			if (renderer->surfaceSamples > 1)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
 			break;
 		}
 		case dsGfxSurfaceType_Texture:
@@ -117,10 +124,10 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
-			if (realSurface->samples > 1)
+			if (!realSurface->resolve && realSurface->samples > 1)
 			{
 				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped textures.");
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
@@ -135,6 +142,13 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outHeight = realSurface->height;
 			*outLayers = 1;
 			*outMipLevels = 1;
+
+			if (realSurface->samples > 1)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
 			break;
 		}
 		default:
@@ -753,7 +767,7 @@ bool dsRenderer_blitSurface(dsCommandBuffer* commandBuffer, dsRenderer* renderer
 	}
 
 	dsResourceManager* resourceManager = renderer->resourceManager;
-	if (!dsGfxFormat_textureBlitSupported(resourceManager, srcFormat, dstFormat, filter))
+	if (!dsGfxFormat_surfaceBlitSupported(resourceManager, srcFormat, dstFormat, filter))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

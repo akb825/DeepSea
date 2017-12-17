@@ -223,7 +223,7 @@ function(ds_convert_texture container)
 
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${CUTTLEFISH} ARGS ${args}
-		DEPENDS ${dependencies}
+		DEPENDS ${dependencies} ${CUTTLEFISH}
 		COMMENT "Converting image to ${ARGS_FORMAT}: ${output}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

@@ -963,15 +963,12 @@ bool dsGLResourceManager_textureBufferFormatSupported(const dsResourceManager* r
 	return formatSupported(glResourceManager, format, FormatBit_TextureBuffer);
 }
 
-bool dsGLResourceManager_textureBlitFormatsSupported(const dsResourceManager* resourceManager,
+bool dsGLResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter)
 {
-	if (!ANYGL_SUPPORTED(glBlitFramebuffer) &&
-		dsGLResourceManager_offscreenFormatSupported(resourceManager, srcFormat) &&
-		dsGLResourceManager_offscreenFormatSupported(resourceManager, dstFormat))
-	{
+	DS_UNUSED(resourceManager);
+	if (!ANYGL_SUPPORTED(glBlitFramebuffer))
 		return false;
-	}
 
 	dsGfxFormat srcDecorator = (dsGfxFormat)(srcFormat & dsGfxFormat_DecoratorMask);
 	dsGfxFormat dstDecorator = (dsGfxFormat)(dstFormat & dsGfxFormat_DecoratorMask);
@@ -999,7 +996,7 @@ bool dsGLResourceManager_textureCopyFormatsSupported(const dsResourceManager* re
 {
 	if (!ANYGL_SUPPORTED(glCopyImageSubData))
 	{
-		return dsGLResourceManager_textureBlitFormatsSupported(resourceManager, srcFormat,
+		return dsGLResourceManager_surfaceBlitFormatsSupported(resourceManager, srcFormat,
 			dstFormat, dsBlitFilter_Nearest);
 	}
 
@@ -1132,8 +1129,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	}
 	baseResourceManager->textureCopyFormatsSupportedFunc =
 		&dsGLResourceManager_textureCopyFormatsSupported;
-	baseResourceManager->textureBlitFormatsSupportedFunc =
-		&dsGLResourceManager_textureBlitFormatsSupported;
+	baseResourceManager->surfaceBlitFormatsSupportedFunc =
+		&dsGLResourceManager_surfaceBlitFormatsSupported;
 
 	// Resource contexts
 	baseResourceManager->createResourceContextFunc = &dsGLResourceManager_createResourceContext;

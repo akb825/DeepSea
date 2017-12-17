@@ -450,16 +450,16 @@ bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
 	return resourceManager->textureCopyFormatsSupportedFunc(resourceManager, srcFormat, dstFormat);
 }
 
-bool dsGfxFormat_textureBlitSupported(const dsResourceManager* resourceManager,
+bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter)
 {
-	if (!resourceManager || !resourceManager->textureBlitFormatsSupportedFunc ||
+	if (!resourceManager || !resourceManager->surfaceBlitFormatsSupportedFunc ||
 		!dsGfxFormat_isValid(srcFormat) || !dsGfxFormat_isValid(dstFormat))
 	{
 		return false;
 	}
 
-	return resourceManager->textureBlitFormatsSupportedFunc(resourceManager, srcFormat, dstFormat,
+	return resourceManager->surfaceBlitFormatsSupportedFunc(resourceManager, srcFormat, dstFormat,
 		filter);
 }
 
