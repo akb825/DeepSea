@@ -837,7 +837,7 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 		float invertY = offscreen ? -1.0f : 1.0f;
 		float height = (float)glCommandBuffer->curFramebuffer->height;
 		float invWidth = 1.0f/(float)glCommandBuffer->curFramebuffer->width;
-		float invHeight = 1.0f/height;
+		float invHeight = invertY/height;
 		glUniform4f(glShader->internalUniform, invertY, height, invWidth, invHeight);
 	}
 	return true;
