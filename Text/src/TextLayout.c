@@ -197,6 +197,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
 	const float basePadding = (float)windowSize/(float)font->glyphSize;
 	float maxScale = 0.0f;
+	uint32_t lastStart = 0;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		float scale = layout->styles[glyphs[i].styleIndex].scale;
@@ -205,8 +206,15 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 		float glyphWidth = 0.0f;
 		uint32_t charcode = text->characters[text->glyphs[i].charIndex];
-		if (isspace(charcode))
-			lastIsWhitespace = true;
+		bool isWhitespace = isspace(charcode);
+		if (isWhitespace)
+		{
+			if (charcode != '\n')
+			{
+				lastIsWhitespace = true;
+				continue;
+			}
+		}
 		else
 		{
 			style = layout->styles + glyphs[i].styleIndex;
@@ -228,7 +236,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			{
 				++wordCount;
 				lastNonWhitespace = i;
-				lastIsWhitespace = false;
 			}
 		}
 
@@ -237,20 +244,33 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (charcode == '\n' ||
 			(position.x + glyphWidth > maxWidth && lastIsWhitespace && wordCount > 1))
 		{
+			lastIsWhitespace = false;
 			position.x = 0.0f;
-			position.y += maxScale*lineScale;
+			if (lastStart != 0)
+				position.y += maxScale*lineScale;
 			maxScale = 0.0f;
 			wordCount = 0;
+
+			// Go back and set the position for the current line.
+			for (uint32_t j = lastStart; j < i; ++j)
+				glyphs[j].position = position;
+			lastStart = i;
+
 			if (charcode != '\n')
 			{
 				i = lastNonWhitespace;
 				continue;
 			}
 		}
-
-		// X will be re-computed later, but Y is still useful.
-		glyphs[i].position = position;
+		else
+			lastIsWhitespace = isWhitespace;
 	}
+
+	// Set the position of the last line.
+	if (lastStart != 0)
+		position.y += maxScale*lineScale;
+	for (uint32_t i = lastStart; i < text->glyphCount; ++i)
+		glyphs[i].position = position;
 
 	// Third pass: find the offsets, resolving boundaries between forward and reverse text.
 	dsAlignedBox2f lineBounds;
@@ -275,12 +295,16 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 					case dsTextJustification_Right:
 						for (uint32_t j = sectionStart; j < i; ++j)
 							glyphs[j].position.x -= lineBounds.max.x;
+						lineBounds.min.x -= lineBounds.max.x;
+						lineBounds.max.x -= 0.0f;
 						break;
 					case dsTextJustification_Center:
 					{
 						float justificationOffset = lineBounds.max.x/2.0f;
 						for (uint32_t j = sectionStart; j < i; ++j)
 							glyphs[j].position.x -= justificationOffset;
+						lineBounds.min.x -= justificationOffset;
+						lineBounds.max.x -= justificationOffset;
 						break;
 					}
 				}
@@ -349,12 +373,16 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			case dsTextJustification_Right:
 				for (uint32_t j = sectionStart; j < text->glyphCount; ++j)
 					glyphs[j].position.x -= lineBounds.max.x;
+				lineBounds.min.x -= lineBounds.max.x;
+				lineBounds.max.x -= 0.0f;
 				break;
 			case dsTextJustification_Center:
 			{
 				float justificationOffset = lineBounds.max.x/2.0f;
 				for (uint32_t j = sectionStart; j < text->glyphCount; ++j)
 					glyphs[j].position.x -= justificationOffset;
+				lineBounds.min.x -= justificationOffset;
+				lineBounds.max.x -= justificationOffset;
 				break;
 			}
 		}

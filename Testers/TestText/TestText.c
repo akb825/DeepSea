@@ -163,14 +163,30 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}},
 		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}}}},
-	{"After this line\nhas larger text in the middle.", NULL,
+	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP,
 		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}}}}
+			{{255, 255, 255, 255}}}}},
+	{"This text mixes wrapping based on max distance\nas well as explicit newlines."
+		"\n\nEmpty line.\nTessellated section only has newlines.",
+		"\n\n\n", dsTextJustification_Left, 200.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"Centered text that wraps\nand explicit newlines.", NULL,
+		dsTextJustification_Center, 200.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"Right-justified text that wraps\nand explicit newlines.", NULL,
+		dsTextJustification_Right, 200.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -753,7 +769,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	}
 
 	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES,
-		dsTextQuality_Medium);
+		dsTextQuality_High);
 	if (!testText->faceGroup)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create face group: %s", dsErrorString(errno));

@@ -383,15 +383,18 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			&separatorLength);
 		group->paragraphs[i].paragraph = SBAlgorithmCreateParagraph(algorithm, offset, length,
 			SBLevelDefaultLTR);
-		if (group->paragraphs[i].paragraph)
+		if (!group->paragraphs[i].paragraph)
 		{
-			group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
-				offset, length);
-			if (!group->paragraphs[i].line)
-			{
-				SBParagraphRelease(group->paragraphs[i].paragraph);
-				group->paragraphs[i].paragraph = NULL;
-			}
+			group->paragraphs[i].line = NULL;
+			continue;
+		}
+
+		group->paragraphs[i].line = SBParagraphCreateLine(group->paragraphs[i].paragraph,
+			offset, length);
+		if (!group->paragraphs[i].line)
+		{
+			SBParagraphRelease(group->paragraphs[i].paragraph);
+			group->paragraphs[i].paragraph = NULL;
 		}
 
 		if (!group->paragraphs[i].paragraph)
@@ -419,6 +422,9 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		{
 			for (unsigned int i = 0; i < paragraphCount; ++i)
 			{
+				if (!group->paragraphs[i].paragraph)
+					continue;
+
 				SBLineRelease(group->paragraphs[i].line);
 				SBParagraphRelease(group->paragraphs[i].paragraph);
 			}
@@ -431,6 +437,9 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	uint32_t run = 0;
 	for (uint32_t i = 0; i < paragraphCount; ++i)
 	{
+		if (!group->paragraphs[i].line)
+			continue;
+
 		SBUInteger curCount = SBLineGetRunCount(group->paragraphs[i].line);
 		const SBRun* runArray = SBLineGetRunsPtr(group->paragraphs[i].line);
 		for (SBUInteger j = 0; j < curCount; ++j, ++run)
@@ -444,11 +453,15 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 
 	// Set the length for the last run.
 	DS_ASSERT(run == *outCount);
-	group->runs[run - 1].count = (uint32_t)(sequence.stringLength - group->runs[run - 1].start);
+	if (run > 0)
+		group->runs[run - 1].count = (uint32_t)(sequence.stringLength - group->runs[run - 1].start);
 
 	// Free temporary objects.
 	for (unsigned int i = 0; i < paragraphCount; ++i)
 	{
+		if (!group->paragraphs[i].paragraph)
+			continue;
+
 		SBLineRelease(group->paragraphs[i].line);
 		SBParagraphRelease(group->paragraphs[i].paragraph);
 	}
