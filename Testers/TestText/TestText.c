@@ -122,6 +122,7 @@ typedef struct TextInfo
 	const char* tesselatedText;
 	dsTextJustification justification;
 	float maxWidth;
+	float lineScale;
 	dsTextStyle styles[3];
 } TextInfo;
 
@@ -131,32 +132,32 @@ static TextInfo textStrings[] =
 {
 	{"Top text is standard quads.\nUse arrow keys or touch to cycle text.",
 		"Bottom text, if visible, is tessellated.",
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted forward.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted backward.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text has outlines.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Embolded, slanted, and outlined.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.1f, {{255, 255, 255, 255}},
@@ -164,7 +165,7 @@ static TextInfo textStrings[] =
 		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.6f, 0.15f, 0.1f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}}}},
 	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
@@ -173,20 +174,27 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}}}},
 	{"This text mixes wrapping based on max distance\nas well as explicit newlines."
 		"\n\nEmpty line.\nTessellated section only has newlines.",
-		"\n\n\n", dsTextJustification_Left, 200.0f,
+		"\n\n\n", dsTextJustification_Left, 200.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Centered text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Center, 200.0f,
+		dsTextJustification_Center, 200.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Right-justified text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Right, 200.0f,
+		dsTextJustification_Right, 200.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
+	{"He said \"\u0671\u0679!\u0683\" to her.\nHe also said \"\u0E09\u0E31\u0E19\u0E01\u0E34\u0E19"
+		"\u0E17\u0E35\u0E48\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E27\u0E32"
+		"\u0E19\"",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}}
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -430,7 +438,8 @@ static void createText(TestText* testText)
 		return;
 	}
 	if (!dsTextLayout_layout(testText->text, testText->renderer->mainCommandBuffer,
-		textStrings[index].justification, textStrings[index].maxWidth, 1.0f))
+		textStrings[index].justification, textStrings[index].maxWidth,
+		textStrings[index].lineScale))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
 		return;
@@ -467,7 +476,8 @@ static void createText(TestText* testText)
 			return;
 		}
 		if (!dsTextLayout_layout(testText->tessText, testText->renderer->mainCommandBuffer,
-			textStrings[index].justification, textStrings[index].maxWidth, 1.0f))
+			textStrings[index].justification, textStrings[index].maxWidth,
+			textStrings[index].lineScale))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
 			return;
@@ -792,7 +802,15 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
-	const char* faceNames[] = {"Latin", "Arabic"};
+	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
+		!dsPath_combine(path, sizeof(path), path, "NotoSansThai-Regular.ttf") ||
+		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Thai"))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
+		return false;
+	}
+
+	const char* faceNames[] = {"Latin", "Arabic", "Thai"};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
 		(uint32_t)DS_ARRAY_SIZE(faceNames));
 	if (!testText->font)

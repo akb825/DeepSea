@@ -62,7 +62,9 @@ static void getTextLengths(uint32_t* outLength, uint32_t* outRangeCount, const d
 				*outLength = DS_UNICODE_INVALID;
 				return;
 			}
-			DS_ASSERT(codepoint != DS_UNICODE_END);
+
+			if (codepoint == DS_UNICODE_END)
+				break;
 
 			++*outLength;
 			uint32_t script = dsFaceGroup_codepointScript(group, codepoint);
@@ -114,23 +116,18 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 		{
 			uint32_t index = runs[i].start + j;
 			uint32_t script = dsFaceGroup_codepointScript(group, text->characters[index]);
-			if (!dsFaceGroup_isScriptUnique(script) ||
-				(hasLastScript && lastScript == script))
-			{
+			if (!dsFaceGroup_isScriptUnique(script) || (hasLastScript && lastScript == script))
 				continue;
-			}
 
 			if (hasLastScript)
 			{
 				// Move to the next info if we have more codepoints for this run.
-				if (j != runs[i].count - 1)
-				{
-					DS_ASSERT(curInfo < text->rangeCount);
-					scriptInfo = getScriptInfo(text, curInfo++);
-					scriptInfo->firstCodepoint = text->characters[index];
-					scriptInfo->start = index;
-					scriptInfo->count = runs[i].start + runs[i].count - index;
-				}
+				DS_ASSERT(curInfo < text->rangeCount);
+				scriptInfo->count = index - scriptInfo->start;
+				scriptInfo = getScriptInfo(text, curInfo++);
+				scriptInfo->firstCodepoint = text->characters[index];
+				scriptInfo->start = index;
+				scriptInfo->count = runs[i].start + runs[i].count - index;
 			}
 			else
 			{

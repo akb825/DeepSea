@@ -537,13 +537,17 @@ dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
 {
-	return hb_unicode_script(group->unicode, codepoint);
+	uint32_t script = hb_unicode_script(group->unicode, codepoint);
+	// NOTE: Treate common script as latin, since not all international fonts include the "common"
+	// characters.
+	if (script == HB_SCRIPT_COMMON)
+		script = HB_SCRIPT_LATIN;
+	return script;
 }
 
 bool dsFaceGroup_isScriptUnique(uint32_t script)
 {
-	return script != HB_SCRIPT_COMMON && script != HB_SCRIPT_INHERITED &&
-		script != HB_SCRIPT_UNKNOWN;
+	return script != HB_SCRIPT_INHERITED && script != HB_SCRIPT_UNKNOWN;
 }
 
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
