@@ -36,6 +36,11 @@ endif()
 
 enable_testing()
 
+if (DEEPSEA_SINGLE_SHARED)
+	# NOTE: Need at least one source to prevent CMake warning.
+	add_library(deepsea ${DEEPSEA_LIB} CMakeLists.txt)
+endif()
+
 function(ds_set_folder target folderName)
 	if (DEEPSEA_ROOT_FOLDER AND folderName)
 		set_property(TARGET ${target} PROPERTY FOLDER ${DEEPSEA_ROOT_FOLDER}/${folderName})
@@ -82,80 +87,77 @@ function(ds_setup_filters)
 	endforeach()
 endfunction()
 
-function(ds_glob_library_sources result moduleName)
-	if (DEEPSEA_SINGLE_SHARED)
-		foreach(arg ${ARGN})
-			set(args ${args} ${moduleName}/${arg})
-		endforeach()
-	else()
-		set(args ${ARGN})
-	endif()
-
-	file(GLOB_RECURSE tempResult ${args})
-	set(${result} ${tempResult} PARENT_SCOPE)
-endfunction()
-
 macro(ds_add_module moduleName)
 	set(DEEPSEA_MODULES ${DEEPSEA_MODULES} ${moduleName})
-	if (DEEPSEA_SINGLE_SHARED)
-		include(${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/library.cmake)
-	else()
-		add_subdirectory(${moduleName})
-	endif()
+	add_subdirectory(${moduleName})
 endmacro()
 
 macro(ds_finish_modules)
 	if (DEEPSEA_SINGLE_SHARED)
-		add_library(deepsea ${DEEPSEA_LIB} ${DEEPSEA_ALL_SOURCES})
-		if (DEEPSEA_EXTERNAL_LIBRARIES)
-			target_link_libraries(deepsea ${DEEPSEA_EXTERNAL_LIBRARIES})
+		if (DEEPSEA_EXTERNAL_SOURCES)
+			if (MSVC)
+				set_source_files_properties(${DEEPSEA_EXTERNAL_SOURCES} PROPERTIES
+					COMPILE_FLAGS /w)
+			else()
+				set_source_files_properties(${DEEPSEA_EXTERNAL_SOURCES} PROPERTIES
+					COMPILE_FLAGS -w)
+			endif()
 		endif()
-		if (DEEPSEA_INCLUDE_DIRECTORIES)
-			target_include_directories(deepsea ${DEEPSEA_INCLUDE_DIRECTORIES})
-		endif()
-		if (DEEPSEA_COMPILE_DEFINITIONS)
-			target_compile_definitions(deepsea ${DEEPSEA_COMPILE_DEFINITIONS})
-		endif()
-		ds_set_folder(deepsea libs)
-
-		foreach (module ${DEEPSEA_MODULES})
-			add_subdirectory(${module})
-		endforeach()
+		target_sources(deepsea PRIVATE ${DEEPSEA_SOURCES} ${DEEPSEA_EXTERNAL_SOURCES})
+		target_link_libraries(deepsea ${DEEPSEA_EXTERNAL_LIBRARIES})
 	endif()
 endmacro()
 
-macro(ds_add_module_library target)
+macro(ds_add_library target)
+	set(options)
+	set(oneValueArgs MODULE)
+	set(multiValueArgs FILES EXTERNAL_FILES DEPENDS)
+	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	if (NOT ARGS_MODULE)
+		message(FATAL_ERROR "No module set for ds_add_library()")
+	endif()
+
+	get_filename_component(mainModule ${ARGS_MODULE} NAME)
 	if (DEEPSEA_SINGLE_SHARED)
 		add_library(${target} INTERFACE)
-		target_link_libraries(${target} INTERFACE deepsea ${ARGN})
-	else()
-		include(${CMAKE_CURRENT_SOURCE_DIR}/library.cmake)
-		target_link_libraries(${target} PUBLIC ${ARGN})
-		ds_set_folder(${target} libs)
-	endif()
-endmacro()
+		target_link_libraries(${target} INTERFACE deepsea ${ARGS_DEPENDS})
 
-macro(ds_add_library target moduleName)
-	get_filename_component(mainModule ${moduleName} NAME)
-	if (DEEPSEA_SINGLE_SHARED)
-		set(DEEPSEA_ALL_SOURCES ${DEEPSEA_ALL_SOURCES} ${ARGN})
-		set(DEEPSEA_INTERFACE_INCLUDES ${DEEPSEA_INTERFACE_INCLUDES}
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/${moduleName}/include>)
-		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${moduleName}/include/DeepSea/${mainModule}
+		set(DEEPSEA_SOURCES ${DEEPSEA_SOURCES} ${ARGS_FILES} PARENT_SCOPE)
+		set(DEEPSEA_EXTERNAL_SOURCES ${DEEPSEA_EXTERNAL_SOURCES} ${ARGS_EXTERNAL_FILES}
+			PARENT_SCOPE)
+
+		set_source_files_properties(${ARGS_FILES} PROPERTIES COMPILE_FLAGS -w)
+		target_include_directories(deepsea PUBLIC
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+
+		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_MODULE}/src
+			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_MODULE}/include/DeepSea/${mainModule}
 			FILES ${ARGN} FOLDER ${mainModule})
 	else()
-		add_library(${target} ${DEEPSEA_LIB} ${ARGN})
+		# NOTE: This only takes affect if set in the same scope as the target was created.
+		if (ARGS_EXTERNAL_FILES)
+			if (MSVC)
+				set_source_files_properties(${ARGS_EXTERNAL_FILES} PROPERTIES COMPILE_FLAGS /w)
+			else()
+				set_source_files_properties(${ARGS_EXTERNAL_FILES} PROPERTIES COMPILE_FLAGS -w)
+			endif()
+		endif()
+
+		add_library(${target} ${DEEPSEA_LIB} ${ARGS_FILES} ${ARGS_EXTERNAL_FILES})
+		target_link_libraries(${target} PUBLIC ${ARGS_DEPENDS})
+
+		ds_set_folder(${target} libs)
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
+			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${ARGS_MODULE}
 			FILES ${ARGN})
 	endif()
 endmacro()
 
 macro(ds_target_link_libraries target)
 	if (DEEPSEA_SINGLE_SHARED)
-		set(DEEPSEA_EXTERNAL_LIBRARIES ${DEEPSEA_EXTERNAL_LIBRARIES} ${ARGN})
+		set(DEEPSEA_EXTERNAL_LIBRARIES ${DEEPSEA_EXTERNAL_LIBRARIES} ${ARGN} PARENT_SCOPE)
 	else()
 		target_link_libraries(${target} ${ARGN})
 	endif()
@@ -163,7 +165,7 @@ endmacro()
 
 macro(ds_target_include_directories target)
 	if (DEEPSEA_SINGLE_SHARED)
-		set(DEEPSEA_INCLUDE_DIRECTORIES ${DEEPSEA_INCLUDE_DIRECTORIES} ${ARGN})
+		target_include_directories(deepsea ${ARGN})
 	else()
 		target_include_directories(${target} ${ARGN})
 	endif()
@@ -171,7 +173,7 @@ endmacro()
 
 macro(ds_target_compile_definitions target)
 	if (DEEPSEA_SINGLE_SHARED)
-		set(DEEPSEA_COMPILE_DEFINITIONS ${DEEPSEA_COMPILE_DEFINITIONS} ${ARGN})
+		target_compile_definitions(deepsea ${ARGN})
 	else()
 		target_compile_definitions(${target} ${ARGN})
 	endif()

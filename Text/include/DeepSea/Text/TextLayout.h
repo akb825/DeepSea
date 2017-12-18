@@ -57,7 +57,7 @@ extern "C"
  * @param styleCount The number of styles.
  * @return The full allocation size or 0 if invalid.
  */
-size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount);
+DS_TEXT_EXPORT size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount);
 
 /**
  * @brief Creates a layout for a piece fo text.
@@ -71,7 +71,7 @@ size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount);
  *     increasing, non-overlapping, and cover the full range of text.
  * @param styleCount The number of styles.
  */
-dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
+DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	const dsTextStyle* styles, uint32_t styleCount);
 
 /**
@@ -85,7 +85,7 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
  *     font height directly.
  * @return False if an error occurred.
  */
-bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+DS_TEXT_EXPORT bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	dsTextJustification justification, float maxWidth, float lineScale);
 
 /**
@@ -95,13 +95,13 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
  * @param commandBuffer The command buffer to queue any texture operations on.
  * @return False if an error occurred.
  */
-bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer);
+DS_TEXT_EXPORT bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroys a text layout object.
  * @param layout The layout to destroy.
  */
-void dsTextLayout_destroy(dsTextLayout* layout);
+DS_TEXT_EXPORT void dsTextLayout_destroy(dsTextLayout* layout);
 
 #ifdef __cplusplus
 }

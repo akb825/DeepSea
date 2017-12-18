@@ -1,2 +1,3 @@
-ds_add_module_library(deepsea_application deepsea_render)
-ds_install_library(TARGET deepsea_application MODULE Application DEPENDENCIES Render)
+file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
+ds_add_library(deepsea_application MODULE Application FILES ${sources} DEPENDS deepsea_render)
+ds_install_library(TARGET deepsea_application MODULE Application DEPENDS Render)

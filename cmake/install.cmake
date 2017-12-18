@@ -17,7 +17,7 @@ function(ds_install_library)
 	# variables in the parent scope will be for the main CMakeLists.txt.
 	set(options STATIC)
 	set(oneValueArgs TARGET MODULE)
-	set(multiValueArgs DEPENDENCIES EXTERNAL_PREFIXES EXTERNAL_DEPENDENCIES)
+	set(multiValueArgs DEPENDS EXTERNAL_PREFIXES EXTERNAL_DEPENDS)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	set(moduleName DeepSea${ARGS_MODULE})
@@ -39,13 +39,16 @@ function(ds_install_library)
 		${DEEPSEA_PATCH_VERSION})
 
 	if (NOT ARGS_STATIC)
-		if (NOT DEEPSEA_SINGLE_SHARED)
-			set(interfaceIncludes
-				$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-				$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-			set_property(TARGET ${ARGS_TARGET} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
-				${interfaceIncludes})
+		set(interfaceIncludes
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+		if (DEEPSEA_SINGLE_SHARED)
+			set(includeTarget deepsea)
+		else()
+			set(includeTarget ${ARGS_TARGET})
 		endif()
+		set_property(TARGET ${includeTarget} APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+			${interfaceIncludes})
 
 		set(exportPath ${CMAKE_CURRENT_BINARY_DIR}/include/DeepSea/${ARGS_MODULE}/Export.h)
 		if (NOT DEEPSEA_SINGLE_SHARED)
@@ -122,13 +125,13 @@ function(ds_install_library)
 	if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
 		set(dependencies "${dependencies}find_dependency(DeepSea ${DEEPSEA_VERSION} EXACT)\n")
 	endif()
-	foreach (dependency ${ARGS_DEPENDENCIES})
+	foreach (dependency ${ARGS_DEPENDS})
 		set(dependencies "${dependencies}find_dependency(DeepSea${dependency} ${DEEPSEA_VERSION} EXACT)\n")
 	endforeach()
 
-	foreach (dependency ${ARGS_EXTERNAL_DEPENDENCIES})
+	foreach (dependency ${ARGS_EXTERNAL_DEPENDS})
 		if (NOT ARGS_STATIC AND DEEPSEA_SINGLE_SHARED)
-			set(DEEPSEA_EXTERNAL_DEPENDENCIES "${DEEPSEA_EXTERNAL_DEPENDENCIES}find_dependency(${dependency})\n")
+			set(DEEPSEA_EXTERNAL_DEPENDS "${DEEPSEA_EXTERNAL_DEPENDS}find_dependency(${dependency})\n")
 		else()
 			set(dependencies "${dependencies}find_dependency(${dependency})\n")
 		endif()
@@ -184,7 +187,7 @@ function(ds_install_master_config)
 			set(componentCheck)
 			set(singleSharedConfig
 "${DEEPSEA_EXTERNAL_PREFIXES}\
-${DEEPSEA_EXTERNAL_DEPENDENCIES}\
+${DEEPSEA_EXTERNAL_DEPENDS}\
 include(\${CMAKE_CURRENT_LIST_DIR}/DeepSeaTargets.cmake)")
 		endif()
 	else()
