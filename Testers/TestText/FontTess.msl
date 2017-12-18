@@ -26,7 +26,7 @@ sampler_state fontTex
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
-	mip_filter = none;
+	mip_filter = nearest;
 };
 
 uniform SharedInfo
