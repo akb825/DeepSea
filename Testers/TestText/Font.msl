@@ -79,8 +79,9 @@ pipeline Font
 	vertex = vertexShader;
 	fragment = fragmentShader;
 
+	// Pre-multiply alpha.
 	blend_enable = true;
-	src_color_blend_factor = src_alpha;
+	src_color_blend_factor = one;
 	src_alpha_blend_factor = one;
 	dst_blend_factor = one_minus_src_alpha;
 	alpha_blend_op = add;
