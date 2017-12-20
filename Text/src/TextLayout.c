@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DS_INVALID_LINE FLT_MAX
-
 static int rangeCompare(const void* key, const void* member)
 {
 	uint32_t glyph = *(const uint32_t*)key;
@@ -366,7 +364,8 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			for (uint32_t j = lastNonWhitespace + 1; j < i; ++j)
 			{
 				DS_ASSERT(glyphMapping[j].count == 1);
-				glyphs[glyphMapping[j].index].position.y = DS_INVALID_LINE;
+				glyphs[glyphMapping[j].index].position.y = FLT_MAX;
+				glyphs[glyphMapping[j].index].position.y = FLT_MAX;
 			}
 		}
 
@@ -402,7 +401,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		// Skkip glyphs on an invalid line.
-		if (glyphs[i].position.y == DS_INVALID_LINE)
+		if (glyphs[i].position.y == FLT_MAX)
 			continue;
 
 		if (glyphs[i].position.y != lastY)

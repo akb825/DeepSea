@@ -88,6 +88,7 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 	mslModule_setInvalidFormatErrno(EFORMAT);
 	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, &fileStream, size,
 		&allocWrapper);
+	dsFileStream_close(&fileStream);
 	if (!module)
 	{
 		if (errno == EFORMAT)

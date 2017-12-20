@@ -333,6 +333,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 
 	SBCodepointSequence sequence;
 	sequence.stringBuffer = (void*)string;
+	sequence.stringLength = 0;
 	switch (type)
 	{
 		case dsUnicodeType_UTF8:
@@ -387,7 +388,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	unsigned int paragraphCount = 0;
 	while (offset < sequence.stringLength)
 	{
-		SBUInteger length, separatorLength;
+		SBUInteger length = 0, separatorLength = 0;
 		SBAlgorithmGetParagraphBoundary(algorithm, offset, sequence.stringLength - offset, &length,
 			&separatorLength);
 		++paragraphCount;

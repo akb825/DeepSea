@@ -69,7 +69,7 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 		return NULL;
 	}
 
-	uint32_t fullSize = DS_ALIGNED_SIZE(sizeof(dsTextRenderBuffer)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsTextRenderBuffer)) +
 		DS_ALIGNED_SIZE(vertexBufferSize + indexBufferSize);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -167,13 +167,13 @@ bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLa
 		else if (indexSize == sizeof(uint16_t))
 		{
 			uint16_t* indices = (uint16_t*)((uint8_t*)renderBuffer->tempData + indexOffset);
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4;
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4 + 1;
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4 + 2;
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 1);
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
 
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4 + 2;
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4 + 3;
-			*(indices++) = (uint16_t)renderBuffer->queuedGlyphs*4;
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 3);
+			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
 		}
 		++renderBuffer->queuedGlyphs;
 	}

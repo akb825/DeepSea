@@ -188,7 +188,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 				unsigned int left = (int)(centerX - offsetX + 0.5f);
 				left = dsMax((int)left, 0);
 				unsigned int right = (unsigned int)(centerX + offsetX + 0.5f);
-				right = dsMax(right, adjustedWidth);
+				right = dsMin(right, adjustedWidth);
 
 				float weightedDistance = 0.0f;
 				float totalWeight = 0.0f;

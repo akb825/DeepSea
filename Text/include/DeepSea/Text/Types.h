@@ -287,6 +287,9 @@ typedef struct dsGlyphLayout
 {
 	/**
 	 * @brief The position of the glyph.
+	 * @remark The position will be set to FLT_MAX for spaces beyond the end of line. Note that this
+	 * may be in the middle of the line when there's a transition between right to left and left to
+	 * right text. (which is the motivation of disabling them)
 	 */
 	dsVector2f position;
 
