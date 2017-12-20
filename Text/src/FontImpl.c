@@ -29,6 +29,7 @@
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Unicode.h>
 #include <SheenBidi.h>
+#include <ctype.h>
 #include <math.h>
 #include <string.h>
 
@@ -67,19 +68,29 @@ struct dsFaceGroup
 	hb_buffer_t* shapeBuffer;
 	dsTextQuality quality;
 
-	dsText* scratchText;
-	uint32_t scratchLength;
-	uint32_t scratchRangeCount;
+	dsText scratchText;
+
+	uint32_t* scratchCodepoints;
+	uint32_t scratchMaxCodepoints;
+
+	dsTextRange* scratchRanges;
+	uint32_t scratchMaxRanges;
 
 	dsGlyph* scratchGlyphs;
-	uint32_t scratchMaxGlyphs;
 	uint32_t scratchGlyphCount;
+	uint32_t scratchMaxGlyphs;
 
 	dsParagraphInfo* paragraphs;
 	uint32_t maxParagraphs;
 
 	dsRunInfo* runs;
 	uint32_t maxRuns;
+
+	uint32_t* charMapping;
+	uint32_t maxCharMappingCount;
+
+	dsGlyphMapping* glyphMapping;
+	uint32_t maxGlyphMappingCount;
 
 	uint32_t maxFaces;
 	uint32_t faceCount;
@@ -343,6 +354,30 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		return NULL;
 	}
 
+	// Create a mapping between the characters and codepoinds.
+	uint32_t mappingSize = (uint32_t)sequence.stringLength + 1;
+	uint32_t* charMapping = dsFaceGroup_charMapping(group, mappingSize);
+	if (!charMapping)
+		return NULL;
+
+	uint32_t codepointIndex = 0;
+	SBUInteger index = 0;
+	do
+	{
+		SBUInteger prevIndex = index;
+		uint32_t codepoint = SBCodepointSequenceGetCodepointAt(&sequence, &index);
+		if (codepoint == SBCodepointInvalid)
+		{
+			charMapping[prevIndex] = codepointIndex;
+			break;
+		}
+
+		for (SBUInteger i = prevIndex; i < index; ++i)
+			charMapping[i] = codepointIndex;
+		++codepointIndex;
+	}
+	while (true);
+
 	SBAlgorithmRef algorithm = SBAlgorithmCreate(&sequence);
 	if (!algorithm)
 		return NULL;
@@ -385,6 +420,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			SBLevelDefaultLTR);
 		if (!group->paragraphs[i].paragraph)
 		{
+			++offset;
 			group->paragraphs[i].line = NULL;
 			continue;
 		}
@@ -415,7 +451,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	// Create the runs.
 	if (!group->runs || group->maxRuns < *outCount)
 	{
-		dsAllocator_free(group->scratchAllocator, group->runs);
+		if (group->runs)
+			dsAllocator_free(group->scratchAllocator, group->runs);
 		group->runs = (dsRunInfo*)dsAllocator_alloc(group->scratchAllocator,
 			*outCount*sizeof(dsRunInfo));
 		if (!group->runs)
@@ -438,23 +475,26 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	for (uint32_t i = 0; i < paragraphCount; ++i)
 	{
 		if (!group->paragraphs[i].line)
+		{
+			if (run > 0)
+				++group->runs[run - 1].newlineCount;
 			continue;
+		}
 
 		SBUInteger curCount = SBLineGetRunCount(group->paragraphs[i].line);
 		const SBRun* runArray = SBLineGetRunsPtr(group->paragraphs[i].line);
 		for (SBUInteger j = 0; j < curCount; ++j, ++run)
 		{
-			group->runs[run].start = (uint32_t)runArray[j].offset;
-			// Include line endings with the runs, so don't use the length directly.
-			if (run > 0)
-				group->runs[run - 1].count = group->runs[run].start - group->runs[run - 1].start;
+			// Convert from character run to codepoint run.
+			DS_ASSERT(runArray[j].offset < mappingSize);
+			DS_ASSERT(runArray[j].offset + runArray[j].length < mappingSize);
+			group->runs[run].start = charMapping[runArray[j].offset];
+			uint32_t end = charMapping[runArray[j].offset + runArray[j].length];
+			group->runs[run].count = end - group->runs[run].start;
+			group->runs[run].newlineCount = j == curCount - 1 && i != paragraphCount - 1;
 		}
 	}
-
-	// Set the length for the last run.
 	DS_ASSERT(run == *outCount);
-	if (run > 0)
-		group->runs[run - 1].count = (uint32_t)(sequence.stringLength - group->runs[run - 1].start);
 
 	// Free temporary objects.
 	for (unsigned int i = 0; i < paragraphCount; ++i)
@@ -470,84 +510,160 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	return group->runs;
 }
 
-dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount)
+dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 {
-	if (group->scratchText && length <= group->scratchLength &&
-		rangeCount <= group->scratchRangeCount)
+	group->scratchText.characterCount = 0;
+	group->scratchText.characters = NULL;
+	group->scratchText.rangeCount = 0;
+	group->scratchText.ranges = NULL;
+	group->scratchText.glyphCount = 0;
+	group->scratchText.glyphs = NULL;
+
+	if (length == 0)
+		return &group->scratchText;
+
+	if (group->scratchCodepoints && length <= group->scratchMaxCodepoints)
 	{
-		group->scratchText->characterCount = length;
-		group->scratchText->rangeCount = rangeCount;
-		group->scratchText->glyphCount = 0;
-		return group->scratchText;
+		group->scratchText.characters = group->scratchCodepoints;
+		group->scratchText.characterCount = length;
+		return &group->scratchText;
 	}
 
-	group->scratchLength = dsMax(length, group->scratchLength);
-	group->scratchRangeCount = dsMax(rangeCount, group->scratchRangeCount);
-	if (group->scratchText)
+	if (group->scratchCodepoints)
+		dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
+	group->scratchMaxCodepoints = length;
+	group->scratchCodepoints = (uint32_t*)dsAllocator_alloc(group->scratchAllocator,
+		length*sizeof(uint32_t));
+	if (!group->scratchCodepoints)
 	{
-		dsAllocator_free(group->scratchAllocator, group->scratchText);
-		group->scratchText = NULL;
-	}
-
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) +
-		DS_ALIGNED_SIZE(group->scratchLength*sizeof(uint32_t)) +
-		DS_ALIGNED_SIZE(group->scratchRangeCount*sizeof(dsTextRange));
-	void* buffer = dsAllocator_alloc(group->scratchAllocator, fullSize);
-	if (!buffer)
+		group->scratchMaxCodepoints = 0;
 		return NULL;
+	}
 
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	group->scratchText = (dsText*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, sizeof(dsText));
-	DS_ASSERT(group->scratchText);
-
-	group->scratchText->allocator = group->scratchAllocator;
-	group->scratchText->font = NULL;
-
-	group->scratchText->characters = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		group->scratchLength*sizeof(uint32_t));
-	DS_ASSERT(group->scratchText->characters);
-	group->scratchText->characterCount = length;
-
-	group->scratchText->ranges = (dsTextRange*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		group->scratchRangeCount*sizeof(dsTextRange));
-	DS_ASSERT(group->scratchText->ranges);
-	group->scratchText->rangeCount = rangeCount;
-
-	group->scratchText->glyphs = NULL;
-	group->scratchText->glyphCount = 0;
-
-	return group->scratchText;
+	group->scratchText.characterCount = length;
+	group->scratchText.characters = group->scratchCodepoints;
+	return &group->scratchText;
 }
 
-dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
+bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount)
+{
+	if (rangeCount == 0)
+		return true;
+
+	if (group->scratchRanges && rangeCount <= group->scratchMaxRanges)
+	{
+		group->scratchText.rangeCount = rangeCount;
+		group->scratchText.ranges = group->scratchRanges;
+		return true;
+	}
+
+	if (group->scratchRanges)
+		dsAllocator_free(group->scratchAllocator, group->scratchRanges);
+	group->scratchMaxRanges = rangeCount;
+	group->scratchRanges = (dsTextRange*)dsAllocator_alloc(group->scratchAllocator,
+		rangeCount*sizeof(dsTextRange));
+	if (!group->scratchRanges)
+	{
+		group->scratchMaxRanges = 0;
+		return false;
+	}
+
+	group->scratchText.rangeCount = rangeCount;
+	group->scratchText.ranges = group->scratchRanges;
+	return true;
+}
+
+bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 {
 	if (length <= group->scratchGlyphCount)
-		return group->scratchGlyphs;
+	{
+		group->scratchText.glyphCount = length;
+		group->scratchText.glyphs = group->scratchGlyphs;
+		return true;
+	}
 
 	if (!dsResizeableArray_add(group->scratchAllocator,
 		(void**)&group->scratchGlyphs, &group->scratchGlyphCount, &group->scratchMaxGlyphs,
 		sizeof(dsGlyph), length - group->scratchGlyphCount))
 	{
+		return false;
+	}
+
+	group->scratchText.glyphCount = length;
+	group->scratchText.glyphs = group->scratchGlyphs;
+	return true;
+}
+
+uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length)
+{
+	if (group->charMapping && length <= group->maxCharMappingCount)
+		return group->charMapping;
+
+	if (group->charMapping)
+		dsAllocator_free(group->scratchAllocator, group->charMapping);
+	group->maxCharMappingCount = length;
+	group->charMapping = (uint32_t*)dsAllocator_alloc(group->scratchAllocator,
+		length*sizeof(uint32_t));
+	if (!group->charMapping)
+	{
+		group->maxCharMappingCount = 0;
 		return NULL;
 	}
 
-	return group->scratchGlyphs;
+	return group->charMapping;
+}
+
+dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length)
+{
+	if (group->glyphMapping && length <= group->maxGlyphMappingCount)
+		return group->glyphMapping;
+
+	if (group->glyphMapping)
+		dsAllocator_free(group->scratchAllocator, group->glyphMapping);
+	group->maxGlyphMappingCount = length;
+	group->glyphMapping = (dsGlyphMapping*)dsAllocator_alloc(group->scratchAllocator,
+		length*sizeof(dsGlyphMapping));
+	if (!group->glyphMapping)
+	{
+		group->maxGlyphMappingCount = 0;
+		return NULL;
+	}
+
+	return group->glyphMapping;
 }
 
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
 {
-	uint32_t script = hb_unicode_script(group->unicode, codepoint);
-	// NOTE: Treate common script as latin, since not all international fonts include the "common"
-	// characters.
-	if (script == HB_SCRIPT_COMMON)
-		script = HB_SCRIPT_LATIN;
-	return script;
+	// Override whitepsace.
+	if (isspace(codepoint))
+		return HB_SCRIPT_INHERITED;
+	return hb_unicode_script(group->unicode, codepoint);
 }
 
 bool dsFaceGroup_isScriptUnique(uint32_t script)
 {
 	return script != HB_SCRIPT_INHERITED && script != HB_SCRIPT_UNKNOWN;
+}
+
+bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2)
+{
+	// Treate common as latin to account for international fonts that only include the unique
+	// scripts.
+	if (script1 == HB_SCRIPT_COMMON)
+		script1 = HB_SCRIPT_LATIN;
+	if (script2 == HB_SCRIPT_COMMON)
+		script2 = HB_SCRIPT_LATIN;
+	return script1 == script2;
+}
+
+dsTextDirection dsFaceGroup_textDirection(uint32_t script)
+{
+	if (script == HB_SCRIPT_COMMON || script == HB_SCRIPT_INHERITED || script == HB_SCRIPT_UNKNOWN)
+		return dsTextDirection_Either;
+
+	if (hb_script_get_horizontal_direction((hb_script_t)script) == HB_DIRECTION_RTL)
+		return dsTextDirection_RightToLeft;
+	return dsTextDirection_LeftToRight;
 }
 
 size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
@@ -628,16 +744,29 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	FT_Add_Default_Modules(faceGroup->library);
 	FT_Set_Default_Properties(faceGroup->library);
 
-	faceGroup->scratchText = NULL;
-	faceGroup->scratchLength = 0;
-	faceGroup->scratchGlyphCount = 0;
+	memset(&faceGroup->scratchText, 0, sizeof(dsText));
+
+	faceGroup->scratchCodepoints = NULL;
+	faceGroup->scratchMaxCodepoints = 0;
+
+	faceGroup->scratchRanges= NULL;
+	faceGroup->scratchMaxRanges = 0;
+
 	faceGroup->scratchGlyphs = NULL;
-	faceGroup->scratchMaxGlyphs = 0;
 	faceGroup->scratchGlyphCount = 0;
+	faceGroup->scratchMaxGlyphs = 0;;
+
 	faceGroup->paragraphs = NULL;
 	faceGroup->maxParagraphs = 0;
+
 	faceGroup->runs = NULL;
 	faceGroup->maxRuns = 0;
+
+	faceGroup->charMapping = NULL;
+	faceGroup->maxCharMappingCount = 0;
+
+	faceGroup->glyphMapping = NULL;
+	faceGroup->maxGlyphMappingCount = 0;
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
@@ -775,25 +904,42 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 
 	FT_Done_Library(group->library);
 
-	if (group->scratchText)
-		dsAllocator_free(group->scratchAllocator, group->scratchText);
+	if (group->scratchCodepoints)
+		dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
+	if (group->scratchRanges)
+		dsAllocator_free(group->scratchAllocator, group->scratchRanges);
 	if (group->scratchGlyphs)
 		dsAllocator_free(group->scratchAllocator, group->scratchGlyphs);
 	if (group->paragraphs)
 		dsAllocator_free(group->scratchAllocator, group->paragraphs);
 	if (group->runs)
 		dsAllocator_free(group->scratchAllocator, group->runs);
+	if (group->charMapping)
+		dsAllocator_free(group->scratchAllocator, group->charMapping);
+	if (group->glyphMapping)
+		dsAllocator_free(group->scratchAllocator, group->glyphMapping);
 
 	if (group->allocator)
 		dsAllocator_free(group->allocator, group);
 }
 
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
-	uint32_t firstCodepoint, uint32_t start, uint32_t count)
+	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
+	dsTextDirection direction)
 {
-	DS_ASSERT(text == font->group->scratchText);
+	DS_ASSERT(text == &font->group->scratchText);
+	dsTextRange* range = (dsTextRange*)(text->ranges + rangeIndex);
 	if (count == 0)
+	{
+		range->face = 0;
+		range->firstChar = start;
+		range->charCount = count;
+		range->firstGlyph = text->glyphCount;
+		range->glyphCount = 0;
+		range->newlineCount = newlineCount;
+		range->backward = false;
 		return true;
+	}
 
 	uint32_t face = 0;
 	for (uint32_t i = 0; i < font->faceCount; ++i)
@@ -808,7 +954,13 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
 	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
 		count);
-	hb_buffer_guess_segment_properties(shapeBuffer);
+	if (direction == dsTextDirection_RightToLeft)
+		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_RTL);
+	else
+		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_LTR);
+	hb_buffer_set_script(shapeBuffer, (hb_script_t)dsFaceGroup_codepointScript(font->group,
+		firstCodepoint));
+	hb_buffer_set_language(shapeBuffer, hb_language_get_default());
 	hb_shape(font->faces[face]->font, shapeBuffer, NULL, 0);
 	if (!hb_buffer_allocation_successful(shapeBuffer))
 	{
@@ -824,13 +976,20 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	DS_ASSERT(glyphCount == glyphPosCount);
 	if (glyphCount == 0)
 	{
+		range->face = 0;
+		range->firstChar = start;
+		range->charCount = count;
+		range->firstGlyph = text->glyphCount;
+		range->glyphCount = 0;
+		range->newlineCount = newlineCount;
+		range->backward = false;
 		hb_buffer_reset(shapeBuffer);
 		return true;
 	}
 
 	// Make sure the glyph buffer is large enough.
-	text->glyphs = dsFaceGroup_scratchGlyphs(font->group, text->glyphCount + glyphCount);
-	if (!text->glyphs)
+	uint32_t glyphOffset = text->glyphCount;
+	if (!dsFaceGroup_scratchGlyphs(font->group, text->glyphCount + glyphCount))
 	{
 		hb_buffer_reset(shapeBuffer);
 		return false;
@@ -839,17 +998,17 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	hb_segment_properties_t properties;
 	hb_buffer_get_segment_properties(shapeBuffer, &properties);
 
-	dsTextRange* range = (dsTextRange*)(text->ranges + rangeIndex);
 	range->face = face;
 	range->firstChar = start;
 	range->charCount = count;
-	range->firstGlyph = text->glyphCount;
+	range->firstGlyph = glyphOffset;
 	range->glyphCount = glyphCount;
 	DS_ASSERT(!HB_DIRECTION_IS_VERTICAL(properties.direction));
+	range->newlineCount = newlineCount;
 	range->backward = HB_DIRECTION_IS_BACKWARD(properties.direction);
 
 	float scale = 1.0f/(float)(fixedScale*font->glyphSize);
-	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + text->glyphCount);
+	dsGlyph* glyphs = (dsGlyph*)(text->glyphs + glyphOffset);
 	for (unsigned int i = 0; i < glyphCount; ++i)
 	{
 		glyphs[i].glyphId = glyphInfos[i].codepoint;
@@ -866,7 +1025,6 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		DS_ASSERT(glyphPos[i].y_advance == 0);
 	}
 
-	text->glyphCount += glyphCount;
 	hb_buffer_reset(shapeBuffer);
 	return true;
 }

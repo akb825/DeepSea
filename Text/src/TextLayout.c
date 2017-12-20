@@ -27,7 +27,71 @@
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/Font.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
+
+#define DS_INVALID_LINE FLT_MAX
+
+static int rangeCompare(const void* key, const void* member)
+{
+	uint32_t glyph = *(const uint32_t*)key;
+	const dsTextRange* range = (const dsTextRange*)member;
+	if (glyph >= range->firstGlyph && glyph < range->firstGlyph + range->glyphCount)
+		return 0;
+
+	if (glyph < range->firstGlyph)
+		return -1;
+	return 1;
+}
+
+static const dsTextRange* findRange(const dsTextRange* ranges, uint32_t rangeCount, uint32_t glyph)
+{
+	return (const dsTextRange*)bsearch(&glyph, ranges, rangeCount, sizeof(dsTextRange),
+		&rangeCompare);
+}
+
+static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float lineY,
+	dsTextJustification justification, dsGlyphLayout* glyphs, uint32_t sectionStart,
+	uint32_t sectionEnd)
+{
+	if (!dsAlignedBox2f_isValid(lineBounds))
+		return;
+
+	// Handle justification.
+	switch (justification)
+	{
+		case dsTextJustification_Right:
+			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
+			{
+				glyphs[i].position.x -= lineBounds->max.x;
+				glyphs[i].position.y = lineY;
+			}
+			lineBounds->min.x -= lineBounds->max.x;
+			lineBounds->max.x -= 0.0f;
+			break;
+		case dsTextJustification_Center:
+		{
+			float justificationOffset = lineBounds->max.x/2.0f;
+			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
+			{
+				glyphs[i].position.x -= justificationOffset;
+				glyphs[i].position.y = lineY;
+			}
+			lineBounds->min.x -= justificationOffset;
+			lineBounds->max.x -= justificationOffset;
+			break;
+		}
+		default:
+			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
+				glyphs[i].position.y = lineY;
+			break;
+	}
+
+	lineBounds->min.y += lineY;
+	lineBounds->max.y += lineY;
+	dsAlignedBox2_addBox(layout->bounds, *lineBounds);
+	dsAlignedBox2f_makeInvalid(lineBounds);
+}
 
 size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount)
 {
@@ -127,270 +191,267 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	// This part accesses shared resources and needs to be locked.
 	dsFaceGroup_lock(font->group);
 
+	dsGlyphMapping* glyphMapping = dsFaceGroup_glyphMapping(font->group, text->characterCount);
+	if (!glyphMapping)
+	{
+		dsFaceGroup_unlock(font->group);
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+	memset(glyphMapping, 0, text->characterCount*sizeof(dsGlyphMapping));
+
 	DS_ASSERT(layout->styleCount > 0);
 	DS_ASSERT(text->rangeCount > 0);
-	const dsTextRange* textRange = text->ranges;
-	const dsTextStyle* style = layout->styles;
-	uint32_t textRangeLimit = textRange->glyphCount;
-	uint32_t styleRangeLimit = style->count;
-	for (uint32_t i = 0; i < layout->text->glyphCount; ++i)
+	for (uint32_t i = 0; i < text->rangeCount; ++i)
 	{
-		// Advance the text range and style.
-		while (i >= textRangeLimit)
-		{
-			++textRange;
-			DS_ASSERT(textRange < text->ranges + text->rangeCount);
-			DS_ASSERT(textRange->firstGlyph == textRangeLimit);
-			textRangeLimit += textRange->glyphCount;
-		}
-
-		while (i >= styleRangeLimit)
+		const dsTextRange* range = text->ranges + i;
+		const dsTextStyle* style = layout->styles;
+		uint32_t styleRangeLimit = style->count;
+		while (range->firstChar >= styleRangeLimit)
 		{
 			++style;
 			DS_ASSERT(style < layout->styles + layout->styleCount);
 			DS_ASSERT(style->start == styleRangeLimit);
 			styleRangeLimit += style->count;
 		}
+		DS_ASSERT(style < layout->styles + layout->styleCount);
 
-		// Skip whitespace.
-		uint32_t charcode = text->characters[text->glyphs[i].charIndex];
-		if (isspace(charcode))
+		for (uint32_t j = 0; j < range->glyphCount; ++j)
 		{
-			glyphs[i].geometry.min.x = glyphs[i].geometry.min.y = 0;
-			glyphs[i].geometry.max = glyphs[i].geometry.min;
-			glyphs[i].texCoords = glyphs[i].geometry;
-			glyphs[i].mipLevel = 0;
-			glyphs[i].styleIndex = (uint32_t)(style - layout->styles);
-			continue;
-		}
+			uint32_t index = range->firstGlyph + j;
 
-		float scale = style->scale;
-		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
-			text->glyphs[i].glyphId);
+			// Advance the style.
+			uint32_t charIndex = text->glyphs[index].charIndex;
+			DS_ASSERT(charIndex < text->characterCount);
 
-		dsVector2_scale(glyphs[i].geometry.min, glyphInfo->glyphBounds.min, scale);
-		dsVector2_scale(glyphs[i].geometry.max, glyphInfo->glyphBounds.max, scale);
-		// Convert to Y pointing down.
-		float temp = glyphs[i].geometry.min.y;
-		glyphs[i].geometry.min.y = -glyphs[i].geometry.max.y;
-		glyphs[i].geometry.max.y = -temp;
-
-		dsTexturePosition texturePos;
-		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
-			font->glyphSize);
-		glyphs[i].mipLevel = texturePos.mipLevel;
-		// Store the base information in texCoords for now so we can use it for later calculations.
-		glyphs[i].texCoords.min.x = (float)texturePos.x;
-		glyphs[i].texCoords.min.y = (float)texturePos.y;
-		glyphs[i].texCoords.max.x = (float)glyphInfo->texSize.x;
-		glyphs[i].texCoords.max.y = (float)glyphInfo->texSize.y;
-		glyphs[i].styleIndex = (uint32_t)(style - layout->styles);
-	}
-
-	dsFaceGroup_unlock(font->group);
-
-	// Second pass: find line breaks
-	dsVector2f position = {{0.0f, 0.0f}};
-	uint32_t lastNonWhitespace = 0;
-	bool lastIsWhitespace = false;
-	unsigned int wordCount = 0;
-	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
-	const float basePadding = (float)windowSize/(float)font->glyphSize;
-	float maxScale = 0.0f;
-	uint32_t lastStart = 0;
-	for (uint32_t i = 0; i < text->glyphCount; ++i)
-	{
-		float scale = layout->styles[glyphs[i].styleIndex].scale;
-		maxScale = dsMax(scale, maxScale);
-		position.x += fabsf(text->glyphs[i].advance)*scale;
-
-		float glyphWidth = 0.0f;
-		uint32_t charcode = text->characters[text->glyphs[i].charIndex];
-		bool isWhitespace = isspace(charcode);
-		if (isWhitespace)
-		{
-			if (charcode != '\n')
+			// Store the glyph mapping. Multiple glyphs might be used with the same character.
+			if (glyphMapping[charIndex].count == 0)
 			{
-				lastIsWhitespace = true;
+				glyphMapping[charIndex].index = index;
+				glyphMapping[charIndex].count = 1;
+			}
+			else
+			{
+				DS_ASSERT(glyphMapping[charIndex].index + glyphMapping[charIndex].count == index);
+				++glyphMapping[charIndex].count;
+			}
+
+			while (charIndex >= styleRangeLimit)
+			{
+				++style;
+				DS_ASSERT(style < layout->styles + layout->styleCount);
+				DS_ASSERT(style->start == styleRangeLimit);
+				styleRangeLimit += style->count;
+			}
+			DS_ASSERT(style < layout->styles + layout->styleCount);
+
+			// Skip whitespace.
+			uint32_t charcode = text->characters[text->glyphs[index].charIndex];
+			if (isspace(charcode))
+			{
+				glyphs[index].geometry.min.x = glyphs[index].geometry.min.y = 0;
+				glyphs[index].geometry.max = glyphs[index].geometry.min;
+				glyphs[index].texCoords = glyphs[index].geometry;
+				glyphs[index].mipLevel = 0;
+				glyphs[index].textGlyphIndex = index;
+				glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
 				continue;
 			}
-		}
-		else
-		{
-			style = layout->styles + glyphs[i].styleIndex;
-			uint32_t glyphImageWidth = (uint32_t)glyphs[i].texCoords.max.x + windowSize*2;
-			glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
-			float glyphScale = (float)font->glyphSize/(float)glyphImageWidth;
-			float boundsPadding = glyphScale*basePadding*style->embolden*scale;
-			dsVector2f offset;
-			dsVector2_scale(offset, text->glyphs[i].offset, scale);
-			glyphWidth = offset.x + glyphs[i].geometry.max.x + boundsPadding;
-			// Positive y points down, so need to subtract the slant from the width for a positive
-			// effect.
-			if (style->slant > 0)
-				glyphWidth -= (offset.y + glyphs[i].geometry.min.y)*style->slant;
-			else
-				glyphWidth -= (offset.y + glyphs[i].geometry.max.y)*style->slant;
 
-			if (lastIsWhitespace)
+			float scale = style->scale;
+			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, range->face,
+				text->glyphs[index].glyphId);
+
+			dsVector2_scale(glyphs[index].geometry.min, glyphInfo->glyphBounds.min, scale);
+			dsVector2_scale(glyphs[index].geometry.max, glyphInfo->glyphBounds.max, scale);
+			// Convert to Y pointing down.
+			float temp = glyphs[index].geometry.min.y;
+			glyphs[index].geometry.min.y = -glyphs[index].geometry.max.y;
+			glyphs[index].geometry.max.y = -temp;
+
+			dsTexturePosition texturePos;
+			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
+				font->glyphSize);
+			glyphs[index].mipLevel = texturePos.mipLevel;
+			// Store the base information in texCoords for now so we can use it for later
+			// calculations.
+			glyphs[index].texCoords.min.x = (float)texturePos.x;
+			glyphs[index].texCoords.min.y = (float)texturePos.y;
+			glyphs[index].texCoords.max.x = (float)glyphInfo->texSize.x;
+			glyphs[index].texCoords.max.y = (float)glyphInfo->texSize.y;
+			glyphs[index].textGlyphIndex = index;
+			glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
+		}
+	}
+
+	// Second pass: find line breaks. Do this based on the original character order.
+	dsVector2f position = {{0.0f, 0.0f}};
+	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
+	const float basePadding = (float)windowSize/(float)font->glyphSize;
+	unsigned int wordCount = 0;
+	bool lastIsWhitespace = false;
+	uint32_t lastNonWhitespace = 0;
+	for (uint32_t i = 0; i < text->characterCount; ++i)
+	{
+		if (glyphMapping[i].count == 0)
+			continue;
+
+		bool isWhitespace = isspace(text->characters[i]);
+		float scale = layout->styles[glyphs[glyphMapping[i].index].styleIndex].scale;
+		float glyphWidth = 0.0f;
+		for (uint32_t j = 0; j < glyphMapping[i].count; ++j)
+		{
+			uint32_t index = glyphMapping[i].index + j;
+			uint32_t textIndex = glyphs[index].textGlyphIndex;
+			position.x += text->glyphs[textIndex].advance*scale;
+
+			if (!isWhitespace)
 			{
-				++wordCount;
-				lastNonWhitespace = i;
+				const dsTextStyle* style = layout->styles + glyphs[index].styleIndex;
+				uint32_t glyphImageWidth = (uint32_t)glyphs[index].texCoords.max.x + windowSize*2;
+				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
+				float glyphScale = (float)font->glyphSize/(float)glyphImageWidth;
+				float boundsPadding = glyphScale*basePadding*style->embolden*scale;
+				dsVector2f offset;
+				dsVector2_scale(offset, text->glyphs[textIndex].offset, scale);
+				glyphWidth += offset.x + glyphs[index].geometry.max.x + boundsPadding;
+				// Positive y points down, so need to subtract the slant from the width for a
+				// positive effect.
+				if (style->slant > 0)
+					glyphWidth -= (offset.y + glyphs[index].geometry.min.y)*style->slant;
+				else
+					glyphWidth -= (offset.y + glyphs[index].geometry.max.y)*style->slant;
 			}
 		}
+
+		if (lastIsWhitespace && !isWhitespace)
+			++wordCount;
 
 		// Split on newline or on word boundaries that go over the limit.
 		// Don't split on the first word in case the width is too small.
-		if (charcode == '\n' ||
+		bool hasNewline = false;
+		if (text->characters[i] == '\n' ||
 			(position.x + glyphWidth > maxWidth && lastIsWhitespace && wordCount > 1))
 		{
+			hasNewline = true;
 			lastIsWhitespace = false;
+			isWhitespace = false;
+			position.y += 1.0f;
 			position.x = 0.0f;
-			if (lastStart != 0)
-				position.y += maxScale*lineScale;
-			maxScale = 0.0f;
 			wordCount = 0;
-
-			// Go back and set the position for the current line.
-			for (uint32_t j = lastStart; j < i; ++j)
-				glyphs[j].position = position;
-			lastStart = i;
-
-			if (charcode != '\n')
-			{
-				i = lastNonWhitespace;
-				continue;
-			}
 		}
 		else
 			lastIsWhitespace = isWhitespace;
+
+		for (uint32_t j = 0; j < glyphMapping[i].count; ++j)
+			glyphs[glyphMapping[i].index + j].position = position;
+
+		// Add any trailing newlines at the end of the range.
+		const dsTextRange* range = findRange(text->ranges, text->rangeCount, glyphMapping[i].index);
+		DS_ASSERT(range);
+		if (range->newlineCount > 0 &&
+			((range->backward && glyphMapping[i].index == range->firstGlyph) ||
+			(!range->backward && glyphMapping[i].index + glyphMapping[i].count ==
+				range->firstGlyph + range->glyphCount)))
+		{
+			hasNewline = true;
+			lastIsWhitespace = false;
+			position.y += (float)range->newlineCount;
+			position.x = 0.0f;
+			wordCount = 0;
+		}
+
+		// If a newline was added, mark any trailing spaces as invalid.
+		if (hasNewline)
+		{
+			for (uint32_t j = lastNonWhitespace + 1; j < i; ++j)
+			{
+				DS_ASSERT(glyphMapping[j].count == 1);
+				glyphs[glyphMapping[j].index].position.y = DS_INVALID_LINE;
+			}
+		}
+
+		if (!isWhitespace)
+			lastNonWhitespace = i;
 	}
 
-	// Set the position of the last line.
-	if (lastStart != 0)
-		position.y += maxScale*lineScale;
-	for (uint32_t i = lastStart; i < text->glyphCount; ++i)
-		glyphs[i].position = position;
+	// Done with the lock at this point.
+	dsFaceGroup_unlock(font->group);
 
-	// Third pass: find the offsets, resolving boundaries between forward and reverse text.
+	// Re-order any glyphs so they are in descending order. This could be an issue with line
+	// wrapping for right to left text.
+	for (uint32_t i = 1; i < text->glyphCount; ++i)
+	{
+		for (uint32_t j = i; j > 0 && glyphs[j - 1].position.y > glyphs[j].position.y; --j)
+		{
+			dsGlyphLayout temp = glyphs[j - 1];
+			glyphs[j - 1] = glyphs[j];
+			glyphs[j] = temp;
+		}
+	}
+
+	// Third pass: find the offsets.
 	dsAlignedBox2f lineBounds;
 	dsAlignedBox2f_makeInvalid(&lineBounds);
 	dsAlignedBox2f_makeInvalid(&layout->bounds);
 	float lastY = 0.0f;
+	float lastScale = 0.0f;
+	float maxScale = 0.0f;
+	float lineY = 0.0f;
 	uint32_t sectionStart = 0;
-	uint32_t reverseSectionEnd = 0;
 	float offset = 0;
-	float maxPosition = 0;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
+		// Skkip glyphs on an invalid line.
+		if (glyphs[i].position.y == DS_INVALID_LINE)
+			continue;
+
 		if (glyphs[i].position.y != lastY)
 		{
-			if (dsAlignedBox2f_isValid(&lineBounds))
-			{
-				// Handle justification.
-				switch (justification)
-				{
-					case dsTextJustification_Left:
-						break;
-					case dsTextJustification_Right:
-						for (uint32_t j = sectionStart; j < i; ++j)
-							glyphs[j].position.x -= lineBounds.max.x;
-						lineBounds.min.x -= lineBounds.max.x;
-						lineBounds.max.x -= 0.0f;
-						break;
-					case dsTextJustification_Center:
-					{
-						float justificationOffset = lineBounds.max.x/2.0f;
-						for (uint32_t j = sectionStart; j < i; ++j)
-							glyphs[j].position.x -= justificationOffset;
-						lineBounds.min.x -= justificationOffset;
-						lineBounds.max.x -= justificationOffset;
-						break;
-					}
-				}
-
-				dsAlignedBox2_addBox(layout->bounds, lineBounds);
-				dsAlignedBox2f_makeInvalid(&lineBounds);
-			}
-
+			if (maxScale != 0.0f)
+				lastScale = maxScale;
+			if (sectionStart != 0)
+				lineY += lastScale*lineScale;
+			float curYIndex = glyphs[i].position.y;
+			float lastYIndex = lastY;
 			lastY = glyphs[i].position.y;
+			finishLine(layout, &lineBounds, lineY, justification, glyphs, sectionStart, i);
+
+			lineY += lastScale*lineScale*(curYIndex - lastYIndex - 1.0f);
 			sectionStart = i;
 			offset = 0;
-			maxPosition = 0;
+			maxScale = 0.0f;
 		}
 
+		uint32_t textIndex = glyphs[i].textGlyphIndex;
 		float scale = layout->styles[glyphs[i].styleIndex].scale;
-
-		// Calculate the offset for reverse sections.
-		if (i >= reverseSectionEnd && text->glyphs[i].advance < 0)
-		{
-			// Add size for the first glyph in the series.
-			float sectionSize = text->glyphs[i].offset.x*scale + glyphs->geometry.max.x;
-			reverseSectionEnd = i;
-			for (uint32_t j = i; j < text->glyphCount && glyphs[j].position.y == lastY &&
-				text->glyphs[j].advance < 0; ++j, ++reverseSectionEnd)
-			{
-				float curScale = layout->styles[glyphs[j].styleIndex].scale;
-				sectionSize += text->glyphs[i].advance*curScale;
-			}
-
-			maxPosition += sectionSize;
-			offset += sectionSize;
-		}
-		else if (i == reverseSectionEnd)
-			offset = maxPosition;
-
-		float advance = text->glyphs[i].advance*scale;
+		maxScale = dsMax(scale, maxScale);
 		glyphs[i].position.x = offset;
-		offset += advance;
-		if (advance > 0)
-			maxPosition += advance;
-		else
-			glyphs[i].position.x += advance;
+		DS_ASSERT(text->glyphs[textIndex].advance >= 0);
+		offset += text->glyphs[textIndex].advance*scale;
 
-		glyphs[i].position.x += text->glyphs[i].offset.x*scale;
-		glyphs[i].position.y += text->glyphs[i].offset.y*scale;
+		glyphs[i].position.x += text->glyphs[textIndex].offset.x*scale;
+		glyphs[i].position.y += text->glyphs[textIndex].offset.y*scale;
 
 		// Add to the line bounds.
 		if (glyphs[i].geometry.min.x != glyphs[i].geometry.max.x &&
 			glyphs[i].geometry.min.y != glyphs[i].geometry.max.y)
 		{
 			dsAlignedBox2f glyphBounds;
-			dsVector2_add(glyphBounds.min, glyphs[i].position, glyphs[i].geometry.min);
-			dsVector2_add(glyphBounds.max, glyphs[i].position, glyphs[i].geometry.max);
+			dsVector2f relativePosition = {{glyphs[i].position.x, 0.0f}};
+			dsVector2_add(glyphBounds.min, relativePosition, glyphs[i].geometry.min);
+			dsVector2_add(glyphBounds.max, relativePosition, glyphs[i].geometry.max);
 			dsAlignedBox2_addBox(lineBounds, glyphBounds);
 		}
 	}
 
 	// Last line.
-	if (dsAlignedBox2f_isValid(&lineBounds))
-	{
-		// Handle justification.
-		switch (justification)
-		{
-			case dsTextJustification_Left:
-				break;
-			case dsTextJustification_Right:
-				for (uint32_t j = sectionStart; j < text->glyphCount; ++j)
-					glyphs[j].position.x -= lineBounds.max.x;
-				lineBounds.min.x -= lineBounds.max.x;
-				lineBounds.max.x -= 0.0f;
-				break;
-			case dsTextJustification_Center:
-			{
-				float justificationOffset = lineBounds.max.x/2.0f;
-				for (uint32_t j = sectionStart; j < text->glyphCount; ++j)
-					glyphs[j].position.x -= justificationOffset;
-				lineBounds.min.x -= justificationOffset;
-				lineBounds.max.x -= justificationOffset;
-				break;
-			}
-		}
+	if (maxScale != 0.0f)
+		lastScale = maxScale;
+	if (sectionStart != 0)
+		lineY += lastScale*lineScale;
+	finishLine(layout, &lineBounds, lineY, justification, glyphs, sectionStart, text->glyphCount);
 
-		dsAlignedBox2_addBox(layout->bounds, lineBounds);
-	}
-
-	// Fourth pass: add padding to the bounds and compute the final texture coordinates.
+	// Fifth pass: add padding to the bounds and compute the final texture coordinates.
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
 		// Don't add padding if the geometry is degenerate.
@@ -454,7 +515,7 @@ bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 		}
 
 		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
-			text->glyphs[i].glyphId);
+			text->glyphs[glyphs[i].textGlyphIndex].glyphId);
 
 		dsTexturePosition texturePos;
 		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),

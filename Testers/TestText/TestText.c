@@ -188,10 +188,45 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"He said \"\u0671\u0679!\u0683\" to her.\nHe also said \"\u0E09\u0E31\u0E19\u0E01\u0E34\u0E19"
-		"\u0E17\u0E35\u0E48\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E27\u0E32"
-		"\u0E19\"",
+	{"The text \"\u062c\u0632\u064a\u0631\u0629\" is Arabic.\nThe text \"\u0E09\u0E31\u0E19\u0E01"
+		"\u0E34\u0E19\u0E17\u0E35\u0E48\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D"
+		"\u0E27\u0E32\u0E19\" is Thai.",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	// Should show as "جزيرة!?ا زورد"
+	{"Arabic words with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"Arabic words with wrapping: \"\u062c\u0632\u064a\u0631\u0629 "
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
+		"Wrapping with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+		NULL, dsTextJustification_Left, 350.0f, 1.3f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"Arabic words explicit newline: \"\u062c\u0632\u064a\u0631\u0629\n"
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
+		"Explicit newline with punctuation: \"\u062c\u0632\u064a\u0631\u0629!?\n"
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"Wrapping on script transition: \u0E09\u0E31\u0E19\u0E01\u0E34\u0E19\u0E17\u0E35\u0E48"
+		"\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E27\u0E32\u0E19",
+		NULL, dsTextJustification_Left, 350.0f, 1.3f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		NO_STYLE, NO_STYLE}},
+	{"first is left-to-right \u062c\u0632\u064a\u0631\u0629\n"
+		"\u062c\u0632\u064a\u0631\u0629 first is right-to-left",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}}

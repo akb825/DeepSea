@@ -38,10 +38,25 @@ typedef enum dsUnicodeType
 	dsUnicodeType_UTF32
 } dsUnicodeType;
 
+typedef enum dsTextDirection
+{
+	dsTextDirection_Either,
+	dsTextDirection_LeftToRight,
+	dsTextDirection_RightToLeft
+} dsTextDirection;
+
+typedef struct dsGlyphMapping
+{
+	uint32_t index;
+	uint32_t count;
+} dsGlyphMapping;
+
 typedef struct dsRunInfo
 {
 	uint32_t start;
 	uint32_t count;
+	uint32_t newlineCount;
+	dsTextDirection direction;
 } dsRunInfo;
 
 typedef struct dsGlyphKey
@@ -90,18 +105,24 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name);
 // Runs are in characters rather than codepoints.
 dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
 	dsUnicodeType type);
-dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length, uint32_t rangeCount);
-dsGlyph* dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
+dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length);
+bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount);
+bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
+uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length);
+dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length);
 
 // Locking not needed for these two functions.
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
 bool dsFaceGroup_isScriptUnique(uint32_t script);
+bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2);
+dsTextDirection dsFaceGroup_textDirection(uint32_t script);
 
 dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
 	uint32_t glyph);
 uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
-	uint32_t firstCodepoint, uint32_t start, uint32_t count);
+	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
+	dsTextDirection direction);
 
 // Pixel values are 0 or 1, +Y points down.
 bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,

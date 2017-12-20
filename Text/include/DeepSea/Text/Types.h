@@ -156,6 +156,11 @@ typedef struct dsTextRange
 	uint32_t glyphCount;
 
 	/**
+	 * @brief The number of newlines following this range.
+	 */
+	uint32_t newlineCount;
+
+	/**
 	 * @brief True if the text goes backward.
 	 */
 	bool backward;
@@ -302,6 +307,13 @@ typedef struct dsGlyphLayout
 	 * @brief The mip level in the texture that contains the glyph.
 	 */
 	uint32_t mipLevel;
+
+	/**
+	 * The index of the glyph in the text.
+	 *
+	 * This may not match in some cases such as right to left text with text wrapping.
+	 */
+	uint32_t textGlyphIndex;
 
 	/**
 	 * @brief The index for the style.
