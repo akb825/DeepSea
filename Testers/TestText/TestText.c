@@ -188,16 +188,18 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"The text \"\u062c\u0632\u064a\u0631\u0629\" is Arabic.\nThe text \"\u0E09\u0E31\u0E19\u0E01"
-		"\u0E34\u0E19\u0E17\u0E35\u0E48\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D"
-		"\u0E27\u0E32\u0E19\" is Thai.",
+	{"The text \"\u062c\u0632\u064a\u0631\u0629\" is Arabic.\nThe text \"\u0e09\u0e31\u0e19\u0e01"
+		"\u0e34\u0e19\u0e17\u0e35\u0e48\u0e19\u0e31\u0e48\u0e19\u0e1e\u0e23\u0e38\u0e48\u0e07"
+		"\u0e19\u0e35\u0e49\" is Thai.",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	// Should show as "جزيرة!?ا زورد"
-	{"Arabic words with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+	// Should show as "جزيرة لازورد" and "جزيرة!? لازورد"
+	{"Arabic words without punctuation: \"\u062c\u0632\u064a\u0631\u0629 "
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
+		"Arabic words with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
+		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},

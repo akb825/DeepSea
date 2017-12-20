@@ -518,6 +518,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 	group->scratchText.ranges = NULL;
 	group->scratchText.glyphCount = 0;
 	group->scratchText.glyphs = NULL;
+	group->scratchGlyphCount = 0;
 
 	if (length == 0)
 		return &group->scratchText;
