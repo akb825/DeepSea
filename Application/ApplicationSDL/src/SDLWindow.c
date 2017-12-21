@@ -57,7 +57,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
 
-	unsigned int sdlFlags = 0;
+	unsigned int sdlFlags = SDL_WINDOW_ALLOW_HIGHDPI;
 	int x, y;
 	getSdlPosition(&x, &y, position, (flags & dsWindowFlags_Center) != 0);
 
@@ -264,7 +264,8 @@ bool dsSDLWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsApplic
 	const dsWindow* window)
 {
 	DS_UNUSED(application);
-	SDL_GetWindowSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth, (int*)outHeight);
+	SDL_GL_GetDrawableSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth,
+		(int*)outHeight);
 	return true;
 }
 

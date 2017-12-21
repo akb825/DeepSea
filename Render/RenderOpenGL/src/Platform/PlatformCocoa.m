@@ -173,9 +173,10 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	if (!outWidth || !outHeight || !surface)
 		return false;
 
-	NSRect bounds = [(__bridge NSView*)surface bounds];
-	*outWidth = (uint32_t)bounds.size.width;
-	*outHeight = (uint32_t)bounds.size.height;
+	NSView* view = (__bridge NSView*)surface;
+	NSSize size = [view convertSizeToBacking: view.bounds.size];
+	*outWidth = (uint32_t)size.width;
+	*outHeight = (uint32_t)size.height;
 	return true;
 }
 

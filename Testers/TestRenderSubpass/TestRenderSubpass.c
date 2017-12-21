@@ -291,8 +291,9 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		return false;
 	}
 
+	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
 	if (dsGfxFormat_surfaceBlitSupported(resourceManager, combinedColorFormat,
-		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear))
+		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
 	{
 		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
 			combinedColorFormat, width, height, 1);
@@ -552,8 +553,9 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	dsColorAttachmentRef bColorAttachment = {5, true};
 	uint32_t bDepthStencilAttachment = 6;
 	dsColorAttachmentRef resolveColorAttachment = {0, false};
+	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
 	if (dsGfxFormat_surfaceBlitSupported(resourceManager, renderer->surfaceColorFormat,
-		renderer->surfaceColorFormat, dsBlitFilter_Linear))
+		renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
 	{
 		resolveColorAttachment.attachmentIndex = 7;
 	}
