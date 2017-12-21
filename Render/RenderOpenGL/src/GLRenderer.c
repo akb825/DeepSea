@@ -579,14 +579,12 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->clipInvertY = false;
 	baseRenderer->defaultAnisotropy = 1;
 
-	baseRenderer->hasGeometryShaders = AnyGL_atLeastVersion(3, 2, false) ||
-		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_geometry_shader4 ||
-		AnyGL_EXT_geometry_shader4 || AnyGL_EXT_geometry_shader;
-	baseRenderer->hasTessellationShaders = AnyGL_atLeastVersion(4, 0, false) ||
-		AnyGL_atLeastVersion(3, 2, true) || AnyGL_ARB_tessellation_shader ||
-		AnyGL_EXT_tessellation_shader;
-	baseRenderer->hasComputeShaders = AnyGL_atLeastVersion(4, 3, false) ||
-		AnyGL_atLeastVersion(3, 1, true) || AnyGL_ARB_compute_shader;
+	baseRenderer->hasGeometryShaders = (ANYGL_GLES && renderer->shaderVersion >= 320) ||
+		(!ANYGL_GLES && renderer->shaderVersion >= 320);
+	baseRenderer->hasTessellationShaders = (ANYGL_GLES && renderer->shaderVersion >= 320) ||
+		(!ANYGL_GLES && renderer->shaderVersion >= 400);
+	baseRenderer->hasComputeShaders = (ANYGL_GLES && renderer->shaderVersion >= 310) ||
+		(!ANYGL_GLES && renderer->shaderVersion >= 430);
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
 	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
