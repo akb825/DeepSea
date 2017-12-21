@@ -7,12 +7,13 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 The following software is required to build DeepSea:
 
 * [cmake](https://cmake.org/) 3.0.2 or later
-* Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies)
+* Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be built separately to compile shaders)
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
+* [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
 
 The submodule dependencies can be grabbed by running the commands
 
@@ -30,6 +31,17 @@ DeepSea has been built for and tested on the following platforms:
 # Building
 
 [CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
+
+## Dependencies
+
+In order to perform a full build of DeepSea, the dependencies should be installed first.
+
+* Modular Shader Language: the tool is required to build shaders. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
+* [Cuttlefish](https://github.com/akb825/Cuttlefish): this is recommended to create textures. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
+* [gtest](https://github.com/google/googletest): after installing the library, you may need to set the `GTEST_ROOT` CMake variable to the installation location.
+* [SDL](https://www.libsdl.org/): after installing the library, you may need to set the `SDL_PATH` CMake variable to the installation location.
+* [FreeType](https://www.freetype.org/): after installing the library, you may need to set the `FREETYPE_DIR` environment variable to the installation location.
+* [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/): when building HarfBuzz from source, the [ragel](http://www.colm.net/open-source/ragel/) tool is required. When building under Windows, this must be done using [MinGW](https://sourceforge.net/projects/mingw/). (be sure to install the developer-tools, base, and gcc-g++ packages, then run `C:\MinGW\msys\1.0\msys.bat` for the console; also add `C:\MinGW\bin` to `PATH` to make sure the program can be run) Make sure that the `RAGEL` CMake variable is set to the path to ragel and the `HB_HAVE_FREETYPE` CMake variable is set to `ON`. After installing the library, you may need to set the `HARFBUZZ_PATH` CMake variable to the installation location.
 
 ## Linux/Mac OS X
 
@@ -86,7 +98,7 @@ Building is generally performed through Visual Studio. This can either be done t
 
 Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea` directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 
-    find_package(DeepSea COMPONENTS Core Math Render)
+	find_package(DeepSea COMPONENTS Core Math Render)
 
 Libraries and include directories can be found through the `DeepSeaModule_LIBRARIES` and `DeepSeaModule_INCLUDE_DIRS` CMake variables. For example: `DeepSeaCore_LIBRARIES` and `DeepSeaCore_INCLUDE_DIRS`.
 

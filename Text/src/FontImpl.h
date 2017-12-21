@@ -93,6 +93,7 @@ struct dsFont
 	DS_STATIC_HASH_TABLE(DS_TABLE_SIZE) glyphTable;
 };
 
+bool dsIsSpace(uint32_t charcode);
 const char* dsFontFace_getName(const dsFontFace* face);
 bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,

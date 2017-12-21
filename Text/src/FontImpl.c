@@ -219,6 +219,12 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	return face;
 }
 
+bool dsIsSpace(uint32_t charcode)
+{
+	// Work around assert on Windows.
+	return charcode <= 128 && isspace(charcode);
+}
+
 const char* dsFontFace_getName(const dsFontFace* face)
 {
 	if (!face)
@@ -637,7 +643,7 @@ dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length)
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
 {
 	// Override whitepsace.
-	if (isspace(codepoint))
+	if (dsIsSpace(codepoint))
 		return HB_SCRIPT_INHERITED;
 	return hb_unicode_script(group->unicode, codepoint);
 }

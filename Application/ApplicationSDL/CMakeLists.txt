@@ -1,6 +1,6 @@
 find_package(SDL2 QUIET)
 if (NOT SDL2_FOUND)
-	message("SDL2 not found. Skipping ApplicationSDL")
+	message("SDL2 not found. Skipping ApplicationSDL.")
 	return()
 endif()
 

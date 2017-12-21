@@ -1,5 +1,9 @@
-find_package(Freetype REQUIRED)
-find_package(HarfBuzz REQUIRED)
+find_package(Freetype QUIET)
+find_package(HarfBuzz QUIET)
+if (NOT Freetype_FOUND OR NOT HarfBuzz_FOUND)
+	message("Freetype or HarfBuzz not found. Skipping Text.")
+	return()
+endif()
 
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE externalSources SheenBidi/Source/*.c SheenBidi/Source/*.h SheenBidi/Headers/*.h)

@@ -244,7 +244,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 			// Skip whitespace.
 			uint32_t charcode = text->characters[text->glyphs[index].charIndex];
-			if (isspace(charcode))
+			if (dsIsSpace(charcode))
 			{
 				glyphs[index].geometry.min.x = glyphs[index].geometry.min.y = 0;
 				glyphs[index].geometry.max = glyphs[index].geometry.min;
@@ -293,7 +293,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (glyphMapping[i].count == 0)
 			continue;
 
-		bool isWhitespace = isspace(text->characters[i]);
+		bool isWhitespace = dsIsSpace(text->characters[i]);
 		float scale = layout->styles[glyphs[glyphMapping[i].index].styleIndex].scale;
 		float glyphWidth = 0.0f;
 		for (uint32_t j = 0; j < glyphMapping[i].count; ++j)

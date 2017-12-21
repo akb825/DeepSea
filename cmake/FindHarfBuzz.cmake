@@ -34,12 +34,34 @@ INCLUDE(FindPkgConfig)
 
 PKG_CHECK_MODULES(PC_HARFBUZZ harfbuzz>=0.9.0)
 
+SET(HARFBUZZ_SEARCH_PATHS
+  ~/Library/Frameworks
+  /Library/Frameworks
+  /usr/local
+  /usr
+  /sw # Fink
+  /opt/local # DarwinPorts
+  /opt/csw # Blastwave
+  /opt
+  ${HARFBUZZ_PATH}
+)
+
 FIND_PATH(HARFBUZZ_INCLUDE_DIRS NAMES hb.h
   HINTS ${PC_HARFBUZZ_INCLUDE_DIRS} ${PC_HARFBUZZ_INCLUDEDIR}
+  PATH_SUFFIXES include include/harfbuzz
+  PATHS ${HARFBUZZ_SEARCH_PATHS}
 )
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(PATH_SUFFIXES lib64 lib/x64 lib)
+else()
+  set(PATH_SUFFIXES lib/x86 lib)
+endif()
 
 FIND_LIBRARY(HARFBUZZ_LIBRARIES NAMES harfbuzz
   HINTS ${PC_HARFBUZZ_LIBRARY_DIRS} ${PC_HARFBUZZ_LIBDIR}
+  PATH_SUFFIXES ${PATH_SUFFIXES}
+  PATHS ${HARFBUZZ_SEARCH_PATHS}
 )
 
 INCLUDE(FindPackageHandleStandardArgs)

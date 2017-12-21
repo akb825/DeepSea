@@ -188,46 +188,49 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"The text \"\u062c\u0632\u064a\u0631\u0629\" is Arabic.\nThe text \"\u0e09\u0e31\u0e19\u0e01"
-		"\u0e34\u0e19\u0e17\u0e35\u0e48\u0e19\u0e31\u0e48\u0e19\u0e1e\u0e23\u0e38\u0e48\u0e07"
-		"\u0e19\u0e35\u0e49\" is Thai.",
+	{"The text \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\" is Arabic.\nThe text \"\xE0\xB8\x89\xE0"
+		"\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9"
+		"\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\x9E\xE0\xB8\xA3\xE0\xB8\xB8"
+		"\xE0\xB9\x88\xE0\xB8\x87\xE0\xB8\x99\xE0\xB8\xB5\xE0\xB9\x89\" is Thai.",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	// Should show as "جزيرة لازورد" and "جزيرة!? لازورد"
-	{"Arabic words without punctuation: \"\u062c\u0632\u064a\u0631\u0629 "
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
-		"Arabic words with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n",
+	{"Arabic words without punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
+		"Arabic words with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"Arabic words with wrapping: \"\u062c\u0632\u064a\u0631\u0629 "
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
-		"Wrapping with punctuation: \"\u062c\u0632\u064a\u0631\u0629!? "
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+	{"Arabic words with wrapping: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
+		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
 		NULL, dsTextJustification_Left, 350.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"Arabic words explicit newline: \"\u062c\u0632\u064a\u0631\u0629\n"
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"\n"
-		"Explicit newline with punctuation: \"\u062c\u0632\u064a\u0631\u0629!?\n"
-		"\u0644\u0627\u0632\u0648\u0631\u062f\"",
+	{"Arabic words explicit newline: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
+		"Explicit newline with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!?\n"
+		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"Wrapping on script transition: \u0E09\u0E31\u0E19\u0E01\u0E34\u0E19\u0E17\u0E35\u0E48"
-		"\u0E19\u0E31\u0E48\u0E19\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E27\u0E32\u0E19",
+	{"Wrapping on script transition: \xE0\xB8\x89\xE0\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4"
+		"\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0"
+		"\xB8\x99\xE0\xB9\x80\xE0\xB8\xA1\xE0\xB8\xB7\xE0\xB9\x88\xE0\xB8\xAD\xE0\xB8\xA7\xE0\xB8"
+		"\xB2\xE0\xB8\x99",
 		NULL, dsTextJustification_Left, 350.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
-	{"first is left-to-right \u062c\u0632\u064a\u0631\u0629\n"
-		"\u062c\u0632\u064a\u0631\u0629 first is right-to-left",
+	{"first is left-to-right \xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
+		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 first is right-to-left",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.1f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
