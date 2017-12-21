@@ -620,6 +620,15 @@ typedef int (*dsRunApplicationFunction)(dsApplication* application);
 typedef void (*dsQuitApplicationFunction)(dsApplication* application, int returnCode);
 
 /**
+ * @brief Function for getting the display bounds.
+ * @param[out] outBounds The bounds for the display.
+ * @param application The application.
+ * @param display The index of the display.
+ */
+typedef void (*dsGetApplicationDisplayBoundsFunction)(dsAlignedBox2i* outBounds,
+	const dsApplication* application, uint32_t display);
+
+/**
  * @brief Function to get the current cursor.
  * @param application The application.
  * @return The current cursor.
@@ -782,6 +791,17 @@ typedef bool (*dsResizeWindowFunction)(dsApplication* application, dsWindow* win
  * @return False if the size couldn't be queried.
  */
 typedef bool (*dsGetWindowSizeFunction)(uint32_t* outWidth, uint32_t* outHeight,
+	const dsApplication* application, const dsWindow* window);
+
+/**
+ * @brief Function for getting the pixel size of a window.
+ * @param[out] outWidth The width of the window. This may be NULL.
+ * @param[out] outHeight THe height of the window. This may be NULL.
+ * @param application The application.
+ * @param window The window to get the size for.
+ * @return False if the size couldn't be queried.
+ */
+typedef bool (*dsGetWindowPixelSizeFunction)(uint32_t* outWidth, uint32_t* outHeight,
 	const dsApplication* application, const dsWindow* window);
 
 /**
@@ -1135,6 +1155,11 @@ struct dsApplication
 	dsQuitApplicationFunction quitFunc;
 
 	/**
+	 * @brief Function for getting the display bounds.
+	 */
+	dsGetApplicationDisplayBoundsFunction getDisplayBoundsfunc;
+
+	/**
 	 * @brief Function for getting the cursor.
 	 */
 	dsGetApplicationCursorFunction getCursorFunc;
@@ -1228,6 +1253,11 @@ struct dsApplication
 	 * @brief Function for getting the size fo a window.
 	 */
 	dsGetWindowSizeFunction getWindowSizeFunc;
+
+	/**
+	 * @brief Function for getting the size fo a window in pixels.
+	 */
+	dsGetWindowPixelSizeFunction getWindowPixelSizeFunc;
 
 	/**
 	 * @brief Function for setting the window style.

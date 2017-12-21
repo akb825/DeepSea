@@ -63,12 +63,12 @@ typedef struct dsMouseButtonEvent
 	dsMouseButton button;
 
 	/**
-	 * @brief The X position of the mouse, relative to the window.
+	 * @brief The X position of the mouse, relative to the window in display coordinates.
 	 */
 	int32_t x;
 
 	/**
-	 * @brief The Y position of the mouse, relative to the window.
+	 * @brief The Y position of the mouse, relative to the window in display coordinates.
 	 */
 	int32_t y;
 } dsMouseButtonEvent;
@@ -79,22 +79,22 @@ typedef struct dsMouseButtonEvent
 typedef struct dsMouseMoveEvent
 {
 	/**
-	 * @brief The X position of the mouse, relative to the window.
+	 * @brief The X position of the mouse, relative to the window in display coordinates.
 	 */
 	int32_t x;
 
 	/**
-	 * @brief The Y position of the mouse, relative to the window.
+	 * @brief The Y position of the mouse, relative to the window in display coordinates.
 	 */
 	int32_t y;
 
 	/**
-	 * @brief The amount scrolled in the X direction.
+	 * @brief The amount scrolled in the X direction in display coordinates.
 	 */
 	int32_t deltaX;
 
 	/**
-	 * @brief The amount scrolled in the Y direction.
+	 * @brief The amount scrolled in the Y direction in display coordinates.
 	 */
 	int32_t deltaY;
 

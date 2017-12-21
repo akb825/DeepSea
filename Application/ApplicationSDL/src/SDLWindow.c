@@ -264,6 +264,15 @@ bool dsSDLWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsApplic
 	const dsWindow* window)
 {
 	DS_UNUSED(application);
+	SDL_GetWindowSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth,
+		(int*)outHeight);
+	return true;
+}
+
+bool dsSDLWindow_getPixelSize(uint32_t* outWidth, uint32_t* outHeight,
+	const dsApplication* application, const dsWindow* window)
+{
+	DS_UNUSED(application);
 	SDL_GL_GetDrawableSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth,
 		(int*)outHeight);
 	return true;

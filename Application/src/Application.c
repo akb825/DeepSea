@@ -319,6 +319,25 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 	return true;
 }
 
+bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
+	uint32_t display)
+{
+	if (!outBounds || !application || !application->getDisplayBoundsfunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (display < application->displayCount)
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	application->getDisplayBoundsfunc(outBounds, application, display);
+	return true;
+}
+
 dsCursor dsApplication_getCursor(const dsApplication* application)
 {
 	if (!application || !application->getCursorFunc)

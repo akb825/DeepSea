@@ -632,6 +632,18 @@ void dsSDLApplication_quit(dsApplication* application, int exitCode)
 	sdlApplication->exitCode = exitCode;
 }
 
+void dsSDLApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplication* application,
+	uint32_t display)
+{
+	DS_UNUSED(application);
+	SDL_Rect rect = {0, 0, 0, 0};
+	SDL_GetDisplayBounds(display, &rect);
+	outBounds->min.x = rect.x;
+	outBounds->min.y = rect.y;
+	outBounds->max.x = rect.x + rect.w;
+	outBounds->max.y = rect.y + rect.h;
+}
+
 dsCursor dsSDLApplication_getCursor(const dsApplication* application)
 {
 	return ((const dsSDLApplication*)application)->curCursor;
@@ -918,6 +930,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->runFunc = &dsSDLApplication_run;
 	baseApplication->quitFunc = &dsSDLApplication_quit;
 
+	baseApplication->getDisplayBoundsfunc = &dsSDLApplication_getDisplayBounds;
 	baseApplication->getCursorFunc = &dsSDLApplication_getCursor;
 	baseApplication->setCursorFunc = &dsSDLApplication_setCursor;
 	baseApplication->getCursorHiddenFunc = &dsSDLApplication_getCursorHidden;
@@ -938,6 +951,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->setWindowDisplayModeFunc = &dsSDLWindow_setDisplayMode;
 	baseApplication->resizeWindowFunc = &dsSDLWindow_resize;
 	baseApplication->getWindowSizeFunc = &dsSDLWindow_getSize;
+	baseApplication->getWindowPixelSizeFunc = &dsSDLWindow_getPixelSize;
 	baseApplication->setWindowStyleFunc = &dsSDLWindow_setStyle;
 	baseApplication->getWindowPositionFunc = &dsSDLWindow_getPosition;
 	baseApplication->getWindowHiddenFunc = &dsSDLWindow_getHidden;

@@ -45,6 +45,8 @@ bool dsSDLWindow_resize(dsApplication* application, dsWindow* window, uint32_t w
 	uint32_t height);
 bool dsSDLWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsApplication* application,
 	const dsWindow* window);
+bool dsSDLWindow_getPixelSize(uint32_t* outWidth, uint32_t* outHeight,
+	const dsApplication* application, const dsWindow* window);
 bool dsSDLWindow_setStyle(dsApplication* application, dsWindow* window, dsWindowStyle style);
 bool dsSDLWindow_getPosition(dsVector2i* outPosition, const dsApplication* application,
 	const dsWindow* window);

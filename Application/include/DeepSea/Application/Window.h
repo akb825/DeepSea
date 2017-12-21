@@ -107,21 +107,33 @@ DS_APPLICATION_EXPORT bool dsWindow_setDisplayMode(dsWindow* window,
  *
  * @remark errno will be set on failure.
  * @param window The window to resize.
- * @param width The new width.
- * @param height The new height.
+ * @param width The new width in display coordinates.
+ * @param height The new height display coordinates.
  * @return False if the window couldn't be resized.
  */
 DS_APPLICATION_EXPORT bool dsWindow_resize(dsWindow* window, uint32_t width, uint32_t height);
 
 /**
- * @brief Gets the current size of a window.
+ * @brief Gets the current size of a window in display coordinates.
  * @remark errno will be set on failure.
- * @param[out] outWidth The width of the window. This may be NULL.
- * @param[out] outHeight THe height of the window. This may be NULL.
+ * @param[out] outWidth The width of the window display coordinates. This may be NULL.
+ * @param[out] outHeight THe height of the window display coordinates. This may be NULL.
  * @param window The window to get the size for.
  * @return False if the size couldn't be queried.
  */
 DS_APPLICATION_EXPORT bool dsWindow_getSize(uint32_t* outWidth, uint32_t* outHeight,
+	const dsWindow* window);
+
+/**
+ * @brief Gets the current size of a window in pixels.
+ * @remark This may be different from dsWindow_getSize() depending on the platform.
+ * @remark errno will be set on failure.
+ * @param[out] outWidth The width of the window display coordinates. This may be NULL.
+ * @param[out] outHeight THe height of the window display coordinates. This may be NULL.
+ * @param window The window to get the size for.
+ * @return False if the size couldn't be queried.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_getPixelSize(uint32_t* outWidth, uint32_t* outHeight,
 	const dsWindow* window);
 
 /**
@@ -139,7 +151,7 @@ DS_APPLICATION_EXPORT bool dsWindow_setStyle(dsWindow* window, dsWindowStyle sty
 /**
  * @brief Gets the position of a window.
  * @remark errno will be set on failure.
- * @param[out] outPosition The position of the window.
+ * @param[out] outPosition The position of the window display coordinates.
  * @param window The window to set the position for.
  * @return False if the window position couldn't be queried.
  */

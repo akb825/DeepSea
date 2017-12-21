@@ -195,9 +195,20 @@ DS_APPLICATION_EXPORT int dsApplication_run(dsApplication* application);
  * @remark errno will be set on failure.
  * @param application The application.
  * @param exitCode The exit code for the application.
- * @return True
+ * @return False if an error occurred.
  */
 DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int exitCode);
+
+/**
+ * @brief Gets the bounds for the display in display coordinates.
+ * @remark errno will be set on failure.
+ * @param[out] outBounds The bounds for the display.
+ * @param application The application.
+ * @param display The index of the display.
+ * @return False if an error occurred.
+ */
+DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds,
+	const dsApplication* application, uint32_t display);
 
 /**
  * @brief Gets the cursor used by the application.

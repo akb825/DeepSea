@@ -134,6 +134,18 @@ bool dsWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsWindow* w
 	return application->getWindowSizeFunc(outWidth, outHeight, application, window);
 }
 
+bool dsWindow_getPixelSize(uint32_t* outWidth, uint32_t* outHeight, const dsWindow* window)
+{
+	if (!window || !window->application || !window->application->getWindowPixelSizeFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsApplication* application = window->application;
+	return application->getWindowPixelSizeFunc(outWidth, outHeight, application, window);
+}
+
 bool dsWindow_setStyle(dsWindow* window, dsWindowStyle style)
 {
 	if (!window || !window->application || !window->application->setWindowStyleFunc)

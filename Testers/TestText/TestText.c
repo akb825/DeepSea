@@ -384,7 +384,7 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 static void setPositions(TestText* testText)
 {
 	uint32_t width, height;
-	DS_VERIFY(dsWindow_getSize(&width, &height, testText->window));
+	DS_VERIFY(dsWindow_getPixelSize(&width, &height, testText->window));
 	dsVector2f margin = {{10.0f, 10.0f}};
 
 	if (testText->text)
@@ -408,7 +408,7 @@ static void setPositions(TestText* testText)
 static bool createFramebuffer(TestText* testText)
 {
 	uint32_t width, height;
-	if (!dsWindow_getSize(&width, &height, testText->window))
+	if (!dsWindow_getPixelSize(&width, &height, testText->window))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't get window size: %s", dsErrorString(errno));
 		return false;

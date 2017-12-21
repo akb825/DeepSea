@@ -229,7 +229,7 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 {
 	uint32_t width, height;
-	if (!dsWindow_getSize(&width, &height, testRenderSubpass->window))
+	if (!dsWindow_getPixelSize(&width, &height, testRenderSubpass->window))
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't get window size: %s", dsErrorString(errno));
 		return false;
