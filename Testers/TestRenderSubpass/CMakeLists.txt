@@ -31,7 +31,7 @@ if (NOT libraries)
 	return()
 endif()
 
-add_executable(deepsea_test_render_subpass_app ${source})
+add_executable(deepsea_test_render_subpass_app WIN32 ${source})
 target_link_libraries(deepsea_test_render_subpass_app PRIVATE
 	deepsea_application_sdl deepsea_application_sdl_main
 	${libraries})
