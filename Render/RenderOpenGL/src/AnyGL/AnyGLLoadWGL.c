@@ -1903,6 +1903,22 @@ int AnyGL_load(void)
 		AnyGL_glTextureBarrier = NULL;
 	}
 
+	/* GL_VERSION_4_6 */
+	if (AnyGL_atLeastVersion(4, 6, 0))
+	{
+		AnyGL_glSpecializeShader = (PFNANYGLSPECIALIZESHADERPROC)wglGetProcAddress("glSpecializeShader");
+		AnyGL_glMultiDrawArraysIndirectCount = (PFNANYGLMULTIDRAWARRAYSINDIRECTCOUNTPROC)wglGetProcAddress("glMultiDrawArraysIndirectCount");
+		AnyGL_glMultiDrawElementsIndirectCount = (PFNANYGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC)wglGetProcAddress("glMultiDrawElementsIndirectCount");
+		AnyGL_glPolygonOffsetClamp = (PFNANYGLPOLYGONOFFSETCLAMPPROC)wglGetProcAddress("glPolygonOffsetClamp");
+	}
+	else
+	{
+		AnyGL_glSpecializeShader = NULL;
+		AnyGL_glMultiDrawArraysIndirectCount = NULL;
+		AnyGL_glMultiDrawElementsIndirectCount = NULL;
+		AnyGL_glPolygonOffsetClamp = NULL;
+	}
+
 	/* GL_ARB_ES2_compatibility */
 	AnyGL_ARB_ES2_compatibility = AnyGL_queryExtension("GL_ARB_ES2_compatibility");
 
@@ -2228,11 +2244,11 @@ int AnyGL_load(void)
 	AnyGL_ARB_gl_spirv = AnyGL_queryExtension("GL_ARB_gl_spirv");
 	if (AnyGL_ARB_gl_spirv)
 	{
-		AnyGL_glSpecializeShaderARB = (PFNANYGLSPECIALIZESHADERARBPROC)wglGetProcAddress("glSpecializeShaderARB");
+		if (!AnyGL_glSpecializeShader)
+			AnyGL_glSpecializeShader = (PFNANYGLSPECIALIZESHADERPROC)wglGetProcAddress("glSpecializeShaderARB");
 	}
 	else
 	{
-		AnyGL_glSpecializeShaderARB = NULL;
 	}
 
 	/* GL_ARB_gpu_shader5 */
@@ -2405,13 +2421,13 @@ int AnyGL_load(void)
 	AnyGL_ARB_indirect_parameters = AnyGL_queryExtension("GL_ARB_indirect_parameters");
 	if (AnyGL_ARB_indirect_parameters)
 	{
-		AnyGL_glMultiDrawArraysIndirectCountARB = (PFNANYGLMULTIDRAWARRAYSINDIRECTCOUNTARBPROC)wglGetProcAddress("glMultiDrawArraysIndirectCountARB");
-		AnyGL_glMultiDrawElementsIndirectCountARB = (PFNANYGLMULTIDRAWELEMENTSINDIRECTCOUNTARBPROC)wglGetProcAddress("glMultiDrawElementsIndirectCountARB");
+		if (!AnyGL_glMultiDrawArraysIndirectCount)
+			AnyGL_glMultiDrawArraysIndirectCount = (PFNANYGLMULTIDRAWARRAYSINDIRECTCOUNTPROC)wglGetProcAddress("glMultiDrawArraysIndirectCountARB");
+		if (!AnyGL_glMultiDrawElementsIndirectCount)
+			AnyGL_glMultiDrawElementsIndirectCount = (PFNANYGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC)wglGetProcAddress("glMultiDrawElementsIndirectCountARB");
 	}
 	else
 	{
-		AnyGL_glMultiDrawArraysIndirectCountARB = NULL;
-		AnyGL_glMultiDrawElementsIndirectCountARB = NULL;
 	}
 
 	/* GL_ARB_instanced_arrays */
@@ -2585,11 +2601,11 @@ int AnyGL_load(void)
 	AnyGL_ARB_parallel_shader_compile = AnyGL_queryExtension("GL_ARB_parallel_shader_compile");
 	if (AnyGL_ARB_parallel_shader_compile)
 	{
-		AnyGL_glMaxShaderCompilerThreadsARB = (PFNANYGLMAXSHADERCOMPILERTHREADSARBPROC)wglGetProcAddress("glMaxShaderCompilerThreadsARB");
+		if (!AnyGL_glMaxShaderCompilerThreadsKHR)
+			AnyGL_glMaxShaderCompilerThreadsKHR = (PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC)wglGetProcAddress("glMaxShaderCompilerThreadsARB");
 	}
 	else
 	{
-		AnyGL_glMaxShaderCompilerThreadsARB = NULL;
 	}
 
 	/* GL_ARB_pipeline_statistics_query */
@@ -2613,6 +2629,9 @@ int AnyGL_load(void)
 
 	/* GL_ARB_point_sprite */
 	AnyGL_ARB_point_sprite = AnyGL_queryExtension("GL_ARB_point_sprite");
+
+	/* GL_ARB_polygon_offset_clamp */
+	AnyGL_ARB_polygon_offset_clamp = AnyGL_queryExtension("GL_ARB_polygon_offset_clamp");
 
 	/* GL_ARB_post_depth_coverage */
 	AnyGL_ARB_post_depth_coverage = AnyGL_queryExtension("GL_ARB_post_depth_coverage");
@@ -2922,6 +2941,9 @@ int AnyGL_load(void)
 	/* GL_ARB_sparse_texture_clamp */
 	AnyGL_ARB_sparse_texture_clamp = AnyGL_queryExtension("GL_ARB_sparse_texture_clamp");
 
+	/* GL_ARB_spirv_extensions */
+	AnyGL_ARB_spirv_extensions = AnyGL_queryExtension("GL_ARB_spirv_extensions");
+
 	/* GL_ARB_stencil_texturing */
 	AnyGL_ARB_stencil_texturing = AnyGL_queryExtension("GL_ARB_stencil_texturing");
 
@@ -3000,6 +3022,9 @@ int AnyGL_load(void)
 
 	/* GL_ARB_texture_env_dot3 */
 	AnyGL_ARB_texture_env_dot3 = AnyGL_queryExtension("GL_ARB_texture_env_dot3");
+
+	/* GL_ARB_texture_filter_anisotropic */
+	AnyGL_ARB_texture_filter_anisotropic = AnyGL_queryExtension("GL_ARB_texture_filter_anisotropic");
 
 	/* GL_ARB_texture_filter_minmax */
 	AnyGL_ARB_texture_filter_minmax = AnyGL_queryExtension("GL_ARB_texture_filter_minmax");
@@ -3342,6 +3367,17 @@ int AnyGL_load(void)
 	/* GL_KHR_no_error */
 	AnyGL_KHR_no_error = AnyGL_queryExtension("GL_KHR_no_error");
 
+	/* GL_KHR_parallel_shader_compile */
+	AnyGL_KHR_parallel_shader_compile = AnyGL_queryExtension("GL_KHR_parallel_shader_compile");
+	if (AnyGL_KHR_parallel_shader_compile)
+	{
+		AnyGL_glMaxShaderCompilerThreadsKHR = (PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC)wglGetProcAddress("glMaxShaderCompilerThreadsKHR");
+	}
+	else
+	{
+		AnyGL_glMaxShaderCompilerThreadsKHR = NULL;
+	}
+
 	/* GL_KHR_robust_buffer_access_behavior */
 	AnyGL_KHR_robust_buffer_access_behavior = AnyGL_queryExtension("GL_KHR_robust_buffer_access_behavior");
 
@@ -3527,7 +3563,7 @@ int AnyGL_load(void)
 		if (!AnyGL_glDrawElementsInstancedBaseVertex)
 			AnyGL_glDrawElementsInstancedBaseVertex = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC)wglGetProcAddress("glDrawElementsInstancedBaseVertexOES");
 		if (!AnyGL_glMultiDrawElementsBaseVertex)
-			AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)wglGetProcAddress("glMultiDrawElementsBaseVertexOES");
+			AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)wglGetProcAddress("glMultiDrawElementsBaseVertexEXT");
 	}
 	else
 	{
@@ -4017,21 +4053,21 @@ int AnyGL_load(void)
 	AnyGL_OES_texture_3D = AnyGL_queryExtension("GL_OES_texture_3D");
 	if (AnyGL_OES_texture_3D)
 	{
-		if (!AnyGL_glTexImage3D)
-			AnyGL_glTexImage3D = (PFNANYGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3DOES");
-		if (!AnyGL_glTexSubImage3D)
-			AnyGL_glTexSubImage3D = (PFNANYGLTEXSUBIMAGE3DPROC)wglGetProcAddress("glTexSubImage3DOES");
-		if (!AnyGL_glCopyTexSubImage3D)
-			AnyGL_glCopyTexSubImage3D = (PFNANYGLCOPYTEXSUBIMAGE3DPROC)wglGetProcAddress("glCopyTexSubImage3DOES");
-		if (!AnyGL_glCompressedTexImage3D)
-			AnyGL_glCompressedTexImage3D = (PFNANYGLCOMPRESSEDTEXIMAGE3DPROC)wglGetProcAddress("glCompressedTexImage3DOES");
-		if (!AnyGL_glCompressedTexSubImage3D)
-			AnyGL_glCompressedTexSubImage3D = (PFNANYGLCOMPRESSEDTEXSUBIMAGE3DPROC)wglGetProcAddress("glCompressedTexSubImage3DOES");
-		if (!AnyGL_glFramebufferTexture3D)
-			AnyGL_glFramebufferTexture3D = (PFNANYGLFRAMEBUFFERTEXTURE3DPROC)wglGetProcAddress("glFramebufferTexture3DOES");
+		AnyGL_glTexImage3DOES = (PFNANYGLTEXIMAGE3DOESPROC)wglGetProcAddress("glTexImage3DOES");
+		AnyGL_glTexSubImage3DOES = (PFNANYGLTEXSUBIMAGE3DOESPROC)wglGetProcAddress("glTexSubImage3DOES");
+		AnyGL_glCopyTexSubImage3DOES = (PFNANYGLCOPYTEXSUBIMAGE3DOESPROC)wglGetProcAddress("glCopyTexSubImage3DOES");
+		AnyGL_glCompressedTexImage3DOES = (PFNANYGLCOMPRESSEDTEXIMAGE3DOESPROC)wglGetProcAddress("glCompressedTexImage3DOES");
+		AnyGL_glCompressedTexSubImage3DOES = (PFNANYGLCOMPRESSEDTEXSUBIMAGE3DOESPROC)wglGetProcAddress("glCompressedTexSubImage3DOES");
+		AnyGL_glFramebufferTexture3DOES = (PFNANYGLFRAMEBUFFERTEXTURE3DOESPROC)wglGetProcAddress("glFramebufferTexture3DOES");
 	}
 	else
 	{
+		AnyGL_glTexImage3DOES = NULL;
+		AnyGL_glTexSubImage3DOES = NULL;
+		AnyGL_glCopyTexSubImage3DOES = NULL;
+		AnyGL_glCompressedTexImage3DOES = NULL;
+		AnyGL_glCompressedTexSubImage3DOES = NULL;
+		AnyGL_glFramebufferTexture3DOES = NULL;
 	}
 
 	/* GL_OES_texture_border_clamp */
@@ -4326,6 +4362,17 @@ int AnyGL_load(void)
 			AnyGL_glClearTexImage = (PFNANYGLCLEARTEXIMAGEPROC)wglGetProcAddress("glClearTexImageEXT");
 		if (!AnyGL_glClearTexSubImage)
 			AnyGL_glClearTexSubImage = (PFNANYGLCLEARTEXSUBIMAGEPROC)wglGetProcAddress("glClearTexSubImageEXT");
+	}
+	else
+	{
+	}
+
+	/* GL_EXT_clip_control */
+	AnyGL_EXT_clip_control = AnyGL_queryExtension("GL_EXT_clip_control");
+	if (AnyGL_EXT_clip_control)
+	{
+		if (!AnyGL_glClipControl)
+			AnyGL_glClipControl = (PFNANYGLCLIPCONTROLPROC)wglGetProcAddress("glClipControlEXT");
 	}
 	else
 	{
@@ -5163,8 +5210,6 @@ int AnyGL_load(void)
 			AnyGL_glDrawRangeElementsBaseVertex = (PFNANYGLDRAWRANGEELEMENTSBASEVERTEXPROC)wglGetProcAddress("glDrawRangeElementsBaseVertexEXT");
 		if (!AnyGL_glDrawElementsInstancedBaseVertex)
 			AnyGL_glDrawElementsInstancedBaseVertex = (PFNANYGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC)wglGetProcAddress("glDrawElementsInstancedBaseVertexEXT");
-		if (!AnyGL_glMultiDrawElementsBaseVertex)
-			AnyGL_glMultiDrawElementsBaseVertex = (PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)wglGetProcAddress("glMultiDrawElementsBaseVertexEXT");
 	}
 	else
 	{
@@ -5205,6 +5250,19 @@ int AnyGL_load(void)
 	}
 	else
 	{
+	}
+
+	/* GL_EXT_external_buffer */
+	AnyGL_EXT_external_buffer = AnyGL_queryExtension("GL_EXT_external_buffer");
+	if (AnyGL_EXT_external_buffer)
+	{
+		AnyGL_glBufferStorageExternalEXT = (PFNANYGLBUFFERSTORAGEEXTERNALEXTPROC)wglGetProcAddress("glBufferStorageExternalEXT");
+		AnyGL_glNamedBufferStorageExternalEXT = (PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC)wglGetProcAddress("glNamedBufferStorageExternalEXT");
+	}
+	else
+	{
+		AnyGL_glBufferStorageExternalEXT = NULL;
+		AnyGL_glNamedBufferStorageExternalEXT = NULL;
 	}
 
 	/* GL_EXT_float_blend */
@@ -5466,6 +5524,77 @@ int AnyGL_load(void)
 	{
 	}
 
+	/* GL_EXT_memory_object */
+	AnyGL_EXT_memory_object = AnyGL_queryExtension("GL_EXT_memory_object");
+	if (AnyGL_EXT_memory_object)
+	{
+		AnyGL_glGetUnsignedBytevEXT = (PFNANYGLGETUNSIGNEDBYTEVEXTPROC)wglGetProcAddress("glGetUnsignedBytevEXT");
+		AnyGL_glGetUnsignedBytei_vEXT = (PFNANYGLGETUNSIGNEDBYTEI_VEXTPROC)wglGetProcAddress("glGetUnsignedBytei_vEXT");
+		AnyGL_glDeleteMemoryObjectsEXT = (PFNANYGLDELETEMEMORYOBJECTSEXTPROC)wglGetProcAddress("glDeleteMemoryObjectsEXT");
+		AnyGL_glIsMemoryObjectEXT = (PFNANYGLISMEMORYOBJECTEXTPROC)wglGetProcAddress("glIsMemoryObjectEXT");
+		AnyGL_glCreateMemoryObjectsEXT = (PFNANYGLCREATEMEMORYOBJECTSEXTPROC)wglGetProcAddress("glCreateMemoryObjectsEXT");
+		AnyGL_glMemoryObjectParameterivEXT = (PFNANYGLMEMORYOBJECTPARAMETERIVEXTPROC)wglGetProcAddress("glMemoryObjectParameterivEXT");
+		AnyGL_glGetMemoryObjectParameterivEXT = (PFNANYGLGETMEMORYOBJECTPARAMETERIVEXTPROC)wglGetProcAddress("glGetMemoryObjectParameterivEXT");
+		AnyGL_glTexStorageMem2DEXT = (PFNANYGLTEXSTORAGEMEM2DEXTPROC)wglGetProcAddress("glTexStorageMem2DEXT");
+		AnyGL_glTexStorageMem2DMultisampleEXT = (PFNANYGLTEXSTORAGEMEM2DMULTISAMPLEEXTPROC)wglGetProcAddress("glTexStorageMem2DMultisampleEXT");
+		AnyGL_glTexStorageMem3DEXT = (PFNANYGLTEXSTORAGEMEM3DEXTPROC)wglGetProcAddress("glTexStorageMem3DEXT");
+		AnyGL_glTexStorageMem3DMultisampleEXT = (PFNANYGLTEXSTORAGEMEM3DMULTISAMPLEEXTPROC)wglGetProcAddress("glTexStorageMem3DMultisampleEXT");
+		AnyGL_glBufferStorageMemEXT = (PFNANYGLBUFFERSTORAGEMEMEXTPROC)wglGetProcAddress("glBufferStorageMemEXT");
+		AnyGL_glTextureStorageMem2DEXT = (PFNANYGLTEXTURESTORAGEMEM2DEXTPROC)wglGetProcAddress("glTextureStorageMem2DEXT");
+		AnyGL_glTextureStorageMem2DMultisampleEXT = (PFNANYGLTEXTURESTORAGEMEM2DMULTISAMPLEEXTPROC)wglGetProcAddress("glTextureStorageMem2DMultisampleEXT");
+		AnyGL_glTextureStorageMem3DEXT = (PFNANYGLTEXTURESTORAGEMEM3DEXTPROC)wglGetProcAddress("glTextureStorageMem3DEXT");
+		AnyGL_glTextureStorageMem3DMultisampleEXT = (PFNANYGLTEXTURESTORAGEMEM3DMULTISAMPLEEXTPROC)wglGetProcAddress("glTextureStorageMem3DMultisampleEXT");
+		AnyGL_glNamedBufferStorageMemEXT = (PFNANYGLNAMEDBUFFERSTORAGEMEMEXTPROC)wglGetProcAddress("glNamedBufferStorageMemEXT");
+		AnyGL_glTexStorageMem1DEXT = (PFNANYGLTEXSTORAGEMEM1DEXTPROC)wglGetProcAddress("glTexStorageMem1DEXT");
+		AnyGL_glTextureStorageMem1DEXT = (PFNANYGLTEXTURESTORAGEMEM1DEXTPROC)wglGetProcAddress("glTextureStorageMem1DEXT");
+	}
+	else
+	{
+		AnyGL_glGetUnsignedBytevEXT = NULL;
+		AnyGL_glGetUnsignedBytei_vEXT = NULL;
+		AnyGL_glDeleteMemoryObjectsEXT = NULL;
+		AnyGL_glIsMemoryObjectEXT = NULL;
+		AnyGL_glCreateMemoryObjectsEXT = NULL;
+		AnyGL_glMemoryObjectParameterivEXT = NULL;
+		AnyGL_glGetMemoryObjectParameterivEXT = NULL;
+		AnyGL_glTexStorageMem2DEXT = NULL;
+		AnyGL_glTexStorageMem2DMultisampleEXT = NULL;
+		AnyGL_glTexStorageMem3DEXT = NULL;
+		AnyGL_glTexStorageMem3DMultisampleEXT = NULL;
+		AnyGL_glBufferStorageMemEXT = NULL;
+		AnyGL_glTextureStorageMem2DEXT = NULL;
+		AnyGL_glTextureStorageMem2DMultisampleEXT = NULL;
+		AnyGL_glTextureStorageMem3DEXT = NULL;
+		AnyGL_glTextureStorageMem3DMultisampleEXT = NULL;
+		AnyGL_glNamedBufferStorageMemEXT = NULL;
+		AnyGL_glTexStorageMem1DEXT = NULL;
+		AnyGL_glTextureStorageMem1DEXT = NULL;
+	}
+
+	/* GL_EXT_memory_object_fd */
+	AnyGL_EXT_memory_object_fd = AnyGL_queryExtension("GL_EXT_memory_object_fd");
+	if (AnyGL_EXT_memory_object_fd)
+	{
+		AnyGL_glImportMemoryFdEXT = (PFNANYGLIMPORTMEMORYFDEXTPROC)wglGetProcAddress("glImportMemoryFdEXT");
+	}
+	else
+	{
+		AnyGL_glImportMemoryFdEXT = NULL;
+	}
+
+	/* GL_EXT_memory_object_win32 */
+	AnyGL_EXT_memory_object_win32 = AnyGL_queryExtension("GL_EXT_memory_object_win32");
+	if (AnyGL_EXT_memory_object_win32)
+	{
+		AnyGL_glImportMemoryWin32HandleEXT = (PFNANYGLIMPORTMEMORYWIN32HANDLEEXTPROC)wglGetProcAddress("glImportMemoryWin32HandleEXT");
+		AnyGL_glImportMemoryWin32NameEXT = (PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC)wglGetProcAddress("glImportMemoryWin32NameEXT");
+	}
+	else
+	{
+		AnyGL_glImportMemoryWin32HandleEXT = NULL;
+		AnyGL_glImportMemoryWin32NameEXT = NULL;
+	}
+
 	/* GL_EXT_misc_attribute */
 	AnyGL_EXT_misc_attribute = AnyGL_queryExtension("GL_EXT_misc_attribute");
 
@@ -5621,11 +5750,11 @@ int AnyGL_load(void)
 	AnyGL_EXT_polygon_offset_clamp = AnyGL_queryExtension("GL_EXT_polygon_offset_clamp");
 	if (AnyGL_EXT_polygon_offset_clamp)
 	{
-		AnyGL_glPolygonOffsetClampEXT = (PFNANYGLPOLYGONOFFSETCLAMPEXTPROC)wglGetProcAddress("glPolygonOffsetClampEXT");
+		if (!AnyGL_glPolygonOffsetClamp)
+			AnyGL_glPolygonOffsetClamp = (PFNANYGLPOLYGONOFFSETCLAMPPROC)wglGetProcAddress("glPolygonOffsetClampEXT");
 	}
 	else
 	{
-		AnyGL_glPolygonOffsetClampEXT = NULL;
 	}
 
 	/* GL_EXT_post_depth_coverage */
@@ -5743,6 +5872,53 @@ int AnyGL_load(void)
 	}
 	else
 	{
+	}
+
+	/* GL_EXT_semaphore */
+	AnyGL_EXT_semaphore = AnyGL_queryExtension("GL_EXT_semaphore");
+	if (AnyGL_EXT_semaphore)
+	{
+		AnyGL_glGenSemaphoresEXT = (PFNANYGLGENSEMAPHORESEXTPROC)wglGetProcAddress("glGenSemaphoresEXT");
+		AnyGL_glDeleteSemaphoresEXT = (PFNANYGLDELETESEMAPHORESEXTPROC)wglGetProcAddress("glDeleteSemaphoresEXT");
+		AnyGL_glIsSemaphoreEXT = (PFNANYGLISSEMAPHOREEXTPROC)wglGetProcAddress("glIsSemaphoreEXT");
+		AnyGL_glSemaphoreParameterui64vEXT = (PFNANYGLSEMAPHOREPARAMETERUI64VEXTPROC)wglGetProcAddress("glSemaphoreParameterui64vEXT");
+		AnyGL_glGetSemaphoreParameterui64vEXT = (PFNANYGLGETSEMAPHOREPARAMETERUI64VEXTPROC)wglGetProcAddress("glGetSemaphoreParameterui64vEXT");
+		AnyGL_glWaitSemaphoreEXT = (PFNANYGLWAITSEMAPHOREEXTPROC)wglGetProcAddress("glWaitSemaphoreEXT");
+		AnyGL_glSignalSemaphoreEXT = (PFNANYGLSIGNALSEMAPHOREEXTPROC)wglGetProcAddress("glSignalSemaphoreEXT");
+	}
+	else
+	{
+		AnyGL_glGenSemaphoresEXT = NULL;
+		AnyGL_glDeleteSemaphoresEXT = NULL;
+		AnyGL_glIsSemaphoreEXT = NULL;
+		AnyGL_glSemaphoreParameterui64vEXT = NULL;
+		AnyGL_glGetSemaphoreParameterui64vEXT = NULL;
+		AnyGL_glWaitSemaphoreEXT = NULL;
+		AnyGL_glSignalSemaphoreEXT = NULL;
+	}
+
+	/* GL_EXT_semaphore_fd */
+	AnyGL_EXT_semaphore_fd = AnyGL_queryExtension("GL_EXT_semaphore_fd");
+	if (AnyGL_EXT_semaphore_fd)
+	{
+		AnyGL_glImportSemaphoreFdEXT = (PFNANYGLIMPORTSEMAPHOREFDEXTPROC)wglGetProcAddress("glImportSemaphoreFdEXT");
+	}
+	else
+	{
+		AnyGL_glImportSemaphoreFdEXT = NULL;
+	}
+
+	/* GL_EXT_semaphore_win32 */
+	AnyGL_EXT_semaphore_win32 = AnyGL_queryExtension("GL_EXT_semaphore_win32");
+	if (AnyGL_EXT_semaphore_win32)
+	{
+		AnyGL_glImportSemaphoreWin32HandleEXT = (PFNANYGLIMPORTSEMAPHOREWIN32HANDLEEXTPROC)wglGetProcAddress("glImportSemaphoreWin32HandleEXT");
+		AnyGL_glImportSemaphoreWin32NameEXT = (PFNANYGLIMPORTSEMAPHOREWIN32NAMEEXTPROC)wglGetProcAddress("glImportSemaphoreWin32NameEXT");
+	}
+	else
+	{
+		AnyGL_glImportSemaphoreWin32HandleEXT = NULL;
+		AnyGL_glImportSemaphoreWin32NameEXT = NULL;
 	}
 
 	/* GL_EXT_separate_shader_objects */
@@ -5964,6 +6140,9 @@ int AnyGL_load(void)
 	/* GL_EXT_texture_compression_astc_decode_mode */
 	AnyGL_EXT_texture_compression_astc_decode_mode = AnyGL_queryExtension("GL_EXT_texture_compression_astc_decode_mode");
 
+	/* GL_EXT_texture_compression_bptc */
+	AnyGL_EXT_texture_compression_bptc = AnyGL_queryExtension("GL_EXT_texture_compression_bptc");
+
 	/* GL_EXT_texture_compression_dxt1 */
 	AnyGL_EXT_texture_compression_dxt1 = AnyGL_queryExtension("GL_EXT_texture_compression_dxt1");
 
@@ -5975,6 +6154,9 @@ int AnyGL_load(void)
 
 	/* GL_EXT_texture_compression_s3tc */
 	AnyGL_EXT_texture_compression_s3tc = AnyGL_queryExtension("GL_EXT_texture_compression_s3tc");
+
+	/* GL_EXT_texture_compression_s3tc_srgb */
+	AnyGL_EXT_texture_compression_s3tc_srgb = AnyGL_queryExtension("GL_EXT_texture_compression_s3tc_srgb");
 
 	/* GL_EXT_texture_cube_map */
 	AnyGL_EXT_texture_cube_map = AnyGL_queryExtension("GL_EXT_texture_cube_map");
@@ -6018,6 +6200,9 @@ int AnyGL_load(void)
 
 	/* GL_EXT_texture_mirror_clamp */
 	AnyGL_EXT_texture_mirror_clamp = AnyGL_queryExtension("GL_EXT_texture_mirror_clamp");
+
+	/* GL_EXT_texture_mirror_clamp_to_edge */
+	AnyGL_EXT_texture_mirror_clamp_to_edge = AnyGL_queryExtension("GL_EXT_texture_mirror_clamp_to_edge");
 
 	/* GL_EXT_texture_norm16 */
 	AnyGL_EXT_texture_norm16 = AnyGL_queryExtension("GL_EXT_texture_norm16");
@@ -6301,6 +6486,19 @@ int AnyGL_load(void)
 		AnyGL_glVertexWeightfEXT = NULL;
 		AnyGL_glVertexWeightfvEXT = NULL;
 		AnyGL_glVertexWeightPointerEXT = NULL;
+	}
+
+	/* GL_EXT_win32_keyed_mutex */
+	AnyGL_EXT_win32_keyed_mutex = AnyGL_queryExtension("GL_EXT_win32_keyed_mutex");
+	if (AnyGL_EXT_win32_keyed_mutex)
+	{
+		AnyGL_glAcquireKeyedMutexWin32EXT = (PFNANYGLACQUIREKEYEDMUTEXWIN32EXTPROC)wglGetProcAddress("glAcquireKeyedMutexWin32EXT");
+		AnyGL_glReleaseKeyedMutexWin32EXT = (PFNANYGLRELEASEKEYEDMUTEXWIN32EXTPROC)wglGetProcAddress("glReleaseKeyedMutexWin32EXT");
+	}
+	else
+	{
+		AnyGL_glAcquireKeyedMutexWin32EXT = NULL;
+		AnyGL_glReleaseKeyedMutexWin32EXT = NULL;
 	}
 
 	/* GL_EXT_window_rectangles */

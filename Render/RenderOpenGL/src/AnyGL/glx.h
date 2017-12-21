@@ -526,6 +526,13 @@ ANYGL_EXPORT extern PFNANYGLXFREECONTEXTEXTPROC AnyGL_glXFreeContextEXT;
 
 #endif /* GLX_EXT_libglvnd */
 
+#ifndef GLX_EXT_no_config_context
+#define GLX_EXT_no_config_context 1
+#define ANYGLX_EXT_no_config_context 1
+
+
+#endif /* GLX_EXT_no_config_context */
+
 #ifndef GLX_EXT_stereo_tree
 #define GLX_EXT_stereo_tree 1
 #define ANYGLX_EXT_stereo_tree 1
@@ -769,6 +776,23 @@ ANYGL_EXPORT extern PFNANYGLXSET3DFXMODEMESAPROC AnyGL_glXSet3DfxModeMESA;
 
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #define glXSet3DfxModeMESA(mode) AnyGL_glXSet3DfxModeMESA(mode)
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+#ifndef GLX_MESA_swap_control
+#define GLX_MESA_swap_control 1
+#define ANYGLX_MESA_swap_control 1
+
+
+#endif /* GLX_MESA_swap_control */
+typedef int (APIENTRY* PFNANYGLXGETSWAPINTERVALMESAPROC)();
+typedef int (APIENTRY* PFNANYGLXSWAPINTERVALMESAPROC)(unsigned int interval);
+
+ANYGL_EXPORT extern PFNANYGLXGETSWAPINTERVALMESAPROC AnyGL_glXGetSwapIntervalMESA;
+ANYGL_EXPORT extern PFNANYGLXSWAPINTERVALMESAPROC AnyGL_glXSwapIntervalMESA;
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#define glXGetSwapIntervalMESA() AnyGL_glXGetSwapIntervalMESA()
+#define glXSwapIntervalMESA(interval) AnyGL_glXSwapIntervalMESA(interval)
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
 #ifndef GLX_NV_copy_buffer

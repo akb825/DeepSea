@@ -275,7 +275,7 @@ static void setRasterizationStates(mslRasterizationState* curState,
 			curState->depthBiasClamp = clamp;
 			curState->depthBiasSlopeFactor = slopeFactor;
 
-			if (ANYGL_SUPPORTED(glPolygonOffsetClampEXT))
+			if (ANYGL_SUPPORTED(glPolygonOffsetClamp))
 				glPolygonOffsetClampEXT(slopeFactor, constantFactor, clamp);
 			else
 				glPolygonOffset(slopeFactor, constantFactor);
