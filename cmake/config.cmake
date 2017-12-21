@@ -103,8 +103,15 @@ macro(ds_finish_modules)
 					COMPILE_FLAGS -w)
 			endif()
 		endif()
+		foreach (module ${DEEPSEA_MODULES})
+			ds_setup_filters(${DEEPSEA_${module}_FILTERS})
+			if (DEEPSEA_${module}_EXTERNAL_FILTERS)
+				ds_setup_filters(${DEEPSEA_${module}_EXTERNAL_FILTERS})
+			endif()
+		endforeach()
 		target_sources(deepsea PRIVATE ${DEEPSEA_SOURCES} ${DEEPSEA_EXTERNAL_SOURCES})
 		target_link_libraries(deepsea ${DEEPSEA_EXTERNAL_LIBRARIES})
+		ds_set_folder(deepsea libs)
 	endif()
 endmacro()
 
@@ -132,9 +139,13 @@ macro(ds_add_library target)
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
-		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_MODULE}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${ARGS_MODULE}/include/DeepSea/${mainModule}
-			FILES ${ARGN} FOLDER ${mainModule})
+		set(DEEPSEA_${ARGS_MODULE}_FILTERS SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
+			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
+			FILES ${ARGS_FILES} FOLDER ${mainModule} PARENT_SCOPE)
+		if (ARGS_EXTERNAL_FILES)
+			set(DEEPSEA_${ARGS_MODULE}_EXTERNAL_FILTERS SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+				FILES ${ARGS_EXTERNAL_FILES} PARENT_SCOPE)
+		endif()
 	else()
 		# NOTE: This only takes affect if set in the same scope as the target was created.
 		if (ARGS_EXTERNAL_FILES)
@@ -151,7 +162,11 @@ macro(ds_add_library target)
 		ds_set_folder(${target} libs)
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
 			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${ARGS_MODULE}
-			FILES ${ARGN})
+			FILES ${ARGS_FILES})
+		if (ARGS_EXTERNAL_FILES)
+			ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+				FILES ${ARGS_EXTERNAL_FILES})
+		endif()
 	endif()
 endmacro()
 
