@@ -31,8 +31,7 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLRenderbuffer* renderbuffer = (dsGLRenderbuffer*)dsAllocator_alloc(allocator,
-		sizeof(dsGLRenderbuffer));
+	dsGLRenderbuffer* renderbuffer = DS_ALLOCATE_OBJECT(allocator, dsGLRenderbuffer);
 	if (!renderbuffer)
 		return NULL;
 

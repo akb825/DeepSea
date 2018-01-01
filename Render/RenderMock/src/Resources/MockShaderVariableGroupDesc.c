@@ -42,22 +42,22 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
 
-	dsShaderVariableGroupDesc* groupDesc = (dsShaderVariableGroupDesc*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableGroupDesc));
+	dsShaderVariableGroupDesc* groupDesc = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsShaderVariableGroupDesc);
 	DS_ASSERT(groupDesc);
 
 	groupDesc->resourceManager = resourceManager;
 	groupDesc->allocator = dsAllocator_keepPointer(allocator);
 	groupDesc->elementCount = elementCount;
-	groupDesc->elements = (dsShaderVariableElement*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableElement)*elementCount);
+	groupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+		dsShaderVariableElement, elementCount);
 	DS_ASSERT(groupDesc->elements);
 	memcpy(groupDesc->elements, elements, sizeof(dsShaderVariableElement)*elementCount);
 
 	if (useGfxBuffer)
 	{
-		groupDesc->positions = (dsShaderVariablePos*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariablePos)*elementCount);
+		groupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsShaderVariablePos, elementCount);
 		DS_ASSERT(groupDesc->positions);
 		size_t curSize = 0;
 		for (uint32_t i = 0; i < elementCount; ++i)

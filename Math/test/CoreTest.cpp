@@ -70,3 +70,11 @@ TEST(Core, DegreesRadians)
 	EXPECT_DOUBLE_EQ(M_PI, dsDegreesToRadians(180));
 	EXPECT_DOUBLE_EQ(180, dsRadiansToDegrees(M_PI));
 }
+
+TEST(Core, NextPowerOfTwo)
+{
+	EXPECT_EQ(1U, dsNextPowerOf2(1));
+	EXPECT_EQ(8U, dsNextPowerOf2(7));
+	EXPECT_EQ(8U, dsNextPowerOf2(8));
+	EXPECT_EQ(16U, dsNextPowerOf2(9));
+}

@@ -1082,8 +1082,8 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 		if (glCommandBuffer->clearValues)
 			DS_VERIFY(dsAllocator_free(commandBuffer->allocator, glCommandBuffer->clearValues));
 
-		dsSurfaceClearValue* newClearValues = (dsSurfaceClearValue*)dsAllocator_alloc(
-			commandBuffer->allocator, clearValueCount*sizeof(dsSurfaceClearValue));
+		dsSurfaceClearValue* newClearValues = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
+			dsSurfaceClearValue, clearValueCount);
 		if (!newClearValues)
 		{
 			glCommandBuffer->clearValues = NULL;
@@ -1721,8 +1721,7 @@ static CommandBufferFunctionTable functionTable =
 dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllocator* allocator)
 {
 	DS_ASSERT(allocator->freeFunc);
-	dsGLMainCommandBuffer* commandBuffer = (dsGLMainCommandBuffer*)dsAllocator_alloc(allocator,
-		sizeof(dsGLMainCommandBuffer));
+	dsGLMainCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(allocator, dsGLMainCommandBuffer);
 	if (!commandBuffer)
 		return NULL;
 

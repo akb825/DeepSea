@@ -20,6 +20,7 @@ set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation
 set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")
 
 set(DEEPSEA_BUILD_TEXT ON CACHE BOOL "Build text rendering library.")
+set(DEEPSEA_BUILD_VECTOR_DRAW ON CACHE BOOL "Build vector draw library.")
 
 set(DEEPSEA_BUILD_APPLICATION ON CACHE BOOL "Build application framework libraries.")
 set(DEEPSEA_BUILD_APPLICATION_SDL ON CACHE BOOL "Build SDL application implementation.")
@@ -93,6 +94,9 @@ if (DEEPSEA_BUILD_RENDER)
 
 	if (DEEPSEA_BUILD_TEXT)
 		ds_add_module(Text)
+		if (DEEPSEA_BUILD_VECTOR_DRAW)
+			ds_add_module(VectorDraw)
+		endif()
 	endif()
 
 	if (DEEPSEA_BUILD_APPLICATION)

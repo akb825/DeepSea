@@ -841,8 +841,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLShader* shader = (dsGLShader*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsGLShader));
+	dsGLShader* shader = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLShader);
 	DS_ASSERT(shader);
 
 	dsShader* baseShader = (dsShader*)shader;
@@ -865,8 +864,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->programId = 0;
 	if (hasSamplers && pipeline.samplerStateCount > 0)
 	{
-		shader->samplerIds = (GLuint*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(GLuint)*(pipeline.samplerStateCount + 1));
+		shader->samplerIds = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			GLuint, pipeline.samplerStateCount + 1);
 		DS_ASSERT(shader->samplerIds);
 		glGenSamplers(shader->pipeline.samplerStateCount, shader->samplerIds);
 		if (!*shader->samplerIds)
@@ -885,8 +884,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (pipeline.samplerStateCount > 0)
 	{
-		shader->samplerStates = (mslSamplerState*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(mslSamplerState)*pipeline.samplerStateCount);
+		shader->samplerStates = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			mslSamplerState, pipeline.samplerStateCount);
 		DS_ASSERT(shader->samplerStates);
 		for (uint32_t i = 0; i < pipeline.samplerStateCount; ++i)
 		{
@@ -899,8 +898,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	if (materialDesc->elementCount > 0)
 	{
-		shader->uniforms = (dsGLUniformInfo*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(dsGLUniformInfo)*materialDesc->elementCount);
+		shader->uniforms = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGLUniformInfo,
+			materialDesc->elementCount);
 		DS_ASSERT(shader->uniforms );
 		memset(shader->uniforms , 0xFF, sizeof(dsGLUniformInfo)*materialDesc->elementCount);
 
@@ -912,8 +911,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 					materialDesc->elements[i].shaderVariableGroupDesc;
 				if (groupDesc)
 				{
-					shader->uniforms[i].groupLocations = (GLint*)dsAllocator_alloc(
-						(dsAllocator*)&bufferAlloc, sizeof(GLint)*groupDesc->elementCount);
+					shader->uniforms[i].groupLocations = DS_ALLOCATE_OBJECT_ARRAY(
+						(dsAllocator*)&bufferAlloc, GLint, groupDesc->elementCount);
 					DS_ASSERT(shader->uniforms[i].groupLocations);
 					memset(shader->uniforms[i].groupLocations, 0xFF,
 						sizeof(GLint)*groupDesc->elementCount);

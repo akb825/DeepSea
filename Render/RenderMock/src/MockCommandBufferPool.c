@@ -38,8 +38,8 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
 
-	dsCommandBufferPool* pool = (dsCommandBufferPool*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsCommandBufferPool));
+	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsCommandBufferPool);
 	DS_ASSERT(pool);
 
 	pool->renderer = renderer;
@@ -47,13 +47,13 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	pool->count = count;
 	pool->usage = (dsCommandBufferUsage)usage;
 
-	pool->currentBuffers = (dsCommandBuffer**)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsCommandBuffer*)*count);
+	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+		dsCommandBuffer*, count);
 	DS_ASSERT(pool->currentBuffers);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		pool->currentBuffers[i] = (dsCommandBuffer*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
+		pool->currentBuffers[i] = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+			dsCommandBuffer);
 		DS_ASSERT(pool->currentBuffers[i]);
 		pool->currentBuffers[i]->renderer = renderer;
 		pool->currentBuffers[i]->allocator = pool->allocator;
@@ -62,13 +62,13 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 
 	if (lists == 2)
 	{
-		pool->otherBuffers = (dsCommandBuffer**)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-			sizeof(dsCommandBuffer*)*count);
+		pool->otherBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsCommandBuffer*, count);;
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			pool->otherBuffers[i] = (dsCommandBuffer*)dsAllocator_alloc(
-				(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
+			pool->otherBuffers[i] = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+				dsCommandBuffer);
 			DS_ASSERT(pool->otherBuffers[i]);
 			pool->otherBuffers[i]->renderer = renderer;
 			pool->otherBuffers[i]->allocator = pool->allocator;

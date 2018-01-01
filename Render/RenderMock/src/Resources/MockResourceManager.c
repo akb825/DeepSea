@@ -103,8 +103,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 		return NULL;
 	}
 
-	dsResourceManager* resourceManager = (dsResourceManager*)dsAllocator_alloc(allocator,
-		sizeof(dsResourceManager));
+	dsResourceManager* resourceManager = DS_ALLOCATE_OBJECT(allocator, dsResourceManager);
 	if (!resourceManager)
 		return NULL;
 

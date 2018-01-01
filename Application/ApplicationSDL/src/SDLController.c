@@ -22,8 +22,7 @@
 
 static dsController* createController(dsApplication* application, uint32_t index)
 {
-	dsSDLController* controller = (dsSDLController*)dsAllocator_alloc(application->allocator,
-		sizeof(dsSDLController));
+	dsSDLController* controller = DS_ALLOCATE_OBJECT(application->allocator, dsSDLController);
 	if (!controller)
 		return NULL;
 
@@ -147,8 +146,8 @@ bool dsSDLController_setup(dsApplication* application)
 		return true;
 
 	dsController** controllers = NULL;
-		controllers = (dsController**)dsAllocator_alloc(application->allocator,
-			sizeof(dsController*)*controllerCount);
+		controllers = DS_ALLOCATE_OBJECT_ARRAY(application->allocator, dsController*,
+			controllerCount);
 	if (!controllers)
 		return false;
 

@@ -47,7 +47,7 @@ TEST_F(ShaderTest, Create)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -60,7 +60,7 @@ TEST_F(ShaderTest, Create)
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 		{"extraVar", dsMaterialType_Int, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -99,7 +99,7 @@ TEST_F(ShaderTest, CreateNoBuffers)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -112,7 +112,7 @@ TEST_F(ShaderTest, CreateNoBuffers)
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 		{"extraVar", dsMaterialType_Int, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -141,7 +141,7 @@ TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -155,7 +155,7 @@ TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 		{"OtherTransform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 		{"extraVar", dsMaterialType_Int, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -179,7 +179,7 @@ TEST_F(ShaderTest, CreateTypeMismatch)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -191,7 +191,7 @@ TEST_F(ShaderTest, CreateTypeMismatch)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -215,7 +215,7 @@ TEST_F(ShaderTest, CreateMissingVariable)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -226,7 +226,7 @@ TEST_F(ShaderTest, CreateMissingVariable)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -250,7 +250,7 @@ TEST_F(ShaderTest, CreateVariableGroupTypeMismatch)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat4, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -262,7 +262,7 @@ TEST_F(ShaderTest, CreateVariableGroupTypeMismatch)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -287,7 +287,7 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 		{"integer", dsMaterialType_Int, 0},
 		{"normalMat", dsMaterialType_Mat4, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -299,7 +299,7 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -325,7 +325,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 		{"modelViewProjection", dsMaterialType_Mat4, 0},
 		{"normalMat", dsMaterialType_Mat3, 0}
 	};
-	unsigned int transformElementCount = (unsigned int)DS_ARRAY_SIZE(transformElements);
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, transformElements, transformElementCount);
 	ASSERT_TRUE(transformDesc);
@@ -334,7 +334,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 	{
 		{"testValue", dsMaterialType_Float, 0}
 	};
-	unsigned int groupElementCount = (unsigned int)DS_ARRAY_SIZE(groupElements);
+	unsigned int groupElementCount = DS_ARRAY_SIZE(groupElements);
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		NULL, groupElements, groupElementCount);
 	ASSERT_TRUE(groupDesc);
@@ -346,7 +346,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);
@@ -466,7 +466,7 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
 		{"Transform", dsMaterialType_UniformBlock, 0, NULL, true, 0},
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
 	ASSERT_TRUE(materialDesc);

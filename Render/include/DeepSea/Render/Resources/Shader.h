@@ -78,6 +78,14 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
 	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType, uint32_t samples);
 
 /**
+ * @brief Checks whether or not a shader has a specific pipeline stage.
+ * @param shader The shader.
+ * @param stage The stage to check.
+ * @return True if shader contains the stage.
+ */
+DS_RENDER_EXPORT bool dsShader_hasStage(const dsShader* shader, dsShaderStage stage);
+
+/**
  * @brief Binds a shader to be drawn to.
  * @remark errno will be set on failure.
  * @param shader The shader to draw with.

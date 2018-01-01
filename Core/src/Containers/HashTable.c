@@ -16,6 +16,7 @@
 
 #include <DeepSea/Core/Containers/HashTable.h>
 #include <DeepSea/Core/Containers/List.h>
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Memory.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>

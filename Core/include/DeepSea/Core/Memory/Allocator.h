@@ -34,6 +34,26 @@ extern "C"
  */
 
 /**
+ * @brief Macro to allocate an object and return it as a pointer to that object type.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator.
+ * @param type The type to allocate.
+ * @return The allocated object, or NULL if the allocation failed.
+ */
+#define DS_ALLOCATE_OBJECT(allocator, type) ((type*)dsAllocator_alloc((allocator), sizeof(type)))
+
+/**
+ * @brief Macro to allocate an array of objects and return it as a pointer to that object type.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator.
+ * @param type The type to allocate.
+ * @param count The number of objects to allocate.
+ * @return The allocated array, or NULL if the allocation failed.
+ */
+#define DS_ALLOCATE_OBJECT_ARRAY(allocator, type, count) ((type*)dsAllocator_alloc((allocator), \
+		sizeof(type)*count))
+
+/**
  * @brief Allocates memory from the allocator.
  *
  * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT.

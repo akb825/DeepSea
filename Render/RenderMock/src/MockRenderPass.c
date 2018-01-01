@@ -52,16 +52,15 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
-	dsRenderPass* renderPass = (dsRenderPass*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsRenderPass));
+	dsRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsRenderPass);
 	DS_ASSERT(renderPass);
 	renderPass->renderer = renderer;
 	renderPass->allocator = dsAllocator_keepPointer(allocator);
 
 	if (attachmentCount > 0)
 	{
-		renderPass->attachments = (dsAttachmentInfo*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsAttachmentInfo)*attachmentCount);
+		renderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsAttachmentInfo, attachmentCount);
 		DS_ASSERT(renderPass->attachments);
 		memcpy((void*)renderPass->attachments, attachments,
 			sizeof(dsAttachmentInfo)*attachmentCount);
@@ -73,8 +72,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		renderPass->attachmentCount = 0;
 	}
 
-	renderPass->subpasses = (dsRenderSubpassInfo*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsRenderSubpassInfo)*subpassCount);
+	renderPass->subpasses = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+		dsRenderSubpassInfo, subpassCount);
 	DS_ASSERT(renderPass->subpasses);
 	memcpy((void*)renderPass->subpasses, subpasses, sizeof(dsRenderSubpassInfo)*subpassCount);
 	for (uint32_t i = 0; i < subpassCount; ++i)
@@ -103,8 +102,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 	if (finalDependencyCount > 0)
 	{
-		renderPass->subpassDependencies = (dsSubpassDependency*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsSubpassDependency)*finalDependencyCount);
+		renderPass->subpassDependencies = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsSubpassDependency, finalDependencyCount);
 		if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		{
 			for (uint32_t i = 0; i < subpassCount; ++i)

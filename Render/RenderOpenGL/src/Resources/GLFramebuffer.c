@@ -113,8 +113,8 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, fullSize));
-	dsGLFramebuffer* framebuffer = (dsGLFramebuffer*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsGLFramebuffer));
+	dsGLFramebuffer* framebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsGLFramebuffer);
 	DS_ASSERT(framebuffer);
 
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
@@ -122,8 +122,8 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	baseFramebuffer->allocator = dsAllocator_keepPointer(allocator);
 	if (surfaceCount > 0)
 	{
-		baseFramebuffer->surfaces = (dsFramebufferSurface*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsFramebufferSurface)*surfaceCount);
+		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsFramebufferSurface, surfaceCount);
 		DS_ASSERT(baseFramebuffer->surfaces);
 		memcpy(baseFramebuffer->surfaces, surfaces, sizeof(dsFramebufferSurface)*surfaceCount);
 	}

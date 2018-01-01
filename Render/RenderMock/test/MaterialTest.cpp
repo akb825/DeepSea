@@ -36,7 +36,7 @@ TEST_F(MaterialTest, PrimitivesVectorsMatrices)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 
 	dsMaterialElement elements[] =
 	{
@@ -55,7 +55,7 @@ TEST_F(MaterialTest, PrimitivesVectorsMatrices)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	EXPECT_FALSE(dsMaterial_create(NULL, materialDesc));
@@ -236,7 +236,7 @@ TEST_F(MaterialTest, Textures)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 
 	dsMaterialElement elements[] =
 	{
@@ -250,7 +250,7 @@ TEST_F(MaterialTest, Textures)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -313,7 +313,7 @@ TEST_F(MaterialTest, TextureBuffers)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 
 	dsMaterialElement elements[] =
 	{
@@ -327,7 +327,7 @@ TEST_F(MaterialTest, TextureBuffers)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -403,11 +403,11 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc1 = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 	ASSERT_TRUE(groupDesc1);
 
 	dsShaderVariableGroupDesc* groupDesc2 = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 	ASSERT_TRUE(groupDesc2);
 
 	dsMaterialElement elements[] =
@@ -420,7 +420,7 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -463,7 +463,7 @@ TEST_F(MaterialTest, Buffers)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 
 	dsMaterialElement elements[] =
 	{
@@ -476,7 +476,7 @@ TEST_F(MaterialTest, Buffers)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -535,7 +535,7 @@ TEST_F(MaterialTest, MixedTypes)
 	};
 
 	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		groupElements, (uint32_t)DS_ARRAY_SIZE(groupElements));
+		groupElements, DS_ARRAY_SIZE(groupElements));
 
 	dsMaterialElement elements[] =
 	{
@@ -547,7 +547,7 @@ TEST_F(MaterialTest, MixedTypes)
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
-		(uint32_t)DS_ARRAY_SIZE(elements));
+		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);

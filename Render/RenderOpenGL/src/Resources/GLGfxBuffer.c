@@ -35,7 +35,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLGfxBuffer* buffer = (dsGLGfxBuffer*)dsAllocator_alloc(allocator, sizeof(dsGLGfxBuffer));
+	dsGLGfxBuffer* buffer = DS_ALLOCATE_OBJECT(allocator, dsGLGfxBuffer);
 	if (!buffer)
 		return NULL;
 

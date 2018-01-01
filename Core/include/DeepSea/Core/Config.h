@@ -148,7 +148,7 @@
  * @brief Gets the number of elements within an array.
  * @param array The array.
  */
-#define DS_ARRAY_SIZE(array) (sizeof(array)/sizeof(*(array)))
+#define DS_ARRAY_SIZE(array) ((unsigned int)(sizeof(array)/sizeof(*(array))))
 
 /**
  * @brief Checks whether or not a range within a buffer is valid.

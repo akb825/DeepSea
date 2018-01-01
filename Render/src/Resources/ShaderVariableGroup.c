@@ -160,8 +160,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		(!gfxBufferAllocator && !resourceManager->allocator) || !description)
+	if (!resourceManager || (!allocator && !resourceManager->allocator) || !description)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -176,6 +175,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 
 	if (!allocator)
 		allocator = resourceManager->allocator;
+	if (!gfxBufferAllocator)
+		gfxBufferAllocator = allocator;
 
 	bool useGfxBuffer = dsShaderVariableGroup_useGfxBuffer(resourceManager);
 	if (useGfxBuffer && !description->positions)
@@ -193,8 +194,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, totalSize));
 
-	dsShaderVariableGroup* group = (dsShaderVariableGroup*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsShaderVariableGroup));
+	dsShaderVariableGroup* group = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsShaderVariableGroup);
 	DS_ASSERT(group);
 
 	group->resourceManager = resourceManager;
@@ -229,8 +230,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	// Cache the position of each element.
 	if (!useGfxBuffer)
 	{
-		group->rawDataPositions = (PositionInfo*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(PositionInfo)*description->elementCount);
+		group->rawDataPositions = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			PositionInfo, description->elementCount);
 		DS_ASSERT(group->rawDataPositions);
 
 		size_t curSize = 0;

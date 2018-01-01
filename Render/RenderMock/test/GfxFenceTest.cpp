@@ -81,7 +81,7 @@ TEST_F(GfxFenceTest, SetMultiple)
 	ASSERT_TRUE(fence2);
 
 	dsGfxFence* fences[] = {fence1, fence2};
-	uint32_t fenceCount = (uint32_t)DS_ARRAY_SIZE(fences);
+	uint32_t fenceCount = DS_ARRAY_SIZE(fences);
 
 	EXPECT_FALSE(dsGfxFence_setMultiple(NULL, fences, fenceCount, false));
 	EXPECT_FALSE(dsGfxFence_setMultiple(renderer->mainCommandBuffer, NULL, fenceCount, false));

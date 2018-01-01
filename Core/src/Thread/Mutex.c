@@ -38,7 +38,7 @@ dsMutex* dsMutex_create(dsAllocator* allocator, const char* name)
 {
 	dsMutex* mutex;
 	if (allocator)
-		mutex = (dsMutex*)dsAllocator_alloc(allocator, sizeof(dsMutex));
+		mutex = DS_ALLOCATE_OBJECT(allocator, dsMutex);
 	else
 		mutex = (dsMutex*)malloc(sizeof(dsMutex));
 

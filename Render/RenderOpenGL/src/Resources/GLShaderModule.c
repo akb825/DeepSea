@@ -45,8 +45,8 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, totalSize));
-	dsGLShaderModule* shaderModule = (dsGLShaderModule*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, sizeof(dsGLShaderModule));
+	dsGLShaderModule* shaderModule = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+		dsGLShaderModule);
 	DS_ASSERT(shaderModule);
 
 	dsShaderModule* baseShaderModule = (dsShaderModule*)shaderModule;
@@ -58,8 +58,8 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 	dsGLResource_initialize(&shaderModule->resource);
 	if (shaderCount > 0)
 	{
-		shaderModule->shaders = (GLuint*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(GLuint)*shaderCount);
+		shaderModule->shaders = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, GLuint,
+			shaderCount);
 		DS_ASSERT(shaderModule->shaders);
 		memset(shaderModule->shaders, 0, sizeof(GLuint)*shaderCount);
 	}

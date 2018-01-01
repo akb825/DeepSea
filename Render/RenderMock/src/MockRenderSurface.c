@@ -27,9 +27,9 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
+	DS_UNUSED(osHandle);
 
-	dsRenderSurface* renderSurface = (dsRenderSurface*)dsAllocator_alloc(allocator,
-		sizeof(dsRenderSurface));
+	dsRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsRenderSurface);
 	if (!renderSurface)
 		return NULL;
 

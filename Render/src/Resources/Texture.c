@@ -397,7 +397,7 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !texture || !texture->resourceManager ||
-		!texture->resourceManager->copyTextureDataFunc || !position || !data)
+		!texture->resourceManager->copyTextureDataFunc || !position || layers == 0 || !data)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

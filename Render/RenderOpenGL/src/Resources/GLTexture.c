@@ -40,7 +40,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLTexture* texture = (dsGLTexture*)dsAllocator_alloc(allocator, sizeof(dsGLTexture));
+	dsGLTexture* texture = DS_ALLOCATE_OBJECT(allocator, dsGLTexture);
 	if (!texture)
 		return NULL;
 
@@ -403,7 +403,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLTexture* texture = (dsGLTexture*)dsAllocator_alloc(allocator, sizeof(dsGLTexture));
+	dsGLTexture* texture = DS_ALLOCATE_OBJECT(allocator, dsGLTexture);
 	if (!texture)
 		return NULL;
 

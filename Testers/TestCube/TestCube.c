@@ -353,7 +353,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		{"tex", dsMaterialType_Texture, 0, NULL, false, 0}
 	};
 	testCube->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
-		(uint32_t)DS_ARRAY_SIZE(materialElems));
+		DS_ARRAY_SIZE(materialElems));
 	if (!testCube->materialDesc)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create material description: %s",
@@ -421,12 +421,11 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_Position].offset == offsetof(Vertex, position));
 	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord0].offset == offsetof(Vertex, texCoord));
 
-	dsVertexBuffer vertexBuffer = {testCube->drawBuffer, 0, (uint32_t)DS_ARRAY_SIZE(vertices),
-		vertexFormat};
+	dsVertexBuffer vertexBuffer = {testCube->drawBuffer, 0, DS_ARRAY_SIZE(vertices), vertexFormat};
 	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, NULL, NULL,
 		NULL};
 	dsIndexBuffer indexBuffer = {testCube->drawBuffer, sizeof(vertices),
-		(uint32_t)DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
+		DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
 	testCube->geometry = dsDrawGeometry_create(resourceManager, allocator, vertexBuffers,
 		&indexBuffer);
 	if (!testCube->geometry)

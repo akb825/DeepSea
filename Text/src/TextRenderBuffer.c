@@ -82,8 +82,8 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsTextRenderBuffer* renderBuffer = (dsTextRenderBuffer*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, sizeof(dsTextRenderBuffer));
+	dsTextRenderBuffer* renderBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+		dsTextRenderBuffer);
 	DS_ASSERT(renderBuffer);
 	renderBuffer->allocator = dsAllocator_keepPointer(allocator);
 	renderBuffer->geometry = geometry;

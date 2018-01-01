@@ -73,6 +73,16 @@ typedef enum dsTextJustification
 } dsTextJustification;
 
 /**
+ * @brief Enum for the type of unicode.
+ */
+typedef enum dsUnicodeType
+{
+	dsUnicodeType_UTF8,  ///< UTF-8
+	dsUnicodeType_UTF16, ///< UTF-16
+	dsUnicodeType_UTF32  ///< UTF-32
+} dsUnicodeType;
+
+/**
  * @brief Struct containing a shared group of faces for fonts.
  * @see FaceGroup.h
  */

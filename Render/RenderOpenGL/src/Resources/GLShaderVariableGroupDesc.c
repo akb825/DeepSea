@@ -43,24 +43,24 @@ dsShaderVariableGroupDesc* dsGLShaderVariableGroupDesc_create(dsResourceManager*
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLShaderVariableGroupDesc* groupDesc = (dsGLShaderVariableGroupDesc*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, sizeof(dsGLShaderVariableGroupDesc));
+	dsGLShaderVariableGroupDesc* groupDesc = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+		dsGLShaderVariableGroupDesc);
 	DS_ASSERT(groupDesc);
 
 	dsShaderVariableGroupDesc* baseGroupDesc = (dsShaderVariableGroupDesc*)groupDesc;
 	baseGroupDesc->resourceManager = resourceManager;
 	baseGroupDesc->allocator = dsAllocator_keepPointer(allocator);
 	baseGroupDesc->elementCount = elementCount;
-	baseGroupDesc->elements = (dsShaderVariableElement*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, elementCount*sizeof(dsShaderVariableElement));
+	baseGroupDesc->elements = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		dsShaderVariableElement, elementCount);
 	DS_ASSERT(baseGroupDesc->elements);
 	memcpy(baseGroupDesc->elements, elements,
 		elementCount*sizeof(dsShaderVariableElement));
 
 	if (useGfxBuffer)
 	{
-		baseGroupDesc->positions = (dsShaderVariablePos*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAlloc, elementCount*sizeof(dsShaderVariablePos));
+		baseGroupDesc->positions = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsShaderVariablePos, elementCount);
 		DS_ASSERT(baseGroupDesc->positions);
 		size_t curSize = 0;
 		for (uint32_t i = 0; i < elementCount; ++i)

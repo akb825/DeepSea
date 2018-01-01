@@ -37,7 +37,7 @@ TEST_F(RenderPassTest, Create)
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
-	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
+	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
 	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
 	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
@@ -52,7 +52,7 @@ TEST_F(RenderPassTest, Create)
 		{"combine", pass2InputAttachments, pass2ColorAttachments,
 			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
 	};
-	uint32_t subpassCount = (uint32_t)DS_ARRAY_SIZE(subpasses);
+	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 
 	dsSubpassDependency dependencies[] =
 	{
@@ -61,7 +61,7 @@ TEST_F(RenderPassTest, Create)
 		{0, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true},
 		{1, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true}
 	};
-	uint32_t dependencyCount = (uint32_t)DS_ARRAY_SIZE(dependencies);
+	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 
 	EXPECT_FALSE(dsRenderPass_create(NULL, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount));
@@ -148,7 +148,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples},
 		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, renderer->surfaceSamples}
 	};
-	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
+	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
 	dsColorAttachmentRef pass0ColorAttachments[] = {{2, true}};
 	dsColorAttachmentRef pass1ColorAttachments[] = {{3, true}};
@@ -163,14 +163,14 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		{"combine", pass2InputAttachments, pass2ColorAttachments,
 			DS_ARRAY_SIZE(pass2InputAttachments), DS_ARRAY_SIZE(pass2ColorAttachments), 0}
 	};
-	uint32_t subpassCount = (uint32_t)DS_ARRAY_SIZE(subpasses);
+	uint32_t subpassCount = DS_ARRAY_SIZE(subpasses);
 
 	dsSubpassDependency dependencies[] =
 	{
 		{0, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true},
 		{1, dsSubpassDependencyStage_Fragment, 2, dsSubpassDependencyStage_Fragment, true}
 	};
-	uint32_t dependencyCount = (uint32_t)DS_ARRAY_SIZE(dependencies);
+	uint32_t dependencyCount = DS_ARRAY_SIZE(dependencies);
 
 	dsRenderPass* renderPass = dsRenderPass_create(renderer, NULL, attachments, attachmentCount,
 		subpasses, subpassCount, dependencies, dependencyCount);
@@ -205,7 +205,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1},
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
-	uint32_t surface1Count = (uint32_t)DS_ARRAY_SIZE(surfaces1);
+	uint32_t surface1Count = DS_ARRAY_SIZE(surfaces1);
 
 	dsFramebufferSurface surfaces2[] =
 	{
@@ -214,7 +214,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen1},
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
-	uint32_t surface2Count = (uint32_t)DS_ARRAY_SIZE(surfaces2);
+	uint32_t surface2Count = DS_ARRAY_SIZE(surfaces2);
 
 	dsFramebuffer* framebuffer1 = dsFramebuffer_create(resourceManager, NULL, surfaces1,
 		surface1Count, renderSurface->width, renderSurface->height, 1);

@@ -406,8 +406,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-	dsGLRenderer* renderer = (dsGLRenderer*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsGLRenderer));
+	dsGLRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLRenderer);
 	DS_ASSERT(renderer);
 	memset(renderer, 0, sizeof(*renderer));
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
@@ -848,7 +847,7 @@ dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync)
 	for (size_t i = 0; i < glRenderer->curSyncPools && !fenceSync; ++i)
 	{
 		pool = (dsAllocator*)(glRenderer->syncPools + i);
-		fenceSync = (dsGLFenceSync*)dsAllocator_alloc(pool, sizeof(dsGLFenceSync));
+		fenceSync = DS_ALLOCATE_OBJECT(pool, dsGLFenceSync);
 		if (fenceSync)
 			break;
 	}
@@ -866,7 +865,7 @@ dsGLFenceSync* dsGLRenderer_createSync(dsRenderer* renderer, GLsync sync)
 			return NULL;
 		}
 
-		fenceSync = (dsGLFenceSync*)dsAllocator_alloc(pool, sizeof(dsGLFenceSync));
+		fenceSync = DS_ALLOCATE_OBJECT(pool, dsGLFenceSync);
 		DS_ASSERT(fenceSync);
 	}
 	DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncPoolLock));
@@ -888,7 +887,7 @@ dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
 	for (size_t i = 0; i < glRenderer->curSyncRefPools && !fenceSyncRef; ++i)
 	{
 		pool = (dsAllocator*)(glRenderer->syncRefPools + i);
-		fenceSyncRef = (dsGLFenceSyncRef*)dsAllocator_alloc(pool, sizeof(dsGLFenceSyncRef));
+		fenceSyncRef = DS_ALLOCATE_OBJECT(pool, dsGLFenceSyncRef);
 		if (fenceSyncRef)
 			break;
 	}
@@ -906,7 +905,7 @@ dsGLFenceSyncRef* dsGLRenderer_createSyncRef(dsRenderer* renderer)
 			return NULL;
 		}
 
-		fenceSyncRef = (dsGLFenceSyncRef*)dsAllocator_alloc(pool, sizeof(dsGLFenceSyncRef));
+		fenceSyncRef = DS_ALLOCATE_OBJECT(pool, dsGLFenceSyncRef);
 		DS_ASSERT(fenceSyncRef);
 	}
 	DS_VERIFY(dsSpinlock_unlock(&glRenderer->syncRefPoolLock));

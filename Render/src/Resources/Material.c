@@ -168,8 +168,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, fullMem, fullSize));
 
-	dsMaterial* material = (dsMaterial*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsMaterial));
+	dsMaterial* material = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsMaterial);
 	DS_ASSERT(material);
 
 	material->allocator = dsAllocator_keepPointer(allocator);
@@ -188,8 +187,8 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	DS_ASSERT(material->data);
 	memset(material->data, 0, dataSize);
 
-	material->offsets = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(uint32_t)*description->elementCount);
+	material->offsets = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator, uint32_t,
+		description->elementCount);
 	DS_ASSERT(material->offsets);
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)

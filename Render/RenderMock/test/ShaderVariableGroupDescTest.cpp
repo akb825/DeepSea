@@ -30,7 +30,7 @@ TEST_F(ShaderVariableGroupDescTest, Create)
 		{"matrixArray", dsMaterialType_Mat4, 3},
 		{"integer", dsMaterialType_Int, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsShaderVariableGroupDesc_create(NULL, NULL, elements, elementCount));
 	EXPECT_FALSE(dsShaderVariableGroupDesc_create(resourceManager, NULL, NULL, elementCount));
@@ -59,7 +59,7 @@ TEST_F(ShaderVariableGroupDescTest, CreateDuplicateName)
 		{"matrixArray", dsMaterialType_Mat4, 3},
 		{"integer", dsMaterialType_Int, 3}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsShaderVariableGroupDesc_create(resourceManager, NULL, elements, elementCount));
 }
@@ -73,7 +73,7 @@ TEST_F(ShaderVariableGroupDescTest, CreateOpaqueType)
 		{"integer", dsMaterialType_Int, 0},
 		{"texture", dsMaterialType_Texture, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsShaderVariableGroupDesc_create(resourceManager, NULL, elements, elementCount));
 }

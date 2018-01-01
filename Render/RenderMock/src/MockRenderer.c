@@ -327,8 +327,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, totalSize));
-	dsRenderer* renderer = (dsRenderer*)dsAllocator_alloc((dsAllocator*)&bufferAllocator,
-		sizeof(dsRenderer));
+	dsRenderer* renderer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsRenderer);
 	DS_ASSERT(renderer);
 
 	if (!dsRenderer_initialize(renderer))
@@ -350,8 +349,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->resourceManager = resourceManager;
 	renderer->type = DS_MOCK_RENDERER_TYPE;
 
-	renderer->mainCommandBuffer = (dsCommandBuffer*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsCommandBuffer));
+	renderer->mainCommandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsCommandBuffer);
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
 	renderer->mainCommandBuffer->usage = dsCommandBufferUsage_Standard;

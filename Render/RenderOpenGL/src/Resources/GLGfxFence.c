@@ -35,7 +35,7 @@ dsGfxFence* dsGLGfxFence_create(dsResourceManager* resourceManager, dsAllocator*
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLGfxFence* fence = (dsGLGfxFence*)dsAllocator_alloc(allocator, sizeof(dsGLGfxFence));
+	dsGLGfxFence* fence = DS_ALLOCATE_OBJECT(allocator, dsGLGfxFence);
 	if (!fence)
 		return NULL;
 

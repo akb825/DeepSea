@@ -53,10 +53,7 @@ dsConditionVariable* dsConditionVariable_create(dsAllocator* allocator, const ch
 {
 	dsConditionVariable* condition;
 	if (allocator)
-	{
-		condition = (dsConditionVariable*)dsAllocator_alloc(allocator,
-			sizeof(dsConditionVariable));
-	}
+		condition = DS_ALLOCATE_OBJECT(allocator, dsConditionVariable);
 	else
 		condition = (dsConditionVariable*)malloc(sizeof(dsConditionVariable));
 

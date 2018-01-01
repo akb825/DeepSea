@@ -23,7 +23,7 @@ dsGfxFence* dsMockGfxFence_create(dsResourceManager* resourceManager, dsAllocato
 	DS_ASSERT(resourceManager);
 	DS_UNUSED(resourceManager);
 
-	dsGfxFence* fence = (dsGfxFence*)dsAllocator_alloc(allocator, sizeof(dsGfxFence));
+	dsGfxFence* fence = DS_ALLOCATE_OBJECT(allocator, dsGfxFence);
 	if (!fence)
 		return NULL;
 

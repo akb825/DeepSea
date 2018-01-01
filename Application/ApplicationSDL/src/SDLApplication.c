@@ -817,8 +817,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		}
 	}
 
-	dsSDLApplication* application = (dsSDLApplication*)dsAllocator_alloc(allocator,
-		sizeof(dsSDLApplication));
+	dsSDLApplication* application = DS_ALLOCATE_OBJECT(allocator, dsSDLApplication);
 	if (!application)
 		return NULL;
 
@@ -834,8 +833,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->displayCount = SDL_GetNumVideoDisplays();
 	if (baseApplication->displayCount > 0)
 	{
-		dsDisplayInfo* displays = (dsDisplayInfo*)dsAllocator_alloc(allocator,
-			sizeof(dsDisplayInfo)*baseApplication->displayCount);
+		dsDisplayInfo* displays = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsDisplayInfo,
+			baseApplication->displayCount);
 		if (!displays)
 		{
 			dsSDLApplication_destroy(baseApplication);
@@ -863,8 +862,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 			displays[i].displayModeCount = displayModeCount;
 			if (displays[i].displayModeCount > 0)
 			{
-				dsDisplayMode* displayModes = (dsDisplayMode*)dsAllocator_alloc(allocator,
-					sizeof(dsDisplayMode)*displays[i].displayModeCount);
+				dsDisplayMode* displayModes = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsDisplayMode,
+					displays[i].displayModeCount);
 				if (!displayModes)
 				{
 					dsSDLApplication_destroy(baseApplication);

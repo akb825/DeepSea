@@ -109,7 +109,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	if (!eglConfig)
 		return NULL;
 
-	Config* config = (Config*)dsAllocator_alloc(allocator, sizeof(Config));
+	Config* config = DS_ALLOCATE_OBJECT(allocator, Config);
 	if (!config)
 		return NULL;
 

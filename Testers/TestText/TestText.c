@@ -470,7 +470,7 @@ static void createText(TestText* testText)
 		return;
 	}
 	testText->text = dsTextLayout_create(testText->allocator, text, textStrings[index].styles,
-		(uint32_t)DS_ARRAY_SIZE(textStrings[index].styles));
+		DS_ARRAY_SIZE(textStrings[index].styles));
 	if (!testText->text)
 	{
 		dsText_destroy(text);
@@ -508,7 +508,7 @@ static void createText(TestText* testText)
 			return;
 		}
 		testText->tessText = dsTextLayout_create(testText->allocator, text,
-			textStrings[index].styles, (uint32_t)DS_ARRAY_SIZE(textStrings[index].styles));
+			textStrings[index].styles, DS_ARRAY_SIZE(textStrings[index].styles));
 		if (!testText->text)
 		{
 			dsText_destroy(text);
@@ -684,7 +684,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		{"screenSize", dsMaterialType_UVec2, 0}
 	};
 	testText->sharedInfoDesc = dsShaderVariableGroupDesc_create(resourceManager, allocator,
-		sharedInfoElems, (uint32_t)DS_ARRAY_SIZE(sharedInfoElems));
+		sharedInfoElems, DS_ARRAY_SIZE(sharedInfoElems));
 	if (!testText->sharedInfoDesc)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader variable group description: %s",
@@ -712,7 +712,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		{"fontTex", dsMaterialType_Texture, 0, NULL, false, 0}
 	};
 	testText->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
-		(uint32_t)DS_ARRAY_SIZE(materialElems));
+		DS_ARRAY_SIZE(materialElems));
 	if (!testText->materialDesc)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create material description: %s",
@@ -852,7 +852,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	const char* faceNames[] = {"Latin", "Arabic", "Thai"};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
-		(uint32_t)DS_ARRAY_SIZE(faceNames));
+		DS_ARRAY_SIZE(faceNames));
 	if (!testText->font)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create font: %s", dsErrorString(errno));

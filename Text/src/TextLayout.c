@@ -144,21 +144,19 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsTextLayout* layout = (dsTextLayout*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsTextLayout));
+	dsTextLayout* layout = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsTextLayout);
 	layout->allocator = dsAllocator_keepPointer(allocator);
 	layout->text = text;
 	if (text->glyphCount > 0)
 	{
-		layout->glyphs = (dsGlyphLayout*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			text->glyphCount*sizeof(dsGlyphLayout));
+		layout->glyphs = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGlyphLayout,
+			text->glyphCount);
 		DS_ASSERT(layout->glyphs);
 	}
 	else
 		layout->glyphs = NULL;
 
-	layout->styles = (dsTextStyle*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		styleCount*sizeof(dsTextStyle));
+	layout->styles = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTextStyle, styleCount);
 	DS_ASSERT(layout->styles);
 	memcpy(layout->styles, styles, styleCount*sizeof(dsTextStyle));
 	layout->styleCount = styleCount;

@@ -204,7 +204,7 @@ TEST_F(VolatileMaterialValuesTest, VariableGroups)
 	};
 
 	dsShaderVariableGroupDesc* desc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		elements, (uint32_t)DS_ARRAY_SIZE(elements));
+		elements, DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(desc);
 
 	dsShaderVariableGroup* variableGroup1 = dsShaderVariableGroup_create(resourceManager, NULL,
@@ -343,7 +343,7 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 	};
 
 	dsShaderVariableGroupDesc* desc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		elements, (uint32_t)DS_ARRAY_SIZE(elements));
+		elements, DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(desc);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
@@ -408,7 +408,7 @@ TEST_F(VolatileMaterialValuesTest, Limit)
 	};
 
 	dsShaderVariableGroupDesc* desc = dsShaderVariableGroupDesc_create(resourceManager, NULL,
-		elements, (uint32_t)DS_ARRAY_SIZE(elements));
+		elements, DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(desc);
 
 	dsShaderVariableGroup* variableGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL,

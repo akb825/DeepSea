@@ -49,8 +49,7 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsGLRenderPass* renderPass = (dsGLRenderPass*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsGLRenderPass));
+	dsGLRenderPass* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsGLRenderPass);
 	DS_ASSERT(renderPass);
 
 	dsRenderPass* baseRenderPass = (dsRenderPass*)renderPass;

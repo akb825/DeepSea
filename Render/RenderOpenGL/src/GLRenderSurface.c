@@ -35,8 +35,7 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	if (!glSurface)
 		return NULL;
 
-	dsGLRenderSurface* renderSurface = (dsGLRenderSurface*)dsAllocator_alloc(allocator,
-		sizeof(dsGLRenderSurface));
+	dsGLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsGLRenderSurface);
 	if (!renderSurface)
 	{
 		dsDestroyGLSurface(display, type, glSurface);

@@ -658,6 +658,14 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	DS_PROFILE_FUNC_RETURN(shader);
 }
 
+bool dsShader_hasStage(const dsShader* shader, dsShaderStage stage)
+{
+	if (!shader || (unsigned int)stage >= (unsigned int)mslStage_Count)
+		return false;
+
+	return shader->pipeline->shaders[stage] != MSL_UNKNOWN;
+}
+
 bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates)

@@ -288,8 +288,8 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 		dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 		if (materialDesc->elementCount > glCommandBuffer->commitCountSize)
 		{
-			dsCommitCountInfo* newCommitCounts = (dsCommitCountInfo*)dsAllocator_alloc(
-				commandBuffer->allocator, sizeof(dsCommitCountInfo)*materialDesc->elementCount);
+			dsCommitCountInfo* newCommitCounts = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
+				dsCommitCountInfo, materialDesc->elementCount);
 			if (!newCommitCounts)
 			{
 				dsGLCommandBuffer_unbindShader(commandBuffer, shader);

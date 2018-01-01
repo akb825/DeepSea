@@ -317,7 +317,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->combinedColor},
 	};
-	uint32_t surfaceCount = (uint32_t)DS_ARRAY_SIZE(surfaces);
+	uint32_t surfaceCount = DS_ARRAY_SIZE(surfaces);
 	if (!testRenderSubpass->combinedColor)
 		--surfaceCount;
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
@@ -414,7 +414,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		clearValues[i*2 + 2].depthStencil.depth = 1.0f;
 		clearValues[i*2 + 2].depthStencil.stencil = 0;
 	}
-	uint32_t clearValueCount = (uint32_t)DS_ARRAY_SIZE(clearValues);
+	uint32_t clearValueCount = DS_ARRAY_SIZE(clearValues);
 	if (!testRenderSubpass->combinedColor)
 		--clearValueCount;
 	DS_VERIFY(dsRenderPass_begin(testRenderSubpass->renderPass, commandBuffer,
@@ -544,7 +544,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		{dsAttachmentUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 			1}
 	};
-	uint32_t attachmentCount = (uint32_t)DS_ARRAY_SIZE(attachments);
+	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
 	dsColorAttachmentRef rColorAttachment = {1, true};
 	uint32_t rDepthStencilAttachment = 2;
@@ -577,8 +577,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		{2, dsSubpassDependencyStage_Fragment, 3, dsSubpassDependencyStage_Fragment, true},
 	};
 	testRenderSubpass->renderPass = dsRenderPass_create(renderer, allocator, attachments,
-		attachmentCount, subpasses, (uint32_t)DS_ARRAY_SIZE(subpasses), dependencies,
-		(uint32_t)DS_ARRAY_SIZE(dependencies));
+		attachmentCount, subpasses, DS_ARRAY_SIZE(subpasses), dependencies,
+		DS_ARRAY_SIZE(dependencies));
 	if (!testRenderSubpass->renderPass)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create render pass: %s",
@@ -623,7 +623,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 			{"tex", dsMaterialType_Texture, 0, NULL, false, 0}
 		};
 		testRenderSubpass->cubeMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
-			materialElems, (uint32_t)DS_ARRAY_SIZE(materialElems));
+			materialElems, DS_ARRAY_SIZE(materialElems));
 		if (!testRenderSubpass->cubeMaterialDesc)
 		{
 			DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create material description: %s",
@@ -640,7 +640,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 			{"channelB", dsMaterialType_SubpassInput, 0, NULL, false, 0}
 		};
 		testRenderSubpass->resolveMaterialDesc = dsMaterialDesc_create(resourceManager, allocator,
-			materialElems, (uint32_t)DS_ARRAY_SIZE(materialElems));
+			materialElems, DS_ARRAY_SIZE(materialElems));
 		if (!testRenderSubpass->resolveMaterialDesc)
 		{
 			DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create material description: %s",
@@ -782,11 +782,11 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 			offsetof(Vertex, texCoord));
 
 		dsVertexBuffer vertexBuffer = {testRenderSubpass->cubeBuffer, 0,
-			(uint32_t)DS_ARRAY_SIZE(vertices), vertexFormat};
+			DS_ARRAY_SIZE(vertices), vertexFormat};
 		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, NULL, NULL,
 			NULL};
 		dsIndexBuffer indexBuffer = {testRenderSubpass->cubeBuffer, sizeof(vertices),
-			(uint32_t)DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
+			DS_ARRAY_SIZE(indices), (uint32_t)sizeof(uint16_t)};
 		testRenderSubpass->cubeGeometry = dsDrawGeometry_create(resourceManager, allocator,
 			vertexBuffers, &indexBuffer);
 		if (!testRenderSubpass->cubeGeometry)
@@ -807,7 +807,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		DS_ASSERT(vertexFormat.size == sizeof(dsVector2f));
 
 		dsVertexBuffer vertexBuffer = {testRenderSubpass->resolveBuffer, 0,
-			(uint32_t)DS_ARRAY_SIZE(quad), vertexFormat};
+			DS_ARRAY_SIZE(quad), vertexFormat};
 		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, NULL, NULL,
 			NULL};
 		testRenderSubpass->resolveGeometry = dsDrawGeometry_create(resourceManager, allocator,

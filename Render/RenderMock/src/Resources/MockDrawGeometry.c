@@ -25,8 +25,7 @@ dsDrawGeometry* dsMockDrawGeometry_create(dsResourceManager* resourceManager,
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
-	dsDrawGeometry* geometry = (dsDrawGeometry*)dsAllocator_alloc(allocator,
-		sizeof(dsDrawGeometry));
+	dsDrawGeometry* geometry = DS_ALLOCATE_OBJECT(allocator, dsDrawGeometry);
 	if (!geometry)
 		return NULL;
 

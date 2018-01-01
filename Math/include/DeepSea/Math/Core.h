@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Math/Export.h>
 #include <math.h>
 
@@ -184,8 +185,8 @@ extern "C"
 	} while (0)
 
 /**
- * @brief Converts from any structure that contains entirely ints (e.g. dsVector3i)
- * to any corresponding structure that contains entirely doubles. (e.g. dsVector3f)
+ * @brief Converts from any structure that contains entirely ints (e.g. dsVector3i) to any
+ *     corresponding structure that contains entirely doubles. (e.g. dsVector3f)
  * @param[out] doubleStruct The double structure to convert to.
  * @param intStruct The int struct.
  */
@@ -218,6 +219,13 @@ DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees);
  */
 DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians);
 
+/**
+ * @brief Gets the next power of two.
+ * @param i The integer. This must be > 0.
+ * @return The next power of two of i. If i is already a power of two, i will be returned.
+ */
+DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i);
+
 DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
 {
 	return degrees*M_PI/180;
@@ -226,6 +234,11 @@ DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
 DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians)
 {
 	return radians*180/M_PI;
+}
+
+DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)
+{
+	return 1 << (32 - dsClz(i - 1));
 }
 
 #ifdef __cplusplus

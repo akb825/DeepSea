@@ -193,6 +193,7 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * @param height The height of the texture data. This must be a multiple of the format block size or
  *     reach the end of the image.
  * @param layers The number of layers to copy, which is the depth multiplied by the number of faces.
+ *     This must be at least 1.
  * @param data The texture data to copy. This must be tightly packed.
  * @param size The size of the data. This is used to help catch mismatched data.
  * @return False if the data couldn't be copied.

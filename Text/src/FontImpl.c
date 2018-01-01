@@ -265,8 +265,8 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 		font->tempImage = NULL;
 		font->tempSdf = NULL;
 
-		font->tempImage = (uint8_t*)dsAllocator_alloc(scratchAllocator,
-			font->maxWidth*font->maxHeight*sizeof(uint8_t));
+		font->tempImage = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, uint8_t,
+			font->maxWidth*font->maxHeight);
 		if (!font->tempImage)
 		{
 			font->maxWidth = font->maxHeight = 0;
@@ -276,8 +276,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 		uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 		uint32_t sdfWidth = font->maxWidth + windowSize*2;
 		uint32_t sdfHeight= font->maxHeight + windowSize*2;
-		font->tempSdf = (float*)dsAllocator_alloc(scratchAllocator,
-			sdfWidth*sdfHeight*sizeof(float));
+		font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);
 		if (!font->tempSdf)
 		{
 			dsAllocator_free(scratchAllocator, font->tempImage);
@@ -404,8 +403,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	if (!group->paragraphs || paragraphCount > group->maxParagraphs)
 	{
 		dsAllocator_free(group->scratchAllocator, group->paragraphs);
-		group->paragraphs = (dsParagraphInfo*)dsAllocator_alloc(group->scratchAllocator,
-			paragraphCount*sizeof(dsParagraphInfo));
+		group->paragraphs = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsParagraphInfo,
+			paragraphCount);
 		if (!group->paragraphs)
 		{
 			SBAlgorithmRelease(algorithm);
@@ -460,8 +459,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	{
 		if (group->runs)
 			dsAllocator_free(group->scratchAllocator, group->runs);
-		group->runs = (dsRunInfo*)dsAllocator_alloc(group->scratchAllocator,
-			*outCount*sizeof(dsRunInfo));
+		group->runs = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsRunInfo, *outCount);
 		if (!group->runs)
 		{
 			for (unsigned int i = 0; i < paragraphCount; ++i)
@@ -540,8 +538,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 	if (group->scratchCodepoints)
 		dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
 	group->scratchMaxCodepoints = length;
-	group->scratchCodepoints = (uint32_t*)dsAllocator_alloc(group->scratchAllocator,
-		length*sizeof(uint32_t));
+	group->scratchCodepoints = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, uint32_t, length);
 	if (!group->scratchCodepoints)
 	{
 		group->scratchMaxCodepoints = 0;
@@ -568,8 +565,7 @@ bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount)
 	if (group->scratchRanges)
 		dsAllocator_free(group->scratchAllocator, group->scratchRanges);
 	group->scratchMaxRanges = rangeCount;
-	group->scratchRanges = (dsTextRange*)dsAllocator_alloc(group->scratchAllocator,
-		rangeCount*sizeof(dsTextRange));
+	group->scratchRanges = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsTextRange, rangeCount);
 	if (!group->scratchRanges)
 	{
 		group->scratchMaxRanges = 0;
@@ -610,8 +606,7 @@ uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length)
 	if (group->charMapping)
 		dsAllocator_free(group->scratchAllocator, group->charMapping);
 	group->maxCharMappingCount = length;
-	group->charMapping = (uint32_t*)dsAllocator_alloc(group->scratchAllocator,
-		length*sizeof(uint32_t));
+	group->charMapping = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, uint32_t, length);
 	if (!group->charMapping)
 	{
 		group->maxCharMappingCount = 0;
@@ -629,8 +624,7 @@ dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length)
 	if (group->glyphMapping)
 		dsAllocator_free(group->scratchAllocator, group->glyphMapping);
 	group->maxGlyphMappingCount = length;
-	group->glyphMapping = (dsGlyphMapping*)dsAllocator_alloc(group->scratchAllocator,
-		length*sizeof(dsGlyphMapping));
+	group->glyphMapping = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsGlyphMapping, length);
 	if (!group->glyphMapping)
 	{
 		group->maxGlyphMappingCount = 0;
@@ -706,7 +700,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 	dsFaceGroup* faceGroup = (dsFaceGroup*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsFaceGroup) + sizeof(dsFontFace)*maxFaces);
+		DS_ALIGNED_SIZE(sizeof(dsFaceGroup)) + DS_ALIGNED_SIZE(sizeof(dsFontFace)*maxFaces));
 	DS_ASSERT(faceGroup);
 
 	uint32_t hashTableSize = getTableSize(maxFaces);

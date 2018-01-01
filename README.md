@@ -84,6 +84,7 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_VECTOR_DRAW=ON|OFF`: Set to `ON` to build the vector draw library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION_SDL=ON|OFF`: Set to `ON` to build the SDL application implementation. Defaults to `ON`.
 
@@ -98,7 +99,6 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_EXPORTS_DIR=directory`: The folder to place the cmake exports when building. This directory can be added to the module path when embedding in other projects to be able to use the `library_find()` cmake function. Defaults to `${CMAKE_BINARY_DIR}/cmake`.
 * `-DDEEPSEA_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding DeepSea in another project. Defaults to DeepSea.
 * `-DDEEPSEA_INSTALL=ON|OFF`: Allow installation for DeepSea components. This can be useful when embedding in other projects to prevent installations from including DeepSea. For example, when statically linking into a shared library. Defaults to `ON`.
-* `-DDEEPSEA_FORCE_OSS_TEXT=ON|OFF`: Force the usage of OSS text libraries. (FreeType and HarfBuzz) Otherwise, platform-specific libraries will be used for Apple and Windows platforms. Defaults to `OFF`.
 
 Once you have built and installed DeepSea, and have added the `lib/cmake/DeepSea` directory to `CMAKE_PREFIX_PATH`, you can find the various modules with the `find_package()` CMake function. For example:
 
@@ -110,14 +110,16 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](Core/README.md): (Required) Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
-* [Math](Math/README.md): (Required) Math structures and functions used throughout DeepSea.
+* [Core](Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
+* [Math](Math/README.md): Math structures and functions used throughout DeepSea.
 * [Geometry](Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
-* [Render](Render/README.md): (Optional) Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
-* [RenderMock](Render/RenderMock/README.md): (Optional) Mock implementation of the Render library, used for unit tests.
-* [RenderOpenGL](Render/RenderOpenGL/README.md): (Optional) OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
-* [Application](Application/README.md): (Optional) Application library, providing functionality such as input and window events.
-* [ApplicationSDL](Application/ApplicationSDL/README.md): (Optional) SDL implementation of the Application library..
+* [Render](Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
+* [RenderMock](Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
+* [RenderOpenGL](Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
+* [Text](Text/README.md): Draws Unicode text.
+* [VectorDraw](VectorDraw/README.md): Draws vector graphics.
+* [Application](Application/README.md): Application library, providing functionality such as input and window events.
+* [ApplicationSDL](Application/ApplicationSDL/README.md): SDL implementation of the Application library..
 
 The directory structure of the include files is:
 

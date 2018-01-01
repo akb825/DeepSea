@@ -346,12 +346,11 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsFont* font = (dsFont*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, sizeof(dsFont));
+	dsFont* font = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsFont);
 	DS_ASSERT(font);
 	font->allocator = dsAllocator_keepPointer(allocator);
 	font->group = group;
-	font->faces = (dsFontFace**)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsFontFace*)*faceCount);
+	font->faces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsFontFace*, faceCount);
 	DS_ASSERT(font->faces);
 	for (uint32_t i = 0; i < faceCount; ++i)
 	{
@@ -379,7 +378,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
 	uint32_t sdfWidth = font->maxWidth + windowSize*2;
 	uint32_t sdfHeight= font->maxHeight + windowSize*2;
-	font->tempSdf = (float*)dsAllocator_alloc(scratchAllocator, sdfWidth*sdfHeight*sizeof(float));
+	font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);
 	if (!font->tempSdf)
 	{
 		dsAllocator_free(scratchAllocator, font->tempImage);

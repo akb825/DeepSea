@@ -56,13 +56,13 @@ TEST_F(FramebufferTest, Create)
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1280, 720, 1));
+		DS_ARRAY_SIZE(surfaces), 1280, 720, 1));
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces) - 1, 1920, 1080, 1);
+		DS_ARRAY_SIZE(surfaces) - 1, 1920, 1080, 1);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
@@ -91,10 +91,10 @@ TEST_F(FramebufferTest, CreateLayers)
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 2));
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 2));
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 4);
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 4);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
@@ -121,11 +121,11 @@ TEST_F(FramebufferTest, CreateMipmaps)
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 960, 540, 1));
+		DS_ARRAY_SIZE(surfaces), 960, 540, 1));
 
 	surfaces[0].mipLevel = 1;
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 960, 540, 1);
+		DS_ARRAY_SIZE(surfaces), 960, 540, 1);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
@@ -146,11 +146,11 @@ TEST_F(FramebufferTest, NoColorSurface)
 
 	resourceManager->requiresColorBuffer = true;
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
 	resourceManager->requiresColorBuffer = false;
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), 1920, 1080, 1);
+		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));
@@ -170,12 +170,12 @@ TEST_F(FramebufferTest, Stereoscopic)
 	};
 
 	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1));
+		DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1));
 
 	renderer->stereoscopic = true;
 
 	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
-		(uint32_t)DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1);
+		DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer);
 
 	EXPECT_TRUE(dsFramebuffer_destroy(framebuffer));

@@ -98,7 +98,7 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 		return true;
 	}
 
-	entry = (Entry*)dsAllocator_alloc((dsAllocator*)&values->entryPool, sizeof(Entry));
+	entry = DS_ALLOCATE_OBJECT((dsAllocator*)&values->entryPool, Entry);
 	if (!entry)
 		return false;
 
@@ -230,8 +230,8 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
 
-	dsVolatileMaterialValues* materialValues = (dsVolatileMaterialValues*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsVolatileMaterialValues));
+	dsVolatileMaterialValues* materialValues = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsVolatileMaterialValues);
 	DS_ASSERT(materialValues);
 	materialValues->allocator = dsAllocator_keepPointer(allocator);
 

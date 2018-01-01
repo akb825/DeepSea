@@ -1050,8 +1050,7 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 		return NULL;
 	}
 
-	dsGLOtherCommandBuffer* commandBuffer = (dsGLOtherCommandBuffer*)dsAllocator_alloc(allocator,
-		sizeof(dsGLOtherCommandBuffer));
+	dsGLOtherCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT(allocator, dsGLOtherCommandBuffer);
 	if (!commandBuffer)
 		return NULL;
 

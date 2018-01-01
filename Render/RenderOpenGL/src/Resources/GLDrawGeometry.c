@@ -95,8 +95,7 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
-	dsGLDrawGeometry* geometry = (dsGLDrawGeometry*)dsAllocator_alloc(allocator,
-		sizeof(dsGLDrawGeometry));
+	dsGLDrawGeometry* geometry = DS_ALLOCATE_OBJECT(allocator, dsGLDrawGeometry);
 	if (!geometry)
 		return NULL;
 

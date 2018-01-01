@@ -39,6 +39,21 @@ extern "C"
  * @param font The font to draw the text with.
  * @param allocator The allocator to create the text with. If NULL, it will use the same allocator
  *     as the font.
+ * @param string The string. This will be copied.
+ * @param type The type of Unicode the string is encoded in.
+ * @param uniformScript True if the text will have a uniform script. This will skip bi-directional
+ *     text detection and using different faces based on different scripts within the same string.
+ * @return The text, or NULL if an error occurred.
+ */
+DS_TEXT_EXPORT dsText* dsText_create(dsFont* font, dsAllocator* allocator, const void* string,
+	dsUnicodeType type,  bool uniformScript);
+
+/**
+ * @brief Creates a text object from a string.
+ * @remark errno will be set on failure.
+ * @param font The font to draw the text with.
+ * @param allocator The allocator to create the text with. If NULL, it will use the same allocator
+ *     as the font.
  * @param string The string in UTF-8. This will be copied.
  * @param uniformScript True if the text will have a uniform script. This will skip bi-directional
  *     text detection and using different faces based on different scripts within the same string.

@@ -18,3 +18,4 @@
 
 double dsDegreesToRadians(double degrees);
 double dsRadiansToDegrees(double radians);
+uint32_t dsNextPowerOf2(uint32_t i);

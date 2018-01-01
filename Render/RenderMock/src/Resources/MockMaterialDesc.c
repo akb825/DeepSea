@@ -36,8 +36,8 @@ dsMaterialDesc* dsMockMaterialDesc_create(dsResourceManager* resourceManager,
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, size));
 
-	dsMaterialDesc* materialDesc = (dsMaterialDesc*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsMaterialDesc));
+	dsMaterialDesc* materialDesc = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsMaterialDesc);
 	DS_ASSERT(materialDesc);
 
 	materialDesc->resourceManager = resourceManager;
@@ -45,8 +45,8 @@ dsMaterialDesc* dsMockMaterialDesc_create(dsResourceManager* resourceManager,
 	materialDesc->elementCount = elementCount;
 	if (elementCount > 0)
 	{
-		materialDesc->elements = (dsMaterialElement*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsMaterialElement)*elementCount);
+		materialDesc->elements = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsMaterialElement, elementCount);
 		DS_ASSERT(materialDesc->elements);
 		memcpy(materialDesc->elements, elements, sizeof(dsMaterialElement)*elementCount);
 	}

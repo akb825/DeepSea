@@ -37,16 +37,15 @@ dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager,
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
 
-	dsFramebuffer* framebuffer = (dsFramebuffer*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAllocator, sizeof(dsFramebuffer));
+	dsFramebuffer* framebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsFramebuffer);
 	DS_ASSERT(framebuffer);
 	framebuffer->resourceManager = resourceManager;
 	framebuffer->allocator = dsAllocator_keepPointer(allocator);
 
 	if (surfaceCount)
 	{
-		framebuffer->surfaces = (dsFramebufferSurface*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAllocator, sizeof(dsFramebufferSurface)*surfaceCount);
+		framebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+			dsFramebufferSurface, surfaceCount);
 		DS_ASSERT(framebuffer->surfaces);
 		memcpy(framebuffer->surfaces, surfaces, sizeof(dsFramebufferSurface)*surfaceCount);
 	}

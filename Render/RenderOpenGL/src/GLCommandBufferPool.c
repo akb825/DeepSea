@@ -39,8 +39,7 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
-	dsCommandBufferPool* pool = (dsCommandBufferPool*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-		sizeof(dsCommandBufferPool));
+	dsCommandBufferPool* pool = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsCommandBufferPool);
 	DS_ASSERT(pool);
 
 	pool->renderer = renderer;

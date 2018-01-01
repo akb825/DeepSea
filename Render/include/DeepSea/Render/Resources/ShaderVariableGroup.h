@@ -73,7 +73,8 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_useGfxBuffer(const dsResourceManager
  * @param allocator The allocator to create the shader variable group with. If NULL, it will use the
  *     same allocator as the resource manager.
  * @param gfxBufferAllocator The allocator to create the graphics buffer with. (on targets that
- *     support uniform blocks) If NULL, it will use the same allocator as the resource manager.
+ *     support uniform blocks) If NULL, it will use the same allocator as used to create the shader
+ *     variable group.
  * @param description The description for the shader variable group.
  * @return The created shader variable group, or NULL if it couldn't be created.
  */

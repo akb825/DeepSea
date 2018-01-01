@@ -91,7 +91,6 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadStream(dsResourceManager* re
 DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadData(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const void* data, size_t size, const char* name);
 
-
 /**
  * @brief Gets the number of shaders within a module.
  * @param shaderModule The shader module.
@@ -107,6 +106,26 @@ DS_RENDER_EXPORT uint32_t dsShaderModule_shaderCount(const dsShaderModule* shade
  */
 DS_RENDER_EXPORT const char* dsShaderModule_shaderName(const dsShaderModule* shaderModule,
 	uint32_t shader);
+
+/**
+ * @brief Checks whether or not a shader in the module has a stage.
+ * @param shaderModule The shader module.
+ * @param name The name of the shader.
+ * @param stage The stage to check.
+ * @return True if the shader has the stage.
+ */
+DS_RENDER_EXPORT bool dsShaderModule_shaderNameHasStage(const dsShaderModule* shaderModule,
+	const char* name, dsShaderStage stage);
+
+/**
+ * @brief Checks whether or not a shader in the module has a stage.
+ * @param shaderModule The shader module.
+ * @param index The index of the shader.
+ * @param stage The stage to check.
+ * @return True if the shader has the stage.
+ */
+DS_RENDER_EXPORT bool dsShaderModule_shaderIndexHasStage(const dsShaderModule* shaderModule,
+	uint32_t index, dsShaderStage stage);
 
 /**
  * @brief Destroys a shader module.

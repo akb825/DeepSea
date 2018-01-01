@@ -32,7 +32,7 @@ TEST_F(MaterialDescTest, Create)
 		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsMaterialDesc_create(NULL, NULL, elements, elementCount));
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, NULL, elementCount));
@@ -61,7 +61,7 @@ TEST_F(MaterialDescTest, CreateDuplicateName)
 		{"integer", dsMaterialType_Int, 3, NULL, false, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }
@@ -75,7 +75,7 @@ TEST_F(MaterialDescTest, CreateVolatilePrimitive)
 		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }
@@ -89,7 +89,7 @@ TEST_F(MaterialDescTest, CreateOpaqueArray)
 		{"integer", dsMaterialType_Int, 0, NULL, false, 0},
 		{"texture", dsMaterialType_Texture, 2, NULL, true, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }
@@ -104,7 +104,7 @@ TEST_F(MaterialDescTest, CreateShaderVariableGroup)
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
 		{"variableGroup", dsMaterialType_VariableGroup, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 
@@ -137,7 +137,7 @@ TEST_F(MaterialDescTest, CreateUniformBlock)
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
 		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);
@@ -160,7 +160,7 @@ TEST_F(MaterialDescTest, CreateUniformBuffer)
 		{"texture", dsMaterialType_Texture, 0, NULL, true, 0},
 		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
 	};
-	unsigned int elementCount = (unsigned int)DS_ARRAY_SIZE(elements);
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
 		elementCount);

@@ -167,7 +167,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
 	unsigned int flags)
 {
-	dsSDLWindow* window = (dsSDLWindow*)dsAllocator_alloc(allocator, sizeof(dsSDLWindow));
+	dsSDLWindow* window = DS_ALLOCATE_OBJECT(allocator, dsSDLWindow);
 	if (!window)
 		return NULL;
 

@@ -26,8 +26,7 @@ dsShaderModule* dsMockShaderModule_create(dsResourceManager* resourceManager,
 	DS_ASSERT(module);
 	DS_ASSERT(name);
 
-	dsShaderModule* shaderModule = (dsShaderModule*)dsAllocator_alloc(allocator,
-		sizeof(dsShaderModule));
+	dsShaderModule* shaderModule = DS_ALLOCATE_OBJECT(allocator, dsShaderModule);
 	if (!shaderModule)
 		return NULL;
 

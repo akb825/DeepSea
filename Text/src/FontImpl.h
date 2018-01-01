@@ -31,13 +31,6 @@
 #define DS_TABLE_SIZE 1823
 #define DS_BASE_WINDOW_SIZE 3
 
-typedef enum dsUnicodeType
-{
-	dsUnicodeType_UTF8,
-	dsUnicodeType_UTF16,
-	dsUnicodeType_UTF32
-} dsUnicodeType;
-
 typedef enum dsTextDirection
 {
 	dsTextDirection_Either,

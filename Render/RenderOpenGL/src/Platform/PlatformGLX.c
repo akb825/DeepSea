@@ -146,7 +146,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 		return NULL;
 	}
 
-	Config* config = (Config*)dsAllocator_alloc(allocator, sizeof(Config));
+	Config* config = DS_ALLOCATE_OBJECT(allocator, Config);
 	if (!config)
 	{
 		XFree(visualInfo);
@@ -176,7 +176,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 			None
 		};
 
-		unsigned int versionCount = (unsigned int)DS_ARRAY_SIZE(versions);
+		unsigned int versionCount = DS_ARRAY_SIZE(versions);
 		for (unsigned int i = 0; i < versionCount; ++i)
 		{
 			contextAttr[1] = versions[i][0];

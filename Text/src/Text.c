@@ -297,27 +297,26 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsText* text = (dsText*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, sizeof(dsText));
+	dsText* text = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc, dsText);
 	DS_ASSERT(text);
 	text->font = font;
 	text->allocator = dsAllocator_keepPointer(allocator);
 	if (scratchText->glyphCount > 0)
 	{
-		text->characters = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			length*sizeof(uint32_t));
+		text->characters = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t, length);
 		DS_ASSERT(text->characters);
 		text->characterCount = length;
 		memcpy((void*)text->characters, scratchText->characters, length*sizeof(uint32_t));
 
 		// Ranges may not be in monotomic increasing order due to right to left text. Re-order the
 		// glyphs so it is.
-		text->glyphs = (dsGlyph*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			sizeof(dsGlyph)*scratchText->glyphCount);
+		text->glyphs = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsGlyph,
+			scratchText->glyphCount);
 		DS_ASSERT(text->glyphs);
 		text->glyphCount = scratchText->glyphCount;
 
-		text->ranges = (dsTextRange*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			rangeCount*sizeof(dsTextRange));
+		text->ranges = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTextRange,
+			rangeCount);
 		DS_ASSERT(text->ranges);
 		text->rangeCount = rangeCount;
 
@@ -344,6 +343,42 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	}
 
 	DS_PROFILE_FUNC_RETURN(text);
+}
+
+dsText* dsText_create(dsFont* font, dsAllocator* allocator, const void* string, dsUnicodeType type,
+	bool uniformScript)
+{
+	if (!font || (!allocator && !dsFont_getAllocator(font)))
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = dsFont_getAllocator(font);
+
+	dsNextCodepointFunction nextCodepoint;
+	dsCodepointCountFunction codepointCount;
+	switch (type)
+	{
+		case dsUnicodeType_UTF8:
+			nextCodepoint = (dsNextCodepointFunction)&dsUTF8_nextCodepoint;
+			codepointCount = (dsCodepointCountFunction)&dsUTF8_codepointCount;
+			break;
+		case dsUnicodeType_UTF16:
+			nextCodepoint = (dsNextCodepointFunction)&dsUTF16_nextCodepoint;
+			codepointCount = (dsCodepointCountFunction)&dsUTF16_codepointCount;
+			break;
+		case dsUnicodeType_UTF32:
+			nextCodepoint = (dsNextCodepointFunction)&dsUTF32_nextCodepoint;
+			codepointCount = (dsCodepointCountFunction)&dsUTF32_codepointCount;
+			break;
+		default:
+			errno = EINVAL;
+			return NULL;
+	}
+	return createTextImpl(font, allocator, string, nextCodepoint, codepointCount, type,
+		uniformScript);
 }
 
 dsText* dsText_createUTF8(dsFont* font, dsAllocator* allocator, const char* string,

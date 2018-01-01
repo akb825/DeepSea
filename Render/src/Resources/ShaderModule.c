@@ -28,6 +28,7 @@
 #include <DeepSea/Render/Types.h>
 
 #include <MSL/Client/ModuleC.h>
+#include <string.h>
 
 extern const char* dsResourceManager_noContextError;
 
@@ -213,6 +214,39 @@ const char* dsShaderModule_shaderName(const dsShaderModule* shaderModule, uint32
 		return NULL;
 
 	return pipeline.name;
+}
+
+bool dsShaderModule_shaderNameHasStage(const dsShaderModule* shaderModule, const char* name,
+	dsShaderStage stage)
+{
+	if (!shaderModule || !name || (unsigned int)stage >= (unsigned int)mslStage_Count)
+		return false;
+
+	uint32_t index = 0, shaderCount = mslModule_pipelineCount(shaderModule->module);
+	for (; index < shaderCount; ++index)
+	{
+		mslPipeline pipeline;
+		if (!mslModule_pipeline(&pipeline, shaderModule->module, index))
+			return false;
+
+		if (strcmp(name, dsShaderModule_shaderName(shaderModule, index)) == 0)
+			return pipeline.shaders[stage] != MSL_UNKNOWN;\
+	}
+
+	return false;
+}
+
+bool dsShaderModule_shaderIndexHasStage(const dsShaderModule* shaderModule, uint32_t index,
+	dsShaderStage stage)
+{
+	if (!shaderModule || (unsigned int)stage >= (unsigned int)mslStage_Count)
+		return false;
+
+	mslPipeline pipeline;
+	if (!mslModule_pipeline(&pipeline, shaderModule->module, index))
+		return false;
+
+	return pipeline.shaders[stage] != MSL_UNKNOWN;
 }
 
 bool dsShaderModule_destroy(dsShaderModule* shaderModule)

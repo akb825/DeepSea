@@ -33,17 +33,17 @@ TEST(Unicode, UTF8)
 
 	char buffer[DS_ARRAY_SIZE(utf8)];
 	uint32_t offset = 0;
-	offset = dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x24);
+	offset = dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x24);
 	EXPECT_EQ(1U, offset);
-	offset = dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0xA2);
+	offset = dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0xA2);
 	EXPECT_EQ(3U, offset);
-	offset = dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x20AC);
+	offset = dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x20AC);
 	EXPECT_EQ(6U, offset);
-	offset = dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x10348);
+	offset = dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x10348);
 	EXPECT_EQ(10U, offset);
-	offset = dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0);
+	offset = dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0);
 	EXPECT_EQ(11U, offset);
-	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF8_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer),
+	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF8_addCodepoint(buffer, DS_ARRAY_SIZE(buffer),
 		offset, 0));
 	EXPECT_EQ(0, memcmp(utf8, buffer, sizeof(utf8)));
 }
@@ -63,17 +63,17 @@ TEST(Unicode, UTF16)
 
 	uint16_t buffer[DS_ARRAY_SIZE(utf16)];
 	uint32_t offset = 0;
-	offset = dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x24);
+	offset = dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x24);
 	EXPECT_EQ(1U, offset);
-	offset = dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x20AC);
+	offset = dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x20AC);
 	EXPECT_EQ(2U, offset);
-	offset = dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x10437);
+	offset = dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x10437);
 	EXPECT_EQ(4U, offset);
-	offset = dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x24B62);
+	offset = dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x24B62);
 	EXPECT_EQ(6U, offset);
-	offset = dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0);
+	offset = dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0);
 	EXPECT_EQ(7U, offset);
-	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF16_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer),
+	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF16_addCodepoint(buffer, DS_ARRAY_SIZE(buffer),
 		offset, 0));
 	EXPECT_EQ(0, memcmp(utf16, buffer, sizeof(utf16)));
 }
@@ -93,17 +93,17 @@ TEST(Unicode, UTF32)
 
 	uint32_t buffer[DS_ARRAY_SIZE(utf32)];
 	uint32_t offset = 0;
-	offset = dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x24);
+	offset = dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x24);
 	EXPECT_EQ(1U, offset);
-	offset = dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x20AC);
+	offset = dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x20AC);
 	EXPECT_EQ(2U, offset);
-	offset = dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x10437);
+	offset = dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x10437);
 	EXPECT_EQ(3U, offset);
-	offset = dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0x24B62);
+	offset = dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0x24B62);
 	EXPECT_EQ(4U, offset);
-	offset = dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer), offset, 0);
+	offset = dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer), offset, 0);
 	EXPECT_EQ(5U, offset);
-	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF32_addCodepoint(buffer, (uint32_t)DS_ARRAY_SIZE(buffer),
+	EXPECT_EQ(DS_UNICODE_INVALID, dsUTF32_addCodepoint(buffer, DS_ARRAY_SIZE(buffer),
 		offset, 0));
 	EXPECT_EQ(0, memcmp(utf32, buffer, sizeof(utf32)));
 }

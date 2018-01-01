@@ -121,6 +121,19 @@ typedef enum dsPrimitiveType
 	dsPrimitiveType_PatchList,              ///< A list of tessellation control patches.
 } dsPrimitiveType;
 
+/**
+ * @brief Enum for a stage within a shader pipeline.
+ */
+typedef enum dsShaderStage
+{
+	dsShaderStage_Vertex,                 ///< Vertex shader.
+	dsShaderStage_TessellationControl,    ///< Tessellation control for tessellation shaders.
+	dsShaderStage_TessellationEvaluation, ///< Evaluation for tessellation shaders.
+	dsShaderStage_Geometry,               ///< Geometry shader.
+	dsShaderStage_Fragment,               ///< Fragment shader.
+	dsShaderStage_Compute,                ///< Compute shader.
+} dsShaderStage;
+
 /// \{
 typedef struct dsResourceManager dsResourceManager;
 typedef struct mslModule mslModule;
