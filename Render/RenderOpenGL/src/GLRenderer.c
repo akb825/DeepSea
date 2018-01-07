@@ -1054,6 +1054,9 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	}
 	dsSpinlock_destroy(&glRenderer->syncRefPoolLock);
 
+	if (glRenderer->releaseDisplay)
+		dsReleaseGLDisplay(glRenderer->options.display);
+
 	if (renderer->allocator)
 		DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
