@@ -30,6 +30,8 @@
 #include <DeepSea/Render/Types.h>
 #include <string.h>
 
+DS_RENDER_EXPORT bool dsShaderVariableGroup_testing;
+
 extern const char* dsResourceManager_noContextError;
 
 typedef struct PositionInfo
@@ -212,10 +214,17 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	DS_ASSERT(bufferSize > 0);
 	if (useGfxBuffer)
 	{
-		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator,
-			dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo,
-			dsGfxMemory_Draw | dsGfxMemory_Dynamic | dsGfxMemory_Read, NULL,
-			DS_ALIGNED_SIZE(bufferSize));
+		unsigned int usageFlags = dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo;
+		unsigned int memoryFlags;
+		if (dsShaderVariableGroup_testing)
+		{
+			usageFlags |= dsGfxBufferUsage_CopyFrom;
+			memoryFlags = dsGfxMemory_Draw | dsGfxMemory_Dynamic | dsGfxMemory_Read;
+		}
+		else
+			memoryFlags = dsGfxMemory_GpuOnly | dsGfxMemory_Draw | dsGfxMemory_Dynamic;
+		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator, usageFlags,
+			memoryFlags, NULL, DS_ALIGNED_SIZE(bufferSize));
 
 		if (!group->buffer)
 		{

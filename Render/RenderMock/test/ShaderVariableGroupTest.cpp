@@ -21,6 +21,8 @@
 #include <gtest/gtest.h>
 #include <string.h>
 
+extern "C" DS_RENDER_EXPORT bool dsShaderVariableGroup_testing;
+
 struct TestStruct
 {
 	float vec3Mem[3];
@@ -116,7 +118,9 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 
 	dsShaderVariableGroupDesc* desc = createDesc();
 	ASSERT_TRUE(desc);
+	dsShaderVariableGroup_testing = true;
 	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL, desc);
+	dsShaderVariableGroup_testing = false;
 	ASSERT_TRUE(group);
 	EXPECT_EQ(desc, dsShaderVariableGroup_getDescription(group));
 
