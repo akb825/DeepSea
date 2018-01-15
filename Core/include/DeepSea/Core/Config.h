@@ -33,6 +33,9 @@
 #	else
 #		define DS_IOS 1
 #	endif
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__bsdi__) || \
+	defined(__DragonFly__)
+#	define DS_BSD 1
 #endif
 
 // Android is also Linux, so separate.
@@ -94,6 +97,13 @@
  */
 #ifndef DS_ANDROID
 #	define DS_ANDROID 0
+#endif
+
+/**
+ * @brief Define for whether the platform is BSD.
+ */
+#ifndef DS_BSD
+#	define DS_BSD 0
 #endif
 
 /**

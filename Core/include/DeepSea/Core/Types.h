@@ -52,6 +52,26 @@ typedef enum dsLogLevel
 } dsLogLevel;
 
 /**
+ * @brief The type describing what is being profiled.
+ */
+typedef enum dsProfileType
+{
+	dsProfileType_Function, ///< Profiling a function.
+	dsProfileType_Scope,    ///< Profiling a scope within a function.
+	dsProfileType_Wait,     ///< Waiting for an an asynchronous operation, mutex lock, etc.
+	dsProfileType_Lock      ///< Locked, such as with a mutex.
+} dsProfileType;
+
+/**
+ * @brief Type of the sort comparisson function.
+ * @param left The left item.
+ * @param right The right item.
+ * @param context The context passed with the sort.
+ * @return < 0 if left < right, > 9 if left > right, or 0 if left == right.
+ */
+typedef int (*dsSortCompareFunction)(const void* left, const void* right, void* context);
+
+/**
  * @brief Type of the logging function.
  * @remark This may be called across multiple threads.
  * @param userData User data for the logging function.
@@ -64,17 +84,6 @@ typedef enum dsLogLevel
  */
 typedef void (*dsLogFunction)(void* userData, dsLogLevel level, const char* tag,
 	const char* file, unsigned int line, const char* function, const char* message);
-
-/**
- * @brief The type describing what is being profiled.
- */
-typedef enum dsProfileType
-{
-	dsProfileType_Function, ///< Profiling a function.
-	dsProfileType_Scope,    ///< Profiling a scope within a function.
-	dsProfileType_Wait,     ///< Waiting for an an asynchronous operation, mutex lock, etc.
-	dsProfileType_Lock      ///< Locked, such as with a mutex.
-} dsProfileType;
 
 /**
  * @brief Type for a function registering a thread name.
