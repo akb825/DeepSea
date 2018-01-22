@@ -83,7 +83,7 @@ DS_TEXT_EXPORT const char* dsFont_getFaceName(const dsFont* font, uint32_t face)
  * @param font The font.
  * @return The texture.
  */
-DS_TEXT_EXPORT dsTexture* dsFont_getTexture(dsFont* font);
+DS_TEXT_EXPORT dsTexture* dsFont_getTexture(const dsFont* font);
 
 /**
  * @brief Destroyes the font.

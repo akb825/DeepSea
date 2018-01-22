@@ -145,7 +145,7 @@ function(ds_install_library)
 		"set(${moduleName}_LIBRARIES ${ARGS_TARGET})\n"
 		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
 
-	set(configPackageDir lib/cmake/DeepSea)
+	set(configPackageDir lib/cmake/${moduleName})
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
 	install(FILES ${configPath} ${versionPath} DESTINATION ${configPackageDir} COMPONENT dev)

@@ -174,9 +174,11 @@ DS_VECTORDRAW_EXPORT dsTexture* dsVectorMaterialSet_getInfoTexture(
 
 /**
  * @brief Destroys a material set.
+ * @remark errno will be set on failure.
  * @param materials The material set.
+ * @return False if the resources couldn't be destroyed.
  */
-DS_VECTORDRAW_EXPORT void dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials);
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials);
 
 #ifdef __cplusplus
 }

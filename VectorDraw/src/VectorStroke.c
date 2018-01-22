@@ -707,6 +707,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* materials,
 	const dsVectorCommandStrokePath* stroke, float pixelSize)
 {
+	if (scratchData->pointCount == 0)
+		return true;
+
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(materials,
 		stroke->material);
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
@@ -727,27 +730,17 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 		miterThetaLimit = asinf(1/stroke->miterLimit)/2.0f;
 	}
 
-	if (!dsVectorScratchData_addPiece(scratchData, ShaderType_Shape, NULL))
-		return false;
-
 	// Expand by a minimum of a pixel, using alpha for sub-pixel sizes.
 	float expandSize = dsMax(stroke->width, pixelSize);
 	float sizeAlpha = stroke->width/expandSize;
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
-	VectorInfo* curInfo = dsVectorScratchData_addVectorInfo(scratchData);
+	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
+		&scratchData->pathTransform);
 	if (!curInfo)
 		return false;
-	dsAlignedBox2f_makeInvalid(&curInfo->shapeInfo.bounds);
-	curInfo->shapeInfo.transformCols[0].x = scratchData->pathTransform.columns[0].x;
-	curInfo->shapeInfo.transformCols[0].y = scratchData->pathTransform.columns[0].y;
-	curInfo->shapeInfo.transformCols[1].x = scratchData->pathTransform.columns[1].x;
-	curInfo->shapeInfo.transformCols[1].y = scratchData->pathTransform.columns[1].y;
-	curInfo->shapeInfo.transformCols[2].x = scratchData->pathTransform.columns[2].x;
-	curInfo->shapeInfo.transformCols[2].y = scratchData->pathTransform.columns[2].y;
-	curInfo->shapeInfo.opacity = stroke->opacity*sizeAlpha;
-	curInfo->shapeInfo.padding = 0;
-	curInfo->shapeInfo.dashArray = stroke->dashArray;
+	curInfo->opacity = stroke->opacity*sizeAlpha;
+	curInfo->dashArray = stroke->dashArray;
 
 	float subpathDistance = 0.0f, distance = 0.0f;
 	bool firstPoint = 0;
@@ -778,7 +771,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 
 			// Line cap. If the start joins with the end, use a butt style cap for the later join.
 			findLineDir(&lastDir, scratchData, i);
-			joinStart = (joinStart & PointType_JoinStart) != 0;
+			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
 			dsLineCap capType = stroke->capType;
 			if (joinStart)
 			{
@@ -787,7 +780,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			}
 			if (!addCap(scratchData, &scratchData->points[i].point, &lastDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, capType, distance,
-				subpathDistance, pixelSize, true, &curInfo->shapeInfo.bounds))
+				subpathDistance, pixelSize, true, &curInfo->bounds))
 			{
 				return false;
 			}
@@ -803,7 +796,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, stroke->joinType, miterThetaLimit,
-				distance, subpathDistance, pixelSize, &curInfo->shapeInfo.bounds))
+				distance, subpathDistance, pixelSize, &curInfo->bounds))
 			{
 				return false;
 			}
@@ -815,7 +808,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			// noticeable .
 			if (!addSimpleJoin(scratchData, &scratchData->points[i].point, &nextDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, distance, subpathDistance,
-				&curInfo->shapeInfo.bounds))
+				&curInfo->bounds))
 			{
 				return false;
 			}
@@ -828,8 +821,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			{
 				if (!addJoin(scratchData, &scratchData->points[i].point, &nextDir, &firstDir,
 					expandSize, &firstVertex, &secondVertex, material, infoIndex, stroke->joinType,
-					miterThetaLimit, distance, subpathDistance, pixelSize,
-					&curInfo->shapeInfo.bounds))
+					miterThetaLimit, distance, subpathDistance, pixelSize, &curInfo->bounds))
 				{
 					return false;
 				}
@@ -838,7 +830,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			{
 				if (!addCap(scratchData, &scratchData->points[i].point, &nextDir, expandSize,
 					&firstVertex, &secondVertex, material, infoIndex, stroke->capType, distance,
-					subpathDistance, pixelSize, false, &curInfo->shapeInfo.bounds))
+					subpathDistance, pixelSize, false, &curInfo->bounds))
 				{
 					return false;
 				}

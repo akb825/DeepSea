@@ -237,7 +237,6 @@ bool dsThread_equal(dsThreadId thread1, dsThreadId thread2)
 		return thread1Set == thread2Set;
 
 	return pthread_equal(thread1.threadId, thread2.threadId);
-
 #endif
 }
 

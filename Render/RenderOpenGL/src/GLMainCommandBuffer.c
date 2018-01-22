@@ -787,9 +787,8 @@ bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFen
 	if (((dsGLCommandBuffer*)commandBuffer)->boundRenderPass)
 	{
 		size_t index = glCommandBuffer->curFenceSyncs;
-		if (!dsResizeableArray_add(commandBuffer->allocator, (void**)&glCommandBuffer->fenceSyncs,
-			&glCommandBuffer->curFenceSyncs, &glCommandBuffer->maxFenceSyncs,
-			sizeof(dsGLFenceSyncRef*), syncCount))
+		if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, glCommandBuffer->fenceSyncs,
+			glCommandBuffer->curFenceSyncs, glCommandBuffer->maxFenceSyncs, syncCount))
 		{
 			return false;
 		}

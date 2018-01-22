@@ -586,9 +586,8 @@ bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 		return true;
 	}
 
-	if (!dsResizeableArray_add(group->scratchAllocator,
-		(void**)&group->scratchGlyphs, &group->scratchGlyphCount, &group->scratchMaxGlyphs,
-		sizeof(dsGlyph), length - group->scratchGlyphCount))
+	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchGlyphs,
+		group->scratchGlyphCount, group->scratchMaxGlyphs, length - group->scratchGlyphCount))
 	{
 		return false;
 	}

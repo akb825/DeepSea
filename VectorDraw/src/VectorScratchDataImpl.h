@@ -16,7 +16,16 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/VectorDraw/Export.h>
 #include <DeepSea/VectorDraw/Types.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#define INFOS_PER_TEXTURE 1024
 
 typedef enum ShaderType
 {
@@ -56,6 +65,15 @@ typedef struct TextVertex
 	uint16_t outlineMaterialIndex;
 } TextVertex;
 
+typedef struct TextTessVertex
+{
+	dsVector3f position;
+	dsAlignedBox2f geometry;
+	dsAlignedBox2f texCoords;
+	uint16_t fillMaterialIndex;
+	uint16_t outlineMaterialIndex;
+} TextTessVertex;
+
 typedef struct TempGeometryRange
 {
 	ShaderType type;
@@ -66,6 +84,7 @@ typedef struct TempGeometryRange
 typedef struct TempPiece
 {
 	ShaderType type;
+	uint32_t infoTextureIndex;
 	dsDrawIndexedRange range;
 	dsTexture* texture;
 } TempPiece;
@@ -75,6 +94,31 @@ typedef struct PointInfo
 	dsVector2f point;
 	uint32_t type;
 } PointInfo;
+
+typedef struct PolygonVertex
+{
+	dsVector2f point;
+	uint32_t prevEdge;
+	uint32_t nextEdge;
+	bool hasExtraEdges;
+} PolygonVertex;
+
+typedef struct PolygonEdge
+{
+	uint32_t prevVertex;
+	uint32_t nextVertex;
+	uint32_t prevEdge;
+	uint32_t nextEdge;
+	bool visited;
+} PolygonEdge;
+
+typedef struct LoopVertex
+{
+	uint32_t vertIndex;
+	uint32_t indexValue;
+	uint32_t prevVert;
+	uint32_t nextVert;
+} LoopVertex;
 
 typedef struct ShapeInfo
 {
@@ -125,6 +169,10 @@ struct dsVectorScratchData
 	uint32_t textVertexCount;
 	uint32_t maxTextVertices;
 
+	TextTessVertex* textTessVertices;
+	uint32_t textTessVertexCount;
+	uint32_t maxTextTessVertices;
+
 	uint16_t* indices;
 	uint32_t indexCount;
 	uint32_t maxIndices;
@@ -136,14 +184,67 @@ struct dsVectorScratchData
 	TempPiece* pieces;
 	uint32_t pieceCount;
 	uint32_t maxPieces;
+
+	PolygonVertex* polygonVertices;
+	uint32_t polygonVertCount;
+	uint32_t maxPolygonVerts;
+
+	PolygonEdge* polygonEdges;
+	uint32_t polygonEdgeCount;
+	uint32_t maxPolygonEdges;
+
+	LoopVertex* loopVertices;
+	uint32_t loopVertCount;
+	uint32_t maxLoopVerts;
+
+	uint32_t* vertexStack;
+	uint32_t vertStackCount;
+	uint32_t maxVertStack;
+
+	uint8_t* combinedBuffer;
+	size_t combinedBufferSize;
 };
 
 void dsVectorScratchData_reset(dsVectorScratchData* data);
 bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
 	uint32_t type);
+
 ShapeVertex* dsVectorScratchData_addShapeVertex(dsVectorScratchData* data);
 ImageVertex* dsVectorScratchData_addImageVertex(dsVectorScratchData* data);
 TextVertex* dsVectorScratchData_addTextVertex(dsVectorScratchData* data);
+TextTessVertex* dsVectorScratchData_addTextTessVertex(dsVectorScratchData* data);
 bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex);
-VectorInfo* dsVectorScratchData_addVectorInfo(dsVectorScratchData* data);
-bool dsVectorScratchData_addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* texture);
+
+ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
+	const dsMatrix33f* transform);
+ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
+	const dsMatrix33f* transform, dsTexture* texture);
+TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
+	const dsFont* font);
+
+bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex);
+bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data);
+bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
+	uint32_t to, bool ccw);
+void dsVectorScratchData_resetPolygon(dsVectorScratchData* data);
+
+bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge,
+	uint32_t shapeIndex, uint32_t materialIndex);
+void dsVectorScratchData_sortLoopVertices(dsVectorScratchData* data);
+void dsVectorScratchData_clearLoopVertices(dsVectorScratchData* data);
+
+bool dsVectorScratchData_pushVertex(dsVectorScratchData* data, uint32_t loopVert);
+void dsVectorScratchData_popVertex(dsVectorScratchData* data);
+
+dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
+	dsResourceManager* resourceManager, dsAllocator* allocator);
+uint32_t dsVectorScratchData_shapeVerticesOffset(const dsVectorScratchData* data);
+uint32_t dsVectorScratchData_imageVerticesOffset(const dsVectorScratchData* data);
+uint32_t dsVectorScratchData_textVerticesOffset(const dsVectorScratchData* data);
+uint32_t dsVectorScratchData_indicesOffset(const dsVectorScratchData* data);
+
+extern DS_VECTORDRAW_EXPORT bool dsVectorImage_testing;
+
+#ifdef __cplusplus
+}
+#endif

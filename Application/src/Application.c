@@ -41,9 +41,8 @@ uint32_t dsApplication_addWindowResponder(dsApplication* application,
 	}
 
 	uint32_t index = application->windowResponderCount;
-	if (!dsResizeableArray_add(application->allocator, (void**)&application->windowResponders,
-		&application->windowResponderCount, &application->windowResponderCapacity,
-		sizeof(dsWindowResponder), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->windowResponders,
+		application->windowResponderCount, application->windowResponderCapacity, 1))
 	{
 		return 0;
 	}
@@ -86,9 +85,8 @@ uint32_t dsApplication_addEventResponder(dsApplication* application, const dsEve
 	}
 
 	uint32_t index = application->eventResponderCount;
-	if (!dsResizeableArray_add(application->allocator, (void**)&application->eventResponders,
-		&application->eventResponderCount, &application->eventResponderCapacity,
-		sizeof(dsEventResponder), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->eventResponders,
+		application->eventResponderCount, application->eventResponderCapacity, 1))
 	{
 		return 0;
 	}
@@ -173,8 +171,8 @@ bool dsApplication_addWindow(dsApplication* application, dsWindow* window)
 	}
 
 	uint32_t index = application->windowCount;
-	if (!dsResizeableArray_add(application->allocator, (void**)&application->windows,
-		&application->windowCount, &application->windowCapacity, sizeof(dsWindow*), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->windows,
+		application->windowCount, application->windowCapacity, 1))
 	{
 		return false;
 	}
@@ -237,8 +235,8 @@ bool dsApplication_addController(dsApplication* application, dsController* contr
 	}
 
 	uint32_t index = application->controllerCount;
-	if (!dsResizeableArray_add(application->allocator, (void**)&application->controllers,
-		&application->controllerCount, &application->controllerCapacity, sizeof(dsController*), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->controllers,
+		application->controllerCount, application->controllerCapacity, 1))
 	{
 		return false;
 	}

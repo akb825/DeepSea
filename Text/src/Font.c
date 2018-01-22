@@ -445,7 +445,7 @@ const char* dsFont_getFaceName(const dsFont* font, uint32_t face)
 	return dsFontFace_getName(font->faces[face]);
 }
 
-dsTexture* dsFont_getTexture(dsFont* font)
+dsTexture* dsFont_getTexture(const dsFont* font)
 {
 	if (!font)
 		return NULL;

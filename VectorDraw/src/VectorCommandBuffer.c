@@ -34,8 +34,8 @@ static dsVectorCommand* addCommand(dsVectorCommandBuffer* commandBuffer)
 		return NULL;
 	}
 
-	if (!dsResizeableArray_add(commandBuffer->allocator, (void**)&commandBuffer->commands,
-		&commandBuffer->commandCount, &commandBuffer->maxCommands, sizeof(dsVectorCommand), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, commandBuffer->commands,
+		commandBuffer->commandCount, commandBuffer->maxCommands, 1))
 	{
 		if (errno == EINVAL)
 		{

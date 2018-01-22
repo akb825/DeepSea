@@ -118,7 +118,7 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 	}
 
 	size_t fullSize = dsVectorMaterialSet_fullAllocSize(maxMaterials);
-	void* buffer = dsAllocator_alloc(allocator, maxMaterials);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
 		DS_VERIFY(dsTexture_destroy(colorTexture));
@@ -440,10 +440,17 @@ dsTexture* dsVectorMaterialSet_getInfoTexture(const dsVectorMaterialSet* materia
 	return materials->infoTexture;
 }
 
-void dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
+bool dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
 {
 	if (!materials)
-		return;
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsTexture_destroy(materials->colorTexture))
+		return false;
+	DS_VERIFY(dsTexture_destroy(materials->infoTexture));
 
 	for (dsMaterialNode* node = (dsMaterialNode*)materials->materialTable->list.head;
 		node; node = (dsMaterialNode*)node->node.listNode.next)
@@ -453,9 +460,7 @@ void dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
 			dsGradient_destroy((dsGradient*)gradient);
 	}
 
-	dsTexture_destroy(materials->colorTexture);
-	dsTexture_destroy(materials->infoTexture);
-
 	if (materials->allocator)
-		dsAllocator_free(materials->allocator, materials);
+		return dsAllocator_free(materials->allocator, materials);
+	return true;
 }

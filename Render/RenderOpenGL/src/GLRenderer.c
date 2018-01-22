@@ -168,11 +168,8 @@ static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools,
 		return NULL;
 
 	size_t index = *curPools;
-	if (!dsResizeableArray_add(allocator, (void**)pools, curPools, maxPools,
-		sizeof(dsPoolAllocator), 1))
-	{
+	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, pools, *curPools, *maxPools, 1))
 		return NULL;
-	}
 
 	DS_ASSERT(index < *maxPools);
 	dsPoolAllocator* pool = *pools + index;
@@ -745,8 +742,8 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 	}
 
 	size_t index = glRenderer->curDestroyVaos;
-	if (!dsResizeableArray_add(renderer->allocator, (void**)&glRenderer->destroyVaos,
-		&glRenderer->curDestroyVaos, &glRenderer->maxDestroyVaos, sizeof(GLuint), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, glRenderer->destroyVaos,
+		glRenderer->curDestroyVaos, glRenderer->maxDestroyVaos, 1))
 	{
 		dsMutex_unlock(glRenderer->contextMutex);
 		return;
@@ -779,8 +776,8 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 	}
 
 	size_t index = glRenderer->curDestroyFbos;
-	if (!dsResizeableArray_add(renderer->allocator, (void**)&glRenderer->destroyFbos,
-		&glRenderer->curDestroyFbos, &glRenderer->maxDestroyFbos, sizeof(GLuint), 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, glRenderer->destroyFbos,
+		glRenderer->curDestroyFbos, glRenderer->maxDestroyFbos, 1))
 	{
 		dsMutex_unlock(glRenderer->contextMutex);
 		return;

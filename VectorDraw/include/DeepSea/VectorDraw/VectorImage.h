@@ -55,6 +55,14 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
 	dsVectorMaterialSet* materials, bool ownMaterials, dsVectorShaderModule* shaderModule,
 	const dsVector2f* size, float pixelSize);
 
+/**
+ * @brief Destroys a vector image.
+ * @remark errno will be set on failure.
+ * @param vectorImage The vector image.
+ * @return False if the resources couldn't be destroyed.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorImage_destroy(dsVectorImage* vectorImage);
+
 #ifdef __cplusplus
 }
 #endif
