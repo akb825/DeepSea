@@ -184,57 +184,39 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 			&scratchData->polygonVertices[scratchData->loopVertices[i].vertIndex].point;
 		if (isPrev || isNext)
 		{
-			// Find the end of the chain.
-			for (uint32_t j = stackIndex; j-- > 0;)
-			{
-				uint32_t stackVertIndex = scratchData->loopVertices[
-					scratchData->vertexStack[stackIndex]].vertIndex;
-				uint32_t jVert = scratchData->vertexStack[j];
-				if ((isPrev && scratchData->loopVertices[jVert].prevVert == stackVertIndex) ||
-					(isNext && scratchData->loopVertices[jVert].nextVert == stackVertIndex))
-				{
-					--stackIndex;
-				}
-				else
-					break;
-			}
-
-			uint32_t vertCount = scratchData->vertStackCount - stackIndex;
+			DS_ASSERT(scratchData->vertStackCount >= 0);
 			uint32_t addedTriangles = 0;
-			if (vertCount >= 2)
+			for (uint32_t j = stackIndex; j-- > 0; ++addedTriangles)
 			{
-				for (uint32_t j = top; j-- > stackIndex; ++addedTriangles)
+				uint32_t p1Vert = scratchData->vertexStack[j];
+				uint32_t p2Vert = scratchData->vertexStack[j + 1];
+				const dsVector2f* p1 = &scratchData->polygonVertices[
+					scratchData->loopVertices[p1Vert].vertIndex].point;
+				const dsVector2f* p2 = &scratchData->polygonVertices[
+					scratchData->loopVertices[p2Vert].vertIndex].point;
+				// Add triangles along the chain so long as they are inside the polygon.
+				bool expectedCCW = ccw;
+				if (!isNext)
+					expectedCCW = !expectedCCW;
+				bool triangleCCW = isTriangleCCW(p0, p1, p2);
+				if (triangleCCW != expectedCCW)
+					break;
+
+				if (!triangleCCW)
 				{
-					uint32_t p1Vert = scratchData->vertexStack[j];
-					uint32_t p2Vert = scratchData->vertexStack[j + 1];
-					const dsVector2f* p1 = &scratchData->polygonVertices[
-						scratchData->loopVertices[p1Vert].vertIndex].point;
-					const dsVector2f* p2 = &scratchData->polygonVertices[
-						scratchData->loopVertices[p2Vert].vertIndex].point;
-					// Add triangles along the chain so long as they are inside the polygon.
-					bool expectedCCW = ccw;
-					if (!isNext)
-						expectedCCW = !expectedCCW;
-					bool triangleCCW = isTriangleCCW(p0, p1, p2);
-					if (triangleCCW != expectedCCW)
-						break;
+					uint32_t temp = p1Vert;
+					p1Vert = p2Vert;
+					p2Vert = temp;
+				}
 
-					if (!triangleCCW)
-					{
-						uint32_t temp = p1Vert;
-						p1Vert = p2Vert;
-						p2Vert = temp;
-					}
-
-					if (!dsVectorScratchData_addIndex(scratchData,
-							&scratchData->loopVertices[i].indexValue) ||
-						!dsVectorScratchData_addIndex(scratchData,
-							&scratchData->loopVertices[p1Vert].indexValue) ||
-						!dsVectorScratchData_addIndex(scratchData,
-							&scratchData->loopVertices[p2Vert].indexValue))
-					{
-						return false;
-					}
+				if (!dsVectorScratchData_addIndex(scratchData,
+						&scratchData->loopVertices[i].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData,
+						&scratchData->loopVertices[p1Vert].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData,
+						&scratchData->loopVertices[p2Vert].indexValue))
+				{
+					return false;
 				}
 			}
 
@@ -271,12 +253,19 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 				}
 			}
 
-			totalTriangles += scratchData->vertStackCount;
+			totalTriangles += scratchData->vertStackCount - 1;
 			scratchData->vertStackCount = 0;
 			dsVectorScratchData_pushVertex(scratchData, top);
+			dsVectorScratchData_pushVertex(scratchData, i);
 		}
 	}
-	DS_ASSERT(totalTriangles == scratchData->loopVertCount - 2);
+
+	if (totalTriangles != scratchData->loopVertCount - 2)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Polygon loop couldn't be triangulated.");
+		return false;
+	}
 
 	return true;
 }
