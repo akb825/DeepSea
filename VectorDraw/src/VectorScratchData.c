@@ -525,11 +525,11 @@ bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polyg
 		return false;
 	}
 
-	data->loopVertices[index].vertIndex = data->polygonEdges[polygonEdge].nextVertex;
+	data->loopVertices[index].vertIndex = data->polygonEdges[polygonEdge].prevVertex;
 	data->loopVertices[index].indexValue = data->shapeVertexCount;
-	data->loopVertices[index].prevVert = data->polygonEdges[polygonEdge].prevVertex;
-	data->loopVertices[index].nextVert =
-		data->polygonEdges[data->polygonEdges[polygonEdge].nextEdge].nextVertex;
+	data->loopVertices[index].prevVert =
+		data->polygonEdges[data->polygonEdges[polygonEdge].prevEdge].prevVertex;
+	data->loopVertices[index].nextVert = data->polygonEdges[polygonEdge].nextVertex;
 
 	ShapeVertex* vertex = dsVectorScratchData_addShapeVertex(data);
 	if (!vertex)
@@ -549,7 +549,7 @@ bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polyg
 
 void dsVectorScratchData_sortLoopVertices(dsVectorScratchData* data)
 {
-	dsSort(data->loopVertices, data->loopVertCount, sizeof(dsVector2f), &compareLoopVertex, data);
+	dsSort(data->loopVertices, data->loopVertCount, sizeof(LoopVertex), &compareLoopVertex, data);
 }
 
 void dsVectorScratchData_clearLoopVertices(dsVectorScratchData* data)
@@ -630,7 +630,10 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	unsigned int usageFlags = dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index;
 	unsigned int memoryFlags = dsGfxMemory_Static | dsGfxMemory_Draw;
 	if (dsVectorImage_testing)
+	{
 		usageFlags |= dsGfxBufferUsage_CopyFrom;
+		memoryFlags |= dsGfxMemory_Read;
+	}
 	else
 		memoryFlags |= dsGfxMemory_GpuOnly;
 

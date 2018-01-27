@@ -732,7 +732,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 		DS_ASSERT(scratchData->maxVectorInfos % INFOS_PER_TEXTURE == 0);
 		image->infoTextures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTexture*,
 			infoTextureCount);
-		for (uint32_t i = 0; i < infoTextureCount; ++i)
+		for (uint32_t i = 0; i < infoTextureCount; ++i, ++image->infoTextureCount)
 		{
 			image->infoTextures[i] = dsTexture_create(resourceManager, resourceAllocator,
 				dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GpuOnly, infoFormat,
@@ -741,8 +741,6 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 				sizeof(VectorInfo)*INFOS_PER_TEXTURE);
 			if (!image->infoTextures[i])
 			{
-				for (uint32_t j = i + 1; j < infoTextureCount; ++j)
-					image->infoTextures[j] = NULL;
 				DS_VERIFY(dsVectorImage_destroy(image));
 				return NULL;
 			}
