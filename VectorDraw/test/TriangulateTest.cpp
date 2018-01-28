@@ -78,8 +78,8 @@ TEST_F(TriangulateTest, TriangleCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 3*sizeof(ShapeVertex));
 	EXPECT_EQ(2U, indices[0]);
-	EXPECT_EQ(1U, indices[1]);
-	EXPECT_EQ(0U, indices[2]);
+	EXPECT_EQ(0U, indices[1]);
+	EXPECT_EQ(1U, indices[2]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -137,8 +137,8 @@ TEST_F(TriangulateTest, TriangleCCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 3*sizeof(ShapeVertex));
 	EXPECT_EQ(1U, indices[0]);
-	EXPECT_EQ(2U, indices[1]);
-	EXPECT_EQ(0U, indices[2]);
+	EXPECT_EQ(0U, indices[1]);
+	EXPECT_EQ(2U, indices[2]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -196,8 +196,8 @@ TEST_F(TriangulateTest, ObliqueTriangleCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 3*sizeof(ShapeVertex));
 	EXPECT_EQ(1U, indices[0]);
-	EXPECT_EQ(0U, indices[1]);
-	EXPECT_EQ(2U, indices[2]);
+	EXPECT_EQ(2U, indices[1]);
+	EXPECT_EQ(0U, indices[2]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -255,8 +255,8 @@ TEST_F(TriangulateTest, ObliqueTriangleCCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 3*sizeof(ShapeVertex));
 	EXPECT_EQ(2U, indices[0]);
-	EXPECT_EQ(0U, indices[1]);
-	EXPECT_EQ(1U, indices[2]);
+	EXPECT_EQ(1U, indices[1]);
+	EXPECT_EQ(0U, indices[2]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -319,12 +319,12 @@ TEST_F(TriangulateTest, QuadCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 4*sizeof(ShapeVertex));
 	EXPECT_EQ(1U, indices[0]);
-	EXPECT_EQ(3U, indices[1]);
-	EXPECT_EQ(2U, indices[2]);
+	EXPECT_EQ(2U, indices[1]);
+	EXPECT_EQ(3U, indices[2]);
 
 	EXPECT_EQ(0U, indices[3]);
-	EXPECT_EQ(3U, indices[4]);
-	EXPECT_EQ(1U, indices[5]);
+	EXPECT_EQ(1U, indices[4]);
+	EXPECT_EQ(3U, indices[5]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -387,12 +387,12 @@ TEST_F(TriangulateTest, QuadCCW)
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 4*sizeof(ShapeVertex));
 	EXPECT_EQ(3U, indices[0]);
-	EXPECT_EQ(1U, indices[1]);
-	EXPECT_EQ(2U, indices[2]);
+	EXPECT_EQ(2U, indices[1]);
+	EXPECT_EQ(1U, indices[2]);
 
 	EXPECT_EQ(0U, indices[3]);
-	EXPECT_EQ(1U, indices[4]);
-	EXPECT_EQ(3U, indices[5]);
+	EXPECT_EQ(3U, indices[4]);
+	EXPECT_EQ(1U, indices[5]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
@@ -415,43 +415,43 @@ TEST_F(TriangulateTest, MonotonicCW)
 	dsMatrix33_identity(commands[0].startPath.transform);
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
-	commands[1].move.position.y = 4.6f;
+	commands[1].move.position.y = 11.4f;
 	commands[2].commandType = dsVectorCommandType_Line;
 	commands[2].line.end.x = 4.0f;
-	commands[2].line.end.y = 9.5f;
+	commands[2].line.end.y = 6.5f;
 	commands[3].commandType = dsVectorCommandType_Line;
 	commands[3].line.end.x = 16.0f;
-	commands[3].line.end.y = 14.3f;
+	commands[3].line.end.y = 1.7f;
 	commands[4].commandType = dsVectorCommandType_Line;
 	commands[4].line.end.x = 18.4f;
-	commands[4].line.end.y = 1.2f;
+	commands[4].line.end.y = 14.8f;
 	commands[5].commandType = dsVectorCommandType_Line;
 	commands[5].line.end.x = 24.5f;
-	commands[5].line.end.y = 2.8f;
+	commands[5].line.end.y = 13.2f;
 	commands[6].commandType = dsVectorCommandType_Line;
 	commands[6].line.end.x = 29.2f;
-	commands[6].line.end.y = 7.0f;
+	commands[6].line.end.y = 9.0f;
 	commands[7].commandType = dsVectorCommandType_Line;
 	commands[7].line.end.x = 31.0f;
-	commands[7].line.end.y = 16.0f;
+	commands[7].line.end.y = 0.0f;
 	commands[8].commandType = dsVectorCommandType_Line;
 	commands[8].line.end.x = 34.0f;
-	commands[8].line.end.y = 16.0f;
+	commands[8].line.end.y = 0.0f;
 	commands[9].commandType = dsVectorCommandType_Line;
 	commands[9].line.end.x = 36.0f;
-	commands[9].line.end.y = 0.0f;
+	commands[9].line.end.y = 16.0f;
 	commands[10].commandType = dsVectorCommandType_Line;
 	commands[10].line.end.x = 12.5f;
-	commands[10].line.end.y = 0.0f;
+	commands[10].line.end.y = 16.0f;
 	commands[11].commandType = dsVectorCommandType_Line;
 	commands[11].line.end.x = 11.3f;
-	commands[11].line.end.y = 4.8f;
+	commands[11].line.end.y = 11.2f;
 	commands[12].commandType = dsVectorCommandType_Line;
 	commands[12].line.end.x = 8.8f;
-	commands[12].line.end.y = 7.1f;
+	commands[12].line.end.y = 8.9f;
 	commands[13].commandType = dsVectorCommandType_Line;
 	commands[13].line.end.x = 6.4f;
-	commands[13].line.end.y = 7.1f;
+	commands[13].line.end.y = 8.9f;
 	commands[14].commandType = dsVectorCommandType_ClosePath;
 	commands[15].commandType = dsVectorCommandType_FillPath;
 	commands[15].fillPath.material = "fill";
@@ -472,31 +472,31 @@ TEST_F(TriangulateTest, MonotonicCW)
 
 	const ShapeVertex* vertices = (const ShapeVertex*)data;
 	EXPECT_EQ(0.0f, vertices[0].position.x);
-	EXPECT_EQ(4.6f, vertices[0].position.y);
+	EXPECT_EQ(11.4f, vertices[0].position.y);
 	EXPECT_EQ(4.0f, vertices[1].position.x);
-	EXPECT_EQ(9.5f, vertices[1].position.y);
+	EXPECT_EQ(6.5f, vertices[1].position.y);
 	EXPECT_EQ(16.0f, vertices[2].position.x);
-	EXPECT_EQ(14.3f, vertices[2].position.y);
+	EXPECT_EQ(1.7f, vertices[2].position.y);
 	EXPECT_EQ(18.4f, vertices[3].position.x);
-	EXPECT_EQ(1.2f, vertices[3].position.y);
+	EXPECT_EQ(14.8f, vertices[3].position.y);
 	EXPECT_EQ(24.5f, vertices[4].position.x);
-	EXPECT_EQ(2.8f, vertices[4].position.y);
+	EXPECT_EQ(13.2f, vertices[4].position.y);
 	EXPECT_EQ(29.2f, vertices[5].position.x);
-	EXPECT_EQ(7.0f, vertices[5].position.y);
+	EXPECT_EQ(9.0f, vertices[5].position.y);
 	EXPECT_EQ(31.0f, vertices[6].position.x);
-	EXPECT_EQ(16.0f, vertices[6].position.y);
+	EXPECT_EQ(0.0f, vertices[6].position.y);
 	EXPECT_EQ(34.0f, vertices[7].position.x);
-	EXPECT_EQ(16.0f, vertices[7].position.y);
+	EXPECT_EQ(0.0f, vertices[7].position.y);
 	EXPECT_EQ(36.0f, vertices[8].position.x);
-	EXPECT_EQ(0.0f, vertices[8].position.y);
+	EXPECT_EQ(16.0f, vertices[8].position.y);
 	EXPECT_EQ(12.5f, vertices[9].position.x);
-	EXPECT_EQ(0.0f, vertices[9].position.y);
+	EXPECT_EQ(16.0f, vertices[9].position.y);
 	EXPECT_EQ(11.3f, vertices[10].position.x);
-	EXPECT_EQ(4.8f, vertices[10].position.y);
+	EXPECT_EQ(11.2f, vertices[10].position.y);
 	EXPECT_EQ(8.8f, vertices[11].position.x);
-	EXPECT_EQ(7.1f, vertices[11].position.y);
+	EXPECT_EQ(8.9f, vertices[11].position.y);
 	EXPECT_EQ(6.4f, vertices[12].position.x);
-	EXPECT_EQ(7.1f, vertices[12].position.y);
+	EXPECT_EQ(8.9f, vertices[12].position.y);
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 13*sizeof(ShapeVertex));
 	EXPECT_EQ(12U, indices[0]);
@@ -564,43 +564,43 @@ TEST_F(TriangulateTest, MonotonicCCW)
 	dsMatrix33_identity(commands[0].startPath.transform);
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
-	commands[1].move.position.y = 4.6f;
+	commands[1].move.position.y = 11.4f;
 	commands[2].commandType = dsVectorCommandType_Line;
 	commands[2].line.end.x = 6.4f;
-	commands[2].line.end.y = 7.1f;
+	commands[2].line.end.y = 8.9f;
 	commands[3].commandType = dsVectorCommandType_Line;
 	commands[3].line.end.x = 8.8f;
-	commands[3].line.end.y = 7.1f;
+	commands[3].line.end.y = 8.9f;
 	commands[4].commandType = dsVectorCommandType_Line;
 	commands[4].line.end.x = 11.3f;
-	commands[4].line.end.y = 4.8f;
+	commands[4].line.end.y = 11.2f;
 	commands[5].commandType = dsVectorCommandType_Line;
 	commands[5].line.end.x = 12.5f;
-	commands[5].line.end.y = 0.0f;
+	commands[5].line.end.y = 16.0f;
 	commands[6].commandType = dsVectorCommandType_Line;
 	commands[6].line.end.x = 36.0f;
-	commands[6].line.end.y = 0.0f;
+	commands[6].line.end.y = 16.0f;
 	commands[7].commandType = dsVectorCommandType_Line;
 	commands[7].line.end.x = 34.0f;
-	commands[7].line.end.y = 16.0f;
+	commands[7].line.end.y = 0.0f;
 	commands[8].commandType = dsVectorCommandType_Line;
 	commands[8].line.end.x = 31.0f;
-	commands[8].line.end.y = 16.0f;
+	commands[8].line.end.y = 0.0f;
 	commands[9].commandType = dsVectorCommandType_Line;
 	commands[9].line.end.x = 29.2f;
-	commands[9].line.end.y = 7.0f;
+	commands[9].line.end.y = 9.0f;
 	commands[10].commandType = dsVectorCommandType_Line;
 	commands[10].line.end.x = 24.5f;
-	commands[10].line.end.y = 2.8f;
+	commands[10].line.end.y = 13.2f;
 	commands[11].commandType = dsVectorCommandType_Line;
 	commands[11].line.end.x = 18.4f;
-	commands[11].line.end.y = 1.2f;
+	commands[11].line.end.y = 14.8f;
 	commands[12].commandType = dsVectorCommandType_Line;
 	commands[12].line.end.x = 16.0f;
-	commands[12].line.end.y = 14.3f;
+	commands[12].line.end.y = 1.7f;
 	commands[13].commandType = dsVectorCommandType_Line;
 	commands[13].line.end.x = 4.0f;
-	commands[13].line.end.y = 9.5f;
+	commands[13].line.end.y = 6.5f;
 	commands[14].commandType = dsVectorCommandType_ClosePath;
 	commands[15].commandType = dsVectorCommandType_FillPath;
 	commands[15].fillPath.material = "fill";
@@ -621,31 +621,31 @@ TEST_F(TriangulateTest, MonotonicCCW)
 
 	const ShapeVertex* vertices = (const ShapeVertex*)data;
 	EXPECT_EQ(0.0f, vertices[0].position.x);
-	EXPECT_EQ(4.6f, vertices[0].position.y);
+	EXPECT_EQ(11.4f, vertices[0].position.y);
 	EXPECT_EQ(6.4f, vertices[1].position.x);
-	EXPECT_EQ(7.1f, vertices[1].position.y);
+	EXPECT_EQ(8.9f, vertices[1].position.y);
 	EXPECT_EQ(8.8f, vertices[2].position.x);
-	EXPECT_EQ(7.1f, vertices[2].position.y);
+	EXPECT_EQ(8.9f, vertices[2].position.y);
 	EXPECT_EQ(11.3f, vertices[3].position.x);
-	EXPECT_EQ(4.8f, vertices[3].position.y);
+	EXPECT_EQ(11.2f, vertices[3].position.y);
 	EXPECT_EQ(12.5f, vertices[4].position.x);
-	EXPECT_EQ(0.0f, vertices[4].position.y);
+	EXPECT_EQ(16.0f, vertices[4].position.y);
 	EXPECT_EQ(36.0f, vertices[5].position.x);
-	EXPECT_EQ(0.0f, vertices[5].position.y);
+	EXPECT_EQ(16.0f, vertices[5].position.y);
 	EXPECT_EQ(34.0f, vertices[6].position.x);
-	EXPECT_EQ(16.0f, vertices[6].position.y);
+	EXPECT_EQ(0.0f, vertices[6].position.y);
 	EXPECT_EQ(31.0f, vertices[7].position.x);
-	EXPECT_EQ(16.0f, vertices[7].position.y);
+	EXPECT_EQ(0.0f, vertices[7].position.y);
 	EXPECT_EQ(29.2f, vertices[8].position.x);
-	EXPECT_EQ(7.0f, vertices[8].position.y);
+	EXPECT_EQ(9.0f, vertices[8].position.y);
 	EXPECT_EQ(24.5f, vertices[9].position.x);
-	EXPECT_EQ(2.8f, vertices[9].position.y);
+	EXPECT_EQ(13.2f, vertices[9].position.y);
 	EXPECT_EQ(18.4f, vertices[10].position.x);
-	EXPECT_EQ(1.2f, vertices[10].position.y);
+	EXPECT_EQ(14.8f, vertices[10].position.y);
 	EXPECT_EQ(16.0f, vertices[11].position.x);
-	EXPECT_EQ(14.3f, vertices[11].position.y);
+	EXPECT_EQ(1.7f, vertices[11].position.y);
 	EXPECT_EQ(4.0f, vertices[12].position.x);
-	EXPECT_EQ(9.5f, vertices[12].position.y);
+	EXPECT_EQ(6.5f, vertices[12].position.y);
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 13*sizeof(ShapeVertex));
 	EXPECT_EQ(1U, indices[0]);

@@ -82,16 +82,16 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 	{
 		if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-			return false;
 		if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 			return false;
 
 		if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-			return false;
 		if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 			return false;
 	}
 
@@ -151,9 +151,9 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			{
 				if (start)
 				{
-					if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
+					if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 						return false;
-					return dsVectorScratchData_addIndex(scratchData, secondVertex);
+					return dsVectorScratchData_addIndex(scratchData, firstVertex);
 				}
 				return true;
 			}
@@ -163,9 +163,9 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
 			}
 			else
@@ -173,9 +173,9 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
 			}
 
@@ -183,10 +183,10 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
-				uint32_t curVertIndex = firstPointVert + i - 1;
+				uint32_t curVertIndex = firstPointVert + i;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
-				++curVertIndex;
+				--curVertIndex;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
 			}
@@ -230,40 +230,40 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
 					return false;
 
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
+				if (!dsVectorScratchData_addIndex(scratchData, &secondSquareVert))
 					return false;
-				return dsVectorScratchData_addIndex(scratchData, &secondSquareVert);
+				return dsVectorScratchData_addIndex(scratchData, &firstSquareVert);
 			}
 			else
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &secondSquareVert))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
 
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
+				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				return dsVectorScratchData_addIndex(scratchData, firstVertex);
+				return dsVectorScratchData_addIndex(scratchData, &firstSquareVert);
 			}
 		}
 		default:
 		{
 			if (start)
 			{
-				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
-				return dsVectorScratchData_addIndex(scratchData, secondVertex);
+				return dsVectorScratchData_addIndex(scratchData, firstVertex);
 			}
 			return true;
 		}
@@ -309,16 +309,16 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 
 	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
 
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newSecondVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &newSecondVertex))
 		return false;
 
 	*firstVertex = newFirstVertex;
@@ -381,16 +381,16 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
 
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 		return false;
 
 	dsVector2f toOffset = {{toDirection->y, -toDirection->x}};
@@ -464,9 +464,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 					return false;
 
 				if (miter)
@@ -490,9 +490,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
-						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
 						return false;
 				}
 			}
@@ -500,9 +500,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
 					return false;
 
 				if (miter)
@@ -526,9 +526,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
-						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
 						return false;
 				}
 			}
@@ -539,18 +539,18 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 					return false;
 			}
 			else
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
 					return false;
 			}
 			break;
@@ -625,18 +625,18 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 				{
 					if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 						return false;
 				}
 				else
 				{
 					if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
-						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
 						return false;
 				}
 				break;
@@ -648,17 +648,17 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
 					return false;
 
 				curVertIndex = firstPointVert + pointVertCount - 1;
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
 			}
 			else
@@ -666,17 +666,17 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 					return false;
 
 				curVertIndex = firstPointVert + pointVertCount - 1;
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
 			}
 
@@ -685,10 +685,10 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				uint32_t curVertIndex = firstPointVert + i - 1;
+				uint32_t curVertIndex = firstPointVert + i;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
-				++curVertIndex;
+				--curVertIndex;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
 			}

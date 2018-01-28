@@ -202,7 +202,8 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 				if (triangleCCW != expectedCCW)
 					break;
 
-				if (!triangleCCW)
+				// Use CW winding order due to upper-left being origin.
+				if (triangleCCW)
 				{
 					uint32_t temp = p1Vert;
 					p1Vert = p2Vert;
@@ -235,7 +236,8 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 				const dsVector2f* p2 = &scratchData->polygonVertices[
 					scratchData->loopVertices[p2Vert].vertIndex].point;
 
-				if (!isTriangleCCW(p0, p1, p2))
+				// Use CW winding order due to upper-left being origin.
+				if (isTriangleCCW(p0, p1, p2))
 				{
 					uint32_t temp = p1Vert;
 					p1Vert = p2Vert;
