@@ -95,7 +95,7 @@ static bool addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* text
 	return true;
 }
 
-int compareLoopVertex(const void* left, const void* right, void* context)
+static int compareLoopVertex(const void* left, const void* right, void* context)
 {
 	const dsVectorScratchData* data = (const dsVectorScratchData*)context;
 	const LoopVertex* leftVert = (const LoopVertex*)left;
@@ -106,7 +106,18 @@ int compareLoopVertex(const void* left, const void* right, void* context)
 		return -1;
 	else if (leftPos->x > rightPos->x)
 		return 1;
+	else if (leftPos->y < rightPos->y)
+		return -1;
+	else if (leftPos->y > rightPos->y)
+		return 1;
 	return 0;
+}
+
+static bool isTriangleCCW(const dsVector2f* p0, const dsVector2f* p1, const dsVector2f* p2)
+{
+	// Cross product of the triangle with Z = 0.
+	float cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
+	return cross >= 0.0f;
 }
 
 dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
@@ -379,7 +390,8 @@ TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMa
 	return &info->textInfo;
 }
 
-bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex)
+bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex,
+	uint32_t shapeIndex, uint32_t materialIndex)
 {
 	uint32_t index = data->polygonVertCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->polygonVertices, data->polygonVertCount,
@@ -388,8 +400,27 @@ bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t ve
 		return false;
 	}
 
-	data->polygonVertices[index].point = data->points[vertex].point;
-	data->polygonVertices[index].hasExtraEdges = false;
+	PolygonVertex* polygonVert = data->polygonVertices + index;
+	polygonVert->point = data->points[vertex].point;
+	polygonVert->indexValue = data->shapeVertexCount;
+	for (int i = 0; i < ConnectingEdge_Count; ++i)
+	{
+		polygonVert->prevEdges[i] = NOT_FOUND;
+		polygonVert->nextEdges[i] = NOT_FOUND;
+	}
+
+	ShapeVertex* shapeVert = dsVectorScratchData_addShapeVertex(data);
+	if (!shapeVert)
+		return false;
+
+	DS_ASSERT(materialIndex <= USHRT_MAX);
+	DS_ASSERT(shapeIndex <= USHRT_MAX);
+	shapeVert->position.x = polygonVert->point.x;
+	shapeVert->position.y = polygonVert->point.y;
+	shapeVert->position.z = -1.0f;
+	shapeVert->position.w = -1.0f;
+	shapeVert->shapeIndex = (uint16_t)shapeIndex;
+	shapeVert->materialIndex = (uint16_t)materialIndex;
 	return true;
 }
 
@@ -411,8 +442,9 @@ bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data)
 		data->polygonEdges[edgeIndex].nextEdge = edgeIndex == edgeCount - 1 ? 0 : edgeIndex + 1;
 		data->polygonEdges[edgeIndex].visited = false;
 
-		data->polygonVertices[i].prevEdge = data->polygonEdges[edgeIndex].prevEdge;
-		data->polygonVertices[i].nextEdge = edgeIndex;
+		data->polygonVertices[i].prevEdges[ConnectingEdge_Main] =
+			data->polygonEdges[edgeIndex].prevEdge;
+		data->polygonVertices[i].nextEdges[ConnectingEdge_Main] = edgeIndex;
 	}
 
 	return true;
@@ -421,59 +453,146 @@ bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data)
 bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
 	uint32_t to, bool ccw)
 {
-	if ((ccw && data->polygonVertices[from].point.y < data->polygonVertices[to].point.y) ||
-		(!ccw && data->polygonVertices[from].point.y > data->polygonVertices[to].point.y))
-	{
-		uint32_t tmp = from;
-		from = to;
-		to = tmp;
-	}
+	PolygonVertex* fromVert = data->polygonVertices + from;
+	PolygonVertex* toVert = data->polygonVertices + to;
+	bool fromLeft = fromVert->point.x < toVert->point.x;
 
 	uint32_t fromPrevEdge, fromNextEdge;
-	if (data->polygonVertices[from].hasExtraEdges)
+	if (fromLeft)
 	{
-		// Search for the last edge that goes to the "from" vertex
-		fromPrevEdge = 0;
-		for (uint32_t i = data->polygonEdgeCount; i-- > 0;)
+		// Connect to the right.
+		if (fromVert->prevEdges[ConnectingEdge_Right] != NOT_FOUND ||
+			fromVert->nextEdges[ConnectingEdge_Right] != NOT_FOUND)
 		{
-			if (data->polygonEdges[i].nextVertex == from)
+			if (fromVert->prevEdges[ConnectingEdge_Right] == toVert->nextEdges[ConnectingEdge_Left])
+				return true;
+
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
+		}
+
+		if (fromVert->prevEdges[ConnectingEdge_Left] == NOT_FOUND)
+		{
+			fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
+			fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
+		}
+		else
+		{
+			const PolygonVertex* fromNextLeftVert = data->polygonVertices +
+				data->polygonEdges[fromVert->nextEdges[ConnectingEdge_Left]].nextVertex;
+			if (isTriangleCCW(&fromVert->point, &toVert->point, &fromNextLeftVert->point) == ccw)
 			{
-				fromPrevEdge = i;
-				break;
+				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Left];
+				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
+			}
+			else
+			{
+				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
+				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Left];
 			}
 		}
-		DS_ASSERT(fromPrevEdge > data->polygonVertices[from].prevEdge);
-		fromNextEdge = data->polygonVertices[from].nextEdge;
 	}
 	else
 	{
-		fromPrevEdge = data->polygonVertices[from].prevEdge;
-		fromNextEdge = data->polygonVertices[from].nextEdge;
-		data->polygonVertices[from].hasExtraEdges = true;
+		// Connect to the left.
+		if (fromVert->prevEdges[ConnectingEdge_Left] != NOT_FOUND ||
+			fromVert->nextEdges[ConnectingEdge_Left] != NOT_FOUND)
+		{
+			if (fromVert->prevEdges[ConnectingEdge_Left] == toVert->nextEdges[ConnectingEdge_Right])
+				return true;
+
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
+		}
+
+		if (fromVert->prevEdges[ConnectingEdge_Right] == NOT_FOUND)
+		{
+			fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
+			fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
+		}
+		else
+		{
+			const PolygonVertex* fromNextRightVert = data->polygonVertices +
+				data->polygonEdges[fromVert->nextEdges[ConnectingEdge_Right]].nextVertex;
+			if (isTriangleCCW(&fromVert->point, &fromNextRightVert->point, &toVert->point) == ccw)
+			{
+				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
+				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Right];
+			}
+			else
+			{
+				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Right];
+				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
+			}
+		}
 	}
 
-	// Since we seep left to right, there shouldn't be anything in the "to"
 	uint32_t toPrevEdge, toNextEdge;
-	if (data->polygonVertices[to].hasExtraEdges)
+	if (fromLeft)
 	{
-		// Search for the last edge that goes to the "to" vertex
-		toPrevEdge = 0;
-		for (uint32_t i = data->polygonEdgeCount; i-- > 0;)
+		// Connect to the left.
+		if (toVert->prevEdges[ConnectingEdge_Left] != NOT_FOUND ||
+			toVert->nextEdges[ConnectingEdge_Left] != NOT_FOUND)
 		{
-			if (data->polygonEdges[i].nextVertex == to)
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
+		}
+
+		if (toVert->prevEdges[ConnectingEdge_Right] == NOT_FOUND)
+		{
+			toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
+			toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
+		}
+		else
+		{
+			const PolygonVertex* toNextRightVert = data->polygonVertices +
+				data->polygonEdges[toVert->nextEdges[ConnectingEdge_Right]].nextVertex;
+			if (isTriangleCCW(&toVert->point, &toNextRightVert->point, &fromVert->point) == ccw)
 			{
-				toPrevEdge = i;
-				break;
+				toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
+				toNextEdge = toVert->nextEdges[ConnectingEdge_Right];
+			}
+			else
+			{
+				toPrevEdge = toVert->prevEdges[ConnectingEdge_Right];
+				toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
 			}
 		}
-		DS_ASSERT(toPrevEdge > data->polygonVertices[to].prevEdge);
-		toNextEdge = data->polygonVertices[to].nextEdge;
 	}
 	else
 	{
-		toPrevEdge = data->polygonVertices[to].prevEdge;
-		toNextEdge = data->polygonVertices[to].nextEdge;
-		data->polygonVertices[to].hasExtraEdges = true;
+		// Connect to the right.
+		if (toVert->prevEdges[ConnectingEdge_Right] != NOT_FOUND ||
+			toVert->nextEdges[ConnectingEdge_Right] != NOT_FOUND)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
+		}
+
+		if (toVert->prevEdges[ConnectingEdge_Left] == NOT_FOUND)
+		{
+			toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
+			toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
+		}
+		else
+		{
+			const PolygonVertex* toNextLeftVert = data->polygonVertices +
+				data->polygonEdges[toVert->nextEdges[ConnectingEdge_Left]].nextVertex;
+			if (isTriangleCCW(&toVert->point, &fromVert->point, &toNextLeftVert->point) == ccw)
+			{
+				toPrevEdge = toVert->prevEdges[ConnectingEdge_Left];
+				toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
+			}
+			else
+			{
+				toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
+				toNextEdge = toVert->nextEdges[ConnectingEdge_Left];
+			}
+		}
 	}
 
 	// Insert two new edge in-between the edges for the "from" and "to" vertices, one for the left
@@ -484,6 +603,7 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	{
 		return false;
 	}
+
 	data->polygonEdges[curEdge].prevVertex = from;
 	data->polygonEdges[curEdge].nextVertex = to;
 	data->polygonEdges[curEdge].prevEdge = fromPrevEdge;
@@ -491,6 +611,16 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	data->polygonEdges[curEdge].visited = false;
 	data->polygonEdges[fromPrevEdge].nextEdge = curEdge;
 	data->polygonEdges[toNextEdge].prevEdge = curEdge;
+	if (fromLeft)
+	{
+		fromVert->nextEdges[ConnectingEdge_Right] = curEdge;
+		toVert->prevEdges[ConnectingEdge_Left] = curEdge;
+	}
+	else
+	{
+		fromVert->nextEdges[ConnectingEdge_Left] = curEdge;
+		toVert->prevEdges[ConnectingEdge_Right] = curEdge;
+	}
 
 	curEdge = data->polygonEdgeCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->polygonEdges, data->polygonEdgeCount,
@@ -498,13 +628,24 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	{
 		return false;
 	}
+
 	data->polygonEdges[curEdge].prevVertex = to;
 	data->polygonEdges[curEdge].nextVertex = from;
 	data->polygonEdges[curEdge].prevEdge = toPrevEdge;
 	data->polygonEdges[curEdge].nextEdge = fromNextEdge;
 	data->polygonEdges[curEdge].visited = false;
 	data->polygonEdges[toPrevEdge].nextEdge = curEdge;
-	data->polygonEdges[toNextEdge].prevEdge = curEdge;
+	data->polygonEdges[fromNextEdge].prevEdge = curEdge;
+	if (fromLeft)
+	{
+		fromVert->prevEdges[ConnectingEdge_Right] = curEdge;
+		toVert->nextEdges[ConnectingEdge_Left] = curEdge;
+	}
+	else
+	{
+		fromVert->prevEdges[ConnectingEdge_Left] = curEdge;
+		toVert->nextEdges[ConnectingEdge_Right] = curEdge;
+	}
 
 	return true;
 }
@@ -515,8 +656,7 @@ void dsVectorScratchData_resetPolygon(dsVectorScratchData* data)
 	data->polygonEdgeCount = 0;
 }
 
-bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge,
-	uint32_t shapeIndex, uint32_t materialIndex)
+bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge)
 {
 	uint32_t index = data->loopVertCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->loopVertices, data->loopVertCount,
@@ -526,24 +666,9 @@ bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polyg
 	}
 
 	data->loopVertices[index].vertIndex = data->polygonEdges[polygonEdge].prevVertex;
-	data->loopVertices[index].indexValue = data->shapeVertexCount;
 	data->loopVertices[index].prevVert =
 		data->polygonEdges[data->polygonEdges[polygonEdge].prevEdge].prevVertex;
 	data->loopVertices[index].nextVert = data->polygonEdges[polygonEdge].nextVertex;
-
-	ShapeVertex* vertex = dsVectorScratchData_addShapeVertex(data);
-	if (!vertex)
-		return false;
-
-	DS_ASSERT(materialIndex <= USHRT_MAX);
-	DS_ASSERT(shapeIndex <= USHRT_MAX);
-	const PolygonVertex* polygonVert = data->polygonVertices + data->loopVertices[index].vertIndex;
-	vertex->position.x = polygonVert->point.x;
-	vertex->position.y = polygonVert->point.y;
-	vertex->position.z = -1.0f;
-	vertex->position.w = -1.0f;
-	vertex->shapeIndex = (uint16_t)shapeIndex;
-	vertex->materialIndex = (uint16_t)materialIndex;
 	return true;
 }
 
@@ -555,6 +680,7 @@ void dsVectorScratchData_sortLoopVertices(dsVectorScratchData* data)
 void dsVectorScratchData_clearLoopVertices(dsVectorScratchData* data)
 {
 	data->loopVertCount = 0;
+	data->vertStackCount = 0;
 }
 
 bool dsVectorScratchData_pushVertex(dsVectorScratchData* data, uint32_t loopVert)

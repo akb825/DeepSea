@@ -26,6 +26,7 @@ extern "C"
 #endif
 
 #define INFOS_PER_TEXTURE 1024
+#define NOT_FOUND (uint32_t)-1
 
 typedef enum ShaderType
 {
@@ -42,6 +43,14 @@ typedef enum PointType
 	PointType_JoinStart = 0x2,
 	PointType_End = 0x4
 } PointType;
+
+typedef enum ConnectingEdge
+{
+	ConnectingEdge_Main,
+	ConnectingEdge_Left,
+	ConnectingEdge_Right,
+	ConnectingEdge_Count
+} ConnectingEdge;
 
 typedef struct ShapeVertex
 {
@@ -98,9 +107,9 @@ typedef struct PointInfo
 typedef struct PolygonVertex
 {
 	dsVector2f point;
-	uint32_t prevEdge;
-	uint32_t nextEdge;
-	bool hasExtraEdges;
+	uint32_t prevEdges[ConnectingEdge_Count];
+	uint32_t nextEdges[ConnectingEdge_Count];
+	uint32_t indexValue;
 } PolygonVertex;
 
 typedef struct PolygonEdge
@@ -109,13 +118,12 @@ typedef struct PolygonEdge
 	uint32_t nextVertex;
 	uint32_t prevEdge;
 	uint32_t nextEdge;
-	bool visited;
+	uint32_t visited;
 } PolygonEdge;
 
 typedef struct LoopVertex
 {
 	uint32_t vertIndex;
-	uint32_t indexValue;
 	uint32_t prevVert;
 	uint32_t nextVert;
 } LoopVertex;
@@ -222,14 +230,14 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
 	const dsFont* font);
 
-bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex);
+bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex,
+	uint32_t shapeIndex, uint32_t materialIndex);
 bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data);
 bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
 	uint32_t to, bool ccw);
 void dsVectorScratchData_resetPolygon(dsVectorScratchData* data);
 
-bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge,
-	uint32_t shapeIndex, uint32_t materialIndex);
+bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge);
 void dsVectorScratchData_sortLoopVertices(dsVectorScratchData* data);
 void dsVectorScratchData_clearLoopVertices(dsVectorScratchData* data);
 

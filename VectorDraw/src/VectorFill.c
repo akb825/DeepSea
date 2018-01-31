@@ -25,8 +25,6 @@
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
-#define NOT_FOUND (uint32_t)-1
-
 static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex, bool othersLeft)
 {
 	uint32_t topPoint = NOT_FOUND;
@@ -49,11 +47,12 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 		if (vert->point.x >= pos->x)
 			continue;
 
-		uint32_t nextPoint = scratchData->polygonEdges[vert->prevEdge].prevVertex;
+		uint32_t nextPoint = scratchData->polygonEdges[
+			vert->prevEdges[ConnectingEdge_Main]].prevVertex;
 		nextVert = scratchData->polygonVertices + nextPoint;
 		if (nextVert->point.x <= pos->x)
 		{
-			nextPoint = scratchData->polygonEdges[vert->nextEdge].nextVertex;
+			nextPoint = scratchData->polygonEdges[vert->nextEdges[ConnectingEdge_Main]].nextVertex;
 			nextVert = scratchData->polygonVertices + nextPoint;
 			if (nextVert->point.x <= pos->x)
 				continue;
@@ -61,9 +60,9 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 
 		float t = (pos->x - vert->point.x)/(nextVert->point.x - vert->point.x);
 		float y = dsLerp(vert->point.y, nextVert->point.y, t);
-		if (y < pos->y)
+		if (y > pos->y)
 		{
-			if (y < bottomY)
+			if (y > bottomY)
 				continue;
 
 			bottomPoint = othersLeft ? nextPoint : i;
@@ -73,7 +72,7 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 		}
 		else
 		{
-			if (y > topY)
+			if (y < topY)
 				continue;
 
 			topPoint = othersLeft ? nextPoint : i;
@@ -85,34 +84,65 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 
 	if (topPoint == NOT_FOUND && bottomPoint == NOT_FOUND)
 		return NOT_FOUND;
-	else if (topPoint == NOT_FOUND)
-		return bottomPoint;
-	else if (bottomPoint == NOT_FOUND)
-		return topPoint;
+
+	float minY = topPoint == NOT_FOUND ? scratchData->polygonVertices[vertex].point.y : topY;
+	float maxY = topPoint == NOT_FOUND ? scratchData->polygonVertices[vertex].point.y : bottomY;
 
 	// Choose from top or bottom, whichever is closer on the opposite side of the other points.
+	uint32_t closestPoint = topPoint;
 	if (othersLeft)
 	{
-		if (scratchData->polygonVertices[topPoint].point.x <
-			scratchData->polygonVertices[bottomPoint].point.x)
+		if (topPoint == NOT_FOUND || scratchData->polygonVertices[bottomPoint].point.x <
+			scratchData->polygonVertices[closestPoint].point.x)
 		{
-			return topPoint;
+			closestPoint = bottomPoint;
 		}
-		else
-			return bottomPoint;
+
+		// Search for corners that might be closer.
+		float minX = scratchData->polygonVertices[vertex].point.x;
+		float maxX = scratchData->polygonVertices[closestPoint].point.x;
+		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
+		{
+			if (i == vertex)
+				continue;
+
+			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
+			if (curPoint->x > minX && curPoint->x < maxX && curPoint->y >= minY &&
+				curPoint->y <= maxY)
+			{
+				closestPoint = i;
+				maxX = curPoint->x;
+			}
+		}
 	}
 	else
 	{
-		if (scratchData->polygonVertices[topPoint].point.x >
-			scratchData->polygonVertices[bottomPoint].point.x)
+		if (topPoint == NOT_FOUND || scratchData->polygonVertices[bottomPoint].point.x >
+			scratchData->polygonVertices[closestPoint].point.x)
 		{
-			return topPoint;
+			closestPoint = bottomPoint;
 		}
-		else
-			return bottomPoint;
-	}
-}
 
+		// Search for corners that might be closer.
+		float minX = scratchData->polygonVertices[closestPoint].point.x;
+		float maxX = scratchData->polygonVertices[vertex].point.x;
+		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
+		{
+			if (i == vertex)
+				continue;
+
+			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
+			if (curPoint->x > minX && curPoint->x < maxX && curPoint->y >= minY &&
+				curPoint->y <= maxY)
+			{
+				closestPoint = i;
+				minX = curPoint->x;
+			}
+		}
+	}
+
+	return closestPoint;
+}
 
 static bool isPolygonCCW(dsVectorScratchData* data)
 {
@@ -141,24 +171,21 @@ static bool isTriangleCCW(const dsVector2f* p0, const dsVector2f* p1, const dsVe
 	return cross >= 0.0f;
 }
 
-static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge, bool ccw,
-	uint32_t shapeIndex, uint32_t materialIndex)
+static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge, bool ccw)
 {
+	dsVectorScratchData_clearLoopVertices(scratchData);
 	uint32_t nextEdge = startEdge;
 	do
 	{
 		scratchData->polygonEdges[nextEdge].visited = true;
 		uint32_t curEdge = nextEdge;
 		nextEdge = scratchData->polygonEdges[nextEdge].nextEdge;
-		if (!dsVectorScratchData_addLoopVertex(scratchData, curEdge, shapeIndex, materialIndex))
+		if (!dsVectorScratchData_addLoopVertex(scratchData, curEdge))
 			return false;
 	} while (nextEdge != startEdge);
 
 	if (scratchData->loopVertCount < 3)
-	{
-		dsVectorScratchData_clearLoopVertices(scratchData);
 		return true;
-	}
 
 	// Monotone polygon triangulation: https://www.cs.ucsb.edu/~suri/cs235/Triangulation.pdf
 	dsVectorScratchData_sortLoopVertices(scratchData);
@@ -210,12 +237,12 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 					p2Vert = temp;
 				}
 
-				if (!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[i].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[p1Vert].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[p2Vert].indexValue))
+				if (!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[i].vertIndex].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[p1Vert].vertIndex].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[p2Vert].vertIndex].indexValue))
 				{
 					return false;
 				}
@@ -244,12 +271,12 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 					p2Vert = temp;
 				}
 
-				if (!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[i].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[p1Vert].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData,
-						&scratchData->loopVertices[p2Vert].indexValue))
+				if (!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[i].vertIndex].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[p1Vert].vertIndex].indexValue) ||
+					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
+						scratchData->loopVertices[p2Vert].vertIndex].indexValue))
 				{
 					return false;
 				}
@@ -272,8 +299,7 @@ static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge
 	return true;
 }
 
-static bool triangulate(dsVectorScratchData* scratchData, uint32_t shapeIndex,
-	uint32_t materialIndex)
+static bool triangulate(dsVectorScratchData* scratchData)
 {
 	if (!dsVectorScratchData_addPolygonEdges(scratchData))
 		return false;
@@ -299,10 +325,19 @@ static bool triangulate(dsVectorScratchData* scratchData, uint32_t shapeIndex,
 			continue;
 
 		uint32_t otherPoint = findOtherPoint(scratchData, i, prevLeft);
-		DS_ASSERT(otherPoint != NOT_FOUND);
+		if (otherPoint == NOT_FOUND)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+		}
+
 		if (!dsVectorScratchData_addSeparatingPolygonEdge(scratchData, i, otherPoint, ccw))
 			return false;
 	}
+
+	// Need to reset the visited flags for the edges.
+	for (uint32_t i = 0; i < scratchData->polygonEdgeCount; ++i)
+		scratchData->polygonEdges[i].visited = false;
 
 	// Triangulate each loop.
 	for (uint32_t i = 0; i < scratchData->polygonEdgeCount; ++i)
@@ -310,7 +345,7 @@ static bool triangulate(dsVectorScratchData* scratchData, uint32_t shapeIndex,
 		if (scratchData->polygonEdges[i].visited)
 			continue;
 
-		if (!triangulateLoop(scratchData, i, ccw, shapeIndex, materialIndex))
+		if (!triangulateLoop(scratchData, i, ccw))
 			return false;
 	}
 	return true;
@@ -357,14 +392,15 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 		if (!joinStart || !(scratchData->points[i].type & PointType_End))
 		{
-			if (!dsVectorScratchData_addPolygonVertex(scratchData, i))
+			if (!dsVectorScratchData_addPolygonVertex(scratchData, i, infoIndex, material))
 				return false;
 		}
 
 		if (scratchData->points[i].type & PointType_End)
 		{
-			if (!triangulate(scratchData, infoIndex, material))
+			if (!triangulate(scratchData))
 				return false;
+
 			firstPoint = i + 1;
 			dsVectorScratchData_resetPolygon(scratchData);
 		}
