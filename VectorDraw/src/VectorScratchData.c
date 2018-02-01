@@ -455,7 +455,8 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 {
 	PolygonVertex* fromVert = data->polygonVertices + from;
 	PolygonVertex* toVert = data->polygonVertices + to;
-	bool fromLeft = fromVert->point.x < toVert->point.x;
+	bool fromLeft = fromVert->point.x < toVert->point.x ||
+		(fromVert->point.x == toVert->point.x && fromVert->point.y < toVert->point.y);
 
 	uint32_t fromPrevEdge, fromNextEdge;
 	if (fromLeft)

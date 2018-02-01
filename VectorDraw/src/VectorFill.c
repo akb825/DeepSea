@@ -25,15 +25,23 @@
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
+static bool isLeft(const dsVector2f* point, const dsVector2f* reference)
+{
+	return point->x < reference->x || (point->x == reference->x && point->y < reference->y);
+}
+
+static bool isRight(const dsVector2f* point, const dsVector2f* reference)
+{
+	return point->x > reference->x || (point->x == reference->x && point->y > reference->y);
+}
+
 static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex, bool othersLeft)
 {
 	uint32_t topPoint = NOT_FOUND;
 	float topY = -FLT_MAX;
-	dsVector2f topLeft, topRight;
 
 	uint32_t bottomPoint = NOT_FOUND;
 	float bottomY = FLT_MAX;
-	dsVector2f bottomLeft, bottomRight;
 
 	const dsVector2f* pos = &scratchData->polygonVertices[vertex].point;
 	for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
@@ -44,17 +52,17 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 		// Find an edge that will intersect with this.
 		const PolygonVertex* vert = scratchData->polygonVertices + i;
 		const PolygonVertex* nextVert = NULL;
-		if (vert->point.x >= pos->x)
+		if (isRight(&vert->point, pos))
 			continue;
 
 		uint32_t nextPoint = scratchData->polygonEdges[
 			vert->prevEdges[ConnectingEdge_Main]].prevVertex;
 		nextVert = scratchData->polygonVertices + nextPoint;
-		if (nextVert->point.x <= pos->x)
+		if (nextPoint == vertex || isLeft(&nextVert->point, pos))
 		{
 			nextPoint = scratchData->polygonEdges[vert->nextEdges[ConnectingEdge_Main]].nextVertex;
 			nextVert = scratchData->polygonVertices + nextPoint;
-			if (nextVert->point.x <= pos->x)
+			if (nextPoint == vertex || isLeft(&nextVert->point, pos))
 				continue;
 		}
 
@@ -67,8 +75,6 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 
 			bottomPoint = othersLeft ? nextPoint : i;
 			bottomY = y;
-			bottomLeft = vert->point;
-			bottomRight = nextVert->point;
 		}
 		else
 		{
@@ -77,66 +83,64 @@ static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex
 
 			topPoint = othersLeft ? nextPoint : i;
 			topY = y;
-			topLeft = vert->point;
-			topRight = nextVert->point;
 		}
 	}
 
 	if (topPoint == NOT_FOUND && bottomPoint == NOT_FOUND)
 		return NOT_FOUND;
 
-	float minY = topPoint == NOT_FOUND ? scratchData->polygonVertices[vertex].point.y : topY;
-	float maxY = topPoint == NOT_FOUND ? scratchData->polygonVertices[vertex].point.y : bottomY;
+	float minY = topPoint == NOT_FOUND ? pos->y : topY;
+	float maxY = bottomPoint == NOT_FOUND ? pos->y : bottomY;
 
 	// Choose from top or bottom, whichever is closer on the opposite side of the other points.
 	uint32_t closestPoint = topPoint;
+	const PolygonVertex* bottomVert = scratchData->polygonVertices + bottomPoint;
+	const PolygonVertex* closestVert = scratchData->polygonVertices + closestPoint;
 	if (othersLeft)
 	{
-		if (topPoint == NOT_FOUND || scratchData->polygonVertices[bottomPoint].point.x <
-			scratchData->polygonVertices[closestPoint].point.x)
+		if (bottomPoint != NOT_FOUND && (topPoint == NOT_FOUND ||
+			isLeft(&bottomVert->point, &closestVert->point)))
 		{
 			closestPoint = bottomPoint;
+			closestVert = scratchData->polygonVertices + closestPoint;
 		}
 
 		// Search for corners that might be closer.
-		float minX = scratchData->polygonVertices[vertex].point.x;
-		float maxX = scratchData->polygonVertices[closestPoint].point.x;
 		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
 		{
 			if (i == vertex)
 				continue;
 
 			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
-			if (curPoint->x > minX && curPoint->x < maxX && curPoint->y >= minY &&
-				curPoint->y <= maxY)
+			if (isRight(curPoint, pos) && isLeft(curPoint, &closestVert->point) &&
+				curPoint->y >= minY && curPoint->y <= maxY)
 			{
 				closestPoint = i;
-				maxX = curPoint->x;
+				closestVert = scratchData->polygonVertices + closestPoint;
 			}
 		}
 	}
 	else
 	{
-		if (topPoint == NOT_FOUND || scratchData->polygonVertices[bottomPoint].point.x >
-			scratchData->polygonVertices[closestPoint].point.x)
+		if (bottomPoint != NOT_FOUND && (topPoint == NOT_FOUND ||
+			isRight(&bottomVert->point, &closestVert->point)))
 		{
 			closestPoint = bottomPoint;
+			closestVert = scratchData->polygonVertices + closestPoint;
 		}
 
 		// Search for corners that might be closer.
-		float minX = scratchData->polygonVertices[closestPoint].point.x;
-		float maxX = scratchData->polygonVertices[vertex].point.x;
 		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
 		{
 			if (i == vertex)
 				continue;
 
 			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
-			if (curPoint->x > minX && curPoint->x < maxX && curPoint->y >= minY &&
-				curPoint->y <= maxY)
+			if (isRight(curPoint, &closestVert->point) && isLeft(curPoint, pos) &&
+				curPoint->y >= minY && curPoint->y <= maxY)
 			{
 				closestPoint = i;
-				minX = curPoint->x;
+				closestVert = scratchData->polygonVertices + closestPoint;
 			}
 		}
 	}
