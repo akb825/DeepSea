@@ -750,10 +750,11 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 	uint32_t firstVertex = 0, secondVertex = 1;
 	for (uint32_t i = 0; i < scratchData->pointCount; ++i)
 	{
+		bool end = i == scratchData->pointCount - 1 || scratchData->points[i].type & PointType_End;
 		if (i == firstPoint)
 		{
 			// Single point.
-			if (scratchData->points[i].type & PointType_End)
+			if (end)
 			{
 				firstPoint = i + 1;
 				break;
@@ -814,7 +815,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			}
 		}
 
-		if (scratchData->points[i].type & PointType_End)
+		if (end)
 		{
 			// Either cap or join based on the first point.
 			if (joinStart)

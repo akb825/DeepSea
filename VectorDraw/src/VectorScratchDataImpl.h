@@ -47,8 +47,10 @@ typedef enum PointType
 typedef enum ConnectingEdge
 {
 	ConnectingEdge_Main,
-	ConnectingEdge_Left,
-	ConnectingEdge_Right,
+	ConnectingEdge_LeftTop,
+	ConnectingEdge_LeftBottom,
+	ConnectingEdge_RightTop,
+	ConnectingEdge_RightBottom,
 	ConnectingEdge_Count
 } ConnectingEdge;
 

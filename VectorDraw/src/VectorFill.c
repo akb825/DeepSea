@@ -315,10 +315,10 @@ static bool triangulate(dsVectorScratchData* scratchData)
 		uint32_t prev = i == 0 ? scratchData->polygonVertCount - 1 : i - 1;
 		uint32_t next = i == scratchData->polygonVertCount - 1 ? 0 : i + 1;
 
-		bool prevLeft = scratchData->polygonVertices[prev].point.x <
-			scratchData->polygonVertices[i].point.x;
-		bool nextLeft = scratchData->polygonVertices[next].point.x <
-			scratchData->polygonVertices[i].point.x;
+		bool prevLeft = isLeft(&scratchData->polygonVertices[prev].point,
+			&scratchData->polygonVertices[i].point);
+		bool nextLeft = isLeft(&scratchData->polygonVertices[next].point,
+			&scratchData->polygonVertices[i].point);
 
 		if (prevLeft != nextLeft)
 			continue;
@@ -381,6 +381,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 	bool joinStart = false;
 	for (uint32_t i = 0; i < scratchData->pointCount; ++i)
 	{
+		bool end = i == scratchData->pointCount - 1 || scratchData->points[i].type & PointType_End;
 		dsAlignedBox2_addPoint(curInfo->bounds, scratchData->points[i].point);
 		if (i == firstPoint)
 		{
@@ -394,13 +395,13 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
 		}
 
-		if (!joinStart || !(scratchData->points[i].type & PointType_End))
+		if (!joinStart || !end)
 		{
 			if (!dsVectorScratchData_addPolygonVertex(scratchData, i, infoIndex, material))
 				return false;
 		}
 
-		if (scratchData->points[i].type & PointType_End)
+		if (end)
 		{
 			if (!triangulate(scratchData))
 				return false;

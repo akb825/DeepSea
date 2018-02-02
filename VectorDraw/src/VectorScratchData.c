@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Text/Font.h>
 #include <limits.h>
@@ -113,11 +114,66 @@ static int compareLoopVertex(const void* left, const void* right, void* context)
 	return 0;
 }
 
-static bool isTriangleCCW(const dsVector2f* p0, const dsVector2f* p1, const dsVector2f* p2)
+static float edgeAngle(const dsVectorScratchData* data, uint32_t edge,
+	const dsVector2f* referenceDir, bool flip, bool ccw)
 {
-	// Cross product of the triangle with Z = 0.
-	float cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
-	return cross >= 0.0f;
+	const PolygonEdge* polyEdge = data->polygonEdges + edge;
+	dsVector2f edgeDir;
+	dsVector2_sub(edgeDir, data->polygonVertices[polyEdge->nextVertex].point,
+		data->polygonVertices[polyEdge->prevVertex].point);
+	if (flip)
+		dsVector2_neg(edgeDir, edgeDir);
+	dsVector2f_normalize(&edgeDir, &edgeDir);
+
+	float cosAngle = dsVector2_dot(edgeDir, *referenceDir);
+	float angle = acosf(dsClamp(cosAngle, -1.0f, 1.0f));
+	if ((referenceDir->x*edgeDir.y - edgeDir.x*referenceDir->y >= 0.0f) == ccw)
+		angle = 2.0f*(float)M_PI - angle;
+	return angle;
+}
+
+static uint32_t findPrevEdge(const dsVectorScratchData* data, const PolygonVertex* vertex,
+	const dsVector2f* referenceDir, bool ccw)
+{
+	uint32_t closestEdge = vertex->prevEdges[ConnectingEdge_Main];
+	float closestAngle = edgeAngle(data, closestEdge, referenceDir, true, !ccw);
+	for (int i = 1; i < ConnectingEdge_Count; ++i)
+	{
+		uint32_t edge = vertex->prevEdges[i];
+		if (edge == NOT_FOUND)
+			continue;
+
+		float angle = edgeAngle(data, edge, referenceDir, true, !ccw);
+		if (angle < closestAngle)
+		{
+			closestEdge = edge;
+			closestAngle = angle;
+		}
+	}
+
+	return closestEdge;
+}
+
+static uint32_t findNextEdge(const dsVectorScratchData* data, const PolygonVertex* vertex,
+	const dsVector2f* referenceDir, bool ccw)
+{
+	uint32_t closestEdge = vertex->nextEdges[ConnectingEdge_Main];
+	float closestAngle = edgeAngle(data, closestEdge, referenceDir, false, ccw);
+	for (int i = 1; i < ConnectingEdge_Count; ++i)
+	{
+		uint32_t edge = vertex->nextEdges[i];
+		if (edge == NOT_FOUND)
+			continue;
+
+		float angle = edgeAngle(data, edge, referenceDir, false, ccw);
+		if (angle < closestAngle)
+		{
+			closestEdge = edge;
+			closestAngle = angle;
+		}
+	}
+
+	return closestEdge;
 }
 
 dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
@@ -457,144 +513,68 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	PolygonVertex* toVert = data->polygonVertices + to;
 	bool fromLeft = fromVert->point.x < toVert->point.x ||
 		(fromVert->point.x == toVert->point.x && fromVert->point.y < toVert->point.y);
+	bool fromTop = fromVert->point.y < toVert->point.y ||
+		(fromVert->point.y == toVert->point.y && fromVert->point.x < toVert->point.x);
 
-	uint32_t fromPrevEdge, fromNextEdge;
+	dsVector2f edgeDir;
+	dsVector2_sub(edgeDir, toVert->point, fromVert->point);
+	dsVector2f_normalize(&edgeDir, &edgeDir);
+
+	ConnectingEdge fromLeftEdge, fromRightEdge, toLeftEdge, toRightEdge;
+	if (fromTop)
+	{
+		fromLeftEdge = ConnectingEdge_LeftBottom;
+		fromRightEdge = ConnectingEdge_RightBottom;
+		toLeftEdge = ConnectingEdge_LeftTop;
+		toRightEdge = ConnectingEdge_RightTop;
+	}
+	else
+	{
+		fromLeftEdge = ConnectingEdge_LeftTop;
+		fromRightEdge = ConnectingEdge_RightTop;
+		toLeftEdge = ConnectingEdge_LeftBottom;
+		toRightEdge = ConnectingEdge_RightBottom;
+	}
+
 	if (fromLeft)
 	{
 		// Connect to the right.
-		if (fromVert->prevEdges[ConnectingEdge_Right] != NOT_FOUND ||
-			fromVert->nextEdges[ConnectingEdge_Right] != NOT_FOUND)
+		if (fromVert->prevEdges[fromRightEdge] != NOT_FOUND ||
+			fromVert->nextEdges[fromRightEdge] != NOT_FOUND ||
+			toVert->prevEdges[toLeftEdge] != NOT_FOUND ||
+			toVert->nextEdges[toLeftEdge] != NOT_FOUND)
 		{
-			if (fromVert->prevEdges[ConnectingEdge_Right] == toVert->nextEdges[ConnectingEdge_Left])
+			if (fromVert->prevEdges[fromRightEdge] == toVert->nextEdges[toLeftEdge])
 				return true;
 
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
 			return false;
 		}
-
-		if (fromVert->prevEdges[ConnectingEdge_Left] == NOT_FOUND)
-		{
-			fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
-			fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
-		}
-		else
-		{
-			const PolygonVertex* fromNextLeftVert = data->polygonVertices +
-				data->polygonEdges[fromVert->nextEdges[ConnectingEdge_Left]].nextVertex;
-			if (isTriangleCCW(&fromVert->point, &toVert->point, &fromNextLeftVert->point) == ccw)
-			{
-				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Left];
-				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
-			}
-			else
-			{
-				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
-				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Left];
-			}
-		}
 	}
 	else
 	{
 		// Connect to the left.
-		if (fromVert->prevEdges[ConnectingEdge_Left] != NOT_FOUND ||
-			fromVert->nextEdges[ConnectingEdge_Left] != NOT_FOUND)
+		if (fromVert->prevEdges[fromLeftEdge] != NOT_FOUND ||
+			fromVert->nextEdges[fromLeftEdge] != NOT_FOUND ||
+			toVert->prevEdges[toRightEdge] != NOT_FOUND ||
+			toVert->nextEdges[toRightEdge] != NOT_FOUND)
 		{
-			if (fromVert->prevEdges[ConnectingEdge_Left] == toVert->nextEdges[ConnectingEdge_Right])
+			if (fromVert->prevEdges[fromLeftEdge] == toVert->nextEdges[toRightEdge])
 				return true;
 
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
 			return false;
 		}
-
-		if (fromVert->prevEdges[ConnectingEdge_Right] == NOT_FOUND)
-		{
-			fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
-			fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
-		}
-		else
-		{
-			const PolygonVertex* fromNextRightVert = data->polygonVertices +
-				data->polygonEdges[fromVert->nextEdges[ConnectingEdge_Right]].nextVertex;
-			if (isTriangleCCW(&fromVert->point, &fromNextRightVert->point, &toVert->point) == ccw)
-			{
-				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Main];
-				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Right];
-			}
-			else
-			{
-				fromPrevEdge = fromVert->prevEdges[ConnectingEdge_Right];
-				fromNextEdge = fromVert->nextEdges[ConnectingEdge_Main];
-			}
-		}
 	}
 
-	uint32_t toPrevEdge, toNextEdge;
-	if (fromLeft)
-	{
-		// Connect to the left.
-		if (toVert->prevEdges[ConnectingEdge_Left] != NOT_FOUND ||
-			toVert->nextEdges[ConnectingEdge_Left] != NOT_FOUND)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
-			return false;
-		}
+	uint32_t fromPrevEdge = findPrevEdge(data, fromVert, &edgeDir, ccw);
+	uint32_t fromNextEdge = findNextEdge(data, fromVert, &edgeDir, ccw);
 
-		if (toVert->prevEdges[ConnectingEdge_Right] == NOT_FOUND)
-		{
-			toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
-			toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
-		}
-		else
-		{
-			const PolygonVertex* toNextRightVert = data->polygonVertices +
-				data->polygonEdges[toVert->nextEdges[ConnectingEdge_Right]].nextVertex;
-			if (isTriangleCCW(&toVert->point, &toNextRightVert->point, &fromVert->point) == ccw)
-			{
-				toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
-				toNextEdge = toVert->nextEdges[ConnectingEdge_Right];
-			}
-			else
-			{
-				toPrevEdge = toVert->prevEdges[ConnectingEdge_Right];
-				toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
-			}
-		}
-	}
-	else
-	{
-		// Connect to the right.
-		if (toVert->prevEdges[ConnectingEdge_Right] != NOT_FOUND ||
-			toVert->nextEdges[ConnectingEdge_Right] != NOT_FOUND)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
-			return false;
-		}
-
-		if (toVert->prevEdges[ConnectingEdge_Left] == NOT_FOUND)
-		{
-			toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
-			toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
-		}
-		else
-		{
-			const PolygonVertex* toNextLeftVert = data->polygonVertices +
-				data->polygonEdges[toVert->nextEdges[ConnectingEdge_Left]].nextVertex;
-			if (isTriangleCCW(&toVert->point, &fromVert->point, &toNextLeftVert->point) == ccw)
-			{
-				toPrevEdge = toVert->prevEdges[ConnectingEdge_Left];
-				toNextEdge = toVert->nextEdges[ConnectingEdge_Main];
-			}
-			else
-			{
-				toPrevEdge = toVert->prevEdges[ConnectingEdge_Main];
-				toNextEdge = toVert->nextEdges[ConnectingEdge_Left];
-			}
-		}
-	}
+	dsVector2_neg(edgeDir, edgeDir);
+	uint32_t toPrevEdge = findPrevEdge(data, toVert, &edgeDir, ccw);
+	uint32_t toNextEdge = findNextEdge(data, toVert, &edgeDir, ccw);
 
 	// Insert two new edge in-between the edges for the "from" and "to" vertices, one for the left
 	// and right sub-polygons.
@@ -614,13 +594,13 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	data->polygonEdges[toNextEdge].prevEdge = curEdge;
 	if (fromLeft)
 	{
-		fromVert->nextEdges[ConnectingEdge_Right] = curEdge;
-		toVert->prevEdges[ConnectingEdge_Left] = curEdge;
+		fromVert->nextEdges[fromRightEdge] = curEdge;
+		toVert->prevEdges[toLeftEdge] = curEdge;
 	}
 	else
 	{
-		fromVert->nextEdges[ConnectingEdge_Left] = curEdge;
-		toVert->prevEdges[ConnectingEdge_Right] = curEdge;
+		fromVert->nextEdges[fromLeftEdge] = curEdge;
+		toVert->prevEdges[toRightEdge] = curEdge;
 	}
 
 	curEdge = data->polygonEdgeCount;
@@ -639,13 +619,13 @@ bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uin
 	data->polygonEdges[fromNextEdge].prevEdge = curEdge;
 	if (fromLeft)
 	{
-		fromVert->prevEdges[ConnectingEdge_Right] = curEdge;
-		toVert->nextEdges[ConnectingEdge_Left] = curEdge;
+		fromVert->prevEdges[fromRightEdge] = curEdge;
+		toVert->nextEdges[toLeftEdge] = curEdge;
 	}
 	else
 	{
-		fromVert->prevEdges[ConnectingEdge_Left] = curEdge;
-		toVert->nextEdges[ConnectingEdge_Right] = curEdge;
+		fromVert->prevEdges[fromLeftEdge] = curEdge;
+		toVert->nextEdges[toRightEdge] = curEdge;
 	}
 
 	return true;
