@@ -281,7 +281,7 @@ bool dsSDLWindow_getPixelSize(uint32_t* outWidth, uint32_t* outHeight,
 bool dsSDLWindow_setStyle(dsApplication* application, dsWindow* window, dsWindowStyle style)
 {
 	DS_UNUSED(application);
-	Uint32 flags;
+	Uint32 flags = 0;
 	switch (style)
 	{
 		case dsWindowStyle_Normal:
@@ -293,7 +293,6 @@ bool dsSDLWindow_setStyle(dsApplication* application, dsWindow* window, dsWindow
 		case dsWindowStyle_FullScreenBorderless:
 			flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
 			break;
-
 	}
 
 	if (SDL_SetWindowFullscreen(((dsSDLWindow*)window)->sdlWindow, flags) != 0)

@@ -285,16 +285,19 @@ static uint32_t addEdgeBVHNode(dsVectorScratchData* data, uint32_t firstEdge, ui
 	}
 
 	// Recursively add the nodes.
-	// Can't use previously cached pointer, since buffer might be re-allocated.
 	uint32_t middle = edgeCount/2;
-	data->polygonEdgeBVH[node].leftNode = addEdgeBVHNode(data, firstEdge, middle);
-	if (data->polygonEdgeBVH[node].leftNode == NOT_FOUND)
+	uint32_t leftNode = addEdgeBVHNode(data, firstEdge, middle);
+	if (leftNode == NOT_FOUND)
 		return NOT_FOUND;
-	data->polygonEdgeBVH[node].rightNode = addEdgeBVHNode(data, firstEdge + middle,
-		edgeCount - middle);
-	if (data->polygonEdgeBVH[node].rightNode == NOT_FOUND)
+	uint32_t rightNode = addEdgeBVHNode(data, firstEdge + middle, edgeCount - middle);
+	if (rightNode == NOT_FOUND)
 		return NOT_FOUND;
-	data->polygonEdgeBVH[node].edgeIndex = NOT_FOUND;
+
+	// Reset pointer due to possible re-allocations of the array.
+	bvhNode = data->polygonEdgeBVH + node;
+	bvhNode->leftNode = leftNode;
+	bvhNode->rightNode = rightNode;
+	bvhNode->edgeIndex = NOT_FOUND;
 	return node;
 }
 

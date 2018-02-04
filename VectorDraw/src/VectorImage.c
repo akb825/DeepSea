@@ -216,10 +216,10 @@ static bool addBezierRec(dsVectorScratchData* scratchData, const dsVector2f* sta
 	dsMatrix44_transform(rightX, rightBezierMatrix, bezierX);
 	dsMatrix44_transform(rightY, rightBezierMatrix, bezierY);
 	{
-		dsVector2f nextStart = {{leftX.x, leftY.x}};
-		dsVector2f nextControl1 = {{leftX.y, leftY.y}};
-		dsVector2f nextControl2 = {{leftX.z, leftY.z}};
-		dsVector2f nextEnd = {{leftX.w, leftY.w}};
+		dsVector2f nextStart = {{rightX.x, rightY.x}};
+		dsVector2f nextControl1 = {{rightX.y, rightY.y}};
+		dsVector2f nextControl2 = {{rightX.z, rightY.z}};
+		dsVector2f nextEnd = {{rightX.w, rightY.w}};
 		if (level < maxLevels && !isBezierStraight(&rightX, &rightY, pixelSize))
 		{
 			if (!addBezierRec(scratchData, &nextStart, &nextControl1, &nextControl2, &nextEnd,
@@ -332,6 +332,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 static bool processCommand(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
 	uint32_t commandCount, uint32_t* curCommand, dsVectorMaterialSet* materials, float pixelSize)
 {
+	DS_UNUSED(commandCount);
 	DS_ASSERT(*curCommand < commandCount);
 	switch (commands[*curCommand].commandType)
 	{
@@ -397,7 +398,7 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 
 			dsVector2_sub(temp, quadratic->control, quadratic->end);
 			dsVector2_scale(temp, temp, controlT);
-			dsVector2_add(control1, quadratic->end, temp);
+			dsVector2_add(control2, quadratic->end, temp);
 			if (!addBezier(scratchData, &control1, &control2, &quadratic->end, pixelSize))
 				return false;
 
@@ -712,7 +713,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 
 	uint32_t infoTextureCount = (scratchData->vectorInfoCount + INFOS_PER_TEXTURE - 1)/
 		INFOS_PER_TEXTURE;
-	uint32_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVectorImage)) +
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVectorImage)) +
 		DS_ALIGNED_SIZE(sizeof(dsVectorImagePiece)*scratchData->pieceCount) +
 		DS_ALIGNED_SIZE(sizeof(dsTexture*)*infoTextureCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);

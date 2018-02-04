@@ -455,6 +455,7 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 	}
 
 	bool firstDestroyed = true;
+	DS_UNUSED(firstDestroyed);
 	if (resources->textureTable)
 	{
 		for (dsTextureNode* node = (dsTextureNode*)resources->textureTable->list.head;
