@@ -21,7 +21,7 @@
 #include <search.h>
 #endif
 
-#if DS_APPLE || DS_BSD
+#if DS_APPLE || DS_BSD || DS_WINDOWS
 typedef struct ContextWrapper
 {
 	dsSortCompareFunction func;
@@ -39,10 +39,11 @@ void dsSort(void* array, size_t memberCount, size_t memberSize, dsSortCompareFun
 	void* context)
 {
 #if DS_WINDOWS
-	qsort_s(array, memberCount, memberSize, compareFunc, context);
+	ContextWrapper wrapper = {compareFunc, context};
+	qsort_s(array, memberCount, memberSize, &sortWrapper, &wrapper);
 #elif DS_APPLE
 	ContextWrapper wrapper = {compareFunc, context};
-	qsort_r(array, memberCount, memberSize, context, &sortWrapper);
+	qsort_r(array, memberCount, memberSize, &wrapper, &sortWrapper);
 #else
 	qsort_r(array, memberCount, memberSize, compareFunc, context);
 #endif

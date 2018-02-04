@@ -201,8 +201,8 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 	node->material = *material;
 	node->owned = ownGradient;
 	node->dirtyType = DirtyType_All;
-	node->index = (uint32_t)((uint8_t*)node - (uint8_t*)materials->materialPool.buffer)/
-		materials->materialPool.chunkCount;
+	node->index = (uint32_t)(((uint8_t*)node - (uint8_t*)materials->materialPool.buffer)/
+		materials->materialPool.chunkCount);
 	DS_VERIFY(dsHashTable_insert(materials->materialTable, node->name, (dsHashTableNode*)node,
 		NULL));
 	return true;
