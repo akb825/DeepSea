@@ -120,8 +120,16 @@ typedef struct PolygonEdge
 	uint32_t nextVertex;
 	uint32_t prevEdge;
 	uint32_t nextEdge;
-	uint32_t visited;
+	bool visited;
 } PolygonEdge;
+
+typedef struct PolygonEdgeBVHNode
+{
+	dsAlignedBox2f bounds;
+	uint32_t edgeIndex;
+	uint32_t leftNode;
+	uint32_t rightNode;
+} PolygonEdgeBVHNode;
 
 typedef struct LoopVertex
 {
@@ -203,6 +211,15 @@ struct dsVectorScratchData
 	uint32_t polygonEdgeCount;
 	uint32_t maxPolygonEdges;
 
+	uint32_t* sortedPolygonVerts;
+	uint32_t* sortedPolygonEdges;
+	uint32_t maxSortedPolygonVerts;
+	uint32_t maxSortedPolygonEdges;
+
+	PolygonEdgeBVHNode* polygonEdgeBVH;
+	uint32_t polygonEdgeBVHCount;
+	uint32_t maxPolygonEdgeBVH;
+
 	LoopVertex* loopVertices;
 	uint32_t loopVertCount;
 	uint32_t maxLoopVerts;
@@ -235,6 +252,8 @@ TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMa
 bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex,
 	uint32_t shapeIndex, uint32_t materialIndex);
 bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data);
+bool dsVectorScratchData_canConnectPolygonEdge(const dsVectorScratchData* data, uint32_t fromVert,
+	uint32_t toVert);
 bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
 	uint32_t to, bool ccw);
 void dsVectorScratchData_resetPolygon(dsVectorScratchData* data);

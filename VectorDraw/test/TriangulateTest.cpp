@@ -2397,20 +2397,20 @@ TEST_F(TriangulateTest, HoleCW)
 	EXPECT_EQ(3.0f, vertices[11].position.y);
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 12*sizeof(ShapeVertex));
-	EXPECT_EQ(11U, indices[0]);
-	EXPECT_EQ(10U, indices[1]);
+	EXPECT_EQ(10U, indices[0]);
+	EXPECT_EQ(3U, indices[1]);
 	EXPECT_EQ(2U, indices[2]);
 
-	EXPECT_EQ(0U, indices[3]);
-	EXPECT_EQ(11U, indices[4]);
+	EXPECT_EQ(11U, indices[3]);
+	EXPECT_EQ(10U, indices[4]);
 	EXPECT_EQ(2U, indices[5]);
 
-	EXPECT_EQ(1U, indices[6]);
-	EXPECT_EQ(0U, indices[7]);
+	EXPECT_EQ(0U, indices[6]);
+	EXPECT_EQ(11U, indices[7]);
 	EXPECT_EQ(2U, indices[8]);
 
-	EXPECT_EQ(10U, indices[9]);
-	EXPECT_EQ(3U, indices[10]);
+	EXPECT_EQ(1U, indices[9]);
+	EXPECT_EQ(0U, indices[10]);
 	EXPECT_EQ(2U, indices[11]);
 
 	EXPECT_EQ(9U, indices[12]);
@@ -2418,23 +2418,23 @@ TEST_F(TriangulateTest, HoleCW)
 	EXPECT_EQ(10U, indices[14]);
 
 	EXPECT_EQ(4U, indices[15]);
-	EXPECT_EQ(9U, indices[16]);
-	EXPECT_EQ(8U, indices[17]);
+	EXPECT_EQ(3U, indices[16]);
+	EXPECT_EQ(9U, indices[17]);
 
 	EXPECT_EQ(4U, indices[18]);
-	EXPECT_EQ(3U, indices[19]);
-	EXPECT_EQ(9U, indices[20]);
+	EXPECT_EQ(9U, indices[19]);
+	EXPECT_EQ(8U, indices[20]);
 
-	EXPECT_EQ(8U, indices[21]);
-	EXPECT_EQ(7U, indices[22]);
-	EXPECT_EQ(6U, indices[23]);
+	EXPECT_EQ(5U, indices[21]);
+	EXPECT_EQ(4U, indices[22]);
+	EXPECT_EQ(8U, indices[23]);
 
-	EXPECT_EQ(4U, indices[24]);
-	EXPECT_EQ(8U, indices[25]);
+	EXPECT_EQ(8U, indices[24]);
+	EXPECT_EQ(7U, indices[25]);
 	EXPECT_EQ(6U, indices[26]);
 
 	EXPECT_EQ(5U, indices[27]);
-	EXPECT_EQ(4U, indices[28]);
+	EXPECT_EQ(8U, indices[28]);
 	EXPECT_EQ(6U, indices[29]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
@@ -2537,20 +2537,20 @@ TEST_F(TriangulateTest, HoleCCW)
 	EXPECT_EQ(5.0f, vertices[11].position.y);
 
 	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 12*sizeof(ShapeVertex));
-	EXPECT_EQ(1U, indices[0]);
-	EXPECT_EQ(2U, indices[1]);
+	EXPECT_EQ(2U, indices[0]);
+	EXPECT_EQ(9U, indices[1]);
 	EXPECT_EQ(10U, indices[2]);
 
-	EXPECT_EQ(0U, indices[3]);
-	EXPECT_EQ(1U, indices[4]);
+	EXPECT_EQ(1U, indices[3]);
+	EXPECT_EQ(2U, indices[4]);
 	EXPECT_EQ(10U, indices[5]);
 
-	EXPECT_EQ(11U, indices[6]);
-	EXPECT_EQ(0U, indices[7]);
+	EXPECT_EQ(0U, indices[6]);
+	EXPECT_EQ(1U, indices[7]);
 	EXPECT_EQ(10U, indices[8]);
 
-	EXPECT_EQ(2U, indices[9]);
-	EXPECT_EQ(9U, indices[10]);
+	EXPECT_EQ(11U, indices[9]);
+	EXPECT_EQ(0U, indices[10]);
 	EXPECT_EQ(10U, indices[11]);
 
 	EXPECT_EQ(3U, indices[12]);
@@ -2558,23 +2558,23 @@ TEST_F(TriangulateTest, HoleCCW)
 	EXPECT_EQ(2U, indices[14]);
 
 	EXPECT_EQ(8U, indices[15]);
-	EXPECT_EQ(3U, indices[16]);
-	EXPECT_EQ(4U, indices[17]);
+	EXPECT_EQ(9U, indices[16]);
+	EXPECT_EQ(3U, indices[17]);
 
 	EXPECT_EQ(8U, indices[18]);
-	EXPECT_EQ(9U, indices[19]);
-	EXPECT_EQ(3U, indices[20]);
+	EXPECT_EQ(3U, indices[19]);
+	EXPECT_EQ(4U, indices[20]);
 
-	EXPECT_EQ(4U, indices[21]);
-	EXPECT_EQ(5U, indices[22]);
-	EXPECT_EQ(6U, indices[23]);
+	EXPECT_EQ(7U, indices[21]);
+	EXPECT_EQ(8U, indices[22]);
+	EXPECT_EQ(4U, indices[23]);
 
-	EXPECT_EQ(8U, indices[24]);
-	EXPECT_EQ(4U, indices[25]);
+	EXPECT_EQ(4U, indices[24]);
+	EXPECT_EQ(5U, indices[25]);
 	EXPECT_EQ(6U, indices[26]);
 
 	EXPECT_EQ(7U, indices[27]);
-	EXPECT_EQ(8U, indices[28]);
+	EXPECT_EQ(4U, indices[28]);
 	EXPECT_EQ(6U, indices[29]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
@@ -2634,6 +2634,241 @@ TEST_F(TriangulateTest, TriangleNoClose)
 	EXPECT_EQ(2U, indices[0]);
 	EXPECT_EQ(0U, indices[1]);
 	EXPECT_EQ(1U, indices[2]);
+
+	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
+
+	EXPECT_TRUE(dsVectorImage_destroy(image));
+	dsVectorScratchData_destroy(scratchData);
+}
+
+TEST_F(TriangulateTest, ClosePointOutside)
+{
+	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
+		resourceManager, NULL, 1);
+	dsVectorMaterial material;
+	dsColor color = {{255, 255, 255, 255}};
+	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
+	ASSERT_TRUE(dsVectorMaterialSet_addMaterial(materialSet, "fill", &material, true));
+
+	dsVectorScratchData* scratchData = dsVectorScratchData_create((dsAllocator*)&allocator);
+	dsVectorCommand commands[13];
+	commands[0].commandType = dsVectorCommandType_StartPath;
+	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[1].commandType = dsVectorCommandType_Move;
+	commands[1].move.position.x = 0.0f;
+	commands[1].move.position.y = 0.0f;
+	commands[2].commandType = dsVectorCommandType_Line;
+	commands[2].line.end.x = 10.0f;
+	commands[2].line.end.y = 0.0f;
+	commands[3].commandType = dsVectorCommandType_Line;
+	commands[3].line.end.x = 10.0f;
+	commands[3].line.end.y = 5.0f;
+	commands[4].commandType = dsVectorCommandType_Line;
+	commands[4].line.end.x = 5.0f;
+	commands[4].line.end.y = 2.0f;
+	commands[5].commandType = dsVectorCommandType_Line;
+	commands[5].line.end.x = 5.0f;
+	commands[5].line.end.y = 5.0f;
+	commands[6].commandType = dsVectorCommandType_Line;
+	commands[6].line.end.x = 3.0f;
+	commands[6].line.end.y = 2.0f;
+	commands[7].commandType = dsVectorCommandType_Line;
+	commands[7].line.end.x = 6.0f;
+	commands[7].line.end.y = 10.0f;
+	commands[8].commandType = dsVectorCommandType_Line;
+	commands[8].line.end.x = 0.0f;
+	commands[8].line.end.y = 10.0f;
+	commands[9].commandType = dsVectorCommandType_Line;
+	commands[9].line.end.x = 4.0f;
+	commands[9].line.end.y = 9.0f;
+	commands[10].commandType = dsVectorCommandType_Line;
+	commands[10].line.end.x = 0.0f;
+	commands[10].line.end.y = 8.0f;
+	commands[11].commandType = dsVectorCommandType_ClosePath;
+	commands[12].commandType = dsVectorCommandType_FillPath;
+	commands[12].fillPath.material = "fill";
+	commands[12].fillPath.opacity = 1.0f;
+
+	dsVector2f size = {{10.0f, 10.0f}};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		NULL, &size, 0.1f);
+	ASSERT_TRUE(image);
+
+	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
+	ASSERT_TRUE(buffer);
+	ASSERT_EQ(sizeof(ShapeVertex)*10 + sizeof(uint16_t)*24, buffer->size);
+
+	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
+	ASSERT_TRUE(data);
+
+	const ShapeVertex* vertices = (const ShapeVertex*)data;
+	EXPECT_EQ(0.0f, vertices[0].position.x);
+	EXPECT_EQ(0.0f, vertices[0].position.y);
+	EXPECT_EQ(10.0f, vertices[1].position.x);
+	EXPECT_EQ(0.0f, vertices[1].position.y);
+	EXPECT_EQ(10.0f, vertices[2].position.x);
+	EXPECT_EQ(5.0f, vertices[2].position.y);
+	EXPECT_EQ(5.0f, vertices[3].position.x);
+	EXPECT_EQ(2.0f, vertices[3].position.y);
+	EXPECT_EQ(5.0f, vertices[4].position.x);
+	EXPECT_EQ(5.0f, vertices[4].position.y);
+	EXPECT_EQ(3.0f, vertices[5].position.x);
+	EXPECT_EQ(2.0f, vertices[5].position.y);
+	EXPECT_EQ(6.0f, vertices[6].position.x);
+	EXPECT_EQ(10.0f, vertices[6].position.y);
+	EXPECT_EQ(0.0f, vertices[7].position.x);
+	EXPECT_EQ(10.0f, vertices[7].position.y);
+	EXPECT_EQ(4.0f, vertices[8].position.x);
+	EXPECT_EQ(9.0f, vertices[8].position.y);
+	EXPECT_EQ(0.0f, vertices[9].position.x);
+	EXPECT_EQ(8.0f, vertices[9].position.y);
+
+	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 10*sizeof(ShapeVertex));
+	EXPECT_EQ(5U, indices[0]);
+	EXPECT_EQ(0U, indices[1]);
+	EXPECT_EQ(9U, indices[2]);
+
+	EXPECT_EQ(3U, indices[3]);
+	EXPECT_EQ(0U, indices[4]);
+	EXPECT_EQ(5U, indices[5]);
+
+	EXPECT_EQ(1U, indices[6]);
+	EXPECT_EQ(0U, indices[7]);
+	EXPECT_EQ(3U, indices[8]);
+
+	EXPECT_EQ(2U, indices[9]);
+	EXPECT_EQ(1U, indices[10]);
+	EXPECT_EQ(3U, indices[11]);
+
+	EXPECT_EQ(4U, indices[12]);
+	EXPECT_EQ(3U, indices[13]);
+	EXPECT_EQ(5U, indices[14]);
+
+	EXPECT_EQ(8U, indices[15]);
+	EXPECT_EQ(5U, indices[16]);
+	EXPECT_EQ(9U, indices[17]);
+
+	EXPECT_EQ(6U, indices[18]);
+	EXPECT_EQ(5U, indices[19]);
+	EXPECT_EQ(8U, indices[20]);
+
+	EXPECT_EQ(6U, indices[21]);
+	EXPECT_EQ(8U, indices[22]);
+	EXPECT_EQ(7U, indices[23]);
+
+	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
+
+	EXPECT_TRUE(dsVectorImage_destroy(image));
+	dsVectorScratchData_destroy(scratchData);
+}
+
+TEST_F(TriangulateTest, ClosePointInside)
+{
+	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
+		resourceManager, NULL, 1);
+	dsVectorMaterial material;
+	dsColor color = {{255, 255, 255, 255}};
+	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
+	ASSERT_TRUE(dsVectorMaterialSet_addMaterial(materialSet, "fill", &material, true));
+
+	dsVectorScratchData* scratchData = dsVectorScratchData_create((dsAllocator*)&allocator);
+	dsVectorCommand commands[12];
+	commands[0].commandType = dsVectorCommandType_StartPath;
+	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[1].commandType = dsVectorCommandType_Move;
+	commands[1].move.position.x = 0.0f;
+	commands[1].move.position.y = 0.0f;
+	commands[2].commandType = dsVectorCommandType_Line;
+	commands[2].line.end.x = 2.0f;
+	commands[2].line.end.y = 6.0f;
+	commands[3].commandType = dsVectorCommandType_Line;
+	commands[3].line.end.x = 0.0f;
+	commands[3].line.end.y = 6.0f;
+	commands[4].commandType = dsVectorCommandType_Line;
+	commands[4].line.end.x = 0.0f;
+	commands[4].line.end.y = 10.0f;
+	commands[5].commandType = dsVectorCommandType_Line;
+	commands[5].line.end.x = 1.0f;
+	commands[5].line.end.y = 7.0f;
+	commands[6].commandType = dsVectorCommandType_Line;
+	commands[6].line.end.x = 10.0f;
+	commands[6].line.end.y = 10.0f;
+	commands[7].commandType = dsVectorCommandType_Line;
+	commands[7].line.end.x = 10.0f;
+	commands[7].line.end.y = 8.0f;
+	commands[8].commandType = dsVectorCommandType_Line;
+	commands[8].line.end.x = 5.0f;
+	commands[8].line.end.y = 8.0f;
+	commands[9].commandType = dsVectorCommandType_Line;
+	commands[9].line.end.x = 10.0f;
+	commands[9].line.end.y = 0.0f;
+	commands[10].commandType = dsVectorCommandType_ClosePath;
+	commands[11].commandType = dsVectorCommandType_FillPath;
+	commands[11].fillPath.material = "fill";
+	commands[11].fillPath.opacity = 1.0f;
+
+	dsVector2f size = {{10.0f, 10.0f}};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		NULL, &size, 0.1f);
+	ASSERT_TRUE(image);
+
+	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
+	ASSERT_TRUE(buffer);
+	ASSERT_EQ(sizeof(ShapeVertex)*9 + sizeof(uint16_t)*21, buffer->size);
+
+	const void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, buffer->size);
+	ASSERT_TRUE(data);
+
+	const ShapeVertex* vertices = (const ShapeVertex*)data;
+	EXPECT_EQ(0.0f, vertices[0].position.x);
+	EXPECT_EQ(0.0f, vertices[0].position.y);
+	EXPECT_EQ(2.0f, vertices[1].position.x);
+	EXPECT_EQ(6.0f, vertices[1].position.y);
+	EXPECT_EQ(0.0f, vertices[2].position.x);
+	EXPECT_EQ(6.0f, vertices[2].position.y);
+	EXPECT_EQ(0.0f, vertices[3].position.x);
+	EXPECT_EQ(10.0f, vertices[3].position.y);
+	EXPECT_EQ(1.0f, vertices[4].position.x);
+	EXPECT_EQ(7.0f, vertices[4].position.y);
+	EXPECT_EQ(10.0f, vertices[5].position.x);
+	EXPECT_EQ(10.0f, vertices[5].position.y);
+	EXPECT_EQ(10.0f, vertices[6].position.x);
+	EXPECT_EQ(8.0f, vertices[6].position.y);
+	EXPECT_EQ(5.0f, vertices[7].position.x);
+	EXPECT_EQ(8.0f, vertices[7].position.y);
+	EXPECT_EQ(10.0f, vertices[8].position.x);
+	EXPECT_EQ(0.0f, vertices[8].position.y);
+
+	const uint16_t* indices = (const uint16_t*)((const uint8_t*)data + 9*sizeof(ShapeVertex));
+	EXPECT_EQ(7U, indices[0]);
+	EXPECT_EQ(0U, indices[1]);
+	EXPECT_EQ(1U, indices[2]);
+
+	EXPECT_EQ(8U, indices[3]);
+	EXPECT_EQ(0U, indices[4]);
+	EXPECT_EQ(7U, indices[5]);
+
+	EXPECT_EQ(4U, indices[6]);
+	EXPECT_EQ(2U, indices[7]);
+	EXPECT_EQ(3U, indices[8]);
+
+	EXPECT_EQ(1U, indices[9]);
+	EXPECT_EQ(2U, indices[10]);
+	EXPECT_EQ(4U, indices[11]);
+
+	EXPECT_EQ(7U, indices[12]);
+	EXPECT_EQ(1U, indices[13]);
+	EXPECT_EQ(4U, indices[14]);
+
+	EXPECT_EQ(5U, indices[15]);
+	EXPECT_EQ(6U, indices[16]);
+	EXPECT_EQ(7U, indices[17]);
+
+	EXPECT_EQ(5U, indices[18]);
+	EXPECT_EQ(7U, indices[19]);
+	EXPECT_EQ(4U, indices[20]);
 
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 

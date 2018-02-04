@@ -30,122 +30,29 @@ static bool isLeft(const dsVector2f* point, const dsVector2f* reference)
 	return point->x < reference->x || (point->x == reference->x && point->y < reference->y);
 }
 
-static bool isRight(const dsVector2f* point, const dsVector2f* reference)
+static uint32_t findOtherPoint(const dsVectorScratchData* scratchData, const uint32_t* sortedVert,
+	bool othersLeft)
 {
-	return point->x > reference->x || (point->x == reference->x && point->y > reference->y);
-}
-
-static uint32_t findOtherPoint(dsVectorScratchData* scratchData, uint32_t vertex, bool othersLeft)
-{
-	uint32_t topPoint = NOT_FOUND;
-	float topY = -FLT_MAX;
-
-	uint32_t bottomPoint = NOT_FOUND;
-	float bottomY = FLT_MAX;
-
-	const dsVector2f* pos = &scratchData->polygonVertices[vertex].point;
-	for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
-	{
-		if (i == vertex)
-			continue;
-
-		// Find an edge that will intersect with this.
-		const PolygonVertex* vert = scratchData->polygonVertices + i;
-		const PolygonVertex* nextVert = NULL;
-		if (isRight(&vert->point, pos))
-			continue;
-
-		uint32_t nextPoint = scratchData->polygonEdges[
-			vert->prevEdges[ConnectingEdge_Main]].prevVertex;
-		nextVert = scratchData->polygonVertices + nextPoint;
-		if (nextPoint == vertex || isLeft(&nextVert->point, pos))
-		{
-			nextPoint = scratchData->polygonEdges[vert->nextEdges[ConnectingEdge_Main]].nextVertex;
-			nextVert = scratchData->polygonVertices + nextPoint;
-			if (nextPoint == vertex || isLeft(&nextVert->point, pos))
-				continue;
-		}
-
-		float t = (pos->x - vert->point.x)/(nextVert->point.x - vert->point.x);
-		float y = dsLerp(vert->point.y, nextVert->point.y, t);
-		if (y > pos->y)
-		{
-			if (y > bottomY)
-				continue;
-
-			bottomPoint = othersLeft ? nextPoint : i;
-			bottomY = y;
-		}
-		else
-		{
-			if (y < topY)
-				continue;
-
-			topPoint = othersLeft ? nextPoint : i;
-			topY = y;
-		}
-	}
-
-	if (topPoint == NOT_FOUND && bottomPoint == NOT_FOUND)
-		return NOT_FOUND;
-
-	float minY = topPoint == NOT_FOUND ? pos->y : topY;
-	float maxY = bottomPoint == NOT_FOUND ? pos->y : bottomY;
-
-	// Choose from top or bottom, whichever is closer on the opposite side of the other points.
-	uint32_t closestPoint = topPoint;
-	const PolygonVertex* bottomVert = scratchData->polygonVertices + bottomPoint;
-	const PolygonVertex* closestVert = scratchData->polygonVertices + closestPoint;
+	// Find the first point that's to the left/right of the vertex that doesn't intersect any edges.
 	if (othersLeft)
 	{
-		if (bottomPoint != NOT_FOUND && (topPoint == NOT_FOUND ||
-			isLeft(&bottomVert->point, &closestVert->point)))
+		const uint32_t* end = scratchData->sortedPolygonVerts + scratchData->polygonVertCount;
+		for (const uint32_t* otherVert = sortedVert + 1; otherVert < end; ++otherVert)
 		{
-			closestPoint = bottomPoint;
-			closestVert = scratchData->polygonVertices + closestPoint;
-		}
-
-		// Search for corners that might be closer.
-		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
-		{
-			if (i == vertex)
-				continue;
-
-			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
-			if (isRight(curPoint, pos) && isLeft(curPoint, &closestVert->point) &&
-				curPoint->y >= minY && curPoint->y <= maxY)
-			{
-				closestPoint = i;
-				closestVert = scratchData->polygonVertices + closestPoint;
-			}
+			if (dsVectorScratchData_canConnectPolygonEdge(scratchData, *sortedVert, *otherVert))
+				return *otherVert;
 		}
 	}
 	else
 	{
-		if (bottomPoint != NOT_FOUND && (topPoint == NOT_FOUND ||
-			isRight(&bottomVert->point, &closestVert->point)))
+		for (const uint32_t* otherVert = sortedVert; otherVert-- > scratchData->sortedPolygonVerts;)
 		{
-			closestPoint = bottomPoint;
-			closestVert = scratchData->polygonVertices + closestPoint;
-		}
-
-		// Search for corners that might be closer.
-		for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
-		{
-			if (i == vertex)
-				continue;
-
-			const dsVector2f* curPoint = &scratchData->polygonVertices[i].point;
-			if (isRight(curPoint, &closestVert->point) && isLeft(curPoint, pos) &&
-				curPoint->y >= minY && curPoint->y <= maxY)
-			{
-				closestPoint = i;
-				closestVert = scratchData->polygonVertices + closestPoint;
-			}
+			if (dsVectorScratchData_canConnectPolygonEdge(scratchData, *sortedVert, *otherVert))
+				return *otherVert;
 		}
 	}
 
-	return closestPoint;
+	return NOT_FOUND;
 }
 
 static bool isPolygonCCW(dsVectorScratchData* data)
@@ -312,31 +219,36 @@ static bool triangulate(dsVectorScratchData* scratchData)
 	bool ccw = isPolygonCCW(scratchData);
 	for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
 	{
-		uint32_t prev = i == 0 ? scratchData->polygonVertCount - 1 : i - 1;
-		uint32_t next = i == scratchData->polygonVertCount - 1 ? 0 : i + 1;
+		const uint32_t* sortedVert = scratchData->sortedPolygonVerts + i;
+		uint32_t prev = *sortedVert == 0 ? scratchData->polygonVertCount - 1 : *sortedVert - 1;
+		uint32_t next = *sortedVert == scratchData->polygonVertCount - 1 ? 0 : *sortedVert + 1;
 
 		bool prevLeft = isLeft(&scratchData->polygonVertices[prev].point,
-			&scratchData->polygonVertices[i].point);
+			&scratchData->polygonVertices[*sortedVert].point);
 		bool nextLeft = isLeft(&scratchData->polygonVertices[next].point,
-			&scratchData->polygonVertices[i].point);
+			&scratchData->polygonVertices[*sortedVert].point);
 
 		if (prevLeft != nextLeft)
 			continue;
 
 		bool triangleCCW = isTriangleCCW(&scratchData->polygonVertices[prev].point,
-			&scratchData->polygonVertices[i].point, &scratchData->polygonVertices[next].point);
+			&scratchData->polygonVertices[*sortedVert].point,
+			&scratchData->polygonVertices[next].point);
 		if (triangleCCW == ccw)
 			continue;
 
-		uint32_t otherPoint = findOtherPoint(scratchData, i, prevLeft);
+		uint32_t otherPoint = findOtherPoint(scratchData, sortedVert, prevLeft);
 		if (otherPoint == NOT_FOUND)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
 		}
 
-		if (!dsVectorScratchData_addSeparatingPolygonEdge(scratchData, i, otherPoint, ccw))
+		if (!dsVectorScratchData_addSeparatingPolygonEdge(scratchData, *sortedVert, otherPoint,
+			ccw))
+		{
 			return false;
+		}
 	}
 
 	// Need to reset the visited flags for the edges.
