@@ -175,6 +175,32 @@ static bool isBezierStraight(const dsVector4f* curveX, const dsVector4f* curveY,
 	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize);
 }
 
+static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform)
+{
+	scratchData->inPath = true;
+	scratchData->pathTransform = *transform;
+	scratchData->pointCount = 0;
+	scratchData->lastStart = 0;
+}
+
+static bool moveTo(dsVectorScratchData* scratchData, const dsVector2f* position,
+	PointType pointType)
+{
+	if (!inPath(scratchData))
+		return false;
+
+	markEnd(scratchData);
+	scratchData->lastStart = scratchData->pointCount;
+	return dsVectorScratchData_addPoint(scratchData, position, pointType);
+}
+
+static bool lineTo(dsVectorScratchData* scratchData, const dsVector2f* position,
+	PointType pointType)
+{
+	return inPathWithPoint(scratchData) && dsVectorScratchData_addPoint(scratchData, position,
+		pointType);
+}
+
 static bool addBezierRec(dsVectorScratchData* scratchData, const dsVector2f* start,
 	const dsVector2f* control1, const dsVector2f* control2, const dsVector2f* end, float pixelSize,
 	uint32_t level)
@@ -237,6 +263,9 @@ static bool addBezierRec(dsVectorScratchData* scratchData, const dsVector2f* sta
 static bool addBezier(dsVectorScratchData* scratchData, const dsVector2f* control1,
 	const dsVector2f* control2, const dsVector2f* end, float pixelSize)
 {
+	if (!inPathWithPoint(scratchData))
+		return false;
+
 	dsVector2f start = scratchData->points[scratchData->pointCount - 1].point;
 	// Always recurse the first time, since the overall curve may have an inflection point, causing
 	// the midpoint metric to break down. Subdivisions won't have any inflection points.
@@ -251,6 +280,9 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	const dsVector2f* radius, float rotation, bool clockwise, bool largeArc, float pixelSize,
 	PointType endType)
 {
+	if (!inPathWithPoint(scratchData))
+		return false;
+
 	// https://www.w3.org/TR/SVG/implnote.html#ArcImplementationNotes
 	// Straight line if a radius is 0.
 	if (radius->x == 0.0f || radius->y == 0.0f)
@@ -312,7 +344,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	float pixelTheta = pixelSize/dsMax(radius->x, radius->y);
 	unsigned int pointCount = (unsigned int)(fabsf(deltaTheta)/pixelTheta);
 	// Amortize the remainder across all points.
-	float incr = deltaTheta/(float)(pointCount + 1);
+	float incr = deltaTheta/(float)pointCount;
 	for (unsigned int i = 1; i < pointCount; ++i)
 	{
 		float theta = startTheta + (float)i*incr;
@@ -329,6 +361,177 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	return dsVectorScratchData_addPoint(scratchData, end, PointType_Corner);
 }
 
+static bool closePath(dsVectorScratchData* scratchData, PointType pointType)
+{
+	if (!inPathWithPoint(scratchData))
+		return false;
+
+	if (!dsVectorScratchData_addPoint(scratchData,
+		&scratchData->points[scratchData->lastStart].point, pointType | PointType_End))
+	{
+		return false;
+	}
+
+	scratchData->points[scratchData->lastStart].type |= PointType_JoinStart;
+	scratchData->lastStart = scratchData->pointCount;
+	return true;
+}
+
+static bool addEllipse(dsVectorScratchData* scratchData, const dsVector2f* center,
+	const dsVector2f* radius, float pixelSize)
+{
+	dsVector2f start;
+	dsVector2f offset = {{radius->x, 0.0f}};
+	dsVector2_add(start, *center, offset);
+	if (!moveTo(scratchData, &start, PointType_Normal))
+		return false;
+
+	float pixelTheta = pixelSize/dsMax(radius->x, radius->y);
+	float deltaTheta = (float)(2*M_PI);
+	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
+	// Amortize the remainder across all points.
+	float incr = deltaTheta/(float)pointCount;
+
+	for (unsigned int i = 1; i < pointCount; ++i)
+	{
+		float theta = (float)i*incr;
+		dsVector2f position = {{cosf(theta), sinf(theta)}};
+		dsVector2_mul(position, position, *radius);
+		dsVector2_add(position, *center, position);
+		if (!dsVectorScratchData_addPoint(scratchData, &position, PointType_Normal))
+			return false;
+	}
+
+	return closePath(scratchData, PointType_Normal);
+}
+
+static bool addCorner(dsVectorScratchData* scratchData, const dsVector2f* center,
+	const dsVector2f* radius, float startTheta, float incr, unsigned int pointCount,
+	bool firstPoint, bool joinPrev)
+{
+	if (firstPoint || joinPrev)
+	{
+		dsVector2f position = {{cosf(startTheta), sinf(startTheta)}};
+		dsVector2_mul(position, position, *radius);
+		dsVector2_add(position, *center, position);
+		if (firstPoint)
+		{
+			if (!moveTo(scratchData, &position, PointType_Normal))
+				return false;
+		}
+		else
+		{
+			if (!dsVectorScratchData_addPoint(scratchData, &position, PointType_Normal))
+				return false;
+		}
+	}
+
+	for (unsigned int i = 1; i <= pointCount; ++i)
+	{
+		float theta = startTheta + (float)i*incr;
+		dsVector2f position = {{cosf(theta), sinf(theta)}};
+		dsVector2_mul(position, position, *radius);
+		dsVector2_add(position, *center, position);
+		if (!dsVectorScratchData_addPoint(scratchData, &position, PointType_Normal))
+			return false;
+	}
+
+	return true;
+}
+
+static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f* bounds,
+	const dsVector2f* cornerRadius, float pixelSize)
+{
+	if (!dsAlignedBox2_isValid(*bounds))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Rectangle bounds are invalid.");
+		return false;
+	}
+
+	float rx = cornerRadius->x;
+	float ry = cornerRadius->y;
+	if (rx <= 0.0f && ry > 0.0f)
+		rx = ry;
+	else if (ry <= 0.0f && rx > 0.0f)
+		ry = rx;
+
+	dsVector2f point;
+	if (rx <= 0.0f && ry <= 0.0f)
+	{
+		if (!moveTo(scratchData, &bounds->min, PointType_Corner))
+			return false;
+
+		point.x = bounds->max.x;
+		point.y = bounds->min.y;
+		if (!dsVectorScratchData_addPoint(scratchData, &point, PointType_Corner))
+			return false;
+		if (!dsVectorScratchData_addPoint(scratchData, &bounds->max, PointType_Corner))
+			return false;
+
+		point.x = bounds->min.x;
+		point.y = bounds->max.y;
+		return dsVectorScratchData_addPoint(scratchData, &point, PointType_Corner);
+	}
+
+	dsVector2f halfExtents;
+	dsAlignedBox2_extents(halfExtents, *bounds);
+	dsVector2_scale(halfExtents, halfExtents, 0.5f);
+	if (rx > halfExtents.x)
+		rx = halfExtents.x;
+	if (ry > halfExtents.y)
+		ry = halfExtents.y;
+
+	dsVector2f center;
+	dsAlignedBox2_center(center, *bounds);
+
+	float pixelTheta = pixelSize/dsMax(rx, ry);
+	float deltaTheta = (float)M_PI_2;
+	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
+	// Amortize the remainder across all points.
+	float incr = deltaTheta/(float)pointCount;
+
+	// Corner name comments are based on Cartesian coordinates, since that's more convenient for the
+	// math. However, the actual drawing will usually be in image space, where Y is inverted.
+
+	// Upper-right
+	dsVector2f finalRadius = {{rx, ry}};
+	dsVector2f cornerCenter;
+	cornerCenter.x = center.x + halfExtents.x - rx;
+	cornerCenter.y = center.y + halfExtents.y - ry;
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, 0.0f, incr, pointCount, true, false))
+		return false;
+
+	// Upper-left
+	cornerCenter.x = center.x - halfExtents.x + rx;
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI_2, incr, pointCount, false,
+		rx < halfExtents.x))
+	{
+		return false;
+	}
+
+	// Lower-left
+	cornerCenter.y = center.y - halfExtents.y + ry;
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)M_PI, incr, pointCount, false,
+		ry < halfExtents.y))
+	{
+		return false;
+	}
+
+	// Lower-right
+	cornerCenter.x = center.x + halfExtents.x - rx;
+	if (!addCorner(scratchData, &cornerCenter, &finalRadius, (float)(M_PI + M_PI_2), incr,
+		pointCount, false, rx < halfExtents.x))
+	{
+		return false;
+	}
+
+	// Connect to upper-right. Need to remove the last point if the edge is degenerate.
+	if (ry >= halfExtents.y)
+		--scratchData->pointCount;
+	return closePath(scratchData, PointType_Normal);
+}
+
 static bool processCommand(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
 	uint32_t commandCount, uint32_t* curCommand, dsVectorMaterialSet* materials, float pixelSize)
 {
@@ -337,56 +540,21 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 	switch (commands[*curCommand].commandType)
 	{
 		case dsVectorCommandType_StartPath:
-			scratchData->inPath = true;
-			scratchData->pathTransform = commands[*curCommand].startPath.transform;
-			scratchData->pointCount = 0;
-			scratchData->lastStart = 0;
-			++*curCommand;
+			startPath(scratchData, &commands[(*curCommand)++].startPath.transform);
 			return true;
 		case dsVectorCommandType_Move:
-			if (!inPath(scratchData))
-				return false;
-
-			markEnd(scratchData);
-			scratchData->lastStart = scratchData->pointCount;
-			if (!dsVectorScratchData_addPoint(scratchData, &commands[*curCommand].move.position,
-				PointType_Corner))
-			{
-				return false;
-			}
-
-			++*curCommand;
-			return true;
+			return moveTo(scratchData, &commands[(*curCommand)++].move.position, PointType_Corner);
 		case dsVectorCommandType_Line:
-			if (!inPathWithPoint(scratchData) || !dsVectorScratchData_addPoint(scratchData,
-				&commands[*curCommand].line.end, PointType_Corner))
-			{
-				return false;
-			}
-
-			++*curCommand;
-			return true;
+			return lineTo(scratchData, &commands[(*curCommand)++].line.end, PointType_Corner);
 		case dsVectorCommandType_Bezier:
 		{
-			if (!inPathWithPoint(scratchData))
-				return false;
-
-			const dsVectorCommandBezier* bezier = &commands[*curCommand].bezier;
-			if (!addBezier(scratchData, &bezier->control1, &bezier->control2, &bezier->end,
-				pixelSize))
-			{
-				return false;
-			}
-
-			++*curCommand;
-			return true;
+			const dsVectorCommandBezier* bezier = &commands[(*curCommand)++].bezier;
+			return addBezier(scratchData, &bezier->control1, &bezier->control2, &bezier->end,
+				pixelSize);
 		}
 		case dsVectorCommandType_Quadratic:
 		{
-			if (!inPathWithPoint(scratchData))
-				return false;
-
-			const dsVectorCommandQuadratic* quadratic = &commands[*curCommand].quadratic;
+			const dsVectorCommandQuadratic* quadratic = &commands[(*curCommand)++].quadratic;
 			// Convert quadratic to bezier:
 			// https://stackoverflow.com/questions/3162645/convert-a-quadratic-bezier-to-a-cubic
 			const float controlT = 2.0f/3.0f;
@@ -399,68 +567,38 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 			dsVector2_sub(temp, quadratic->control, quadratic->end);
 			dsVector2_scale(temp, temp, controlT);
 			dsVector2_add(control2, quadratic->end, temp);
-			if (!addBezier(scratchData, &control1, &control2, &quadratic->end, pixelSize))
-				return false;
-
-			++*curCommand;
-			return true;
+			return addBezier(scratchData, &control1, &control2, &quadratic->end, pixelSize);
 		}
 		case dsVectorCommandType_Arc:
 		{
-			if (!inPathWithPoint(scratchData))
-				return false;
-
-			const dsVectorCommandArc* arc = &commands[*curCommand].arc;
+			const dsVectorCommandArc* arc = &commands[(*curCommand)++].arc;
 			dsVector2f radius = {{fabsf(arc->radius.x), fabsf(arc->radius.y)}};
-			if (!addArc(scratchData, &arc->end, &radius, arc->rotation, arc->clockwise,
-				arc->largeArc, pixelSize, PointType_Corner))
-			{
-				return false;
-			}
-
-			++*curCommand;
-			return true;
+			return addArc(scratchData, &arc->end, &radius, arc->rotation, arc->clockwise,
+				arc->largeArc, pixelSize, PointType_Corner);
 		}
 		case dsVectorCommandType_ClosePath:
-			if (!inPathWithPoint(scratchData))
-				return false;
-
-			if (!dsVectorScratchData_addPoint(scratchData,
-				&scratchData->points[scratchData->lastStart].point,
-				PointType_Corner | PointType_End))
-			{
-				return false;
-			}
-
-			scratchData->points[scratchData->lastStart].type |= PointType_JoinStart;
-			scratchData->lastStart = scratchData->pointCount;
-			++*curCommand;
-			return true;
+			++(*curCommand);
+			return closePath(scratchData, PointType_Corner);
+		case dsVectorCommandType_Ellipse:
+		{
+			const dsVectorCommandEllipse* ellipse = &commands[(*curCommand)++].ellipse;
+			return addEllipse(scratchData, &ellipse->center, &ellipse->radius, pixelSize);
+		}
+		case dsVectorCommandType_Rectangle:
+		{
+			const dsVectorCommandRectangle* rectangle = &commands[(*curCommand)++].rectangle;
+			return addRectangle(scratchData, &rectangle->bounds, &rectangle->cornerRadius,
+				pixelSize);
+		}
 		case dsVectorCommandType_StrokePath:
-		{
 			if (!inPathWithPoint(scratchData))
 				return false;
-
-			if (!dsVectorStroke_add(scratchData, materials, &commands[*curCommand].strokePath,
-				pixelSize))
-			{
-				return false;
-			}
-
-			++*curCommand;
-			return true;
-		}
+			return dsVectorStroke_add(scratchData, materials, &commands[(*curCommand)++].strokePath,
+				pixelSize);
 		case dsVectorCommandType_FillPath:
-		{
 			if (!inPathWithPoint(scratchData))
 				return false;
-
-			if (!dsVectorFill_add(scratchData, materials, &commands[*curCommand].fillPath))
-				return false;
-
-			++*curCommand;
-			return true;
-		}
+			return dsVectorFill_add(scratchData, materials, &commands[(*curCommand)++].fillPath);
 		default:
 			DS_ASSERT(false);
 			return false;

@@ -743,7 +743,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 	curInfo->dashArray = stroke->dashArray;
 
 	float subpathDistance = 0.0f, distance = 0.0f;
-	bool firstPoint = 0;
+	uint32_t firstPoint = 0;
 	bool joinStart = false;
 	dsVector2f lastDir = {{1.0f, 0.0f}};
 	dsVector2f firstDir = lastDir;
@@ -806,7 +806,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 		{
 			// If the angle difference is long enough the boundaries for the line won't be parallel,
 			// but given that the tessellation minimizes curvature for each segment it shouldn't be
-			// noticeable .
+			// noticeable.
 			if (!addSimpleJoin(scratchData, &scratchData->points[i].point, &nextDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, distance, subpathDistance,
 				&curInfo->bounds))
@@ -820,11 +820,24 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 			// Either cap or join based on the first point.
 			if (joinStart)
 			{
-				if (!addJoin(scratchData, &scratchData->points[i].point, &nextDir, &firstDir,
-					expandSize, &firstVertex, &secondVertex, material, infoIndex, stroke->joinType,
-					miterThetaLimit, distance, subpathDistance, pixelSize, &curInfo->bounds))
+				if (scratchData->points[firstPoint].type & PointType_Corner)
 				{
-					return false;
+					if (!addJoin(scratchData, &scratchData->points[firstPoint].point, &nextDir,
+						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
+						stroke->joinType, miterThetaLimit, distance, subpathDistance, pixelSize,
+						&curInfo->bounds))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (!addSimpleJoin(scratchData, &scratchData->points[firstPoint].point,
+						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
+						distance, subpathDistance, &curInfo->bounds))
+					{
+						return false;
+					}
 				}
 			}
 			else
