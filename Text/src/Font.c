@@ -35,25 +35,41 @@
 static float computeSignedDistance(const uint8_t* pixels, uint32_t width, uint32_t height, int x,
 	int y, uint32_t windowSize)
 {
-	bool inside = false;
-	if (x >= 0 && y >= 0 && x < (int)width && y < (int)height)
-		inside = pixels[y*width + x] != 0;
-
-	// Compute the closest distance to a pixel that is the opposite state.
 	float maxDistance = sqrtf((float)(dsPow2(windowSize) + dsPow2(windowSize)));
 	float distance = maxDistance;
+	bool inside = false;
+	if (x >= 0 && y >= 0 && x < (int)width && y < (int)height)
+	{
+		uint8_t pixel = pixels[y*width + x];
+		if (pixel == 0)
+			inside = false;
+		else if (pixel == 255)
+			inside = true;
+		else
+		{
+			// Anti-aliased pixel already has distance information.
+			distance = (pixel/255.0f - 0.5f)/maxDistance;
+			return distance*0.5f + 0.5f;
+		}
+	}
+
+	// Compute the closest distance to a pixel that is the opposite state.
 	for (uint32_t j = 0; j < windowSize*2 + 1; ++j)
 	{
 		for (uint32_t i = 0; i < windowSize*2 + 1; ++i)
 		{
 			int thisX = x + i - windowSize;
 			int thisY = y + j - windowSize;
-			bool thisInside = false;
+			float pixel = 0.0f;
 			if (thisX >= 0 && thisY >= 0 && thisX < (int)width && thisY < (int)height)
-				thisInside = pixels[thisY*width + thisX] != 0;
-			if (thisInside != inside)
+				pixel = pixels[thisY*width + thisX]/255.0f;
+			if ((inside && pixel != 1.0f) || (!inside && pixel != 0.0f))
 			{
 				float thisDistance = sqrtf((float)(dsPow2(x - thisX) + dsPow2(y - thisY)));
+				if (inside)
+					thisDistance += pixel;
+				else
+					thisDistance += 1.0f - pixel;
 				distance = dsMin(thisDistance, distance);
 			}
 		}

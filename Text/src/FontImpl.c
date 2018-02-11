@@ -239,7 +239,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 {
 	FT_Face ftFace = hb_ft_font_get_face(face->font);
 	DS_ASSERT(ftFace);
-	FT_Load_Glyph(ftFace, glyph, FT_LOAD_MONOCHROME | FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
+	FT_Load_Glyph(ftFace, glyph, FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
 
 	float scale = 1.0f/(float)glyphSize;
 	FT_Bitmap* bitmap = &ftFace->glyph->bitmap;
@@ -286,17 +286,14 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 		}
 	}
 
-	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_MONO ||
+	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_GRAY ||
 		(bitmap->rows == 0 && bitmap->width == 0));
 	for (unsigned int y = 0; y < bitmap->rows; ++y)
 	{
 		const uint8_t* row = bitmap->buffer + abs(bitmap->pitch)*y;
 		unsigned int destY = bitmap->pitch > 0 ? y : bitmap->rows - y - 1;
 		for (unsigned int x = 0; x < bitmap->width; ++x)
-		{
-			uint32_t mask = (1 << (7 - (x % 8)));
-			font->tempImage[destY*bitmap->width + x] = (row[x/8] & mask) != 0;
-		}
+			font->tempImage[destY*bitmap->width + x] = row[x];
 	}
 
 	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize,
