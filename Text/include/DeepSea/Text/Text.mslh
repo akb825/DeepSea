@@ -29,8 +29,8 @@
  * @param outlineColor The color of the text outline.
  * @return The text color. This uses pre-multiplied alpha.
  */
-vec4 computeTextColor(float distance, float embolden, float outlinePosition, float outlineThickness,
-	float antiAlias, vec4 textColor, vec4 outlineColor)
+vec4 dsComputeTextColor(float distance, float embolden, float outlinePosition,
+	float outlineThickness, float antiAlias, vec4 textColor, vec4 outlineColor)
 {
 	textColor = vec4(textColor.rgb*textColor.a, textColor.a);
 	outlineColor = vec4(outlineColor.rgb*outlineColor.a, outlineColor.a);

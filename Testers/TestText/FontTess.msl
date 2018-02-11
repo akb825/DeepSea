@@ -137,7 +137,7 @@ void tessellationEvaluation()
 void fragmentShader()
 {
 	float distance = textureLod(fontTex, tessEvalOut.texCoords.xy, tessEvalOut.texCoords.z).r;
-	color = computeTextColor(distance, tessEvalOut.style.x, tessEvalOut.style.y,
+	color = dsComputeTextColor(distance, tessEvalOut.style.x, tessEvalOut.style.y,
 		tessEvalOut.style.z, tessEvalOut.style.w, tessEvalOut.textColor, tessEvalOut.outlineColor);
 }
 
