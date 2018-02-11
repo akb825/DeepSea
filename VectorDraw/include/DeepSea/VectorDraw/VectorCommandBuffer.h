@@ -225,11 +225,13 @@ DS_VECTORDRAW_EXPORT bool dsVectorCommandBuffer_addTextRange(dsVectorCommandBuff
  * @param commandBuffer The command buffer to add the command to.
  * @param image The image to draw.
  * @param imageBounds The bounds in which to display the image.
+ * @param opacity The opacity of the image.
  * @param transform The transform, or NULL for identity.
  * @return False if the command couldn't be added.
  */
 DS_VECTORDRAW_EXPORT bool dsVectorCommandBuffer_addImage(dsVectorCommandBuffer* commandBuffer,
-	dsTexture* image, const dsAlignedBox2f* imageBounds, const dsMatrix33f* transform);
+	dsTexture* image, const dsAlignedBox2f* imageBounds, float opacity,
+	const dsMatrix33f* transform);
 
 /**
  * @brief Destroys the memory stored within a command buffer.

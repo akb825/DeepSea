@@ -378,7 +378,7 @@ bool dsVectorCommandBuffer_addTextRange(dsVectorCommandBuffer* commandBuffer, ui
 }
 
 bool dsVectorCommandBuffer_addImage(dsVectorCommandBuffer* commandBuffer, dsTexture* image,
-	const dsAlignedBox2f* imageBounds, const dsMatrix33f* transform)
+	const dsAlignedBox2f* imageBounds, float opacity, const dsMatrix33f* transform)
 {
 	if (!image || !imageBounds)
 	{
@@ -393,6 +393,7 @@ bool dsVectorCommandBuffer_addImage(dsVectorCommandBuffer* commandBuffer, dsText
 	command->commandType = dsVectorCommandType_Image;
 	command->image.image = image;
 	command->image.imageBounds = *imageBounds;
+	command->image.opacity = opacity;
 	if (transform)
 		command->image.transform = *transform;
 	else

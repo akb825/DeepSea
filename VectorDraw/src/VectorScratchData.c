@@ -602,7 +602,7 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 }
 
 ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform)
+	const dsMatrix33f* transform, float opacity)
 {
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
@@ -616,29 +616,31 @@ ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
 	info->shapeInfo.transformCols[1].y = transform->columns[1].y;
 	info->shapeInfo.transformCols[2].x = transform->columns[2].x;
 	info->shapeInfo.transformCols[2].y = transform->columns[2].y;
+	info->shapeInfo.opacity = opacity;
 	return &info->shapeInfo;
 }
 
 ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform, dsTexture* texture)
+	const dsMatrix33f* transform, dsTexture* texture, float opacity, const dsAlignedBox2f* bounds)
 {
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, ShaderType_Image, texture, infoIndex))
 		return NULL;
 
-	dsAlignedBox2f_makeInvalid(&info->shapeInfo.bounds);
+	info->shapeInfo.bounds = *bounds;
 	info->shapeInfo.transformCols[0].x = transform->columns[0].x;
 	info->shapeInfo.transformCols[0].y = transform->columns[0].y;
 	info->shapeInfo.transformCols[1].x = transform->columns[1].x;
 	info->shapeInfo.transformCols[1].y = transform->columns[1].y;
 	info->shapeInfo.transformCols[2].x = transform->columns[2].x;
 	info->shapeInfo.transformCols[2].y = transform->columns[2].y;
+	info->shapeInfo.opacity = opacity;
 	return &info->shapeInfo;
 }
 
 TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
-	const dsFont* font)
+	const dsFont* font, float opacity)
 {
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
@@ -652,6 +654,7 @@ TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMa
 	info->textInfo.transformCols[1].y = transform->columns[1].y;
 	info->textInfo.transformCols[2].x = transform->columns[2].x;
 	info->textInfo.transformCols[2].y = transform->columns[2].y;
+	info->textInfo.opacity = opacity;
 	return &info->textInfo;
 }
 

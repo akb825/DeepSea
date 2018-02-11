@@ -280,14 +280,13 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", fill->material);
 		return false;
-	};
+	}
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform);
+		&scratchData->pathTransform, fill->opacity);
 	if (!curInfo)
 		return false;
-	curInfo->opacity = fill->opacity;
 
 	bool firstPoint = 0;
 	bool joinStart = false;

@@ -243,11 +243,11 @@ TextTessVertex* dsVectorScratchData_addTextTessVertex(dsVectorScratchData* data)
 bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex);
 
 ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform);
+	const dsMatrix33f* transform, float opacity);
 ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform, dsTexture* texture);
+	const dsMatrix33f* transform, dsTexture* texture, float opacity, const dsAlignedBox2f* bounds);
 TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
-	const dsFont* font);
+	const dsFont* font, float opacity);
 
 bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex,
 	uint32_t shapeIndex, uint32_t materialIndex);

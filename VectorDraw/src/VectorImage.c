@@ -95,44 +95,6 @@ static const dsMatrix44f rightBezierMatrix =
 
 static const dsVector4f bezierMid = {{0.125f, 0.375f, 0.375f, 0.125f}};
 
-static bool hasMaterial(const dsVectorMaterialSet* materials, const char* name)
-{
-	if (!dsVectorMaterialSet_findMaterial(materials, name))
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Couldn't find material '%s'.", name);
-		return false;
-	}
-
-	return true;
-}
-
-/*static dsFont* findFont(const dsVectorResources** resources, uint32_t resourceCount,
-	const char* name)
-{
-	for (uint32_t i = 0; i < resourceCount; ++i)
-	{
-		dsFont* font = dsVectorResources_findFont(resources[i], name);
-		if (font)
-			return font;
-	}
-
-	return NULL;
-}
-
-static dsTexture* findTexture(const dsVectorResources** resources, uint32_t resourceCount,
-	const char* name)
-{
-	for (uint32_t i = 0; i < resourceCount; ++i)
-	{
-		dsTexture* texture = dsVectorResources_findTexture(resources[i], name);
-		if (texture)
-			return texture;
-	}
-
-	return NULL;
-}*/
-
 static bool inPath(const dsVectorScratchData* scratchData)
 {
 	if (!scratchData->inPath)
@@ -532,6 +494,85 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 	return closePath(scratchData, PointType_Normal);
 }
 
+static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transform,
+	dsTexture* image, float opacity, const dsAlignedBox2f* bounds)
+{
+	if (!image)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "No texture to draw image.");
+		return false;
+	}
+
+	if (!dsAlignedBox2_isValid(*bounds))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Image bounds are invalid.");
+		return false;
+	}
+
+	uint32_t infoIndex = scratchData->vectorInfoCount;
+	ShapeInfo* curInfo = dsVectorScratchData_addImagePiece(scratchData, transform, image, opacity,
+		bounds);
+	if (!curInfo)
+		return false;
+
+	uint32_t upperLeft = scratchData->imageVertexCount;
+	ImageVertex* vertex = dsVectorScratchData_addImageVertex(scratchData);
+	if (!vertex)
+		return false;
+	vertex->position = bounds->min;
+	vertex->texCoords.x = 0.0f;
+	vertex->texCoords.y = 0.0f;
+	vertex->shapeIndex = infoIndex;
+
+	uint32_t upperRight = scratchData->imageVertexCount;
+	vertex = dsVectorScratchData_addImageVertex(scratchData);
+	if (!vertex)
+		return false;
+	vertex->position.x = bounds->max.x;
+	vertex->position.y = bounds->min.y;
+	vertex->texCoords.x = 1.0f;
+	vertex->texCoords.y = 0.0f;
+	vertex->shapeIndex = infoIndex;
+
+	uint32_t lowerRight = scratchData->imageVertexCount;
+	vertex = dsVectorScratchData_addImageVertex(scratchData);
+	if (!vertex)
+		return false;
+	vertex->position = bounds->max;
+	vertex->texCoords.x = 1.0f;
+	vertex->texCoords.y = 1.0f;
+	vertex->shapeIndex = infoIndex;
+
+	uint32_t lowerLeft = scratchData->imageVertexCount;
+	vertex = dsVectorScratchData_addImageVertex(scratchData);
+	if (!vertex)
+		return false;
+	vertex->position.x = bounds->min.x;
+	vertex->position.y = bounds->max.y;
+	vertex->texCoords.x = 0.0f;
+	vertex->texCoords.y = 1.0f;
+	vertex->shapeIndex = infoIndex;
+
+	// Clockwise in image space, but will be counter-clockwise in clip space.
+	if (!dsVectorScratchData_addIndex(scratchData, &upperLeft) ||
+		!dsVectorScratchData_addIndex(scratchData, &upperRight) ||
+		!dsVectorScratchData_addIndex(scratchData, &lowerRight))
+	{
+		return false;
+	}
+
+	if (!dsVectorScratchData_addIndex(scratchData, &lowerRight) ||
+		!dsVectorScratchData_addIndex(scratchData, &lowerLeft) ||
+		!dsVectorScratchData_addIndex(scratchData, &upperLeft))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 static bool processCommand(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
 	uint32_t commandCount, uint32_t* curCommand, dsVectorMaterialSet* materials, float pixelSize)
 {
@@ -599,6 +640,12 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 			if (!inPathWithPoint(scratchData))
 				return false;
 			return dsVectorFill_add(scratchData, materials, &commands[(*curCommand)++].fillPath);
+		case dsVectorCommandType_Image:
+		{
+			const dsVectorCommandImage* image = &commands[(*curCommand)++].image;
+			return addImage(scratchData, &image->transform, image->image, image->opacity,
+				&image->imageBounds);
+		}
 		default:
 			DS_ASSERT(false);
 			return false;
@@ -816,35 +863,6 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
-
-	for (uint32_t i = 0; i < commandCount; ++i)
-	{
-		switch (commands[i].commandType)
-		{
-			case dsVectorCommandType_StrokePath:
-				if (!hasMaterial(materials, commands[i].strokePath.material))
-					DS_PROFILE_FUNC_RETURN(NULL);
-				break;
-			case dsVectorCommandType_FillPath:
-				if (!hasMaterial(materials, commands[i].fillPath.material))
-					DS_PROFILE_FUNC_RETURN(NULL);
-				break;
-			case dsVectorCommandType_TextRange:
-				if (commands[i].textRange.fillMaterial &&
-					!hasMaterial(materials, commands[i].textRange.fillMaterial))
-				{
-					DS_PROFILE_FUNC_RETURN(NULL);
-				}
-				if (commands[i].textRange.outlineMaterial &&
-					!hasMaterial(materials, commands[i].textRange.outlineMaterial))
-				{
-					DS_PROFILE_FUNC_RETURN(NULL);
-				}
-				break;
-			default:
-				break;
-		}
-	}
 
 	if (!processCommands(scratchData, commands, commandCount, materials, pixelSize))
 		return NULL;

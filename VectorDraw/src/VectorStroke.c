@@ -717,7 +717,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", stroke->material);
 		return false;
-	};
+	}
 
 	float miterThetaLimit = 0.0f;
 	if (stroke->joinType == dsLineJoin_Miter)
@@ -736,10 +736,9 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterial
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform);
+		&scratchData->pathTransform, stroke->opacity*sizeAlpha);
 	if (!curInfo)
 		return false;
-	curInfo->opacity = stroke->opacity*sizeAlpha;
 	curInfo->dashArray = stroke->dashArray;
 
 	float subpathDistance = 0.0f, distance = 0.0f;

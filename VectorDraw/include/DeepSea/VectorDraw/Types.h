@@ -635,6 +635,11 @@ typedef struct dsVectorCommandImage
 	dsAlignedBox2f imageBounds;
 
 	/**
+	 * @brief The opacity of the image.
+	 */
+	float opacity;
+
+	/**
 	 * @brief The transform matrix for the image.
 	 */
 	dsMatrix33f transform;
