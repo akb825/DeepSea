@@ -133,59 +133,75 @@ static TextInfo textStrings[] =
 	{"Top text is standard quads.\nUse arrow keys or touch to cycle text.",
 		"Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted forward.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted backward.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"This text has outlines.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.07f, {{255, 0, 0, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Embolded, slanted, and outlined.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
-		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
-		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.07f, {{255, 0, 0, 255}},
+		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+			{{255, 255, 0, 255}}}}},
+	{"Tiny text.\nSmall text.\nHuge text.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		{{0, 11, 9.0f, 0.0f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{11, 12, 16.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}},
+		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.0, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}}}},
+	{"Tiny text.\nSmall text.\nHuge text.", NULL,
+		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		{{0, 11, 9.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+			{{255, 255, 0, 255}}},
+		{11, 12, 16.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+			{{255, 255, 0, 255}}},
+		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}}}},
 	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
-		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.05f, {{255, 255, 255, 255}},
+		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
-		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.07f, {{255, 255, 255, 255}},
+		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}}}},
 	{"This text mixes wrapping based on max distance\nas well as explicit newlines."
 		"\n\nEmpty line.\nTessellated section only has newlines.",
 		"\n\n\n", dsTextJustification_Left, 200.0f, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Centered text that wraps\nand explicit newlines.", NULL,
 		dsTextJustification_Center, 200.0f, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Right-justified text that wraps\nand explicit newlines.", NULL,
 		dsTextJustification_Right, 200.0f, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"The text \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\" is Arabic.\nThe text \"\xE0\xB8\x89\xE0"
@@ -193,7 +209,7 @@ static TextInfo textStrings[] =
 		"\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\x9E\xE0\xB8\xA3\xE0\xB8\xB8"
 		"\xE0\xB9\x88\xE0\xB8\x87\xE0\xB8\x99\xE0\xB8\xB5\xE0\xB9\x89\" is Thai.",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	// Should show as "جزيرة لازورد" and "جزيرة!? لازورد"
@@ -202,7 +218,7 @@ static TextInfo textStrings[] =
 		"Arabic words with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Arabic words with wrapping: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
@@ -210,7 +226,7 @@ static TextInfo textStrings[] =
 		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
 		NULL, dsTextJustification_Left, 350.0f, 1.3f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Arabic words explicit newline: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
@@ -218,7 +234,7 @@ static TextInfo textStrings[] =
 		"Explicit newline with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!?\n"
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"Wrapping on script transition: \xE0\xB8\x89\xE0\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4"
@@ -226,13 +242,13 @@ static TextInfo textStrings[] =
 		"\xB8\x99\xE0\xB9\x80\xE0\xB8\xA1\xE0\xB8\xB7\xE0\xB9\x88\xE0\xB8\xAD\xE0\xB8\xA7\xE0\xB8"
 		"\xB2\xE0\xB8\x99",
 		NULL, dsTextJustification_Left, 350.0f, 1.3f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}},
 	{"first is left-to-right \xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
 		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 first is right-to-left",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.07f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}},
 		NO_STYLE, NO_STYLE}}
 };
@@ -365,6 +381,10 @@ static void printHelp(const char* programPath)
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
 	printf("options:\n");
 	printf("  -h, --help      print this help message and exit\n");
+	printf("  -l, --low       use low quality text\n");
+	printf("  -m, --medium    use medium quality text (default)\n");
+	printf("  -H, --high      use high quality text\n");
+	printf("  -v, --very-high use very high quality text\n");
 #if DS_HAS_OPENGL
 	printf("      --opengl    render using OpenGL\n");
 #endif
@@ -626,7 +646,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsRenderPass_end(testText->renderPass, commandBuffer));
 }
 
-static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator)
+static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
+	dsTextQuality quality)
 {
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
@@ -818,8 +839,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		}
 	}
 
-	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES,
-		dsTextQuality_Medium);
+	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES, quality);
 	if (!testText->faceGroup)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create face group: %s", dsErrorString(errno));
@@ -870,6 +890,15 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	if (!createFramebuffer(testText))
 		return false;
+
+	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(testText->faceGroup,
+				textStrings[i].styles + j, 1.0f));
+		}
+	}
 
 	testText->curString = 0;
 	createText(testText);
@@ -925,13 +954,22 @@ static void shutdown(TestText* testText)
 int dsMain(int argc, const char** argv)
 {
 	dsRenderType renderType = defaultRenderType;
-	for (int i = 1; i < argc; ++argv)
+	dsTextQuality quality = dsTextQuality_Medium;
+	for (int i = 1; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
 			return 0;
 		}
+		else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--low") == 0)
+			quality = dsTextQuality_Low;
+		else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--medium") == 0)
+			quality = dsTextQuality_Medium;
+		else if (strcmp(argv[i], "-H") == 0 || strcmp(argv[i], "--high") == 0)
+			quality = dsTextQuality_High;
+		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--very-high") == 0)
+			quality = dsTextQuality_VeryHigh;
 #if DS_HAS_OPENGL
 		else if (strcmp(argv[i], "--opengl") == 0)
 			renderType = dsRenderType_OpenGL;
@@ -995,7 +1033,7 @@ int dsMain(int argc, const char** argv)
 
 	TestText testText;
 	memset(&testText, 0, sizeof(testText));
-	if (!setup(&testText, application, (dsAllocator*)&testTextAllocator))
+	if (!setup(&testText, application, (dsAllocator*)&testTextAllocator, quality))
 	{
 		shutdown(&testText);
 		return 3;

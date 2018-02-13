@@ -907,7 +907,7 @@ static void shutdown(TestRenderSubpass* testRenderSubpass)
 int dsMain(int argc, const char** argv)
 {
 	dsRenderType renderType = defaultRenderType;
-	for (int i = 1; i < argc; ++argv)
+	for (int i = 1; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
