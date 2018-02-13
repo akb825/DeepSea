@@ -49,6 +49,7 @@ vec4 dsComputeTextColor(float distance, float embolden, float outlinePosition,
 			outlineMaxThreshold + antiAlias, distance);
 		float insideOutline = insideMinOutline*insideMaxOutline;
 
+		color = mix(color, outlineColor, 1.0 - inside);
 		color = mix(color, outlineColor, insideOutline);
 		inside = mix(inside, 1.0, insideOutline);
 	}

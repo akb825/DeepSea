@@ -798,7 +798,7 @@ bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTex
 		hintingEnd = 32.0f;
 		smallEmbolding = 0.15f;
 		largeEmbolding = 0.0f;
-		maxAntiAlias = 0.35f;
+		maxAntiAlias = 0.3f;
 	}
 
 	float pixels = pixelScale*style->scale;
