@@ -12,26 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if (MSVC)
-	set(commonFlags "/W3 /WX /wd4146 /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /MP")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags} /D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING")
-else()
-	if (DEEPSEA_SHARED AND
-		(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang"))
-		set(otherCFlags "-fvisibility=hidden")
-		set(otherCXXFlags "${otherCFlags} -fvisibility-inlines-hidden")
-	else()
-		set(otherCFlags)
-		set(otherCXXFlags)
-	endif()
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-	set(commonFlags "-fPIC -Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing")
+if (MSVC)
+	add_compile_options(/W3 /WX /wd4146 /MP)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS
+		-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+else()
+	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing)
 	if (APPLE)
-		set(commonFlags "${commonFlags} -fobjc-arc")
+		add_compile_options(-fobjc-arc)
 	endif()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${commonFlags} ${otherCFlags}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${commonFlags} -std=c++11 ${otherCXXFlags}")
+	# Behavior for VISIBILITY_PRESET variables are inconsistent between CMake versions.
+	if (DEEPSEA_SHARED)
+		add_compile_options(-fvisibility=hidden -fvisibility-inlines-hidden)
+	endif()
 endif()
 
 enable_testing()
