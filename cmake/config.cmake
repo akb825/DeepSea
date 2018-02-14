@@ -17,8 +17,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (MSVC)
 	add_compile_options(/W3 /WX /wd4146 /MP)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS
-		-D_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 else()
 	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing)
 	if (APPLE)
