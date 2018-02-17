@@ -982,11 +982,8 @@ void dsSDLApplication_destroy(dsApplication* application)
 	{
 		for (uint32_t i = 0; i < application->displayCount; ++i)
 		{
-			if (application->displays[i].displayModes)
-			{
-				DS_VERIFY(dsAllocator_free(application->allocator,
-					(void*)application->displays[i].displayModes));
-			}
+			DS_VERIFY(dsAllocator_free(application->allocator,
+				(void*)application->displays[i].displayModes));
 		}
 
 		DS_VERIFY(dsAllocator_free(application->allocator, (void*)application->displays));

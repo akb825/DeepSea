@@ -317,15 +317,13 @@ static Command* allocateCommand(dsCommandBuffer* commandBuffer, CommandType type
 		errno = prevErrno;
 		size_t newBufferSize = dsMax(glCommandBuffer->buffer.bufferSize*2,
 			glCommandBuffer->buffer.bufferSize + size);
-		void* newBuffer = dsAllocator_alloc(commandBuffer->allocator, newBufferSize);
+		void* newBuffer = dsAllocator_reallocWithFallback(commandBuffer->allocator,
+			glCommandBuffer->buffer.buffer, ((dsAllocator*)&glCommandBuffer->buffer)->size,
+			newBufferSize);
 		if (!newBuffer)
 			return NULL;
 
-		void* oldBuffer = glCommandBuffer->buffer.buffer;
-		memcpy(newBuffer, oldBuffer, ((dsAllocator*)&glCommandBuffer->buffer)->size);
 		DS_VERIFY(dsBufferAllocator_initialize(&glCommandBuffer->buffer, newBuffer, newBufferSize));
-		DS_VERIFY(dsAllocator_free(commandBuffer->allocator, oldBuffer));
-
 		command = (Command*)dsAllocator_alloc((dsAllocator*)&glCommandBuffer->buffer, size);
 		DS_ASSERT(command);
 	}
@@ -1259,9 +1257,7 @@ bool dsGLOtherCommandBuffer_destroy(dsGLOtherCommandBuffer* commandBuffer)
 	dsGLCommandBuffer_shutdown((dsCommandBuffer*)commandBuffer);
 
 	DS_ASSERT(commandBuffer->curFenceSyncs == 0);
-	if (commandBuffer->fenceSyncs)
-		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
-
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->buffer.buffer));
 	DS_VERIFY(dsAllocator_free(allocator, commandBuffer));
 	return true;

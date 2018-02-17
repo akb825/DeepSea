@@ -77,8 +77,7 @@ void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
 	DS_ASSERT(commandBuffer);
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (glCommandBuffer->commitCounts)
-		dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+	dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
 }
 
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,

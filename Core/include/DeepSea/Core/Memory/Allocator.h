@@ -61,19 +61,50 @@ extern "C"
  * @remark errno will be set on failure.
  * @param allocator The allocator to allocate from.
  * @param size The size to allocate.
- * @return The allocated memory or NULL if an error occured.
+ * @return The allocated memory or NULL if an error occured or size is 0.
  */
 DS_CORE_EXPORT inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size);
+
+/**
+ * @brief Re-allocates memory from the allocator.
+ *
+ * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to allocate from.
+ * @param ptr The pointer to reallocate. If NULL, a new pointer will be allocated.
+ * @param size The size to allocate. If 0, it will free the pointer.
+ * @return The allocated memory or NULL if an error occured or size is 0. The original pointer will
+ *     remain intact if an error occurred.
+ */
+DS_CORE_EXPORT inline void* dsAllocator_realloc(dsAllocator* allocator, void* ptr, size_t size);
+
+/**
+ * @brief Re-allocates memory from the allocator, falling back to an allocate + copy + free if
+ * reallocation isn't supported by the allocator.
+ *
+ * The alignment of the returned pointer will be aligned by DS_ALLOC_ALIGNMENT.
+ *
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to allocate from.
+ * @param ptr The pointer to reallocate. If NULL, a new pointer will be allocated.
+ * @param origSize The original size of the allocated memory. This may be smaller than the actual
+ *     size to avoid unnecessary copying, but not larger.
+ * @param newSize The new size to allocate. If 0, it will free the pointer.
+ * @return The allocated memory or NULL if an error occured or newSize is 0. The original pointer
+ *     will remain intact if an error occurred.
+ */
+DS_CORE_EXPORT void* dsAllocator_reallocWithFallback(dsAllocator* allocator, void* ptr,
+	size_t origSize, size_t newSize);
 
 /**
  * @brief Frees memory from the allocator.
  * @remark errno will be set on failure.
  * @param allocator The allocator to free from.
- * @param ptr The memory pointer to free.
+ * @param ptr The memory pointer to free. This may be NULL.
  * @return True if the memory could be freed.
  */
 DS_CORE_EXPORT inline bool dsAllocator_free(dsAllocator* allocator, void* ptr);
-
 
 /**
  * @brief Gets the pointer to keep for an allocator.
@@ -94,7 +125,21 @@ inline void* dsAllocator_alloc(dsAllocator* allocator, size_t size)
 		return NULL;
 	}
 
+	if (size == 0)
+		return NULL;
+
 	return allocator->allocFunc(allocator, size, DS_ALLOC_ALIGNMENT);
+}
+
+inline void* dsAllocator_realloc(dsAllocator* allocator, void* ptr, size_t size)
+{
+	if (!allocator || !allocator->reallocFunc)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return allocator->reallocFunc(allocator, ptr, size, DS_ALLOC_ALIGNMENT);
 }
 
 inline bool dsAllocator_free(dsAllocator* allocator, void* ptr)

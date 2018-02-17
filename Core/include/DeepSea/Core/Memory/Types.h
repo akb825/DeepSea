@@ -68,6 +68,26 @@ typedef void* (*dsAllocatorAllocFunction)(dsAllocator* allocator, size_t size,
 	unsigned int alignment);
 
 /**
+ * @brief Function for re-allocating from the allocator.
+ *
+ * The allocated memory must be at least 16-byte aligned.
+ *
+ * This should update the size for the allocator.
+ *
+ * @param allocator The allocator to allocate from.
+ * @param ptr The pointer to reallocate. If NULL, a new pointer will be allocated.
+ * @param size The size to allocate. If 0, it will free the pointer.
+ * @param alignment The minimum alignment of the allocation. When called by DeepSea (such as with
+ *     dsAllocator_realloc()) it will be DS_ALLOC_ALIGNMENT. If the allocator is interfaced with
+ *     external libraries (e.g. Vulkan, physics libraries) it may have a different minimum
+ *     alignment.
+ * @return The allocated memory or NULL if an error occured. errno should be set and the original
+ *     pointer should be unmodified if an error occurred.
+ */
+typedef void* (*dsAllocatorReallocFunction)(dsAllocator* allocator, void* ptr, size_t size,
+	unsigned int alignment);
+
+/**
  * @brief Function for freeing memory from the allocator.
  *
  * This should update the size for the allocator.
@@ -109,6 +129,19 @@ struct dsAllocator
 	 * @brief The allocation function.
 	 */
 	dsAllocatorAllocFunction allocFunc;
+
+	/**
+	 * @brief The re-allocation function.
+	 *
+	 * If this function is NULL, then the allocator doesn't natively support re-allocating a
+	 * pointer. The client should fall back to allocating a new buffer and copying the contents.
+	 * There is no fallback implementation provided automatically since there isn't an efficient way
+	 * to get the original size for all allocators.
+	 *
+	 * dsAllocator_reallocWithFallback() may be called when the original size is known to provide
+	 * fallback behavior.
+	 */
+	dsAllocatorReallocFunction reallocFunc;
 
 	/**
 	 * @brief The free function.

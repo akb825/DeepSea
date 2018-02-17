@@ -46,3 +46,56 @@ TEST(Allocator, NoFree)
 	EXPECT_FALSE(dsAllocator_free(allocator, ptr));
 	EXPECT_TRUE(dsSystemAllocator_free(&systemAllocator, ptr));
 }
+
+TEST(Allocator, ReallocWithFallbackUsingRealloc)
+{
+	dsSystemAllocator systemAllocator;
+	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
+
+	int* data = (int*)dsAllocator_reallocWithFallback(allocator, nullptr, 0, 10*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 10; ++i)
+		data[i] = i;
+
+	data = (int*)dsAllocator_reallocWithFallback(allocator, data, 10*sizeof(int), 20*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 10; ++i)
+		EXPECT_EQ(i, data[i]);
+
+	data = (int*)dsAllocator_reallocWithFallback(allocator, data, 20*sizeof(int), 5*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 5; ++i)
+		EXPECT_EQ(i, data[i]);
+
+	EXPECT_EQ(nullptr, dsAllocator_reallocWithFallback(allocator, data, 5*sizeof(int), 0));
+	EXPECT_EQ(0U, allocator->size);
+}
+
+TEST(Allocator, ReallocWithFallbackUsingFallback)
+{
+	dsSystemAllocator systemAllocator;
+	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
+	allocator->reallocFunc = nullptr;
+
+	int* data = (int*)dsAllocator_reallocWithFallback(allocator, nullptr, 100, 10*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 10; ++i)
+		data[i] = i;
+
+	data = (int*)dsAllocator_reallocWithFallback(allocator, data, 10*sizeof(int), 20*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 10; ++i)
+		EXPECT_EQ(i, data[i]);
+
+	data = (int*)dsAllocator_reallocWithFallback(allocator, data, 20*sizeof(int), 5*sizeof(int));
+	ASSERT_NE(nullptr, data);
+	for (int i = 0; i < 5; ++i)
+		EXPECT_EQ(i, data[i]);
+
+	EXPECT_EQ(nullptr, dsAllocator_reallocWithFallback(allocator, data, 5*sizeof(int), 0));
+	EXPECT_EQ(0U, allocator->size);
+}

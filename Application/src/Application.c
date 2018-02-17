@@ -502,12 +502,8 @@ void dsApplication_shutdown(dsApplication* application)
 	if (!application)
 		return;
 
-	if (application->windowResponders)
-		DS_VERIFY(dsAllocator_free(application->allocator, application->windowResponders));
-	if (application->eventResponders)
-		DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
-	if (application->windows)
-		DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
-	if (application->controllers)
-		DS_VERIFY(dsAllocator_free(application->allocator, application->controllers));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->windowResponders));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
+	DS_VERIFY(dsAllocator_free(application->allocator, application->controllers));
 }

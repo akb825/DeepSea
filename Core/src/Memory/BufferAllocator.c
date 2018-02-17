@@ -31,6 +31,7 @@ bool dsBufferAllocator_initialize(dsBufferAllocator* allocator, void* buffer, si
 	((dsAllocator*)allocator)->totalAllocations = 0;
 	((dsAllocator*)allocator)->currentAllocations = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsBufferAllocator_alloc;
+	((dsAllocator*)allocator)->reallocFunc = NULL;
 	((dsAllocator*)allocator)->freeFunc = NULL;
 
 	allocator->buffer = buffer;

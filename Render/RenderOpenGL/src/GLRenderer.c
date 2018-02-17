@@ -1029,10 +1029,8 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	dsDestroyGLConfig(display, glRenderer->sharedConfig);
 	dsDestroyGLConfig(display, glRenderer->renderConfig);
 
-	if (glRenderer->destroyVaos)
-		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
-	if (glRenderer->destroyFbos)
-		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
 	dsMutex_destroy(glRenderer->contextMutex);
 
 	if (glRenderer->syncPools)
@@ -1054,8 +1052,7 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 	if (glRenderer->releaseDisplay)
 		dsReleaseGLDisplay(glRenderer->options.display);
 
-	if (renderer->allocator)
-		DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
 	AnyGL_shutdown();
 }

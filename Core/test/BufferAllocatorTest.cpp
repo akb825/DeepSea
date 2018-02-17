@@ -54,7 +54,7 @@ TEST(BufferAllocator, Allocate)
 
 	dsBufferAllocator allocator;
 	ASSERT_TRUE(dsBufferAllocator_initialize(&allocator, buffer, bufferSize));
-	EXPECT_NULL_ERRNO(EINVAL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
+	EXPECT_EQ(NULL, dsAllocator_alloc((dsAllocator*)&allocator, 0));
 	EXPECT_NULL_ERRNO(EINVAL, dsBufferAllocator_alloc(&allocator, 10, 32));
 
 	void* ptr1 = dsAllocator_alloc((dsAllocator*)&allocator, 10);

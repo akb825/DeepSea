@@ -154,8 +154,7 @@ static bool loadShader(dsResourceManager* resourceManager, const char* shaderCac
 
 error:
 	DS_VERIFY(dsFileStream_close(&stream));
-	if (data)
-		dsAllocator_free(resourceManager->allocator, data);
+	dsAllocator_free(resourceManager->allocator, data);
 	return false;
 }
 
@@ -259,8 +258,7 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 
 error:
 	DS_VERIFY(dsFileStream_close(&stream));
-	if (data)
-		dsAllocator_free(resourceManager->allocator, data);
+	dsAllocator_free(resourceManager->allocator, data);
 	return false;
 }
 

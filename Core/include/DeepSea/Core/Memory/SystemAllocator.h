@@ -52,6 +52,18 @@ DS_CORE_EXPORT void* dsSystemAllocator_alloc(dsSystemAllocator* allocator, size_
 	unsigned int alignment);
 
 /**
+ * @brief Re-allocates memory from the system allocator.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to allocate from.
+ * @param ptr The original pointer to reallocate.
+ * @param size The size to allocate.
+ * @param alignment The minimum alignment for the allocation.
+ * @return The allocated memory or NULL. If NULL and size isn't 0, an error occurred.
+ */
+DS_CORE_EXPORT void* dsSystemAllocator_realloc(dsSystemAllocator* allocator, void* ptr, size_t size,
+	unsigned int alignment);
+
+/**
  * @brief Frees memory from the system allocator.
  * @remark errno will be set on failure.
  * @param allocator The allocator to free from.

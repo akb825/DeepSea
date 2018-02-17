@@ -39,13 +39,14 @@ static VectorInfo* addVectorInfo(dsVectorScratchData* data)
 	if (data->vectorInfoCount + 1 > data->maxVectorInfos)
 	{
 		uint32_t newMax = data->maxVectorInfos + INFOS_PER_TEXTURE;
-		VectorInfo* infos = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, VectorInfo, newMax);
+		VectorInfo* infos = (VectorInfo*)dsAllocator_reallocWithFallback(data->allocator,
+			data->vectorInfos, sizeof(VectorInfo*)*data->vectorInfoCount,
+			sizeof(VectorInfo)*newMax);
 		if (!infos)
 			return NULL;
-		memcpy(infos, data->vectorInfos, sizeof(VectorInfo)*data->vectorInfoCount);
+
 		memset(infos + data->vectorInfoCount, 0,
 			sizeof(VectorInfo)*(newMax - data->vectorInfoCount));
-		dsAllocator_free(data->allocator, data->vectorInfos);
 		data->vectorInfos = infos;
 		data->maxVectorInfos = newMax;
 	}
@@ -305,8 +306,7 @@ static bool buildEdgeBVH(dsVectorScratchData* data)
 {
 	if (!data->sortedPolygonEdges || data->maxSortedPolygonEdges < data->maxPolygonEdges)
 	{
-		if (data->sortedPolygonEdges)
-			dsAllocator_free(data->allocator, data->sortedPolygonEdges);
+		DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonEdges));
 		data->maxSortedPolygonEdges = data->maxPolygonEdges;
 		data->sortedPolygonEdges = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, uint32_t,
 			data->maxSortedPolygonEdges);
@@ -402,39 +402,23 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 		return;
 
 	DS_ASSERT(data->allocator);
-	if (data->points)
-		dsAllocator_free(data->allocator, data->points);
-	if (data->shapeVertices)
-		dsAllocator_free(data->allocator, data->shapeVertices);
-	if (data->imageVertices)
-		dsAllocator_free(data->allocator, data->imageVertices);
-	if (data->textVertices)
-		dsAllocator_free(data->allocator, data->textVertices);;
-	if (data->textTessVertices)
-		dsAllocator_free(data->allocator, data->textTessVertices);
-	if (data->indices)
-		dsAllocator_free(data->allocator, data->indices);
-	if (data->vectorInfos)
-		dsAllocator_free(data->allocator, data->vectorInfos);
-	if (data->pieces)
-		dsAllocator_free(data->allocator, data->pieces);
-	if (data->polygonVertices)
-		dsAllocator_free(data->allocator, data->polygonVertices);
-	if (data->polygonEdges)
-		dsAllocator_free(data->allocator, data->polygonEdges);
-	if (data->sortedPolygonVerts)
-		dsAllocator_free(data->allocator, data->sortedPolygonVerts);
-	if (data->sortedPolygonEdges)
-		dsAllocator_free(data->allocator, data->sortedPolygonEdges);
-	if (data->polygonEdgeBVH)
-		dsAllocator_free(data->allocator, data->polygonEdgeBVH);
-	if (data->loopVertices)
-		dsAllocator_free(data->allocator, data->loopVertices);
-	if (data->vertexStack)
-		dsAllocator_free(data->allocator, data->vertexStack);
-	if (data->combinedBuffer)
-		dsAllocator_free(data->allocator, data->combinedBuffer);
-	dsAllocator_free(data->allocator, data);
+	DS_VERIFY(dsAllocator_free(data->allocator, data->points));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->shapeVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->imageVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->textVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->textTessVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->indices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->vectorInfos));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->pieces));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->polygonVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->polygonEdges));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonVerts));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonEdges));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->polygonEdgeBVH));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->loopVertices));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->vertexStack));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
+	DS_VERIFY(dsAllocator_free(data->allocator, data));
 }
 
 void dsVectorScratchData_reset(dsVectorScratchData* data)
@@ -717,8 +701,7 @@ bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data)
 
 	if (!data->sortedPolygonVerts || data->maxSortedPolygonVerts < data->maxPolygonVerts)
 	{
-		if (data->sortedPolygonVerts)
-			dsAllocator_free(data->allocator, data->sortedPolygonVerts);
+		DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonVerts));
 		data->maxSortedPolygonVerts = data->maxPolygonVerts;
 		data->sortedPolygonVerts = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, uint32_t,
 			data->maxSortedPolygonVerts);
@@ -945,7 +928,7 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 
 	if (!data->combinedBuffer || data->combinedBufferSize < totalSize)
 	{
-		dsAllocator_free(data->allocator, data->combinedBuffer);
+		DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
 		data->combinedBuffer = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, uint8_t, totalSize);
 		if (!data->combinedBuffer)
 			return NULL;

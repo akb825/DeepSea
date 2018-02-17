@@ -111,19 +111,7 @@ static void ftFree(FT_Memory memory, void* block)
 
 static void* ftRealloc(FT_Memory memory, long curSize, long newSize, void* block)
 {
-	if (newSize == 0)
-	{
-		dsAllocator_free((dsAllocator*)memory->user, block);
-		return NULL;
-	}
-
-	void* newBuffer = dsAllocator_alloc((dsAllocator*)memory->user, newSize);
-	if (!newBuffer)
-		return NULL;
-
-	memcpy(newBuffer, block, dsMin(curSize, newSize));
-	dsAllocator_free((dsAllocator*)memory->user, block);
-	return newBuffer;
+	return dsAllocator_reallocWithFallback((dsAllocator*)memory->user, block, curSize, newSize);
 }
 
 static unsigned int getTableSize(unsigned int maxValues)
@@ -454,8 +442,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	// Create the runs.
 	if (!group->runs || group->maxRuns < *outCount)
 	{
-		if (group->runs)
-			dsAllocator_free(group->scratchAllocator, group->runs);
+		dsAllocator_free(group->scratchAllocator, group->runs);
 		group->runs = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsRunInfo, *outCount);
 		if (!group->runs)
 		{
@@ -532,8 +519,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 		return &group->scratchText;
 	}
 
-	if (group->scratchCodepoints)
-		dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
+	dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
 	group->scratchMaxCodepoints = length;
 	group->scratchCodepoints = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, uint32_t, length);
 	if (!group->scratchCodepoints)
@@ -559,8 +545,7 @@ bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount)
 		return true;
 	}
 
-	if (group->scratchRanges)
-		dsAllocator_free(group->scratchAllocator, group->scratchRanges);
+	dsAllocator_free(group->scratchAllocator, group->scratchRanges);
 	group->scratchMaxRanges = rangeCount;
 	group->scratchRanges = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsTextRange, rangeCount);
 	if (!group->scratchRanges)
@@ -599,8 +584,7 @@ uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length)
 	if (group->charMapping && length <= group->maxCharMappingCount)
 		return group->charMapping;
 
-	if (group->charMapping)
-		dsAllocator_free(group->scratchAllocator, group->charMapping);
+	dsAllocator_free(group->scratchAllocator, group->charMapping);
 	group->maxCharMappingCount = length;
 	group->charMapping = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, uint32_t, length);
 	if (!group->charMapping)
@@ -617,8 +601,7 @@ dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length)
 	if (group->glyphMapping && length <= group->maxGlyphMappingCount)
 		return group->glyphMapping;
 
-	if (group->glyphMapping)
-		dsAllocator_free(group->scratchAllocator, group->glyphMapping);
+	dsAllocator_free(group->scratchAllocator, group->glyphMapping);
 	group->maxGlyphMappingCount = length;
 	group->glyphMapping = DS_ALLOCATE_OBJECT_ARRAY(group->scratchAllocator, dsGlyphMapping, length);
 	if (!group->glyphMapping)
@@ -938,7 +921,7 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	{
 		dsFontFace* face = (dsFontFace*)node;
 		hb_font_destroy(face->font);
-		if (face->buffer)
+		if (face->bufferAllocator)
 			DS_VERIFY(dsAllocator_free(face->bufferAllocator, face->buffer));
 	}
 	dsMutex_destroy(group->mutex);
@@ -947,23 +930,14 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 
 	FT_Done_Library(group->library);
 
-	if (group->scratchCodepoints)
-		dsAllocator_free(group->scratchAllocator, group->scratchCodepoints);
-	if (group->scratchRanges)
-		dsAllocator_free(group->scratchAllocator, group->scratchRanges);
-	if (group->scratchGlyphs)
-		dsAllocator_free(group->scratchAllocator, group->scratchGlyphs);
-	if (group->paragraphs)
-		dsAllocator_free(group->scratchAllocator, group->paragraphs);
-	if (group->runs)
-		dsAllocator_free(group->scratchAllocator, group->runs);
-	if (group->charMapping)
-		dsAllocator_free(group->scratchAllocator, group->charMapping);
-	if (group->glyphMapping)
-		dsAllocator_free(group->scratchAllocator, group->glyphMapping);
-
-	if (group->allocator)
-		dsAllocator_free(group->allocator, group);
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchCodepoints));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchRanges));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchGlyphs));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->paragraphs));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->runs));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->charMapping));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->glyphMapping));
+	DS_VERIFY(dsAllocator_free(group->allocator, group));
 }
 
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,

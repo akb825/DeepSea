@@ -48,6 +48,7 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 	((dsAllocator*)allocator)->totalAllocations = 0;
 	((dsAllocator*)allocator)->currentAllocations = 0;
 	((dsAllocator*)allocator)->allocFunc = (dsAllocatorAllocFunction)&dsPoolAllocator_alloc;
+	((dsAllocator*)allocator)->reallocFunc = NULL;
 	((dsAllocator*)allocator)->freeFunc = (dsAllocatorFreeFunction)&dsPoolAllocator_free;
 
 	allocator->buffer = buffer;
@@ -143,6 +144,9 @@ bool dsPoolAllocator_free(dsPoolAllocator* allocator, void* ptr)
 		errno = EINVAL;
 		return false;
 	}
+
+	if (!ptr)
+		return true;
 
 	// Check for tampering.
 	DS_ASSERT(allocator->bufferSize > 0 &&

@@ -1081,15 +1081,11 @@ bool dsGLMainCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 		if (glCommandBuffer->clearValues)
 			DS_VERIFY(dsAllocator_free(commandBuffer->allocator, glCommandBuffer->clearValues));
 
-		dsSurfaceClearValue* newClearValues = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
-			dsSurfaceClearValue, clearValueCount);
+		dsSurfaceClearValue* newClearValues = (dsSurfaceClearValue*)dsAllocator_reallocWithFallback(
+			commandBuffer->allocator, glCommandBuffer->clearValues, 0,
+			clearValueCount*sizeof(dsSurfaceClearValue));
 		if (!newClearValues)
-		{
-			glCommandBuffer->clearValues = NULL;
-			glCommandBuffer->curClearValues = 0;
-			glCommandBuffer->maxClearValues = 0;
 			return false;
-		}
 
 		glCommandBuffer->clearValues = newClearValues;
 		glCommandBuffer->curClearValues = 0;
@@ -1848,8 +1844,7 @@ bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)
 		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->fenceSyncs));
 	}
 
-	if (commandBuffer->clearValues)
-		DS_VERIFY(dsAllocator_free(allocator, commandBuffer->clearValues));
+	DS_VERIFY(dsAllocator_free(allocator, commandBuffer->clearValues));
 
 	if (ANYGL_SUPPORTED(glDeleteSamplers))
 		glDeleteSamplers(2, commandBuffer->defaultSamplers);

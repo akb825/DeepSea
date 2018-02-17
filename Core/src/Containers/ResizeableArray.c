@@ -19,7 +19,6 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
-#include <string.h>
 
 bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elementCount,
 	uint32_t* maxElements, uint32_t elementSize, uint32_t addCount)
@@ -46,15 +45,10 @@ bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elem
 		newMaxElements = minElements;
 
 	DS_ASSERT(newMaxElements >= *elementCount + addCount);
-	void* newBuffer = dsAllocator_alloc(allocator, newMaxElements*elementSize);
+	void* newBuffer = dsAllocator_reallocWithFallback(allocator, *buffer, *elementCount*elementSize,
+		newMaxElements*elementSize);
 	if (!newBuffer)
 		return false;
-
-	if (*buffer)
-	{
-		memcpy(newBuffer, *buffer, *elementCount*elementSize);
-		DS_VERIFY(dsAllocator_free(allocator, *buffer));
-	}
 
 	*elementCount += addCount;
 	*maxElements = newMaxElements;

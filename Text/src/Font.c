@@ -478,10 +478,8 @@ bool dsFont_destroy(dsFont* font)
 		return false;
 
 	dsAllocator* scratchAllocator = dsFaceGroup_getScratchAllocator(font->group);
-	if (font->tempImage)
-		dsAllocator_free(scratchAllocator, font->tempImage);
-	if (font->tempSdf)
-		dsAllocator_free(scratchAllocator, font->tempSdf);
+	dsAllocator_free(scratchAllocator, font->tempImage);
+	dsAllocator_free(scratchAllocator, font->tempSdf);
 
 	if (font->allocator)
 		return dsAllocator_free(font->allocator, font);
