@@ -131,6 +131,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxUniformBlockSize = 1024*1024*1024;
 	resourceManager->maxTextureBufferSize = 64*1024;
 	resourceManager->maxVertexAttribs = 16;
+	resourceManager->maxSamplers = 16;
+	resourceManager->maxVertexSamplers = 16;
 	resourceManager->maxTextureSize = 4096;
 	resourceManager->maxTextureDepth = 256;
 	resourceManager->maxTextureArrayLevels = 512;

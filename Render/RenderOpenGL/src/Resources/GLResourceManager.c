@@ -1215,6 +1215,11 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		AnyGL_atLeastVersion(3, 0, true);
 	baseResourceManager->hasCubeArrays = AnyGL_atLeastVersion(4, 0, false) ||
 		AnyGL_ARB_texture_cube_map_array;
+	GLint maxSamplers;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxSamplers);
+	baseResourceManager->maxSamplers = maxSamplers;
+	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxSamplers);
+	baseResourceManager->maxVertexSamplers = maxSamplers;
 	baseResourceManager->hasMultisampleTextures = ANYGL_SUPPORTED(glTexStorage2DMultisample);
 	baseResourceManager->texturesReadable = ANYGL_SUPPORTED(glGetTexImage);
 	baseResourceManager->createTextureFunc = &dsGLTexture_create;

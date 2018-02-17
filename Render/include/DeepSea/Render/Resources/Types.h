@@ -1645,6 +1645,18 @@ struct dsResourceManager
 	uint32_t maxVertexAttribs;
 
 	/**
+	 * @brief The maximum number of samplers that can be used at once in a shader.
+	 */
+	uint32_t maxSamplers;
+
+	/**
+	 * @brief The maximum number of samplers that can be used at once in a vertex shader.
+	 *
+	 * This may be 0 if vertex texture lookup isn't supported.
+	 */
+	uint32_t maxVertexSamplers;
+
+	/**
 	 * @brief The maximum size of textures along the width and height.
 	 */
 	uint32_t maxTextureSize;
