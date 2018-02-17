@@ -192,7 +192,9 @@ TEST(SystemAllocator, Reallocation)
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
-	EXPECT_EQ(ptr, dsAllocator_realloc(allocator, ptr, 50));
+	ptr = dsAllocator_realloc(allocator, ptr, 50);
+	EXPECT_NE(nullptr, ptr);
+	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(50U, allocator->size);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
@@ -230,7 +232,9 @@ TEST(SystemAllocator, AlignedReallocation)
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
-	EXPECT_EQ(ptr, dsSystemAllocator_realloc(&systemAllocator, ptr, 50, alignment));
+	ptr = dsSystemAllocator_realloc(&systemAllocator, ptr, 50, alignment);
+	EXPECT_NE(nullptr, ptr);
+	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(50U, allocator->size);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);

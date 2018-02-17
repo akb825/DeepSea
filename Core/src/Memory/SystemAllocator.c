@@ -119,7 +119,7 @@ inline static void* mallocImpl(size_t size, unsigned int alignment)
 
 	void* ptr;
 #if DS_WINDOWS
-	ptr = _aligned_malloc(size, alignment);
+	ptr = _aligned_malloc(allocSize, alignment);
 #else
 	if (alignment <= MALLOC_ALIGNMENT)
 		ptr = malloc(allocSize);
