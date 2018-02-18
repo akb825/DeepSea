@@ -277,10 +277,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 bool dsTextRenderBuffer_destroy(dsTextRenderBuffer* renderBuffer)
 {
 	if (!renderBuffer)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	if (!dsGfxBuffer_destroy(renderBuffer->geometry->vertexBuffers[0].buffer))
 		return false;

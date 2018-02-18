@@ -472,7 +472,7 @@ dsTexture* dsFont_getTexture(const dsFont* font)
 bool dsFont_destroy(dsFont* font)
 {
 	if (!font)
-		return false;
+		return true;
 
 	if (!dsTexture_destroy(font->texture))
 		return false;

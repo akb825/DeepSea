@@ -186,9 +186,12 @@ uint32_t dsDrawGeometry_getIndexCount(const dsDrawGeometry* geometry)
 
 bool dsDrawGeometry_destroy(dsDrawGeometry* geometry)
 {
+	if (!geometry)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!geometry || !geometry->resourceManager || !geometry->resourceManager->destroyGeometryFunc)
+	if (!geometry->resourceManager || !geometry->resourceManager->destroyGeometryFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

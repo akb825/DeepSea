@@ -404,13 +404,10 @@ uint64_t dsShaderVariableGroup_getCommitCount(const dsShaderVariableGroup* group
 
 bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!group)
-	{
-		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
-	}
+		return true;
+
+	DS_PROFILE_FUNC_START();
 
 	dsResourceManager* resourceManager = group->resourceManager;
 	if (!dsResourceManager_canUseResources(resourceManager))
@@ -420,11 +417,8 @@ bool dsShaderVariableGroup_destroy(dsShaderVariableGroup* group)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (group->buffer)
-	{
-		if (!dsGfxBuffer_destroy(group->buffer))
-			DS_PROFILE_FUNC_RETURN(false);
-	}
+	if (!dsGfxBuffer_destroy(group->buffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	if (group->allocator)
 		DS_VERIFY(dsAllocator_free(group->allocator, group));

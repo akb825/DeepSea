@@ -119,7 +119,7 @@ bool dsSpinlock_unlock(dsSpinlock* spinlock)
 #endif
 }
 
-void dsSpinlock_destroy(dsSpinlock* spinlock)
+void dsSpinlock_shutdown(dsSpinlock* spinlock)
 {
 	if (!spinlock)
 		return;

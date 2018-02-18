@@ -1039,7 +1039,7 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools[i].buffer));
 		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools));
 	}
-	dsSpinlock_destroy(&glRenderer->syncPoolLock);
+	dsSpinlock_shutdown(&glRenderer->syncPoolLock);
 
 	if (glRenderer->syncRefPools)
 	{
@@ -1047,7 +1047,7 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools[i].buffer));
 		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools));
 	}
-	dsSpinlock_destroy(&glRenderer->syncRefPoolLock);
+	dsSpinlock_shutdown(&glRenderer->syncRefPoolLock);
 
 	if (glRenderer->releaseDisplay)
 		dsReleaseGLDisplay(glRenderer->options.display);

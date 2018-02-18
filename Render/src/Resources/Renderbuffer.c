@@ -89,10 +89,12 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 
 bool dsRenderbuffer_destroy(dsRenderbuffer* renderbuffer)
 {
+	if (!renderbuffer)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!renderbuffer || !renderbuffer->resourceManager ||
-		!renderbuffer->resourceManager->destroyRenderbufferFunc)
+	if (!renderbuffer->resourceManager || !renderbuffer->resourceManager->destroyRenderbufferFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

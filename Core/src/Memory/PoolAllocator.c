@@ -38,6 +38,10 @@ bool dsPoolAllocator_initialize(dsPoolAllocator* allocator, size_t chunkSize, si
 		bufferSize != dsPoolAllocator_bufferSize(chunkSize, chunkCount))
 	{
 		errno = EINVAL;
+		// Set buffer to NULL so if it's called in destroy() later it won't try to destroy the
+		// spinlock.
+		if (allocator)
+			allocator->buffer = NULL;
 		return false;
 	}
 
@@ -268,7 +272,7 @@ bool dsPoolAllocator_validate(dsPoolAllocator* allocator)
 	return valid;
 }
 
-void dsPoolAllocator_destroy(dsPoolAllocator* allocator)
+void dsPoolAllocator_shutdown(dsPoolAllocator* allocator)
 {
 	if (!allocator || !allocator->buffer)
 		return;
@@ -282,5 +286,5 @@ void dsPoolAllocator_destroy(dsPoolAllocator* allocator)
 	allocator->head = 0;
 	allocator->freeCount = 0;
 	allocator->initializedCount = 0;
-	dsSpinlock_destroy(&allocator->lock);
+	dsSpinlock_shutdown(&allocator->lock);
 }

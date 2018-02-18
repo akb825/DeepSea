@@ -449,10 +449,7 @@ bool dsVectorResource_removeFont(dsVectorResources* resources, const char* name,
 bool dsVectorResources_destroy(dsVectorResources* resources)
 {
 	if (!resources)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	bool firstDestroyed = true;
 	DS_UNUSED(firstDestroyed);
@@ -501,6 +498,6 @@ bool dsVectorResources_destroy(dsVectorResources* resources)
 	}
 
 	if (resources->allocator)
-		return dsAllocator_free(resources->allocator, resources);
+		DS_VERIFY(dsAllocator_free(resources->allocator, resources));
 	return true;
 }

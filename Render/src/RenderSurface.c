@@ -155,11 +155,14 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)
 
 bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
 {
+	if (!renderSurface)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!renderSurface || !renderSurface->renderer ||
-		!renderSurface->renderer->destroyRenderSurfaceFunc)
+	if (!renderSurface->renderer || !renderSurface->renderer->destroyRenderSurfaceFunc)
 	{
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

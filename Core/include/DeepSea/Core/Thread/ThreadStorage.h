@@ -73,7 +73,7 @@ DS_CORE_EXPORT bool dsThreadStorage_set(dsThreadStorage storage, void* value);
  * destoryed.
  * @param[inout] storage The storage to destroy. The contents will be cleared.
  */
-DS_CORE_EXPORT void dsThreadStorage_destroy(dsThreadStorage* storage);
+DS_CORE_EXPORT void dsThreadStorage_shutdown(dsThreadStorage* storage);
 
 #ifdef __cplusplus
 }

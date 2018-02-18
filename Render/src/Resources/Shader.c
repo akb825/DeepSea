@@ -741,9 +741,12 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 
 bool dsShader_destroy(dsShader* shader)
 {
+	if (!shader)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!shader || !shader->resourceManager || !shader->resourceManager->destroyShaderFunc)
+	if (!shader->resourceManager || !shader->resourceManager->destroyShaderFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

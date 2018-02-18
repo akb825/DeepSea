@@ -155,9 +155,12 @@ bool dsGfxFence_reset(dsGfxFence* fence)
 
 bool dsGfxFence_destroy(dsGfxFence* fence)
 {
+	if (!fence)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!fence || !fence->resourceManager || !fence->resourceManager->destroyBufferFunc)
+	if (!fence->resourceManager || !fence->resourceManager->destroyBufferFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

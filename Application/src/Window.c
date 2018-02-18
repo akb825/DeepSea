@@ -293,7 +293,10 @@ bool dsWindow_raise(dsWindow* window)
 
 bool dsWindow_destroy(dsWindow* window)
 {
-	if (!window || !window->application || !window->application->destroyWindowFunc)
+	if (!window)
+		return true;
+
+	if (!window->application || !window->application->destroyWindowFunc)
 	{
 		errno = EINVAL;
 		return false;

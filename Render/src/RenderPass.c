@@ -471,11 +471,14 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 
 bool dsRenderPass_destroy(dsRenderPass* renderPass)
 {
+	if (!renderPass)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!renderPass || !renderPass->renderer ||
-		!renderPass->renderer->destroyRenderPassFunc)
+	if (!renderPass->renderer || !renderPass->renderer->destroyRenderPassFunc)
 	{
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

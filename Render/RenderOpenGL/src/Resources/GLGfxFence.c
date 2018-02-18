@@ -211,7 +211,7 @@ bool dsGLGfxFence_destroy(dsResourceManager* resourceManager, dsGfxFence* fence)
 	dsGLGfxFence* glFence = (dsGLGfxFence*)fence;
 	if (glFence->sync)
 		dsGLFenceSyncRef_freeRef(glFence->sync);
-	dsSpinlock_destroy(&glFence->lock);
+	dsSpinlock_shutdown(&glFence->lock);
 	if (fence->allocator)
 		return dsAllocator_free(fence->allocator, fence);
 

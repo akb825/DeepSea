@@ -735,9 +735,12 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 
 bool dsTexture_destroy(dsTexture* texture)
 {
+	if (!texture)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!texture || !texture->resourceManager || !texture->resourceManager->destroyTextureFunc)
+	if (!texture->resourceManager || !texture->resourceManager->destroyTextureFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

@@ -950,37 +950,28 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 {
 	if (!vectorImage)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	for (uint32_t i = 0; i < vectorImage->infoTextureCount; ++i)
 	{
-		if (vectorImage->infoTextures[i] && !dsTexture_destroy(vectorImage->infoTextures[i]))
+		if (!dsTexture_destroy(vectorImage->infoTextures[i]))
 			return false;
 	}
 
 	for (int i = 0; i < ShaderType_Count; ++i)
 	{
-		if (vectorImage->drawGeometries[i] &&
-			!dsDrawGeometry_destroy(vectorImage->drawGeometries[i]))
-		{
+		if (!dsDrawGeometry_destroy(vectorImage->drawGeometries[i]))
 			return false;
-		}
 	}
 
-	if (vectorImage->buffer && !dsGfxBuffer_destroy(vectorImage->buffer))
+	if (!dsGfxBuffer_destroy(vectorImage->buffer))
 		return false;
 
-	if (vectorImage->materials && vectorImage->ownMaterials &&
-		!dsVectorMaterialSet_destroy(vectorImage->materials))
-	{
+	if (vectorImage->ownMaterials && !dsVectorMaterialSet_destroy(vectorImage->materials))
 		return false;
-	}
 
 	if (vectorImage->allocator)
-		return dsAllocator_free(vectorImage->allocator, vectorImage);
+		DS_VERIFY(dsAllocator_free(vectorImage->allocator, vectorImage));
 	return true;
 }
 

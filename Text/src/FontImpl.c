@@ -917,6 +917,9 @@ dsTextQuality dsFaceGroup_getTextQuality(const dsFaceGroup* group)
 
 void dsFaceGroup_destroy(dsFaceGroup* group)
 {
+	if (!group)
+		return;
+
 	for (dsListNode* node = group->faceHashTable->list.head; node; node = node->next)
 	{
 		dsFontFace* face = (dsFontFace*)node;

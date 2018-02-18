@@ -74,12 +74,9 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 	if (application->renderer->type == DS_GL_RENDERER_TYPE)
 		sdlFlags |= SDL_WINDOW_OPENGL;
 
-	if (window->surface)
-	{
-		if (!dsRenderSurface_destroy(window->surface))
-			return false;
-		window->surface = NULL;
-	}
+	if (!dsRenderSurface_destroy(window->surface))
+		return false;
+	window->surface = NULL;
 
 	if (sdlWindow->sdlWindow)
 	{

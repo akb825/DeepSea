@@ -215,10 +215,7 @@ bool dsVectorShaderModule_destroyContext(dsVectorDrawContext* drawContext)
 bool dsVectorShaderModule_destroy(dsVectorShaderModule* shaderModule)
 {
 	if (!shaderModule)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	if (!dsShaderModule_destroy(shaderModule->shaderModule))
 		return false;

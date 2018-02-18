@@ -87,10 +87,7 @@ dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
 bool dsVectorShaders_destroy(dsVectorShaders* shaders)
 {
 	if (!shaders)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	if (!dsShader_destroy(shaders->shapeShader))
 		return false;

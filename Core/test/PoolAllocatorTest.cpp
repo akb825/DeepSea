@@ -71,7 +71,7 @@ TEST(PoolAllocator, Initialize)
 	EXPECT_EQ(chunkCount, allocator.freeCount);
 	EXPECT_EQ(0U, allocator.initializedCount);
 
-	dsPoolAllocator_destroy(&allocator);
+	dsPoolAllocator_shutdown(&allocator);
 }
 
 TEST(PoolAllocator, AllocateFree)
@@ -198,7 +198,7 @@ TEST(PoolAllocator, AllocateFree)
 	EXPECT_EQ(7U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->currentAllocations);
 
-	dsPoolAllocator_destroy(&allocator);
+	dsPoolAllocator_shutdown(&allocator);
 }
 
 TEST(PoolAllocator, SingleChunk)
@@ -359,7 +359,7 @@ TEST(PoolAllocator, Reset)
 	EXPECT_EQ(3U, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(1U, ((dsAllocator*)&allocator)->currentAllocations);
 
-	dsPoolAllocator_destroy(&allocator);
+	dsPoolAllocator_shutdown(&allocator);
 }
 
 TEST(PoolAllocator, ThreadAlloc)
@@ -383,7 +383,7 @@ TEST(PoolAllocator, ThreadAlloc)
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
-	dsPoolAllocator_destroy(&allocator);
+	dsPoolAllocator_shutdown(&allocator);
 }
 
 TEST(PoolAllocator, ThreadAllocWithPause)
@@ -407,5 +407,5 @@ TEST(PoolAllocator, ThreadAllocWithPause)
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 	EXPECT_EQ(threadCount, ((dsAllocator*)&allocator)->totalAllocations);
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->currentAllocations);
-	dsPoolAllocator_destroy(&allocator);
+	dsPoolAllocator_shutdown(&allocator);
 }

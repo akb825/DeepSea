@@ -163,10 +163,12 @@ uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* materialDesc, const ch
 
 bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc)
 {
+	if (!materialDesc)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!materialDesc || !materialDesc->resourceManager ||
-		!materialDesc->resourceManager->destroyMaterialDescFunc)
+	if (!materialDesc->resourceManager || !materialDesc->resourceManager->destroyMaterialDescFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

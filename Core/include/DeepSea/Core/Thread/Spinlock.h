@@ -70,7 +70,7 @@ DS_CORE_EXPORT bool dsSpinlock_unlock(dsSpinlock* spinlock);
  * @brief Destroys a spinlock.
  * @param[inout] spinlock The spinlock to destroy.
  */
-DS_CORE_EXPORT void dsSpinlock_destroy(dsSpinlock* spinlock);
+DS_CORE_EXPORT void dsSpinlock_shutdown(dsSpinlock* spinlock);
 
 #ifdef __cplusplus
 }

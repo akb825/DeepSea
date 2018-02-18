@@ -94,9 +94,12 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 
 bool dsResourceManager_destroyResourceContext(dsResourceManager* resourceManager)
 {
+	if (!resourceManager)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!resourceManager ||  !resourceManager->destroyResourceContextFunc)
+	if (!resourceManager->destroyResourceContextFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -173,7 +176,7 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 	if (!resourceManager)
 		return;
 
-	dsThreadStorage_destroy(&resourceManager->_resourceContext);
+	dsThreadStorage_shutdown(&resourceManager->_resourceContext);
 
 	// Detect leaks of resources.
 	if (resourceManager->resourceContextCount)

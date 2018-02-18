@@ -82,8 +82,11 @@ bool dsThreadStorage_set(dsThreadStorage storage, void* value)
 #endif
 }
 
-void dsThreadStorage_destroy(dsThreadStorage* storage)
+void dsThreadStorage_shutdown(dsThreadStorage* storage)
 {
+	if (!storage)
+		return;
+
 #if DS_WINDOWS
 	TlsFree(storage->storage);
 	storage->storage = 0;

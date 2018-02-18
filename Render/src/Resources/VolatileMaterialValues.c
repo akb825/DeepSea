@@ -482,9 +482,10 @@ bool dsVolatileMaterialValues_clear(dsVolatileMaterialValues* values)
 
 void dsVolatileMaterialValues_destroy(dsVolatileMaterialValues* values)
 {
-	if (!values || !values->allocator)
+	if (!values)
 		return;
 
-	dsPoolAllocator_destroy(&values->entryPool);
-	dsAllocator_free(values->allocator, values);
+	dsPoolAllocator_shutdown(&values->entryPool);
+	if (values->allocator)
+		dsAllocator_free(values->allocator, values);
 }

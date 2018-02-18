@@ -43,7 +43,7 @@ bool dsGLResource_freeRef(dsGLResource* resource)
 	bool deffer = resource->defferDestroy;
 	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
 	if (deffer)
-		dsSpinlock_destroy(&resource->lock);
+		dsSpinlock_shutdown(&resource->lock);
 	return deffer;
 }
 
@@ -60,6 +60,6 @@ bool dsGLResource_destroy(dsGLResource* resource)
 	}
 
 	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
-	dsSpinlock_destroy(&resource->lock);
+	dsSpinlock_shutdown(&resource->lock);
 	return true;
 }

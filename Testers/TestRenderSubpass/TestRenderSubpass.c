@@ -235,22 +235,14 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		return false;
 	}
 
-	if (testRenderSubpass->framebuffer)
-		dsFramebuffer_destroy(testRenderSubpass->framebuffer);
-	if (testRenderSubpass->rColor)
-		dsTexture_destroy(testRenderSubpass->rColor);
-	if (testRenderSubpass->rDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->rDepth);
-	if (testRenderSubpass->gColor)
-		dsTexture_destroy(testRenderSubpass->gColor);
-	if (testRenderSubpass->gDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->gDepth);
-	if (testRenderSubpass->bColor)
-		dsTexture_destroy(testRenderSubpass->bColor);
-	if (testRenderSubpass->bDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->bDepth);
-	if (testRenderSubpass->combinedColor)
-		dsRenderbuffer_destroy(testRenderSubpass->combinedColor);
+	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->rDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->gColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->gDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->bColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->bDepth));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->combinedColor));
 
 	dsAllocator* allocator = testRenderSubpass->allocator;
 	dsResourceManager* resourceManager = testRenderSubpass->renderer->resourceManager;
@@ -848,60 +840,33 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 static void shutdown(TestRenderSubpass* testRenderSubpass)
 {
-	if (testRenderSubpass->resolveGeometry)
-		dsDrawGeometry_destroy(testRenderSubpass->resolveGeometry);
-	if (testRenderSubpass->cubeGeometry)
-		dsDrawGeometry_destroy(testRenderSubpass->cubeGeometry);
-	if (testRenderSubpass->resolveBuffer)
-		dsGfxBuffer_destroy(testRenderSubpass->resolveBuffer);
-	if (testRenderSubpass->cubeBuffer)
-		dsGfxBuffer_destroy(testRenderSubpass->cubeBuffer);
-	if (testRenderSubpass->combinedColor)
-		dsRenderbuffer_destroy(testRenderSubpass->combinedColor);
-	if (testRenderSubpass->bDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->bDepth);
-	if (testRenderSubpass->bColor)
-		dsTexture_destroy(testRenderSubpass->bColor);
-	if (testRenderSubpass->gDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->gDepth);
-	if (testRenderSubpass->gColor)
-		dsTexture_destroy(testRenderSubpass->gColor);
-	if (testRenderSubpass->rDepth)
-		dsRenderbuffer_destroy(testRenderSubpass->rDepth);
-	if (testRenderSubpass->rColor)
-		dsTexture_destroy(testRenderSubpass->rColor);
-	if (testRenderSubpass->texture)
-		dsTexture_destroy(testRenderSubpass->texture);
-	if (testRenderSubpass->resolveShader)
-		dsShader_destroy(testRenderSubpass->resolveShader);
-	if (testRenderSubpass->cubeShader)
-		dsShader_destroy(testRenderSubpass->cubeShader);
-	if (testRenderSubpass->resolveMaterial)
-		dsMaterial_destroy(testRenderSubpass->resolveMaterial);
-	if (testRenderSubpass->bMaterial)
-		dsMaterial_destroy(testRenderSubpass->bMaterial);
-	if (testRenderSubpass->gMaterial)
-		dsMaterial_destroy(testRenderSubpass->gMaterial);
-	if (testRenderSubpass->rMaterial)
-		dsMaterial_destroy(testRenderSubpass->rMaterial);
-	if (testRenderSubpass->volatileValues)
-		dsVolatileMaterialValues_destroy(testRenderSubpass->volatileValues);
-	if (testRenderSubpass->transformGroup)
-		dsShaderVariableGroup_destroy(testRenderSubpass->transformGroup);
-	if (testRenderSubpass->resolveMaterialDesc)
-		dsMaterialDesc_destroy(testRenderSubpass->resolveMaterialDesc);
-	if (testRenderSubpass->transformGroupDesc)
-		dsShaderVariableGroupDesc_destroy(testRenderSubpass->transformGroupDesc);
-	if (testRenderSubpass->cubeMaterialDesc)
-		dsMaterialDesc_destroy(testRenderSubpass->cubeMaterialDesc);
-	if (testRenderSubpass->shaderModule)
-		dsShaderModule_destroy(testRenderSubpass->shaderModule);
-	if (testRenderSubpass->renderPass)
-		dsRenderPass_destroy(testRenderSubpass->renderPass);
-	if (testRenderSubpass->framebuffer)
-		dsFramebuffer_destroy(testRenderSubpass->framebuffer);
-	if (testRenderSubpass->window)
-		dsWindow_destroy(testRenderSubpass->window);
+	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->resolveGeometry));
+	DS_VERIFY(dsDrawGeometry_destroy(testRenderSubpass->cubeGeometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->resolveBuffer));
+	DS_VERIFY(dsGfxBuffer_destroy(testRenderSubpass->cubeBuffer));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->combinedColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->bDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->bColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->gDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->gColor));
+	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->rDepth));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));
+	DS_VERIFY(dsTexture_destroy(testRenderSubpass->texture));
+	DS_VERIFY(dsShader_destroy(testRenderSubpass->resolveShader));
+	DS_VERIFY(dsShader_destroy(testRenderSubpass->cubeShader));
+	dsMaterial_destroy(testRenderSubpass->resolveMaterial);
+	dsMaterial_destroy(testRenderSubpass->bMaterial);
+	dsMaterial_destroy(testRenderSubpass->gMaterial);
+	dsMaterial_destroy(testRenderSubpass->rMaterial);
+	dsVolatileMaterialValues_destroy(testRenderSubpass->volatileValues);
+	DS_VERIFY(dsShaderVariableGroup_destroy(testRenderSubpass->transformGroup));
+	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->resolveMaterialDesc));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testRenderSubpass->transformGroupDesc));
+	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->cubeMaterialDesc));
+	DS_VERIFY(dsShaderModule_destroy(testRenderSubpass->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testRenderSubpass->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testRenderSubpass->window));
 }
 
 int dsMain(int argc, const char** argv)

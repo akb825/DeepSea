@@ -75,6 +75,9 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 
 bool dsCommandBufferPool_destroy(dsCommandBufferPool* pool)
 {
+	if (!pool)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
 	if (!pool || !pool->renderer || !pool->renderer->destroyCommandBufferPoolFunc)

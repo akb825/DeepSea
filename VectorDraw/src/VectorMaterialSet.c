@@ -444,10 +444,7 @@ dsTexture* dsVectorMaterialSet_getInfoTexture(const dsVectorMaterialSet* materia
 bool dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
 {
 	if (!materials)
-	{
-		errno = EINVAL;
-		return false;
-	}
+		return true;
 
 	if (!dsTexture_destroy(materials->colorTexture))
 		return false;
@@ -457,11 +454,11 @@ bool dsVectorMaterialSet_destroy(dsVectorMaterialSet* materials)
 		node; node = (dsMaterialNode*)node->node.listNode.next)
 	{
 		const dsGradient* gradient = dsVectorMaterial_getGradient(&node->material);
-		if (node->owned && gradient)
+		if (node->owned)
 			dsGradient_destroy((dsGradient*)gradient);
 	}
 
 	if (materials->allocator)
-		return dsAllocator_free(materials->allocator, materials);
+		DS_VERIFY(dsAllocator_free(materials->allocator, materials));
 	return true;
 }

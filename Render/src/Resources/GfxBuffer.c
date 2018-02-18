@@ -347,9 +347,12 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 
 bool dsGfxBuffer_destroy(dsGfxBuffer* buffer)
 {
+	if (!buffer)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!buffer || !buffer->resourceManager || !buffer->resourceManager->destroyBufferFunc)
+	if (!buffer->resourceManager || !buffer->resourceManager->destroyBufferFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

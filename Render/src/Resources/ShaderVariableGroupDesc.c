@@ -131,9 +131,12 @@ uint32_t dsShaderVariableGroupDesc_findElement(const dsShaderVariableGroupDesc* 
 
 bool dsShaderVariableGroupDesc_destroy(dsShaderVariableGroupDesc* groupDesc)
 {
+	if (!groupDesc)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!groupDesc || !groupDesc->resourceManager ||
+	if (!groupDesc->resourceManager ||
 		!groupDesc->resourceManager->destroyShaderVariableGroupDescFunc)
 	{
 		errno = EINVAL;

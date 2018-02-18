@@ -224,10 +224,12 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 
 bool dsFramebuffer_destroy(dsFramebuffer* framebuffer)
 {
+	if (!framebuffer)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!framebuffer || !framebuffer->resourceManager ||
-		!framebuffer->resourceManager->destroyRenderbufferFunc)
+	if (!framebuffer->resourceManager || !framebuffer->resourceManager->destroyRenderbufferFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

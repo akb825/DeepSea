@@ -251,10 +251,12 @@ bool dsShaderModule_shaderIndexHasStage(const dsShaderModule* shaderModule, uint
 
 bool dsShaderModule_destroy(dsShaderModule* shaderModule)
 {
+	if (!shaderModule)
+		return true;
+
 	DS_PROFILE_FUNC_START();
 
-	if (!shaderModule || !shaderModule->resourceManager ||
-		!shaderModule->resourceManager->destroyShaderModuleFunc)
+	if (!shaderModule->resourceManager || !shaderModule->resourceManager->destroyShaderModuleFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);

@@ -434,8 +434,7 @@ static bool createFramebuffer(TestText* testText)
 		return false;
 	}
 
-	if (testText->framebuffer)
-		dsFramebuffer_destroy(testText->framebuffer);
+	dsFramebuffer_destroy(testText->framebuffer);
 
 	dsRenderSurface* surface = testText->window->surface;
 	dsFramebufferSurface surfaces[] =
@@ -907,48 +906,33 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 static void shutdown(TestText* testText)
 {
-	if (testText->tessTextRender)
-		dsTextRenderBuffer_destroy(testText->tessTextRender);
+	DS_VERIFY(dsTextRenderBuffer_destroy(testText->tessTextRender));
 	if (testText->tessText)
 	{
 		// Avoid having to store an extra member, but we still need to separately destroy the text.
 		dsText_destroy((dsText*)testText->tessText->text);
 		dsTextLayout_destroy(testText->tessText);
 	}
-	if (testText->textRender)
-		dsTextRenderBuffer_destroy(testText->textRender);
+	DS_VERIFY(dsTextRenderBuffer_destroy(testText->textRender));
 	if (testText->text)
 	{
 		// Avoid having to store an extra member, but we still need to separately destroy the text.
 		dsText_destroy((dsText*)testText->text->text);
 		dsTextLayout_destroy(testText->text);
 	}
-	if (testText->font)
-		dsFont_destroy(testText->font);
-	if (testText->faceGroup)
-		dsFaceGroup_destroy(testText->faceGroup);
-	if (testText->tessShader)
-		dsShader_destroy(testText->tessShader);
-	if (testText->shader)
-		dsShader_destroy(testText->shader);
-	if (testText->tessMaterial)
-		dsMaterial_destroy(testText->tessMaterial);
-	if (testText->material)
-		dsMaterial_destroy(testText->material);
-	if (testText->materialDesc)
-		dsMaterialDesc_destroy(testText->materialDesc);
-	if (testText->sharedInfoGroup)
-		dsShaderVariableGroup_destroy(testText->sharedInfoGroup);
-	if (testText->sharedInfoDesc)
-		dsShaderVariableGroupDesc_destroy(testText->sharedInfoDesc);
-	if (testText->shaderModule)
-		dsShaderModule_destroy(testText->shaderModule);
-	if (testText->renderPass)
-		dsRenderPass_destroy(testText->renderPass);
-	if (testText->framebuffer)
-		dsFramebuffer_destroy(testText->framebuffer);
-	if (testText->window)
-		dsWindow_destroy(testText->window);
+	DS_VERIFY(dsFont_destroy(testText->font));
+	dsFaceGroup_destroy(testText->faceGroup);
+	DS_VERIFY(dsShader_destroy(testText->tessShader));
+	DS_VERIFY(dsShader_destroy(testText->shader));
+	dsMaterial_destroy(testText->tessMaterial);
+	dsMaterial_destroy(testText->material);
+	DS_VERIFY(dsMaterialDesc_destroy(testText->materialDesc));
+	DS_VERIFY(dsShaderVariableGroup_destroy(testText->sharedInfoGroup));
+	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->sharedInfoDesc));
+	DS_VERIFY(dsShaderModule_destroy(testText->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testText->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testText->window));
 }
 
 int dsMain(int argc, const char** argv)

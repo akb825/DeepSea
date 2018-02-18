@@ -192,8 +192,7 @@ static bool createFramebuffer(TestCube* testCube)
 		return false;
 	}
 
-	if (testCube->framebuffer)
-		dsFramebuffer_destroy(testCube->framebuffer);
+	dsFramebuffer_destroy(testCube->framebuffer);
 
 	dsRenderSurface* surface = testCube->window->surface;
 	dsFramebufferSurface surfaces[] =
@@ -450,26 +449,16 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 
 static void shutdown(TestCube* testCube)
 {
-	if (testCube->geometry)
-		dsDrawGeometry_destroy(testCube->geometry);
-	if (testCube->drawBuffer)
-		dsGfxBuffer_destroy(testCube->drawBuffer);
-	if (testCube->texture)
-		dsTexture_destroy(testCube->texture);
-	if (testCube->shader)
-		dsShader_destroy(testCube->shader);
-	if (testCube->material)
-		dsMaterial_destroy(testCube->material);
-	if (testCube->materialDesc)
-		dsMaterialDesc_destroy(testCube->materialDesc);
-	if (testCube->shaderModule)
-		dsShaderModule_destroy(testCube->shaderModule);
-	if (testCube->renderPass)
-		dsRenderPass_destroy(testCube->renderPass);
-	if (testCube->framebuffer)
-		dsFramebuffer_destroy(testCube->framebuffer);
-	if (testCube->window)
-		dsWindow_destroy(testCube->window);
+	DS_VERIFY(dsDrawGeometry_destroy(testCube->geometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testCube->drawBuffer));
+	DS_VERIFY(dsTexture_destroy(testCube->texture));
+	DS_VERIFY(dsShader_destroy(testCube->shader));
+	dsMaterial_destroy(testCube->material);
+	DS_VERIFY(dsMaterialDesc_destroy(testCube->materialDesc));
+	DS_VERIFY(dsShaderModule_destroy(testCube->shaderModule));
+	DS_VERIFY(dsRenderPass_destroy(testCube->renderPass));
+	DS_VERIFY(dsFramebuffer_destroy(testCube->framebuffer));
+	DS_VERIFY(dsWindow_destroy(testCube->window));
 }
 
 int dsMain(int argc, const char** argv)

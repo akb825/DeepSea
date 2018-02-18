@@ -99,11 +99,12 @@ DS_CORE_EXPORT bool dsPoolAllocator_reset(dsPoolAllocator* allocator);
 DS_CORE_EXPORT bool dsPoolAllocator_validate(dsPoolAllocator* allocator);
 
 /**
- * @brief Destroys the pool allocator.
- * @remark The buffer itself will not be freed.
+ * @brief Shutd down the pool allocator.
+ * @remark The buffer itself will not be freed. The main purpose of this function is to properly
+ *     destroy the spinlock.
  * @param allocator The allocator to destroy. This will be cleared.
  */
-DS_CORE_EXPORT void dsPoolAllocator_destroy(dsPoolAllocator* allocator);
+DS_CORE_EXPORT void dsPoolAllocator_shutdown(dsPoolAllocator* allocator);
 
 #ifdef __cplusplus
 }
