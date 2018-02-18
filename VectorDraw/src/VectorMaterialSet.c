@@ -407,7 +407,8 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 					info[3].x = node->material.radialGradient.transform.values[2][0];
 					info[3].y = node->material.radialGradient.transform.values[2][1];
 					info[3].z = node->material.radialGradient.radius;
-					info[3].w = node->material.radialGradient.focusRadius;
+					info[3].w = node->material.radialGradient.focusRadius/
+						node->material.radialGradient.radius;
 					break;
 				default:
 					break;

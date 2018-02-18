@@ -891,11 +891,17 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 			infoTextureCount);
 		for (uint32_t i = 0; i < infoTextureCount; ++i, ++image->infoTextureCount)
 		{
+			uint32_t height = INFOS_PER_TEXTURE;
+			if (i == infoTextureCount - 1 &&
+				(scratchData->vectorInfoCount % INFOS_PER_TEXTURE) != 0)
+			{
+				height = dsNextPowerOf2(scratchData->vectorInfoCount % INFOS_PER_TEXTURE);
+			}
+
 			image->infoTextures[i] = dsTexture_create(resourceManager, resourceAllocator,
 				dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GpuOnly, infoFormat,
-				dsTextureDim_2D, 4, INFOS_PER_TEXTURE, 0, 1,
-				scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
-				sizeof(VectorInfo)*INFOS_PER_TEXTURE);
+				dsTextureDim_2D, 4, height, 0, 1, scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
+				sizeof(VectorInfo)*height);
 			if (!image->infoTextures[i])
 			{
 				DS_VERIFY(dsVectorImage_destroy(image));

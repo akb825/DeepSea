@@ -1,0 +1,181 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
+
+/**
+ * @file
+ * @brief Uniforms and functions for getting the vector material color.
+ */
+
+/**
+ * @brief Texture holding general information about the vector material.
+ */
+uniform sampler2D dsVectorMaterialInfoTex;
+sampler_state dsVectorMaterialInfoTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+	mip_filter = none;
+};
+
+/**
+ * @brief Texture holding general information about the vector material.
+ */
+uniform sampler2D dsVectorMaterialColorTex;
+sampler_state dsVectorMaterialColorTex
+{
+	address_mode_u = wrap;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = none;
+};
+
+/**
+ * @brief Constant for the width of the material color texture.
+ */
+#define DS_MATERIAL_COLOR_WIDTH 256.0
+
+/**
+ * @brief Gets the info for a material.
+ * @param[out] info The material info.
+ * @param index The index of the material.
+ */
+void dsVectorMaterial_getInfo(out vec4 info[4], uint index)
+{
+	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.x;
+	info[0] = texture(dsVectorMaterialInfoTex, vec2(0.125f, materialCoord));
+	if (info[0].x == 0.0)
+	{
+		// Solid color, no extra info needed.
+		info[1] = vec4(0.0);
+		info[2] = vec4(0.0);
+		info[3] = vec4(0.0);
+	}
+	else
+	{
+		info[1] = texture(dsVectorMaterialInfoTex, vec2(0.375f, materialCoord));
+		info[2] = texture(dsVectorMaterialInfoTex, vec2(0.625f, materialCoord));
+		info[3] = texture(dsVectorMaterialInfoTex, vec2(0.875f, materialCoord));
+	}
+}
+
+/**
+ * @brief Gets the material color for a shape.
+ * @param info The info gathered from dsVectorMaterial_getInfo().
+ * @param origPosition The original position of the current pixel.
+ * @param bounds The bounds of the shape.
+ * @param imagePosition The position in the image of the current pixel.
+ * @param index The index of the material.
+ * @param materialTextureSize The size of the material texture.
+ */
+vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec2 imagePosition,
+	uint index, float materialTextureSize)
+{
+	float colorCoord;
+	float materialCoord = float(index)/materialTextureSize;
+	if (info[0].x == 1.0 || info[0].x == 2.0)
+	{
+		// Gradient
+		vec2 gradientPos;
+		if (info[0].1 == 1.0)
+			gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.zy);
+		else
+			gradientPos = imagePosition;
+
+		mat3 transform = mat3(vec3(info[2].xy, 0.0), vec3(info[2].zw, 0.0), vec3(info[3].xy, 1.0));
+		gradientPos = (transform*vec3(gradientPos, 1.0)).xy;
+
+		float gradientT;
+		if (info[0] == 1.0)
+		{
+			// Linear gradient
+			vec2 dir = info[1].zw - info[1].xy;
+			float invDirLen = 1.9/length(dir);
+			float dirNorm = dir*vec2(invDirLen);
+			gradientT = dot(dirNorm, gradientPos - info[1].xy)*invDirLen;
+		}
+		else
+		{
+			// Radial gradient
+			vec2 focusPos = info[1].zw;
+			float focusRadius = info[3].w;
+			vec2 circlePos = (gradientPos - info[1].xy)/info[3]z;
+			if (focusPos == vec2(0.0))
+				gradientT = max(length(circlePos) - focusRadius, 0.0);
+			else
+			{
+				vec2 focusDir = circlePos - focusPos;
+				float focusDist2 = dot(focusDir, focusDir);
+				if (focusDist2 <= focusRadius*focusRadius)
+					gradientT = 0.0;
+				else
+				{
+					// Find the distance from the focal point to the edge of the circle, passing
+					// through the current position.
+					// Intersect the line between the focus position and current position with the
+					// circle. http://mathworld.wolfram.com/Circle-LineIntersection.html
+					float determinant = focusPos.x*circlePos.y - focusPos.y*circlePos.x;
+					float signY = focusDir.y < 0.0 ? -1.0 : 1.0;
+
+					vec2 intersectCenter = vec2(focusDir.y, -focusDir.x)*vec2(determinant);
+					vec2 intersectOffset = vec2(signY*focusDir.x, abs(focusDir.y))*
+						vec2(sqrt(focusDist2 - dterminant*determinant));
+					float invFocusDist2 = 1.0/focusDist2;
+					if (dot(intersectOffset, focusDir) < 0.0)
+						intersectOffset = -intersectOffset;
+					vec2 circleIntersect = (intersectCenter + intersectOffset)*
+						vec2(invFocusDist2);
+
+					float gradiantDist = length(circleIntersect - focusPos) - focusRadius;
+					gradientT = (sqrt(focusDist2) - focusRadius)/gradiantDist;
+				}
+			}
+		}
+
+		if (info[0].y == 1.0)
+		{
+			// Repeat
+			colorCoord = gradientT;
+		}
+		else if (info[0].y == 2.0)
+		{
+			// Mirror
+			colorCoord = gradientT;
+			float evenVal = floor(gradientT)/2.0;
+			if (evenVal != floor(evenVal))
+				colorCoord = -colorCoord;
+		}
+		else
+		{
+			// Clamp
+			float halfTexel = DS_MATERIAL_COLOR_WIDTH;
+			colorCoord = clamp(gradientT, halfTexel, 1.0 - halfTexel);
+		}
+	}
+	else
+	{
+		// Solid color
+		colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
+	}
+
+	return texture(dsVectorMaterialColorTex, vec2(colorCoord, materalCoord));
+}

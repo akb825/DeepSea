@@ -237,7 +237,7 @@ typedef struct dsRadialGradient
 	dsVector2f focus;
 
 	/**
-	 * @brief The radius of the focus in the range [0, 1] as a portion of the overall radius.
+	 * @brief The radius of the focus.
 	 */
 	float focusRadius;
 
@@ -826,7 +826,7 @@ typedef struct dsVectorShadersModule
 	uint32_t sizeElement;
 
 	/**
-	 * @brief The element index for the texture sizes.
+	 * @brief The element index for the mateial and vector info texture sizes.
 	 */
 	uint32_t textureSizesElement;
 

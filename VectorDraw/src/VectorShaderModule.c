@@ -43,7 +43,7 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		{transformName, dsMaterialType_Mat3, 0},
 		{modelViewProjectionName, dsMaterialType_Mat4, 0},
 		{sizeName, dsMaterialType_Vec2, 0},
-		{textureSizesName, dsMaterialType_UVec2, 0}
+		{textureSizesName, dsMaterialType_Vec2, 0}
 	};
 	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
 		allocator, transformElements, DS_ARRAY_SIZE(transformElements));
@@ -53,11 +53,11 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	const char* vectorTransformName = "VectorTransform";
-	const char* shapeInfoName = "shapeInfoTex";
-	const char* materialInfoName = "materialInfoTex";
-	const char* materialColorName = "materialColorTex";
-	const char* fontName = "fontTex";
+	const char* vectorTransformName = "dsVectorTransform";
+	const char* shapeInfoName = "dsvectorInfoTex";
+	const char* materialInfoName = "dsVectorMaterialInfoTex";
+	const char* materialColorName = "dsVectorMaterialColorTex";
+	const char* fontName = "dsVectorFontTex";
 	dsMaterialElement materialElements[] =
 	{
 		{vectorTransformName, dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
@@ -75,9 +75,9 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	const char* shapeName = "VectorShape";
-	const char* imageName = "VectorImage";
-	const char* textName = "VectorText";
+	const char* shapeName = "dsVectorShape";
+	const char* imageName = "dsVectorImage";
+	const char* textName = "dsVectorText";
 	uint32_t shapeIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t imageIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t textIndex = DS_MATERIAL_UNKNOWN;
