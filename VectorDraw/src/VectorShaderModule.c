@@ -57,14 +57,16 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	const char* shapeInfoName = "dsvectorInfoTex";
 	const char* materialInfoName = "dsVectorMaterialInfoTex";
 	const char* materialColorName = "dsVectorMaterialColorTex";
+	const char* imageName = "dsVectorImageTex";
 	const char* fontName = "dsVectorFontTex";
 	dsMaterialElement materialElements[] =
 	{
 		{vectorTransformName, dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
-		{shapeInfoName, dsMaterialType_Texture, 0, transformDesc, true, 0},
-		{materialInfoName, dsMaterialType_Texture, 0, transformDesc, true, 0},
-		{materialColorName, dsMaterialType_Texture, 0, transformDesc, true, 0},
-		{fontName, dsMaterialType_Texture, 0, transformDesc, true, 0},
+		{shapeInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{materialInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{materialColorName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{imageName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{fontName, dsMaterialType_Texture, 0, NULL, true, 0},
 	};
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, allocator,
 		materialElements, DS_ARRAY_SIZE(materialElements));
@@ -75,9 +77,9 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	const char* shapeName = "dsVectorShape";
-	const char* imageName = "dsVectorImage";
-	const char* textName = "dsVectorText";
+	const char* shapeShaderName = "dsVectorShape";
+	const char* imageShaderName = "dsVectorImage";
+	const char* textShaderName = "dsVectorText";
 	uint32_t shapeIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t imageIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t textIndex = DS_MATERIAL_UNKNOWN;
@@ -86,11 +88,11 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		textIndex == DS_MATERIAL_UNKNOWN); ++i)
 	{
 		const char* name = dsShaderModule_shaderName(module, i);
-		if (strcmp(name, shapeName) == 0)
+		if (strcmp(name, shapeShaderName) == 0)
 			shapeIndex = i;
-		else if (strcmp(name, imageName) == 0)
+		else if (strcmp(name, imageShaderName) == 0)
 			imageIndex = i;
-		else if (strcmp(name, textName) == 0)
+		else if (strcmp(name, textShaderName) == 0)
 			textIndex = i;
 	}
 
@@ -98,19 +100,19 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (shapeIndex == DS_MATERIAL_UNKNOWN)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			shapeName);
+			shapeShaderName);
 		found = false;
 	}
 	else if (imageIndex == DS_MATERIAL_UNKNOWN)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			imageName);
+			imageShaderName);
 		found = false;
 	}
 	if (textIndex == DS_MATERIAL_UNKNOWN)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			textName);
+			textShaderName);
 		found = false;
 	}
 
@@ -150,6 +152,7 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	vectorModule->shapeInfoTextureId = dsHashString(shapeInfoName);
 	vectorModule->materialInfoTextureId = dsHashString(materialInfoName);
 	vectorModule->materialColorTextureId = dsHashString(materialColorName);
+	vectorModule->imageTextureId = dsHashString(imageName);
 	vectorModule->fontTextureId = dsHashString(fontName);
 	vectorModule->shapeShaderIndex = shapeIndex;
 	vectorModule->imageShaderIndex = imageIndex;

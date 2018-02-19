@@ -31,7 +31,7 @@ sampler_state tex
 	min_filter = linear;
 	mag_filter = linear;
 	mip_filter = anisotropic;
-};
+}
 
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;

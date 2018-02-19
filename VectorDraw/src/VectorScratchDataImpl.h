@@ -64,8 +64,10 @@ typedef struct ShapeVertex
 typedef struct ImageVertex
 {
 	dsVector2f position;
-	dsVector2f texCoords;
-	uint32_t shapeIndex;
+	uint16_t texCoordX;
+	uint16_t texCoordY;
+	uint16_t shapeIndex;
+	uint16_t padding;
 } ImageVertex;
 
 typedef struct TextVertex

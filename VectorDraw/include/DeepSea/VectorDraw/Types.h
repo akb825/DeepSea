@@ -826,7 +826,7 @@ typedef struct dsVectorShadersModule
 	uint32_t sizeElement;
 
 	/**
-	 * @brief The element index for the mateial and vector info texture sizes.
+	 * @brief The element index for the element info and mateial texture sizes.
 	 */
 	uint32_t textureSizesElement;
 
@@ -849,6 +849,11 @@ typedef struct dsVectorShadersModule
 	 * @brief The volatile material ID for the material texture.
 	 */
 	uint32_t materialColorTextureId;
+
+	/**
+	 * @brief The volatile material ID for the image texture.
+	 */
+	uint32_t imageTextureId;
 
 	/**
 	 * @brief The volatile material ID for the font texture.

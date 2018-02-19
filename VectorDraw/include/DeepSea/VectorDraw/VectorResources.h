@@ -71,7 +71,7 @@ DS_VECTORDRAW_EXPORT uint32_t dsVectorResources_getRemainingTextures(
  * @param resources The vector resources.
  * @param name The name of the texture. The length, including the null terminator, must not exceed
  *     DS_MAX_VECTOR_RESOURCE_NAME_LENGTH.
- * @param texture The texture to add.
+ * @param texture The texture to add. It is assumed that any alpha in the texture is pre-multiplied.
  * @param own True to take ownership of the texture.
  * @return False if the texture couldn't be added.
  */

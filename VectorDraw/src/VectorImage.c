@@ -95,6 +95,13 @@ static const dsMatrix44f rightBezierMatrix =
 
 static const dsVector4f bezierMid = {{0.125f, 0.375f, 0.375f, 0.125f}};
 
+static float adjustPixelSize(const dsMatrix33f* transform, float pixelSize)
+{
+	float xScale = dsVector2f_len((const dsVector2f*)&transform->columns[0]);
+	float yScale = dsVector2f_len((const dsVector2f*)&transform->columns[1]);
+	return pixelSize*dsMax(xScale, yScale);
+}
+
 static bool inPath(const dsVectorScratchData* scratchData)
 {
 	if (!scratchData->inPath)
@@ -512,6 +519,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	}
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
+	DS_ASSERT(infoIndex <= USHRT_MAX);
 	ShapeInfo* curInfo = dsVectorScratchData_addImagePiece(scratchData, transform, image, opacity,
 		bounds);
 	if (!curInfo)
@@ -522,9 +530,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	if (!vertex)
 		return false;
 	vertex->position = bounds->min;
-	vertex->texCoords.x = 0.0f;
-	vertex->texCoords.y = 0.0f;
-	vertex->shapeIndex = infoIndex;
+	vertex->texCoordX = 0;
+	vertex->texCoordY = 0;
+	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->padding = 0;
 
 	uint32_t upperRight = scratchData->imageVertexCount;
 	vertex = dsVectorScratchData_addImageVertex(scratchData);
@@ -532,18 +541,20 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 		return false;
 	vertex->position.x = bounds->max.x;
 	vertex->position.y = bounds->min.y;
-	vertex->texCoords.x = 1.0f;
-	vertex->texCoords.y = 0.0f;
-	vertex->shapeIndex = infoIndex;
+	vertex->texCoordX = 1;
+	vertex->texCoordY = 0;
+	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->padding = 0;
 
 	uint32_t lowerRight = scratchData->imageVertexCount;
 	vertex = dsVectorScratchData_addImageVertex(scratchData);
 	if (!vertex)
 		return false;
 	vertex->position = bounds->max;
-	vertex->texCoords.x = 1.0f;
-	vertex->texCoords.y = 1.0f;
-	vertex->shapeIndex = infoIndex;
+	vertex->texCoordX = 1;
+	vertex->texCoordY = 1;
+	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->padding = 0;
 
 	uint32_t lowerLeft = scratchData->imageVertexCount;
 	vertex = dsVectorScratchData_addImageVertex(scratchData);
@@ -551,9 +562,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 		return false;
 	vertex->position.x = bounds->min.x;
 	vertex->position.y = bounds->max.y;
-	vertex->texCoords.x = 0.0f;
-	vertex->texCoords.y = 1.0f;
-	vertex->shapeIndex = infoIndex;
+	vertex->texCoordX = 0;
+	vertex->texCoordY = 1;
+	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->padding = 0;
 
 	// Clockwise in image space, but will be counter-clockwise in clip space.
 	if (!dsVectorScratchData_addIndex(scratchData, &upperLeft) ||
@@ -608,14 +620,16 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 			dsVector2_sub(temp, quadratic->control, quadratic->end);
 			dsVector2_scale(temp, temp, controlT);
 			dsVector2_add(control2, quadratic->end, temp);
-			return addBezier(scratchData, &control1, &control2, &quadratic->end, pixelSize);
+			return addBezier(scratchData, &control1, &control2, &quadratic->end,
+				adjustPixelSize(&scratchData->pathTransform, pixelSize));
 		}
 		case dsVectorCommandType_Arc:
 		{
 			const dsVectorCommandArc* arc = &commands[(*curCommand)++].arc;
 			dsVector2f radius = {{fabsf(arc->radius.x), fabsf(arc->radius.y)}};
 			return addArc(scratchData, &arc->end, &radius, arc->rotation, arc->clockwise,
-				arc->largeArc, pixelSize, PointType_Corner);
+				arc->largeArc, adjustPixelSize(&scratchData->pathTransform, pixelSize),
+				PointType_Corner);
 		}
 		case dsVectorCommandType_ClosePath:
 			++(*curCommand);
@@ -623,19 +637,20 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 		case dsVectorCommandType_Ellipse:
 		{
 			const dsVectorCommandEllipse* ellipse = &commands[(*curCommand)++].ellipse;
-			return addEllipse(scratchData, &ellipse->center, &ellipse->radius, pixelSize);
+			return addEllipse(scratchData, &ellipse->center, &ellipse->radius,
+				adjustPixelSize(&scratchData->pathTransform, pixelSize));
 		}
 		case dsVectorCommandType_Rectangle:
 		{
 			const dsVectorCommandRectangle* rectangle = &commands[(*curCommand)++].rectangle;
 			return addRectangle(scratchData, &rectangle->bounds, &rectangle->cornerRadius,
-				pixelSize);
+				adjustPixelSize(&scratchData->pathTransform, pixelSize));
 		}
 		case dsVectorCommandType_StrokePath:
 			if (!inPathWithPoint(scratchData))
 				return false;
 			return dsVectorStroke_add(scratchData, materials, &commands[(*curCommand)++].strokePath,
-				pixelSize);
+				adjustPixelSize(&scratchData->pathTransform, pixelSize));
 		case dsVectorCommandType_FillPath:
 			if (!inPathWithPoint(scratchData))
 				return false;
@@ -676,7 +691,7 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UNorm);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
@@ -714,19 +729,14 @@ static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_TexCoord1].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32, dsGfxFormat_UNorm);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
 	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_Position].offset ==
 		offsetof(ImageVertex, position));
 	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord0].offset ==
-		offsetof(ImageVertex, texCoords));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord1].offset ==
-		offsetof(ImageVertex, shapeIndex));
+		offsetof(ImageVertex, texCoordX));
 	DS_ASSERT(vertexFormat.size == sizeof(ImageVertex));
 	dsVertexBuffer vertexBuffer =
 	{
@@ -759,7 +769,7 @@ static bool createTextGeometry(dsVectorImage* image, dsVectorScratchData* scratc
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord1].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UNorm);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
@@ -858,6 +868,14 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 			"Floating point textures are required for vector images.");
+		return NULL;
+	}
+
+	if (resourceManager->maxVertexSamplers < 2)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
+			"Vertex texture lookup is required for vector images.");
 		return NULL;
 	}
 

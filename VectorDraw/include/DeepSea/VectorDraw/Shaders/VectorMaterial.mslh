@@ -34,7 +34,7 @@ sampler_state dsVectorMaterialInfoTex
 	min_filter = nearest;
 	mag_filter = nearest;
 	mip_filter = none;
-};
+}
 
 /**
  * @brief Texture holding general information about the vector material.
@@ -47,7 +47,7 @@ sampler_state dsVectorMaterialColorTex
 	min_filter = linear;
 	mag_filter = linear;
 	mip_filter = none;
-};
+}
 
 /**
  * @brief Constant for the width of the material color texture.
@@ -59,9 +59,9 @@ sampler_state dsVectorMaterialColorTex
  * @param[out] info The material info.
  * @param index The index of the material.
  */
-void dsVectorMaterial_getInfo(out vec4 info[4], uint index)
+void dsVectorMaterial_getInfo(out vec4 info[4], float index)
 {
-	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.x;
+	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.y;
 	info[0] = texture(dsVectorMaterialInfoTex, vec2(0.125f, materialCoord));
 	if (info[0].x == 0.0)
 	{
@@ -85,13 +85,12 @@ void dsVectorMaterial_getInfo(out vec4 info[4], uint index)
  * @param bounds The bounds of the shape.
  * @param imagePosition The position in the image of the current pixel.
  * @param index The index of the material.
- * @param materialTextureSize The size of the material texture.
  */
 vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec2 imagePosition,
-	uint index, float materialTextureSize)
+	float index)
 {
 	float colorCoord;
-	float materialCoord = float(index)/materialTextureSize;
+	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.y;
 	if (info[0].x == 1.0 || info[0].x == 2.0)
 	{
 		// Gradient

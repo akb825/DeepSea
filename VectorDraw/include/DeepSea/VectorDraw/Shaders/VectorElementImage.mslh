@@ -1,0 +1,152 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector image elements.
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipeline of the name dsVectorImage. For example, the following pipeline
+ * definition will provide the default implementation:
+ *
+ * ```
+ * pipeline dsVectorImage
+ * {
+ *     vertex = dsVectorElementImage_defaultVertex;
+ *     fragment = dsVectorElementImage_defaultFragment;
+ *     DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES;
+ * }
+ * ```
+ */
+
+/**
+ * @brief Texture holding general information about the vector material.
+ */
+uniform sampler2D dsVectorImageTex;
+sampler_state dsVectorImageTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = linear;
+}
+
+/**
+ * @brief The position of the vertex.
+ */
+[[vertex]] layout(location = DS_POSITION) in vec2 position;
+
+/**
+ * @brief The texture coordinates for the image and element index.
+ */
+[[vertex]] layout(location = DS_TEXCOORD0) in vec4 texCoordsElementIndex;
+
+/**
+ * @brief Output from the vertex stage.
+ */
+struct VertexOutput
+{
+	/**
+	 * @brief The image position of the vertex.
+	 */
+	vec2 position;
+
+	/**
+	 * @brief The texture coordinates fo the vertex and opacity.
+	 */
+	vec3 texCoordsOpacity;
+};
+
+/**
+ * @brief The vertex output.
+ */
+[[vertex]] out VertexOutput vertexOut;
+[[fragment]] in VertexOutput vertexOut;
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 finalColor;
+
+/**
+ * @brief Default render states for vector image elements.
+ */
+#define DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_blend_factor = one; \
+	dst_blend_factor = one_minus_src_alpha; \
+	alpha_blend_op = add
+
+/**
+ * @brief Creates the vertex output.
+ * @param[out] outPosition The output position in clip space.
+ * @return The vertex output.
+ */
+[[vertex]]
+VertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
+{
+	vec4 elementInfo[4];
+	dsVectorShared_getElementInfo(elementInfo, texCoordsElementIndex.z);
+	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
+
+	VertexOutput output;
+	outPosition = dsVectorShared_transform(output.position, position.xy, transform);
+	output.texCoordsOpacity = vec3(texCoordsElementIndex.xy, elementInfo[2].z);
+
+	return output;
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsVectorElementImage_defaultVertex()
+{
+	vertexOut = dsVectorElementImage_getVectorInfo(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Gets the material color of the image.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementImage_getMaterialColor()
+{
+	dsVectorShared_clip(vertexOut.position);
+
+	vec4 color = texture(dsVectorImageTex, vertexOut.texCoordsOpacity.xy);
+	return color*vec4(1.0, 1.0, 1.0, vertexOut.lineDistancesOpacityMaterialIndex.z);
+}
+
+/**
+ * @brief Default fragment shader entry point function.
+ */
+[[fragment]]
+void dsVectorElementImage_defaultFragment()
+{
+	finalColor = dsVectorElementImage_getMaterialColor();
+}

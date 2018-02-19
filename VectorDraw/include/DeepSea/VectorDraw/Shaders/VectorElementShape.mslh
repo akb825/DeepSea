@@ -1,0 +1,214 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorImage/Shaders/VectorMaterial.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector shape elements. (stroke and fill)
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipeline of the name dsVectorShape. For example, the following pipeline
+ * definition will provide the default implementation:
+ *
+ * ```
+ * pipeline dsVectorShape
+ * {
+ *     vertex = dsVectorElementShape_defaultVertex;
+ *     fragment = dsVectorElementShape_defaultFragment;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ * ```
+ */
+
+/**
+ * @brief The position of the vertex.
+ *
+ * The zw coordinates are the distance along the line and total line distance. This will be < 0
+ * when not a part of a stroke.
+ */
+[[vertex]] layout(location = DS_POSITION) in vec4 positionLineInfo;
+
+/**
+ * @brief The indices within the material and shape.
+ */
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 elementMaterialIndex;
+
+/**
+ * @brief Output from the vertex stage.
+ */
+struct VertexOutput
+{
+	/**
+	 * @brief The original and image position of the vertex.
+	 */
+	vec4 position;
+
+	/**
+	 * @brief Current and maximum distance in the line, or -1 if not a line, opacity, and material
+	 * index.
+	 */
+	vec2 lineDistancesOpacityMaterialIndex;
+
+	/**
+	 * @brief The bounds of the shape.
+	 */
+	vec4 shapeBounds;
+
+	/**
+	 * @brief The information for the dashed line.
+	 */
+	vec4 dashArray;
+
+	/**
+	 * @brief The material info.
+	 */
+	vec4 materialInfo[4];
+};
+
+/**
+ * @brief The vertex output.
+ */
+[[vertex]] out VertexOutput vertexOut;
+[[fragment]] in VertexOutput vertexOut;
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 finalColor;
+
+/**
+ * @brief Default render states for vector shape elements.
+ */
+#define DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_blend_color_factor = src_alpha; \
+	src_blend_alpha_factor = one; \
+	dst_blend_factor = one_minus_src_alpha; \
+	alpha_blend_op = add
+
+/**
+ * @brief Creates the vertex output.
+ * @param[out] outPosition The output position in clip space.
+ * @return The vertex output.
+ */
+[[vertex]]
+VertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
+{
+	vec4 elementInfo[4];
+	dsVectorShared_getElementInfo(elementInfo, elementMaterialIndex.x);
+	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
+
+	VertexOutput output;
+	output.position.xy = position.xy;
+	outPosition = dsVectorShared_transform(output.position.zw, position.xy, transform);
+	output.lineDistancesOpacityMaterialIndex = vec4(position.zw, elementInfo[2].z,
+		elementMaterialIndex.y);
+	output.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
+	output.dashArray = elementInfo[3];
+	dsVectorMaterial_getInfo(output.materialInfo, elementMaterialIndex.y);
+
+	return output;
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsVectorElementShape_defaultVertex()
+{
+	vertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Gets the material color of the shape.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementShape_getMaterialColor()
+{
+	dsVectorShared_clip(vertexOut.position.zw);
+
+	// Discard gaps for line dashing.
+	if (vertexOut.lineDistancesOpacityMaterialIndex.x >= 0.0)
+	{
+		vec4 dashArray = vertexOut.dashArray;
+		vec4 dashArrayCumalitive;
+		dashArrayCumalitive.x = dashArray.x;
+		dashArrayCumalitive.y = dashArrayCumalitive.x + dashArray.y;
+		dashArrayCumalitive.z = dashArrayCumalitive.y + dashArray.z;
+		dashArrayCumalitive.w = dashArrayCumalitive.z + dashArray.w;
+		float totalDashDistance = dashArrayCumalitive.w;
+		if (totalDashDistance > 0.0)
+		{
+			// Amortize the remaining dash distance if the error is within 10% of the original dash
+			// distance. This should make use cases like loops with dashed arrays easier to look
+			// correct.
+			float dashRepeats = vertexOut.lineDistancesOpacityMaterialIndex.y/
+				totalDashDistance;
+			float totalDashRepeats = ceil(dashRepeats);
+			float dashRepeatRem = totalDashRepeats*totalDashDistance -
+				vertexOut.lineDistancesOpacityMaterialIndex.y;
+			if (totalDashRepeats > 1.0 && dashRepeatRem > totalDashDistance*0.5)
+			{
+				// Reduce the distance if only slighly over.
+				totalDashRepeats -= 1.0;
+			}
+
+			float adjustatedTotalDashDistance = vertexOut.lineDistancesOpacityMaterialIndex.y/
+				totalDashRepeats;
+			if (abs(adjustedTotalDashDistance/totalDashDistance - 1.0) <= 0.1)
+			{
+				totalDashDistance = adjustatedTotalDashDistance;
+				float ratio = adjustatedTotalDashDistance/totalDashDistance;
+				dashArray *= ratio;
+				dashArrayCumalitive *= ratio;
+			}
+
+			float dashPos = mod(vertexOut.lineDistancesOpacityMaterialIndex.x, totalDashDistance);
+			if ((dashPos.y > 0 &&
+					dashPos >= dashArrayCumalitive.x && dashPos <= dashArrayCumalitive.y) ||
+				(dashPos.w > 0 &&
+					dashPos >= dashArrayCumalitive.z && dashPos <= dashArrayCumalitive.w))
+			{
+				discard;
+			}
+		}
+	}
+
+	vec4 color = dsVectorMaterial_getColor(vertexOut.materialInfo, vertexOut.position.xy,
+		vertexOut.shapeBounds, vertexOut.position.zw,
+		vertexOut.lineDistancesOpacityMaterialIndex.w);
+	return color*vec4(1.0, 1.0, 1.0, vertexOut.lineDistancesOpacityMaterialIndex.z);
+}
+
+/**
+ * @brief Default fragment shader entry point function.
+ */
+[[fragment]]
+void dsVectorElementShape_defaultFragment()
+{
+	finalColor = dsVectorElementShape_getMaterialColor();
+}

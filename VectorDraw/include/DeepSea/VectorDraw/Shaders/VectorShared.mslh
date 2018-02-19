@@ -32,7 +32,7 @@ sampler_state dsVectorInfoTex
 	min_filter = nearest;
 	mag_filter = nearest;
 	mip_filter = none;
-};
+}
 
 /**
  * @brief Uniform block with the transform information for the vector image overall.
@@ -55,7 +55,7 @@ uniform dsVectorTransform
 	vec2 size;
 
 	/**
-	 * @brief The size of the material and element info textures.
+	 * @brief The size of the element info and material textures.
 	 */
 	vec2 textureSizes;
 } vectorTransform;
@@ -65,12 +65,60 @@ uniform dsVectorTransform
  * @param[out] info The element info.
  * @param index The index of the element.
  */
-void dsVectorShared_getElementInfo(out vec4 info[4], uint index)
+void dsVectorShared_getElementInfo(out vec4 info[4], float index)
 {
-	float elementCoord = float(index)/INSTANCE(vectorTransform).textureSizes.y;
+	float elementCoord = float(index)/INSTANCE(vectorTransform).textureSizes.x;
 	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));
 	info[1] = texture(dsVectorInfoTex, vec2(0.375f, elementCoord));
 	info[2] = texture(dsVectorInfoTex, vec2(0.625f, elementCoord));
 	info[3] = texture(dsVectorInfoTex, vec2(0.875f, elementCoord));
 }
 
+/**
+ * @brief Gets the bounds for an element.
+ * @param info The info from dsVectorShared_getElementInfo().
+ * @return The bounds min and max combined in one vec4.
+ */
+vec4 dsVectorShared_getElementBounds(vec4 info[4])
+{
+	return info[0];
+}
+
+/**
+ * @brief Gets the transform for an element.
+ * @param info The info from dsVectorShared_getElementInfo().
+ * @return The transform.
+ */
+mat3 dsVectorShared_getElementTransform(vec4 info[4])
+{
+	return mat3(vec3(info[1].xy, 0.0), vec3(info[1].zw, 0.0), vec3(info[2].xy, 1.0));
+}
+
+/**
+ * @brief Transforms an element position to clip space.
+ * @param[out] imagePosition The final position in image space.
+ * @param position The element position.
+ * @param transform The transform for the element.
+ * @return The transformed position.
+ */
+vec4 dsVectorShared_transform(out vec2 imagePosition, vec2 position, mat3 transform)
+{
+	vec3 tempPos = transform*vec3(position, 1.0);
+	imagePosition = tempPos.xy;
+
+	tempPos.y = INSTANCE(vectorTransform).size.y - tempPos.y;
+	vec4 worldPos = vec4((INSTANCE(vectorTransform).transform*tempPos).xy, 0.0, 1.0);
+	return INSTANCE(vectorTransform).modelViewProjection*worldPos;
+}
+
+/**
+ * @brief Clips the image to the
+ */
+void dsVectorShared_clip(vec2 imagePosition)
+{
+	if (any(lessThan(imagePosition, vec2(0.0))) ||
+		any(lessThan(INSTANCE(vectorTransform).size), imagePosition))
+	{
+		discard;
+	}
+}

@@ -25,7 +25,7 @@ sampler_state fontTex
 	min_filter = linear;
 	mag_filter = linear;
 	mip_filter = nearest;
-};
+}
 
 uniform SharedInfo
 {
