@@ -61,7 +61,7 @@ sampler_state dsVectorMaterialColorTex
  */
 void dsVectorMaterial_getInfo(out vec4 info[4], float index)
 {
-	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.y;
+	float materialCoord = float(index)/uniforms.dsVectorTextureSizes.y;
 	info[0] = texture(dsVectorMaterialInfoTex, vec2(0.125f, materialCoord));
 	if (info[0].x == 0.0)
 	{
@@ -90,7 +90,7 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 	float index)
 {
 	float colorCoord;
-	float materialCoord = float(index)/INSTANCE(vectorTransform).textureSizes.y;
+	float materialCoord = float(index)/uniforms.dsVectorTextureSizes.y;
 	if (info[0].x == 1.0 || info[0].x == 2.0)
 	{
 		// Gradient

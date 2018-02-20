@@ -829,10 +829,11 @@ bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* co
 	uint32_t x, uint32_t y, uint32_t z)
 {
 	DS_UNUSED(renderer);
-	if (!insideRenderPass(commandBuffer))
+	if (insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Dispatching compute shaders must happen outside a render pass.");
 		return false;
 	}
 
@@ -844,10 +845,11 @@ bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBu
 	const dsGfxBuffer* indirectBuffer, size_t offset)
 {
 	DS_UNUSED(renderer);
-	if (!insideRenderPass(commandBuffer))
+	if (insideRenderPass(commandBuffer))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Drawing must happen within a render pass.");
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Dispatching compute shaders must happen outside a render pass.");
 		return false;
 	}
 

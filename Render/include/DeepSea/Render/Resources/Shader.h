@@ -87,6 +87,7 @@ DS_RENDER_EXPORT bool dsShader_hasStage(const dsShader* shader, dsShaderStage st
 
 /**
  * @brief Binds a shader to be drawn to.
+ * @remark This must be called inside of a render pass.
  * @remark errno will be set on failure.
  * @param shader The shader to draw with.
  * @param commandBuffer The command buffer to queue commands onto.
@@ -106,6 +107,7 @@ DS_RENDER_EXPORT bool dsShader_bind(const dsShader* shader, dsCommandBuffer* com
  *
  * This will try to only update the values that have changed.
  *
+ * @remark This must be called inside of a render pass.
  * @remark errno will be set on failure.
  * @param shader The shader to update the values on.
  * @param commandBuffer The command buffer to queue commands onto.
@@ -117,6 +119,7 @@ DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
 
 /**
  * @brief Un-binds a shader that was previously bound.
+ * @remark This must be called inside of a render pass.
  * @remark errno will be set on failure.
  * @param shader The shader to update the values on.
  * @param commandBuffer The command buffer to queue commands onto.

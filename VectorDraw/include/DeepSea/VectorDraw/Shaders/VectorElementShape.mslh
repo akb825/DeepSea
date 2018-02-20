@@ -47,17 +47,17 @@
  * The zw coordinates are the distance along the line and total line distance. This will be < 0
  * when not a part of a stroke.
  */
-[[vertex]] layout(location = DS_POSITION) in vec4 positionLineInfo;
+[[vertex]] layout(location = DS_POSITION) in vec4 dsVectorPositionLineInfo;
 
 /**
  * @brief The indices within the material and shape.
  */
-[[vertex]] layout(location = DS_TEXCOORD0) in vec2 elementMaterialIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
 
 /**
  * @brief Output from the vertex stage.
  */
-struct VertexOutput
+struct dsVectorVertexOutput
 {
 	/**
 	 * @brief The original and image position of the vertex.
@@ -89,8 +89,8 @@ struct VertexOutput
 /**
  * @brief The vertex output.
  */
-[[vertex]] out VertexOutput vertexOut;
-[[fragment]] in VertexOutput vertexOut;
+[[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
+[[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
 
 /**
  * @brief The final output color of the shader.
@@ -114,20 +114,20 @@ struct VertexOutput
  * @return The vertex output.
  */
 [[vertex]]
-VertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
+dsVectorVertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, elementMaterialIndex.x);
+	dsVectorShared_getElementInfo(elementInfo, dsVectorElementMaterialIndex.x);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	VertexOutput output;
-	output.position.xy = position.xy;
-	outPosition = dsVectorShared_transform(output.position.zw, position.xy, transform);
-	output.lineDistancesOpacityMaterialIndex = vec4(position.zw, elementInfo[2].z,
-		elementMaterialIndex.y);
+	dsVectorVertexOutput output;
+	output.position.xy = dsVectorPosition.xy;
+	outPosition = dsVectorShared_transform(output.position.zw, dsVectorPosition.xy, transform);
+	output.lineDistancesOpacityMaterialIndex = vec4(dsVectorPosition.zw, elementInfo[2].z,
+		dsVectorElementMaterialIndex.y);
 	output.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
 	output.dashArray = elementInfo[3];
-	dsVectorMaterial_getInfo(output.materialInfo, elementMaterialIndex.y);
+	dsVectorMaterial_getInfo(output.materialInfo, dsVectorElementMaterialIndex.y);
 
 	return output;
 }
@@ -138,7 +138,7 @@ VertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 [[vertex]]
 void dsVectorElementShape_defaultVertex()
 {
-	vertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
+	dsVertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -149,12 +149,12 @@ void dsVectorElementShape_defaultVertex()
 [[fragment]]
 vec4 dsVectorElementShape_getMaterialColor()
 {
-	dsVectorShared_clip(vertexOut.position.zw);
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
 	// Discard gaps for line dashing.
-	if (vertexOut.lineDistancesOpacityMaterialIndex.x >= 0.0)
+	if (dsVectorVertexOut.lineDistancesOpacityMaterialIndex.x >= 0.0)
 	{
-		vec4 dashArray = vertexOut.dashArray;
+		vec4 dashArray = dsVectorVertexOut.dashArray;
 		vec4 dashArrayCumalitive;
 		dashArrayCumalitive.x = dashArray.x;
 		dashArrayCumalitive.y = dashArrayCumalitive.x + dashArray.y;
@@ -166,19 +166,19 @@ vec4 dsVectorElementShape_getMaterialColor()
 			// Amortize the remaining dash distance if the error is within 10% of the original dash
 			// distance. This should make use cases like loops with dashed arrays easier to look
 			// correct.
-			float dashRepeats = vertexOut.lineDistancesOpacityMaterialIndex.y/
+			float dashRepeats = dsVectorVertexOut.lineDistancesOpacityMaterialIndex.y/
 				totalDashDistance;
 			float totalDashRepeats = ceil(dashRepeats);
 			float dashRepeatRem = totalDashRepeats*totalDashDistance -
-				vertexOut.lineDistancesOpacityMaterialIndex.y;
+				dsVectorVertexOut.lineDistancesOpacityMaterialIndex.y;
 			if (totalDashRepeats > 1.0 && dashRepeatRem > totalDashDistance*0.5)
 			{
 				// Reduce the distance if only slighly over.
 				totalDashRepeats -= 1.0;
 			}
 
-			float adjustatedTotalDashDistance = vertexOut.lineDistancesOpacityMaterialIndex.y/
-				totalDashRepeats;
+			float adjustatedTotalDashDistance =
+				dsVectorVertexOut.lineDistancesOpacityMaterialIndex.y/totalDashRepeats;
 			if (abs(adjustedTotalDashDistance/totalDashDistance - 1.0) <= 0.1)
 			{
 				totalDashDistance = adjustatedTotalDashDistance;
@@ -187,7 +187,8 @@ vec4 dsVectorElementShape_getMaterialColor()
 				dashArrayCumalitive *= ratio;
 			}
 
-			float dashPos = mod(vertexOut.lineDistancesOpacityMaterialIndex.x, totalDashDistance);
+			float dashPos = mod(dsVectorVertexOut.lineDistancesOpacityMaterialIndex.x,
+				totalDashDistance);
 			if ((dashPos.y > 0 &&
 					dashPos >= dashArrayCumalitive.x && dashPos <= dashArrayCumalitive.y) ||
 				(dashPos.w > 0 &&
@@ -198,10 +199,10 @@ vec4 dsVectorElementShape_getMaterialColor()
 		}
 	}
 
-	vec4 color = dsVectorMaterial_getColor(vertexOut.materialInfo, vertexOut.position.xy,
-		vertexOut.shapeBounds, vertexOut.position.zw,
-		vertexOut.lineDistancesOpacityMaterialIndex.w);
-	return color*vec4(1.0, 1.0, 1.0, vertexOut.lineDistancesOpacityMaterialIndex.z);
+	vec4 color = dsVectorMaterial_getColor(dsVectorVertexOut.materialInfo,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.position.zw, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.w);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);
 }
 
 /**
@@ -210,5 +211,5 @@ vec4 dsVectorElementShape_getMaterialColor()
 [[fragment]]
 void dsVectorElementShape_defaultFragment()
 {
-	finalColor = dsVectorElementShape_getMaterialColor();
+	dsVectorFinalColor = dsVectorElementShape_getMaterialColor();
 }

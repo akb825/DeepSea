@@ -38,7 +38,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/Shader.h>
-#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
@@ -970,35 +969,31 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 }
 
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
-	const dsVectorShaders* shaders, dsVectorDrawContext* drawContext,
-	const dsMatrix44f* modelViewProjection, const dsVolatileMaterialValues* volatileValues,
-	const dsDynamicRenderStates* renderStates)
+	const dsVectorShaders* shaders, dsMaterial* material, const dsMatrix44f* modelViewProjection,
+	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
 {
-	if (!vectorImage || !commandBuffer || !shaders || !drawContext || !modelViewProjection)
+	if (!vectorImage || !commandBuffer || !shaders || !material || !modelViewProjection)
 	{
 		errno = EINVAL;
 		return false;
 	}
 
-	if (shaders->shaderModule != drawContext->shaderModule)
+	if (shaders->shaderModule->materialDesc != dsMaterial_getDescription(material))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
-			"Shader module doesn't match between the vector shaders and draw context.");
+			"Material wasn't created with the same shader module as the shaders.");
 		return false;
 	}
 
 	if (vectorImage->pieceCount == 0)
 		return true;
 
-	dsMaterial* material = drawContext->material;
-	dsShaderVariableGroup* transformGroup = drawContext->transformGroup;
-	dsVectorShaderModule* shaderModule = drawContext->shaderModule;
-	if (!dsShaderVariableGroup_setElementData(transformGroup,
-			shaderModule->modelViewProjectionElement, modelViewProjection, dsMaterialType_Mat4, 0,
-			1) ||
-		!dsShaderVariableGroup_setElementData(transformGroup, shaderModule->sizeElement,
-			&vectorImage->size, dsMaterialType_Vec2, 0, 1))
+	dsVectorShaderModule* shaderModule = shaders->shaderModule;
+	if (!dsMaterial_setElementData(material, shaderModule->modelViewProjectionElement,
+			modelViewProjection, dsMaterialType_Mat4, 0, 1) ||
+		!dsMaterial_setElementData(material, shaderModule->sizeElement, &vectorImage->size,
+			dsMaterialType_Vec2, 0, 1))
 	{
 		return false;
 	}
@@ -1023,9 +1018,8 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	{
 		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
 		textureSizes.x = (float)piece->geometryInfo->height;
-		if (!dsShaderVariableGroup_setElementData(transformGroup, shaderModule->textureSizesElement,
-				&textureSizes, dsMaterialType_Vec2, 0, 1) ||
-			!dsShaderVariableGroup_commit(transformGroup, commandBuffer) ||
+		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
+				dsMaterialType_Vec2, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
 				piece->geometryInfo) ||
 			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture))
@@ -1052,8 +1046,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 				break;
 		}
 
-		if (!dsShader_bind(shader, commandBuffer, drawContext->material, volatileValues,
-			renderStates))
+		if (!dsShader_bind(shader, commandBuffer, material, volatileValues, renderStates))
 		{
 			success = false;
 			break;

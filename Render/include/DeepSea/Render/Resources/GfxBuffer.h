@@ -111,6 +111,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset,
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param buffer The buffer to copy the data to. This must have been created with
  *     dsGfxBufferUsage_CopyTo.
@@ -129,6 +130,7 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer*
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcBuffer The buffer to copy the data from. This must have been created with

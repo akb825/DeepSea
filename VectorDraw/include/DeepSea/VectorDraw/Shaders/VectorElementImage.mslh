@@ -56,17 +56,17 @@ sampler_state dsVectorOtherTex
 /**
  * @brief The position of the vertex.
  */
-[[vertex]] layout(location = DS_POSITION) in vec2 position;
+[[vertex]] layout(location = DS_POSITION) in vec2 dsVectorPosition;
 
 /**
  * @brief The texture coordinates for the image and element index.
  */
-[[vertex]] layout(location = DS_TEXCOORD0) in vec4 texCoordsElementIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec4 dsVectorTexCoordsElementIndex;
 
 /**
  * @brief Output from the vertex stage.
  */
-struct VertexOutput
+struct dsVectorVertexOutput
 {
 	/**
 	 * @brief The image position of the vertex.
@@ -82,13 +82,13 @@ struct VertexOutput
 /**
  * @brief The vertex output.
  */
-[[vertex]] out VertexOutput vertexOut;
-[[fragment]] in VertexOutput vertexOut;
+[[vertex]] out dsVectorVertexOutput dsVertexOut;
+[[fragment]] in dsVectorVertexOutput dsVertexOut;
 
 /**
  * @brief The final output color of the shader.
  */
-[[fragment]] out vec4 finalColor;
+[[fragment]] out vec4 dsVectorFinalColor;
 
 /**
  * @brief Default render states for vector image elements.
@@ -106,15 +106,15 @@ struct VertexOutput
  * @return The vertex output.
  */
 [[vertex]]
-VertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
+dsVertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, texCoordsElementIndex.z);
+	dsVectorShared_getElementInfo(elementInfo, dsVectorTexCoordsElementIndex.z);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	VertexOutput output;
-	outPosition = dsVectorShared_transform(output.position, position.xy, transform);
-	output.texCoordsOpacity = vec3(texCoordsElementIndex.xy, elementInfo[2].z);
+	dsVertexOutput output;
+	outPosition = dsVectorShared_transform(output.position, dsVectorPosition.xy, transform);
+	output.texCoordsOpacity = vec3(dsVectorTexCoordsElementIndex.xy, elementInfo[2].z);
 
 	return output;
 }
@@ -125,7 +125,7 @@ VertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
 [[vertex]]
 void dsVectorElementImage_defaultVertex()
 {
-	vertexOut = dsVectorElementImage_getVectorInfo(gl_Position);
+	dsVectorVertexOut = dsVectorElementImage_getVectorInfo(gl_Position);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -138,8 +138,8 @@ vec4 dsVectorElementImage_getMaterialColor()
 {
 	dsVectorShared_clip(vertexOut.position);
 
-	vec4 color = texture(dsVectorOtherTex, vertexOut.texCoordsOpacity.xy);
-	return color*vec4(1.0, 1.0, 1.0, vertexOut.lineDistancesOpacityMaterialIndex.z);
+	vec4 color = texture(dsVectorOtherTex, dsVectorVertexOut.texCoordsOpacity.xy);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);
 }
 
 /**
@@ -148,5 +148,5 @@ vec4 dsVectorElementImage_getMaterialColor()
 [[fragment]]
 void dsVectorElementImage_defaultFragment()
 {
-	finalColor = dsVectorElementImage_getMaterialColor();
+	dsVectorFinalColor = dsVectorElementImage_getMaterialColor();
 }

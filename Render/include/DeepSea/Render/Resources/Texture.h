@@ -184,6 +184,7 @@ DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resou
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param texture The texture to copy the data to.
  * @param commandBuffer The command buffer to process the copy on.
@@ -208,6 +209,7 @@ DS_RENDER_EXPORT bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* co
  * This queues the copy on a command buffer, so the thread that processes this doesn't need a
  * resource context.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to process the copy on.
  * @param srcTexture The texture to copy from.
@@ -225,6 +227,7 @@ DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* 
  * This will only populate data for already allocated mipmaps. Most commonly, this will be used to
  * generate mipmaps for an offscreen after rendering to the first mip level.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param texture The texture to generate mipmaps for.
  * @param commandBuffer The command buffer to process the generation on.
@@ -239,7 +242,6 @@ DS_RENDER_EXPORT bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuf
  * @remark When reading from an offscreen, note that this may block until the GPU is finished
  *     executing drawing commands.
  * @remark errno will be set on failure.
- *
  * @param[out] result The output buffer for the result.
  * @param size The size of the result buffer. This must match the size that will be read from the
  *     texture based on the requested size.

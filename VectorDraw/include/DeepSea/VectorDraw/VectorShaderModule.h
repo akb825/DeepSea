@@ -91,6 +91,17 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadData(
 	dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
+ * @brief Creates a material to be used when drawing a vector image with a shader module.
+ * @remark errno will be set on failure.
+ * @param shaderModule The shader module.
+ * @param allocator The allocator to create the material with. If NULL, it will use the same
+ *     allocator as the shader module.
+ * @return The material, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsMaterial* dsVectorShaderModule_createMaterial(
+	dsVectorShaderModule* shaderModule, dsAllocator* allocator);
+
+/**
  * @brief Destroys the vector shaders.
  * @remark errno will be set on failure.
  * @param shaderModule The shader module to destroy.

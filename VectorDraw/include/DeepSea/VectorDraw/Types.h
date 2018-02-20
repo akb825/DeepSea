@@ -801,19 +801,9 @@ typedef struct dsVectorShadersModule
 	dsShaderModule* shaderModule;
 
 	/**
-	 * @brief The transfor shader variable group description.
-	 */
-	dsShaderVariableGroupDesc* transformDesc;
-
-	/**
 	 * @brief The material description.
 	 */
 	dsMaterialDesc* materialDesc;
-
-	/**
-	 * @brief The element index for the transform shader variable group.
-	 */
-	uint32_t transformElement;
 
 	/**
 	 * @brief The element index for the shape info texture.
@@ -836,18 +826,17 @@ typedef struct dsVectorShadersModule
 	uint32_t otherTextureElement;
 
 	/**
-	 * @brief The element index for the model-view-projection matrix inside the transform group.
+	 * @brief The element index for the model-view-projection matrix.
 	 */
 	uint32_t modelViewProjectionElement;
 
 	/**
-	 * @brief The element index for the image size inside the transform group.
+	 * @brief The element index for the image size.
 	 */
 	uint32_t sizeElement;
 
 	/**
-	 * @brief The element index for the element info and mateial texture sizes inside the transform
-	 * group.
+	 * @brief The element index for the element info and mateial texture sizes.
 	 */
 	uint32_t textureSizesElement;
 
@@ -898,33 +887,6 @@ typedef struct dsVectorShaders
 	 */
 	dsShader* textShader;
 } dsVectorShaders;
-
-/**
- * @brief Struct that contains the context information for drawing vector images.
- * @see VectorDrawContext.h
- */
-typedef struct dsVectorDrawContext
-{
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The vector shader module.
-	 */
-	dsVectorShaderModule* shaderModule;
-
-	/**
-	 * @brief The material for the shaders.
-	 */
-	dsMaterial* material;
-
-	/**
-	 * @brief The shader variable group for the transform elements.
-	 */
-	dsShaderVariableGroup* transformGroup;
-} dsVectorDrawContext;
 
 /**
  * @brief Struct containing shared resources for vector graphics.

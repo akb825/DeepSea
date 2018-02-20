@@ -24,7 +24,7 @@
 /**
  * @brief Texture holding general information for the different vector elements.
  */
-uniform sampler2D vectorInfoTex;
+uniform sampler2D dsVectorInfoTex;
 sampler_state dsVectorInfoTex
 {
 	address_mode_u = clamp_to_edge;
@@ -35,25 +35,19 @@ sampler_state dsVectorInfoTex
 }
 
 /**
- * @brief Uniform block with the transform information for the vector image overall.
+ * @brief The model/view/projection transform in 3D space.
  */
-uniform dsVectorTransform
-{
-	/**
-	 * @brief The model/view/projection transform in 3D space.
-	 */
-	mat4 modelViewProjection;
+uniform mat4 dsVectorModelViewProjection;
 
-	/**
-	 * @brief The size of the vector image in image space.
-	 */
-	vec2 size;
+/**
+ * @brief The size of the vector image in image space.
+ */
+uniform vec2 dsVectorImageSize;
 
-	/**
-	 * @brief The size of the element info and material textures.
-	 */
-	vec2 textureSizes;
-} vectorTransform;
+/**
+ * @brief The size of the element info and material textures.
+ */
+uniform vec2 dsVectorTextureSizes;
 
 /**
  * @brief Gets the info for an element.
@@ -62,7 +56,7 @@ uniform dsVectorTransform
  */
 void dsVectorShared_getElementInfo(out vec4 info[4], float index)
 {
-	float elementCoord = float(index)/INSTANCE(vectorTransform).textureSizes.x;
+	float elementCoord = float(index)/uniforms.dsVectorTextureSizes.x;
 	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));
 	info[1] = texture(dsVectorInfoTex, vec2(0.375f, elementCoord));
 	info[2] = texture(dsVectorInfoTex, vec2(0.625f, elementCoord));
@@ -101,7 +95,7 @@ vec4 dsVectorShared_transform(out vec2 imagePosition, vec2 position, mat3 transf
 	vec3 tempPos = transform*vec3(position, 1.0);
 	imagePosition = tempPos.xy;
 
-	tempPos.y = INSTANCE(vectorTransform).size.y - tempPos.y;
+	tempPos.y = uniforms.dsVectorImageSize.y - tempPos.y;
 	return INSTANCE(vectorTransform).modelViewProjection*vec4(tempPos.xy, 0.0, 1.0);
 }
 
@@ -111,7 +105,7 @@ vec4 dsVectorShared_transform(out vec2 imagePosition, vec2 position, mat3 transf
 void dsVectorShared_clip(vec2 imagePosition)
 {
 	if (any(lessThan(imagePosition, vec2(0.0))) ||
-		any(lessThan(INSTANCE(vectorTransform).size), imagePosition))
+		any(lessThan(uniforms.dsVectorImageSize), imagePosition))
 	{
 		discard;
 	}

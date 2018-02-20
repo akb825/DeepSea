@@ -20,24 +20,22 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
-#include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
-#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <alloca.h>
 #include <string.h>
 
 // Transform group
-static const char* modelViewProjectionName = "modelViewProjection";
-static const char* sizeName = "size";
-static const char* textureSizesName = "textureSizes";
 
 // Uniforms
-static const char* vectorTransformName = "dsVectorTransform";
-static const char* shapeInfoName = "dsvectorInfoTex";
+static const char* shapeInfoName = "dsVectorInfoTex";
 static const char* materialInfoName = "dsVectorMaterialInfoTex";
 static const char* materialColorName = "dsVectorMaterialColorTex";
 static const char* otherTextureName = "dsVectorOtherTex";
+static const char* modelViewProjectionName = "dsVectorModelViewProjection";
+static const char* sizeName = "dsVectorImageSize";
+static const char* textureSizesName = "dsVectorTextureSizes";
 
 // Shaders
 static const char* shapeShaderName = "dsVectorShape";
@@ -52,27 +50,15 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		allocator = resourceManager->allocator;
 	DS_ASSERT(allocator);
 
-	dsShaderVariableElement transformElements[] =
-	{
-		{modelViewProjectionName, dsMaterialType_Mat4, 0},
-		{sizeName, dsMaterialType_Vec2, 0},
-		{textureSizesName, dsMaterialType_Vec2, 0}
-	};
-	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
-		allocator, transformElements, DS_ARRAY_SIZE(transformElements));
-	if (!transformDesc)
-	{
-		DS_VERIFY(dsShaderModule_destroy(module));
-		return NULL;
-	}
-
 	dsMaterialElement materialElements[] =
 	{
-		{vectorTransformName, dsMaterialType_VariableGroup, 0, transformDesc, false, 0},
 		{shapeInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
 		{materialInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
 		{materialColorName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{otherTextureName, dsMaterialType_Texture, 0, NULL, true, 0}
+		{otherTextureName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, false, 0},
+		{sizeName, dsMaterialType_Vec2, 0, NULL, false, 0},
+		{textureSizesName, dsMaterialType_Vec2, 0,NULL, false, 0}
 	};
 	dsMaterialElement* finalMaterialElements = materialElements;
 	uint32_t finalMaterialElementCount = DS_ARRAY_SIZE(materialElements);
@@ -93,7 +79,6 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (!materialDesc)
 	{
 		DS_VERIFY(dsShaderModule_destroy(module));
-		DS_VERIFY(dsShaderVariableGroupDesc_destroy(transformDesc));
 		return NULL;
 	}
 
@@ -136,7 +121,6 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (!found)
 	{
 		DS_VERIFY(dsShaderModule_destroy(module));
-		DS_VERIFY(dsShaderVariableGroupDesc_destroy(transformDesc));
 		DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
 		return NULL;
 	}
@@ -145,17 +129,13 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (!vectorModule)
 	{
 		DS_VERIFY(dsShaderModule_destroy(module));
-		DS_VERIFY(dsShaderVariableGroupDesc_destroy(transformDesc));
 		DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
 		return NULL;
 	}
 
 	vectorModule->allocator = dsAllocator_keepPointer(allocator);
 	vectorModule->shaderModule = module;
-	vectorModule->transformDesc = transformDesc;
 	vectorModule->materialDesc = materialDesc;
-	vectorModule->transformElement = dsMaterialDesc_findElement(materialDesc, vectorTransformName);
-	DS_ASSERT(vectorModule->transformElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->shapeInfoTextureElement = dsMaterialDesc_findElement(materialDesc, shapeInfoName);
 	DS_ASSERT(vectorModule->shapeInfoTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->materialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
@@ -166,13 +146,12 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	DS_ASSERT(vectorModule->materialColorTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->otherTextureElement = dsMaterialDesc_findElement(materialDesc, otherTextureName);
 	DS_ASSERT(vectorModule->otherTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->modelViewProjectionElement = dsShaderVariableGroupDesc_findElement(transformDesc,
+	vectorModule->modelViewProjectionElement = dsMaterialDesc_findElement(materialDesc,
 		modelViewProjectionName);
 	DS_ASSERT(vectorModule->modelViewProjectionElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->sizeElement = dsShaderVariableGroupDesc_findElement(transformDesc, sizeName);
+	vectorModule->sizeElement = dsMaterialDesc_findElement(materialDesc, sizeName);
 	DS_ASSERT(vectorModule->sizeElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->textureSizesElement = dsShaderVariableGroupDesc_findElement(transformDesc,
-		textureSizesName);
+	vectorModule->textureSizesElement = dsMaterialDesc_findElement(materialDesc, textureSizesName);
 	DS_ASSERT(vectorModule->textureSizesElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->shapeShaderIndex = shapeIndex;
 	vectorModule->imageShaderIndex = imageIndex;
@@ -220,6 +199,21 @@ dsVectorShaderModule* dsVectorShaderModule_loadData(dsResourceManager* resourceM
 		customElementCount);
 }
 
+dsMaterial* dsVectorShaderModule_createMaterial(dsVectorShaderModule* shaderModule,
+	dsAllocator* allocator)
+{
+	if (!shaderModule || !(allocator && !shaderModule->allocator))
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!allocator)
+		allocator = shaderModule->allocator;
+
+	return dsMaterial_create(allocator, shaderModule->materialDesc);
+}
+
 bool dsVectorShaderModule_destroy(dsVectorShaderModule* shaderModule)
 {
 	if (!shaderModule)
@@ -227,6 +221,7 @@ bool dsVectorShaderModule_destroy(dsVectorShaderModule* shaderModule)
 
 	if (!dsShaderModule_destroy(shaderModule->shaderModule))
 		return false;
+	DS_VERIFY(dsMaterialDesc_destroy(shaderModule->materialDesc));
 
 	if (shaderModule->allocator)
 		DS_VERIFY(dsAllocator_free(shaderModule->allocator, shaderModule));

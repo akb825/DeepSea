@@ -113,6 +113,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup
  * of the commit count to avoid uploading all uniforms when updating a dsShaderVariableGRoup used
  * as part of dsVolatileMaterialValues.
  *
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param group The shader variable group to commit changes for.
  * @param commandBuffer The command buffer. Whether or not this is used depends on the
