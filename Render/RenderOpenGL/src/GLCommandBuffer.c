@@ -285,20 +285,18 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 	if (!useGfxBuffers)
 	{
 		dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-		if (materialDesc->elementCount > glCommandBuffer->commitCountSize)
+		if (!glCommandBuffer->commitCounts ||
+			materialDesc->elementCount > glCommandBuffer->commitCountSize)
 		{
-			dsCommitCountInfo* newCommitCounts = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
+			dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+			glCommandBuffer->commitCounts = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
 				dsCommitCountInfo, materialDesc->elementCount);
-			if (!newCommitCounts)
+			glCommandBuffer->commitCountSize = materialDesc->elementCount;
+			if (!glCommandBuffer->commitCounts)
 			{
 				dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 				return false;
 			}
-
-			if (glCommandBuffer->commitCounts)
-				dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
-			glCommandBuffer->commitCounts = newCommitCounts;
-			glCommandBuffer->commitCountSize = materialDesc->elementCount;
 		}
 
 		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)

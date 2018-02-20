@@ -33,11 +33,15 @@
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Vector4.h>
+#include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
-#include <DeepSea/Render/Resources/DrawGeometry.h>
+#include <DeepSea/Render/Resources/Material.h>
+#include <DeepSea/Render/Resources/Shader.h>
+#include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
+#include <DeepSea/Render/Renderer.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <limits.h>
@@ -963,6 +967,114 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 	image->materials = materials;
 	image->ownMaterials = ownMaterials;
 	return image;
+}
+
+bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
+	const dsVectorShaders* shaders, dsVectorDrawContext* drawContext,
+	const dsMatrix44f* modelViewProjection, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates)
+{
+	if (!vectorImage || !commandBuffer || !shaders || !drawContext || !modelViewProjection)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (shaders->shaderModule != drawContext->shaderModule)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
+			"Shader module doesn't match between the vector shaders and draw context.");
+		return false;
+	}
+
+	if (vectorImage->pieceCount == 0)
+		return true;
+
+	dsMaterial* material = drawContext->material;
+	dsShaderVariableGroup* transformGroup = drawContext->transformGroup;
+	dsVectorShaderModule* shaderModule = drawContext->shaderModule;
+	if (!dsShaderVariableGroup_setElementData(transformGroup,
+			shaderModule->modelViewProjectionElement, modelViewProjection, dsMaterialType_Mat4, 0,
+			1) ||
+		!dsShaderVariableGroup_setElementData(transformGroup, shaderModule->sizeElement,
+			&vectorImage->size, dsMaterialType_Vec2, 0, 1))
+	{
+		return false;
+	}
+
+	dsTexture* materialInfoTexture = dsVectorMaterialSet_getInfoTexture(vectorImage->materials);
+	DS_ASSERT(materialInfoTexture);
+	dsTexture* materialColorTexture = dsVectorMaterialSet_getColorTexture(vectorImage->materials);
+	DS_ASSERT(materialColorTexture);
+	if (!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
+			materialInfoTexture) ||
+		!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
+			materialColorTexture))
+	{
+		return false;
+	}
+
+	bool success = true;
+	dsVector2f textureSizes;
+	DS_ASSERT(materialInfoTexture->height == materialInfoTexture->height);
+	textureSizes.y = (float)materialInfoTexture->height;
+	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
+	{
+		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
+		textureSizes.x = (float)piece->geometryInfo->height;
+		if (!dsShaderVariableGroup_setElementData(transformGroup, shaderModule->textureSizesElement,
+				&textureSizes, dsMaterialType_Vec2, 0, 1) ||
+			!dsShaderVariableGroup_commit(transformGroup, commandBuffer) ||
+			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
+				piece->geometryInfo) ||
+			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture))
+		{
+			success = false;
+			break;
+		}
+
+		dsShader* shader;
+		switch (piece->type)
+		{
+			case ShaderType_Shape:
+				shader = shaders->shapeShader;
+				break;
+			case ShaderType_Image:
+				shader = shaders->imageShader;
+				break;
+			case ShaderType_Text:
+				shader = shaders->textShader;
+				break;
+			default:
+				DS_ASSERT(false);
+				shader = NULL;
+				break;
+		}
+
+		if (!dsShader_bind(shader, commandBuffer, drawContext->material, volatileValues,
+			renderStates))
+		{
+			success = false;
+			break;
+		}
+		success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
+				vectorImage->drawGeometries[piece->type], &piece->range);
+		// Make sure we unbind the shader even if the above draw failed.
+		if (!dsShader_unbind(shader, commandBuffer) || !success)
+		{
+			success = false;
+			break;
+		}
+	}
+
+	// Clean up textures that might be deleted before the next draw.
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialColorTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
+
+	return success;
 }
 
 bool dsVectorImage_destroy(dsVectorImage* vectorImage)

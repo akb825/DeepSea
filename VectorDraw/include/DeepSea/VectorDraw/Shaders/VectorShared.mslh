@@ -40,11 +40,6 @@ sampler_state dsVectorInfoTex
 uniform dsVectorTransform
 {
 	/**
-	 * @brief The transform in image space.
-	 */
-	mat3 transform;
-
-	/**
 	 * @brief The model/view/projection transform in 3D space.
 	 */
 	mat4 modelViewProjection;
@@ -107,8 +102,7 @@ vec4 dsVectorShared_transform(out vec2 imagePosition, vec2 position, mat3 transf
 	imagePosition = tempPos.xy;
 
 	tempPos.y = INSTANCE(vectorTransform).size.y - tempPos.y;
-	vec4 worldPos = vec4((INSTANCE(vectorTransform).transform*tempPos).xy, 0.0, 1.0);
-	return INSTANCE(vectorTransform).modelViewProjection*worldPos;
+	return INSTANCE(vectorTransform).modelViewProjection*vec4(tempPos.xy, 0.0, 1.0);
 }
 
 /**

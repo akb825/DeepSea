@@ -16,7 +16,6 @@
 
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 
-#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -25,22 +24,36 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
+#include <alloca.h>
 #include <string.h>
 
+// Transform group
+static const char* modelViewProjectionName = "modelViewProjection";
+static const char* sizeName = "size";
+static const char* textureSizesName = "textureSizes";
+
+// Uniforms
+static const char* vectorTransformName = "dsVectorTransform";
+static const char* shapeInfoName = "dsvectorInfoTex";
+static const char* materialInfoName = "dsVectorMaterialInfoTex";
+static const char* materialColorName = "dsVectorMaterialColorTex";
+static const char* otherTextureName = "dsVectorOtherTex";
+
+// Shaders
+static const char* shapeShaderName = "dsVectorShape";
+static const char* imageShaderName = "dsVectorImage";
+static const char* textShaderName = "dsVectorText";
+
 static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsShaderModule* module)
+	dsAllocator* allocator, dsShaderModule* module, dsMaterialElement* customElements,
+	uint32_t customElementCount)
 {
 	if (!allocator)
 		allocator = resourceManager->allocator;
 	DS_ASSERT(allocator);
 
-	const char* transformName = "transform";
-	const char* modelViewProjectionName = "modelViewProjection";
-	const char* sizeName = "size";
-	const char* textureSizesName = "textureSizes";
 	dsShaderVariableElement transformElements[] =
 	{
-		{transformName, dsMaterialType_Mat3, 0},
 		{modelViewProjectionName, dsMaterialType_Mat4, 0},
 		{sizeName, dsMaterialType_Vec2, 0},
 		{textureSizesName, dsMaterialType_Vec2, 0}
@@ -53,23 +66,30 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	const char* vectorTransformName = "dsVectorTransform";
-	const char* shapeInfoName = "dsvectorInfoTex";
-	const char* materialInfoName = "dsVectorMaterialInfoTex";
-	const char* materialColorName = "dsVectorMaterialColorTex";
-	const char* imageName = "dsVectorImageTex";
-	const char* fontName = "dsVectorFontTex";
 	dsMaterialElement materialElements[] =
 	{
-		{vectorTransformName, dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
+		{vectorTransformName, dsMaterialType_VariableGroup, 0, transformDesc, false, 0},
 		{shapeInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
 		{materialInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
 		{materialColorName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{imageName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{fontName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{otherTextureName, dsMaterialType_Texture, 0, NULL, true, 0}
 	};
+	dsMaterialElement* finalMaterialElements = materialElements;
+	uint32_t finalMaterialElementCount = DS_ARRAY_SIZE(materialElements);
+
+	if (customElements && customElementCount > 0)
+	{
+		finalMaterialElementCount += customElementCount;
+		finalMaterialElements = (dsMaterialElement*)alloca(
+			sizeof(dsMaterialElement)*finalMaterialElementCount);
+		memcpy(finalMaterialElements, materialElements,
+			sizeof(dsMaterialElement)*DS_ARRAY_SIZE(materialElements));
+		memcpy(finalMaterialElements + DS_ARRAY_SIZE(materialElements), customElements,
+			sizeof(dsMaterialElement)*customElementCount);
+	}
+
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, allocator,
-		materialElements, DS_ARRAY_SIZE(materialElements));
+		finalMaterialElements, finalMaterialElementCount);
 	if (!materialDesc)
 	{
 		DS_VERIFY(dsShaderModule_destroy(module));
@@ -77,9 +97,6 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	const char* shapeShaderName = "dsVectorShape";
-	const char* imageShaderName = "dsVectorImage";
-	const char* textShaderName = "dsVectorText";
 	uint32_t shapeIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t imageIndex = DS_MATERIAL_UNKNOWN;
 	uint32_t textIndex = DS_MATERIAL_UNKNOWN;
@@ -137,23 +154,26 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	vectorModule->shaderModule = module;
 	vectorModule->transformDesc = transformDesc;
 	vectorModule->materialDesc = materialDesc;
-	vectorModule->transformElement = dsShaderVariableGroupDesc_findElement(transformDesc,
-		transformName);
-	DS_ASSERT(vectorModule->sizeElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->transformElement = dsMaterialDesc_findElement(materialDesc, vectorTransformName);
+	DS_ASSERT(vectorModule->transformElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->shapeInfoTextureElement = dsMaterialDesc_findElement(materialDesc, shapeInfoName);
+	DS_ASSERT(vectorModule->shapeInfoTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->materialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
+		materialInfoName);
+	DS_ASSERT(vectorModule->materialInfoTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->materialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
+		materialColorName);
+	DS_ASSERT(vectorModule->materialColorTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->otherTextureElement = dsMaterialDesc_findElement(materialDesc, otherTextureName);
+	DS_ASSERT(vectorModule->otherTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->modelViewProjectionElement = dsShaderVariableGroupDesc_findElement(transformDesc,
 		modelViewProjectionName);
-	DS_ASSERT(vectorModule->sizeElement != DS_MATERIAL_UNKNOWN);
+	DS_ASSERT(vectorModule->modelViewProjectionElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->sizeElement = dsShaderVariableGroupDesc_findElement(transformDesc, sizeName);
 	DS_ASSERT(vectorModule->sizeElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->textureSizesElement = dsShaderVariableGroupDesc_findElement(transformDesc,
 		textureSizesName);
 	DS_ASSERT(vectorModule->textureSizesElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->transformId = dsHashString(transformName);
-	vectorModule->shapeInfoTextureId = dsHashString(shapeInfoName);
-	vectorModule->materialInfoTextureId = dsHashString(materialInfoName);
-	vectorModule->materialColorTextureId = dsHashString(materialColorName);
-	vectorModule->imageTextureId = dsHashString(imageName);
-	vectorModule->fontTextureId = dsHashString(fontName);
 	vectorModule->shapeShaderIndex = shapeIndex;
 	vectorModule->imageShaderIndex = imageIndex;
 	vectorModule->textShaderIndex = textIndex;
@@ -162,57 +182,42 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadFile(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char* filePath)
+	dsAllocator* allocator, const char* filePath, dsMaterialElement* customElements,
+	uint32_t customElementCount)
 {
 	dsShaderModule* module = dsShaderModule_loadFile(resourceManager, allocator, filePath,
 		"VectorImage");
 	if (!module)
 		return NULL;
 
-	return createVectorShaderModule(resourceManager, allocator, module);
+	return createVectorShaderModule(resourceManager, allocator, module, customElements,
+		customElementCount);
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadStream(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsStream* stream)
+	dsAllocator* allocator, dsStream* stream, dsMaterialElement* customElements,
+	uint32_t customElementCount)
 {
 	dsShaderModule* module = dsShaderModule_loadStream(resourceManager, allocator, stream,
 		"VectorImage");
 	if (!module)
 		return NULL;
 
-	return createVectorShaderModule(resourceManager, allocator, module);
+	return createVectorShaderModule(resourceManager, allocator, module, customElements,
+		customElementCount);
 }
 
 dsVectorShaderModule* dsVectorShaderModule_loadData(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const void* data, size_t size)
+	dsAllocator* allocator, const void* data, size_t size, dsMaterialElement* customElements,
+	uint32_t customElementCount)
 {
 	dsShaderModule* module = dsShaderModule_loadData(resourceManager, allocator, data, size,
 		"VectorImage");
 	if (!module)
 		return NULL;
 
-	return createVectorShaderModule(resourceManager, allocator, module);
-}
-
-dsVectorDrawContext* dsVectorShaderModule_createContext(dsVectorShaderModule* shaderModule,
-	dsAllocator* allocator)
-{
-	if (!shaderModule || (!allocator && !shaderModule->allocator))
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	if (!allocator)
-		allocator = shaderModule->allocator;
-
-	return dsShaderVariableGroup_create(shaderModule->shaderModule->resourceManager, allocator,
-		allocator, shaderModule->transformDesc);
-}
-
-bool dsVectorShaderModule_destroyContext(dsVectorDrawContext* drawContext)
-{
-	return dsShaderVariableGroup_destroy(drawContext);
+	return createVectorShaderModule(resourceManager, allocator, module, customElements,
+		customElementCount);
 }
 
 bool dsVectorShaderModule_destroy(dsVectorShaderModule* shaderModule)

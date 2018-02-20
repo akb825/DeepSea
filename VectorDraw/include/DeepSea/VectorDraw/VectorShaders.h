@@ -39,7 +39,7 @@ extern "C"
  *     allocator as the resource manager.
  * @param shaderModule The shader module to create the shaders with.
  * @param samples The number of anti-alias samples, or DS_DEFAULT_ANTIALIAS_SAMPLES for the default.
- * @return The vector shaders, or NULL if it couldn't be loaded.
+ * @return The vector shaders, or NULL an error occurred.
  */
 DS_VECTORDRAW_EXPORT dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVectorShaderModule* shaderModule, uint32_t samples);

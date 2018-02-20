@@ -41,10 +41,14 @@ extern "C"
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param filePath The file path for the shader module to load.
+ * @param customElements Custom elements to add to the material description when using a custom
+ *     shader module. This may be NULL for no custom elements.
+ * @param customElementCount The number of custom elements to add.
  * @return The vector shaders, or NULL if it couldn't be loaded.
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
-	dsResourceManager* resourceManager, dsAllocator* allocator, const char* filePath);
+	dsResourceManager* resourceManager, dsAllocator* allocator, const char* filePath,
+	dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates the vector shader module from a stream.
@@ -57,10 +61,14 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
  *     allocator as the resource manager.
  * @param stream The stream to load the shader module from. This stream will be read from the
  *     current position until the end, and must be seekable.
+ * @param customElements Custom elements to add to the material description when using a custom
+ *     shader module. This may be NULL for no custom elements.
+ * @param customElementCount The number of custom elements to add.
  * @return The vector shaders, or NULL if it couldn't be loaded.
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadStream(
-	dsResourceManager* resourceManager, dsAllocator* allocator, dsStream* stream);
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsStream* stream,
+	dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Creates the vector shader module from a data buffer.
@@ -73,28 +81,14 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadStream(
  *     allocator as the resource manager.
  * @param data The data for the shader module. The data isn't used after this call.
  * @param size The size of the data buffer.
+ * @param customElements Custom elements to add to the material description when using a custom
+ *     shader module. This may be NULL for no custom elements.
+ * @param customElementCount The number of custom elements to add.
  * @return The vector shaders, or NULL if it couldn't be loaded.
  */
 DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadData(
-	dsResourceManager* resourceManager, dsAllocator* allocator, const void* data, size_t size);
-
-/**
- * @brief Creatse a context for drawing vector images.
- * @remark errno will be set on failure.
- * @param shaderModule The vector shader module.
- * @param allocator The allocator to create the context with. If NULL, it will use the same
- *     allocator as the shader module.
- * @return The draw context, or NULL if it couldn't be created.
- */
-DS_VECTORDRAW_EXPORT dsVectorDrawContext* dsVectorShaderModule_createContext(
-	dsVectorShaderModule* shaderModule, dsAllocator* allocator);
-
-/**
- * @brief Destroys a vector draw context.
- * @param drawContext The context to destroy.
- * @return False if the context couldn't be destroyed.
- */
-DS_VECTORDRAW_EXPORT bool dsVectorShaderModule_destroyContext(dsVectorDrawContext* drawContext);
+	dsResourceManager* resourceManager, dsAllocator* allocator, const void* data, size_t size,
+	dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
  * @brief Destroys the vector shaders.

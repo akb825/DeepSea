@@ -43,8 +43,8 @@
 /**
  * @brief Texture holding general information about the vector material.
  */
-uniform sampler2D dsVectorImageTex;
-sampler_state dsVectorImageTex
+uniform sampler2D dsVectorOtherTex;
+sampler_state dsVectorOtherTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -138,7 +138,7 @@ vec4 dsVectorElementImage_getMaterialColor()
 {
 	dsVectorShared_clip(vertexOut.position);
 
-	vec4 color = texture(dsVectorImageTex, vertexOut.texCoordsOpacity.xy);
+	vec4 color = texture(dsVectorOtherTex, vertexOut.texCoordsOpacity.xy);
 	return color*vec4(1.0, 1.0, 1.0, vertexOut.lineDistancesOpacityMaterialIndex.z);
 }
 

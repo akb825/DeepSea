@@ -811,54 +811,45 @@ typedef struct dsVectorShadersModule
 	dsMaterialDesc* materialDesc;
 
 	/**
-	 * @brief The element index for the image-space transform matrix.
+	 * @brief The element index for the transform shader variable group.
 	 */
 	uint32_t transformElement;
 
 	/**
-	 * @brief The element index for the model-view-projection matrix.
+	 * @brief The element index for the shape info texture.
+	 */
+	uint32_t shapeInfoTextureElement;
+
+	/**
+	 * @brief The element index for the material info texture.
+	 */
+	uint32_t materialInfoTextureElement;
+
+	/**
+	 * @brief The element index for the material texture.
+	 */
+	uint32_t materialColorTextureElement;
+
+	/**
+	 * @brief The element index for the font or image texture.
+	 */
+	uint32_t otherTextureElement;
+
+	/**
+	 * @brief The element index for the model-view-projection matrix inside the transform group.
 	 */
 	uint32_t modelViewProjectionElement;
 
 	/**
-	 * @brief The element index for the image size.
+	 * @brief The element index for the image size inside the transform group.
 	 */
 	uint32_t sizeElement;
 
 	/**
-	 * @brief The element index for the element info and mateial texture sizes.
+	 * @brief The element index for the element info and mateial texture sizes inside the transform
+	 * group.
 	 */
 	uint32_t textureSizesElement;
-
-	/**
-	 * @brief The volatile material ID for the transform shader variables.
-	 */
-	uint32_t transformId;
-
-	/**
-	 * @brief The volatile material ID for the shape info texture.
-	 */
-	uint32_t shapeInfoTextureId;
-
-	/**
-	 * @brief The volatile material ID for the material info texture.
-	 */
-	uint32_t materialInfoTextureId;
-
-	/**
-	 * @brief The volatile material ID for the material texture.
-	 */
-	uint32_t materialColorTextureId;
-
-	/**
-	 * @brief The volatile material ID for the image texture.
-	 */
-	uint32_t imageTextureId;
-
-	/**
-	 * @brief The volatile material ID for the font texture.
-	 */
-	uint32_t fontTextureId;
 
 	/**
 	 * @brief The index for the vector shape shader.
@@ -875,12 +866,6 @@ typedef struct dsVectorShadersModule
 	 */
 	uint32_t textShaderIndex;
 } dsVectorShaderModule;
-
-/**
- * @brief Struct that contains the context information for drawing vector images.
- * @see VectorShaderModule.h
- */
-typedef dsShaderVariableGroup dsVectorDrawContext;
 
 /**
  * @brief Struct containing the shaders used by vector images.
@@ -913,6 +898,33 @@ typedef struct dsVectorShaders
 	 */
 	dsShader* textShader;
 } dsVectorShaders;
+
+/**
+ * @brief Struct that contains the context information for drawing vector images.
+ * @see VectorDrawContext.h
+ */
+typedef struct dsVectorDrawContext
+{
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The vector shader module.
+	 */
+	dsVectorShaderModule* shaderModule;
+
+	/**
+	 * @brief The material for the shaders.
+	 */
+	dsMaterial* material;
+
+	/**
+	 * @brief The shader variable group for the transform elements.
+	 */
+	dsShaderVariableGroup* transformGroup;
+} dsVectorDrawContext;
 
 /**
  * @brief Struct containing shared resources for vector graphics.

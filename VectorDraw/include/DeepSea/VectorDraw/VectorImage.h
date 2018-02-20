@@ -56,6 +56,25 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
 	const dsVector2f* size, float pixelSize);
 
 /**
+ * @brief Draws a vector image.
+ * @remark errno will be set on failure.
+ * @param vectorImage The vector image to draw.
+ * @param commandBuffer The command buffer to put the draw commands on.
+ * @param shaders The shaders to draw with.
+ * @param drawContext The draw context for the current session.
+ * @param modelViewProjection The model/view/projection materis for this image.
+ * @param volatileValues The volatile material values. This is only required if custom shaders are
+ *     used that require them.
+ * @param renderStates The dynamic render states. This is only required if custom shaders are used
+ *     that require them.
+ * @return False if an error occurred.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
+	dsCommandBuffer* commandBuffer, const dsVectorShaders* shaders,
+	dsVectorDrawContext* drawContext, const dsMatrix44f* modelViewProjection,
+	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
+
+/**
  * @brief Destroys a vector image.
  * @remark errno will be set on failure.
  * @param vectorImage The vector image.
