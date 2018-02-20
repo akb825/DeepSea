@@ -42,6 +42,19 @@ static const char* shapeShaderName = "dsVectorShape";
 static const char* imageShaderName = "dsVectorImage";
 static const char* textShaderName = "dsVectorText";
 
+static bool targetSupported(dsResourceManager* resourceManager)
+{
+	if (resourceManager->maxVertexSamplers < 2)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
+			"Vertex texture lookup is required for vector images.");
+		return false;
+	}
+
+	return true;
+}
+
 static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* module, dsMaterialElement* customElements,
 	uint32_t customElementCount)
@@ -164,6 +177,9 @@ dsVectorShaderModule* dsVectorShaderModule_loadFile(dsResourceManager* resourceM
 	dsAllocator* allocator, const char* filePath, dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
+	if (!targetSupported(resourceManager))
+		return NULL;
+
 	dsShaderModule* module = dsShaderModule_loadFile(resourceManager, allocator, filePath,
 		"VectorImage");
 	if (!module)
@@ -177,6 +193,9 @@ dsVectorShaderModule* dsVectorShaderModule_loadStream(dsResourceManager* resourc
 	dsAllocator* allocator, dsStream* stream, dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
+	if (!targetSupported(resourceManager))
+		return NULL;
+
 	dsShaderModule* module = dsShaderModule_loadStream(resourceManager, allocator, stream,
 		"VectorImage");
 	if (!module)
@@ -190,6 +209,9 @@ dsVectorShaderModule* dsVectorShaderModule_loadData(dsResourceManager* resourceM
 	dsAllocator* allocator, const void* data, size_t size, dsMaterialElement* customElements,
 	uint32_t customElementCount)
 {
+	if (!targetSupported(resourceManager))
+		return NULL;
+
 	dsShaderModule* module = dsShaderModule_loadData(resourceManager, allocator, data, size,
 		"VectorImage");
 	if (!module)

@@ -101,7 +101,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset, si
 
 	if ((flags & dsGfxBufferMap_Read) && !(buffer->memoryHints & dsGfxMemory_Read))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to read from a buffer without the read memory flag set.");
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -109,7 +109,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset, si
 
 	if ((buffer->memoryHints & dsGfxMemory_GpuOnly))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to map a buffer with GPU only memory flag set.");
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -117,7 +117,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset, si
 
 	if ((flags & dsGfxBufferMap_Persistent) && !(buffer->memoryHints & dsGfxMemory_Persistent))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to persistently map a buffer without the persistent memory flag set.");
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -275,7 +275,7 @@ bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer, s
 
 	if (!(buffer->usage & dsGfxBufferUsage_CopyTo))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data to a buffer without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -318,7 +318,7 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 
 	if (!(srcBuffer->usage & dsGfxBufferUsage_CopyFrom))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data from a buffer without the copy from usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -326,7 +326,7 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 
 	if (!(dstBuffer->usage & dsGfxBufferUsage_CopyTo))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data to a buffer without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);

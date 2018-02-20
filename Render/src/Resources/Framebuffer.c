@@ -111,7 +111,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				dsOffscreen* surface = (dsOffscreen*)surfaces[i].surface;
 				if (!surface->offscreen)
 				{
-					errno = EPERM;
+					errno = EINVAL;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 						"Attempting to use a non-offscreen texture for a framebuffer.");
 					DS_PROFILE_FUNC_RETURN(NULL);
@@ -123,7 +123,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					surfaceLayers = 1;
 					if (surfaces[i].mipLevel != 0)
 					{
-						errno = EPERM;
+						errno = EINVAL;
 						DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only draw to the first mip level of a "
 							"resolved offscreen in a framebuffer.");
 						DS_PROFILE_FUNC_RETURN(NULL);

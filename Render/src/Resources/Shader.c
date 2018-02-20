@@ -689,7 +689,7 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 
 	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -713,7 +713,7 @@ bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* comm
 
 	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

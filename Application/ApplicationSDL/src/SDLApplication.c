@@ -768,7 +768,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	if (!allocator->freeFunc)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG,
 			"Application allocator must support freeing memory.");
 		return NULL;
@@ -810,7 +810,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	{
 		if (!setGLAttributes(renderer))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid renderer attributes.");
 			SDL_Quit();
 			return NULL;

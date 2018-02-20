@@ -152,7 +152,7 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_FACE_NAME_LENGTH)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Face name '%s' exceeds maximum size of %u.", name,
 			DS_MAX_FACE_NAME_LENGTH);
 		return NULL;

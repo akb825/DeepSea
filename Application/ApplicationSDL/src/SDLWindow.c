@@ -232,7 +232,7 @@ bool dsSDLWindow_setDisplayMode(dsApplication* application, dsWindow* window,
 
 	if (!found)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Invalid display mode.");
 		return false;
 	}

@@ -340,7 +340,7 @@ bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader
 		shaderSamples = commandBuffer->renderer->surfaceSamples;
 	if (glCommandBuffer->subpassSamples && glCommandBuffer->subpassSamples != shaderSamples)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Shader anti-alias samples don't match the "
 			"attachments for the current render subpass.");
 		return false;

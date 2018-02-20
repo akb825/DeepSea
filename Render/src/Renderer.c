@@ -46,7 +46,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Attempting to use a stereoscopic render surface for a blit when  not using "
+					"Attempting to use a stereoscopic render surface for a blit when not using "
 					"stereoscopic rendering.");
 				return false;
 			}
@@ -68,7 +68,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-					"Attempting to use a stereoscopic render surface for a blit when  not using "
+					"Attempting to use a stereoscopic render surface for a blit when not using "
 					"stereoscopic rendering.");
 				return false;
 			}
@@ -362,7 +362,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 			if (!offscreen->offscreen)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -399,7 +399,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 
 	if (!valid)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot clear a depth-stencil surface as a color surface.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -435,7 +435,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 			dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 			if (!offscreen->offscreen)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to clear a non-offscreen texture.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -472,7 +472,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 
 	if (!valid)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot clear a color surface as a depth-stencil surface.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -536,7 +536,7 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	uint32_t indexCount = dsDrawGeometry_getIndexCount(geometry);
 	if (indexCount == 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Geometry must contain indices for indexed drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -583,7 +583,7 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDraw))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -598,7 +598,7 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 
 	if (offset % sizeof(uint32_t) != 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect buffer must be aligned with uint32_t.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -630,7 +630,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 
 	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDraw))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -645,7 +645,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 
 	if (offset % sizeof(uint32_t) != 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect buffer must be aligned with uint32_t.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -659,7 +659,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 
 	if (dsDrawGeometry_getIndexCount(geometry) == 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Geometry must contain indices for indexed drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -711,14 +711,14 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 
 	if (!(indirectBuffer->usage & dsGfxBufferUsage_IndirectDispatch))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Graphics buffer not created as an indirect buffer.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (offset % sizeof(uint32_t) != 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect buffer must be aligned with uint32_t.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}

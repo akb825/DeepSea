@@ -87,7 +87,7 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 	{
 		if (entry->type != type)
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			return false;
 		}
 
@@ -128,7 +128,7 @@ static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t 
 
 	if (!(buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage)))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support being used as a texture.");
 		return false;
 	}
@@ -177,7 +177,7 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 
 	if (!(buffer->usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer)))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer doesn't support uniform blocks or buffers.");
 		return false;
 	}

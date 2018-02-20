@@ -130,9 +130,9 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 
 	if (!rangesValid)
 	{
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Text style ranges must be monotomically increasing, "
 			"non-overlapping, and cover the full range of text.");
-		errno = EPERM;
 		return NULL;
 	}
 

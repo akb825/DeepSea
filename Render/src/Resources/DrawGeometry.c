@@ -56,7 +56,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		{
 			if (vertexBuffers[i]->count != vertexCount)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Vertex buffers must have the same number of vertices.");
 				DS_PROFILE_FUNC_RETURN(NULL);

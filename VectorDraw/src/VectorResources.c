@@ -194,7 +194,7 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Texture name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_VECTOR_RESOURCE_NAME_LENGTH);
 		return false;
@@ -299,7 +299,7 @@ bool dsVectorResources_addFaceGroup(dsVectorResources* resources, const char* na
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Face group name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_VECTOR_RESOURCE_NAME_LENGTH);
 		return false;
@@ -385,7 +385,7 @@ bool dsVectorResources_addFont(dsVectorResources* resources, const char* name,
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Font name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_VECTOR_RESOURCE_NAME_LENGTH);
 		return false;

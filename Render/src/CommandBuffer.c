@@ -94,9 +94,9 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 	}
 
 	if (((commandBuffer->usage & dsCommandBufferUsage_MultiSubmit) &&
-		!(submitBuffer->usage & dsCommandBufferUsage_MultiSubmit)) ||
+			!(submitBuffer->usage & dsCommandBufferUsage_MultiSubmit)) ||
 		((commandBuffer->usage & dsCommandBufferUsage_MultiFrame) &&
-				!(submitBuffer->usage & dsCommandBufferUsage_MultiFrame)))
+			!(submitBuffer->usage & dsCommandBufferUsage_MultiFrame)))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

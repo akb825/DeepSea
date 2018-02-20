@@ -127,7 +127,7 @@ bool dsVectorMaterial_setGradient(dsVectorMaterial* material, const dsGradient* 
 			material->radialGradient.gradient = gradient;
 			return true;
 		default:
-			errno = EPERM;
+			errno = EINVAL;
 			return false;
 	}
 }

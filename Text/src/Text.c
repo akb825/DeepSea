@@ -210,7 +210,7 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	DS_PROFILE_FUNC_START();
 	if (!allocator->freeFunc)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Allocator for text must support freeing memory.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}

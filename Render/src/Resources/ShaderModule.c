@@ -116,7 +116,7 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 
 	if (!stream->seekFunc || !stream->tellFunc)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Stream for reading shader modules must be seekable.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}

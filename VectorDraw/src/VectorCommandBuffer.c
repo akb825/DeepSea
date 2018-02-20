@@ -39,7 +39,6 @@ static dsVectorCommand* addCommand(dsVectorCommandBuffer* commandBuffer)
 	{
 		if (errno == EINVAL)
 		{
-			errno = EPERM;
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Command buffer allocator must allow freeing "
 				"memory to resize beyond the initial capacity.");
 		}

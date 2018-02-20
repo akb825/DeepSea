@@ -174,7 +174,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 		if (subpasses[i].colorAttachmentCount > renderer->maxColorAttachments)
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Render subpass color attachments exceeds the maximum for the current target.");
 			DS_PROFILE_FUNC_RETURN(NULL);
@@ -198,7 +198,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 			if (isDepthStencil(attachments[attachment].format))
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Cannot use a depth-stencil surface as a color attachment.");
 				DS_PROFILE_FUNC_RETURN(NULL);
@@ -208,7 +208,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				samples = attachments[attachment].samples;
 			else if (samples != attachments[attachment].samples)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
 					"same number of anti-alias samples.");
 				DS_PROFILE_FUNC_RETURN(NULL);
@@ -234,7 +234,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 			if (!isDepthStencil(attachments[subpasses[i].depthStencilAttachment].format))
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Cannot use a color surface as a depth-stencil attachment.");
 				DS_PROFILE_FUNC_RETURN(NULL);
@@ -242,7 +242,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 			if (samples && samples != attachments[subpasses[i].depthStencilAttachment].samples)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "All color and depth attachments must have the "
 					"same number of anti-alias samples.");
 				DS_PROFILE_FUNC_RETURN(NULL);
@@ -266,7 +266,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 			if (dependencies[i].srcSubpass == DS_EXTERNAL_SUBPASS &&
 				dependencies[i].dstSubpass == DS_EXTERNAL_SUBPASS)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Source and destination subpasses for a dependency cannot both be external.");
 				DS_PROFILE_FUNC_RETURN(NULL);
@@ -286,7 +286,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				dependencies[i].dstSubpass != DS_EXTERNAL_SUBPASS &&
 				dependencies[i].srcSubpass > dependencies[i].dstSubpass)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpasses may only depend on previous subpasses.");
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
@@ -325,7 +325,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 
 	if (framebuffer->surfaceCount != renderPass->attachmentCount)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Framebuffer not compatible with render pass attachments.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -337,7 +337,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		if (getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
 			renderPass->attachments[i].format)
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface format doesn't match attachment format.");
 			DS_PROFILE_FUNC_RETURN(false);
@@ -348,7 +348,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			samples = renderer->surfaceSamples;
 		if (getSurfaceSamples(renderer, framebuffer->surfaces + i) != samples)
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface samples don't match attachment samples.");
 			DS_PROFILE_FUNC_RETURN(false);
@@ -366,7 +366,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			if (framebuffer->surfaces[subpass->inputAttachments[j]].surfaceType !=
 				dsGfxSurfaceType_Texture)
 			{
-				errno = EPERM;
+				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
@@ -415,7 +415,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 
 	if (needsClear && clearValueCount == 0)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"No clear values provided for render pass that clears attachments.");
 		DS_PROFILE_FUNC_RETURN(false);

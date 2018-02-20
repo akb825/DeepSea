@@ -874,14 +874,6 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 		return NULL;
 	}
 
-	if (resourceManager->maxVertexSamplers < 2)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
-			"Vertex texture lookup is required for vector images.");
-		return NULL;
-	}
-
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 

@@ -83,7 +83,7 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 
 	if (maxMaterials > DS_MAX_ALLOWED_VECTOR_MATERIALS)
 	{
-		errno = EPERM;
+		errno = ESIZE;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Max vector materials must not exceed %u.",
 			DS_MAX_ALLOWED_VECTOR_MATERIALS);
 		return NULL;
@@ -173,7 +173,7 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 	size_t nameLength = strlen(name);
 	if (nameLength >= DS_MAX_VECTOR_RESOURCE_NAME_LENGTH)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material name '%s' exceeds maximum size of %u.",
 			name, DS_MAX_VECTOR_RESOURCE_NAME_LENGTH);
 		return false;
@@ -227,7 +227,7 @@ bool dsVectorMaterialSet_setMaterialColor(dsVectorMaterialSet* materials, const 
 
 	if (node->material.materialType != dsVectorMaterialType_Color)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Cannot set a color on gradient material '%s'.",
 			name);
 		return false;
@@ -259,7 +259,7 @@ bool dsVectorMaterialSet_setMaterialGradient(dsVectorMaterialSet* materials,
 	const dsGradient* curGradient = dsVectorMaterial_getGradient(&node->material);
 	if (!curGradient)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Cannot set a gradient on color material '%s'.",
 			name);
 		return false;

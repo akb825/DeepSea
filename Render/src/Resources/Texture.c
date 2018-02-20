@@ -405,7 +405,7 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 
 	if (!(texture->usage & dsTextureUsage_CopyTo))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data to a texture without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -493,7 +493,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	if (!(srcTexture->usage & dsTextureUsage_CopyFrom))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data from a texture without the copy from usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -501,7 +501,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 
 	if (!(dstTexture->usage & dsTextureUsage_CopyTo))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data to a texture without the copy to usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -627,7 +627,7 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 
 	if (texture->samples > 1)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot generate mipmaps for multisampled textures.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
@@ -652,7 +652,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 
 	if (!(texture->usage & dsTextureUsage_CopyFrom))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to copy data from a texture without the copy from usage flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -660,7 +660,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 
 	if ((texture->memoryHints & dsGfxMemory_GpuOnly))
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting read from a texture with GPU only memory flag set.");
 		DS_PROFILE_FUNC_RETURN(false);

@@ -113,14 +113,14 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 
 	if (type != material->description->elements[element].type)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type doesn't match material element type.");
 		return false;
 	}
 
 	if (type >= dsMaterialType_Texture)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a primitive, vector, or matrix type.");
 		return false;
 	}
@@ -247,7 +247,7 @@ const void* dsMaterial_getRawElementData(const dsMaterial* material, uint32_t el
 
 	if (material->description->elements[element].type >= dsMaterialType_Texture)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a primitive, vector, or matrix type.");
 		return NULL;
 	}
@@ -307,7 +307,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
 		return false;
 	}
@@ -315,7 +315,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	dsMaterialType type = material->description->elements[element].type;
 	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture type.");
 		return false;
 	}
@@ -324,7 +324,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	{
 		if (type == dsMaterialType_Texture && !(texture->usage & dsTextureUsage_Texture))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Texture doesn't support being used as a texture sampler.");
 			return false;
@@ -332,7 +332,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 
 		if (type == dsMaterialType_Image && !(texture->usage & dsTextureUsage_Image))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Texture doesn't support being used as an image sampler.");
 			return false;
@@ -340,7 +340,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 
 		if (type == dsMaterialType_SubpassInput && !(texture->usage & dsTextureUsage_SubpassInput))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Texture doesn't support being used as a subpass input.");
 			return false;
@@ -398,7 +398,7 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
 		return false;
 	}
@@ -414,7 +414,7 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 	dsMaterialType type = material->description->elements[element].type;
 	if (type < dsMaterialType_Texture || type > dsMaterialType_Image)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture type.");
 		return false;
 	}
@@ -423,7 +423,7 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 	{
 		if (!(buffer->usage & (dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage)))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Buffer doesn't support being used as a texture.");
 			return false;
@@ -449,7 +449,7 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 		if (resourceManager->minTextureBufferAlignment > 0 &&
 			(offset % resourceManager->minTextureBufferAlignment) != 0)
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Texture buffer offset doesn't match alignment requirements.");
 			return false;
@@ -503,14 +503,14 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
 		return false;
 	}
 
 	if (material->description->elements[element].type != dsMaterialType_VariableGroup)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a shader variable group.");
 		return false;
 	}
@@ -518,7 +518,7 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 	if (group && dsShaderVariableGroup_getDescription(group) !=
 		material->description->elements[element].shaderVariableGroupDesc)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader variable group description doesn't match "
 			"description set on material element.");
 		return false;
@@ -567,7 +567,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
 		return false;
 	}
@@ -575,7 +575,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	dsMaterialType type = material->description->elements[element].type;
 	if (type < dsMaterialType_UniformBlock || type > dsMaterialType_UniformBuffer)
 	{
-		errno = EPERM;
+		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a buffer type.");
 		return false;
 	}
@@ -584,7 +584,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	{
 		if (type == dsMaterialType_UniformBlock && !(buffer->usage & dsGfxBufferUsage_UniformBlock))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Buffer doesn't support being used as a uniform block.");
 			return false;
@@ -593,7 +593,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 		if (type == dsMaterialType_UniformBuffer &&
 			!(buffer->usage & dsGfxBufferUsage_UniformBuffer))
 		{
-			errno = EPERM;
+			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Buffer doesn't support being used as a uniform buffer.");
 			return false;
