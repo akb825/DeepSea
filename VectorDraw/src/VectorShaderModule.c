@@ -23,8 +23,13 @@
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
-#include <alloca.h>
 #include <string.h>
+
+#if DS_WINDOWS
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 
 // Transform group
 

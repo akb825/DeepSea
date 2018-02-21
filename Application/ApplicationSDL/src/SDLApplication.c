@@ -36,6 +36,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#if DS_WINDOWS
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
+
 #define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
 #define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
