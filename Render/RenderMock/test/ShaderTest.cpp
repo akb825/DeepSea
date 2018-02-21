@@ -530,3 +530,218 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 	dsMaterial_destroy(material);
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
 }
+
+TEST_F(ShaderTest, BindAndUpdateCompute)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	dsShaderVariableElement transformElements[] =
+	{
+		{"modelViewProjection", dsMaterialType_Mat4, 0},
+		{"normalMat", dsMaterialType_Mat3, 0}
+	};
+	unsigned int transformElementCount = DS_ARRAY_SIZE(transformElements);
+	dsShaderVariableGroupDesc* transformDesc = dsShaderVariableGroupDesc_create(resourceManager,
+		NULL, transformElements, transformElementCount);
+	ASSERT_TRUE(transformDesc);
+
+	dsShaderVariableElement groupElements[] =
+	{
+		{"testValue", dsMaterialType_Float, 0}
+	};
+	unsigned int groupElementCount = DS_ARRAY_SIZE(groupElements);
+	dsShaderVariableGroupDesc* groupDesc = dsShaderVariableGroupDesc_create(resourceManager,
+		NULL, groupElements, groupElementCount);
+	ASSERT_TRUE(groupDesc);
+
+	dsMaterialElement elements[] =
+	{
+		{"diffuseTexture", dsMaterialType_Texture, 0, NULL, true, 0},
+		{"colorMultiplier", dsMaterialType_Vec4, 0, NULL, false, 0},
+		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
+		{"Transform", dsMaterialType_VariableGroup, 0, transformDesc, true, 0},
+	};
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
+	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
+		elementCount);
+	ASSERT_TRUE(materialDesc);
+
+	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
+		getPath("test.mslb"), "test");
+	ASSERT_TRUE(shaderModule);
+
+	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
+		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+	ASSERT_TRUE(shader);
+
+	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	ASSERT_TRUE(material);
+
+	dsShaderVariableGroup* transformGroup = dsShaderVariableGroup_create(resourceManager, NULL,
+		NULL, transformDesc);
+	ASSERT_TRUE(transformGroup);
+
+	dsShaderVariableGroup* group = dsShaderVariableGroup_create(resourceManager, NULL, NULL,
+		groupDesc);
+	ASSERT_TRUE(group);
+
+	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
+		DS_ALL_MIP_LEVELS, NULL, 0);
+	ASSERT_TRUE(texture1);
+
+	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static,
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
+		DS_ALL_MIP_LEVELS, NULL, 0);
+	ASSERT_TRUE(texture2);
+
+	dsVolatileMaterialValues* volatileValues = dsVolatileMaterialValues_create(
+		(dsAllocator*)&allocator, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+	ASSERT_TRUE(volatileValues);
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
+		texture1));
+	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
+		transformGroup));
+
+	EXPECT_FALSE(dsShader_bindCompute(shader, NULL, material, volatileValues));
+	EXPECT_FALSE(dsShader_bindCompute(NULL, commandBuffer, material, volatileValues));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, NULL, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "diffuseTexture"));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
+		texture2));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
+		texture1));
+	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
+		group));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
+		transformGroup));
+	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, NULL));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "diffuseTexture"));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
+		texture2));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(volatileValues, "diffuseTexture",
+		texture1));
+	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
+		group));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
+		transformGroup));
+	EXPECT_TRUE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
+	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
+
+	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsShader_destroy(shader));
+	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
+	dsVolatileMaterialValues_destroy(volatileValues);
+	EXPECT_TRUE(dsShaderVariableGroup_destroy(group));
+	EXPECT_TRUE(dsShaderVariableGroup_destroy(transformGroup));
+	EXPECT_TRUE(dsTexture_destroy(texture1));
+	EXPECT_TRUE(dsTexture_destroy(texture2));
+	dsMaterial_destroy(material);
+	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
+	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(groupDesc));
+	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(transformDesc));
+}
+
+TEST_F(ShaderTest, BindAndUpdateBufferCompute)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	dsMaterialElement elements[] =
+	{
+		{"diffuseTexture", dsMaterialType_Texture, 0, NULL, false, 0},
+		{"colorMultiplier", dsMaterialType_Vec4, 0, NULL, false, 0},
+		{"textureScaleOffset", dsMaterialType_Vec2, 2, NULL, false, 0},
+		{"Transform", dsMaterialType_UniformBlock, 0, NULL, true, 0},
+	};
+	unsigned int elementCount = DS_ARRAY_SIZE(elements);
+	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
+		elementCount);
+	ASSERT_TRUE(materialDesc);
+
+	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
+		getPath("test.mslb"), "test");
+	ASSERT_TRUE(shaderModule);
+
+	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
+		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+	ASSERT_TRUE(shader);
+
+	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	ASSERT_TRUE(material);
+
+	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
+	ASSERT_TRUE(buffer1);
+
+	dsGfxBuffer* buffer2 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyTo, dsGfxMemory_Static, NULL,
+		sizeof(float)*28);
+	ASSERT_TRUE(buffer2);
+
+	dsVolatileMaterialValues* volatileValues = dsVolatileMaterialValues_create(
+		(dsAllocator*)&allocator, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
+	ASSERT_TRUE(volatileValues);
+
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer2, 0,
+		buffer2->size));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
+		buffer1->size));
+	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer2, 0,
+		buffer2->size));
+	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
+		buffer1->size));
+	EXPECT_TRUE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
+
+	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
+	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
+
+	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsShader_destroy(shader));
+	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
+	dsVolatileMaterialValues_destroy(volatileValues);
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer1));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer2));
+	dsMaterial_destroy(material);
+	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
+}

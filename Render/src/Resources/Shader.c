@@ -744,11 +744,18 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !shader || !material || !shader->resourceManager ||
-		!shader->resourceManager->bindComputeShaderFunc ||
-		!shader->resourceManager->unbindComputeShaderFunc)
+	if (!commandBuffer || !shader || !material || !shader->resourceManager)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	if (!resourceManager->bindComputeShaderFunc || !resourceManager->unbindComputeShaderFunc ||
+		!resourceManager->renderer->hasComputeShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -766,7 +773,6 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->bindComputeShaderFunc(shader->resourceManager, commandBuffer,
 		shader, material, volatileValues);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -777,10 +783,18 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !shader || !shader->resourceManager ||
-		!shader->resourceManager->updateComputeShaderVolatileValuesFunc)
+	if (!commandBuffer || !shader || !shader->resourceManager)
 	{
 		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	if (!resourceManager->updateComputeShaderVolatileValuesFunc ||
+		!resourceManager->renderer->hasComputeShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -790,7 +804,6 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->updateComputeShaderVolatileValuesFunc(shader->resourceManager,
 		commandBuffer, shader, volatileValues);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -800,14 +813,20 @@ bool dsShader_unbindCompute(const dsShader* shader, dsCommandBuffer* commandBuff
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!commandBuffer || !shader || !shader->resourceManager ||
-		!shader->resourceManager->unbindComputeShaderFunc)
+	if (!commandBuffer || !shader || !shader->resourceManager)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = shader->resourceManager;
+	if (!resourceManager->unbindComputeShaderFunc || !resourceManager->renderer->hasComputeShaders)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = resourceManager->unbindComputeShaderFunc(resourceManager, commandBuffer, shader);
 	DS_PROFILE_FUNC_RETURN(success);
 }
