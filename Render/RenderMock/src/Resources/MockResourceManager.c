@@ -197,6 +197,9 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bindShaderFunc = &dsMockShader_bind;
 	resourceManager->updateShaderVolatileValuesFunc = &dsMockShader_updateVolatileValues;
 	resourceManager->unbindShaderFunc = &dsMockShader_unbind;
+	resourceManager->bindComputeShaderFunc = &dsMockShader_bindCompute;
+	resourceManager->updateComputeShaderVolatileValuesFunc = &dsMockShader_updateVolatileValues;
+	resourceManager->unbindComputeShaderFunc = &dsMockShader_unbind;
 
 	resourceManager->createFenceFunc = &dsMockGfxFence_create;
 	resourceManager->destroyFenceFunc = &dsMockGfxFence_destroy;

@@ -49,6 +49,8 @@ typedef enum CommandType
 	CommandType_SetShaderBuffer,
 	CommandType_SetUniform,
 	CommandType_UnbindShader,
+	CommandType_BindComputeShader,
+	CommandType_UnbindComputeShader,
 	CommandType_BeginRenderSurface,
 	CommandType_EndRenderSurface,
 	CommandType_BeginRenderPass,
@@ -168,6 +170,12 @@ typedef struct UnbindShaderCommand
 	Command command;
 	const dsShader* shader;
 } UnbindShaderCommand;
+
+typedef struct BindComputeShaderCommand
+{
+	Command command;
+	const dsShader* shader;
+} BindComputeShaderCommand;
 
 typedef struct RenderSurfaceCommand
 {
@@ -541,6 +549,32 @@ bool dsGLOtherCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const d
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer,
+	const dsShader* shader)
+{
+	BindComputeShaderCommand* command = (BindComputeShaderCommand*)allocateCommand(commandBuffer,
+		CommandType_BindComputeShader, sizeof(BindComputeShaderCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	command->shader = shader;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer,
+	const dsShader* shader)
+{
+	UnbindShaderCommand* command = (UnbindShaderCommand*)allocateCommand(commandBuffer,
+		CommandType_UnbindComputeShader, sizeof(UnbindShaderCommand));
+	if (!command)
+		return false;
+
+	dsGLShader_addInternalRef((dsShader*)shader);
+	command->shader = shader;
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
 {
 	RenderSurfaceCommand* command = (RenderSurfaceCommand*)allocateCommand(commandBuffer,
@@ -878,6 +912,18 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_unbindShader(commandBuffer, thisCommand->shader);
 				break;
 			}
+			case CommandType_BindComputeShader:
+			{
+				BindComputeShaderCommand* thisCommand = (BindComputeShaderCommand*)command;
+				dsGLCommandBuffer_bindComputeShader(commandBuffer, thisCommand->shader);
+				break;
+			}
+			case CommandType_UnbindComputeShader:
+			{
+				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
+				dsGLCommandBuffer_unbindComputeShader(commandBuffer, thisCommand->shader);
+				break;
+			}
 			case CommandType_BeginRenderSurface:
 			{
 				RenderSurfaceCommand* thisCommand = (RenderSurfaceCommand*)command;
@@ -1017,6 +1063,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_setShaderBuffer,
 	&dsGLOtherCommandBuffer_setUniform,
 	&dsGLOtherCommandBuffer_unbindShader,
+	&dsGLOtherCommandBuffer_bindComputeShader,
+	&dsGLOtherCommandBuffer_unbindComputeShader,
 	&dsGLOtherCommandBuffer_beginRenderSurface,
 	&dsGLOtherCommandBuffer_endRenderSurface,
 	&dsGLOtherCommandBuffer_beginRenderPass,
@@ -1153,8 +1201,15 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 			case CommandType_SetUniform:
 				break;
 			case CommandType_UnbindShader:
+			case CommandType_UnbindComputeShader:
 			{
 				UnbindShaderCommand* thisCommand = (UnbindShaderCommand*)command;
+				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
+				break;
+			}
+			case CommandType_BindComputeShader:
+			{
+				BindComputeShaderCommand* thisCommand = (BindComputeShaderCommand*)command;
 				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
 				break;
 			}

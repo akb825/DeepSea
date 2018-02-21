@@ -31,6 +31,14 @@ bool dsGLShader_updateVolatileValues(dsResourceManager* resourceManager,
 	const dsVolatileMaterialValues* volatileValues);
 bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader);
+bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues);
+bool dsGLShader_updateComputeVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues);
+bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader);
 bool dsGLShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
 
 void dsGLShader_addInternalRef(dsShader* shader);

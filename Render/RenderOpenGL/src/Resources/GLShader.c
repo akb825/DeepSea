@@ -1024,6 +1024,41 @@ bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* comm
 	return dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 }
 
+bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_ASSERT(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(material);
+
+	return dsGLCommandBuffer_bindComputeShaderAndMaterial(commandBuffer, shader, material,
+		volatileValues);
+}
+
+bool dsGLShader_updateComputeVolatileValues(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+
+	return dsGLCommandBuffer_setComputeVolatileMaterialValues(commandBuffer, shader,
+		volatileValues);
+}
+
+bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+
+	return dsGLCommandBuffer_unbindComputeShader(commandBuffer, shader);
+}
+
 static bool destroyImpl(dsShader* shader)
 {
 	dsGLShader* glShader = (dsGLShader*)shader;

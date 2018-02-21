@@ -86,7 +86,7 @@ DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManag
 DS_RENDER_EXPORT bool dsShader_hasStage(const dsShader* shader, dsShaderStage stage);
 
 /**
- * @brief Binds a shader to be drawn to.
+ * @brief Binds a shader for drawing.
  * @remark This must be called inside of a render pass.
  * @remark errno will be set on failure.
  * @param shader The shader to draw with.
@@ -126,6 +126,60 @@ DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
  * @return False if the values couldn't be unbound.
  */
 DS_RENDER_EXPORT bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Binds a shader for compute.
+ * @remark This must be called outside of a render pass.
+ * @remark errno will be set on failure.
+ * @param shader The shader to draw with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param material The material values to apply to the shader.
+ * @param volatileValues The volatile values to apply to the shader. This may be NULL if the
+ *     material description doesn't use volatile values.
+ * @return False if the values couldn't be bound.
+ */
+DS_RENDER_EXPORT bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues);
+
+/**
+ * @brief Updates the volatile material values for the compute shader.
+ *
+ * This will try to only update the values that have changed.
+ *
+ * @remark This must be called inside of a render pass.
+ * @remark errno will be set on failure.
+ * @param shader The shader to update the values on.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param volatileValues The volatile values to updte.
+ * @return False if the values couldn't be updated.
+ */
+DS_RENDER_EXPORT bool dsShader_updateComputeVolatileValues(const dsShader* shader,
+	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
+
+/**
+ * @brief Un-binds a compute shader that was previously bound.
+ * @remark This must be called outside of a render pass.
+ * @remark errno will be set on failure.
+ * @param shader The shader to update the values on.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @return False if the values couldn't be unbound.
+ */
+DS_RENDER_EXPORT bool dsShader_unbindCompute(const dsShader* shader,
+	dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Updates the volatile material values for the shader.
+ *
+ * This will try to only update the values that have changed. This will work both with either
+ *
+ * @remark errno will be set on failure.
+ * @param shader The shader to update the values on.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param volatileValues The volatile values to updte.
+ * @return False if the values couldn't be updated.
+ */
+DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
+	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
 
 /**
  * @brief Destroys a shader.

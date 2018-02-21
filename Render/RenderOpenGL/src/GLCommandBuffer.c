@@ -56,334 +56,7 @@ static uint32_t getSubpassSamples(const dsRenderPass* renderPass, uint32_t subpa
 	return 0;
 }
 
-void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly)
-{
-	DS_ASSERT(commandBuffer);
-	DS_ASSERT(commandBuffer->allocator);
-
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	glCommandBuffer->commitCounts = NULL;
-	glCommandBuffer->commitCountSize = 0;
-	glCommandBuffer->subpassOnly = subpassOnly;
-	glCommandBuffer->subpassIndex = 0;
-	glCommandBuffer->subpassSamples = 0;
-	glCommandBuffer->boundRenderPass = NULL;
-	glCommandBuffer->boundShader = NULL;
-	glCommandBuffer->boundSurface = NULL;
-}
-
-void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
-{
-	DS_ASSERT(commandBuffer);
-
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
-}
-
-bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
-	size_t offset, const void* data, size_t size)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Copying of buffers must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->copyBufferDataFunc(commandBuffer, buffer, offset, data, size);
-}
-
-bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
-	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Copying of buffers must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->copyBufferFunc(commandBuffer, srcBuffer, srcOffset, dstBuffer, dstOffset,
-		size);
-}
-
-bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
-	const void* data, size_t size)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Copying of textures must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
-		data, size);
-}
-
-bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Copying of textures must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
-}
-
-bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
-{
-	if (insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Generating of mipmaps must be done outside of a render pass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->generateTextureMipmapsFunc(commandBuffer, texture);
-}
-
-bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
-	uint32_t syncCount, bool bufferReadback)
-{
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setFenceSyncsFunc(commandBuffer, syncs, syncCount, bufferReadback);
-}
-
-bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
-	const dsDynamicRenderStates* renderStates)
-{
-	DS_ASSERT(commandBuffer);
-	DS_ASSERT(shader);
-	DS_ASSERT(material);
-
-	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
-		return false;
-
-	dsGLShader* glShader = (dsGLShader*)shader;
-	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
-	const dsMaterialDesc* materialDesc = shader->materialDesc;
-	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-	{
-		if (materialDesc->elements[i].isVolatile)
-			continue;
-
-		switch (materialDesc->elements[i].type)
-		{
-			case dsMaterialType_Texture:
-			case dsMaterialType_Image:
-			case dsMaterialType_SubpassInput:
-			{
-				if (glShader->uniforms[i].location < 0)
-					continue;
-
-				dsTexture* texture = dsMaterial_getTexture(material, i);
-				if (texture)
-					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
-				else
-				{
-					dsGfxFormat format;
-					size_t offset, count;
-					dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
-						material, i);
-					if (buffer)
-					{
-						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
-							format, offset, count);
-					}
-					else
-						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
-				}
-				break;
-			}
-			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
-			{
-				if (glShader->uniforms[i].location < 0)
-					continue;
-
-				size_t offset, size;
-				dsGfxBuffer* buffer = dsMaterial_getBuffer(&offset, &size, material, i);
-				if (!buffer)
-				{
-					errno = EPERM;
-					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No buffer set for material value '%s'", materialDesc->elements[i].name);
-					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
-					return false;
-				}
-				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
-				break;
-			}
-			case dsMaterialType_VariableGroup:
-			{
-				dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(material, i);
-				if (!variableGroup)
-				{
-					errno = EPERM;
-					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No variable group set for material value '%s'",
-						materialDesc->elements[i].name);
-					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
-					return false;
-				}
-
-				if (useGfxBuffers)
-				{
-					if (glShader->uniforms[i].location < 0)
-						continue;
-
-					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
-					DS_ASSERT(buffer);
-					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
-						buffer->size);
-				}
-				else
-				{
-					const dsShaderVariableGroupDesc* groupDesc =
-						materialDesc->elements[i].shaderVariableGroupDesc;
-					DS_ASSERT(groupDesc);
-					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
-					{
-						if (glShader->uniforms[i].groupLocations[j] < 0)
-							continue;
-
-						dsGLCommandBuffer_setUniform(commandBuffer,
-							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
-							groupDesc->elements[j].count,
-							dsShaderVariableGroup_getRawElementData(variableGroup, j));
-					}
-				}
-				break;
-			}
-			default:
-				if (glShader->uniforms[i].location < 0)
-					continue;
-
-				dsGLCommandBuffer_setUniform(commandBuffer, glShader->uniforms[i].location,
-					materialDesc->elements[i].type, materialDesc->elements[i].count,
-					dsMaterial_getRawElementData(material, i));
-				break;
-		}
-	}
-
-	if (!useGfxBuffers)
-	{
-		dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-		if (!glCommandBuffer->commitCounts ||
-			materialDesc->elementCount > glCommandBuffer->commitCountSize)
-		{
-			dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
-			glCommandBuffer->commitCounts = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
-				dsCommitCountInfo, materialDesc->elementCount);
-			glCommandBuffer->commitCountSize = materialDesc->elementCount;
-			if (!glCommandBuffer->commitCounts)
-			{
-				dsGLCommandBuffer_unbindShader(commandBuffer, shader);
-				return false;
-			}
-		}
-
-		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
-		{
-			glCommandBuffer->commitCounts[i].variableGroup = NULL;
-			glCommandBuffer->commitCounts[i].commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
-		}
-	}
-
-	if (!dsGLCommandBuffer_setVolatileMaterialValues(commandBuffer, shader, volatileValues))
-	{
-		dsGLCommandBuffer_unbindShader(commandBuffer, shader);
-		return false;
-	}
-
-	return true;
-}
-
-bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsDynamicRenderStates* renderStates)
-{
-	if (!insideRenderPass(commandBuffer))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Shader operations must be done within a render pass.");
-		return false;
-	}
-
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (glCommandBuffer->boundShader)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Shader cannot be bound while another shader is already bound.");
-		return false;
-	}
-
-	uint32_t shaderSamples = shader->samples;
-	if (shader->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		shaderSamples = commandBuffer->renderer->surfaceSamples;
-	if (glCommandBuffer->subpassSamples && glCommandBuffer->subpassSamples != shaderSamples)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Shader anti-alias samples don't match the "
-			"attachments for the current render subpass.");
-		return false;
-	}
-
-	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->bindShaderFunc(commandBuffer, shader, renderStates))
-		return false;
-
-	glCommandBuffer->boundShader = shader;
-	return true;
-}
-
-bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsTexture* texture)
-{
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setTextureFunc(commandBuffer, shader, element, texture);
-}
-
-bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
-{
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setTextureBufferFunc(commandBuffer, shader, element, buffer, format, offset,
-		count);
-}
-
-bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size)
-{
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setShaderBufferFunc(commandBuffer, shader, element, buffer, offset, size);
-}
-
-bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
-	dsMaterialType type, uint32_t count, const void* data)
-{
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->setUniformFunc(commandBuffer, location, type, count, data);
-}
-
-bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
 {
 	DS_ASSERT(commandBuffer);
@@ -522,6 +195,351 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues)
+{
+	dsGLShader* glShader = (dsGLShader*)shader;
+	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		if (materialDesc->elements[i].isVolatile)
+			continue;
+
+		switch (materialDesc->elements[i].type)
+		{
+			case dsMaterialType_Texture:
+			case dsMaterialType_Image:
+			case dsMaterialType_SubpassInput:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsTexture* texture = dsMaterial_getTexture(material, i);
+				if (texture)
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
+				else
+				{
+					dsGfxFormat format;
+					size_t offset, count;
+					dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&format, &offset, &count,
+						material, i);
+					if (buffer)
+					{
+						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
+							format, offset, count);
+					}
+					else
+						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				}
+				break;
+			}
+			case dsMaterialType_UniformBlock:
+			case dsMaterialType_UniformBuffer:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				size_t offset, size;
+				dsGfxBuffer* buffer = dsMaterial_getBuffer(&offset, &size, material, i);
+				if (!buffer)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No buffer set for material value '%s'", materialDesc->elements[i].name);
+					return false;
+				}
+				dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, offset, size);
+				break;
+			}
+			case dsMaterialType_VariableGroup:
+			{
+				dsShaderVariableGroup* variableGroup = dsMaterial_getVariableGroup(material, i);
+				if (!variableGroup)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
+						"No variable group set for material value '%s'",
+						materialDesc->elements[i].name);
+					return false;
+				}
+
+				if (useGfxBuffers)
+				{
+					if (glShader->uniforms[i].location < 0)
+						continue;
+
+					dsGfxBuffer* buffer = dsShaderVariableGroup_getGfxBuffer(variableGroup);
+					DS_ASSERT(buffer);
+					dsGLCommandBuffer_setShaderBuffer(commandBuffer, shader, i, buffer, 0,
+						buffer->size);
+				}
+				else
+				{
+					const dsShaderVariableGroupDesc* groupDesc =
+						materialDesc->elements[i].shaderVariableGroupDesc;
+					DS_ASSERT(groupDesc);
+					for (uint32_t j = 0; j < groupDesc->elementCount; ++j)
+					{
+						if (glShader->uniforms[i].groupLocations[j] < 0)
+							continue;
+
+						dsGLCommandBuffer_setUniform(commandBuffer,
+							glShader->uniforms[i].groupLocations[j], groupDesc->elements[j].type,
+							groupDesc->elements[j].count,
+							dsShaderVariableGroup_getRawElementData(variableGroup, j));
+					}
+				}
+				break;
+			}
+			default:
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsGLCommandBuffer_setUniform(commandBuffer, glShader->uniforms[i].location,
+					materialDesc->elements[i].type, materialDesc->elements[i].count,
+					dsMaterial_getRawElementData(material, i));
+				break;
+		}
+	}
+
+	if (!useGfxBuffers)
+	{
+		dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+		if (!glCommandBuffer->commitCounts ||
+			materialDesc->elementCount > glCommandBuffer->commitCountSize)
+		{
+			dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+			glCommandBuffer->commitCounts = DS_ALLOCATE_OBJECT_ARRAY(commandBuffer->allocator,
+				dsCommitCountInfo, materialDesc->elementCount);
+			glCommandBuffer->commitCountSize = materialDesc->elementCount;
+			if (!glCommandBuffer->commitCounts)
+				return false;
+		}
+
+		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+		{
+			glCommandBuffer->commitCounts[i].variableGroup = NULL;
+			glCommandBuffer->commitCounts[i].commitCount = DS_VARIABLE_GROUP_UNSET_COMMIT;
+		}
+	}
+
+	if (!setVolatileMaterialValues(commandBuffer, shader, volatileValues))
+		return false;
+
+	return true;
+}
+
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(commandBuffer->allocator);
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	glCommandBuffer->commitCounts = NULL;
+	glCommandBuffer->commitCountSize = 0;
+	glCommandBuffer->subpassOnly = subpassOnly;
+	glCommandBuffer->subpassIndex = 0;
+	glCommandBuffer->subpassSamples = 0;
+	glCommandBuffer->boundRenderPass = NULL;
+	glCommandBuffer->boundShader = NULL;
+	glCommandBuffer->boundSurface = NULL;
+}
+
+void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
+{
+	DS_ASSERT(commandBuffer);
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	dsAllocator_free(commandBuffer->allocator, glCommandBuffer->commitCounts);
+}
+
+bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
+	size_t offset, const void* data, size_t size)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of buffers must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyBufferDataFunc(commandBuffer, buffer, offset, data, size);
+}
+
+bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
+	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of buffers must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyBufferFunc(commandBuffer, srcBuffer, srcOffset, dstBuffer, dstOffset,
+		size);
+}
+
+bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of textures must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
+		data, size);
+}
+
+bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Copying of textures must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
+}
+
+bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Generating of mipmaps must be done outside of a render pass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->generateTextureMipmapsFunc(commandBuffer, texture);
+}
+
+bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
+	uint32_t syncCount, bool bufferReadback)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setFenceSyncsFunc(commandBuffer, syncs, syncCount, bufferReadback);
+}
+
+bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsDynamicRenderStates* renderStates)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(material);
+
+	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
+		return false;
+
+	if (!bindMaterial(commandBuffer, shader, material, volatileValues))
+	{
+		dsGLCommandBuffer_unbindShader(commandBuffer, shader);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	const dsDynamicRenderStates* renderStates)
+{
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader cannot be bound while another shader is already bound.");
+		return false;
+	}
+
+	uint32_t shaderSamples = shader->samples;
+	if (shader->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		shaderSamples = commandBuffer->renderer->surfaceSamples;
+	if (glCommandBuffer->subpassSamples && glCommandBuffer->subpassSamples != shaderSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Shader anti-alias samples don't match the "
+			"attachments for the current render subpass.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->bindShaderFunc(commandBuffer, shader, renderStates))
+		return false;
+
+	glCommandBuffer->boundShader = shader;
+	return true;
+}
+
+bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsTexture* texture)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setTextureFunc(commandBuffer, shader, element, texture);
+}
+
+bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setTextureBufferFunc(commandBuffer, shader, element, buffer, format, offset,
+		count);
+}
+
+bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setShaderBufferFunc(commandBuffer, shader, element, buffer, offset, size);
+}
+
+bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
+	dsMaterialType type, uint32_t count, const void* data)
+{
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->setUniformFunc(commandBuffer, location, type, count, data);
+}
+
+bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+{
+	if (!insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Shader operations must be done within a render pass.");
+		return false;
+	}
+
+	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+}
+
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
@@ -535,6 +553,86 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->unbindShaderFunc(commandBuffer, shader))
+		return false;
+
+	glCommandBuffer->boundShader = NULL;
+	return true;
+}
+
+bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_ASSERT(commandBuffer);
+	DS_ASSERT(shader);
+	DS_ASSERT(material);
+
+	if (!dsGLCommandBuffer_bindComputeShader(commandBuffer, shader))
+		return false;
+
+	if (!bindMaterial(commandBuffer, shader, material, volatileValues))
+	{
+		dsGLCommandBuffer_unbindComputeShader(commandBuffer, shader);
+		return false;
+	}
+
+	return true;
+}
+
+bool dsGLCommandBuffer_setComputeVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Compute shader operations must be done outside a render pass.");
+		return false;
+	}
+
+	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+}
+
+bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	if (insideRenderPass(commandBuffer))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Compute shader operations must be done outside a render pass.");
+		return false;
+	}
+
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Compute shader cannot be bound while another shader is already bound.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->bindComputeShaderFunc(commandBuffer, shader))
+		return false;
+
+	glCommandBuffer->boundShader = shader;
+	return true;
+}
+
+bool dsGLCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
+{
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (glCommandBuffer->boundShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Can only unbind the currently bound shader.");
+		return false;
+	}
+
+	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	if (!functions->unbindComputeShaderFunc(commandBuffer, shader))
 		return false;
 
 	glCommandBuffer->boundShader = NULL;
@@ -609,7 +707,14 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	}
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(!glCommandBuffer->boundShader);
+	if (glCommandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+			"Cannot begin a render pass while a compute shader is bound.");
+		return false;
+	}
+
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport,
 		clearValues, clearValueCount))

@@ -54,6 +54,14 @@ bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
+bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues);
+bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
+bool dsGLCommandBuffer_setComputeVolatileMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
+bool dsGLCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
+
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
 bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);
 

@@ -103,6 +103,23 @@ bool dsMockShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* co
 	return true;
 }
 
+bool dsMockShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_ASSERT(resourceManager);
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_ASSERT(shader);
+	DS_UNUSED(shader);
+	DS_ASSERT(material);
+	DS_UNUSED(material);
+	DS_UNUSED(volatileValues);
+
+	return true;
+}
+
 bool dsMockShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 {
 	DS_UNUSED(resourceManager);

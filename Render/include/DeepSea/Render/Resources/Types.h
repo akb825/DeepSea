@@ -1570,6 +1570,19 @@ typedef bool (*dsUpdateShaderVolatileValuesFunction)(dsResourceManager* resource
 typedef bool (*dsUnbindShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader);
 
+/**
+ * @brief Function for binding a shader for compute.
+ * @param resourceManager The resource manager the shader was created with.
+ * @param commandBuffer The command buffer to queue commands onto.
+ * @param shader The shader to draw with.
+ * @param material The material values to apply to the shader.
+ * @param volatileValues The volatile values to apply to the shader.
+ * @return False if the values couldn't be bound.
+ */
+typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
+	const dsVolatileMaterialValues* volatileValues);
+
 /** @copydoc dsResourceManager */
 struct dsResourceManager
 {
@@ -2050,6 +2063,21 @@ struct dsResourceManager
 	 * @brief Shader unbinding function.
 	 */
 	dsUnbindShaderFunction unbindShaderFunc;
+
+	/**
+	 * @brief Compute shader binding function.
+	 */
+	dsBindComputeShaderFunction bindComputeShaderFunc;
+
+	/**
+	 * @brief Compute shader volatile value update function.
+	 */
+	dsUpdateShaderVolatileValuesFunction updateComputeShaderVolatileValuesFunc;
+
+	/**
+	 * @brief Compute shader unbinding function.
+	 */
+	dsUnbindShaderFunction unbindComputeShaderFunc;
 };
 
 #ifdef __cplusplus

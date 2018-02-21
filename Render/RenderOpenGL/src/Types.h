@@ -283,6 +283,9 @@ typedef bool (*GLSetUniformFunction)(dsCommandBuffer* commandBuffer, GLint locat
 	dsMaterialType type, uint32_t count, const void* data);
 typedef bool (*GLUnbindShaderFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
+typedef bool (*GLBindComputeShaderFunctiion)(dsCommandBuffer* commandBuffer,
+	const dsShader* shader);
+
 typedef bool (*GLBeginRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 typedef bool (*GLEndRenderSurfaceFunction)(dsCommandBuffer* commandBuffer, void* glSurface);
 
@@ -342,6 +345,9 @@ typedef struct CommandBufferFunctionTable
 	GLSetShaderBufferFunction setShaderBufferFunc;
 	GLSetUniformFunction setUniformFunc;
 	GLUnbindShaderFunction unbindShaderFunc;
+
+	GLBindComputeShaderFunctiion bindComputeShaderFunc;
+	GLUnbindShaderFunction unbindComputeShaderFunc;
 
 	GLBeginRenderSurfaceFunction beginRenderSurfaceFunc;
 	GLEndRenderSurfaceFunction endRenderSurfaceFunc;

@@ -705,7 +705,7 @@ bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* comm
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !shader || !shader->resourceManager ||
-		!shader->resourceManager->bindShaderFunc)
+		!shader->resourceManager->updateShaderVolatileValuesFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -736,6 +736,79 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->unbindShaderFunc(resourceManager, commandBuffer, shader);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !material || !shader->resourceManager ||
+		!shader->resourceManager->bindComputeShaderFunc ||
+		!shader->resourceManager->unbindComputeShaderFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsMaterial_getDescription(material) != shader->materialDesc)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Material descriptions for shader and material don't match.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->bindComputeShaderFunc(shader->resourceManager, commandBuffer,
+		shader, material, volatileValues);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsVolatileMaterialValues* volatileValues)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !shader->resourceManager ||
+		!shader->resourceManager->updateComputeShaderVolatileValuesFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->updateComputeShaderVolatileValuesFunc(shader->resourceManager,
+		commandBuffer, shader, volatileValues);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_unbindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !shader || !shader->resourceManager ||
+		!shader->resourceManager->unbindComputeShaderFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsResourceManager* resourceManager = shader->resourceManager;
+	bool success = resourceManager->unbindComputeShaderFunc(resourceManager, commandBuffer, shader);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
