@@ -96,7 +96,7 @@ function(ds_compile_shaders container)
 		list(APPEND extraArgs -O)
 	endif()
 
-	set(outputs ${${container}})
+	set(outputs)
 	foreach (config ${ARGS_CONFIG})
 		if (NOT ${config})
 			message(FATAL_ERROR "No path for shader configuration ${config} found.")

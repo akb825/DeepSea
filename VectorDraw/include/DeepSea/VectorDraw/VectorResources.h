@@ -58,6 +58,57 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorReosurces_create(dsAllocator* al
 	uint32_t maxTextures, uint32_t maxFaceGroups, uint32_t maxFonts);
 
 /**
+ * @brief Loads vector resources from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector resources and sub-resources with.
+ * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
+ *     allocator.
+ * @param resourceManager The resource manager to create textures from.
+ * @param filePath The file path for the vector resources to load.
+ * @return The created vector resources, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const char* filePath);
+
+/**
+ * @brief Loads vector resources from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector resources and sub-resources with.
+ * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
+ *     allocator.
+ * @param resourceManager The resource manager to create textures from.
+ * @param stream The stream to load the vector resources from. This stream will be read from the
+ *     current position until the end, and must be seekable.
+ * @param loadUserData The user data to provide for the texture and face group load functions.
+ * @param loadTextureFunc Function to perform loading of textures.
+ * @param loadFontFaceFunc Function to perform loading of font faces.
+ * @return The created vector resources, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsStream* stream,
+	void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc);
+
+/**
+ * @brief Loads vector resources from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector resources and sub-resources with.
+ * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
+ *     allocator.
+ * @param resourceManager The resource manager to create textures from.
+ * @param data The data for the vector resources. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @param loadUserData The user data to provide for the texture and face group load functions.
+ * @param loadTextureFunc Function to perform loading of textures.
+ * @param loadFontFaceFunc Function to perform loading of font faces.
+ * @return The created vector resources, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const void* data,
+	size_t size, void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc);
+
+/**
  * @brief Gets the number of remaining textures that can be set.
  * @param resources The vector resources.
  * @return The number of remaining textures.

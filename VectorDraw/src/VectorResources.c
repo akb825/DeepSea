@@ -21,9 +21,14 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/PoolAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/Resources/TextureData.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <string.h>
@@ -69,6 +74,69 @@ static uint32_t tableSize(uint32_t maxSize)
 {
 	return (uint32_t)roundf((float)maxSize/loadFactor);
 }
+
+static dsTexture* loadTextureFile(void* userData, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, unsigned int usage,
+	unsigned int memoryHints)
+{
+	const char* basePath = (const char*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	return dsTextureData_loadFileToTexture(resourceManager, allocator, tempAllocator, finalPath,
+		NULL, usage, memoryHints);
+}
+
+static bool loadFontFaceFile(void* userData, dsFaceGroup* faceGroup, const char* path,
+	const char* name)
+{
+	const char* basePath = (const char*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", basePath,
+			DS_PATH_SEPARATOR, path);
+		return false;
+	}
+
+	return dsFaceGroup_loadFaceFile(faceGroup, finalPath, name);
+}
+
+static void* readBuffer(size_t* outSize, dsStream* stream, dsAllocator* allocator)
+{
+	uint64_t position = dsStream_tell(stream);
+	if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
+		return NULL;
+
+	uint64_t end = dsStream_tell(stream);
+	if (end == DS_STREAM_INVALID_POS || !dsStream_seek(stream, position, dsStreamSeekWay_Beginning))
+		return NULL;
+
+	*outSize = (size_t)(end - position);
+	uint8_t* buffer = (uint8_t*)dsAllocator_alloc(allocator, *outSize);
+	if (!buffer)
+		return NULL;
+
+	size_t read = dsStream_read(stream, buffer, *outSize);
+	if (read != *outSize)
+	{
+		dsAllocator_free(allocator, buffer);
+		errno = EIO;
+		return NULL;
+	}
+
+	return buffer;
+}
+
+extern dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const void* data,
+	size_t size, void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const char* name);
 
 size_t dsVectorResources_fullAllocSize(uint32_t maxTextures, uint32_t maxFaceGroups,
 	uint32_t maxFonts)
@@ -172,6 +240,109 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 	}
 
 	return resources;
+}
+
+dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsResourceManager* resourceManager, const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !resourceManager || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+		{
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+	}
+
+	dsFileStream fileStream;
+	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector resources file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = readBuffer(&size, (dsStream*)&fileStream, scratchAllocator);
+	dsFileStream_close(&fileStream);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
+		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
+		filePath);
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsStream* stream,
+	void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !resourceManager || !stream || !loadTextureFunc || !loadFontFaceFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!stream->seekFunc || !stream->tellFunc)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Stream for reading vector resources must be seekable.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	size_t size;
+	void* buffer = readBuffer(&size, stream, scratchAllocator);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
+		resourceManager, buffer, size, loadUserData, loadTextureFunc, loadFontFaceFunc, NULL);
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsResourceManager* resourceManager, const void* data, size_t size, void* loadUserData,
+	dsLoadVectorResourcesTextureFunction loadTextureFunc,
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !resourceManager || !data || size == 0 || !loadTextureFunc ||
+		!loadFontFaceFunc)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
+		resourceManager, data, size, loadUserData, loadTextureFunc, loadFontFaceFunc, NULL);
+	DS_PROFILE_FUNC_RETURN(resources);
 }
 
 uint32_t dsVectorResources_getRemainingTextures(const dsVectorResources* resources)

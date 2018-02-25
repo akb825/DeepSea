@@ -1,6 +1,15 @@
-file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
-ds_add_library(deepsea_vector_draw MODULE VectorDraw FILES ${sources} DEPENDS deepsea_render
-	deepsea_text)
+file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
+file(GLOB_RECURSE flatbuffers src/*.fbs)
+ds_add_library(deepsea_vector_draw MODULE VectorDraw FILES ${sources} ${flatbuffers}
+	DEPENDS deepsea_render deepsea_text)
+ds_target_include_directories(deepsea_vector_draw PRIVATE ${FLATBUFFERS_INCLUDE_DIRS})
 ds_install_library(TARGET deepsea_vector_draw MODULE VectorDraw DEPENDS Render Text)
+
+include(ConvertFlatbuffers)
+ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers} DIRECTORY
+	${CMAKE_CURRENT_SOURCE_DIR}/src/Flatbuffers)
+ds_convert_flatbuffers_target(deepsea_vector_draw_flatbuffers generatedFlatbuffers)
+add_dependencies(deepsea_vector_draw deepsea_vector_draw_flatbuffers)
+ds_set_folder(deepsea_vector_draw_flatbuffers libs/Flatbuffers)
 
 add_subdirectory(test)

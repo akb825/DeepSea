@@ -169,7 +169,7 @@ dsTextureData* dsTextureData_loadFile(dsAllocator* allocator, const char* filePa
 	dsFileStream fileStream;
 	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
 	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open PVR file '%s'.", filePath);
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open texture file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

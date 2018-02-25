@@ -135,6 +135,32 @@ typedef enum dsVectorTextPosition
 } dsVectorTextPosition;
 
 /**
+ * @brief Function for loading a texture for a dsVectorResources instance.
+ * @param userData The user data for the load.
+ * @param resourceManager The resource manager to create the texture with.
+ * @param allocator The allocator to create the texture with.
+ * @param tempAllocator The allocator for temporary data.
+ * @param path The path to load.
+ * @param usage The usage flags to pass to the texture creation.
+ * @param memoryHints The memory hint flags to pass to the texture creation.
+ * @return texture The loaded texture.
+ */
+typedef dsTexture* (dsLoadVectorResourcesTextureFunction)(void* userData,
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* tempAllocator,
+	const char* path, unsigned int usage, unsigned int memoryHints);
+
+/**
+ * @brief Function for loading a font face for a dsVectorResources instance.
+ * @param userData The user data for the load.
+ * @param faceGroup The face group to load the font face for.
+ * @param path The path to load.
+ * @param name The name of the font face.
+ * @return False if the font face couldn't be loaded.
+ */
+typedef bool (dsLoadVectorResourcesFontFaceFunction)(void* userData, dsFaceGroup* faceGroup,
+	const char* path, const char* name);
+
+/**
  * @brief Struct containing a stop for a gradient.
  * @see Gradient.h
  */
