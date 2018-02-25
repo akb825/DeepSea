@@ -17,7 +17,9 @@ if (NOT FLATC)
 	message("flatc not installed. Using pre-generated flatbuffers.")
 endif()
 
-find_file(FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h PATHS ${DEEPSEA_SOURCE_DIR}/external)
+# This will try to find the include directory on the system, and fall back to the version checked
+# into the repository.
+find_path(FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h PATHS ${DEEPSEA_SOURCE_DIR}/external)
 
 # ds_convert_flatbuffers(container
 #                        FILE file1 [file2 ...]

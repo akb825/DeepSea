@@ -145,7 +145,7 @@ typedef enum dsVectorTextPosition
  * @param memoryHints The memory hint flags to pass to the texture creation.
  * @return texture The loaded texture.
  */
-typedef dsTexture* (dsLoadVectorResourcesTextureFunction)(void* userData,
+typedef dsTexture* (*dsLoadVectorResourcesTextureFunction)(void* userData,
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* tempAllocator,
 	const char* path, unsigned int usage, unsigned int memoryHints);
 
@@ -157,7 +157,7 @@ typedef dsTexture* (dsLoadVectorResourcesTextureFunction)(void* userData,
  * @param name The name of the font face.
  * @return False if the font face couldn't be loaded.
  */
-typedef bool (dsLoadVectorResourcesFontFaceFunction)(void* userData, dsFaceGroup* faceGroup,
+typedef bool (*dsLoadVectorResourcesFontFaceFunction)(void* userData, dsFaceGroup* faceGroup,
 	const char* path, const char* name);
 
 /**
