@@ -86,13 +86,13 @@ typedef enum dsVectorMaterialType
 } dsVectorMaterialType;
 
 /**
- * @brief Enum for the coordinate space of a vector element.
+ * @brief Enum for the coordinate space of a vector material.
  */
-typedef enum dsVectorElementSpace
+typedef enum dsVectorMaterialSpace
 {
-	dsVectorSpace_Local, ///< Local coordinate space of the object.
-	dsVectorSpace_Bounds ///< Space determined by the bounding box of the element.
-} dsVectorElementSpace;
+	dsVectorMaterialSpace_Local, ///< Local coordinate space of the object.
+	dsVectorMaterialSpace_Bounds ///< Space determined by the bounding box of the element.
+} dsVectorMaterialSpace;
 
 /**
  * @brief Enum for what to do at the edge of a gradient.
@@ -227,7 +227,7 @@ typedef struct dsLinearGradient
 	/**
 	 * @brief The coordinate space of the gradient.
 	 */
-	dsVectorElementSpace coordinateSpace;
+	dsVectorMaterialSpace coordinateSpace;
 
 	/**
 	 * @brief The transform for the gradient.
@@ -275,7 +275,7 @@ typedef struct dsRadialGradient
 	/**
 	 * @brief The coordinate space of the gradient.
 	 */
-	dsVectorElementSpace coordinateSpace;
+	dsVectorMaterialSpace coordinateSpace;
 
 	/**
 	 * @brief The transform for the gradient.
@@ -638,11 +638,6 @@ typedef struct dsVectorCommandTextRange
 	 * @brief The width of the outline.
 	 */
 	float outlineWidth;
-
-	/**
-	 * @brief The amount to anti-alias the text.
-	 */
-	float antiAlias;
 } dsVectorCommandTextRange;
 
 /**
@@ -837,14 +832,24 @@ typedef struct dsVectorShadersModule
 	uint32_t shapeInfoTextureElement;
 
 	/**
-	 * @brief The element index for the material info texture.
+	 * @brief The element index for the shared material info texture.
 	 */
-	uint32_t materialInfoTextureElement;
+	uint32_t sharedMaterialInfoTextureElement;
 
 	/**
-	 * @brief The element index for the material texture.
+	 * @brief The element index for the shared material texture.
 	 */
-	uint32_t materialColorTextureElement;
+	uint32_t sharedMaterialColorTextureElement;
+
+	/**
+	 * @brief The element index for the local material info texture.
+	 */
+	uint32_t localMaterialInfoTextureElement;
+
+	/**
+	 * @brief The element index for the local material texture.
+	 */
+	uint32_t localMaterialColorTextureElement;
 
 	/**
 	 * @brief The element index for the font or image texture.

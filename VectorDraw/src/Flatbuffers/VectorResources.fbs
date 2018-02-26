@@ -1,24 +1,16 @@
 namespace DeepSeaVectorDraw;
 
-/*
- * Structure defining a reference to a resource.
- */
+// Structure defining a reference to a resource.
 table Resource
 {
-	/*
-	 * The name to reference the resource.
-	 */
+	// The name to reference the resource.
 	name : string (required);
 
-	/*
-	 * The path to the resource.
-	 */
+	// The path to the resource.
 	path : string (required);
 }
 
-/*
- * Enum for the face group quality.
- */
+// Enum for the face group quality.
 enum FaceGroupQuality : ubyte
 {
 	Low,
@@ -27,66 +19,42 @@ enum FaceGroupQuality : ubyte
 	VeryHigh
 }
 
-/**
- * Structure defining a face group.
- */
+// Structure defining a face group.
 table FaceGroup
 {
-	/*
-	 * The name of the face group.
-	 */
+	// The name of the face group.
 	name : string (required);
 
-	/*
-	 * The quality of the face group.
-	 */
+	// The quality of the face group.
 	quality : FaceGroupQuality;
 
-	/**
-	 * List of font faces within the group.
-	 */
-	faces : [Resource];
+	// List of font faces within the group.
+	faces : [Resource] (required);
 }
 
-/*
- * Structure defining a reference to a font.
- */
+// Structure defining a reference to a font.
 table Font
 {
-	/*
-	 * The name to reference the font.
-	 */
+	// The name to reference the font.
 	name : string (required);
 
-	/**
-	 * The face group the font belongs to.
-	 */
+	// The face group the font belongs to.
 	faceGroup : string (required);
 
-	/*
-	 * The list of font face to reference within the face group.
-	 */
-	faces : [string];
+	// The list of font face to reference within the face group.
+	faces : [string] (required);
 }
 
-/*
- * Structure defining vector resources.
- */
+// Structure defining vector resources.
 table ResourceSet
 {
-	/*
-	 * List of textures.
-	 */
+	// List of textures.
 	textures : [Resource];
 
-	/*
-	 * List of face groups.
-	 */
+	// List of face groups.
 	faceGroups : [FaceGroup];
 
-	/*
-	 * List of fonts.
-	 */
+	// List of fonts.
 	fonts : [Font];
 }
 

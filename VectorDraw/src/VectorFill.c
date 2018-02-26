@@ -267,19 +267,24 @@ static bool triangulate(dsVectorScratchData* scratchData)
 	return true;
 }
 
-bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* materials,
-	const dsVectorCommandFillPath* fill)
+bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* sharedMaterials,
+	const dsVectorMaterialSet* localMaterials, const dsVectorCommandFillPath* fill)
 {
 	if (scratchData->pointCount < 3)
 		return true;
 
-	uint32_t material = dsVectorMaterialSet_findMaterialIndex(materials,
+	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		fill->material);
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
 	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", fill->material);
-		return false;
+		material = dsVectorMaterialSet_findMaterialIndex(localMaterials, fill->material);
+		if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", fill->material);
+			return false;
+		}
+		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 	}
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;

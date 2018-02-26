@@ -18,5 +18,6 @@
 
 #include <DeepSea/VectorDraw/Types.h>
 
-bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* materials,
+bool dsVectorStroke_add(dsVectorScratchData* scratchData,
+	const dsVectorMaterialSet* sharedMaterials, const dsVectorMaterialSet* localMaterials,
 	const dsVectorCommandStrokePath* stroke, float pixelSize);

@@ -100,7 +100,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	for (uint32_t i = 0; i < faceGroupCount; ++i)
 	{
 		auto faceGroupRef = (*faceGroups)[i];
-		if (!faceGroupRef || !faceGroupRef->faces() || faceGroupRef->faces()->size() == 0)
+		if (!faceGroupRef || faceGroupRef->faces()->size() == 0)
 		{
 			errno = EFORMAT;
 			printFlatbufferError(name);
@@ -145,7 +145,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 	for (uint32_t i = 0; i < fontCount; ++i)
 	{
 		auto fontRef = (*fonts)[i];
-		if (!fontRef || !fontRef->faces() || fontRef->faces()->size() == 0)
+		if (!fontRef || fontRef->faces()->size() == 0)
 		{
 			errno = EFORMAT;
 			printFlatbufferError(name);
@@ -169,13 +169,13 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			{
 				DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
 					"Face group '%s' isn't present in vector resources '%s'.",
-					fontRef->faceGroup()->c_str(),  name);
+					fontRef->faceGroup()->c_str(), name);
 			}
 			else
 			{
 				DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
-					"Face group '%s' isn't present in vector resources '%s'.",
-					fontRef->faceGroup()->c_str(),  name);
+					"Face group '%s' isn't present in vector resources.",
+					fontRef->faceGroup()->c_str());
 			}
 			DS_VERIFY(dsVectorResources_destroy(resources));
 			return nullptr;

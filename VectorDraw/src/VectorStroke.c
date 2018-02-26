@@ -704,19 +704,25 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 	return true;
 }
 
-bool dsVectorStroke_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* materials,
+bool dsVectorStroke_add(dsVectorScratchData* scratchData,
+	const dsVectorMaterialSet* sharedMaterials, const dsVectorMaterialSet* localMaterials,
 	const dsVectorCommandStrokePath* stroke, float pixelSize)
 {
 	if (scratchData->pointCount == 0)
 		return true;
 
-	uint32_t material = dsVectorMaterialSet_findMaterialIndex(materials,
+	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		stroke->material);
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
 	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", stroke->material);
-		return false;
+		material = dsVectorMaterialSet_findMaterialIndex(localMaterials, stroke->material);
+		if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", stroke->material);
+			return false;
+		}
+		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 	}
 
 	float miterThetaLimit = 0.0f;

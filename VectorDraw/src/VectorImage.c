@@ -22,6 +22,8 @@
 #include "VectorStroke.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -68,7 +70,8 @@ typedef struct dsVectorImagePiece
 struct dsVectorImage
 {
 	dsAllocator* allocator;
-	dsVectorMaterialSet* materials;
+	const dsVectorMaterialSet* sharedMaterials;
+	dsVectorMaterialSet* localMaterials;
 	dsVectorImagePiece* imagePieces;
 	dsTexture** infoTextures;
 	dsDrawGeometry* drawGeometries[ShaderType_Count];
@@ -76,7 +79,6 @@ struct dsVectorImage
 	uint32_t pieceCount;
 	uint32_t infoTextureCount;
 	dsVector2f size;
-	bool ownMaterials;
 };
 
 // Left and right subdivision matrices from http://algorithmist.net/docs/subdivision.pdf
@@ -589,7 +591,8 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 }
 
 static bool processCommand(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
-	uint32_t commandCount, uint32_t* curCommand, dsVectorMaterialSet* materials, float pixelSize)
+	uint32_t commandCount, uint32_t* curCommand, const dsVectorMaterialSet* sharedMaterials,
+	dsVectorMaterialSet* localMaterials, float pixelSize)
 {
 	DS_UNUSED(commandCount);
 	DS_ASSERT(*curCommand < commandCount);
@@ -652,12 +655,14 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 		case dsVectorCommandType_StrokePath:
 			if (!inPathWithPoint(scratchData))
 				return false;
-			return dsVectorStroke_add(scratchData, materials, &commands[(*curCommand)++].strokePath,
-				adjustPixelSize(&scratchData->pathTransform, pixelSize));
+			return dsVectorStroke_add(scratchData, sharedMaterials, localMaterials,
+				&commands[(*curCommand)++].strokePath, adjustPixelSize(&scratchData->pathTransform,
+				pixelSize));
 		case dsVectorCommandType_FillPath:
 			if (!inPathWithPoint(scratchData))
 				return false;
-			return dsVectorFill_add(scratchData, materials, &commands[(*curCommand)++].fillPath);
+			return dsVectorFill_add(scratchData, sharedMaterials, localMaterials,
+				&commands[(*curCommand)++].fillPath);
 		case dsVectorCommandType_Image:
 		{
 			const dsVectorCommandImage* image = &commands[(*curCommand)++].image;
@@ -671,13 +676,17 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 }
 
 static bool processCommands(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
-	uint32_t commandCount, dsVectorMaterialSet* materials, float pixelSize)
+	uint32_t commandCount, const dsVectorMaterialSet* sharedMaterials,
+	dsVectorMaterialSet* localMaterials, float pixelSize)
 {
 	dsVectorScratchData_reset(scratchData);
 	for (uint32_t i = 0; i < commandCount;)
 	{
-		if (!processCommand(scratchData, commands, commandCount, &i, materials, pixelSize))
+		if (!processCommand(scratchData, commands, commandCount, &i, sharedMaterials,
+			localMaterials, pixelSize))
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -850,16 +859,22 @@ static bool createTextTessGeometry(dsVectorImage* image, dsVectorScratchData* sc
 	return image->drawGeometries[ShaderType_Text] != NULL;
 }
 
+dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchData* scratchData,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
+	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, const char* name);
+
 dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	const dsVectorCommand* commands, uint32_t commandCount, dsVectorMaterialSet* materials,
-	bool ownMaterials, dsVectorShaderModule* shaderModule, const dsVector2f* size, float pixelSize)
+	const dsVectorCommand* commands, uint32_t commandCount,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
+	dsVectorShaderModule* shaderModule, const dsVector2f* size, float pixelSize)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!allocator || !scratchData || !resourceManager || !commands || commandCount == 0 ||
-		!materials || (!dsVectorImage_testing && !shaderModule) || !size || size->x <= 0.0f ||
-		size->y <= 0.0f || pixelSize <= 0.0f)
+		(!sharedMaterials && !localMaterials) || (!dsVectorImage_testing && !shaderModule) ||
+		!size || size->x <= 0.0f || size->y <= 0.0f || pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -877,8 +892,11 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
-	if (!processCommands(scratchData, commands, commandCount, materials, pixelSize))
+	if (!processCommands(scratchData, commands, commandCount, sharedMaterials, localMaterials,
+		pixelSize))
+	{
 		return NULL;
+	}
 
 	uint32_t infoTextureCount = (scratchData->vectorInfoCount + INFOS_PER_TEXTURE - 1)/
 		INFOS_PER_TEXTURE;
@@ -955,9 +973,100 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 		DS_ASSERT(infoTextureCount > 0);
 	}
 
-	image->materials = materials;
-	image->ownMaterials = ownMaterials;
+	image->sharedMaterials = sharedMaterials;
+	image->localMaterials = localMaterials;
 	return image;
+}
+
+dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchData* scratchData,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* filePath,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !resourceManager || !filePath || !shaderModule ||
+		(!resources && resourceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsFileStream fileStream;
+	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector image file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&fileStream, scratchData->allocator);
+	dsFileStream_close(&fileStream);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
+		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
+		pixelSize, filePath);
+	DS_PROFILE_FUNC_RETURN(image);
+}
+
+dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchData* scratchData,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsStream* stream,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !resourceManager || !stream || !shaderModule ||
+		(!resources && resourceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchData->allocator);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
+		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
+		pixelSize, NULL);
+	DS_PROFILE_FUNC_RETURN(image);
+}
+
+dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsVectorScratchData* scratchData,
+	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
+	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !scratchData || !resourceManager || !data || size == 0 || !shaderModule ||
+		(!resources && resourceCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
+		resourceAllocator, data, size, sharedMaterials, shaderModule, resources, resourceCount,
+		pixelSize, NULL);
+	DS_PROFILE_FUNC_RETURN(image);
 }
 
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
@@ -990,22 +1099,40 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		return false;
 	}
 
-	dsTexture* materialInfoTexture = dsVectorMaterialSet_getInfoTexture(vectorImage->materials);
-	DS_ASSERT(materialInfoTexture);
-	dsTexture* materialColorTexture = dsVectorMaterialSet_getColorTexture(vectorImage->materials);
-	DS_ASSERT(materialColorTexture);
-	if (!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
-			materialInfoTexture) ||
-		!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
-			materialColorTexture))
+	dsTexture* sharedMaterialInfoTexture = dsVectorMaterialSet_getInfoTexture(
+		vectorImage->sharedMaterials);
+	dsTexture* sharedMaterialColorTexture = dsVectorMaterialSet_getColorTexture(
+		vectorImage->sharedMaterials);
+	dsTexture* localMaterialInfoTexture = dsVectorMaterialSet_getInfoTexture(
+		vectorImage->localMaterials);
+	dsTexture* localMaterialColorTexture = dsVectorMaterialSet_getColorTexture(
+		vectorImage->localMaterials);
+	if (!dsMaterial_setTexture(material, shaderModule->sharedMaterialInfoTextureElement,
+			sharedMaterialInfoTexture) ||
+		!dsMaterial_setTexture(material, shaderModule->sharedMaterialColorTextureElement,
+			sharedMaterialColorTexture) ||
+		!dsMaterial_setTexture(material, shaderModule->localMaterialInfoTextureElement,
+			localMaterialInfoTexture) ||
+		!dsMaterial_setTexture(material, shaderModule->localMaterialColorTextureElement,
+			localMaterialColorTexture))
 	{
 		return false;
 	}
 
 	bool success = true;
-	dsVector2f textureSizes;
-	DS_ASSERT(materialInfoTexture->height == materialInfoTexture->height);
-	textureSizes.y = (float)materialInfoTexture->height;
+	dsVector3f textureSizes = {{0.0f, 0.0f, 0.0f}};
+	if (sharedMaterialInfoTexture)
+	{
+		DS_ASSERT(sharedMaterialInfoTexture->height == sharedMaterialInfoTexture->height);
+		textureSizes.y = (float)sharedMaterialInfoTexture->height;
+	}
+
+	if (localMaterialInfoTexture)
+	{
+		DS_ASSERT(localMaterialInfoTexture->height == localMaterialInfoTexture->height);
+		textureSizes.z = (float)localMaterialInfoTexture->height;
+	}
+
 	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
 	{
 		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
@@ -1054,12 +1181,34 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	}
 
 	// Clean up textures that might be deleted before the next draw.
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement, NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialColorTextureElement, NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->sharedMaterialInfoTextureElement,
+		NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->sharedMaterialColorTextureElement,
+		NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->localMaterialInfoTextureElement,
+		NULL));
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->localMaterialColorTextureElement,
+		NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
 
 	return success;
+}
+
+const dsVectorMaterialSet* dsVectorImage_getSharedMaterials(const dsVectorImage* vectorImage)
+{
+	if (!vectorImage)
+		return NULL;
+
+	return vectorImage->sharedMaterials;
+}
+
+dsVectorMaterialSet* dsVectorImage_getLocalMaterials(dsVectorImage* vectorImage)
+{
+	if (!vectorImage)
+		return NULL;
+
+	return vectorImage->localMaterials;
 }
 
 bool dsVectorImage_destroy(dsVectorImage* vectorImage)
@@ -1082,8 +1231,7 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 	if (!dsGfxBuffer_destroy(vectorImage->buffer))
 		return false;
 
-	if (vectorImage->ownMaterials && !dsVectorMaterialSet_destroy(vectorImage->materials))
-		return false;
+	DS_VERIFY(dsVectorMaterialSet_destroy(vectorImage->localMaterials));
 
 	if (vectorImage->allocator)
 		DS_VERIFY(dsAllocator_free(vectorImage->allocator, vectorImage));

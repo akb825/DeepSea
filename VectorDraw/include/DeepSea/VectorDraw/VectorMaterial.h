@@ -56,7 +56,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorMaterial_setColor(dsVectorMaterial* material, 
  */
 DS_VECTORDRAW_EXPORT bool dsVectorMaterial_setLinearGradient(dsVectorMaterial* material,
 	const dsGradient* gradient, const dsVector2f* start, const dsVector2f* end, dsGradientEdge edge,
-	dsVectorElementSpace coordinateSpace, const dsMatrix33f* transform);
+	dsVectorMaterialSpace coordinateSpace, const dsMatrix33f* transform);
 
 /**
  * @brief Sets a vector material as a radial gradient.
@@ -76,7 +76,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorMaterial_setLinearGradient(dsVectorMaterial* m
  */
 DS_VECTORDRAW_EXPORT bool dsVectorMaterial_setRadialGradient(dsVectorMaterial* material,
 	const dsGradient* gradient, const dsVector2f* center, float radius, const dsVector2f* focus,
-	float focusRadius, dsGradientEdge edge, dsVectorElementSpace coordinateSpace,
+	float focusRadius, dsGradientEdge edge, dsVectorMaterialSpace coordinateSpace,
 	const dsMatrix33f* transform);
 
 /**

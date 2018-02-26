@@ -17,9 +17,9 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Core/Streams/Types.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Export.h>
+#include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -43,17 +43,15 @@ extern "C"
 DS_CORE_EXPORT inline size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
 /**
- * @brief Skips bytes in a stream.
- *
- * This will attempt to do a seek, otherwise it will read the bytes to an empty buffer to skip them.
- *
- * @remark Some implementations will seek past the end and not throw an error until the next read.
+ * @brief Reads from the current position in the stream until the end.
  * @remark errno will be set on failure.
+ * @param[out] outSize The size of the buffer.
  * @param stream The stream to read from.
- * @param size The number of bytes to skip.
- * @return The number of bytes skipped. If implemented as a seek, this will be 0 if the seek fails.
+ * @param allocator The allocator to create the buffer with.
+ * @return The read buffer, or NULL if an error occurred.
  */
-DS_CORE_EXPORT uint64_t dsStream_skip(dsStream* stream, uint64_t size);
+DS_CORE_EXPORT void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream,
+	dsAllocator* allocator);
 
 /**
  * @brief Writes to a stream.
@@ -83,6 +81,19 @@ DS_CORE_EXPORT inline bool dsStream_seek(dsStream* stream, int64_t offset, dsStr
  *     determined.
  */
 DS_CORE_EXPORT inline uint64_t dsStream_tell(dsStream* stream);
+
+/**
+ * @brief Skips bytes in a stream.
+ *
+ * This will attempt to do a seek, otherwise it will read the bytes to an empty buffer to skip them.
+ *
+ * @remark Some implementations will seek past the end and not throw an error until the next read.
+ * @remark errno will be set on failure.
+ * @param stream The stream to read from.
+ * @param size The number of bytes to skip.
+ * @return The number of bytes skipped. If implemented as a seek, this will be 0 if the seek fails.
+ */
+DS_CORE_EXPORT uint64_t dsStream_skip(dsStream* stream, uint64_t size);
 
 /**
  * @brief Flushes the contents of a stream.

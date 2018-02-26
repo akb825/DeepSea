@@ -41,6 +41,11 @@ extern "C"
 #define DS_VECTOR_MATERIAL_NOT_FOUND (uint32_t)-1
 
 /**
+ * @brief Constant for the offset for an index that's part of a local material.
+ */
+#define DS_VECTOR_LOCAL_MATERIAL_OFFSET DS_MAX_ALLOWED_VECTOR_MATERIALS
+
+/**
  * @brief Gets the full allocation size of a vector material set.
  *
  * This doesn't include the size for the texture.

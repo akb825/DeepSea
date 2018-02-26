@@ -135,7 +135,7 @@ struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyField<uint8_t>(verifier, VT_QUALITY) &&
-           VerifyOffset(verifier, VT_FACES) &&
+           VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.Verify(faces()) &&
            verifier.VerifyVectorOfTables(faces()) &&
            verifier.EndTable();
@@ -163,6 +163,7 @@ struct FaceGroupBuilder {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FaceGroup>(end);
     fbb_.Required(o, FaceGroup::VT_NAME);
+    fbb_.Required(o, FaceGroup::VT_FACES);
     return o;
   }
 };
@@ -212,7 +213,7 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(name()) &&
            VerifyOffsetRequired(verifier, VT_FACEGROUP) &&
            verifier.Verify(faceGroup()) &&
-           VerifyOffset(verifier, VT_FACES) &&
+           VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.Verify(faces()) &&
            verifier.VerifyVectorOfStrings(faces()) &&
            verifier.EndTable();
@@ -241,6 +242,7 @@ struct FontBuilder {
     auto o = flatbuffers::Offset<Font>(end);
     fbb_.Required(o, Font::VT_NAME);
     fbb_.Required(o, Font::VT_FACEGROUP);
+    fbb_.Required(o, Font::VT_FACES);
     return o;
   }
 };

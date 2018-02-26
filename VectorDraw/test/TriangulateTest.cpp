@@ -60,7 +60,7 @@ TEST_F(TriangulateTest, TriangleCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -119,7 +119,7 @@ TEST_F(TriangulateTest, TriangleCCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -178,7 +178,7 @@ TEST_F(TriangulateTest, ObliqueTriangleCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -237,7 +237,7 @@ TEST_F(TriangulateTest, ObliqueTriangleCCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -299,7 +299,7 @@ TEST_F(TriangulateTest, QuadCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -367,7 +367,7 @@ TEST_F(TriangulateTest, QuadCCW)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -462,7 +462,7 @@ TEST_F(TriangulateTest, MonotonicCW)
 
 	dsVector2f size = {{36.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -611,7 +611,7 @@ TEST_F(TriangulateTest, MonotonicCCW)
 
 	dsVector2f size = {{36.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -838,7 +838,7 @@ TEST_F(TriangulateTest, ComplexCW)
 
 	dsVector2f size = {{36.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -1231,7 +1231,7 @@ TEST_F(TriangulateTest, ComplexCCW)
 
 	dsVector2f size = {{36.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -1565,7 +1565,7 @@ TEST_F(TriangulateTest, SawtoothRightCW)
 
 	dsVector2f size = {{11.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -1769,7 +1769,7 @@ TEST_F(TriangulateTest, SawtoothRightCCW)
 
 	dsVector2f size = {{11.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -1973,7 +1973,7 @@ TEST_F(TriangulateTest, SawtoothLeftCW)
 
 	dsVector2f size = {{10.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2177,7 +2177,7 @@ TEST_F(TriangulateTest, SawtoothLeftCCW)
 
 	dsVector2f size = {{10.0f, 16.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2359,7 +2359,7 @@ TEST_F(TriangulateTest, HoleCW)
 
 	dsVector2f size = {{10.0f, 5.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2499,7 +2499,7 @@ TEST_F(TriangulateTest, HoleCCW)
 
 	dsVector2f size = {{10.0f, 5.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2611,7 +2611,7 @@ TEST_F(TriangulateTest, TriangleNoClose)
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2691,7 +2691,7 @@ TEST_F(TriangulateTest, ClosePointOutside)
 
 	dsVector2f size = {{10.0f, 10.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 
@@ -2810,7 +2810,7 @@ TEST_F(TriangulateTest, ClosePointInside)
 
 	dsVector2f size = {{10.0f, 10.0f}};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, true,
+		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), materialSet, NULL,
 		NULL, &size, 0.1f);
 	ASSERT_TRUE(image);
 

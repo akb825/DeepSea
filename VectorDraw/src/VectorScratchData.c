@@ -402,6 +402,7 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 		return;
 
 	DS_ASSERT(data->allocator);
+	DS_VERIFY(dsAllocator_free(data->allocator, data->tempCommands));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->points));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->shapeVertices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->imageVertices));
@@ -436,6 +437,20 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 	data->polygonVertCount = 0;
 	data->polygonEdgeCount = 0;
 	data->loopVertCount = 0;
+}
+
+dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
+	uint32_t commandCount)
+{
+	if (!data->tempCommands || data->maxTempCommands < commandCount)
+	{
+		dsAllocator_free(data->allocator, data->tempCommands);
+		data->tempCommands = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, dsVectorCommand,
+			commandCount);
+		data->maxTempCommands = commandCount;
+	}
+
+	return data->tempCommands;
 }
 
 bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,

@@ -107,35 +107,9 @@ static bool loadFontFaceFile(void* userData, dsFaceGroup* faceGroup, const char*
 	return dsFaceGroup_loadFaceFile(faceGroup, finalPath, name);
 }
 
-static void* readBuffer(size_t* outSize, dsStream* stream, dsAllocator* allocator)
-{
-	uint64_t position = dsStream_tell(stream);
-	if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
-		return NULL;
-
-	uint64_t end = dsStream_tell(stream);
-	if (end == DS_STREAM_INVALID_POS || !dsStream_seek(stream, position, dsStreamSeekWay_Beginning))
-		return NULL;
-
-	*outSize = (size_t)(end - position);
-	uint8_t* buffer = (uint8_t*)dsAllocator_alloc(allocator, *outSize);
-	if (!buffer)
-		return NULL;
-
-	size_t read = dsStream_read(stream, buffer, *outSize);
-	if (read != *outSize)
-	{
-		dsAllocator_free(allocator, buffer);
-		errno = EIO;
-		return NULL;
-	}
-
-	return buffer;
-}
-
-extern dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const void* data,
-	size_t size, void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
+dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
+	dsResourceManager* resourceManager, const void* data, size_t size, void* loadUserData,
+	dsLoadVectorResourcesTextureFunction loadTextureFunc,
 	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const char* name);
 
 size_t dsVectorResources_fullAllocSize(uint32_t maxTextures, uint32_t maxFaceGroups,
@@ -275,7 +249,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 	}
 
 	size_t size;
-	void* buffer = readBuffer(&size, (dsStream*)&fileStream, scratchAllocator);
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&fileStream, scratchAllocator);
 	dsFileStream_close(&fileStream);
 	if (!buffer)
 	{
@@ -301,18 +275,11 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!stream->seekFunc || !stream->tellFunc)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Stream for reading vector resources must be seekable.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
 	if (!scratchAllocator)
 		scratchAllocator = allocator;
 
 	size_t size;
-	void* buffer = readBuffer(&size, stream, scratchAllocator);
+	void* buffer = dsStream_readUntilEnd(&size, stream, scratchAllocator);
 	if (!buffer)
 	{
 		DS_PROFILE_FUNC_RETURN(NULL);

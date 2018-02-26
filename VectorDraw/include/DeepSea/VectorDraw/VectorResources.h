@@ -78,7 +78,7 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
  *     allocator.
  * @param resourceManager The resource manager to create textures from.
  * @param stream The stream to load the vector resources from. This stream will be read from the
- *     current position until the end, and must be seekable.
+ *     current position until the end.
  * @param loadUserData The user data to provide for the texture and face group load functions.
  * @param loadTextureFunc Function to perform loading of textures.
  * @param loadFontFaceFunc Function to perform loading of font faces.
@@ -90,7 +90,7 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator
 	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc);
 
 /**
- * @brief Loads vector resources from a stream.
+ * @brief Loads vector resources from a data buffer.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector resources and sub-resources with.
  * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as

@@ -24,10 +24,10 @@
  */
 
 /**
- * @brief Texture holding general information about the vector material.
+ * @brief Texture holding general information about the shared vector material.
  */
-uniform sampler2D dsVectorMaterialInfoTex;
-sampler_state dsVectorMaterialInfoTex
+uniform sampler2D dsVectorSharedMaterialInfoTex;
+sampler_state dsVectorSharedMaterialInfoTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -37,10 +37,36 @@ sampler_state dsVectorMaterialInfoTex
 }
 
 /**
- * @brief Texture holding general information about the vector material.
+ * @brief Texture holding general information about the local vector material.
  */
-uniform sampler2D dsVectorMaterialColorTex;
-sampler_state dsVectorMaterialColorTex
+uniform sampler2D dsVectorLocalMaterialInfoTex;
+sampler_state dsVectorLocalMaterialInfoTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+	mip_filter = none;
+}
+
+/**
+ * @brief Texture holding general information about the shared vector material.
+ */
+uniform sampler2D dsVectorSharedMaterialColorTex;
+sampler_state dsVectorSharedMaterialColorTex
+{
+	address_mode_u = wrap;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = none;
+}
+
+/**
+ * @brief Texture holding general information about the local vector material.
+ */
+uniform sampler2D dsVectorLocalMaterialColorTex;
+sampler_state dsVectorLocalMaterialColorTex
 {
 	address_mode_u = wrap;
 	address_mode_v = clamp_to_edge;
@@ -55,14 +81,14 @@ sampler_state dsVectorMaterialColorTex
 #define DS_MATERIAL_COLOR_WIDTH 256.0
 
 /**
- * @brief Gets the info for a material.
- * @param[out] info The material info.
- * @param index The index of the material.
+ * @brief Constant for the offset for a local material.
  */
-void dsVectorMaterial_getInfo(out vec4 info[4], float index)
+#define DS_VECTOR_LOCAL_MATERIAL_OFFSET 1024.0
+
+void dsVectorMaterial_getInfoImpl(out vec4 info[4], float index, sampler2D infoTex)
 {
 	float materialCoord = float(index)/uniforms.dsVectorTextureSizes.y;
-	info[0] = texture(dsVectorMaterialInfoTex, vec2(0.125f, materialCoord));
+	info[0] = texture(infoTex, vec2(0.125f, materialCoord));
 	if (info[0].x == 0.0)
 	{
 		// Solid color, no extra info needed.
@@ -72,9 +98,25 @@ void dsVectorMaterial_getInfo(out vec4 info[4], float index)
 	}
 	else
 	{
-		info[1] = texture(dsVectorMaterialInfoTex, vec2(0.375f, materialCoord));
-		info[2] = texture(dsVectorMaterialInfoTex, vec2(0.625f, materialCoord));
-		info[3] = texture(dsVectorMaterialInfoTex, vec2(0.875f, materialCoord));
+		info[1] = texture(infoTex, vec2(0.375f, materialCoord));
+		info[2] = texture(infoTex, vec2(0.625f, materialCoord));
+		info[3] = texture(infoTex, vec2(0.875f, materialCoord));
+	}
+}
+
+/**
+ * @brief Gets the info for a material.
+ * @param[out] info The material info.
+ * @param index The index of the material.
+ */
+void dsVectorMaterial_getInfo(out vec4 info[4], float index)
+{
+	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+		dsVectorMaterial_getInfo(info, index, dsVectorSharedMaterialInfoTex);
+	else
+	{
+		dsVectorMaterial_getInfo(info, index - DS_VECTOR_LOCAL_MATERIAL_OFFSET,
+			dsVectorLocalMaterialInfoTex);
 	}
 }
 
@@ -90,7 +132,10 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 	float index)
 {
 	float colorCoord;
-	float materialCoord = float(index)/uniforms.dsVectorTextureSizes.y;
+	float adjustedIndex = index;
+	if (adjustedIndex >= DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+		adjustedIndex -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+	float materialCoord = adjustedIndex/uniforms.dsVectorTextureSizes.y;
 	if (info[0].x == 1.0 || info[0].x == 2.0)
 	{
 		// Gradient
@@ -176,5 +221,8 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 		colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
 	}
 
-	return texture(dsVectorMaterialColorTex, vec2(colorCoord, materalCoord));
+	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+		return texture(dsSharedMaterialColorTex, vec2(colorCoord, materalCoord));
+	else
+		return texture(dsLocalMaterialColorTex, vec2(colorCoord, materalCoord));
 }

@@ -34,6 +34,8 @@ extern "C"
 /**
  * @brief Creates a vector image.
  * @remark errno will be set on failure.
+ * @remark At least one of sharedMaterials and localMaterials must be set. If both are set,
+ *     sharedMaterials is searched first.
  * @param allocator The allocator to create the image with.
  * @param scratchData The scratch data to use when building up the image. This may be re-used across
  *     multiple images, so long as it isn't used concurrently across multiple threads.
@@ -42,8 +44,9 @@ extern "C"
  *     the vector image allocator.
  * @param commands The commands that comprise the image.
  * @param commandCount The number of commands.
- * @param materials The material set to create the vector image with.
- * @param ownMaterials True to take ownership of the material set.
+ * @param sharedMaterials The material set that is shared with other materials.
+ * @param localMaterials The material set that is local to this image only. This will take ownership
+ *     of the material set.
  * @param shaderModule The shader module for the vector shaders.
  * @param size The size of the vector image.
  * @param pixelSize The size of a pixel, determining tessellation quality.
@@ -52,8 +55,79 @@ extern "C"
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
 	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, const dsVectorCommand* commands, uint32_t commandCount,
-	dsVectorMaterialSet* materials, bool ownMaterials, dsVectorShaderModule* shaderModule,
-	const dsVector2f* size, float pixelSize);
+	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
+	dsVectorShaderModule* shaderModule, const dsVector2f* size, float pixelSize);
+
+/**
+ * @brief Loads a vector image from a file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector image.
+ * @param scratchData The scratch data to use when building up the image. This may be re-used across
+ *     multiple images, so long as it isn't used concurrently across multiple threads.
+ * @param resourceManager The resource manaer to create graphics resources with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param filePath The file path for the vector image to load.
+ * @param sharedMaterials The material set that is shared with other materials.
+ * @param shaderModule The shader module for the vector shaders.
+ * @param resources The vector resources.
+ * @param resourceCount The number of vector resources.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @return The created vector image, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator,
+	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const char* filePath,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize);
+
+/**
+ * @brief Loads a vector image from a stream.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector image.
+ * @param scratchData The scratch data to use when building up the image. This may be re-used across
+ *     multiple images, so long as it isn't used concurrently across multiple threads.
+ * @param resourceManager The resource manaer to create graphics resources with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param stream The stream to load the vector image from. This stream will be read from the
+ *     current position until the end.
+ * @param sharedMaterials The material set that is shared with other materials.
+ * @param shaderModule The shader module for the vector shaders.
+ * @param resources The vector resources.
+ * @param resourceCount The number of vector resources.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @return The created vector image, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator,
+	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, dsStream* stream, const dsVectorMaterialSet* sharedMaterials,
+	dsVectorShaderModule* shaderModule, const dsVectorResources** resources,
+	uint32_t resourceCount, float pixelSize);
+
+/**
+ * @brief Loads a vector image from a data buffer.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector image.
+ * @param scratchData The scratch data to use when building up the image. This may be re-used across
+ *     multiple images, so long as it isn't used concurrently across multiple threads.
+ * @param resourceManager The resource manaer to create graphics resources with.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param data The data for the vector resources. The data isn't used after this call.
+ * @param size The size of the data buffer.
+ * @param sharedMaterials The material set that is shared with other materials.
+ * @param shaderModule The shader module for the vector shaders.
+ * @param resources The vector resources.
+ * @param resourceCount The number of vector resources.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @return The created vector image, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator,
+	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
+	dsAllocator* resourceAllocator, const void* data, size_t size,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize);
 
 /**
  * @brief Draws a vector image.
@@ -74,6 +148,22 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
 	dsCommandBuffer* commandBuffer, const dsVectorShaders* shaders, dsMaterial* material,
 	const dsMatrix44f* modelViewProjection, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates);
+
+/**
+ * @brief Gets the shared materials used by the vector image.
+ * @param vectorImage The vector image.
+ * @return The shared materials.
+ */
+DS_VECTORDRAW_EXPORT const dsVectorMaterialSet* dsVectorImage_getSharedMaterials(
+	const dsVectorImage* vectorImage);
+
+/**
+ * @brief Gets the local materials used by the vector image.
+ * @param vectorImage The vector image.
+ * @return The local materials.
+ */
+DS_VECTORDRAW_EXPORT dsVectorMaterialSet* dsVectorImage_getLocalMaterials(
+	dsVectorImage* vectorImage);
 
 /**
  * @brief Destroys a vector image.

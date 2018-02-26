@@ -1,0 +1,436 @@
+namespace DeepSeaVectorDraw;
+
+// Enum for what to do at the edge of a gradient.
+enum GradientEdge : ubyte
+{
+	Clamp,  // Clamp at the edge of the gradient.
+	Repeat, // Repeat at the edge of the gradient.
+	Mirror  // Repeat in the reverse direction at the edge of the gradient.
+}
+
+// Enum for the space to pace a material in.
+enum MaterialSpace : ubyte
+{
+	Local, // Local coordinate space of the object.
+	Bounds // Space determined by the bounding box of the element.
+}
+
+// Enum for how to join lines during a storke.
+enum LineJoin : ubyte
+{
+	Miter, // The line is joined with a sharp corner.
+	Bevel, // Similar to miter, but the corner is rounded.
+	Round  // The line is joined with a rounded cap.
+}
+
+// Enum for the cap to place at the end of a stroke.
+enum LineCap : ubyte
+{
+	Butt,  // The line ends immediately at the end point.
+	Round, // The line ends with a round cap.
+	Square // The line ends with a square cap.
+}
+
+// Enum for hwo to interpret the text position.
+enum TextPosition : ubyte
+{
+	None,    // Don't use the position element.
+	Offset,  // Offset from the current position.
+	Absolute // Absolute position.
+}
+
+// Enum for the justification of text.
+enum TextJustification : ubyte
+{
+	Left,
+	Right,
+	Center
+}
+
+// Structure defining a 32-bit color.
+struct Color
+{
+	r : ubyte;
+	g : ubyte;
+	b : ubyte;
+	a : ubyte;
+}
+
+// Structure defining a 2-element vector.
+struct Vector2f
+{
+	x : float;
+	y : float;
+}
+
+// Structure defining a 3-element vector.
+struct Vector3f
+{
+	x : float;
+	y : float;
+	z : float;
+}
+
+// Structure defining a 3x3 matrix.
+struct Matrix33f
+{
+	column0 : Vector3f;
+	column1 : Vector3f;
+	column2 : Vector3f;
+}
+
+// Structure defining the elements for a dashed line.
+struct DashArray
+{
+	// The length of the first solid portion.
+	solid0 : float;
+
+	// The length of the first gap portion.
+	gap0 : float;
+
+	// The length of the second solid portion.
+	solid1 : float;
+
+	// The length of the second gap portion.
+	gap1 : float;
+}
+
+// Structure defining an individual stop within a gradient.
+struct GradientStop
+{
+	// The position of the stop.
+	position : float;
+
+	// The color of the stop.
+	color : Color;
+}
+
+// Structure defining a material that's a single color.
+table ColorMaterial
+{
+	// The name to reference the material.
+	name : string (required);
+
+	// The color of the material.
+	color : Color (required);
+}
+
+// Structure defining a linear gradient material.
+table LinearGradient
+{
+	// The name to reference the material.
+	name : string (required);
+
+	// List of stops for the gradient.
+	gradient : [GradientStop] (required);
+
+	// The start position of the gradient.
+	start : Vector2f (required);
+
+	// The end position of the gradient.
+	end : Vector2f (required);
+
+	// What to do at the edge of the gradient.
+	edge : GradientEdge;
+
+	// The coordinate space of the gradient.
+	coordinateSpace : MaterialSpace;
+
+	// The transform for the gradient.
+	transform : Matrix33f (required);
+}
+
+// Structure defining a radial gradient material.
+table RadialGradient
+{
+	// The name to reference the material.
+	name : string (required);
+
+	// List of stops for the gradient.
+	gradient : [GradientStop] (required);
+
+	// The center of the gradient.
+	center : Vector2f (required);
+
+	// The radius of the circle for the gradient.
+	radius : float;
+
+	// The focus point of the gradient.
+	focus : Vector2f (required);
+
+	// The radius of the focus.
+	focusRadius : float;
+
+	// What to do at the edge of the gradient.
+	edge : GradientEdge;
+
+	// The coordinate space of the gradient.
+	coordinateSpace : MaterialSpace;
+
+	// The transform for the gradient.
+	transform : Matrix33f (required);
+}
+
+// Structure defining a command to start a path.
+table StartPathCommand
+{
+	// The transform for the path.
+	transform : Matrix33f (required);
+}
+
+// Structure defining a command to move position.
+table MoveCommand
+{
+	// The position to move to.
+	position : Vector2f (required);
+}
+
+// Structure defining a command to connect a line.
+table LineCommand
+{
+	// The end position of the line.
+	end : Vector2f (required);
+}
+
+// Structure defining a command to connect a bezier curve.
+table BezierCommand
+{
+	// The first control point.
+	control1 : Vector2f (required);
+
+	// The second control point.
+	control2 : Vector2f (required);
+
+	// The end point of the curve.
+	end : Vector2f (required);
+}
+
+// Structure defining a command to connect a quadratic curve.
+table QuadraticCommand
+{
+	// The control point.
+	control : Vector2f (required);
+
+	// The end point of the curve.
+	end : Vector2f (required);
+}
+
+// Structure defining a command to connect an arc.
+table ArcCommand
+{
+	// The radius of the arc on the X and Y axes.
+	radius : Vector2f (required);
+
+	// The rotation to apply to the axes in radians.
+	rotation : float;
+
+	// True for a large arc, which will choose a path to take > 180 degrees.
+	largeArc : bool;
+
+	// True to choose an ellipse that follows a clockwise path around the center.
+	clockwise : bool;
+
+	// The end position of the arc.
+	end : Vector2f (required);
+}
+
+// Structure defining a command to close the a path.
+table ClosePathCommand
+{
+}
+
+// Structure defining a command to draw an ellipse.
+table EllipseCommand
+{
+	// The center of the ellipse.
+	center : Vector2f (required);
+
+	// The radius of the ellipse.
+	radius : Vector2f (required);
+}
+
+// Structure defining a command to draw a rectangle.
+table RectangleCommand
+{
+	// The upper-left position of the rectangle. (minimum X and Y)
+	upperLeft : Vector2f (required);
+
+	// The lower-right position of the rectangle. (maximum X and Y)
+	lowerRight : Vector2f (required);
+
+	// The radius of the corners.
+	cornerRadius : Vector2f (required);
+}
+
+// Structure defining a command to stroke the current path.
+table StrokePathCommand
+{
+	// The name of the material to apply.
+	material : string (required);
+
+	// The opacity of the stroke.
+	opacity : float;
+
+	// The join type for the line.
+	joinType : LineJoin;
+
+	// The cap type for the line.
+	capType : LineCap;
+
+	// The width of the stroke.
+	width : float;
+
+	// The miter limit of the stroke.
+	miterLimit : float;
+
+	// The dash array of the stroke.
+	dashArray : DashArray (required);
+}
+
+// Structure defining a command to fill the current path.
+table FillPathCommand
+{
+	// The name of the material to apply.
+	material : string (required);
+
+	// The opacity of the fill.
+	opacity : float;
+}
+
+// Structure defining a command to apply text to the current path.
+table TextPathCommand
+{
+	// The text to display.
+	text : string (required);
+
+	// The name of the font to draw with.
+	font : string (required);
+
+	// The number of range commands that will follow.
+	rangeCount : uint;
+}
+
+// Structure defining a command to display text.
+table TextCommand
+{
+	// The text to display.
+	text : string (required);
+
+	// The name of the font to draw with.
+	font : string (required);
+
+	// The justification of the text.
+	justification : TextJustification;
+
+	// The transform matrix for the text.
+	transform : Matrix33f (required);
+
+	// The number of range commands that will follow.
+	rangeCount : uint;
+}
+
+// Structure defining a command for how to display a range of text.
+table TextRangeCommand
+{
+	// The first codepoint of the range.
+	start : uint;
+
+	// The number of codepoints in the range.
+	count : uint;
+
+	// How to interpret the position.
+	positionType : TextPosition;
+
+	// The position of the text.
+	position : Vector2f;
+
+	// The material for the text fill. May be unset if no fill.
+	fillMaterial : string;
+
+	// The material for the text outline. May be unset if no outline.
+	outlineMaterial : string;
+
+	// The opacity of the fill.
+	fillOpacity : float;
+
+	// The opacity of the outline.
+	outlineOpacity : float;
+
+	// The size of the text.
+	size : float;
+
+	// The amount to embolden the text.
+	embolden : float;
+
+	// The amount to slant the text.
+	slant : float;
+
+	// The width of the outline.
+	outlineWidth : float;
+}
+
+// Structure defining a command for displaying an image.
+table ImageCommand
+{
+	// The name of the image to display.
+	image : string (required);
+
+	// The upper-left position of the image. (minimum X and Y)
+	upperLeft : Vector2f (required);
+
+	// The lower-right position of the image. (maximum X and Y)
+	lowerRight : Vector2f (required);
+
+	// The opacity of the image.
+	opacity : float;
+
+	// The transform matrix for the image.
+	transform : Matrix33f (required);
+}
+
+// Union defining a command in the vector image.
+union VectorCommandUnion
+{
+	StartPathCommand,
+	MoveCommand,
+	LineCommand,
+	BezierCommand,
+	QuadraticCommand,
+	ArcCommand,
+	ClosePathCommand,
+	EllipseCommand,
+	RectangleCommand,
+	StrokePathCommand,
+	FillPathCommand,
+	TextPathCommand,
+	TextCommand,
+	TextRangeCommand,
+	ImageCommand
+}
+
+// Structure defining a command in the vector image.
+table VectorCommand
+{
+	command : VectorCommandUnion (required);
+}
+
+// Structure defining a vector image.
+table VectorImage
+{
+	// List of color materials used in the image.
+	colorMaterials : [ColorMaterial];
+
+	// List of linear gradients used in the image.
+	linearGradients : [LinearGradient];
+
+	// List of radial gradients used in the image.
+	radialGradients : [RadialGradient];
+
+	// List of commands to define the image.
+	commands : [VectorCommand] (required);
+
+	// The size of the image.
+	size : Vector2f (required);
+}
+
+root_type VectorImage;

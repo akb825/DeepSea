@@ -169,6 +169,9 @@ struct dsVectorScratchData
 {
 	dsAllocator* allocator;
 
+	dsVectorCommand* tempCommands;
+	uint32_t maxTempCommands;
+
 	PointInfo* points;
 	uint32_t pointCount;
 	uint32_t maxPoints;
@@ -235,6 +238,10 @@ struct dsVectorScratchData
 };
 
 void dsVectorScratchData_reset(dsVectorScratchData* data);
+
+dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
+	uint32_t commandCount);
+
 bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
 	uint32_t type);
 

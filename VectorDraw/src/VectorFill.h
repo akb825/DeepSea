@@ -18,5 +18,5 @@
 
 #include <DeepSea/VectorDraw/Types.h>
 
-bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* materials,
-	const dsVectorCommandFillPath* fill);
+bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* sharedMaterials,
+	const dsVectorMaterialSet* localMaterials, const dsVectorCommandFillPath* fill);

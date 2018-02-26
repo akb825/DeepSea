@@ -47,7 +47,7 @@ uniform vec2 dsVectorImageSize;
 /**
  * @brief The size of the element info and material textures.
  */
-uniform vec2 dsVectorTextureSizes;
+uniform vec3 dsVectorTextureSizes;
 
 /**
  * @brief Gets the info for an element.

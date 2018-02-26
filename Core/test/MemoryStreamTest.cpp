@@ -15,6 +15,8 @@
  */
 
 #include "Helpers.h"
+#include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Core/Streams/MemoryStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <gtest/gtest.h>
@@ -89,8 +91,6 @@ TEST(MemoryStream, ReadWriteFileFunctions)
 
 	EXPECT_TRUE(dsMemoryStream_close(&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsMemoryStream_close(&stream));
-
-	unlink("asdf");
 }
 
 TEST(MemoryStream, ReadWriteStreamFunctions)
@@ -140,6 +140,53 @@ TEST(MemoryStream, ReadWriteStreamFunctions)
 
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
+}
 
-	unlink("asdf");
+TEST(MemoryStream, ReadUntilEnd)
+{
+	dsSystemAllocator allocator;
+	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsMemoryStream stream;
+	int32_t buffer[3] = {0, 1, 2};
+
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+
+	size_t size;
+	int32_t* data = (int32_t*)dsStream_readUntilEnd(&size, (dsStream*)&stream,
+		(dsAllocator*)&allocator);
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(data);
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+}
+
+TEST(MemoryStream, ReadUntilEndNoSeek)
+{
+	dsSystemAllocator allocator;
+	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsMemoryStream stream;
+	int32_t buffer[3] = {0, 1, 2};
+
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+	((dsStream*)&stream)->seekFunc = NULL;
+
+	size_t size;
+	int32_t* data = (int32_t*)dsStream_readUntilEnd(&size, (dsStream*)&stream,
+		(dsAllocator*)&allocator);
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(data);
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }

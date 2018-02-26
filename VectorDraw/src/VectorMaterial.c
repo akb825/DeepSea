@@ -37,7 +37,7 @@ bool dsVectorMaterial_setColor(dsVectorMaterial* material, dsColor color)
 
 bool dsVectorMaterial_setLinearGradient(dsVectorMaterial* material, const dsGradient* gradient,
 	const dsVector2f* start, const dsVector2f* end, dsGradientEdge edge,
-	dsVectorElementSpace coordinateSpace, const dsMatrix33f* transform)
+	dsVectorMaterialSpace coordinateSpace, const dsMatrix33f* transform)
 {
 	if (!material || !dsGradient_isValid(gradient) || !start || !end)
 	{
@@ -68,7 +68,7 @@ bool dsVectorMaterial_setLinearGradient(dsVectorMaterial* material, const dsGrad
 
 bool dsVectorMaterial_setRadialGradient(dsVectorMaterial* material, const dsGradient* gradient,
 	const dsVector2f* center, float radius, const dsVector2f* focus, float focusRadius,
-	dsGradientEdge edge, dsVectorElementSpace coordinateSpace, const dsMatrix33f* transform)
+	dsGradientEdge edge, dsVectorMaterialSpace coordinateSpace, const dsMatrix33f* transform)
 {
 	if (!material || !dsGradient_isValid(gradient) || !center || radius <= 0.0f || !focus ||
 		focusRadius < 0.0f || focusRadius > 1.0f)
