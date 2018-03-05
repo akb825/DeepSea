@@ -40,6 +40,10 @@ void dsVector2f_neg(dsVector2f* result, const dsVector2f* a);
 void dsVector2d_neg(dsVector2d* result, const dsVector2d* a);
 void dsVector2i_neg(dsVector2i* result, const dsVector2i* a);
 
+void dsVector2f_lerp(dsVector2f* result, const dsVector2f* a, const dsVector2f* b, float t);
+void dsVector2d_lerp(dsVector2d* result, const dsVector2d* a, const dsVector2d* b, double t);
+void dsVector2i_lerp(dsVector2i* result, const dsVector2i* a, const dsVector2i* b, float t);
+
 float dsVector2f_dot(const dsVector2f* a, const dsVector2f* b);
 double dsVector2d_dot(const dsVector2d* a, const dsVector2d* b);
 int dsVector2i_dot(const dsVector2i* a, const dsVector2i* b);
@@ -52,6 +56,10 @@ float dsVector2f_dist2(const dsVector2f* a, const dsVector2f* b);
 double dsVector2d_dist2(const dsVector2d* a, const dsVector2d* b);
 int dsVector2i_dist2(const dsVector2i* a, const dsVector2i* b);
 
+bool dsVector2f_equal(const dsVector2f* a, const dsVector2f* b);
+bool dsVector2d_equal(const dsVector2d* a, const dsVector2d* b);
+bool dsVector2i_equal(const dsVector2i* a, const dsVector2i* b);
+
 float dsVector2f_len(const dsVector2f* a);
 double dsVector2d_len(const dsVector2d* a);
 double dsVector2i_len(const dsVector2i* a);
@@ -62,3 +70,6 @@ double dsVector2i_dist(const dsVector2i* a, const dsVector2i* b);
 
 void dsVector2f_normalize(dsVector2f* result, const dsVector2f* a);
 void dsVector2d_normalize(dsVector2d* result, const dsVector2d* a);
+
+bool dsVector2f_epsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon);
+bool dsVector2d_epsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon);

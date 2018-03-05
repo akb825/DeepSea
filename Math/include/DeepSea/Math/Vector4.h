@@ -132,6 +132,25 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Linearly interpolates between two values.
+ * @remark For dsVector4i, it would be better to call dsVector4i_lerp() directly instead instead of
+ *     of the macro version.
+ * @param[out] result The interpolated result.
+ * @param a The first value.
+ * @param b The second value.
+ * @param t The interpolation value between a and b.
+ * @return The interpolated value.
+ */
+#define dsVector4_lerp(result, a, b, t) \
+	do \
+	{ \
+		(result).values[0] = dsLerp((a).values[0], (b).values[0], t); \
+		(result).values[1] = dsLerp((a).values[1], (b).values[1], t); \
+		(result).values[2] = dsLerp((a).values[2], (b).values[2], t); \
+		(result).values[3] = dsLerp((a).values[3], (b).values[3], t); \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -162,6 +181,18 @@ extern "C"
 	 dsPow2((a).values[1] - (b).values[1]) + \
 	 dsPow2((a).values[2] - (b).values[2]) + \
 	 dsPow2((a).values[3] - (b).values[3]))
+
+/**
+ * @brief Gets whether or not two vectors are equal.
+ * @param a The first vector.
+ * @param b The second vector.
+ * @return True if a == b.
+ */
+#define dsVector4_equal(a, b) \
+	((a).values[0] == (b).values[0] && \
+	 (a).values[1] == (b).values[1] && \
+	 (a).values[2] == (b).values[2] && \
+	 (a).values[3] == (b).values[3])
 
 /**
  * @brief Gets the length of a vector.
@@ -199,6 +230,20 @@ DS_MATH_EXPORT inline void dsVector4f_normalize(dsVector4f* result, const dsVect
 
 /** @copydoc dsVector4f_normalize() */
 DS_MATH_EXPORT inline void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a);
+
+/**
+ * @brief Checks to see if two values are equal within an epsilon.
+ * @param a The first value.
+ * @param b The second value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of a and b are within epsilon.
+ */
+DS_MATH_EXPORT inline bool dsVector4f_epsilonEqual(const dsVector4f* a, const dsVector4f* b,
+	float epsilon);
+
+/** @copydoc dsVector4f_epsilonEqual() */
+DS_MATH_EXPORT inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b,
+	double epsilon);
 
 /** @copydoc dsVector4_add() */
 DS_MATH_EXPORT inline void dsVector4f_add(dsVector4f* result, const dsVector4f* a,
@@ -368,6 +413,39 @@ DS_MATH_EXPORT inline void dsVector4i_neg(dsVector4i* result, const dsVector4i* 
 	dsVector4_neg(*result, *a);
 }
 
+/** @copydoc dsVector4_lerp() */
+DS_MATH_EXPORT inline void dsVector4f_lerp(dsVector4f* result, const dsVector4f* a,
+	const dsVector4f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_lerp(*result, *a, *b, t);
+}
+
+/** @copydoc dsVector4_lerp() */
+DS_MATH_EXPORT inline void dsVector4d_lerp(dsVector4d* result, const dsVector4d* a,
+	const dsVector4d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector4_lerp(*result, *a, *b, t);
+}
+
+/** @copydoc dsVector4_lerp() */
+DS_MATH_EXPORT inline void dsVector4i_lerp(dsVector4i* result, const dsVector4i* a,
+	const dsVector4i* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	result->values[0] = (int)dsLerp((float)a->values[0], (float)b->values[0], t);
+	result->values[1] = (int)dsLerp((float)a->values[1], (float)b->values[1], t);
+	result->values[2] = (int)dsLerp((float)a->values[2], (float)b->values[2], t);
+	result->values[3] = (int)dsLerp((float)a->values[3], (float)b->values[3], t);
+}
+
 /** @copydoc dsVector4_dot() */
 DS_MATH_EXPORT inline float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b)
 {
@@ -437,6 +515,30 @@ DS_MATH_EXPORT inline int dsVector4i_dist2(const dsVector4i* a, const dsVector4i
 	return dsVector4_dist2(*a, *b);
 }
 
+/** @copydoc dsVector4_equal() */
+DS_MATH_EXPORT inline bool dsVector4f_equal(const dsVector4f* a, const dsVector4f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector4_equal(*a, *b);
+}
+
+/** @copydoc dsVector4_equal() */
+DS_MATH_EXPORT inline bool dsVector4d_equal(const dsVector4d* a, const dsVector4d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector4_equal(*a, *b);
+}
+
+/** @copydoc dsVector4_equal() */
+DS_MATH_EXPORT inline bool dsVector4i_equal(const dsVector4i* a, const dsVector4i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector4_equal(*a, *b);
+}
+
 inline float dsVector4f_len(const dsVector4f* a)
 {
 	DS_ASSERT(a);
@@ -492,6 +594,22 @@ inline void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a)
 	double length = dsVector4d_len(a);
 	DS_ASSERT(length > 0);
 	dsVector4_scale(*result, *a, 1/length);
+}
+
+inline bool dsVector4f_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon)
+{
+	return dsEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
+		dsEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
+		dsEpsilonEqualf(a->values[2], b->values[2], epsilon) &&
+		dsEpsilonEqualf(a->values[3], b->values[3], epsilon);
+}
+
+inline bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon)
+{
+	return dsEpsilonEquald(a->values[0], b->values[0], epsilon) &&
+		dsEpsilonEquald(a->values[1], b->values[1], epsilon) &&
+		dsEpsilonEquald(a->values[2], b->values[2], epsilon) &&
+		dsEpsilonEquald(a->values[3], b->values[3], epsilon);
 }
 
 #ifdef __cplusplus

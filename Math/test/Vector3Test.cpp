@@ -86,6 +86,16 @@ inline void dsVector3_normalize(dsVector3d* result, dsVector3d* a)
 	dsVector3d_normalize(result, a);
 }
 
+inline bool dsVector3_epsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon)
+{
+	return dsVector3f_epsilonEqual(a, b, epsilon);
+}
+
+inline bool dsVector3_epsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon)
+{
+	return dsVector3d_epsilonEqual(a, b, epsilon);
+}
+
 TYPED_TEST(Vector3Test, Initialize)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
@@ -259,6 +269,47 @@ TYPED_TEST(Vector3Test, Distance)
 			  dsVector3_dist(&a, &b));
 }
 
+TYPED_TEST(Vector3Test, Equal)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type b = {{(TypeParam)2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type c = {{(TypeParam)-2.3, (TypeParam)-4.5, (TypeParam)-6.7}};
+	Vector3Type d = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)6.7}};
+
+	EXPECT_TRUE(dsVector3_equal(a, a));
+	EXPECT_FALSE(dsVector3_equal(a, b));
+	EXPECT_FALSE(dsVector3_equal(a, c));
+	EXPECT_FALSE(dsVector3_equal(a, d));
+}
+
+TEST(Vector3IntTest, Lerp)
+{
+	dsVector3i a = {{-2, 4, -6}};
+	dsVector3i b = {{3, -5, 7}};
+	dsVector3i result;
+
+	dsVector3i_lerp(&result, &a, &b, 0.3f);
+	EXPECT_EQ(0, result.x);
+	EXPECT_EQ(1, result.y);
+	EXPECT_EQ(-2, result.z);
+}
+
+TYPED_TEST(Vector3FloatTest, Lerp)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6}};
+	Vector3Type result;
+
+	dsVector3_lerp(result, a, b, (TypeParam)0.3);
+	EXPECT_EQ(dsLerp(a.x, b.x, (TypeParam)0.3), result.x);
+	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
+	EXPECT_EQ(dsLerp(a.z, b.z, (TypeParam)0.3), result.z);
+}
+
 TYPED_TEST(Vector3FloatTest, Normalize)
 {
 	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
@@ -271,6 +322,23 @@ TYPED_TEST(Vector3FloatTest, Normalize)
 	EXPECT_EQ((TypeParam)-2.3*(1/length), result.x);
 	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
 	EXPECT_EQ((TypeParam)-6.7*(1/length), result.z);
+}
+
+TYPED_TEST(Vector3FloatTest, EpsilonEqual)
+{
+	typedef typename Vector3TypeSelector<TypeParam>::Type Vector3Type;
+	TypeParam epsilon = (TypeParam)1e-3;
+
+	Vector3Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type b = {{(TypeParam)-2.3001, (TypeParam)4.5001, (TypeParam)-6.7001}};
+	Vector3Type c = {{(TypeParam)-2.31, (TypeParam)4.5, (TypeParam)-6.7}};
+	Vector3Type d = {{(TypeParam)-2.3, (TypeParam)4.51, (TypeParam)-6.7}};
+	Vector3Type e = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.71}};
+
+	EXPECT_TRUE(dsVector3_epsilonEqual(&a, &b, epsilon));
+	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &c, epsilon));
+	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &d, epsilon));
+	EXPECT_FALSE(dsVector3_epsilonEqual(&a, &e, epsilon));
 }
 
 TEST(Vector3, ConvertFloatToDouble)

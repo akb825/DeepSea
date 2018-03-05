@@ -44,6 +44,10 @@ float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b);
 double dsVector4d_dot(const dsVector4d* a, const dsVector4d* b);
 int dsVector4i_dot(const dsVector4i* a, const dsVector4i* b);
 
+float dsVector4f_dot(const dsVector4f* a, const dsVector4f* b);
+double dsVector4d_dot(const dsVector4d* a, const dsVector4d* b);
+int dsVector4i_dot(const dsVector4i* a, const dsVector4i* b);
+
 float dsVector4f_len2(const dsVector4f* a);
 double dsVector4d_len2(const dsVector4d* a);
 int dsVector4i_len2(const dsVector4i* a);
@@ -51,6 +55,10 @@ int dsVector4i_len2(const dsVector4i* a);
 float dsVector4f_dist2(const dsVector4f* a, const dsVector4f* b);
 double dsVector4d_dist2(const dsVector4d* a, const dsVector4d* b);
 int dsVector4i_dist2(const dsVector4i* a, const dsVector4i* b);
+
+bool dsVector4f_equal(const dsVector4f* a, const dsVector4f* b);
+bool dsVector4d_equal(const dsVector4d* a, const dsVector4d* b);
+bool dsVector4i_equal(const dsVector4i* a, const dsVector4i* b);
 
 float dsVector4f_len(const dsVector4f* a);
 double dsVector4d_len(const dsVector4d* a);
@@ -62,3 +70,6 @@ double dsVector4i_dist(const dsVector4i* a, const dsVector4i* b);
 
 void dsVector4f_normalize(dsVector4f* result, const dsVector4f* a);
 void dsVector4d_normalize(dsVector4d* result, const dsVector4d* a);
+
+bool dsVector4f_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon);
+bool dsVector4d_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon);

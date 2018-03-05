@@ -76,6 +76,7 @@ extern "C"
  * @param x The first value.
  * @param y The second value.
  * @param t The interpolation value between x and y.
+ * @return The interpolated value.
  */
 #define dsLerp(x, y, t) ((x) + (t)*((y) - (x)))
 
@@ -226,6 +227,33 @@ DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians);
  */
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i);
 
+/**
+ * @brief Wraps a value in the range [min, max).
+ * @param x The value to wrap.
+ * @param min The minimum value.
+ * @param max The maximum value.
+ * @return The wrapped into the range [min, max).
+ */
+DS_MATH_EXPORT inline int dsWrapi(int x, int min, int max);
+
+/** @copydoc dsWrapi() */
+DS_MATH_EXPORT inline float dsWrapf(float x, float min, float max);
+
+/** @copydoc dsWrapi() */
+DS_MATH_EXPORT inline double dsWrapd(double x, double min, double max);
+
+/**
+ * @brief Checks to see if two values are equal within an epsilon.
+ * @param x The first value.
+ * @param y The second value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of x and y are within epsilon.
+ */
+DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon);
+
+/** @copydoc dsEpsilonEqualf() */
+DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon);
+
 DS_MATH_EXPORT inline double dsDegreesToRadians(double degrees)
 {
 	return degrees*M_PI/180;
@@ -239,6 +267,39 @@ DS_MATH_EXPORT inline double dsRadiansToDegrees(double radians)
 DS_MATH_EXPORT inline uint32_t dsNextPowerOf2(uint32_t i)
 {
 	return 1 << (32 - dsClz(i - 1));
+}
+
+DS_MATH_EXPORT inline int dsWrapi(int x, int min, int max)
+{
+	int delta = max - min;
+	int relX = x - min;
+	if (relX < 0)
+		relX -= delta;
+	return x - delta*(relX/delta);
+}
+
+DS_MATH_EXPORT inline float dsWrapf(float x, float min, float max)
+{
+	float delta = max - min;
+	float relX = x - min;
+	return x - delta*floorf(relX/delta);
+}
+
+DS_MATH_EXPORT inline double dsWrapd(double x, double min, double max)
+{
+	double delta = max - min;
+	double relX = x - min;
+	return x - delta*floor(relX/delta);
+}
+
+DS_MATH_EXPORT inline bool dsEpsilonEqualf(float x, float y, float epsilon)
+{
+	return fabsf(x - y) <= epsilon;
+}
+
+DS_MATH_EXPORT inline bool dsEpsilonEquald(double x, double y, double epsilon)
+{
+	return fabs(x - y) <= epsilon;
 }
 
 #ifdef __cplusplus

@@ -46,44 +46,54 @@ class Vector2FloatTest : public Vector2Test<T>
 using Vector2FloatTypes = testing::Types<float, double>;
 TYPED_TEST_CASE(Vector2FloatTest, Vector2FloatTypes);
 
-inline float dsVector2_len(dsVector2f* a)
+inline float dsVector2_len(const dsVector2f* a)
 {
 	return dsVector2f_len(a);
 }
 
-inline double dsVector2_len(dsVector2d* a)
+inline double dsVector2_len(const dsVector2d* a)
 {
 	return dsVector2d_len(a);
 }
 
-inline double dsVector2_len(dsVector2i* a)
+inline double dsVector2_len(const dsVector2i* a)
 {
 	return dsVector2i_len(a);
 }
 
-inline float dsVector2_dist(dsVector2f* a, dsVector2f* b)
+inline float dsVector2_dist(const dsVector2f* a, const dsVector2f* b)
 {
 	return dsVector2f_dist(a, b);
 }
 
-inline double dsVector2_dist(dsVector2d* a, dsVector2d* b)
+inline double dsVector2_dist(const dsVector2d* a, const dsVector2d* b)
 {
 	return dsVector2d_dist(a, b);
 }
 
-inline double dsVector2_dist(dsVector2i* a, dsVector2i* b)
+inline double dsVector2_dist(const dsVector2i* a, const dsVector2i* b)
 {
 	return dsVector2i_dist(a, b);
 }
 
-inline void dsVector2_normalize(dsVector2f* result, dsVector2f* a)
+inline void dsVector2_normalize(dsVector2f* result, const dsVector2f* a)
 {
 	dsVector2f_normalize(result, a);
 }
 
-inline void dsVector2_normalize(dsVector2d* result, dsVector2d* a)
+inline void dsVector2_normalize(dsVector2d* result, const dsVector2d* a)
 {
 	dsVector2d_normalize(result, a);
+}
+
+inline bool dsVector2_epsilonEqual(const dsVector2f* a, const dsVector2f* b, float epsilon)
+{
+	return dsVector2f_epsilonEqual(a, b, epsilon);
+}
+
+inline bool dsVector2_epsilonEqual(const dsVector2d* a, const dsVector2d* b, double epsilon)
+{
+	return dsVector2d_epsilonEqual(a, b, epsilon);
 }
 
 TYPED_TEST(Vector2Test, Initialize)
@@ -222,6 +232,43 @@ TYPED_TEST(Vector2Test, Distance)
 			  dsVector2_dist(&a, &b));
 }
 
+TYPED_TEST(Vector2Test, Equal)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)2.3, (TypeParam)4.5}};
+	Vector2Type c = {{(TypeParam)-2.3, (TypeParam)-4.5}};
+
+	EXPECT_TRUE(dsVector2_equal(a, a));
+	EXPECT_FALSE(dsVector2_equal(a, b));
+	EXPECT_FALSE(dsVector2_equal(a, c));
+}
+
+TEST(Vector2IntTest, Lerp)
+{
+	dsVector2i a = {{-2, 4}};
+	dsVector2i b = {{3, -5}};
+	dsVector2i result;
+
+	dsVector2i_lerp(&result, &a, &b, 0.3f);
+	EXPECT_EQ(0, result.x);
+	EXPECT_EQ(1, result.y);
+}
+
+TYPED_TEST(Vector2FloatTest, Lerp)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)3.2, (TypeParam)-5.4}};
+	Vector2Type result;
+
+	dsVector2_lerp(result, a, b, (TypeParam)0.3);
+	EXPECT_EQ(dsLerp(a.x, b.x, (TypeParam)0.3), result.x);
+	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
+}
+
 TYPED_TEST(Vector2FloatTest, Normalize)
 {
 	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
@@ -233,6 +280,21 @@ TYPED_TEST(Vector2FloatTest, Normalize)
 	dsVector2_normalize(&result, &a);
 	EXPECT_EQ((TypeParam)-2.3*(1/length), result.x);
 	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
+}
+
+TYPED_TEST(Vector2FloatTest, EpsilonEqual)
+{
+	typedef typename Vector2TypeSelector<TypeParam>::Type Vector2Type;
+	TypeParam epsilon = (TypeParam)1e-3;
+
+	Vector2Type a = {{(TypeParam)-2.3, (TypeParam)4.5}};
+	Vector2Type b = {{(TypeParam)-2.3001, (TypeParam)4.5001}};
+	Vector2Type c = {{(TypeParam)-2.31, (TypeParam)4.5}};
+	Vector2Type d = {{(TypeParam)-2.3, (TypeParam)4.51}};
+
+	EXPECT_TRUE(dsVector2_epsilonEqual(&a, &b, epsilon));
+	EXPECT_FALSE(dsVector2_epsilonEqual(&a, &c, epsilon));
+	EXPECT_FALSE(dsVector2_epsilonEqual(&a, &d, epsilon));
 }
 
 TEST(Vector2, ConvertFloatToDouble)

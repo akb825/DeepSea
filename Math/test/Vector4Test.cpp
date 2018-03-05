@@ -86,6 +86,16 @@ inline void dsVector4_normalize(dsVector4d* result, dsVector4d* a)
 	dsVector4d_normalize(result, a);
 }
 
+inline bool dsVector4_epsilonEqual(const dsVector4f* a, const dsVector4f* b, float epsilon)
+{
+	return dsVector4f_epsilonEqual(a, b, epsilon);
+}
+
+inline bool dsVector4_epsilonEqual(const dsVector4d* a, const dsVector4d* b, double epsilon)
+{
+	return dsVector4d_epsilonEqual(a, b, epsilon);
+}
+
 TYPED_TEST(Vector4Test, Initialize)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -252,6 +262,51 @@ TYPED_TEST(Vector4Test, Distance)
 			  dsVector4_dist(&a, &b));
 }
 
+TYPED_TEST(Vector4Test, Equal)
+{
+	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type c = {{(TypeParam)-2.3, (TypeParam)-4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type d = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)6.7, (TypeParam)8.9}};
+	Vector4Type e = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)-8.9}};
+
+	EXPECT_TRUE(dsVector4_equal(a, a));
+	EXPECT_FALSE(dsVector4_equal(a, b));
+	EXPECT_FALSE(dsVector4_equal(a, c));
+	EXPECT_FALSE(dsVector4_equal(a, d));
+	EXPECT_FALSE(dsVector4_equal(a, e));
+}
+
+TEST(Vector4IntTest, Lerp)
+{
+	dsVector4i a = {{-2, 4, -6, 8}};
+	dsVector4i b = {{3, -5, 7, -9}};
+	dsVector4i result;
+
+	dsVector4i_lerp(&result, &a, &b, 0.3f);
+	EXPECT_EQ(0, result.x);
+	EXPECT_EQ(1, result.y);
+	EXPECT_EQ(-2, result.z);
+	EXPECT_EQ(2, result.w);
+}
+
+TYPED_TEST(Vector4FloatTest, Lerp)
+{
+	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)3.2, (TypeParam)-5.4, (TypeParam)7.6, (TypeParam)-9.8}};
+	Vector4Type result;
+
+	dsVector4_lerp(result, a, b, (TypeParam)0.3);
+	EXPECT_EQ(dsLerp(a.x, b.x, (TypeParam)0.3), result.x);
+	EXPECT_EQ(dsLerp(a.y, b.y, (TypeParam)0.3), result.y);
+	EXPECT_EQ(dsLerp(a.z, b.z, (TypeParam)0.3), result.z);
+	EXPECT_EQ(dsLerp(a.w, b.w, (TypeParam)0.3), result.w);
+}
+
 TYPED_TEST(Vector4FloatTest, Normalize)
 {
 	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
@@ -265,6 +320,26 @@ TYPED_TEST(Vector4FloatTest, Normalize)
 	EXPECT_EQ((TypeParam)4.5*(1/length), result.y);
 	EXPECT_EQ((TypeParam)-6.7*(1/length), result.z);
 	EXPECT_EQ((TypeParam)8.9*(1/length), result.w);
+}
+
+TYPED_TEST(Vector4FloatTest, EpsilonEqual)
+{
+	typedef typename Vector4TypeSelector<TypeParam>::Type Vector4Type;
+	TypeParam epsilon = (TypeParam)1e-3;
+
+	Vector4Type a = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type b = {{(TypeParam)-2.3001, (TypeParam)4.5001, (TypeParam)-6.7001,
+		(TypeParam)8.9001}};
+	Vector4Type c = {{(TypeParam)-2.31, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type d = {{(TypeParam)-2.3, (TypeParam)4.51, (TypeParam)-6.7, (TypeParam)8.9}};
+	Vector4Type e = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.71, (TypeParam)8.9}};
+	Vector4Type f = {{(TypeParam)-2.3, (TypeParam)4.5, (TypeParam)-6.7, (TypeParam)8.91}};
+
+	EXPECT_TRUE(dsVector4_epsilonEqual(&a, &b, epsilon));
+	EXPECT_FALSE(dsVector4_epsilonEqual(&a, &c, epsilon));
+	EXPECT_FALSE(dsVector4_epsilonEqual(&a, &d, epsilon));
+	EXPECT_FALSE(dsVector4_epsilonEqual(&a, &e, epsilon));
+	EXPECT_FALSE(dsVector4_epsilonEqual(&a, &f, epsilon));
 }
 
 TEST(Vector4, ConvertFloatToDouble)

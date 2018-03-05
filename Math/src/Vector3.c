@@ -40,6 +40,10 @@ void dsVector3f_neg(dsVector3f* result, const dsVector3f* a);
 void dsVector3d_neg(dsVector3d* result, const dsVector3d* a);
 void dsVector3i_neg(dsVector3i* result, const dsVector3i* a);
 
+void dsVector3f_lerp(dsVector3f* result, const dsVector3f* a, const dsVector3f* b, float t);
+void dsVector3d_lerp(dsVector3d* result, const dsVector3d* a, const dsVector3d* b, double t);
+void dsVector3i_lerp(dsVector3i* result, const dsVector3i* a, const dsVector3i* b, float t);
+
 float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b);
 double dsVector3d_dot(const dsVector3d* a, const dsVector3d* b);
 int dsVector3i_dot(const dsVector3i* a, const dsVector3i* b);
@@ -56,6 +60,10 @@ float dsVector3f_dist2(const dsVector3f* a, const dsVector3f* b);
 double dsVector3d_dist2(const dsVector3d* a, const dsVector3d* b);
 int dsVector3i_dist2(const dsVector3i* a, const dsVector3i* b);
 
+bool dsVector3f_equal(const dsVector3f* a, const dsVector3f* b);
+bool dsVector3d_equal(const dsVector3d* a, const dsVector3d* b);
+bool dsVector3i_equal(const dsVector3i* a, const dsVector3i* b);
+
 float dsVector3f_len(const dsVector3f* a);
 double dsVector3d_len(const dsVector3d* a);
 double dsVector3i_len(const dsVector3i* a);
@@ -66,3 +74,6 @@ double dsVector3i_dist(const dsVector3i* a, const dsVector3i* b);
 
 void dsVector3f_normalize(dsVector3f* result, const dsVector3f* a);
 void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
+
+bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon);
+bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon);

@@ -127,6 +127,24 @@ extern "C"
 	} while (0)
 
 /**
+ * @brief Linearly interpolates between two values.
+ * @remark For dsVector3i, it would be better to call dsVector3i_lerp() directly instead instead of
+ *     of the macro version.
+ * @param[out] result The interpolated result.
+ * @param a The first value.
+ * @param b The second value.
+ * @param t The interpolation value between a and b.
+ * @return The interpolated value.
+ */
+#define dsVector3_lerp(result, a, b, t) \
+	do \
+	{ \
+		(result).values[0] = dsLerp((a).values[0], (b).values[0], t); \
+		(result).values[1] = dsLerp((a).values[1], (b).values[1], t); \
+		(result).values[2] = dsLerp((a).values[2], (b).values[2], t); \
+	} while (0)
+
+/**
  * @brief Takes the dot product between two vectors.
  * @param a The first vector.
  * @param b The second vector.
@@ -171,6 +189,17 @@ extern "C"
 	 dsPow2((a).values[2] - (b).values[2]))
 
 /**
+ * @brief Gets whether or not two vectors are equal.
+ * @param a The first vector.
+ * @param b The second vector.
+ * @return True if a == b.
+ */
+#define dsVector3_equal(a, b) \
+	((a).values[0] == (b).values[0] && \
+	 (a).values[1] == (b).values[1] && \
+	 (a).values[2] == (b).values[2])
+
+/**
  * @brief Gets the length of a vector.
  * @param a The first vector.
  * @return The length.
@@ -206,6 +235,20 @@ DS_MATH_EXPORT inline void dsVector3f_normalize(dsVector3f* result, const dsVect
 
 /** @copydoc dsVector3f_normalize() */
 DS_MATH_EXPORT inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a);
+
+/**
+ * @brief Checks to see if two values are equal within an epsilon.
+ * @param a The first value.
+ * @param b The second value.
+ * @param epsilon The epsilon to compare with.
+ * @return True the values of a and b are within epsilon.
+ */
+DS_MATH_EXPORT inline bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b,
+	float epsilon);
+
+/** @copydoc dsVector3f_epsilonEqual() */
+DS_MATH_EXPORT inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b,
+	double epsilon);
 
 /** @copydoc dsVector3_add() */
 DS_MATH_EXPORT inline void dsVector3f_add(dsVector3f* result, const dsVector3f* a,
@@ -375,6 +418,38 @@ DS_MATH_EXPORT inline void dsVector3i_neg(dsVector3i* result, const dsVector3i* 
 	dsVector3_neg(*result, *a);
 }
 
+/** @copydoc dsVector3_lerp() */
+DS_MATH_EXPORT inline void dsVector3f_lerp(dsVector3f* result, const dsVector3f* a,
+	const dsVector3f* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_lerp(*result, *a, *b, t);
+}
+
+/** @copydoc dsVector3_lerp() */
+DS_MATH_EXPORT inline void dsVector3d_lerp(dsVector3d* result, const dsVector3d* a,
+	const dsVector3d* b, double t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	dsVector3_lerp(*result, *a, *b, t);
+}
+
+/** @copydoc dsVector3_lerp() */
+DS_MATH_EXPORT inline void dsVector3i_lerp(dsVector3i* result, const dsVector3i* a,
+	const dsVector3i* b, float t)
+{
+	DS_ASSERT(result);
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	result->values[0] = (int)dsLerp((float)a->values[0], (float)b->values[0], t);
+	result->values[1] = (int)dsLerp((float)a->values[1], (float)b->values[1], t);
+	result->values[2] = (int)dsLerp((float)a->values[2], (float)b->values[2], t);
+}
+
 /** @copydoc dsVector3_dot() */
 DS_MATH_EXPORT inline float dsVector3f_dot(const dsVector3f* a, const dsVector3f* b)
 {
@@ -474,6 +549,30 @@ DS_MATH_EXPORT inline int dsVector3i_dist2(const dsVector3i* a, const dsVector3i
 	return dsVector3_dist2(*a, *b);
 }
 
+/** @copydoc dsVector3_equal() */
+DS_MATH_EXPORT inline bool dsVector3f_equal(const dsVector3f* a, const dsVector3f* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_equal(*a, *b);
+}
+
+/** @copydoc dsVector3_equal() */
+DS_MATH_EXPORT inline bool dsVector3d_equal(const dsVector3d* a, const dsVector3d* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_equal(*a, *b);
+}
+
+/** @copydoc dsVector3_equal() */
+DS_MATH_EXPORT inline bool dsVector3i_equal(const dsVector3i* a, const dsVector3i* b)
+{
+	DS_ASSERT(a);
+	DS_ASSERT(b);
+	return dsVector3_equal(*a, *b);
+}
+
 inline float dsVector3f_len(const dsVector3f* a)
 {
 	DS_ASSERT(a);
@@ -529,6 +628,20 @@ inline void dsVector3d_normalize(dsVector3d* result, const dsVector3d* a)
 	double length = dsVector3d_len(a);
 	DS_ASSERT(length > 0);
 	dsVector3_scale(*result, *a, 1/length);
+}
+
+inline bool dsVector3f_epsilonEqual(const dsVector3f* a, const dsVector3f* b, float epsilon)
+{
+	return dsEpsilonEqualf(a->values[0], b->values[0], epsilon) &&
+		dsEpsilonEqualf(a->values[1], b->values[1], epsilon) &&
+		dsEpsilonEqualf(a->values[2], b->values[2], epsilon);
+}
+
+inline bool dsVector3d_epsilonEqual(const dsVector3d* a, const dsVector3d* b, double epsilon)
+{
+	return dsEpsilonEquald(a->values[0], b->values[0], epsilon) &&
+		dsEpsilonEquald(a->values[1], b->values[1], epsilon) &&
+		dsEpsilonEquald(a->values[2], b->values[2], epsilon);
 }
 
 #ifdef __cplusplus

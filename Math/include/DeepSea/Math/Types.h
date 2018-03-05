@@ -65,8 +65,8 @@ extern "C"
 typedef union dsVector2f
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	float values[2];
 
 	struct
@@ -119,8 +119,8 @@ typedef union dsVector2f
 typedef union dsVector2d
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	double values[2];
 
 	struct
@@ -173,8 +173,8 @@ typedef union dsVector2d
 typedef union dsVector2i
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	int values[2];
 
 	struct
@@ -229,8 +229,8 @@ typedef union dsVector2i
 typedef union dsVector3f
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	float values[3];
 
 	struct
@@ -300,8 +300,8 @@ typedef union dsVector3f
 typedef union dsVector3d
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	  * @brief Array of the vector values.
+	  */
 	double values[3];
 
 	struct
@@ -371,8 +371,8 @@ typedef union dsVector3d
 typedef union dsVector3i
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	  * @brief Array of the vector values.
+	  */
 	int values[3];
 
 	struct
@@ -444,8 +444,8 @@ typedef union dsVector3i
 typedef union dsVector4f
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	float values[4];
 
 	struct
@@ -535,8 +535,8 @@ typedef union dsVector4f DS_ALIGN(16) dsVector4fSIMD;
 typedef union dsVector4d
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	double values[4];
 
 	struct
@@ -621,8 +621,8 @@ typedef union dsVector4d
 typedef union dsVector4i
 {
 	/**
-	* @brief Array of the vector values.
-	*/
+	 * @brief Array of the vector values.
+	 */
 	int values[4];
 
 	struct
@@ -703,8 +703,8 @@ typedef union dsVector4i
 typedef union dsColor
 {
 	/**
-	* @brief Array of the color values.
-	*/
+	 * @brief Array of the color values.
+	 */
 	uint8_t values[4];
 
 	struct
@@ -742,6 +742,76 @@ typedef union dsVector3f dsColor3f;
 typedef union dsVector4f dsColor4f;
 
 /**
+ * @brief structure for an HSV color.
+ * @remark When bracket initializing, use two brackets. (i.e. {{h, s, v, a}})
+ */
+typedef union dsHSVColor
+{
+	/**
+	 * @brief Array of the color values.
+	 */
+	float values[4];
+
+	struct
+	{
+		/**
+		 * @brief The hue in the range [0, 360].
+		 */
+		float h;
+
+		/**
+		 * @brief The saturation in the range [0, 1].
+		 */
+		float s;
+
+		/**
+		 * @brief The value, usually in the range [0, 1].
+		 */
+		float v;
+
+		/**
+		 * @brief The alpha value in the range [0, 1].
+		 */
+		float a;
+	};
+} dsHSVColor;
+
+/**
+ * @brief structure for an HSL color.
+ * @remark When bracket initializing, use two brackets. (i.e. {{h, s, l, a}})
+ */
+typedef union dsHSLColor
+{
+	/**
+	 * @brief Array of the color values.
+	 */
+	float values[4];
+
+	struct
+	{
+		/**
+		 * @brief The hue in the range [0, 360].
+		 */
+		float h;
+
+		/**
+		 * @brief The saturation in the range [0, 1].
+		 */
+		float s;
+
+		/**
+		 * @brief The luminance, usually in the range [0, 1].
+		 */
+		float l;
+
+		/**
+		 * @brief The alpha value in the range [0, 1].
+		 */
+		float a;
+	};
+} dsHSLColor;
+
+/**
  * @brief Structure for a 2x2 matrix of floats.
  *
  * This can be accessed as an array of columns or a 2D array of values.
@@ -754,8 +824,8 @@ typedef union dsVector4f dsColor4f;
 typedef union dsMatrix22f
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	float values[2][2];
 
 	/**
@@ -777,8 +847,8 @@ typedef union dsMatrix22f
 typedef union dsMatrix22d
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	double values[2][2];
 
 	/**
@@ -800,8 +870,8 @@ typedef union dsMatrix22d
 typedef union dsMatrix33f
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	float values[3][3];
 
 	/**
@@ -823,8 +893,8 @@ typedef union dsMatrix33f
 typedef union dsMatrix33d
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	double values[3][3];
 
 	/**
@@ -846,8 +916,8 @@ typedef union dsMatrix33d
 typedef union dsMatrix44f
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	float values[4][4];
 
 	/**
@@ -874,8 +944,8 @@ typedef union dsMatrix44f DS_ALIGN(16) dsMatrix44fSIMD;
 typedef union dsMatrix44d
 {
 	/**
-	* @brief The values of the matrix.
-	*/
+	 * @brief The values of the matrix.
+	 */
 	double values[4][4];
 
 	/**

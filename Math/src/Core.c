@@ -19,3 +19,10 @@
 double dsDegreesToRadians(double degrees);
 double dsRadiansToDegrees(double radians);
 uint32_t dsNextPowerOf2(uint32_t i);
+
+int dsWrapi(int x, int min, int max);
+float dsWrapf(float x, float min, float max);
+double dsWrapd(double x, double min, double max);
+
+bool dsEpsilonEqualf(float x, float y, float epsilon);
+bool dsEpsilonEquald(double x, double y, double epsilon);
