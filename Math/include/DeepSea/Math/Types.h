@@ -800,7 +800,7 @@ typedef union dsHSLColor
 		float s;
 
 		/**
-		 * @brief The luminance, usually in the range [0, 1].
+		 * @brief The lightness, usually in the range [0, 1].
 		 */
 		float l;
 

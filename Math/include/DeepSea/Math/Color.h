@@ -344,6 +344,15 @@ DS_MATH_EXPORT inline void dsHSVColor_sRGBFromLinear(dsHSVColor* outColor, const
 DS_MATH_EXPORT inline void dsHSVColor_linearFromSRGB(dsHSVColor* outColor, const dsHSVColor* color);
 
 /**
+ * @brief Converts to a grayscale value from a dsHSVColor.
+ * @remark This will be the luminance based on the RGB value, which differs from just taking the
+ *     value field from the color.
+ * @param color The color.
+ * @return The grayscale value.
+ */
+DS_MATH_EXPORT inline float dsHSVColor_grayscale(const dsHSVColor* color);
+
+/**
  * @brief Linearly interpolates between two colors.
  * @param[out] outColor The interpolated color.
  * @param x The first color.
@@ -426,6 +435,16 @@ DS_MATH_EXPORT inline void dsHSLColor_sRGBFromLinear(dsHSLColor* outColor, const
  * @param color The color to convert.
  */
 DS_MATH_EXPORT inline void dsHSLColor_linearFromSRGB(dsHSLColor* outColor, const dsHSLColor* color);
+
+/**
+ * @brief Converts to a grayscale value from a dsHSLColor.
+ * @remark This will be the luminance based on the RGB value, which differs from just taking the
+ *     lightness field from the color. This is because the HSL color standard doesn't take the fact
+ *     that different color channels are weighted differently into account.
+ * @param color The color.
+ * @return The grayscale value.
+ */
+DS_MATH_EXPORT inline float dsHSLColor_grayscale(const dsHSLColor* color);
 
 /**
  * @brief Linearly interpolates between two colors.
@@ -555,10 +574,10 @@ inline dsColor dsColor_lerpSRGB(dsColor x, dsColor y, float t)
 
 	// Do conversion directly to avoid unneeded clamping.
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(outColor4f.r);
-	outColor.g = (uint8_t)roundf(outColor4f.g);
-	outColor.b = (uint8_t)roundf(outColor4f.b);
-	outColor.a = (uint8_t)roundf(outColor4f.a);
+	outColor.r = (uint8_t)roundf(outColor4f.r*255.0f);
+	outColor.g = (uint8_t)roundf(outColor4f.g*255.0f);
+	outColor.b = (uint8_t)roundf(outColor4f.b*255.0f);
+	outColor.a = (uint8_t)roundf(outColor4f.a*255.0f);
 	return outColor;
 }
 
@@ -804,6 +823,15 @@ inline void dsHSVColor_linearFromSRGB(dsHSVColor* outColor, const dsHSVColor* co
 	dsHSVColor_fromColor4f(outColor, &color4f);
 }
 
+inline float dsHSVColor_grayscale(const dsHSVColor* color)
+{
+	DS_ASSERT(color);
+
+	dsColor3f color3f;
+	dsColor3f_fromHSVColor(&color3f, color);
+	return dsColor3f_grayscale(&color3f);
+}
+
 inline void dsHSVColor_lerp(dsHSVColor* outColor, const dsHSVColor* x, const dsHSVColor* y, float t)
 {
 	DS_ASSERT(outColor);
@@ -891,6 +919,15 @@ inline void dsHSLColor_linearFromSRGB(dsHSLColor* outColor, const dsHSLColor* co
 	dsColor4f_fromHSLColor(&color4f, color);
 	dsColor4f_linearFromSRGB(&color4f, &color4f);
 	dsHSLColor_fromColor4f(outColor, &color4f);
+}
+
+inline float dsHSLColor_grayscale(const dsHSLColor* color)
+{
+	DS_ASSERT(color);
+
+	dsColor3f color3f;
+	dsColor3f_fromHSLColor(&color3f, color);
+	return dsColor3f_grayscale(&color3f);
 }
 
 inline void dsHSLColor_lerp(dsHSLColor* outColor, const dsHSLColor* x, const dsHSLColor* y, float t)

@@ -17,61 +17,61 @@
 #include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
-TEST(CoreTest, MinInt)
+TEST(Core, MinInt)
 {
 	EXPECT_EQ(0, dsMin(0, 1));
 	EXPECT_EQ(0, dsMin(1, 0));
 }
 
-TEST(CoreTest, MinFloat)
+TEST(Core, MinFloat)
 {
 	EXPECT_EQ(-0.5f, dsMin(-0.5f, 3.2f));
 	EXPECT_EQ(-0.5f, dsMin(3.2f, -0.5f));
 }
 
-TEST(CoreTest, MaxInt)
+TEST(Core, MaxInt)
 {
 	EXPECT_EQ(1, dsMax(0, 1));
 	EXPECT_EQ(1, dsMax(1, 0));
 }
 
-TEST(CoreTest, MaxFloat)
+TEST(Core, MaxFloat)
 {
 	EXPECT_EQ(3.2f, dsMax(-0.5f, 3.2f));
 	EXPECT_EQ(3.2f, dsMax(3.2f, -0.5f));
 }
 
-TEST(CoreTest, Pow2)
+TEST(Core, Pow2)
 {
 	EXPECT_EQ(3.2f*3.2f, dsPow2(3.2f));
 }
 
-TEST(CoreTest, Pow3)
+TEST(Core, Pow3)
 {
 	EXPECT_EQ(3.2f*3.2f*3.2f, dsPow3(3.2f));
 }
 
-TEST(CoreTest, Clamp)
+TEST(Core, Clamp)
 {
 	EXPECT_EQ(-0.5f, dsClamp(-1.0f, -0.5f, 3.2f));
 	EXPECT_EQ(3.2f, dsClamp(4.0f, -0.5f, 3.2f));
 	EXPECT_EQ(2.3f, dsClamp(2.3f, -0.5f, 3.2f));
 }
 
-TEST(CoreTest, Lerp)
+TEST(Core, Lerp)
 {
 	EXPECT_EQ(-0.5f, dsLerp(-0.5f, 3.2f, 0.0f));
 	EXPECT_EQ(3.2f, dsLerp(-0.5f, 3.2f, 1.0f));
 	EXPECT_EQ(0.61f, dsLerp(-0.5f, 3.2f, 0.3f));
 }
 
-TEST(CoreTest, DegreesRadians)
+TEST(Core, DegreesRadians)
 {
 	EXPECT_DOUBLE_EQ(M_PI, dsDegreesToRadians(180));
 	EXPECT_DOUBLE_EQ(180, dsRadiansToDegrees(M_PI));
 }
 
-TEST(CoreTest, NextPowerOfTwo)
+TEST(Core, NextPowerOfTwo)
 {
 	EXPECT_EQ(1U, dsNextPowerOf2(1));
 	EXPECT_EQ(8U, dsNextPowerOf2(7));
@@ -79,7 +79,7 @@ TEST(CoreTest, NextPowerOfTwo)
 	EXPECT_EQ(16U, dsNextPowerOf2(9));
 }
 
-TEST(CoreTest, Wrapi)
+TEST(Core, Wrapi)
 {
 	EXPECT_EQ(3, dsWrapi(3, 3, 12));
 	EXPECT_EQ(11, dsWrapi(11, 3, 12));
@@ -90,7 +90,7 @@ TEST(CoreTest, Wrapi)
 	EXPECT_EQ(5, dsWrapi(32, 3, 12));
 }
 
-TEST(CoreTest, Wrapf)
+TEST(Core, Wrapf)
 {
 	EXPECT_EQ(3.0f, dsWrapf(3.0f, 3.0f, 12.0f));
 	EXPECT_EQ(11.0f, dsWrapf(11.0f, 3.0f, 12.0f));
@@ -101,7 +101,7 @@ TEST(CoreTest, Wrapf)
 	EXPECT_EQ(5.0f, dsWrapf(32.0f, 3.0f, 12.0f));
 }
 
-TEST(CoreTest, Wrapd)
+TEST(Core, Wrapd)
 {
 	EXPECT_EQ(3.0, dsWrapd(3.0, 3.0, 12.0));
 	EXPECT_EQ(11.0, dsWrapd(11.0, 3.0, 12.0));
@@ -112,7 +112,7 @@ TEST(CoreTest, Wrapd)
 	EXPECT_EQ(5.0, dsWrapd(32.0, 3.0, 12.0));
 }
 
-TEST(CoreTest, EpsilonEqualf)
+TEST(Core, EpsilonEqualf)
 {
 	EXPECT_TRUE(dsEpsilonEqualf(0.0f, 0.0f, 1e-3f));
 
@@ -129,7 +129,7 @@ TEST(CoreTest, EpsilonEqualf)
 	EXPECT_FALSE(dsEpsilonEqualf(-2.345f, 2.345f, 1e-3f));
 }
 
-TEST(CoreTest, EpsilonEquald)
+TEST(Core, EpsilonEquald)
 {
 	EXPECT_TRUE(dsEpsilonEquald(0.0, 0.0, 1e-3));
 
