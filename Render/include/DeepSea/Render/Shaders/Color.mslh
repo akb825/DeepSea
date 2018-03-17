@@ -1,0 +1,246 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Functions for converting between different color types.
+ */
+
+/**
+ * @brief Converts from a color to grayscale.
+ * @param color The color.
+ * @return The grayscale value.
+ */
+float dsGrayscale(vec3 color)
+{
+	// Rec. 709
+	return dot(color, vec3(0.2126, 0.7152, 0.0722));
+}
+
+/**
+ * @brief Gets an sRGB value from a linear value with a custom gamma.
+ * @param value The linear value.
+ * @param gamma The custom gamma.
+ * @return The sRGB value.
+ */
+float dsSRGBFromLinear(float value, float gamma)
+{
+	if (value <= 0.0031308)
+		return value*12.92;
+	return 1.055*pow(value, 1.0/gamma) - 0.055;
+}
+
+/**
+ * @brief Gets an sRGB value from a linear value.
+ * @param value The linear value.
+ * @return The sRGB value.
+ */
+float dsSRGBFromLinear(float value)
+{
+	return dsSRGBFromLinear(value, 2.4);
+}
+
+/**
+ * @brief Gets an sRGB color from a linear color with a custom gamma.
+ * @param color The linear color.
+ * @param gamma The custom gamma.
+ * @return The sRGB color.
+ */
+vec3 dsSRGBFromLinear(vec3 color, float gamma)
+{
+	bvec3 small = lessThan(color, vec3(0.0031308));
+	vec3 smallColor = color*vec3(12.92);
+	vec3 largeColor = vec3(1.055)*pow(color, vec3(1.0/gamma)) - vec3(0.055);
+	return mix(largeColor, smallColor, vec3(small));
+}
+
+/**
+ * @brief Gets an sRGB color from a linear color.
+ * @param color The linear color.
+ * @return The sRGB color.
+ */
+vec3 dsSRGBFromLinear(vec3 color)
+{
+	return dsSRGBFromLinear(color, 2.4);
+}
+
+/**
+ * @brief Gets a linear value from an sRGB value with a custom gamma.
+ * @param value The sRGB value.
+ * @param gamma The custom gamma.
+ * @return The linear value.
+ */
+float dsLinearFromSRGB(float value, float gamma)
+{
+	if (value <= 0.04045)
+		return value/12.92f;
+	return pow((value + 0.055)/1.055, gamma);
+}
+
+/**
+ * @brief Gets a linear value from an sRGB value.
+ * @param value The sRGB value.
+ * @return The linear value.
+ */
+float dsLinearFromSRGB(float value)
+{
+	return dsLinearFromSRGB(value, 2.4);
+}
+
+/**
+ * @brief Gets a linear color from an sRGB color with a custom gamma.
+ * @param value The gamma color.
+ * @param gamma The custom gamma.
+ * @return The linear color.
+ */
+vec3 dsLinearFromSRGB(vec3 color, float gamma)
+{
+	bvec3 small = lessThan(color, vec3(0.04045));
+	vec3 smallColor = color/vec3(12.92);
+	vec3 largeColor = pow((color + vec3(0.055))/vec3(1.055), vec3(gamma));
+	return mix(largeColor, smallColor, vec3(small));
+}
+
+/**
+ * @brief Gets a linear color from an sRGB color.
+ * @param value The linear color.
+ * @return The linear color.
+ */
+vec3 dsLinearFromSRGB(vec3 color)
+{
+	return dsLinearFromSRGB(color, 2.4);
+}
+
+/**
+ * @brief Gets the RGB color from an HSV color.
+ * @param hsv The HSV color.
+ * @return The RGB color.
+ */
+vec3 dsRGBFromHSV(vec3 hsv)
+{
+	// https://www.rapidtables.com/convert/color/hsv-to-rgb.html
+	float hue = mod(hsv.x, 360.0);
+	float c = hsv.y*hsv.z;
+	float x = c*(1.0 - abs(mod(hue/60.0f, 2.0f) - 1.0f));
+	float m = hsv.z - c;
+	c += m;
+	x += m;
+
+	if (hue >= 0.0 && hue < 60.0)
+		return vec3(c, x, m);
+	else if (hue >= 60.0 && hue < 120.0)
+		return vec3(x, c, m);
+	else if (hue >= 120.0 && hue < 180.0)
+		return vec3(m, c, x);
+	else if (hue >= 180.0 && hue < 240.0)
+		return vec3(m, x, c);
+	else if (hue >= 240.0 && hue < 300.0)
+		return vec3(x, m, c);
+	else
+		return vec3(c, m, x);
+}
+
+/**
+ * @brief Gets the HSV color from an HSV color.
+ * @param rgb The RGB color.
+ * @return The HSV color.
+ */
+vec3 dsHSVFromRGB(vec3 rgb)
+{
+	// https://www.rapidtables.com/convert/color/rgb-to-hsv.html
+	float cMax = max(max(rgb.r, rgb.g), rgb.b);
+	float cMin = min(min(rgb.r, rgb.g), rgb.b);
+
+	const float epsilon = 1e-6;
+	float delta = cMax - cMin;
+	if (delta < epsilon)
+		return vec3(0.0, 0.0, cMax);
+
+	float hue;
+	if (cMax == rgb.r)
+		hue = 60.0*(rgb.g - rgb.b)/delta;
+	else if (cMax == rgb.g)
+		hue = 120.0 + 60.0*(rgb.b - rgb.r)/delta;
+	else
+		hue = 240.0 + 60.0*(rgb.r - rgb.g)/delta;
+
+	if (hue < 0.0)
+		hue += 360.0;
+
+	return vec3(hue, delta/cMax, cMax);
+}
+
+/**
+ * @brief Gets the RGB color from an HSL color.
+ * @param hsl The HSL color.
+ * @return The RGB color.
+ */
+vec3 dsRGBFromHSL(vec3 hsl)
+{
+	// https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+	float hue = mod(hsl.x, 360.0);
+	float c = (1.0 - abs(2.0*hsl.z - 1.0))*hsl.y;
+	float x = c*(1.0 - abs(mod(hue/60.0f, 2.0f) - 1.0f));
+	float m = hsl.z - c*0.5;
+	c += m;
+	x += m;
+
+	if (hue >= 0.0 && hue < 60.0)
+		return vec3(c, x, m);
+	else if (hue >= 60.0 && hue < 120.0)
+		return vec3(x, c, m);
+	else if (hue >= 120.0 && hue < 180.0)
+		return vec3(m, c, x);
+	else if (hue >= 180.0 && hue < 240.0)
+		return vec3(m, x, c);
+	else if (hue >= 240.0 && hue < 300.0)
+		return vec3(x, m, c);
+	else
+		return vec3(c, m, x);
+}
+
+/**
+ * @brief Gets the HSL color from an HSL color.
+ * @param rgb The RGB color.
+ * @return The HSL color.
+ */
+vec3 dsHSLFromRGB(vec3 rgb)
+{
+	// https://www.rapidtables.com/convert/color/rgb-to-hsl.html
+	float cMax = max(max(rgb.r, rgb.g), rgb.b);
+	float cMin = min(min(rgb.r, rgb.g), rgb.b);
+
+	const float epsilon = 1e-6;
+	float delta = cMax - cMin;
+	float lightness = (cMax + cMin)*0.5;
+	if (delta < epsilon)
+		return vec3(0.0, 0.0, lightness);
+
+	float hue;
+	if (cMax == rgb.r)
+		hue = 60.0*(rgb.g - rgb.b)/delta;
+	else if (cMax == rgb.g)
+		hue = 120.0 + 60.0*(rgb.b - rgb.r)/delta;
+	else
+		hue = 240.0 + 60.0*(rgb.r - rgb.g)/delta;
+
+	if (hue < 0.0)
+		hue += 360.0;
+
+	return vec3(hue, delta/(1.0 - abs(2.0*lightness - 1.0)), lightness);
+}
