@@ -96,7 +96,7 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 	}
 
 	dsVectorMaterialSet* materials = dsVectorMaterialSet_create(allocator, resourceManager,
-		resourceAllocator, totalMaterialCount);
+		resourceAllocator, totalMaterialCount, fbVectorImage->sRGB());
 	if (!materials)
 		return false;
 

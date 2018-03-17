@@ -34,7 +34,7 @@ class TriangulateTest : public FixtureBase
 TEST_F(TriangulateTest, TriangleCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -93,7 +93,7 @@ TEST_F(TriangulateTest, TriangleCW)
 TEST_F(TriangulateTest, TriangleCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -152,7 +152,7 @@ TEST_F(TriangulateTest, TriangleCCW)
 TEST_F(TriangulateTest, ObliqueTriangleCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -211,7 +211,7 @@ TEST_F(TriangulateTest, ObliqueTriangleCW)
 TEST_F(TriangulateTest, ObliqueTriangleCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -270,7 +270,7 @@ TEST_F(TriangulateTest, ObliqueTriangleCCW)
 TEST_F(TriangulateTest, QuadCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -338,7 +338,7 @@ TEST_F(TriangulateTest, QuadCW)
 TEST_F(TriangulateTest, QuadCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -406,7 +406,7 @@ TEST_F(TriangulateTest, QuadCCW)
 TEST_F(TriangulateTest, MonotonicCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -555,7 +555,7 @@ TEST_F(TriangulateTest, MonotonicCW)
 TEST_F(TriangulateTest, MonotonicCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -704,7 +704,7 @@ TEST_F(TriangulateTest, MonotonicCCW)
 TEST_F(TriangulateTest, ComplexCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -1097,7 +1097,7 @@ TEST_F(TriangulateTest, ComplexCW)
 TEST_F(TriangulateTest, ComplexCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -1491,7 +1491,7 @@ TEST_F(TriangulateTest, SawtoothRightCW)
 {
 	// Test a combination of vertices that do and don't line up exactly.
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -1695,7 +1695,7 @@ TEST_F(TriangulateTest, SawtoothRightCCW)
 {
 	// Test a combination of vertices that do and don't line up exactly.
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -1899,7 +1899,7 @@ TEST_F(TriangulateTest, SawtoothLeftCW)
 {
 	// Test a combination of vertices that do and don't line up exactly.
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2103,7 +2103,7 @@ TEST_F(TriangulateTest, SawtoothLeftCCW)
 {
 	// Test a combination of vertices that do and don't line up exactly.
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2306,7 +2306,7 @@ TEST_F(TriangulateTest, SawtoothLeftCCW)
 TEST_F(TriangulateTest, HoleCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2446,7 +2446,7 @@ TEST_F(TriangulateTest, HoleCW)
 TEST_F(TriangulateTest, HoleCCW)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2586,7 +2586,7 @@ TEST_F(TriangulateTest, HoleCCW)
 TEST_F(TriangulateTest, TriangleNoClose)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2644,7 +2644,7 @@ TEST_F(TriangulateTest, TriangleNoClose)
 TEST_F(TriangulateTest, ClosePointOutside)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));
@@ -2766,7 +2766,7 @@ TEST_F(TriangulateTest, ClosePointOutside)
 TEST_F(TriangulateTest, ClosePointInside)
 {
 	dsVectorMaterialSet* materialSet = dsVectorMaterialSet_create((dsAllocator*)&allocator,
-		resourceManager, NULL, 1);
+		resourceManager, NULL, 1, false);
 	dsVectorMaterial material;
 	dsColor color = {{255, 255, 255, 255}};
 	ASSERT_TRUE(dsVectorMaterial_setColor(&material, color));

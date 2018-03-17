@@ -64,10 +64,19 @@ DS_VECTORDRAW_EXPORT size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMateri
  * @param textureAllocator The allocator to create the texture with. If NULL, it will use the
  *     allocator for the material set.
  * @param maxMaterials the maximum number of materials that can be held.
+ * @param srgb True to use sRGB colors. This will use sRGB-correct interpolation for gradients and
+ *     convert to linear when sampling the material in the shader.
  * @return The material set, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, dsAllocator* textureAllocator, uint32_t maxMaterials);
+	dsResourceManager* resourceManager, dsAllocator* textureAllocator, uint32_t maxMaterials,
+	bool srgb);
+
+/**
+ * @brief Gets whether or not a material colors are in sRGB space.
+ * @return True if the colors are in sRGB space, false if they are in linear space.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorMaterialSet_isSRGB(const dsVectorMaterialSet* materials);
 
 /**
  * @brief Gets the number of remaining materials that can be set.

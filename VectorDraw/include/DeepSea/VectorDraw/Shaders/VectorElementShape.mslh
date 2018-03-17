@@ -39,6 +39,13 @@
  *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
  * }
  * ```
+ *
+ * dsVectorElementShape_defaultFragmentSRGB is provided to convert the final color to sRGB space.
+ * However, in some situations it's still preferable to leave the color in linear space when doing
+ * sRGB-correct rendering:
+ * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
+ * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
+ *   channel) is used in this case to avoid precision loss.
  */
 
 /**
@@ -212,4 +219,14 @@ vec4 dsVectorElementShape_getMaterialColor()
 void dsVectorElementShape_defaultFragment()
 {
 	dsVectorFinalColor = dsVectorElementShape_getMaterialColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementShape_defaultFragmentSRGB()
+{
+	dsVectorFinalColor = dsVectorElementShape_getMaterialColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
 }

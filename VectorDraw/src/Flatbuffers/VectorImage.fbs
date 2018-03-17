@@ -431,6 +431,9 @@ table VectorImage
 
 	// The size of the image.
 	size : Vector2f (required);
+
+	// True if the image material colors are in sRGB space.
+	sRGB : bool;
 }
 
 root_type VectorImage;

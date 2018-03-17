@@ -44,6 +44,7 @@ struct dsVectorMaterialSet
 	dsTexture* infoTexture;
 	dsHashTable* materialTable;
 	dsPoolAllocator materialPool;
+	bool srgb;
 };
 
 typedef struct dsMaterialNode
@@ -73,7 +74,8 @@ size_t dsVectorMaterialSet_fullAllocSize(uint32_t maxMaterials)
 }
 
 dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
-	dsResourceManager* resourceManager, dsAllocator* textureAllocator, uint32_t maxMaterials)
+	dsResourceManager* resourceManager, dsAllocator* textureAllocator, uint32_t maxMaterials,
+	bool srgb)
 {
 	if (!allocator || maxMaterials == 0)
 	{
@@ -98,13 +100,30 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 		return NULL;
 	}
 
+	dsGfxFormat colorFormat;
+	if (srgb)
+	{
+		colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
+		if (!dsGfxFormat_textureSupported(resourceManager, colorFormat))
+		{
+			errno = EPERM;
+			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
+				"sRGB textures aren't supported on the current target.");
+			return NULL;
+		}
+	}
+	else
+	{
+		colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+		DS_ASSERT(dsGfxFormat_textureSupported(resourceManager, colorFormat));
+	}
+
 	if (!textureAllocator)
 		textureAllocator = allocator;
 	uint32_t texHeight = dsNextPowerOf2(maxMaterials);
 	dsTexture* colorTexture = dsTexture_create(resourceManager, textureAllocator,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, TEX_WIDTH,
-		texHeight, 0, 1, NULL, 0);
+		colorFormat, dsTextureDim_2D, TEX_WIDTH, texHeight, 0, 1, NULL, 0);
 	if (!colorTexture)
 		return NULL;
 
@@ -149,8 +168,14 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 
 	materials->colorTexture = colorTexture;
 	materials->infoTexture = infoTexture;
+	materials->srgb = srgb;
 
 	return materials;
+}
+
+bool dsVectorMaterialSet_isSRGB(const dsVectorMaterialSet* materials)
+{
+	return materials && materials->srgb;
 }
 
 uint32_t dsVectorMaterialSet_getRemainingMaterials(const dsVectorMaterialSet* materials)
@@ -357,7 +382,11 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 		if (gradient)
 		{
 			for (uint32_t i = 0; i < TEX_WIDTH; ++i)
-				buffer[i] = dsGradient_evaluate(gradient, (float)i/(float)(TEX_WIDTH - 1));
+			{
+				buffer[i] = dsGradient_evaluate(gradient, (float)i/(float)(TEX_WIDTH - 1),
+					materials->srgb);
+			}
+
 			if (!dsTexture_copyData(materials->colorTexture, commandBuffer, &texturePos, TEX_WIDTH,
 				1, 1, buffer, sizeof(buffer)))
 			{

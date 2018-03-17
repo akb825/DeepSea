@@ -64,8 +64,10 @@ DS_VECTORDRAW_EXPORT bool dsGradient_isValid(const dsGradient* gradient);
  * @brief Evaluates a gradient.
  * @param gradient The gradient to evaluate.
  * @param t The position in the gradient in the range [0, 1].
+ * @param srgb True to use sSRGB-correct interpolation.
+ * @return The evaluated color.
  */
-DS_VECTORDRAW_EXPORT dsColor dsGradient_evaluate(const dsGradient* gradient, float t);
+DS_VECTORDRAW_EXPORT dsColor dsGradient_evaluate(const dsGradient* gradient, float t, bool srgb);
 
 /**
  * @brief Destroys a gradient.

@@ -2162,7 +2162,8 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_LINEARGRADIENTS = 6,
     VT_RADIALGRADIENTS = 8,
     VT_COMMANDS = 10,
-    VT_SIZE = 12
+    VT_SIZE = 12,
+    VT_SRGB = 14
   };
   const flatbuffers::Vector<flatbuffers::Offset<ColorMaterial>> *colorMaterials() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ColorMaterial>> *>(VT_COLORMATERIALS);
@@ -2179,6 +2180,9 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vector2f *size() const {
     return GetStruct<const Vector2f *>(VT_SIZE);
   }
+  bool sRGB() const {
+    return GetField<uint8_t>(VT_SRGB, 0) != 0;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_COLORMATERIALS) &&
@@ -2194,6 +2198,7 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(commands()) &&
            verifier.VerifyVectorOfTables(commands()) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_SIZE) &&
+           VerifyField<uint8_t>(verifier, VT_SRGB) &&
            verifier.EndTable();
   }
 };
@@ -2216,6 +2221,9 @@ struct VectorImageBuilder {
   void add_size(const Vector2f *size) {
     fbb_.AddStruct(VectorImage::VT_SIZE, size);
   }
+  void add_sRGB(bool sRGB) {
+    fbb_.AddElement<uint8_t>(VectorImage::VT_SRGB, static_cast<uint8_t>(sRGB), 0);
+  }
   explicit VectorImageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -2236,13 +2244,15 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImage(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<LinearGradient>>> linearGradients = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<RadialGradient>>> radialGradients = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<VectorCommand>>> commands = 0,
-    const Vector2f *size = 0) {
+    const Vector2f *size = 0,
+    bool sRGB = false) {
   VectorImageBuilder builder_(_fbb);
   builder_.add_size(size);
   builder_.add_commands(commands);
   builder_.add_radialGradients(radialGradients);
   builder_.add_linearGradients(linearGradients);
   builder_.add_colorMaterials(colorMaterials);
+  builder_.add_sRGB(sRGB);
   return builder_.Finish();
 }
 
@@ -2252,14 +2262,16 @@ inline flatbuffers::Offset<VectorImage> CreateVectorImageDirect(
     const std::vector<flatbuffers::Offset<LinearGradient>> *linearGradients = nullptr,
     const std::vector<flatbuffers::Offset<RadialGradient>> *radialGradients = nullptr,
     const std::vector<flatbuffers::Offset<VectorCommand>> *commands = nullptr,
-    const Vector2f *size = 0) {
+    const Vector2f *size = 0,
+    bool sRGB = false) {
   return DeepSeaVectorDraw::CreateVectorImage(
       _fbb,
       colorMaterials ? _fbb.CreateVector<flatbuffers::Offset<ColorMaterial>>(*colorMaterials) : 0,
       linearGradients ? _fbb.CreateVector<flatbuffers::Offset<LinearGradient>>(*linearGradients) : 0,
       radialGradients ? _fbb.CreateVector<flatbuffers::Offset<RadialGradient>>(*radialGradients) : 0,
       commands ? _fbb.CreateVector<flatbuffers::Offset<VectorCommand>>(*commands) : 0,
-      size);
+      size,
+      sRGB);
 }
 
 inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type) {

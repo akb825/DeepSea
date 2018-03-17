@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Color.h>
 #include <DeepSea/Math/Core.h>
 #include <string.h>
 
@@ -87,7 +88,7 @@ bool dsGradient_isValid(const dsGradient* gradient)
 	return true;
 }
 
-dsColor dsGradient_evaluate(const dsGradient* gradient, float t)
+dsColor dsGradient_evaluate(const dsGradient* gradient, float t, bool srgb)
 {
 	if (!gradient || !gradient->stops || gradient->stopCount == 0)
 	{
@@ -110,13 +111,10 @@ dsColor dsGradient_evaluate(const dsGradient* gradient, float t)
 
 		dsColor color1 = gradient->stops[i - 1].color;
 		dsColor color2 = gradient->stops[i].color;
-
-		dsColor color;
-		color.r = (uint8_t)roundf(dsLerp((float)color1.r, (float)color2.r, interpT));
-		color.g = (uint8_t)roundf(dsLerp((float)color1.g, (float)color2.g, interpT));
-		color.b = (uint8_t)roundf(dsLerp((float)color1.b, (float)color2.b, interpT));
-		color.a = (uint8_t)roundf(dsLerp((float)color1.a, (float)color2.a, interpT));
-		return color;
+		if (srgb)
+			return dsColor_lerpSRGB(color1, color2, interpT);
+		else
+			return dsColor_lerp(color1, color2, interpT);
 	}
 
 	// This should only be reached for an invalid gradient.
