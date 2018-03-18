@@ -101,7 +101,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("trace", messages[0].tag);
 	separatorIndex = messages[0].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[0].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine, messages[0].line);
 	EXPECT_EQ("TestBody", messages[0].function);
 	EXPECT_EQ("Trace log test.", messages[0].message);
@@ -110,7 +110,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("debug", messages[1].tag);
 	separatorIndex = messages[1].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[1].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 1, messages[1].line);
 	EXPECT_EQ("TestBody", messages[1].function);
 	EXPECT_EQ("Debug log test.", messages[1].message);
@@ -119,7 +119,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("info", messages[2].tag);
 	separatorIndex = messages[2].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[2].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 2, messages[2].line);
 	EXPECT_EQ("TestBody", messages[2].function);
 	EXPECT_EQ("Info log test.", messages[2].message);
@@ -128,7 +128,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("warning", messages[3].tag);
 	separatorIndex = messages[3].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[3].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[3].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 3, messages[3].line);
 	EXPECT_EQ("TestBody", messages[3].function);
 	EXPECT_EQ("Warning log test.", messages[3].message);
@@ -137,7 +137,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("error", messages[4].tag);
 	separatorIndex = messages[4].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[4].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[4].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 4, messages[4].line);
 	EXPECT_EQ("TestBody", messages[4].function);
 	EXPECT_EQ("Error log test.", messages[4].message);
@@ -146,7 +146,7 @@ TEST_F(LogTest, Log)
 	EXPECT_EQ("fatal", messages[5].tag);
 	separatorIndex = messages[5].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[5].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[5].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 5, messages[5].line);
 	EXPECT_EQ("TestBody", messages[5].function);
 	EXPECT_EQ("Fatal log test.", messages[5].message);
@@ -169,7 +169,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("trace", messages[0].tag);
 	separatorIndex = messages[0].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[0].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine, messages[0].line);
 	EXPECT_EQ("TestBody", messages[0].function);
 	EXPECT_EQ("Trace log test.", messages[0].message);
@@ -178,7 +178,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("debug", messages[1].tag);
 	separatorIndex = messages[1].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[1].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 1, messages[1].line);
 	EXPECT_EQ("TestBody", messages[1].function);
 	EXPECT_EQ("Debug log test.", messages[1].message);
@@ -187,7 +187,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("info", messages[2].tag);
 	separatorIndex = messages[2].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[2].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 2, messages[2].line);
 	EXPECT_EQ("TestBody", messages[2].function);
 	EXPECT_EQ("Info log test.", messages[2].message);
@@ -196,7 +196,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("warning", messages[3].tag);
 	separatorIndex = messages[3].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[3].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[3].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 3, messages[3].line);
 	EXPECT_EQ("TestBody", messages[3].function);
 	EXPECT_EQ("Warning log test.", messages[3].message);
@@ -205,7 +205,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("error", messages[4].tag);
 	separatorIndex = messages[4].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[4].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[4].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 4, messages[4].line);
 	EXPECT_EQ("TestBody", messages[4].function);
 	EXPECT_EQ("Error log test.", messages[4].message);
@@ -214,7 +214,7 @@ TEST_F(LogTest, Logf)
 	EXPECT_EQ("fatal", messages[5].tag);
 	separatorIndex = messages[5].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_EQ("LogTest.cpp", messages[5].file.substr(separatorIndex + 1));
+	EXPECT_STRCASEEQ("LogTest.cpp", messages[5].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ(firstLine + 5, messages[5].line);
 	EXPECT_EQ("TestBody", messages[5].function);
 	EXPECT_EQ("Fatal log test.", messages[5].message);
