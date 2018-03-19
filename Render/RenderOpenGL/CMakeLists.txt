@@ -4,6 +4,8 @@ if (NOT OPENGL_FOUND)
 	return()
 endif()
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/msl-config/ConfigPaths.cmake)
+
 set(extraLibs)
 set(extraIncludeDirs)
 set(extraDefines)

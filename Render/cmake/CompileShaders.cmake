@@ -101,12 +101,13 @@ function(ds_compile_shaders container)
 
 	set(outputs)
 	foreach (config ${ARGS_CONFIG})
-		if (NOT ${config})
+		get_property(configPath GLOBAL PROPERTY ${config})
+		if (NOT configPath)
 			message(FATAL_ERROR "No path for shader configuration ${config} found.")
 			return()
 		endif()
 
-		set(commandLineArgs ${ARGS_FILE} -c ${${config}})
+		set(commandLineArgs ${ARGS_FILE} -c ${configPath})
 		if (ARGS_OUTPUT_DIR)
 			set(output ${ARGS_OUTPUT_DIR}/${config})
 			set(outputCommand COMMAND ${CMAKE_COMMAND} ARGS -E make_directory ${output})
@@ -129,7 +130,7 @@ function(ds_compile_shaders container)
 		add_custom_command(OUTPUT ${output}
 			${outputCommand}
 			COMMAND ${MSLC} ARGS ${commandLineArgs} ${extraArgs}
-			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${${config}} ${MSLC}
+			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${configPath} ${MSLC}
 			COMMENT "Building ${config} shader: ${output}")
 	endforeach()
 

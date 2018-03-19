@@ -2,7 +2,6 @@ if (NOT TARGET deepsea_application_sdl OR NOT TARGET deepsea_text)
 	return()
 endif()
 
-include(${DEEPSEA_SOURCE_DIR}/Render/cmake/CompileShaders.cmake)
 if (NOT MSLC)
 	message("mslc shader compiler not found, skipping TestRenderSubpass.")
 	return()

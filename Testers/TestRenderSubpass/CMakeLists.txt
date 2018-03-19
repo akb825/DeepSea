@@ -2,13 +2,11 @@ if (NOT TARGET deepsea_application_sdl)
 	return()
 endif()
 
-include(${DEEPSEA_SOURCE_DIR}/Render/cmake/CompileShaders.cmake)
 if (NOT MSLC)
 	message("mslc shader compiler not found, skipping TestRenderSubpass.")
 	return()
 endif()
 
-include(${DEEPSEA_SOURCE_DIR}/Render/cmake/ConvertTexture.cmake)
 if (NOT CUTTLEFISH)
 	message("cuttlefish texture converter not found, skipping TestRenderSubpass.")
 	return()
