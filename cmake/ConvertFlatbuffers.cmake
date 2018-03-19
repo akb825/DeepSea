@@ -23,21 +23,23 @@ find_path(FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h PATHS ${DEEPSEA_SOU
 
 # ds_convert_flatbuffers(container
 #                        FILE file1 [file2 ...]
-#                        DIRECTORY directory)
+#                        DIRECTORY directory
+#                        [PYTHON directory])
 #
 # Converts a list of flatbuffers into generated headers.
 #
 # container - name of a variable to hold the generated headers.
 # FILE - the list of files to convert.
 # DIRECTORY - the directory to place the flatbuffers.
+# PYTHON - Additionally output python files to the specified directory.
 function(ds_convert_flatbuffers)
 	if (NOT FLATC)
 		return()
 	endif()
 
-	set(oneValueArgs DIRECTORY)
+	set(oneValueArgs DIRECTORY PYTHON)
 	set(multiValueArgs FILE)
-	cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+	cmake_parse_arguments(ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_DIRECTORY)
 		message(FATAL_ERROR "Required option DIRECTORY not specified.")
 		return()
@@ -53,9 +55,15 @@ function(ds_convert_flatbuffers)
 		set(output ${ARGS_DIRECTORY}/${filename}_generated.h)
 		list(APPEND outputs ${output})
 
+		set(pythonCommand)
+		if (ARGS_PYTHON)
+			set(pythonCommand COMMAND ${FLATC} ARGS -o ${ARGS_PYTHON} -p ${file})
+		endif()
+
 		add_custom_command(OUTPUT ${output}
 			MAIN_DEPENDENCY ${file}
 			COMMAND ${FLATC} ARGS -c --scoped-enums ${file}
+			${pythonCommand}
 			DEPENDS ${FLATC}
 			WORKING_DIRECTORY ${ARGS_DIRECTORY})
 	endforeach()
