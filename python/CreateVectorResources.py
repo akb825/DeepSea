@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import print_function
+import argparse
 import json
 import os
 import shutil
@@ -22,14 +23,14 @@ class VectorResources:
 		"cuttlefish" on PATH, but the path may be passed into the constructor.
 		"""
 
-		self.textures = []
-		self.faceGroups = []
-		self.fonts = []
 		self.cuttlefish = cuttlefishTool
 
-	def load(self, stream):
+	def load(self, stream, basePath = None):
 		"""
 		Loads the information for the VectorResources from a stream.
+
+		basePath: The base path to load relative paths from, typically relative to the original
+		file.
 
 		json format:
 		{
@@ -78,6 +79,7 @@ class VectorResources:
 		}
 		"""
 
+		self.basePath = basePath
 		contents = json.load(stream)
 		if 'textures' in contents:
 			self.textures = contents['textures']
@@ -99,10 +101,10 @@ class VectorResources:
 					raise Exception('Face "' + face + '" not in face group "' + font['faceGroup'] +
 						'"')
 
-	def loadFile(self, jsonContents):
+	def loadFile(self, jsonFile):
 		"""Loads from a json file. See load() for expected json format."""
-		with open(jsonContents) as f:
-			self.load(f)
+		with open(jsonFile) as f:
+			self.load(f, os.path.dirname(jsonFile))
 
 	def save(self, path, quiet = False, multithread = True):
 		"""
@@ -132,8 +134,8 @@ class VectorResources:
 			outputName = os.path.join(resourceDirName, name + extension)
 			outputPath = os.path.join(root, outputName)
 
-			commandLine = [self.cuttlefish, '-i', path, '-o', outputPath, '-f', texture['format'],
-				'-t', texture['type']]
+			commandLine = [self.cuttlefish, '-i', os.path.join(self.basePath, path),
+				'-o', outputPath, '-f', texture['format'], '-t', texture['type']]
 			if quiet:
 				commandLine.append('-q')
 			if multithread:
@@ -170,7 +172,7 @@ class VectorResources:
 				path = face['path']
 				outputName = os.path.join(resourceDirName, name + os.path.splitext(extension)[1])
 				outputPath = os.path.join(root, outputName)
-				shutil.copyfile(path, outputPath)
+				shutil.copyfile(os.path.join(self.basePath, path), outputPath)
 
 				ResourceStart(builder)
 				ResourceAddName(builder, builder.CreateString(name))
@@ -198,3 +200,20 @@ class VectorResources:
 
 		with open(path, 'wb') as f:
 			f.write(builder.Output)
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description =
+		'Create vector resources to be used by Deep Sea.')
+	parser.add_argument('-i', '--input', required = True,
+		help = 'input json description of the resources')
+	parser.add_argument('-o', '--output', required = True,
+		help = 'output file name, typically with the extension ".dsvr"')
+	parser.add_argument('-c', '--cuttlefish', default = 'cuttlefish',
+		help = 'path to the cuttlefish tool for texture conversion')
+	parser.add_argument('-j', '--multithread', default = False, action = 'store_true',
+		help = 'multithread texture conversion')
+
+	args = parser.parse_args()
+	resources = VectorResources(args.cuttlefish)
+	resources.loadFile(args.input)
+	resources.save(args.output)

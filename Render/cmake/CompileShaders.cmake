@@ -14,10 +14,6 @@
 
 find_program(MSLC mslc)
 
-if (DEEPSEA_BUILD_RENDER_OPENGL)
-	include(${DEEPSEA_SOURCE_DIR}/Render/RenderOpenGL/msl-config/ConfigPaths.cmake)
-endif()
-
 # ds_compile_shaders(container
 #                    FILE file1 [file2 ...]
 #                    OUTPUT output
@@ -37,7 +33,7 @@ endif()
 #
 # container - name of a variable to hold the shaders that will be compiled.
 # FILE - list of files to compile.
-# OUTPUT - the path of the output.
+# OUTPUT - the path of the output. If OUTPUT_DIR is specified, this should only be the filename.
 # CONFIG - list of configurations to compile with. It is expected each of them will have a variable
 #          declared with the path to the configuration file. The compiled module will be placed in
 #          a subdirectory with the same name as the config.
