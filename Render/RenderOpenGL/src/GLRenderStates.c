@@ -359,7 +359,7 @@ static void setDepthStencilStates(mslDepthStencilState* curState,
 	if (curState->depthWriteEnable != newState->depthWriteEnable)
 	{
 		curState->depthWriteEnable = newState->depthWriteEnable;
-		glDepthMask(curState->depthWriteEnable);
+		glDepthMask((GLboolean)curState->depthWriteEnable);
 	}
 
 	if (curState->depthTestEnable && curState->depthCompareOp != newState->depthCompareOp)

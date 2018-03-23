@@ -691,7 +691,7 @@ bool dsSDLApplication_isKeyPressed(const dsApplication* application, dsKeyCode k
 dsKeyModifier dsSDLApplication_getKeyModifiers(const dsApplication* application)
 {
 	DS_UNUSED(application);
-	return dsFromSDLKeyMod(SDL_GetModState());
+	return dsFromSDLKeyMod((Uint16)SDL_GetModState());
 }
 
 bool dsSDLApplication_beginTextInput(dsApplication* application)
