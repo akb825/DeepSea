@@ -1008,7 +1008,7 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 	return SDL_SCANCODE_UNKNOWN;
 }
 
-dsKeyModifier dsFromSDLKeyMod(Uint16 modifiers)
+dsKeyModifier dsFromSDLKeyMod(SDL_Keymod modifiers)
 {
 	uint32_t curMods = 0;
 	if (modifiers & KMOD_LSHIFT)

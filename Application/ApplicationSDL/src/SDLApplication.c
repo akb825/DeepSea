@@ -408,7 +408,7 @@ int dsSDLApplication_run(dsApplication* application)
 					event.type = sdlEvent.type == SDL_KEYDOWN ? dsEventType_KeyDown :
 						dsEventType_KeyUp;
 					event.key.key = dsFromSDLScancode(sdlEvent.key.keysym.scancode);
-					event.key.modifiers = dsFromSDLKeyMod(sdlEvent.key.keysym.mod);
+					event.key.modifiers = dsFromSDLKeyMod((SDL_Keymod)sdlEvent.key.keysym.mod);
 					event.key.repeat = sdlEvent.key.repeat != 0;
 					break;
 				case SDL_TEXTEDITING:
@@ -691,7 +691,7 @@ bool dsSDLApplication_isKeyPressed(const dsApplication* application, dsKeyCode k
 dsKeyModifier dsSDLApplication_getKeyModifiers(const dsApplication* application)
 {
 	DS_UNUSED(application);
-	return dsFromSDLKeyMod((Uint16)SDL_GetModState());
+	return dsFromSDLKeyMod(SDL_GetModState());
 }
 
 bool dsSDLApplication_beginTextInput(dsApplication* application)

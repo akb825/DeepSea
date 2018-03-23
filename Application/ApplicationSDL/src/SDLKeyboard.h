@@ -31,7 +31,7 @@ extern "C"
 // Export for unit tests.
 DS_APPLICATIONSDL_EXPORT dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode);
 DS_APPLICATIONSDL_EXPORT SDL_Scancode dsToSDLScancode(dsKeyCode keyCode);
-DS_APPLICATIONSDL_EXPORT dsKeyModifier dsFromSDLKeyMod(Uint16 modifiers);
+DS_APPLICATIONSDL_EXPORT dsKeyModifier dsFromSDLKeyMod(SDL_Keymod modifiers);
 
 #ifdef __cplusplus
 }
