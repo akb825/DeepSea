@@ -1,4 +1,17 @@
 #!/usr/bin/python
+# Copyright 2018 Aaron Barany
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 from __future__ import print_function
 import argparse
@@ -9,6 +22,7 @@ import subprocess
 
 import flatbuffers
 from DeepSeaVectorDraw.FaceGroup import *
+from DeepSeaVectorDraw.FaceGroupQuality import *
 from DeepSeaVectorDraw.Font import *
 from DeepSeaVectorDraw.Resource import *
 from DeepSeaVectorDraw.ResourceSet import *
@@ -37,7 +51,7 @@ class VectorResources:
 			"textures":
 			[
 				{
-					"name": "<name used to reference the texture>",
+					"name": "<name used to reference the texture>" (optional),
 					"path": "<path to image>",
 					"format": "<texture format; see cuttlefish help for details>",
 					"type": "<texture channel type; see cuttlefish help for details>",
@@ -125,8 +139,11 @@ class VectorResources:
 		ResourceSetStart(builder)
 		ResourceSetStartTexturesVector(builder, len(self.textures))
 		for texture in self.textures:
-			name = texture['name']
 			path = texture['path']
+			if 'name' in texture:
+				name = texture['name']
+			else:
+				name = os.path.splitext(os.path.basename(path))[0]
 			if 'container' in texture:
 				extension = '.' + texture['container']
 			else:
@@ -158,7 +175,8 @@ class VectorResources:
 			ResourceEnd(builder)
 		ResourceSetAddTextures(builder, builder.EndVector(len(self.textures)))
 
-		qualityValues = {'low': 0, 'medium': 1, 'high': 2, 'veryhigh': 3}
+		qualityValues = {'low': FaceGroupQuality.Low, 'medium': FaceGroupQuality.Medium,
+			'high': FaceGroupQuality.High, 'veryhigh': FaceGroupQuality.VeryHigh}
 		ResourceSetStartFaceGroupsVector(builder, len(self.faceGroups))
 		for faceGroup in self.faceGroups:
 			FaceGroupStart(builder)

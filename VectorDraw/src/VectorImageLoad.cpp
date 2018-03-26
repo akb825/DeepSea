@@ -75,7 +75,7 @@ static dsGradient* readGradient(dsAllocator* allocator,
 
 static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* allocator,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	const DeepSeaVectorDraw::VectorImage* fbVectorImage, const char* name)
+	const DeepSeaVectorDraw::VectorImage* fbVectorImage, bool srgb, const char* name)
 {
 	auto colorMaterials = fbVectorImage->colorMaterials();
 	auto linearGradients = fbVectorImage->linearGradients();
@@ -96,7 +96,7 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 	}
 
 	dsVectorMaterialSet* materials = dsVectorMaterialSet_create(allocator, resourceManager,
-		resourceAllocator, totalMaterialCount, fbVectorImage->sRGB());
+		resourceAllocator, totalMaterialCount, srgb);
 	if (!materials)
 		return false;
 
@@ -472,7 +472,8 @@ extern "C"
 dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, const char* name)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb,
+	const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
@@ -485,7 +486,7 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 	auto fbVectorImage = DeepSeaVectorDraw::GetVectorImage(data);
 	dsVectorMaterialSet* localMaterials = NULL;
 	if (!readMaterials(&localMaterials, allocator, resourceManager, resourceAllocator,
-		fbVectorImage, name))
+		fbVectorImage, srgb, name))
 	{
 		return nullptr;
 	}

@@ -14,28 +14,25 @@
 
 find_package(PythonInterp QUIET)
 
-# ds_create_vector_resources(container
-#                            FILE file
-#                            OUTPUT ARGS_OUTPUT
-#                            [DEPENDENCY pattern1 [pattern2 ...]]
-#                            [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
-#                            [WORKING_DIR dir])
+# ds_convert_svg(container
+#                FILE file
+#                OUTPUT ARGS_OUTPUT
+#                [DEPENDENCY pattern1 [pattern2 ...]]
+#                [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
+#                [WORKING_DIR dir])
 #
-# Creates vector resources to be shared among vector images.
+# Converts an SVG into a vector image.
 #
-# container - name of a variable to hold the vector resources that will be created.
-# FILE - the input json file to describe the resources
+# container - name of a variable to hold the vector image that will be created.
+# FILE - the input SVG file
 # OUTPUT - the path of the ARGS_OUTPUT.
 # DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
 #              pattern.
 # DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
-# WORKING_DIR - the working directory for creating the vector resources.
-function(ds_create_vector_resources container)
+# WORKING_DIR - the working directory for creating the vector image.
+function(ds_convert_svg container)
 	if (NOT PYTHONINTERP_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
-	endif()
-	if (NOT CUTTLEFISH)
-		message(FATAL_ERROR "Program 'cuttlefish' not found on the path.")
 	endif()
 
 	set(oneValueArgs FILE OUTPUT WORKING_DIR)
@@ -59,21 +56,21 @@ function(ds_create_vector_resources container)
 	endif()
 
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/CreateVectorResources.py
-			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -j
+		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.cmake
+			-i ${ARGS_FILE} -o ${ARGS_OUTPUT}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH}
-		COMMENT "Creating vector resources: ${ARGS_OUTPUT}")
+		COMMENT "Creating vector image: ${ARGS_OUTPUT}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)
 endfunction()
 
-# ds_create_vector_resources_target(target container)
+# ds_convert_svg_target(target container)
 #
-# Adds a target to create vector resources made from previous calls to ds_create_vector_resources().
+# Adds a target to create vector images made from previous calls to ds_convert_svg().
 #
 # target - the name of the target.
-# container - the container previously passed to ds_create_vector_resources().
+# container - the container previously passed to ds_convert_svg().
 # All following arguments are forwarded to add_custom_target().
-function(ds_create_vector_resources_target target container)
+function(ds_convert_svg_target target container)
 	add_custom_target(${target} DEPENDS ${${container}} ${ARGN})
 endfunction()

@@ -3,7 +3,7 @@
 # namespace: DeepSeaVectorDraw
 
 class TextPosition(object):
-    None = 0
+    Unused = 0
     Offset = 1
     Absolute = 2
 

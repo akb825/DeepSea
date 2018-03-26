@@ -73,13 +73,15 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
  * @param resources The vector resources.
  * @param resourceCount The number of vector resources.
  * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator,
 	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, const char* filePath,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize);
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
+	bool srgb);
 
 /**
  * @brief Loads a vector image from a stream.
@@ -97,13 +99,14 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocato
  * @param resources The vector resources.
  * @param resourceCount The number of vector resources.
  * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator,
 	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, dsStream* stream, const dsVectorMaterialSet* sharedMaterials,
 	dsVectorShaderModule* shaderModule, const dsVectorResources** resources,
-	uint32_t resourceCount, float pixelSize);
+	uint32_t resourceCount, float pixelSize, bool srgb);
 
 /**
  * @brief Loads a vector image from a data buffer.
@@ -121,13 +124,14 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* alloca
  * @param resources The vector resources.
  * @param resourceCount The number of vector resources.
  * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator,
 	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, const void* data, size_t size,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize);
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb);
 
 /**
  * @brief Draws a vector image.

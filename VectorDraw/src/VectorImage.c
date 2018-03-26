@@ -862,7 +862,8 @@ static bool createTextTessGeometry(dsVectorImage* image, dsVectorScratchData* sc
 dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, const char* name);
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
+	bool srgb, const char* name);
 
 dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
@@ -981,7 +982,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* filePath,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1012,14 +1013,14 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchDat
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, filePath);
+		pixelSize, srgb, filePath);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
 dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsStream* stream,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1042,14 +1043,14 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchD
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, NULL);
+		pixelSize, srgb, NULL);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
 dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1065,7 +1066,7 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsVectorScratchDat
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, data, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, NULL);
+		pixelSize, srgb, NULL);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 

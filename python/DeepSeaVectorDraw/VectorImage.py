@@ -109,14 +109,7 @@ class VectorImage(object):
             return obj
         return None
 
-    # VectorImage
-    def SRGB(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
-        return 0
-
-def VectorImageStart(builder): builder.StartObject(6)
+def VectorImageStart(builder): builder.StartObject(5)
 def VectorImageAddColorMaterials(builder, colorMaterials): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(colorMaterials), 0)
 def VectorImageStartColorMaterialsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def VectorImageAddLinearGradients(builder, linearGradients): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(linearGradients), 0)
@@ -126,5 +119,4 @@ def VectorImageStartRadialGradientsVector(builder, numElems): return builder.Sta
 def VectorImageAddCommands(builder, commands): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(commands), 0)
 def VectorImageStartCommandsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def VectorImageAddSize(builder, size): builder.PrependStructSlot(4, flatbuffers.number_types.UOffsetTFlags.py_type(size), 0)
-def VectorImageAddSRGB(builder, sRGB): builder.PrependBoolSlot(5, sRGB, 0)
 def VectorImageEnd(builder): return builder.EndObject()
