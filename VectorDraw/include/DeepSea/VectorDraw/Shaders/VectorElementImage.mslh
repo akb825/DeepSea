@@ -16,9 +16,9 @@
 
 #pragma once
 
-#includ e<DeepSea/Render/Shaders/Color.mslh>
+#include <DeepSea/Render/Shaders/Color.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorShared.mslh>
 
 /**
  * @file
@@ -90,8 +90,8 @@ struct dsVectorVertexOutput
 /**
  * @brief The vertex output.
  */
-[[vertex]] out dsVectorVertexOutput dsVertexOut;
-[[fragment]] in dsVectorVertexOutput dsVertexOut;
+[[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
+[[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
 
 /**
  * @brief The final output color of the shader.
@@ -114,17 +114,17 @@ struct dsVectorVertexOutput
  * @return The vertex output.
  */
 [[vertex]]
-dsVertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
+dsVectorVertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
 	dsVectorShared_getElementInfo(elementInfo, dsVectorTexCoordsElementIndex.z);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	dsVertexOutput output;
-	outPosition = dsVectorShared_transform(output.position, dsVectorPosition.xy, transform);
-	output.texCoordsOpacity = vec3(dsVectorTexCoordsElementIndex.xy, elementInfo[2].z);
+	dsVectorVertexOutput result;
+	outPosition = dsVectorShared_transform(result.position, dsVectorPosition.xy, transform);
+	result.texCoordsOpacity = vec3(dsVectorTexCoordsElementIndex.xy, elementInfo[2].z);
 
-	return output;
+	return result;
 }
 
 /**
@@ -144,10 +144,10 @@ void dsVectorElementImage_defaultVertex()
 [[fragment]]
 vec4 dsVectorElementImage_getMaterialColor()
 {
-	dsVectorShared_clip(vertexOut.position);
+	dsVectorShared_clip(dsVectorVertexOut.position);
 
 	vec4 color = texture(dsVectorOtherTex, dsVectorVertexOut.texCoordsOpacity.xy);
-	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.texCoordsOpacity.z);
 }
 
 /**

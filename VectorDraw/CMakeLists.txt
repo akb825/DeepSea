@@ -1,3 +1,6 @@
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ConvertSVG.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CreateVectorResources.cmake)
+
 file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_vector_draw MODULE VectorDraw FILES ${sources} ${flatbuffers}

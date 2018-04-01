@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorShared.mslh>
 
 /**
  * @file
@@ -55,7 +55,7 @@ sampler_state dsVectorLocalMaterialInfoTex
 uniform sampler2D dsVectorSharedMaterialColorTex;
 sampler_state dsVectorSharedMaterialColorTex
 {
-	address_mode_u = wrap;
+	address_mode_u = repeat;
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
@@ -68,7 +68,7 @@ sampler_state dsVectorSharedMaterialColorTex
 uniform sampler2D dsVectorLocalMaterialColorTex;
 sampler_state dsVectorLocalMaterialColorTex
 {
-	address_mode_u = wrap;
+	address_mode_u = repeat;
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
@@ -112,10 +112,10 @@ void dsVectorMaterial_getInfoImpl(out vec4 info[4], float index, sampler2D infoT
 void dsVectorMaterial_getInfo(out vec4 info[4], float index)
 {
 	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-		dsVectorMaterial_getInfo(info, index, dsVectorSharedMaterialInfoTex);
+		dsVectorMaterial_getInfoImpl(info, index, dsVectorSharedMaterialInfoTex);
 	else
 	{
-		dsVectorMaterial_getInfo(info, index - DS_VECTOR_LOCAL_MATERIAL_OFFSET,
+		dsVectorMaterial_getInfoImpl(info, index - DS_VECTOR_LOCAL_MATERIAL_OFFSET,
 			dsVectorLocalMaterialInfoTex);
 	}
 }
@@ -140,7 +140,7 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 	{
 		// Gradient
 		vec2 gradientPos;
-		if (info[0].1 == 1.0)
+		if (info[0].z == 1.0)
 			gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.zy);
 		else
 			gradientPos = imagePosition;
@@ -149,12 +149,12 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 		gradientPos = (transform*vec3(gradientPos, 1.0)).xy;
 
 		float gradientT;
-		if (info[0] == 1.0)
+		if (info[0].x == 1.0)
 		{
 			// Linear gradient
 			vec2 dir = info[1].zw - info[1].xy;
 			float invDirLen = 1.9/length(dir);
-			float dirNorm = dir*vec2(invDirLen);
+			vec2 dirNorm = dir*vec2(invDirLen);
 			gradientT = dot(dirNorm, gradientPos - info[1].xy)*invDirLen;
 		}
 		else
@@ -162,7 +162,7 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 			// Radial gradient
 			vec2 focusPos = info[1].zw;
 			float focusRadius = info[3].w;
-			vec2 circlePos = (gradientPos - info[1].xy)/info[3]z;
+			vec2 circlePos = (gradientPos - info[1].xy)/vec2(info[3].z);
 			if (focusPos == vec2(0.0))
 				gradientT = max(length(circlePos) - focusRadius, 0.0);
 			else
@@ -182,7 +182,7 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 
 					vec2 intersectCenter = vec2(focusDir.y, -focusDir.x)*vec2(determinant);
 					vec2 intersectOffset = vec2(signY*focusDir.x, abs(focusDir.y))*
-						vec2(sqrt(focusDist2 - dterminant*determinant));
+						vec2(sqrt(focusDist2 - determinant*determinant));
 					float invFocusDist2 = 1.0/focusDist2;
 					if (dot(intersectOffset, focusDir) < 0.0)
 						intersectOffset = -intersectOffset;
@@ -222,7 +222,7 @@ vec4 dsVectorMaterial_getColor(vec4 info[4], vec2 origPosition, vec4 bounds, vec
 	}
 
 	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-		return texture(dsSharedMaterialColorTex, vec2(colorCoord, materalCoord));
+		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
 	else
-		return texture(dsLocalMaterialColorTex, vec2(colorCoord, materalCoord));
+		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
 }

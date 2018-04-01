@@ -3,7 +3,7 @@ if (NOT TARGET deepsea_application_sdl OR NOT TARGET deepsea_text)
 endif()
 
 if (NOT MSLC)
-	message("mslc shader compiler not found, skipping TestRenderSubpass.")
+	message("mslc shader compiler not found, skipping TestText.")
 	return()
 endif()
 
@@ -53,7 +53,7 @@ add_custom_target(deepsea_test_text_app_assets ALL DEPENDS deepsea_test_text_app
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${fontDir} ${assetsDir}/Fonts
-	COMMENT "Copying assets for TestRenderSubpass")
+	COMMENT "Copying assets for TestText")
 
 ds_set_folder(deepsea_test_text_app tests)
 ds_set_folder(deepsea_test_text_app_prepare tests/Resources)

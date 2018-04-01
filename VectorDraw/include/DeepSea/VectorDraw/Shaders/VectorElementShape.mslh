@@ -16,9 +16,10 @@
 
 #pragma once
 
+#include <DeepSea/Render/Shaders/Color.mslh>
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
-#include <DeepSea/VectorImage/Shaders/VectorShared.mslh>
-#include <DeepSea/VectorImage/Shaders/VectorMaterial.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorMaterial.mslh>
 
 /**
  * @file
@@ -75,7 +76,7 @@ struct dsVectorVertexOutput
 	 * @brief Current and maximum distance in the line, or -1 if not a line, opacity, and material
 	 * index.
 	 */
-	vec2 lineDistancesOpacityMaterialIndex;
+	vec4 lineDistancesOpacityMaterialIndex;
 
 	/**
 	 * @brief The bounds of the shape.
@@ -102,7 +103,7 @@ struct dsVectorVertexOutput
 /**
  * @brief The final output color of the shader.
  */
-[[fragment]] out vec4 finalColor;
+[[fragment]] out vec4 dsVectorFinalColor;
 
 /**
  * @brief Default render states for vector shape elements.
@@ -110,8 +111,8 @@ struct dsVectorVertexOutput
 #define DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES \
 	cull_mode = back; \
 	blend_enable = true; \
-	src_blend_color_factor = src_alpha; \
-	src_blend_alpha_factor = one; \
+	src_color_blend_factor = src_alpha; \
+	src_alpha_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
 	alpha_blend_op = add
 
@@ -127,16 +128,17 @@ dsVectorVertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 	dsVectorShared_getElementInfo(elementInfo, dsVectorElementMaterialIndex.x);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	dsVectorVertexOutput output;
-	output.position.xy = dsVectorPosition.xy;
-	outPosition = dsVectorShared_transform(output.position.zw, dsVectorPosition.xy, transform);
-	output.lineDistancesOpacityMaterialIndex = vec4(dsVectorPosition.zw, elementInfo[2].z,
+	dsVectorVertexOutput result;
+	result.position.xy = dsVectorPositionLineInfo.xy;
+	outPosition = dsVectorShared_transform(result.position.zw, dsVectorPositionLineInfo.xy,
+		transform);
+	result.lineDistancesOpacityMaterialIndex = vec4(dsVectorPositionLineInfo.zw, elementInfo[2].z,
 		dsVectorElementMaterialIndex.y);
-	output.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
-	output.dashArray = elementInfo[3];
-	dsVectorMaterial_getInfo(output.materialInfo, dsVectorElementMaterialIndex.y);
+	result.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
+	result.dashArray = elementInfo[3];
+	dsVectorMaterial_getInfo(result.materialInfo, dsVectorElementMaterialIndex.y);
 
-	return output;
+	return result;
 }
 
 /**
@@ -145,7 +147,7 @@ dsVectorVertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 [[vertex]]
 void dsVectorElementShape_defaultVertex()
 {
-	dsVertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
+	dsVectorVertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -184,21 +186,21 @@ vec4 dsVectorElementShape_getMaterialColor()
 				totalDashRepeats -= 1.0;
 			}
 
-			float adjustatedTotalDashDistance =
+			float adjustedTotalDashDistance =
 				dsVectorVertexOut.lineDistancesOpacityMaterialIndex.y/totalDashRepeats;
 			if (abs(adjustedTotalDashDistance/totalDashDistance - 1.0) <= 0.1)
 			{
-				totalDashDistance = adjustatedTotalDashDistance;
-				float ratio = adjustatedTotalDashDistance/totalDashDistance;
+				totalDashDistance = adjustedTotalDashDistance;
+				float ratio = adjustedTotalDashDistance/totalDashDistance;
 				dashArray *= ratio;
 				dashArrayCumalitive *= ratio;
 			}
 
 			float dashPos = mod(dsVectorVertexOut.lineDistancesOpacityMaterialIndex.x,
 				totalDashDistance);
-			if ((dashPos.y > 0 &&
+			if ((dashArray.y > 0 &&
 					dashPos >= dashArrayCumalitive.x && dashPos <= dashArrayCumalitive.y) ||
-				(dashPos.w > 0 &&
+				(dashArray.w > 0 &&
 					dashPos >= dashArrayCumalitive.z && dashPos <= dashArrayCumalitive.w))
 			{
 				discard;

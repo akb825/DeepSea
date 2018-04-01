@@ -96,16 +96,18 @@ vec4 dsVectorShared_transform(out vec2 imagePosition, vec2 position, mat3 transf
 	imagePosition = tempPos.xy;
 
 	tempPos.y = uniforms.dsVectorImageSize.y - tempPos.y;
-	return INSTANCE(vectorTransform).modelViewProjection*vec4(tempPos.xy, 0.0, 1.0);
+	return uniforms.dsVectorModelViewProjection*vec4(tempPos.xy, 0.0, 1.0);
 }
 
 /**
- * @brief Clips the image to the
+ * @brief Clips the image to the edge of the image bounds.
+ * @param imagePosition The position in image space.
  */
+[[fragment]]
 void dsVectorShared_clip(vec2 imagePosition)
 {
 	if (any(lessThan(imagePosition, vec2(0.0))) ||
-		any(lessThan(uniforms.dsVectorImageSize), imagePosition))
+		any(lessThan(uniforms.dsVectorImageSize, imagePosition)))
 	{
 		discard;
 	}
