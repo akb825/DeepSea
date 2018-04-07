@@ -19,6 +19,7 @@ import locale
 import math
 import os
 import re
+import xml.dom
 from xml.dom import minidom
 
 import flatbuffers
@@ -286,7 +287,7 @@ def transformFromNode(node, transformName = 'transform'):
 
 	try:
 		# Support a single matrix or translate element.
-		transformStr = node.getAttribute(transformName).value
+		transformStr = node.getAttribute(transformName)
 		if transformStr[:7] == 'matrix(':
 			values = transformStr[7:-1].split()
 			if len(values) != 6:
@@ -308,10 +309,10 @@ def transformFromNode(node, transformName = 'transform'):
 class Gradient:
 	"""Base class for a gradient."""
 	def __init__(self, node):
-		self.name = node.getAttribute('id').value
+		self.name = node.getAttribute('id')
 		self.transform = transformFromNode(node, 'gradientTransform')
 		if node.hasAttribute('gradientUnits'):
-			units = node.getAttribute('gradientUnits').value
+			units = node.getAttribute('gradientUnits')
 			if units == 'objectBoundingBox':
 				self.coordinateSpace = MaterialSpace.Bounds
 			else:
@@ -319,7 +320,7 @@ class Gradient:
 		else:
 			self.coordinateSpace = MaterialSpace.Local
 		if node.hasAttribute('spreadMethod'):
-			spread = node.getAttribute('spreadMethod').value
+			spread = node.getAttribute('spreadMethod')
 			if spread == 'reflect':
 				self.edge = GradientEdge.Mirror
 			elif spread == 'repeat':
@@ -331,11 +332,11 @@ class Gradient:
 
 		self.stops = []
 		for stop in node.childNodes:
-			position = sizeFromString(stop.getAttribute('offset').value, 1.0)
-			color = colorFromString(stop.getAttribute('stop-color').value)
+			position = sizeFromString(stop.getAttribute('offset'), 1.0)
+			color = colorFromString(stop.getAttribute('stop-color'))
 			opacity = 1.0
 			if stop.hasAttribute('stop-opacity'):
-				opacity = stop.sizeFromString(stop.getAttribute('stop-opacity').value, 1.0)
+				opacity = stop.sizeFromString(stop.getAttribute('stop-opacity'), 1.0)
 			color[3] = int(round(float(color[3])*opacity))
 			self.stops.append(position, color)
 
@@ -349,12 +350,15 @@ class LinearGradientMaterial(Gradient):
 			sizeFromString(node.getAttribute('y2'), size[1]))
 
 	def write(self, builder):
-		LinearGradientStart(builder)
-		LinearGradientAddName(builder, builder.CreateString(self.name))
+		nameOffset = builder.CreateString(self.name)
 		LinearGradientStartGradientVector(builder, len(self.stops))
 		for position, color in self.stops:
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
-		LinearGradientAddGradient(builder, builder.EndVector(len(self.stops)))
+		gradientOffset = builder.EndVector(len(self.stops))
+
+		LinearGradientStart(builder)
+		LinearGradientAddName(builder, nameOffset)
+		LinearGradientAddGradient(builder, gradientOffset)
 		LinearGradientAddStart(builder, CreateVector2f(builder, self.start[0], self.start[1]))
 		LinearGradientAddEnd(builder, CreateVector2f(builder, self.end[0], self.end[1]))
 		LinearGradientAddEdge(builder, self.edge)
@@ -363,7 +367,7 @@ class LinearGradientMaterial(Gradient):
 			self.transform[0][1], self.transform[0][2], self.transform[1][0], self.transform[1][1],
 			self.transform[1][2], self.transform[2][0], self.transform[2][1],
 			self.transform[2][2]))
-		LinearGradientEnd(builder)
+		return LinearGradientEnd(builder)
 	
 class RadialGradientMaterial(Gradient):
 	"""Class describing a radial gradient."""
@@ -382,12 +386,15 @@ class RadialGradientMaterial(Gradient):
 			self.focusRadius = sizeFromString(node.getAttribute('fr'), self.radius)
 
 	def write(self, builder):
-		RadialGradientStart(builder)
-		RadialGradientAddName(builder, builder.CreateString(self.name))
+		nameOffset = builder.CreateString(self.name)
 		RadialGradientStartGradientVector(builder, len(self.stops))
 		for position, color in self.stops:
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
-		RadialGradientAddGradient(builder, builder.EndVector(len(self.stops)))
+		gradientOffset = builder.EndVector(len(self.stops))
+
+		RadialGradientStart(builder)
+		RadialGradientAddName(builder, nameOffset)
+		RadialGradientAddGradient(builder, gradientOffset)
 		RadialGradientAddCenter(builder, CreateVector2f(builder, self.center[0], self.center[1]))
 		RadialGradientAddRadius(builder, self.radius)
 		RadialGradientAddFocus(builder, CreateVector2f(builder, self.focus[0], self.focus[1]))
@@ -398,7 +405,7 @@ class RadialGradientMaterial(Gradient):
 			self.transform[0][1], self.transform[0][2], self.transform[1][0], self.transform[1][1],
 			self.transform[1][2], self.transform[2][0], self.transform[2][1],
 			self.transform[2][2]))
-		RadialGradientEnd(builder)
+		return RadialGradientEnd(builder)
 
 class Materials:
 	"""Class to hold the materials of an image."""
@@ -421,6 +428,45 @@ class Materials:
 
 	def addRadialGradient(self, radialGradient):
 		self.radialGradients[radialGradient.name] = radialGradient
+
+	def write(self, builder):
+		colorOffsets = []
+		for i in range(len(self.colors)):
+			nameOffset = builder.CreateString(self.getColorName(i))
+			ColorMaterialStart(builder)
+			ColorMaterialAddName(builder, nameOffset)
+			color = self.colors[i]
+			ColorMaterialAddColor(builder,
+				CreateColor(builder, color[0], color[1], color[2], color[3]))
+			colorOffsets.append(ColorMaterialEnd(builder))
+
+		linearGradientOffsets = []
+		for gradient in self.linearGradients.values():
+			linearGradientOffsets.append(gradient.write(builder))
+
+		radialGradientOffsets = []
+		for gradient in self.radialGradients.values():
+			radialGradientOffsets.append(gradient.write(builder))
+
+		VectorImageStartColorMaterialsVector(builder, len(colorOffsets))
+		for offset in reversed(colorOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		self.colorsOffset = builder.EndVector(len(colorOffsets))
+
+		VectorImageStartLinearGradientsVector(builder, len(linearGradientOffsets))
+		for offset in reversed(linearGradientOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		self.linearGradientsOffset = builder.EndVector(len(linearGradientOffsets))
+
+		VectorImageStartRadialGradientsVector(builder, len(radialGradientOffsets))
+		for offset in reversed(radialGradientOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		self.radialGradientsOffset =  builder.EndVector(len(radialGradientOffsets))
+
+	def writeToVectorImage(self, builder):
+		VectorImageAddColorMaterials(builder, self.colorsOffset)
+		VectorImageAddLinearGradients(builder, self.linearGradientsOffset)
+		VectorImageAddRadialGradients(builder, self.radialGradientsOffset)
 
 class Stroke:
 	"""Class that describes a stroke."""
@@ -450,7 +496,7 @@ class Style:
 		if not node.hasAttribute('style'):
 			return
 		styleString = node.getAttribute('style')
-		elementStrings = styleString.value.split(';')
+		elementStrings = styleString.split(';')
 		for elementStr in elementStrings:
 			elementPair = elementStr.split(':')
 			if len(elementPair) != 2:
@@ -502,59 +548,75 @@ class Style:
 		if self.fill:
 			self.fill.opacity *= self.opacity
 
-def writeStyle(builder, style):
-	if style.fill:
-		VectorCommandStart(builder)
-		VectorCommandAddCommandType(builder, VectorCommandUnion.FillPathCommand)
-		FillPathCommandStart(builder)
-		FillPathCommandAddMaterial(builder, builder.CreateString(style.fill.material))
-		FillPathCommandAddOpacity(builder, style.fill.opacity)
-		VectorCommandAddCommand(builder, FillPathCommandEnd(builder))
-		VectorCommandEnd(builder)
-	if style.stroke:
-		VectorCommandStart(builder)
-		VectorCommandAddCommandType(builder, VectorCommandUnion.StrokePathCommand)
-		StrokePathCommandStart(builder)
-		StrokePathCommandAddMaterial(builder, builder.CreateString(style.stroke.material))
-		StrokePathCommandAddOpacity(builder, style.stroke.opacity)
-		StrokePathCommandAddJoinType(builder, style.stroke.join)
-		StrokePathCommandAddCapType(builder, style.stroke.cap)
-		StrokePathCommandAddWidth(builder, style.stroke.width)
-		StrokePathCommandAddMiterLimit(builder, style.stroke.miterLimit)
-		StrokePathCommandAddDashArray(builder, CreateDashArray(builder, style.stroke.dashArray[0],
-			style.stroke.dashArray[1], style.stroke.dashArray[2], style.stroke.dashArray[3]))
-		VectorCommandAddCommand(builder, StrokePathCommandEnd(builder))
-		VectorCommandEnd(builder)
+	def write(self, builder):
+		offsets = []
+		if self.fill:
+			materialOffset = builder.CreateString(self.fill.material)
+
+			FillPathCommandStart(builder)
+			FillPathCommandAddMaterial(builder, materialOffset)
+			FillPathCommandAddOpacity(builder, self.fill.opacity)
+			commandOffset = FillPathCommandEnd(builder)
+
+			VectorCommandStart(builder)
+			VectorCommandAddCommandType(builder, VectorCommandUnion.FillPathCommand)
+			VectorCommandAddCommand(builder, commandOffset)
+			offsets.append(VectorCommandEnd(builder))
+		if self.stroke:
+			materialOffset = builder.CreateString(self.stroke.material)
+
+			StrokePathCommandStart(builder)
+			StrokePathCommandAddMaterial(builder, materialOffset)
+			StrokePathCommandAddOpacity(builder, self.stroke.opacity)
+			StrokePathCommandAddJoinType(builder, self.stroke.join)
+			StrokePathCommandAddCapType(builder, self.stroke.cap)
+			StrokePathCommandAddWidth(builder, self.stroke.width)
+			StrokePathCommandAddMiterLimit(builder, self.stroke.miterLimit)
+			StrokePathCommandAddDashArray(builder, CreateDashArray(builder,
+				self.stroke.dashArray[0], self.stroke.dashArray[1], self.stroke.dashArray[2],
+				self.stroke.dashArray[3]))
+			commandOffset = StrokePathCommandEnd(builder)
+
+			VectorCommandStart(builder)
+			VectorCommandAddCommandType(builder, VectorCommandUnion.StrokePathCommand)
+			VectorCommandAddCommand(builder, commandOffset)
+			offsets.append(VectorCommandEnd(builder))
+		return offsets
 
 def writeStartPath(builder, transform):
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.StartPathCommand)
 	StartPathCommandStart(builder)
 	StartPathCommandAddTransform(builder, CreateMatrix33f(builder, transform[0][0], transform[0][1],
 		transform[0][2], transform[1][0], transform[1][1], transform[1][2], transform[2][0],
 		transform[2][1], transform[2][2]))
-	VectorCommandAddCommand(builder, StartPathCommandEnd(builder))
-	VectorCommandEnd(builder)
-
-def writeEllipse(builder, transform, style, center, radius):
-	writeStartPath(builder, transform)
+	commandOffset = StartPathCommandEnd(builder)
 
 	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.EllipseCommand)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.StartPathCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	return [VectorCommandEnd(builder)]
+
+def writeEllipse(builder, transform, style, center, radius):
+	offsets = writeStartPath(builder, transform)
+
 	EllipseCommandStart(builder)
 	EllipseCommandAddCenter(builder, CreateVector2f(builder, center[0], center[1]))
 	EllipseCommandAddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
-	VectorCommandAddCommand(builder, EllipseCommandEnd(builder))
-	VectorCommandEnd(builder)
+	commandOffset = EllipseCommandEnd(builder)
 
-	writeStyle(builder, style)
+	VectorCommandStart(builder)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.EllipseCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	offsets.append(VectorCommandEnd(builder))
+
+	offsets.extend(style.write(builder))
+	return offsets
 
 def writeImage(builder, transform, style, upperLeft, size, location):
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.ImageCommand)
-	ImageCommandStart(builder)
 	name = os.path.splitext(os.path.basename(location))[0]
-	ImageCommandAddImage(builder, builder.CreateString(name))
+	nameOffset = builder.CreateString(name)
+
+	ImageCommandStart(builder)
+	ImageCommandAddImage(builder, nameOffset)
 	ImageCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
 	ImageCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + size[0],
 		upperLeft[1] + size[1]))
@@ -562,36 +624,45 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 	ImageCommandAddTransform(builder, CreateMatrix33f(builder, transform[0][0], transform[0][1],
 		transform[0][2], transform[1][0], transform[1][1], transform[1][2], transform[2][0],
 		transform[2][1], transform[2][2]))
-	VectorCommandAddCommand(builder, ImageCommandEnd(builder))
-	VectorCommandEnd(builder)
+	commandOffset = ImageCommandEnd(builder)
+
+	VectorCommandStart(builder)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.ImageCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	return [VectorCommandEnd(builder)]
 
 def writeLines(builder, transform, style, points):
 	if not points:
-		return
+		return []
 
-	writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform)
+
+	MoveCommandStart(builder)
+	MoveCommandAddPosition(builder, CreateVector2f(builder, points[0][0], points[0][1]))
+	commandOffset = MoveCommandEnd(builder)
 
 	VectorCommandStart(builder)
 	VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
-	MoveCommandStart(builder)
-	MoveCommandAddPosition(builder, CreateVector2f(builder, points[0][0], points[0][1]))
-	VectorCommandAddCommand(builder, MoveCommandEnd(builder))
-	VectorCommandEnd(builder)
+	VectorCommandAddCommand(builder, commandOffset)
+	offsets.append(VectorCommandEnd(builder))
 
 	for point in points[1:]:
-		VectorCommandStart(builder)
-		VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
 		LineCommandStart(builder)
 		LineCommandAddEnd(builder, CreateVector2f(builder, point[0], point[1]))
-		VectorCommandAddCommand(builder, LineCommandEnd(builder))
+		commandOffset = LineCommandEnd(builder)
+
+		VectorCommandStart(builder)
+		VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
+		VectorCommandAddCommand(builder, commandOffset)
 		VectorCommandEnd(builder)
 
-	writeStyle(builder, style)
+	offsets.extend(style.write(builder))
+	return offsets
 
 def parsePointList(pointStr, size):
-	tokens = re.findall(r"[0-9.]+(cm|mm|Q|in|pc|pt|px|%)?", pointStr)
+	tokens = re.findall(r"[0-9.]+(?:cm|mm|Q|in|pc|pt|px|%)?", pointStr)
 	points = []
-	for i in range(len(tokens)/2):
+	for i in range(int(len(tokens)/2)):
 		points.append((sizeFromString(tokens[i*2], size[0]),
 			sizeFromString(tokens[i*2 + 1], size[1])))
 	return points
@@ -599,16 +670,16 @@ def parsePointList(pointStr, size):
 def writePolygon(builder, transform, style, pointStr, size):
 	points = parsePointList(pointStr, size)
 	if not points:
-		return
+		return []
 	points.append(points[0])
-	writeLines(builder, transform, style, points)
+	return writeLines(builder, transform, style, points)
 
 def writePolyline(builder, transform, style, pointStr, size):
 	points = parsePointList(pointStr, size)
-	writeLines(builder, transform, style, points)
+	return writeLines(builder, transform, style, points)
 
 def writePath(builder, transform, style, path, size, diagonalSize):
-	writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform)
 
 	tokens = re.findall(
 		r"[mMzZlLhHvVcCsSqQtTaAbB]|[0-9.]+(cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
@@ -632,12 +703,14 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					pos = (x, y)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
 				MoveCommandStart(builder)
 				MoveCommandAddPosition(builder, CreateVector2f(builder, pos[0], pos[1]))
-				VectorCommandAddCommand(builder, MoveCommandEnd(builder))
-				VectorCommandEnd(builder)
+				commandOffset = MoveCommandEnd(builder)
+
+				VectorCommandStart(builder)
+				VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
+				VectorCommandAddCommand(builder, commandOffset)
+				offsets.append(VectorCommandEnd(builder))
 
 				command = 'l'
 			elif command == 'l' or command == 'L' or command == 'h' or command == 'H' or \
@@ -655,12 +728,14 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				elif command == 'V':
 					pos = (pos[0], x)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
 				LineCommandStart(builder)
 				LineCommandAddEnd(builder, CreateVector2f(builder, pos[0], pos[1]))
-				VectorCommandAddCommand(builder, LineCommandEnd(builder))
-				VectorCommandEnd(builder)
+				commandOffset = LineCommandEnd(builder)
+
+				VectorCommandStart(builder)
+				VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
+				VectorCommandAddCommand(builder, commandOffset)
+				offsets.append(VectorCommandEnd(builder))
 			elif command == 'c' or command == 'C' or command == 's' or command == 'S':
 				if command == 's' or command == 'S':
 					if lastControlPos:
@@ -696,14 +771,16 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.BezierCommand)
 				BezierCommandStart(builder)
 				BezierCommandAddControl1(builder, CreateVector2f(builder, control1[0], control1[1]))
 				BezierCommandAddControl2(builder, CreateVector2f(builder, control2[0], control2[1]))
 				BezierCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				VectorCommandAddCommand(builder, BezierCommandEnd(builder))
-				VectorCommandEnd(builder)
+				commandOffset = BezierCommandEnd(builder)
+
+				VectorCommandStart(builder)
+				VectorCommandAddCommandType(builder, VectorCommandUnion.BezierCommand)
+				VectorCommandAddCommand(builder, commandOffset)
+				offsets.append(VectorCommandEnd(builder))
 
 				pos = end
 				lastControlPos = control2
@@ -728,13 +805,15 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.QuadraticCommand)
 				QuadraticCommandStart(builder)
 				QuadraticCommandAddControl(builder, CreateVector2f(builder, control[0], control[1]))
 				QuadraticCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				VectorCommandAddCommand(builder, QuadraticCommandEnd(builder))
-				VectorCommandEnd(builder)
+				commandOffset = QuadraticCommandEnd(builder)
+
+				VectorCommandStart(builder)
+				VectorCommandAddCommandType(builder, VectorCommandUnion.QuadraticCommand)
+				VectorCommandAddCommand(builder, commandOffset)
+				offsets.append(VectorCommandEnd(builder))
 
 				pos = end
 				lastQuadraticPos = control
@@ -755,27 +834,32 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				else:
 					end = (x, y)
 
-				VectorCommandStart(builder)
-				VectorCommandAddCommandType(builder, VectorCommandUnion.ArcCommand)
 				ArcCommandStart(builder)
 				ArcCommandAddRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
 				ArcCommandAddRotation(builder, rotation)
 				ArcCommandAddLargeArc(builder, largeArc)
 				ArcCommandAddClockwise(builder, sweep)
 				ArcCommandAddEnd(builder, CreateVector2f(builder, end[0], end[1]))
-				VectorCommandAddCommand(builder, ArcCommandEnd(builder))
-				VectorCommandEnd(builder)
+				commandOffset = ArcCommandEnd(builder)
+
+				VectorCommandStart(builder)
+				VectorCommandAddCommandType(builder, VectorCommandUnion.ArcCommand)
+				VectorCommandAddCommand(builder, commandOffset)
+				offsets.append(VectorCommandEnd(builder))
 
 				pos = end
 			elif command == 'b' or command == 'B':
 				raise Exception('Bearing currently not implemented. ' \
 					'It is generally not implemented by other SVG renderers either.')
 		elif tokens[index] == 'z' or tokens[index] == 'Z':
+			ClosePathCommandStart(builder)
+			commandOffset = ClosePathCommandEnd(builder)
+
 			VectorCommandStart(builder)
 			VectorCommandAddCommandType(builder, VectorCommandUnion.ClosePathCommand)
-			ClosePathCommandStart(builder)
-			VectorCommandAddCommand(builder, ClosePathCommandEnd(builder))
-			VectorCommandEnd(builder)
+			VectorCommandAddCommand(builder, commandOffset)
+			offsets.append(VectorCommandEnd(builder))
+
 			lastControlPos = None
 			lastQuadraticPos = None
 		else:
@@ -787,22 +871,26 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 			command = tokens[index]
 			index += 1
 
-	writeStyle(builder, style)
+	offsets.extend(style.write(builder))
+	return offsets
 
 def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
-	writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform)
 
-	VectorCommandStart(builder)
-	VectorCommandAddCommandType(builder, VectorCommandUnion.RectangleCommand)
 	RectangleCommandStart(builder)
 	RectangleCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
 	RectangleCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + rectSize[0],
 		upperLeft[1] + rectSize[1]))
 	RectangleCommandAddCornerRadius(builder, CreateVector2f(builder, radius[0], radius[1]))
-	VectorCommandAddCommand(builder, RectangleCommandEnd(builder))
-	VectorCommandEnd(builder)
+	commandOffset = RectangleCommandEnd(builder)
+
+	VectorCommandStart(builder)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.RectangleCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	offsets.append(VectorCommandEnd(builder))
 	
-	writeStyle(builder, style)
+	offsets.extend(style.write(builder))
+	return offsets
 
 def convertSVG(streamOrPath, outputFile):
 	"""
@@ -817,118 +905,108 @@ def convertSVG(streamOrPath, outputFile):
 
 	commands = []
 	for rootNode in svg.childNodes:
-		if rootNode.name == 'svg':
-			size = (sizeFromString(rootNode.getAttribute('width').value, 0.0),
-				sizeFromString(rootNode.getAttribute('height').value, 0.0))
+		if rootNode.tagName == 'svg':
+			size = (sizeFromString(rootNode.getAttribute('width'), 0.0),
+				sizeFromString(rootNode.getAttribute('height'), 0.0))
 			diagonalSize = math.sqrt(size[0]*size[0] + size[1]*size[1])/math.sqrt(2)
 			for node in rootNode.childNodes:
+				if node.nodeType != xml.dom.Node.ELEMENT_NODE:
+					continue
+
 				# Materials
-				if node.name == 'linearGradient':
+				if node.tagName == 'linearGradient':
 					gradient = LinearGradientMaterial(node, size)
 					materials.addLinearGradient(gradient)
-				if node.name == 'radialGradient':
+				if node.tagName == 'radialGradient':
 					gradient = RadialGradientMaterial(node, size, diagonalSize)
 					materials.addRadialGradient(gradient)
 				# Shapes
-				elif node.name == 'circle':
+				elif node.tagName == 'circle':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						center = (sizeFromString(node.getAttribute('cx').value, size[0]),
-							sizeFromString(node.getAttribute('cy').value, size[1])),
-						radius = sizeFromString(node.getAttribute('radius').value, diagonalSize):
+						center = (sizeFromString(node.getAttribute('cx'), size[0]),
+							sizeFromString(node.getAttribute('cy'), size[1])),
+						radius = sizeFromString(node.getAttribute('radius'), diagonalSize):
 						writeEllipse(builder, transform, style, center, (radius, radius)))
-				elif node.name == 'elipse':
+				elif node.tagName == 'elipse':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						center = (sizeFromString(node.getAttribute('cx').value, size[0]),
-							sizeFromString(node.getAttribute('cy').value, size[1])),
-						radius = (sizeFromString(node.getAttribute('rx').value, diagonalSize),
-							sizeFromString(node.getAttribute('ry').value, diagonalSize)):
+						center = (sizeFromString(node.getAttribute('cx'), size[0]),
+							sizeFromString(node.getAttribute('cy'), size[1])),
+						radius = (sizeFromString(node.getAttribute('rx'), diagonalSize),
+							sizeFromString(node.getAttribute('ry'), diagonalSize)):
 						writeEllipse(builder, transform, style, center, radius))
-				elif node.name == 'image':
+				elif node.tagName == 'image':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						upperLeft = (sizeFromString(node.getAttribute('x').value, size[0]),
-							sizeFromString(node.getAttribute('y').value, size[1])),
-						imageSize = (sizeFromString(node.getAttribute('width').value, size[0]),
-							sizeFromString(node.getAttribute('height').value, size[1])),
-						location = node.getAttribute('href').value:
+						upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
+							sizeFromString(node.getAttribute('y'), size[1])),
+						imageSize = (sizeFromString(node.getAttribute('width'), size[0]),
+							sizeFromString(node.getAttribute('height'), size[1])),
+						location = node.getAttribute('href'):
 						writeImage(builder, transform, style, upperLeft, imageSize, location))
-				elif node.name == 'line':
+				elif node.tagName == 'line':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						start = (sizeFromString(node.getAttribute('x1').value, size[0]),
-							sizeFromString(node.getAttribute('y1').value, size[1])),
-						end = (sizeFromString(node.getAttribute('x2').value, size[0]),
-							sizeFromString(node.getAttribute('y2').value, size[1])):
+						start = (sizeFromString(node.getAttribute('x1'), size[0]),
+							sizeFromString(node.getAttribute('y1'), size[1])),
+						end = (sizeFromString(node.getAttribute('x2'), size[0]),
+							sizeFromString(node.getAttribute('y2'), size[1])):
 						writeLines(builder, transform, style, [start, end]))
-				elif node.name == 'path':
+				elif node.tagName == 'path':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						path = node.getAttribute('d').value:
+						path = node.getAttribute('d'):
 						writePath(builder, transform, style, path, size, diagonalSize))
-				elif node.name == 'polygon':
+				elif node.tagName == 'polygon':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						points = node.getAttribute('points').value:
+						points = node.getAttribute('points'):
 						writePolygon(builder, transform, style, points, size))
-				elif node.name == 'polyline':
+				elif node.tagName == 'polyline':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						points = node.getAttribute('points').value:
+						points = node.getAttribute('points'):
 						writePolyline(builder, transform, style, points, size))
-				elif node.name == 'rect':
+				elif node.tagName == 'rect':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
-						upperLeft = (sizeFromString(node.getAttribute('x').value, size[0]),
-							sizeFromString(node.getAttribute('y').value, size[1])),
-						rectSize = (sizeFromString(node.getAttribute('width').value, size[0]),
-							sizeFromString(node.getAttribute('height').value, size[1])),
-						radius = (sizeFromString(node.getAttribute('rx').value, size[0]),
-							sizeFromString(node.getAttribute('ry').value, size[1])) \
+						upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
+							sizeFromString(node.getAttribute('y'), size[1])),
+						rectSize = (sizeFromString(node.getAttribute('width'), size[0]),
+							sizeFromString(node.getAttribute('height'), size[1])),
+						radius = (sizeFromString(node.getAttribute('rx'), size[0]),
+							sizeFromString(node.getAttribute('ry'), size[1])) \
 							if node.hasAttribute('rx') else (0.0, 0.0):
 						writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
 						
 		break
 	
 	builder = flatbuffers.Builder(0)
-	VectorImageStart(builder)
 
-	VectorImageStartColorMaterialsVector(builder, len(materials.colors))
-	for i in range(len(materials.colors)):
-		ColorMaterialStart(builder)
-		ColorMaterialAddName(builder, builder.CreateString(materials.getColorName(i)))
-		color = materials.colors[i]
-		ColorMaterialAddColor(builder,
-			CreateColor(builder, color[0], color[1], color[2], color[3]))
-		ColorMaterialEnd(builder)
-	VectorImageAddColorMaterials(builder, builder.EndVector(len(materials.colors)))
+	materials.write(builder)
 
-	VectorImageStartLinearGradientsVector(builder, len(materials.linearGradients))
-	for gradient in materials.linearGradients.values():
-		gradient.write(builder)
-	VectorImageAddLinearGradients(builder, builder.EndVector(len(materials.linearGradients)))
-
-	VectorImageStartRadialGradientsVector(builder, len(materials.radialGradients))
-	for gradient in materials.radialGradients.values():
-		gradient.write(builder)
-	VectorImageAddRadialGradients(builder, builder.EndVector(len(materials.radialGradients)))
-
-	VectorImageStartCommandsVector(builder, len(commands))
+	commandOffsets = []
 	for command in commands:
-		command(builder)
-	VectorImageAddCommands(builder, builder.EndVector(len(commands)))
+		commandOffsets.extend(command(builder))
 
+	VectorImageStartCommandsVector(builder, len(commandOffsets))
+	for offset in reversed(commandOffsets):
+		builder.PrependUOffsetTRelative(offset)
+	commandsOffset = builder.EndVector(len(commandOffsets))
+
+	VectorImageStart(builder)
+	materials.writeToVectorImage(builder)
+	VectorImageAddCommands(builder, commandsOffset)
 	VectorImageAddSize(builder, CreateVector2f(builder, size[0], size[1]))
-
 	builder.Finish(VectorImageEnd(builder))
 
 if __name__ == '__main__':

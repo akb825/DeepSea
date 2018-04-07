@@ -56,7 +56,7 @@ function(ds_convert_svg container)
 	endif()
 
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.cmake
+		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.py
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH}
 		COMMENT "Creating vector image: ${ARGS_OUTPUT}")

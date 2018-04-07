@@ -21,6 +21,8 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Vector2.h>
 #include <DeepSea/VectorDraw/Gradient.h>
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
@@ -255,7 +257,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
 	const DeepSeaVectorDraw::VectorImage* fbVectorImage, const dsVectorMaterialSet* sharedMaterials,
 	dsVectorMaterialSet* localMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, const char* name)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
+	const dsVector2f* targetSize, const char* name)
 {
 	auto commandList = fbVectorImage->commands();
 	uint32_t commandCount = commandList->size();
@@ -463,17 +466,25 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 		}
 	}
 
+	// If target size is set, adjust the pixel size by the target size relative to the original.
+	auto size = reinterpret_cast<const dsVector2f*>(fbVectorImage->size());
+	if (targetSize)
+	{
+		dsVector2f scale;
+		dsVector2_div(scale, *size, *targetSize);
+		pixelSize *= dsMin(scale.x, scale.y);
+	}
+
 	return dsVectorImage_create(allocator, scratchData, resourceManager, resourceAllocator,
-		commands, commandCount, sharedMaterials, localMaterials, shaderModule,
-		reinterpret_cast<const dsVector2f*>(fbVectorImage->size()), pixelSize);
+		commands, commandCount, sharedMaterials, localMaterials, shaderModule, size, pixelSize);
 }
 
 extern "C"
 dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize, bool srgb,
-	const char* name)
+	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
+	const dsVector2f* targetSize, bool srgb, const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
@@ -493,7 +504,7 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 
 	dsVectorImage* vectorImage = readVectorImage(allocator, scratchData, resourceManager,
 		resourceAllocator, fbVectorImage, sharedMaterials, localMaterials, shaderModule, resources,
-		resourceCount, pixelSize, name);
+		resourceCount, pixelSize, targetSize, name);
 	if (!vectorImage)
 	{
 		dsVectorMaterialSet_destroy(localMaterials);

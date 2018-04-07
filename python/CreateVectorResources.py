@@ -136,8 +136,8 @@ class VectorResources:
 			os.makedirs(resourceDir)
 
 		builder = flatbuffers.Builder(0)
-		ResourceSetStart(builder)
-		ResourceSetStartTexturesVector(builder, len(self.textures))
+
+		textureOffsets = []
 		for texture in self.textures:
 			path = texture['path']
 			if 'name' in texture:
@@ -169,22 +169,27 @@ class VectorResources:
 				print('Converting texture "' + path + '"...')
 			subprocess.check_call(commandLine)
 
-			ResourceStart(builder)
-			ResourceAddName(builder, builder.CreateString(name))
-			ResourceAddPath(builder, builder.CreateString(outputName))
-			ResourceEnd(builder)
-		ResourceSetAddTextures(builder, builder.EndVector(len(self.textures)))
+			nameOffset = builder.CreateString(name)
+			pathOffset = builder.CreateString(outputName)
 
+			ResourceStart(builder)
+			ResourceAddName(builder, nameOffset)
+			ResourceAddPath(builder, pathOffset)
+			textureOffsets.append(ResourceEnd(builder))
+
+		ResourceSetStartTexturesVector(builder, len(textureOffsets))
+		for offset in reversed(textureOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		texturesOffset = builder.EndVector(len(textureOffsets))
+
+		faceGroupOffsets = []
 		qualityValues = {'low': FaceGroupQuality.Low, 'medium': FaceGroupQuality.Medium,
 			'high': FaceGroupQuality.High, 'veryhigh': FaceGroupQuality.VeryHigh}
-		ResourceSetStartFaceGroupsVector(builder, len(self.faceGroups))
 		for faceGroup in self.faceGroups:
-			FaceGroupStart(builder)
-			FaceGroupAddName(builder, builder.CreateString(faceGroup['name']))
-			FaceGroupAddQuality(builder, qualityValues[faceGroup['quality'].lower()])
+			nameOffset = builder.CreateString(faceGroup['name'])
 
 			faces = faceGroup['faces']
-			FaceGroupStartFacesVector(builder, len(faces))
+			faceOffsets = []
 			for face in faces:
 				name = face['name']
 				path = face['path']
@@ -192,28 +197,60 @@ class VectorResources:
 				outputPath = os.path.join(root, outputName)
 				shutil.copyfile(os.path.join(self.basePath, path), outputPath)
 
-				ResourceStart(builder)
-				ResourceAddName(builder, builder.CreateString(name))
-				ResourceAddPath(builder, builder.CreateString(outputName))
-				ResourceEnd(builder)
-			FaceGroupAddFaces(builder, builder.EndVector(len(faces)))
-			FaceGroupEnd(builder)
-		ResourceSetAddFaceGroups(builder, builder.EndVector(len(self.faceGroups)))
+				nameOffset = builder.CreateString(name)
+				pathOffset = builder.CreateString(outputName)
 
-		ResourceSetStartFontsVector(builder, len(self.fonts))
+				ResourceStart(builder)
+				ResourceAddName(builder, nameOffset)
+				ResourceAddPath(builder, pathOffset)
+				faceOffsets.append(ResourceEnd(builder))
+
+			FaceGroupStartFacesVector(builder, len(faceOffsets))
+			for offset in reversed(faceOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			facesOffset = builder.EndVector(len(faceOffsets))
+
+			FaceGroupStart(builder)
+			FaceGroupAddName(builder, nameOffset)
+			FaceGroupAddQuality(builder, qualityValues[faceGroup['quality'].lower()])
+			FaceGroupAddFaces(builder, facesOffset)
+			faceGroupOffsets.append(FaceGroupEnd(builder))
+
+		ResourceSetStartFaceGroupsVector(builder, len(faceGroupOffsets))
+		for offset in reversed(faceGroupOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		faceGroupsOffset = builder.EndVector(len(faceGroupOffsets))
+
+		fontOffsets = []
 		for font in self.fonts:
-			FontStart(builder)
-			FontAddName(builder, builder.CreateString(font['name']))
-			FontAddFaceGroup(builder, builder.CreateString(font['faceGroup']))
+			nameOffset = builder.CreateString(font['name'])
+			faceGroupOffset = builder.CreateString(font['faceGroup'])
 
 			faces = font['faces']
-			FontStartFacesVector(builder, len(faces))
+			faceOffsets = []
 			for face in faces:
-				builder.CreateString(face)
-			FontAddFaces(builder, builder.EndVector(len(faces)))
-			FontEnd(builder)
-		ResourceSetAddFonts(builder, builder.EndVector(len(self.fonts)))
+				faceOffsets.append(builder.CreateString(face))
 
+			FontStartFacesVector(builder, len(faceOffsets))
+			for offset in reversed(faceOffsets):
+				builder.PrependUOffsetTRelative(offset)
+			facesOffset = builder.EndVector(len(faceGroupOffsets))
+
+			FontStart(builder)
+			FontAddName(builder, nameOffset)
+			FontAddFaceGroup(builder, faceGroupOffset)
+			FontAddFaces(builder, facesOffset)
+			fontOffsets.append(FontEnd(builder))
+
+		ResourceSetStartFontsVector(builder, len(fontOffsets))
+		for offset in reversed(fontOffsets):
+			builder.PrependUOffsetTRelative(offset)
+		fontsOffset = builder.EndVector(len(fontOffsets))
+
+		ResourceSetStart(builder)
+		ResourceSetAddTextures(builder, texturesOffset)
+		ResourceSetAddFaceGroups(builder, faceGroupsOffset)
+		ResourceSetAddFonts(builder, fontsOffset)
 		builder.Finish(ResourceSetEnd(builder))
 
 		with open(path, 'wb') as f:
