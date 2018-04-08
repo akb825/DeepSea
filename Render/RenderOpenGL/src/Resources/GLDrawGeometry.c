@@ -28,7 +28,7 @@
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <string.h>
 
-static void bindElements(dsGLDrawGeometry* geometry, uint32_t baseVertex, bool track)
+static void bindElements(dsGLDrawGeometry* geometry, int32_t baseVertex, bool track)
 {
 	dsDrawGeometry* baseGeometry = (dsDrawGeometry*)geometry;
 	dsResourceManager* resourceManager = baseGeometry->resourceManager;
@@ -117,6 +117,7 @@ dsDrawGeometry* dsGLDrawGeometry_create(dsResourceManager* resourceManager, dsAl
 	dsGLResource_initialize(&geometry->resource);
 	geometry->vao = 0;
 	geometry->vaoContext = 0;
+	geometry->lastBaseVertex = 0;
 
 	return baseGeometry;
 }
@@ -150,18 +151,22 @@ void dsGLDrawGeometry_bind(const dsDrawGeometry* geometry, int32_t baseVertex)
 	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;;
 	if (ANYGL_SUPPORTED(glGenVertexArrays))
 	{
-		DS_ASSERT(baseVertex == 0);
+		bool rebind = baseVertex != glGeometry->lastBaseVertex;
 
 		// Vertex array objects are tied to specific contexts.
 		dsGLRenderer* renderer = (dsGLRenderer*)geometry->resourceManager->renderer;
 		if (!glGeometry->vao || glGeometry->vaoContext != renderer->contextCount)
 		{
 			glGenVertexArrays(1, &glGeometry->vao);
-			glBindVertexArray(glGeometry->vao);
-			bindElements(glGeometry, baseVertex, false);
+			rebind = true;
 		}
-		else
-			glBindVertexArray(glGeometry->vao);
+
+		glBindVertexArray(glGeometry->vao);
+		if (rebind)
+		{
+			bindElements(glGeometry, baseVertex, false);
+			glGeometry->lastBaseVertex = baseVertex;
+		}
 	}
 	else
 		bindElements(glGeometry, baseVertex, true);

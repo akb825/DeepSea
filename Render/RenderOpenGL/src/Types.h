@@ -66,6 +66,7 @@ typedef struct dsGLDrawGeometry
 	dsGLResource resource;
 	GLuint vao;
 	uint32_t vaoContext;
+	int32_t lastBaseVertex;
 } dsGLDrawGeometry;
 
 typedef struct dsGLTexture
