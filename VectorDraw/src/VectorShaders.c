@@ -50,7 +50,9 @@ dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
 		return NULL;
 	}
 
-	dsPrimitiveType textType = dsPrimitiveType_TriangleList;
+	// TODO: Implement text.
+	dsShader* textShader = NULL;
+	/*dsPrimitiveType textType = dsPrimitiveType_TriangleList;
 	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
 		shaderModule->textShaderIndex, dsShaderStage_TessellationEvaluation))
 	{
@@ -64,7 +66,7 @@ dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
 		DS_VERIFY(dsShader_destroy(shapeShader));
 		DS_VERIFY(dsShader_destroy(imageShader));
 		return NULL;
-	}
+	}*/
 
 	dsVectorShaders* shaders = DS_ALLOCATE_OBJECT(allocator, dsVectorShaders);
 	if (!shaders)

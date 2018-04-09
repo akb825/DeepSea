@@ -484,7 +484,7 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb, const char* name)
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer, const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
@@ -500,6 +500,15 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 		fbVectorImage, srgb, name))
 	{
 		return nullptr;
+	}
+
+	if (commandBuffer)
+	{
+		if (!dsVectorMaterialSet_update(localMaterials, commandBuffer))
+		{
+			dsVectorMaterialSet_destroy(localMaterials);
+			return nullptr;
+		}
 	}
 
 	dsVectorImage* vectorImage = readVectorImage(allocator, scratchData, resourceManager,

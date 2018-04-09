@@ -25,8 +25,8 @@ enum class FaceGroupQuality : uint8_t {
   MAX = VeryHigh
 };
 
-inline FaceGroupQuality (&EnumValuesFaceGroupQuality())[4] {
-  static FaceGroupQuality values[] = {
+inline const FaceGroupQuality (&EnumValuesFaceGroupQuality())[4] {
+  static const FaceGroupQuality values[] = {
     FaceGroupQuality::Low,
     FaceGroupQuality::Medium,
     FaceGroupQuality::High,
@@ -35,8 +35,8 @@ inline FaceGroupQuality (&EnumValuesFaceGroupQuality())[4] {
   return values;
 }
 
-inline const char **EnumNamesFaceGroupQuality() {
-  static const char *names[] = {
+inline const char * const *EnumNamesFaceGroupQuality() {
+  static const char * const names[] = {
     "Low",
     "Medium",
     "High",
@@ -353,15 +353,30 @@ inline const DeepSeaVectorDraw::ResourceSet *GetResourceSet(const void *buf) {
   return flatbuffers::GetRoot<DeepSeaVectorDraw::ResourceSet>(buf);
 }
 
+inline const DeepSeaVectorDraw::ResourceSet *GetSizePrefixedResourceSet(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::ResourceSet>(buf);
+}
+
 inline bool VerifyResourceSetBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaVectorDraw::ResourceSet>(nullptr);
+}
+
+inline bool VerifySizePrefixedResourceSetBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::ResourceSet>(nullptr);
 }
 
 inline void FinishResourceSetBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<DeepSeaVectorDraw::ResourceSet> root) {
   fbb.Finish(root);
+}
+
+inline void FinishSizePrefixedResourceSetBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<DeepSeaVectorDraw::ResourceSet> root) {
+  fbb.FinishSizePrefixed(root);
 }
 
 }  // namespace DeepSeaVectorDraw

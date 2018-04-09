@@ -17,43 +17,65 @@
 #include <DeepSea/Core/Streams/Stream.h>
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Assert.h>
 #include <string.h>
 
 size_t dsStream_read(dsStream* stream, void* data, size_t size);
 
+
 void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream, dsAllocator* allocator)
 {
-	if (!outSize || !stream || !allocator)
+	void* buffer = NULL;
+	size_t capacity = 0;
+	if (!dsStream_readUntilEndReuse(&buffer, outSize, &capacity, stream, allocator))
 	{
-		errno = EINVAL;
+		if (buffer && allocator->freeFunc)
+			DS_VERIFY(dsAllocator_free(allocator, buffer));
 		return NULL;
 	}
 
-	uint8_t* data;
+	return buffer;
+}
+
+bool dsStream_readUntilEndReuse(void** buffer, size_t* size, size_t* capacity, dsStream* stream,
+	dsAllocator* allocator)
+{
+	if (!buffer || !size || !capacity || !stream || !allocator)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
 	if (stream->seekFunc && stream->tellFunc)
 	{
 		uint64_t position = dsStream_tell(stream);
 		if (position == DS_STREAM_INVALID_POS || !dsStream_seek(stream, 0, dsStreamSeekWay_End))
-			return NULL;
+			return false;
 
 		uint64_t end = dsStream_tell(stream);
 		if (end == DS_STREAM_INVALID_POS ||
 			!dsStream_seek(stream, position, dsStreamSeekWay_Beginning))
 		{
-			return NULL;
+			return false;
 		}
 
-		*outSize = (size_t)(end - position);
-		data = (uint8_t*)dsAllocator_alloc(allocator, *outSize);
-		if (!data)
-			return NULL;
-
-		size_t read = dsStream_read(stream, data, *outSize);
-		if (read != *outSize)
+		*size = (size_t)(end - position);
+		if (!*buffer || *size > *capacity)
 		{
-			dsAllocator_free(allocator, data);
+			void* newBuffer = (uint8_t*)dsAllocator_reallocWithFallback(allocator, *buffer,
+				*capacity, *size);
+			if (!newBuffer)
+				return false;
+
+			*buffer = newBuffer;
+			*capacity = *size;
+		}
+
+		size_t read = dsStream_read(stream, *buffer, *size);
+		if (read != *size)
+		{
 			errno = EIO;
-			return NULL;
+			return false;
 		}
 	}
 	else
@@ -61,42 +83,39 @@ void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream, dsAllocator* allo
 		if (!allocator->freeFunc)
 		{
 			errno = EINVAL;
-			return NULL;
+			return false;
 		}
 
-		*outSize = 0;
-		data = NULL;
-		size_t maxSize = 0;
-		uint8_t buffer[1024];
+		*size = 0;
+		uint8_t tempBuffer[1024];
 		do
 		{
-			size_t readSize = dsStream_read(stream, buffer, sizeof(buffer));
+			size_t readSize = dsStream_read(stream, tempBuffer, sizeof(tempBuffer));
 			if (readSize == 0)
 				break;
 
-			size_t newSize = *outSize + readSize;
-			if (maxSize < newSize)
+			size_t newSize = *size + readSize;
+			if (!*buffer || *size < *capacity)
 			{
-				maxSize *= 2;
-				if (maxSize < newSize)
-					maxSize = newSize;
+				size_t oldCapacity = *capacity;
+				*capacity *= 2;
+				if (*capacity < newSize)
+					*capacity = newSize;
 
-				uint8_t* newData = (uint8_t*)dsAllocator_reallocWithFallback(allocator, data,
-					*outSize, maxSize);
-				if (!newData)
-				{
-					dsAllocator_free(allocator, data);
-					return NULL;
-				}
-				data = newData;
+				uint8_t* newBuffer = (uint8_t*)dsAllocator_reallocWithFallback(allocator, *buffer,
+					oldCapacity, *capacity);
+				if (!newBuffer)
+					return false;
+
+				*buffer = newBuffer;
 			}
 
-			memcpy(data + *outSize, buffer, readSize);
-			*outSize = newSize;
+			memcpy((uint8_t*)*buffer + *size, tempBuffer, readSize);
+			*size = newSize;
 		} while (true);
 	}
 
-	return data;
+	return true;
 }
 
 size_t dsStream_write(dsStream* stream, const void* data, size_t size);

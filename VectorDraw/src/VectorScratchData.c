@@ -19,6 +19,7 @@
 #include "VectorScratchDataImpl.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Sort.h>
@@ -93,6 +94,7 @@ static bool addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* text
 			DS_ASSERT(false);
 			break;
 	}
+	data->pieces[index].texture = texture;
 
 	return true;
 }
@@ -402,6 +404,7 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 		return;
 
 	DS_ASSERT(data->allocator);
+	DS_VERIFY(dsAllocator_free(data->allocator, data->fileBuffer));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->tempCommands));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->points));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->shapeVertices));
@@ -437,6 +440,18 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 	data->polygonVertCount = 0;
 	data->polygonEdgeCount = 0;
 	data->loopVertCount = 0;
+}
+
+void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
+	dsAllocator* allocator)
+{
+	if (!dsStream_readUntilEndReuse(&data->fileBuffer, outSize, &data->fileBufferCapacity, stream,
+		allocator))
+	{
+		return NULL;
+	}
+
+	return data->fileBuffer;
 }
 
 dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,

@@ -68,8 +68,8 @@ enum class GradientEdge : uint8_t {
   MAX = Mirror
 };
 
-inline GradientEdge (&EnumValuesGradientEdge())[3] {
-  static GradientEdge values[] = {
+inline const GradientEdge (&EnumValuesGradientEdge())[3] {
+  static const GradientEdge values[] = {
     GradientEdge::Clamp,
     GradientEdge::Repeat,
     GradientEdge::Mirror
@@ -77,8 +77,8 @@ inline GradientEdge (&EnumValuesGradientEdge())[3] {
   return values;
 }
 
-inline const char **EnumNamesGradientEdge() {
-  static const char *names[] = {
+inline const char * const *EnumNamesGradientEdge() {
+  static const char * const names[] = {
     "Clamp",
     "Repeat",
     "Mirror",
@@ -99,16 +99,16 @@ enum class MaterialSpace : uint8_t {
   MAX = Bounds
 };
 
-inline MaterialSpace (&EnumValuesMaterialSpace())[2] {
-  static MaterialSpace values[] = {
+inline const MaterialSpace (&EnumValuesMaterialSpace())[2] {
+  static const MaterialSpace values[] = {
     MaterialSpace::Local,
     MaterialSpace::Bounds
   };
   return values;
 }
 
-inline const char **EnumNamesMaterialSpace() {
-  static const char *names[] = {
+inline const char * const *EnumNamesMaterialSpace() {
+  static const char * const names[] = {
     "Local",
     "Bounds",
     nullptr
@@ -129,8 +129,8 @@ enum class LineJoin : uint8_t {
   MAX = Round
 };
 
-inline LineJoin (&EnumValuesLineJoin())[3] {
-  static LineJoin values[] = {
+inline const LineJoin (&EnumValuesLineJoin())[3] {
+  static const LineJoin values[] = {
     LineJoin::Miter,
     LineJoin::Bevel,
     LineJoin::Round
@@ -138,8 +138,8 @@ inline LineJoin (&EnumValuesLineJoin())[3] {
   return values;
 }
 
-inline const char **EnumNamesLineJoin() {
-  static const char *names[] = {
+inline const char * const *EnumNamesLineJoin() {
+  static const char * const names[] = {
     "Miter",
     "Bevel",
     "Round",
@@ -161,8 +161,8 @@ enum class LineCap : uint8_t {
   MAX = Square
 };
 
-inline LineCap (&EnumValuesLineCap())[3] {
-  static LineCap values[] = {
+inline const LineCap (&EnumValuesLineCap())[3] {
+  static const LineCap values[] = {
     LineCap::Butt,
     LineCap::Round,
     LineCap::Square
@@ -170,8 +170,8 @@ inline LineCap (&EnumValuesLineCap())[3] {
   return values;
 }
 
-inline const char **EnumNamesLineCap() {
-  static const char *names[] = {
+inline const char * const *EnumNamesLineCap() {
+  static const char * const names[] = {
     "Butt",
     "Round",
     "Square",
@@ -193,8 +193,8 @@ enum class TextPosition : uint8_t {
   MAX = Absolute
 };
 
-inline TextPosition (&EnumValuesTextPosition())[3] {
-  static TextPosition values[] = {
+inline const TextPosition (&EnumValuesTextPosition())[3] {
+  static const TextPosition values[] = {
     TextPosition::Unused,
     TextPosition::Offset,
     TextPosition::Absolute
@@ -202,8 +202,8 @@ inline TextPosition (&EnumValuesTextPosition())[3] {
   return values;
 }
 
-inline const char **EnumNamesTextPosition() {
-  static const char *names[] = {
+inline const char * const *EnumNamesTextPosition() {
+  static const char * const names[] = {
     "Unused",
     "Offset",
     "Absolute",
@@ -225,8 +225,8 @@ enum class TextJustification : uint8_t {
   MAX = Center
 };
 
-inline TextJustification (&EnumValuesTextJustification())[3] {
-  static TextJustification values[] = {
+inline const TextJustification (&EnumValuesTextJustification())[3] {
+  static const TextJustification values[] = {
     TextJustification::Left,
     TextJustification::Right,
     TextJustification::Center
@@ -234,8 +234,8 @@ inline TextJustification (&EnumValuesTextJustification())[3] {
   return values;
 }
 
-inline const char **EnumNamesTextJustification() {
-  static const char *names[] = {
+inline const char * const *EnumNamesTextJustification() {
+  static const char * const names[] = {
     "Left",
     "Right",
     "Center",
@@ -270,8 +270,8 @@ enum class VectorCommandUnion : uint8_t {
   MAX = ImageCommand
 };
 
-inline VectorCommandUnion (&EnumValuesVectorCommandUnion())[16] {
-  static VectorCommandUnion values[] = {
+inline const VectorCommandUnion (&EnumValuesVectorCommandUnion())[16] {
+  static const VectorCommandUnion values[] = {
     VectorCommandUnion::NONE,
     VectorCommandUnion::StartPathCommand,
     VectorCommandUnion::MoveCommand,
@@ -292,8 +292,8 @@ inline VectorCommandUnion (&EnumValuesVectorCommandUnion())[16] {
   return values;
 }
 
-inline const char **EnumNamesVectorCommandUnion() {
-  static const char *names[] = {
+inline const char * const *EnumNamesVectorCommandUnion() {
+  static const char * const names[] = {
     "NONE",
     "StartPathCommand",
     "MoveCommand",
@@ -722,7 +722,7 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradient(
 inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<const GradientStop *> *gradient = nullptr,
+    const std::vector<GradientStop> *gradient = nullptr,
     const Vector2f *start = 0,
     const Vector2f *end = 0,
     GradientEdge edge = GradientEdge::Clamp,
@@ -731,7 +731,7 @@ inline flatbuffers::Offset<LinearGradient> CreateLinearGradientDirect(
   return DeepSeaVectorDraw::CreateLinearGradient(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
-      gradient ? _fbb.CreateVector<const GradientStop *>(*gradient) : 0,
+      gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0,
       start,
       end,
       edge,
@@ -869,7 +869,7 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradient(
 inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    const std::vector<const GradientStop *> *gradient = nullptr,
+    const std::vector<GradientStop> *gradient = nullptr,
     const Vector2f *center = 0,
     float radius = 0.0f,
     const Vector2f *focus = 0,
@@ -880,7 +880,7 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
   return DeepSeaVectorDraw::CreateRadialGradient(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
-      gradient ? _fbb.CreateVector<const GradientStop *>(*gradient) : 0,
+      gradient ? _fbb.CreateVectorOfStructs<GradientStop>(*gradient) : 0,
       center,
       radius,
       focus,
@@ -2332,6 +2332,7 @@ inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void
 }
 
 inline bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types) {
+  if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
     if (!VerifyVectorCommandUnion(
@@ -2346,15 +2347,30 @@ inline const DeepSeaVectorDraw::VectorImage *GetVectorImage(const void *buf) {
   return flatbuffers::GetRoot<DeepSeaVectorDraw::VectorImage>(buf);
 }
 
+inline const DeepSeaVectorDraw::VectorImage *GetSizePrefixedVectorImage(const void *buf) {
+  return flatbuffers::GetSizePrefixedRoot<DeepSeaVectorDraw::VectorImage>(buf);
+}
+
 inline bool VerifyVectorImageBuffer(
     flatbuffers::Verifier &verifier) {
   return verifier.VerifyBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
+}
+
+inline bool VerifySizePrefixedVectorImageBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifySizePrefixedBuffer<DeepSeaVectorDraw::VectorImage>(nullptr);
 }
 
 inline void FinishVectorImageBuffer(
     flatbuffers::FlatBufferBuilder &fbb,
     flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
   fbb.Finish(root);
+}
+
+inline void FinishSizePrefixedVectorImageBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<DeepSeaVectorDraw::VectorImage> root) {
+  fbb.FinishSizePrefixed(root);
 }
 
 }  // namespace DeepSeaVectorDraw

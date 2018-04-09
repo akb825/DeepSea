@@ -58,10 +58,11 @@ function(ds_create_vector_resources container)
 		set(workingDir "")
 	endif()
 
+	set(createVectorResources ${DEEPSEA_SOURCE_DIR}/python/CreateVectorResources.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/CreateVectorResources.py
+		COMMAND ${PYTHON_EXECUTABLE} ARGS ${createVectorResources}
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -j
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH}
+		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${createVectorResources}
 		COMMENT "Creating vector resources: ${ARGS_OUTPUT}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

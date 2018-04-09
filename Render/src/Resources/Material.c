@@ -114,14 +114,17 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 	if (type != material->description->elements[element].type)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type doesn't match material element type.");
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Type doesn't match material element type for %s.",
+			material->description->elements[element].name);
 		return false;
 	}
 
 	if (type >= dsMaterialType_Texture)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Type must be a primitive, vector, or matrix type.");
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG,
+			"Type must be a primitive, vector, or matrix type for %s.",
+			material->description->elements[element].name);
 		return false;
 	}
 
@@ -131,7 +134,8 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 	if (!DS_IS_BUFFER_RANGE_VALID(firstIndex, count, maxCount))
 	{
 		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy too many elements.");
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Attempting to copy too many elements for %s.",
+			material->description->elements[element].name);
 		return false;
 	}
 

@@ -169,6 +169,9 @@ struct dsVectorScratchData
 {
 	dsAllocator* allocator;
 
+	void* fileBuffer;
+	size_t fileBufferCapacity;
+
 	dsVectorCommand* tempCommands;
 	uint32_t maxTempCommands;
 
@@ -238,6 +241,9 @@ struct dsVectorScratchData
 };
 
 void dsVectorScratchData_reset(dsVectorScratchData* data);
+
+void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
+	dsAllocator* allocator);
 
 dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
 	uint32_t commandCount);

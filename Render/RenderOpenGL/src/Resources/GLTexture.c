@@ -732,6 +732,9 @@ bool dsGLTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 
 GLenum dsGLTexture_target(const dsTexture* texture)
 {
+	if (!texture)
+		return GL_TEXTURE_2D;
+
 	switch (texture->dimension)
 	{
 		case dsTextureDim_1D:
@@ -808,8 +811,10 @@ void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffe
 			glTexture->drawBufferId);
 	}
 	else
+	{
 		dsGLTexture_bindFramebufferTextureAttachment(texture, framebuffer, attachment, mipLevel,
 			layer);
+	}
 }
 
 void dsGLTexture_bindFramebufferTexture(dsTexture* texture, GLenum framebuffer, uint32_t mipLevel,

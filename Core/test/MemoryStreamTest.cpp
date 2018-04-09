@@ -190,3 +190,85 @@ TEST(MemoryStream, ReadUntilEndNoSeek)
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }
+
+TEST(MemoryStream, ReadUntilEndReuse)
+{
+	dsSystemAllocator allocator;
+	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsMemoryStream stream;
+	int32_t buffer[3] = {0, 1, 2};
+
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+
+	void* readData = NULL;
+	size_t size = 0;
+	size_t capacity = 0;
+	ASSERT_TRUE(dsStream_readUntilEndReuse(&readData, &size, &capacity, (dsStream*)&stream,
+		(dsAllocator*)&allocator));
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(readData);
+	uint32_t* data = (uint32_t*)readData;
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsMemoryStream_close(&stream));
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+
+	ASSERT_TRUE(dsStream_readUntilEndReuse(&readData, &size, &capacity, (dsStream*)&stream,
+		(dsAllocator*)&allocator));
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(readData);
+	data = (uint32_t*)readData;
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+}
+
+TEST(MemoryStream, ReadUntilEndNoSeekReuse)
+{
+	dsSystemAllocator allocator;
+	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+
+	dsMemoryStream stream;
+	int32_t buffer[3] = {0, 1, 2};
+
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+	((dsStream*)&stream)->seekFunc = NULL;
+
+	void* readData = NULL;
+	size_t size = 0;
+	size_t capacity = 0;
+	ASSERT_TRUE(dsStream_readUntilEndReuse(&readData, &size, &capacity, (dsStream*)&stream,
+		(dsAllocator*)&allocator));
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(readData);
+	uint32_t* data = (uint32_t*)readData;
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsMemoryStream_close(&stream));
+	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
+	EXPECT_TRUE(dsMemoryStream_seek(&stream, sizeof(uint32_t), dsStreamSeekWay_Current));
+	((dsStream*)&stream)->seekFunc = NULL;
+
+	ASSERT_TRUE(dsStream_readUntilEndReuse(&readData, &size, &capacity, (dsStream*)&stream,
+		(dsAllocator*)&allocator));
+	ASSERT_EQ(sizeof(uint32_t)*2, size);
+	ASSERT_TRUE(readData);
+	data = (uint32_t*)readData;
+
+	EXPECT_EQ(1, data[0]);
+	EXPECT_EQ(2, data[1]);
+
+	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
+	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
+}

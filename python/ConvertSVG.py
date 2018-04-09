@@ -654,7 +654,7 @@ def writeLines(builder, transform, style, points):
 		VectorCommandStart(builder)
 		VectorCommandAddCommandType(builder, VectorCommandUnion.LineCommand)
 		VectorCommandAddCommand(builder, commandOffset)
-		VectorCommandEnd(builder)
+		offsets.append(VectorCommandEnd(builder))
 
 	offsets.extend(style.write(builder))
 	return offsets
@@ -1008,6 +1008,9 @@ def convertSVG(streamOrPath, outputFile):
 	VectorImageAddCommands(builder, commandsOffset)
 	VectorImageAddSize(builder, CreateVector2f(builder, size[0], size[1]))
 	builder.Finish(VectorImageEnd(builder))
+
+	with open(outputFile, 'wb') as f:
+		f.write(builder.Output())
 
 if __name__ == '__main__':
 	# Avoid parsing issues due to locale.

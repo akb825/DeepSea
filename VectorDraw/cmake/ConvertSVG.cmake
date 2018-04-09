@@ -55,10 +55,11 @@ function(ds_convert_svg container)
 		set(workingDir "")
 	endif()
 
+	set(convertSvg ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
-		COMMAND ${PYTHON_EXECUTABLE} ARGS ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.py
+		COMMAND ${PYTHON_EXECUTABLE} ARGS ${convertSvg}
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT}
-		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH}
+		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
 		COMMENT "Creating vector image: ${ARGS_OUTPUT}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

@@ -703,7 +703,7 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UScaled);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
@@ -863,7 +863,8 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb, const char* name);
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer,
+	const char* name);
 
 dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData* scratchData,
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
@@ -976,6 +977,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 
 	image->sharedMaterials = sharedMaterials;
 	image->localMaterials = localMaterials;
+	image->size = *size;
 	return image;
 }
 
@@ -983,7 +985,7 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchDat
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const char* filePath,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb)
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1005,7 +1007,8 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchDat
 	}
 
 	size_t size;
-	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&fileStream, scratchData->allocator);
+	void* buffer = dsVectorScratchData_readUntilEnd(&size, scratchData, (dsStream*)&fileStream,
+		scratchData->allocator);
 	dsFileStream_close(&fileStream);
 	if (!buffer)
 	{
@@ -1014,7 +1017,7 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsVectorScratchDat
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, targetSize, srgb, filePath);
+		pixelSize, targetSize, srgb, commandBuffer, filePath);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
@@ -1022,7 +1025,7 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchD
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, dsStream* stream,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb)
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1037,7 +1040,8 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchD
 		resourceAllocator = allocator;
 
 	size_t size;
-	void* buffer = dsStream_readUntilEnd(&size, stream, scratchData->allocator);
+	void* buffer = dsVectorScratchData_readUntilEnd(&size, scratchData, stream,
+		scratchData->allocator);
 	if (!buffer)
 	{
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -1045,7 +1049,7 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsVectorScratchD
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, buffer, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, targetSize, srgb, NULL);
+		pixelSize, targetSize, srgb, commandBuffer, NULL);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
@@ -1053,7 +1057,7 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsVectorScratchDat
 	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
 	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb)
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1069,7 +1073,7 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsVectorScratchDat
 
 	dsVectorImage* image = dsVectorImage_loadImpl(allocator, scratchData, resourceManager,
 		resourceAllocator, data, size, sharedMaterials, shaderModule, resources, resourceCount,
-		pixelSize, targetSize, srgb, NULL);
+		pixelSize, targetSize, srgb, commandBuffer, NULL);
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
@@ -1197,6 +1201,18 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
 
 	return success;
+}
+
+bool dsVectorImage_getSize(dsVector2f* outSize, const dsVectorImage* vectorImage)
+{
+	if (!outSize || !vectorImage)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	*outSize = vectorImage->size;
+	return true;
 }
 
 const dsVectorMaterialSet* dsVectorImage_getSharedMaterials(const dsVectorImage* vectorImage)

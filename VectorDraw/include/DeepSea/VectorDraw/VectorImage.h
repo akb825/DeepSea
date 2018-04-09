@@ -76,6 +76,10 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
  * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
  *     image size for calculating the tessellation quality.
  * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
+ * @param commandBuffer The command buffer to update the loaded material set with. This may be NULL,
+ *     but calling code will be responsible to call
+ *     dsMaterialSet_update(dsVectorImage_getLocalMaterials(image), commandBuffer) outside of a
+ *     render pass.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator,
@@ -83,7 +87,7 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocato
 	dsAllocator* resourceAllocator, const char* filePath,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb);
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Loads a vector image from a stream.
@@ -104,13 +108,18 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocato
  * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
  *     image size for calculating the tessellation quality.
  * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
+ * @param commandBuffer The command buffer to update the loaded material set with. This may be NULL,
+ *     but calling code will be responsible to call
+ *     dsMaterialSet_update(dsVectorImage_getLocalMaterials(image), commandBuffer) outside of a
+ *     render pass.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator,
 	dsVectorScratchData* scratchData, dsResourceManager* resourceManager,
 	dsAllocator* resourceAllocator, dsStream* stream, const dsVectorMaterialSet* sharedMaterials,
 	dsVectorShaderModule* shaderModule, const dsVectorResources** resources,
-	uint32_t resourceCount, float pixelSize, const dsVector2f* targetSize, bool srgb);
+	uint32_t resourceCount, float pixelSize, const dsVector2f* targetSize, bool srgb,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Loads a vector image from a data buffer.
@@ -131,6 +140,10 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* alloca
  * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
  *     image size for calculating the tessellation quality.
  * @param srgb True if the materials loaded with the vector image should be interpreted as sRGB.
+ * @param commandBuffer The command buffer to update the loaded material set with. This may be NULL,
+ *     but calling code will be responsible to call
+ *     dsMaterialSet_update(dsVectorImage_getLocalMaterials(image), commandBuffer) outside of a
+ *     render pass.
  * @return The created vector image, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator,
@@ -138,7 +151,7 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocato
 	dsAllocator* resourceAllocator, const void* data, size_t size,
 	const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
 	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb);
+	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Draws a vector image.
@@ -159,6 +172,16 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
 	dsCommandBuffer* commandBuffer, const dsVectorShaders* shaders, dsMaterial* material,
 	const dsMatrix44f* modelViewProjection, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates);
+
+/**
+ * @brief Gets the size of a vector image.
+ * @remark errno will be set on failure.
+ * @param[out] outSize The size of the vector image.
+ * @param vectorImage The vector image to get the size of.
+ * @return False if the parameters are invalid.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorImage_getSize(dsVector2f* outSize,
+	const dsVectorImage* vectorImage);
 
 /**
  * @brief Gets the shared materials used by the vector image.

@@ -72,15 +72,15 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 
 	dsMaterialElement materialElements[] =
 	{
-		{shapeInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{sharedMaterialInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{sharedMaterialColorName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{localMaterialInfoName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{localMaterialColorName, dsMaterialType_Texture, 0, NULL, true, 0},
-		{otherTextureName, dsMaterialType_Texture, 0, NULL, true, 0},
+		{shapeInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{sharedMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{sharedMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{localMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{localMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{otherTextureName, dsMaterialType_Texture, 0, NULL, false, 0},
 		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, false, 0},
 		{sizeName, dsMaterialType_Vec2, 0, NULL, false, 0},
-		{textureSizesName, dsMaterialType_Vec3, 0,NULL, false, 0}
+		{textureSizesName, dsMaterialType_Vec2, 0,NULL, false, 0}
 	};
 	dsMaterialElement* finalMaterialElements = materialElements;
 	uint32_t finalMaterialElementCount = DS_ARRAY_SIZE(materialElements);
@@ -133,12 +133,13 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 			imageShaderName);
 		found = false;
 	}
-	if (textIndex == DS_MATERIAL_UNKNOWN)
+	// TODO: Implement text.
+	/*if (textIndex == DS_MATERIAL_UNKNOWN)
 	{
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
 			textShaderName);
 		found = false;
-	}
+	}*/
 
 	if (!found)
 	{

@@ -254,7 +254,7 @@ class VectorResources:
 		builder.Finish(ResourceSetEnd(builder))
 
 		with open(path, 'wb') as f:
-			f.write(builder.Output)
+			f.write(builder.Output())
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description =

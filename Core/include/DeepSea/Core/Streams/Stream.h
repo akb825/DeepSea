@@ -54,6 +54,21 @@ DS_CORE_EXPORT void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream,
 	dsAllocator* allocator);
 
 /**
+ * @brief Reads from the current position in the stream until the end, re-using the buffer when
+ *     possible.
+ * @remark errno will be set on failure.
+ * @param[inout] buffer A pointer to the buffer. This may initially point to a non-null value, in
+ *     which case the memory will be re-used if possible.
+ * @param[inout] size The size of the buffer corresponding to the read data.
+ * @param[inout] capacity The total allocated size of the buffer.
+ * @param stream The stream to read from.
+ * @param allocator The allocator to create the buffer with.
+ * @return False if an error occurred.
+ */
+DS_CORE_EXPORT bool dsStream_readUntilEndReuse(void** buffer, size_t* size, size_t* capacity,
+	dsStream* stream, dsAllocator* allocator);
+
+/**
  * @brief Writes to a stream.
  * @remark errno will be set on failure.
  * @param stream The stream to write to.
