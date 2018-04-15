@@ -32,10 +32,12 @@ endif()
 
 enable_testing()
 
-if (DEEPSEA_SINGLE_SHARED)
-	# NOTE: Need at least one source to prevent CMake warning.
-	add_library(deepsea ${DEEPSEA_LIB} CMakeLists.txt)
-endif()
+function(ds_start_modules)
+	if (DEEPSEA_SINGLE_SHARED)
+		# NOTE: Need at least one source to prevent CMake warning.
+		add_library(deepsea ${DEEPSEA_LIB} "")
+	endif()
+endfunction()
 
 function(ds_set_folder target folderName)
 	if (DEEPSEA_ROOT_FOLDER AND folderName)
@@ -84,30 +86,37 @@ function(ds_setup_filters)
 endfunction()
 
 macro(ds_add_module moduleName)
-	set(DEEPSEA_MODULES ${DEEPSEA_MODULES} ${moduleName})
+	set_property(GLOBAL APPEND PROPERTY DEEPSEA_MODULES ${moduleName})
 	add_subdirectory(${moduleName})
 endmacro()
 
 macro(ds_finish_modules)
 	if (DEEPSEA_SINGLE_SHARED)
-		if (DEEPSEA_EXTERNAL_SOURCES)
+		get_property(sources GLOBAL PROPERTY DEEPSEA_SOURCES)
+		get_property(externalSources GLOBAL PROPERTY DEEPSEA_EXTERNAL_SOURCES)
+		get_property(modules GLOBAL PROPERTY DEEPSEA_MODULES)
+		get_property(externalLibraries GLOBAL PROPERTY DEEPSEA_EXTERNAL_LIBRARIES)
+
+		if (externalSources)
 			if (MSVC)
-				set_source_files_properties(${DEEPSEA_EXTERNAL_SOURCES} PROPERTIES
-					COMPILE_FLAGS /w)
+				set_source_files_properties(${externalSources} PROPERTIES COMPILE_FLAGS /w)
 			else()
-				set_source_files_properties(${DEEPSEA_EXTERNAL_SOURCES} PROPERTIES
-					COMPILE_FLAGS -w)
+				set_source_files_properties(${externalSources} PROPERTIES COMPILE_FLAGS -w)
 			endif()
 		endif()
-		foreach (module ${DEEPSEA_MODULES})
-			ds_setup_filters(${DEEPSEA_${module}_FILTERS})
+
+		foreach (module ${modules})
+			get_property(filters GLOBAL PROPERTY DEEPSEA_${module}_FILTERS)
+			ds_setup_filters(${filters})
 			if (DEEPSEA_${module}_EXTERNAL_FILTERS)
-				ds_setup_filters(${DEEPSEA_${module}_EXTERNAL_FILTERS})
+				get_property(filters GLOBAL PROPERTY DEEPSEA_${module}_EXTERNAL_FILTERS)
+				ds_setup_filters(${filters})
 			endif()
 		endforeach()
-		target_sources(deepsea PRIVATE ${DEEPSEA_SOURCES} ${DEEPSEA_EXTERNAL_SOURCES})
-		target_link_libraries(deepsea ${DEEPSEA_EXTERNAL_LIBRARIES})
-		ds_set_folder(deepsea libs)
+
+		target_sources(deepsea PRIVATE ${sources} ${externalSources})
+		target_link_libraries(deepsea ${externalLibraries})
+		ds_set_folder(deepsea modules)
 	endif()
 endmacro()
 
@@ -126,21 +135,21 @@ macro(ds_add_library target)
 		add_library(${target} INTERFACE)
 		target_link_libraries(${target} INTERFACE deepsea ${ARGS_DEPENDS})
 
-		set(DEEPSEA_SOURCES ${DEEPSEA_SOURCES} ${ARGS_FILES} PARENT_SCOPE)
-		set(DEEPSEA_EXTERNAL_SOURCES ${DEEPSEA_EXTERNAL_SOURCES} ${ARGS_EXTERNAL_FILES}
-			PARENT_SCOPE)
+		set_property(GLOBAL APPEND PROPERTY DEEPSEA_SOURCES ${ARGS_FILES})
+		set_property(GLOBAL APPEND PROPERTY DEEPSEA_EXTERNAL_SOURCES ${ARGS_EXTERNAL_FILES})
 
 		set_source_files_properties(${ARGS_FILES} PROPERTIES COMPILE_FLAGS -w)
 		target_include_directories(deepsea PUBLIC
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
-		set(DEEPSEA_${ARGS_MODULE}_FILTERS SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
-			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
-			FILES ${ARGS_FILES} FOLDER ${mainModule} PARENT_SCOPE)
+		set_property(GLOBAL PROPERTY DEEPSEA_${ARGS_MODULE}_FILTERS SRC_DIR
+			${CMAKE_CURRENT_SOURCE_DIR}/src INCLUDE_DIR
+			${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
+			FILES ${ARGS_FILES} FOLDER ${mainModule})
 		if (ARGS_EXTERNAL_FILES)
-			set(DEEPSEA_${ARGS_MODULE}_EXTERNAL_FILTERS SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}
-				FILES ${ARGS_EXTERNAL_FILES} PARENT_SCOPE)
+			set_property(GLOBAL PROPERTY DEEPSEA_${ARGS_MODULE}_EXTERNAL_FILTERS SRC_DIR
+				${CMAKE_CURRENT_SOURCE_DIR} FILES ${ARGS_EXTERNAL_FILES})
 		endif()
 	else()
 		# NOTE: This only takes affect if set in the same scope as the target was created.
@@ -155,20 +164,19 @@ macro(ds_add_library target)
 		add_library(${target} ${DEEPSEA_LIB} ${ARGS_FILES} ${ARGS_EXTERNAL_FILES})
 		target_link_libraries(${target} PUBLIC ${ARGS_DEPENDS})
 
-		ds_set_folder(${target} libs)
+		ds_set_folder(${target} modules)
 		ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src
 			INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${ARGS_MODULE}
 			FILES ${ARGS_FILES})
 		if (ARGS_EXTERNAL_FILES)
-			ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}
-				FILES ${ARGS_EXTERNAL_FILES})
+			ds_setup_filters(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ARGS_EXTERNAL_FILES})
 		endif()
 	endif()
 endmacro()
 
 macro(ds_target_link_libraries target)
 	if (DEEPSEA_SINGLE_SHARED)
-		set(DEEPSEA_EXTERNAL_LIBRARIES ${DEEPSEA_EXTERNAL_LIBRARIES} ${ARGN} PARENT_SCOPE)
+		set_property(GLOBAL APPEND PROPERTY DEEPSEA_EXTERNAL_LIBRARIES ${ARGN})
 	else()
 		target_link_libraries(${target} ${ARGN})
 	endif()

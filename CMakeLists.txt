@@ -38,6 +38,16 @@ set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
 
+# Call this function to get the following variables:
+# DEEPSEA_SOURCE_DIR: Root source directory for DeepSea.
+# DEEPSEA_MODULE_DIR: Root directory for the modules of DeepSea.
+# DEEPSEA_MODULES: The list of mudles. These can be used as paths relative to DEEPSEA_MODULE_DIR.
+macro(ds_get_variables)
+	get_property(DEEPSEA_SOURCE_DIR GLOBAL PROPERTY DEEPSEA_SOURCE_DIR)
+	get_property(DEEPSEA_MODULE_DIR GLOBAL PROPERTY DEEPSEA_MODULE_DIR)
+	get_property(DEEPSEA_MODULES GLOBAL PROPERTY DEEPSEA_MODULES)
+endmacro()
+
 if (DEEPSEA_BUILD_TESTS)
 	find_package(GTest QUIET)
 	if (NOT GTEST_FOUND)
@@ -72,48 +82,19 @@ set(DEEPSEA_PATCH_VERSION 1)
 set(DEEPSEA_VERSION ${DEEPSEA_MAJOR_VERSION}.${DEEPSEA_MINOR_VERSION}.${DEEPSEA_PATCH_VERSION})
 
 set(DEEPSEA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(DEEPSEA_MODULE_DIR ${DEEPSEA_SOURCE_DIR}/modules)
+set_property(GLOBAL PROPERTY DEEPSEA_SOURCE_DIR ${DEEPSEA_SOURCE_DIR})
+set_property(GLOBAL PROPERTY DEEPSEA_MODULE_DIR ${DEEPSEA_MODULE_DIR})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${DEEPSEA_SOURCE_DIR}/cmake)
 include(cmake/config.cmake)
 include(cmake/install.cmake)
 
-# Required libraries.
-ds_add_module(Core)
-ds_add_module(Math)
-
-# Render libraries
-if (DEEPSEA_BUILD_RENDER)
-	ds_add_module(Geometry)
-	ds_add_module(Render)
-	if (DEEPSEA_BUILD_RENDER_MOCK)
-		ds_add_module(Render/RenderMock)
-	endif()
-	if (DEEPSEA_BUILD_RENDER_OPENGL)
-		ds_add_module(Render/RenderOpenGL)
-	endif()
-
-	if (DEEPSEA_BUILD_TEXT)
-		ds_add_module(Text)
-		if (DEEPSEA_BUILD_VECTOR_DRAW)
-			ds_add_module(VectorDraw)
-		endif()
-	endif()
-
-	if (DEEPSEA_BUILD_APPLICATION)
-		ds_add_module(Application)
-		if (DEEPSEA_BUILD_APPLICATION_SDL)
-			ds_add_module(Application/ApplicationSDL)
-		endif()
-	endif()
-endif()
-
-ds_finish_modules()
+add_subdirectory(modules)
 
 if (DEEPSEA_BUILD_TESTS)
-	add_subdirectory(Testers)
+	add_subdirectory(testers)
 endif()
 
 # Documentation. (populated by built libraries)
 add_subdirectory(doc)
-
-ds_install_master_config()

@@ -6,7 +6,7 @@ file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(deepsea_vector_draw_test ${sources})
 
 target_include_directories(deepsea_vector_draw_test PRIVATE
-	${DEEPSEA_SOURCE_DIR}/VectorDraw/src ${GTEST_INCLUDE_DIRS})
+	${DEEPSEA_MODULE_DIR}/VectorDraw/src ${GTEST_INCLUDE_DIRS})
 target_link_libraries(deepsea_vector_draw_test PRIVATE
 	deepsea_vector_draw
 	deepsea_render_mock

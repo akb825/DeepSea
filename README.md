@@ -112,16 +112,16 @@ Libraries and include directories can be found through the `DeepSeaModule_LIBRAR
 
 DeepSea contains the following modules:
 
-* [Core](Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
-* [Math](Math/README.md): Math structures and functions used throughout DeepSea.
-* [Geometry](Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
-* [Render](Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
-* [RenderMock](Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
-* [RenderOpenGL](Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
-* [Text](Text/README.md): Draws Unicode text.
-* [VectorDraw](VectorDraw/README.md): Draws vector graphics.
-* [Application](Application/README.md): Application library, providing functionality such as input and window events.
-* [ApplicationSDL](Application/ApplicationSDL/README.md): SDL implementation of the Application library..
+* [Core](modules/Core/README.md): Core functionality including logging, debugging, memory managment, threading, and Streams. See Core for general notes about the object and memory model used throughout all modules.
+* [Math](modules/Math/README.md): Math structures and functions used throughout DeepSea.
+* [Geometry](modules/Geometry/README.md): (Optional) Geometry classes typically used in graphics applications. This will be built with the graphics libraries.
+* [Render](modules/Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
+* [RenderMock](modules/Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
+* [RenderOpenGL](modules/Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
+* [Text](modules/Text/README.md): Draws Unicode text.
+* [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
+* [Application](modules/Application/README.md): Application library, providing functionality such as input and window events.
+* [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library..
 
 The directory structure of the include files is:
 

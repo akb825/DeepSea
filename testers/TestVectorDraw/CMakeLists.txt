@@ -53,10 +53,10 @@ add_custom_target(deepsea_test_vector_draw_app_prepare
 
 # Shaders
 set(shaderOptions OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_SOURCE_DIR}/Render/include ${DEEPSEA_SOURCE_DIR}/Text/include
-		${DEEPSEA_SOURCE_DIR}/VectorDraw/include
-	DEPENDENCY_RECURSE ${DEEPSEA_SOURCE_DIR}/Render/include/*.mslh
-		${DEEPSEA_SOURCE_DIR}/Text/include/*.mslh ${DEEPSEA_SOURCE_DIR}/VectorDraw/include/*.mslh)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
+		${DEEPSEA_MODULE_DIR}/VectorDraw/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh ${DEEPSEA_MODULE_DIR}/VectorDraw/include/*.mslh)
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShape.msl OUTPUT TestVectorDraw.mslb
 	CONFIG ${shaderConfigs} ${shaderOptions})

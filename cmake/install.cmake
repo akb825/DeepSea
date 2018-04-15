@@ -205,7 +205,7 @@ endif()")
 	endif()
 
 	set(configPackageDir lib/cmake/DeepSea)
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
+	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
 		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
 	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake ${versionPath}
 		DESTINATION ${configPackageDir} COMPONENT dev)

@@ -38,9 +38,9 @@ add_custom_target(deepsea_test_text_app_prepare
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Font.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/FontTess.msl
 	OUTPUT TestText.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
-	INCLUDE ${DEEPSEA_SOURCE_DIR}/Render/include ${DEEPSEA_SOURCE_DIR}/Text/include
-	DEPENDENCY_RECURSE ${DEEPSEA_SOURCE_DIR}/Render/include/*.mslh
-		${DEEPSEA_SOURCE_DIR}/Text/include/*.mslh)
+	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
+	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
+		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh)
 ds_compile_shaders_target(deepsea_test_text_app_shaders shaders
 	DEPENDS deepsea_test_text_app_prepare)
 add_dependencies(deepsea_test_text_app deepsea_test_text_app_shaders)
