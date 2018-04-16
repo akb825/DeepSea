@@ -92,7 +92,9 @@ static const char* shaderDir;
 
 const char* vectorImageFiles[] =
 {
-	"polygon.dsvi"
+	"polygon.dsvi",
+	"polyline.dsvi",
+	"polyline-miter.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

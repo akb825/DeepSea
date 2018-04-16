@@ -502,7 +502,7 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 		return nullptr;
 	}
 
-	if (commandBuffer)
+	if (localMaterials && commandBuffer)
 	{
 		if (!dsVectorMaterialSet_update(localMaterials, commandBuffer))
 		{

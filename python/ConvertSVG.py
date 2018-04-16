@@ -248,6 +248,9 @@ def sizeFromString(sizeStr, relativeSize):
 	sizeStr: The string representation of the size.
 	relativeSize: The size to use in case of percentages.
 	"""
+	if not sizeStr:
+		raise Exception("Size not specified")
+
 	dpi = 96.0
 	cm = 2.54
 	if len(sizeStr) > 2 and sizeStr[-2:] == 'cm':

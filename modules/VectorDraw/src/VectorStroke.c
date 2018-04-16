@@ -148,15 +148,7 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			DS_ASSERT((pointCount == 0 && pointVertCount == 0) ||
 				(pointCount > 0 && pointVertCount == pointCount - 1));
 			if (pointVertCount == 0)
-			{
-				if (start)
-				{
-					if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-						return false;
-					return dsVectorScratchData_addIndex(scratchData, firstVertex);
-				}
 				return true;
-			}
 
 			if (start)
 			{
@@ -258,15 +250,7 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			}
 		}
 		default:
-		{
-			if (start)
-			{
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
-				return dsVectorScratchData_addIndex(scratchData, firstVertex);
-			}
 			return true;
-		}
 	}
 }
 
@@ -309,16 +293,16 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 
 	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
 		return false;
 
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &newSecondVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
 		return false;
 
 	*firstVertex = newFirstVertex;
@@ -329,12 +313,12 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position,
 	const dsVector2f* fromDirection, const dsVector2f* toDirection, float lineWidth,
 	uint32_t* firstVertex, uint32_t* secondVertex, uint32_t materialIndex, uint32_t shapeIndex,
-	dsLineJoin joinType, float miterThetaLimit, float distance, float totalDistance,
+	dsLineJoin joinType, float cosMiterThetaLimit, float distance, float totalDistance,
 	float pixelSize, dsAlignedBox2f* bounds)
 {
 	float cosTheta = dsVector2_dot(*fromDirection, *toDirection);
 	// Check for a straight line.
-	const float epsilon = 1e-5f;
+	const float epsilon = 1e-3f;
 	if (cosTheta >= 1.0f - epsilon)
 	{
 		return addSimpleJoin(scratchData, position, toDirection, lineWidth, firstVertex,
@@ -381,16 +365,16 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 		return false;
 
 	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-		return false;
 	if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+		return false;
+	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 		return false;
 
 	dsVector2f toOffset = {{toDirection->y, -toDirection->x}};
@@ -453,26 +437,33 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			 * - The intersection point of the miter.
 			 * The last two points form a right angle. The angle at the miter point is half of the
 			 * angle between the two lines. Therefore, with right angle triangle:
-			 * sin(miterTheta) = opposite/adjacent = halfWidth/miterLength
-			 * miterLength = halfWidth/sin(miterTheta)
+			 * tan(miterTheta) = opposite/adjacent = halfWidth/extendLength
+			 * extendLength = halfWidth/tan(miterTheta)
 			 */
-			float theta = acosf(cosTheta);
-			float miterTheta = theta/2.0f;
-			float miterLength = halfWidth/sinf(miterTheta);
-			bool miter = theta >= miterThetaLimit;
+			float extendLength = 0.0f;
+			bool miter = cosTheta >= cosMiterThetaLimit;
+			if (miter)
+			{
+				float theta = acosf(cosTheta);
+				// We have the outside angle, we need the inside angle.
+				theta = (float)M_PI - theta;
+				float miterTheta = theta/2.0f;
+				extendLength = halfWidth/tanf(miterTheta);
+			}
+
 			if (right)
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
 					return false;
 
 				if (miter)
 				{
 					dsVector2f miterPos, miterOffset;
-					dsVector2_scale(miterOffset, *fromDirection, miterLength);
+					dsVector2_scale(miterOffset, *fromDirection, extendLength);
 					dsVector2_add(miterPos, fromSecondPos, miterOffset);
 
 					uint32_t miterVertex = scratchData->shapeVertexCount;
@@ -490,9 +481,9 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
 						return false;
 				}
 			}
@@ -500,15 +491,15 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 					return false;
 
 				if (miter)
 				{
 					dsVector2f miterPos, miterOffset;
-					dsVector2_scale(miterOffset, *fromDirection, miterLength);
+					dsVector2_scale(miterOffset, *fromDirection, extendLength);
 					dsVector2_add(miterPos, fromFirstPos, miterOffset);
 
 					uint32_t miterVertex = scratchData->shapeVertexCount;
@@ -524,11 +515,11 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 					curVertex->materialIndex = (uint16_t)materialIndex;
 					curVertex->shapeIndex = (uint16_t)shapeIndex;
 
-					if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-						return false;
-					if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+					if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
 						return false;
 					if (!dsVectorScratchData_addIndex(scratchData, &miterVertex))
+						return false;
+					if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 						return false;
 				}
 			}
@@ -725,15 +716,22 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 	}
 
-	float miterThetaLimit = 0.0f;
+	float cosMiterThetaLimit = 0.0f;
 	if (stroke->joinType == dsLineJoin_Miter)
 	{
-		// miterLength/stroke-width = 1/sin(theta/2)
-		// theta = asin(stroke-width/miterLength)*2
-		// miterLimit = miterLength/stroke-width
-		// theta = asin(1/miterLimit)/2
+		/*
+		 * strokeWidth/miterLength = sin(theta/2)
+		 * theta = asin(strokeWidth/miterLength)*2
+		 *
+		 * maxMiterLength = miterLimit*strokeWidth
+		 * thetaLimit = asin((strokeWidth/(miterLimit*strokeWidth))*2
+		 * thetaLimit = asin(1.0/miterLimit)*2
+		 *
+		 * Theta is based on the inside angle. We use the outside angle with the dot product.
+		 */
 		DS_ASSERT(stroke->miterLimit >= 1.0f);
-		miterThetaLimit = asinf(1/stroke->miterLimit)/2.0f;
+		float theta = (float)M_PI - asinf(1.0f/stroke->miterLimit)*2.0f;
+		cosMiterThetaLimit = cosf(theta);
 	}
 
 	// Expand by a minimum of a pixel, using alpha for sub-pixel sizes.
@@ -801,8 +799,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		if (scratchData->points[i].type & PointType_Corner)
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,
-				&firstVertex, &secondVertex, material, infoIndex, stroke->joinType, miterThetaLimit,
-				distance, subpathDistance, pixelSize, &curInfo->bounds))
+				&firstVertex, &secondVertex, material, infoIndex, stroke->joinType,
+				cosMiterThetaLimit, distance, subpathDistance, pixelSize, &curInfo->bounds))
 			{
 				return false;
 			}
@@ -829,7 +827,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				{
 					if (!addJoin(scratchData, &scratchData->points[firstPoint].point, &nextDir,
 						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
-						stroke->joinType, miterThetaLimit, distance, subpathDistance, pixelSize,
+						stroke->joinType, cosMiterThetaLimit, distance, subpathDistance, pixelSize,
 						&curInfo->bounds))
 					{
 						return false;

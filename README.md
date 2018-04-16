@@ -14,6 +14,7 @@ The following software is required to build DeepSea:
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
+* [python](https://www.python.org/) 2.7 or 3.x (optional for flatbuffer converters)
 
 The submodule dependencies can be grabbed by running the commands
 
