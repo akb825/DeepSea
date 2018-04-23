@@ -233,7 +233,7 @@ bool dsSDLController_getHatDirection(dsVector2i* outDirection, const dsApplicati
 	const dsController* controller, uint32_t hat)
 {
 	DS_UNUSED(application);
-	int8_t x, y;
+	int8_t x = 0, y = 0;
 	dsSDLController_convertHatDirection(&x, &y,
 		SDL_JoystickGetHat(((const dsSDLController*)controller)->joystick, hat));
 	outDirection->x = x;

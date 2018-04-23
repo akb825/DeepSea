@@ -250,7 +250,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsEventResponder responder = {&processEvent, testVectorDraw, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
-	testVectorDraw->window = dsWindow_create(application, allocator, "Test Text",
+	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw",
 		NULL, TARGET_SIZE, TARGET_SIZE, dsWindowFlags_Resizeable);
 	if (!testVectorDraw->window)
 	{

@@ -285,17 +285,12 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	outBounds->min.y = (float)texturePos->y*levelSize;
 
 	dsVector2f offset = {{(float)(texSize->x + windowSize*2), (float)(texSize->y + windowSize*2)}};
-	offset.x = dsMin(offset.x, (float)glyphSize);
-	offset.y = dsMin(offset.y, (float)glyphSize);
+	offset.x = dsMin(offset.x, (float)glyphSize) - 1.0f;
+	offset.y = dsMin(offset.y, (float)glyphSize) - 1.0f;
 
 	dsVector2f levelSize2 = {{levelSize, levelSize}};
 	dsVector2_mul(offset, offset, levelSize2);
 	dsVector2_add(outBounds->max, outBounds->min, offset);
-
-	// Add a half pixel to avoid leakage from other glyphs.
-	dsVector2f halfPixel = {{0.5f*levelSize, 0.5f*levelSize}};
-	dsVector2_add(outBounds->min, outBounds->min, halfPixel);
-	dsVector2_add(outBounds->max, outBounds->max, halfPixel);
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,

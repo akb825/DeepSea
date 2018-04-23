@@ -558,10 +558,10 @@ inline uint8_t dsColor_grayscale(dsColor color)
 inline dsColor dsColor_lerp(dsColor x, dsColor y, float t)
 {
 	dsColor outColor;
-	outColor.r = (uint8_t)roundf(dsLerp(x.r, y.r, t));
-	outColor.g = (uint8_t)roundf(dsLerp(x.g, y.g, t));
-	outColor.b = (uint8_t)roundf(dsLerp(x.b, y.b, t));
-	outColor.a = (uint8_t)roundf(dsLerp(x.a, y.a, t));
+	outColor.r = (uint8_t)roundf(dsLerp((float)x.r, (float)y.r, t));
+	outColor.g = (uint8_t)roundf(dsLerp((float)x.g, (float)y.g, t));
+	outColor.b = (uint8_t)roundf(dsLerp((float)x.b, (float)y.b, t));
+	outColor.a = (uint8_t)roundf(dsLerp((float)x.a, (float)y.a, t));
 	return outColor;
 }
 
