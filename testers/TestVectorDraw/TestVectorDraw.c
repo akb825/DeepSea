@@ -94,7 +94,9 @@ const char* vectorImageFiles[] =
 {
 	"polygon.dsvi",
 	"polyline.dsvi",
-	"polyline-miter.dsvi"
+	"polyline-miter-square.dsvi",
+	"polyline-bevel-butt.dsvi",
+	"polyline-round.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

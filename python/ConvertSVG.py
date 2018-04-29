@@ -528,6 +528,8 @@ class Style:
 				self.stroke = Stroke(material)
 			elif element == 'stroke-opacity':
 				self.stroke.opacity = float(value)
+			elif element == 'stroke-linejoin':
+				self.stroke.join = lineJoinMap[value]
 			elif element == 'stroke-linecap':
 				self.stroke.cap = lineCapMap[value]
 			elif element == 'stroke-width':

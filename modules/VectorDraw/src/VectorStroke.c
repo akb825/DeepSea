@@ -155,32 +155,44 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
 					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+					return false;
+
+				for (uint32_t i = 1; i < pointVertCount; ++i)
+				{
+					if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+						return false;
+					uint32_t curVertIndex = firstPointVert + i - 1;
+					if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+						return false;
+					++curVertIndex;
+					if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+						return false;
+				}
 			}
 			else
 			{
 				uint32_t curVertIndex = firstPointVert;
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
-			}
+				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+					return false;
 
-			for (uint32_t i = 1; i < pointVertCount; ++i)
-			{
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
-				uint32_t curVertIndex = firstPointVert + i;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
-				--curVertIndex;
-				if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
-					return false;
+				for (uint32_t i = 1; i < pointVertCount; ++i)
+				{
+					if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+						return false;
+					uint32_t curVertIndex = firstPointVert + i;
+					if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+						return false;
+					--curVertIndex;
+					if (!dsVectorScratchData_addIndex(scratchData, &curVertIndex))
+						return false;
+				}
 			}
 
 			return true;
@@ -222,6 +234,21 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+					return false;
+
+				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
+					return false;
+				return dsVectorScratchData_addIndex(scratchData, &secondSquareVert);
+			}
+			else
+			{
+				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
+					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &firstSquareVert))
@@ -230,21 +257,6 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &secondSquareVert))
-					return false;
-				return dsVectorScratchData_addIndex(scratchData, &firstSquareVert);
-			}
-			else
-			{
-				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
-					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &secondSquareVert))
-					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
-
-				if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 					return false;
 				return dsVectorScratchData_addIndex(scratchData, &firstSquareVert);
 			}
@@ -530,26 +542,24 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
 					return false;
 			}
 			else
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
 					return false;
-				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-					return false;
 				if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+					return false;
+				if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 					return false;
 			}
 			break;
 		case dsLineJoin_Round:
 		{
-			// The dot product cave the inner angle. Take the outer angle for the round join.
 			float theta = acosf(cosTheta);
-			float joinTheta = (float)M_PI - theta;
 
 			dsMatrix33f matrix;
 			if (right)
@@ -583,8 +593,8 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 			// Target a max arc-length of one pixel.
 			float pixelTheta = pixelSize/(lineWidth*0.5f);
-			unsigned int pointCount = (unsigned int)(joinTheta/pixelTheta);
-			float incr = (float)joinTheta/(float)(pointCount + 1);
+			unsigned int pointCount = (unsigned int)(theta/pixelTheta);
+			float incr = (float)theta/(float)(pointCount + 1);
 
 			uint32_t firstPointVert = scratchData->shapeVertexCount;
 			for (unsigned int i = 1; i < pointCount; ++i)
