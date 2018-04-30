@@ -13,6 +13,6 @@ ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers} DIRECTORY
 	${CMAKE_CURRENT_SOURCE_DIR}/src/Flatbuffers PYTHON ${DEEPSEA_SOURCE_DIR}/python)
 ds_convert_flatbuffers_target(deepsea_vector_draw_flatbuffers generatedFlatbuffers)
 add_dependencies(deepsea_vector_draw deepsea_vector_draw_flatbuffers)
-ds_set_folder(deepsea_vector_draw_flatbuffers libs/Flatbuffers)
+ds_set_folder(deepsea_vector_draw_flatbuffers modules/Flatbuffers)
 
 add_subdirectory(test)

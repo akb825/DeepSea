@@ -44,7 +44,7 @@ In order to perform a full build of DeepSea, the dependencies should be installe
 * [FreeType](https://www.freetype.org/): after installing the library, you may need to set the `FREETYPE_DIR` environment variable to the installation location.
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/): after installing the library you may need to set the `HARFBUZZ_PATH` CMake variable to the installation location. Some notes when building HarfBuzz from source:
 	* The [ragel](http://www.colm.net/open-source/ragel/) tool is required. Make sure that the `RAGEL` CMake variable is set to the path to `ragel`.
-	* When building under Windows, building `ragel` must be done using [MinGW](https://sourceforge.net/projects/mingw/). Be sure to install the developer-tools, base, and gcc-g++ packages, then run `C:\MinGW\msys\1.0\msys.bat` for the console to perform the build. Also add `C:\MinGW\bin` to `PATH` to make sure `ragel` can be run oustide of a MinGW console.
+	* When building under Windows, building `ragel` must be done using [MinGW](https://sourceforge.net/projects/mingw/). Be sure to install the developer-tools, base, and gcc-g++ packages, then run `C:\MinGW\msys\1.0\msys.bat` for the console to perform the build. (use `/c/` prefix for paths to the C: drive) Also add `C:\MinGW\bin` to `PATH` to make sure `ragel` can be run oustide of a MinGW console.
 	* The `HB_HAVE_FREETYPE` CMake variable should be set to `ON`. 
 	* If you intend to build DeepSea as a shared library, it is recommended you build HarfBuzz as a shared library as well. This prevents you from manually linking HarfBuzz's direct dependencies with DeepSea as well.
 

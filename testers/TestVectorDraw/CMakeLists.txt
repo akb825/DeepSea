@@ -89,4 +89,5 @@ add_custom_target(deepsea_test_vector_draw_app_assets ALL DEPENDS deepsea_test_v
 ds_set_folder(deepsea_test_vector_draw_app tests)
 ds_set_folder(deepsea_test_vector_draw_app_prepare tests/Resources)
 ds_set_folder(deepsea_test_vector_draw_app_shaders tests/Resources)
+ds_set_folder(deepsea_test_vector_draw_app_svgs tests/Resources)
 ds_set_folder(deepsea_test_vector_draw_app_assets tests/Resources)
