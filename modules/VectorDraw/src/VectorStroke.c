@@ -325,8 +325,8 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position,
 	const dsVector2f* fromDirection, const dsVector2f* toDirection, float lineWidth,
 	uint32_t* firstVertex, uint32_t* secondVertex, uint32_t materialIndex, uint32_t shapeIndex,
-	dsLineJoin joinType, float cosMiterThetaLimit, float distance, float totalDistance,
-	float pixelSize, dsAlignedBox2f* bounds)
+	dsLineJoin joinType, float cosMiterThetaLimit, float segmentDistance, float distance,
+	float totalDistance, float pixelSize, dsAlignedBox2f* bounds)
 {
 	float cosTheta = dsVector2_dot(*fromDirection, *toDirection);
 	// Check for a straight line.
@@ -339,41 +339,178 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 
 	dsVector2f fromDirRight = {{fromDirection->y, -fromDirection->x}};
 	bool right = dsVector2_dot(fromDirRight, *toDirection) > 0.0f;
+	float theta = acosf(cosTheta);
 
 	float halfWidth = lineWidth*0.5f;
 	dsVector2f fromOffset = {{fromDirection->y, -fromDirection->x}};
 	dsVector2_scale(fromOffset, fromOffset, halfWidth);
 
-	// Add the end points and triangles for the "from" line.
-	uint32_t fromFirstVertex = scratchData->shapeVertexCount;
-	ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-	if (!curVertex)
-		return false;
-
 	dsVector2f fromFirstPos;
 	dsVector2_add(fromFirstPos, *position, fromOffset);
 	dsAlignedBox2_addPoint(*bounds, fromFirstPos);
-	curVertex->position.x = fromFirstPos.x;
-	curVertex->position.y = fromFirstPos.y;
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
-	curVertex->materialIndex = (uint16_t)materialIndex;
-	curVertex->shapeIndex = (uint16_t)shapeIndex;
-
-	uint32_t fromSecondVertex = scratchData->shapeVertexCount;
-	curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-	if (!curVertex)
-		return false;
 
 	dsVector2f fromSecondPos;
 	dsVector2_sub(fromSecondPos, *position, fromOffset);
 	dsAlignedBox2_addPoint(*bounds, fromSecondPos);
-	curVertex->position.x = fromSecondPos.x;
-	curVertex->position.y = fromSecondPos.y;
+
+	dsVector2f toOffset = {{toDirection->y, -toDirection->x}};
+	dsVector2_scale(toOffset, toOffset, halfWidth);
+
+	dsVector2f toFirstPos;
+	dsVector2_add(toFirstPos, *position, toOffset);
+	dsAlignedBox2_addPoint(*bounds, toFirstPos);
+
+	dsVector2f toSecondPos;
+	dsVector2_sub(toSecondPos, *position, toOffset);
+	dsAlignedBox2_addPoint(*bounds, toSecondPos);
+
+	uint32_t centerVertex = scratchData->shapeVertexCount;
+	ShapeVertex*  curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+	if (!curVertex)
+		return false;
+
+	curVertex->position.x = position->x;
+	curVertex->position.y = position->y;
 	curVertex->position.z = distance;
 	curVertex->position.w = totalDistance;
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+	/*
+	 * Find the point where the stroke joins on the inside of the join. This is the inverse
+	 * of the miter join on the outside, nad will be re-used if miter join type is used.
+	 * Miter forms a right angle triangle with:
+	 * - The outer point of the line end/start
+	 * - The join location of the centerline.
+	 * - The intersection point of the miter.
+	 * The last two points form a right angle. The angle at the miter point is half of the
+	 * angle between the two lines. Therefore, with right angle triangle:
+	 * tan(miterTheta) = opposite/adjacent = halfWidth/extendLength
+	 * extendLength = halfWidth/tan(miterTheta)
+	 */
+
+	// We have the outside angle, we need the inside angle.
+	float miterTheta = ((float)M_PI - theta)/2.0f;
+	float extendLength = halfWidth/tanf(miterTheta);
+	float innerExtendLength = dsMin(extendLength, segmentDistance);
+
+	uint32_t fromFirstVertex, fromSecondVertex, toFirstVertex, toSecondVertex;
+	if (right)
+	{
+		dsVector2f miterPos, miterOffset;
+		dsVector2_scale(miterOffset, *fromDirection, innerExtendLength);
+		dsVector2_sub(miterPos, fromFirstPos, miterOffset);
+
+		fromFirstVertex = toFirstVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		dsAlignedBox2_addPoint(*bounds, miterPos);
+		curVertex->position.x = miterPos.x;
+		curVertex->position.y = miterPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		// Connect the "second" vertices to the center and inner vertices.
+		fromSecondVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		curVertex->position.x = fromSecondPos.x;
+		curVertex->position.y = fromSecondPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		toSecondVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		curVertex->position.x = toSecondPos.x;
+		curVertex->position.y = toSecondPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+			return false;
+
+		if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+			return false;
+	}
+	else
+	{
+		dsVector2f miterPos, miterOffset;
+		dsVector2_scale(miterOffset, *fromDirection, innerExtendLength);
+		dsVector2_sub(miterPos, fromSecondPos, miterOffset);
+
+		fromSecondVertex = toSecondVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		dsAlignedBox2_addPoint(*bounds, miterPos);
+		curVertex->position.x = miterPos.x;
+		curVertex->position.y = miterPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		// Connect the "first" vertices to the center and inner vertices.
+		fromFirstVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		curVertex->position.x = fromFirstPos.x;
+		curVertex->position.y = fromFirstPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		toFirstVertex = scratchData->shapeVertexCount;
+		curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+		if (!curVertex)
+			return false;
+
+		curVertex->position.x = toFirstPos.x;
+		curVertex->position.y = toFirstPos.y;
+		curVertex->position.z = distance;
+		curVertex->position.w = totalDistance;
+		curVertex->materialIndex = (uint16_t)materialIndex;
+		curVertex->shapeIndex = (uint16_t)shapeIndex;
+
+		if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+			return false;
+
+		if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+			return false;
+	}
 
 	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
 		return false;
@@ -389,80 +526,11 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 		return false;
 
-	dsVector2f toOffset = {{toDirection->y, -toDirection->x}};
-	dsVector2_scale(toOffset, toOffset, halfWidth);
-
-	// Add the start points for the "to" line.
-	// NOTE: The inner portion of the join will overlap. Attempting to find the intersection point
-	// could break down if the intersection point is beyond the line boundaries. Shading should be
-	// cnosistent in most cases, making the overlap not be an issue.
-	uint32_t toFirstVertex = scratchData->shapeVertexCount;
-	curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-	if (!curVertex)
-		return false;
-
-	dsVector2f toFirstPos;
-	dsVector2_add(toFirstPos, *position, toOffset);
-	dsAlignedBox2_addPoint(*bounds, toFirstPos);
-	curVertex->position.x = toFirstPos.x;
-	curVertex->position.y = toFirstPos.y;
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
-	curVertex->materialIndex = (uint16_t)materialIndex;
-	curVertex->shapeIndex = (uint16_t)shapeIndex;
-
-	uint32_t toSecondVertex = scratchData->shapeVertexCount;
-	curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-	if (!curVertex)
-		return false;
-
-	dsVector2f toSecondPos;
-	dsVector2_sub(toSecondPos, *position, toOffset);
-	dsAlignedBox2_addPoint(*bounds, toSecondPos);
-	curVertex->position.x = toSecondPos.x;
-	curVertex->position.y = toSecondPos.y;
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
-	curVertex->materialIndex = (uint16_t)materialIndex;
-	curVertex->shapeIndex = (uint16_t)shapeIndex;
-
-	uint32_t centerVertex = scratchData->shapeVertexCount;
-	curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-	if (!curVertex)
-		return false;
-
-	curVertex->position.x = position->x;
-	curVertex->position.y = position->y;
-	curVertex->position.z = distance;
-	curVertex->position.w = totalDistance;
-	curVertex->materialIndex = (uint16_t)materialIndex;
-	curVertex->shapeIndex = (uint16_t)shapeIndex;
-
 	switch (joinType)
 	{
 		case dsLineJoin_Miter:
 		{
-			/*
-			 * Miter forms a right angle triangle with:
-			 * - The outer point of the line end/start
-			 * - The join location of the centerline.
-			 * - The intersection point of the miter.
-			 * The last two points form a right angle. The angle at the miter point is half of the
-			 * angle between the two lines. Therefore, with right angle triangle:
-			 * tan(miterTheta) = opposite/adjacent = halfWidth/extendLength
-			 * extendLength = halfWidth/tan(miterTheta)
-			 */
-			float extendLength = 0.0f;
 			bool miter = cosTheta >= cosMiterThetaLimit;
-			if (miter)
-			{
-				float theta = acosf(cosTheta);
-				// We have the outside angle, we need the inside angle.
-				theta = (float)M_PI - theta;
-				float miterTheta = theta/2.0f;
-				extendLength = halfWidth/tanf(miterTheta);
-			}
-
 			if (right)
 			{
 				if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
@@ -559,8 +627,6 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			break;
 		case dsLineJoin_Round:
 		{
-			float theta = acosf(cosTheta);
-
 			dsMatrix33f matrix;
 			if (right)
 			{
@@ -801,8 +867,9 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 			continue;
 		}
 
-		distance += dsVector2f_dist(&scratchData->points[i - 1].point,
+		float segmentDistance = dsVector2f_dist(&scratchData->points[i - 1].point,
 			&scratchData->points[i].point);
+		distance += segmentDistance;
 
 		dsVector2f nextDir;
 		findLineDir(&nextDir, scratchData, i);
@@ -810,7 +877,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, stroke->joinType,
-				cosMiterThetaLimit, distance, subpathDistance, pixelSize, &curInfo->bounds))
+				cosMiterThetaLimit, segmentDistance, distance, subpathDistance, pixelSize,
+				&curInfo->bounds))
 			{
 				return false;
 			}
@@ -837,8 +905,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				{
 					if (!addJoin(scratchData, &scratchData->points[firstPoint].point, &nextDir,
 						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
-						stroke->joinType, cosMiterThetaLimit, distance, subpathDistance, pixelSize,
-						&curInfo->bounds))
+						stroke->joinType, cosMiterThetaLimit, segmentDistance, distance,
+						subpathDistance, pixelSize, &curInfo->bounds))
 					{
 						return false;
 					}
