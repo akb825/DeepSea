@@ -86,8 +86,8 @@ add_custom_target(deepsea_test_vector_draw_app_assets ALL DEPENDS deepsea_test_v
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${imageDir} ${assetsDir}
 	COMMENT "Copying assets for TestVectorDraw")
 
-ds_set_folder(deepsea_test_vector_draw_app tests)
-ds_set_folder(deepsea_test_vector_draw_app_prepare tests/Resources)
-ds_set_folder(deepsea_test_vector_draw_app_shaders tests/Resources)
-ds_set_folder(deepsea_test_vector_draw_app_svgs tests/Resources)
-ds_set_folder(deepsea_test_vector_draw_app_assets tests/Resources)
+ds_set_folder(deepsea_test_vector_draw_app tests/gui)
+ds_set_folder(deepsea_test_vector_draw_app_prepare tests/gui/Resources)
+ds_set_folder(deepsea_test_vector_draw_app_shaders tests/gui/Resources)
+ds_set_folder(deepsea_test_vector_draw_app_svgs tests/gui/Resources)
+ds_set_folder(deepsea_test_vector_draw_app_assets tests/gui/Resources)

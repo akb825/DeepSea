@@ -13,5 +13,5 @@ target_link_libraries(deepsea_application_sdl_test PRIVATE
 	deepsea_application_sdl
 	${GTEST_BOTH_LIBRARIES})
 
-ds_set_folder(deepsea_application_sdl_test tests)
+ds_set_folder(deepsea_application_sdl_test tests/unit)
 add_test(NAME DeepSeaApplicationSdlTest COMMAND deepsea_application_sdl_test)

@@ -10,5 +10,5 @@ target_link_libraries(deepsea_math_test PRIVATE
 	deepsea_math
 	${GTEST_BOTH_LIBRARIES})
 
-ds_set_folder(deepsea_math_test tests)
+ds_set_folder(deepsea_math_test tests/unit)
 add_test(NAME DeepSeaMathTest COMMAND deepsea_math_test)

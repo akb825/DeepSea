@@ -65,8 +65,8 @@ add_custom_target(deepsea_test_render_subpass_app_assets ALL
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${textureDir} ${assetsDir}
 	COMMENT "Copying assets for TestRenderSubpass")
 
-ds_set_folder(deepsea_test_render_subpass_app tests)
-ds_set_folder(deepsea_test_render_subpass_app_prepare tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_app_shaders tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_app_textures tests/Resources)
-ds_set_folder(deepsea_test_render_subpass_app_assets tests/Resources)
+ds_set_folder(deepsea_test_render_subpass_app tests/gui)
+ds_set_folder(deepsea_test_render_subpass_app_prepare tests/gui/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_shaders tests/gui/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_textures tests/gui/Resources)
+ds_set_folder(deepsea_test_render_subpass_app_assets tests/gui/Resources)

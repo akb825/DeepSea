@@ -55,7 +55,7 @@ add_custom_target(deepsea_test_text_app_assets ALL DEPENDS deepsea_test_text_app
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${fontDir} ${assetsDir}/Fonts
 	COMMENT "Copying assets for TestText")
 
-ds_set_folder(deepsea_test_text_app tests)
-ds_set_folder(deepsea_test_text_app_prepare tests/Resources)
-ds_set_folder(deepsea_test_text_app_shaders tests/Resources)
-ds_set_folder(deepsea_test_text_app_assets tests/Resources)
+ds_set_folder(deepsea_test_text_app tests/gui)
+ds_set_folder(deepsea_test_text_app_prepare tests/gui/Resources)
+ds_set_folder(deepsea_test_text_app_shaders tests/gui/Resources)
+ds_set_folder(deepsea_test_text_app_assets tests/gui/Resources)

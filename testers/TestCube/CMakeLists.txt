@@ -63,8 +63,8 @@ add_custom_target(deepsea_test_cube_app_assets ALL DEPENDS deepsea_test_cube_app
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${textureDir} ${assetsDir}
 	COMMENT "Copying assets for TestCube")
 
-ds_set_folder(deepsea_test_cube_app tests)
-ds_set_folder(deepsea_test_cube_app_prepare tests/Resources)
-ds_set_folder(deepsea_test_cube_app_shaders tests/Resources)
-ds_set_folder(deepsea_test_cube_app_textures tests/Resources)
-ds_set_folder(deepsea_test_cube_app_assets tests/Resources)
+ds_set_folder(deepsea_test_cube_app tests/gui)
+ds_set_folder(deepsea_test_cube_app_prepare tests/gui/Resources)
+ds_set_folder(deepsea_test_cube_app_shaders tests/gui/Resources)
+ds_set_folder(deepsea_test_cube_app_textures tests/gui/Resources)
+ds_set_folder(deepsea_test_cube_app_assets tests/gui/Resources)

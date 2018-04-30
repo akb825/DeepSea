@@ -10,5 +10,5 @@ target_link_libraries(deepsea_text_test PRIVATE
 	deepsea_text
 	${GTEST_BOTH_LIBRARIES})
 
-ds_set_folder(deepsea_text_test tests)
+ds_set_folder(deepsea_text_test tests/unit)
 add_test(NAME DeepSeaTextTest COMMAND deepsea_text_test)
