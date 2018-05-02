@@ -79,7 +79,7 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, const dsFramebufferSur
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceDepthStencilFormat;
 		case dsGfxSurfaceType_Texture:
-			return ((dsOffscreen*)surface->surface)->format;
+			return ((dsOffscreen*)surface->surface)->info.format;
 		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface->surface)->format;
 		default:
@@ -100,7 +100,7 @@ static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurfa
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceSamples;
 		case dsGfxSurfaceType_Texture:
-			return ((dsOffscreen*)surface->surface)->samples;
+			return ((dsOffscreen*)surface->surface)->info.samples;
 		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface->surface)->samples;
 		default:

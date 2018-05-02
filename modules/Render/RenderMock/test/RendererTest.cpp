@@ -59,14 +59,15 @@ TEST_F(RendererTest, SetDefaultAnisotropy)
 
 TEST_F(RendererTest, ClearColorSurface)
 {
+	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 1, 4, true);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, true);
 	ASSERT_TRUE(offscreen1);
 
+	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080,
-		0, 1, 4, true);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, true);
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
@@ -142,15 +143,15 @@ TEST_F(RendererTest, ClearColorSurface)
 
 TEST_F(RendererTest, ClearDepthStencilSurface)
 {
+	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080,
-		0, 1, 4, true);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, true);
 	ASSERT_TRUE(offscreen1);
 
+	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080,
-		0, 1, 4, true);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, true);
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
@@ -516,14 +517,15 @@ TEST_F(RendererTest, Blit)
 	}
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	dsTextureInfo fromInfo = {format, dsTextureDim_2D, 32, 16, 4, 3, 1};
 	dsTexture* fromTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static, format, dsTextureDim_2D, 32, 16, 4, 3, textureData,
-		sizeof(textureData));
+		dsGfxMemory_Static, &fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
+	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+		dsGfxMemory_Static, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	dsSurfaceBlitRegion blitRegion =
@@ -539,12 +541,12 @@ TEST_F(RendererTest, Blit)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, format,
-		dsTextureDim_2D, 32, 16, 4, 3, textureData, sizeof(textureData));
+		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &fromInfo,
+		textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
-	toTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+	toTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
+		&toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_FALSE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,
@@ -553,13 +555,13 @@ TEST_F(RendererTest, Blit)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, format,
-		dsTextureDim_2D, 32, 16, 4, 3, textureData, sizeof(textureData));
+		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &fromInfo,
+		textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
 	toTexture = dsTexture_create(resourceManager, NULL,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static, format, dsTextureDim_2D, 16, 32, 5, 2, NULL, 0);
+		dsGfxMemory_Static, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_TRUE(dsRenderer_blitSurface(renderer, commandBuffer, dsGfxSurfaceType_Texture,

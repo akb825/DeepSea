@@ -403,13 +403,13 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	DS_VERIFY(dsHashTable_initialize(&font->glyphTable.hashTable, DS_TABLE_SIZE,
 		&dsHash64, &dsHash64Equal));
 
-	uint32_t textureSize = font->glyphSize*DS_TEX_MULTIPLIER;
+	uint32_t texSize = font->glyphSize*DS_TEX_MULTIPLIER;
 	uint32_t mipLevels = resourceManager->hasArbitraryMipmapping ?
 		DS_TEX_MIP_LEVELS : DS_ALL_MIP_LEVELS;
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, texSize, texSize, 0, mipLevels, 0};
 	font->texture = dsTexture_create(resourceManager, allocator,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic,
-		dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm), dsTextureDim_2D, textureSize,
-		textureSize, 0, mipLevels, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic, &texInfo, NULL, 0);
 	if (!font->texture)
 	{
 		dsAllocator_free(scratchAllocator, font->tempImage);

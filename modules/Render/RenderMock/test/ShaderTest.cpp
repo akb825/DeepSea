@@ -370,16 +370,14 @@ TEST_F(ShaderTest, BindAndUpdate)
 		groupDesc);
 	ASSERT_TRUE(group);
 
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	dsVolatileMaterialValues* volatileValues = dsVolatileMaterialValues_create(
@@ -585,16 +583,14 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 		groupDesc);
 	ASSERT_TRUE(group);
 
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Image | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	dsVolatileMaterialValues* volatileValues = dsVolatileMaterialValues_create(

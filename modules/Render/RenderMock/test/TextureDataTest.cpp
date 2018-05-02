@@ -74,48 +74,46 @@ static bool noSrgbSupported(const dsResourceManager*, dsGfxFormat format)
 TEST_F(TextureDataTest, Create)
 {
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	dsTextureData* textureData = dsTextureData_create(NULL, format, dsTextureDim_2D, 2, 4, 5, 6);
-	EXPECT_FALSE(textureData);
+	dsTextureInfo info = {format, dsTextureDim_2D, 2, 4, 5, 6, 1};
+	EXPECT_FALSE(dsTextureData_create(NULL, &info));
+	EXPECT_FALSE(dsTextureData_create((dsAllocator*)&allocator, NULL));
+	info.format = dsGfxFormat_R8G8B8A8;
+	EXPECT_FALSE(dsTextureData_create((dsAllocator*)&allocator, &info));
+	info.format = format;
+	info.samples = 4;
+	EXPECT_FALSE(dsTextureData_create((dsAllocator*)&allocator, &info));
+	info.samples = 1;
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator, dsGfxFormat_R8G8B8A8,
-		dsTextureDim_2D, 2, 4, 5, 6);
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_create((dsAllocator*)&allocator, format, dsTextureDim_2D, 2, 4, 5,
-		6);
+	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
-	EXPECT_EQ(format, textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(2U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(5U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
-	EXPECT_EQ(dsTexture_size(format, dsTextureDim_2D, 2, 4, 5, 3, 1), textureData->dataSize);
+	EXPECT_EQ(format, textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(2U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(5U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
+	EXPECT_EQ(dsTexture_size(&info), textureData->dataSize);
 
 	dsTextureData_destroy(textureData);
 }
 
 TEST_F(TextureDataTest, LoadDdsFile_R8G8B8A8)
 {
+	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("empty.txt")));
+
 	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
-		getPath("asdf"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("test.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("empty.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("texture.r8g8b8a8.dds"));
+		getPath("texture.r8g8b8a8.dds"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -143,19 +141,20 @@ TEST_F(TextureDataTest, LoadDdsStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
-	dsTextureData* textureData = dsTextureData_loadDdsStream((dsAllocator*)&allocator, NULL);
-	EXPECT_FALSE(textureData);
+	EXPECT_FALSE(dsTextureData_loadDdsStream((dsAllocator*)&allocator, NULL));
 
-	textureData = dsTextureData_loadDdsStream((dsAllocator*)&allocator, (dsStream*)&fileStream);
+	dsTextureData*textureData = dsTextureData_loadDdsStream((dsAllocator*)&allocator,
+		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -185,12 +184,13 @@ TEST_F(TextureDataTest, LoadDdsFile_B8G8R8A8)
 		getPath("texture.b8g8r8a8.dds"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -228,12 +228,12 @@ TEST_F(TextureDataTest, LoadDdsFile_R16G16B16A16F)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t)*4, textureData->dataSize);
 	const Color16f* textureColors = (const Color16f*)textureData->data;
@@ -271,12 +271,12 @@ TEST_F(TextureDataTest, LoadDdsFile_R5G6B5)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t), textureData->dataSize);
 	const uint16_t* textureColors = (const uint16_t*)textureData->data;
@@ -314,12 +314,12 @@ TEST_F(TextureDataTest, LoadDdsFile_BC1SRGB)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	dsTextureData_destroy(textureData);
 }
@@ -330,12 +330,13 @@ TEST_F(TextureDataTest, LoadDdsFile_Array)
 		getPath("array.dds"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(2U, textureData->height);
-	EXPECT_EQ(3U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(2U, textureData->info.height);
+	EXPECT_EQ(3U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*2 + 2 + 1)*3*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -352,12 +353,13 @@ TEST_F(TextureDataTest, LoadDdsFile_Cube)
 		getPath("cube.dds"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_Cube, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_Cube, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*6*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -373,29 +375,25 @@ TEST_F(TextureDataTest, LoadDdsFile_Cube)
 
 TEST_F(TextureDataTest, LoadDdsFileToTexture)
 {
-	dsTexture* texture = dsTextureData_loadDdsFileToTexture(NULL, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(NULL, NULL, NULL,
+		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
+		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0));
 
-	texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -426,26 +424,23 @@ TEST_F(TextureDataTest, LoadDdsStreamToTexture)
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
 
-	dsTexture* texture = dsTextureData_loadDdsStreamToTexture(NULL, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadDdsStreamToTexture(NULL, NULL, NULL,
+		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	texture = dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -473,25 +468,21 @@ TEST_F(TextureDataTest, LoadDdsStreamToTexture)
 
 TEST_F(TextureDataTest, LoadKtxFile_R8G8B8A8)
 {
+	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("empty.txt")));
+
 	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
-		getPath("asdf"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("test.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("empty.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("texture.r8g8b8a8.ktx"));
+		getPath("texture.r8g8b8a8.ktx"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -519,19 +510,20 @@ TEST_F(TextureDataTest, LoadKtxStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.ktx"), "rb"));
-	dsTextureData* textureData = dsTextureData_loadKtxStream((dsAllocator*)&allocator, NULL);
-	EXPECT_FALSE(textureData);
+	EXPECT_FALSE(dsTextureData_loadKtxStream((dsAllocator*)&allocator, NULL));
 
-	textureData = dsTextureData_loadKtxStream((dsAllocator*)&allocator, (dsStream*)&fileStream);
+	dsTextureData* textureData = dsTextureData_loadKtxStream((dsAllocator*)&allocator,
+		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -561,12 +553,13 @@ TEST_F(TextureDataTest, LoadKtxFile_B8G8R8A8)
 		getPath("texture.b8g8r8a8.ktx"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -604,12 +597,12 @@ TEST_F(TextureDataTest, LoadKtxFile_R16G16B16A16F)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t)*4, textureData->dataSize);
 	const Color16f* textureColors = (const Color16f*)textureData->data;
@@ -647,12 +640,12 @@ TEST_F(TextureDataTest, LoadKtxFile_R5G6B5)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t), textureData->dataSize);
 	const uint16_t* textureColors = (const uint16_t*)textureData->data;
@@ -690,12 +683,12 @@ TEST_F(TextureDataTest, LoadKtxFile_BC1SRGB)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	dsTextureData_destroy(textureData);
 }
@@ -706,12 +699,13 @@ TEST_F(TextureDataTest, LoadKtxFile_Array)
 		getPath("array.ktx"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(2U, textureData->height);
-	EXPECT_EQ(3U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(2U, textureData->info.height);
+	EXPECT_EQ(3U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*2 + 2 + 1)*3*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -728,12 +722,13 @@ TEST_F(TextureDataTest, LoadKtxFile_Cube)
 		getPath("cube.ktx"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_Cube, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_Cube, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*6*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -749,29 +744,24 @@ TEST_F(TextureDataTest, LoadKtxFile_Cube)
 
 TEST_F(TextureDataTest, LoadKtxFileToTexture)
 {
-	dsTexture* texture = dsTextureData_loadKtxFileToTexture(NULL, NULL, NULL,
-		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(NULL, NULL, NULL,
+		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
+		getPath("texture.r8g8b8a8.ktx"), NULL, 0, 0));
 
-	texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.ktx"), NULL, 0, 0);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -802,26 +792,23 @@ TEST_F(TextureDataTest, LoadKtxStreamToTexture)
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.ktx"), "rb"));
 
-	dsTexture* texture = dsTextureData_loadKtxStreamToTexture(NULL, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadKtxStreamToTexture(NULL, NULL, NULL,
+		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	texture = dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -849,25 +836,21 @@ TEST_F(TextureDataTest, LoadKtxStreamToTexture)
 
 TEST_F(TextureDataTest, LoadPvrFile_R8G8B8A8)
 {
+	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("empty.txt")));
+
 	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
-		getPath("asdf"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("test.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("empty.txt"));
-	EXPECT_FALSE(textureData);
-
-	textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("texture.r8g8b8a8.pvr"));
+		getPath("texture.r8g8b8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -895,19 +878,20 @@ TEST_F(TextureDataTest, LoadPvrStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.pvr"), "rb"));
-	dsTextureData* textureData = dsTextureData_loadPvrStream((dsAllocator*)&allocator, NULL);
-	EXPECT_FALSE(textureData);
+	EXPECT_FALSE(dsTextureData_loadPvrStream((dsAllocator*)&allocator, NULL));
 
-	textureData = dsTextureData_loadPvrStream((dsAllocator*)&allocator, (dsStream*)&fileStream);
+	dsTextureData* textureData = dsTextureData_loadPvrStream((dsAllocator*)&allocator,
+		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(1U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(1U, textureData->info.mipLevels);
 
 	ASSERT_EQ(4*4*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -937,12 +921,13 @@ TEST_F(TextureDataTest, LoadPvrFile_B8G8R8A8)
 		getPath("texture.b8g8r8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm),
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -980,12 +965,12 @@ TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t)*4, textureData->dataSize);
 	const Color16f* textureColors = (const Color16f*)textureData->data;
@@ -1023,12 +1008,12 @@ TEST_F(TextureDataTest, LoadPvrFile_R5G6B5)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*sizeof(uint16_t), textureData->dataSize);
 	const uint16_t* textureColors = (const uint16_t*)textureData->data;
@@ -1066,12 +1051,12 @@ TEST_F(TextureDataTest, LoadPvrFile_BC1SRGB)
 	ASSERT_TRUE(textureData);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_SRGB),
-		textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+		textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	dsTextureData_destroy(textureData);
 }
@@ -1082,12 +1067,12 @@ TEST_F(TextureDataTest, LoadPvrFile_Array)
 		getPath("array.pvr"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_2D, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(2U, textureData->height);
-	EXPECT_EQ(3U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->info.format);
+	EXPECT_EQ(dsTextureDim_2D, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(2U, textureData->info.height);
+	EXPECT_EQ(3U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*2 + 2 + 1)*3*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -1104,12 +1089,12 @@ TEST_F(TextureDataTest, LoadPvrFile_Cube)
 		getPath("cube.pvr"));
 	ASSERT_TRUE(textureData);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->format);
-	EXPECT_EQ(dsTextureDim_Cube, textureData->dimension);
-	EXPECT_EQ(4U, textureData->width);
-	EXPECT_EQ(4U, textureData->height);
-	EXPECT_EQ(0U, textureData->depth);
-	EXPECT_EQ(3U, textureData->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), textureData->info.format);
+	EXPECT_EQ(dsTextureDim_Cube, textureData->info.dimension);
+	EXPECT_EQ(4U, textureData->info.width);
+	EXPECT_EQ(4U, textureData->info.height);
+	EXPECT_EQ(0U, textureData->info.depth);
+	EXPECT_EQ(3U, textureData->info.mipLevels);
 
 	ASSERT_EQ((4*4 + 2*2 + 1)*6*sizeof(dsColor), textureData->dataSize);
 	const dsColor* textureColors = (const dsColor*)textureData->data;
@@ -1125,29 +1110,24 @@ TEST_F(TextureDataTest, LoadPvrFile_Cube)
 
 TEST_F(TextureDataTest, LoadPvrFileToTexture)
 {
-	dsTexture* texture = dsTextureData_loadPvrFileToTexture(NULL, NULL, NULL,
-		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(NULL, NULL, NULL,
+		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+		getPath("texture.r8g8b8a8.pvr"), NULL, 0, 0));
 
-	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.pvr"), NULL, 0, 0);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -1178,26 +1158,23 @@ TEST_F(TextureDataTest, LoadPvrStreamToTexture)
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.pvr"), "rb"));
 
-	dsTexture* texture = dsTextureData_loadPvrStreamToTexture(NULL, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_loadPvrStreamToTexture(NULL, NULL, NULL,
+		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	texture = dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -1225,34 +1202,27 @@ TEST_F(TextureDataTest, LoadPvrStreamToTexture)
 
 TEST_F(TextureDataTest, LoadFileToTexture)
 {
-	dsTexture* texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
 		getPath("test.txt"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+		dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadFileToTexture(NULL, NULL, NULL, getPath("texture.r8g8b8a8.dds"),
+		NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
+		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0));
 
-	texture = dsTextureData_loadFileToTexture(NULL, NULL, NULL, getPath("texture.r8g8b8a8.dds"),
-		NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1261,12 +1231,12 @@ TEST_F(TextureDataTest, LoadFileToTexture)
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1275,12 +1245,12 @@ TEST_F(TextureDataTest, LoadFileToTexture)
 		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
@@ -1289,40 +1259,37 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.txt"), "rb"));
+	EXPECT_FALSE(dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
+		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
+
+	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
+	EXPECT_FALSE(dsTextureData_loadStreamToTexture(NULL, NULL, NULL, (dsStream*)&fileStream, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
+
+	EXPECT_FALSE(dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+
+	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
+	EXPECT_FALSE(dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
+		(dsStream*)&fileStream, NULL, 0, 0));
+	EXPECT_TRUE(dsFileStream_close(&fileStream));
+
+	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
 	dsTexture* texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-	EXPECT_TRUE(dsFileStream_close(&fileStream));
-
-	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
-	texture = dsTextureData_loadStreamToTexture(NULL, NULL, NULL, (dsStream*)&fileStream, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-	EXPECT_TRUE(dsFileStream_close(&fileStream));
-
-	texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
-	texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, (dsStream*)&fileStream,
-		NULL, 0, 0);
-	EXPECT_FALSE(texture);
-	EXPECT_TRUE(dsFileStream_close(&fileStream));
-
-	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
-	texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, (dsStream*)&fileStream,
-		NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1332,12 +1299,12 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1347,12 +1314,12 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
@@ -1363,27 +1330,22 @@ TEST_F(TextureDataTest, CreateTexture)
 		getPath("texture.r8g8b8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
-	dsTexture* texture = dsTextureData_createTexture(NULL, NULL, textureData, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_createTexture(NULL, NULL, textureData, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, NULL, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
+	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, textureData, NULL, 0, 0));
 
-	texture = dsTextureData_createTexture(resourceManager, NULL, NULL, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, NULL, 0, 0);
-	EXPECT_FALSE(texture);
-
-	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
 		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
-	EXPECT_EQ(dsTextureDim_2D, texture->dimension);
-	EXPECT_EQ(4U, texture->width);
-	EXPECT_EQ(4U, texture->height);
-	EXPECT_EQ(0U, texture->depth);
-	EXPECT_EQ(1U, texture->mipLevels);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
 
 	dsColor textureColors[4*4];
 	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
@@ -1412,27 +1374,26 @@ TEST_F(TextureDataTest, CreateTexture)
 
 TEST_F(TextureDataTest, sRGBFallback)
 {
-	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB), dsTextureDim_2D, 1024, 1024,
-		0, 0);
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB),
+		dsTextureDim_2D, 1024, 1024, 0, 0, 0};
+	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	dsTextureDataOptions options = {0, 0, 0, true};
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(textureData->format, texture->format);
+	EXPECT_EQ(textureData->info.format, texture->info.format);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	resourceManager->textureFormatSupportedFunc = &noSrgbSupported;
-	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static);
-	EXPECT_FALSE(texture);
+	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
+		dsTextureUsage_Texture, dsGfxMemory_Static));
 
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->format);
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	dsTextureData_destroy(textureData);
@@ -1440,34 +1401,34 @@ TEST_F(TextureDataTest, sRGBFallback)
 
 TEST_F(TextureDataTest, SkipLevels)
 {
-	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024, 512,
-		0, 0);
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 1024, 512, 0, 0, 0};
+	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	dsTextureDataOptions options = {100, 0, 0, false};
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1024U, texture->width);
-	EXPECT_EQ(512U, texture->height);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1024U, texture->info.width);
+	EXPECT_EQ(512U, texture->info.height);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024,
-		512, 5, DS_ALL_MIP_LEVELS);
+	info.depth = 5;
+	info.mipLevels = DS_ALL_MIP_LEVELS;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1475,27 +1436,27 @@ TEST_F(TextureDataTest, SkipLevels)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_3D, 1024,
-		512, 128, DS_ALL_MIP_LEVELS);
+	info.dimension = dsTextureDim_3D;
+	info.depth = 128;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	options.skipLevels = 100;
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(1U, texture->depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(1U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1503,10 +1464,10 @@ TEST_F(TextureDataTest, SkipLevels)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(16U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(16U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
@@ -1514,34 +1475,34 @@ TEST_F(TextureDataTest, SkipLevels)
 
 TEST_F(TextureDataTest, TargetHeight)
 {
-	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024, 512,
-		0, 0);
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 1024, 512, 0, 0, 0};
+	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	dsTextureDataOptions options = {100, 1, 0, false};
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1024U, texture->width);
-	EXPECT_EQ(512U, texture->height);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1024U, texture->info.width);
+	EXPECT_EQ(512U, texture->info.height);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024,
-		512, 5, DS_ALL_MIP_LEVELS);
+	info.depth = 5;
+	info.mipLevels = DS_ALL_MIP_LEVELS;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(2U, texture->mipLevels);
-	EXPECT_EQ(2U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(2U, texture->info.mipLevels);
+	EXPECT_EQ(2U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1549,10 +1510,10 @@ TEST_F(TextureDataTest, TargetHeight)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1560,27 +1521,27 @@ TEST_F(TextureDataTest, TargetHeight)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_3D, 1024,
-		512, 128, DS_ALL_MIP_LEVELS);
+	info.dimension = dsTextureDim_3D;
+	info.depth = 128;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	options.targetHeight = 1;
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(2U, texture->mipLevels);
-	EXPECT_EQ(2U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(1U, texture->depth);
+	EXPECT_EQ(2U, texture->info.mipLevels);
+	EXPECT_EQ(2U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(1U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1588,10 +1549,10 @@ TEST_F(TextureDataTest, TargetHeight)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(16U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(16U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
@@ -1599,34 +1560,34 @@ TEST_F(TextureDataTest, TargetHeight)
 
 TEST_F(TextureDataTest, TargetWidth)
 {
-	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024, 512,
-		0, 0);
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 1024, 512, 0, 0, 0};
+	dsTextureData* textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	dsTextureDataOptions options = {100, 1024, 1, false};
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1024U, texture->width);
-	EXPECT_EQ(512U, texture->height);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1024U, texture->info.width);
+	EXPECT_EQ(512U, texture->info.height);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 1024,
-		512, 5, DS_ALL_MIP_LEVELS);
+	info.depth = 5;
+	info.mipLevels = DS_ALL_MIP_LEVELS;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1634,10 +1595,10 @@ TEST_F(TextureDataTest, TargetWidth)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1645,27 +1606,27 @@ TEST_F(TextureDataTest, TargetWidth)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(5U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(5U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);
 
-	textureData = dsTextureData_create((dsAllocator*)&allocator,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_3D, 1024,
-		512, 128, DS_ALL_MIP_LEVELS);
+	info.dimension = dsTextureDim_3D;
+	info.depth = 128;
+	textureData = dsTextureData_create((dsAllocator*)&allocator, &info);
 	ASSERT_TRUE(textureData);
 
 	options.targetWidth = 1;
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(1U, texture->mipLevels);
-	EXPECT_EQ(1U, texture->width);
-	EXPECT_EQ(1U, texture->height);
-	EXPECT_EQ(1U, texture->depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+	EXPECT_EQ(1U, texture->info.width);
+	EXPECT_EQ(1U, texture->info.height);
+	EXPECT_EQ(1U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
@@ -1673,10 +1634,10 @@ TEST_F(TextureDataTest, TargetWidth)
 	texture = dsTextureData_createTexture(resourceManager, NULL, textureData, &options,
 		dsTextureUsage_Texture, dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
-	EXPECT_EQ(8U, texture->mipLevels);
-	EXPECT_EQ(128U, texture->width);
-	EXPECT_EQ(64U, texture->height);
-	EXPECT_EQ(16U, texture->depth);
+	EXPECT_EQ(8U, texture->info.mipLevels);
+	EXPECT_EQ(128U, texture->info.width);
+	EXPECT_EQ(64U, texture->info.height);
+	EXPECT_EQ(16U, texture->info.depth);
 
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	dsTextureData_destroy(textureData);

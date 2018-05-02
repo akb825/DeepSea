@@ -342,7 +342,8 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 			return false;
 		}
 
-		if (type == dsMaterialType_SubpassInput && !(texture->usage & dsTextureUsage_SubpassInput))
+		if (type == dsMaterialType_SubpassInput &&
+			!(texture->usage & dsTextureUsage_SubpassInput))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,

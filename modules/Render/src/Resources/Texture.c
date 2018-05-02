@@ -38,30 +38,30 @@ uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t height, uint32_t dep
 	return dsMax(maxWidthHeight, levelCountDepth);
 }
 
-size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples)
+size_t dsTexture_size(const dsTextureInfo* info)
 {
-	if (width == 0 || height == 0)
+	if (!info || info->width == 0 || info->height == 0)
 		return 0;
 
-	depth = dsMax(1U, depth);
-	samples = dsMax(1U, samples);
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
-		DS_MIP_DEPTH(dimension, depth));
-	uint32_t clampedMipLevels = dsMin(mipLevels, maxMipLevels);
-	mipLevels = dsMax(1U, clampedMipLevels);
+	uint32_t depth = dsMax(1U, info->depth);
+	uint32_t samples = dsMax(1U, info->samples);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
+		DS_MIP_DEPTH(info->dimension, depth));
+	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, mipLevels);
 
 	unsigned int blockX, blockY, minX, minY;
-	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
+	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))
 		return 0;
-	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, format));
-	unsigned int formatSize = dsGfxFormat_size(format);
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, info->format));
+	unsigned int formatSize = dsGfxFormat_size(info->format);
 	DS_ASSERT(formatSize > 0);
 
 	size_t size = 0;
-	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, i = 0; i < mipLevels;
+	for (uint32_t curWidth = info->width, curHeight = info->height, curDepth = depth, i = 0;
+		i < mipLevels;
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
-		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++i)
+		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++i)
 	{
 		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
@@ -69,38 +69,39 @@ size_t dsTexture_size(dsGfxFormat format, dsTextureDim dimension, uint32_t width
 	}
 
 	size *= samples;
-	if (dimension == dsTextureDim_Cube)
+	if (info->dimension == dsTextureDim_Cube)
 		size *= 6;
 	return size;
 }
 
-size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, dsCubeFace cubeFace, uint32_t depthIndex,
+size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex,
 	uint32_t mipIndex)
 {
-	if (width == 0 || height == 0)
+	if (!info || info->width == 0 || info->height == 0)
 		return 0;
 
-	depth = dsMax(1U, depth);
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
-		DS_MIP_DEPTH(dimension, depth));
-	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
+	uint32_t depth = dsMax(1U, info->depth);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
+		DS_MIP_DEPTH(info->dimension, depth));
+	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, mipLevels);
 
 	if (depthIndex >= depth || mipIndex >= mipLevels)
 		return DS_INVALID_TEXTURE_OFFSET;
 
 	unsigned int blockX, blockY, minX, minY;
-	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
+	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))
 		return 0;
-	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, format));
-	unsigned int formatSize = dsGfxFormat_size(format);
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, info->format));
+	unsigned int formatSize = dsGfxFormat_size(info->format);
 	DS_ASSERT(formatSize > 0);
-	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
+	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
 
 	size_t size = 0;
-	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, mip = 0; mip <= mipIndex;
+	for (uint32_t curWidth = info->width, curHeight = info->height, curDepth = depth, mip = 0;
+		mip <= mipIndex;
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
-		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
+		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
 	{
 		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
@@ -122,32 +123,34 @@ size_t dsTexture_surfaceOffset(dsGfxFormat format, dsTextureDim dimension, uint3
 	return DS_INVALID_TEXTURE_OFFSET;
 }
 
-size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim dimension, uint32_t width,
-	uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t layerIndex, uint32_t mipIndex)
+size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex, uint32_t mipIndex)
 {
-	if (width == 0 || height == 0)
+	if (!info || info->width == 0 || info->height == 0)
 		return 0;
 
-	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
+	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	uint32_t depth = dsMax(1U, info->depth);
 	uint32_t layers = dsMax(1U, depth)*faces;
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
-		DS_MIP_DEPTH(dimension, depth));
-	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
+		DS_MIP_DEPTH(info->dimension, info->depth));
+	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, mipLevels);
 
 	if (layerIndex >= layers || mipIndex >= mipLevels)
 		return DS_INVALID_TEXTURE_OFFSET;
 
 	unsigned int blockX, blockY, minX, minY;
-	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, format))
+	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))
 		return 0;
-	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, format));
-	unsigned int formatSize = dsGfxFormat_size(format);
+	DS_VERIFY(dsGfxFormat_minDimensions(&minX, &minY, info->format));
+	unsigned int formatSize = dsGfxFormat_size(info->format);
 	DS_ASSERT(formatSize > 0);
 
 	size_t size = 0;
-	for (uint32_t curWidth = width, curHeight = height, curDepth = depth, mip = 0; mip <= mipIndex;
+	for (uint32_t curWidth = info->width, curHeight = info->height, curDepth = depth, mip = 0;
+		mip <= mipIndex;
 		curWidth = dsMax(1U, curWidth/2), curHeight = dsMax(1U, curHeight/2),
-		curDepth = dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
+		curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth, ++mip)
 	{
 		uint32_t curBlocksX = (dsMax(curWidth, minX) + blockX - 1)/blockX;
 		uint32_t curBlocksY = (dsMax(curHeight, minY) + blockY - 1)/blockY;
@@ -170,18 +173,19 @@ size_t dsTexture_layerOffset(dsGfxFormat format, dsTextureDim dimension, uint32_
 }
 
 dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
+	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		!resourceManager->createTextureFunc || !resourceManager->destroyTextureFunc)
+		!resourceManager->createTextureFunc || !resourceManager->destroyTextureFunc || !info)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	dsTextureInfo texInfo = *info;
 
 	if (!allocator)
 		allocator = resourceManager->allocator;
@@ -202,27 +206,39 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((dimension == dsTextureDim_3D &&
-		(depth == 0 || depth > resourceManager->maxTextureDepth)) ||
-		(dimension != dsTextureDim_3D && (depth > resourceManager->maxTextureArrayLevels)) ||
-		(dimension == dsTextureDim_Cube && depth > 0 && !resourceManager->hasCubeArrays))
+	if ((texInfo.dimension == dsTextureDim_3D &&
+		(texInfo.depth == 0 || texInfo.depth > resourceManager->maxTextureDepth)) ||
+		(texInfo.dimension != dsTextureDim_3D &&
+			(texInfo.depth > resourceManager->maxTextureArrayLevels)) ||
+		(texInfo.dimension == dsTextureDim_Cube &&
+			texInfo.depth > 0 && !resourceManager->hasCubeArrays))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture depth.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!dsGfxFormat_textureSupported(resourceManager, format))
+	if (!dsGfxFormat_textureSupported(resourceManager, texInfo.format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for textures.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
-		DS_MIP_DEPTH(dimension, depth));
-	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
-	if (!resourceManager->hasArbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
+	if (texInfo.samples > 1)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot create a non-offscreen texture with anti-alias samples.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(texInfo.width, texInfo.height,
+		DS_MIP_DEPTH(texInfo.dimension, texInfo.depth));
+	texInfo.mipLevels = dsMin(texInfo.mipLevels, maxMipLevels);
+	texInfo.mipLevels = dsMax(1U, texInfo.mipLevels);
+	if (!resourceManager->hasArbitraryMipmapping && texInfo.mipLevels != 1 &&
+		texInfo.mipLevels != maxMipLevels)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -231,22 +247,23 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	unsigned int minWidth, minHeight;
-	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (dimension == dsTextureDim_1D)
-		height = minHeight;
+	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, texInfo.format));
+	if (texInfo.dimension == dsTextureDim_1D)
+		texInfo.height = minHeight;
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
-	if (width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
-		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
-		depth > resourceManager->maxTextureArrayLevels))
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texInfo.format));
+	if (texInfo.width > resourceManager->maxTextureSize ||
+		texInfo.height > resourceManager->maxTextureSize ||
+		(texInfo.dimension == dsTextureDim_3D ? texInfo.depth > resourceManager->maxTextureDepth :
+	texInfo.depth > resourceManager->maxTextureArrayLevels))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture dimensions.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels, 1);
+	size_t textureSize = dsTexture_size(&texInfo);
 	if (data && size != textureSize)
 	{
 		errno = ESIZE;
@@ -262,7 +279,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	dsTexture* texture = resourceManager->createTextureFunc(resourceManager, allocator, usage,
-		memoryHints, format, dimension, width, height, depth, mipLevels, data, size);
+		memoryHints, &texInfo, data, size);
 	if (texture)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->textureCount, 1);
@@ -272,18 +289,18 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 }
 
 dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
-	bool resolve)
+	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
-		!resourceManager->createTextureFunc || !resourceManager->destroyTextureFunc)
+		!resourceManager->createTextureFunc || !resourceManager->destroyTextureFunc || !info)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
+
+	dsTextureInfo texInfo = *info;
 
 	if (!allocator)
 		allocator = resourceManager->allocator;
@@ -304,27 +321,31 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((dimension == dsTextureDim_3D &&
-		(depth == 0 || depth > resourceManager->maxTextureDepth)) ||
-		(dimension != dsTextureDim_3D && (depth > resourceManager->maxTextureArrayLevels)) ||
-		(dimension == dsTextureDim_Cube && depth > 0 && !resourceManager->hasCubeArrays))
+	if ((texInfo.dimension == dsTextureDim_3D &&
+		(texInfo.depth == 0 || texInfo.depth > resourceManager->maxTextureDepth)) ||
+		(texInfo.dimension != dsTextureDim_3D &&
+			(texInfo.depth > resourceManager->maxTextureArrayLevels)) ||
+		(texInfo.dimension == dsTextureDim_Cube &&
+			texInfo.depth > 0 && !resourceManager->hasCubeArrays))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture depth.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (!dsGfxFormat_offscreenSupported(resourceManager, format))
+	if (!dsGfxFormat_offscreenSupported(resourceManager, texInfo.format))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for offscreens.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(width, height,
-		DS_MIP_DEPTH(dimension, depth));
-	mipLevels = dsMax(1U, dsMin(mipLevels, maxMipLevels));
-	if (!resourceManager->hasArbitraryMipmapping && mipLevels != 1 && mipLevels != maxMipLevels)
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(texInfo.width, texInfo.height,
+		DS_MIP_DEPTH(texInfo.dimension, texInfo.depth));
+	texInfo.mipLevels = dsMin(texInfo.mipLevels, maxMipLevels);
+	texInfo.mipLevels = dsMax(1U, texInfo.mipLevels);
+	if (!resourceManager->hasArbitraryMipmapping && texInfo.mipLevels != 1 &&
+		texInfo.mipLevels != maxMipLevels)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -332,36 +353,37 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		samples = resourceManager->renderer->surfaceSamples;
-	samples = dsMax(1U, samples);
-	if (samples == 1)
+	if (texInfo.samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		texInfo.samples = resourceManager->renderer->surfaceSamples;
+	texInfo.samples = dsMax(1U, texInfo.samples);
+	if (texInfo.samples == 1)
 		resolve = false;
 
 	unsigned int minWidth, minHeight;
-	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, format));
-	if (dimension == dsTextureDim_1D)
-		height = minHeight;
+	DS_VERIFY(dsGfxFormat_minDimensions(&minWidth, &minHeight, texInfo.format));
+	if (texInfo.dimension == dsTextureDim_1D)
+		texInfo.height = minHeight;
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, format));
-	if (width > resourceManager->maxTextureSize || height > resourceManager->maxTextureSize ||
-		(dimension == dsTextureDim_3D ? depth > resourceManager->maxTextureDepth :
-		depth > resourceManager->maxTextureArrayLevels))
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texInfo.format));
+	if (texInfo.width > resourceManager->maxTextureSize ||
+		texInfo.height > resourceManager->maxTextureSize ||
+		(texInfo.dimension == dsTextureDim_3D ? texInfo.depth > resourceManager->maxTextureDepth :
+			texInfo.depth > resourceManager->maxTextureArrayLevels))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture dimensions.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (samples > resourceManager->renderer->maxSurfaceSamples)
+	if (texInfo.samples > resourceManager->renderer->maxSurfaceSamples)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (samples > 1 && !resolve && !resourceManager->hasMultisampleTextures)
+	if (texInfo.samples > 1 && !resolve && !resourceManager->hasMultisampleTextures)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -376,15 +398,22 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsOffscreen* offscreen = resourceManager->createOffscreenFunc(resourceManager, allocator, usage,
-		memoryHints, format, dimension, width, height, depth, mipLevels, samples, resolve);
+	dsOffscreen* offscreen = resourceManager->createOffscreenFunc(resourceManager, allocator,
+		usage, memoryHints, &texInfo, resolve);
 	if (offscreen)
 	{
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->textureCount, 1);
-		size_t textureSize = dsTexture_size(format, dimension, width, height, depth, mipLevels,
-			resolve ? 1 : samples);
+		dsTextureInfo curInfo = texInfo;
 		if (resolve)
-			textureSize += dsTexture_size(format, dimension, width, height, 1, 1, samples);
+			curInfo.samples = 1;
+		size_t textureSize = dsTexture_size(&curInfo);
+		if (resolve)
+		{
+			curInfo.depth = 1;
+			curInfo.mipLevels = 1;
+			curInfo.samples = texInfo.samples;
+			textureSize += dsTexture_size(&curInfo);
+		}
 		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->textureMemorySize, textureSize);
 	}
 	DS_PROFILE_FUNC_RETURN(offscreen);
@@ -412,7 +441,7 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 	}
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->info.format));
 	if (position->x % blockX != 0 || position->y % blockY != 0)
 	{
 		errno = EINVAL;
@@ -421,13 +450,13 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t mipWidth = dsMax(1U, texture->width >> position->mipLevel);
-	uint32_t mipHeight = dsMax(1U, texture->height >> position->mipLevel);
-	uint32_t mipLayers = dsMax(1U, texture->depth);
+	uint32_t mipWidth = dsMax(1U, texture->info.width >> position->mipLevel);
+	uint32_t mipHeight = dsMax(1U, texture->info.height >> position->mipLevel);
+	uint32_t mipLayers = dsMax(1U, texture->info.depth);
 	uint32_t layerOffset = position->depth;
-	if (texture->dimension == dsTextureDim_3D)
+	if (texture->info.dimension == dsTextureDim_3D)
 		mipLayers = dsMax(1U, mipLayers >> position->mipLevel);
-	else if (texture->dimension == dsTextureDim_Cube)
+	else if (texture->info.dimension == dsTextureDim_Cube)
 	{
 		mipLayers *= 6;
 		layerOffset = layerOffset*6 + position->face;
@@ -451,11 +480,16 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	dsTextureDim dimension = texture->dimension;
+	dsTextureDim dimension = texture->info.dimension;
 	if (dimension == dsTextureDim_Cube)
 		dimension = dsTextureDim_2D;
-	if (size != dsTexture_size(texture->format, dimension, width, height, layers, 1,
-		texture->samples))
+	dsTextureInfo surfaceInfo = texture->info;
+	surfaceInfo.dimension = dimension;
+	surfaceInfo.width = width;
+	surfaceInfo.height = height;
+	surfaceInfo.depth = layers;
+	surfaceInfo.mipLevels = 1;
+	if (size != dsTexture_size(&surfaceInfo))
 	{
 		errno = ESIZE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
@@ -476,14 +510,15 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	if (!commandBuffer || !srcTexture || !dstTexture || !srcTexture->resourceManager ||
 		!srcTexture->resourceManager->copyTextureFunc ||
 		srcTexture->resourceManager != dstTexture->resourceManager ||
-		srcTexture->format != dstTexture->format || (!regions && regionCount > 0))
+		srcTexture->info.format != dstTexture->info.format || (!regions && regionCount > 0))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = srcTexture->resourceManager;
-	if (!dsGfxFormat_textureCopySupported(resourceManager, srcTexture->format, dstTexture->format))
+	if (!dsGfxFormat_textureCopySupported(resourceManager, srcTexture->info.format,
+		dstTexture->info.format))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -508,7 +543,7 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	}
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->format));
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, srcTexture->info.format));
 
 	for (size_t i = 0; i < regionCount; ++i)
 	{
@@ -522,20 +557,20 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
-		if (srcPosition->mipLevel >= srcTexture->mipLevels)
+		if (srcPosition->mipLevel >= srcTexture->info.mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t srcMipWidth = dsMax(1U, srcTexture->width >> srcPosition->mipLevel);
-		uint32_t srcMipHeight = dsMax(1U, srcTexture->height >> srcPosition->mipLevel);
-		uint32_t srcMipLayers = dsMax(1U, srcTexture->depth);
+		uint32_t srcMipWidth = dsMax(1U, srcTexture->info.width >> srcPosition->mipLevel);
+		uint32_t srcMipHeight = dsMax(1U, srcTexture->info.height >> srcPosition->mipLevel);
+		uint32_t srcMipLayers = dsMax(1U, srcTexture->info.depth);
 		uint32_t srcLayerOffset = srcPosition->depth;
-		if (srcTexture->dimension == dsTextureDim_3D)
+		if (srcTexture->info.dimension == dsTextureDim_3D)
 			srcMipLayers = dsMax(1U, srcMipLayers >> srcPosition->mipLevel);
-		else if (srcTexture->dimension == dsTextureDim_Cube)
+		else if (srcTexture->info.dimension == dsTextureDim_Cube)
 		{
 			srcMipLayers *= 6;
 			srcLayerOffset = srcLayerOffset*6 + srcPosition->face;
@@ -561,20 +596,20 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 
 		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
-		if (dstPosition->mipLevel >= dstTexture->mipLevels)
+		if (dstPosition->mipLevel >= dstTexture->info.mipLevels)
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 
-		uint32_t dstMipWidth = dsMax(1U, dstTexture->width >> dstPosition->mipLevel);
-		uint32_t dstMipHeight = dsMax(1U, dstTexture->height >> dstPosition->mipLevel);
-		uint32_t dstMipLayers = dsMax(1U, dstTexture->depth);
+		uint32_t dstMipWidth = dsMax(1U, dstTexture->info.width >> dstPosition->mipLevel);
+		uint32_t dstMipHeight = dsMax(1U, dstTexture->info.height >> dstPosition->mipLevel);
+		uint32_t dstMipLayers = dsMax(1U, dstTexture->info.depth);
 		uint32_t dstLayerOffset = dstPosition->depth;
-		if (dstTexture->dimension == dsTextureDim_3D)
+		if (dstTexture->info.dimension == dsTextureDim_3D)
 			dstMipLayers = dsMax(1U, dstMipLayers >> dstPosition->mipLevel);
-		else if (dstTexture->dimension == dsTextureDim_Cube)
+		else if (dstTexture->info.dimension == dsTextureDim_Cube)
 		{
 			dstMipLayers *= 6;
 			dstLayerOffset = dstLayerOffset*6 + dstPosition->face;
@@ -617,7 +652,7 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 	}
 
 	dsResourceManager* resourceManager = texture->resourceManager;
-	if (!dsGfxFormat_generateMipmapsSupported(resourceManager, texture->format))
+	if (!dsGfxFormat_generateMipmapsSupported(resourceManager, texture->info.format))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -625,14 +660,14 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (texture->samples > 1)
+	if (texture->info.samples > 1)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot generate mipmaps for multisampled textures.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (texture->mipLevels == 1)
+	if (texture->info.mipLevels == 1)
 		DS_PROFILE_FUNC_RETURN(true);
 
 	bool success = resourceManager->generateTextureMipmapsFunc(resourceManager, commandBuffer,
@@ -676,7 +711,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	}
 
 	unsigned int blockX, blockY;
-	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
+	DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->info.format));
 	if (position->x % blockX != 0 || position->y % blockY != 0)
 	{
 		errno = EINVAL;
@@ -685,16 +720,16 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((position->depth > 0 && position->depth >= texture->depth) ||
-		position->mipLevel >= texture->mipLevels)
+	if ((position->depth > 0 && position->depth >= texture->info.depth) ||
+		position->mipLevel >= texture->info.mipLevels)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy texture data out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t mipWidth = dsMax(1U, texture->width >> position->mipLevel);
-	uint32_t mipHeight = dsMax(1U, texture->height >> position->mipLevel);
+	uint32_t mipWidth = dsMax(1U, texture->info.width >> position->mipLevel);
+	uint32_t mipHeight = dsMax(1U, texture->info.height >> position->mipLevel);
 	uint32_t endX = position->x + width;
 	uint32_t endY = position->y + height;
 	if (endX > mipWidth || endY > mipHeight)
@@ -713,8 +748,12 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (size != dsTexture_size(texture->format, texture->dimension, width, height, 1, 1,
-		texture->samples))
+	dsTextureInfo surfaceInfo = texture->info;
+	surfaceInfo.width = width;
+	surfaceInfo.height = height;
+	surfaceInfo.depth = 1;
+	surfaceInfo.mipLevels = 1;
+	if (size != dsTexture_size(&surfaceInfo))
 	{
 		errno = ESIZE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid texture data size.");
@@ -754,14 +793,18 @@ bool dsTexture_destroy(dsTexture* texture)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	size_t size = dsTexture_size(texture->format, texture->dimension, texture->width,
-		texture->height, texture->depth, texture->mipLevels,
-		texture->resolve ? 1 : texture->samples);
-	if (texture->resolve && texture->samples > 1)
+	dsTextureInfo curInfo = texture->info;
+	if (texture->resolve)
+		curInfo.samples = 1;
+	size_t size = dsTexture_size(&curInfo);
+	if (texture->resolve)
 	{
-		size += dsTexture_size(texture->format, texture->dimension, texture->width,
-			texture->height, 1, 1, texture->samples);
+		curInfo.depth = 1;
+		curInfo.mipLevels = 1;
+		curInfo.samples = texture->info.samples;
+		size += dsTexture_size(&curInfo);
 	}
+
 	bool success = resourceManager->destroyTextureFunc(resourceManager, texture);
 	if (success)
 	{

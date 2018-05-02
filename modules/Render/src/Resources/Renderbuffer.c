@@ -28,6 +28,12 @@
 
 extern const char* dsResourceManager_noContextError;
 
+static size_t framebufferSize(dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
+{
+	dsTextureInfo texInfo = {format, dsTextureDim_2D, width, height, 0, 1, samples};
+	return dsTexture_size(&texInfo);
+}
+
 dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
 {
@@ -80,8 +86,8 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		allocator, format, width, height, samples);
 	if (renderbuffer)
 	{
+		size_t size = framebufferSize(format, width, height, samples);
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->renderbufferCount, 1);
-		size_t size = dsTexture_size(format, dsTextureDim_2D, width, height, 0, 1, samples);
 		DS_ATOMIC_FETCH_ADD_SIZE(&resourceManager->renderbufferMemorySize, size);
 	}
 	DS_PROFILE_FUNC_RETURN(renderbuffer);
@@ -108,8 +114,8 @@ bool dsRenderbuffer_destroy(dsRenderbuffer* renderbuffer)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	size_t size = dsTexture_size(renderbuffer->format, dsTextureDim_2D, renderbuffer->width,
-		renderbuffer->height, 0, 1, renderbuffer->samples);
+	size_t size = framebufferSize(renderbuffer->format, renderbuffer->width, renderbuffer->height,
+		renderbuffer->samples);
 	bool success = resourceManager->destroyRenderbufferFunc(resourceManager, renderbuffer);
 	if (success)
 	{

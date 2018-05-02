@@ -72,7 +72,7 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 				else
 				{
 					uint32_t layer = surface->layer;
-					if (texture->dimension == dsTextureDim_Cube)
+					if (texture->info.dimension == dsTextureDim_Cube)
 						layer = layer*6 + surface->cubeFace;
 					dsGLTexture_bindFramebufferAttachment(texture, GL_FRAMEBUFFER, attachment,
 						surface->mipLevel, layer);
@@ -311,7 +311,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 			const dsFramebufferSurface* surface = framebuffer->surfaces + depthStencilAttachment;
 			dsGfxFormat format;
 			if (surface->surfaceType == dsGfxSurfaceType_Texture)
-				format = ((dsTexture*)surface->surface)->format;
+				format = ((dsTexture*)surface->surface)->info.format;
 			else
 				format = ((dsRenderbuffer*)surface->surface)->format;
 			if (bindFramebufferSurface(dsGLTexture_attachment(format), surface, framebuffer->layers,

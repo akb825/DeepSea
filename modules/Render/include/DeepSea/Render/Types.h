@@ -56,7 +56,7 @@ extern "C"
 /**
  * @brief Constant for the default number of anti-alias samples.
  */
-#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint16_t)-1
+#define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-1
 
 /**
  * @brief Enum for how an image attachment will be used.
@@ -1034,12 +1034,12 @@ struct dsRenderer
 	/**
 	 * @brief The maximum number of color attachments when drawing a render subpass.
 	 */
-	uint16_t maxColorAttachments;
+	uint32_t maxColorAttachments;
 
 	/**
 	 * @brief The maximum number of samples for render surfaces.
 	 */
-	uint16_t maxSurfaceSamples;
+	uint32_t maxSurfaceSamples;
 
 	/**
 	 * @brief The configuration for the surface.
@@ -1068,7 +1068,7 @@ struct dsRenderer
 	/**
 	 * @brief The number of samples for multisampling in render surfaces.
 	 */
-	uint16_t surfaceSamples;
+	uint32_t surfaceSamples;
 
 	/**
 	 * @brief True if render surfaces are double-buffered.

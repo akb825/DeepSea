@@ -920,21 +920,22 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsVectorScratchData*
 	if (infoTextureCount > 0)
 	{
 		DS_ASSERT(scratchData->maxVectorInfos % INFOS_PER_TEXTURE == 0);
+		dsTextureInfo infoTexInfo = {infoFormat, dsTextureDim_2D, 4, 0, 0, 1};
 		image->infoTextures = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTexture*,
 			infoTextureCount);
 		for (uint32_t i = 0; i < infoTextureCount; ++i, ++image->infoTextureCount)
 		{
-			uint32_t height = INFOS_PER_TEXTURE;
+			infoTexInfo.height = INFOS_PER_TEXTURE;
 			if (i == infoTextureCount - 1 &&
 				(scratchData->vectorInfoCount % INFOS_PER_TEXTURE) != 0)
 			{
-				height = dsNextPowerOf2(scratchData->vectorInfoCount % INFOS_PER_TEXTURE);
+				infoTexInfo.height = dsNextPowerOf2(scratchData->vectorInfoCount % INFOS_PER_TEXTURE);
 			}
 
 			image->infoTextures[i] = dsTexture_create(resourceManager, resourceAllocator,
-				dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GpuOnly, infoFormat,
-				dsTextureDim_2D, 4, height, 0, 1, scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
-				sizeof(VectorInfo)*height);
+				dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GpuOnly, &infoTexInfo,
+				scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
+				sizeof(VectorInfo)*infoTexInfo.height);
 			if (!image->infoTextures[i])
 			{
 				DS_VERIFY(dsVectorImage_destroy(image));
@@ -1131,20 +1132,20 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	dsVector3f textureSizes = {{0.0f, 0.0f, 0.0f}};
 	if (sharedMaterialInfoTexture)
 	{
-		DS_ASSERT(sharedMaterialInfoTexture->height == sharedMaterialInfoTexture->height);
-		textureSizes.y = (float)sharedMaterialInfoTexture->height;
+		DS_ASSERT(sharedMaterialInfoTexture->info.height == sharedMaterialInfoTexture->info.height);
+		textureSizes.y = (float)sharedMaterialInfoTexture->info.height;
 	}
 
 	if (localMaterialInfoTexture)
 	{
-		DS_ASSERT(localMaterialInfoTexture->height == localMaterialInfoTexture->height);
-		textureSizes.z = (float)localMaterialInfoTexture->height;
+		DS_ASSERT(localMaterialInfoTexture->info.height == localMaterialInfoTexture->info.height);
+		textureSizes.z = (float)localMaterialInfoTexture->info.height;
 	}
 
 	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
 	{
 		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
-		textureSizes.x = (float)piece->geometryInfo->height;
+		textureSizes.x = (float)piece->geometryInfo->info.height;
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec2, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,

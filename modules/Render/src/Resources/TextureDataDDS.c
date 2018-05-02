@@ -667,8 +667,8 @@ dsTextureData* dsTextureData_loadDds(bool* isDds, dsAllocator* allocator, dsStre
 		return NULL;
 	}
 
-	dsTextureData* textureData = dsTextureData_create(allocator, format, dimension, width, height,
-		depth, mipLevels);
+	dsTextureInfo info = {format, dimension, width, height, depth, mipLevels, 1};
+	dsTextureData* textureData = dsTextureData_create(allocator, &info);
 	if (!textureData)
 		return NULL;
 
@@ -696,9 +696,8 @@ dsTextureData* dsTextureData_loadDds(bool* isDds, dsAllocator* allocator, dsStre
 
 				for (uint32_t volume = 0; volume < curVolumes; ++volume)
 				{
-					uint8_t* curData = textureData->data + dsTexture_surfaceOffset(format,
-						dimension, width, height, depth, mipLevels, (dsCubeFace)face,
-						dimension == dsTextureDim_3D ? volume : element, level);
+					uint8_t* curData = textureData->data + dsTexture_surfaceOffset(&info,
+						(dsCubeFace)face, dimension == dsTextureDim_3D ? volume : element, level);
 					if (!dsStream_read(stream, curData, curBlocksX*curBlocksY*formatSize))
 					{
 						ddsSizeError(filePath);

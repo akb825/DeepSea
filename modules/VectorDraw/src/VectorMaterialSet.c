@@ -121,15 +121,16 @@ dsVectorMaterialSet* dsVectorMaterialSet_create(dsAllocator* allocator,
 	if (!textureAllocator)
 		textureAllocator = allocator;
 	uint32_t texHeight = dsNextPowerOf2(maxMaterials);
+	dsTextureInfo colorTexInfo = {colorFormat, dsTextureDim_2D, TEX_WIDTH, texHeight, 0, 1, 1};
 	dsTexture* colorTexture = dsTexture_create(resourceManager, textureAllocator,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic,
-		colorFormat, dsTextureDim_2D, TEX_WIDTH, texHeight, 0, 1, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic, &colorTexInfo, NULL,
+		0);
 	if (!colorTexture)
 		return NULL;
 
+	dsTextureInfo infoTexInfo = {infoFormat, dsTextureDim_2D, 4U, texHeight, 0, 1, 1};
 	dsTexture* infoTexture = dsTexture_create(resourceManager, textureAllocator,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic, infoFormat,
-		dsTextureDim_2D, 4U, texHeight, 0, 1, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic, &infoTexInfo, NULL, 0);
 	if (!infoTexture)
 	{
 		DS_VERIFY(dsTexture_destroy(colorTexture));

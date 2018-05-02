@@ -363,15 +363,15 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
 		}
 
-		GLenum buffers = dsGLTexture_attachment(texture->format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture->format);
+		GLenum buffers = dsGLTexture_attachment(texture->info.format);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture->info.format);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
 			framebuffer->surfaces[attachment].mipLevel, framebuffer->surfaces[attachment].layer);
 
-		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
-			texture->height, bufferMask, GL_NEAREST);
+		glBlitFramebuffer(0, 0, texture->info.width, texture->info.height, 0, 0,
+			texture->info.width, texture->info.height, bufferMask, GL_NEAREST);
 	}
 
 	if (readFbo)
@@ -444,7 +444,7 @@ static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfa
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
 			return renderer->surfaceDepthStencilFormat;
 		case dsGfxSurfaceType_Texture:
-			return ((dsTexture*)surface)->format;
+			return ((dsTexture*)surface)->info.format;
 		case dsGfxSurfaceType_Renderbuffer:
 			return ((dsRenderbuffer*)surface)->format;
 		default:
@@ -461,9 +461,9 @@ static void getSurfaceInfo(uint32_t* outWidth, uint32_t* outHeight, uint32_t* ou
 		case dsGfxSurfaceType_Texture:
 		{
 			dsTexture* texture = (dsTexture*)surface;
-			*outWidth = texture->width;
-			*outHeight = texture->height;
-			*outFaces = texture->dimension == dsTextureDim_Cube ? 6 : 1;
+			*outWidth = texture->info.width;
+			*outHeight = texture->info.height;
+			*outFaces = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 			*outInvertY = false;
 			break;
 		}
@@ -562,18 +562,18 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 	dsGLTexture* glTexture = (dsGLTexture*)texture;
 	GLenum target = dsGLTexture_target(texture);
 
-	bool compressed = dsGfxFormat_compressedIndex(texture->format) > 0;
+	bool compressed = dsGfxFormat_compressedIndex(texture->info.format) > 0;
 	GLenum internalFormat;
 	GLenum glFormat;
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
-		texture->resourceManager, texture->format));
+		texture->resourceManager, texture->info.format));
 
 	dsGLRenderer_beginTextureOp(commandBuffer->renderer, target, glTexture->textureId);
-	switch (texture->dimension)
+	switch (texture->info.dimension)
 	{
 		case dsTextureDim_1D:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				if (compressed)
 				{
@@ -601,7 +601,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 			}
 			break;
 		case dsTextureDim_2D:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				if (compressed)
 				{
@@ -643,7 +643,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 			}
 			break;
 		case dsTextureDim_Cube:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				if (compressed)
 				{
@@ -700,10 +700,10 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 		for (size_t i = 0; i < regionCount; ++i)
 		{
 			uint32_t srcLayer = regions[i].srcPosition.depth;
-			if (srcTexture->dimension == dsTextureDim_Cube)
+			if (srcTexture->info.dimension == dsTextureDim_Cube)
 				srcLayer = srcLayer*6 + regions[i].dstPosition.face;
 			uint32_t dstLayer = regions[i].dstPosition.depth;
-			if (dstTexture->dimension == dsTextureDim_Cube)
+			if (dstTexture->info.dimension == dsTextureDim_Cube)
 				dstLayer = dstLayer*6 + regions[i].dstPosition.face;
 
 			glCopyImageSubData(glSrcTexture->textureId, srcTarget, regions[i].srcPosition.mipLevel,
@@ -724,14 +724,14 @@ bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, tempFramebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, tempCopyFramebuffer);
 
-		GLbitfield buffers = dsGLTexture_buffers(srcTexture->format);
+		GLbitfield buffers = dsGLTexture_buffers(srcTexture->info.format);
 		for (uint32_t i = 0; i < regionCount; ++i)
 		{
 			uint32_t srcLayer = regions[i].srcPosition.depth;
-			if (srcTexture->dimension == dsTextureDim_Cube)
+			if (srcTexture->info.dimension == dsTextureDim_Cube)
 				srcLayer = srcLayer*6 + regions[i].dstPosition.face;
 			uint32_t dstLayer = regions[i].dstPosition.depth;
-			if (dstTexture->dimension == dsTextureDim_Cube)
+			if (dstTexture->info.dimension == dsTextureDim_Cube)
 				dstLayer = dstLayer*6 + regions[i].dstPosition.face;
 
 			for (uint32_t j = 0; j < regions[i].layers; ++j)
@@ -1190,15 +1190,15 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, writeFbo);
 		}
 
-		GLenum buffers = dsGLTexture_attachment(texture->format);
-		GLbitfield bufferMask = dsGLTexture_buffers(texture->format);
+		GLenum buffers = dsGLTexture_attachment(texture->info.format);
+		GLbitfield bufferMask = dsGLTexture_buffers(texture->info.format);
 		glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, buffers, GL_RENDERBUFFER,
 			glTexture->drawBufferId);
 		dsGLTexture_bindFramebufferTextureAttachment(texture, GL_DRAW_FRAMEBUFFER, buffers,
 			framebuffer->surfaces[i].mipLevel, framebuffer->surfaces[i].layer);
 
-		glBlitFramebuffer(0, 0, texture->width, texture->height, 0, 0, texture->width,
-			texture->height, bufferMask, GL_NEAREST);
+		glBlitFramebuffer(0, 0, texture->info.width, texture->info.height, 0, 0,
+			texture->info.width, texture->info.height, bufferMask, GL_NEAREST);
 	}
 
 	if (readFbo)
@@ -1237,7 +1237,7 @@ bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
-			format = texture->format;
+			format = texture->info.format;
 			format = ((dsRenderbuffer*)surface->surface)->format;
 			dsGLTexture_bindFramebuffer(texture, GL_FRAMEBUFFER, surface->mipLevel, surface->layer);
 		}
@@ -1311,10 +1311,10 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
 			dsTexture* texture = (dsTexture*)surface->surface;
-			format = texture->format;
-			width = dsMax(1U, texture->width >> surface->mipLevel);
-			height = dsMax(1U, texture->height >> surface->mipLevel);
-			samples = texture->samples;
+			format = texture->info.format;
+			width = dsMax(1U, texture->info.width >> surface->mipLevel);
+			height = dsMax(1U, texture->info.height >> surface->mipLevel);
+			samples = texture->info.samples;
 			dsGLTexture_bindFramebuffer(texture, GL_FRAMEBUFFER, surface->mipLevel, surface->layer);
 		}
 		else

@@ -33,8 +33,7 @@
 #include <string.h>
 
 dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, const void* data,
+	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
 	DS_ASSERT(resourceManager);
@@ -49,15 +48,9 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	baseTexture->allocator = dsAllocator_keepPointer(allocator);
 	baseTexture->usage = (dsTextureUsage)usage;
 	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
-	baseTexture->format = format;
-	baseTexture->dimension = dimension;
-	baseTexture->width = width;
-	baseTexture->height = height;
-	baseTexture->depth = depth;
-	baseTexture->mipLevels = mipLevels;
+	baseTexture->info = *info;
 	baseTexture->offscreen = false;
 	baseTexture->resolve = 0;
-	baseTexture->samples = 0;
 
 	texture->textureId = 0;
 	texture->drawBufferId = 0;
@@ -102,69 +95,79 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	GLenum glFormat;
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
-		resourceManager, format));
+		resourceManager, info->format));
 
-	bool compressed = dsGfxFormat_compressedIndex(format) > 0;
+	bool compressed = dsGfxFormat_compressedIndex(info->format) > 0;
 	const uint8_t* dataBytes = (const uint8_t*)data;
-	unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
-	DS_ASSERT(mipLevels > 0);
+	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	DS_ASSERT(info->mipLevels > 0);
+	DS_ASSERT(info->samples <= 1);
 	if (ANYGL_SUPPORTED(glTexStorage2D))
 	{
-		switch (dimension)
+		switch (info->dimension)
 		{
 			case dsTextureDim_1D:
-				if (depth > 0)
-					glTexStorage2D(GL_TEXTURE_1D_ARRAY, mipLevels, internalFormat, width, depth);
+				if (info->depth > 0)
+				{
+					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, internalFormat, info->width,
+						info->depth);
+				}
 				else
-					glTexStorage1D(GL_TEXTURE_1D, mipLevels, internalFormat, width);
+					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, internalFormat, info->width);
 				break;
 			case dsTextureDim_2D:
-				if (depth > 0)
+				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_2D_ARRAY, mipLevels, internalFormat, width, height,
-						depth);
+					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, internalFormat,
+						info->width, info->height, info->depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_2D, mipLevels, internalFormat, width, height);
+				{
+					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, internalFormat, info->width,
+						info->height);
+				}
 				break;
 			case dsTextureDim_3D:
-				glTexStorage3D(GL_TEXTURE_3D, mipLevels, internalFormat, width, height, depth);
+				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, internalFormat, info->width,
+					info->height, info->depth);
 				break;
 			case dsTextureDim_Cube:
-				if (depth > 0)
+				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipLevels, internalFormat, width,
-						height, depth);
+					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels, internalFormat,
+						info->width, info->height, info->depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_CUBE_MAP, mipLevels, internalFormat, width, height);
+				{
+					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, internalFormat,
+						info->width, info->height);
+				}
 				break;
 		}
 
 		if (data)
 		{
-			for (uint32_t i = 0; i < mipLevels; ++i)
+			for (uint32_t i = 0; i < info->mipLevels; ++i)
 			{
-				uint32_t mipWidth = dsMax(1U, width >> i);
-				uint32_t mipHeight = dsMax(1U, height >> i);
-				size_t offset = dsTexture_surfaceOffset(format, dimension, width, height,
-					depth, mipLevels, dsCubeFace_None, 0, i);
+				uint32_t mipWidth = dsMax(1U, info->width >> i);
+				uint32_t mipHeight = dsMax(1U, info->height >> i);
+				size_t offset = dsTexture_surfaceOffset(info, dsCubeFace_None, 0, i);
 
-				switch (dimension)
+				switch (info->dimension)
 				{
 					case dsTextureDim_1D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							if (compressed)
 							{
 								glCompressedTexSubImage2D(GL_TEXTURE_1D_ARRAY, i, 0, 0,
-									mipWidth, depth, internalFormat, (GLsizei)size,
+									mipWidth, info->depth, internalFormat, (GLsizei)size,
 									dataBytes + offset);
 							}
 							else
 							{
-								glTexSubImage2D(GL_TEXTURE_1D_ARRAY, i, 0, 0, mipWidth, depth,
-									glFormat, type, dataBytes + offset);
+								glTexSubImage2D(GL_TEXTURE_1D_ARRAY, i, 0, 0, mipWidth,
+									info->depth, glFormat, type, dataBytes + offset);
 							}
 						}
 						else
@@ -182,18 +185,18 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						}
 						break;
 					case dsTextureDim_2D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							if (compressed)
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_2D_ARRAY, i, 0, 0, 0,
-									mipWidth, mipHeight, depth, internalFormat, (GLsizei)size,
+									mipWidth, mipHeight, info->depth, internalFormat, (GLsizei)size,
 									dataBytes + offset);
 							}
 							else
 							{
 								glTexSubImage3D(GL_TEXTURE_2D_ARRAY, i, 0, 0, 0, mipWidth,
-									mipHeight, depth, glFormat, type, dataBytes + offset);
+									mipHeight, info->depth, glFormat, type, dataBytes + offset);
 							}
 						}
 						else
@@ -213,7 +216,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						break;
 					case dsTextureDim_3D:
 					{
-						uint32_t mipDepth = dsMax(1U, depth >> i);
+						uint32_t mipDepth = dsMax(1U, info->depth >> i);
 						if (compressed)
 						{
 							glCompressedTexSubImage3D(GL_TEXTURE_3D, i, 0, 0, 0, mipWidth,
@@ -228,18 +231,19 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						break;
 					}
 					case dsTextureDim_Cube:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							if (compressed)
 							{
 								glCompressedTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, i, 0, 0, 0,
-									mipWidth, mipHeight, depth*faces, internalFormat, (GLsizei)size,
-									dataBytes + offset);
+									mipWidth, mipHeight, info->depth*faces, internalFormat,
+									(GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
 								glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, i, 0, 0, 0, mipWidth,
-									mipHeight, depth*faces, glFormat, type, dataBytes + offset);
+									mipHeight, info->depth*faces, glFormat, type,
+									dataBytes + offset);
 							}
 						}
 						else
@@ -268,33 +272,32 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	}
 	else
 	{
-		for (uint32_t i = 0; i < mipLevels; ++i)
+		for (uint32_t i = 0; i < info->mipLevels; ++i)
 		{
-			uint32_t mipWidth = dsMax(1U, width >> i);
-			uint32_t mipHeight = dsMax(1U, height >> i);
+			uint32_t mipWidth = dsMax(1U, info->width >> i);
+			uint32_t mipHeight = dsMax(1U, info->height >> i);
 			for (unsigned int j = 0; j < faces; ++j)
 			{
 				size_t offset = 0;
 				if (data)
 				{
-					offset = dsTexture_surfaceOffset(format, dimension, width, height, depth,
-						mipLevels, (dsCubeFace)j, 0, i);
+					offset = dsTexture_surfaceOffset(info, (dsCubeFace)j, 0, i);
 				}
 
-				switch (dimension)
+				switch (info->dimension)
 				{
 					case dsTextureDim_1D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							if (compressed)
 							{
 								glCompressedTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat,
-									mipWidth, depth, 0, (GLsizei)size, dataBytes + offset);
+									mipWidth, info->depth, 0, (GLsizei)size, dataBytes + offset);
 							}
 							else
 							{
 								glTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat, mipWidth,
-									depth, 0, glFormat, type, dataBytes + offset);
+									info->depth, 0, glFormat, type, dataBytes + offset);
 							}
 						}
 						else
@@ -312,18 +315,18 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						}
 						break;
 					case dsTextureDim_2D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							if (compressed)
 							{
 								glCompressedTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat,
-									mipWidth, mipHeight, depth, 0, (GLsizei)size,
+									mipWidth, mipHeight, info->depth, 0, (GLsizei)size,
 									dataBytes + offset);
 							}
 							else
 							{
 								glTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat, mipWidth,
-									mipHeight, depth, 0, glFormat, type, dataBytes + offset);
+									mipHeight, info->depth, 0, glFormat, type, dataBytes + offset);
 							}
 						}
 						else
@@ -342,7 +345,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						break;
 					case dsTextureDim_3D:
 					{
-						uint32_t mipDepth = dsMax(1U, depth >> i);
+						uint32_t mipDepth = dsMax(1U, info->depth >> i);
 						if (compressed)
 						{
 							glCompressedTexImage3D(GL_TEXTURE_3D, i, internalFormat, mipWidth,
@@ -356,7 +359,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 						break;
 					}
 					case dsTextureDim_Cube:
-						DS_ASSERT(depth == 0);
+						DS_ASSERT(info->depth == 0);
 						if (compressed)
 						{
 							glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
@@ -376,7 +379,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 		}
 
 		if (resourceManager->hasArbitraryMipmapping)
-			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipLevels - 1);
+			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, info->mipLevels - 1);
 	}
 	dsGLRenderer_endTextureOp(resourceManager->renderer);
 
@@ -396,9 +399,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 }
 
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, dsGfxFormat format, dsTextureDim dimension,
-	uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels, uint32_t samples,
-	bool resolve)
+	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -412,16 +413,9 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	baseTexture->allocator = dsAllocator_keepPointer(allocator);
 	baseTexture->usage = (dsTextureUsage)usage;
 	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
-	baseTexture->format = format;
-	baseTexture->dimension = dimension;
-	baseTexture->width = width;
-	baseTexture->height = height;
-	baseTexture->depth = depth;
-	baseTexture->mipLevels = mipLevels;
+	baseTexture->info = *info;
 	baseTexture->offscreen = true;
 	baseTexture->resolve = resolve;
-	DS_ASSERT(samples < USHRT_MAX);
-	baseTexture->samples = (uint16_t)samples;
 
 	texture->textureId = 0;
 	texture->drawBufferId = 0;
@@ -436,9 +430,9 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	GLenum glFormat;
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
-		resourceManager, format));
+		resourceManager, info->format));
 
-	if (samples > 1 && resolve && ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
+	if (info->samples > 1 && resolve && ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
 	{
 		glGenRenderbuffers(1, &texture->drawBufferId);
 		if (!texture->drawBufferId)
@@ -453,7 +447,8 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		}
 
 		glBindRenderbuffer(GL_RENDERBUFFER, texture->drawBufferId);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internalFormat, width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, info->samples, internalFormat,
+			info->width, info->height);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 		GLenum error = glGetError();
@@ -484,57 +479,67 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	GLenum target = dsGLTexture_target(baseTexture);
 	dsGLRenderer_beginTextureOp(resourceManager->renderer, target, texture->textureId);
 
-	DS_ASSERT(mipLevels > 0);
+	DS_ASSERT(info->mipLevels > 0);
 	if (ANYGL_SUPPORTED(glTexStorage2D))
 	{
-		switch (dimension)
+		switch (info->dimension)
 		{
 			case dsTextureDim_1D:
-				if (depth > 0)
-					glTexStorage2D(GL_TEXTURE_1D_ARRAY, mipLevels, internalFormat, width, depth);
+				if (info->depth > 0)
+				{
+					glTexStorage2D(GL_TEXTURE_1D_ARRAY, info->mipLevels, internalFormat,
+						info->width, info->depth);
+				}
 				else
-					glTexStorage1D(GL_TEXTURE_1D, mipLevels, internalFormat, width);
+					glTexStorage1D(GL_TEXTURE_1D, info->mipLevels, internalFormat, info->width);
 				break;
 			case dsTextureDim_2D:
-				if (depth > 0)
+				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_2D_ARRAY, mipLevels, internalFormat, width, height,
-						depth);
+					glTexStorage3D(GL_TEXTURE_2D_ARRAY, info->mipLevels, internalFormat,
+						info->width, info->height, info->depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_2D, mipLevels, internalFormat, width, height);
+				{
+					glTexStorage2D(GL_TEXTURE_2D, info->mipLevels, internalFormat, info->width,
+						info->height);
+				}
 				break;
 			case dsTextureDim_3D:
-				glTexStorage3D(GL_TEXTURE_3D, mipLevels, internalFormat, width, height, depth);
+				glTexStorage3D(GL_TEXTURE_3D, info->mipLevels, internalFormat, info->width,
+					info->height, info->depth);
 				break;
 			case dsTextureDim_Cube:
-				if (depth > 0)
+				if (info->depth > 0)
 				{
-					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mipLevels, internalFormat, width,
-						height, depth);
+					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, info->mipLevels, internalFormat,
+						info->width, info->height, info->depth);
 				}
 				else
-					glTexStorage2D(GL_TEXTURE_CUBE_MAP, mipLevels, internalFormat, width, height);
+				{
+					glTexStorage2D(GL_TEXTURE_CUBE_MAP, info->mipLevels, internalFormat,
+						info->width, info->height);
+				}
 				break;
 		}
 	}
 	else
 	{
-		DS_ASSERT(dsGfxFormat_compressedIndex(format) == 0);
-		unsigned int faces = dimension == dsTextureDim_Cube ? 6 : 1;
-		for (uint32_t i = 0; i < mipLevels; ++i)
+		DS_ASSERT(dsGfxFormat_compressedIndex(info->format) == 0);
+		unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
+		for (uint32_t i = 0; i < info->mipLevels; ++i)
 		{
-			uint32_t mipWidth = dsMax(1U, width >> i);
-			uint32_t mipHeight = dsMax(1U, height >> i);
+			uint32_t mipWidth = dsMax(1U, info->width >> i);
+			uint32_t mipHeight = dsMax(1U, info->height >> i);
 			for (unsigned int j = 0; j < faces; ++j)
 			{
-				switch (dimension)
+				switch (info->dimension)
 				{
 					case dsTextureDim_1D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
-							glTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat, mipWidth, depth, 0,
-								glFormat, type, NULL);
+							glTexImage2D(GL_TEXTURE_1D_ARRAY, i, internalFormat, mipWidth,
+								info->depth, 0, glFormat, type, NULL);
 						}
 						else
 						{
@@ -543,10 +548,10 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 						}
 						break;
 					case dsTextureDim_2D:
-						if (depth > 0)
+						if (info->depth > 0)
 						{
 							glTexImage3D(GL_TEXTURE_2D_ARRAY, i, internalFormat, mipWidth,
-								mipHeight, depth, 0, glFormat, type, NULL);
+								mipHeight, info->depth, 0, glFormat, type, NULL);
 						}
 						else
 						{
@@ -556,13 +561,13 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 						break;
 					case dsTextureDim_3D:
 					{
-						uint32_t mipDepth = dsMax(1U, depth >> i);
+						uint32_t mipDepth = dsMax(1U, info->depth >> i);
 						glTexImage3D(GL_TEXTURE_3D, i, internalFormat, mipWidth, mipHeight,
 							mipDepth, 0, glFormat, type, NULL);
 						break;
 					}
 					case dsTextureDim_Cube:
-						DS_ASSERT(depth == 0);
+						DS_ASSERT(info->depth == 0);
 						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i, internalFormat,
 							mipWidth, mipHeight, 0, glFormat, type, NULL);
 						break;
@@ -573,7 +578,7 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		}
 
 		if (resourceManager->hasArbitraryMipmapping)
-			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, mipLevels - 1);
+			glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, info->mipLevels - 1);
 	}
 	dsGLRenderer_endTextureOp(resourceManager->renderer);
 
@@ -641,7 +646,7 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	GLenum glFormat;
 	GLenum type;
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(NULL, &glFormat, &type, resourceManager,
-		texture->format));
+		texture->info.format));
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	if (texture->offscreen)
 	{
@@ -649,7 +654,7 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		glGenFramebuffers(1, &framebuffer);
 
 		uint32_t layer = position->depth;
-		if (texture->dimension == dsTextureDim_Cube)
+		if (texture->info.dimension == dsTextureDim_Cube)
 			layer = layer*6 + position->face;
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
 		if (ANYGL_SUPPORTED(glReadBuffer))
@@ -668,14 +673,15 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		dsGLTexture* glTexture = (dsGLTexture*)texture;
 		GLenum target = dsGLTexture_target(texture);
 
-		uint32_t mipWidth = dsMax(1U, texture->width >> position->mipLevel);
-		uint32_t mipHeight = dsMax(1U, texture->height >> position->mipLevel);
+		uint32_t mipWidth = dsMax(1U, texture->info.width >> position->mipLevel);
+		uint32_t mipHeight = dsMax(1U, texture->info.height >> position->mipLevel);
 		DS_ASSERT(mipWidth >= width && mipHeight >= height);
 		void* buffer = result;
 		if (mipWidth != width || mipHeight != height)
 		{
-			size_t levelSize = dsTexture_size(texture->format, dsTextureDim_2D, mipWidth, mipHeight,
-				1, 1, 1);
+			dsTextureInfo surfaceInfo = {texture->info.format, dsTextureDim_2D, mipWidth, mipHeight,
+				0, 1, 1};
+			size_t levelSize = dsTexture_size(&surfaceInfo);
 			buffer = dsAllocator_alloc(resourceManager->allocator, levelSize);
 			if (!buffer)
 				return false;
@@ -688,8 +694,8 @@ bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		if (buffer != result)
 		{
 			unsigned int blockX, blockY;
-			DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->format));
-			unsigned int formatSize = dsGfxFormat_size(texture->format);
+			DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, texture->info.format));
+			unsigned int formatSize = dsGfxFormat_size(texture->info.format);
 			size_t offset = (position->y/blockY*mipWidth + position->x/blockX)*formatSize;
 			size_t srcPitch = (mipWidth + blockX - 1)/blockX*formatSize;
 			size_t dstPitch = (width + blockX - 1)/blockX*formatSize;
@@ -735,22 +741,22 @@ GLenum dsGLTexture_target(const dsTexture* texture)
 	if (!texture)
 		return GL_TEXTURE_2D;
 
-	switch (texture->dimension)
+	switch (texture->info.dimension)
 	{
 		case dsTextureDim_1D:
-			return texture->depth > 0 ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
+			return texture->info.depth > 0 ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
 		case dsTextureDim_2D:
-			if (texture->samples > 1 && !texture->resolve)
+			if (texture->info.samples > 1 && !texture->resolve)
 			{
-				return texture->depth > 0 ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY :
+				return texture->info.depth > 0 ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY :
 					GL_TEXTURE_2D_MULTISAMPLE;
 			}
 			else
-				return texture->depth > 0 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+				return texture->info.depth > 0 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
 		case dsTextureDim_3D:
 			return GL_TEXTURE_3D;
 		case dsTextureDim_Cube:
-			return texture->depth > 0 ? GL_TEXTURE_CUBE_MAP_ARRAY : GL_TEXTURE_CUBE_MAP;
+			return texture->info.depth > 0 ? GL_TEXTURE_CUBE_MAP_ARRAY : GL_TEXTURE_CUBE_MAP;
 		default:
 			DS_ASSERT(false);
 			return GL_TEXTURE_2D;
@@ -797,7 +803,7 @@ void dsGLTexture_bindFramebuffer(dsTexture* texture, GLenum framebuffer, uint32_
 	uint32_t layer)
 {
 	dsGLTexture_bindFramebufferAttachment(texture, framebuffer,
-		dsGLTexture_attachment(texture->format), mipLevel, layer);
+		dsGLTexture_attachment(texture->info.format), mipLevel, layer);
 }
 
 void dsGLTexture_bindFramebufferAttachment(dsTexture* texture, GLenum framebuffer,
@@ -821,7 +827,7 @@ void dsGLTexture_bindFramebufferTexture(dsTexture* texture, GLenum framebuffer, 
 	uint32_t layer)
 {
 	dsGLTexture_bindFramebufferTextureAttachment(texture, framebuffer,
-		dsGLTexture_attachment(texture->format), mipLevel, layer);
+		dsGLTexture_attachment(texture->info.format), mipLevel, layer);
 }
 
 void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum framebuffer,
@@ -829,10 +835,10 @@ void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum fra
 {
 	dsGLTexture* glTexture = (dsGLTexture*)texture;
 	GLenum target = dsGLTexture_target(texture);
-	switch (texture->dimension)
+	switch (texture->info.dimension)
 	{
 		case dsTextureDim_1D:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
 					layer);
@@ -844,7 +850,7 @@ void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum fra
 			}
 			break;
 		case dsTextureDim_2D:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
 					layer);
@@ -860,7 +866,7 @@ void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum fra
 				layer);
 			break;
 		case dsTextureDim_Cube:
-			if (texture->depth > 0)
+			if (texture->info.depth > 0)
 			{
 				glFramebufferTextureLayer(framebuffer, attachment, glTexture->textureId, mipLevel,
 					layer);
@@ -878,7 +884,7 @@ void dsGLTexture_bindFramebufferTextureAttachment(dsTexture* texture, GLenum fra
 
 void dsGLTexture_unbindFramebuffer(dsTexture* texture, GLenum framebuffer)
 {
-	GLenum attachment = dsGLTexture_attachment(texture->format);
+	GLenum attachment = dsGLTexture_attachment(texture->info.format);
 	glFramebufferTexture2D(framebuffer, attachment, GL_TEXTURE_2D, 0, 0);
 }
 

@@ -94,19 +94,19 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 		case dsGfxSurfaceType_Texture:
 		{
 			dsTexture* realSurface = (dsTexture*)surface;
-			*outFormat = realSurface->format;
-			*outDim = realSurface->dimension;
-			*outWidth = realSurface->width;
-			*outHeight = realSurface->height;
+			*outFormat = realSurface->info.format;
+			*outDim = realSurface->info.dimension;
+			*outWidth = realSurface->info.width;
+			*outHeight = realSurface->info.height;
 			if (realSurface->resolve)
 			{
 				*outLayers = 1;
-				*outMipLevels = realSurface->mipLevels;
+				*outMipLevels = realSurface->info.mipLevels;
 			}
 			else
 			{
-				*outLayers = dsMax(1U, realSurface->depth);
-				*outMipLevels = realSurface->mipLevels;
+				*outLayers = dsMax(1U, realSurface->info.depth);
+				*outMipLevels = realSurface->info.mipLevels;
 			}
 
 			if (read && !(realSurface->usage & dsTextureUsage_CopyFrom))
@@ -124,7 +124,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
-			if (!realSurface->resolve && realSurface->samples > 1)
+			if (!realSurface->resolve && realSurface->info.samples > 1)
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
@@ -367,11 +367,11 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
-			uint32_t surfaceLayers = dsMax(1U, offscreen->depth);
-			if (offscreen->dimension == dsTextureDim_Cube)
+			uint32_t surfaceLayers = dsMax(1U, offscreen->info.depth);
+			if (offscreen->info.dimension == dsTextureDim_Cube)
 				surfaceLayers *= 6;
 
-			if (surface->mipLevel >= offscreen->mipLevels)
+			if (surface->mipLevel >= offscreen->info.mipLevels)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
@@ -385,7 +385,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 					"Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-			valid = !isDepthStencil(offscreen->format);
+			valid = !isDepthStencil(offscreen->info.format);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
@@ -440,11 +440,11 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 
-			uint32_t surfaceLayers = dsMax(1U, offscreen->depth);
-			if (offscreen->dimension == dsTextureDim_Cube)
+			uint32_t surfaceLayers = dsMax(1U, offscreen->info.depth);
+			if (offscreen->info.dimension == dsTextureDim_Cube)
 				surfaceLayers *= 6;
 
-			if (surface->mipLevel >= offscreen->mipLevels)
+			if (surface->mipLevel >= offscreen->info.mipLevels)
 			{
 				errno = EINDEX;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Mip level out of range for offscreen.");
@@ -458,7 +458,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 					"Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-			valid = isDepthStencil(offscreen->format);
+			valid = isDepthStencil(offscreen->info.format);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:

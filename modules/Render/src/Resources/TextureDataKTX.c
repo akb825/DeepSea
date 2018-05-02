@@ -986,8 +986,8 @@ dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStre
 	if (textureDim != dsTextureDim_3D)
 		depth = arrayElements;
 
-	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,
-		depth, mipLevels);
+	dsTextureInfo info = {format, textureDim, width, height, depth, mipLevels, 1};
+	dsTextureData* textureData = dsTextureData_create(allocator, &info);
 	if (!textureData)
 		return NULL;
 
@@ -1014,7 +1014,8 @@ dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStre
 
 		if (compressed)
 		{
-			size_t size = dsTexture_size(format, textureDim, curWidth, curHeight, curDepth, 1, 1);
+			dsTextureInfo surfaceInfo = {format, textureDim, curWidth, curHeight, curDepth, 1, 1};
+			size_t size = dsTexture_size(&surfaceInfo);
 			if (dsStream_read(stream, textureData->data + curOffset, size) != size)
 			{
 				ktxSizeError(filePath);

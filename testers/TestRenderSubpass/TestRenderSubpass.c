@@ -250,19 +250,17 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
 		depthFormat = dsGfxFormat_D16;
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
+	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
 		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
-		SAMPLE_COUNT, true);
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
 	testRenderSubpass->gColor = dsTexture_createOffscreen(resourceManager, allocator,
 		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
-		SAMPLE_COUNT, true);
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
 	testRenderSubpass->bColor = dsTexture_createOffscreen(resourceManager, allocator,
 		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, colorFormat, dsTextureDim_2D, width, height, 0, 1,
-		SAMPLE_COUNT, true);
+		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
 	if (!testRenderSubpass->rColor || !testRenderSubpass->gColor || !testRenderSubpass->bColor)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create offscreen: %s",

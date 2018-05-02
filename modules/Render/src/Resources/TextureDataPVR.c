@@ -493,8 +493,8 @@ dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStre
 	if (!readMetadata(stream, &format, &depth, &textureDim, filePath))
 		return NULL;
 
-	dsTextureData* textureData = dsTextureData_create(allocator, format, textureDim, width, height,
-		depth, mipLevels);
+	dsTextureInfo info = {format, textureDim, width, height, depth, mipLevels, 1};
+	dsTextureData* textureData = dsTextureData_create(allocator, &info);
 	if (!textureData)
 		return NULL;
 

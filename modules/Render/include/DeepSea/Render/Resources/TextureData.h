@@ -39,18 +39,12 @@ extern "C"
  * @brief Creates texture data.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the texture data with.
- * @param format The format of the texture.
- * @param dimension The dimension of the texture.
- * @param width The width of the texture.
- * @param height The height of the texture.
- * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
- *     non-array textures.
- * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
- *     mip levels.
+ * @param info The info for the texture. Usage and memory hints will be ignored, using explicit
+ *     values when creating the final texture.
  * @return The created texture data, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator, dsGfxFormat format,
-	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels);
+DS_RENDER_EXPORT dsTextureData* dsTextureData_create(dsAllocator* allocator,
+	const dsTextureInfo* info);
 
 /**
  * @brief Creates a texture from texture data.

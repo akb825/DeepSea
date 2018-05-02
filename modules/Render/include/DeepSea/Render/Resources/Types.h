@@ -491,7 +491,7 @@ typedef struct dsVertexFormat
 	/**
 	 * @brief The size fo the vertex in bytes.
 	 */
-	uint16_t size;
+	uint32_t size;
 } dsVertexFormat;
 
 /**
@@ -592,39 +592,14 @@ typedef struct dsDrawGeometry
 } dsDrawGeometry;
 
 /**
- * @brief Struct holding information about a texture.
+ * @brief Struct containing info describing the attributes of a texture.
  *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsTexture and the true internal type.
+ * This is used when creating a texture as well as for some helper functions.
  *
- * Textures have their origin in the upper left corner.
- *
- * @remark None of the members should be modified outside of the implementation.
  * @see Texture.h
  */
-typedef struct dsTexture
+typedef struct dsTextureInfo
 {
-	/**
-	 * @brief The resource manager this was created with.
-	 */
-	dsResourceManager* resourceManager;
-
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The usage of the texture.
-	 */
-	dsTextureUsage usage;
-
-	/**
-	 * @brief Memory hints for how the memory will be accessed.
-	 */
-	dsGfxMemory memoryHints;
-
 	/**
 	 * @brief The format of the texture data.
 	 */
@@ -655,8 +630,60 @@ typedef struct dsTexture
 
 	/**
 	 * @brief The number of mip-map levels.
+	 *
+	 * Use DS_ALL_MIP_LEVELS to use the maximum number of mip levels.
 	 */
 	uint32_t mipLevels;
+
+	/**
+	 * @brief The number of samples used for multisampling.
+	 *
+	 * This will only be used for offscreens. This may be set to DS_DEFAULT_ANTIALIAS_SAMPLES to use
+	 * the default set on the renderer. The renderbuffer will need to be re-created by the caller if
+	 * the default changes. When multisampling isn't supported, this will silently fallback to no
+	 * multisampling for resolved surfaces or fail for non-resolved surfaces.
+	 */
+	uint32_t samples;
+} dsTextureInfo;
+
+/**
+ * @brief Struct holding information about a texture.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsTexture and the true internal type.
+ *
+ * Textures have their origin in the upper left corner.
+ *
+ * @remark None of the members should be modified outside of the implementation.
+ * @see Texture.h
+ */
+typedef struct dsTexture
+{
+	/**
+	 * @brief The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	* @brief The usage of the texture.
+	*/
+	dsTextureUsage usage;
+
+	/**
+	* @brief Memory hints for how the memory will be accessed.
+	*/
+	dsGfxMemory memoryHints;
+
+	/**
+	 * @brief The info describing the texture.
+	 */
+	dsTextureInfo info;
 
 	/**
 	 * @brief True if this is an offscreen texture.
@@ -668,13 +695,6 @@ typedef struct dsTexture
 	 *     shader.
 	 */
 	bool resolve;
-
-	/**
-	 * @brief The number of samples used for multisampling.
-	 *
-	 * This is generally only used for offscreens.
-	 */
-	uint16_t samples;
 } dsTexture;
 
 /**
@@ -775,37 +795,9 @@ typedef struct dsTextureData
 	dsAllocator* allocator;
 
 	/**
-	 * @brief The format of the texture data.
+	 * @brief The info for the texture data.
 	 */
-	dsGfxFormat format;
-
-	/**
-	 * @brief The dimension of the texture.
-	 */
-	dsTextureDim dimension;
-
-	/**
-	 * @brief The width of the texture.
-	 */
-	uint32_t width;
-
-	/**
-	 * @brief The height of the texture.
-	 */
-	uint32_t height;
-
-	/**
-	 * @brief The depth of the texture.
-	 *
-	 * If not a 3D texture, this will denote the number of array levels. If 0, the texture is not
-	 * an array.
-	 */
-	uint32_t depth;
-
-	/**
-	 * @brief The number of mip-map levels.
-	 */
-	uint32_t mipLevels;
+	dsTextureInfo info;
 
 	/**
 	 * @brief The size of the data.
@@ -837,7 +829,7 @@ typedef struct dsTextureDataOptions
 	 * @brief The target height for mip level 0.
 	 *
 	 * This will skip mip levels until it reaches the level height a dimension closest to
-     * targetHeight. This check will not be performed if set to 0.
+	 * targetHeight. This check will not be performed if set to 0.
 	 *
 	 * @remark This will be ignored if targetWidth is not 0. If not 0, this will disable skipLevels.
 	 */
@@ -847,7 +839,7 @@ typedef struct dsTextureDataOptions
 	 * @brief The target width for mip level 0.
 	 *
 	 * This will skip mip levels until it reaches the level with a dimension closest to
-     * targetWidth. This check will not be performed if set to 0.
+	 * targetWidth. This check will not be performed if set to 0.
 	 *
 	 * @remark If not 0, this will disable skipLevels and targetHeight.
 	 */
@@ -1217,14 +1209,7 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  * @param usage How the texture will be used. This should be a combination of dsTextureUsage flags.
  * @param memoryHints Hints for how the memory for the texture will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @param format The format of the texture.
- * @param dimension The dimension of the texture.
- * @param width The width of the texture.
- * @param height The height of the texture.
- * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
- *     non-array textures.
- * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
- *     mip levels.
+ * @param info The info for the texture.
  * @param data The initial data for the texture, or NULL to leave uninitialized. The order of the
  *     data is:
  *     - Mip levels.
@@ -1236,8 +1221,7 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  * @return The created texture, or NULL if it couldn't be created.
  */
 typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
-	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
 	const void* data, size_t size);
 
 /**
@@ -1248,23 +1232,14 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  *     flags.
  * @param memoryHints Hints for how the memory for the offscreen will be used. This should be a
  *     combination of dsGfxMemory flags.
- * @param format The format of the offscreen.
- * @param dimension The dimension of the offscreen.
- * @param width The width of the offscreen.
- * @param height The height of the offscreen.
- * @param depth The depth of the texture (for 3D textures) or number of array elements. Use 0 for
- *     non-array textures.
- * @param mipLevels The number of mip-map levels. Use DS_ALL_MIP_LEVELS to use the maximum number of
- *     mip levels.
- * @param samples The number of samples to use for multisampling. Use 1 if not multisampling.
+ * @param info The info for the texture.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
  *     the shader.
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, dsGfxFormat format,
-	dsTextureDim dimension, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
-	uint32_t samples, bool resolve);
+	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
+	bool resolve);
 
 /**
  * @brief Function for destroying a texture or offscreen.

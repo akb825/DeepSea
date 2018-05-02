@@ -117,7 +117,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
-				surfaceFormat = surface->format;
+				surfaceFormat = surface->info.format;
 				if (surface->resolve)
 				{
 					surfaceLayers = 1;
@@ -131,12 +131,12 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				}
 				else
 				{
-					surfaceLayers = dsMax(1U, surface->depth);
-					if (surface->dimension == dsTextureDim_Cube)
+					surfaceLayers = dsMax(1U, surface->info.depth);
+					if (surface->info.dimension == dsTextureDim_Cube)
 						surfaceLayers *= 6;
 				}
 
-				if (surfaces[i].mipLevel >= surface->mipLevels)
+				if (surfaces[i].mipLevel >= surface->info.mipLevels)
 				{
 					errno = EINDEX;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -144,15 +144,15 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 
-				surfaceWidth = surface->width >> surfaces[i].mipLevel;
+				surfaceWidth = surface->info.width >> surfaces[i].mipLevel;
 				surfaceWidth = dsMax(1U, surfaceWidth);
-				surfaceHeight = surface->height >> surfaces[i].mipLevel;
+				surfaceHeight = surface->info.height >> surfaces[i].mipLevel;
 				surfaceHeight = dsMax(1U, surfaceHeight);
 
 				uint32_t layer = surfaces[i].layer;
-				if (surface->dimension == dsTextureDim_Cube)
+				if (surface->info.dimension == dsTextureDim_Cube)
 					layer = layer*6 + surfaces[i].cubeFace;
-				if (layers == 1 && surface->depth > 0 && layer >= surfaceLayers)
+				if (layers == 1 && surface->info.depth > 0 && layer >= surfaceLayers)
 				{
 					errno = EINDEX;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG,

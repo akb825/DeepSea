@@ -48,16 +48,14 @@ TEST_F(VolatileMaterialValuesTest, Textures)
 		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture1 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsTexture* texture2 = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture2);
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(values, "test1", texture1));
@@ -327,10 +325,10 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
 	ASSERT_TRUE(values);
 
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture);
 
 	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, NULL,
@@ -396,10 +394,10 @@ TEST_F(VolatileMaterialValuesTest, Limit)
 	dsVolatileMaterialValues* values = dsVolatileMaterialValues_create((dsAllocator*)&allocator, 2);
 	ASSERT_TRUE(values);
 
+	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 16, 16, 0, DS_ALL_MIP_LEVELS, 1};
 	dsTexture* texture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), dsTextureDim_2D, 16, 16, 0,
-		DS_ALL_MIP_LEVELS, NULL, 0);
+		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Static, &texInfo, NULL, 0);
 	ASSERT_TRUE(texture);
 
 	dsShaderVariableElement elements[] =

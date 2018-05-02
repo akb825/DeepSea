@@ -180,22 +180,20 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
+	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,
+		renderSurface->height, 0, 0, renderer->surfaceSamples};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, renderer->surfaceColorFormat,
-		dsTextureDim_2D, renderSurface->width, renderSurface->height, 0, 0,
-		renderer->surfaceSamples, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, &colorInfo, true);
 	ASSERT_TRUE(offscreen1);
 
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, renderer->surfaceColorFormat,
-		dsTextureDim_2D, renderSurface->width, renderSurface->height, 0, 0,
-		renderer->surfaceSamples, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, &colorInfo, true);
 	ASSERT_TRUE(offscreen2);
 
+	dsTextureInfo depthInfo = {renderer->surfaceDepthStencilFormat, dsTextureDim_2D,
+		renderSurface->width, renderSurface->height, 0, 0, renderer->surfaceSamples};
 	dsOffscreen* offscreen3 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, renderer->surfaceDepthStencilFormat,
-		dsTextureDim_2D, renderSurface->width, renderSurface->height, 0, 0,
-		renderer->surfaceSamples, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GpuOnly, &depthInfo, true);
 	ASSERT_TRUE(offscreen3);
 
 	dsFramebufferSurface surfaces1[] =
