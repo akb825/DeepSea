@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Resources/VertexFormat.h>
 
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -82,7 +83,8 @@ bool dsVertexFormat_computeOffsetsAndSize(dsVertexFormat* format)
 			return false;
 		}
 
-		format->elements[i].offset = format->size;
+		DS_ASSERT(format->size <= USHRT_MAX);
+		format->elements[i].offset = (uint16_t)format->size;
 		format->elements[i].size = curSize;
 		format->size = (uint16_t)(format->size + curSize);
 	}
