@@ -943,6 +943,74 @@ typedef struct dsVectorScratchData dsVectorScratchData;
  */
 typedef struct dsVectorImage dsVectorImage;
 
+/**
+ * @brief Struct containing the resources required for initializing vector images.
+ *
+ * All members must be non-null unless otherwise specified.
+ *
+ * @see VectorResources.h
+ */
+typedef struct dsVectorImageInitResources
+{
+	/**
+	 * @brief The resource manager.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief Scratch data to allow for memory re-use.
+	 *
+	 * This may be re-used across multiple images, so long as it isn't used concurrently across
+	 * multiple threads. When loading images across multiple threads, it is best to have a separate
+	 * dsVectorScratchData instance for each thread.
+	 */
+	dsVectorScratchData* scratchData;
+
+	/**
+	 * @brief Materials that are shared among multiple vector resources.
+	 *
+	 * This may be NULL if there are no materials to share across images. If this is NULL, then a
+	 * non-NULL set of local materials must be provided when creating the vector image.
+	 */
+	const dsVectorMaterialSet* sharedMaterials;
+
+	/**
+	 * @brief The shader module for the vector shaders.
+	 */
+	dsVectorShaderModule* shaderModule;
+
+	/**
+	 * @brief The vector resources that house fonts and textures.
+	 *
+	 * This may be NULL when creating from a command list or loading from file or stream and no
+	 * fonts or textures are referenced from the materials.
+	 */
+	const dsVectorResources** resources;
+
+	/**
+	 * @brief The number of vector resources.
+	 */
+	uint32_t resourceCount;
+
+	/**
+	 * @brief True if the materials created when loading from file or stream should use sRGB colors.
+	 *
+	 * This will use sRGB-correct interpolation for gradients and convert to linear when sampling
+	 * the material in the shader.
+	 */
+	bool srgb;
+
+	/**
+	 * @brief The command buffer to update the loaded material set with.
+	 *
+	 * This will be unused when creating a vector image from a command list. When loading from file
+	 * or stream this may be NULL, but calling code will be responsible to call
+	 * dsMaterialSet_update(dsVectorImage_getLocalMaterials(image), commandBuffer) outside of a
+	 * render pass.
+	 */
+	dsCommandBuffer* commandBuffer;
+} dsVectorImageInitResources;
+
 #ifdef __cplusplus
 }
 #endif

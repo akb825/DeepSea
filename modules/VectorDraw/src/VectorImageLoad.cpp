@@ -200,14 +200,17 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 static dsFont* findFont(const dsVectorResources** resources, uint32_t resourceCount,
 	const char* fontName, const char* name)
 {
-	for (uint32_t i = 0; i < resourceCount; ++i)
+	if (resources)
 	{
-		if (!resources[i])
-			continue;
+		for (uint32_t i = 0; i < resourceCount; ++i)
+		{
+			if (!resources[i])
+				continue;
 
-		dsFont* font = dsVectorResources_findFont(resources[i], fontName);
-		if (font)
-			return font;
+			dsFont* font = dsVectorResources_findFont(resources[i], fontName);
+			if (font)
+				return font;
+		}
 	}
 
 	errno = ENOTFOUND;
@@ -228,14 +231,17 @@ static dsFont* findFont(const dsVectorResources** resources, uint32_t resourceCo
 static dsTexture* findTexture(const dsVectorResources** resources, uint32_t resourceCount,
 	const char* textureName, const char* name)
 {
-	for (uint32_t i = 0; i < resourceCount; ++i)
+	if (resources)
 	{
-		if (!resources[i])
-			continue;
+		for (uint32_t i = 0; i < resourceCount; ++i)
+		{
+			if (!resources[i])
+				continue;
 
-		dsTexture* texture = dsVectorResources_findTexture(resources[i], textureName);
-		if (texture)
-			return texture;
+			dsTexture* texture = dsVectorResources_findTexture(resources[i], textureName);
+			if (texture)
+				return texture;
+		}
 	}
 
 	errno = ENOTFOUND;
@@ -253,12 +259,10 @@ static dsTexture* findTexture(const dsVectorResources** resources, uint32_t reso
 	return nullptr;
 }
 
-static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchData* scratchData,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator,
-	const DeepSeaVectorDraw::VectorImage* fbVectorImage, const dsVectorMaterialSet* sharedMaterials,
-	dsVectorMaterialSet* localMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, const char* name)
+static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsVectorImageInitResources* initResources,
+	const DeepSeaVectorDraw::VectorImage* fbVectorImage, dsVectorMaterialSet* localMaterials,
+	float pixelSize, const dsVector2f* targetSize, const char* name)
 {
 	auto commandList = fbVectorImage->commands();
 	uint32_t commandCount = commandList->size();
@@ -269,7 +273,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 		return nullptr;
 	}
 
-	dsVectorCommand* commands = dsVectorScratchData_createTempCommands(scratchData, commandCount);
+	dsVectorCommand* commands = dsVectorScratchData_createTempCommands(initResources->scratchData,
+		commandCount);
 	if (!commands)
 		return nullptr;
 
@@ -395,8 +400,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 				commands[i].commandType = dsVectorCommandType_TextPath;
 				commands[i].textPath.string = textPathCommand->text()->c_str();
 				commands[i].textPath.stringType = dsUnicodeType_UTF8;
-				commands[i].textPath.font = findFont(resources, resourceCount,
-					textPathCommand->font()->c_str(), name);
+				commands[i].textPath.font = findFont(initResources->resources,
+					initResources->resourceCount, textPathCommand->font()->c_str(), name);
 				if (!commands[i].textPath.font)
 					return nullptr;
 				commands[i].textPath.rangeCount = textPathCommand->rangeCount();
@@ -408,8 +413,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 				commands[i].commandType = dsVectorCommandType_Text;
 				commands[i].text.string = textCommand->text()->c_str();
 				commands[i].text.stringType = dsUnicodeType_UTF8;
-				commands[i].text.font = findFont(resources, resourceCount,
-					textCommand->font()->c_str(), name);
+				commands[i].text.font = findFont(initResources->resources,
+					initResources->resourceCount, textCommand->font()->c_str(), name);
 				if (!commands[i].text.font)
 					return nullptr;
 				commands[i].text.justification =
@@ -446,8 +451,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 			{
 				auto imageCommand = commandRef->command_as_ImageCommand();
 				commands[i].commandType = dsVectorCommandType_Image;
-				commands[i].image.image = findTexture(resources, resourceCount,
-					imageCommand->image()->c_str(), name);
+				commands[i].image.image = findTexture(initResources->resources,
+					initResources->resourceCount, imageCommand->image()->c_str(), name);
 				if (!commands[i].image.image)
 					return nullptr;
 				commands[i].image.imageBounds.min =
@@ -475,16 +480,14 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsVectorScratchDat
 		pixelSize *= dsMin(scale.x, scale.y);
 	}
 
-	return dsVectorImage_create(allocator, scratchData, resourceManager, resourceAllocator,
-		commands, commandCount, sharedMaterials, localMaterials, shaderModule, size, pixelSize);
+	return dsVectorImage_create(allocator, resourceAllocator, initResources,
+		commands, commandCount, localMaterials, size, pixelSize);
 }
 
 extern "C"
-dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchData* scratchData,
-	dsResourceManager* resourceManager, dsAllocator* resourceAllocator, const void* data,
-	size_t size, const dsVectorMaterialSet* sharedMaterials, dsVectorShaderModule* shaderModule,
-	const dsVectorResources** resources, uint32_t resourceCount, float pixelSize,
-	const dsVector2f* targetSize, bool srgb, dsCommandBuffer* commandBuffer, const char* name)
+dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsVectorImageInitResources* initResources, const void* data, size_t size, float pixelSize,
+	const dsVector2f* targetSize, const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyVectorImageBuffer(verifier))
@@ -496,24 +499,23 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsVectorScratchDat
 
 	auto fbVectorImage = DeepSeaVectorDraw::GetVectorImage(data);
 	dsVectorMaterialSet* localMaterials = NULL;
-	if (!readMaterials(&localMaterials, allocator, resourceManager, resourceAllocator,
-		fbVectorImage, srgb, name))
+	if (!readMaterials(&localMaterials, allocator, initResources->resourceManager,
+		resourceAllocator, fbVectorImage, initResources->srgb, name))
 	{
 		return nullptr;
 	}
 
-	if (localMaterials && commandBuffer)
+	if (localMaterials && initResources->commandBuffer)
 	{
-		if (!dsVectorMaterialSet_update(localMaterials, commandBuffer))
+		if (!dsVectorMaterialSet_update(localMaterials, initResources->commandBuffer))
 		{
 			dsVectorMaterialSet_destroy(localMaterials);
 			return nullptr;
 		}
 	}
 
-	dsVectorImage* vectorImage = readVectorImage(allocator, scratchData, resourceManager,
-		resourceAllocator, fbVectorImage, sharedMaterials, localMaterials, shaderModule, resources,
-		resourceCount, pixelSize, targetSize, name);
+	dsVectorImage* vectorImage = readVectorImage(allocator, resourceAllocator, initResources,
+		fbVectorImage, localMaterials, pixelSize, targetSize, name);
 	if (!vectorImage)
 	{
 		dsVectorMaterialSet_destroy(localMaterials);

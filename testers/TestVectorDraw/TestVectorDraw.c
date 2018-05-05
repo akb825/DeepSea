@@ -360,6 +360,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	dsVector2f targetSize = {{(float)TARGET_SIZE, (float)TARGET_SIZE}};
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL,
+		testVectorDraw->shaderModule, NULL, 0, srgb, renderer->mainCommandBuffer};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
 	{
 		if (!dsPath_combine(path, sizeof(path), assetsDir, vectorImageFiles[i]))
@@ -370,9 +372,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			return false;
 		}
 
-		testVectorDraw->vectorImages[i] = dsVectorImage_loadFile(allocator, scratchData,
-			resourceManager, NULL, path, NULL, testVectorDraw->shaderModule, NULL, 0, 1.0f,
-			&targetSize, srgb, renderer->mainCommandBuffer);
+		testVectorDraw->vectorImages[i] = dsVectorImage_loadFile(allocator, NULL, &initResources,
+			path, 1.0f, &targetSize);
 		if (!testVectorDraw->vectorImages[i])
 		{
 			DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector image: %s",

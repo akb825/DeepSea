@@ -59,9 +59,10 @@ TEST_F(TriangulateTest, TriangleCW)
 	commands[5].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -118,9 +119,10 @@ TEST_F(TriangulateTest, TriangleCCW)
 	commands[5].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -177,9 +179,10 @@ TEST_F(TriangulateTest, ObliqueTriangleCW)
 	commands[5].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -236,9 +239,10 @@ TEST_F(TriangulateTest, ObliqueTriangleCCW)
 	commands[5].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -298,9 +302,10 @@ TEST_F(TriangulateTest, QuadCW)
 	commands[6].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -366,9 +371,10 @@ TEST_F(TriangulateTest, QuadCCW)
 	commands[6].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -461,9 +467,10 @@ TEST_F(TriangulateTest, MonotonicCW)
 	commands[15].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{36.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -610,9 +617,10 @@ TEST_F(TriangulateTest, MonotonicCCW)
 	commands[15].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{36.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -837,9 +845,10 @@ TEST_F(TriangulateTest, ComplexCW)
 	commands[41].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{36.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -1230,9 +1239,10 @@ TEST_F(TriangulateTest, ComplexCCW)
 	commands[41].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{36.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -1564,9 +1574,10 @@ TEST_F(TriangulateTest, SawtoothRightCW)
 	commands[21].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{11.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -1768,9 +1779,10 @@ TEST_F(TriangulateTest, SawtoothRightCCW)
 	commands[21].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{11.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -1972,9 +1984,10 @@ TEST_F(TriangulateTest, SawtoothLeftCW)
 	commands[21].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2176,9 +2189,10 @@ TEST_F(TriangulateTest, SawtoothLeftCCW)
 	commands[21].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 16.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2358,9 +2372,10 @@ TEST_F(TriangulateTest, HoleCW)
 	commands[14].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 5.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2498,9 +2513,10 @@ TEST_F(TriangulateTest, HoleCCW)
 	commands[14].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 5.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2610,9 +2626,10 @@ TEST_F(TriangulateTest, TriangleNoClose)
 	commands[4].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2690,9 +2707,10 @@ TEST_F(TriangulateTest, ClosePointOutside)
 	commands[12].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 10.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
@@ -2809,9 +2827,10 @@ TEST_F(TriangulateTest, ClosePointInside)
 	commands[11].fillPath.opacity = 1.0f;
 
 	dsVector2f size = {{10.0f, 10.0f}};
-	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, scratchData,
-		resourceManager, NULL, commands, DS_ARRAY_SIZE(commands), NULL, materialSet,
-		NULL, &size, 0.1f);
+	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
+		false, NULL};
+	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
+		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
 
 	dsGfxBuffer* buffer = dsVectorImage_getBuffer(image);
