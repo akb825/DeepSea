@@ -22,3 +22,11 @@ pipeline dsVectorShape
 	fragment = dsVectorElementShape_defaultFragment;
 	DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
 }
+
+pipeline dsVectorShapeWireframe
+{
+	vertex = dsVectorElementShape_defaultVertex;
+	fragment = dsVectorElementShape_defaultFragment;
+	DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+	polygon_mode = line;
+}

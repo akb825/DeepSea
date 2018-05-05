@@ -379,6 +379,7 @@ static void addTessTextVertex(void* userData, const dsTextLayout* layout, uint32
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
+	printf("Use left/right arrows or tap on touchscreen to cyle text.\n\n");
 	printf("options:\n");
 	printf("  -h, --help      print this help message and exit\n");
 	printf("  -l, --low       use low quality text\n");

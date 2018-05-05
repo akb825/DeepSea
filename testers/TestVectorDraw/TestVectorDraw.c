@@ -64,12 +64,14 @@ typedef struct TestVectorDraw
 	dsRenderPass* renderPass;
 	dsVectorShaderModule* shaderModule;
 	dsVectorShaders* shaders;
+	dsVectorShaders* wireframeShaders;
 	dsMaterial* material;
 	dsVectorResources* vectorResources;
 	dsVectorImage** vectorImages;
 
 	uint32_t vectorImageCount;
 	uint32_t curVectorImage;
+	bool wireframe;
 } TestVectorDraw;
 
 static const char* renderTypeNames[] =
@@ -107,6 +109,8 @@ typedef const char* (*GetShaderDirFunction)(dsRenderer* renderer);
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
+	printf("Use left/right arrows or tap on touchscreen to cyle images.\n");
+	printf("Press 'w' to toggle wireframe.\n\n");
 	printf("options:\n");
 	printf("--srgb      use sRGB-correct drawing\n");
 #if DS_HAS_OPENGL
@@ -194,6 +198,9 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				case dsKeyCode_Left:
 					prevImage(testVectorDraw);
 					return false;
+				case dsKeyCode_W:
+					testVectorDraw->wireframe = !testVectorDraw->wireframe;
+					return false;
 				default:
 					return true;
 			}
@@ -236,8 +243,13 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	dsMatrix44f matrix;
 	DS_VERIFY(dsRenderer_makeOrtho(&matrix, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));
-	DS_VERIFY(dsVectorImage_draw(image, commandBuffer, testVectorDraw->shaders,
-		testVectorDraw->material, &matrix, NULL, NULL));
+	dsVectorShaders* shaders;
+	if (testVectorDraw->wireframe)
+		shaders = testVectorDraw->wireframeShaders;
+	else
+		shaders = testVectorDraw->shaders;
+	DS_VERIFY(dsVectorImage_draw(image, commandBuffer, shaders, testVectorDraw->material, &matrix,
+		NULL, NULL));
 
 	DS_VERIFY(dsRenderPass_end(testVectorDraw->renderPass, commandBuffer));
 }
@@ -303,6 +315,15 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 
 	testVectorDraw->shaders = dsVectorShaders_create(resourceManager, allocator,
 		testVectorDraw->shaderModule, DS_DEFAULT_ANTIALIAS_SAMPLES);
+	if (!testVectorDraw->shaders)
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));
+		return false;
+	}
+
+	testVectorDraw->wireframeShaders = dsVectorShaders_createCustom(resourceManager, allocator,
+		testVectorDraw->shaderModule, "dsVectorShapeWireframe", NULL, NULL,
+		DS_DEFAULT_ANTIALIAS_SAMPLES);
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));
@@ -375,6 +396,7 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 	}
 	DS_VERIFY(dsVectorResources_destroy(testVectorDraw->vectorResources));
 	dsMaterial_destroy(testVectorDraw->material);
+	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->wireframeShaders));
 	DS_VERIFY(dsVectorShaders_destroy(testVectorDraw->shaders));
 	DS_VERIFY(dsVectorShaderModule_destroy(testVectorDraw->shaderModule));
 	DS_VERIFY(dsRenderPass_destroy(testVectorDraw->renderPass));

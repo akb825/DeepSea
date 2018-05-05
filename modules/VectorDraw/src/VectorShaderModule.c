@@ -45,9 +45,9 @@ static const char* sizeName = "dsVectorImageSize";
 static const char* textureSizesName = "dsVectorTextureSizes";
 
 // Shaders
-static const char* shapeShaderName = "dsVectorShape";
-static const char* imageShaderName = "dsVectorImage";
-static const char* textShaderName = "dsVectorText";
+const char* dsDefaultShapeShaderName = "dsVectorShape";
+const char* dsDefaultImageShaderName = "dsVectorImage";
+const char* dsDefaultTextShaderName = "dsVectorText";
 
 static bool targetSupported(dsResourceManager* resourceManager)
 {
@@ -112,40 +112,12 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		textIndex == DS_MATERIAL_UNKNOWN); ++i)
 	{
 		const char* name = dsShaderModule_shaderName(module, i);
-		if (strcmp(name, shapeShaderName) == 0)
+		if (strcmp(name, dsDefaultShapeShaderName) == 0)
 			shapeIndex = i;
-		else if (strcmp(name, imageShaderName) == 0)
+		else if (strcmp(name, dsDefaultImageShaderName) == 0)
 			imageIndex = i;
-		else if (strcmp(name, textShaderName) == 0)
+		else if (strcmp(name, dsDefaultTextShaderName) == 0)
 			textIndex = i;
-	}
-
-	bool found = true;
-	if (shapeIndex == DS_MATERIAL_UNKNOWN)
-	{
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			shapeShaderName);
-		found = false;
-	}
-	else if (imageIndex == DS_MATERIAL_UNKNOWN)
-	{
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			imageShaderName);
-		found = false;
-	}
-	// TODO: Implement text.
-	/*if (textIndex == DS_MATERIAL_UNKNOWN)
-	{
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			textShaderName);
-		found = false;
-	}*/
-
-	if (!found)
-	{
-		DS_VERIFY(dsShaderModule_destroy(module));
-		DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
-		return NULL;
 	}
 
 	dsVectorShaderModule* vectorModule = DS_ALLOCATE_OBJECT(allocator, dsVectorShaderModule);

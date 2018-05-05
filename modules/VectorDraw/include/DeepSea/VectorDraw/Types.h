@@ -872,17 +872,17 @@ typedef struct dsVectorShadersModule
 	uint32_t textureSizesElement;
 
 	/**
-	 * @brief The index for the vector shape shader.
+	 * @brief The index for the default vector shape shader.
 	 */
 	uint32_t shapeShaderIndex;
 
 	/**
-	 * @brief The index for the vector image shader.
+	 * @brief The index for the default vector image shader.
 	 */
 	uint32_t imageShaderIndex;
 
 	/**
-	 * @brief The index for the vector text shader.
+	 * @brief The index for the default vector text shader.
 	 */
 	uint32_t textShaderIndex;
 } dsVectorShaderModule;
