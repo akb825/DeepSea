@@ -33,7 +33,7 @@ static bool findLineDir(dsVector2f* outDirection, const dsVectorScratchData* scr
 	uint32_t curIndex)
 {
 	for (uint32_t j = curIndex + 1; j < scratchData->pointCount &&
-		!(scratchData->points[j].type & PointType_End); ++j)
+		!(scratchData->points[j - 1].type & PointType_End); ++j)
 	{
 		if (scratchData->points[curIndex].point.x != scratchData->points[j].point.x ||
 			scratchData->points[curIndex].point.y != scratchData->points[j].point.y)
@@ -303,19 +303,22 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 	curVertex->materialIndex = (uint16_t)materialIndex;
 	curVertex->shapeIndex = (uint16_t)shapeIndex;
 
-	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
-		return false;
+	if (*firstVertex != NOT_FOUND && *secondVertex != NOT_FOUND)
+	{
+		if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+			return false;
 
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newSecondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
-		return false;
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &newSecondVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, &newFirstVertex))
+			return false;
+	}
 
 	*firstVertex = newFirstVertex;
 	*secondVertex = newSecondVertex;
@@ -326,7 +329,7 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 	const dsVector2f* fromDirection, const dsVector2f* toDirection, float lineWidth,
 	uint32_t* firstVertex, uint32_t* secondVertex, uint32_t materialIndex, uint32_t shapeIndex,
 	dsLineJoin joinType, float cosMiterThetaLimit, float segmentDistance, float distance,
-	float totalDistance, float pixelSize, dsAlignedBox2f* bounds)
+	float totalDistance, float pixelSize, dsAlignedBox2f* bounds, bool end)
 {
 	float cosTheta = dsVector2_dot(*fromDirection, *toDirection);
 	// Check for a straight line.
@@ -454,19 +457,22 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
-		if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-			return false;
+		if (!end)
+		{
+			if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+				return false;
 
-		if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
-			return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+				return false;
+		}
 	}
 	else
 	{
@@ -527,34 +533,47 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 		curVertex->materialIndex = (uint16_t)materialIndex;
 		curVertex->shapeIndex = (uint16_t)shapeIndex;
 
+		if (!end)
+		{
+			if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+				return false;
+
+			if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
+				return false;
+			if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+				return false;
+		}
+	}
+
+	if (*firstVertex != NOT_FOUND && *secondVertex != NOT_FOUND)
+	{
+		if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
+			return false;
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
+			return false;
 		if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
+			return false;
+
+		if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
 			return false;
 		if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
 			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
-			return false;
-
-		if (!dsVectorScratchData_addIndex(scratchData, &toSecondVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &toFirstVertex))
-			return false;
-		if (!dsVectorScratchData_addIndex(scratchData, &centerVertex))
+		if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
 			return false;
 	}
 
-	if (!dsVectorScratchData_addIndex(scratchData, firstVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-		return false;
-
-	if (!dsVectorScratchData_addIndex(scratchData, secondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromSecondVertex))
-		return false;
-	if (!dsVectorScratchData_addIndex(scratchData, &fromFirstVertex))
-		return false;
+	if (end)
+	{
+		*firstVertex = toFirstVertex;
+		*secondVertex = toSecondVertex;
+		return true;
+	}
 
 	switch (joinType)
 	{
@@ -856,7 +875,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 	bool joinStart = false;
 	dsVector2f lastDir = {{1.0f, 0.0f}};
 	dsVector2f firstDir = lastDir;
-	uint32_t firstVertex = 0, secondVertex = 1;
+	uint32_t firstVertex = NOT_FOUND, secondVertex = NOT_FOUND;
 	for (uint32_t i = 0; i < scratchData->pointCount; ++i)
 	{
 		bool end = i == scratchData->pointCount - 1 || scratchData->points[i].type & PointType_End;
@@ -871,29 +890,53 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 
 			subpathDistance = 0.0f;
 			distance = 0.0f;
-			for (uint32_t j = i + 1; j < scratchData->pointCount; ++j)
+			uint32_t endIndex = i + 1;
+			for (; endIndex < scratchData->pointCount; ++endIndex)
 			{
-				subpathDistance += dsVector2f_dist(&scratchData->points[j - 1].point,
-					&scratchData->points[j].point);
-				if (scratchData->points[j].type & PointType_End)
+				subpathDistance += dsVector2f_dist(&scratchData->points[endIndex - 1].point,
+					&scratchData->points[endIndex].point);
+				if (scratchData->points[endIndex].type & PointType_End)
 					break;
 			}
 
 			// Line cap. If the start joins with the end, use a butt style cap for the later join.
-			findLineDir(&lastDir, scratchData, i);
+			findLineDir(&firstDir, scratchData, i);
 			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
-			dsLineCap capType = stroke->capType;
 			if (joinStart)
 			{
-				capType = dsLineCap_Butt;
-				firstDir = lastDir;
+				float segmentDistance = dsVector2f_dist(&scratchData->points[endIndex - 1].point,
+					&scratchData->points[i].point);
+				subpathDistance += segmentDistance;
+
+				findLineDir(&lastDir, scratchData, endIndex - 1);
+				dsVector2f nextDir = firstDir;
+				if (scratchData->points[i].type & PointType_Corner)
+				{
+					if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir,
+						expandSize, &firstVertex, &secondVertex, material, infoIndex,
+						stroke->joinType, cosMiterThetaLimit, segmentDistance, distance,
+						subpathDistance, pixelSize, &curInfo->bounds, false))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (!addSimpleJoin(scratchData, &scratchData->points[i].point, &nextDir,
+						expandSize, &firstVertex, &secondVertex, material, infoIndex, distance,
+						subpathDistance, &curInfo->bounds))
+					{
+						return false;
+					}
+				}
 			}
-			if (!addCap(scratchData, &scratchData->points[i].point, &lastDir, expandSize,
-				&firstVertex, &secondVertex, material, infoIndex, capType, distance,
+			else if (!addCap(scratchData, &scratchData->points[i].point, &firstDir, expandSize,
+				&firstVertex, &secondVertex, material, infoIndex, stroke->capType, distance,
 				subpathDistance, pixelSize, true, &curInfo->bounds))
 			{
 				return false;
 			}
+			lastDir = firstDir;
 			continue;
 		}
 
@@ -902,13 +945,16 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		distance += segmentDistance;
 
 		dsVector2f nextDir;
-		findLineDir(&nextDir, scratchData, i);
+		if (end && joinStart)
+			nextDir = firstDir;
+		else
+			findLineDir(&nextDir, scratchData, i);
 		if (scratchData->points[i].type & PointType_Corner)
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,
 				&firstVertex, &secondVertex, material, infoIndex, stroke->joinType,
 				cosMiterThetaLimit, segmentDistance, distance, subpathDistance, pixelSize,
-				&curInfo->bounds))
+				&curInfo->bounds, end))
 			{
 				return false;
 			}
@@ -928,32 +974,9 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 
 		if (end)
 		{
-			// Either cap or join based on the first point.
-			if (joinStart)
+			if (!joinStart)
 			{
-				if (scratchData->points[firstPoint].type & PointType_Corner)
-				{
-					if (!addJoin(scratchData, &scratchData->points[firstPoint].point, &nextDir,
-						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
-						stroke->joinType, cosMiterThetaLimit, segmentDistance, distance,
-						subpathDistance, pixelSize, &curInfo->bounds))
-					{
-						return false;
-					}
-				}
-				else
-				{
-					if (!addSimpleJoin(scratchData, &scratchData->points[firstPoint].point,
-						&firstDir, expandSize, &firstVertex, &secondVertex, material, infoIndex,
-						distance, subpathDistance, &curInfo->bounds))
-					{
-						return false;
-					}
-				}
-			}
-			else
-			{
-				if (!addCap(scratchData, &scratchData->points[i].point, &nextDir, expandSize,
+				if (!addCap(scratchData, &scratchData->points[i].point, &lastDir, expandSize,
 					&firstVertex, &secondVertex, material, infoIndex, stroke->capType, distance,
 					subpathDistance, pixelSize, false, &curInfo->bounds))
 				{
@@ -961,8 +984,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				}
 			}
 			firstPoint = i + 1;
+			continue;
 		}
-
 		lastDir = nextDir;
 	}
 

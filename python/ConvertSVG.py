@@ -636,7 +636,7 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 	VectorCommandAddCommand(builder, commandOffset)
 	return [VectorCommandEnd(builder)]
 
-def writeLines(builder, transform, style, points):
+def writeLines(builder, transform, style, points, closePath = False):
 	if not points:
 		return []
 
@@ -661,6 +661,15 @@ def writeLines(builder, transform, style, points):
 		VectorCommandAddCommand(builder, commandOffset)
 		offsets.append(VectorCommandEnd(builder))
 
+	if closePath:
+		ClosePathCommandStart(builder)
+		commandOffset = ClosePathCommandEnd(builder)
+
+		VectorCommandStart(builder)
+		VectorCommandAddCommandType(builder, VectorCommandUnion.ClosePathCommand)
+		VectorCommandAddCommand(builder, commandOffset)
+		offsets.append(VectorCommandEnd(builder))
+
 	offsets.extend(style.write(builder))
 	return offsets
 
@@ -674,10 +683,7 @@ def parsePointList(pointStr, size):
 
 def writePolygon(builder, transform, style, pointStr, size):
 	points = parsePointList(pointStr, size)
-	if not points:
-		return []
-	points.append(points[0])
-	return writeLines(builder, transform, style, points)
+	return writeLines(builder, transform, style, points, True)
 
 def writePolyline(builder, transform, style, pointStr, size):
 	points = parsePointList(pointStr, size)
