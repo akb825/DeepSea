@@ -49,6 +49,14 @@ static bool hasExtension(const char* extensions, const char* extension)
 	return false;
 }
 
+typedef int (*X11ErrorHandler)(Display*, XErrorEvent*);
+static int emptyErrorHandler(Display* display, XErrorEvent* event)
+{
+	DS_UNUSED(display);
+	DS_UNUSED(event);
+	return 0;
+}
+
 void* dsGetGLDisplay(void)
 {
 	return XOpenDisplay(NULL);
@@ -176,6 +184,9 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 			None
 		};
 
+		// Set an empty error handler since the implementation may throw an error for unsupported
+		// GL versions.
+		X11ErrorHandler prevHandler = XSetErrorHandler(&emptyErrorHandler);
 		unsigned int versionCount = DS_ARRAY_SIZE(versions);
 		for (unsigned int i = 0; i < versionCount; ++i)
 		{
@@ -191,6 +202,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 				break;
 			}
 		}
+		XSetErrorHandler(prevHandler);
 	}
 
 	return config;
