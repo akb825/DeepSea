@@ -907,7 +907,6 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 			{
 				float segmentDistance = dsVector2f_dist(&scratchData->points[endIndex - 1].point,
 					&scratchData->points[i].point);
-				subpathDistance += segmentDistance;
 
 				findLineDir(&lastDir, scratchData, endIndex - 1);
 				dsVector2f nextDir = firstDir;

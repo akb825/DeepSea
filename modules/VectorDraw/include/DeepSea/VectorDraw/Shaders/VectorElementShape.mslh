@@ -187,8 +187,8 @@ vec4 dsVectorElementShape_getMaterialColor()
 				dsVectorVertexOut.lineDistancesOpacityMaterialIndex.y/totalDashRepeats;
 			if (abs(adjustedTotalDashDistance/totalDashDistance - 1.0) <= 0.1)
 			{
-				totalDashDistance = adjustedTotalDashDistance;
 				float ratio = adjustedTotalDashDistance/totalDashDistance;
+				totalDashDistance = adjustedTotalDashDistance;
 				dashArray *= ratio;
 				dashArrayCumalitive *= ratio;
 			}

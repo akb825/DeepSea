@@ -20,12 +20,13 @@
 float dsVectorPixelTheta(float pixelSize, float radius)
 {
 	/*
-	 * Try to find the theta where the straight distance and arc distance differs by a pixel.
-	 * (p = pixelSize, r = radius)
+	 * Try to find the theta where the straight distance and arc distance differs by half a pixel.
+	 * (p = pixelSize*0.5, r = radius)
 	 * p = r - r*cos(pixelTheta)
 	 * r*cos(pixelTheta) = r - p
 	 * pixelTheta = acos(1 - p/r)
 	 */
+	pixelSize *= 0.5f;
 	if (pixelSize > radius)
 		return (float)M_PI;
 

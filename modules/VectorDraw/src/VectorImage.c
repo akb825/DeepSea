@@ -316,7 +316,7 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 		deltaTheta = -deltaTheta;
 
 	// Target a max curve error of one pixel.
-	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMin(radius->x, radius->y));
+	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(radius->x, radius->y));
 	unsigned int pointCount = (unsigned int)(fabsf(deltaTheta)/pixelTheta);
 	// Amortize the remainder across all points.
 	float incr = deltaTheta/(float)pointCount;
@@ -361,7 +361,7 @@ static bool addEllipse(dsVectorScratchData* scratchData, const dsVector2f* cente
 	if (!moveTo(scratchData, &start, PointType_Normal))
 		return false;
 
-	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMin(radius->x, radius->y));
+	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(radius->x, radius->y));
 	float deltaTheta = (float)(2*M_PI);
 	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
 	// Amortize the remainder across all points.
@@ -460,7 +460,7 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 	dsVector2f center;
 	dsAlignedBox2_center(center, *bounds);
 
-	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMin(rx, ry));
+	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(rx, ry));
 	float deltaTheta = (float)M_PI_2;
 	unsigned int pointCount = (unsigned int)(deltaTheta/pixelTheta);
 	// Amortize the remainder across all points.

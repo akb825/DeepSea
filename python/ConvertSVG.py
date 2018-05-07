@@ -938,9 +938,9 @@ def convertSVG(streamOrPath, outputFile):
 						style = Style(node, materials, diagonalSize),
 						center = (sizeFromString(node.getAttribute('cx'), size[0]),
 							sizeFromString(node.getAttribute('cy'), size[1])),
-						radius = sizeFromString(node.getAttribute('radius'), diagonalSize):
+						radius = sizeFromString(node.getAttribute('r'), diagonalSize):
 						writeEllipse(builder, transform, style, center, (radius, radius)))
-				elif node.tagName == 'elipse':
+				elif node.tagName == 'ellipse':
 					commands.append(lambda builder,
 						transform = transformFromNode(node),
 						style = Style(node, materials, diagonalSize),
