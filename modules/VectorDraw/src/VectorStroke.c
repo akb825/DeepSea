@@ -901,14 +901,14 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 			}
 
 			// Line cap. If the start joins with the end, use a butt style cap for the later join.
-			findLineDir(&firstDir, scratchData, i);
+			DS_VERIFY(findLineDir(&firstDir, scratchData, i));
 			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
 			if (joinStart)
 			{
 				float segmentDistance = dsVector2f_dist(&scratchData->points[endIndex - 1].point,
 					&scratchData->points[i].point);
 
-				findLineDir(&lastDir, scratchData, endIndex - 1);
+				DS_VERIFY(findLineDir(&lastDir, scratchData, endIndex - 1));
 				dsVector2f nextDir = firstDir;
 				if (scratchData->points[i].type & PointType_Corner)
 				{
@@ -947,8 +947,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		dsVector2f nextDir;
 		if (end && joinStart)
 			nextDir = firstDir;
-		else
-			findLineDir(&nextDir, scratchData, i);
+		else if (!findLineDir(&nextDir, scratchData, i))
+			nextDir = lastDir;
 		if (scratchData->points[i].type & PointType_Corner)
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,

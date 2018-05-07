@@ -638,7 +638,7 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 
 def writeLines(builder, transform, style, points, closePath = False):
 	if not points:
-		return []
+		raise Exception("No points available.")
 
 	offsets = writeStartPath(builder, transform)
 

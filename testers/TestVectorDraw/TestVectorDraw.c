@@ -95,6 +95,7 @@ static const char* shaderDir;
 const char* vectorImageFiles[] =
 {
 	"polygon.dsvi",
+	"line.dsvi",
 	"polyline.dsvi",
 	"polyline-miter-square.dsvi",
 	"polyline-bevel-butt.dsvi",
