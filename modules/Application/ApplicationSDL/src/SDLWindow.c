@@ -15,7 +15,8 @@
  */
 
 #include "SDLWindow.h"
-#include "Shared.h"
+
+#include "SDLShared.h"
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/Core/Memory/Allocator.h>

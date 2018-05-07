@@ -18,8 +18,8 @@
 
 #include "SDLController.h"
 #include "SDLKeyboard.h"
+#include "SDLShared.h"
 #include "SDLWindow.h"
-#include "Shared.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/Core/Memory/Allocator.h>
