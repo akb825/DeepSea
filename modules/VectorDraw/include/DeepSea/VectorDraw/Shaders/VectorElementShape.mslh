@@ -87,18 +87,15 @@ struct dsVectorVertexOutput
 	 * @brief The information for the dashed line.
 	 */
 	vec4 dashArray;
-
-	/**
-	 * @brief The material info.
-	 */
-	vec4 materialInfo[4];
 };
 
 /**
  * @brief The vertex output.
  */
 [[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
+[[vertex]] out dsVectorMaterialInfo dsVectorVertexMaterialOut;
 [[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
+[[fragment]] in dsVectorMaterialInfo dsVectorVertexMaterialOut;
 
 /**
  * @brief The final output color of the shader.
@@ -136,7 +133,6 @@ dsVectorVertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 		dsVectorElementMaterialIndex.y);
 	result.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
 	result.dashArray = elementInfo[3];
-	dsVectorMaterial_getInfo(result.materialInfo, dsVectorElementMaterialIndex.y);
 
 	return result;
 }
@@ -148,6 +144,7 @@ dsVectorVertexOutput dsVectorElementShape_getVectorInfo(out vec4 outPosition)
 void dsVectorElementShape_defaultVertex()
 {
 	dsVectorVertexOut = dsVectorElementShape_getVectorInfo(gl_Position);
+	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(dsVectorElementMaterialIndex.y);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -208,7 +205,7 @@ vec4 dsVectorElementShape_getMaterialColor()
 		}
 	}
 
-	vec4 color = dsVectorMaterial_getColor(dsVectorVertexOut.materialInfo,
+	vec4 color = dsVectorMaterial_getColor(dsVectorVertexMaterialOut,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.position.zw, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.w);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);
