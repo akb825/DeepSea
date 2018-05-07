@@ -16,6 +16,7 @@
 
 #include "VectorStroke.h"
 
+#include "VectorHelpers.h"
 #include "VectorScratchDataImpl.h"
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -116,10 +117,10 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 				{-offset.y, offset.x, 0.0f},
 				{position->x, position->y, 1.0f}
 			}};
-			// Target a max arc-length of one pixel.
-			float pixelTheta = pixelSize/(lineWidth*0.5f);
+			float pixelTheta = dsVectorPixelTheta(pixelSize, lineWidth);
 			unsigned int pointCount = (unsigned int)(M_PI/pixelTheta);
-			float incr = (float)M_PI/(float)(pointCount + 1);
+			pointCount = dsMax(pointCount, 2U);
+			float incr = (float)M_PI/(float)pointCount;
 			if (start)
 				incr = -incr;
 
@@ -706,10 +707,10 @@ static bool addJoin(dsVectorScratchData* scratchData, const dsVector2f* position
 			if (right)
 				thetaOffset = (float)M_PI;
 
-			// Target a max arc-length of one pixel.
-			float pixelTheta = pixelSize/(lineWidth*0.5f);
+			float pixelTheta = dsVectorPixelTheta(pixelSize, lineWidth);
 			unsigned int pointCount = (unsigned int)(theta/pixelTheta);
-			float incr = (float)theta/(float)(pointCount + 1);
+			pointCount = dsMax(pointCount, 2U);
+			float incr = (float)theta/(float)pointCount;
 
 			uint32_t firstPointVert = scratchData->shapeVertexCount;
 			for (unsigned int i = 1; i < pointCount; ++i)
