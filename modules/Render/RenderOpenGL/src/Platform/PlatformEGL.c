@@ -167,7 +167,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 		EGL_NONE
 	};
 
-	unsigned int versionCount = DS_ARRAY_SIZE(versions);
+	unsigned int versionCount = DS_ARRAY_SIZE(glVersions);
 	for (unsigned int i = 0; i < versionCount; ++i)
 	{
 		contextAttr[1] = glVersions[i][0];
