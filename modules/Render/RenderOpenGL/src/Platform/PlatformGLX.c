@@ -196,8 +196,9 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 	return config;
 }
 
-void* dsGetPublicGLConfig(void* config)
+void* dsGetPublicGLConfig(void* display, void* config)
 {
+	DS_UNUSED(display);
 	Config* configPtr = (Config*)config;
 	if (!configPtr)
 		return NULL;

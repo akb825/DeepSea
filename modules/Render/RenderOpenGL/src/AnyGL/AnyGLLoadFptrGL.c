@@ -3769,6 +3769,20 @@ int AnyGL_load(void)
 	AnyGL_EXT_EGL_image_array = AnyGL_queryExtension("GL_EXT_EGL_image_array");
 #endif /* GL_EXT_EGL_image_array */
 
+#ifndef ANYGL_EXT_EGL_image_storage
+	AnyGL_EXT_EGL_image_storage = AnyGL_queryExtension("GL_EXT_EGL_image_storage");
+	if (AnyGL_EXT_EGL_image_storage)
+	{
+		AnyGL_glEGLImageTargetTexStorageEXT = (PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC)&glEGLImageTargetTexStorageEXT;
+		AnyGL_glEGLImageTargetTextureStorageEXT = (PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC)&glEGLImageTargetTextureStorageEXT;
+	}
+	else
+	{
+		AnyGL_glEGLImageTargetTexStorageEXT = 0;
+		AnyGL_glEGLImageTargetTextureStorageEXT = 0;
+	}
+#endif /* GL_EXT_EGL_image_storage */
+
 #ifndef ANYGL_EXT_YUV_target
 	AnyGL_EXT_YUV_target = AnyGL_queryExtension("GL_EXT_YUV_target");
 #endif /* GL_EXT_YUV_target */
@@ -5577,6 +5591,18 @@ int AnyGL_load(void)
 	AnyGL_EXT_shader_framebuffer_fetch = AnyGL_queryExtension("GL_EXT_shader_framebuffer_fetch");
 #endif /* GL_EXT_shader_framebuffer_fetch */
 
+#ifndef ANYGL_EXT_shader_framebuffer_fetch_non_coherent
+	AnyGL_EXT_shader_framebuffer_fetch_non_coherent = AnyGL_queryExtension("GL_EXT_shader_framebuffer_fetch_non_coherent");
+	if (AnyGL_EXT_shader_framebuffer_fetch_non_coherent)
+	{
+		AnyGL_glFramebufferFetchBarrierEXT = (PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC)&glFramebufferFetchBarrierEXT;
+	}
+	else
+	{
+		AnyGL_glFramebufferFetchBarrierEXT = 0;
+	}
+#endif /* GL_EXT_shader_framebuffer_fetch_non_coherent */
+
 #ifndef ANYGL_EXT_shader_group_vote
 	AnyGL_EXT_shader_group_vote = AnyGL_queryExtension("GL_EXT_shader_group_vote");
 #endif /* GL_EXT_shader_group_vote */
@@ -5858,6 +5884,10 @@ int AnyGL_load(void)
 #ifndef ANYGL_EXT_texture_format_BGRA8888
 	AnyGL_EXT_texture_format_BGRA8888 = AnyGL_queryExtension("GL_EXT_texture_format_BGRA8888");
 #endif /* GL_EXT_texture_format_BGRA8888 */
+
+#ifndef ANYGL_EXT_texture_format_sRGB_override
+	AnyGL_EXT_texture_format_sRGB_override = AnyGL_queryExtension("GL_EXT_texture_format_sRGB_override");
+#endif /* GL_EXT_texture_format_sRGB_override */
 
 #ifndef ANYGL_EXT_texture_integer
 	AnyGL_EXT_texture_integer = AnyGL_queryExtension("GL_EXT_texture_integer");

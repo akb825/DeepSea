@@ -35,6 +35,11 @@
 #define ANYGL_GLES (ANYGL_ANDROID || ANYGL_IOS)
 #endif
 
+/* @define this to force usage of EGL, even when platform-specific libraries are available. */
+#ifndef ANYGL_FORCE_EGL
+#define ANYGL_FORCE_EGL 0
+#endif
+
 /* #define this to the OpenGL version (times 10) to include when loading via function pointer. */
 #ifndef ANYGL_GL_VERSION
 #define ANYGL_GL_VERSION 33
@@ -58,7 +63,7 @@
 #ifndef ANYGL_LOAD
 #if ANYGL_APPLE
 #	define ANYGL_LOAD ANYGL_LOAD_FPTR
-#elif ANYGL_GLES
+#elif ANYGL_GLES || ANYGL_FORCE_EGL
 #	define ANYGL_LOAD ANYGL_LOAD_EGL
 #elif ANYGL_WINDOWS
 #	define ANYGL_LOAD ANYGL_LOAD_WGL

@@ -1679,6 +1679,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_422_pixels;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_array;
 
+#ifndef GL_EXT_EGL_image_storage
+#define GL_EXT_EGL_image_storage 1
+#define ANYGL_EXT_EGL_image_storage 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_EGL_image_storage;
+
 #ifndef GL_EXT_YUV_target
 #define GL_EXT_YUV_target 1
 #define ANYGL_EXT_YUV_target 1
@@ -2297,6 +2303,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_separate_specular_color;
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_shader_framebuffer_fetch;
 
+#ifndef GL_EXT_shader_framebuffer_fetch_non_coherent
+#define GL_EXT_shader_framebuffer_fetch_non_coherent 1
+#define ANYGL_EXT_shader_framebuffer_fetch_non_coherent 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_shader_framebuffer_fetch_non_coherent;
+
 #ifndef GL_EXT_shader_group_vote
 #define GL_EXT_shader_group_vote 1
 #define ANYGL_EXT_shader_group_vote 1
@@ -2548,6 +2560,12 @@ ANYGL_EXPORT extern int AnyGL_EXT_texture_filter_minmax;
 #define ANYGL_EXT_texture_format_BGRA8888 1
 #endif
 ANYGL_EXPORT extern int AnyGL_EXT_texture_format_BGRA8888;
+
+#ifndef GL_EXT_texture_format_sRGB_override
+#define GL_EXT_texture_format_sRGB_override 1
+#define ANYGL_EXT_texture_format_sRGB_override 1
+#endif
+ANYGL_EXPORT extern int AnyGL_EXT_texture_format_sRGB_override;
 
 #ifndef GL_EXT_texture_integer
 #define GL_EXT_texture_integer 1
@@ -7155,6 +7173,15 @@ typedef double GLclampd;
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #endif /* GL_EXT_texture_filter_anisotropic */
 
+#ifdef ANYGL_EXT_texture_filter_minmax
+#define GL_TEXTURE_REDUCTION_MODE_EXT     0x9366
+#define GL_WEIGHTED_AVERAGE_EXT           0x9367
+#endif /* GL_EXT_texture_filter_minmax */
+
+#ifdef ANYGL_EXT_texture_format_sRGB_override
+#define GL_TEXTURE_FORMAT_SRGB_OVERRIDE_EXT 0x8FBF
+#endif /* GL_EXT_texture_format_sRGB_override */
+
 #ifdef ANYGL_EXT_texture_integer
 #define GL_RGBA32UI_EXT                   0x8D70
 #define GL_RGB32UI_EXT                    0x8D71
@@ -8667,7 +8694,7 @@ typedef void (APIENTRY* PFNANYGLLOGICOPPROC)(GLenum opcode);
 typedef void (APIENTRY* PFNANYGLPIXELSTOREFPROC)(GLenum pname, GLfloat param);
 typedef void (APIENTRY* PFNANYGLGETDOUBLEVPROC)(GLenum pname, GLdouble *data);
 typedef void (APIENTRY* PFNANYGLGETTEXIMAGEPROC)(GLenum target, GLint level, GLenum format, GLenum type, void *pixels);
-typedef void (APIENTRY* PFNANYGLDEPTHRANGEPROC)(GLdouble near, GLdouble far);
+typedef void (APIENTRY* PFNANYGLDEPTHRANGEPROC)(GLdouble n, GLdouble f);
 typedef void (APIENTRY* PFNANYGLNEWLISTPROC)(GLuint list, GLenum mode);
 typedef void (APIENTRY* PFNANYGLENDLISTPROC)();
 typedef void (APIENTRY* PFNANYGLCALLLISTPROC)(GLuint list);
@@ -9206,7 +9233,7 @@ ANYGL_EXPORT extern PFNANYGLTRANSLATEFPROC AnyGL_glTranslatef;
 #define glPixelStoref(pname, param) ANYGL_CALL(AnyGL_glPixelStoref)(pname, param)
 #define glGetDoublev(pname, data) ANYGL_CALL(AnyGL_glGetDoublev)(pname, data)
 #define glGetTexImage(target, level, format, type, pixels) ANYGL_CALL(AnyGL_glGetTexImage)(target, level, format, type, pixels)
-#define glDepthRange(near, far) ANYGL_CALL(AnyGL_glDepthRange)(near, far)
+#define glDepthRange(n, f) ANYGL_CALL(AnyGL_glDepthRange)(n, f)
 #define glNewList(list, mode) ANYGL_CALL(AnyGL_glNewList)(list, mode)
 #define glEndList() ANYGL_CALL(AnyGL_glEndList)()
 #define glCallList(list) ANYGL_CALL(AnyGL_glCallList)(list)
@@ -13570,6 +13597,18 @@ ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDFOESPROC AnyGL_glDepthRangeIndexedf
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
+/* GL_EXT_EGL_image_storage */
+typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC)(GLenum target, GLeglImageOES image, const GLint* attrib_list);
+typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC)(GLuint texture, GLeglImageOES image, const GLint* attrib_list);
+
+ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC AnyGL_glEGLImageTargetTexStorageEXT;
+ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC AnyGL_glEGLImageTargetTextureStorageEXT;
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#define glEGLImageTargetTexStorageEXT(target, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTexStorageEXT)(target, image, attrib_list)
+#define glEGLImageTargetTextureStorageEXT(texture, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTextureStorageEXT)(texture, image, attrib_list)
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
 /* GL_EXT_YUV_target */
 
 
@@ -15345,6 +15384,15 @@ ANYGL_EXPORT extern PFNANYGLVALIDATEPROGRAMPIPELINEEXTPROC AnyGL_glValidateProgr
 #ifndef ANYGL_NO_FUNCTION_DEFINES
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
+/* GL_EXT_shader_framebuffer_fetch_non_coherent */
+typedef void (APIENTRY* PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC)();
+
+ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC AnyGL_glFramebufferFetchBarrierEXT;
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#define glFramebufferFetchBarrierEXT() ANYGL_CALL(AnyGL_glFramebufferFetchBarrierEXT)()
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
 /* GL_EXT_shader_group_vote */
 
 
@@ -15626,6 +15674,12 @@ ANYGL_EXPORT extern PFNANYGLACTIVESTENCILFACEEXTPROC AnyGL_glActiveStencilFaceEX
 #endif /* ANYGL_NO_FUNCTION_DEFINES */
 
 /* GL_EXT_texture_format_BGRA8888 */
+
+
+#ifndef ANYGL_NO_FUNCTION_DEFINES
+#endif /* ANYGL_NO_FUNCTION_DEFINES */
+
+/* GL_EXT_texture_format_sRGB_override */
 
 
 #ifndef ANYGL_NO_FUNCTION_DEFINES

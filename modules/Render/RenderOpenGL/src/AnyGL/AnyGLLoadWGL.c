@@ -4237,6 +4237,19 @@ int AnyGL_load(void)
 	/* GL_EXT_EGL_image_array */
 	AnyGL_EXT_EGL_image_array = AnyGL_queryExtension("GL_EXT_EGL_image_array");
 
+	/* GL_EXT_EGL_image_storage */
+	AnyGL_EXT_EGL_image_storage = AnyGL_queryExtension("GL_EXT_EGL_image_storage");
+	if (AnyGL_EXT_EGL_image_storage)
+	{
+		AnyGL_glEGLImageTargetTexStorageEXT = (PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC)wglGetProcAddress("glEGLImageTargetTexStorageEXT");
+		AnyGL_glEGLImageTargetTextureStorageEXT = (PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC)wglGetProcAddress("glEGLImageTargetTextureStorageEXT");
+	}
+	else
+	{
+		AnyGL_glEGLImageTargetTexStorageEXT = NULL;
+		AnyGL_glEGLImageTargetTextureStorageEXT = NULL;
+	}
+
 	/* GL_EXT_YUV_target */
 	AnyGL_EXT_YUV_target = AnyGL_queryExtension("GL_EXT_YUV_target");
 
@@ -5942,6 +5955,17 @@ int AnyGL_load(void)
 	/* GL_EXT_shader_framebuffer_fetch */
 	AnyGL_EXT_shader_framebuffer_fetch = AnyGL_queryExtension("GL_EXT_shader_framebuffer_fetch");
 
+	/* GL_EXT_shader_framebuffer_fetch_non_coherent */
+	AnyGL_EXT_shader_framebuffer_fetch_non_coherent = AnyGL_queryExtension("GL_EXT_shader_framebuffer_fetch_non_coherent");
+	if (AnyGL_EXT_shader_framebuffer_fetch_non_coherent)
+	{
+		AnyGL_glFramebufferFetchBarrierEXT = (PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC)wglGetProcAddress("glFramebufferFetchBarrierEXT");
+	}
+	else
+	{
+		AnyGL_glFramebufferFetchBarrierEXT = NULL;
+	}
+
 	/* GL_EXT_shader_group_vote */
 	AnyGL_EXT_shader_group_vote = AnyGL_queryExtension("GL_EXT_shader_group_vote");
 
@@ -6181,6 +6205,9 @@ int AnyGL_load(void)
 
 	/* GL_EXT_texture_format_BGRA8888 */
 	AnyGL_EXT_texture_format_BGRA8888 = AnyGL_queryExtension("GL_EXT_texture_format_BGRA8888");
+
+	/* GL_EXT_texture_format_sRGB_override */
+	AnyGL_EXT_texture_format_sRGB_override = AnyGL_queryExtension("GL_EXT_texture_format_sRGB_override");
 
 	/* GL_EXT_texture_integer */
 	AnyGL_EXT_texture_integer = AnyGL_queryExtension("GL_EXT_texture_integer");

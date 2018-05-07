@@ -1386,6 +1386,8 @@ static PFNANYGLGETTEXGENFVOESPROC default_glGetTexGenfvOES;
 static PFNANYGLGETTEXGENIVOESPROC default_glGetTexGenivOES;
 static PFNANYGLDEPTHRANGEARRAYFVOESPROC default_glDepthRangeArrayfvOES;
 static PFNANYGLDEPTHRANGEINDEXEDFOESPROC default_glDepthRangeIndexedfOES;
+static PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC default_glEGLImageTargetTexStorageEXT;
+static PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC default_glEGLImageTargetTextureStorageEXT;
 static PFNANYGLUNIFORMBUFFEREXTPROC default_glUniformBufferEXT;
 static PFNANYGLGETUNIFORMBUFFERSIZEEXTPROC default_glGetUniformBufferSizeEXT;
 static PFNANYGLGETUNIFORMOFFSETEXTPROC default_glGetUniformOffsetEXT;
@@ -1711,6 +1713,7 @@ static PFNANYGLGETPROGRAMPIPELINEIVEXTPROC default_glGetProgramPipelineivEXT;
 static PFNANYGLISPROGRAMPIPELINEEXTPROC default_glIsProgramPipelineEXT;
 static PFNANYGLUSEPROGRAMSTAGESEXTPROC default_glUseProgramStagesEXT;
 static PFNANYGLVALIDATEPROGRAMPIPELINEEXTPROC default_glValidateProgramPipelineEXT;
+static PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC default_glFramebufferFetchBarrierEXT;
 static PFNANYGLFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC default_glFramebufferPixelLocalStorageSizeEXT;
 static PFNANYGLGETFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC default_glGetFramebufferPixelLocalStorageSizeEXT;
 static PFNANYGLCLEARPIXELLOCALSTORAGEUIEXTPROC default_glClearPixelLocalStorageuiEXT;
@@ -3778,6 +3781,7 @@ static const char* getAnyEnumStr(GLenum e)
 		"GL_GPU_DISJOINT_EXT",
 		"GL_SR8_EXT",
 		"GL_SRG8_EXT",
+		"GL_TEXTURE_FORMAT_SRGB_OVERRIDE_EXT",
 		"GL_INT64_VEC2_ARB",
 		"GL_INT64_VEC3_ARB",
 		"GL_INT64_VEC4_ARB",
@@ -4641,114 +4645,114 @@ static const char* getAnyEnumStr(GLenum e)
 		return enumNames[e - 0x8f90 + 1978];
 	if (e >= 0x8fbb && e <= 0x8fbb)
 		return enumNames[e - 0x8fbb + 1994];
-	if (e >= 0x8fbd && e <= 0x8fbe)
+	if (e >= 0x8fbd && e <= 0x8fbf)
 		return enumNames[e - 0x8fbd + 1995];
 	if (e >= 0x8fe9 && e <= 0x8feb)
-		return enumNames[e - 0x8fe9 + 1997];
+		return enumNames[e - 0x8fe9 + 1998];
 	if (e >= 0x8ff5 && e <= 0x8ff7)
-		return enumNames[e - 0x8ff5 + 2000];
+		return enumNames[e - 0x8ff5 + 2001];
 	if (e >= 0x8ffc && e <= 0x8ffe)
-		return enumNames[e - 0x8ffc + 2003];
+		return enumNames[e - 0x8ffc + 2004];
 	if (e >= 0x9009 && e <= 0x901b)
-		return enumNames[e - 0x9009 + 2006];
+		return enumNames[e - 0x9009 + 2007];
 	if (e >= 0x904c && e <= 0x906f)
-		return enumNames[e - 0x904c + 2025];
+		return enumNames[e - 0x904c + 2026];
 	if (e >= 0x90ba && e <= 0x90bc)
-		return enumNames[e - 0x90ba + 2061];
+		return enumNames[e - 0x90ba + 2062];
 	if (e >= 0x90c7 && e <= 0x90cf)
-		return enumNames[e - 0x90c7 + 2064];
+		return enumNames[e - 0x90c7 + 2065];
 	if (e >= 0x90d2 && e <= 0x90df)
-		return enumNames[e - 0x90d2 + 2073];
+		return enumNames[e - 0x90d2 + 2074];
 	if (e >= 0x90e1 && e <= 0x90e1)
-		return enumNames[e - 0x90e1 + 2087];
+		return enumNames[e - 0x90e1 + 2088];
 	if (e >= 0x90ea && e <= 0x90f3)
-		return enumNames[e - 0x90ea + 2088];
+		return enumNames[e - 0x90ea + 2089];
 	if (e >= 0x9100 && e <= 0x911d)
-		return enumNames[e - 0x9100 + 2098];
+		return enumNames[e - 0x9100 + 2099];
 	if (e >= 0x911f && e <= 0x912f)
-		return enumNames[e - 0x911f + 2128];
+		return enumNames[e - 0x911f + 2129];
 	if (e >= 0x9137 && e <= 0x9138)
-		return enumNames[e - 0x9137 + 2145];
+		return enumNames[e - 0x9137 + 2146];
 	if (e >= 0x9143 && e <= 0x9148)
-		return enumNames[e - 0x9143 + 2147];
+		return enumNames[e - 0x9143 + 2148];
 	if (e >= 0x9151 && e <= 0x9151)
-		return enumNames[e - 0x9151 + 2153];
+		return enumNames[e - 0x9151 + 2154];
 	if (e >= 0x9153 && e <= 0x9154)
-		return enumNames[e - 0x9153 + 2154];
+		return enumNames[e - 0x9153 + 2155];
 	if (e >= 0x9192 && e <= 0x919a)
-		return enumNames[e - 0x9192 + 2156];
+		return enumNames[e - 0x9192 + 2157];
 	if (e >= 0x919d && e <= 0x919f)
-		return enumNames[e - 0x919d + 2165];
+		return enumNames[e - 0x919d + 2166];
 	if (e >= 0x91a6 && e <= 0x91aa)
-		return enumNames[e - 0x91a6 + 2168];
+		return enumNames[e - 0x91a6 + 2169];
 	if (e >= 0x91b0 && e <= 0x91b1)
-		return enumNames[e - 0x91b0 + 2173];
+		return enumNames[e - 0x91b0 + 2174];
 	if (e >= 0x91b9 && e <= 0x91b9)
-		return enumNames[e - 0x91b9 + 2175];
+		return enumNames[e - 0x91b9 + 2176];
 	if (e >= 0x91bb && e <= 0x91bf)
-		return enumNames[e - 0x91bb + 2176];
+		return enumNames[e - 0x91bb + 2177];
 	if (e >= 0x9270 && e <= 0x9279)
-		return enumNames[e - 0x9270 + 2181];
+		return enumNames[e - 0x9270 + 2182];
 	if (e >= 0x9285 && e <= 0x9285)
-		return enumNames[e - 0x9285 + 2191];
+		return enumNames[e - 0x9285 + 2192];
 	if (e >= 0x9294 && e <= 0x929c)
-		return enumNames[e - 0x9294 + 2192];
+		return enumNames[e - 0x9294 + 2193];
 	if (e >= 0x929e && e <= 0x929e)
-		return enumNames[e - 0x929e + 2201];
+		return enumNames[e - 0x929e + 2202];
 	if (e >= 0x92a0 && e <= 0x92a0)
-		return enumNames[e - 0x92a0 + 2202];
+		return enumNames[e - 0x92a0 + 2203];
 	if (e >= 0x92ad && e <= 0x92b0)
-		return enumNames[e - 0x92ad + 2203];
+		return enumNames[e - 0x92ad + 2204];
 	if (e >= 0x92be && e <= 0x92be)
-		return enumNames[e - 0x92be + 2207];
+		return enumNames[e - 0x92be + 2208];
 	if (e >= 0x92c0 && e <= 0x92dc)
-		return enumNames[e - 0x92c0 + 2208];
+		return enumNames[e - 0x92c0 + 2209];
 	if (e >= 0x92e0 && e <= 0x9318)
-		return enumNames[e - 0x92e0 + 2237];
+		return enumNames[e - 0x92e0 + 2238];
 	if (e >= 0x9327 && e <= 0x932c)
-		return enumNames[e - 0x9327 + 2294];
+		return enumNames[e - 0x9327 + 2295];
 	if (e >= 0x933d && e <= 0x9345)
-		return enumNames[e - 0x933d + 2300];
+		return enumNames[e - 0x933d + 2301];
 	if (e >= 0x934a && e <= 0x934c)
-		return enumNames[e - 0x934a + 2309];
+		return enumNames[e - 0x934a + 2310];
 	if (e >= 0x935c && e <= 0x935f)
-		return enumNames[e - 0x935c + 2312];
+		return enumNames[e - 0x935c + 2313];
 	if (e >= 0x9365 && e <= 0x9367)
-		return enumNames[e - 0x9365 + 2316];
+		return enumNames[e - 0x9365 + 2317];
 	if (e >= 0x9380 && e <= 0x9382)
-		return enumNames[e - 0x9380 + 2319];
+		return enumNames[e - 0x9380 + 2320];
 	if (e >= 0x93a1 && e <= 0x93a1)
-		return enumNames[e - 0x93a1 + 2322];
+		return enumNames[e - 0x93a1 + 2323];
 	if (e >= 0x93b0 && e <= 0x93bd)
-		return enumNames[e - 0x93b0 + 2323];
+		return enumNames[e - 0x93b0 + 2324];
 	if (e >= 0x93c0 && e <= 0x93c9)
-		return enumNames[e - 0x93c0 + 2337];
+		return enumNames[e - 0x93c0 + 2338];
 	if (e >= 0x93d0 && e <= 0x93dd)
-		return enumNames[e - 0x93d0 + 2347];
+		return enumNames[e - 0x93d0 + 2348];
 	if (e >= 0x93e0 && e <= 0x93e9)
-		return enumNames[e - 0x93e0 + 2361];
+		return enumNames[e - 0x93e0 + 2362];
 	if (e >= 0x93f0 && e <= 0x93f1)
-		return enumNames[e - 0x93f0 + 2371];
+		return enumNames[e - 0x93f0 + 2372];
 	if (e >= 0x9530 && e <= 0x9531)
-		return enumNames[e - 0x9530 + 2373];
+		return enumNames[e - 0x9530 + 2374];
 	if (e >= 0x9551 && e <= 0x9554)
-		return enumNames[e - 0x9551 + 2375];
+		return enumNames[e - 0x9551 + 2376];
 	if (e >= 0x9580 && e <= 0x959b)
-		return enumNames[e - 0x9580 + 2379];
+		return enumNames[e - 0x9580 + 2380];
 	if (e >= 0x9650 && e <= 0x9652)
-		return enumNames[e - 0x9650 + 2407];
+		return enumNames[e - 0x9650 + 2408];
 	if (e >= 0x10000 && e <= 0x10000)
-		return enumNames[e - 0x10000 + 2410];
+		return enumNames[e - 0x10000 + 2411];
 	if (e >= 0x20000 && e <= 0x20000)
-		return enumNames[e - 0x20000 + 2411];
+		return enumNames[e - 0x20000 + 2412];
 	if (e >= 0x40000 && e <= 0x40000)
-		return enumNames[e - 0x40000 + 2412];
+		return enumNames[e - 0x40000 + 2413];
 	if (e >= 0x80000 && e <= 0x80000)
-		return enumNames[e - 0x80000 + 2413];
+		return enumNames[e - 0x80000 + 2414];
 	if (e >= 0x20000000 && e <= 0x20000000)
-		return enumNames[e - 0x20000000 + 2414];
+		return enumNames[e - 0x20000000 + 2415];
 	if (e >= 0xffffffff && e <= 0xffffffff)
-		return enumNames[e - 0xffffffff + 2415];
+		return enumNames[e - 0xffffffff + 2416];
 	return "INVALID";
 }
 
@@ -6074,6 +6078,8 @@ static const char* getBlendingFactorEnumStr(GLenum e)
 		"GL_ONE_MINUS_CONSTANT_ALPHA",
 		"GL_SRC1_ALPHA",
 		"GL_SRC1_COLOR",
+		"GL_ONE_MINUS_SRC1_COLOR",
+		"GL_ONE_MINUS_SRC1_ALPHA",
 	};
 
 	if (e <= 0x1)
@@ -6084,7 +6090,7 @@ static const char* getBlendingFactorEnumStr(GLenum e)
 		return enumNames[e - 0x8001 + 11];
 	if (e >= 0x8589 && e <= 0x8589)
 		return enumNames[e - 0x8589 + 15];
-	if (e >= 0x88f9 && e <= 0x88f9)
+	if (e >= 0x88f9 && e <= 0x88fb)
 		return enumNames[e - 0x88f9 + 16];
 	return "INVALID";
 }
@@ -13417,16 +13423,16 @@ static void APIENTRY debug_glGetTexImage(GLenum target, GLint level, GLenum form
 	}
 }
 
-static void APIENTRY debug_glDepthRange(GLdouble near, GLdouble far)
+static void APIENTRY debug_glDepthRange(GLdouble n, GLdouble f)
 {
-	default_glDepthRange(near, far);
+	default_glDepthRange(n, f);
 	if (checkErrors)
 	{
 		GLenum _error = AnyGL_glGetError();
 		if (_error != GL_NO_ERROR)
 		{
 			char _buffer[PRINT_BUFFER_SIZE];
-			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDepthRange(%f, %f)", near, far);
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glDepthRange(%f, %f)", n, f);
 			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
 				strncpy(_buffer, "glDepthRange()", PRINT_BUFFER_SIZE);
 			errorFunc(lastFile, lastFunction, lastLine, _error, _buffer);
@@ -30151,6 +30157,40 @@ static void APIENTRY debug_glDepthRangeIndexedfOES(GLuint index, GLfloat n, GLfl
 	}
 }
 
+static void APIENTRY debug_glEGLImageTargetTexStorageEXT(GLenum target, GLeglImageOES image, const GLint* attrib_list)
+{
+	default_glEGLImageTargetTexStorageEXT(target, image, attrib_list);
+	if (checkErrors)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glEGLImageTargetTexStorageEXT(%s, %p, %p)", getAnyEnumStr(target), image, attrib_list);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glEGLImageTargetTexStorageEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(lastFile, lastFunction, lastLine, _error, _buffer);
+		}
+	}
+}
+
+static void APIENTRY debug_glEGLImageTargetTextureStorageEXT(GLuint texture, GLeglImageOES image, const GLint* attrib_list)
+{
+	default_glEGLImageTargetTextureStorageEXT(texture, image, attrib_list);
+	if (checkErrors)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glEGLImageTargetTextureStorageEXT(%u, %p, %p)", texture, image, attrib_list);
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glEGLImageTargetTextureStorageEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(lastFile, lastFunction, lastLine, _error, _buffer);
+		}
+	}
+}
+
 static void APIENTRY debug_glUniformBufferEXT(GLuint program, GLint location, GLuint buffer)
 {
 	default_glUniformBufferEXT(program, location, buffer);
@@ -35687,6 +35727,23 @@ static void APIENTRY debug_glValidateProgramPipelineEXT(GLuint pipeline)
 	}
 }
 
+static void APIENTRY debug_glFramebufferFetchBarrierEXT()
+{
+	default_glFramebufferFetchBarrierEXT();
+	if (checkErrors)
+	{
+		GLenum _error = AnyGL_glGetError();
+		if (_error != GL_NO_ERROR)
+		{
+			char _buffer[PRINT_BUFFER_SIZE];
+			int _length = snprintf(_buffer, PRINT_BUFFER_SIZE, "glFramebufferFetchBarrierEXT()");
+			if (_length < 0 || _length >= PRINT_BUFFER_SIZE)
+				strncpy(_buffer, "glFramebufferFetchBarrierEXT()", PRINT_BUFFER_SIZE);
+			errorFunc(lastFile, lastFunction, lastLine, _error, _buffer);
+		}
+	}
+}
+
 static void APIENTRY debug_glFramebufferPixelLocalStorageSizeEXT(GLuint target, GLsizei size)
 {
 	default_glFramebufferPixelLocalStorageSizeEXT(target, size);
@@ -38156,6 +38213,8 @@ void AnyGL_initDebug(void)
 	default_glGetTexGenivOES = AnyGL_glGetTexGenivOES;
 	default_glDepthRangeArrayfvOES = AnyGL_glDepthRangeArrayfvOES;
 	default_glDepthRangeIndexedfOES = AnyGL_glDepthRangeIndexedfOES;
+	default_glEGLImageTargetTexStorageEXT = AnyGL_glEGLImageTargetTexStorageEXT;
+	default_glEGLImageTargetTextureStorageEXT = AnyGL_glEGLImageTargetTextureStorageEXT;
 	default_glUniformBufferEXT = AnyGL_glUniformBufferEXT;
 	default_glGetUniformBufferSizeEXT = AnyGL_glGetUniformBufferSizeEXT;
 	default_glGetUniformOffsetEXT = AnyGL_glGetUniformOffsetEXT;
@@ -38481,6 +38540,7 @@ void AnyGL_initDebug(void)
 	default_glIsProgramPipelineEXT = AnyGL_glIsProgramPipelineEXT;
 	default_glUseProgramStagesEXT = AnyGL_glUseProgramStagesEXT;
 	default_glValidateProgramPipelineEXT = AnyGL_glValidateProgramPipelineEXT;
+	default_glFramebufferFetchBarrierEXT = AnyGL_glFramebufferFetchBarrierEXT;
 	default_glFramebufferPixelLocalStorageSizeEXT = AnyGL_glFramebufferPixelLocalStorageSizeEXT;
 	default_glGetFramebufferPixelLocalStorageSizeEXT = AnyGL_glGetFramebufferPixelLocalStorageSizeEXT;
 	default_glClearPixelLocalStorageuiEXT = AnyGL_glClearPixelLocalStorageuiEXT;
@@ -41263,6 +41323,10 @@ void AnyGL_setDebugEnabled(int enabled)
 			AnyGL_glDepthRangeArrayfvOES = &debug_glDepthRangeArrayfvOES;
 		if (default_glDepthRangeIndexedfOES)
 			AnyGL_glDepthRangeIndexedfOES = &debug_glDepthRangeIndexedfOES;
+		if (default_glEGLImageTargetTexStorageEXT)
+			AnyGL_glEGLImageTargetTexStorageEXT = &debug_glEGLImageTargetTexStorageEXT;
+		if (default_glEGLImageTargetTextureStorageEXT)
+			AnyGL_glEGLImageTargetTextureStorageEXT = &debug_glEGLImageTargetTextureStorageEXT;
 		if (default_glUniformBufferEXT)
 			AnyGL_glUniformBufferEXT = &debug_glUniformBufferEXT;
 		if (default_glGetUniformBufferSizeEXT)
@@ -41913,6 +41977,8 @@ void AnyGL_setDebugEnabled(int enabled)
 			AnyGL_glUseProgramStagesEXT = &debug_glUseProgramStagesEXT;
 		if (default_glValidateProgramPipelineEXT)
 			AnyGL_glValidateProgramPipelineEXT = &debug_glValidateProgramPipelineEXT;
+		if (default_glFramebufferFetchBarrierEXT)
+			AnyGL_glFramebufferFetchBarrierEXT = &debug_glFramebufferFetchBarrierEXT;
 		if (default_glFramebufferPixelLocalStorageSizeEXT)
 			AnyGL_glFramebufferPixelLocalStorageSizeEXT = &debug_glFramebufferPixelLocalStorageSizeEXT;
 		if (default_glGetFramebufferPixelLocalStorageSizeEXT)
@@ -43395,6 +43461,8 @@ void AnyGL_setDebugEnabled(int enabled)
 		AnyGL_glGetTexGenivOES = default_glGetTexGenivOES;
 		AnyGL_glDepthRangeArrayfvOES = default_glDepthRangeArrayfvOES;
 		AnyGL_glDepthRangeIndexedfOES = default_glDepthRangeIndexedfOES;
+		AnyGL_glEGLImageTargetTexStorageEXT = default_glEGLImageTargetTexStorageEXT;
+		AnyGL_glEGLImageTargetTextureStorageEXT = default_glEGLImageTargetTextureStorageEXT;
 		AnyGL_glUniformBufferEXT = default_glUniformBufferEXT;
 		AnyGL_glGetUniformBufferSizeEXT = default_glGetUniformBufferSizeEXT;
 		AnyGL_glGetUniformOffsetEXT = default_glGetUniformOffsetEXT;
@@ -43720,6 +43788,7 @@ void AnyGL_setDebugEnabled(int enabled)
 		AnyGL_glIsProgramPipelineEXT = default_glIsProgramPipelineEXT;
 		AnyGL_glUseProgramStagesEXT = default_glUseProgramStagesEXT;
 		AnyGL_glValidateProgramPipelineEXT = default_glValidateProgramPipelineEXT;
+		AnyGL_glFramebufferFetchBarrierEXT = default_glFramebufferFetchBarrierEXT;
 		AnyGL_glFramebufferPixelLocalStorageSizeEXT = default_glFramebufferPixelLocalStorageSizeEXT;
 		AnyGL_glGetFramebufferPixelLocalStorageSizeEXT = default_glGetFramebufferPixelLocalStorageSizeEXT;
 		AnyGL_glClearPixelLocalStorageuiEXT = default_glClearPixelLocalStorageuiEXT;

@@ -8,8 +8,13 @@
 #if ANYGL_LOAD == ANYGL_LOAD_EGL
 #include <EGL/egl.h>
 
-#ifndef EGL_OPENGL_ES3_BIT
-#define EGL_OPENGL_ES3_BIT 0x00000040
+#ifndef EGL_VERSION_1_5
+#define EGL_CONTEXT_MAJOR_VERSION         0x3098
+#define EGL_CONTEXT_MINOR_VERSION         0x30FB
+#define EGL_CONTEXT_OPENGL_PROFILE_MASK   0x30FD
+#define EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT 0x00000001
+#define EGL_CONTEXT_OPENGL_DEBUG          0x31B0
+#define EGL_OPENGL_ES3_BIT                0x00000040
 #endif
 
 #define MAX_OPTION_SIZE 32
@@ -18,7 +23,9 @@ typedef struct Config
 {
 	dsAllocator* allocator;
 	EGLConfig config;
-	GLint version;
+	GLint major;
+	GLint minor;
+	bool debug;
 	bool srgb;
 } Config;
 
@@ -29,13 +36,21 @@ static void addOption(GLint* attr, unsigned int* size, GLint option, GLint value
 	attr[(*size)++] = value;
 }
 
+static EGLint eglMajor;
+static EGLint eglMinor;
+
+static bool atLeastVersion(EGLint major, EGLint minor)
+{
+	return eglMajor > major || (eglMajor == major && eglMinor >= minor);
+}
+
 void* dsGetGLDisplay(void)
 {
 	EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	if (!display)
 		return NULL;
 
-	eglInitialize(display, NULL, NULL);
+	eglInitialize(display, &eglMajor, &eglMinor);
 	return display;
 }
 
@@ -83,14 +98,25 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 		addOption(attr, &optionCount, EGL_SAMPLE_BUFFERS, 0);
 		addOption(attr, &optionCount, EGL_SAMPLES, 0);
 	}
+	if (atLeastVersion(1, 5))
+	{
+		if (options->srgb)
+			addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_sRGB);
+		else
+			addOption(attr, &optionCount, EGL_COLORSPACE, EGL_COLORSPACE_LINEAR);
+	}
 
 	DS_ASSERT(optionCount < MAX_OPTION_SIZE);
 	attr[optionCount] = EGL_NONE;
 
+#if ANYGL_GLES
 #if ANYGL_GLES_VERSION >= 30
 	GLint versions[] = {EGL_OPENGL_ES3_BIT, EGL_OPENGL_ES2_BIT};
 #else
 	GLint versions[] = {EGL_OPENGL_ES3_BIT};
+#endif
+#else
+	GLint versions[] = {EGL_OPENGL_BIT};
 #endif
 	GLint version = 0;
 	EGLConfig eglConfig = NULL;
@@ -115,15 +141,65 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 
 	config->allocator = dsAllocator_keepPointer(allocator);
 	config->config = eglConfig;
-	config->version = version == EGL_OPENGL_ES3_BIT ? 3 : 2;
+#if ANYGL_GLES
+	config->major = version == EGL_OPENGL_ES3_BIT ? 3 : 2;
+	config->minor = 0;
+#else
+	if (!eglBindAPI(EGL_OPENGL_API))
+	{
+		errno = EPERM;
+		if (config->allocator)
+			dsAllocator_free(allocator, config);
+		return NULL;
+	}
+
+	static GLint glVersions[][2] =
+	{
+		{4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+		{3, 3}, {3, 2}, {3, 1}, {3, 0}
+	};
+
+	GLint contextAttr[] =
+	{
+		EGL_CONTEXT_MAJOR_VERSION, 0,
+		EGL_CONTEXT_MINOR_VERSION, 0,
+		EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+		EGL_NONE
+	};
+
+	unsigned int versionCount = DS_ARRAY_SIZE(versions);
+	for (unsigned int i = 0; i < versionCount; ++i)
+	{
+		contextAttr[1] = glVersions[i][0];
+		contextAttr[3] = glVersions[i][1];
+		EGLContext context = eglCreateContext(display, eglConfig, NULL, contextAttr);
+		if (context)
+		{
+			config->major = glVersions[i][0];
+			config->minor = glVersions[i][1];
+			eglDestroyContext(display, context);
+			break;
+		}
+	}
+#endif
+	config->debug = options->debug;
 	config->srgb = options->srgb;
 	return config;
 }
 
-void* dsGetPublicGLConfig(void* config)
+void* dsGetPublicGLConfig(void* display, void* config)
 {
-	DS_UNUSED(config);
-	return NULL;
+	Config* configPtr = (Config*)config;
+	if (!configPtr)
+		return NULL;
+
+	EGLint visualId;
+	if (!eglGetConfigAttrib((EGLDisplay)display, configPtr->config, EGL_NATIVE_VISUAL_ID,
+		&visualId))
+	{
+		return NULL;
+	}
+	return (void*)(size_t)visualId;
 }
 
 void dsDestroyGLConfig(void* display, void* config)
@@ -144,7 +220,24 @@ void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, voi
 	if (!display || !configPtr)
 		return NULL;
 
-	GLint attr[] = {EGL_CONTEXT_CLIENT_VERSION, configPtr->version, EGL_NONE};
+#if ANYGL_GLES
+	GLint attr[] = {EGL_CONTEXT_CLIENT_VERSION, configPtr->major, EGL_NONE};
+#else
+	GLint attr[9];
+	attr[0] = EGL_CONTEXT_MAJOR_VERSION;
+	attr[1] = configPtr->major;
+	attr[2] = EGL_CONTEXT_MINOR_VERSION;
+	attr[3] = configPtr->minor;
+	attr[4] = EGL_CONTEXT_OPENGL_PROFILE_MASK;
+	attr[5] = EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
+	attr[6] = EGL_CONTEXT_OPENGL_DEBUG;
+	attr[7] = configPtr->debug;
+	attr[8] = EGL_NONE;
+
+	// Assume we can select the version via extensions, but the debug bit may not be supported.
+	if (!atLeastVersion(1, 5))
+		attr[6] = EGL_NONE;
+#endif
 	return eglCreateContext((EGLDisplay)display, configPtr->config, (EGLContext)shareContext, attr);
 }
 
