@@ -15,6 +15,7 @@
  */
 
 #include "SDLWindow.h"
+#include "Shared.h"
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -24,9 +25,6 @@
 #include <math.h>
 #include <SDL_syswm.h>
 #include <string.h>
-
-#define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
-#define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
 #if DS_MAC
 void* dsSDLWindow_getUsableWindowHandle(void* window);
@@ -71,8 +69,11 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
-	if (application->renderer->type == DS_GL_RENDERER_TYPE)
+	if (application->renderer->platformType == DS_GLX_RENDERER_PLATFORM_TYPE ||
+		application->renderer->platformType == DS_WGL_RENDERER_PLATFORM_TYPE)
+	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
+	}
 
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
@@ -110,6 +111,11 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 #if defined(SDL_VIDEO_DRIVER_X11)
 		case SDL_SYSWM_X11:
 			windowHandle = (void*)info.info.x11.window;
+			break;
+#endif
+#if defined(SDL_VIDEO_DRIVER_WAYLAND)
+		case SDL_SYSWM_WAYLAND:
+			windowHandle = (void*)info.info.wl.surface;
 			break;
 #endif
 #if defined(SDL_VIDEO_DRIVER_COCOA)

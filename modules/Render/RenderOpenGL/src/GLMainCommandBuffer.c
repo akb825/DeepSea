@@ -1822,12 +1822,6 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 
 	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
-	if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_ARB_framebuffer_sRGB ||
-		AnyGL_EXT_framebuffer_sRGB || AnyGL_EXT_sRGB_write_control)
-	{
-		glEnable(GL_FRAMEBUFFER_SRGB);
-	}
-
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(true);
 	glDepthFunc(GL_LESS);

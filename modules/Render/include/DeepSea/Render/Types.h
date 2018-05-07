@@ -1017,6 +1017,13 @@ struct dsRenderer
 	uint32_t type;
 
 	/**
+	 * @brief The type of the renderer platform.
+	 *
+	 * This is typically created with DS_FOURCC() to describe the type.
+	 */
+	uint32_t platformType;
+
+	/**
 	 * @brief Thread ID for the main thread.
 	 *
 	 * Some operations may only be done from the main thread.

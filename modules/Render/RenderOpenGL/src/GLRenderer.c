@@ -556,6 +556,19 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	else
 		baseRenderer->type = DS_GL_RENDERER_TYPE;
 
+	switch (ANYGL_LOAD)
+	{
+		case ANYGL_LOAD_EGL:
+			baseRenderer->platformType = DS_EGL_RENDERER_PLATFORM_TYPE;
+			break;
+		case ANYGL_LOAD_GLX:
+			baseRenderer->platformType = DS_GLX_RENDERER_PLATFORM_TYPE;
+			break;
+		case ANYGL_LOAD_WGL:
+			baseRenderer->platformType = DS_WGL_RENDERER_PLATFORM_TYPE;
+			break;
+	}
+
 	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
 		allocator);
 	if (!baseRenderer->mainCommandBuffer)

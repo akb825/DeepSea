@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
 static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface* surface,
@@ -318,6 +319,15 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 				&glFramebuffer->curDepthAttachment))
 			{
 				hasChanges = true;
+			}
+
+			if (AnyGL_atLeastVersion(3, 0, false) || AnyGL_ARB_framebuffer_sRGB ||
+				AnyGL_EXT_framebuffer_sRGB || AnyGL_EXT_sRGB_write_control)
+			{
+				if (format & dsGfxFormat_SRGB)
+					glEnable(GL_FRAMEBUFFER_SRGB);
+				else
+					glDisable(GL_FRAMEBUFFER_SRGB);
 			}
 		}
 

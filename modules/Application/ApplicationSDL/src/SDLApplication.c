@@ -19,6 +19,7 @@
 #include "SDLController.h"
 #include "SDLKeyboard.h"
 #include "SDLWindow.h"
+#include "Shared.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -41,9 +42,6 @@
 #else
 #include <alloca.h>
 #endif
-
-#define DS_GL_RENDERER_TYPE DS_FOURCC('G', 'L', 0, 0)
-#define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
 #define DS_MAX_WINDOWS 100U
 
@@ -210,14 +208,8 @@ static bool setGLAttributes(dsRenderer* renderer)
 
 static bool shouldSetOpenGL(const dsRenderer* renderer)
 {
-	if (renderer->type != DS_GL_RENDERER_TYPE && renderer->type != DS_GLES_RENDERER_TYPE)
-		return false;
-
-	const char* driver = SDL_GetCurrentVideoDriver();
-	if (strcmp(driver, "x11") == 0)
-		return true;
-
-	return false;
+	return renderer->type == DS_GL_RENDERER_TYPE &&
+		renderer->platformType == DS_GLX_RENDERER_PLATFORM_TYPE;
 }
 
 static void updateWindowSamples(dsApplication* application)
@@ -790,13 +782,16 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");
 	const char* driver = NULL;
 #if DS_LINUX && !DS_ANDROID
-	setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
+	if (renderer->surfaceConfig)
+	{
+		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
 
-	char visualId[20];
-	snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
-	setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
+		char visualId[20];
+		snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
+		setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
 
-	driver = "x11";
+		driver = "x11";
+	}
 #elif DS_WINDOWS
 	driver = "windows";
 #elif DS_MAC

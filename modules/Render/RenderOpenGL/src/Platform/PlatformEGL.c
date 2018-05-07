@@ -155,7 +155,7 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 
 	static GLint glVersions[][2] =
 	{
-		{4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
+		{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0},
 		{3, 3}, {3, 2}, {3, 1}, {3, 0}
 	};
 
@@ -189,17 +189,9 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOpti
 
 void* dsGetPublicGLConfig(void* display, void* config)
 {
-	Config* configPtr = (Config*)config;
-	if (!configPtr)
-		return NULL;
-
-	EGLint visualId;
-	if (!eglGetConfigAttrib((EGLDisplay)display, configPtr->config, EGL_NATIVE_VISUAL_ID,
-		&visualId))
-	{
-		return NULL;
-	}
-	return (void*)(size_t)visualId;
+	DS_UNUSED(display);
+	DS_UNUSED(config);
+	return NULL;
 }
 
 void dsDestroyGLConfig(void* display, void* config)

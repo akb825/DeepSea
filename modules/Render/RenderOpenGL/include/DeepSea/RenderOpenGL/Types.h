@@ -45,6 +45,21 @@ extern "C"
 #define DS_GLES_RENDERER_TYPE DS_FOURCC('G', 'L', 'E', 'S')
 
 /**
+ * @brief Constant for the renderer platform type ID of EGL.
+ */
+#define DS_EGL_RENDERER_PLATFORM_TYPE DS_FOURCC('E', 'G', 'L', 0)
+
+/**
+ * @brief Constant for the renderer platform type ID of GLX.
+ */
+#define DS_GLX_RENDERER_PLATFORM_TYPE DS_FOURCC('G', 'L', 'X', 0)
+
+/**
+ * @brief Constant for the renderer platform type ID of WGL.
+ */
+#define DS_WGL_RENDERER_PLATFORM_TYPE DS_FOURCC('W', 'G', 'L', 0)
+
+/**
  * @brief Struct containing the otpions for initializing OpenGL.
  */
 typedef struct dsOpenGLOptions
