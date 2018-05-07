@@ -567,6 +567,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		case ANYGL_LOAD_WGL:
 			baseRenderer->platformType = DS_WGL_RENDERER_PLATFORM_TYPE;
 			break;
+		default:
+			baseRenderer->platformType = 0;
+			break;
 	}
 
 	baseRenderer->mainCommandBuffer = (dsCommandBuffer*)dsGLMainCommandBuffer_create(baseRenderer,
