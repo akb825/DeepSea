@@ -446,7 +446,10 @@ static bool addRectangle(dsVectorScratchData* scratchData, const dsAlignedBox2f*
 
 		point.x = bounds->min.x;
 		point.y = bounds->max.y;
-		return dsVectorScratchData_addPoint(scratchData, &point, PointType_Corner);
+		if (!dsVectorScratchData_addPoint(scratchData, &point, PointType_Corner))
+			return false;
+
+		return closePath(scratchData, PointType_Corner);
 	}
 
 	dsVector2f halfExtents;

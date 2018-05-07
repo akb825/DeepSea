@@ -101,7 +101,9 @@ const char* vectorImageFiles[] =
 	"polyline-round.dsvi",
 	"polyline-dashed.dsvi",
 	"circle.dsvi",
-	"ellipse.dsvi"
+	"ellipse.dsvi",
+	"rectangle.dsvi",
+	"rectangle-rounded.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
