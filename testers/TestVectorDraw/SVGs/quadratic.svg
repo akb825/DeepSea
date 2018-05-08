@@ -1,0 +1,5 @@
+<svg width="1000" height="700" viewBox="0 0 1000 700"
+    xmlns="http://www.w3.org/2000/svg">
+  <path d="M100,350 Q300,100 500,350 T900,350"
+    style="fill:none;stroke:black;stroke-linejoin:bevel;stroke-width:6"/>
+</svg>

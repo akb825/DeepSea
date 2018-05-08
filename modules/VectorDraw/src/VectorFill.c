@@ -242,6 +242,7 @@ static bool triangulate(dsVectorScratchData* scratchData)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
 		}
 
 		if (!dsVectorScratchData_addSeparatingPolygonEdge(scratchData, *sortedVert, otherPoint,

@@ -1,0 +1,39 @@
+<svg width="800" height="525" viewBox="0 0 800 525"
+    xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="125" cy="125" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"/>
+  <ellipse cx="225" cy="75" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"/>
+  <path d="M 125,75 a100,50 0 0,0 100,50"
+    style="fill:none;stroke:red;stroke-width:6"/>
+
+  <ellipse cx="125" cy="125" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="translate(400, 0)"/>
+  <ellipse cx="225" cy="75" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="translate(400, 0)"/>
+  <path d="M 125,75 a100,50 0 0,0 100,50"
+    style="fill:none;stroke:red;stroke-width:6"
+	transform="translate(400, 0)"/>
+
+  <ellipse cx="125" cy="125" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="matrix(1, 0, 0, 1, 0, 250)"/>
+  <ellipse cx="225" cy="75" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="matrix(1, 0, 0, 1, 0, 250)"/>
+  <path d="M 125,75 a100,50 0 1,0 100,50"
+    style="fill:none;stroke:red;stroke-width:6"
+	transform="matrix(1, 0, 0, 1, 0, 250)"/>
+
+  <ellipse cx="125" cy="125" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="matrix(1, 0, 0, 1, 400, 250)"/>
+  <ellipse cx="225" cy="75" rx="100" ry="50"
+    style="fill:none;stroke:#888888;stroke-width:2"
+	transform="matrix(1, 0, 0, 1, 400, 250)"/>
+  <path d="M 125,75 a100,50 0 1,1 100,50"
+    style="fill:none;stroke:red;stroke-width:6"
+	transform="matrix(1, 0, 0, 1, 400, 250)"/>
+</svg>

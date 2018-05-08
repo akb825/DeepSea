@@ -253,7 +253,7 @@ static bool addBezier(dsVectorScratchData* scratchData, const dsVector2f* contro
 
 static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	const dsVector2f* radius, float rotation, bool clockwise, bool largeArc, float pixelSize,
-	PointType endType)
+	PointType endType, bool forceCenterScale0)
 {
 	if (!inPathWithPoint(scratchData))
 		return false;
@@ -270,25 +270,36 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	dsVector2f midPrime;
 	dsVector2_sub(midPrime, start, *end);
 	dsVector2_scale(midPrime, midPrime, 0.5f);
-	dsVector2f posPrime, posPrime2;
+	dsVector2f posPrime;
 	dsMatrix22_transformTransposed(posPrime, rotationMat, midPrime);
-	dsVector2_mul(posPrime2, posPrime, posPrime);
 
-	dsVector2f radius2;
-	dsVector2_mul(radius2, *radius, *radius);
-	float centerScale =
-		(radius2.x*radius2.y - radius2.x*posPrime2.y - radius2.y*posPrime.x)/
-		(radius2.x*posPrime2.y + radius2.y*posPrime2.x);
-	if (centerScale < 0)
+	float centerScale = 0.0f;
+	if (!forceCenterScale0)
 	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
-			"No arc can be fit to the provided parameters.");
-		return false;
+		dsVector2f minRadius = {{fabsf(posPrime.x), fabsf(posPrime.y)}};
+		if (radius->x < minRadius.x || radius->y < minRadius.y)
+		{
+			// Scale up the radius if impossible to find an arc.
+			dsVector2f scale;
+			dsVector2_div(scale, minRadius, *radius);
+			float maxScale = dsMax(scale.x, scale.y);
+			dsVector2f scaledRadius;
+			dsVector2_scale(scaledRadius, *radius, maxScale);
+			return addArc(scratchData, end, &scaledRadius, rotation, clockwise, largeArc, pixelSize,
+				endType, true);
+		}
+
+		dsVector2f posPrime2, radius2;
+		dsVector2_mul(posPrime2, posPrime, posPrime);
+		dsVector2_mul(radius2, *radius, *radius);
+		centerScale =
+			(radius2.x*radius2.y - radius2.x*posPrime2.y - radius2.y*posPrime2.x)/
+			(radius2.x*posPrime2.y + radius2.y*posPrime2.x);
+		DS_ASSERT(centerScale >= 0.0f);
+		centerScale = sqrtf(centerScale);
+		if (clockwise == largeArc)
+			centerScale = -centerScale;
 	}
-	centerScale = sqrtf(centerScale);
-	if (clockwise == largeArc)
-		centerScale = -centerScale;
 
 	dsVector2f centerPrime = {{radius->x*posPrime.y/radius->y,
 		-radius->y*posPrime.x/radius->x}};
@@ -300,20 +311,31 @@ static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
 	dsMatrix22_transform(center, rotationMat, centerPrime);
 	dsVector2_add(center, center, mid);
 
-	float startTheta = acosf((posPrime.x - centerPrime.x)/radius->x);
+	dsVector2f v;
+	dsVector2_sub(v, posPrime, centerPrime);
+	dsVector2_div(v, v, *radius);
+	float vLen = dsVector2f_len(&v);
+	float cosStartTheta = v.x/vLen;
+	float startTheta = acosf(dsClamp(cosStartTheta, -1.0f, 1.0f));
 	if (centerPrime.y > posPrime.y)
 		startTheta = -startTheta;
 
-	dsVector2f u, v;
+	dsVector2f u;
 	dsVector2_sub(u, posPrime, centerPrime);
 	dsVector2_div(u, u, *radius);
 	dsVector2_neg(v, posPrime);
 	dsVector2_sub(v, v, centerPrime);
 	dsVector2_div(v, v, *radius);
 
-	float deltaTheta = acosf(dsVector2_dot(u, v)/(dsVector2f_len(&u)*dsVector2f_len(&v)));
+	float cosDeltaTheta = dsVector2_dot(u, v)/(dsVector2f_len(&u)*dsVector2f_len(&v));
+	float deltaTheta = acosf(dsClamp(cosDeltaTheta, -1.0f, 1.0f));
 	if (u.y*v.x > u.x*v.y)
 		deltaTheta = -deltaTheta;
+
+	if (clockwise && deltaTheta < 0.0f)
+		deltaTheta += (float)(2*M_PI);
+	else if (!clockwise && deltaTheta > 0.0f)
+		deltaTheta -= (float)(2*M_PI);
 
 	// Target a max curve error of one pixel.
 	float pixelTheta = dsVectorPixelTheta(pixelSize, dsMax(radius->x, radius->y));
@@ -639,7 +661,7 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 			dsVector2f radius = {{fabsf(arc->radius.x), fabsf(arc->radius.y)}};
 			return addArc(scratchData, &arc->end, &radius, arc->rotation, arc->clockwise,
 				arc->largeArc, adjustPixelSize(&scratchData->pathTransform, pixelSize),
-				PointType_Corner);
+				PointType_Corner, false);
 		}
 		case dsVectorCommandType_ClosePath:
 			++(*curCommand);

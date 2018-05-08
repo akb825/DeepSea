@@ -106,7 +106,10 @@ const char* vectorImageFiles[] =
 	"rectangle.dsvi",
 	"rectangle-rounded.dsvi",
 	"path.dsvi",
-	"curve.dsvi"
+	"curve.dsvi",
+	"quadratic.dsvi",
+	"arc-mixed-path.dsvi",
+	"arc.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

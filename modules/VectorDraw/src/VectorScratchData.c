@@ -471,6 +471,14 @@ dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* dat
 bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
 	uint32_t type)
 {
+	const float epsilon = 1e-5f;
+	if (data->pointCount > 0 && dsVector2f_epsilonEqual(&data->points[data->pointCount - 1].point,
+		point, epsilon))
+	{
+		data->points[data->pointCount - 1].type |= type;
+		return true;
+	}
+
 	uint32_t index = data->pointCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->points, data->pointCount, data->maxPoints,
 		1))
