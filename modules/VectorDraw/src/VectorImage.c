@@ -144,10 +144,10 @@ static void markEnd(dsVectorScratchData* scratchData)
 
 static bool isBezierStraight(const dsVector4f* curveX, const dsVector4f* curveY, float pixelSize)
 {
-	// Check to see if the midpoint is within a pixel of a straight line.
+	// Check to see if the midpoint is within 1/2 pixel of a straight line.
 	dsVector2f midCurve = {{dsVector4_dot(*curveX, bezierMid), dsVector4_dot(*curveY, bezierMid)}};
-	dsVector2f midLine = {{(curveX->x + curveX->w)*0.5f, (curveY->x + curveX->w)*0.5f}};
-	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize);
+	dsVector2f midLine = {{(curveX->x + curveX->w)*0.5f, (curveY->x + curveY->w)*0.5f}};
+	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize)*0.25f;
 }
 
 static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform)
@@ -932,7 +932,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			if (i == infoTextureCount - 1 &&
 				(scratchData->vectorInfoCount % INFOS_PER_TEXTURE) != 0)
 			{
-				infoTexInfo.height = dsNextPowerOf2(scratchData->vectorInfoCount % INFOS_PER_TEXTURE);
+				infoTexInfo.height =
+					dsNextPowerOf2(scratchData->vectorInfoCount % INFOS_PER_TEXTURE);
 			}
 
 			image->infoTextures[i] = dsTexture_create(resourceManager, resourceAllocator,
@@ -1144,7 +1145,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
 		textureSizes.x = (float)piece->geometryInfo->info.height;
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
-				dsMaterialType_Vec2, 0, 1) ||
+				dsMaterialType_Vec3, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
 				piece->geometryInfo) ||
 			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture))

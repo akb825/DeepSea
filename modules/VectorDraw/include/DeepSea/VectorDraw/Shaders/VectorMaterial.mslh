@@ -98,7 +98,7 @@ struct dsVectorMaterialInfo
 
 dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex)
 {
-	float materialCoord = float(index)/uniforms.dsVectorTextureSizes.y;
+	float materialCoord = (float(index) + 0.5)/uniforms.dsVectorTextureSizes.y;
 	dsVectorMaterialInfo info;
 	info.info0 = texture(infoTex, vec2(0.125f, materialCoord));
 	if (info.info0.x == 0.0)
@@ -148,7 +148,6 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 	float adjustedIndex = index;
 	if (adjustedIndex >= DS_VECTOR_LOCAL_MATERIAL_OFFSET)
 		adjustedIndex -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-	float materialCoord = adjustedIndex/uniforms.dsVectorTextureSizes.y;
 	if (info.info0.x == 1.0 || info.info0.x == 2.0)
 	{
 		// Gradient
@@ -236,7 +235,13 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 	}
 
 	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+	{
+		float materialCoord = (adjustedIndex + 0.5)/uniforms.dsVectorTextureSizes.y;
 		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
 	else
+	{
+		float materialCoord = (adjustedIndex + 0.5)/uniforms.dsVectorTextureSizes.z;
 		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
 }

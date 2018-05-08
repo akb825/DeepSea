@@ -104,7 +104,9 @@ const char* vectorImageFiles[] =
 	"circle.dsvi",
 	"ellipse.dsvi",
 	"rectangle.dsvi",
-	"rectangle-rounded.dsvi"
+	"rectangle-rounded.dsvi",
+	"path.dsvi",
+	"curve.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -242,9 +244,9 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	float imageAspect = size.x/size.y;
 	float imageToWindowAspect = windowAspect/imageAspect;
 	if (imageToWindowAspect < 1.0f)
-		size.y = size.x/imageToWindowAspect;
+		size.y = size.x/windowAspect;
 	else
-		size.x = size.y*imageToWindowAspect;
+		size.x = size.y*windowAspect;
 
 	dsMatrix44f matrix;
 	DS_VERIFY(dsRenderer_makeOrtho(&matrix, renderer, 0.0f, size.x, 0.0f, size.y, 0.0f, 1.0f));

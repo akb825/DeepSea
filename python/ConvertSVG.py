@@ -693,15 +693,15 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 	offsets = writeStartPath(builder, transform)
 
 	tokens = re.findall(
-		r"[mMzZlLhHvVcCsSqQtTaAbB]|[0-9.]+(cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
+		r"[mMzZlLhHvVcCsSqQtTaAbB]|[0-9.]+(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
 	lastQuadraticPos = None
 	index = 0
 	command = ''
 	while index < len(tokens):
-		if tokens[index][0] == '.' or (tokens[index][0] >= ord('0') and
-			tokens[index][0] <= ord('9')):
+		if tokens[index][0] == '.' or (ord(tokens[index][0]) >= ord('0') and
+			ord(tokens[index][0]) <= ord('9')):
 			x = sizeFromString(tokens[index], size[0])
 			index += 1
 			if command != 'b' and command != 'B' and command != 'h' and command != 'H' and \
@@ -873,6 +873,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 
 			lastControlPos = None
 			lastQuadraticPos = None
+			index += 1
 		else:
 			# Reset the last control pos if not a curve command.
 			if command != 'c' and command != 'C' and command != 's' and command != 'S':
