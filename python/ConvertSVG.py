@@ -241,6 +241,10 @@ class Materials:
 		return self.name + '-' + str(index)
 
 	def addColor(self, color):
+		for i in range(len(self.colors)):
+			if self.colors[i] == color:
+				return self.getColorName(i)
+
 		name = self.getColorName(len(self.colors))
 		self.colors.append(color)
 		return name
