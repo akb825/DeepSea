@@ -1,3 +1,5 @@
+import re
+
 # https://www.w3.org/TR/SVG11/types.html#ColorKeywords
 cssColorMap = \
 {
@@ -164,13 +166,13 @@ def colorFromString(colorStr):
 			else:
 				raise Exception()
 		elif colorStr[:4] == 'rgb(':
-			colorValues = colorStr[4:-1].split(',')
+			colorValues = re.findall('[-+0-9.]+', colorStr[4:-1])
 			if len(colorValues) != 3:
 				raise Exception()
 			return (int(colorValues[0].strip()), int(colorValues[1].strip()),
-				int(colorValues[2].strip()))
+				int(colorValues[2].strip()), 255)
 		elif colorStr[:5] == 'rgba(':
-			colorValues = colorStr[5:-1].split(',')
+			colorValues = re.findall('[-+0-9.]+', colorStr[5:-1])
 			if len(colorValues) != 4:
 				raise Exception()
 			return (int(colorValues[0].strip()), int(colorValues[1].strip()),

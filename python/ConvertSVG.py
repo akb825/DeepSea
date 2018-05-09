@@ -154,27 +154,48 @@ class Gradient:
 
 		self.stops = []
 		for stop in node.childNodes:
+			if stop.nodeType != xml.dom.Node.ELEMENT_NODE:
+				continue
+
 			position = sizeFromString(stop.getAttribute('offset'), 1.0)
 			color = colorFromString(stop.getAttribute('stop-color'))
 			opacity = 1.0
 			if stop.hasAttribute('stop-opacity'):
 				opacity = stop.sizeFromString(stop.getAttribute('stop-opacity'), 1.0)
-			color[3] = int(round(float(color[3])*opacity))
-			self.stops.append(position, color)
+			color = (color[0], color[1], color[2], int(round(float(color[3])*opacity)))
+			self.stops.append((position, color))
 
 class LinearGradientMaterial(Gradient):
 	"""Class describing a linear gradient."""
 	def __init__(self, node, size):
 		Gradient.__init__(self, node)
-		self.start = (sizeFromString(node.getAttribute('x1'), size[0]),
-			sizeFromString(node.getAttribute('y1'), size[1]))
-		self.end = (sizeFromString(node.getAttribute('x2'), size[0]),
-			sizeFromString(node.getAttribute('y2'), size[1]))
+		if self.coordinateSpace == MaterialSpace.Bounds:
+			size = (1.0, 1.0)
+
+		if node.hasAttribute('x1'):
+			x1 = sizeFromString(node.getAttribute('x1'), size[0])
+		else:
+			x1 = 0.0;
+		if node.hasAttribute('y1'):
+			y1 = sizeFromString(node.getAttribute('y1'), size[1])
+		else:
+			y1 = 0.0;
+		if node.hasAttribute('x2'):
+			x2 = sizeFromString(node.getAttribute('x2'), size[0])
+		else:
+			x2 = size[0];
+		if node.hasAttribute('y2'):
+			y2 = sizeFromString(node.getAttribute('y2'), size[1])
+		else:
+			y2 = 0.0;
+
+		self.start = (x1, y1)
+		self.end = (x2, y2)
 
 	def write(self, builder):
 		nameOffset = builder.CreateString(self.name)
 		LinearGradientStartGradientVector(builder, len(self.stops))
-		for position, color in self.stops:
+		for position, color in reversed(self.stops):
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
 		gradientOffset = builder.EndVector(len(self.stops))
 
@@ -195,9 +216,23 @@ class RadialGradientMaterial(Gradient):
 	"""Class describing a radial gradient."""
 	def __init__(self, node, size, diagonalSize):
 		Gradient.__init__(self, node)
-		self.center = (sizeFromString(node.getAttribute('cx'), size[0]),
-			sizeFromString(node.getAttribute('cy'), size[1]))
-		self.radius = sizeFromString(node.getAttribute('radius'), diagonalSize)
+		if self.coordinateSpace == MaterialSpace.Bounds:
+			size = (1.0, 1.0)
+			diagonalSize = math.sqrt(2.0)
+
+		if node.hasAttribute('cx'):
+			cx = sizeFromString(node.getAttribute('cx'), size[0])
+		else:
+			cx = size[0]/2.0;
+		if node.hasAttribute('cy'):
+			cy = sizeFromString(node.getAttribute('cy'), size[1])
+		else:
+			cy = size[1]/2.0;
+		self.center = (cx, cy)
+		if node.hasAttribute('r'):
+			self.radius = sizeFromString(node.getAttribute('r'), diagonalSize)
+		else:
+			self.radius = diagonalSize/2.0
 		self.focus = [self.center[0], self.center[1]]
 		self.focusRadius = 0.0
 		if node.hasAttribute('fx'):
@@ -334,7 +369,8 @@ class Style:
 					continue
 
 				if value[:4] == 'url(':
-					material = value[4:-1]
+					# Also skip starting #
+					material = value[5:-1]
 				else:
 					material = materials.addColor(colorFromString(value))
 				self.fill = Fill(material)
@@ -750,12 +786,18 @@ def convertSVG(streamOrPath, outputFile):
 					continue
 
 				# Materials
-				if node.tagName == 'linearGradient':
-					gradient = LinearGradientMaterial(node, size)
-					materials.addLinearGradient(gradient)
-				if node.tagName == 'radialGradient':
-					gradient = RadialGradientMaterial(node, size, diagonalSize)
-					materials.addRadialGradient(gradient)
+				if node.tagName == 'defs':
+					for defNode in node.childNodes:
+						if defNode.nodeType != xml.dom.Node.ELEMENT_NODE:
+							continue
+
+						if defNode.tagName == 'linearGradient':
+							gradient = LinearGradientMaterial(defNode, size)
+							materials.addLinearGradient(gradient)
+						elif defNode.tagName == 'radialGradient':
+							gradient = RadialGradientMaterial(defNode, size, diagonalSize)
+							materials.addRadialGradient(gradient)
+
 				# Shapes
 				elif node.tagName == 'circle':
 					commands.append(lambda builder,

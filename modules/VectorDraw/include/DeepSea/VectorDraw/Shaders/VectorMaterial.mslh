@@ -141,6 +141,7 @@ dsVectorMaterialInfo dsVectorMaterial_getInfo(float index)
  * @param imagePosition The position in the image of the current pixel.
  * @param index The index of the material.
  */
+[[fragment]]
 vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec4 bounds,
 	vec2 imagePosition, float index)
 {
@@ -153,7 +154,7 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		// Gradient
 		vec2 gradientPos;
 		if (info.info0.z == 1.0)
-			gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.zy);
+			gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.xy);
 		else
 			gradientPos = imagePosition;
 
@@ -166,7 +167,7 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		{
 			// Linear gradient
 			vec2 dir = info.info1.zw - info.info1.xy;
-			float invDirLen = 1.9/length(dir);
+			float invDirLen = 1.0/length(dir);
 			vec2 dirNorm = dir*vec2(invDirLen);
 			gradientT = dot(dirNorm, gradientPos - info.info1.xy)*invDirLen;
 		}
@@ -224,7 +225,7 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		else
 		{
 			// Clamp
-			float halfTexel = DS_MATERIAL_COLOR_WIDTH;
+			float halfTexel = 0.5/DS_MATERIAL_COLOR_WIDTH;
 			colorCoord = clamp(gradientT, halfTexel, 1.0 - halfTexel);
 		}
 	}

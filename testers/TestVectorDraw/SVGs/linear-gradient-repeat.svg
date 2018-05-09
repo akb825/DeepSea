@@ -1,0 +1,21 @@
+<svg width="360" height="120" viewBox="0 0 360 120"
+    xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="Pad" spreadMethod="pad" gradientUnits="objectBoundingBox">
+            <stop offset="40%"  stop-color="green"/>
+            <stop offset="60%" stop-color="gold"/>
+        </linearGradient>
+        <linearGradient id="Reflect" spreadMethod="reflect" gradientUnits="objectBoundingBox">
+            <stop offset="40%"  stop-color="green"/>
+            <stop offset="60%" stop-color="gold"/>
+        </linearGradient>
+        <linearGradient id="Repeat" spreadMethod="repeat" gradientUnits="objectBoundingBox">
+            <stop offset="40%"  stop-color="green"/>
+            <stop offset="60%" stop-color="gold"/>
+        </linearGradient>
+    </defs>
+
+    <rect x="10" y="10" width="100" height="100" style="fill:url(#Pad)" />
+    <rect x="130" y="10" width="100" height="100" style="fill:url(#Reflect)" />
+    <rect x="250" y="10" width="100" height="100" style="fill:url(#Repeat)" />
+</svg>

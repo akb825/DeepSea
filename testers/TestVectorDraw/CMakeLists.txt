@@ -60,8 +60,9 @@ set(shaderOptions OUTPUT_DIR ${shaderDir}
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShape.msl OUTPUT TestVectorDraw.mslb
 	CONFIG ${shaderConfigs} ${shaderOptions})
-ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShapeSRGB.msl
-	OUTPUT TestVectorDrawSRGB.mslb CONFIG ${srgbShaderConfigs} ${shaderOptions})
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShapeSRGB.msl OUTPUT TestVectorDrawSRGB.mslb
+	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_shaders)

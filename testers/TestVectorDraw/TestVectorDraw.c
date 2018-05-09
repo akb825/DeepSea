@@ -109,7 +109,9 @@ const char* vectorImageFiles[] =
 	"curve.dsvi",
 	"quadratic.dsvi",
 	"arc-mixed-path.dsvi",
-	"arc.dsvi"
+	"arc.dsvi",
+	"linear-gradient.dsvi",
+	"linear-gradient-repeat.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
