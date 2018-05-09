@@ -55,7 +55,7 @@ sampler_state dsVectorLocalMaterialInfoTex
 uniform sampler2D dsVectorSharedMaterialColorTex;
 sampler_state dsVectorSharedMaterialColorTex
 {
-	address_mode_u = repeat;
+	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
@@ -68,7 +68,7 @@ sampler_state dsVectorSharedMaterialColorTex
 uniform sampler2D dsVectorLocalMaterialColorTex;
 sampler_state dsVectorLocalMaterialColorTex
 {
-	address_mode_u = repeat;
+	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
 	min_filter = linear;
 	mag_filter = linear;
@@ -96,9 +96,9 @@ struct dsVectorMaterialInfo
  */
 #define DS_VECTOR_LOCAL_MATERIAL_OFFSET 1024.0
 
-dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex)
+dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex, float height)
 {
-	float materialCoord = (float(index) + 0.5)/uniforms.dsVectorTextureSizes.y;
+	float materialCoord = (float(index) + 0.5)/height;
 	dsVectorMaterialInfo info;
 	info.info0 = texture(infoTex, vec2(0.125f, materialCoord));
 	if (info.info0.x == 0.0)
@@ -125,11 +125,14 @@ dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex
 dsVectorMaterialInfo dsVectorMaterial_getInfo(float index)
 {
 	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-		return dsVectorMaterial_getInfoImpl(index, dsVectorSharedMaterialInfoTex);
+	{
+		return dsVectorMaterial_getInfoImpl(index, dsVectorSharedMaterialInfoTex,
+			uniforms.dsVectorTextureSizes.y);
+	}
 	else
 	{
 		return dsVectorMaterial_getInfoImpl(index - DS_VECTOR_LOCAL_MATERIAL_OFFSET,
-			dsVectorLocalMaterialInfoTex);
+			dsVectorLocalMaterialInfoTex, uniforms.dsVectorTextureSizes.z);
 	}
 }
 
@@ -212,21 +215,20 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		if (info.info0.y == 1.0)
 		{
 			// Repeat
-			colorCoord = gradientT;
+			colorCoord = fract(gradientT);
 		}
 		else if (info.info0.y == 2.0)
 		{
 			// Mirror
-			colorCoord = gradientT;
+			colorCoord = fract(gradientT);
 			float evenVal = floor(gradientT)/2.0;
 			if (evenVal != floor(evenVal))
-				colorCoord = -colorCoord;
+				colorCoord = 1.0 - colorCoord;
 		}
 		else
 		{
 			// Clamp
-			float halfTexel = 0.5/DS_MATERIAL_COLOR_WIDTH;
-			colorCoord = clamp(gradientT, halfTexel, 1.0 - halfTexel);
+			colorCoord = gradientT;
 		}
 	}
 	else
