@@ -177,16 +177,19 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		else
 		{
 			// Radial gradient
-			vec2 focusPos = info.info1.zw;
 			float focusRadius = info.info3.w;
-			vec2 circlePos = (gradientPos - info.info1.xy)/vec2(info.info3.z);
-			if (focusPos == vec2(0.0))
-				gradientT = max(length(circlePos) - focusRadius, 0.0);
+			vec2 center = info.info1.xy;
+			float radius = info.info3.z;
+			float invRadius = 1.0/radius;
+			vec2 focusPos = info.info1.zw - center;
+			vec2 circlePos = gradientPos - center;
+			if (dot(focusPos, focusPos) < 0.001)
+				gradientT = clamp((length(circlePos) - focusRadius)*invRadius, 0.0, 1.0);
 			else
 			{
 				vec2 focusDir = circlePos - focusPos;
 				float focusDist2 = dot(focusDir, focusDir);
-				if (focusDist2 <= focusRadius*focusRadius)
+				if (focusDist2 <= focusRadius*focusRadius + 0.001)
 					gradientT = 0.0;
 				else
 				{
@@ -199,15 +202,15 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 
 					vec2 intersectCenter = vec2(focusDir.y, -focusDir.x)*vec2(determinant);
 					vec2 intersectOffset = vec2(signY*focusDir.x, abs(focusDir.y))*
-						vec2(sqrt(focusDist2 - determinant*determinant));
+						vec2(sqrt(radius*radius*focusDist2 - determinant*determinant));
 					float invFocusDist2 = 1.0/focusDist2;
 					if (dot(intersectOffset, focusDir) < 0.0)
 						intersectOffset = -intersectOffset;
 					vec2 circleIntersect = (intersectCenter + intersectOffset)*
 						vec2(invFocusDist2);
 
-					float gradiantDist = length(circleIntersect - focusPos) - focusRadius;
-					gradientT = (sqrt(focusDist2) - focusRadius)/gradiantDist;
+					float invGradiantDist = 1.0/(length(circleIntersect - focusPos) - focusRadius);
+					gradientT = (sqrt(focusDist2) - focusRadius)*invGradiantDist;
 				}
 			}
 		}

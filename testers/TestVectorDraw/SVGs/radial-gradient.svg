@@ -1,0 +1,11 @@
+<svg width="120" height="120" viewBox="0 0 120 120"
+    xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="MyGradient">
+            <stop offset="10%"  stop-color="gold"/>
+            <stop offset="95%" stop-color="green"/>
+        </radialGradient>
+    </defs>
+
+    <circle cx="60" cy="60" r="50" style="fill:url(#MyGradient)" />
+</svg>

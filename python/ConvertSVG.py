@@ -135,12 +135,12 @@ class Gradient:
 		self.transform = transformFromNode(node, 'gradientTransform')
 		if node.hasAttribute('gradientUnits'):
 			units = node.getAttribute('gradientUnits')
-			if units == 'objectBoundingBox':
-				self.coordinateSpace = MaterialSpace.Bounds
-			else:
+			if units == 'userSpaceOnUse':
 				self.coordinateSpace = MaterialSpace.Local
+			else:
+				self.coordinateSpace = MaterialSpace.Bounds
 		else:
-			self.coordinateSpace = MaterialSpace.Local
+			self.coordinateSpace = MaterialSpace.Bounds
 		if node.hasAttribute('spreadMethod'):
 			spread = node.getAttribute('spreadMethod')
 			if spread == 'reflect':
@@ -229,23 +229,24 @@ class RadialGradientMaterial(Gradient):
 		else:
 			cy = size[1]/2.0;
 		self.center = (cx, cy)
+		radiusSize = min(size[0], size[1])
 		if node.hasAttribute('r'):
-			self.radius = sizeFromString(node.getAttribute('r'), diagonalSize)
+			self.radius = sizeFromString(node.getAttribute('r'), radiusSize)
 		else:
-			self.radius = diagonalSize/2.0
-		self.focus = [self.center[0], self.center[1]]
+			self.radius = radiusSize/2.0
+		self.focus = [cx, cy]
 		self.focusRadius = 0.0
 		if node.hasAttribute('fx'):
-			self.focus[0] = sizeFromString(node.getAttribute('fx'), self.radius)
+			self.focus[0] = sizeFromString(node.getAttribute('fx'), size[0])
 		if node.hasAttribute('fy'):
-			self.focus[1] = sizeFromString(node.getAttribute('fy'), self.radius)
+			self.focus[1] = sizeFromString(node.getAttribute('fy'), size[1])
 		if node.hasAttribute('fr'):
-			self.focusRadius = sizeFromString(node.getAttribute('fr'), self.radius)
+			self.focusRadius = sizeFromString(node.getAttribute('fr'), radiusSize)
 
 	def write(self, builder):
 		nameOffset = builder.CreateString(self.name)
 		RadialGradientStartGradientVector(builder, len(self.stops))
-		for position, color in self.stops:
+		for position, color in reversed(self.stops):
 			CreateGradientStop(builder, position, color[0], color[1], color[2], color[3])
 		gradientOffset = builder.EndVector(len(self.stops))
 
@@ -337,7 +338,7 @@ class Stroke:
 		self.join = LineJoin.Miter
 		self.cap = LineCap.Butt
 		self.width = 1.0
-		self.miterLimit = 1.0
+		self.miterLimit = 4.0
 		self.dashArray = [0.0, 0.0, 0.0, 0.0]
 
 class Fill:
