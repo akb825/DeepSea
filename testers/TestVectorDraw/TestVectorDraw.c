@@ -114,7 +114,8 @@ const char* vectorImageFiles[] =
 	"linear-gradient-repeat.dsvi",
 	"radial-gradient.dsvi",
 	"radial-gradient-focus.dsvi",
-	"radial-gradient-repeat.dsvi"
+	"radial-gradient-repeat.dsvi",
+	"icon.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Math/Core.h>
+#include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/VectorDraw/Gradient.h>
@@ -410,19 +411,25 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 			switch (node->material.materialType)
 			{
 				case dsVectorMaterialType_LinearGradient:
+				{
 					info[0].y = (float)node->material.linearGradient.edge;
 					info[0].z = (float)node->material.linearGradient.coordinateSpace;
 					info[1].x = node->material.linearGradient.start.x;
 					info[1].y = node->material.linearGradient.start.y;
 					info[1].z = node->material.linearGradient.end.x;
 					info[1].w = node->material.linearGradient.end.y;
-					info[2].x = node->material.linearGradient.transform.values[0][0];
-					info[2].y = node->material.linearGradient.transform.values[0][1];
-					info[2].z = node->material.linearGradient.transform.values[1][0];
-					info[2].w = node->material.linearGradient.transform.values[1][1];
-					info[3].x = node->material.linearGradient.transform.values[2][0];
-					info[3].y = node->material.linearGradient.transform.values[2][1];
+
+					dsMatrix33f transformInv;
+					dsMatrix33f_affineInvert(&transformInv,
+						&node->material.linearGradient.transform);
+					info[2].x = transformInv.values[0][0];
+					info[2].y = transformInv.values[0][1];
+					info[2].z = transformInv.values[1][0];
+					info[2].w = transformInv.values[1][1];
+					info[3].x = transformInv.values[2][0];
+					info[3].y = transformInv.values[2][1];
 					break;
+				}
 				case dsVectorMaterialType_RadialGradient:
 					info[0].y = (float)node->material.radialGradient.edge;
 					info[0].z = (float)node->material.radialGradient.coordinateSpace;
@@ -430,12 +437,17 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 					info[1].y = node->material.radialGradient.center.y;
 					info[1].z = node->material.radialGradient.focus.x;
 					info[1].w = node->material.radialGradient.focus.y;
-					info[2].x = node->material.radialGradient.transform.values[0][0];
-					info[2].y = node->material.radialGradient.transform.values[0][1];
-					info[2].z = node->material.radialGradient.transform.values[1][0];
-					info[2].w = node->material.radialGradient.transform.values[1][1];
-					info[3].x = node->material.radialGradient.transform.values[2][0];
-					info[3].y = node->material.radialGradient.transform.values[2][1];
+
+					dsMatrix33f transformInv;
+					dsMatrix33f_affineInvert(&transformInv,
+						&node->material.radialGradient.transform);
+					info[2].x = transformInv.values[0][0];
+					info[2].y = transformInv.values[0][1];
+					info[2].z = transformInv.values[1][0];
+					info[2].w = transformInv.values[1][1];
+					info[3].x = transformInv.values[2][0];
+					info[3].y = transformInv.values[2][1];
+
 					info[3].z = node->material.radialGradient.radius;
 					info[3].w = node->material.radialGradient.focusRadius;
 					break;

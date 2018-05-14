@@ -947,8 +947,11 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		dsVector2f nextDir;
 		if (end && joinStart)
 			nextDir = firstDir;
-		else if (!findLineDir(&nextDir, scratchData, i))
+		else if (end)
 			nextDir = lastDir;
+		else
+			DS_VERIFY(findLineDir(&nextDir, scratchData, i));
+
 		if (scratchData->points[i].type & PointType_Corner)
 		{
 			if (!addJoin(scratchData, &scratchData->points[i].point, &lastDir, &nextDir, expandSize,

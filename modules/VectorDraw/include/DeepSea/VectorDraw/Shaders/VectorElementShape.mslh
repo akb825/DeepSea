@@ -207,7 +207,7 @@ vec4 dsVectorElementShape_getMaterialColor()
 
 	vec4 color = dsVectorMaterial_getColor(dsVectorVertexMaterialOut,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
-		dsVectorVertexOut.position.zw, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.w);
+		dsVectorVertexOut.lineDistancesOpacityMaterialIndex.w);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);
 }
 

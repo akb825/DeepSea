@@ -144,10 +144,10 @@ static void markEnd(dsVectorScratchData* scratchData)
 
 static bool isBezierStraight(const dsVector4f* curveX, const dsVector4f* curveY, float pixelSize)
 {
-	// Check to see if the midpoint is within 1/2 pixel of a straight line.
+	// Check to see if the midpoint is within 1/4 pixel of a straight line.
 	dsVector2f midCurve = {{dsVector4_dot(*curveX, bezierMid), dsVector4_dot(*curveY, bezierMid)}};
 	dsVector2f midLine = {{(curveX->x + curveX->w)*0.5f, (curveY->x + curveY->w)*0.5f}};
-	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize)*0.25f;
+	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize)*0.125f;
 }
 
 static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform)
@@ -363,11 +363,10 @@ static bool closePath(dsVectorScratchData* scratchData, PointType pointType)
 	if (!inPathWithPoint(scratchData))
 		return false;
 
-	if (!dsVectorScratchData_addPoint(scratchData,
-		&scratchData->points[scratchData->lastStart].point, pointType | PointType_End))
-	{
+	// Create a copy of the point since the array might be re-allocated.
+	dsVector2f startPoint = scratchData->points[scratchData->lastStart].point;
+	if (!dsVectorScratchData_addPoint(scratchData, &startPoint, pointType | PointType_End))
 		return false;
-	}
 
 	scratchData->points[scratchData->lastStart].type |= PointType_JoinStart;
 	scratchData->lastStart = scratchData->pointCount;

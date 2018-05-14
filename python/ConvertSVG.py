@@ -102,37 +102,96 @@ def angleFromString(angleStr):
 		return float(angleStr[:-4])*2.0*math.pi
 	return math.radians(float(angleStr))
 
-def transformFromNode(node, transformName = 'transform'):
-	"""Extracts the transform from a node as a 3x3 matrix tuple in column-major order."""
-	if not node.hasAttribute(transformName):
-		return ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
-
-	try:
-		# Support a single matrix or translate element.
-		transformStr = node.getAttribute(transformName)
-		if transformStr[:7] == 'matrix(':
-			values = re.findall(r"[-+0-9.]+", transformStr[7:-1])
-			if len(values) != 6:
-				raise Exception()
-			return ((float(values[0].strip()), float(values[1].strip()), 0.0),
-				(float(values[2].strip()), float(values[3].strip()), 0.0),
-				(float(values[4].strip()), float(values[5].strip()), 1.0))
-		elif transformStr[:10] == 'translate(':
-			values = re.findall(r"[-+0-9.]+", transformStr[10:-1])
-			if len(values) != 2:
-				raise Exception()
-			return ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
-				(float(values[0].strip()), float(values[1].strip()), 1.0))
+def extractAttributes(node):
+	attributes = {}
+	for attrName, attrValue in node.attributes.items():
+		if attrName == 'style':
+			elementStrings = attrValue.split(';')
+			for elementStr in elementStrings:
+				if len(elementStr.strip()) == 0:
+					continue;
+				elementPair = elementStr.split(':')
+				if len(elementPair) != 2:
+					raise Exception('Invalid style strimg "' + attrValue + '"')
+				attributes[elementPair[0].strip()] = elementPair[1].strip()
 		else:
-			raise Exception()
-	except:
-		raise Exception('Invalid transform value "' + transformStr + '"')
+			attributes[attrName.strip()] = attrValue.strip()
+	return attributes
+
+class Transform:
+	"""3x3 transform matrix for a transform."""
+	def __init__(self, matrix = None):
+		if matrix:
+			self.matrix = matrix
+		else:
+			self.matrix = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+
+	@staticmethod
+	def fromNode(node, transformName = "transform"):
+		"""Extracts the transform from a node as a 3x3 matrix tuple in column-major order."""
+		if not node.hasAttribute(transformName):
+			return Transform()
+
+		try:
+			# Support a single matrix or translate element.
+			transformStr = node.getAttribute(transformName)
+			if transformStr[:7] == 'matrix(':
+				values = re.findall(r"[-+0-9.]+", transformStr[7:-1])
+				if len(values) != 6:
+					raise Exception()
+				return Transform(((float(values[0].strip()), float(values[1].strip()), 0.0),
+					(float(values[2].strip()), float(values[3].strip()), 0.0),
+					(float(values[4].strip()), float(values[5].strip()), 1.0)))
+			elif transformStr[:10] == 'translate(':
+				values = re.findall(r"[-+0-9.]+", transformStr[10:-1])
+				if len(values) != 2:
+					raise Exception()
+				return Transform(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
+					(float(values[0].strip()), float(values[1].strip()), 1.0)))
+			else:
+				raise Exception()
+		except:
+			raise Exception('Invalid transform value "' + transformStr + '"')
+
+	def createMatrix33f(self, builder):
+		return CreateMatrix33f(builder, self.matrix[0][0], self.matrix[0][1], self.matrix[0][2],
+			self.matrix[1][0], self.matrix[1][1], self.matrix[1][2], self.matrix[2][0],
+			self.matrix[2][1], self.matrix[2][2])
+
+	def __mul__(self, other):
+		return Transform( \
+			( \
+				( \
+					self.matrix[0][0]*other.matrix[0][0] + self.matrix[1][0]*other.matrix[0][1] + \
+						self.matrix[2][0]*other.matrix[0][2], \
+					self.matrix[0][1]*other.matrix[0][0] + self.matrix[1][1]*other.matrix[0][1] + \
+						self.matrix[2][1]*other.matrix[0][2], \
+					self.matrix[0][2]*other.matrix[0][0] + self.matrix[1][2]*other.matrix[0][1] + \
+						self.matrix[2][2]*other.matrix[0][2] \
+				), \
+				( \
+					self.matrix[0][0]*other.matrix[1][0] + self.matrix[1][0]*other.matrix[1][1] + \
+						self.matrix[2][0]*other.matrix[1][2], \
+					self.matrix[0][1]*other.matrix[1][0] + self.matrix[1][1]*other.matrix[1][1] + \
+						self.matrix[2][1]*other.matrix[1][2], \
+					self.matrix[0][2]*other.matrix[1][0] + self.matrix[1][2]*other.matrix[1][1] + \
+						self.matrix[2][2]*other.matrix[1][2] \
+				), \
+				( \
+					self.matrix[0][0]*other.matrix[2][0] + self.matrix[1][0]*other.matrix[2][1] + \
+						self.matrix[2][0]*other.matrix[2][2], \
+					self.matrix[0][1]*other.matrix[2][0] + self.matrix[1][1]*other.matrix[2][1] + \
+						self.matrix[2][1]*other.matrix[2][2], \
+					self.matrix[0][2]*other.matrix[2][0] + self.matrix[1][2]*other.matrix[2][1] + \
+						self.matrix[2][2]*other.matrix[2][2] \
+				) \
+			))
 
 class Gradient:
 	"""Base class for a gradient."""
-	def __init__(self, node):
+	def __init__(self, node, materials):
 		self.name = node.getAttribute('id')
-		self.transform = transformFromNode(node, 'gradientTransform')
+		self.transform = Transform.fromNode(node, 'gradientTransform')
 		if node.hasAttribute('gradientUnits'):
 			units = node.getAttribute('gradientUnits')
 			if units == 'userSpaceOnUse':
@@ -152,23 +211,28 @@ class Gradient:
 		else:
 			self.edge = GradientEdge.Clamp
 
-		self.stops = []
-		for stop in node.childNodes:
-			if stop.nodeType != xml.dom.Node.ELEMENT_NODE:
-				continue
+		if node.hasAttribute('xlink:href'):
+			# Strip leading # from reference.
+			self.stops = materials.findGradientStops(node.getAttribute('xlink:href')[1:])
+		else:
+			self.stops = []
+			for stop in node.childNodes:
+				if stop.nodeType != xml.dom.Node.ELEMENT_NODE:
+					continue
 
-			position = sizeFromString(stop.getAttribute('offset'), 1.0)
-			color = colorFromString(stop.getAttribute('stop-color'))
-			opacity = 1.0
-			if stop.hasAttribute('stop-opacity'):
-				opacity = stop.sizeFromString(stop.getAttribute('stop-opacity'), 1.0)
-			color = (color[0], color[1], color[2], int(round(float(color[3])*opacity)))
-			self.stops.append((position, color))
+				elements = extractAttributes(stop)
+				position = sizeFromString(elements['offset'], 1.0)
+				color = colorFromString(elements['stop-color'])
+				opacity = 1.0
+				if 'stop-opacity' in elements:
+					opacity = sizeFromString(elements['stop-opacity'], 1.0)
+				color = (color[0], color[1], color[2], int(round(float(color[3])*opacity)))
+				self.stops.append((position, color))
 
 class LinearGradientMaterial(Gradient):
 	"""Class describing a linear gradient."""
-	def __init__(self, node, size):
-		Gradient.__init__(self, node)
+	def __init__(self, node, size, materials):
+		Gradient.__init__(self, node, materials)
 		if self.coordinateSpace == MaterialSpace.Bounds:
 			size = (1.0, 1.0)
 
@@ -206,19 +270,16 @@ class LinearGradientMaterial(Gradient):
 		LinearGradientAddEnd(builder, CreateVector2f(builder, self.end[0], self.end[1]))
 		LinearGradientAddEdge(builder, self.edge)
 		LinearGradientAddCoordinateSpace(builder, self.coordinateSpace)
-		LinearGradientAddTransform(builder, CreateMatrix33f(builder, self.transform[0][0],
-			self.transform[0][1], self.transform[0][2], self.transform[1][0], self.transform[1][1],
-			self.transform[1][2], self.transform[2][0], self.transform[2][1],
-			self.transform[2][2]))
+		LinearGradientAddTransform(builder, self.transform.createMatrix33f(builder))
 		return LinearGradientEnd(builder)
 	
 class RadialGradientMaterial(Gradient):
 	"""Class describing a radial gradient."""
-	def __init__(self, node, size, diagonalSize):
-		Gradient.__init__(self, node)
+	def __init__(self, node, size, diagonalSize, materials):
+		Gradient.__init__(self, node, materials)
 		if self.coordinateSpace == MaterialSpace.Bounds:
 			size = (1.0, 1.0)
-			diagonalSize = math.sqrt(2.0)
+			diagonalSize = 1.0
 
 		if node.hasAttribute('cx'):
 			cx = sizeFromString(node.getAttribute('cx'), size[0])
@@ -229,11 +290,10 @@ class RadialGradientMaterial(Gradient):
 		else:
 			cy = size[1]/2.0;
 		self.center = (cx, cy)
-		radiusSize = min(size[0], size[1])
 		if node.hasAttribute('r'):
-			self.radius = sizeFromString(node.getAttribute('r'), radiusSize)
+			self.radius = sizeFromString(node.getAttribute('r'), diagonalSize)
 		else:
-			self.radius = radiusSize/2.0
+			self.radius = diagonalSize/2.0
 		self.focus = [cx, cy]
 		self.focusRadius = 0.0
 		if node.hasAttribute('fx'):
@@ -241,7 +301,7 @@ class RadialGradientMaterial(Gradient):
 		if node.hasAttribute('fy'):
 			self.focus[1] = sizeFromString(node.getAttribute('fy'), size[1])
 		if node.hasAttribute('fr'):
-			self.focusRadius = sizeFromString(node.getAttribute('fr'), radiusSize)
+			self.focusRadius = sizeFromString(node.getAttribute('fr'), diagonalSize)
 
 	def write(self, builder):
 		nameOffset = builder.CreateString(self.name)
@@ -259,10 +319,7 @@ class RadialGradientMaterial(Gradient):
 		RadialGradientAddFocusRadius(builder, self.focusRadius)
 		RadialGradientAddEdge(builder, self.edge)
 		RadialGradientAddCoordinateSpace(builder, self.coordinateSpace)
-		RadialGradientAddTransform(builder, CreateMatrix33f(builder, self.transform[0][0],
-			self.transform[0][1], self.transform[0][2], self.transform[1][0], self.transform[1][1],
-			self.transform[1][2], self.transform[2][0], self.transform[2][1],
-			self.transform[2][2]))
+		RadialGradientAddTransform(builder, self.transform.createMatrix33f(builder))
 		return RadialGradientEnd(builder)
 
 class Materials:
@@ -290,6 +347,13 @@ class Materials:
 
 	def addRadialGradient(self, radialGradient):
 		self.radialGradients[radialGradient.name] = radialGradient
+
+	def findGradientStops(self, name):
+		if name in self.linearGradients:
+			return self.linearGradients[name].stops
+		if name in self.radialGradients:
+			return self.radialGradients[name].stops
+		return None
 
 	def write(self, builder):
 		colorOffsets = []
@@ -355,58 +419,55 @@ class Style:
 		self.fill = None
 		self.opacity = 1.0
 
-		if not node.hasAttribute('style'):
-			return
-		styleString = node.getAttribute('style')
-		elementStrings = styleString.split(';')
-		for elementStr in elementStrings:
-			elementPair = elementStr.split(':')
-			if len(elementPair) != 2:
-				raise Exception('Invalid style string "' + styleString + '"')
-			element = elementPair[0].strip()
-			value = elementPair[1].strip()
-			if element == 'fill':
-				if value == 'none':
-					continue
-
+		elements = extractAttributes(node)
+		if 'fill' in elements:
+			value = elements['fill']
+			if value != 'none':
 				if value[:4] == 'url(':
 					# Also skip starting #
 					material = value[5:-1]
 				else:
 					material = materials.addColor(colorFromString(value))
 				self.fill = Fill(material)
-			elif element == 'fill-opacity':
-				self.fill.opacity = float(value)
-			elif element == 'stroke':
-				if value == 'none':
-					continue
+		else:
+			self.fill = Fill(materials.addColor((0, 0, 0, 255)))
+		if self.fill and 'fill-opacity' in elements:
+			self.fill.opacity = float(elements['fill-opacity'])
 
+		if 'stroke' in elements:
+			value = elements['stroke']
+			if value != 'none':
 				if value[:4] == 'url(':
-					material = value[4:-1]
+					# Also skip starting #
+					material = value[5:-1]
 				else:
 					material = materials.addColor(colorFromString(value))
 				self.stroke = Stroke(material)
-			elif element == 'stroke-opacity':
-				self.stroke.opacity = float(value)
-			elif element == 'stroke-linejoin':
-				self.stroke.join = lineJoinMap[value]
-			elif element == 'stroke-linecap':
-				self.stroke.cap = lineCapMap[value]
-			elif element == 'stroke-width':
-				self.stroke.width = sizeFromString(value, relativeSize)
-			elif element == 'stroke-miterlimit':
-				self.stroke.miterLimit = float(value)
-			elif element == 'stroke-dasharray':
-				if value == 'none':
-					continue
 
-				dashArray = value.split(',')
-				if len(dashArray) > len(self.stroke.dashArray):
-					raise Exception('Dash array may have a maximum of 4 elements.')
-				for i in range(len(dashArray)):
-					self.stroke.dashArray[i] = sizeFromString(dashArray[i].strip(), relativeSize)
-			elif element == 'opacity':
-				self.opacity = float(value)
+				if 'stroke-opacity' in elements:
+					self.stroke.opacity = float(elements['stroke-opacity'])
+				if 'stroke-linejoin' in elements:
+					self.stroke.join = lineJoinMap[elements['stroke-linejoin']]
+				if 'stroke-linecap' in elements:
+					self.stroke.cap = lineCapMap[elements['stroke-linecap']]
+				if 'stroke-width' in elements:
+					self.stroke.width = sizeFromString(elements['stroke-width'], relativeSize)
+				if 'stroke-miterlimit' in elements:
+					self.stroke.miterLimit = float(elements['stroke-miterlimit'])
+				if 'stroke-dasharray' in elements:
+					value = elements['stroke-dasharray']
+					if value != 'none':
+						dashArray = value.split(',')
+						if len(dashArray) > len(self.stroke.dashArray):
+							raise Exception('Dash array may have a maximum of 4 elements.')
+						for i in range(len(dashArray)):
+							self.stroke.dashArray[i] = sizeFromString(dashArray[i].strip(), \
+								relativeSize)
+				if 'opacity' in elements:
+					self.opacity = float(elements['opacity'])
+
+		if not self.stroke and not self.fill:
+			raise Exception("Shape doesn't have a stroke or a fill.")
 
 		if self.stroke:
 			self.stroke.opacity *= self.opacity
@@ -450,9 +511,7 @@ class Style:
 
 def writeStartPath(builder, transform):
 	StartPathCommandStart(builder)
-	StartPathCommandAddTransform(builder, CreateMatrix33f(builder, transform[0][0], transform[0][1],
-		transform[0][2], transform[1][0], transform[1][1], transform[1][2], transform[2][0],
-		transform[2][1], transform[2][2]))
+	StartPathCommandAddTransform(builder, transform.createMatrix33f(builder))
 	commandOffset = StartPathCommandEnd(builder)
 
 	VectorCommandStart(builder)
@@ -486,9 +545,7 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 	ImageCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + size[0],
 		upperLeft[1] + size[1]))
 	ImageCommandAddOpacity(builder, style.opacity)
-	ImageCommandAddTransform(builder, CreateMatrix33f(builder, transform[0][0], transform[0][1],
-		transform[0][2], transform[1][0], transform[1][1], transform[1][2], transform[2][0],
-		transform[2][1], transform[2][2]))
+	ImageCommandAddTransform(builder, transform.createMatrix33f(builder))
 	commandOffset = ImageCommandEnd(builder)
 
 	VectorCommandStart(builder)
@@ -571,8 +628,10 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 			if command == 'm' or command == 'M':
 				if command == 'm':
 					pos = (pos[0] + x, pos[1] + y)
+					command = 'l'
 				else:
 					pos = (x, y)
+					command = 'L'
 
 				MoveCommandStart(builder)
 				MoveCommandAddPosition(builder, CreateVector2f(builder, pos[0], pos[1]))
@@ -582,8 +641,6 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 				VectorCommandAddCommandType(builder, VectorCommandUnion.MoveCommand)
 				VectorCommandAddCommand(builder, commandOffset)
 				offsets.append(VectorCommandEnd(builder))
-
-				command = 'l'
 			elif command == 'l' or command == 'L' or command == 'h' or command == 'H' or \
 				command == 'v' or command == 'V':
 				if command == 'l':
@@ -765,6 +822,95 @@ def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
 	offsets.extend(style.write(builder))
 	return offsets
 
+def readMaterials(node, materials, size, diagonalSize):
+	for defNode in node.childNodes:
+		if defNode.nodeType != xml.dom.Node.ELEMENT_NODE:
+			continue
+
+		if defNode.tagName == 'linearGradient':
+			gradient = LinearGradientMaterial(defNode, size, materials)
+			materials.addLinearGradient(gradient)
+		elif defNode.tagName == 'radialGradient':
+			gradient = RadialGradientMaterial(defNode, size, diagonalSize,
+				materials)
+			materials.addRadialGradient(gradient)
+
+def readShapes(node, materials, size, diagonalSize, transform):
+	commands = []
+	if node.tagName == 'g':
+		groupTransform = transform*Transform.fromNode(node)
+		for groupNode in node.childNodes:
+			if groupNode.nodeType == xml.dom.Node.ELEMENT_NODE:
+				commands.extend(readShapes(groupNode, materials, size, diagonalSize, \
+					groupTransform))
+	elif node.tagName == 'circle':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			center = (sizeFromString(node.getAttribute('cx'), size[0]),
+				sizeFromString(node.getAttribute('cy'), size[1])),
+			radius = sizeFromString(node.getAttribute('r'), diagonalSize):
+			writeEllipse(builder, transform, style, center, (radius, radius)))
+	elif node.tagName == 'ellipse':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			center = (sizeFromString(node.getAttribute('cx'), size[0]),
+				sizeFromString(node.getAttribute('cy'), size[1])),
+			radius = (sizeFromString(node.getAttribute('rx'), diagonalSize),
+				sizeFromString(node.getAttribute('ry'), diagonalSize)):
+			writeEllipse(builder, transform, style, center, radius))
+	elif node.tagName == 'image':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
+				sizeFromString(node.getAttribute('y'), size[1])),
+			imageSize = (sizeFromString(node.getAttribute('width'), size[0]),
+				sizeFromString(node.getAttribute('height'), size[1])),
+			location = node.getAttribute('href'):
+			writeImage(builder, transform, style, upperLeft, imageSize, location))
+	elif node.tagName == 'line':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			start = (sizeFromString(node.getAttribute('x1'), size[0]),
+				sizeFromString(node.getAttribute('y1'), size[1])),
+			end = (sizeFromString(node.getAttribute('x2'), size[0]),
+				sizeFromString(node.getAttribute('y2'), size[1])):
+			writeLines(builder, transform, style, [start, end]))
+	elif node.tagName == 'path':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			path = node.getAttribute('d'):
+			writePath(builder, transform, style, path, size, diagonalSize))
+	elif node.tagName == 'polygon':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			points = node.getAttribute('points'):
+			writePolygon(builder, transform, style, points, size))
+	elif node.tagName == 'polyline':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			points = node.getAttribute('points'):
+			writePolyline(builder, transform, style, points, size))
+	elif node.tagName == 'rect':
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = Style(node, materials, diagonalSize),
+			upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
+				sizeFromString(node.getAttribute('y'), size[1])),
+			rectSize = (sizeFromString(node.getAttribute('width'), size[0]),
+				sizeFromString(node.getAttribute('height'), size[1])),
+			radius = (sizeFromString(node.getAttribute('rx'), size[0]),
+				sizeFromString(node.getAttribute('ry'), size[1])) \
+				if node.hasAttribute('rx') else (0.0, 0.0):
+			writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
+	return commands
+
 def convertSVG(streamOrPath, outputFile):
 	"""
 	Loads an SVG and converts it to a DeepSea vector image FlatBuffer format.
@@ -778,6 +924,9 @@ def convertSVG(streamOrPath, outputFile):
 
 	commands = []
 	for rootNode in svg.childNodes:
+		if rootNode.nodeType != xml.dom.Node.ELEMENT_NODE:
+			continue
+
 		if rootNode.tagName == 'svg':
 			size = (sizeFromString(rootNode.getAttribute('width'), 0.0),
 				sizeFromString(rootNode.getAttribute('height'), 0.0))
@@ -786,87 +935,10 @@ def convertSVG(streamOrPath, outputFile):
 				if node.nodeType != xml.dom.Node.ELEMENT_NODE:
 					continue
 
-				# Materials
 				if node.tagName == 'defs':
-					for defNode in node.childNodes:
-						if defNode.nodeType != xml.dom.Node.ELEMENT_NODE:
-							continue
-
-						if defNode.tagName == 'linearGradient':
-							gradient = LinearGradientMaterial(defNode, size)
-							materials.addLinearGradient(gradient)
-						elif defNode.tagName == 'radialGradient':
-							gradient = RadialGradientMaterial(defNode, size, diagonalSize)
-							materials.addRadialGradient(gradient)
-
-				# Shapes
-				elif node.tagName == 'circle':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						center = (sizeFromString(node.getAttribute('cx'), size[0]),
-							sizeFromString(node.getAttribute('cy'), size[1])),
-						radius = sizeFromString(node.getAttribute('r'), diagonalSize):
-						writeEllipse(builder, transform, style, center, (radius, radius)))
-				elif node.tagName == 'ellipse':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						center = (sizeFromString(node.getAttribute('cx'), size[0]),
-							sizeFromString(node.getAttribute('cy'), size[1])),
-						radius = (sizeFromString(node.getAttribute('rx'), diagonalSize),
-							sizeFromString(node.getAttribute('ry'), diagonalSize)):
-						writeEllipse(builder, transform, style, center, radius))
-				elif node.tagName == 'image':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
-							sizeFromString(node.getAttribute('y'), size[1])),
-						imageSize = (sizeFromString(node.getAttribute('width'), size[0]),
-							sizeFromString(node.getAttribute('height'), size[1])),
-						location = node.getAttribute('href'):
-						writeImage(builder, transform, style, upperLeft, imageSize, location))
-				elif node.tagName == 'line':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						start = (sizeFromString(node.getAttribute('x1'), size[0]),
-							sizeFromString(node.getAttribute('y1'), size[1])),
-						end = (sizeFromString(node.getAttribute('x2'), size[0]),
-							sizeFromString(node.getAttribute('y2'), size[1])):
-						writeLines(builder, transform, style, [start, end]))
-				elif node.tagName == 'path':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						path = node.getAttribute('d'):
-						writePath(builder, transform, style, path, size, diagonalSize))
-				elif node.tagName == 'polygon':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						points = node.getAttribute('points'):
-						writePolygon(builder, transform, style, points, size))
-				elif node.tagName == 'polyline':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						points = node.getAttribute('points'):
-						writePolyline(builder, transform, style, points, size))
-				elif node.tagName == 'rect':
-					commands.append(lambda builder,
-						transform = transformFromNode(node),
-						style = Style(node, materials, diagonalSize),
-						upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
-							sizeFromString(node.getAttribute('y'), size[1])),
-						rectSize = (sizeFromString(node.getAttribute('width'), size[0]),
-							sizeFromString(node.getAttribute('height'), size[1])),
-						radius = (sizeFromString(node.getAttribute('rx'), size[0]),
-							sizeFromString(node.getAttribute('ry'), size[1])) \
-							if node.hasAttribute('rx') else (0.0, 0.0):
-						writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
-						
+					readMaterials(node, materials, size, diagonalSize)
+				else:
+					commands.extend(readShapes(node, materials, size, diagonalSize, Transform()))
 		break
 	
 	builder = flatbuffers.Builder(0)
