@@ -296,6 +296,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 	bool firstPoint = 0;
 	bool joinStart = false;
+	dsVectorScratchData_resetPolygon(scratchData);
 	for (uint32_t i = 0; i < scratchData->pointCount; ++i)
 	{
 		bool end = i == scratchData->pointCount - 1 || scratchData->points[i].type & PointType_End;

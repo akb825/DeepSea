@@ -156,6 +156,13 @@ def colorFromString(colorStr):
 	"""Converts from a string to a color tuple."""
 	try:
 		if colorStr[0] == '#':
+			if len(colorStr) == 4:
+				intValue = int(colorStr[1:], 16)
+				intValue0 = intValue >> 8
+				intValue1 = (intValue >> 4) & 0xF
+				intValue2 = intValue & 0xF
+				return (intValue0 | (intValue0 << 4), intValue1 | (intValue1 << 4),
+					intValue2 | (intValue2 << 4), 0xFF)
 			if len(colorStr) == 7:
 				intValue = int(colorStr[1:], 16)
 				return (intValue >> 16, (intValue >> 8) & 0xFF, (intValue & 0xFF), 0xFF)

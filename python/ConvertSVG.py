@@ -163,25 +163,25 @@ class Transform:
 			( \
 				( \
 					self.matrix[0][0]*other.matrix[0][0] + self.matrix[1][0]*other.matrix[0][1] + \
-						self.matrix[2][0]*other.matrix[0][2], \
+						self.matrix[2][0]*other.matrix[0][2],
 					self.matrix[0][1]*other.matrix[0][0] + self.matrix[1][1]*other.matrix[0][1] + \
-						self.matrix[2][1]*other.matrix[0][2], \
+						self.matrix[2][1]*other.matrix[0][2],
 					self.matrix[0][2]*other.matrix[0][0] + self.matrix[1][2]*other.matrix[0][1] + \
 						self.matrix[2][2]*other.matrix[0][2] \
-				), \
+				),
 				( \
 					self.matrix[0][0]*other.matrix[1][0] + self.matrix[1][0]*other.matrix[1][1] + \
-						self.matrix[2][0]*other.matrix[1][2], \
+						self.matrix[2][0]*other.matrix[1][2],
 					self.matrix[0][1]*other.matrix[1][0] + self.matrix[1][1]*other.matrix[1][1] + \
-						self.matrix[2][1]*other.matrix[1][2], \
+						self.matrix[2][1]*other.matrix[1][2],
 					self.matrix[0][2]*other.matrix[1][0] + self.matrix[1][2]*other.matrix[1][1] + \
 						self.matrix[2][2]*other.matrix[1][2] \
-				), \
+				),
 				( \
 					self.matrix[0][0]*other.matrix[2][0] + self.matrix[1][0]*other.matrix[2][1] + \
-						self.matrix[2][0]*other.matrix[2][2], \
+						self.matrix[2][0]*other.matrix[2][2],
 					self.matrix[0][1]*other.matrix[2][0] + self.matrix[1][1]*other.matrix[2][1] + \
-						self.matrix[2][1]*other.matrix[2][2], \
+						self.matrix[2][1]*other.matrix[2][2],
 					self.matrix[0][2]*other.matrix[2][0] + self.matrix[1][2]*other.matrix[2][1] + \
 						self.matrix[2][2]*other.matrix[2][2] \
 				) \
@@ -413,66 +413,95 @@ class Fill:
 
 class Style:
 	"""Style used within a vector element."""
-	def __init__(self, node, materials, relativeSize):
+	def __init__(self, fill, stroke, opacity):
+		self.fill = fill
+		self.stroke = stroke
+		self.opacity = opacity
+
+	@staticmethod
+	def create(node, materials, relativeSize, parentStyle = None, group = False):
 		"""Constructs the style with the encoded style."""
-		self.stroke = None
-		self.fill = None
-		self.opacity = 1.0
+		fill = None
+		stroke = None
+		opacity = 1.0
+
+		hasAny = False
+		if parentStyle:
+			if parentStyle.fill:
+				hasAny = True
+				fill = Fill(parentStyle.fill.material)
+				fill.opacity = parentStyle.fill.opacity
+			if parentStyle.stroke:
+				hasAny = True
+				stroke = Stroke(parentStyle.stroke.material)
+				stroke.opacity = parentStyle.stroke.opacity
+				stroke.join = parentStyle.stroke.join
+				stroke.cap = parentStyle.stroke.cap
+				stroke.width = parentStyle.stroke.width
+				stroke.miterLimit = parentStyle.stroke.miterLimit
+				stroke.dashArray = parentStyle.stroke.dashArray
+			opacity = parentStyle.opacity
 
 		elements = extractAttributes(node)
 		if 'fill' in elements:
+			hasAny = True
 			value = elements['fill']
-			if value != 'none':
+			if value == 'none':
+				fill = None
+			else:
 				if value[:4] == 'url(':
 					# Also skip starting #
 					material = value[5:-1]
 				else:
 					material = materials.addColor(colorFromString(value))
-				self.fill = Fill(material)
-		else:
-			self.fill = Fill(materials.addColor((0, 0, 0, 255)))
-		if self.fill and 'fill-opacity' in elements:
-			self.fill.opacity = float(elements['fill-opacity'])
+				fill = Fill(material)
+		elif not parentStyle:
+			fill = Fill(materials.addColor((0, 0, 0, 255)))
+		if fill and 'fill-opacity' in elements:
+			fill.opacity = float(elements['fill-opacity'])
 
 		if 'stroke' in elements:
+			hasAny = True
 			value = elements['stroke']
-			if value != 'none':
+			if value == 'none':
+				stroke = None
+			else:
 				if value[:4] == 'url(':
 					# Also skip starting #
 					material = value[5:-1]
 				else:
 					material = materials.addColor(colorFromString(value))
-				self.stroke = Stroke(material)
+				stroke = Stroke(material)
 
 				if 'stroke-opacity' in elements:
-					self.stroke.opacity = float(elements['stroke-opacity'])
+					stroke.opacity = float(elements['stroke-opacity'])
 				if 'stroke-linejoin' in elements:
-					self.stroke.join = lineJoinMap[elements['stroke-linejoin']]
+					stroke.join = lineJoinMap[elements['stroke-linejoin']]
 				if 'stroke-linecap' in elements:
-					self.stroke.cap = lineCapMap[elements['stroke-linecap']]
+					stroke.cap = lineCapMap[elements['stroke-linecap']]
 				if 'stroke-width' in elements:
-					self.stroke.width = sizeFromString(elements['stroke-width'], relativeSize)
+					stroke.width = sizeFromString(elements['stroke-width'], relativeSize)
 				if 'stroke-miterlimit' in elements:
-					self.stroke.miterLimit = float(elements['stroke-miterlimit'])
+					stroke.miterLimit = float(elements['stroke-miterlimit'])
 				if 'stroke-dasharray' in elements:
 					value = elements['stroke-dasharray']
 					if value != 'none':
 						dashArray = value.split(',')
-						if len(dashArray) > len(self.stroke.dashArray):
+						if len(dashArray) > len(stroke.dashArray):
 							raise Exception('Dash array may have a maximum of 4 elements.')
 						for i in range(len(dashArray)):
-							self.stroke.dashArray[i] = sizeFromString(dashArray[i].strip(), \
+							stroke.dashArray[i] = sizeFromString(dashArray[i].strip(),
 								relativeSize)
-				if 'opacity' in elements:
-					self.opacity = float(elements['opacity'])
 
-		if not self.stroke and not self.fill:
+		if 'opacity' in elements:
+			opacity = float(elements['opacity'])
+
+		if not group and not fill and not stroke:
 			raise Exception("Shape doesn't have a stroke or a fill.")
 
-		if self.stroke:
-			self.stroke.opacity *= self.opacity
-		if self.fill:
-			self.fill.opacity *= self.opacity
+		if hasAny:
+			return Style(fill, stroke, opacity)
+		return None
 
 	def write(self, builder):
 		offsets = []
@@ -481,7 +510,7 @@ class Style:
 
 			FillPathCommandStart(builder)
 			FillPathCommandAddMaterial(builder, materialOffset)
-			FillPathCommandAddOpacity(builder, self.fill.opacity)
+			FillPathCommandAddOpacity(builder, self.fill.opacity*self.opacity)
 			commandOffset = FillPathCommandEnd(builder)
 
 			VectorCommandStart(builder)
@@ -493,7 +522,7 @@ class Style:
 
 			StrokePathCommandStart(builder)
 			StrokePathCommandAddMaterial(builder, materialOffset)
-			StrokePathCommandAddOpacity(builder, self.stroke.opacity)
+			StrokePathCommandAddOpacity(builder, self.stroke.opacity*self.opacity)
 			StrokePathCommandAddJoinType(builder, self.stroke.join)
 			StrokePathCommandAddCapType(builder, self.stroke.cap)
 			StrokePathCommandAddWidth(builder, self.stroke.width)
@@ -610,7 +639,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 	offsets = writeStartPath(builder, transform)
 
 	tokens = re.findall(
-		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+0-9.]+(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
+		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
 	lastQuadraticPos = None
@@ -835,18 +864,19 @@ def readMaterials(node, materials, size, diagonalSize):
 				materials)
 			materials.addRadialGradient(gradient)
 
-def readShapes(node, materials, size, diagonalSize, transform):
+def readShapes(node, materials, size, diagonalSize, transform, style = None):
 	commands = []
 	if node.tagName == 'g':
 		groupTransform = transform*Transform.fromNode(node)
+		groupStyle = Style.create(node, materials, diagonalSize, style, group = True)
 		for groupNode in node.childNodes:
 			if groupNode.nodeType == xml.dom.Node.ELEMENT_NODE:
-				commands.extend(readShapes(groupNode, materials, size, diagonalSize, \
-					groupTransform))
+				commands.extend(readShapes(groupNode, materials, size, diagonalSize,
+					groupTransform, groupStyle))
 	elif node.tagName == 'circle':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			center = (sizeFromString(node.getAttribute('cx'), size[0]),
 				sizeFromString(node.getAttribute('cy'), size[1])),
 			radius = sizeFromString(node.getAttribute('r'), diagonalSize):
@@ -854,7 +884,7 @@ def readShapes(node, materials, size, diagonalSize, transform):
 	elif node.tagName == 'ellipse':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			center = (sizeFromString(node.getAttribute('cx'), size[0]),
 				sizeFromString(node.getAttribute('cy'), size[1])),
 			radius = (sizeFromString(node.getAttribute('rx'), diagonalSize),
@@ -863,7 +893,7 @@ def readShapes(node, materials, size, diagonalSize, transform):
 	elif node.tagName == 'image':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
 				sizeFromString(node.getAttribute('y'), size[1])),
 			imageSize = (sizeFromString(node.getAttribute('width'), size[0]),
@@ -873,7 +903,7 @@ def readShapes(node, materials, size, diagonalSize, transform):
 	elif node.tagName == 'line':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			start = (sizeFromString(node.getAttribute('x1'), size[0]),
 				sizeFromString(node.getAttribute('y1'), size[1])),
 			end = (sizeFromString(node.getAttribute('x2'), size[0]),
@@ -882,25 +912,25 @@ def readShapes(node, materials, size, diagonalSize, transform):
 	elif node.tagName == 'path':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			path = node.getAttribute('d'):
 			writePath(builder, transform, style, path, size, diagonalSize))
 	elif node.tagName == 'polygon':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			points = node.getAttribute('points'):
 			writePolygon(builder, transform, style, points, size))
 	elif node.tagName == 'polyline':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			points = node.getAttribute('points'):
 			writePolyline(builder, transform, style, points, size))
 	elif node.tagName == 'rect':
 		commands.append(lambda builder,
 			transform = transform*Transform.fromNode(node),
-			style = Style(node, materials, diagonalSize),
+			style = Style.create(node, materials, diagonalSize, style),
 			upperLeft = (sizeFromString(node.getAttribute('x'), size[0]),
 				sizeFromString(node.getAttribute('y'), size[1])),
 			rectSize = (sizeFromString(node.getAttribute('width'), size[0]),
@@ -928,8 +958,18 @@ def convertSVG(streamOrPath, outputFile):
 			continue
 
 		if rootNode.tagName == 'svg':
-			size = (sizeFromString(rootNode.getAttribute('width'), 0.0),
-				sizeFromString(rootNode.getAttribute('height'), 0.0))
+			if rootNode.hasAttribute('viewBox'):
+				box = rootNode.getAttribute('viewBox').split()
+				if len(box) != 4:
+					raise Exception("Invalid view box '" + rootNode.getAttribute('viewbox') + "'")
+				if sizeFromString(box[0], 0.0) != 0.0 or sizeFromString(box[1], 0.0) != 0.0:
+					raise Exception("View box must have an origin of (0, 0)")
+				size = (sizeFromString(box[2], 0.0), sizeFromString(box[3], 0.0))
+			elif rootNode.hasAttribute('width') and rootNode.hasAttribute('height'):
+				size = (sizeFromString(rootNode.getAttribute('width'), 0.0),
+					sizeFromString(rootNode.getAttribute('height'), 0.0))
+			else:
+				raise Exception("No size set on SVG.")
 			diagonalSize = math.sqrt(size[0]*size[0] + size[1]*size[1])/math.sqrt(2)
 			for node in rootNode.childNodes:
 				if node.nodeType != xml.dom.Node.ELEMENT_NODE:
