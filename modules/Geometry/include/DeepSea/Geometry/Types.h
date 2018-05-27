@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Types.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,6 +30,11 @@ extern "C"
  * @file
  * @brief Includes all of the types used in the DeepSea/Geometry library.
  */
+
+/**
+ * @brief Log tag used by the geometry library.
+ */
+#define DS_GEOMETRY_LOG_TAG "geometry"
 
 /**
  * @brief The number of corners for a 2D box.
@@ -48,6 +55,16 @@ typedef enum dsIntersectResult
 	dsIntersectResult_Outside,   ///< Lies fully outside the shape boundary.
 	dsIntersectResult_Intersects ///< Intersects the shape boundary.
 } dsIntersectResult;
+
+/**
+ * @brief Enum for the element type of a geometry structure.
+ */
+typedef enum dsGeometryElement
+{
+	dsGeometryElement_Float,  ///< float (e.g. dsVector2f)
+	dsGeometryElement_Double, ///< double (e.g. dsVector2d)
+	dsGeometryElement_Int     ///< int (e.g. dsVector2i)
+} dsGeometryElement;
 
 /**
  * @brief Structure for 2D axis-aligned bounding box using floats.
@@ -323,6 +340,35 @@ typedef struct dsFrustum3d
 	 */
 	dsPlane3d planes[dsFrustumPlanes_Count];
 } dsFrustum3d;
+
+/**
+ * @brief Structure for a bounding volume hierarchy spacial data structure.
+ * @see BoundingVolumeHierarcy.h
+ */
+typedef struct dsBVH dsBVH;
+
+/**
+ * @brief Function for getting the bounds for an object.
+ * @remark errno should be set on failure.
+ * @param[out] outBounds The memory to place the bounding box into. This should be cast to the
+ *    appropriate dsAlignedBounds* type based on axisCount and precision.
+ * @param bvh The BVH the bounds will be queried for.
+ * @param object The object to get the bounds.
+ * @return True if outBounds was successfully assigned.
+ */
+typedef bool (*dsObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, const void* object);
+
+/**
+ * @brief Function called when visiting BVH nodes that intersect.
+ * @param userData User data forwarded for the function.
+ * @param bvh The BVH that the intersection was performed with.
+ * @param object The object that was visited.
+ * @param bounds The bounds being checked. This should be cast to the appropriate dsAlignedBounds*
+ *     type based on the axis count and precision queried from bvh.
+ * @return True to continue traversal, false to stop traversal.
+ */
+typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
+	const void* bounds);
 
 #ifdef __cplusplus
 }

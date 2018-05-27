@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,9 +224,7 @@ struct dsVectorScratchData
 	uint32_t maxSortedPolygonVerts;
 	uint32_t maxSortedPolygonEdges;
 
-	PolygonEdgeBVHNode* polygonEdgeBVH;
-	uint32_t polygonEdgeBVHCount;
-	uint32_t maxPolygonEdgeBVH;
+	dsBVH* polygonEdgeBVH;
 
 	LoopVertex* loopVertices;
 	uint32_t loopVertCount;

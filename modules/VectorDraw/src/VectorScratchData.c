@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/BVH.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Text/Font.h>
@@ -115,58 +116,6 @@ static int comparePolygonVertex(const void* left, const void* right, void* conte
 	return 0;
 }
 
-static int comparePolygonEdgeX(const void* left, const void* right, void* context)
-{
-	const dsVectorScratchData* data = (const dsVectorScratchData*)context;
-	const PolygonEdge* leftEdge = data->polygonEdges + *(const uint32_t*)left;
-	const PolygonEdge* rightEdge = data->polygonEdges + *(const uint32_t*)right;
-	dsVector2f leftPos;
-	dsVector2_add(leftPos, data->polygonVertices[leftEdge->prevVertex].point,
-		data->polygonVertices[leftEdge->prevVertex].point);
-	dsVector2_scale(leftPos, leftPos, 0.5f);
-
-	dsVector2f rightPos;
-	dsVector2_add(rightPos, data->polygonVertices[rightEdge->prevVertex].point,
-		data->polygonVertices[rightEdge->prevVertex].point);
-	dsVector2_scale(rightPos, rightPos, 0.5f);
-
-	if (leftPos.x < rightPos.x)
-		return -1;
-	else if (leftPos.x > rightPos.x)
-		return 1;
-	else if (leftPos.y < rightPos.y)
-		return -1;
-	else if (leftPos.y > rightPos.y)
-		return 1;
-	return 0;
-}
-
-static int comparePolygonEdgeY(const void* left, const void* right, void* context)
-{
-	const dsVectorScratchData* data = (const dsVectorScratchData*)context;
-	const PolygonEdge* leftEdge = (const PolygonEdge*)left;
-	const PolygonEdge* rightEdge = (const PolygonEdge*)right;
-	dsVector2f leftPos;
-	dsVector2_add(leftPos, data->polygonVertices[leftEdge->prevVertex].point,
-		data->polygonVertices[leftEdge->prevVertex].point);
-	dsVector2_scale(leftPos, leftPos, 0.5f);
-
-	dsVector2f rightPos;
-	dsVector2_add(rightPos, data->polygonVertices[rightEdge->prevVertex].point,
-		data->polygonVertices[rightEdge->prevVertex].point);
-	dsVector2_scale(rightPos, rightPos, 0.5f);
-
-	if (leftPos.y < rightPos.y)
-		return -1;
-	else if (leftPos.y > rightPos.y)
-		return 1;
-	else if (leftPos.x < rightPos.x)
-		return -1;
-	else if (leftPos.x > rightPos.x)
-		return 1;
-	return 0;
-}
-
 static int compareLoopVertex(const void* left, const void* right, void* context)
 {
 	const dsVectorScratchData* data = (const dsVectorScratchData*)context;
@@ -247,124 +196,59 @@ static uint32_t findNextEdge(const dsVectorScratchData* data, const PolygonVerte
 	return closestEdge;
 }
 
-static uint32_t addEdgeBVHNode(dsVectorScratchData* data, uint32_t firstEdge, uint32_t edgeCount)
+static bool getEdgeBounds(void* outBounds, const dsBVH* bvh, const void* object)
 {
-	uint32_t node = data->polygonEdgeBVHCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->polygonEdgeBVH, data->polygonEdgeBVHCount,
-		data->maxPolygonEdgeBVH, 1))
-	{
-		return NOT_FOUND;
-	}
+	DS_ASSERT(dsBVH_getAxisCount(bvh) == 2 && dsBVH_getElement(bvh) == dsGeometryElement_Float);
 
-	PolygonEdgeBVHNode* bvhNode = data->polygonEdgeBVH + node;
-	dsAlignedBox2f_makeInvalid(&bvhNode->bounds);
-	for (uint32_t i = 0; i < edgeCount; ++i)
-	{
-		const PolygonEdge* edge = data->polygonEdges + data->sortedPolygonEdges[firstEdge + i];
-		dsAlignedBox2_addPoint(bvhNode->bounds, data->polygonVertices[edge->prevVertex].point);
-		dsAlignedBox2_addPoint(bvhNode->bounds, data->polygonVertices[edge->nextVertex].point);
-	}
-
-	if (edgeCount == 1)
-	{
-		bvhNode->leftNode = NOT_FOUND;
-		bvhNode->rightNode = NOT_FOUND;
-		bvhNode->edgeIndex = data->sortedPolygonEdges[firstEdge];
-		return node;
-	}
-
-	// Sort based on the maximum dimension.
-	dsVector2f extents;
-	dsAlignedBox2_extents(extents, bvhNode->bounds);
-	if (extents.x > extents.y)
-	{
-		dsSort(data->sortedPolygonEdges + firstEdge, edgeCount, sizeof(*data->sortedPolygonEdges),
-			&comparePolygonEdgeX, data);
-	}
-	else
-	{
-		dsSort(data->sortedPolygonEdges + firstEdge, edgeCount, sizeof(*data->sortedPolygonEdges),
-			&comparePolygonEdgeY, data);
-	}
-
-	// Recursively add the nodes.
-	uint32_t middle = edgeCount/2;
-	uint32_t leftNode = addEdgeBVHNode(data, firstEdge, middle);
-	if (leftNode == NOT_FOUND)
-		return NOT_FOUND;
-	uint32_t rightNode = addEdgeBVHNode(data, firstEdge + middle, edgeCount - middle);
-	if (rightNode == NOT_FOUND)
-		return NOT_FOUND;
-
-	// Reset pointer due to possible re-allocations of the array.
-	bvhNode = data->polygonEdgeBVH + node;
-	bvhNode->leftNode = leftNode;
-	bvhNode->rightNode = rightNode;
-	bvhNode->edgeIndex = NOT_FOUND;
-	return node;
+	const PolygonEdge* polygonEdge = (const PolygonEdge*)object;
+	dsAlignedBox2f* bounds = (dsAlignedBox2f*)outBounds;
+	const dsVectorScratchData* data = (const dsVectorScratchData*)dsBVH_getUserData(bvh);
+	bounds->min = bounds->max = data->polygonVertices[polygonEdge->prevVertex].point;
+	dsAlignedBox2_addPoint(*bounds, data->polygonVertices[polygonEdge->nextVertex].point);
+	return true;
 }
 
-static bool buildEdgeBVH(dsVectorScratchData* data)
+typedef struct EdgeIntersectInfo
 {
-	if (!data->sortedPolygonEdges || data->maxSortedPolygonEdges < data->maxPolygonEdges)
-	{
-		DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonEdges));
-		data->maxSortedPolygonEdges = data->maxPolygonEdges;
-		data->sortedPolygonEdges = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, uint32_t,
-			data->maxSortedPolygonEdges);
-		if (!data->sortedPolygonEdges)
-			return false;
-	}
+	dsVector2f fromPos;
+	dsVector2f toPos;
+	uint32_t fromVert;
+	uint32_t toVert;
+	bool intersects;
+} EdgeIntersectInfo;
 
-	if (data->polygonEdgeCount == 0)
-		return true;
-
-	for (uint32_t i = 0; i < data->polygonEdgeCount; ++i)
-		data->sortedPolygonEdges[i] = i;
-	return addEdgeBVHNode(data, 0, data->polygonEdgeCount) != NOT_FOUND;
-}
-
-static bool intersectsPolygonEdgeRec(const dsVectorScratchData* data,
-	const dsAlignedBox2f* edgeBounds, const dsVector2f* fromPos, const dsVector2f* toPos,
-	uint32_t fromVert, uint32_t toVert, uint32_t node)
+static bool intersectPolygonEdge(void* userData, const dsBVH* bvh, const void* object,
+	const void* bounds)
 {
-	const PolygonEdgeBVHNode* bvhNode = data->polygonEdgeBVH + node;
-	if (!dsAlignedBox2_intersects(*edgeBounds, bvhNode->bounds))
-		return false;
-
-	if (bvhNode->edgeIndex == NOT_FOUND)
-	{
-		DS_ASSERT(bvhNode->leftNode != NOT_FOUND && bvhNode->rightNode != NOT_FOUND);
-		return intersectsPolygonEdgeRec(data, edgeBounds, fromPos, toPos, fromVert, toVert,
-				bvhNode->leftNode) ||
-			intersectsPolygonEdgeRec(data, edgeBounds, fromPos, toPos, fromVert, toVert,
-				bvhNode->rightNode);
-	}
+	EdgeIntersectInfo* info = (EdgeIntersectInfo*)userData;
+	DS_ASSERT(!info->intersects);
+	const dsVectorScratchData* data = (const dsVectorScratchData*)dsBVH_getUserData(bvh);
+	const PolygonEdge* otherEdge = (const PolygonEdge*)object;
+	const dsAlignedBox2f* edgeBounds = (const dsAlignedBox2f*)bounds;
 
 	// Don't count neighboring edges.
-	const PolygonEdge* otherEdge = data->polygonEdges + bvhNode->edgeIndex;
-	if (otherEdge->prevVertex == fromVert || otherEdge->prevVertex == toVert ||
-		otherEdge->nextVertex == fromVert || otherEdge->nextVertex == toVert)
+	if (otherEdge->prevVertex == info->fromVert || otherEdge->prevVertex == info->toVert ||
+		otherEdge->nextVertex == info->fromVert || otherEdge->nextVertex == info->toVert)
 	{
-		return false;
+		return true;
 	}
 
 	const dsVector2f* otherFrom = &data->polygonVertices[otherEdge->prevVertex].point;
 	const dsVector2f* otherTo = &data->polygonVertices[otherEdge->nextVertex].point;
 
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-	float divisor = (fromPos->x - toPos->x)*(otherFrom->y - otherTo->y) -
-		(fromPos->y - toPos->y)*(otherFrom->x - otherTo->x);
+	float divisor = (info->fromPos.x - info->toPos.x)*(otherFrom->y - otherTo->y) -
+		(info->fromPos.y - info->toPos.y)*(otherFrom->x - otherTo->x);
 	if (divisor == 0.0f)
-		return false;
+		return true;
 	divisor = 1.0f/divisor;
 
 	dsVector2f intersect =
 	{{
-		(fromPos->x*toPos->y - fromPos->y*toPos->x)*(otherFrom->x - otherTo->x) -
-			(fromPos->x - toPos->x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
-		(fromPos->x*toPos->y - fromPos->y*toPos->x)*(otherFrom->y - otherTo->y) -
-			(fromPos->y - toPos->y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
+		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*(otherFrom->x - otherTo->x) -
+			(info->fromPos.x - info->toPos.x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
+		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*(otherFrom->y - otherTo->y) -
+			(info->fromPos.y - info->toPos.y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
 	}};
 	dsVector2_scale(intersect, intersect, divisor);
 
@@ -375,10 +259,16 @@ static bool intersectsPolygonEdgeRec(const dsVectorScratchData* data,
 	dsAlignedBox2_extents(extents, *edgeBounds);
 	if (extents.x > extents.y)
 	{
-		return intersect.x >= edgeBounds->min.x - epsilon &&
+		info->intersects = intersect.x >= edgeBounds->min.x - epsilon &&
 			intersect.y <= edgeBounds->max.x + epsilon;
 	}
-	return intersect.y >= edgeBounds->min.y - epsilon && intersect.y <= edgeBounds->max.y + epsilon;
+	else
+	{
+		info->intersects = intersect.y >= edgeBounds->min.y - epsilon &&
+			intersect.y <= edgeBounds->max.y + epsilon;
+	}
+
+	return !info->intersects;
 }
 
 dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
@@ -418,7 +308,7 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 	DS_VERIFY(dsAllocator_free(data->allocator, data->polygonEdges));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonVerts));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->sortedPolygonEdges));
-	DS_VERIFY(dsAllocator_free(data->allocator, data->polygonEdgeBVH));
+	dsBVH_destroy(data->polygonEdgeBVH);
 	DS_VERIFY(dsAllocator_free(data->allocator, data->loopVertices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->vertexStack));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
@@ -752,7 +642,15 @@ bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data)
 	dsSort(data->sortedPolygonVerts, data->polygonVertCount, sizeof(*data->sortedPolygonVerts),
 		&comparePolygonVertex, data);
 
-	return buildEdgeBVH(data);
+	if (!data->polygonEdgeBVH)
+	{
+		data->polygonEdgeBVH = dsBVH_create(data->allocator, 2, dsGeometryElement_Float, data);
+		if (!data->polygonEdgeBVH)
+			return false;
+	}
+
+	return dsBVH_build(data->polygonEdgeBVH, data->polygonEdges, data->polygonEdgeCount,
+		sizeof(PolygonEdge), &getEdgeBounds, false);
 }
 
 bool dsVectorScratchData_canConnectPolygonEdge(const dsVectorScratchData* data, uint32_t fromVert,
@@ -771,8 +669,9 @@ bool dsVectorScratchData_canConnectPolygonEdge(const dsVectorScratchData* data, 
 	dsAlignedBox2f edgeBounds = {*fromPos, *fromPos};
 	dsAlignedBox2_addPoint(edgeBounds, *toPos);
 
-	DS_ASSERT(data->polygonEdgeBVHCount > 0);
-	return !intersectsPolygonEdgeRec(data, &edgeBounds, fromPos, toPos, fromVert, toVert, 0);
+	EdgeIntersectInfo info = {*fromPos, *toPos, fromVert, toVert, false};
+	dsBVH_intersect(data->polygonEdgeBVH, &edgeBounds, &intersectPolygonEdge, &info);
+	return !info.intersects;
 }
 
 bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
@@ -904,7 +803,7 @@ void dsVectorScratchData_resetPolygon(dsVectorScratchData* data)
 {
 	data->polygonVertCount = 0;
 	data->polygonEdgeCount = 0;
-	data->polygonEdgeBVHCount = 0;
+	dsBVH_clear(data->polygonEdgeBVH);
 }
 
 bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge)
