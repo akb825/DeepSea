@@ -96,7 +96,7 @@ static uint8_t maxAxis3f(const void* bounds)
 {
 	const dsAlignedBox3f* realBounds = (const dsAlignedBox3f*)bounds;
 	dsVector3f extents;
-	dsAlignedBox2_extents(extents, *realBounds);
+	dsAlignedBox3_extents(extents, *realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)
@@ -134,7 +134,7 @@ static uint8_t maxAxis3d(const void* bounds)
 {
 	const dsAlignedBox3d* realBounds = (const dsAlignedBox3d*)bounds;
 	dsVector3d extents;
-	dsAlignedBox2_extents(extents, *realBounds);
+	dsAlignedBox3_extents(extents, *realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)
@@ -174,7 +174,7 @@ static uint8_t maxAxis3i(const void* bounds)
 {
 	const dsAlignedBox3i* realBounds = (const dsAlignedBox3i*)bounds;
 	dsVector3i extents;
-	dsAlignedBox2_extents(extents, *realBounds);
+	dsAlignedBox3_extents(extents, *realBounds);
 	if (extents.x >= extents.y && extents.x >= extents.z)
 		return 0;
 	if (extents.y >= extents.x && extents.y >= extents.z)
@@ -486,7 +486,7 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			break;
 		default:
 			DS_ASSERT(false);
-			break;
+			return false;
 	}
 
 	bvh->objectBoundsFunc = objectBoundsFunc;
@@ -571,7 +571,7 @@ bool dsBVH_update(dsBVH* bvh)
 			break;
 		default:
 			DS_ASSERT(false);
-			break;
+			return false;
 	}
 
 	return updateBVHRec(bvh, bvh->nodes, addBoxFunc);
@@ -613,6 +613,9 @@ uint32_t dsBVH_intersect(const dsBVH* bvh, const void* bounds, dsBVHVisitFunctio
 				intersectFunc = (IntersectFunction)&dsAlignedBox3i_intersects;
 			}
 			break;
+		default:
+			DS_ASSERT(false);
+			return 0;
 	}
 
 	uint32_t count = 0;

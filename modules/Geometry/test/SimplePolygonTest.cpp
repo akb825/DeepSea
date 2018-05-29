@@ -59,6 +59,7 @@ TEST_F(SimplePolygonTest, TriangleCW)
 	EXPECT_EQ(2U, indices[0]);
 	EXPECT_EQ(0U, indices[1]);
 	EXPECT_EQ(1U, indices[2]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -67,6 +68,7 @@ TEST_F(SimplePolygonTest, TriangleCW)
 	EXPECT_EQ(2U, indices[0]);
 	EXPECT_EQ(1U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, TriangleCCW)
@@ -86,6 +88,7 @@ TEST_F(SimplePolygonTest, TriangleCCW)
 	EXPECT_EQ(1U, indices[0]);
 	EXPECT_EQ(0U, indices[1]);
 	EXPECT_EQ(2U, indices[2]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -94,6 +97,7 @@ TEST_F(SimplePolygonTest, TriangleCCW)
 	EXPECT_EQ(1U, indices[0]);
 	EXPECT_EQ(2U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, ObliqueTriangleCW)
@@ -113,6 +117,7 @@ TEST_F(SimplePolygonTest, ObliqueTriangleCW)
 	EXPECT_EQ(1U, indices[0]);
 	EXPECT_EQ(2U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -121,6 +126,7 @@ TEST_F(SimplePolygonTest, ObliqueTriangleCW)
 	EXPECT_EQ(1U, indices[0]);
 	EXPECT_EQ(0U, indices[1]);
 	EXPECT_EQ(2U, indices[2]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, ObliqueTriangleCCW)
@@ -140,6 +146,7 @@ TEST_F(SimplePolygonTest, ObliqueTriangleCCW)
 	EXPECT_EQ(2U, indices[0]);
 	EXPECT_EQ(1U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -148,6 +155,7 @@ TEST_F(SimplePolygonTest, ObliqueTriangleCCW)
 	EXPECT_EQ(2U, indices[0]);
 	EXPECT_EQ(0U, indices[1]);
 	EXPECT_EQ(1U, indices[2]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, QuadCW)
@@ -172,6 +180,7 @@ TEST_F(SimplePolygonTest, QuadCW)
 	EXPECT_EQ(0U, indices[3]);
 	EXPECT_EQ(1U, indices[4]);
 	EXPECT_EQ(3U, indices[5]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -184,6 +193,7 @@ TEST_F(SimplePolygonTest, QuadCW)
 	EXPECT_EQ(0U, indices[3]);
 	EXPECT_EQ(3U, indices[4]);
 	EXPECT_EQ(1U, indices[5]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, QuadCCW)
@@ -208,6 +218,7 @@ TEST_F(SimplePolygonTest, QuadCCW)
 	EXPECT_EQ(0U, indices[3]);
 	EXPECT_EQ(3U, indices[4]);
 	EXPECT_EQ(1U, indices[5]);
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
 
 	indices = dsSimplePolygon_triangulate(&indexCount, polygon, points, DS_ARRAY_SIZE(points),
 		NULL, dsTriangulateWinding_CCW);
@@ -220,6 +231,7 @@ TEST_F(SimplePolygonTest, QuadCCW)
 	EXPECT_EQ(0U, indices[3]);
 	EXPECT_EQ(1U, indices[4]);
 	EXPECT_EQ(3U, indices[5]);
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, MonotonicCW)
@@ -567,6 +579,11 @@ TEST_F(SimplePolygonTest, ComplexCW)
 	EXPECT_EQ(35U, indices[108]);
 	EXPECT_EQ(34U, indices[109]);
 	EXPECT_EQ(36U, indices[110]);
+
+	size_t allocations = reinterpret_cast<dsAllocator&>(allocator).totalAllocations;
+	EXPECT_TRUE(dsSimplePolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), NULL, dsTriangulateWinding_CW));
+	EXPECT_EQ(allocations, reinterpret_cast<dsAllocator&>(allocator).totalAllocations);
 }
 
 TEST_F(SimplePolygonTest, ComplexCCW)

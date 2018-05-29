@@ -33,6 +33,10 @@ extern "C"
  * A simple polygon is a closed loop of connected points. Only a single loop is allowed, and it may
  * not intersect with itself. Simple polygons are allowed to be concave.
  *
+ * dsSimplePolygon will keep memory allocated between triangulations, re-using existing allocations
+ * when possible. This means that if you use the same instance to triangulate multiple polygons, it
+ * will only allocate memory if more was required than any previous triangulation.
+ *
  * @remark Polygon triangulation is a 2D operation. Triangulation in 3D space can be done by
  * resolving the 3D positions to 2D positions, either be dropping a coordinate (e.g. dropping Z) or
  * performing a transform. (e.g. projecting to a plane or other surface)

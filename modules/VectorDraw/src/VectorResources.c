@@ -355,7 +355,7 @@ bool dsVectorResources_addTexture(dsVectorResources* resources, const char* name
 
 	dsTextureNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->texturePool, dsTextureNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, sizeof(node->name));
+	strncpy(node->name, name, nameLength + 1);
 	node->texture = texture;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->textureTable, node->name, (dsHashTableNode*)node,
@@ -461,7 +461,7 @@ bool dsVectorResources_addFaceGroup(dsVectorResources* resources, const char* na
 	dsFaceGroupNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->faceGroupPool,
 		dsFaceGroupNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, sizeof(node->name));
+	strncpy(node->name, name, nameLength + 1);
 	node->faceGroup = faceGroup;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->faceGroupTable, node->name, (dsHashTableNode*)node,
@@ -546,7 +546,7 @@ bool dsVectorResources_addFont(dsVectorResources* resources, const char* name,
 
 	dsFontNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&resources->fontPool, dsFontNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, sizeof(node->name));
+	strncpy(node->name, name, nameLength + 1);
 	node->font = font;
 	node->owned = own;
 	DS_VERIFY(dsHashTable_insert(resources->fontTable, node->name, (dsHashTableNode*)node,

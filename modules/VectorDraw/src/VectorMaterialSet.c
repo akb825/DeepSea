@@ -224,7 +224,7 @@ bool dsVectorMaterialSet_addMaterial(dsVectorMaterialSet* materials, const char*
 	dsMaterialNode* node = DS_ALLOCATE_OBJECT((dsAllocator*)&materials->materialPool,
 		dsMaterialNode);
 	DS_ASSERT(node);
-	strncpy(node->name, name, sizeof(node->name));
+	strncpy(node->name, name, nameLength + 1);
 	node->material = *material;
 	node->owned = ownGradient;
 	node->dirtyType = DirtyType_All;

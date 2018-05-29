@@ -78,10 +78,9 @@ struct dsSimplePolygon
 	uint32_t maxEdges;
 
 	uint32_t* sortedVerts;
-	uint32_t* sortedEdges;
 	uint32_t maxSortedVerts;
-	uint32_t maxSortedEdges;
 
+	bool builtBVH;
 	dsBVH* edgeBVH;
 
 	LoopVertex* loopVertices;
@@ -191,9 +190,11 @@ static bool intersectPolygonEdge(void* userData, const dsBVH* bvh, const void* o
 
 	dsVector2d intersect =
 	{{
-		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*(otherFrom->x - otherTo->x) -
+		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*
+				(otherFrom->x - otherTo->x) -
 			(info->fromPos.x - info->toPos.x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
-		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*(otherFrom->y - otherTo->y) -
+		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*
+				(otherFrom->y - otherTo->y) -
 			(info->fromPos.y - info->toPos.y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
 	}};
 	dsVector2_scale(intersect, intersect, divisor);
@@ -302,26 +303,18 @@ static uint32_t findNextEdge(const dsSimplePolygon* polygon, const Vertex* verte
 static bool addVerticesAndEdges(dsSimplePolygon* polygon, const void* points, uint32_t pointCount,
 	dsPolygonPositionFunction pointPositionFunc)
 {
-	if (!polygon->vertices || polygon->maxVertices < pointCount)
+	DS_ASSERT(polygon->vertexCount == 0);
+	DS_ASSERT(polygon->edgeCount == 0);
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->vertices, polygon->vertexCount,
+			polygon->maxVertices, pointCount) ||
+		!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edges, polygon->edgeCount,
+			polygon->maxEdges, pointCount))
 	{
-		DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->vertices));
-		polygon->maxVertices = pointCount;
-		polygon->vertices = DS_ALLOCATE_OBJECT_ARRAY(polygon->allocator, Vertex,
-			polygon->maxVertices);
-		if (!polygon->vertices)
-			return false;
+		return false;
 	}
 
-	if (!polygon->edges || polygon->maxEdges < pointCount)
-	{
-		DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->edges));
-		polygon->maxEdges = pointCount;
-		polygon->edges = DS_ALLOCATE_OBJECT_ARRAY(polygon->allocator, Edge, polygon->maxEdges);
-		if (!polygon->vertices || !polygon->edges)
-			return false;
-	}
-
-	polygon->vertexCount = polygon->edgeCount = pointCount;
+	DS_ASSERT(polygon->vertexCount == pointCount);
+	DS_ASSERT(polygon->edgeCount == pointCount);
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
 		Vertex* vertex = polygon->vertices + i;
@@ -376,9 +369,7 @@ static bool addVerticesAndEdges(dsSimplePolygon* polygon, const void* points, ui
 
 	dsSort(polygon->sortedVerts, polygon->vertexCount, sizeof(*polygon->sortedVerts),
 		&comparePolygonVertex, polygon);
-	// Edge array may be resized, so store indices to each object.
-	return dsBVH_build(polygon->edgeBVH, NULL, polygon->edgeCount, DS_BVH_OBJECT_INDICES,
-		&getEdgeBounds, false);
+	return true;
 }
 
 static bool addSeparatingPolygonEdge(dsSimplePolygon* polygon, uint32_t from, uint32_t to, bool ccw)
@@ -505,54 +496,6 @@ static bool addSeparatingPolygonEdge(dsSimplePolygon* polygon, uint32_t from, ui
 	return true;
 }
 
-static void clearLoopVertices(dsSimplePolygon* polygon)
-{
-	polygon->loopVertCount = 0;
-	polygon->vertStackCount = 0;
-}
-
-static bool addLoopVertex(dsSimplePolygon* polygon, uint32_t polygonEdge)
-{
-	uint32_t index = polygon->loopVertCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->loopVertices, polygon->loopVertCount,
-		polygon->maxLoopVerts, 1))
-	{
-		return false;
-	}
-
-	polygon->loopVertices[index].vertIndex = polygon->edges[polygonEdge].prevVertex;
-	polygon->loopVertices[index].prevVert =
-		polygon->edges[polygon->edges[polygonEdge].prevEdge].prevVertex;
-	polygon->loopVertices[index].nextVert = polygon->edges[polygonEdge].nextVertex;
-	return true;
-}
-
-static bool pushVertex(dsSimplePolygon* polygon, uint32_t loopVert)
-{
-	uint32_t index = polygon->vertStackCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->vertexStack, polygon->vertStackCount,
-		polygon->maxVertStack, 1))
-	{
-		return false;
-	}
-
-	polygon->vertexStack[index] = loopVert;
-	return true;
-}
-
-static bool addIndex(dsSimplePolygon* polygon, uint32_t indexValue)
-{
-	uint32_t index = polygon->indexCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->indices, polygon->indexCount,
-		polygon->maxIndices, 1))
-	{
-		return false;
-	}
-
-	polygon->indices[index] = indexValue;
-	return true;
-}
-
 static bool isLeft(const dsVector2d* point, const dsVector2d* reference)
 {
 	return point->x < reference->x || (point->x == reference->x && point->y < reference->y);
@@ -607,6 +550,117 @@ static bool isTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVe
 	// Cross product of the triangle with Z = 0.
 	double cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
 	return cross >= 0.0f;
+}
+
+static bool findPolygonLoops(dsSimplePolygon* polygon, bool ccw)
+{
+	for (uint32_t i = 0; i < polygon->vertexCount; ++i)
+	{
+		const uint32_t* sortedVert = polygon->sortedVerts + i;
+		uint32_t prev = *sortedVert == 0 ? polygon->vertexCount - 1 : *sortedVert - 1;
+		uint32_t next = *sortedVert == polygon->vertexCount - 1 ? 0 : *sortedVert + 1;
+
+		bool prevLeft =
+			isLeft(&polygon->vertices[prev].point, &polygon->vertices[*sortedVert].point);
+		bool nextLeft =
+			isLeft(&polygon->vertices[next].point, &polygon->vertices[*sortedVert].point);
+
+		if (prevLeft != nextLeft)
+			continue;
+
+		bool triangleCCW = isTriangleCCW(&polygon->vertices[prev].point,
+			&polygon->vertices[*sortedVert].point, &polygon->vertices[next].point);
+		if (triangleCCW == ccw)
+			continue;
+
+		// Lazily create the BVH the first time we need it. This avoids an expensive operation for
+		// polygons that are already monotone.
+		if (!polygon->builtBVH)
+		{
+			if (!polygon->edgeBVH)
+			{
+				polygon->edgeBVH = dsBVH_create(polygon->allocator, 2, dsGeometryElement_Double,
+					polygon);
+				if (!polygon->edgeBVH)
+					return false;
+			}
+
+			// Use indices since the edge array may be re-allocated, invalidating the pointers into
+			// the array.
+			if (!dsBVH_build(polygon->edgeBVH, NULL, polygon->edgeCount, DS_BVH_OBJECT_INDICES,
+				&getEdgeBounds, false))
+			{
+				return false;
+			}
+
+			polygon->builtBVH = true;
+		}
+
+		uint32_t otherPoint = findOtherPoint(polygon, sortedVert, prevLeft);
+		if (otherPoint == NOT_FOUND)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Invalid polygon goemetry.");
+			return false;
+		}
+
+		if (!addSeparatingPolygonEdge(polygon, *sortedVert, otherPoint, ccw))
+			return false;
+	}
+
+	// Need to reset the visited flags for the edges.
+	for (uint32_t i = 0; i < polygon->edgeCount; ++i)
+		polygon->edges[i].visited = false;
+
+	return true;
+}
+
+static void clearLoopVertices(dsSimplePolygon* polygon)
+{
+	polygon->loopVertCount = 0;
+	polygon->vertStackCount = 0;
+}
+
+static bool addLoopVertex(dsSimplePolygon* polygon, uint32_t polygonEdge)
+{
+	uint32_t index = polygon->loopVertCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->loopVertices, polygon->loopVertCount,
+		polygon->maxLoopVerts, 1))
+	{
+		return false;
+	}
+
+	polygon->loopVertices[index].vertIndex = polygon->edges[polygonEdge].prevVertex;
+	polygon->loopVertices[index].prevVert =
+		polygon->edges[polygon->edges[polygonEdge].prevEdge].prevVertex;
+	polygon->loopVertices[index].nextVert = polygon->edges[polygonEdge].nextVertex;
+	return true;
+}
+
+static bool pushVertex(dsSimplePolygon* polygon, uint32_t loopVert)
+{
+	uint32_t index = polygon->vertStackCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->vertexStack, polygon->vertStackCount,
+		polygon->maxVertStack, 1))
+	{
+		return false;
+	}
+
+	polygon->vertexStack[index] = loopVert;
+	return true;
+}
+
+static bool addIndex(dsSimplePolygon* polygon, uint32_t indexValue)
+{
+	uint32_t index = polygon->indexCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->indices, polygon->indexCount,
+		polygon->maxIndices, 1))
+	{
+		return false;
+	}
+
+	polygon->indices[index] = indexValue;
+	return true;
 }
 
 static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool ccw, bool targetCCW)
@@ -748,12 +802,6 @@ dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData)
 	memset(polygon, 0, sizeof(dsSimplePolygon));
 	polygon->allocator = dsAllocator_keepPointer(allocator);
 	polygon->userData = userData;
-	polygon->edgeBVH = dsBVH_create(allocator, 2, dsGeometryElement_Double, polygon);
-	if (!polygon->edgeBVH)
-	{
-		DS_VERIFY(dsAllocator_free(allocator, polygon));
-		return NULL;
-	}
 	return polygon;
 }
 
@@ -788,49 +836,19 @@ const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,
 		pointPositionFunc = &defaultPointPosition;
 
 	polygon->vertexCount = 0;
+	polygon->edgeCount = 0;
 	polygon->loopVertCount = 0;
 	polygon->vertStackCount = 0;
 	polygon->indexCount = 0;
+	polygon->builtBVH = false;
 
 	if (!addVerticesAndEdges(polygon, points, pointCount, pointPositionFunc))
 		return NULL;
 
 	// Add separating edges for monotone polygons.
 	bool ccw = isPolygonCCW(polygon);
-	for (uint32_t i = 0; i < polygon->vertexCount; ++i)
-	{
-		const uint32_t* sortedVert = polygon->sortedVerts + i;
-		uint32_t prev = *sortedVert == 0 ? polygon->vertexCount - 1 : *sortedVert - 1;
-		uint32_t next = *sortedVert == polygon->vertexCount - 1 ? 0 : *sortedVert + 1;
-
-		bool prevLeft =
-			isLeft(&polygon->vertices[prev].point, &polygon->vertices[*sortedVert].point);
-		bool nextLeft =
-			isLeft(&polygon->vertices[next].point, &polygon->vertices[*sortedVert].point);
-
-		if (prevLeft != nextLeft)
-			continue;
-
-		bool triangleCCW = isTriangleCCW(&polygon->vertices[prev].point,
-			&polygon->vertices[*sortedVert].point, &polygon->vertices[next].point);
-		if (triangleCCW == ccw)
-			continue;
-
-		uint32_t otherPoint = findOtherPoint(polygon, sortedVert, prevLeft);
-		if (otherPoint == NOT_FOUND)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Invalid polygon goemetry.");
-			return NULL;
-		}
-
-		if (!addSeparatingPolygonEdge(polygon, *sortedVert, otherPoint, ccw))
-			return NULL;
-	}
-
-	// Need to reset the visited flags for the edges.
-	for (uint32_t i = 0; i < polygon->edgeCount; ++i)
-		polygon->edges[i].visited = false;
+	if (!findPolygonLoops(polygon, ccw))
+		return NULL;
 
 	// Triangulate each loop.
 	for (uint32_t i = 0; i < polygon->edgeCount; ++i)
@@ -854,7 +872,6 @@ void dsSimplePolygon_destroy(dsSimplePolygon* polygon)
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->vertices));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->edges));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->sortedVerts));
-	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->sortedEdges));
 	dsBVH_destroy(polygon->edgeBVH);
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->loopVertices));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->vertexStack));

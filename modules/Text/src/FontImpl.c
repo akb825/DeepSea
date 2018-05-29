@@ -197,7 +197,7 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	FT_Fixed height = heightU*ftFace->size->metrics.y_scale;
 
 	dsFontFace* face = group->faces + group->faceCount++;
-	strncpy(face->name, name, sizeof(face->name));
+	strncpy(face->name, name, nameLength + 1);
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;
@@ -860,7 +860,7 @@ bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fileName, const ch
 bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, const void* buffer,
 	size_t size, const char* name)
 {
-	if (!group || buffer || size == 0 || !name)
+	if (!group || !buffer || size == 0 || !name)
 	{
 		errno = EINVAL;
 		return false;
