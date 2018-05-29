@@ -71,7 +71,8 @@ DS_GEOMETRY_EXPORT void dsSimplePolygon_setUserData(dsSimplePolygon* polygon, vo
  * @param points The points to triangulate. The last point will automatically be connected to the
  *     first point to close the loop. Duplicate points in a series should be avoided for input.
  * @param pointCount The number of points.
- * @param pointPositionFunc Function to get the position of each point.
+ * @param pointPositionFunc Function to get the position of each point. This may be NULL if points
+ *     is an array of dsVector2d.
  * @param winding The winding order to triangulate with.
  * @return An array of indices produced, the size of which is populated in outIndexCount, or NULL
  *     if the polygon couldn't be triangulated. This will be valid until the polygon is

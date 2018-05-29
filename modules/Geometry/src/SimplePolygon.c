@@ -106,6 +106,14 @@ typedef struct EdgeIntersectInfo
 	bool intersects;
 } EdgeIntersectInfo;
 
+static bool defaultPointPosition(dsVector2d* outPosition, const void* points,
+	void* userData, uint32_t index)
+{
+	DS_UNUSED(userData);
+	*outPosition = ((dsVector2d*)points)[index];
+	return true;
+}
+
 static int comparePolygonVertex(const void* left, const void* right, void* context)
 {
 	const dsSimplePolygon* polygon = (const dsSimplePolygon*)context;
@@ -770,11 +778,14 @@ const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,
 	if (outIndexCount)
 		*outIndexCount = 0;
 
-	if (!outIndexCount || !polygon || !points || pointCount == 0 || !pointPositionFunc)
+	if (!outIndexCount || !polygon || !points || pointCount == 0)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
+
+	if (!pointPositionFunc)
+		pointPositionFunc = &defaultPointPosition;
 
 	polygon->vertexCount = 0;
 	polygon->loopVertCount = 0;
