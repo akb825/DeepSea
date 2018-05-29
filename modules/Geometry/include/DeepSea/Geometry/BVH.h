@@ -54,6 +54,16 @@ extern "C"
 #define DS_BVH_OBJECT_POINTERS 0
 
 /**
+ * @brief Indicates for an object size that indices should be stored in place of object pointers.
+ *
+ * Pass the object size into this macro to flag that the BVH should store indices in place of
+ * pointers. When the void* of the object is provided, it should be cast to a size_t and used as
+ * an index instead. This is mainly useful in cases where an array can be resized, invalidating the
+ * pointers within the array.
+ */
+#define DS_BVH_OBJECT_INDICES (size_t)-1
+
+/**
  * @brief Creates a BVH.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the BVH with. This must support freeing memory.
@@ -101,18 +111,23 @@ DS_GEOMETRY_EXPORT void dsBVH_setUserData(dsBVH* bvh, void* userData);
  * @remark errno will be set on failure.
  * @param bvh The BVH to build.
  * @param objects An array of objects to build the BVH for. This must remain alive as long as the
- *    BVH remains built with this data. If DS_BVH_OBJECT_POINTERS is used, then this is instead an
- *    array of pointers to objects, and the objects must remain alive as opposed to the array.
+ *     BVH remains built with this data. If DS_BVH_OBJECT_POINTERS is used, then this is instead an
+ *     array of pointers to objects, and the objects must remain alive as opposed to the array.
  * @param objectCount The number of objects in the array.
- * @param objectSize The size of each object inside of the object array. Use DS_BVH_OBJECT_POINTERS
- *     if the objects array is an array of pointers to the objects.
+ * @param objectSize The size of each object inside of the object array. Two special values can be
+ *     used to adjust behavior of the structure:
+ *     - DS_BVH_OBJECT_POINTERS: indicates that the objects array is an array of pointers to the
+ *       objects. This will store the pointer at each index rather than the offset into the array.
+ *     - DS_BVH_OBJECT_INDICES: indicates to store an index to the object instead of a pointer to
+ *       the object. The void* provided for each object should be cast to size_t. When this is used,
+ *       it is valid for the objects array to be NULL.
  * @param objectBoundsFunc The function to query the bounds from each object.
  * @param balance True to balance the nodes within the BVH. This will improve lookup times, but will
  *     increase the cost of building the BVH.
  * @return False if an error occurred. The current contents will be cleared on error.
  */
-DS_GEOMETRY_EXPORT bool dsBVH_build(dsBVH* bvh, const void* objects, size_t objectCount,
-	size_t objectSize, dsObjectBoundsFunction objectBoundsFunc, bool balance);
+DS_GEOMETRY_EXPORT bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount,
+	size_t objectSize, dsBVHObjectBoundsFunction objectBoundsFunc, bool balance);
 
 /**
  * @brief Updates a BVH, querying updated bounds from the objects and updating the bounds

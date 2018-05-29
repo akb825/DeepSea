@@ -44,16 +44,6 @@ typedef enum PointType
 	PointType_End = 0x4
 } PointType;
 
-typedef enum ConnectingEdge
-{
-	ConnectingEdge_Main,
-	ConnectingEdge_LeftTop,
-	ConnectingEdge_LeftBottom,
-	ConnectingEdge_RightTop,
-	ConnectingEdge_RightBottom,
-	ConnectingEdge_Count
-} ConnectingEdge;
-
 typedef struct ShapeVertex
 {
 	dsVector4f position;
@@ -107,38 +97,6 @@ typedef struct PointInfo
 	dsVector2f point;
 	uint32_t type;
 } PointInfo;
-
-typedef struct PolygonVertex
-{
-	dsVector2f point;
-	uint32_t prevEdges[ConnectingEdge_Count];
-	uint32_t nextEdges[ConnectingEdge_Count];
-	uint32_t indexValue;
-} PolygonVertex;
-
-typedef struct PolygonEdge
-{
-	uint32_t prevVertex;
-	uint32_t nextVertex;
-	uint32_t prevEdge;
-	uint32_t nextEdge;
-	bool visited;
-} PolygonEdge;
-
-typedef struct PolygonEdgeBVHNode
-{
-	dsAlignedBox2f bounds;
-	uint32_t edgeIndex;
-	uint32_t leftNode;
-	uint32_t rightNode;
-} PolygonEdgeBVHNode;
-
-typedef struct LoopVertex
-{
-	uint32_t vertIndex;
-	uint32_t prevVert;
-	uint32_t nextVert;
-} LoopVertex;
 
 typedef struct ShapeInfo
 {
@@ -211,28 +169,7 @@ struct dsVectorScratchData
 	uint32_t pieceCount;
 	uint32_t maxPieces;
 
-	PolygonVertex* polygonVertices;
-	uint32_t polygonVertCount;
-	uint32_t maxPolygonVerts;
-
-	PolygonEdge* polygonEdges;
-	uint32_t polygonEdgeCount;
-	uint32_t maxPolygonEdges;
-
-	uint32_t* sortedPolygonVerts;
-	uint32_t* sortedPolygonEdges;
-	uint32_t maxSortedPolygonVerts;
-	uint32_t maxSortedPolygonEdges;
-
-	dsBVH* polygonEdgeBVH;
-
-	LoopVertex* loopVertices;
-	uint32_t loopVertCount;
-	uint32_t maxLoopVerts;
-
-	uint32_t* vertexStack;
-	uint32_t vertStackCount;
-	uint32_t maxVertStack;
+	dsSimplePolygon* polygon;
 
 	uint8_t* combinedBuffer;
 	size_t combinedBufferSize;
@@ -261,22 +198,6 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 	const dsMatrix33f* transform, dsTexture* texture, float opacity, const dsAlignedBox2f* bounds);
 TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
 	const dsFont* font, float opacity);
-
-bool dsVectorScratchData_addPolygonVertex(dsVectorScratchData* data, uint32_t vertex,
-	uint32_t shapeIndex, uint32_t materialIndex);
-bool dsVectorScratchData_addPolygonEdges(dsVectorScratchData* data);
-bool dsVectorScratchData_canConnectPolygonEdge(const dsVectorScratchData* data, uint32_t fromVert,
-	uint32_t toVert);
-bool dsVectorScratchData_addSeparatingPolygonEdge(dsVectorScratchData* data, uint32_t from,
-	uint32_t to, bool ccw);
-void dsVectorScratchData_resetPolygon(dsVectorScratchData* data);
-
-bool dsVectorScratchData_addLoopVertex(dsVectorScratchData* data, uint32_t polygonEdge);
-void dsVectorScratchData_sortLoopVertices(dsVectorScratchData* data);
-void dsVectorScratchData_clearLoopVertices(dsVectorScratchData* data);
-
-bool dsVectorScratchData_pushVertex(dsVectorScratchData* data, uint32_t loopVert);
-void dsVectorScratchData_popVertex(dsVectorScratchData* data);
 
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	dsResourceManager* resourceManager, dsAllocator* allocator);

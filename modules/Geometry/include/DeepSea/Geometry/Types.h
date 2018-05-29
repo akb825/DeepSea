@@ -343,7 +343,7 @@ typedef struct dsFrustum3d
 
 /**
  * @brief Structure for a bounding volume hierarchy spacial data structure.
- * @see BoundingVolumeHierarcy.h
+ * @see BVH.h
  */
 typedef struct dsBVH dsBVH;
 
@@ -351,12 +351,12 @@ typedef struct dsBVH dsBVH;
  * @brief Function for getting the bounds for an object.
  * @remark errno should be set on failure.
  * @param[out] outBounds The memory to place the bounding box into. This should be cast to the
- *    appropriate dsAlignedBounds* type based on axisCount and precision.
+ *    appropriate dsAlignedBounds* type based on axisCount and element from the BVH.
  * @param bvh The BVH the bounds will be queried for.
- * @param object The object to get the bounds.
+ * @param object The object to get the bounds from.
  * @return True if outBounds was successfully assigned.
  */
-typedef bool (*dsObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, const void* object);
+typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, const void* object);
 
 /**
  * @brief Function called when visiting BVH nodes that intersect.
@@ -369,6 +369,38 @@ typedef bool (*dsObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, const 
  */
 typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
 	const void* bounds);
+
+/**
+ * @brief Enum for the winding order when triangulating geometry.
+ */
+typedef enum dsTriangulateWinding
+{
+	dsTriangulateWinding_CW, ///< Clockwise winding order
+	dsTriangulateWinding_CCW ///< Counter-clockwise winding order
+} dsTriangulateWinding;
+
+/**
+ * @brief Structure to define a simple polygon for triangulation.
+ * @see SimplePolygon.h
+ */
+typedef struct dsSimplePolygon dsSimplePolygon;
+
+/**
+ * @brief Function for getting the position of a polygon point.
+ *
+ * This is used by various polygon utilities such as dsSimplePolygon to query the position from the
+ * original data.
+ *
+ * @remark errno should be set on failure.
+ * @param[out] outPosition The memory to place the position into.
+ * @param points The point data to index into.
+ * @param userData User data provided with the polygon.
+ * @param element The type of each position element. This must either be float or double.
+ * @param index The index of the point.
+ * @return True if outPosition was successfully assigned.
+ */
+typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, const void* points,
+	void* userData, uint32_t index);
 
 #ifdef __cplusplus
 }

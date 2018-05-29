@@ -41,7 +41,7 @@ struct dsBVH
 {
 	dsAllocator* allocator;
 
-	dsObjectBoundsFunction objectBoundsFunc;
+	dsBVHObjectBoundsFunction objectBoundsFunc;
 	void* userData;
 
 	dsGeometryElement element;
@@ -72,6 +72,8 @@ inline static const void* getObject(const void* objects, size_t objectSize, size
 {
 	if (objectSize == DS_BVH_OBJECT_POINTERS)
 		return ((const void**)objects)[index];
+	else if (objectSize == DS_BVH_OBJECT_INDICES)
+		return (const void*)index;
 	return ((const uint8_t*)objects) + objectSize*index;
 }
 
@@ -301,13 +303,13 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, size_t start, size_
 
 static bool updateBVHRec(dsBVH* bvh, dsBVHNode* node, AddBoxFunction addBoxFunc)
 {
-	if (node->object)
+	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
 	{
 		DS_ASSERT(node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE);
 		return bvh->objectBoundsFunc(node->bounds, bvh, node->object);
 	}
 
-	DS_ASSERT(node->leftNode != INVALID_NODE && node->rightNode != INVALID_NODE);
+	DS_ASSERT(!node->object);
 	dsBVHNode* left = getNode(bvh->nodes, bvh->nodeSize, node->leftNode);
 	dsBVHNode* right = getNode(bvh->nodes, bvh->nodeSize, node->rightNode);
 	if (!updateBVHRec(bvh, left, addBoxFunc) || !updateBVHRec(bvh, right, addBoxFunc))
@@ -325,7 +327,7 @@ static bool intersectBVHRec(const dsBVH* bvh, uint32_t* count, const dsBVHNode* 
 	if (!intersectFunc(bounds, node->bounds))
 		return true;
 
-	if (node->object)
+	if (node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE)
 	{
 		DS_ASSERT(node->leftNode == INVALID_NODE && node->rightNode == INVALID_NODE);
 		++*count;
@@ -334,7 +336,7 @@ static bool intersectBVHRec(const dsBVH* bvh, uint32_t* count, const dsBVHNode* 
 		return true;
 	}
 
-	DS_ASSERT(node->leftNode != INVALID_NODE && node->rightNode != INVALID_NODE);
+	DS_ASSERT(!node->object);
 	dsBVHNode* left = getNode(bvh->nodes, bvh->nodeSize, node->leftNode);
 	dsBVHNode* right = getNode(bvh->nodes, bvh->nodeSize, node->rightNode);
 	if (!intersectBVHRec(bvh, count, left, bounds, visitor, userData, intersectFunc))
@@ -368,10 +370,21 @@ dsBVH* dsBVH_create(dsAllocator* allocator, uint8_t axisCount, dsGeometryElement
 	bvh->userData = userData;
 	bvh->axisCount = axisCount;
 	bvh->element = element;
-	if (element == dsGeometryElement_Double)
-		bvh->boundsSize = (uint8_t)(sizeof(double)*axisCount*2);
-	else
-		bvh->boundsSize = (uint8_t)(sizeof(float)*axisCount*2);
+	switch (element)
+	{
+		case dsGeometryElement_Float:
+			bvh->boundsSize = (uint8_t)(sizeof(float)*axisCount*2);
+			break;
+		case dsGeometryElement_Double:
+			bvh->boundsSize = (uint8_t)(sizeof(double)*axisCount*2);
+			break;
+		case dsGeometryElement_Int:
+			bvh->boundsSize = (uint8_t)(sizeof(int)*axisCount*2);
+			break;
+		default:
+			DS_ASSERT(false);
+			break;
+	}
 
 	size_t nodeSize = sizeof(dsBVHNode) + bvh->boundsSize;
 	DS_ASSERT(nodeSize <= UINT8_MAX);
@@ -410,11 +423,12 @@ void dsBVH_setUserData(dsBVH* bvh, void* userData)
 		bvh->userData = userData;
 }
 
-bool dsBVH_build(dsBVH* bvh, const void* objects, size_t objectCount, size_t objectSize,
-	dsObjectBoundsFunction objectBoundsFunc, bool balance)
+bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t objectSize,
+	dsBVHObjectBoundsFunction objectBoundsFunc, bool balance)
 {
 	dsBVH_clear(bvh);
-	if (!bvh || (!objects && objectCount > 0) || !objectBoundsFunc)
+	if (!bvh || (!objects && objectCount > 0 && objectSize != DS_BVH_OBJECT_INDICES) ||
+		!objectBoundsFunc)
 	{
 		errno = EINVAL;
 		return false;

@@ -69,7 +69,7 @@ extern "C"
  * @return False if the parameters are invalid or the buffer couldn't be allocated.
  */
 DS_CORE_EXPORT bool dsResizeableArray_add(dsAllocator* allocator, void** buffer,
-	uint32_t* elementCount, uint32_t* maxElements, uint32_t elementSize, uint32_t addCount);
+	uint32_t* elementCount, uint32_t* maxElements, size_t elementSize, uint32_t addCount);
 
 #ifdef __cplusplus
 }

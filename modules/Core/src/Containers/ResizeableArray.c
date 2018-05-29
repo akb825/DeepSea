@@ -21,7 +21,7 @@
 #include <DeepSea/Core/Error.h>
 
 bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elementCount,
-	uint32_t* maxElements, uint32_t elementSize, uint32_t addCount)
+	uint32_t* maxElements, size_t elementSize, uint32_t addCount)
 {
 	if (!allocator || !allocator->freeFunc || !buffer || !elementCount || !maxElements ||
 		elementSize == 0 || (!*buffer && *maxElements > 0) || *elementCount > *maxElements)

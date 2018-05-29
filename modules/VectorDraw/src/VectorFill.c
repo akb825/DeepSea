@@ -21,250 +21,17 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/SimplePolygon.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
-static bool isLeft(const dsVector2f* point, const dsVector2f* reference)
+static bool getPosition(dsVector2d* outPosition, const void* points, void* userData, uint32_t index)
 {
-	return point->x < reference->x || (point->x == reference->x && point->y < reference->y);
-}
-
-static uint32_t findOtherPoint(const dsVectorScratchData* scratchData, const uint32_t* sortedVert,
-	bool othersLeft)
-{
-	// Find the first point that's to the left/right of the vertex that doesn't intersect any edges.
-	if (othersLeft)
-	{
-		const uint32_t* end = scratchData->sortedPolygonVerts + scratchData->polygonVertCount;
-		for (const uint32_t* otherVert = sortedVert + 1; otherVert < end; ++otherVert)
-		{
-			if (dsVectorScratchData_canConnectPolygonEdge(scratchData, *sortedVert, *otherVert))
-				return *otherVert;
-		}
-	}
-	else
-	{
-		for (const uint32_t* otherVert = sortedVert; otherVert-- > scratchData->sortedPolygonVerts;)
-		{
-			if (dsVectorScratchData_canConnectPolygonEdge(scratchData, *sortedVert, *otherVert))
-				return *otherVert;
-		}
-	}
-
-	return NOT_FOUND;
-}
-
-static bool isPolygonCCW(dsVectorScratchData* data)
-{
-	if (data->polygonVertCount == 0)
-		return true;
-
-	// https://en.wikipedia.org/wiki/Shoelace_formula
-	// Negative area is counter-clockwise, negative is clockwise.
-	float doubleArea = (data->polygonVertices[data->polygonVertCount - 1].point.x +
-			data->polygonVertices[0].point.x)*
-		(data->polygonVertices[data->polygonVertCount - 1].point.y -
-			data->polygonVertices[0].point.y);
-	for (uint32_t i = 0; i < data->polygonVertCount - 1; ++i)
-	{
-		doubleArea += (data->polygonVertices[i].point.x + data->polygonVertices[i + 1].point.x)*
-			(data->polygonVertices[i].point.y - data->polygonVertices[i + 1].point.y);
-	}
-
-	return doubleArea <= 0.0f;
-}
-
-static bool isTriangleCCW(const dsVector2f* p0, const dsVector2f* p1, const dsVector2f* p2)
-{
-	// Cross product of the triangle with Z = 0.
-	float cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
-	return cross >= 0.0f;
-}
-
-static bool triangulateLoop(dsVectorScratchData* scratchData, uint32_t startEdge, bool ccw)
-{
-	dsVectorScratchData_clearLoopVertices(scratchData);
-	uint32_t nextEdge = startEdge;
-	do
-	{
-		scratchData->polygonEdges[nextEdge].visited = true;
-		uint32_t curEdge = nextEdge;
-		nextEdge = scratchData->polygonEdges[nextEdge].nextEdge;
-		if (!dsVectorScratchData_addLoopVertex(scratchData, curEdge))
-			return false;
-	} while (nextEdge != startEdge);
-
-	if (scratchData->loopVertCount < 3)
-		return true;
-
-	// Monotone polygon triangulation: https://www.cs.ucsb.edu/~suri/cs235/Triangulation.pdf
-	dsVectorScratchData_sortLoopVertices(scratchData);
-	if (!dsVectorScratchData_pushVertex(scratchData, 0) ||
-		!dsVectorScratchData_pushVertex(scratchData, 1))
-	{
-		return false;
-	}
-
-	uint32_t totalTriangles = 0;
-	for (uint32_t i = 2; i < scratchData->loopVertCount; ++i)
-	{
-		DS_ASSERT(scratchData->vertStackCount > 0);
-		uint32_t stackIndex = scratchData->vertStackCount - 1;
-		uint32_t top = scratchData->vertexStack[stackIndex];
-		uint32_t iVertIndex = scratchData->loopVertices[i].vertIndex;
-		bool isPrev = scratchData->loopVertices[top].prevVert == iVertIndex;
-		bool isNext = scratchData->loopVertices[top].nextVert == iVertIndex;
-		// At most one should be set.
-		DS_ASSERT(isPrev + isNext < 2);
-
-		const dsVector2f* p0 =
-			&scratchData->polygonVertices[scratchData->loopVertices[i].vertIndex].point;
-		if (isPrev || isNext)
-		{
-			DS_ASSERT(scratchData->vertStackCount >= 0);
-			uint32_t addedTriangles = 0;
-			for (uint32_t j = stackIndex; j-- > 0; ++addedTriangles)
-			{
-				uint32_t p1Vert = scratchData->vertexStack[j];
-				uint32_t p2Vert = scratchData->vertexStack[j + 1];
-				const dsVector2f* p1 = &scratchData->polygonVertices[
-					scratchData->loopVertices[p1Vert].vertIndex].point;
-				const dsVector2f* p2 = &scratchData->polygonVertices[
-					scratchData->loopVertices[p2Vert].vertIndex].point;
-				// Add triangles along the chain so long as they are inside the polygon.
-				bool expectedCCW = ccw;
-				if (!isNext)
-					expectedCCW = !expectedCCW;
-				bool triangleCCW = isTriangleCCW(p0, p1, p2);
-				if (triangleCCW != expectedCCW)
-					break;
-
-				// Use CW winding order due to upper-left being origin.
-				if (triangleCCW)
-				{
-					uint32_t temp = p1Vert;
-					p1Vert = p2Vert;
-					p2Vert = temp;
-				}
-
-				if (!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[i].vertIndex].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[p1Vert].vertIndex].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[p2Vert].vertIndex].indexValue))
-				{
-					return false;
-				}
-			}
-
-			totalTriangles += addedTriangles;
-			scratchData->vertStackCount -= addedTriangles;
-			dsVectorScratchData_pushVertex(scratchData, i);
-		}
-		else if (scratchData->vertStackCount)
-		{
-			for (uint32_t j = 0; j < scratchData->vertStackCount - 1; ++j)
-			{
-				uint32_t p1Vert = scratchData->vertexStack[j];
-				uint32_t p2Vert = scratchData->vertexStack[j + 1];
-				const dsVector2f* p1 = &scratchData->polygonVertices[
-					scratchData->loopVertices[p1Vert].vertIndex].point;
-				const dsVector2f* p2 = &scratchData->polygonVertices[
-					scratchData->loopVertices[p2Vert].vertIndex].point;
-
-				// Use CW winding order due to upper-left being origin.
-				if (isTriangleCCW(p0, p1, p2))
-				{
-					uint32_t temp = p1Vert;
-					p1Vert = p2Vert;
-					p2Vert = temp;
-				}
-
-				if (!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[i].vertIndex].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[p1Vert].vertIndex].indexValue) ||
-					!dsVectorScratchData_addIndex(scratchData, &scratchData->polygonVertices[
-						scratchData->loopVertices[p2Vert].vertIndex].indexValue))
-				{
-					return false;
-				}
-			}
-
-			totalTriangles += scratchData->vertStackCount - 1;
-			scratchData->vertStackCount = 0;
-			dsVectorScratchData_pushVertex(scratchData, top);
-			dsVectorScratchData_pushVertex(scratchData, i);
-		}
-	}
-
-	if (totalTriangles != scratchData->loopVertCount - 2)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Polygon loop couldn't be triangulated.");
-		return false;
-	}
-
-	return true;
-}
-
-static bool triangulate(dsVectorScratchData* scratchData)
-{
-	if (!dsVectorScratchData_addPolygonEdges(scratchData))
-		return false;
-
-	// Add separating edges for monotone polygons.
-	bool ccw = isPolygonCCW(scratchData);
-	for (uint32_t i = 0; i < scratchData->polygonVertCount; ++i)
-	{
-		const uint32_t* sortedVert = scratchData->sortedPolygonVerts + i;
-		uint32_t prev = *sortedVert == 0 ? scratchData->polygonVertCount - 1 : *sortedVert - 1;
-		uint32_t next = *sortedVert == scratchData->polygonVertCount - 1 ? 0 : *sortedVert + 1;
-
-		bool prevLeft = isLeft(&scratchData->polygonVertices[prev].point,
-			&scratchData->polygonVertices[*sortedVert].point);
-		bool nextLeft = isLeft(&scratchData->polygonVertices[next].point,
-			&scratchData->polygonVertices[*sortedVert].point);
-
-		if (prevLeft != nextLeft)
-			continue;
-
-		bool triangleCCW = isTriangleCCW(&scratchData->polygonVertices[prev].point,
-			&scratchData->polygonVertices[*sortedVert].point,
-			&scratchData->polygonVertices[next].point);
-		if (triangleCCW == ccw)
-			continue;
-
-		uint32_t otherPoint = findOtherPoint(scratchData, sortedVert, prevLeft);
-		if (otherPoint == NOT_FOUND)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid polygon goemetry.");
-			return false;
-		}
-
-		if (!dsVectorScratchData_addSeparatingPolygonEdge(scratchData, *sortedVert, otherPoint,
-			ccw))
-		{
-			return false;
-		}
-	}
-
-	// Need to reset the visited flags for the edges.
-	for (uint32_t i = 0; i < scratchData->polygonEdgeCount; ++i)
-		scratchData->polygonEdges[i].visited = false;
-
-	// Triangulate each loop.
-	for (uint32_t i = 0; i < scratchData->polygonEdgeCount; ++i)
-	{
-		if (scratchData->polygonEdges[i].visited)
-			continue;
-
-		if (!triangulateLoop(scratchData, i, ccw))
-			return false;
-	}
+	DS_UNUSED(userData);
+	const PointInfo* pointInfos = (const PointInfo*)points;
+	outPosition->x = pointInfos[index].point.x;
+	outPosition->y = pointInfos[index].point.y;
 	return true;
 }
 
@@ -294,9 +61,9 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 	if (!curInfo)
 		return false;
 
-	bool firstPoint = 0;
+	uint32_t indexOffset = scratchData->shapeVertexCount;
+	uint32_t firstPoint = 0;
 	bool joinStart = false;
-	dsVectorScratchData_resetPolygon(scratchData);
 	for (uint32_t i = 0; i < scratchData->pointCount; ++i)
 	{
 		bool end = i == scratchData->pointCount - 1 || scratchData->points[i].type & PointType_End;
@@ -315,17 +82,40 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 		if (!joinStart || !end)
 		{
-			if (!dsVectorScratchData_addPolygonVertex(scratchData, i, infoIndex, material))
+			ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+			if (!curVertex)
 				return false;
+
+			curVertex->position.x = scratchData->points[i].point.x;
+			curVertex->position.y = scratchData->points[i].point.y;
+			curVertex->position.z = 0.0f;
+			curVertex->position.w = 0.0f;
+			curVertex->materialIndex = (uint16_t)material;
+			curVertex->shapeIndex = (uint16_t)infoIndex;
 		}
 
 		if (end)
 		{
-			if (!triangulate(scratchData))
+			uint32_t pointCount = i + 1 - firstPoint;
+			if (joinStart)
+				--pointCount;
+
+			uint32_t indexCount;
+			// Use clockwise winding due to origin in the upper-left.
+			const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, scratchData->polygon,
+				scratchData->points + firstPoint, pointCount, &getPosition,
+				dsTriangulateWinding_CW);
+			if (!indices)
 				return false;
 
+			for (uint32_t j = 0; j < indexCount; ++j)
+			{
+				uint32_t index = indices[j] + indexOffset + firstPoint;
+				if (!dsVectorScratchData_addIndex(scratchData, &index))
+					return false;
+			}
+
 			firstPoint = i + 1;
-			dsVectorScratchData_resetPolygon(scratchData);
 		}
 	}
 
