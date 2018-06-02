@@ -526,30 +526,28 @@ static uint32_t findOtherPoint(const dsSimplePolygon* polygon, const uint32_t* s
 	return NOT_FOUND;
 }
 
-static bool isPolygonCCW(dsSimplePolygon* polygon)
-{
-	if (polygon->vertexCount == 0)
-		return true;
-
-	// https://en.wikipedia.org/wiki/Shoelace_formula
-	// Negative area is counter-clockwise, positive is clockwise.
-	double doubleArea =
-		(polygon->vertices[polygon->vertexCount - 1].point.x + polygon->vertices[0].point.x)*
-		(polygon->vertices[polygon->vertexCount - 1].point.y - polygon->vertices[0].point.y);
-	for (uint32_t i = 0; i < polygon->vertexCount - 1; ++i)
-	{
-		doubleArea += (polygon->vertices[i].point.x + polygon->vertices[i + 1].point.x)*
-			(polygon->vertices[i].point.y - polygon->vertices[i + 1].point.y);
-	}
-
-	return doubleArea <= 0.0;
-}
-
 static bool isTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVector2d* p2)
 {
 	// Cross product of the triangle with Z = 0.
 	double cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
 	return cross >= 0.0f;
+}
+
+static bool isPolygonCCW(dsSimplePolygon* polygon)
+{
+	if (polygon->vertexCount == 0)
+		return true;
+
+	// First vertex is the lowest X value. (ties broken by lower Y values)
+	// The triangle formed by this vertex and its connecting edges should be convex and match the
+	// winding order of the polygon.
+	uint32_t p0Vert = polygon->sortedVerts[0];
+	uint32_t p1Vert =
+		polygon->edges[polygon->vertices[p0Vert].nextEdges[ConnectingEdge_Main]].nextVertex;
+	uint32_t p2Vert =
+		polygon->edges[polygon->vertices[p0Vert].prevEdges[ConnectingEdge_Main]].prevVertex;
+	return isTriangleCCW(&polygon->vertices[p0Vert].point, &polygon->vertices[p1Vert].point,
+		&polygon->vertices[p2Vert].point);
 }
 
 static bool findPolygonLoops(dsSimplePolygon* polygon, bool ccw)
