@@ -199,12 +199,9 @@ static int compareBoundsi(const void* left, const void* right, void* context)
 static uint32_t buildBVHBalancedRec(dsBVH* bvh, size_t start, size_t count,
 	AddBoxFunction addBoxFunc, MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc)
 {
-	uint32_t node = bvh->nodeCount;
-	if (!dsResizeableArray_add(bvh->allocator, (void**)&bvh->nodes, &bvh->nodeCount, &bvh->maxNodes,
-		bvh->nodeSize, 1))
-	{
-		return INVALID_NODE;
-	}
+	uint32_t node = bvh->nodeCount++;
+	// Should be guaranteed that reserved nodes is sufficient.
+	DS_ASSERT(bvh->nodeCount <= bvh->maxNodes);
 
 	dsBVHNode* bvhNode = getNode(bvh->nodes, bvh->nodeSize, node);
 	if (count == 1)
@@ -249,12 +246,9 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, size_t start, size_t count,
 static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, size_t start, size_t count,
 	size_t objectSize, AddBoxFunction addBoxFunc)
 {
-	uint32_t node = bvh->nodeCount;
-	if (!dsResizeableArray_add(bvh->allocator, (void**)&bvh->nodes, &bvh->nodeCount, &bvh->maxNodes,
-		bvh->nodeSize, 1))
-	{
-		return INVALID_NODE;
-	}
+	uint32_t node = bvh->nodeCount++;
+	// Should be guaranteed that reserved nodes is sufficient.
+	DS_ASSERT(bvh->nodeCount <= bvh->maxNodes);
 
 	dsBVHNode* bvhNode = getNode(bvh->nodes, bvh->nodeSize, node);
 	if (count == 1)
@@ -489,6 +483,16 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			return false;
 	}
 
+	// Reserve space for BVH. Perfect binary tree, so n = 2*l + 1
+	// (where n is number of nodes, l is number of leaves)
+	uint32_t nodeCount = objectCount*2 - 1;
+	if (!dsResizeableArray_add(bvh->allocator, (void**)&bvh->nodes, &bvh->nodeCount,
+		&bvh->maxNodes, bvh->nodeSize, nodeCount))
+	{
+		return false;
+	}
+	bvh->nodeCount = 0;
+
 	bvh->objectBoundsFunc = objectBoundsFunc;
 	uint32_t rootNode;
 	if (balance)
@@ -525,6 +529,7 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 	}
 
 	DS_ASSERT(rootNode == 0);
+	DS_ASSERT(bvh->nodeCount == nodeCount);
 	return true;
 }
 
