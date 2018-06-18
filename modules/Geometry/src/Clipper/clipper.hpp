@@ -31,6 +31,15 @@
 *                                                                              *
 *******************************************************************************/
 
+/*
+ * Modifications made by Aaron Barany:
+ * - Replaced exceptions with asserts.
+ * - Removed offset polygon code.
+ * - Replaced std::list with std::vector.
+ * - Removed iostream code.
+ * - Changed vectors with pointers to small objects to store by value, saving small allocations.
+ */
+
 #ifndef clipper_hpp
 #define clipper_hpp
 
@@ -44,18 +53,14 @@
 //#define use_xyz
 
 //use_lines: Enables line clipping. Adds a very minor cost to performance.
-#define use_lines
+//#define use_lines
   
 //use_deprecated: Enables temporary support for the obsolete functions
 //#define use_deprecated  
 
 #include <vector>
-#include <list>
-#include <set>
-#include <stdexcept>
 #include <cstring>
 #include <cstdlib>
-#include <ostream>
 #include <functional>
 #include <queue>
 
@@ -108,10 +113,6 @@ typedef std::vector< Path > Paths;
 
 inline Path& operator <<(Path& poly, const IntPoint& p) {poly.push_back(p); return poly;}
 inline Paths& operator <<(Paths& polys, const Path& p) {polys.push_back(p); return polys;}
-
-std::ostream& operator <<(std::ostream &s, const IntPoint &p);
-std::ostream& operator <<(std::ostream &s, const Path &p);
-std::ostream& operator <<(std::ostream &s, const Paths &p);
 
 struct DoublePoint
 {
@@ -209,8 +210,8 @@ struct Join;
 
 typedef std::vector < OutRec* > PolyOutList;
 typedef std::vector < TEdge* > EdgeList;
-typedef std::vector < Join* > JoinList;
-typedef std::vector < IntersectNode* > IntersectList;
+typedef std::vector < Join > JoinList;
+typedef std::vector < IntersectNode > IntersectList;
 
 //------------------------------------------------------------------------------
 
@@ -293,7 +294,7 @@ private:
   JoinList         m_GhostJoins;
   IntersectList    m_IntersectList;
   ClipType         m_ClipType;
-  typedef std::list<cInt> MaximaList;
+  typedef std::vector<cInt> MaximaList;
   MaximaList       m_Maxima;
   TEdge           *m_SortedEdges;
   bool             m_ExecuteLocked;
@@ -345,7 +346,7 @@ private:
   void ClearJoins();
   void ClearGhostJoins();
   void AddGhostJoin(OutPt *op, const IntPoint offPt);
-  bool JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2);
+  bool JoinPoints(Join& j, OutRec* outRec1, OutRec* outRec2);
   void JoinCommonEdges();
   void DoSimplePolygons();
   void FixupFirstLefts1(OutRec* OldOutRec, OutRec* NewOutRec);
@@ -355,49 +356,6 @@ private:
   void SetZ(IntPoint& pt, TEdge& e1, TEdge& e2);
 #endif
 };
-//------------------------------------------------------------------------------
-
-class ClipperOffset 
-{
-public:
-  ClipperOffset(double miterLimit = 2.0, double roundPrecision = 0.25);
-  ~ClipperOffset();
-  void AddPath(const Path& path, JoinType joinType, EndType endType);
-  void AddPaths(const Paths& paths, JoinType joinType, EndType endType);
-  void Execute(Paths& solution, double delta);
-  void Execute(PolyTree& solution, double delta);
-  void Clear();
-  double MiterLimit;
-  double ArcTolerance;
-private:
-  Paths m_destPolys;
-  Path m_srcPoly;
-  Path m_destPoly;
-  std::vector<DoublePoint> m_normals;
-  double m_delta, m_sinA, m_sin, m_cos;
-  double m_miterLim, m_StepsPerRad;
-  IntPoint m_lowest;
-  PolyNode m_polyNodes;
-
-  void FixOrientations();
-  void DoOffset(double delta);
-  void OffsetPoint(int j, int& k, JoinType jointype);
-  void DoSquare(int j, int k);
-  void DoMiter(int j, int k, double r);
-  void DoRound(int j, int k);
-};
-//------------------------------------------------------------------------------
-
-class clipperException : public std::exception
-{
-  public:
-    clipperException(const char* description): m_descr(description) {}
-    virtual ~clipperException() throw() {}
-    virtual const char* what() const throw() {return m_descr.c_str();}
-  private:
-    std::string m_descr;
-};
-//------------------------------------------------------------------------------
 
 } //ClipperLib namespace
 

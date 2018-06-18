@@ -40,19 +40,14 @@
 
 #include "clipper.hpp"
 #include <cmath>
-#include <vector>
 #include <algorithm>
-#include <stdexcept>
 #include <cstring>
 #include <cstdlib>
-#include <ostream>
 #include <functional>
 
-namespace ClipperLib {
+#include <DeepSea/Core/Assert.h>
 
-static double const pi = 3.141592653589793238;
-static double const two_pi = pi *2;
-static double const def_arc_tolerance = 0.25;
+namespace ClipperLib {
 
 enum Direction { dRightToLeft, dLeftToRight };
 
@@ -895,16 +890,9 @@ ClipperBase::~ClipperBase() //destructor
 
 void RangeTest(const IntPoint& Pt, bool& useFullRange)
 {
-  if (useFullRange)
-  {
-    if (Pt.X > hiRange || Pt.Y > hiRange || -Pt.X > hiRange || -Pt.Y > hiRange) 
-      throw clipperException("Coordinate outside allowed range");
-  }
-  else if (Pt.X > loRange|| Pt.Y > loRange || -Pt.X > loRange || -Pt.Y > loRange) 
-  {
+  DS_ASSERT(Pt.X <= hiRange && Pt.Y <= hiRange && -Pt.X <= hiRange && -Pt.Y <= hiRange);
+  if (Pt.X > loRange|| Pt.Y > loRange || -Pt.X > loRange || -Pt.Y > loRange)
     useFullRange = true;
-    RangeTest(Pt, useFullRange);
-  }
 }
 //------------------------------------------------------------------------------
 
@@ -1045,11 +1033,9 @@ TEdge* ClipperBase::ProcessBound(TEdge* E, bool NextIsForward)
 bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
 {
 #ifdef use_lines
-  if (!Closed && PolyTyp == ptClip)
-    throw clipperException("AddPath: Open paths must be subject.");
+  DS_ASSERT(Closed || PolyTyp == ptClip);
 #else
-  if (!Closed)
-    throw clipperException("AddPath: Open paths have been disabled.");
+  DS_ASSERT(Closed);
 #endif
 
   int highI = (int)pg.size() -1;
@@ -1062,23 +1048,15 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
 
   bool IsFlat = true;
   //1. Basic (first) edge initialization ...
-  try
+  edges[1].Curr = pg[1];
+  RangeTest(pg[0], m_UseFullRange);
+  RangeTest(pg[highI], m_UseFullRange);
+  InitEdge(&edges[0], &edges[1], &edges[highI], pg[0]);
+  InitEdge(&edges[highI], &edges[0], &edges[highI-1], pg[highI]);
+  for (int i = highI - 1; i >= 1; --i)
   {
-    edges[1].Curr = pg[1];
-    RangeTest(pg[0], m_UseFullRange);
-    RangeTest(pg[highI], m_UseFullRange);
-    InitEdge(&edges[0], &edges[1], &edges[highI], pg[0]);
-    InitEdge(&edges[highI], &edges[0], &edges[highI-1], pg[highI]);
-    for (int i = highI - 1; i >= 1; --i)
-    {
-      RangeTest(pg[i], m_UseFullRange);
-      InitEdge(&edges[i], &edges[i+1], &edges[i-1], pg[i]);
-    }
-  }
-  catch(...)
-  {
-    delete [] edges;
-    throw; //range test fails
+    RangeTest(pg[i], m_UseFullRange);
+    InitEdge(&edges[i], &edges[i+1], &edges[i-1], pg[i]);
   }
   TEdge *eStart = &edges[0];
 
@@ -1441,8 +1419,7 @@ void ClipperBase::SwapPositionsInAEL(TEdge *Edge1, TEdge *Edge2)
 
 void ClipperBase::UpdateEdgeIntoAEL(TEdge *&e)
 {
-  if (!e->NextInLML) 
-    throw clipperException("UpdateEdgeIntoAEL: invalid call");
+  DS_ASSERT(e->NextInLML);
 
   e->NextInLML->OutIdx = e->OutIdx;
   TEdge* AelPrev = e->PrevInAEL;
@@ -1509,8 +1486,7 @@ bool Clipper::Execute(ClipType clipType, Paths &solution,
     PolyFillType subjFillType, PolyFillType clipFillType)
 {
   if( m_ExecuteLocked ) return false;
-  if (m_HasOpenPaths)
-    throw clipperException("Error: PolyTree struct is needed for open path clipping.");
+  DS_ASSERT(!m_HasOpenPaths);
   m_ExecuteLocked = true;
   solution.resize(0);
   m_SubjFillType = subjFillType;
@@ -1560,32 +1536,26 @@ void Clipper::FixHoleLinkage(OutRec &outrec)
 bool Clipper::ExecuteInternal()
 {
   bool succeeded = true;
-  try {
-    Reset();
-    m_Maxima = MaximaList();
-    m_SortedEdges = 0;
+  Reset();
+  m_Maxima.clear();
+  m_SortedEdges = 0;
 
-    succeeded = true;
-    cInt botY, topY;
-    if (!PopScanbeam(botY)) return false;
-    InsertLocalMinimaIntoAEL(botY);
-    while (PopScanbeam(topY) || LocalMinimaPending())
-    {
-      ProcessHorizontals();
-	    ClearGhostJoins();
-      if (!ProcessIntersections(topY))
-      {
-        succeeded = false;
-        break;
-      }
-      ProcessEdgesAtTopOfScanbeam(topY);
-      botY = topY;
-      InsertLocalMinimaIntoAEL(botY);
-    }
-  }
-  catch(...) 
+  succeeded = true;
+  cInt botY, topY;
+  if (!PopScanbeam(botY)) return false;
+  InsertLocalMinimaIntoAEL(botY);
+  while (PopScanbeam(topY) || LocalMinimaPending())
   {
-    succeeded = false;
+    ProcessHorizontals();
+	    ClearGhostJoins();
+    if (!ProcessIntersections(topY))
+    {
+      succeeded = false;
+      break;
+    }
+    ProcessEdgesAtTopOfScanbeam(topY);
+    botY = topY;
+    InsertLocalMinimaIntoAEL(botY);
   }
 
   if (succeeded)
@@ -1941,36 +1911,32 @@ void Clipper::CopyAELToSEL()
 
 void Clipper::AddJoin(OutPt *op1, OutPt *op2, const IntPoint OffPt)
 {
-  Join* j = new Join;
-  j->OutPt1 = op1;
-  j->OutPt2 = op2;
-  j->OffPt = OffPt;
+  Join j;
+  j.OutPt1 = op1;
+  j.OutPt2 = op2;
+  j.OffPt = OffPt;
   m_Joins.push_back(j);
 }
 //------------------------------------------------------------------------------
 
 void Clipper::ClearJoins()
 {
-  for (JoinList::size_type i = 0; i < m_Joins.size(); i++)
-    delete m_Joins[i];
-  m_Joins.resize(0);
+  m_Joins.clear();
 }
 //------------------------------------------------------------------------------
 
 void Clipper::ClearGhostJoins()
 {
-  for (JoinList::size_type i = 0; i < m_GhostJoins.size(); i++)
-    delete m_GhostJoins[i];
-  m_GhostJoins.resize(0);
+  m_GhostJoins.clear();
 }
 //------------------------------------------------------------------------------
 
 void Clipper::AddGhostJoin(OutPt *op, const IntPoint OffPt)
 {
-  Join* j = new Join;
-  j->OutPt1 = op;
-  j->OutPt2 = 0;
-  j->OffPt = OffPt;
+  Join j;
+  j.OutPt1 = op;
+  j.OutPt2 = 0;
+  j.OffPt = OffPt;
   m_GhostJoins.push_back(j);
 }
 //------------------------------------------------------------------------------
@@ -2031,11 +1997,11 @@ void Clipper::InsertLocalMinimaIntoAEL(const cInt botY)
     {
       for (JoinList::size_type i = 0; i < m_GhostJoins.size(); ++i)
       {
-        Join* jr = m_GhostJoins[i];
+        Join& jr = m_GhostJoins[i];
         //if the horizontal Rb and a 'ghost' horizontal overlap, then convert
         //the 'ghost' join to a real join ready for later ...
-        if (HorzSegmentsOverlap(jr->OutPt1->Pt.X, jr->OffPt.X, rb->Bot.X, rb->Top.X))
-          AddJoin(jr->OutPt1, Op1, jr->OffPt);
+        if (HorzSegmentsOverlap(jr.OutPt1->Pt.X, jr.OffPt.X, rb->Bot.X, rb->Top.X))
+          AddJoin(jr.OutPt1, Op1, jr.OffPt);
       }
     }
 
@@ -2827,19 +2793,11 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
 bool Clipper::ProcessIntersections(const cInt topY)
 {
   if( !m_ActiveEdges ) return true;
-  try {
-    BuildIntersectList(topY);
-    size_t IlSize = m_IntersectList.size();
-    if (IlSize == 0) return true;
-    if (IlSize == 1 || FixupIntersectionOrder()) ProcessIntersectList();
-    else return false;
-  }
-  catch(...) 
-  {
-    m_SortedEdges = 0;
-    DisposeIntersectNodes();
-    throw clipperException("ProcessIntersections error");
-  }
+  BuildIntersectList(topY);
+  size_t IlSize = m_IntersectList.size();
+  if (IlSize == 0) return true;
+  if (IlSize == 1 || FixupIntersectionOrder()) ProcessIntersectList();
+  else return false;
   m_SortedEdges = 0;
   return true;
 }
@@ -2847,8 +2805,6 @@ bool Clipper::ProcessIntersections(const cInt topY)
 
 void Clipper::DisposeIntersectNodes()
 {
-  for (size_t i = 0; i < m_IntersectList.size(); ++i )
-    delete m_IntersectList[i];
   m_IntersectList.clear();
 }
 //------------------------------------------------------------------------------
@@ -2882,10 +2838,10 @@ void Clipper::BuildIntersectList(const cInt topY)
       {
         IntersectPoint(*e, *eNext, Pt);
         if (Pt.Y < topY) Pt = IntPoint(TopX(*e, topY), topY);
-        IntersectNode * newNode = new IntersectNode;
-        newNode->Edge1 = e;
-        newNode->Edge2 = eNext;
-        newNode->Pt = Pt;
+        IntersectNode newNode;
+        newNode.Edge1 = e;
+        newNode.Edge2 = eNext;
+        newNode.Pt = Pt;
         m_IntersectList.push_back(newNode);
 
         SwapPositionsInSEL(e, eNext);
@@ -2907,20 +2863,19 @@ void Clipper::ProcessIntersectList()
 {
   for (size_t i = 0; i < m_IntersectList.size(); ++i)
   {
-    IntersectNode* iNode = m_IntersectList[i];
+    IntersectNode& iNode = m_IntersectList[i];
     {
-      IntersectEdges( iNode->Edge1, iNode->Edge2, iNode->Pt);
-      SwapPositionsInAEL( iNode->Edge1 , iNode->Edge2 );
+      IntersectEdges( iNode.Edge1, iNode.Edge2, iNode.Pt);
+      SwapPositionsInAEL( iNode.Edge1 , iNode.Edge2 );
     }
-    delete iNode;
   }
   m_IntersectList.clear();
 }
 //------------------------------------------------------------------------------
 
-bool IntersectListSort(IntersectNode* node1, IntersectNode* node2)
+bool IntersectListSort(IntersectNode& node1, IntersectNode& node2)
 {
-  return node2->Pt.Y < node1->Pt.Y;
+  return node2.Pt.Y < node1.Pt.Y;
 }
 //------------------------------------------------------------------------------
 
@@ -2941,14 +2896,14 @@ bool Clipper::FixupIntersectionOrder()
   size_t cnt = m_IntersectList.size();
   for (size_t i = 0; i < cnt; ++i) 
   {
-    if (!EdgesAdjacent(*m_IntersectList[i]))
+    if (!EdgesAdjacent(m_IntersectList[i]))
     {
       size_t j = i + 1;
-      while (j < cnt && !EdgesAdjacent(*m_IntersectList[j])) j++;
+      while (j < cnt && !EdgesAdjacent(m_IntersectList[j])) j++;
       if (j == cnt)  return false;
       std::swap(m_IntersectList[i], m_IntersectList[j]);
     }
-    SwapPositionsInSEL(m_IntersectList[i]->Edge1, m_IntersectList[i]->Edge2);
+    SwapPositionsInSEL(m_IntersectList[i].Edge1, m_IntersectList[i].Edge2);
   }
   return true;
 }
@@ -3002,7 +2957,7 @@ void Clipper::DoMaxima(TEdge *e)
     DeleteFromAEL(eMaxPair);
   } 
 #endif
-  else throw clipperException("DoMaxima error");
+  else DS_ASSERT(false);
 }
 //------------------------------------------------------------------------------
 
@@ -3071,7 +3026,7 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
   }
 
   //3. Process horizontals at the Top of the scanbeam ...
-  m_Maxima.sort();
+  std::sort(m_Maxima.begin(), m_Maxima.end());
   ProcessHorizontals();
   m_Maxima.clear();
 
@@ -3455,10 +3410,10 @@ bool JoinHorz(OutPt* op1, OutPt* op1b, OutPt* op2, OutPt* op2b,
 }
 //------------------------------------------------------------------------------
 
-bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
+bool Clipper::JoinPoints(Join& j, OutRec* outRec1, OutRec* outRec2)
 {
-  OutPt *op1 = j->OutPt1, *op1b;
-  OutPt *op2 = j->OutPt2, *op2b;
+  OutPt *op1 = j.OutPt1, *op1b;
+  OutPt *op2 = j.OutPt2, *op2b;
 
   //There are 3 kinds of joins for output polygons ...
   //1. Horizontal joins where Join.OutPt1 & Join.OutPt2 are vertices anywhere
@@ -3467,21 +3422,21 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
   //location at the Bottom of the overlapping segment (& Join.OffPt is above).
   //3. StrictSimple joins where edges touch but are not collinear and where
   //Join.OutPt1, Join.OutPt2 & Join.OffPt all share the same point.
-  bool isHorizontal = (j->OutPt1->Pt.Y == j->OffPt.Y);
+  bool isHorizontal = (j.OutPt1->Pt.Y == j.OffPt.Y);
 
-  if (isHorizontal  && (j->OffPt == j->OutPt1->Pt) &&
-  (j->OffPt == j->OutPt2->Pt))
+  if (isHorizontal  && (j.OffPt == j.OutPt1->Pt) &&
+  (j.OffPt == j.OutPt2->Pt))
   {
     //Strictly Simple join ...
     if (outRec1 != outRec2) return false;
-    op1b = j->OutPt1->Next;
-    while (op1b != op1 && (op1b->Pt == j->OffPt)) 
+    op1b = j.OutPt1->Next;
+    while (op1b != op1 && (op1b->Pt == j.OffPt))
       op1b = op1b->Next;
-    bool reverse1 = (op1b->Pt.Y > j->OffPt.Y);
-    op2b = j->OutPt2->Next;
-    while (op2b != op2 && (op2b->Pt == j->OffPt)) 
+    bool reverse1 = (op1b->Pt.Y > j.OffPt.Y);
+    op2b = j.OutPt2->Next;
+    while (op2b != op2 && (op2b->Pt == j.OffPt))
       op2b = op2b->Next;
-    bool reverse2 = (op2b->Pt.Y > j->OffPt.Y);
+    bool reverse2 = (op2b->Pt.Y > j.OffPt.Y);
     if (reverse1 == reverse2) return false;
     if (reverse1)
     {
@@ -3491,8 +3446,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2->Next = op1;
       op1b->Next = op2b;
       op2b->Prev = op1b;
-      j->OutPt1 = op1;
-      j->OutPt2 = op1b;
+      j.OutPt1 = op1;
+      j.OutPt2 = op1b;
       return true;
     } else
     {
@@ -3502,8 +3457,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2->Prev = op1;
       op1b->Prev = op2b;
       op2b->Next = op1b;
-      j->OutPt1 = op1;
-      j->OutPt2 = op1b;
+      j.OutPt1 = op1;
+      j.OutPt2 = op1b;
       return true;
     }
   } 
@@ -3552,7 +3507,7 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
     {
       Pt = op2b->Pt; DiscardLeftSide = (op2b->Pt.X > op2->Pt.X);
     }
-    j->OutPt1 = op1; j->OutPt2 = op2;
+    j.OutPt1 = op1; j.OutPt2 = op2;
     return JoinHorz(op1, op1b, op2, op2b, Pt, DiscardLeftSide);
   } else
   {
@@ -3564,24 +3519,24 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
     op1b = op1->Next;
     while ((op1b->Pt == op1->Pt) && (op1b != op1)) op1b = op1b->Next;
     bool Reverse1 = ((op1b->Pt.Y > op1->Pt.Y) ||
-      !SlopesEqual(op1->Pt, op1b->Pt, j->OffPt, m_UseFullRange));
+      !SlopesEqual(op1->Pt, op1b->Pt, j.OffPt, m_UseFullRange));
     if (Reverse1)
     {
       op1b = op1->Prev;
       while ((op1b->Pt == op1->Pt) && (op1b != op1)) op1b = op1b->Prev;
       if ((op1b->Pt.Y > op1->Pt.Y) ||
-        !SlopesEqual(op1->Pt, op1b->Pt, j->OffPt, m_UseFullRange)) return false;
+        !SlopesEqual(op1->Pt, op1b->Pt, j.OffPt, m_UseFullRange)) return false;
     };
     op2b = op2->Next;
     while ((op2b->Pt == op2->Pt) && (op2b != op2))op2b = op2b->Next;
     bool Reverse2 = ((op2b->Pt.Y > op2->Pt.Y) ||
-      !SlopesEqual(op2->Pt, op2b->Pt, j->OffPt, m_UseFullRange));
+      !SlopesEqual(op2->Pt, op2b->Pt, j.OffPt, m_UseFullRange));
     if (Reverse2)
     {
       op2b = op2->Prev;
       while ((op2b->Pt == op2->Pt) && (op2b != op2)) op2b = op2b->Prev;
       if ((op2b->Pt.Y > op2->Pt.Y) ||
-        !SlopesEqual(op2->Pt, op2b->Pt, j->OffPt, m_UseFullRange)) return false;
+        !SlopesEqual(op2->Pt, op2b->Pt, j.OffPt, m_UseFullRange)) return false;
     }
 
     if ((op1b == op1) || (op2b == op2) || (op1b == op2b) ||
@@ -3595,8 +3550,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2->Next = op1;
       op1b->Next = op2b;
       op2b->Prev = op1b;
-      j->OutPt1 = op1;
-      j->OutPt2 = op1b;
+      j.OutPt1 = op1;
+      j.OutPt2 = op1b;
       return true;
     } else
     {
@@ -3606,8 +3561,8 @@ bool Clipper::JoinPoints(Join *j, OutRec* outRec1, OutRec* outRec2)
       op2->Prev = op1;
       op1b->Prev = op2b;
       op2b->Next = op1b;
-      j->OutPt1 = op1;
-      j->OutPt2 = op1b;
+      j.OutPt1 = op1;
+      j.OutPt2 = op1b;
       return true;
     }
   }
@@ -3680,10 +3635,10 @@ void Clipper::JoinCommonEdges()
 {
   for (JoinList::size_type i = 0; i < m_Joins.size(); i++)
   {
-    Join* join = m_Joins[i];
+    Join& join = m_Joins[i];
 
-    OutRec *outRec1 = GetOutRec(join->OutPt1->Idx);
-    OutRec *outRec2 = GetOutRec(join->OutPt2->Idx);
+    OutRec *outRec1 = GetOutRec(join.OutPt1->Idx);
+    OutRec *outRec2 = GetOutRec(join.OutPt2->Idx);
 
     if (!outRec1->Pts || !outRec2->Pts) continue;
     if (outRec1->IsOpen || outRec2->IsOpen) continue;
@@ -3702,10 +3657,10 @@ void Clipper::JoinCommonEdges()
     {
       //instead of joining two polygons, we've just created a new one by
       //splitting one polygon into two.
-      outRec1->Pts = join->OutPt1;
+      outRec1->Pts = join.OutPt1;
       outRec1->BottomPt = 0;
       outRec2 = CreateOutRec();
-      outRec2->Pts = join->OutPt2;
+      outRec2->Pts = join.OutPt2;
 
       //update all OutRec2.Pts Idx's ...
       UpdateOutPtIdxs(*outRec2);
@@ -3777,441 +3732,6 @@ DoublePoint GetUnitNormal(const IntPoint &pt1, const IntPoint &pt2)
   Dx *= f;
   dy *= f;
   return DoublePoint(dy, -Dx);
-}
-
-//------------------------------------------------------------------------------
-// ClipperOffset class
-//------------------------------------------------------------------------------
-
-ClipperOffset::ClipperOffset(double miterLimit, double arcTolerance)
-{
-  this->MiterLimit = miterLimit;
-  this->ArcTolerance = arcTolerance;
-  m_lowest.X = -1;
-}
-//------------------------------------------------------------------------------
-
-ClipperOffset::~ClipperOffset()
-{
-  Clear();
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::Clear()
-{
-  for (int i = 0; i < m_polyNodes.ChildCount(); ++i)
-    delete m_polyNodes.Childs[i];
-  m_polyNodes.Childs.clear();
-  m_lowest.X = -1;
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::AddPath(const Path& path, JoinType joinType, EndType endType)
-{
-  int highI = (int)path.size() - 1;
-  if (highI < 0) return;
-  PolyNode* newNode = new PolyNode();
-  newNode->m_jointype = joinType;
-  newNode->m_endtype = endType;
-
-  //strip duplicate points from path and also get index to the lowest point ...
-  if (endType == etClosedLine || endType == etClosedPolygon)
-    while (highI > 0 && path[0] == path[highI]) highI--;
-  newNode->Contour.reserve(highI + 1);
-  newNode->Contour.push_back(path[0]);
-  int j = 0, k = 0;
-  for (int i = 1; i <= highI; i++)
-    if (newNode->Contour[j] != path[i])
-    {
-      j++;
-      newNode->Contour.push_back(path[i]);
-      if (path[i].Y > newNode->Contour[k].Y ||
-        (path[i].Y == newNode->Contour[k].Y &&
-        path[i].X < newNode->Contour[k].X)) k = j;
-    }
-  if (endType == etClosedPolygon && j < 2)
-  {
-    delete newNode;
-    return;
-  }
-  m_polyNodes.AddChild(*newNode);
-
-  //if this path's lowest pt is lower than all the others then update m_lowest
-  if (endType != etClosedPolygon) return;
-  if (m_lowest.X < 0)
-    m_lowest = IntPoint(m_polyNodes.ChildCount() - 1, k);
-  else
-  {
-    IntPoint ip = m_polyNodes.Childs[(int)m_lowest.X]->Contour[(int)m_lowest.Y];
-    if (newNode->Contour[k].Y > ip.Y ||
-      (newNode->Contour[k].Y == ip.Y &&
-      newNode->Contour[k].X < ip.X))
-      m_lowest = IntPoint(m_polyNodes.ChildCount() - 1, k);
-  }
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::AddPaths(const Paths& paths, JoinType joinType, EndType endType)
-{
-  for (Paths::size_type i = 0; i < paths.size(); ++i)
-    AddPath(paths[i], joinType, endType);
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::FixOrientations()
-{
-  //fixup orientations of all closed paths if the orientation of the
-  //closed path with the lowermost vertex is wrong ...
-  if (m_lowest.X >= 0 && 
-    !Orientation(m_polyNodes.Childs[(int)m_lowest.X]->Contour))
-  {
-    for (int i = 0; i < m_polyNodes.ChildCount(); ++i)
-    {
-      PolyNode& node = *m_polyNodes.Childs[i];
-      if (node.m_endtype == etClosedPolygon ||
-        (node.m_endtype == etClosedLine && Orientation(node.Contour)))
-          ReversePath(node.Contour);
-    }
-  } else
-  {
-    for (int i = 0; i < m_polyNodes.ChildCount(); ++i)
-    {
-      PolyNode& node = *m_polyNodes.Childs[i];
-      if (node.m_endtype == etClosedLine && !Orientation(node.Contour))
-        ReversePath(node.Contour);
-    }
-  }
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::Execute(Paths& solution, double delta)
-{
-  solution.clear();
-  FixOrientations();
-  DoOffset(delta);
-  
-  //now clean up 'corners' ...
-  Clipper clpr;
-  clpr.AddPaths(m_destPolys, ptSubject, true);
-  if (delta > 0)
-  {
-    clpr.Execute(ctUnion, solution, pftPositive, pftPositive);
-  }
-  else
-  {
-    IntRect r = clpr.GetBounds();
-    Path outer(4);
-    outer[0] = IntPoint(r.left - 10, r.bottom + 10);
-    outer[1] = IntPoint(r.right + 10, r.bottom + 10);
-    outer[2] = IntPoint(r.right + 10, r.top - 10);
-    outer[3] = IntPoint(r.left - 10, r.top - 10);
-
-    clpr.AddPath(outer, ptSubject, true);
-    clpr.ReverseSolution(true);
-    clpr.Execute(ctUnion, solution, pftNegative, pftNegative);
-    if (solution.size() > 0) solution.erase(solution.begin());
-  }
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::Execute(PolyTree& solution, double delta)
-{
-  solution.Clear();
-  FixOrientations();
-  DoOffset(delta);
-
-  //now clean up 'corners' ...
-  Clipper clpr;
-  clpr.AddPaths(m_destPolys, ptSubject, true);
-  if (delta > 0)
-  {
-    clpr.Execute(ctUnion, solution, pftPositive, pftPositive);
-  }
-  else
-  {
-    IntRect r = clpr.GetBounds();
-    Path outer(4);
-    outer[0] = IntPoint(r.left - 10, r.bottom + 10);
-    outer[1] = IntPoint(r.right + 10, r.bottom + 10);
-    outer[2] = IntPoint(r.right + 10, r.top - 10);
-    outer[3] = IntPoint(r.left - 10, r.top - 10);
-
-    clpr.AddPath(outer, ptSubject, true);
-    clpr.ReverseSolution(true);
-    clpr.Execute(ctUnion, solution, pftNegative, pftNegative);
-    //remove the outer PolyNode rectangle ...
-    if (solution.ChildCount() == 1 && solution.Childs[0]->ChildCount() > 0)
-    {
-      PolyNode* outerNode = solution.Childs[0];
-      solution.Childs.reserve(outerNode->ChildCount());
-      solution.Childs[0] = outerNode->Childs[0];
-      solution.Childs[0]->Parent = outerNode->Parent;
-      for (int i = 1; i < outerNode->ChildCount(); ++i)
-        solution.AddChild(*outerNode->Childs[i]);
-    }
-    else
-      solution.Clear();
-  }
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::DoOffset(double delta)
-{
-  m_destPolys.clear();
-  m_delta = delta;
-
-  //if Zero offset, just copy any CLOSED polygons to m_p and return ...
-  if (NEAR_ZERO(delta)) 
-  {
-    m_destPolys.reserve(m_polyNodes.ChildCount());
-    for (int i = 0; i < m_polyNodes.ChildCount(); i++)
-    {
-      PolyNode& node = *m_polyNodes.Childs[i];
-      if (node.m_endtype == etClosedPolygon)
-        m_destPolys.push_back(node.Contour);
-    }
-    return;
-  }
-
-  //see offset_triginometry3.svg in the documentation folder ...
-  if (MiterLimit > 2) m_miterLim = 2/(MiterLimit * MiterLimit);
-  else m_miterLim = 0.5;
-
-  double y;
-  if (ArcTolerance <= 0.0) y = def_arc_tolerance;
-  else if (ArcTolerance > std::fabs(delta) * def_arc_tolerance) 
-    y = std::fabs(delta) * def_arc_tolerance;
-  else y = ArcTolerance;
-  //see offset_triginometry2.svg in the documentation folder ...
-  double steps = pi / std::acos(1 - y / std::fabs(delta));
-  if (steps > std::fabs(delta) * pi) 
-    steps = std::fabs(delta) * pi;  //ie excessive precision check
-  m_sin = std::sin(two_pi / steps);
-  m_cos = std::cos(two_pi / steps);
-  m_StepsPerRad = steps / two_pi;
-  if (delta < 0.0) m_sin = -m_sin;
-
-  m_destPolys.reserve(m_polyNodes.ChildCount() * 2);
-  for (int i = 0; i < m_polyNodes.ChildCount(); i++)
-  {
-    PolyNode& node = *m_polyNodes.Childs[i];
-    m_srcPoly = node.Contour;
-
-    int len = (int)m_srcPoly.size();
-    if (len == 0 || (delta <= 0 && (len < 3 || node.m_endtype != etClosedPolygon)))
-        continue;
-
-    m_destPoly.clear();
-    if (len == 1)
-    {
-      if (node.m_jointype == jtRound)
-      {
-        double X = 1.0, Y = 0.0;
-        for (cInt j = 1; j <= steps; j++)
-        {
-          m_destPoly.push_back(IntPoint(
-            Round(m_srcPoly[0].X + X * delta),
-            Round(m_srcPoly[0].Y + Y * delta)));
-          double X2 = X;
-          X = X * m_cos - m_sin * Y;
-          Y = X2 * m_sin + Y * m_cos;
-        }
-      }
-      else
-      {
-        double X = -1.0, Y = -1.0;
-        for (int j = 0; j < 4; ++j)
-        {
-          m_destPoly.push_back(IntPoint(
-            Round(m_srcPoly[0].X + X * delta),
-            Round(m_srcPoly[0].Y + Y * delta)));
-          if (X < 0) X = 1;
-          else if (Y < 0) Y = 1;
-          else X = -1;
-        }
-      }
-      m_destPolys.push_back(m_destPoly);
-      continue;
-    }
-    //build m_normals ...
-    m_normals.clear();
-    m_normals.reserve(len);
-    for (int j = 0; j < len - 1; ++j)
-      m_normals.push_back(GetUnitNormal(m_srcPoly[j], m_srcPoly[j + 1]));
-    if (node.m_endtype == etClosedLine || node.m_endtype == etClosedPolygon)
-      m_normals.push_back(GetUnitNormal(m_srcPoly[len - 1], m_srcPoly[0]));
-    else
-      m_normals.push_back(DoublePoint(m_normals[len - 2]));
-
-    if (node.m_endtype == etClosedPolygon)
-    {
-      int k = len - 1;
-      for (int j = 0; j < len; ++j)
-        OffsetPoint(j, k, node.m_jointype);
-      m_destPolys.push_back(m_destPoly);
-    }
-    else if (node.m_endtype == etClosedLine)
-    {
-      int k = len - 1;
-      for (int j = 0; j < len; ++j)
-        OffsetPoint(j, k, node.m_jointype);
-      m_destPolys.push_back(m_destPoly);
-      m_destPoly.clear();
-      //re-build m_normals ...
-      DoublePoint n = m_normals[len -1];
-      for (int j = len - 1; j > 0; j--)
-        m_normals[j] = DoublePoint(-m_normals[j - 1].X, -m_normals[j - 1].Y);
-      m_normals[0] = DoublePoint(-n.X, -n.Y);
-      k = 0;
-      for (int j = len - 1; j >= 0; j--)
-        OffsetPoint(j, k, node.m_jointype);
-      m_destPolys.push_back(m_destPoly);
-    }
-    else
-    {
-      int k = 0;
-      for (int j = 1; j < len - 1; ++j)
-        OffsetPoint(j, k, node.m_jointype);
-
-      IntPoint pt1;
-      if (node.m_endtype == etOpenButt)
-      {
-        int j = len - 1;
-        pt1 = IntPoint((cInt)Round(m_srcPoly[j].X + m_normals[j].X *
-          delta), (cInt)Round(m_srcPoly[j].Y + m_normals[j].Y * delta));
-        m_destPoly.push_back(pt1);
-        pt1 = IntPoint((cInt)Round(m_srcPoly[j].X - m_normals[j].X *
-          delta), (cInt)Round(m_srcPoly[j].Y - m_normals[j].Y * delta));
-        m_destPoly.push_back(pt1);
-      }
-      else
-      {
-        int j = len - 1;
-        k = len - 2;
-        m_sinA = 0;
-        m_normals[j] = DoublePoint(-m_normals[j].X, -m_normals[j].Y);
-        if (node.m_endtype == etOpenSquare)
-          DoSquare(j, k);
-        else
-          DoRound(j, k);
-      }
-
-      //re-build m_normals ...
-      for (int j = len - 1; j > 0; j--)
-        m_normals[j] = DoublePoint(-m_normals[j - 1].X, -m_normals[j - 1].Y);
-      m_normals[0] = DoublePoint(-m_normals[1].X, -m_normals[1].Y);
-
-      k = len - 1;
-      for (int j = k - 1; j > 0; --j) OffsetPoint(j, k, node.m_jointype);
-
-      if (node.m_endtype == etOpenButt)
-      {
-        pt1 = IntPoint((cInt)Round(m_srcPoly[0].X - m_normals[0].X * delta),
-          (cInt)Round(m_srcPoly[0].Y - m_normals[0].Y * delta));
-        m_destPoly.push_back(pt1);
-        pt1 = IntPoint((cInt)Round(m_srcPoly[0].X + m_normals[0].X * delta),
-          (cInt)Round(m_srcPoly[0].Y + m_normals[0].Y * delta));
-        m_destPoly.push_back(pt1);
-      }
-      else
-      {
-        k = 1;
-        m_sinA = 0;
-        if (node.m_endtype == etOpenSquare)
-          DoSquare(0, 1);
-        else
-          DoRound(0, 1);
-      }
-      m_destPolys.push_back(m_destPoly);
-    }
-  }
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::OffsetPoint(int j, int& k, JoinType jointype)
-{
-  //cross product ...
-  m_sinA = (m_normals[k].X * m_normals[j].Y - m_normals[j].X * m_normals[k].Y);
-  if (std::fabs(m_sinA * m_delta) < 1.0) 
-  {
-    //dot product ...
-    double cosA = (m_normals[k].X * m_normals[j].X + m_normals[j].Y * m_normals[k].Y ); 
-    if (cosA > 0) // angle => 0 degrees
-    {
-      m_destPoly.push_back(IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta),
-        Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
-      return; 
-    }
-    //else angle => 180 degrees   
-  }
-  else if (m_sinA > 1.0) m_sinA = 1.0;
-  else if (m_sinA < -1.0) m_sinA = -1.0;
-
-  if (m_sinA * m_delta < 0)
-  {
-    m_destPoly.push_back(IntPoint(Round(m_srcPoly[j].X + m_normals[k].X * m_delta),
-      Round(m_srcPoly[j].Y + m_normals[k].Y * m_delta)));
-    m_destPoly.push_back(m_srcPoly[j]);
-    m_destPoly.push_back(IntPoint(Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
-      Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
-  }
-  else
-    switch (jointype)
-    {
-      case jtMiter:
-        {
-          double r = 1 + (m_normals[j].X * m_normals[k].X +
-            m_normals[j].Y * m_normals[k].Y);
-          if (r >= m_miterLim) DoMiter(j, k, r); else DoSquare(j, k);
-          break;
-        }
-      case jtSquare: DoSquare(j, k); break;
-      case jtRound: DoRound(j, k); break;
-    }
-  k = j;
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::DoSquare(int j, int k)
-{
-  double dx = std::tan(std::atan2(m_sinA,
-      m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y) / 4);
-  m_destPoly.push_back(IntPoint(
-      Round(m_srcPoly[j].X + m_delta * (m_normals[k].X - m_normals[k].Y * dx)),
-      Round(m_srcPoly[j].Y + m_delta * (m_normals[k].Y + m_normals[k].X * dx))));
-  m_destPoly.push_back(IntPoint(
-      Round(m_srcPoly[j].X + m_delta * (m_normals[j].X + m_normals[j].Y * dx)),
-      Round(m_srcPoly[j].Y + m_delta * (m_normals[j].Y - m_normals[j].X * dx))));
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::DoMiter(int j, int k, double r)
-{
-  double q = m_delta / r;
-  m_destPoly.push_back(IntPoint(Round(m_srcPoly[j].X + (m_normals[k].X + m_normals[j].X) * q),
-      Round(m_srcPoly[j].Y + (m_normals[k].Y + m_normals[j].Y) * q)));
-}
-//------------------------------------------------------------------------------
-
-void ClipperOffset::DoRound(int j, int k)
-{
-  double a = std::atan2(m_sinA,
-  m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
-  int steps = std::max((int)Round(m_StepsPerRad * std::fabs(a)), 1);
-
-  double X = m_normals[k].X, Y = m_normals[k].Y, X2;
-  for (int i = 0; i < steps; ++i)
-  {
-    m_destPoly.push_back(IntPoint(
-        Round(m_srcPoly[j].X + X * m_delta),
-        Round(m_srcPoly[j].Y + Y * m_delta)));
-    X2 = X;
-    X = X * m_cos - m_sin * Y;
-    Y = X2 * m_sin + Y * m_cos;
-  }
-  m_destPoly.push_back(IntPoint(
-  Round(m_srcPoly[j].X + m_normals[j].X * m_delta),
-  Round(m_srcPoly[j].Y + m_normals[j].Y * m_delta)));
 }
 
 //------------------------------------------------------------------------------
@@ -4596,33 +4116,6 @@ void OpenPathsFromPolyTree(PolyTree& polytree, Paths& paths)
   for (int i = 0; i < polytree.ChildCount(); ++i)
     if (polytree.Childs[i]->IsOpen())
       paths.push_back(polytree.Childs[i]->Contour);
-}
-//------------------------------------------------------------------------------
-
-std::ostream& operator <<(std::ostream &s, const IntPoint &p)
-{
-  s << "(" << p.X << "," << p.Y << ")";
-  return s;
-}
-//------------------------------------------------------------------------------
-
-std::ostream& operator <<(std::ostream &s, const Path &p)
-{
-  if (p.empty()) return s;
-  Path::size_type last = p.size() -1;
-  for (Path::size_type i = 0; i < last; i++)
-    s << "(" << p[i].X << "," << p[i].Y << "), ";
-  s << "(" << p[last].X << "," << p[last].Y << ")\n";
-  return s;
-}
-//------------------------------------------------------------------------------
-
-std::ostream& operator <<(std::ostream &s, const Paths &p)
-{
-  for (Paths::size_type i = 0; i < p.size(); i++)
-    s << p[i];
-  s << "\n";
-  return s;
 }
 //------------------------------------------------------------------------------
 
