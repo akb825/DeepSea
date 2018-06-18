@@ -18,8 +18,22 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if (MSVC)
 	add_compile_options(/W3 /WX /wd4146 /MP)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
+
+	# Disable exceptions and RTTI
+	if (CMAKE_CXX_FLAGS MATCHES "/EHsc ")
+		string(REPLACE "/EHsc" "/EHs-c-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	else()
+		set(CMAKE_CXXFLAGS "${CMAKE_CXX_FLAGS} /EHs-c-")
+	endif()
+
+	if (CMAKE_CXX_FLAGS MATCHES "/GR ")
+		string(REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	else()
+		set(CMAKE_CXXFLAGS "${CMAKE_CXX_FLAGS} /GR-")
+	endif()
 else()
-	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing)
+	add_compile_options(-Wall -Werror -Wconversion -Wno-sign-conversion -fno-strict-aliasing
+		-fno-rtti -fno-exceptions)
 	if (APPLE)
 		add_compile_options(-fobjc-arc)
 	endif()
