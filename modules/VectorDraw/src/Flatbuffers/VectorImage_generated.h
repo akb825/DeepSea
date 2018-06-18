@@ -185,6 +185,35 @@ inline const char *EnumNameLineCap(LineCap e) {
   return EnumNamesLineCap()[index];
 }
 
+enum class FillRule : uint8_t {
+  EvenOdd = 0,
+  NonZero = 1,
+  MIN = EvenOdd,
+  MAX = NonZero
+};
+
+inline const FillRule (&EnumValuesFillRule())[2] {
+  static const FillRule values[] = {
+    FillRule::EvenOdd,
+    FillRule::NonZero
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesFillRule() {
+  static const char * const names[] = {
+    "EvenOdd",
+    "NonZero",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameFillRule(FillRule e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesFillRule()[index];
+}
+
 enum class TextPosition : uint8_t {
   Unused = 0,
   Offset = 1,
@@ -892,14 +921,19 @@ inline flatbuffers::Offset<RadialGradient> CreateRadialGradientDirect(
 
 struct StartPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_TRANSFORM = 4
+    VT_TRANSFORM = 4,
+    VT_SIMPLE = 6
   };
   const Matrix33f *transform() const {
     return GetStruct<const Matrix33f *>(VT_TRANSFORM);
   }
+  bool simple() const {
+    return GetField<uint8_t>(VT_SIMPLE, 0) != 0;
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyFieldRequired<Matrix33f>(verifier, VT_TRANSFORM) &&
+           VerifyField<uint8_t>(verifier, VT_SIMPLE) &&
            verifier.EndTable();
   }
 };
@@ -909,6 +943,9 @@ struct StartPathCommandBuilder {
   flatbuffers::uoffset_t start_;
   void add_transform(const Matrix33f *transform) {
     fbb_.AddStruct(StartPathCommand::VT_TRANSFORM, transform);
+  }
+  void add_simple(bool simple) {
+    fbb_.AddElement<uint8_t>(StartPathCommand::VT_SIMPLE, static_cast<uint8_t>(simple), 0);
   }
   explicit StartPathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -925,9 +962,11 @@ struct StartPathCommandBuilder {
 
 inline flatbuffers::Offset<StartPathCommand> CreateStartPathCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const Matrix33f *transform = 0) {
+    const Matrix33f *transform = 0,
+    bool simple = false) {
   StartPathCommandBuilder builder_(_fbb);
   builder_.add_transform(transform);
+  builder_.add_simple(simple);
   return builder_.Finish();
 }
 
@@ -1479,7 +1518,8 @@ inline flatbuffers::Offset<StrokePathCommand> CreateStrokePathCommandDirect(
 struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_MATERIAL = 4,
-    VT_OPACITY = 6
+    VT_OPACITY = 6,
+    VT_FILLRULE = 8
   };
   const flatbuffers::String *material() const {
     return GetPointer<const flatbuffers::String *>(VT_MATERIAL);
@@ -1487,11 +1527,15 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float opacity() const {
     return GetField<float>(VT_OPACITY, 0.0f);
   }
+  FillRule fillRule() const {
+    return static_cast<FillRule>(GetField<uint8_t>(VT_FILLRULE, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
            verifier.Verify(material()) &&
            VerifyField<float>(verifier, VT_OPACITY) &&
+           VerifyField<uint8_t>(verifier, VT_FILLRULE) &&
            verifier.EndTable();
   }
 };
@@ -1504,6 +1548,9 @@ struct FillPathCommandBuilder {
   }
   void add_opacity(float opacity) {
     fbb_.AddElement<float>(FillPathCommand::VT_OPACITY, opacity, 0.0f);
+  }
+  void add_fillRule(FillRule fillRule) {
+    fbb_.AddElement<uint8_t>(FillPathCommand::VT_FILLRULE, static_cast<uint8_t>(fillRule), 0);
   }
   explicit FillPathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -1521,21 +1568,25 @@ struct FillPathCommandBuilder {
 inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> material = 0,
-    float opacity = 0.0f) {
+    float opacity = 0.0f,
+    FillRule fillRule = FillRule::EvenOdd) {
   FillPathCommandBuilder builder_(_fbb);
   builder_.add_opacity(opacity);
   builder_.add_material(material);
+  builder_.add_fillRule(fillRule);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *material = nullptr,
-    float opacity = 0.0f) {
+    float opacity = 0.0f,
+    FillRule fillRule = FillRule::EvenOdd) {
   return DeepSeaVectorDraw::CreateFillPathCommand(
       _fbb,
       material ? _fbb.CreateString(material) : 0,
-      opacity);
+      opacity,
+      fillRule);
 }
 
 struct TextPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

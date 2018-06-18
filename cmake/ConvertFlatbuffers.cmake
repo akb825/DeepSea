@@ -32,7 +32,7 @@ find_path(FLATBUFFERS_INCLUDE_DIRS flatbuffers/flatbuffers.h PATHS ${DEEPSEA_SOU
 # FILE - the list of files to convert.
 # DIRECTORY - the directory to place the flatbuffers.
 # PYTHON - Additionally output python files to the specified directory.
-function(ds_convert_flatbuffers)
+function(ds_convert_flatbuffers container)
 	if (NOT FLATC)
 		return()
 	endif()
@@ -65,7 +65,8 @@ function(ds_convert_flatbuffers)
 			COMMAND ${FLATC} ARGS -c --scoped-enums ${file}
 			${pythonCommand}
 			DEPENDS ${FLATC}
-			WORKING_DIRECTORY ${ARGS_DIRECTORY})
+			WORKING_DIRECTORY ${ARGS_DIRECTORY}
+			COMMENT "Generating flat buffer: ${file}")
 	endforeach()
 
 	set(${container} ${${container}} ${outputs} PARENT_SCOPE)

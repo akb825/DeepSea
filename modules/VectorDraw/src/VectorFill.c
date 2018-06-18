@@ -21,18 +21,19 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/ComplexPolygon.h>
 #include <DeepSea/Geometry/SimplePolygon.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
-static bool getPosition(dsVector2d* outPosition, const dsSimplePolygon* polygon, const void* points,
-	uint32_t index)
+static bool getShapePosition(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+	const void* points, uint32_t index)
 {
 	DS_UNUSED(polygon);
-	const PointInfo* pointInfos = (const PointInfo*)points;
-	outPosition->x = pointInfos[index].point.x;
-	outPosition->y = pointInfos[index].point.y;
+	const ShapeVertex* shapeVertices = (const ShapeVertex*)points;
+	outPosition->x = shapeVertices[index].position.x;
+	outPosition->y = shapeVertices[index].position.y;
 	return true;
 }
 
@@ -81,7 +82,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
 		}
 
-		if (!joinStart || !end)
+		if (scratchData->pathSimple && (!joinStart || !end))
 		{
 			ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 			if (!curVertex)
@@ -101,22 +102,79 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			if (joinStart)
 				--pointCount;
 
+			if (scratchData->pathSimple)
+			{
+				uint32_t indexCount;
+				// Use clockwise winding due to origin in the upper-left.
+				const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount,
+					scratchData->polygon, scratchData->shapeVertices + indexOffset, pointCount,
+					&getShapePosition, dsTriangulateWinding_CW);
+				if (!indices)
+					return false;
+
+				for (uint32_t j = 0; j < indexCount; ++j)
+				{
+					uint32_t index = indices[j] + indexOffset;
+					if (!dsVectorScratchData_addIndex(scratchData, &index))
+						return false;
+				}
+
+				indexOffset = scratchData->shapeVertexCount;
+			}
+			else
+			{
+				if (!dsVectorScratchData_addLoop(scratchData, firstPoint, pointCount))
+					return false;
+			}
+
+			firstPoint = i + 1;
+		}
+	}
+
+	// Need to simplify the loops to triangulate if the path isn't already simple.
+	if (!scratchData->pathSimple)
+	{
+		if (!dsComplexPolygon_simplify(scratchData->simplifier, scratchData->loops,
+			scratchData->loopCount, &dsVectorScratchData_loopPoint, fill->fillRule))
+		{
+			return false;
+		}
+
+		uint32_t loopCount = dsComplexPolygon_getLoopCount(scratchData->simplifier);
+		for (uint32_t i = 0; i < loopCount; ++i)
+		{
+			const dsPolygonLoop* loop = dsComplexPolygon_getLoop(scratchData->simplifier, i);
+			const dsVector2f* loopPoints = (const dsVector2f*)loop->points;
+			for (uint32_t j = 0; j < loop->pointCount; ++j)
+			{
+				ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+				if (!curVertex)
+					return false;
+
+				curVertex->position.x = loopPoints[j].x;
+				curVertex->position.y = loopPoints[j].y;
+				curVertex->position.z = 0.0f;
+				curVertex->position.w = 0.0f;
+				curVertex->materialIndex = (uint16_t)material;
+				curVertex->shapeIndex = (uint16_t)infoIndex;
+			}
+
 			uint32_t indexCount;
 			// Use clockwise winding due to origin in the upper-left.
-			const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, scratchData->polygon,
-				scratchData->points + firstPoint, pointCount, &getPosition,
-				dsTriangulateWinding_CW);
+			const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount,
+				scratchData->polygon, scratchData->shapeVertices + indexOffset, loop->pointCount,
+				&getShapePosition, dsTriangulateWinding_CW);
 			if (!indices)
 				return false;
 
 			for (uint32_t j = 0; j < indexCount; ++j)
 			{
-				uint32_t index = indices[j] + indexOffset + firstPoint;
+				uint32_t index = indices[j] + indexOffset;
 				if (!dsVectorScratchData_addIndex(scratchData, &index))
 					return false;
 			}
 
-			firstPoint = i + 1;
+			indexOffset = scratchData->shapeVertexCount;
 		}
 	}
 

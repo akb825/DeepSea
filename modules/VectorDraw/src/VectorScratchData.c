@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/ComplexPolygon.h>
 #include <DeepSea/Geometry/SimplePolygon.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -120,6 +121,13 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 		DS_VERIFY(dsAllocator_free(allocator, data));
 		return NULL;
 	}
+	data->simplifier = dsComplexPolygon_create(allocator, dsGeometryElement_Float, data);
+	if (!data->simplifier)
+	{
+		dsSimplePolygon_destroy(data->polygon);
+		DS_VERIFY(dsAllocator_free(allocator, data));
+		return NULL;
+	}
 	return data;
 }
 
@@ -139,7 +147,9 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 	DS_VERIFY(dsAllocator_free(data->allocator, data->indices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->vectorInfos));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->pieces));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->loops));
 	dsSimplePolygon_destroy(data->polygon);
+	dsComplexPolygon_destroy(data->simplifier);
 	DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
 	DS_VERIFY(dsAllocator_free(data->allocator, data));
 }
@@ -148,6 +158,7 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 {
 	data->pointCount = 0;
 	data->inPath = false;
+	data->pathSimple = false;
 	data->lastStart = 0;
 	data->shapeVertexCount = 0;
 	data->imageVertexCount = 0;
@@ -156,6 +167,7 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 	data->indexCount = 0;
 	data->vectorInfoCount = 0;
 	data->pieceCount = 0;
+	data->loopCount = 0;
 }
 
 void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
@@ -204,6 +216,25 @@ bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* p
 
 	data->points[index].point = *point;
 	data->points[index].type = type;
+	return true;
+}
+
+bool dsVectorScratchData_addLoop(dsVectorScratchData* data, uint32_t firstPoint, uint32_t count)
+{
+	uint32_t index = data->loopCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->loops, data->loopCount, data->maxLoops, 1))
+		return false;
+
+	data->loops[index].points = data->points + firstPoint;
+	data->loops[index].pointCount = count;
+	return true;
+}
+
+bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polygon,
+	const void* loop, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	*(dsVector2f*)outPoint = ((const PointInfo*)loop)[index].point;
 	return true;
 }
 

@@ -45,6 +45,10 @@ extern "C"
  * resolving the 3D positions to 2D positions, either be dropping a coordinate (e.g. dropping Z) or
  * performing a transform. (e.g. projecting to a plane or other surface)
  *
+ * @remark The simplification is performed by an external library, which will allocate memory
+ * outside of the provided allocator. The memory is temporary and will be freed before the function
+ * exits.
+ *
  * @see dsComplexPolygon
  */
 
@@ -94,11 +98,15 @@ DS_GEOMETRY_EXPORT void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, 
  * @param polygon The polygon to process the simplification.
  * @param loops The list of loops to simplify.
  * @param loopCount The number of loops present.
+ * @param pointFunc The function to get the position for each point. This may be used if a custom
+ *     type is used for the points set on each loop. If NULL, it is assumed the points will be the
+ *     appropriate dsVector2* type.
  * @param fillRule The fill rule for self-intersections and overlaps.
  * @return False if an error occurred.
  */
 DS_GEOMETRY_EXPORT bool dsComplexPolygon_simplify(dsComplexPolygon* polygon,
-	const dsPolygonLoop* loops, uint32_t loopCount, dsPolygonFillRule fillRule);
+	const dsPolygonLoop* loops, uint32_t loopCount, dsComplexPolygonPointFunction pointFunc,
+	dsPolygonFillRule fillRule);
 
 /**
  * @brief Gets the number of loops after simplification.

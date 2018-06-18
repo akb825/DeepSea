@@ -32,7 +32,15 @@ class FillPathCommand(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def FillPathCommandStart(builder): builder.StartObject(2)
+    # FillPathCommand
+    def FillRule(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
+        return 0
+
+def FillPathCommandStart(builder): builder.StartObject(3)
 def FillPathCommandAddMaterial(builder, material): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(material), 0)
 def FillPathCommandAddOpacity(builder, opacity): builder.PrependFloat32Slot(1, opacity, 0.0)
+def FillPathCommandAddFillRule(builder, fillRule): builder.PrependUint8Slot(2, fillRule, 0)
 def FillPathCommandEnd(builder): return builder.EndObject()

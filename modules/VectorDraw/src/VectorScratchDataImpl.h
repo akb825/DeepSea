@@ -139,6 +139,7 @@ struct dsVectorScratchData
 	uint32_t lastStart;
 
 	bool inPath;
+	bool pathSimple;
 	dsMatrix33f pathTransform;
 
 	ShapeVertex* shapeVertices;
@@ -169,7 +170,12 @@ struct dsVectorScratchData
 	uint32_t pieceCount;
 	uint32_t maxPieces;
 
+	dsPolygonLoop* loops;
+	uint32_t loopCount;
+	uint32_t maxLoops;
+
 	dsSimplePolygon* polygon;
+	dsComplexPolygon* simplifier;
 
 	uint8_t* combinedBuffer;
 	size_t combinedBufferSize;
@@ -185,6 +191,10 @@ dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* dat
 
 bool dsVectorScratchData_addPoint(dsVectorScratchData* data, const dsVector2f* point,
 	uint32_t type);
+
+bool dsVectorScratchData_addLoop(dsVectorScratchData* data, uint32_t firstPoint, uint32_t count);
+bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polygon,
+	const void* loop, uint32_t index);
 
 ShapeVertex* dsVectorScratchData_addShapeVertex(dsVectorScratchData* data);
 ImageVertex* dsVectorScratchData_addImageVertex(dsVectorScratchData* data);

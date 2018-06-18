@@ -31,6 +31,13 @@ enum LineCap : ubyte
 	Square // The line ends with a square cap.
 }
 
+// Enum for the fill rule for the shape being filled.
+enum FillRule : ubyte
+{
+	EvenOdd, // Fill when the sum of winding orders is odd, hole when even.
+	NonZero  // Fill when the sum of winding orders isn't equal to 0.
+}
+
 // Enum for hwo to interpret the text position.
 enum TextPosition : ubyte
 {
@@ -176,6 +183,9 @@ table StartPathCommand
 {
 	// The transform for the path.
 	transform : Matrix33f (required);
+
+	// The path is simple, with no overlapping or intersecting subpaths.
+	simple : bool;
 }
 
 // Structure defining a command to move position.
@@ -295,6 +305,9 @@ table FillPathCommand
 
 	// The opacity of the fill.
 	opacity : float;
+
+	// The fill rule for the shape being filled.
+	fillRule : FillRule;
 }
 
 // Structure defining a command to apply text to the current path.

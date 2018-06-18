@@ -44,6 +44,7 @@ TEST_F(TriangulateTest, Triangle)
 	dsVectorCommand commands[6];
 	commands[0].commandType = dsVectorCommandType_StartPath;
 	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[0].startPath.simple = true;
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
 	commands[1].move.position.y = 0.0f;
@@ -57,6 +58,7 @@ TEST_F(TriangulateTest, Triangle)
 	commands[5].commandType = dsVectorCommandType_FillPath;
 	commands[5].fillPath.material = "fill";
 	commands[5].fillPath.opacity = 1.0f;
+	commands[5].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
@@ -104,6 +106,7 @@ TEST_F(TriangulateTest, Complex)
 	dsVectorCommand commands[42];
 	commands[0].commandType = dsVectorCommandType_StartPath;
 	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[0].startPath.simple = true;
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
 	commands[1].move.position.y = 26.0f;
@@ -225,6 +228,7 @@ TEST_F(TriangulateTest, Complex)
 	commands[41].commandType = dsVectorCommandType_FillPath;
 	commands[41].fillPath.material = "fill";
 	commands[41].fillPath.opacity = 1.0f;
+	commands[41].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{36.0f, 16.0f}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
@@ -498,6 +502,7 @@ TEST_F(TriangulateTest, TriangleNoClose)
 	dsVectorCommand commands[5];
 	commands[0].commandType = dsVectorCommandType_StartPath;
 	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[0].startPath.simple = true;
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
 	commands[1].move.position.y = 0.0f;
@@ -510,6 +515,7 @@ TEST_F(TriangulateTest, TriangleNoClose)
 	commands[4].commandType = dsVectorCommandType_FillPath;
 	commands[4].fillPath.material = "fill";
 	commands[4].fillPath.opacity = 1.0f;
+	commands[4].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{2.0f, 2.0f}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
@@ -557,6 +563,7 @@ TEST_F(TriangulateTest, ClosePointOutside)
 	dsVectorCommand commands[13];
 	commands[0].commandType = dsVectorCommandType_StartPath;
 	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[0].startPath.simple = true;
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
 	commands[1].move.position.y = 0.0f;
@@ -591,6 +598,7 @@ TEST_F(TriangulateTest, ClosePointOutside)
 	commands[12].commandType = dsVectorCommandType_FillPath;
 	commands[12].fillPath.material = "fill";
 	commands[12].fillPath.opacity = 1.0f;
+	commands[12].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{10.0f, 10.0f}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
@@ -680,6 +688,7 @@ TEST_F(TriangulateTest, ClosePointInside)
 	dsVectorCommand commands[12];
 	commands[0].commandType = dsVectorCommandType_StartPath;
 	dsMatrix33_identity(commands[0].startPath.transform);
+	commands[0].startPath.simple = true;
 	commands[1].commandType = dsVectorCommandType_Move;
 	commands[1].move.position.x = 0.0f;
 	commands[1].move.position.y = 0.0f;
@@ -711,6 +720,7 @@ TEST_F(TriangulateTest, ClosePointInside)
 	commands[11].commandType = dsVectorCommandType_FillPath;
 	commands[11].fillPath.material = "fill";
 	commands[11].fillPath.opacity = 1.0f;
+	commands[11].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{10.0f, 10.0f}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,

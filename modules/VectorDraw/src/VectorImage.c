@@ -150,12 +150,14 @@ static bool isBezierStraight(const dsVector4f* curveX, const dsVector4f* curveY,
 	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize)*0.125f;
 }
 
-static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform)
+static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform, bool simple)
 {
 	scratchData->inPath = true;
+	scratchData->pathSimple = simple;
 	scratchData->pathTransform = *transform;
 	scratchData->pointCount = 0;
 	scratchData->lastStart = 0;
+	scratchData->loopCount = 0;
 }
 
 static bool moveTo(dsVectorScratchData* scratchData, const dsVector2f* position,
@@ -624,8 +626,11 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 	switch (commands[*curCommand].commandType)
 	{
 		case dsVectorCommandType_StartPath:
-			startPath(scratchData, &commands[(*curCommand)++].startPath.transform);
+		{
+			const dsVectorCommandStartPath* start = &commands[(*curCommand)++].startPath;
+			startPath(scratchData, &start->transform, start->simple);
 			return true;
+		}
 		case dsVectorCommandType_Move:
 			return moveTo(scratchData, &commands[(*curCommand)++].move.position, PointType_Corner);
 		case dsVectorCommandType_Line:

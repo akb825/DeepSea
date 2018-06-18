@@ -28,8 +28,14 @@ extern "C"
 /**
  * @file
  * @brief Functions for creating and manipulating text to be displayed later.
+ *
  * @remark Opertions on dsText are thread-safe and mutex protected with the parent dsFont and
- *     dsFaceGroup.
+ * dsFaceGroup.
+ *
+ * @remark When uniformScript is false, an external library will compute the bi-directional runs,
+ * which will allocate memory on the heap outside of the allocator provided. (i.e. calling malloc
+ * directly) The memory is temporary and will be freed by the time the function returns.
+ *
  * @see dsText
  */
 

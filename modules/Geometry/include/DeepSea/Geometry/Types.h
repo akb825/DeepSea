@@ -355,6 +355,7 @@ typedef struct dsBVH dsBVH;
  * @param bvh The BVH the bounds will be queried for.
  * @param object The object to get the bounds from.
  * @return True if outBounds was successfully assigned.
+ * @see BVH.h
  */
 typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, const void* object);
 
@@ -366,6 +367,7 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  * @param bounds The bounds being checked. This should be cast to the appropriate dsAlignedBounds*
  *     type based on the axis count and precision queried from bvh.
  * @return True to continue traversal, false to stop traversal.
+ * @see BVH.h
  */
 typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
 	const void* bounds);
@@ -436,6 +438,19 @@ typedef struct dsPolygonLoop
  * @see ComplexPolygon.h
  */
 typedef struct dsComplexPolygon dsComplexPolygon;
+
+/**
+ * @brief Function for getting the position for a point.
+ * @remark errno should be set on failure.
+ * @param[out[ outPosition The position for the point. This should be cast to the appropriate
+ *     dsVector2* type based on the element from the polygon.
+ * @param polygon The complex polygon requesting the points.
+ * @param points The points for the current loop.
+ * @param index The index of the point.
+ * @see ComplexPolygon.h
+ */
+typedef bool (*dsComplexPolygonPointFunction)(void* outPosition, const dsComplexPolygon* polygon,
+	const void* points, uint32_t index);
 
 #ifdef __cplusplus
 }

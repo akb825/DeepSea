@@ -58,6 +58,10 @@ function(ds_create_vector_resources container)
 		set(workingDir "")
 	endif()
 
+	if (TARGET deepsea_vector_draw_flatbuffers)
+		list(APPEND deps deepsea_vector_draw_flatbuffers)
+	endif()
+
 	set(createVectorResources ${DEEPSEA_SOURCE_DIR}/python/CreateVectorResources.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${PYTHON_EXECUTABLE} ARGS ${createVectorResources}

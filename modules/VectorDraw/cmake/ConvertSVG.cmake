@@ -55,6 +55,10 @@ function(ds_convert_svg container)
 		set(workingDir "")
 	endif()
 
+	if (TARGET deepsea_vector_draw_flatbuffers)
+		list(APPEND deps deepsea_vector_draw_flatbuffers)
+	endif()
+
 	set(convertSvg ${DEEPSEA_SOURCE_DIR}/python/ConvertSVG.py)
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${PYTHON_EXECUTABLE} ARGS ${convertSvg}

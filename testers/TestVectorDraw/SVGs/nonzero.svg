@@ -1,0 +1,6 @@
+<svg width="120" height="120" viewBox="0 0 120 120"
+    xmlns="http://www.w3.org/2000/svg">
+  <polygon points="60,10 90,110 10,50 110,50 30,110"
+    stroke="blue" stroke-linejoin="bevel" stroke-width="2" stroke-opacity="0.75"
+	fill="black" fill-rule="nonzero" fill-opacity="0.75"/>
+</svg>

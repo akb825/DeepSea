@@ -44,8 +44,35 @@ struct dsComplexPolygon
 	uint32_t maxLoops;
 };
 
+extern "C"
+{
+
+static bool defaultGetPointFloat(void* outPosition, const dsComplexPolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	*(dsVector2f*)outPosition = ((const dsVector2f*)points)[index];
+	return true;
+}
+
+static bool defaultGetPointDouble(void* outPosition, const dsComplexPolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	*(dsVector2d*)outPosition = ((const dsVector2d*)points)[index];
+	return true;
+}
+
+static bool defaultGetPointInt(void* outPosition, const dsComplexPolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	*(dsVector2i*)outPosition = ((const dsVector2i*)points)[index];
+	return true;
+}
+
 static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsPolygonFillRule fillRule)
+	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	ClipperLib::Paths paths(loopCount);
 	dsAlignedBox2f bounds;
@@ -53,7 +80,12 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
 		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
-			dsAlignedBox2_addPoint(bounds, ((const dsVector2f*)loops[i].points)[j]);
+		{
+			dsVector2f point;
+			if (!pointFunc(&point, polygon, loops[i].points, j))
+				return false;
+			dsAlignedBox2_addPoint(bounds, point);
+		}
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit.
@@ -71,7 +103,10 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
 		{
 			dsVector2f point;
-			dsVector2_sub(point, ((const dsVector2f*)loops[i].points)[j], offset);
+			if (!pointFunc(&point, polygon, loops[i].points, j))
+				return false;
+
+			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
 			paths[i][j].X = (ClipperLib::cInt)round((double)point.x*limit);
 			paths[i][j].Y = (ClipperLib::cInt)round((double)point.y*limit);
@@ -116,7 +151,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 }
 
 static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsPolygonFillRule fillRule)
+	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	ClipperLib::Paths paths(loopCount);
 	dsAlignedBox2d bounds;
@@ -124,7 +159,12 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
 		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
-			dsAlignedBox2_addPoint(bounds, ((const dsVector2d*)loops[i].points)[j]);
+		{
+			dsVector2d point;
+			if (!pointFunc(&point, polygon, loops[i].points, j))
+				return false;
+			dsAlignedBox2_addPoint(bounds, point);
+		}
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit. The hiRange constant is too large to
@@ -143,7 +183,10 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
 		{
 			dsVector2d point;
-			dsVector2_sub(point, ((const dsVector2d*)loops[i].points)[j], offset);
+			if (!pointFunc(&point, polygon, loops[i].points, j))
+				return false;
+
+			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
 			paths[i][j].X = (ClipperLib::cInt)round(point.x*limit);
 			paths[i][j].Y = (ClipperLib::cInt)round(point.y*limit);
@@ -187,7 +230,7 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 }
 
 static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsPolygonFillRule fillRule)
+	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	ClipperLib::Paths paths(loopCount);
 	for (uint32_t i = 0; i < loopCount; ++i)
@@ -195,9 +238,12 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, u
 		paths[i].resize(loops[i].pointCount);
 		for (uint32_t j = 0; j < loops[i].pointCount; ++j)
 		{
-			const dsVector2i* point = ((const dsVector2i*)loops[i].points) + j;
-			paths[i][j].X = point->x;
-			paths[i][j].Y = point->y;
+			dsVector2i point;
+			if (!pointFunc(&point, polygon, loops[i].points, j))
+				return false;
+
+			paths[i][j].X = point.x;
+			paths[i][j].Y = point.y;
 		}
 	}
 
@@ -286,7 +332,7 @@ void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, void* userData)
 }
 
 bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
-	uint32_t loopCount, dsPolygonFillRule fillRule)
+	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	if (!polygon || (!loops && loopCount > 0))
 	{
@@ -308,11 +354,17 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsPolygonLoop* l
 	switch (polygon->element)
 	{
 		case dsGeometryElement_Float:
-			return simplifyFloat(polygon, loops, loopCount, fillRule);
+			if (!pointFunc)
+				pointFunc = defaultGetPointFloat;
+			return simplifyFloat(polygon, loops, loopCount, pointFunc, fillRule);
 		case dsGeometryElement_Double:
-			return simplifyDouble(polygon, loops, loopCount, fillRule);
+			if (!pointFunc)
+				pointFunc = defaultGetPointDouble;
+			return simplifyDouble(polygon, loops, loopCount, pointFunc, fillRule);
 		case dsGeometryElement_Int:
-			return simplifyInt(polygon, loops, loopCount, fillRule);
+			if (!pointFunc)
+				pointFunc = defaultGetPointInt;
+			return simplifyInt(polygon, loops, loopCount, pointFunc, fillRule);
 		default:
 			errno = EINVAL;
 			return false;
@@ -353,3 +405,5 @@ void dsComplexPolygon_destroy(dsComplexPolygon* polygon)
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->loops));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon));
 }
+
+} // extern "C"

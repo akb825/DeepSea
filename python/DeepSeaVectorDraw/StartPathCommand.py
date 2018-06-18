@@ -29,6 +29,14 @@ class StartPathCommand(object):
             return obj
         return None
 
-def StartPathCommandStart(builder): builder.StartObject(1)
+    # StartPathCommand
+    def Simple(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.BoolFlags, o + self._tab.Pos)
+        return 0
+
+def StartPathCommandStart(builder): builder.StartObject(2)
 def StartPathCommandAddTransform(builder, transform): builder.PrependStructSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def StartPathCommandAddSimple(builder, simple): builder.PrependBoolSlot(1, simple, 0)
 def StartPathCommandEnd(builder): return builder.EndObject()

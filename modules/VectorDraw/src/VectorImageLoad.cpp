@@ -296,6 +296,7 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 				commands[i].commandType = dsVectorCommandType_StartPath;
 				commands[i].startPath.transform =
 					*reinterpret_cast<const dsMatrix33f*>(startCommand->transform());
+				commands[i].startPath.simple = startCommand->simple();
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::MoveCommand:
@@ -392,6 +393,8 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 				commands[i].commandType = dsVectorCommandType_FillPath;
 				commands[i].fillPath.material = fillPathCommand->material()->c_str();
 				commands[i].fillPath.opacity = fillPathCommand->opacity();
+				commands[i].fillPath.fillRule =
+					static_cast<dsPolygonFillRule>(fillPathCommand->fillRule());
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::TextPathCommand:

@@ -32,6 +32,7 @@ from DeepSeaVectorDraw.ColorMaterial import *
 from DeepSeaVectorDraw.DashArray import *
 from DeepSeaVectorDraw.EllipseCommand import *
 from DeepSeaVectorDraw.FillPathCommand import *
+from DeepSeaVectorDraw.FillRule import *
 from DeepSeaVectorDraw.GradientEdge import *
 from DeepSeaVectorDraw.GradientStop import *
 from DeepSeaVectorDraw.ImageCommand import *
@@ -136,14 +137,14 @@ class Transform:
 			# Support a single matrix or translate element.
 			transformStr = node.getAttribute(transformName)
 			if transformStr[:7] == 'matrix(':
-				values = re.findall(r"[-+0-9.]+", transformStr[7:-1])
+				values = re.findall(r"[-+0-9.eE]+", transformStr[7:-1])
 				if len(values) != 6:
 					raise Exception()
 				return Transform(((float(values[0].strip()), float(values[1].strip()), 0.0),
 					(float(values[2].strip()), float(values[3].strip()), 0.0),
 					(float(values[4].strip()), float(values[5].strip()), 1.0)))
 			elif transformStr[:10] == 'translate(':
-				values = re.findall(r"[-+0-9.]+", transformStr[10:-1])
+				values = re.findall(r"[-+0-9.eE]+", transformStr[10:-1])
 				if len(values) != 2:
 					raise Exception()
 				return Transform(((1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
@@ -410,6 +411,7 @@ class Fill:
 	def __init__(self, material):
 		self.material = material
 		self.opacity = 1.0
+		self.fillRule = FillRule.EvenOdd
 
 class Style:
 	"""Style used within a vector element."""
@@ -455,6 +457,12 @@ class Style:
 				else:
 					material = materials.addColor(colorFromString(value))
 				fill = Fill(material)
+
+				if 'fill-rule' in elements:
+					if elements['fill-rule'] == 'nonzero':
+						fill.fillRule = FillRule.NonZero
+					else:
+						fill.fillRule = FillRule.EvenOdd
 		elif not parentStyle:
 			fill = Fill(materials.addColor((0, 0, 0, 255)))
 		if fill and 'fill-opacity' in elements:
@@ -511,6 +519,7 @@ class Style:
 			FillPathCommandStart(builder)
 			FillPathCommandAddMaterial(builder, materialOffset)
 			FillPathCommandAddOpacity(builder, self.fill.opacity*self.opacity)
+			FillPathCommandAddFillRule(builder, self.fill.fillRule)
 			commandOffset = FillPathCommandEnd(builder)
 
 			VectorCommandStart(builder)
@@ -538,9 +547,10 @@ class Style:
 			offsets.append(VectorCommandEnd(builder))
 		return offsets
 
-def writeStartPath(builder, transform):
+def writeStartPath(builder, transform, simple):
 	StartPathCommandStart(builder)
 	StartPathCommandAddTransform(builder, transform.createMatrix33f(builder))
+	StartPathCommandAddSimple(builder, simple)
 	commandOffset = StartPathCommandEnd(builder)
 
 	VectorCommandStart(builder)
@@ -549,7 +559,7 @@ def writeStartPath(builder, transform):
 	return [VectorCommandEnd(builder)]
 
 def writeEllipse(builder, transform, style, center, radius):
-	offsets = writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform, True)
 
 	EllipseCommandStart(builder)
 	EllipseCommandAddCenter(builder, CreateVector2f(builder, center[0], center[1]))
@@ -586,7 +596,7 @@ def writeLines(builder, transform, style, points, closePath = False):
 	if not points:
 		raise Exception("No points available.")
 
-	offsets = writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform, False)
 
 	MoveCommandStart(builder)
 	MoveCommandAddPosition(builder, CreateVector2f(builder, points[0][0], points[0][1]))
@@ -620,7 +630,7 @@ def writeLines(builder, transform, style, points, closePath = False):
 	return offsets
 
 def parsePointList(pointStr, size):
-	tokens = re.findall(r"[-+0-9.]+(?:cm|mm|Q|in|pc|pt|px|%)?", pointStr)
+	tokens = re.findall(r"[-+0-9.e]+(?:[eE][-+]?[0-9]+)?(?:cm|mm|Q|in|pc|pt|px|%)?", pointStr)
 	points = []
 	for i in range(int(len(tokens)/2)):
 		points.append((sizeFromString(tokens[i*2], size[0]),
@@ -636,10 +646,11 @@ def writePolyline(builder, transform, style, pointStr, size):
 	return writeLines(builder, transform, style, points)
 
 def writePath(builder, transform, style, path, size, diagonalSize):
-	offsets = writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform, False)
 
 	tokens = re.findall(
-		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
+		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?" \
+		"(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
 	lastQuadraticPos = None
@@ -834,7 +845,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 	return offsets
 
 def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
-	offsets = writeStartPath(builder, transform)
+	offsets = writeStartPath(builder, transform, True)
 
 	RectangleCommandStart(builder)
 	RectangleCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))

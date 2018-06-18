@@ -986,7 +986,10 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 					return false;
 				}
 			}
+
 			firstPoint = i + 1;
+			firstVertex = NOT_FOUND;
+			secondVertex = NOT_FOUND;
 			continue;
 		}
 		lastDir = nextDir;

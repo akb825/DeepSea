@@ -328,6 +328,11 @@ typedef struct dsVectorCommandStartPath
 	 * @brief The transform for the path.
 	 */
 	dsMatrix33f transform;
+
+	/**
+	 * @brief True if the path will be simple, with no overlapping or intersecting subpaths.
+	 */
+	bool simple;
 } dsVectorCommandStartPath;
 
 /**
@@ -510,6 +515,11 @@ typedef struct dsVectorCommandFillPath
 	 * @brief The opacity of the fill.
 	 */
 	float opacity;
+
+	/**
+	 * @brief The fill rule for the shape being filled.
+	 */
+	dsPolygonFillRule fillRule;
 } dsVectorCommandFillPath;
 
 /**
