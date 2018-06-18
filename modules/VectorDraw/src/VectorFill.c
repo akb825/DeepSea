@@ -26,9 +26,10 @@
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
-static bool getPosition(dsVector2d* outPosition, const void* points, void* userData, uint32_t index)
+static bool getPosition(dsVector2d* outPosition, const dsSimplePolygon* polygon, const void* points,
+	uint32_t index)
 {
-	DS_UNUSED(userData);
+	DS_UNUSED(polygon);
 	const PointInfo* pointInfos = (const PointInfo*)points;
 	outPosition->x = pointInfos[index].point.x;
 	outPosition->y = pointInfos[index].point.y;

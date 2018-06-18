@@ -16,6 +16,7 @@
 
 #include <DeepSea/Geometry/SimplePolygon.h>
 
+#include "PolygonShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -27,8 +28,7 @@
 #include <DeepSea/Math/Vector2.h>
 #include <string.h>
 
-#define NOT_FOUND (uint32_t)-1
-#define EPSILON 1e-16
+// Basis of algorithm: https://www.cs.ucsb.edu/~suri/cs235/Triangulation.pdf
 
 typedef enum ConnectingEdge
 {
@@ -105,28 +105,12 @@ typedef struct EdgeIntersectInfo
 	bool intersects;
 } EdgeIntersectInfo;
 
-static bool defaultPointPosition(dsVector2d* outPosition, const void* points,
-	void* userData, uint32_t index)
-{
-	DS_UNUSED(userData);
-	*outPosition = ((dsVector2d*)points)[index];
-	return true;
-}
-
 static int comparePolygonVertex(const void* left, const void* right, void* context)
 {
 	const dsSimplePolygon* polygon = (const dsSimplePolygon*)context;
 	const dsVector2d* leftVert = &polygon->vertices[*(const uint32_t*)left].point;
 	const dsVector2d* rightVert = &polygon->vertices[*(const uint32_t*)right].point;
-	if (leftVert->x < rightVert->x)
-		return -1;
-	else if (leftVert->x > rightVert->x)
-		return 1;
-	else if (leftVert->y < rightVert->y)
-		return -1;
-	else if (leftVert->y > rightVert->y)
-		return 1;
-	return 0;
+	return dsComparePolygonPoints(leftVert, rightVert);
 }
 
 static int compareLoopVertex(const void* left, const void* right, void* context)
@@ -136,15 +120,7 @@ static int compareLoopVertex(const void* left, const void* right, void* context)
 	const LoopVertex* rightVert = (const LoopVertex*)right;
 	const dsVector2d* leftPos = &polygon->vertices[leftVert->vertIndex].point;
 	const dsVector2d* rightPos = &polygon->vertices[rightVert->vertIndex].point;
-	if (leftPos->x < rightPos->x)
-		return -1;
-	else if (leftPos->x > rightPos->x)
-		return 1;
-	else if (leftPos->y < rightPos->y)
-		return -1;
-	else if (leftPos->y > rightPos->y)
-		return 1;
-	return 0;
+	return dsComparePolygonPoints(leftPos, rightPos);
 }
 
 static bool getEdgeBounds(void* outBounds, const dsBVH* bvh, const void* object)
@@ -162,14 +138,14 @@ static bool getEdgeBounds(void* outBounds, const dsBVH* bvh, const void* object)
 	return true;
 }
 
-static bool intersectPolygonEdge(void* userData, const dsBVH* bvh, const void* object,
+static bool testEdgeIntersect(void* userData, const dsBVH* bvh, const void* object,
 	const void* bounds)
 {
+	DS_UNUSED(bounds);
 	EdgeIntersectInfo* info = (EdgeIntersectInfo*)userData;
 	DS_ASSERT(!info->intersects);
 	const dsSimplePolygon* polygon = (const dsSimplePolygon*)dsBVH_getUserData(bvh);
 	const Edge* otherEdge = polygon->edges + (size_t)object;
-	const dsAlignedBox2d* edgeBounds = (const dsAlignedBox2d*)bounds;
 
 	// Don't count neighboring edges.
 	if (otherEdge->prevVertex == info->fromVert || otherEdge->prevVertex == info->toVert ||
@@ -180,40 +156,8 @@ static bool intersectPolygonEdge(void* userData, const dsBVH* bvh, const void* o
 
 	const dsVector2d* otherFrom = &polygon->vertices[otherEdge->prevVertex].point;
 	const dsVector2d* otherTo = &polygon->vertices[otherEdge->nextVertex].point;
-
-	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-	double divisor = (info->fromPos.x - info->toPos.x)*(otherFrom->y - otherTo->y) -
-		(info->fromPos.y - info->toPos.y)*(otherFrom->x - otherTo->x);
-	if (divisor == 0.0)
-		return true;
-	divisor = 1.0/divisor;
-
-	dsVector2d intersect =
-	{{
-		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*
-				(otherFrom->x - otherTo->x) -
-			(info->fromPos.x - info->toPos.x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
-		(info->fromPos.x*info->toPos.y - info->fromPos.y*info->toPos.x)*
-				(otherFrom->y - otherTo->y) -
-			(info->fromPos.y - info->toPos.y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
-	}};
-	dsVector2_scale(intersect, intersect, divisor);
-
-	// Check the range of the maximum extents. This avoids precision issues when the line is
-	// axis-aligned.
-	dsVector2d extents;
-	dsAlignedBox2_extents(extents, *edgeBounds);
-	if (extents.x > extents.y)
-	{
-		info->intersects = intersect.x >= edgeBounds->min.x - EPSILON &&
-			intersect.y <= edgeBounds->max.x + EPSILON;
-	}
-	else
-	{
-		info->intersects = intersect.y >= edgeBounds->min.y - EPSILON &&
-			intersect.y <= edgeBounds->max.y + EPSILON;
-	}
-
+	info->intersects = dsIntersectPolygonEdges(NULL, NULL, NULL, &info->fromPos, &info->toPos,
+		otherFrom, otherTo);
 	return !info->intersects;
 }
 
@@ -234,7 +178,7 @@ static bool canConnectPolygonEdge(const dsSimplePolygon* polygon, uint32_t fromV
 	dsAlignedBox2_addPoint(edgeBounds, toVert->point);
 
 	EdgeIntersectInfo info = {fromVert->point, toVert->point, fromVertIdx, toVertIdx, false};
-	dsBVH_intersect(polygon->edgeBVH, &edgeBounds, &intersectPolygonEdge, &info);
+	dsBVH_intersect(polygon->edgeBVH, &edgeBounds, &testEdgeIntersect, &info);
 	return !info.intersects;
 }
 
@@ -318,7 +262,7 @@ static bool addVerticesAndEdges(dsSimplePolygon* polygon, const void* points, ui
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
 		Vertex* vertex = polygon->vertices + i;
-		if (!pointPositionFunc(&vertex->point, points, polygon->userData, i))
+		if (!pointPositionFunc(&vertex->point, polygon, points, i))
 			return false;
 
 		if (i > 0 && dsVector2d_epsilonEqual(&vertex->point, &polygon->vertices[i - 1].point,
@@ -526,13 +470,6 @@ static uint32_t findOtherPoint(const dsSimplePolygon* polygon, const uint32_t* s
 	return NOT_FOUND;
 }
 
-static bool isTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVector2d* p2)
-{
-	// Cross product of the triangle with Z = 0.
-	double cross = (p1->x - p0->x)*(p2->y - p0->y) - (p2->x - p0->x)*(p1->y - p0->y);
-	return cross >= 0.0f;
-}
-
 static bool isPolygonCCW(dsSimplePolygon* polygon)
 {
 	if (polygon->vertexCount == 0)
@@ -546,8 +483,8 @@ static bool isPolygonCCW(dsSimplePolygon* polygon)
 		polygon->edges[polygon->vertices[p0Vert].nextEdges[ConnectingEdge_Main]].nextVertex;
 	uint32_t p2Vert =
 		polygon->edges[polygon->vertices[p0Vert].prevEdges[ConnectingEdge_Main]].prevVertex;
-	return isTriangleCCW(&polygon->vertices[p0Vert].point, &polygon->vertices[p1Vert].point,
-		&polygon->vertices[p2Vert].point);
+	return dsIsPolygonTriangleCCW(&polygon->vertices[p0Vert].point,
+		&polygon->vertices[p1Vert].point, &polygon->vertices[p2Vert].point);
 }
 
 static bool findPolygonLoops(dsSimplePolygon* polygon, bool ccw)
@@ -566,7 +503,7 @@ static bool findPolygonLoops(dsSimplePolygon* polygon, bool ccw)
 		if (prevLeft != nextLeft)
 			continue;
 
-		bool triangleCCW = isTriangleCCW(&polygon->vertices[prev].point,
+		bool triangleCCW = dsIsPolygonTriangleCCW(&polygon->vertices[prev].point,
 			&polygon->vertices[*sortedVert].point, &polygon->vertices[next].point);
 		if (triangleCCW == ccw)
 			continue;
@@ -712,7 +649,7 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 				bool expectedCCW = ccw;
 				if (!isNext)
 					expectedCCW = !expectedCCW;
-				bool triangleCCW = isTriangleCCW(p0, p1, p2);
+				bool triangleCCW = dsIsPolygonTriangleCCW(p0, p1, p2);
 				if (triangleCCW != expectedCCW)
 					break;
 
@@ -746,7 +683,7 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 				const dsVector2d* p2 =
 					&polygon->vertices[polygon->loopVertices[p2Vert].vertIndex].point;
 
-				if (isTriangleCCW(p0, p1, p2) != targetCCW)
+				if (dsIsPolygonTriangleCCW(p0, p1, p2) != targetCCW)
 				{
 					uint32_t temp = p1Vert;
 					p1Vert = p2Vert;
@@ -775,6 +712,34 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 		return false;
 	}
 
+	return true;
+}
+
+bool dsSimplePolygon_getPointVector2f(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	const dsVector2f* point = (const dsVector2f*)points + index;
+	outPosition->x = point->x;
+	outPosition->y = point->y;
+	return true;
+}
+
+bool dsSimplePolygon_getPointVector2d(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	*outPosition = ((const dsVector2d*)points)[index];
+	return true;
+}
+
+bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+	const void* points, uint32_t index)
+{
+	DS_UNUSED(polygon);
+	const dsVector2i* point = (const dsVector2i*)points + index;
+	outPosition->x = point->x;
+	outPosition->y = point->y;
 	return true;
 }
 
@@ -831,7 +796,7 @@ const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,
 	}
 
 	if (!pointPositionFunc)
-		pointPositionFunc = &defaultPointPosition;
+		pointPositionFunc = &dsSimplePolygon_getPointVector2d;
 
 	polygon->vertexCount = 0;
 	polygon->edgeCount = 0;

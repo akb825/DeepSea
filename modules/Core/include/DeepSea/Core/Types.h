@@ -63,6 +63,22 @@ typedef enum dsProfileType
 } dsProfileType;
 
 /**
+ * @brief Struct containing a range of indices.
+ */
+typedef struct dsIndexRange
+{
+	/**
+	 * @brief The first index in the range.
+	 */
+	uint32_t start;
+
+	/**
+	 * @brief The number of elements in the range.
+	 */
+	uint32_t count;
+} dsIndexRange;
+
+/**
  * @brief Type of the sort comparisson function.
  * @param left The left item.
  * @param right The right item.

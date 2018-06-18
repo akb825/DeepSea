@@ -386,21 +386,56 @@ typedef enum dsTriangulateWinding
 typedef struct dsSimplePolygon dsSimplePolygon;
 
 /**
- * @brief Function for getting the position of a polygon point.
- *
- * This is used by various polygon utilities such as dsSimplePolygon to query the position from the
- * original data.
- *
+ * @brief Function for getting the position of a polygon point for a simple polygon.
  * @remark errno should be set on failure.
  * @param[out] outPosition The memory to place the position into.
+ * @param polygon The polygon to get the point for.
  * @param points The point data to index into.
- * @param userData User data provided with the polygon.
- * @param element The type of each position element. This must either be float or double.
  * @param index The index of the point.
  * @return True if outPosition was successfully assigned.
+ * @see SimplePolygon.h
  */
-typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, const void* points,
-	void* userData, uint32_t index);
+typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+	const void* points, uint32_t index);
+
+/**
+ * @brief Enum for the fill rule when triangulating a complex polygon.
+ *
+ * When overlaps occur, this is calculated by adding counter-clockwise sections and subtracing
+ * clockwise sections.
+ */
+typedef enum dsPolygonFillRule
+{
+	dsPolygonFillRule_EvenOdd, ///< Fill when the sum of winding orders is odd, hole when even.
+	dsPolygonFillRule_NonZero  ///< Fill when the sum of winding orders isn't equal to 0.
+} dsPolygonFillRule;
+
+/**
+ * @brief Struct for a polygon loop used as part of a complex polygon.
+ * @see ComplexPolygon.h
+ */
+typedef struct dsPolygonLoop
+{
+	/**
+	 * @brief The list of points.
+	 *
+	 * This must be an array of dsVector2f, dsVector2d, or dsVector2i based on the element set on
+	 * the dsComplexPolygon it's used with. The last point will automatically be connected to the
+	 * first point to close the loop.
+	 */
+	const void* points;
+
+	/**
+	 * @brief The number of points in the loop.
+	 */
+	uint32_t pointCount;
+} dsPolygonLoop;
+
+/**
+ * @brief Structure to define a complex polygon for simplification.
+ * @see ComplexPolygon.h
+ */
+typedef struct dsComplexPolygon dsComplexPolygon;
 
 #ifdef __cplusplus
 }

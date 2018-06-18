@@ -41,8 +41,52 @@ extern "C"
  * resolving the 3D positions to 2D positions, either be dropping a coordinate (e.g. dropping Z) or
  * performing a transform. (e.g. projecting to a plane or other surface)
  *
- * @see SimplePolygon
+ * @see dsSimplePolygon
  */
+
+/**
+ * @brief Function to get polygon points from a dsVector2f array.
+ *
+ * This may be provided as the pointPositionFunc parameter to dsSimplePolygon_triangulate.
+ *
+ * @param[out] outPosition The position for the point.
+ * @param polygon The polygon being triangulated.
+ * @param points The array of points, which is expected to be an array of dsVector2f.
+ * @param index The index of the point.
+ * @return This will always return true.
+ */
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2f(dsVector2d* outPosition,
+	const dsSimplePolygon* polygon, const void* points, uint32_t index);
+
+/**
+ * @brief Function to get polygon points from a dsVector2d array.
+ *
+ * This may be provided as the pointPositionFunc parameter to dsSimplePolygon_triangulate.
+ *
+ * @remark This may will be implicitly used if pointPositionFunc is NULL.
+ *
+ * @param[out] outPosition The position for the point.
+ * @param polygon The polygon being triangulated.
+ * @param points The array of points, which is expected to be an array of dsVector2d.
+ * @param index The index of the point.
+ * @return This will always return true.
+ */
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2d(dsVector2d* outPosition,
+	const dsSimplePolygon* polygon, const void* points, uint32_t index);
+
+/**
+ * @brief Function to get polygon points from a dsVector2i array.
+ *
+ * This may be provided as the pointPositionFunc parameter to dsSimplePolygon_triangulate.
+ *
+ * @param[out] outPosition The position for the point.
+ * @param polygon The polygon being triangulated.
+ * @param points The array of points, which is expected to be an array of dsVector2i.
+ * @param index The index of the point.
+ * @return This will always return true.
+ */
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition,
+	const dsSimplePolygon* polygon, const void* points, uint32_t index);
 
 /**
  * @brief Creates a simple polygon.
@@ -73,10 +117,10 @@ DS_GEOMETRY_EXPORT void dsSimplePolygon_setUserData(dsSimplePolygon* polygon, vo
  * @param[out] outIndexCount The number of indices that were produced.
  * @param polygon The polygon to process the triangulation.
  * @param points The points to triangulate. The last point will automatically be connected to the
- *     first point to close the loop. Duplicate points in a series should be avoided for input.
+ *     first point to close the loop. Duplicate points in a series are not allowed.
  * @param pointCount The number of points.
  * @param pointPositionFunc Function to get the position of each point. This may be NULL if points
- *     is an array of dsVector2d.
+ *     is an array of dsVector2d, in which case dsSimplePolygon_getPointVector2d will be used.
  * @param winding The winding order to triangulate with.
  * @return An array of indices produced, the size of which is populated in outIndexCount, or NULL
  *     if the polygon couldn't be triangulated. This will be valid until the polygon is
