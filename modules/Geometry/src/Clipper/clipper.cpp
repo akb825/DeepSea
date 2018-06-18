@@ -337,10 +337,10 @@ class Int128
       if (hi < 0)
       {
         if (lo == 0) return (double)hi * shift64;
-        else return -(double)(~lo + ~hi * shift64);
+        else return -((double)~lo + (double)~hi * shift64);
       }
       else
-        return (double)(lo + hi * shift64);
+        return ((double)lo + (double)hi * shift64);
     }
 
 };
@@ -391,7 +391,7 @@ double Area(const Path &poly)
   double a = 0;
   for (int i = 0, j = size -1; i < size; ++i)
   {
-    a += ((double)poly[j].X + poly[i].X) * ((double)poly[j].Y - poly[i].Y);
+    a += ((double)poly[j].X + (double)poly[i].X) * ((double)poly[j].Y - (double)poly[i].Y);
     j = i;
   }
   return -a * 0.5;
@@ -454,8 +454,8 @@ int PointInPolygon(const IntPoint &pt, const Path &path)
         if (ipNext.X > pt.X) result = 1 - result;
         else
         {
-          double d = (double)(ip.X - pt.X) * (ipNext.Y - pt.Y) -
-            (double)(ipNext.X - pt.X) * (ip.Y - pt.Y);
+          double d = (double)(ip.X - pt.X) * (double)(ipNext.Y - pt.Y) -
+            (double)(ipNext.X - pt.X) * (double)(ip.Y - pt.Y);
           if (d == 0) return -1;
           if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
         }
@@ -463,8 +463,8 @@ int PointInPolygon(const IntPoint &pt, const Path &path)
       {
         if (ipNext.X > pt.X)
         {
-          double d = (double)(ip.X - pt.X) * (ipNext.Y - pt.Y) -
-            (double)(ipNext.X - pt.X) * (ip.Y - pt.Y);
+          double d = (double)(ip.X - pt.X) * (double)(ipNext.Y - pt.Y) -
+            (double)(ipNext.X - pt.X) * (double)(ip.Y - pt.Y);
           if (d == 0) return -1;
           if ((d > 0) == (ipNext.Y > ip.Y)) result = 1 - result;
         }
@@ -495,8 +495,8 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
         if (op->Next->Pt.X > pt.X) result = 1 - result;
         else
         {
-          double d = (double)(op->Pt.X - pt.X) * (op->Next->Pt.Y - pt.Y) -
-            (double)(op->Next->Pt.X - pt.X) * (op->Pt.Y - pt.Y);
+          double d = (double)(op->Pt.X - pt.X) * (double)(op->Next->Pt.Y - pt.Y) -
+            (double)(op->Next->Pt.X - pt.X) * (double)(op->Pt.Y - pt.Y);
           if (d == 0) return -1;
           if ((d > 0) == (op->Next->Pt.Y > op->Pt.Y)) result = 1 - result;
         }
@@ -504,8 +504,8 @@ int PointInPolygon (const IntPoint &pt, OutPt *op)
       {
         if (op->Next->Pt.X > pt.X)
         {
-          double d = (double)(op->Pt.X - pt.X) * (op->Next->Pt.Y - pt.Y) -
-            (double)(op->Next->Pt.X - pt.X) * (op->Pt.Y - pt.Y);
+          double d = (double)(op->Pt.X - pt.X) * (double)(op->Next->Pt.Y - pt.Y) -
+            (double)(op->Next->Pt.X - pt.X) * (double)(op->Pt.Y - pt.Y);
           if (d == 0) return -1;
           if ((d > 0) == (op->Next->Pt.Y > op->Pt.Y)) result = 1 - result;
         }
@@ -579,7 +579,7 @@ inline bool IsHorizontal(TEdge &e)
 inline double GetDx(const IntPoint pt1, const IntPoint pt2)
 {
   return (pt1.Y == pt2.Y) ?
-    HORIZONTAL : (double)(pt2.X - pt1.X) / (pt2.Y - pt1.Y);
+    HORIZONTAL : (double)(pt2.X - pt1.X) / (double)(pt2.Y - pt1.Y);
 }
 //---------------------------------------------------------------------------
 
@@ -587,7 +587,7 @@ inline void SetDx(TEdge &e)
 {
   cInt dy  = (e.Top.Y - e.Bot.Y);
   if (dy == 0) e.Dx = HORIZONTAL;
-  else e.Dx = (double)(e.Top.X - e.Bot.X) / dy;
+  else e.Dx = (double)(e.Top.X - e.Bot.X) / (double)dy;
 }
 //---------------------------------------------------------------------------
 
@@ -610,7 +610,7 @@ inline void SwapPolyIndexes(TEdge &Edge1, TEdge &Edge2)
 inline cInt TopX(TEdge &edge, const cInt currentY)
 {
   return ( currentY == edge.Top.Y ) ?
-    edge.Top.X : edge.Bot.X + Round(edge.Dx *(currentY - edge.Bot.Y));
+    edge.Top.X : edge.Bot.X + Round(edge.Dx * (double)(currentY - edge.Bot.Y));
 }
 //------------------------------------------------------------------------------
 
@@ -634,8 +634,8 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
       ip.Y = Edge2.Bot.Y;
     else
     {
-      b2 = Edge2.Bot.Y - (Edge2.Bot.X / Edge2.Dx);
-      ip.Y = Round(ip.X / Edge2.Dx + b2);
+      b2 = (double)Edge2.Bot.Y - ((double)Edge2.Bot.X / Edge2.Dx);
+      ip.Y = Round((double)ip.X / (double)Edge2.Dx + b2);
     }
   }
   else if (Edge2.Dx == 0)
@@ -645,14 +645,14 @@ void IntersectPoint(TEdge &Edge1, TEdge &Edge2, IntPoint &ip)
       ip.Y = Edge1.Bot.Y;
     else
     {
-      b1 = Edge1.Bot.Y - (Edge1.Bot.X / Edge1.Dx);
-      ip.Y = Round(ip.X / Edge1.Dx + b1);
+      b1 = (double)Edge1.Bot.Y - ((double)Edge1.Bot.X / Edge1.Dx);
+      ip.Y = Round((double)ip.X / (double)Edge1.Dx + b1);
     }
   }
   else
   {
-    b1 = Edge1.Bot.X - Edge1.Bot.Y * Edge1.Dx;
-    b2 = Edge2.Bot.X - Edge2.Bot.Y * Edge2.Dx;
+    b1 = (double)Edge1.Bot.X - (double)Edge1.Bot.Y * Edge1.Dx;
+    b2 = (double)Edge2.Bot.X - (double)Edge2.Bot.Y * Edge2.Dx;
     double q = (b2-b1) / (Edge1.Dx - Edge2.Dx);
     ip.Y = Round(q);
     if (std::fabs(Edge1.Dx) < std::fabs(Edge2.Dx))
@@ -713,7 +713,7 @@ void DisposeOutPts(OutPt*& pp)
 
 inline void InitEdge(TEdge* e, TEdge* eNext, TEdge* ePrev, const IntPoint& Pt)
 {
-  std::memset(e, 0, sizeof(TEdge));
+  std::memset((void*)e, 0, sizeof(TEdge));
   e->Next = eNext;
   e->Prev = ePrev;
   e->Curr = Pt;
@@ -1143,7 +1143,7 @@ bool ClipperBase::AddPath(const Path &pg, PolyType PolyTyp, bool Closed)
     }
     m_MinimaList.push_back(locMin);
     m_edges.push_back(edges);
-	  return true;
+    return true;
   }
 
   m_edges.push_back(edges);
@@ -1547,7 +1547,7 @@ bool Clipper::ExecuteInternal()
   while (PopScanbeam(topY) || LocalMinimaPending())
   {
     ProcessHorizontals();
-	    ClearGhostJoins();
+    ClearGhostJoins();
     if (!ProcessIntersections(topY))
     {
       succeeded = false;
@@ -1980,13 +1980,13 @@ void Clipper::InsertLocalMinimaIntoAEL(const cInt botY)
 
      if (rb)
      {
-		 if (IsHorizontal(*rb))
-		 {
-			 AddEdgeToSEL(rb);
-			 if (rb->NextInLML)
-				 InsertScanbeam(rb->NextInLML->Top.Y);
-		 }
-		 else InsertScanbeam( rb->Top.Y );
+     if (IsHorizontal(*rb))
+     {
+       AddEdgeToSEL(rb);
+       if (rb->NextInLML)
+         InsertScanbeam(rb->NextInLML->Top.Y);
+     }
+     else InsertScanbeam( rb->Top.Y );
      }
 
     if (!lb || !rb) continue;
@@ -2084,7 +2084,7 @@ void Clipper::IntersectEdges(TEdge *e1, TEdge *e2, IntPoint &Pt)
   {
     //ignore subject-subject open path intersections UNLESS they
     //are both open paths, AND they are both 'contributing maximas' ...
-	if (e1->WindDelta == 0 && e2->WindDelta == 0) return;
+    if (e1->WindDelta == 0 && e2->WindDelta == 0) return;
 
     //if intersecting a subj line with a subj poly ...
     else if (e1->PolyTyp == e2->PolyTyp &&
@@ -2448,8 +2448,8 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
     //OutRec.Pts is the 'Left-most' point & OutRec.Pts.Prev is the 'Right-most'
     OutPt* op = outRec->Pts;
 
-	bool ToFront = (e->Side == esLeft);
-	if (ToFront && (pt == op->Pt)) return op;
+    bool ToFront = (e->Side == esLeft);
+    if (ToFront && (pt == op->Pt)) return op;
     else if (!ToFront && (pt == op->Prev->Pt)) return op->Prev;
 
     OutPt* newOp = new OutPt;
@@ -2467,11 +2467,11 @@ OutPt* Clipper::AddOutPt(TEdge *e, const IntPoint &pt)
 
 OutPt* Clipper::GetLastOutPt(TEdge *e)
 {
-	OutRec *outRec = m_PolyOuts[e->OutIdx];
-	if (e->Side == esLeft)
-		return outRec->Pts;
-	else
-		return outRec->Pts->Prev;
+  OutRec *outRec = m_PolyOuts[e->OutIdx];
+  if (e->Side == esLeft)
+    return outRec->Pts;
+  else
+    return outRec->Pts->Prev;
 }
 //------------------------------------------------------------------------------
 
@@ -2644,91 +2644,91 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
     while(e)
     {
 
-        //this code block inserts extra coords into horizontal edges (in output
-        //polygons) whereever maxima touch these horizontal edges. This helps
-        //'simplifying' polygons (ie if the Simplify property is set).
-        if (m_Maxima.size() > 0)
+      //this code block inserts extra coords into horizontal edges (in output
+      //polygons) whereever maxima touch these horizontal edges. This helps
+      //'simplifying' polygons (ie if the Simplify property is set).
+      if (m_Maxima.size() > 0)
+      {
+        if (dir == dLeftToRight)
         {
-            if (dir == dLeftToRight)
-            {
-                while (maxIt != m_Maxima.end() && *maxIt < e->Curr.X)
-                {
-                  if (horzEdge->OutIdx >= 0 && !IsOpen)
-                    AddOutPt(horzEdge, IntPoint(*maxIt, horzEdge->Bot.Y));
-                  maxIt++;
-                }
-            }
-            else
-            {
-                while (maxRit != m_Maxima.rend() && *maxRit > e->Curr.X)
-                {
-                  if (horzEdge->OutIdx >= 0 && !IsOpen)
-                    AddOutPt(horzEdge, IntPoint(*maxRit, horzEdge->Bot.Y));
-                  maxRit++;
-                }
-            }
-        };
-
-        if ((dir == dLeftToRight && e->Curr.X > horzRight) ||
-			(dir == dRightToLeft && e->Curr.X < horzLeft)) break;
-
-		//Also break if we've got to the end of an intermediate horizontal edge ...
-		//nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
-		if (e->Curr.X == horzEdge->Top.X && horzEdge->NextInLML &&
-			e->Dx < horzEdge->NextInLML->Dx) break;
-
-    if (horzEdge->OutIdx >= 0 && !IsOpen)  //note: may be done multiple times
-		{
-#ifdef use_xyz
-			if (dir == dLeftToRight) SetZ(e->Curr, *horzEdge, *e);
-			else SetZ(e->Curr, *e, *horzEdge);
-#endif
-			op1 = AddOutPt(horzEdge, e->Curr);
-			TEdge* eNextHorz = m_SortedEdges;
-			while (eNextHorz)
-			{
-				if (eNextHorz->OutIdx >= 0 &&
-					HorzSegmentsOverlap(horzEdge->Bot.X,
-					horzEdge->Top.X, eNextHorz->Bot.X, eNextHorz->Top.X))
-				{
-                    OutPt* op2 = GetLastOutPt(eNextHorz);
-                    AddJoin(op2, op1, eNextHorz->Top);
-				}
-				eNextHorz = eNextHorz->NextInSEL;
-			}
-			AddGhostJoin(op1, horzEdge->Bot);
-		}
-
-		//OK, so far we're still in range of the horizontal Edge  but make sure
-        //we're at the last of consec. horizontals when matching with eMaxPair
-        if(e == eMaxPair && IsLastHorz)
-        {
-          if (horzEdge->OutIdx >= 0)
-            AddLocalMaxPoly(horzEdge, eMaxPair, horzEdge->Top);
-          DeleteFromAEL(horzEdge);
-          DeleteFromAEL(eMaxPair);
-          return;
-        }
-
-		if(dir == dLeftToRight)
-        {
-          IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
-          IntersectEdges(horzEdge, e, Pt);
+          while (maxIt != m_Maxima.end() && *maxIt < e->Curr.X)
+          {
+            if (horzEdge->OutIdx >= 0 && !IsOpen)
+              AddOutPt(horzEdge, IntPoint(*maxIt, horzEdge->Bot.Y));
+            maxIt++;
+          }
         }
         else
         {
-          IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
-          IntersectEdges( e, horzEdge, Pt);
+          while (maxRit != m_Maxima.rend() && *maxRit > e->Curr.X)
+          {
+            if (horzEdge->OutIdx >= 0 && !IsOpen)
+              AddOutPt(horzEdge, IntPoint(*maxRit, horzEdge->Bot.Y));
+            maxRit++;
+          }
         }
-        TEdge* eNext = GetNextInAEL(e, dir);
-        SwapPositionsInAEL( horzEdge, e );
-        e = eNext;
+      };
+
+      if ((dir == dLeftToRight && e->Curr.X > horzRight) ||
+        (dir == dRightToLeft && e->Curr.X < horzLeft)) break;
+
+      //Also break if we've got to the end of an intermediate horizontal edge ...
+      //nb: Smaller Dx's are to the right of larger Dx's ABOVE the horizontal.
+      if (e->Curr.X == horzEdge->Top.X && horzEdge->NextInLML &&
+        e->Dx < horzEdge->NextInLML->Dx) break;
+
+      if (horzEdge->OutIdx >= 0 && !IsOpen)  //note: may be done multiple times
+      {
+#ifdef use_xyz
+        if (dir == dLeftToRight) SetZ(e->Curr, *horzEdge, *e);
+        else SetZ(e->Curr, *e, *horzEdge);
+#endif
+        op1 = AddOutPt(horzEdge, e->Curr);
+        TEdge* eNextHorz = m_SortedEdges;
+        while (eNextHorz)
+        {
+          if (eNextHorz->OutIdx >= 0 &&
+            HorzSegmentsOverlap(horzEdge->Bot.X,
+            horzEdge->Top.X, eNextHorz->Bot.X, eNextHorz->Top.X))
+          {
+            OutPt* op2 = GetLastOutPt(eNextHorz);
+            AddJoin(op2, op1, eNextHorz->Top);
+          }
+          eNextHorz = eNextHorz->NextInSEL;
+        }
+        AddGhostJoin(op1, horzEdge->Bot);
+      }
+
+      //OK, so far we're still in range of the horizontal Edge  but make sure
+      //we're at the last of consec. horizontals when matching with eMaxPair
+      if(e == eMaxPair && IsLastHorz)
+      {
+        if (horzEdge->OutIdx >= 0)
+          AddLocalMaxPoly(horzEdge, eMaxPair, horzEdge->Top);
+        DeleteFromAEL(horzEdge);
+        DeleteFromAEL(eMaxPair);
+        return;
+      }
+
+      if(dir == dLeftToRight)
+      {
+        IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
+        IntersectEdges(horzEdge, e, Pt);
+      }
+      else
+      {
+        IntPoint Pt = IntPoint(e->Curr.X, horzEdge->Curr.Y);
+        IntersectEdges( e, horzEdge, Pt);
+      }
+      TEdge* eNext = GetNextInAEL(e, dir);
+      SwapPositionsInAEL( horzEdge, e );
+      e = eNext;
     } //end while(e)
 
-	//Break out of loop if HorzEdge.NextInLML is not also horizontal ...
-	if (!horzEdge->NextInLML || !IsHorizontal(*horzEdge->NextInLML)) break;
+    //Break out of loop if HorzEdge.NextInLML is not also horizontal ...
+    if (!horzEdge->NextInLML || !IsHorizontal(*horzEdge->NextInLML)) break;
 
-	UpdateEdgeIntoAEL(horzEdge);
+    UpdateEdgeIntoAEL(horzEdge);
     if (horzEdge->OutIdx >= 0) AddOutPt(horzEdge, horzEdge->Bot);
     GetHorzDirection(*horzEdge, dir, horzLeft, horzRight);
 
@@ -2999,9 +2999,9 @@ void Clipper::ProcessEdgesAtTopOfScanbeam(const cInt topY)
         e->Curr.X = TopX( *e, topY );
         e->Curr.Y = topY;
 #ifdef use_xyz
-		e->Curr.Z = topY == e->Top.Y ? e->Top.Z : (topY == e->Bot.Y ? e->Bot.Z : 0);
+        e->Curr.Z = topY == e->Top.Y ? e->Top.Z : (topY == e->Bot.Y ? e->Bot.Z : 0);
 #endif
-	  }
+      }
 
       //When StrictlySimple and 'e' is being touched by another edge, then
       //make sure both edges have a vertex here ...
@@ -3839,8 +3839,8 @@ void SimplifyPolygons(Paths &polys, PolyFillType fillType)
 
 inline double DistanceSqrd(const IntPoint& pt1, const IntPoint& pt2)
 {
-  double Dx = ((double)pt1.X - pt2.X);
-  double dy = ((double)pt1.Y - pt2.Y);
+  double Dx = ((double)pt1.X - (double)pt2.X);
+  double dy = ((double)pt1.Y - (double)pt2.Y);
   return (Dx*Dx + dy*dy);
 }
 //------------------------------------------------------------------------------
@@ -3856,8 +3856,8 @@ double DistanceFromLineSqrd(
   //see http://en.wikipedia.org/wiki/Perpendicular_distance
   double A = double(ln1.Y - ln2.Y);
   double B = double(ln2.X - ln1.X);
-  double C = A * ln1.X  + B * ln1.Y;
-  C = A * pt.X + B * pt.Y - C;
+  double C = A * (double)ln1.X  + B * (double)ln1.Y;
+  C = A * (double)pt.X + B * (double)pt.Y - C;
   return (C * C) / (A * A + B * B);
 }
 //---------------------------------------------------------------------------
@@ -3868,31 +3868,31 @@ bool SlopesNearCollinear(const IntPoint& pt1,
   //this function is more accurate when the point that's geometrically
   //between the other 2 points is the one that's tested for distance.
   //ie makes it more likely to pick up 'spikes' ...
-	if (Abs(pt1.X - pt2.X) > Abs(pt1.Y - pt2.Y))
-	{
+  if (Abs(pt1.X - pt2.X) > Abs(pt1.Y - pt2.Y))
+  {
     if ((pt1.X > pt2.X) == (pt1.X < pt3.X))
       return DistanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
     else if ((pt2.X > pt1.X) == (pt2.X < pt3.X))
       return DistanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
-		else
-	    return DistanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
-	}
-	else
-	{
+    else
+      return DistanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
+  }
+  else
+  {
     if ((pt1.Y > pt2.Y) == (pt1.Y < pt3.Y))
       return DistanceFromLineSqrd(pt1, pt2, pt3) < distSqrd;
     else if ((pt2.Y > pt1.Y) == (pt2.Y < pt3.Y))
       return DistanceFromLineSqrd(pt2, pt1, pt3) < distSqrd;
-		else
+    else
       return DistanceFromLineSqrd(pt3, pt1, pt2) < distSqrd;
-	}
+  }
 }
 //------------------------------------------------------------------------------
 
 bool PointsAreClose(IntPoint pt1, IntPoint pt2, double distSqrd)
 {
-    double Dx = (double)pt1.X - pt2.X;
-    double dy = (double)pt1.Y - pt2.Y;
+    double Dx = (double)pt1.X - (double)pt2.X;
+    double dy = (double)pt1.Y - (double)pt2.Y;
     return ((Dx * Dx) + (dy * dy) <= distSqrd);
 }
 //------------------------------------------------------------------------------
