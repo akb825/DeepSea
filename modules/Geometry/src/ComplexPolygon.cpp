@@ -28,6 +28,8 @@
 #include <DeepSea/Math/Core.h>
 #include <string.h>
 
+using namespace ClipperLib;
+
 struct dsComplexPolygon
 {
 	dsAllocator* allocator;
@@ -71,10 +73,23 @@ static bool defaultGetPointInt(void* outPosition, const dsComplexPolygon* polygo
 	return true;
 }
 
+static bool simplifyPolygon(Paths& paths, dsPolygonFillRule fillRule)
+{
+	PolyFillType clipperFillType = pftEvenOdd;
+	if (fillRule == dsPolygonFillRule_NonZero)
+		clipperFillType = pftNonZero;
+
+	Clipper c(ioStrictlySimple);
+	c.AddPaths(paths, ptSubject, true);
+	c.Execute(ctUnion, paths, clipperFillType);
+
+	return true;
+}
+
 static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
 	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
-	ClipperLib::Paths paths(loopCount);
+	Paths paths(loopCount);
 	dsAlignedBox2f bounds;
 	dsAlignedBox2f_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < loopCount; ++i)
@@ -89,7 +104,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 	}
 
 	// Normalize to range [-1, 1] to put in the integer limit.
-	const double limit = (double)ClipperLib::loRange;
+	const double limit = (double)loRange;
 	dsVector2f offset, scale, invScale;
 	dsVector2f one = {{1.0f, 1.0f}};
 	dsVector2f half = {{0.5f, 0.5f}};
@@ -108,16 +123,16 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (ClipperLib::cInt)round((double)point.x*limit);
-			paths[i][j].Y = (ClipperLib::cInt)round((double)point.y*limit);
+			paths[i][j].X = (cInt)round((double)point.x*limit);
+			paths[i][j].Y = (cInt)round((double)point.y*limit);
 		}
 	}
 
-	ClipperLib::SimplifyPolygons(paths,
-		fillRule == dsPolygonFillRule_NonZero ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd);
+	if (!simplifyPolygon(paths, fillRule))
+		return false;
 
 	uint32_t pointCount = 0;
-	for (const ClipperLib::Path& path : paths)
+	for (const Path& path : paths)
 		pointCount += (uint32_t)path.size();
 
 	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
@@ -137,7 +152,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 	{
 		polygon->loops[i].points = curPoint;
 		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const ClipperLib::IntPoint& pathPoint : paths[i])
+		for (const IntPoint& pathPoint : paths[i])
 		{
 			dsVector2f point = {{(float)((double)pathPoint.X/limit),
 				(float)((double)pathPoint.Y/limit)}};
@@ -153,7 +168,7 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
 	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
-	ClipperLib::Paths paths(loopCount);
+	Paths paths(loopCount);
 	dsAlignedBox2d bounds;
 	dsAlignedBox2d_makeInvalid(&bounds);
 	for (uint32_t i = 0; i < loopCount; ++i)
@@ -188,16 +203,16 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 
 			dsVector2_sub(point, point, offset);
 			dsVector2_mul(point, point, invScale);
-			paths[i][j].X = (ClipperLib::cInt)round(point.x*limit);
-			paths[i][j].Y = (ClipperLib::cInt)round(point.y*limit);
+			paths[i][j].X = (cInt)round(point.x*limit);
+			paths[i][j].Y = (cInt)round(point.y*limit);
 		}
 	}
 
-	ClipperLib::SimplifyPolygons(paths,
-		fillRule == dsPolygonFillRule_NonZero ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd);
+	if (!simplifyPolygon(paths, fillRule))
+		return false;
 
 	uint32_t pointCount = 0;
-	for (const ClipperLib::Path& path : paths)
+	for (const Path& path : paths)
 		pointCount += (uint32_t)path.size();
 
 	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
@@ -217,7 +232,7 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 	{
 		polygon->loops[i].points = curPoint;
 		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const ClipperLib::IntPoint& pathPoint : paths[i])
+		for (const IntPoint& pathPoint : paths[i])
 		{
 			dsVector2d point = {{(double)pathPoint.X/limit, (double)pathPoint.Y/limit}};
 			dsVector2_mul(point, point, scale);
@@ -232,7 +247,7 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
 	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
-	ClipperLib::Paths paths(loopCount);
+	Paths paths(loopCount);
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
 		paths[i].resize(loops[i].pointCount);
@@ -247,11 +262,11 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, u
 		}
 	}
 
-	ClipperLib::SimplifyPolygons(paths,
-		fillRule == dsPolygonFillRule_NonZero ? ClipperLib::pftNonZero : ClipperLib::pftEvenOdd);
+	if (!simplifyPolygon(paths, fillRule))
+		return false;
 
 	uint32_t pointCount = 0;
-	for (const ClipperLib::Path& path : paths)
+	for (const Path& path : paths)
 		pointCount += (uint32_t)path.size();
 
 	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
@@ -271,7 +286,7 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, u
 	{
 		polygon->loops[i].points = curPoint;
 		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const ClipperLib::IntPoint& pathPoint : paths[i])
+		for (const IntPoint& pathPoint : paths[i])
 		{
 			curPoint->x = (int)pathPoint.X;
 			curPoint->y = (int)pathPoint.Y;
@@ -345,6 +360,13 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsPolygonLoop* l
 		if (!loops[i].points && loops[i].pointCount > 0)
 		{
 			errno = EINVAL;
+			return false;
+		}
+
+		if (loops[i].pointCount < 3)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon loops must have at least 3 vertices.");
 			return false;
 		}
 	}

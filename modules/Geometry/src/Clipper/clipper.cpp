@@ -1462,6 +1462,9 @@ Clipper::Clipper(int initOptions) : ClipperBase() //constructor
 }
 //------------------------------------------------------------------------------
 
+Clipper::~Clipper() = default;
+//------------------------------------------------------------------------------
+
 #ifdef use_xyz
 void Clipper::ZFillFunction(ZFillCallback zFillFunc)
 {

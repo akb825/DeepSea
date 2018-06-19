@@ -45,10 +45,6 @@ extern "C"
  * resolving the 3D positions to 2D positions, either be dropping a coordinate (e.g. dropping Z) or
  * performing a transform. (e.g. projecting to a plane or other surface)
  *
- * @remark The simplification is performed by an external library, which will allocate memory
- * outside of the provided allocator. The memory is temporary and will be freed before the function
- * exits.
- *
  * @see dsComplexPolygon
  */
 
@@ -93,6 +89,10 @@ DS_GEOMETRY_EXPORT void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, 
  * @remark The output polygon loops may be very different from the input loops. Additionally, the
  * points that do match may be off by a small epsilon. (for tests with doubles in the range
  * [-10, 10], points were within 1e-14)
+ *
+ * @remark The simplification is performed by an external library, which will allocate memory
+ * outside of the provided allocator. The memory is temporary and will be freed before the function
+ * exits.
  *
  * @remark errno will be set on failure.
  * @param polygon The polygon to process the simplification.

@@ -128,8 +128,6 @@ typedef void (*ZFillCallback)(IntPoint& e1bot, IntPoint& e1top, IntPoint& e2bot,
 #endif
 
 enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveCollinear = 4};
-enum JoinType {jtSquare, jtRound, jtMiter};
-enum EndType {etClosedPolygon, etClosedLine, etOpenButt, etOpenSquare, etOpenRound};
 
 class PolyNode;
 typedef std::vector< PolyNode* > PolyNodes;
@@ -150,8 +148,6 @@ private:
   //PolyNode& operator =(PolyNode& other);
   unsigned Index; //node index in Parent.Childs
   bool m_IsOpen;
-  JoinType m_jointype;
-  EndType m_endtype;
   PolyNode* GetNextSiblingUp() const;
   void AddChild(PolyNode& child);
   friend class Clipper; //to access Index
@@ -265,6 +261,7 @@ class Clipper : public virtual ClipperBase
 {
 public:
   Clipper(int initOptions = 0);
+  ~Clipper();
   bool Execute(ClipType clipType,
       Paths &solution,
       PolyFillType fillType = pftEvenOdd);
