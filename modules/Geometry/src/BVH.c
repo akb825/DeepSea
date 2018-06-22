@@ -16,6 +16,7 @@
 
 #include <DeepSea/Geometry/BVH.h>
 
+#include "SpatialStructureShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -65,81 +66,29 @@ typedef struct SortContext
 } SortContext;
 
 typedef void (*AddBoxFunction)(void* bounds, const void* otherBounds);
-typedef uint8_t (*MaxAxisFunction)(const void* bounds);
 typedef bool (*IntersectFunction)(const void* bounds, const void* otherBounds);
 
-inline static const void* getObject(const void* objects, size_t objectSize, size_t index)
-{
-	if (objectSize == DS_BVH_OBJECT_POINTERS)
-		return ((const void**)objects)[index];
-	else if (objectSize == DS_BVH_OBJECT_INDICES)
-		return (const void*)index;
-	return ((const uint8_t*)objects) + objectSize*index;
-}
-
-inline static dsBVHNode* getNode(dsBVHNode* nodes, uint8_t nodeSize, size_t index)
+inline static dsBVHNode* getNode(dsBVHNode* nodes, uint8_t nodeSize, uint32_t index)
 {
 	return (dsBVHNode*)(((uint8_t*)nodes) + index*nodeSize);
 }
 
-static uint8_t maxAxis2f(const void* bounds)
-{
-	const dsAlignedBox2f* realBounds = (const dsAlignedBox2f*)bounds;
-	dsVector2f extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
-}
-
-static uint8_t maxAxis3f(const void* bounds)
-{
-	const dsAlignedBox3f* realBounds = (const dsAlignedBox3f*)bounds;
-	dsVector3f extents;
-	dsAlignedBox3_extents(extents, *realBounds);
-	if (extents.x >= extents.y && extents.x >= extents.z)
-		return 0;
-	if (extents.y >= extents.x && extents.y >= extents.z)
-		return 1;
-	return 2;
-}
-
 static int compareBoundsf(const void* left, const void* right, void* context)
 {
-	uint8_t axis = ((SortContext*)context)->axis;
-	uint8_t axisCount = ((SortContext*)context)->axisCount;
-	const float* leftBounds = (const float*)left;
-	const float* rightBounds = (const float*)right;
+	const SortContext* sortContext = (const SortContext*)context;
+	const float* leftBounds = (const float*)((const uint8_t*)left + sortContext->boundsOffset);
+	const float* rightBounds = (const float*)((const uint8_t*)right + sortContext->boundsOffset);
 
-	float leftAverage = (leftBounds[axis] + leftBounds[axisCount + axis])*0.5f;
-	float rightAverage = (rightBounds[axis] + rightBounds[axisCount + axis])*0.5f;
+	float leftAverage = (leftBounds[sortContext->axis] +
+		leftBounds[sortContext->axisCount + sortContext->axis])*0.5f;
+	float rightAverage = (rightBounds[sortContext->axis] +
+		rightBounds[sortContext->axisCount + sortContext->axis])*0.5f;
+
 	if (leftAverage < rightAverage)
 		return -1;
 	else if (leftAverage > rightAverage)
 		return 1;
 	return 0;
-}
-
-static uint8_t maxAxis2d(const void* bounds)
-{
-	const dsAlignedBox2d* realBounds = (const dsAlignedBox2d*)bounds;
-	dsVector2d extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
-}
-
-static uint8_t maxAxis3d(const void* bounds)
-{
-	const dsAlignedBox3d* realBounds = (const dsAlignedBox3d*)bounds;
-	dsVector3d extents;
-	dsAlignedBox3_extents(extents, *realBounds);
-	if (extents.x >= extents.y && extents.x >= extents.z)
-		return 0;
-	if (extents.y >= extents.x && extents.y >= extents.z)
-		return 1;
-	return 2;
 }
 
 static int compareBoundsd(const void* left, const void* right, void* context)
@@ -160,28 +109,6 @@ static int compareBoundsd(const void* left, const void* right, void* context)
 	return 0;
 }
 
-static uint8_t maxAxis2i(const void* bounds)
-{
-	const dsAlignedBox2i* realBounds = (const dsAlignedBox2i*)bounds;
-	dsVector2i extents;
-	dsAlignedBox2_extents(extents, *realBounds);
-	if (extents.x >= extents.y)
-		return 0;
-	return 1;
-}
-
-static uint8_t maxAxis3i(const void* bounds)
-{
-	const dsAlignedBox3i* realBounds = (const dsAlignedBox3i*)bounds;
-	dsVector3i extents;
-	dsAlignedBox3_extents(extents, *realBounds);
-	if (extents.x >= extents.y && extents.x >= extents.z)
-		return 0;
-	if (extents.y >= extents.x && extents.y >= extents.z)
-		return 1;
-	return 2;
-}
-
 static int compareBoundsi(const void* left, const void* right, void* context)
 {
 	const SortContext* sortContext = (const SortContext*)context;
@@ -196,7 +123,7 @@ static int compareBoundsi(const void* left, const void* right, void* context)
 	return leftAverage - rightAverage;
 }
 
-static uint32_t buildBVHBalancedRec(dsBVH* bvh, size_t start, size_t count,
+static uint32_t buildBVHBalancedRec(dsBVH* bvh, uint32_t start, uint32_t count,
 	AddBoxFunction addBoxFunc, MaxAxisFunction maxAxisFunc, dsSortCompareFunction compareFunc)
 {
 	uint32_t node = bvh->nodeCount++;
@@ -213,7 +140,7 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, size_t start, size_t count,
 	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
 	dsAlignedBox3d bounds;
 	memcpy(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start)->bounds, bvh->boundsSize);
-	for (size_t i = 1; i < count; ++i)
+	for (uint32_t i = 1; i < count; ++i)
 		addBoxFunc(&bounds, getNode(bvh->tempNodes, bvh->nodeSize, start + i)->bounds);
 
 	// Sort based on the maximum dimension.
@@ -243,7 +170,7 @@ static uint32_t buildBVHBalancedRec(dsBVH* bvh, size_t start, size_t count,
 	return node;
 }
 
-static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, size_t start, size_t count,
+static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, uint32_t start, uint32_t count,
 	size_t objectSize, AddBoxFunction addBoxFunc)
 {
 	uint32_t node = bvh->nodeCount++;
@@ -255,7 +182,7 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, size_t start, size_
 	{
 		bvhNode->leftNode = INVALID_NODE;
 		bvhNode->rightNode = INVALID_NODE;
-		bvhNode->object = getObject(objects, objectSize, start);
+		bvhNode->object = dsSpatialStructure_getObject(objects, objectSize, start);
 		if (!bvh->objectBoundsFunc(bvhNode->bounds, bvh, bvhNode->object))
 			return INVALID_NODE;
 		return node;
@@ -263,14 +190,17 @@ static uint32_t buildBVHRec(dsBVH* bvh, const void* objects, size_t start, size_
 
 	// Bounds for all current nodes. dsAlignedBox3d is the maximum storage size
 	dsAlignedBox3d bounds;
-	if (!bvh->objectBoundsFunc(&bounds, bvh, getObject(objects, objectSize, start)))
+	if (!bvh->objectBoundsFunc(&bounds, bvh, dsSpatialStructure_getObject(objects, objectSize, start)))
 		return INVALID_NODE;
 
-	for (size_t i = 1; i < count; ++i)
+	for (uint32_t i = 1; i < count; ++i)
 	{
 		dsAlignedBox3d curBounds;
-		if (!bvh->objectBoundsFunc(&curBounds, bvh, getObject(objects, objectSize, start + i)))
+		if (!bvh->objectBoundsFunc(&curBounds, bvh, dsSpatialStructure_getObject(objects,
+			objectSize, start + i)))
+		{
 			return INVALID_NODE;
+		}
 
 		addBoxFunc(&bounds, &curBounds);
 	}
@@ -421,7 +351,7 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 	dsBVHObjectBoundsFunction objectBoundsFunc, bool balance)
 {
 	dsBVH_clear(bvh);
-	if (!bvh || (!objects && objectCount > 0 && objectSize != DS_BVH_OBJECT_INDICES) ||
+	if (!bvh || (!objects && objectCount > 0 && objectSize != DS_GEOMETRY_OBJECT_INDICES) ||
 		!objectBoundsFunc)
 	{
 		errno = EINVAL;
@@ -440,13 +370,13 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			if (bvh->axisCount == 2)
 			{
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2f_addBox;
-				maxAxisFunc = &maxAxis2f;
+				maxAxisFunc = &dsSpatialStructure_maxAxis2f;
 			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox3f_addBox;
-				maxAxisFunc = &maxAxis3f;
+				maxAxisFunc = &dsSpatialStructure_maxAxis3f;
 			}
 			compareFunc = &compareBoundsf;
 			break;
@@ -454,13 +384,13 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			if (bvh->axisCount == 2)
 			{
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2d_addBox;
-				maxAxisFunc = &maxAxis2d;
+				maxAxisFunc = &dsSpatialStructure_maxAxis2d;
 			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox3d_addBox;
-				maxAxisFunc = &maxAxis3d;
+				maxAxisFunc = &dsSpatialStructure_maxAxis3d;
 			}
 			compareFunc = &compareBoundsd;
 			break;
@@ -468,13 +398,13 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			if (bvh->axisCount == 2)
 			{
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox2i_addBox;
-				maxAxisFunc = &maxAxis2i;
+				maxAxisFunc = &dsSpatialStructure_maxAxis2i;
 			}
 			else
 			{
 				DS_ASSERT(bvh->axisCount == 3);
 				addBoxFunc = (AddBoxFunction)&dsAlignedBox3i_addBox;
-				maxAxisFunc = &maxAxis3i;
+				maxAxisFunc = &dsSpatialStructure_maxAxis3i;
 			}
 			compareFunc = &compareBoundsi;
 			break;
@@ -507,10 +437,10 @@ bool dsBVH_build(dsBVH* bvh, const void* objects, uint32_t objectCount, size_t o
 			bvh->maxTempNodes = objectCount;
 		}
 
-		for (size_t i = 0; i < objectCount; ++i)
+		for (uint32_t i = 0; i < objectCount; ++i)
 		{
 			dsBVHNode* node = getNode(bvh->tempNodes, bvh->nodeSize, i);
-			node->object = getObject(objects, objectSize, i);
+			node->object = dsSpatialStructure_getObject(objects, objectSize, i);
 			if (!bvh->objectBoundsFunc(node->bounds, bvh, node->object))
 				return false;
 

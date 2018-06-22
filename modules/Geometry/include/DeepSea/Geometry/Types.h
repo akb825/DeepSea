@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Math/Types.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -45,6 +46,27 @@ extern "C"
  * @brief The number of corners for a 3D box.
  */
 #define DS_BOX3_CORNER_COUNT 8
+
+/**
+ * @brief Constant to indicate an object array is an array of object pointers.
+ *
+ * This ensures that when a pointer to each object is stored in the nodes, it will take the pointer
+ * stored in the array rather than a pointer within an array. (i.e. objects[i] instead of
+ * &objects[i]) This is useful if your storage of the objects is in another data structure and a
+ * temporary array is created to pass a list of pointers as inputs for building a spatial data
+ * structure around them.
+ */
+#define DS_GEOMETRY_OBJECT_POINTERS 0
+
+/**
+ * @brief Indicates for an object size that indices should be stored in place of object pointers.
+ *
+ * Pass the object size into this macro to flag that a spacial data structure should store indices
+ * in place of pointers. When the void* of the object is provided, it should be cast to a size_t
+ * and used as an index instead. This is mainly useful in cases where an array can be resized,
+ * invalidating the pointers within the array.
+ */
+#define DS_GEOMETRY_OBJECT_INDICES (size_t)-1
 
 /**
  * @brief Enum for the result of an intersection.
@@ -363,7 +385,8 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  * @brief Function called when visiting BVH nodes that intersect.
  * @param userData User data forwarded for the function.
  * @param bvh The BVH that the intersection was performed with.
- * @param object The object that was visited.
+ * @param object The object that was visited. This should be cast to size_t when
+ *     DS_GEOMETRY_OBJECT_INDICES is used.
  * @param bounds The bounds being checked. This should be cast to the appropriate dsAlignedBounds*
  *     type based on the axis count and precision queried from bvh.
  * @return True to continue traversal, false to stop traversal.
@@ -371,6 +394,60 @@ typedef bool (*dsBVHObjectBoundsFunction)(void* outBounds, const dsBVH* bvh, con
  */
 typedef bool (*dsBVHVisitFunction)(void* userData, const dsBVH* bvh, const void* object,
 	const void* bounds);
+
+/**
+ * @brief Structure for a Kd tree spacial data structure.
+ * @see KdTree.h
+ */
+typedef struct dsKdTree dsKdTree;
+
+/**
+ * @brief Function for getting the point for an object.
+ * @remark errno should be set on failure.
+ * @param[out] outPoint The memory to place the point into. This should be cast to the appropriate
+ *     dsVector* type based on axisCount and element from the Kd tree.
+ * @param kdTree The Kd tree the point will be queried for.
+ * @param object The object to get the point from. This should be cast to size_t when
+ *     DS_GEOMETRY_OBJECT_INDICES is used.
+ * @return True if outPoint was successfully assigned.
+ * @see KdTree.h
+ */
+typedef bool (*dsKdTreeObjectPointFunction)(void* outPoint, const dsKdTree* kdTree,
+	const void* object);
+
+/**
+ * @brief Enum for which side of the Kd tree to follow when traversing.
+ *
+ * This is a bitmask between the left and right sides.
+ */
+typedef enum dsKdTreeSide
+{
+	dsKdTreeSide_None = 0x0,  /// < Don't follow either side, ending the traversal for this branch.
+	dsKdTreeSide_Left = 0x1,  /// < Follow the left branch.
+	dsKdTreeSide_Right = 0x2, /// < Follow the right branch.
+	dsKdTreeSide_Both = dsKdTreeSide_Left | dsKdTreeSide_Right, /// < Follow both branches.
+} dsKdTreeSide;
+
+/**
+ * @brief Function called when traversing a Kd tree.
+ * @param userData User data forwarded for the function. This will typically contain a point to
+ *     compare with.
+ * @param kdTree The Kd tree being traversed.
+ * @param object The object currently being traversed. This should be cast to size_t when
+ *     DS_GEOMETRY_OBJECT_INDICES is used.
+ * @param point The current point being visited. This should be cast to the appropriate dsVector*
+ *     type.
+ * @param axis The axes to compare.
+ * @return A combination of bits from dsKdTreeSide to continue traversal. Assuming userData stores
+ *     some sort of comparisson point, this should typically this should return:
+ *     - dsKdTreeSide_None if the target point is found and traversal for this branch should stop.
+ *     - dsKdTreeSide_Left if userData->point[axis] < point[axis]
+ *     - dsKdTreeSide_Right if userData->point[axis] > point[axis]
+ *     - dsKdTreeSide_Both if userData->point[axis] == point[axis]
+ * @see KdTree.h
+ */
+typedef unsigned int (*dsKdTreeTraverseFunction)(void* userData, const dsKdTree* kdTree,
+	const void* object, const void* point, uint8_t axis);
 
 /**
  * @brief Enum for the winding order when triangulating geometry.

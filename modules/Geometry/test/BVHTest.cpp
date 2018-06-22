@@ -68,7 +68,6 @@ template <>
 struct BVHSelector<2, float> : public BVHParamSelector<2, float>
 {
 	typedef dsAlignedBox2f AlignedBoxType;
-	typedef dsVector2f VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int, int maxX, int maxY, int)
 	{
@@ -81,7 +80,6 @@ template <>
 struct BVHSelector<2, double> : public BVHParamSelector<2, double>
 {
 	typedef dsAlignedBox2d AlignedBoxType;
-	typedef dsVector2d VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int, int maxX, int maxY, int)
 	{
@@ -95,7 +93,6 @@ template <>
 struct BVHSelector<2, int> : public BVHParamSelector<2, int>
 {
 	typedef dsAlignedBox2i AlignedBoxType;
-	typedef dsVector2i VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int, int maxX, int maxY, int)
 	{
@@ -108,7 +105,6 @@ template <>
 struct BVHSelector<3, float> : public BVHParamSelector<3, float>
 {
 	typedef dsAlignedBox3f AlignedBoxType;
-	typedef dsVector3f VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
 	{
@@ -122,7 +118,6 @@ template <>
 struct BVHSelector<3, double> : public BVHParamSelector<3, double>
 {
 	typedef dsAlignedBox3d AlignedBoxType;
-	typedef dsVector3d VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
 	{
@@ -136,7 +131,6 @@ template <>
 struct BVHSelector<3, int> : public BVHParamSelector<3, int>
 {
 	typedef dsAlignedBox3i AlignedBoxType;
-	typedef dsVector3i VectorType;
 
 	static AlignedBoxType createBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
 	{
@@ -152,7 +146,6 @@ class BVHTest : public testing::Test
 {
 public:
 	using AlignedBoxType = typename SelectorT::AlignedBoxType;
-	using VectorTpe = typename SelectorT::VectorType;
 
 	struct TestObject
 	{
@@ -194,11 +187,42 @@ public:
 		return true;
 	}
 
+	static bool getBoundsIndex(void* outBounds, const dsBVH* bvh, const void* object)
+	{
+		if (dsBVH_getAxisCount(bvh) != axisCount() || dsBVH_getElement(bvh) != element())
+			return false;
+
+		auto objects = (const TestObject*)dsBVH_getUserData(bvh);
+		*((AlignedBoxType*)outBounds) = objects[(size_t)object].bounds;
+		return true;
+	}
+
 	template <typename T>
-	static bool lambdaAdaptor(void* userData, const dsBVH*, const void* object, const void*)
+	static bool lambdaAdapterImpl(void* userData, const dsBVH*, const void* object, const void*)
 	{
 		(*(T*)userData)(*(const TestObject*)object);
 		return true;
+	}
+
+	template <typename T>
+	static dsBVHVisitFunction lambdaAdapter(const T&)
+	{
+		return lambdaAdapterImpl<T>;
+	}
+
+	template <typename T>
+	static bool indexLambdaAdapterImpl(void* userData, const dsBVH* bvh, const void* object,
+		const void*)
+	{
+		auto objects = (const TestObject*)dsBVH_getUserData(bvh);
+		(*(T*)userData)(objects[(size_t)object]);
+		return true;
+	}
+
+	template <typename T>
+	static dsBVHVisitFunction indexLambdaAdapter(const T&)
+	{
+		return indexLambdaAdapterImpl<T>;
 	}
 
 	static bool limitedVisits(void* userData, const dsBVH*, const void*, const void*)
@@ -218,10 +242,11 @@ TYPED_TEST(BVHTest, Create)
 {
 	TestFixture* fixture = this;
 	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
-		TestFixture::element(), NULL);
+		TestFixture::element(), fixture);
 	ASSERT_TRUE(bvh);
 	EXPECT_EQ(TestFixture::axisCount(), dsBVH_getAxisCount(bvh));
 	EXPECT_EQ(TestFixture::element(), dsBVH_getElement(bvh));
+	EXPECT_EQ(fixture, dsBVH_getUserData(bvh));
 	dsBVH_destroy(bvh);
 }
 
@@ -255,8 +280,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 			EXPECT_EQ(0U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -265,8 +290,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 			EXPECT_EQ(1U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -275,8 +300,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 			EXPECT_EQ(2U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -285,8 +310,8 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 			EXPECT_EQ(3U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -334,8 +359,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(0U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -344,8 +369,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(1U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -354,8 +379,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(2U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -364,8 +389,8 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 			EXPECT_EQ(3U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -412,8 +437,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_EQ(4U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -422,8 +447,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 0 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -432,8 +457,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 1 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -442,8 +467,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 2 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -452,8 +477,8 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 			EXPECT_TRUE(object.data == 3 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -503,8 +528,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_EQ(4U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -513,8 +538,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 0 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -523,8 +548,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 1 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -533,8 +558,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 2 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -543,8 +568,8 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 			EXPECT_TRUE(object.data == 3 || object.data == 4);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(2U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -583,7 +608,7 @@ TYPED_TEST(BVHTest, ObjectPointer)
 		new TestObject{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
 	};
 
-	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), DS_BVH_OBJECT_POINTERS,
+	EXPECT_TRUE(dsBVH_build(bvh, data, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_POINTERS,
 		&TestFixture::getBounds, false));
 
 	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
@@ -595,8 +620,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(0U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -605,8 +630,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(1U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -615,8 +640,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(2U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -625,8 +650,8 @@ TYPED_TEST(BVHTest, ObjectPointer)
 			EXPECT_EQ(3U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
@@ -636,6 +661,76 @@ TYPED_TEST(BVHTest, ObjectPointer)
 
 	for (TestObject* object : data)
 		delete object;
+}
+
+TYPED_TEST(BVHTest, ObjectIndex)
+{
+	using TestObject = typename TestFixture::TestObject;
+	using AlignedBoxType = typename TestFixture::AlignedBoxType;
+
+	TestObject data[] =
+	{
+		TestObject{TestFixture::createBounds(-2, -2, 0, -1, -1, 0), 0},
+		TestObject{TestFixture::createBounds( 1, -2, 0,  2, -1, 0), 1},
+		TestObject{TestFixture::createBounds(-2,  1, 0, -1,  2, 0), 2},
+		TestObject{TestFixture::createBounds( 1,  1, 0,  2,  2, 0), 3}
+	};
+
+	TestFixture* fixture = this;
+	dsBVH* bvh = dsBVH_create((dsAllocator*)&fixture->allocator, TestFixture::axisCount(),
+		TestFixture::element(), data);
+	ASSERT_TRUE(bvh);
+
+	EXPECT_TRUE(dsBVH_build(bvh, NULL, DS_ARRAY_SIZE(data), DS_GEOMETRY_OBJECT_INDICES,
+		&TestFixture::getBoundsIndex, false));
+
+	AlignedBoxType testBounds = TestFixture::createBounds(0, 0, 0, 0, 0, 0);
+	EXPECT_EQ(0U, dsBVH_intersect(bvh, &testBounds, nullptr, nullptr));
+
+	{
+		auto testFunc = [](const TestObject& object)
+		{
+			EXPECT_EQ(0U, object.data);
+		};
+		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
+			&testFunc));
+	}
+
+	{
+		auto testFunc = [](const TestObject& object)
+		{
+			EXPECT_EQ(1U, object.data);
+		};
+		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
+			&testFunc));
+	}
+
+	{
+		auto testFunc = [](const TestObject& object)
+		{
+			EXPECT_EQ(2U, object.data);
+		};
+		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
+			&testFunc));
+	}
+
+	{
+		auto testFunc = [](const TestObject& object)
+		{
+			EXPECT_EQ(3U, object.data);
+		};
+		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->indexLambdaAdapter(testFunc),
+			&testFunc));
+	}
+
+	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);
+	EXPECT_EQ(4U, dsBVH_intersect(bvh, &testBounds, nullptr, nullptr));
+
+	dsBVH_destroy(bvh);
 }
 
 TYPED_TEST(BVHTest, Update)
@@ -672,8 +767,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(1U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, -2, 0, 0, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -682,8 +777,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(0U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, -2, 0, 2, 0, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -692,8 +787,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(3U, object.data);
 		};
 		testBounds = TestFixture::createBounds(-2, 0, 0, 0, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	{
@@ -702,8 +797,8 @@ TYPED_TEST(BVHTest, Update)
 			EXPECT_EQ(2U, object.data);
 		};
 		testBounds = TestFixture::createBounds(0, 0, 0, 2, 2, 0);
-		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds,
-			&TestFixture::template lambdaAdaptor<decltype(testFunc)>, &testFunc));
+		EXPECT_EQ(1U, dsBVH_intersect(bvh, &testBounds, fixture->lambdaAdapter(testFunc),
+			&testFunc));
 	}
 
 	testBounds = TestFixture::createBounds(-1, -1, 0, 1, 1, 0);

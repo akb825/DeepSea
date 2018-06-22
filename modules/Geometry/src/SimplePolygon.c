@@ -522,7 +522,7 @@ static bool findPolygonLoops(dsSimplePolygon* polygon, bool ccw)
 
 			// Use indices since the edge array may be re-allocated, invalidating the pointers into
 			// the array.
-			if (!dsBVH_build(polygon->edgeBVH, NULL, polygon->edgeCount, DS_BVH_OBJECT_INDICES,
+			if (!dsBVH_build(polygon->edgeBVH, NULL, polygon->edgeCount, DS_GEOMETRY_OBJECT_INDICES,
 				&getEdgeBounds, false))
 			{
 				return false;
