@@ -29,7 +29,7 @@ sampler_state fontTex
 
 uniform SharedInfo
 {
-	uvec2 screenSize;
+	ivec2 screenSize;
 } sharedInfo;
 
 uniform vec2 position;

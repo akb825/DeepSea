@@ -453,7 +453,7 @@ static bool createFramebuffer(TestText* testText)
 
 	unsigned int screenSize[] = {width, height};
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedInfoGroup,
-		testText->screenSizeElement, &screenSize, dsMaterialType_UVec2, 0, 1));
+		testText->screenSizeElement, &screenSize, dsMaterialType_IVec2, 0, 1));
 	DS_VERIFY(dsShaderVariableGroup_commit(testText->sharedInfoGroup,
 		testText->renderer->mainCommandBuffer));
 
@@ -702,7 +702,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	dsShaderVariableElement sharedInfoElems[] =
 	{
-		{"screenSize", dsMaterialType_UVec2, 0}
+		{"screenSize", dsMaterialType_IVec2, 0}
 	};
 	testText->sharedInfoDesc = dsShaderVariableGroupDesc_create(resourceManager, allocator,
 		sharedInfoElems, DS_ARRAY_SIZE(sharedInfoElems));
