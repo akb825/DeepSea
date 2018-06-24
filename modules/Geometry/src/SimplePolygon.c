@@ -30,21 +30,23 @@
 
 // Basis of algorithm: https://www.cs.ucsb.edu/~suri/cs235/Triangulation.pdf
 
-typedef enum ConnectingEdge
+typedef struct EdgeConnection
 {
-	ConnectingEdge_Main,
-	ConnectingEdge_LeftTop,
-	ConnectingEdge_LeftBottom,
-	ConnectingEdge_RightTop,
-	ConnectingEdge_RightBottom,
-	ConnectingEdge_Count
-} ConnectingEdge;
+	uint32_t edge;
+	uint32_t nextConnection;
+} EdgeConnection;
+
+typedef struct EdgeConnectionList
+{
+	EdgeConnection head;
+	uint32_t tail;
+} EdgeConnectionList;
 
 typedef struct Vertex
 {
 	dsVector2d point;
-	uint32_t prevEdges[ConnectingEdge_Count];
-	uint32_t nextEdges[ConnectingEdge_Count];
+	EdgeConnectionList prevEdges;
+	EdgeConnectionList nextEdges;
 } Vertex;
 
 typedef struct Edge
@@ -76,6 +78,10 @@ struct dsSimplePolygon
 	Edge* edges;
 	uint32_t edgeCount;
 	uint32_t maxEdges;
+
+	EdgeConnection* edgeConnections;
+	uint32_t edgeConnectionCount;
+	uint32_t maxEdgeConnections;
 
 	uint32_t* sortedVerts;
 	uint32_t maxSortedVerts;
@@ -166,8 +172,8 @@ static bool canConnectPolygonEdge(const dsSimplePolygon* polygon, uint32_t fromV
 {
 	const Vertex* fromVert = polygon->vertices + fromVertIdx;
 	const Vertex* toVert = polygon->vertices + toVertIdx;
-	uint32_t prevEdge = fromVert->prevEdges[ConnectingEdge_Main];
-	uint32_t nextEdge = fromVert->nextEdges[ConnectingEdge_Main];
+	uint32_t prevEdge = fromVert->prevEdges.head.edge;
+	uint32_t nextEdge = fromVert->nextEdges.head.edge;
 	if (polygon->edges[prevEdge].prevVertex == toVertIdx ||
 		polygon->edges[nextEdge].nextVertex == toVertIdx)
 	{
@@ -182,8 +188,23 @@ static bool canConnectPolygonEdge(const dsSimplePolygon* polygon, uint32_t fromV
 	return !info.intersects;
 }
 
-static double edgeAngle(const dsSimplePolygon* polygon, uint32_t edge, const dsVector2d* referenceDir,
-	bool flip, bool ccw)
+static bool isConnected(const dsSimplePolygon* polygon, const EdgeConnectionList* connections,
+	uint32_t nextVertex)
+{
+	const EdgeConnection* curConnection = &connections->head;
+	do
+	{
+		if (polygon->edges[curConnection->edge].nextVertex == nextVertex)
+			return true;
+		else if (curConnection->nextConnection == NOT_FOUND)
+			return false;
+
+		curConnection = polygon->edgeConnections + curConnection->nextConnection;
+	} while (true);
+}
+
+static double edgeAngle(const dsSimplePolygon* polygon, uint32_t edge,
+	const dsVector2d* referenceDir, bool flip, bool ccw)
 {
 	const Edge* polyEdge = polygon->edges + edge;
 	dsVector2d edgeDir;
@@ -200,21 +221,22 @@ static double edgeAngle(const dsSimplePolygon* polygon, uint32_t edge, const dsV
 	return angle;
 }
 
-static uint32_t findPrevEdge(const dsSimplePolygon* polygon, const Vertex* vertex,
-	const dsVector2d* referenceDir, bool ccw)
+static uint32_t findEdge(const dsSimplePolygon* polygon, const EdgeConnectionList* edgeList,
+	const dsVector2d* referenceDir, bool flip, bool ccw)
 {
-	uint32_t closestEdge = vertex->prevEdges[ConnectingEdge_Main];
-	double closestAngle = edgeAngle(polygon, closestEdge, referenceDir, true, !ccw);
-	for (int i = 1; i < ConnectingEdge_Count; ++i)
-	{
-		uint32_t edge = vertex->prevEdges[i];
-		if (edge == NOT_FOUND)
-			continue;
+	if (flip)
+		ccw = !ccw;
 
-		double angle = edgeAngle(polygon, edge, referenceDir, true, !ccw);
+	const EdgeConnection* curEdge = &edgeList->head;
+	uint32_t closestEdge = curEdge->edge;
+	double closestAngle = edgeAngle(polygon, closestEdge, referenceDir, flip, ccw);
+	while (curEdge->nextConnection != NOT_FOUND)
+	{
+		curEdge = polygon->edgeConnections + curEdge->nextConnection;
+		double angle = edgeAngle(polygon, curEdge->edge, referenceDir, flip, ccw);
 		if (angle < closestAngle)
 		{
-			closestEdge = edge;
+			closestEdge = curEdge->edge;
 			closestAngle = angle;
 		}
 	}
@@ -222,26 +244,17 @@ static uint32_t findPrevEdge(const dsSimplePolygon* polygon, const Vertex* verte
 	return closestEdge;
 }
 
-static uint32_t findNextEdge(const dsSimplePolygon* polygon, const Vertex* vertex,
-	const dsVector2d* referenceDir, bool ccw)
+static void insertEdge(dsSimplePolygon* polygon, EdgeConnectionList* edgeList,
+	uint32_t connectionIdx, uint32_t edgeIdx)
 {
-	uint32_t closestEdge = vertex->nextEdges[ConnectingEdge_Main];
-	double closestAngle = edgeAngle(polygon, closestEdge, referenceDir, false, ccw);
-	for (int i = 1; i < ConnectingEdge_Count; ++i)
-	{
-		uint32_t edge = vertex->nextEdges[i];
-		if (edge == NOT_FOUND)
-			continue;
+	polygon->edgeConnections[connectionIdx].edge = edgeIdx;
+	polygon->edgeConnections[connectionIdx].nextConnection = NOT_FOUND;
 
-		double angle = edgeAngle(polygon, edge, referenceDir, false, ccw);
-		if (angle < closestAngle)
-		{
-			closestEdge = edge;
-			closestAngle = angle;
-		}
-	}
-
-	return closestEdge;
+	if (edgeList->tail == NOT_FOUND)
+		edgeList->head.nextConnection = connectionIdx;
+	else
+		polygon->edgeConnections[edgeList->tail].nextConnection = connectionIdx;
+	edgeList->tail = connectionIdx;
 }
 
 static bool addVerticesAndEdges(dsSimplePolygon* polygon, const void* points, uint32_t pointCount,
@@ -279,15 +292,12 @@ static bool addVerticesAndEdges(dsSimplePolygon* polygon, const void* points, ui
 		polygon->edges[i].nextEdge = i == pointCount - 1 ? 0 : i + 1;
 		polygon->edges[i].visited = false;
 
-		vertex->prevEdges[ConnectingEdge_Main] = polygon->edges[i].prevEdge;
-		vertex->nextEdges[ConnectingEdge_Main] = i;
-
-		DS_STATIC_ASSERT(ConnectingEdge_Main == 0, unexpected_connecting_edge_index);
-		for (int j = 1; j < ConnectingEdge_Count; ++j)
-		{
-			vertex->prevEdges[j] = NOT_FOUND;
-			vertex->nextEdges[j] = NOT_FOUND;
-		}
+		vertex->prevEdges.head.edge = polygon->edges[i].prevEdge;
+		vertex->prevEdges.head.nextConnection = NOT_FOUND;
+		vertex->prevEdges.tail = NOT_FOUND;
+		vertex->nextEdges.head.edge = i;
+		vertex->nextEdges.head.nextConnection = NOT_FOUND;
+		vertex->nextEdges.tail = NOT_FOUND;
 	}
 
 	if (dsVector2d_epsilonEqual(&polygon->vertices[0].point,
@@ -320,122 +330,66 @@ static bool addSeparatingPolygonEdge(dsSimplePolygon* polygon, uint32_t from, ui
 {
 	Vertex* fromVert = polygon->vertices + from;
 	Vertex* toVert = polygon->vertices + to;
-	bool fromLeft = fromVert->point.x < toVert->point.x ||
-		(fromVert->point.x == toVert->point.x && fromVert->point.y < toVert->point.y);
-	bool fromTop = fromVert->point.y < toVert->point.y ||
-		(fromVert->point.y == toVert->point.y && fromVert->point.x < toVert->point.x);
+
+	if (isConnected(polygon, &fromVert->nextEdges, to))
+		return true;
 
 	dsVector2d edgeDir;
 	dsVector2_sub(edgeDir, toVert->point, fromVert->point);
 	dsVector2d_normalize(&edgeDir, &edgeDir);
 
-	ConnectingEdge fromLeftEdge, fromRightEdge, toLeftEdge, toRightEdge;
-	if (fromTop)
-	{
-		fromLeftEdge = ConnectingEdge_LeftBottom;
-		fromRightEdge = ConnectingEdge_RightBottom;
-		toLeftEdge = ConnectingEdge_LeftTop;
-		toRightEdge = ConnectingEdge_RightTop;
-	}
-	else
-	{
-		fromLeftEdge = ConnectingEdge_LeftTop;
-		fromRightEdge = ConnectingEdge_RightTop;
-		toLeftEdge = ConnectingEdge_LeftBottom;
-		toRightEdge = ConnectingEdge_RightBottom;
-	}
-
-	if (fromLeft)
-	{
-		// Connect to the right.
-		if (fromVert->prevEdges[fromRightEdge] != NOT_FOUND ||
-			fromVert->nextEdges[fromRightEdge] != NOT_FOUND ||
-			toVert->prevEdges[toLeftEdge] != NOT_FOUND ||
-			toVert->nextEdges[toLeftEdge] != NOT_FOUND)
-		{
-			if (fromVert->prevEdges[fromRightEdge] == toVert->nextEdges[toLeftEdge])
-				return true;
-
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Invalid polygon goemetry.");
-			return false;
-		}
-	}
-	else
-	{
-		// Connect to the left.
-		if (fromVert->prevEdges[fromLeftEdge] != NOT_FOUND ||
-			fromVert->nextEdges[fromLeftEdge] != NOT_FOUND ||
-			toVert->prevEdges[toRightEdge] != NOT_FOUND ||
-			toVert->nextEdges[toRightEdge] != NOT_FOUND)
-		{
-			if (fromVert->prevEdges[fromLeftEdge] == toVert->nextEdges[toRightEdge])
-				return true;
-
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Invalid polygon goemetry.");
-			return false;
-		}
-	}
-
-	uint32_t fromPrevEdge = findPrevEdge(polygon, fromVert, &edgeDir, ccw);
-	uint32_t fromNextEdge = findNextEdge(polygon, fromVert, &edgeDir, ccw);
+	uint32_t fromPrevEdge = findEdge(polygon, &fromVert->prevEdges, &edgeDir, true, ccw);
+	uint32_t fromNextEdge = findEdge(polygon, &fromVert->nextEdges, &edgeDir, false, ccw);
 
 	dsVector2_neg(edgeDir, edgeDir);
-	uint32_t toPrevEdge = findPrevEdge(polygon, toVert, &edgeDir, ccw);
-	uint32_t toNextEdge = findNextEdge(polygon, toVert, &edgeDir, ccw);
+	uint32_t toPrevEdge = findEdge(polygon, &toVert->prevEdges, &edgeDir, true, ccw);
+	uint32_t toNextEdge = findEdge(polygon, &toVert->nextEdges, &edgeDir, false, ccw);
 
 	// Insert two new edge in-between the edges for the "from" and "to" vertices, one for the left
 	// and right sub-polygons.
-	uint32_t curEdge = polygon->edgeCount;
+	uint32_t firstEdgeIdx = polygon->edgeCount;
+	uint32_t secondEdgeIdx = polygon->edgeCount + 1;
 	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edges, polygon->edgeCount,
-		polygon->maxEdges, 1))
+		polygon->maxEdges, 2))
 	{
 		return false;
 	}
 
-	polygon->edges[curEdge].prevVertex = from;
-	polygon->edges[curEdge].nextVertex = to;
-	polygon->edges[curEdge].prevEdge = fromPrevEdge;
-	polygon->edges[curEdge].nextEdge = toNextEdge;
-	polygon->edges[curEdge].visited = false;
-	polygon->edges[fromPrevEdge].nextEdge = curEdge;
-	polygon->edges[toNextEdge].prevEdge = curEdge;
-	if (fromLeft)
-	{
-		fromVert->nextEdges[fromRightEdge] = curEdge;
-		toVert->prevEdges[toLeftEdge] = curEdge;
-	}
-	else
-	{
-		fromVert->nextEdges[fromLeftEdge] = curEdge;
-		toVert->prevEdges[toRightEdge] = curEdge;
-	}
-
-	curEdge = polygon->edgeCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edges, polygon->edgeCount,
-		polygon->maxEdges, 1))
+	uint32_t fromFirstConnectionIdx = polygon->edgeConnectionCount;
+	uint32_t toFirstConnectionIdx = polygon->edgeConnectionCount + 1;
+	uint32_t fromSecondConnectionIdx = polygon->edgeConnectionCount + 2;
+	uint32_t toSecondConnectionIdx = polygon->edgeConnectionCount + 3;
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->edgeConnections,
+		polygon->edgeConnectionCount, polygon->maxEdgeConnections, 4))
 	{
 		return false;
 	}
 
-	polygon->edges[curEdge].prevVertex = to;
-	polygon->edges[curEdge].nextVertex = from;
-	polygon->edges[curEdge].prevEdge = toPrevEdge;
-	polygon->edges[curEdge].nextEdge = fromNextEdge;
-	polygon->edges[curEdge].visited = false;
-	polygon->edges[toPrevEdge].nextEdge = curEdge;
-	polygon->edges[fromNextEdge].prevEdge = curEdge;
-	if (fromLeft)
-	{
-		fromVert->prevEdges[fromRightEdge] = curEdge;
-		toVert->nextEdges[toLeftEdge] = curEdge;
-	}
-	else
-	{
-		fromVert->prevEdges[fromLeftEdge] = curEdge;
-		toVert->nextEdges[toRightEdge] = curEdge;
-	}
+	Edge* firstEdge = polygon->edges + firstEdgeIdx;
+	firstEdge->prevVertex = from;
+	firstEdge->nextVertex = to;
+	firstEdge->prevEdge = fromPrevEdge;
+	firstEdge->nextEdge = toNextEdge;
+	firstEdge->visited = false;
+
+	polygon->edges[fromPrevEdge].nextEdge = firstEdgeIdx;
+	polygon->edges[toNextEdge].prevEdge = firstEdgeIdx;
+
+	insertEdge(polygon, &fromVert->nextEdges, fromFirstConnectionIdx, firstEdgeIdx);
+	insertEdge(polygon, &toVert->prevEdges, toFirstConnectionIdx, firstEdgeIdx);
+
+	Edge* secondEdge = polygon->edges + secondEdgeIdx;
+	secondEdge->prevVertex = to;
+	secondEdge->nextVertex = from;
+	secondEdge->prevEdge = toPrevEdge;
+	secondEdge->nextEdge = fromNextEdge;
+	secondEdge->visited = false;
+
+	polygon->edges[toPrevEdge].nextEdge = secondEdgeIdx;
+	polygon->edges[fromNextEdge].prevEdge = secondEdgeIdx;
+
+	insertEdge(polygon, &fromVert->prevEdges, fromSecondConnectionIdx, secondEdgeIdx);
+	insertEdge(polygon, &toVert->nextEdges, toSecondConnectionIdx, secondEdgeIdx);
 
 	return true;
 }
@@ -478,11 +432,9 @@ static bool isPolygonCCW(dsSimplePolygon* polygon)
 	// First vertex is the lowest X value. (ties broken by lower Y values)
 	// The triangle formed by this vertex and its connecting edges should be convex and match the
 	// winding order of the polygon.
-	uint32_t p0Vert = polygon->sortedVerts[0];
-	uint32_t p1Vert =
-		polygon->edges[polygon->vertices[p0Vert].nextEdges[ConnectingEdge_Main]].nextVertex;
-	uint32_t p2Vert =
-		polygon->edges[polygon->vertices[p0Vert].prevEdges[ConnectingEdge_Main]].prevVertex;
+	uint32_t p1Vert = polygon->sortedVerts[0];
+	uint32_t p0Vert = p1Vert == 0 ? polygon->vertexCount - 1 : p1Vert - 1;
+	uint32_t p2Vert = p1Vert == polygon->vertexCount - 1 ? 0 : p1Vert + 1;
 	return dsIsPolygonTriangleCCW(&polygon->vertices[p0Vert].point,
 		&polygon->vertices[p1Vert].point, &polygon->vertices[p2Vert].point);
 }
@@ -604,6 +556,7 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 	uint32_t nextEdge = startEdge;
 	do
 	{
+		DS_ASSERT(!polygon->edges[nextEdge].visited);
 		polygon->edges[nextEdge].visited = true;
 		uint32_t curEdge = nextEdge;
 		nextEdge = polygon->edges[nextEdge].nextEdge;
@@ -800,6 +753,7 @@ const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,
 
 	polygon->vertexCount = 0;
 	polygon->edgeCount = 0;
+	polygon->edgeConnectionCount = 0;
 	polygon->loopVertCount = 0;
 	polygon->vertStackCount = 0;
 	polygon->indexCount = 0;
@@ -834,6 +788,7 @@ void dsSimplePolygon_destroy(dsSimplePolygon* polygon)
 
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->vertices));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->edges));
+	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->edgeConnections));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->sortedVerts));
 	dsBVH_destroy(polygon->edgeBVH);
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->loopVertices));

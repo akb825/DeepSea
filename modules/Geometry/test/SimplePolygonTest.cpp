@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/SystemAllocator.h>
 #include <DeepSea/Geometry/SimplePolygon.h>
+#include <DeepSea/Math/Core.h>
 #include <gtest/gtest.h>
 
 // NOTE: These test cases were made in image space, i.e. image space in upper-left. As a result,
@@ -41,6 +43,14 @@ public:
 	dsSystemAllocator allocator;
 	dsSimplePolygon* polygon;
 };
+
+class SimplePolygonStressTest : public SimplePolygonTest,
+	public testing::WithParamInterface<uint32_t>
+{
+};
+
+INSTANTIATE_TEST_CASE_P(SimplePolygonStress, SimplePolygonStressTest,
+	testing::Values(100, 1000, 10000));
 
 TEST_F(SimplePolygonTest, TriangleCW)
 {
@@ -1321,4 +1331,54 @@ TEST_F(SimplePolygonTest, HoleCCW)
 	EXPECT_EQ(7U, indices[27]);
 	EXPECT_EQ(4U, indices[28]);
 	EXPECT_EQ(6U, indices[29]);
+}
+
+TEST_P(SimplePolygonStressTest, Circle)
+{
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	for (uint32_t i = 0; i < GetParam(); ++i)
+	{
+		double theta = (double)i/(double)GetParam()*2.0*M_PI;
+		points[i].x = cos(theta);
+		points[i].y = sin(theta);
+	}
+
+	uint32_t indexCount;
+	EXPECT_TRUE(dsSimplePolygon_triangulate(&indexCount, polygon, points, GetParam(), NULL,
+		dsTriangulateWinding_CCW));
+	dsAllocator_free((dsAllocator*)&allocator, points);
+}
+
+TEST_P(SimplePolygonStressTest, SingleInflection)
+{
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	for (uint32_t i = 0; i < GetParam(); ++i)
+	{
+		double radius = i == 0 ? 0.7 : 1.0;
+		double theta = (double)i/(double)GetParam()*2.0*M_PI;
+		points[i].x = cos(theta)*radius;
+		points[i].y = sin(theta)*radius;
+	}
+
+	uint32_t indexCount;
+	EXPECT_TRUE(dsSimplePolygon_triangulate(&indexCount, polygon, points, GetParam(), NULL,
+		dsTriangulateWinding_CCW));
+	dsAllocator_free((dsAllocator*)&allocator, points);
+}
+
+TEST_P(SimplePolygonStressTest, Starburst)
+{
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d, GetParam());
+	for (uint32_t i = 0; i < GetParam(); ++i)
+	{
+		double radius = (i & 1) == 0 ? 0.7 : 1.0;
+		double theta = (double)i/(double)GetParam()*2.0*M_PI;
+		points[i].x = cos(theta)*radius;
+		points[i].y = sin(theta)*radius;
+	}
+
+	uint32_t indexCount;
+	EXPECT_TRUE(dsSimplePolygon_triangulate(&indexCount, polygon, points, GetParam(), NULL,
+		dsTriangulateWinding_CCW));
+	dsAllocator_free((dsAllocator*)&allocator, points);
 }
