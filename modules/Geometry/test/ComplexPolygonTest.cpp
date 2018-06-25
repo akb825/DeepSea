@@ -93,14 +93,14 @@ TYPED_TEST(ComplexPolygonTest, StarEvenOdd)
 	{
 		{{-5, -10}}, {{0, 10}}, {{5, -10}}, {{-10, 5}}, {{10, 5}}
 	};
-	dsPolygonLoop inputLoop = {points, DS_ARRAY_SIZE(points)};
+	dsComplexPolygonLoop inputLoop = {points, DS_ARRAY_SIZE(points)};
 
 	EXPECT_TRUE(dsComplexPolygon_simplify(this->polygon, &inputLoop, 1, NULL,
 		dsPolygonFillRule_EvenOdd));
 
 	ASSERT_EQ(5U, dsComplexPolygon_getLoopCount(this->polygon));
 
-	const dsPolygonLoop* loop = dsComplexPolygon_getLoop(this->polygon, 0);
+	const dsComplexPolygonLoop* loop = dsComplexPolygon_getLoop(this->polygon, 0);
 	ASSERT_TRUE(loop);
 	ASSERT_EQ(3U, loop->pointCount);
 	auto loopPoints = (const VectorType*)loop->points;
@@ -164,13 +164,13 @@ TYPED_TEST(ComplexPolygonTest, StarNonZero)
 	{
 		{{-5, -10}}, {{0, 10}}, {{5, -10}}, {{-10, 5}}, {{10, 5}}
 	};
-	dsPolygonLoop inputLoop = {points, DS_ARRAY_SIZE(points)};
+	dsComplexPolygonLoop inputLoop = {points, DS_ARRAY_SIZE(points)};
 
 	EXPECT_TRUE(dsComplexPolygon_simplify(this->polygon, &inputLoop, 1, NULL,
 		dsPolygonFillRule_NonZero));
 
 	ASSERT_EQ(1U, dsComplexPolygon_getLoopCount(this->polygon));
-	const dsPolygonLoop* loop = dsComplexPolygon_getLoop(this->polygon, 0);
+	const dsComplexPolygonLoop* loop = dsComplexPolygon_getLoop(this->polygon, 0);
 	ASSERT_TRUE(loop);
 	ASSERT_EQ(10U, loop->pointCount);
 	auto loopPoints = (const VectorType*)loop->points;

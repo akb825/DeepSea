@@ -105,7 +105,7 @@ DS_GEOMETRY_EXPORT void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, 
  * @return False if an error occurred.
  */
 DS_GEOMETRY_EXPORT bool dsComplexPolygon_simplify(dsComplexPolygon* polygon,
-	const dsPolygonLoop* loops, uint32_t loopCount, dsComplexPolygonPointFunction pointFunc,
+	const dsComplexPolygonLoop* loops, uint32_t loopCount, dsComplexPolygonPointFunction pointFunc,
 	dsPolygonFillRule fillRule);
 
 /**
@@ -122,7 +122,7 @@ DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getLoopCount(const dsComplexPolygon
  * @param index The index of the loop.
  * @return The polygon loop, or NULL if the parameters were invalid.
  */
-DS_GEOMETRY_EXPORT const dsPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon,
+DS_GEOMETRY_EXPORT const dsComplexPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon,
 	uint32_t index);
 
 /**

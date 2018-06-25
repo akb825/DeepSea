@@ -17,7 +17,6 @@
 #include <DeepSea/Geometry/ComplexPolygon.h>
 
 #include "Clipper/clipper.hpp"
-#include "PolygonShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -41,7 +40,7 @@ struct dsComplexPolygon
 	uint32_t loopPointCount;
 	uint32_t maxLoopPoints;
 
-	dsPolygonLoop* loops;
+	dsComplexPolygonLoop* loops;
 	uint32_t loopCount;
 	uint32_t maxLoops;
 };
@@ -86,8 +85,8 @@ static bool simplifyPolygon(Paths& paths, dsPolygonFillRule fillRule)
 	return true;
 }
 
-static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
+static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
+	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	Paths paths(loopCount);
 	dsAlignedBox2f bounds;
@@ -165,8 +164,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
 	return true;
 }
 
-static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
+static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
+	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	Paths paths(loopCount);
 	dsAlignedBox2d bounds;
@@ -244,8 +243,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsPolygonLoop* loops
 	return true;
 }
 
-static bool simplifyInt(dsComplexPolygon* polygon, const dsPolygonLoop* loops, uint32_t loopCount,
-	dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
+static bool simplifyInt(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
+	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	Paths paths(loopCount);
 	for (uint32_t i = 0; i < loopCount; ++i)
@@ -346,7 +345,7 @@ void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, void* userData)
 		polygon->userData = userData;
 }
 
-bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsPolygonLoop* loops,
+bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
 	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
 	if (!polygon || (!loops && loopCount > 0))
@@ -401,7 +400,8 @@ uint32_t dsComplexPolygon_getLoopCount(const dsComplexPolygon* polygon)
 	return polygon->loopCount;
 }
 
-const dsPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon, uint32_t index)
+const dsComplexPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon,
+	uint32_t index)
 {
 	if (!polygon)
 	{

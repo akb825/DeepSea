@@ -170,7 +170,7 @@ struct dsVectorScratchData
 	uint32_t pieceCount;
 	uint32_t maxPieces;
 
-	dsPolygonLoop* loops;
+	dsComplexPolygonLoop* loops;
 	uint32_t loopCount;
 	uint32_t maxLoops;
 

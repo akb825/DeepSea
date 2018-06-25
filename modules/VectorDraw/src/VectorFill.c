@@ -27,10 +27,10 @@
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <float.h>
 
-static bool getShapePosition(dsVector2d* outPosition, const dsSimplePolygon* polygon,
-	const void* points, uint32_t index)
+static bool getShapePosition(dsVector2d* outPosition, void* userData, const void* points,
+	uint32_t index)
 {
-	DS_UNUSED(polygon);
+	DS_UNUSED(userData);
 	const ShapeVertex* shapeVertices = (const ShapeVertex*)points;
 	outPosition->x = shapeVertices[index].position.x;
 	outPosition->y = shapeVertices[index].position.y;
@@ -143,7 +143,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		uint32_t loopCount = dsComplexPolygon_getLoopCount(scratchData->simplifier);
 		for (uint32_t i = 0; i < loopCount; ++i)
 		{
-			const dsPolygonLoop* loop = dsComplexPolygon_getLoop(scratchData->simplifier, i);
+			const dsComplexPolygonLoop* loop = dsComplexPolygon_getLoop(scratchData->simplifier, i);
 			const dsVector2f* loopPoints = (const dsVector2f*)loop->points;
 			for (uint32_t j = 0; j < loop->pointCount; ++j)
 			{

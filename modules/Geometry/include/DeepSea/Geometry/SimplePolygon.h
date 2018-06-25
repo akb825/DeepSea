@@ -50,13 +50,13 @@ extern "C"
  * This may be provided as the pointPositionFunc parameter to dsSimplePolygon_triangulate.
  *
  * @param[out] outPosition The position for the point.
- * @param polygon The polygon being triangulated.
+ * @param userData The user data provided with the polygon. This is unused.
  * @param points The array of points, which is expected to be an array of dsVector2f.
  * @param index The index of the point.
  * @return This will always return true.
  */
-DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2f(dsVector2d* outPosition,
-	const dsSimplePolygon* polygon, const void* points, uint32_t index);
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2f(dsVector2d* outPosition, void* userData,
+	const void* points, uint32_t index);
 
 /**
  * @brief Function to get polygon points from a dsVector2d array.
@@ -66,13 +66,13 @@ DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2f(dsVector2d* outPosition
  * @remark This may will be implicitly used if pointPositionFunc is NULL.
  *
  * @param[out] outPosition The position for the point.
- * @param polygon The polygon being triangulated.
+ * @param userData The user data provided with the polygon. This is unused.
  * @param points The array of points, which is expected to be an array of dsVector2d.
  * @param index The index of the point.
  * @return This will always return true.
  */
-DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2d(dsVector2d* outPosition,
-	const dsSimplePolygon* polygon, const void* points, uint32_t index);
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2d(dsVector2d* outPosition, void* userData,
+	const void* points, uint32_t index);
 
 /**
  * @brief Function to get polygon points from a dsVector2i array.
@@ -80,13 +80,13 @@ DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2d(dsVector2d* outPosition
  * This may be provided as the pointPositionFunc parameter to dsSimplePolygon_triangulate.
  *
  * @param[out] outPosition The position for the point.
- * @param polygon The polygon being triangulated.
+ * @param userData The user data provided with the polygon. This is unused.
  * @param points The array of points, which is expected to be an array of dsVector2i.
  * @param index The index of the point.
  * @return This will always return true.
  */
-DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition,
-	const dsSimplePolygon* polygon, const void* points, uint32_t index);
+DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition, void* userData,
+	const void* points, uint32_t index);
 
 /**
  * @brief Creates a simple polygon.

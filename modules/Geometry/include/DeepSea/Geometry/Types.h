@@ -465,16 +465,39 @@ typedef enum dsTriangulateWinding
 typedef struct dsSimplePolygon dsSimplePolygon;
 
 /**
- * @brief Function for getting the position of a polygon point for a simple polygon.
+ * @brief Struct describing a loop within a simple polygon.
+ * @see SimpleHoledPolygon.h
+ */
+typedef struct dsSimplePolygonLoop
+{
+	/**
+	 * @brief The index to the first point in the loop.
+	 */
+	uint32_t firstPoint;
+
+	/**
+	 * @brief The number of points in the loop.
+	 */
+	uint32_t pointCount;
+} dsSimplePolygonLoop;
+
+/**
+ * @brief Structure to define a simple polygon with holes for triangulation.
+ * @see SimpleHoledPolygon.h
+ */
+typedef struct dsSimpleHoledPolygon dsSimpleHoledPolygon;
+
+/**
+ * @brief Function for getting the position of a polygon point for a polygon.
  * @remark errno should be set on failure.
  * @param[out] outPosition The memory to place the position into.
- * @param polygon The polygon to get the point for.
+ * @param userData The user data provided with the polygon.
  * @param points The point data to index into.
  * @param index The index of the point.
  * @return True if outPosition was successfully assigned.
  * @see SimplePolygon.h
  */
-typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, const dsSimplePolygon* polygon,
+typedef bool (*dsPolygonPositionFunction)(dsVector2d* outPosition, void* userData,
 	const void* points, uint32_t index);
 
 /**
@@ -493,7 +516,7 @@ typedef enum dsPolygonFillRule
  * @brief Struct for a polygon loop used as part of a complex polygon.
  * @see ComplexPolygon.h
  */
-typedef struct dsPolygonLoop
+typedef struct dsComplexPolygonLoop
 {
 	/**
 	 * @brief The list of points.
@@ -508,7 +531,7 @@ typedef struct dsPolygonLoop
 	 * @brief The number of points in the loop.
 	 */
 	uint32_t pointCount;
-} dsPolygonLoop;
+} dsComplexPolygonLoop;
 
 /**
  * @brief Structure to define a complex polygon for simplification.
