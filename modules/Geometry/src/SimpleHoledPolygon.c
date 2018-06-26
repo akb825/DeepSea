@@ -77,7 +77,6 @@ static bool addVertices(dsSimpleHoledPolygon* polygon, const void* points,
 	}
 
 	DS_ASSERT(base->vertexCount == pointCount);
-	DS_ASSERT(base->edgeCount == pointCount);
 	for (uint32_t i = 0; i < pointCount; ++i)
 	{
 		Vertex* vertex = base->vertices + i;
@@ -136,6 +135,7 @@ static bool addLoopEdges(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 	}
 
 	uint32_t baseEdgeIdx = 0;
+	DS_ASSERT(base->edgeCount == edgeCount);
 	for (uint32_t i = 0; i < loopCount; ++i)
 	{
 		const dsSimplePolygonLoop* loop = loops + i;
@@ -217,7 +217,7 @@ static bool findEqualVertices(dsSimpleHoledPolygon* polygon)
 		const dsVector2d* firstPoint = &base->vertices[base->sortedVerts[i]].point;
 		uint32_t firstIndex = base->sortedVerts[i];
 		uint32_t lastIndex = firstIndex;
-		for (uint32_t j = i + 1; i < base->vertexCount; ++j)
+		for (uint32_t j = i + 1; j < base->vertexCount; ++j)
 		{
 			const dsVector2d* curPoint = &base->vertices[base->sortedVerts[j]].point;
 			if (curPoint->x > firstPoint->x + 2*EPSILON)
@@ -336,8 +336,8 @@ static uint32_t findNextEdge(const dsSimpleHoledPolygon* polygon, uint32_t edgeI
 
 	const Edge* edge = base->edges + edgeIdx;
 	dsVector2d edgeDir;
-	dsVector2_sub(edgeDir, base->vertices[edge->nextVertex].point,
-		base->vertices[edge->prevVertex].point);
+	dsVector2_sub(edgeDir, base->vertices[edge->prevVertex].point,
+		base->vertices[edge->nextVertex].point);
 	dsVector2d_normalize(&edgeDir, &edgeDir);
 
 	uint32_t closestEdge = NOT_FOUND;
@@ -388,6 +388,7 @@ static bool triangulateLoop(dsSimpleHoledPolygon* polygon, uint32_t startEdge,
 	dsBasePolygon* base = &polygon->base;
 	polygon->loopVertCount = 0;
 	uint32_t edge = startEdge;
+	uint32_t startPoint = base->edges[edge].prevVertex;
 	do
 	{
 		DS_ASSERT(!base->edges[edge].visited);
@@ -401,9 +402,19 @@ static bool triangulateLoop(dsSimpleHoledPolygon* polygon, uint32_t startEdge,
 		polygon->loopVerts[loopVertIdx] = base->edges[edge].prevVertex;
 		base->edges[edge].visited = true;
 
+		uint32_t nextPoint = base->edges[edge].nextVertex;
 		edge = findNextEdge(polygon, edge);
-		DS_ASSERT(edge != NOT_FOUND);
-	} while (edge != startEdge);
+		if (edge == NOT_FOUND)
+		{
+			if (nextPoint != startPoint)
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Unexpected polygon geometry.");
+				return false;
+			}
+			break;
+		}
+	} while (true);
 
 	uint32_t indexCount;
 	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon->simplePolygon,
@@ -528,7 +539,7 @@ const uint32_t* dsSimpleHoledPolygon_triangulate(uint32_t* outIndexCount,
 	return base->indices;
 }
 
-void dsSimpleHolePolygon_destroy(dsSimpleHoledPolygon* polygon)
+void dsSimpleHoledPolygon_destroy(dsSimpleHoledPolygon* polygon)
 {
 	if (!polygon || !polygon->base.allocator)
 		return;
