@@ -40,6 +40,14 @@ public:
 	dsSimpleHoledPolygon* polygon;
 };
 
+class SimpleHoledPolygonStressTest : public SimpleHoledPolygonTest,
+	public testing::WithParamInterface<uint32_t>
+{
+};
+
+INSTANTIATE_TEST_CASE_P(SimpleHoledPolygonStress, SimpleHoledPolygonStressTest,
+	testing::Values(100, 1000, 10000));
+
 TEST_F(SimpleHoledPolygonTest, Triangle)
 {
 	dsVector2d points[] =
@@ -425,4 +433,50 @@ TEST_F(SimpleHoledPolygonTest, TouchingHoles)
 	EXPECT_EQ(2U, indices[39]);
 	EXPECT_EQ(13U, indices[40]);
 	EXPECT_EQ(8U, indices[41]);
+}
+
+TEST_P(SimpleHoledPolygonStressTest, Starburst)
+{
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d,
+		GetParam()*2);
+	for (uint32_t i = 0; i < GetParam(); ++i)
+	{
+		double outerRadius = (i & 1) == 0 ? 0.7 : 1.0;
+		double innerRadius = (i & 1) == 0 ? 0.6 : 0.3;
+		double theta = (double)i/(double)GetParam()*2.0*M_PI;
+		points[i].x = cos(theta)*outerRadius;
+		points[i].y = sin(theta)*outerRadius;
+		points[GetParam() + i].x = cos(theta)*innerRadius;
+		points[GetParam() + i].y = sin(theta)*innerRadius;
+	}
+
+	dsSimplePolygonLoop loops[] = {{0, GetParam()}, {GetParam(), GetParam()}};
+
+	uint32_t indexCount;
+	EXPECT_TRUE(dsSimpleHoledPolygon_triangulate(&indexCount, polygon, points, GetParam()*2, loops,
+		DS_ARRAY_SIZE(loops), NULL, dsTriangulateWinding_CCW));
+	dsAllocator_free((dsAllocator*)&allocator, points);
+}
+
+TEST_P(SimpleHoledPolygonStressTest, StarburstTouching)
+{
+	dsVector2d* points = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&allocator, dsVector2d,
+		GetParam()*2);
+	for (uint32_t i = 0; i < GetParam(); ++i)
+	{
+		double outerRadius = (i & 1) == 0 ? 0.7 : 1.0;
+		double innerRadius = (i & 1) == 0 ? 0.7 : 0.4;
+		double theta = (double)i/(double)GetParam()*2.0*M_PI;
+		points[i].x = cos(theta)*outerRadius;
+		points[i].y = sin(theta)*outerRadius;
+		points[GetParam() + i].x = cos(theta)*innerRadius;
+		points[GetParam() + i].y = sin(theta)*innerRadius;
+	}
+
+	dsSimplePolygonLoop loops[] = {{0, GetParam()}, {GetParam(), GetParam()}};
+
+	uint32_t indexCount;
+	EXPECT_TRUE(dsSimpleHoledPolygon_triangulate(&indexCount, polygon, points, GetParam()*2, loops,
+		DS_ARRAY_SIZE(loops), NULL, dsTriangulateWinding_CCW));
+	dsAllocator_free((dsAllocator*)&allocator, points);
 }

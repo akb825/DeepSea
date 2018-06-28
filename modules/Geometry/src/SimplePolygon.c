@@ -258,7 +258,13 @@ static bool triangulateLoop(dsSimplePolygon* polygon, uint32_t startEdge, bool c
 	uint32_t nextEdge = startEdge;
 	do
 	{
-		DS_ASSERT(!base->edges[nextEdge].visited);
+		if (base->edges[nextEdge].visited)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Unexpected polygon geometry.");
+			return false;
+		}
+
 		base->edges[nextEdge].visited = true;
 		uint32_t curEdge = nextEdge;
 		nextEdge = base->edges[nextEdge].nextEdge;

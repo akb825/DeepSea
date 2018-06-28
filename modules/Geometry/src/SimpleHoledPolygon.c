@@ -221,17 +221,18 @@ static bool findEqualVertices(dsSimpleHoledPolygon* polygon)
 
 	for (uint32_t i = 0; i < base->vertexCount; ++i)
 	{
-		if (polygon->equalVertexList[i] != NOT_FOUND)
+		uint32_t firstIndex = base->sortedVerts[i];
+		if (polygon->equalVertexList[firstIndex] != NOT_FOUND)
 			continue;
 
 		// Vertices are sorted along x axis. Find all equal points until we're over two epsilon
 		// away. Use indices to form a circular linked list.
-		const dsVector2d* firstPoint = &base->vertices[base->sortedVerts[i]].point;
-		uint32_t firstIndex = base->sortedVerts[i];
+		const dsVector2d* firstPoint = &base->vertices[firstIndex].point;
 		uint32_t lastIndex = firstIndex;
 		for (uint32_t j = i + 1; j < base->vertexCount; ++j)
 		{
-			const dsVector2d* curPoint = &base->vertices[base->sortedVerts[j]].point;
+			uint32_t curIndex = base->sortedVerts[j];
+			const dsVector2d* curPoint = &base->vertices[curIndex].point;
 			if (curPoint->x > firstPoint->x + 2*EPSILON)
 				break;
 
@@ -239,7 +240,6 @@ static bool findEqualVertices(dsSimpleHoledPolygon* polygon)
 			if (dsEpsilonEquald(firstPoint->x, curPoint->x, 2*EPSILON) &&
 				dsEpsilonEquald(firstPoint->y, curPoint->y, EPSILON))
 			{
-				uint32_t curIndex = base->sortedVerts[j];
 				polygon->equalVertexList[lastIndex] = curIndex;
 				polygon->equalVertexList[curIndex] = firstIndex;
 				lastIndex = curIndex;
@@ -639,6 +639,9 @@ static bool triangulateLoop(dsSimpleHoledPolygon* polygon, uint32_t startEdge,
 	uint32_t indexCount;
 	const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount, polygon->simplePolygon,
 		polygon, polygon->loopVertCount, &getLoopPosition, winding);
+	if (!indices)
+		return false;
+
 	uint32_t firstIndex = base->indexCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(base->allocator, base->indices, base->indexCount, base->maxIndices,
 		indexCount))

@@ -22,7 +22,7 @@
 #include <DeepSea/Math/Vector2.h>
 
 #define NOT_FOUND (uint32_t)-1
-#define EPSILON 1e-14
+#define EPSILON 1e-10
 
 typedef struct EdgeConnection
 {
