@@ -335,6 +335,26 @@ static bool loopsConnected(const dsSimpleHoledPolygon* polygon, uint32_t firstIn
 	return false;
 }
 
+static bool verticesEqual(const dsSimpleHoledPolygon* polygon, uint32_t firstVertex,
+	uint32_t secondVertex)
+{
+	if (firstVertex == secondVertex)
+		return true;
+
+	if (polygon->equalVertexList[firstVertex] == NOT_FOUND)
+		return false;
+
+	uint32_t curVertex = firstVertex;
+	do
+	{
+		curVertex = polygon->equalVertexList[curVertex];
+		if (curVertex == secondVertex)
+			return true;
+	} while (curVertex != firstVertex);
+
+	return false;
+}
+
 static void connectLoopInfos(const dsSimpleHoledPolygon* polygon, uint32_t firstInfoIdx,
 	uint32_t secondInfoIdx)
 {
@@ -606,7 +626,7 @@ static bool triangulateLoop(dsSimpleHoledPolygon* polygon, uint32_t startEdge,
 		edge = findNextEdge(polygon, edge);
 		if (edge == NOT_FOUND)
 		{
-			if (nextPoint != startPoint)
+			if (!verticesEqual(polygon, nextPoint, startPoint))
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Unexpected polygon geometry.");

@@ -335,3 +335,94 @@ TEST_F(SimpleHoledPolygonTest, EnclosedHole)
 	EXPECT_EQ(5U, indices[52]);
 	EXPECT_EQ(8U, indices[53]);
 }
+
+TEST_F(SimpleHoledPolygonTest, TouchingHoles)
+{
+	dsVector2d points[] =
+	{
+		{{0.0, 0.0}},
+		{{1.0, 0.0}},
+		{{1.0, 1.0}},
+		{{0.0, 1.0}},
+
+		{{0.4, 0.9}},
+		{{0.7, 0.9}},
+		{{0.4, 0.7}},
+
+		{{1.0, 1.0}},
+		{{0.7, 0.9}},
+		{{0.9, 0.7}},
+
+		{{0.7, 0.8}},
+		{{0.6, 0.7}},
+		{{0.8, 0.7}},
+
+		{{0.0, 1.0}},
+		{{0.2, 0.8}},
+		{{0.4, 0.9}}
+	};
+
+	dsSimplePolygonLoop loops[] = {{0, 4}, {4, 3}, {7, 3}, {10, 3}, {13, 3}};
+
+	uint32_t indexCount;
+	const uint32_t* indices = dsSimpleHoledPolygon_triangulate(&indexCount, polygon, points,
+		DS_ARRAY_SIZE(points), loops, DS_ARRAY_SIZE(loops), NULL, dsTriangulateWinding_CCW);
+	ASSERT_EQ(42U, indexCount);
+	ASSERT_TRUE(indices);
+
+	EXPECT_EQ(14U, indices[0]);
+	EXPECT_EQ(3U, indices[1]);
+	EXPECT_EQ(0U, indices[2]);
+
+	EXPECT_EQ(6U, indices[3]);
+	EXPECT_EQ(14U, indices[4]);
+	EXPECT_EQ(0U, indices[5]);
+
+	EXPECT_EQ(11U, indices[6]);
+	EXPECT_EQ(6U, indices[7]);
+	EXPECT_EQ(0U, indices[8]);
+
+	EXPECT_EQ(12U, indices[9]);
+	EXPECT_EQ(11U, indices[10]);
+	EXPECT_EQ(0U, indices[11]);
+
+	EXPECT_EQ(9U, indices[12]);
+	EXPECT_EQ(12U, indices[13]);
+	EXPECT_EQ(0U, indices[14]);
+
+	EXPECT_EQ(1U, indices[15]);
+	EXPECT_EQ(9U, indices[16]);
+	EXPECT_EQ(0U, indices[17]);
+
+	EXPECT_EQ(7U, indices[18]);
+	EXPECT_EQ(9U, indices[19]);
+	EXPECT_EQ(1U, indices[20]);
+
+	EXPECT_EQ(10U, indices[21]);
+	EXPECT_EQ(6U, indices[22]);
+	EXPECT_EQ(11U, indices[23]);
+
+	EXPECT_EQ(5U, indices[24]);
+	EXPECT_EQ(6U, indices[25]);
+	EXPECT_EQ(10U, indices[26]);
+
+	EXPECT_EQ(12U, indices[27]);
+	EXPECT_EQ(5U, indices[28]);
+	EXPECT_EQ(10U, indices[29]);
+
+	EXPECT_EQ(9U, indices[30]);
+	EXPECT_EQ(5U, indices[31]);
+	EXPECT_EQ(12U, indices[32]);
+
+	EXPECT_EQ(15U, indices[33]);
+	EXPECT_EQ(14U, indices[34]);
+	EXPECT_EQ(6U, indices[35]);
+
+	EXPECT_EQ(8U, indices[36]);
+	EXPECT_EQ(13U, indices[37]);
+	EXPECT_EQ(4U, indices[38]);
+
+	EXPECT_EQ(2U, indices[39]);
+	EXPECT_EQ(13U, indices[40]);
+	EXPECT_EQ(8U, indices[41]);
+}

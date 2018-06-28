@@ -286,6 +286,9 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 {
 	const Vertex* fromVert = polygon->vertices + fromVertIdx;
 	const Vertex* toVert = polygon->vertices + toVertIdx;
+	if (dsVector2d_epsilonEqual(&fromVert->point, &toVert->point, EPSILON))
+		return false;
+
 	uint32_t fromPrevEdge = fromVert->prevEdges.head.edge;
 	uint32_t fromNextEdge = fromVert->nextEdges.head.edge;
 	if (polygon->edges[fromPrevEdge].prevVertex == toVertIdx ||
@@ -309,7 +312,6 @@ bool dsBasePolygon_addSeparatingEdge(dsBasePolygon* polygon, uint32_t from, uint
 {
 	Vertex* fromVert = polygon->vertices + from;
 	Vertex* toVert = polygon->vertices + to;
-
 	if (isConnected(polygon, &fromVert->nextEdges, to))
 		return true;
 
