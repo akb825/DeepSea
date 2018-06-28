@@ -33,7 +33,8 @@ extern "C"
  * This is very simple to dsSimplePolygon, except it additionally allows simple polygons to be used
  * unternally as holes. During triangulation, triangles will only occupy space within the simple
  * polygon that isn't taken by a hole. Holes may not intersect, though vertices are allowed to
- * touch, and each hole must itself be a simple polygon.
+ * touch, and each hole must itself be a simple polygon. Additionally, a hole may not be interior
+ * to another hole.
  *
  * dsSimpleHoledPolygon will keep memory allocated between triangulations, re-using existing
  * allocations when possible. This means that if you use the same instance to triangulate multiple

@@ -81,9 +81,8 @@ typedef struct dsBasePolygon
 	uint32_t maxIndices;
 } dsBasePolygon;
 
-bool dsIntersectPolygonEdges(dsVector2d* outPoint, double* outT, double* outOtherT,
-	const dsVector2d* from, const dsVector2d* to, const dsVector2d* otherFrom,
-	const dsVector2d* otherTo);
+bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
+	const dsVector2d* otherFrom, const dsVector2d* otherTo);
 
 inline bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1,
 	const dsVector2d* p2)
@@ -122,6 +121,6 @@ uint32_t dsBasePolygon_findEdge(const dsBasePolygon* polygon, const EdgeConnecti
 bool dsBasePolygon_sortVertices(dsBasePolygon* polygon);
 bool dsBasePolygon_buildEdgeBVH(dsBasePolygon* polygon);
 bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVertIdx,
-	uint32_t toVertIdx);
+	uint32_t toVertIdx, bool ccw);
 bool dsBasePolygon_addSeparatingEdge(dsBasePolygon* polygon, uint32_t from, uint32_t to, bool ccw);
 void dsBasePolygon_shutdown(dsBasePolygon* polygon);

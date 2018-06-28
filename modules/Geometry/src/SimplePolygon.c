@@ -118,7 +118,7 @@ static bool isLeft(const dsVector2d* point, const dsVector2d* reference)
 }
 
 static uint32_t findOtherPoint(const dsBasePolygon* polygon, const uint32_t* sortedVert,
-	bool othersLeft)
+	bool othersLeft, bool ccw)
 {
 	// Find the first point that's to the left/right of the vertex that doesn't intersect any edges.
 	if (othersLeft)
@@ -126,7 +126,7 @@ static uint32_t findOtherPoint(const dsBasePolygon* polygon, const uint32_t* sor
 		const uint32_t* end = polygon->sortedVerts + polygon->vertexCount;
 		for (const uint32_t* otherVert = sortedVert + 1; otherVert < end; ++otherVert)
 		{
-			if (dsBasePolygon_canConnectEdge(polygon, *sortedVert, *otherVert))
+			if (dsBasePolygon_canConnectEdge(polygon, *sortedVert, *otherVert, ccw))
 				return *otherVert;
 		}
 	}
@@ -134,7 +134,7 @@ static uint32_t findOtherPoint(const dsBasePolygon* polygon, const uint32_t* sor
 	{
 		for (const uint32_t* otherVert = sortedVert; otherVert-- > polygon->sortedVerts;)
 		{
-			if (dsBasePolygon_canConnectEdge(polygon, *sortedVert, *otherVert))
+			if (dsBasePolygon_canConnectEdge(polygon, *sortedVert, *otherVert, ccw))
 				return *otherVert;
 		}
 	}
@@ -183,7 +183,7 @@ static bool findPolygonLoops(dsBasePolygon* polygon, bool ccw)
 		if (!polygon->builtBVH)
 			dsBasePolygon_buildEdgeBVH(polygon);
 
-		uint32_t otherPoint = findOtherPoint(polygon, sortedVert, prevLeft);
+		uint32_t otherPoint = findOtherPoint(polygon, sortedVert, prevLeft, ccw);
 		if (otherPoint == NOT_FOUND)
 		{
 			errno = EINVAL;

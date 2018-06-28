@@ -23,13 +23,26 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <float.h>
 #include <string.h>
 
+typedef struct LoopInfo
+{
+	uint32_t prevInfo;
+	uint32_t nextInfo;
+	uint32_t loopIndex;
+	uint32_t leftPoint;
+} LoopInfo;
+
 struct dsSimpleHoledPolygon
 {
 	dsBasePolygon base;
+
+	LoopInfo* loops;
+	uint32_t loopCount;
+	uint32_t maxLoops;
 
 	uint32_t* equalVertexList;
 	uint32_t maxEqualVertices;
@@ -63,7 +76,6 @@ static bool isPolygonLoopCCW(dsBasePolygon* polygon, const dsSimplePolygonLoop* 
 
 	return doubleArea <= 0.0;
 }
-
 
 static bool addVertices(dsSimpleHoledPolygon* polygon, const void* points,
 	uint32_t pointCount, dsPolygonPositionFunction pointPositionFunc)
@@ -257,7 +269,7 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 	const dsBasePolygon* base = &polygon->base;
 
 	// Check against the original edges using the acceleration structure.
-	if (!dsBasePolygon_canConnectEdge(base, fromVertIdx, toVertIdx))
+	if (!dsBasePolygon_canConnectEdge(base, fromVertIdx, toVertIdx, true))
 		return false;
 
 	// Check against the new edges, sicne they should be few in number. Only need to check against
@@ -277,54 +289,245 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 			otherEdge->nextVertex == fromVertIdx || otherEdge->nextVertex == toVertIdx)
 		{
 			continue;
-		}
+		};
 
 		const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
 		const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
-		if (dsIntersectPolygonEdges(NULL, NULL, NULL, fromPos, toPos,
-			otherFrom, otherTo))
-		{
+		if (dsPolygonEdgesIntersect(fromPos, toPos, otherFrom, otherTo))
 			return false;
+	}
+
+	return true;
+}
+
+static int compareLoopSort(const void* left, const void* right, void* context)
+{
+	const LoopInfo* leftInfo = (const LoopInfo*)left;
+	const LoopInfo* rightInfo = (const LoopInfo*)right;
+	const dsSimplePolygonLoop* loops = (const dsSimplePolygonLoop*)context;
+	return (int32_t)loops[leftInfo->loopIndex].firstPoint -
+		(int32_t)loops[rightInfo->loopIndex].firstPoint;
+}
+
+static int compareLoopSearch(const void* left, const void* right, void* context)
+{
+	uint32_t point = *(const uint32_t*)left;
+	const LoopInfo* info = (const LoopInfo*)right;
+	const dsSimplePolygonLoop* loop = (const dsSimplePolygonLoop*)context + info->loopIndex;
+	if (point < loop->firstPoint)
+		return -1;
+	else if (point >= loop->firstPoint + loop->pointCount)
+		return 1;
+	return 0;
+}
+
+static bool loopsConnected(const dsSimpleHoledPolygon* polygon, uint32_t firstInfo,
+	uint32_t secondInfo)
+{
+	uint32_t nextInfo = firstInfo;
+	do
+	{
+		if (nextInfo == secondInfo)
+			return true;
+
+		nextInfo = polygon->loops[nextInfo].nextInfo;
+	} while (nextInfo != firstInfo);
+	return false;
+}
+
+static void connectLoopInfos(const dsSimpleHoledPolygon* polygon, uint32_t firstInfoIdx,
+	uint32_t secondInfoIdx)
+{
+	if (firstInfoIdx == secondInfoIdx || loopsConnected(polygon, firstInfoIdx, secondInfoIdx))
+		return;
+
+	LoopInfo* firstInfo = polygon->loops + firstInfoIdx;
+	uint32_t firstNext = firstInfo->nextInfo;
+
+	LoopInfo* secondInfo = polygon->loops + secondInfoIdx;
+	uint32_t secondPrev = secondInfo->prevInfo;
+
+	firstInfo->nextInfo = secondInfoIdx;
+	secondInfo->prevInfo = firstInfoIdx;
+
+	polygon->loops[firstNext].prevInfo = secondPrev;
+	polygon->loops[secondPrev].nextInfo = firstNext;
+}
+
+static bool initializeLoops(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoop* loops,
+	uint32_t loopCount)
+{
+	dsBasePolygon* base = &polygon->base;
+	polygon->loopCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(base->allocator, polygon->loops, polygon->loopCount,
+		polygon->maxLoops, loopCount))
+	{
+		return false;
+	}
+
+	for (uint32_t i = 0; i < loopCount; ++i)
+	{
+		polygon->loops[i].loopIndex = i;
+		polygon->loops[i].leftPoint = NOT_FOUND;
+	}
+
+	dsSort(polygon->loops, polygon->loopCount, sizeof(LoopInfo), &compareLoopSort, (void*)loops);
+
+	for (uint32_t i = 0; i < loopCount; ++i)
+		polygon->loops[i].prevInfo = polygon->loops[i].nextInfo = i;
+
+	// Find the leftmost vertices of each loop, and also connect loop infos for connected vertices.
+	for (uint32_t i = 0; i < base->vertexCount; ++i)
+	{
+		uint32_t vertexIdx = base->sortedVerts[i];
+		LoopInfo* loopInfo = dsBinarySearch(&vertexIdx, polygon->loops, polygon->loopCount,
+			sizeof(LoopInfo), &compareLoopSearch, (void*)loops);
+		if (!loopInfo)
+			continue;
+
+		if (loopInfo->leftPoint == NOT_FOUND)
+			loopInfo->leftPoint = vertexIdx;
+
+		if (polygon->equalVertexList[vertexIdx] != NOT_FOUND)
+		{
+			uint32_t loopInfoIdx = (uint32_t)(loopInfo - polygon->loops);
+			uint32_t nextVertexIdx = vertexIdx;
+			do
+			{
+				nextVertexIdx = polygon->equalVertexList[nextVertexIdx];
+				if (nextVertexIdx == vertexIdx)
+					break;
+
+				const LoopInfo* otherLoopInfo = dsBinarySearch(&nextVertexIdx, polygon->loops,
+					polygon->loopCount, sizeof(LoopInfo), &compareLoopSearch, (void*)loops);
+				if (!otherLoopInfo)
+					continue;
+
+				uint32_t otherLoopInfoIdx = (uint32_t)(otherLoopInfo - polygon->loops);
+				connectLoopInfos(polygon, loopInfoIdx, otherLoopInfoIdx);
+			} while (true);
 		}
 	}
 
 	return true;
 }
 
+static int connectToLoop(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoop* loops,
+	uint32_t fromLoopInfoIdx, uint32_t toLoopInfoIdx)
+{
+	// Try to connect the left-most vertex to any vertex in the other loop. When done with every
+	// loop in the full polygon, they should eventually all connect to the outer loop.
+	dsBasePolygon* base = &polygon->base;
+	const LoopInfo* fromLoopInfo = polygon->loops + fromLoopInfoIdx;
+	uint32_t fromVert = fromLoopInfo->leftPoint;
+	const LoopInfo* toLoopInfo = polygon->loops + toLoopInfoIdx;
+	const dsSimplePolygonLoop* toLoop = loops + toLoopInfo->loopIndex;
+	bool ccw = toLoopInfo->loopIndex == 0;
+	for (uint32_t i = 0; i < toLoop->pointCount; ++i)
+	{
+		uint32_t toVert = toLoop->firstPoint + i;
+		if (canConnectEdge(polygon, fromVert, toVert))
+		{
+			if (!dsBasePolygon_addSeparatingEdge(base, fromVert, toVert, ccw))
+				return -1;
+			connectLoopInfos(polygon, fromLoopInfoIdx, toLoopInfoIdx);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static int connectToLoopGroup(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoop* loops,
+	uint32_t fromLoopInfoIdx, uint32_t toLoopInfoIdx)
+{
+	uint32_t curToLoopInfoIdx = toLoopInfoIdx;
+	do
+	{
+		int result = connectToLoop(polygon, loops, fromLoopInfoIdx, curToLoopInfoIdx);
+		if (result != 0)
+			return result;
+
+		curToLoopInfoIdx = polygon->loops[curToLoopInfoIdx].nextInfo;
+	} while (curToLoopInfoIdx != toLoopInfoIdx);
+	return false;
+}
+
 static bool connectLoops(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoop* loops,
 	uint32_t loopCount)
 {
+	if (!initializeLoops(polygon, loops, loopCount))
+		return false;
+
+	DS_ASSERT(polygon->loopCount == loopCount);
 	if (loopCount <= 1)
 		return true;
 
-	DS_ASSERT(polygon->mainEdgeCount == polygon->base.edgeCount);
-	if (!dsBasePolygon_buildEdgeBVH(&polygon->base))
+	dsBasePolygon* base = &polygon->base;
+	DS_ASSERT(polygon->mainEdgeCount == base->edgeCount);
+	if (!dsBasePolygon_buildEdgeBVH(base))
 		return false;
 
-	dsBasePolygon* base = &polygon->base;
-	const dsSimplePolygonLoop* outerLoop = loops;
-	for (uint32_t i = 1; i < loopCount; ++i)
+	uint32_t outerLoopInfoIdx = 0;
+	for (uint32_t i = 0; i < loopCount; ++i)
 	{
-		const dsSimplePolygonLoop* innerLoop = loops + i;
-		for (uint32_t j = 0; j < innerLoop->pointCount; ++j)
+		if (polygon->loops[i].loopIndex == 0)
 		{
-			bool found = false;
-			for (uint32_t k = 0; k < outerLoop->pointCount; ++k)
-			{
-				uint32_t fromVert = outerLoop->firstPoint + k;
-				uint32_t toVert = innerLoop->firstPoint + j;
-				if (canConnectEdge(polygon, fromVert, toVert))
-				{
-					if (!dsBasePolygon_addSeparatingEdge(base, fromVert, toVert, true))
-						return false;
-					found = true;
-					break;
-				}
-			}
+			outerLoopInfoIdx = i;
+			break;
+		}
+	}
 
-			if (found)
+	for (uint32_t i = 0; i < loopCount; ++i)
+	{
+		if (loopsConnected(polygon, i, outerLoopInfoIdx))
+			continue;
+
+		// Try to connect to the outer loop, or some other loop already connected to the outer loop.
+		int result = connectToLoopGroup(polygon, loops, i, outerLoopInfoIdx);
+		if (result == -1)
+			return false;
+
+		if (result)
+			continue;
+
+		// If we couldn't connect to the outer loop, try to connect to some other loop that isn't
+		// currently connected to this. It should eventually hook up to the outer loop once we're
+		// finished processing all loops.
+		for (uint32_t j = 0; j < loopCount; ++j)
+		{
+			if (loopsConnected(polygon, j, i) || loopsConnected(polygon, j, outerLoopInfoIdx))
+				continue;
+
+			result = connectToLoopGroup(polygon, loops, i, j);
+			if (result == -1)
+				return false;
+			else if (result)
 				break;
 		}
+
+		if (!result)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Couldn't connect all polygon loops.");
+			return false;
+		}
+	}
+
+	// Double check that we could connect all loops.
+	uint32_t connectedCount = 0;
+	uint32_t curLoopInfoIdx = 0;
+	do
+	{
+		++connectedCount;
+		curLoopInfoIdx = polygon->loops[curLoopInfoIdx].nextInfo;
+	} while (curLoopInfoIdx != 0);
+
+	if (connectedCount != loopCount)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Couldn't connect all polygon loops.");
+		return false;
 	}
 
 	return true;
@@ -350,15 +553,12 @@ static uint32_t findNextEdge(const dsSimpleHoledPolygon* polygon, uint32_t edgeI
 		const EdgeConnection* curConnection = &base->vertices[curVert].nextEdges.head;
 		do
 		{
-			if (!base->edges[curConnection->edge].visited)
+			double angle = dsBasePolygon_edgeAngle(base, curConnection->edge, &edgeDir, false,
+				true);
+			if (angle < closestAngle)
 			{
-				double angle = dsBasePolygon_edgeAngle(base, curConnection->edge, &edgeDir, false,
-					true);
-				if (angle < closestAngle)
-				{
-					closestEdge = curConnection->edge;
-					closestAngle = angle;
-				}
+				closestEdge = curConnection->edge;
+				closestAngle = angle;
 			}
 
 			if (curConnection->nextConnection == NOT_FOUND)
@@ -370,7 +570,7 @@ static uint32_t findNextEdge(const dsSimpleHoledPolygon* polygon, uint32_t edgeI
 		curVert = polygon->equalVertexList[curVert];
 	} while (curVert != firstVert && curVert != NOT_FOUND);
 
-	return closestEdge;
+	return base->edges[closestEdge].visited ? NOT_FOUND : closestEdge;
 }
 
 bool getLoopPosition(dsVector2d* outPosition, void* userData, const void* points, uint32_t index)
@@ -546,6 +746,7 @@ void dsSimpleHoledPolygon_destroy(dsSimpleHoledPolygon* polygon)
 
 	dsBasePolygon_shutdown(&polygon->base);
 	DS_VERIFY(dsAllocator_free(polygon->base.allocator, polygon->equalVertexList));
+	DS_VERIFY(dsAllocator_free(polygon->base.allocator, polygon->loops));
 	DS_VERIFY(dsAllocator_free(polygon->base.allocator, polygon->loopVerts));
 	dsSimplePolygon_destroy(polygon->simplePolygon);
 	DS_VERIFY(dsAllocator_free(polygon->base.allocator, polygon));
