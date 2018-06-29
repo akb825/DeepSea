@@ -81,12 +81,14 @@ DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setUserData(dsSimpleHoledPolygon* p
 
 /**
  * @brief Gets the epsilon used when testing equality between points.
+ * @param polygon The simple holed polygon.
  * @return The equality test epsilon.
  */
 DS_GEOMETRY_EXPORT double dsSimpleHoledPolygon_getEqualEpsilon(const dsSimpleHoledPolygon* polygon);
 
 /**
  * @brief Sets the epsilon used when testing equality between points.
+ * @param polygon The simple holed polygon.
  * @param epsilon The equality test epsilon.
  */
 DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setEqualEpsilon(dsSimpleHoledPolygon* polygon,
@@ -94,6 +96,7 @@ DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setEqualEpsilon(dsSimpleHoledPolygo
 
 /**
  * @brief Gets the epsilon used when testing intersections between edges.
+ * @param polygon The simple holed polygon.
  * @return The intersection test epsilon.
  */
 DS_GEOMETRY_EXPORT double dsSimpleHoledPolygon_getIntersectEpsilon(
@@ -101,6 +104,7 @@ DS_GEOMETRY_EXPORT double dsSimpleHoledPolygon_getIntersectEpsilon(
 
 /**
  * @brief Sets the epsilon used when testing intersections between edges.
+ * @param polygon The simple holed polygon.
  * @param epsilon The intersection test epsilon.
  */
 DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setIntersectEpsilon(dsSimpleHoledPolygon* polygon,

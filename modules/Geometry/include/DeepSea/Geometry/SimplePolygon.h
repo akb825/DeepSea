@@ -120,24 +120,28 @@ DS_GEOMETRY_EXPORT void dsSimplePolygon_setUserData(dsSimplePolygon* polygon, vo
 
 /**
  * @brief Gets the epsilon used when testing equality between points.
+ * @param polygon The simple polygon.
  * @return The equality test epsilon.
  */
 DS_GEOMETRY_EXPORT double dsSimplePolygon_getEqualEpsilon(const dsSimplePolygon* polygon);
 
 /**
  * @brief Sets the epsilon used when testing equality between points.
+ * @param polygon The simple polygon.
  * @param epsilon The equality test epsilon.
  */
 DS_GEOMETRY_EXPORT void dsSimplePolygon_setEqualEpsilon(dsSimplePolygon* polygon, double epsilon);
 
 /**
  * @brief Gets the epsilon used when testing intersections between edges.
+ * @param polygon The simple polygon.
  * @return The intersection test epsilon.
  */
 DS_GEOMETRY_EXPORT double dsSimplePolygon_getIntersectEpsilon(const dsSimplePolygon* polygon);
 
 /**
  * @brief Sets the epsilon used when testing intersections between edges.
+ * @param polygon The simple polygon.
  * @param epsilon The intersection test epsilon.
  */
 DS_GEOMETRY_EXPORT void dsSimplePolygon_setIntersectEpsilon(dsSimplePolygon* polygon,
