@@ -79,7 +79,7 @@ static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint
 			return false;
 
 		if (i > 0 && dsVector2d_epsilonEqual(&vertex->point, &polygon->vertices[i - 1].point,
-			EPSILON))
+			polygon->equalEpsilon))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon may not have duplicate points in a series.");
@@ -102,7 +102,7 @@ static bool addVerticesAndEdges(dsBasePolygon* polygon, const void* points, uint
 	}
 
 	if (dsVector2d_epsilonEqual(&polygon->vertices[0].point,
-		&polygon->vertices[polygon->vertexCount - 1].point, EPSILON))
+		&polygon->vertices[polygon->vertexCount - 1].point, polygon->equalEpsilon))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon may not duplicate the first and last point.");
@@ -404,7 +404,8 @@ bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition, void* userData, c
 	return true;
 }
 
-dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData)
+dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData, double equalEpsilon,
+	double intersectEpsilon)
 {
 	if (!allocator)
 	{
@@ -426,6 +427,8 @@ dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData)
 	memset(polygon, 0, sizeof(dsSimplePolygon));
 	polygon->base.allocator = dsAllocator_keepPointer(allocator);
 	polygon->base.userData = userData;
+	polygon->base.equalEpsilon = equalEpsilon;
+	polygon->base.intersectEpsilon = intersectEpsilon;
 	return polygon;
 }
 
@@ -441,6 +444,34 @@ void dsSimplePolygon_setUserData(dsSimplePolygon* polygon, void* userData)
 {
 	if (polygon)
 		polygon->base.userData = userData;
+}
+
+double dsSimplePolygon_getEqualEpsilon(const dsSimplePolygon* polygon)
+{
+	if (!polygon)
+		return 0.0;
+
+	return polygon->base.equalEpsilon;
+}
+
+void dsSimplePolygon_setEqualEpsilon(dsSimplePolygon* polygon, double epsilon)
+{
+	if (polygon)
+		polygon->base.equalEpsilon = epsilon;
+}
+
+double dsSimplePolygon_getIntersectEpsilon(const dsSimplePolygon* polygon)
+{
+	if (!polygon)
+		return 0.0;
+
+	return polygon->base.intersectEpsilon;
+}
+
+void dsSimplePolygon_setIntersectEpsilon(dsSimplePolygon* polygon, double epsilon)
+{
+	if (polygon)
+		polygon->base.intersectEpsilon = epsilon;
 }
 
 const uint32_t* dsSimplePolygon_triangulate(uint32_t* outIndexCount,

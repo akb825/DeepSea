@@ -25,6 +25,7 @@ typedef struct EdgeIntersectInfo
 {
 	dsVector2d fromPos;
 	dsVector2d toPos;
+	double epsilon;
 	uint32_t fromVert;
 	uint32_t toVert;
 	bool intersects;
@@ -71,7 +72,8 @@ static bool testEdgeIntersect(void* userData, const dsBVH* bvh, const void* obje
 
 	const dsVector2d* otherFrom = &polygon->vertices[otherEdge->prevVertex].point;
 	const dsVector2d* otherTo = &polygon->vertices[otherEdge->nextVertex].point;
-	info->intersects = dsPolygonEdgesIntersect(&info->fromPos, &info->toPos, otherFrom, otherTo);
+	info->intersects = dsPolygonEdgesIntersect(&info->fromPos, &info->toPos, otherFrom, otherTo,
+		info->epsilon);
 	return !info->intersects;
 }
 
@@ -133,7 +135,7 @@ static void insertEdge(dsBasePolygon* polygon, EdgeConnectionList* edgeList, uin
 }
 
 bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
-	const dsVector2d* otherFrom, const dsVector2d* otherTo)
+	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon)
 {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
 	dsVector2d offset;
@@ -141,18 +143,18 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 
 	double divisor = (from->x - to->x)*(otherFrom->y - otherTo->y) -
 		(from->y - to->y)*(otherFrom->x - otherTo->x);
-	if (dsEpsilonEquald(divisor, 0.0, EPSILON))
+	if (dsEpsilonEquald(divisor, 0.0, epsilon))
 	{
 		// Check if the lines are on top of each other.
 		dsVector2d otherRef;
-		if (dsVector2d_epsilonEqual(otherFrom, to, EPSILON))
+		if (dsVector2d_epsilonEqual(otherFrom, to, epsilon))
 			otherRef = *otherTo;
 		else
 			otherRef = *otherFrom;
 		double betweenDivisor = (otherRef.x - to->x)*(from->y - otherTo->y) -
 			(otherRef.y - to->y)*(otherFrom->x - otherTo->x);
 		// Parallel, but not coincident.
-		if (!dsEpsilonEquald(betweenDivisor, 0.0, EPSILON))
+		if (!dsEpsilonEquald(betweenDivisor, 0.0, epsilon))
 			return false;
 
 		double distance = dsVector2d_len(&offset);
@@ -168,7 +170,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 
 		double otherMinT = dsMin(otherFromT, otherToT);
 		double otherMaxT = dsMax(otherFromT, otherToT);
-		if (otherMaxT <= EPSILON || otherMinT >= 1.0 - EPSILON)
+		if (otherMaxT <= epsilon || otherMinT >= 1.0 - epsilon)
 			return false;
 		return true;
 	}
@@ -191,7 +193,7 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 	else
 		t = (intersect.y - from->y)/offset.y;
 
-	return t > EPSILON && t < 1.0 - EPSILON;
+	return t > epsilon && t < 1.0 - epsilon;
 }
 
 bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVector2d* p2);
@@ -286,7 +288,7 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 {
 	const Vertex* fromVert = polygon->vertices + fromVertIdx;
 	const Vertex* toVert = polygon->vertices + toVertIdx;
-	if (dsVector2d_epsilonEqual(&fromVert->point, &toVert->point, EPSILON))
+	if (dsVector2d_epsilonEqual(&fromVert->point, &toVert->point, polygon->equalEpsilon))
 		return false;
 
 	uint32_t fromPrevEdge = fromVert->prevEdges.head.edge;
@@ -303,7 +305,8 @@ bool dsBasePolygon_canConnectEdge(const dsBasePolygon* polygon, uint32_t fromVer
 	dsAlignedBox2d edgeBounds = {fromVert->point, fromVert->point};
 	dsAlignedBox2_addPoint(edgeBounds, toVert->point);
 
-	EdgeIntersectInfo info = {fromVert->point, toVert->point, fromVertIdx, toVertIdx, false};
+	EdgeIntersectInfo info = {fromVert->point, toVert->point, polygon->intersectEpsilon,
+		fromVertIdx, toVertIdx, false};
 	dsBVH_intersect(polygon->edgeBVH, &edgeBounds, &testEdgeIntersect, &info);
 	return !info.intersects;
 }

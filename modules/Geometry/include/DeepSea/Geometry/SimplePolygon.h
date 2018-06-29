@@ -93,9 +93,16 @@ DS_GEOMETRY_EXPORT bool dsSimplePolygon_getPointVector2i(dsVector2d* outPosition
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the polygon with. This must support freeing memory.
  * @param userData User data associated with the polygon.
+ * @param equalEpsilon The epsilon to use when testing equality between points.
+ *     DS_POLYGON_EQUAL_EPSILON_DOUBLE or DS_POLYGON_EQUAL_EPSILON_FLOAT may be used as a default
+ *     value.
+ * @param intersectEpsilon The epsilon to use when testing intersection between edges.
+ *     DS_POLYGON_INTERSECT_EPSILON_DOUBLE or DS_POLYGON_INTERSECT_EPSILON_FLOAT may be used as a
+ *     default value.
  * @return The created polygon, or NULL if it couldn't be created.
  */
-DS_GEOMETRY_EXPORT dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData);
+DS_GEOMETRY_EXPORT dsSimplePolygon* dsSimplePolygon_create(dsAllocator* allocator, void* userData,
+	double equalEpsilon, double intersectEpsilon);
 
 /**
  * @brief Gets the user data for the simple polygon.
@@ -110,6 +117,31 @@ DS_GEOMETRY_EXPORT void* dsSimplePolygon_getUserData(const dsSimplePolygon* poly
  * @param userData The user data.
  */
 DS_GEOMETRY_EXPORT void dsSimplePolygon_setUserData(dsSimplePolygon* polygon, void* userData);
+
+/**
+ * @brief Gets the epsilon used when testing equality between points.
+ * @return The equality test epsilon.
+ */
+DS_GEOMETRY_EXPORT double dsSimplePolygon_getEqualEpsilon(const dsSimplePolygon* polygon);
+
+/**
+ * @brief Sets the epsilon used when testing equality between points.
+ * @param epsilon The equality test epsilon.
+ */
+DS_GEOMETRY_EXPORT void dsSimplePolygon_setEqualEpsilon(dsSimplePolygon* polygon, double epsilon);
+
+/**
+ * @brief Gets the epsilon used when testing intersections between edges.
+ * @return The intersection test epsilon.
+ */
+DS_GEOMETRY_EXPORT double dsSimplePolygon_getIntersectEpsilon(const dsSimplePolygon* polygon);
+
+/**
+ * @brief Sets the epsilon used when testing intersections between edges.
+ * @param epsilon The intersection test epsilon.
+ */
+DS_GEOMETRY_EXPORT void dsSimplePolygon_setIntersectEpsilon(dsSimplePolygon* polygon,
+	double epsilon);
 
 /**
  * @brief Triangulates a simple polygon.

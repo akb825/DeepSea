@@ -69,6 +69,26 @@ extern "C"
 #define DS_GEOMETRY_OBJECT_INDICES (size_t)-1
 
 /**
+ * @brief Default epsilon for determining if polygon points are equal for doubles.
+ */
+#define DS_POLYGON_EQUAL_EPSILON_DOUBLE 1e-14
+
+/**
+ * @brief Default epsilon for polygon edge intersection tests for doubles.
+ */
+#define DS_POLYGON_INTERSECT_EPSILON_DOUBLE 1e-10
+
+/**
+ * @brief Default epsilon for determining if polygon points are equal for floats.
+ */
+#define DS_POLYGON_EQUAL_EPSILON_FLOAT 1e-5f
+
+/**
+ * @brief Default epsilon for polygon edge intersection tests for floats.
+ */
+#define DS_POLYGON_INTERSECT_EPSILON_FLOAT 1e-5f
+
+/**
  * @brief Enum for the result of an intersection.
  */
 typedef enum dsIntersectResult

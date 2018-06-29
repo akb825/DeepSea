@@ -26,7 +26,8 @@ public:
 	void SetUp() override
 	{
 		ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
-		polygon = dsSimpleHoledPolygon_create((dsAllocator*)&allocator, NULL);
+		polygon = dsSimpleHoledPolygon_create((dsAllocator*)&allocator, NULL,
+			DS_POLYGON_EQUAL_EPSILON_DOUBLE, DS_POLYGON_INTERSECT_EPSILON_DOUBLE);
 		ASSERT_TRUE(polygon);
 	}
 

@@ -115,7 +115,8 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 
 	memset(data, 0, sizeof(*data));
 	data->allocator = allocator;
-	data->polygon = dsSimplePolygon_create(allocator, data);
+	data->polygon = dsSimplePolygon_create(allocator, data, DS_POLYGON_EQUAL_EPSILON_FLOAT,
+		DS_POLYGON_INTERSECT_EPSILON_FLOAT);
 	if (!data->polygon)
 	{
 		DS_VERIFY(dsAllocator_free(allocator, data));

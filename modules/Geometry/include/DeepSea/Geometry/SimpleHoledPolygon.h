@@ -53,10 +53,16 @@ extern "C"
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the polygon with. This must support freeing memory.
  * @param userData User data associated with the polygon.
+ * @param equalEpsilon The epsilon to use when testing equality between points.
+ *     DS_POLYGON_EQUAL_EPSILON_DOUBLE or DS_POLYGON_EQUAL_EPSILON_FLOAT may be used as a default
+ *     value.
+ * @param intersectEpsilon The epsilon to use when testing intersection between edges.
+ *     DS_POLYGON_INTERSECT_EPSILON_DOUBLE or DS_POLYGON_INTERSECT_EPSILON_FLOAT may be used as a
+ *     default value.
  * @return The created polygon, or NULL if it couldn't be created.
  */
 DS_GEOMETRY_EXPORT dsSimpleHoledPolygon* dsSimpleHoledPolygon_create(dsAllocator* allocator,
-	void* userData);
+	void* userData, double equalEpsilon, double intersectEpsilon);
 
 /**
  * @brief Gets the user data for the simple holed polygon.
@@ -72,6 +78,33 @@ DS_GEOMETRY_EXPORT void* dsSimpleHoledPolygon_getUserData(const dsSimpleHoledPol
  */
 DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setUserData(dsSimpleHoledPolygon* polygon,
 	void* userData);
+
+/**
+ * @brief Gets the epsilon used when testing equality between points.
+ * @return The equality test epsilon.
+ */
+DS_GEOMETRY_EXPORT double dsSimpleHoledPolygon_getEqualEpsilon(const dsSimpleHoledPolygon* polygon);
+
+/**
+ * @brief Sets the epsilon used when testing equality between points.
+ * @param epsilon The equality test epsilon.
+ */
+DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setEqualEpsilon(dsSimpleHoledPolygon* polygon,
+	double epsilon);
+
+/**
+ * @brief Gets the epsilon used when testing intersections between edges.
+ * @return The intersection test epsilon.
+ */
+DS_GEOMETRY_EXPORT double dsSimpleHoledPolygon_getIntersectEpsilon(
+	const dsSimpleHoledPolygon* polygon);
+
+/**
+ * @brief Sets the epsilon used when testing intersections between edges.
+ * @param epsilon The intersection test epsilon.
+ */
+DS_GEOMETRY_EXPORT void dsSimpleHoledPolygon_setIntersectEpsilon(dsSimpleHoledPolygon* polygon,
+	double epsilon);
 
 /**
  * @brief Triangulates a simple polygon with holes.

@@ -22,7 +22,6 @@
 #include <DeepSea/Math/Vector2.h>
 
 #define NOT_FOUND (uint32_t)-1
-#define EPSILON 1e-10
 
 typedef struct EdgeConnection
 {
@@ -57,6 +56,8 @@ typedef struct dsBasePolygon
 	dsAllocator* allocator;
 
 	void* userData;
+	double equalEpsilon;
+	double intersectEpsilon;
 
 	Vertex* vertices;
 	uint32_t vertexCount;
@@ -82,7 +83,7 @@ typedef struct dsBasePolygon
 } dsBasePolygon;
 
 bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
-	const dsVector2d* otherFrom, const dsVector2d* otherTo);
+	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon);
 
 inline bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1,
 	const dsVector2d* p2)

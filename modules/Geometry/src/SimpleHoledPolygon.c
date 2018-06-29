@@ -96,7 +96,7 @@ static bool addVertices(dsSimpleHoledPolygon* polygon, const void* points,
 			return false;
 
 		if (i > 0 && dsVector2d_epsilonEqual(&vertex->point, &base->vertices[i - 1].point,
-			EPSILON))
+			base->equalEpsilon))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon may not have duplicate points in a series.");
@@ -187,7 +187,7 @@ static bool addLoopEdges(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 		}
 
 		if (dsVector2d_epsilonEqual(&base->vertices[loop->firstPoint].point,
-			&base->vertices[loop->firstPoint + loop->pointCount - 1].point, EPSILON))
+			&base->vertices[loop->firstPoint + loop->pointCount - 1].point, base->equalEpsilon))
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG,
@@ -219,6 +219,7 @@ static bool findEqualVertices(dsSimpleHoledPolygon* polygon)
 	}
 	memset(polygon->equalVertexList, 0xFF, base->vertexCount*sizeof(uint32_t));
 
+	double doubleEpsilon = 2*base->equalEpsilon;
 	for (uint32_t i = 0; i < base->vertexCount; ++i)
 	{
 		uint32_t firstIndex = base->sortedVerts[i];
@@ -233,12 +234,12 @@ static bool findEqualVertices(dsSimpleHoledPolygon* polygon)
 		{
 			uint32_t curIndex = base->sortedVerts[j];
 			const dsVector2d* curPoint = &base->vertices[curIndex].point;
-			if (curPoint->x > firstPoint->x + 2*EPSILON)
+			if (curPoint->x > firstPoint->x + doubleEpsilon)
 				break;
 
 			// Use 2 epsilon to compare the X since we're starting on the left-most boundary.
-			if (dsEpsilonEquald(firstPoint->x, curPoint->x, 2*EPSILON) &&
-				dsEpsilonEquald(firstPoint->y, curPoint->y, EPSILON))
+			if (dsEpsilonEquald(firstPoint->x, curPoint->x, doubleEpsilon) &&
+				dsEpsilonEquald(firstPoint->y, curPoint->y, base->equalEpsilon))
 			{
 				polygon->equalVertexList[lastIndex] = curIndex;
 				polygon->equalVertexList[curIndex] = firstIndex;
@@ -293,7 +294,7 @@ static bool canConnectEdge(const dsSimpleHoledPolygon* polygon, uint32_t fromVer
 
 		const dsVector2d* otherFrom = &base->vertices[otherEdge->prevVertex].point;
 		const dsVector2d* otherTo = &base->vertices[otherEdge->nextVertex].point;
-		if (dsPolygonEdgesIntersect(fromPos, toPos, otherFrom, otherTo))
+		if (dsPolygonEdgesIntersect(fromPos, toPos, otherFrom, otherTo, base->intersectEpsilon))
 			return false;
 	}
 
@@ -670,7 +671,8 @@ static bool triangulateLoops(dsSimpleHoledPolygon* polygon, dsTriangulateWinding
 	return true;
 }
 
-dsSimpleHoledPolygon* dsSimpleHoledPolygon_create(dsAllocator* allocator, void* userData)
+dsSimpleHoledPolygon* dsSimpleHoledPolygon_create(dsAllocator* allocator, void* userData,
+	double equalEpsilon, double intersectEpsilon)
 {
 	if (!allocator)
 	{
@@ -692,7 +694,10 @@ dsSimpleHoledPolygon* dsSimpleHoledPolygon_create(dsAllocator* allocator, void* 
 	memset(polygon, 0, sizeof(dsSimpleHoledPolygon));
 	polygon->base.allocator = dsAllocator_keepPointer(allocator);
 	polygon->base.userData = userData;
-	polygon->simplePolygon = dsSimplePolygon_create(allocator, userData);
+	polygon->base.equalEpsilon = equalEpsilon;
+	polygon->base.intersectEpsilon = intersectEpsilon;
+	polygon->simplePolygon = dsSimplePolygon_create(allocator, userData, equalEpsilon,
+		intersectEpsilon);
 	if (!polygon->simplePolygon)
 	{
 		DS_VERIFY(dsAllocator_free(allocator, polygon));
@@ -713,6 +718,40 @@ void dsSimpleHoledPolygon_setUserData(dsSimpleHoledPolygon* polygon, void* userD
 {
 	if (polygon)
 		polygon->base.userData = userData;
+}
+
+double dsSimpleHoledPolygon_getEqualEpsilon(const dsSimpleHoledPolygon* polygon)
+{
+	if (!polygon)
+		return 0.0;
+
+	return polygon->base.equalEpsilon;
+}
+
+void dsSimpleHoledPolygon_setEqualEpsilon(dsSimpleHoledPolygon* polygon, double epsilon)
+{
+	if (!polygon)
+		return;
+
+	polygon->base.equalEpsilon = epsilon;
+	dsSimplePolygon_setEqualEpsilon(polygon->simplePolygon, epsilon);
+}
+
+double dsSimpleHoledPolygon_getIntersectEpsilon(const dsSimpleHoledPolygon* polygon)
+{
+	if (!polygon)
+		return 0.0;
+
+	return polygon->base.intersectEpsilon;
+}
+
+void dsSimpleHoledPolygon_setIntersectEpsilon(dsSimpleHoledPolygon* polygon, double epsilon)
+{
+	if (!polygon)
+		return;
+
+	polygon->base.intersectEpsilon = epsilon;
+	dsSimplePolygon_setIntersectEpsilon(polygon->simplePolygon, epsilon);
 }
 
 const uint32_t* dsSimpleHoledPolygon_triangulate(uint32_t* outIndexCount,
