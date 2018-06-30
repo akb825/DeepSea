@@ -118,7 +118,8 @@ const char* vectorImageFiles[] =
 	"icon.dsvi",
 	"evenodd.dsvi",
 	"nonzero.dsvi",
-	"holes.dsvi"
+	"holes.dsvi",
+	"Ghostscript_Tiger.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

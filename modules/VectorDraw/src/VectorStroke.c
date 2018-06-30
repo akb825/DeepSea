@@ -861,7 +861,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 	}
 
 	// Expand by a minimum of a pixel, using alpha for sub-pixel sizes.
-	float expandSize = dsMax(stroke->width, pixelSize);
+	float expandSize = dsMax(stroke->width, pixelSize*0.5f);
 	float sizeAlpha = stroke->width/expandSize;
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
