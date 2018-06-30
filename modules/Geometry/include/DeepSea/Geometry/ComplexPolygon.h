@@ -35,7 +35,8 @@ extern "C"
  * follow either the even-odd rule or non-zero filling rule to deal with intersecting and
  * overlapping polygons.
  *
- * Once simplified, the polygon loops may be used with dsSimplePolygon in order to triangulate
+ * Once simplified, a series of polygons with holes will be produced. Each polygon and its
+ * corresponding holes may be triangulated with dsSimpleHoledPolygon.
  *
  * dsComplexPolygon will keep memory allocated between triangulations, re-using existing allocations
  * when possible. This means that if you use the same instance to triangulate multiple polygons, it
@@ -109,21 +110,52 @@ DS_GEOMETRY_EXPORT bool dsComplexPolygon_simplify(dsComplexPolygon* polygon,
 	dsPolygonFillRule fillRule);
 
 /**
- * @brief Gets the number of loops after simplification.
+ * @brief Gets the number of holed polygons from the simplified complex polygon.
  * @param polygon The complex polygon that's been simplified.
- * @return The number of loops.
+ * @return The number of holed polygons.
  */
-DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getLoopCount(const dsComplexPolygon* polygon);
+DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getHoledPolygonCount(const dsComplexPolygon* polygon);
 
 /**
- * @brief Gets a simple polygon loop after simplification.
+ * @brief Gets the number of loops for a holed polygon.
+ * @param polygon The complex polygon that's been simplified.
+ * @param index The index of the holed polygon.
+ * @return The number of loops. The first loop will always be the outer loop, while the following
+ *     loops are holes.
+ */
+DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getHoledPolygonLoopCount(
+	const dsComplexPolygon* polygon, uint32_t index);
+
+/**
+ * @brief Gets the loops for a holed polygon.
  * @remark errno will be set on failure.
  * @param polygon The complex polygon that's been simplified.
- * @param index The index of the loop.
- * @return The polygon loop, or NULL if the parameters were invalid.
+ * @param index The index of the holed polygon.
+ * @return The polygon loops, or NULL if the parameters were invalid. The first loop will always be
+ *     the outer loop, while the following loops are holes.
  */
-DS_GEOMETRY_EXPORT const dsComplexPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon,
-	uint32_t index);
+DS_GEOMETRY_EXPORT const dsSimplePolygonLoop* dsComplexPolygon_getHoledPolygonLoops(
+	const dsComplexPolygon* polygon, uint32_t index);
+
+/**
+ * @brief Gets the number of points total for a holed polygon.
+ * @param polygon The complex polygon that's been simplified.
+ * @param index The index of the holed polygon.
+ * @return The number of points in the holed polygon.
+ */
+DS_GEOMETRY_EXPORT uint32_t dsComplexPolygon_getHoledPolygonPointCount(
+	const dsComplexPolygon* polygon, uint32_t index);
+
+/**
+ * @brief Gets the points for a holed polygon.
+ * @remark errno will be set on failure.
+ * @param polygon The complex polygon that's been simplified.
+ * @param index The index of the holed polygon.
+ * @return The points in the holed polygon. This will be an array of dsVector2f, dsVector2d, or
+ *     dsVector2i depending on the element type, or NULL if the parameters were invalid.
+ */
+DS_GEOMETRY_EXPORT const void* dsComplexPolygon_getHoledPolygonPoints(
+	const dsComplexPolygon* polygon, uint32_t index);
 
 /**
  * @brief Destroyes a simple polygon.

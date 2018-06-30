@@ -29,24 +29,34 @@
 
 using namespace ClipperLib;
 
+struct PolygonInfo
+{
+	uint32_t firstLoop;
+	uint32_t loopCount;
+	uint32_t firstPoint;
+	uint32_t pointCount;
+};
+
 struct dsComplexPolygon
 {
 	dsAllocator* allocator;
 
 	dsGeometryElement element;
+	uint8_t pointSize;
 	void* userData;
 
-	void** loopPoints;
-	uint32_t loopPointCount;
-	uint32_t maxLoopPoints;
+	PolygonInfo* outPolygons;
+	uint32_t outPolygonCount;
+	uint32_t maxOutPolygons;
 
-	dsComplexPolygonLoop* loops;
-	uint32_t loopCount;
-	uint32_t maxLoops;
+	void* outPoints;
+	uint32_t outPointCount;
+	uint32_t maxOutPoints;
+
+	dsSimplePolygonLoop* outLoops;
+	uint32_t outLoopCount;
+	uint32_t maxOutLoops;
 };
-
-extern "C"
-{
 
 static bool defaultGetPointFloat(void* outPosition, const dsComplexPolygon* polygon,
 	const void* points, uint32_t index)
@@ -72,7 +82,7 @@ static bool defaultGetPointInt(void* outPosition, const dsComplexPolygon* polygo
 	return true;
 }
 
-static bool simplifyPolygon(Paths& paths, dsPolygonFillRule fillRule)
+static bool simplifyPolygon(PolyTree& result, const Paths& paths, dsPolygonFillRule fillRule)
 {
 	PolyFillType clipperFillType = pftEvenOdd;
 	if (fillRule == dsPolygonFillRule_NonZero)
@@ -80,7 +90,123 @@ static bool simplifyPolygon(Paths& paths, dsPolygonFillRule fillRule)
 
 	Clipper c(ioStrictlySimple);
 	c.AddPaths(paths, ptSubject, true);
-	c.Execute(ctUnion, paths, clipperFillType);
+	c.Execute(ctUnion, result, clipperFillType);
+
+	return true;
+}
+
+static void countPolyTree(uint32_t& outPolygonCount, uint32_t& outLoopCount,
+	uint32_t& outPointCount, const PolyNode& node)
+{
+	for (PolyNode* child : node.Childs)
+	{
+		if (!child->IsHole())
+			++outPolygonCount;
+		outPointCount += (uint32_t)child->Contour.size();
+		++outLoopCount;
+
+		countPolyTree(outPolygonCount, outLoopCount, outPointCount, *child);
+	}
+}
+
+template <typename F>
+static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
+	uint32_t& outLoopCount, uint32_t& outPointCount, const PolyNode& node, const F& copyPointsFunc);
+
+template <typename F>
+static void populatePolyTreeHoles(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
+	uint32_t& outLoopIndex, uint32_t& outPointIndex, uint32_t loopPointIndex, const PolyNode& node,
+	const F& copyPointsFunc)
+{
+	for (PolyNode* child : node.Childs)
+	{
+		DS_ASSERT(child->IsHole());
+		uint32_t curIndex = outPolygonIndex;
+		uint32_t pointCount = (uint32_t)child->Contour.size();
+		++polygon->outPolygons[outPolygonIndex].loopCount;
+		polygon->outPolygons[curIndex].pointCount += pointCount;
+		polygon->outLoops[outLoopIndex].firstPoint = loopPointIndex;
+		polygon->outLoops[outLoopIndex].pointCount = pointCount;
+		copyPointsFunc(polygon, child->Contour, outPointIndex, pointCount);
+
+		++outLoopIndex;
+		DS_ASSERT(outLoopIndex <= polygon->outLoopCount);
+		outPointIndex += pointCount;
+		loopPointIndex += pointCount;
+		DS_ASSERT(outPointIndex <= polygon->outPointCount);
+	}
+
+	++outPolygonIndex;
+	for (PolyNode* child : node.Childs)
+	{
+		populatePolyTree(polygon, outPolygonIndex, outLoopIndex, outPointIndex, *child,
+			copyPointsFunc);
+	}
+}
+
+template <typename F>
+static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonIndex,
+	uint32_t& outLoopIndex, uint32_t& outPointIndex, const PolyNode& node, const F& copyPointsFunc)
+{
+	for (PolyNode* child : node.Childs)
+	{
+		DS_ASSERT(!child->IsHole());
+		uint32_t pointCount = (uint32_t)child->Contour.size();
+		polygon->outPolygons[outPolygonIndex].firstLoop = outLoopIndex;
+		polygon->outPolygons[outPolygonIndex].loopCount = 1;
+		polygon->outPolygons[outPolygonIndex].firstPoint = outPointIndex;
+		polygon->outPolygons[outPolygonIndex].pointCount = pointCount;
+		polygon->outLoops[outLoopIndex].firstPoint = 0;
+		polygon->outLoops[outLoopIndex].pointCount = pointCount;
+		copyPointsFunc(polygon, child->Contour, outPointIndex, pointCount);
+
+		++outLoopIndex;
+		DS_ASSERT(outLoopIndex <= polygon->outLoopCount);
+		outPointIndex += pointCount;
+		DS_ASSERT(outPointIndex <= polygon->outPointCount);
+
+		populatePolyTreeHoles(polygon, outPolygonIndex, outLoopIndex, outPointIndex, pointCount,
+			*child, copyPointsFunc);
+		DS_ASSERT(outPolygonIndex <= polygon->outPolygonCount);
+	}
+}
+
+template <typename F>
+static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths,
+	dsPolygonFillRule fillRule, const F& copyPointsFunc)
+{
+	PolyTree result;
+	if (!simplifyPolygon(result, paths, fillRule))
+		return false;
+
+	uint32_t outPolygonCount = 0, outLoopCount = 0, outPointCount = 0;
+	countPolyTree(outPolygonCount, outLoopCount, outPointCount, result);
+
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->outPolygons, polygon->outPolygonCount,
+		polygon->maxOutPolygons, outPolygonCount))
+	{
+		return false;
+	}
+
+	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->outLoops, polygon->outLoopCount,
+		polygon->maxOutLoops, outLoopCount))
+	{
+		return false;
+	}
+
+	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->outPoints,
+		&polygon->outPointCount, &polygon->maxOutPoints, polygon->pointSize, outPointCount))
+	{
+		return false;
+	}
+
+	outPolygonCount = 0;
+	outLoopCount = 0;
+	outPointCount = 0;
+	populatePolyTree(polygon, outPolygonCount, outLoopCount, outPointCount, result, copyPointsFunc);
+	DS_ASSERT(outPolygonCount == polygon->outPolygonCount);
+	DS_ASSERT(outPointCount == polygon->outPointCount);
+	DS_ASSERT(outLoopCount == polygon->outLoopCount);
 
 	return true;
 }
@@ -127,41 +253,18 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 		}
 	}
 
-	if (!simplifyPolygon(paths, fillRule))
-		return false;
-
-	uint32_t pointCount = 0;
-	for (const Path& path : paths)
-		pointCount += (uint32_t)path.size();
-
-	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
-		&polygon->loopPointCount, &polygon->maxLoopPoints, sizeof(dsVector2f), pointCount))
-	{
-		return false;
-	}
-
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->loops, polygon->loopCount,
-		polygon->maxLoops, (uint32_t)paths.size()))
-	{
-		return false;
-	}
-
-	dsVector2f* curPoint = (dsVector2f*)polygon->loopPoints;
-	for (uint32_t i = 0; i < paths.size(); ++i)
-	{
-		polygon->loops[i].points = curPoint;
-		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const IntPoint& pathPoint : paths[i])
+	return processPolygon(polygon, paths, fillRule,
+		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
-			dsVector2f point = {{(float)((double)pathPoint.X/limit),
-				(float)((double)pathPoint.Y/limit)}};
-			dsVector2_mul(point, point, scale);
-			dsVector2_add(*curPoint, point, offset);
-			++curPoint;
-		}
-	}
-
-	return true;
+			dsVector2f* points = (dsVector2f*)polygon->outPoints + firstPoint;
+			for (uint32_t i = 0; i < pointCount; ++i)
+			{
+				dsVector2f point = {{(float)((double)path[i].X/limit),
+					(float)((double)path[i].Y/limit)}};
+				dsVector2_mul(point, point, scale);
+				dsVector2_add(points[i], point, offset);
+			}
+		});
 }
 
 static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
@@ -207,40 +310,17 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 		}
 	}
 
-	if (!simplifyPolygon(paths, fillRule))
-		return false;
-
-	uint32_t pointCount = 0;
-	for (const Path& path : paths)
-		pointCount += (uint32_t)path.size();
-
-	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
-		&polygon->loopPointCount, &polygon->maxLoopPoints, sizeof(dsVector2d), pointCount))
-	{
-		return false;
-	}
-
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->loops, polygon->loopCount,
-		polygon->maxLoops, (uint32_t)paths.size()))
-	{
-		return false;
-	}
-
-	dsVector2d* curPoint = (dsVector2d*)polygon->loopPoints;
-	for (uint32_t i = 0; i < paths.size(); ++i)
-	{
-		polygon->loops[i].points = curPoint;
-		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const IntPoint& pathPoint : paths[i])
+	return processPolygon(polygon, paths, fillRule,
+		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
-			dsVector2d point = {{(double)pathPoint.X/limit, (double)pathPoint.Y/limit}};
-			dsVector2_mul(point, point, scale);
-			dsVector2_add(*curPoint, point, offset);
-			++curPoint;
-		}
-	}
-
-	return true;
+			dsVector2d* points = (dsVector2d*)polygon->outPoints + firstPoint;
+			for (uint32_t i = 0; i < pointCount; ++i)
+			{
+				dsVector2d point = {{(double)path[i].X/limit, (double)path[i].Y/limit}};
+				dsVector2_mul(point, point, scale);
+				dsVector2_add(points[i], point, offset);
+			}
+		});
 }
 
 static bool simplifyInt(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
@@ -261,40 +341,20 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsComplexPolygonLoop* l
 		}
 	}
 
-	if (!simplifyPolygon(paths, fillRule))
-		return false;
-
-	uint32_t pointCount = 0;
-	for (const Path& path : paths)
-		pointCount += (uint32_t)path.size();
-
-	if (!dsResizeableArray_add(polygon->allocator, (void**)&polygon->loopPoints,
-		&polygon->loopPointCount, &polygon->maxLoopPoints, sizeof(dsVector2i), pointCount))
-	{
-		return false;
-	}
-
-	if (!DS_RESIZEABLE_ARRAY_ADD(polygon->allocator, polygon->loops, polygon->loopCount,
-		polygon->maxLoops, (uint32_t)paths.size()))
-	{
-		return false;
-	}
-
-	dsVector2i* curPoint = (dsVector2i*)polygon->loopPoints;
-	for (uint32_t i = 0; i < paths.size(); ++i)
-	{
-		polygon->loops[i].points = curPoint;
-		polygon->loops[i].pointCount = (uint32_t)paths[i].size();
-		for (const IntPoint& pathPoint : paths[i])
+	return processPolygon(polygon, paths, fillRule,
+		[](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
-			curPoint->x = (int)pathPoint.X;
-			curPoint->y = (int)pathPoint.Y;
-			++curPoint;
-		}
-	}
-
-	return true;
+			dsVector2i* points = (dsVector2i*)polygon->outPoints + firstPoint;
+			for (uint32_t i = 0; i < pointCount; ++i)
+			{
+				points[i].x = (int)path[i].X;
+				points[i].y = (int)path[i].Y;
+			}
+		});
 }
+
+extern "C"
+{
 
 dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator, dsGeometryElement element,
 	void* userData)
@@ -312,6 +372,23 @@ dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator, dsGeometryElem
 		return NULL;
 	}
 
+	uint8_t pointSize;
+	switch (element)
+	{
+		case dsGeometryElement_Float:
+			pointSize = (uint8_t)sizeof(dsVector2f);
+			break;
+		case dsGeometryElement_Double:
+			pointSize = (uint8_t)sizeof(dsVector2d);
+			break;
+		case dsGeometryElement_Int:
+			pointSize = (uint8_t)sizeof(dsVector2i);
+			break;
+		default:
+			errno = EINVAL;
+			return NULL;
+	}
+
 	dsComplexPolygon* polygon = DS_ALLOCATE_OBJECT(allocator, dsComplexPolygon);
 	if (!polygon)
 		return NULL;
@@ -320,6 +397,7 @@ dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator, dsGeometryElem
 	polygon->allocator = dsAllocator_keepPointer(allocator);
 	polygon->userData = userData;
 	polygon->element = element;
+	polygon->pointSize = pointSize;
 	return polygon;
 }
 
@@ -370,8 +448,9 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygon
 		}
 	}
 
-	polygon->loopPointCount = 0;
-	polygon->loopCount = 0;
+	polygon->outPolygonCount = 0;
+	polygon->outPointCount = 0;
+	polygon->outLoopCount = 0;
 	switch (polygon->element)
 	{
 		case dsGeometryElement_Float:
@@ -392,30 +471,52 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygon
 	}
 }
 
-uint32_t dsComplexPolygon_getLoopCount(const dsComplexPolygon* polygon)
+uint32_t dsComplexPolygon_getHoledPolygonCount(const dsComplexPolygon* polygon)
 {
 	if (!polygon)
 		return 0;
 
-	return polygon->loopCount;
+	return polygon->outPolygonCount;
 }
 
-const dsComplexPolygonLoop* dsComplexPolygon_getLoop(const dsComplexPolygon* polygon,
+uint32_t dsComplexPolygon_getHoledPolygonLoopCount(const dsComplexPolygon* polygon, uint32_t index)
+{
+	if (!polygon || index >= polygon->outPolygonCount)
+		return 0;
+
+	return polygon->outPolygons[index].loopCount;
+}
+
+const dsSimplePolygonLoop* dsComplexPolygon_getHoledPolygonLoops(const dsComplexPolygon* polygon,
 	uint32_t index)
 {
-	if (!polygon)
+	if (!polygon || index >= polygon->outPolygonCount)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	if (index >= polygon->loopCount)
+	return polygon->outLoops + polygon->outPolygons[index].firstLoop;
+}
+
+uint32_t dsComplexPolygon_getHoledPolygonPointCount(const dsComplexPolygon* polygon, uint32_t index)
+{
+	if (!polygon || index >= polygon->outPolygonCount)
+		return 0;
+
+	return polygon->outPolygons[index].pointCount;
+}
+
+const void* dsComplexPolygon_getHoledPolygonPoints(const dsComplexPolygon* polygon, uint32_t index)
+{
+	if (!polygon || index >= polygon->outPolygonCount)
 	{
-		errno = EINDEX;
+		errno = EINVAL;
 		return NULL;
 	}
 
-	return polygon->loops + index;
+	return (const uint8_t*)polygon->outPoints +
+		polygon->outPolygons[index].firstPoint*polygon->pointSize;
 }
 
 void dsComplexPolygon_destroy(dsComplexPolygon* polygon)
@@ -423,8 +524,9 @@ void dsComplexPolygon_destroy(dsComplexPolygon* polygon)
 	if (!polygon || !polygon->allocator)
 		return;
 
-	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->loopPoints));
-	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->loops));
+	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outPolygons));
+	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outPoints));
+	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon->outLoops));
 	DS_VERIFY(dsAllocator_free(polygon->allocator, polygon));
 }
 

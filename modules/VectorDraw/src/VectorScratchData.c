@@ -25,7 +25,7 @@
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/ComplexPolygon.h>
-#include <DeepSea/Geometry/SimplePolygon.h>
+#include <DeepSea/Geometry/SimpleHoledPolygon.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Text/Font.h>
@@ -115,7 +115,7 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 
 	memset(data, 0, sizeof(*data));
 	data->allocator = allocator;
-	data->polygon = dsSimplePolygon_create(allocator, data, DS_POLYGON_EQUAL_EPSILON_FLOAT,
+	data->polygon = dsSimpleHoledPolygon_create(allocator, data, DS_POLYGON_EQUAL_EPSILON_FLOAT,
 		DS_POLYGON_INTERSECT_EPSILON_FLOAT);
 	if (!data->polygon)
 	{
@@ -125,7 +125,7 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 	data->simplifier = dsComplexPolygon_create(allocator, dsGeometryElement_Float, data);
 	if (!data->simplifier)
 	{
-		dsSimplePolygon_destroy(data->polygon);
+		dsSimpleHoledPolygon_destroy(data->polygon);
 		DS_VERIFY(dsAllocator_free(allocator, data));
 		return NULL;
 	}
@@ -149,7 +149,7 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 	DS_VERIFY(dsAllocator_free(data->allocator, data->vectorInfos));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->pieces));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->loops));
-	dsSimplePolygon_destroy(data->polygon);
+	dsSimpleHoledPolygon_destroy(data->polygon);
 	dsComplexPolygon_destroy(data->simplifier);
 	DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
 	DS_VERIFY(dsAllocator_free(data->allocator, data));

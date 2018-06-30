@@ -22,6 +22,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/ComplexPolygon.h>
+#include <DeepSea/Geometry/SimpleHoledPolygon.h>
 #include <DeepSea/Geometry/SimplePolygon.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
@@ -104,11 +105,12 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 			if (scratchData->pathSimple)
 			{
+				dsSimplePolygonLoop loop = {0, pointCount};
 				uint32_t indexCount;
 				// Use clockwise winding due to origin in the upper-left.
-				const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount,
+				const uint32_t* indices = dsSimpleHoledPolygon_triangulate(&indexCount,
 					scratchData->polygon, scratchData->shapeVertices + indexOffset, pointCount,
-					&getShapePosition, dsTriangulateWinding_CW);
+					&loop, 1, &getShapePosition, dsTriangulateWinding_CW);
 				if (!indices)
 					return false;
 
@@ -140,19 +142,21 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			return false;
 		}
 
-		uint32_t loopCount = dsComplexPolygon_getLoopCount(scratchData->simplifier);
-		for (uint32_t i = 0; i < loopCount; ++i)
+		uint32_t polygonCount = dsComplexPolygon_getHoledPolygonCount(scratchData->simplifier);
+		for (uint32_t i = 0; i < polygonCount; ++i)
 		{
-			const dsComplexPolygonLoop* loop = dsComplexPolygon_getLoop(scratchData->simplifier, i);
-			const dsVector2f* loopPoints = (const dsVector2f*)loop->points;
-			for (uint32_t j = 0; j < loop->pointCount; ++j)
+			uint32_t pointCount =
+				dsComplexPolygon_getHoledPolygonPointCount(scratchData->simplifier, i);
+			const dsVector2f* points = (const dsVector2f*)dsComplexPolygon_getHoledPolygonPoints(
+				scratchData->simplifier, i);
+			for (uint32_t j = 0; j < pointCount; ++j)
 			{
 				ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 				if (!curVertex)
 					return false;
 
-				curVertex->position.x = loopPoints[j].x;
-				curVertex->position.y = loopPoints[j].y;
+				curVertex->position.x = points[j].x;
+				curVertex->position.y = points[j].y;
 				curVertex->position.z = 0.0f;
 				curVertex->position.w = 0.0f;
 				curVertex->materialIndex = (uint16_t)material;
@@ -161,9 +165,11 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 			uint32_t indexCount;
 			// Use clockwise winding due to origin in the upper-left.
-			const uint32_t* indices = dsSimplePolygon_triangulate(&indexCount,
-				scratchData->polygon, scratchData->shapeVertices + indexOffset, loop->pointCount,
-				&getShapePosition, dsTriangulateWinding_CW);
+			const uint32_t* indices = dsSimpleHoledPolygon_triangulate(&indexCount,
+				scratchData->polygon, points, pointCount,
+				dsComplexPolygon_getHoledPolygonLoops(scratchData->simplifier, i),
+				dsComplexPolygon_getHoledPolygonLoopCount(scratchData->simplifier, i),
+				&dsSimplePolygon_getPointVector2f, dsTriangulateWinding_CW);
 			if (!indices)
 				return false;
 

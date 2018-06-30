@@ -174,7 +174,7 @@ struct dsVectorScratchData
 	uint32_t loopCount;
 	uint32_t maxLoops;
 
-	dsSimplePolygon* polygon;
+	dsSimpleHoledPolygon* polygon;
 	dsComplexPolygon* simplifier;
 
 	uint8_t* combinedBuffer;
