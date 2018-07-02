@@ -68,7 +68,7 @@ public:
 	void SetUp() override
 	{
 		ASSERT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
-		polygon = dsComplexPolygon_create((dsAllocator*)&allocator, Types<T>::element, NULL);
+		polygon = dsComplexPolygon_create((dsAllocator*)&allocator, Types<T>::element, NULL, 0.0);
 		ASSERT_TRUE(polygon);
 	}
 

@@ -102,14 +102,6 @@ static bool addVertices(dsSimpleHoledPolygon* polygon, const void* points,
 		if (!pointPositionFunc(&vertex->point, base->userData, points, i))
 			return false;
 
-		if (i > 0 && dsVector2d_epsilonEqual(&vertex->point, &base->vertices[i - 1].point,
-			base->equalEpsilon))
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon may not have duplicate points in a series.");
-			return false;
-		}
-
 		vertex->prevEdges.head.edge = NOT_FOUND;
 		vertex->prevEdges.head.nextConnection = NOT_FOUND;
 		vertex->prevEdges.tail = NOT_FOUND;
@@ -473,7 +465,7 @@ static int connectToLoop(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 	// Start at the closest vertex, and go progressively out to test the likliest vertices first.
 	uint32_t* toLoopBeginVert = polygon->sortedLoopVerts + toLoop->firstPoint;
 	uint32_t* toLoopEndVert = toLoopBeginVert + toLoop->pointCount;
-	uint32_t* toLoopLeftVert = dsBinarySearchLowerBound(&fromVert,
+	uint32_t* toLoopLeftVert = (uint32_t*)dsBinarySearchLowerBound(&fromVert,
 		polygon->sortedLoopVerts + toLoop->firstPoint, toLoop->pointCount, sizeof(uint32_t),
 		&compareLoopVertex, base->vertices);
 	DS_ASSERT(toLoopLeftVert != NULL);

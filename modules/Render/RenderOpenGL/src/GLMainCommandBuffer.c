@@ -1446,17 +1446,19 @@ bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
 	GLenum indexType = geometry->indexBuffer.indexSize == sizeof(uint32_t) ? GL_UNSIGNED_INT :
 		GL_UNSIGNED_SHORT;
+	size_t indexOffset = geometry->indexBuffer.offset +
+		geometry->indexBuffer.indexSize*drawRange->firstIndex;
 	if (drawRange->instanceCount == 1)
 	{
 		if (ANYGL_SUPPORTED(glDrawElementsBaseVertex))
 		{
 			glDrawElementsBaseVertex(primitiveTypeMap[primitiveType], drawRange->indexCount,
-				indexType, (void*)(size_t)geometry->indexBuffer.offset, drawRange->vertexOffset);
+				indexType, (void*)indexOffset, drawRange->vertexOffset);
 		}
 		else
 		{
 			glDrawElements(primitiveTypeMap[primitiveType], drawRange->indexCount, indexType,
-				(void*)(size_t)geometry->indexBuffer.offset);
+				(void*)indexOffset);
 		}
 	}
 	else
@@ -1464,14 +1466,14 @@ bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 		if (drawRange->firstInstance == 0)
 		{
 			glDrawElementsInstancedBaseVertex(primitiveTypeMap[primitiveType],
-				drawRange->indexCount, indexType, (void*)(size_t)geometry->indexBuffer.offset,
-				drawRange->instanceCount, drawRange->vertexOffset);
+				drawRange->indexCount, indexType, (void*)indexOffset, drawRange->instanceCount,
+				drawRange->vertexOffset);
 		}
 		else
 		{
 			glDrawElementsInstancedBaseVertexBaseInstance(primitiveTypeMap[primitiveType],
-				drawRange->indexCount, indexType, (void*)(size_t)geometry->indexBuffer.offset,
-				drawRange->instanceCount, drawRange->vertexOffset, drawRange->firstInstance);
+				drawRange->indexCount, indexType, (void*)indexOffset, drawRange->instanceCount,
+				drawRange->vertexOffset, drawRange->firstInstance);
 		}
 	}
 

@@ -55,10 +55,11 @@ extern "C"
  * @param allocator The allocator to create the polygon with. This must support freeing memory.
  * @param element The type for each vector element.
  * @param userData User data associated with the polygon.
+ * @param epsilon The epsilon to use for removing duplicate points.
  * @return The created polygon, or NULL if it couldn't be created.
  */
 DS_GEOMETRY_EXPORT dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator,
-	dsGeometryElement element, void* userData);
+	dsGeometryElement element, void* userData, double epsilon);
 
 /**
  * @brief Gets the type for the vector elements within a complex polygon.
@@ -80,6 +81,20 @@ DS_GEOMETRY_EXPORT void* dsComplexPolygon_getUserData(const dsComplexPolygon* po
  * @param userData The user data.
  */
 DS_GEOMETRY_EXPORT void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, void* userData);
+
+/**
+ * @brief Gets the epsilon used when testing equality between points.
+ * @param polygon The complex polygon.
+ * @return The equality test epsilon.
+ */
+DS_GEOMETRY_EXPORT double dsComplexPolygon_getEpsilon(const dsComplexPolygon* polygon);
+
+/**
+ * @brief Sets the epsilon used when testing equality between points.
+ * @param polygon The complex polygon.
+ * @param epsilon The epsilon.
+ */
+DS_GEOMETRY_EXPORT void dsComplexPolygon_setEpsilon(dsComplexPolygon* polygon, double epsilon);
 
 /**
  * @brief Simplifies a complex polygon into simple polygons.

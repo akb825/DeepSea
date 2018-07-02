@@ -122,7 +122,8 @@ dsVectorScratchData* dsVectorScratchData_create(dsAllocator* allocator)
 		DS_VERIFY(dsAllocator_free(allocator, data));
 		return NULL;
 	}
-	data->simplifier = dsComplexPolygon_create(allocator, dsGeometryElement_Float, data);
+	data->simplifier = dsComplexPolygon_create(allocator, dsGeometryElement_Float, data,
+		DS_POLYGON_EQUAL_EPSILON_FLOAT);
 	if (!data->simplifier)
 	{
 		dsSimpleHoledPolygon_destroy(data->polygon);
@@ -334,29 +335,35 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 	uint32_t indexVal = *vertex - piece->range.vertexOffset;
 	if (indexVal > MAX_VERTEX_INDEX)
 	{
-		TempPiece* oldPiece = piece;
-		piece = data->pieces + data->pieceCount;
+		uint32_t oldPieceIdx = (uint32_t)(piece - data->pieces);
+		uint32_t pieceIdx = data->pieceCount;
 		if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->pieces, data->pieceCount,
 			data->maxPieces, 1))
 		{
 			return false;
 		}
 
+		TempPiece* oldPiece = data->pieces + oldPieceIdx;
+		piece = data->pieces + pieceIdx;
 		*piece = *oldPiece;
 		piece->range.indexCount = 0;
-		piece->range.firstIndex = *vertex;
+		piece->range.firstIndex = data->indexCount;
+		piece->range.vertexOffset = *vertex;
 		indexVal = 0;
 
 		// Add any remaining vertices.
 		uint32_t remainingIndices = oldPiece->range.indexCount % 3;
+		uint32_t firstRemainingIndex = oldPiece->range.firstIndex + oldPiece->range.indexCount -
+			remainingIndices;
 		for (uint32_t i = 0; i < remainingIndices; ++i)
 		{
-			uint32_t vertexVal = data->indices[oldPiece->range.indexCount - remainingIndices + i] +
+			uint32_t vertexVal = data->indices[firstRemainingIndex + i] +
 				oldPiece->range.vertexOffset;
 			if (!dsVectorScratchData_addIndex(data, &vertexVal))
 				return false;
 		}
 		oldPiece->range.indexCount -= remainingIndices;
+		DS_ASSERT(piece->range.indexCount == remainingIndices);
 	}
 
 	uint32_t index = data->indexCount;
@@ -366,7 +373,7 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 		return false;
 	}
 
-	data->indices[index] = (uint16_t)(*vertex - piece->range.vertexOffset);
+	data->indices[index] = (uint16_t)indexVal;
 	++piece->range.indexCount;
 	return true;
 }

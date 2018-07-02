@@ -45,6 +45,7 @@
 #include <DeepSea/VectorDraw/VectorScratchData.h>
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 #include <DeepSea/VectorDraw/VectorShaders.h>
+#include <DeepSea/Core/Timer.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,7 +120,9 @@ const char* vectorImageFiles[] =
 	"evenodd.dsvi",
 	"nonzero.dsvi",
 	"holes.dsvi",
-	"Ghostscript_Tiger.dsvi"
+	"Ghostscript_Tiger.dsvi",
+	"st_ellipse_fan.dsvi",
+	"st_complex.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -379,6 +382,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		return false;
 	}
 
+	dsTimer timer = dsTimer_create();
 	dsVector2f targetSize = {{(float)TARGET_SIZE, (float)TARGET_SIZE}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL,
 		testVectorDraw->shaderModule, NULL, 0, srgb, renderer->mainCommandBuffer};
@@ -392,15 +396,18 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			return false;
 		}
 
+		double start = dsTimer_time(timer);
 		testVectorDraw->vectorImages[i] = dsVectorImage_loadFile(allocator, NULL, &initResources,
 			path, 1.0f, &targetSize);
 		if (!testVectorDraw->vectorImages[i])
 		{
-			DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector image: %s",
-				dsErrorString(errno));
+			DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector image %s: %s",
+				vectorImageFiles[i], dsErrorString(errno));
 			dsVectorScratchData_destroy(scratchData);
 			return false;
 		}
+		DS_LOG_INFO_F("TestVectorDraw", "Loaded %s in %g s", vectorImageFiles[i],
+			dsTimer_time(timer) - start);
 	}
 
 	dsVectorScratchData_destroy(scratchData);

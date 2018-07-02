@@ -886,7 +886,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 			if (end)
 			{
 				firstPoint = i + 1;
-				break;
+				continue;
 			}
 
 			subpathDistance = 0.0f;

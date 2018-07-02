@@ -26,6 +26,7 @@
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Math/Core.h>
 #include <string.h>
+#include <algorithm>
 
 using namespace ClipperLib;
 
@@ -44,6 +45,7 @@ struct dsComplexPolygon
 	dsGeometryElement element;
 	uint8_t pointSize;
 	void* userData;
+	double epsilon;
 
 	PolygonInfo* outPolygons;
 	uint32_t outPolygonCount;
@@ -82,15 +84,33 @@ static bool defaultGetPointInt(void* outPosition, const dsComplexPolygon* polygo
 	return true;
 }
 
-static bool simplifyPolygon(PolyTree& result, const Paths& paths, dsPolygonFillRule fillRule)
+static bool simplifyPolygon(PolyTree& result, const Paths& paths, cInt epsilon,
+	dsPolygonFillRule fillRule)
 {
 	PolyFillType clipperFillType = pftEvenOdd;
 	if (fillRule == dsPolygonFillRule_NonZero)
 		clipperFillType = pftNonZero;
 
 	Clipper c(ioStrictlySimple);
-	c.AddPaths(paths, ptSubject, true);
+	for (const Path& path : paths)
+	{
+		if (path.size() > 2)
+			c.AddPath(path, ptSubject, true);
+	}
 	c.Execute(ctUnion, result, clipperFillType);
+
+	PolyNode* node = result.GetFirst();
+	while (node)
+	{
+		auto newEnd = std::unique(node->Contour.begin(), node->Contour.end(),
+			[epsilon](const IntPoint& left, const IntPoint& right)
+			{
+				return std::abs(left.X - right.X) <= epsilon &&
+					std::abs(left.Y - right.Y) <= epsilon;
+			});
+		node->Contour.erase(newEnd, node->Contour.end());
+		node = node->GetNext();
+	}
 
 	return true;
 }
@@ -172,11 +192,11 @@ static void populatePolyTree(dsComplexPolygon* polygon, uint32_t& outPolygonInde
 }
 
 template <typename F>
-static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths,
+static bool processPolygon(dsComplexPolygon* polygon, const Paths& paths, cInt epsilon,
 	dsPolygonFillRule fillRule, const F& copyPointsFunc)
 {
 	PolyTree result;
-	if (!simplifyPolygon(result, paths, fillRule))
+	if (!simplifyPolygon(result, paths, epsilon, fillRule))
 		return false;
 
 	uint32_t outPolygonCount = 0, outLoopCount = 0, outPointCount = 0;
@@ -253,7 +273,8 @@ static bool simplifyFloat(dsComplexPolygon* polygon, const dsComplexPolygonLoop*
 		}
 	}
 
-	return processPolygon(polygon, paths, fillRule,
+	cInt epsilon =(cInt)(polygon->epsilon*limit);
+	return processPolygon(polygon, paths, epsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2f* points = (dsVector2f*)polygon->outPoints + firstPoint;
@@ -310,7 +331,8 @@ static bool simplifyDouble(dsComplexPolygon* polygon, const dsComplexPolygonLoop
 		}
 	}
 
-	return processPolygon(polygon, paths, fillRule,
+	cInt epsilon =(cInt)(polygon->epsilon*limit);
+	return processPolygon(polygon, paths, epsilon, fillRule,
 		[&](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2d* points = (dsVector2d*)polygon->outPoints + firstPoint;
@@ -341,7 +363,7 @@ static bool simplifyInt(dsComplexPolygon* polygon, const dsComplexPolygonLoop* l
 		}
 	}
 
-	return processPolygon(polygon, paths, fillRule,
+	return processPolygon(polygon, paths, 0, fillRule,
 		[](dsComplexPolygon* polygon, const Path& path, uint32_t firstPoint, uint32_t pointCount)
 		{
 			dsVector2i* points = (dsVector2i*)polygon->outPoints + firstPoint;
@@ -357,7 +379,7 @@ extern "C"
 {
 
 dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator, dsGeometryElement element,
-	void* userData)
+	void* userData, double epsilon)
 {
 	if (!allocator)
 	{
@@ -398,6 +420,7 @@ dsComplexPolygon* dsComplexPolygon_create(dsAllocator* allocator, dsGeometryElem
 	polygon->userData = userData;
 	polygon->element = element;
 	polygon->pointSize = pointSize;
+	polygon->epsilon = epsilon;
 	return polygon;
 }
 
@@ -423,6 +446,20 @@ void dsComplexPolygon_setUserData(dsComplexPolygon* polygon, void* userData)
 		polygon->userData = userData;
 }
 
+double dsComplexPolygon_getEpsilon(const dsComplexPolygon* polygon)
+{
+	if (!polygon)
+		return 0.0;
+
+	return polygon->epsilon;
+}
+
+void dsComplexPolygon_setEpsilon(dsComplexPolygon* polygon, double epsilon)
+{
+	if (polygon)
+		polygon->epsilon = epsilon;
+}
+
 bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygonLoop* loops,
 	uint32_t loopCount, dsComplexPolygonPointFunction pointFunc, dsPolygonFillRule fillRule)
 {
@@ -437,13 +474,6 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygon
 		if (!loops[i].points && loops[i].pointCount > 0)
 		{
 			errno = EINVAL;
-			return false;
-		}
-
-		if (loops[i].pointCount < 3)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_GEOMETRY_LOG_TAG, "Polygon loops must have at least 3 vertices.");
 			return false;
 		}
 	}

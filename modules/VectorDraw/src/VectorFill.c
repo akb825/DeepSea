@@ -77,7 +77,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			if (scratchData->points[i].type & PointType_End)
 			{
 				firstPoint = i + 1;
-				break;
+				continue;
 			}
 
 			joinStart = (scratchData->points[i].type & PointType_JoinStart) != 0;
@@ -133,55 +133,55 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		}
 	}
 
+	if (scratchData->pathSimple)
+		return true;
+
 	// Need to simplify the loops to triangulate if the path isn't already simple.
-	if (!scratchData->pathSimple)
+	if (!dsComplexPolygon_simplify(scratchData->simplifier, scratchData->loops,
+		scratchData->loopCount, &dsVectorScratchData_loopPoint, fill->fillRule))
 	{
-		if (!dsComplexPolygon_simplify(scratchData->simplifier, scratchData->loops,
-			scratchData->loopCount, &dsVectorScratchData_loopPoint, fill->fillRule))
+		return false;
+	}
+
+	uint32_t polygonCount = dsComplexPolygon_getHoledPolygonCount(scratchData->simplifier);
+	for (uint32_t i = 0; i < polygonCount; ++i)
+	{
+		uint32_t pointCount =
+			dsComplexPolygon_getHoledPolygonPointCount(scratchData->simplifier, i);
+		const dsVector2f* points = (const dsVector2f*)dsComplexPolygon_getHoledPolygonPoints(
+			scratchData->simplifier, i);
+		for (uint32_t j = 0; j < pointCount; ++j)
 		{
-			return false;
-		}
-
-		uint32_t polygonCount = dsComplexPolygon_getHoledPolygonCount(scratchData->simplifier);
-		for (uint32_t i = 0; i < polygonCount; ++i)
-		{
-			uint32_t pointCount =
-				dsComplexPolygon_getHoledPolygonPointCount(scratchData->simplifier, i);
-			const dsVector2f* points = (const dsVector2f*)dsComplexPolygon_getHoledPolygonPoints(
-				scratchData->simplifier, i);
-			for (uint32_t j = 0; j < pointCount; ++j)
-			{
-				ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
-				if (!curVertex)
-					return false;
-
-				curVertex->position.x = points[j].x;
-				curVertex->position.y = points[j].y;
-				curVertex->position.z = 0.0f;
-				curVertex->position.w = 0.0f;
-				curVertex->materialIndex = (uint16_t)material;
-				curVertex->shapeIndex = (uint16_t)infoIndex;
-			}
-
-			uint32_t indexCount;
-			// Use clockwise winding due to origin in the upper-left.
-			const uint32_t* indices = dsSimpleHoledPolygon_triangulate(&indexCount,
-				scratchData->polygon, points, pointCount,
-				dsComplexPolygon_getHoledPolygonLoops(scratchData->simplifier, i),
-				dsComplexPolygon_getHoledPolygonLoopCount(scratchData->simplifier, i),
-				&dsSimplePolygon_getPointVector2f, dsTriangulateWinding_CW);
-			if (!indices)
+			ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
+			if (!curVertex)
 				return false;
 
-			for (uint32_t j = 0; j < indexCount; ++j)
-			{
-				uint32_t index = indices[j] + indexOffset;
-				if (!dsVectorScratchData_addIndex(scratchData, &index))
-					return false;
-			}
-
-			indexOffset = scratchData->shapeVertexCount;
+			curVertex->position.x = points[j].x;
+			curVertex->position.y = points[j].y;
+			curVertex->position.z = 0.0f;
+			curVertex->position.w = 0.0f;
+			curVertex->materialIndex = (uint16_t)material;
+			curVertex->shapeIndex = (uint16_t)infoIndex;
 		}
+
+		uint32_t indexCount;
+		// Use clockwise winding due to origin in the upper-left.
+		const uint32_t* indices = dsSimpleHoledPolygon_triangulate(&indexCount,
+			scratchData->polygon, points, pointCount,
+			dsComplexPolygon_getHoledPolygonLoops(scratchData->simplifier, i),
+			dsComplexPolygon_getHoledPolygonLoopCount(scratchData->simplifier, i),
+			&dsSimplePolygon_getPointVector2f, dsTriangulateWinding_CW);
+		if (!indices)
+			return false;
+
+		for (uint32_t j = 0; j < indexCount; ++j)
+		{
+			uint32_t index = indices[j] + indexOffset;
+			if (!dsVectorScratchData_addIndex(scratchData, &index))
+				return false;
+		}
+
+		indexOffset = scratchData->shapeVertexCount;
 	}
 
 	return true;

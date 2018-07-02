@@ -539,7 +539,7 @@ typedef struct dsIndexBuffer
 	dsGfxBuffer* buffer;
 
 	/**
-	 * @brief The offset into the buffer for the vertex data.
+	 * @brief The offset into the buffer for the index data.
 	 */
 	uint32_t offset;
 
