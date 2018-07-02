@@ -19,16 +19,16 @@ if (MSVC)
 	add_compile_options(/W3 /WX /wd4146 /MP)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
 
-	# Disable exceptions and RTTI
-	if (CMAKE_CXX_FLAGS MATCHES "/EHsc ")
-		string(REPLACE "/EHsc" "/EHs-c-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-	else()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHs-c-")
+	# Disable RTTI, but enable exceptions
+	if (CMAKE_CXX_FLAGS MATCHES "/EHs-c- ")
+		string(REPLACE "/EHs-c-" "/EHsc" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	elseif (NOT CMAKE_CXX_FLAGS MATCHES "/EHsc ")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 	endif()
 
 	if (CMAKE_CXX_FLAGS MATCHES "/GR ")
 		string(REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-	else()
+	elseif (NOT CMAKE_CXX_FLAGS MATCHES "/GR- ")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
 	endif()
 else()
@@ -42,8 +42,8 @@ else()
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
 	endif()
 
-	# Disable exceptions and RTTI
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+	# Disable RTTI, but enable exceptions
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fexceptions")
 endif()
 
 enable_testing()

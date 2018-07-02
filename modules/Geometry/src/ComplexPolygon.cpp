@@ -451,23 +451,31 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygon
 	polygon->outPolygonCount = 0;
 	polygon->outPointCount = 0;
 	polygon->outLoopCount = 0;
-	switch (polygon->element)
+	try
 	{
-		case dsGeometryElement_Float:
-			if (!pointFunc)
-				pointFunc = defaultGetPointFloat;
-			return simplifyFloat(polygon, loops, loopCount, pointFunc, fillRule);
-		case dsGeometryElement_Double:
-			if (!pointFunc)
-				pointFunc = defaultGetPointDouble;
-			return simplifyDouble(polygon, loops, loopCount, pointFunc, fillRule);
-		case dsGeometryElement_Int:
-			if (!pointFunc)
-				pointFunc = defaultGetPointInt;
-			return simplifyInt(polygon, loops, loopCount, pointFunc, fillRule);
-		default:
-			errno = EINVAL;
-			return false;
+		switch (polygon->element)
+		{
+			case dsGeometryElement_Float:
+				if (!pointFunc)
+					pointFunc = defaultGetPointFloat;
+				return simplifyFloat(polygon, loops, loopCount, pointFunc, fillRule);
+			case dsGeometryElement_Double:
+				if (!pointFunc)
+					pointFunc = defaultGetPointDouble;
+				return simplifyDouble(polygon, loops, loopCount, pointFunc, fillRule);
+			case dsGeometryElement_Int:
+				if (!pointFunc)
+					pointFunc = defaultGetPointInt;
+				return simplifyInt(polygon, loops, loopCount, pointFunc, fillRule);
+			default:
+				errno = EINVAL;
+				return false;
+		}
+	}
+	catch (const std::bad_alloc& e)
+	{
+		errno = ENOMEM;
+		return false;
 	}
 }
 

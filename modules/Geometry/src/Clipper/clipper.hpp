@@ -38,6 +38,9 @@
  * - Replaced std::list with std::vector.
  * - Removed iostream code.
  * - Changed vectors with pointers to small objects to store by value, saving small allocations.
+ * - Use unique_ptr to make allocations properly exception-safe.
+ * - Removed virtual functions, since they aren't needed anymore. (and vertiual inheritance, which
+ *   CERTAINLY isn't needed)
  */
 
 #ifndef clipper_hpp
@@ -58,10 +61,10 @@
 //use_deprecated: Enables temporary support for the obsolete functions
 //#define use_deprecated  
 
-#include <vector>
 #include <cstring>
 #include <cstdlib>
-#include <functional>
+#include <memory>
+#include <vector>
 #include <queue>
 
 namespace ClipperLib {
@@ -131,12 +134,13 @@ enum InitOptions {ioReverseSolution = 1, ioStrictlySimple = 2, ioPreserveColline
 
 class PolyNode;
 typedef std::vector< PolyNode* > PolyNodes;
+typedef std::vector< std::unique_ptr<PolyNode> > PolyNodeStorage;
 
 class PolyNode 
 { 
 public:
   PolyNode();
-  virtual ~PolyNode(){};
+  ~PolyNode(){};
   Path Contour;
   PolyNodes Childs;
   PolyNode* Parent;
@@ -163,7 +167,7 @@ public:
   int Total() const;
 private:
   //PolyTree& operator =(PolyTree& other);
-  PolyNodes AllNodes;
+  PolyNodeStorage AllNodes;
   friend class Clipper; //to access AllNodes
 };
 
@@ -204,8 +208,8 @@ struct OutPt;
 struct OutRec;
 struct Join;
 
-typedef std::vector < OutRec* > PolyOutList;
-typedef std::vector < TEdge* > EdgeList;
+typedef std::vector < std::unique_ptr<OutRec> > PolyOutList;
+typedef std::vector < std::unique_ptr<TEdge[]> > EdgeList;
 typedef std::vector < Join > JoinList;
 typedef std::vector < IntersectNode > IntersectList;
 
@@ -218,17 +222,17 @@ class ClipperBase
 {
 public:
   ClipperBase();
-  virtual ~ClipperBase();
-  virtual bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
+  ~ClipperBase();
+  bool AddPath(const Path &pg, PolyType PolyTyp, bool Closed);
   bool AddPaths(const Paths &ppg, PolyType PolyTyp, bool Closed);
-  virtual void Clear();
+  void Clear();
   IntRect GetBounds();
   bool PreserveCollinear() {return m_PreserveCollinear;};
   void PreserveCollinear(bool value) {m_PreserveCollinear = value;};
 protected:
   void DisposeLocalMinimaList();
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
-  virtual void Reset();
+  void Reset();
   TEdge* ProcessBound(TEdge* E, bool IsClockwise);
   void InsertScanbeam(const cInt Y);
   bool PopScanbeam(cInt &Y);
@@ -257,7 +261,7 @@ protected:
 };
 //------------------------------------------------------------------------------
 
-class Clipper : public virtual ClipperBase
+class Clipper : public ClipperBase
 {
 public:
   Clipper(int initOptions = 0);
@@ -285,7 +289,7 @@ public:
   void ZFillFunction(ZFillCallback zFillFunc);
 #endif
 protected:
-  virtual bool ExecuteInternal();
+  bool ExecuteInternal();
 private:
   JoinList         m_Joins;
   JoinList         m_GhostJoins;
