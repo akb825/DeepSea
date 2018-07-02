@@ -502,7 +502,7 @@ bool dsComplexPolygon_simplify(dsComplexPolygon* polygon, const dsComplexPolygon
 				return false;
 		}
 	}
-	catch (const std::bad_alloc& e)
+	catch (const std::bad_alloc&)
 	{
 		errno = ENOMEM;
 		return false;
