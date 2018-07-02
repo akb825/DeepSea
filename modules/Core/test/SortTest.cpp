@@ -88,7 +88,10 @@ TEST(SortTest, BinarySearchLowerBound)
 		sizeof(int), &compareInt, NULL));
 
 	key = 0;
-	EXPECT_EQ(values.data(), dsBinarySearchLowerBound(&key, values.data(), values.size(),
+	EXPECT_EQ(&values.front(), dsBinarySearchLowerBound(&key, values.data(), values.size(),
+		sizeof(int), &compareInt, NULL));
+	key = 6;
+	EXPECT_EQ(&values.back(), dsBinarySearchLowerBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 	key = 7;
 	EXPECT_EQ(NULL, dsBinarySearchLowerBound(&key, values.data(), values.size(), sizeof(int),
@@ -109,25 +112,28 @@ TEST(SortTest, BinarySearchUpperBound)
 	std::vector<int> values = {1, 2, 3, 3, 3, 5, 6};
 
 	int key = 3;
-	EXPECT_EQ(values.data() + 5, dsBinarySearchUpperBound(&key, values.data(), values.size(),
+	EXPECT_EQ(values.data() + 4, dsBinarySearchUpperBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 	key = 4;
-	EXPECT_EQ(values.data() + 5, dsBinarySearchUpperBound(&key, values.data(), values.size(),
+	EXPECT_EQ(values.data() + 4, dsBinarySearchUpperBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 
 	key = 0;
-	EXPECT_EQ(values.data(), dsBinarySearchUpperBound(&key, values.data(), values.size(),
+	EXPECT_EQ(NULL, dsBinarySearchUpperBound(&key, values.data(), values.size(),
+		sizeof(int), &compareInt, NULL));
+	key = 6;
+	EXPECT_EQ(&values.back(), dsBinarySearchUpperBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 	key = 7;
-	EXPECT_EQ(NULL, dsBinarySearchUpperBound(&key, values.data(), values.size(), sizeof(int),
-		&compareInt, NULL));
+	EXPECT_EQ(&values.back(), dsBinarySearchUpperBound(&key, values.data(), values.size(),
+		sizeof(int), &compareInt, NULL));
 
 	values = {1, 2, 3, 3, 3, 5, 6, 7, 8, 9, 10, 11, 12};
 	key = 3;
-	EXPECT_EQ(values.data() + 5, dsBinarySearchUpperBound(&key, values.data(), values.size(),
+	EXPECT_EQ(values.data() + 4, dsBinarySearchUpperBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 
 	values = {-4, -3, -2, -1, 0, 1, 2, 3, 3, 3, 5, 6};\
-	EXPECT_EQ(values.data() + 10, dsBinarySearchUpperBound(&key, values.data(), values.size(),
+	EXPECT_EQ(values.data() + 9, dsBinarySearchUpperBound(&key, values.data(), values.size(),
 		sizeof(int), &compareInt, NULL));
 }

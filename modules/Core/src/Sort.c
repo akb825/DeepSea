@@ -112,7 +112,11 @@ void* dsBinarySearchLowerBound(const void* key, const void* array, size_t member
 
 	// May need to go up to the element that's >= the key.
 	while (compare > 0 && start < memberCount)
-		compare = compareFunc(key, arrayBytes + ++start*memberSize, context);
+	{
+		++start;
+		if (start < memberCount)
+			compare = compareFunc(key, arrayBytes + start*memberSize, context);
+	}
 	if (start == memberCount)
 		return NULL;
 
@@ -158,8 +162,14 @@ void* dsBinarySearchUpperBound(const void* key, const void* array, size_t member
 	}
 
 	// May need to go up to the element that's > the key.
-	while (compare >= 0 && start < memberCount)
-		compare = compareFunc(key, arrayBytes + ++start*memberSize, context);
+	while (compare >= 0 && start + 1 < memberCount)
+	{
+		int nextCompare = compareFunc(key, arrayBytes + (start + 1)*memberSize, context);
+		if (nextCompare < 0)
+			break;
+		compare = nextCompare;
+		++start;
+	}
 	if (start == memberCount)
 		return NULL;
 
@@ -170,5 +180,7 @@ void* dsBinarySearchUpperBound(const void* key, const void* array, size_t member
 		if (compare < 0)
 			--start;
 	}
+	if (start == 0 && compare < 0)
+		return NULL;
 	return arrayBytes + start*memberSize;
 }

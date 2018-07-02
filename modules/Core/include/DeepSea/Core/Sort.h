@@ -66,8 +66,8 @@ DS_CORE_EXPORT void* dsBinarySearch(const void* key, const void* array, size_t m
  * @param memberSize The size of each member.
  * @param compareFunc The comparison function. The "left" parameter is the key.
  * @param context The context to provide with the comapre function.
- * @return A pointer to the first element that is not less than the key, or NULL if there is no such
- *     element.
+ * @return A pointer to the first element that is not less than the key, or NULL if all elelments
+ *     are less than the key.
  */
 DS_CORE_EXPORT void* dsBinarySearchLowerBound(const void* key, const void* array,
 	size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc, void* context);
@@ -80,7 +80,8 @@ DS_CORE_EXPORT void* dsBinarySearchLowerBound(const void* key, const void* array
  * @param memberSize The size of each member.
  * @param compareFunc The comparison function. The "left" parameter is the key.
  * @param context The context to provide with the comapre function.
- * @return The first element that's > the key, or NULL if no element is > the key.
+ * @return The last element that's not greater than the key, or NULL if all elements are greater
+ *     than the key.
  */
 DS_CORE_EXPORT void* dsBinarySearchUpperBound(const void* key, const void* array,
 	size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc, void* context);

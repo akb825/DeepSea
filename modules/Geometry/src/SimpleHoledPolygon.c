@@ -468,7 +468,8 @@ static int connectToLoop(dsSimpleHoledPolygon* polygon, const dsSimplePolygonLoo
 	uint32_t* toLoopLeftVert = (uint32_t*)dsBinarySearchLowerBound(&fromVert,
 		polygon->sortedLoopVerts + toLoop->firstPoint, toLoop->pointCount, sizeof(uint32_t),
 		&compareLoopVertex, base->vertices);
-	DS_ASSERT(toLoopLeftVert != NULL);
+	if (!toLoopLeftVert)
+		toLoopLeftVert = toLoopEndVert - 1;
 	uint32_t* toLoopRightVert = toLoopLeftVert + 1;
 	while (toLoopLeftVert >= toLoopBeginVert || toLoopRightVert < toLoopEndVert)
 	{
