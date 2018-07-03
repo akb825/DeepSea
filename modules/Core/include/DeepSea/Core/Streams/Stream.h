@@ -48,7 +48,8 @@ DS_CORE_EXPORT inline size_t dsStream_read(dsStream* stream, void* data, size_t 
  * @param[out] outSize The size of the buffer.
  * @param stream The stream to read from.
  * @param allocator The allocator to create the buffer with.
- * @return The read buffer, or NULL if an error occurred.
+ * @return The read buffer, or NULL if an error occurred. This buffer will need to be freed by the
+ *     caller.
  */
 DS_CORE_EXPORT void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream,
 	dsAllocator* allocator);
@@ -58,7 +59,8 @@ DS_CORE_EXPORT void* dsStream_readUntilEnd(size_t* outSize, dsStream* stream,
  *     possible.
  * @remark errno will be set on failure.
  * @param[inout] buffer A pointer to the buffer. This may initially point to a non-null value, in
- *     which case the memory will be re-used if possible.
+ *     which case the memory will be re-used if possible. Once the buffer is no longer needed, it
+ *     must be freed by the caller.
  * @param[inout] size The size of the buffer corresponding to the read data.
  * @param[inout] capacity The total allocated size of the buffer.
  * @param stream The stream to read from.

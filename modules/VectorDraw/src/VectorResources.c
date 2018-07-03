@@ -259,6 +259,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
 		filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
@@ -287,6 +288,7 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, loadUserData, loadTextureFunc, loadFontFaceFunc, NULL);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 
