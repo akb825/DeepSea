@@ -995,7 +995,7 @@ typedef struct dsVectorImageInitResources
 	 * This may be NULL when creating from a command list or loading from file or stream and no
 	 * fonts or textures are referenced from the materials.
 	 */
-	const dsVectorResources** resources;
+	dsVectorResources* const* resources;
 
 	/**
 	 * @brief The number of vector resources.

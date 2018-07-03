@@ -197,7 +197,7 @@ static bool readMaterials(dsVectorMaterialSet** outMaterials, dsAllocator* alloc
 	return true;
 }
 
-static dsFont* findFont(const dsVectorResources** resources, uint32_t resourceCount,
+static dsFont* findFont(dsVectorResources* const* resources, uint32_t resourceCount,
 	const char* fontName, const char* name)
 {
 	if (resources)
@@ -228,7 +228,7 @@ static dsFont* findFont(const dsVectorResources** resources, uint32_t resourceCo
 	return nullptr;
 }
 
-static dsTexture* findTexture(const dsVectorResources** resources, uint32_t resourceCount,
+static dsTexture* findTexture(dsVectorResources* const* resources, uint32_t resourceCount,
 	const char* textureName, const char* name)
 {
 	if (resources)

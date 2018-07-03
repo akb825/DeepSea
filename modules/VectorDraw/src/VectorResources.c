@@ -176,11 +176,11 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 		uint32_t faceGroupTableSize = tableSize(maxFaceGroups);
 		resources->faceGroupTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(faceGroupTableSize));
-		DS_ASSERT(resources->textureTable);
-		DS_VERIFY(dsHashTable_initialize(resources->textureTable, faceGroupTableSize, &dsHashString,
+		DS_ASSERT(resources->faceGroupTable);
+		DS_VERIFY(dsHashTable_initialize(resources->faceGroupTable, faceGroupTableSize, &dsHashString,
 			&dsHashStringEqual));
 
-		size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsTextureNode), maxFaceGroups);
+		size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsFaceGroupNode), maxFaceGroups);
 		void* pool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 		DS_ASSERT(pool);
 		DS_VERIFY(dsPoolAllocator_initialize(&resources->faceGroupPool, sizeof(dsFaceGroupNode),
@@ -189,19 +189,19 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 	else
 	{
 		resources->faceGroupTable = NULL;
-		memset(&resources->textureTable, 0, sizeof(resources->textureTable));
+		memset(&resources->faceGroupTable, 0, sizeof(resources->faceGroupTable));
 	}
 
 	if (maxFonts > 0)
 	{
 		uint32_t fontTableSize = tableSize(maxFonts);
-		resources->faceGroupTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
+		resources->fontTable = (dsHashTable*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
 			dsHashTable_fullAllocSize(fontTableSize));
-		DS_ASSERT(resources->textureTable);
-		DS_VERIFY(dsHashTable_initialize(resources->textureTable, fontTableSize, &dsHashString,
+		DS_ASSERT(resources->fontTable);
+		DS_VERIFY(dsHashTable_initialize(resources->fontTable, fontTableSize, &dsHashString,
 			&dsHashStringEqual));
 
-		size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsTextureNode), maxFonts);
+		size_t poolSize = dsPoolAllocator_bufferSize(sizeof(dsFontNode), maxFonts);
 		void* pool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 		DS_ASSERT(pool);
 		DS_VERIFY(dsPoolAllocator_initialize(&resources->fontPool, sizeof(dsFontNode),
@@ -209,8 +209,8 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 	}
 	else
 	{
-		resources->faceGroupTable = NULL;
-		memset(&resources->textureTable, 0, sizeof(resources->textureTable));
+		resources->fontTable = NULL;
+		memset(&resources->fontTable, 0, sizeof(resources->fontTable));
 	}
 
 	return resources;

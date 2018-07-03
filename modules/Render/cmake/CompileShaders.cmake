@@ -27,7 +27,7 @@ find_program(MSLC mslc)
 #                    [WARN_ERROR]
 #                    [STRIP_SYMBOLS]
 #                    [OPTIMIZE]
-#                    [WORKING_DIR dir])
+#                    [WORKING_DIRECTORY dir])
 #
 # Compiles a list of shaders into a single shader module.
 #
@@ -47,14 +47,14 @@ find_program(MSLC mslc)
 # WARN_ERROR - if specified, treats warnings as errors. 
 # STRIP_SYMBOLS - if specified, strips symbols.
 # OPTIMIZE - if specified, enables optimizations.
-# WORKING_DIR - the working directory for running the shader compiler.
+# WORKING_DIRECTORY - the working directory for running the shader compiler.
 function(ds_compile_shaders container)
 	if (NOT MSLC)
 		message(FATAL_ERROR "Program 'mslc' not found on the path.")
 	endif()
 
 	set(options WARN_NONE WARN_ERROR STRIP_SYMBOLS OPTIMIZE)
-	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIR)
+	set(oneValueArgs OUTPUT OUTPUT_DIR WORKING_DIRECTORY)
 	set(multiValueArgs FILE CONFIG INCLUDE DEFINE DEPENDENCY DEPENDENCY_RECURSE)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_OUTPUT)
@@ -75,8 +75,8 @@ function(ds_compile_shaders container)
 
 	file(GLOB deps ${ARGS_DEPENDENCY})
 	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDENCY_RECURSE})
-	if (ARGS_WORKING_DIR)
-		set(workingDir WORKING_DIR ${ARGS_WORKING_DIR})
+	if (ARGS_WORKING_DIRECTORY)
+		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()
 		set(workingDir "")
 	endif()
@@ -127,6 +127,7 @@ function(ds_compile_shaders container)
 			${outputCommand}
 			COMMAND ${MSLC} ARGS ${commandLineArgs} ${extraArgs}
 			DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${configPath} ${MSLC}
+			${workingDir}
 			COMMENT "Building ${config} shader: ${output}")
 	endforeach()
 

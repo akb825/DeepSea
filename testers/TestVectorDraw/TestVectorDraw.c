@@ -122,7 +122,8 @@ const char* vectorImageFiles[] =
 	"holes.dsvi",
 	"Ghostscript_Tiger.dsvi",
 	"st_ellipse_fan.dsvi",
-	"st_complex.dsvi"
+	"st_complex.dsvi",
+	"texture.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -374,6 +375,22 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	memset(testVectorDraw->vectorImages, 0,
 		sizeof(dsVectorImage*)*testVectorDraw->vectorImageCount);
 
+	if (!dsPath_combine(path, sizeof(path), assetsDir, "resources.dsvr"))
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create vector resources path: %s",
+			dsErrorString(errno));
+		return false;
+	}
+
+	testVectorDraw->vectorResources = dsVectorResources_loadFile(allocator, NULL, resourceManager,
+		path);
+	if (!testVectorDraw->vectorResources)
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
+			dsErrorString(errno));
+		return false;
+	}
+
 	dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
 	if (!scratchData)
 	{
@@ -385,7 +402,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsTimer timer = dsTimer_create();
 	dsVector2f targetSize = {{(float)TARGET_SIZE, (float)TARGET_SIZE}};
 	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL,
-		testVectorDraw->shaderModule, NULL, 0, srgb, renderer->mainCommandBuffer};
+		testVectorDraw->shaderModule, &testVectorDraw->vectorResources, 1, srgb,
+		renderer->mainCommandBuffer};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
 	{
 		if (!dsPath_combine(path, sizeof(path), assetsDir, vectorImageFiles[i]))

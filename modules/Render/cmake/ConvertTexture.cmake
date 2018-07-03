@@ -46,7 +46,8 @@ find_program(CUTTLEFISH cuttlefish)
 #                    [GRAYSCALE]
 #                    [SWIZZLE swzl]
 #                    [SRGB]
-#                    [PRE_MULTIPLY])
+#                    [PRE_MULTIPLY]
+#                    [WORKING_DIRECTORY dir])
 #
 # Converts an image, or list of images, to a texture.
 #
@@ -90,6 +91,7 @@ find_program(CUTTLEFISH cuttlefish)
 # SRGB - convert the image from sRGB color space to linear. This will be done in hardware during
 #        texture sampling if possible.
 # PRE_MULTIPLY - pre-multiply the alpha.
+# WORKING_DIRECTORY - the working directory for running cuttlefish.
 function(ds_convert_texture container)
 	if (NOT CUTTLEFISH)
 		message(FATAL_ERROR "Program 'cuttlefish' not found on the path.")
@@ -97,7 +99,7 @@ function(ds_convert_texture container)
 
 	set(options FLIPX FLIPY GRAYSCALE SRGB PRE_MULTIPLY)
 	set(oneValueArgs OUTPUT FORMAT TYPE DIMENSION ALPHA QUALITY OUTPUT_FORMAT IMAGE NEGX POSX
-		NEGY POSY NEGZ POSZ IMAGE_LIST ROTATE NORMALMAP SWIZZLE)
+		NEGY POSY NEGZ POSZ IMAGE_LIST ROTATE NORMALMAP SWIZZLE WORKING_DIRECTORY)
 	set(multiValueArgs ARRAY_IMAGE ARRAY_NEGX ARRAY_POSX ARRAY_NEGY ARRAY_POSY ARRAY_NEGZ
 		ARRAY_POSZ MIPMAP)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -224,9 +226,16 @@ function(ds_convert_texture container)
 		return()
 	endif()
 
+	if (ARGS_WORKING_DIRECTORY)
+		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
+	else()
+		set(workingDir "")
+	endif()
+
 	add_custom_command(OUTPUT ${ARGS_OUTPUT}
 		COMMAND ${CUTTLEFISH} ARGS ${args}
 		DEPENDS ${dependencies} ${CUTTLEFISH}
+		${workingDir}
 		COMMENT "Converting image to ${ARGS_FORMAT}: ${output}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

@@ -1,0 +1,31 @@
+{
+	"textures":
+	[
+		{
+			"path": "../Shared/SimpleTexture.png",
+			"format": "R8G8B8A8",
+			"type": "unorm"
+		}
+	],
+	"faceGroups":
+	[
+		{
+			"name": "default",
+			"quality": "medium",
+			"faces":
+			[
+				{"name": "regular", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
+				{"name": "arabic", "path": "../Shared/Fonts/NotoSansArabic-Regular.ttf"},
+				{"name": "thai", "path": "../Shared/Fonts/NotoSansThai-Regular.ttf"}
+			]
+		}
+	],
+	"fonts":
+	[
+		{
+			"name": "default",
+			"faceGroup": "default",
+			"faces": ["regular", "arabic", "thai"]
+		}
+	]
+}

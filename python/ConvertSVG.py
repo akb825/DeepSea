@@ -507,7 +507,7 @@ class Style:
 		if not group and not fill and not stroke:
 			raise Exception("Shape doesn't have a stroke or a fill.")
 
-		if hasAny:
+		if hasAny or opacity != 1.0:
 			return Style(fill, stroke, opacity)
 		return None
 
@@ -583,7 +583,7 @@ def writeImage(builder, transform, style, upperLeft, size, location):
 	ImageCommandAddUpperLeft(builder, CreateVector2f(builder, upperLeft[0], upperLeft[1]))
 	ImageCommandAddLowerRight(builder, CreateVector2f(builder, upperLeft[0] + size[0],
 		upperLeft[1] + size[1]))
-	ImageCommandAddOpacity(builder, style.opacity)
+	ImageCommandAddOpacity(builder, 1.0 if not style else style.opacity)
 	ImageCommandAddTransform(builder, transform.createMatrix33f(builder))
 	commandOffset = ImageCommandEnd(builder)
 
@@ -909,7 +909,7 @@ def readShapes(node, materials, size, diagonalSize, transform, style = None):
 				sizeFromString(node.getAttribute('y'), size[1])),
 			imageSize = (sizeFromString(node.getAttribute('width'), size[0]),
 				sizeFromString(node.getAttribute('height'), size[1])),
-			location = node.getAttribute('href'):
+			location = node.getAttribute('xlink:href'):
 			writeImage(builder, transform, style, upperLeft, imageSize, location))
 	elif node.tagName == 'line':
 		commands.append(lambda builder,

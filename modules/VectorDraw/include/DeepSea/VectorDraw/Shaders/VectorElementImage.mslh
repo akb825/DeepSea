@@ -104,7 +104,8 @@ struct dsVectorVertexOutput
 #define DS_DEFAULT_VECTOR_ELEMENT_IMAGE_RENDER_STATES \
 	cull_mode = back; \
 	blend_enable = true; \
-	src_blend_factor = one; \
+	src_color_blend_factor = src_alpha; \
+	src_alpha_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
 	alpha_blend_op = add
 

@@ -51,7 +51,8 @@ class VectorResources:
 			"textures":
 			[
 				{
-					"name": "<name used to reference the texture>" (optional),
+					"name": "<name used to reference the texture>" (optional, defaults to path
+						filename without extension),
 					"path": "<path to image>",
 					"format": "<texture format; see cuttlefish help for details>",
 					"type": "<texture channel type; see cuttlefish help for details>",
@@ -70,7 +71,7 @@ class VectorResources:
 					"faces":
 					[
 						{
-							"name": "<name used to reference the font>",
+							"name": "<name used to reference the font>" (optional),
 							"path": "<path to font file>"
 						},
 						...
@@ -82,7 +83,7 @@ class VectorResources:
 			[
 				{
 					"name": "<name used to reference the font>",
-					"faceGroups": "<faceGroup name">,
+					"faceGroup": "<faceGroup name">,
 					"faces":
 					[
 						"<font in faceGroup>",
@@ -105,7 +106,9 @@ class VectorResources:
 		faceGroupFaces = {}
 		for faceGroup in self.faceGroups:
 			name = faceGroup['name']
-			faceGroupFaces[name] = set(faceGroup['fonts'])
+			faceGroupFaces[name] = {}
+			for face in faceGroup['faces']:
+				faceGroupFaces[name][face['name']] = face['path']
 		for font in self.fonts:
 			if font['faceGroup'] not in faceGroupFaces:
 				raise Exception('Face group "' + font['faceGroup'] + '" not present.')
@@ -120,7 +123,7 @@ class VectorResources:
 		with open(jsonFile) as f:
 			self.load(f, os.path.dirname(jsonFile))
 
-	def save(self, path, quiet = False, multithread = True):
+	def save(self, outputPath, quiet = False, multithread = True):
 		"""
 		Saves the vector resources.
 
@@ -129,7 +132,7 @@ class VectorResources:
 		should stay together.
 		"""
 
-		(root, filename) = os.path.split(path)
+		(root, filename) = os.path.split(outputPath)
 		resourceDirName = os.path.splitext(filename)[0] + '_resources'
 		resourceDir = os.path.join(root, resourceDirName)
 		if not os.path.exists(resourceDir):
@@ -149,10 +152,10 @@ class VectorResources:
 			else:
 				extension = '.pvr'
 			outputName = os.path.join(resourceDirName, name + extension)
-			outputPath = os.path.join(root, outputName)
+			textureOutputPath = os.path.join(root, outputName)
 
 			commandLine = [self.cuttlefish, '-i', os.path.join(self.basePath, path),
-				'-o', outputPath, '-f', texture['format'], '-t', texture['type']]
+				'-o', textureOutputPath, '-f', texture['format'], '-t', texture['type']]
 			if quiet:
 				commandLine.append('-q')
 			if multithread:
@@ -194,14 +197,14 @@ class VectorResources:
 				name = face['name']
 				path = face['path']
 				outputName = os.path.join(resourceDirName, name + os.path.splitext(extension)[1])
-				outputPath = os.path.join(root, outputName)
-				shutil.copyfile(os.path.join(self.basePath, path), outputPath)
+				fontOutputPath = os.path.join(root, outputName)
+				shutil.copyfile(os.path.join(self.basePath, path), fontOutputPath)
 
-				nameOffset = builder.CreateString(name)
+				faceNameOffset = builder.CreateString(name)
 				pathOffset = builder.CreateString(outputName)
 
 				ResourceStart(builder)
-				ResourceAddName(builder, nameOffset)
+				ResourceAddName(builder, faceNameOffset)
 				ResourceAddPath(builder, pathOffset)
 				faceOffsets.append(ResourceEnd(builder))
 
@@ -253,7 +256,7 @@ class VectorResources:
 		ResourceSetAddFonts(builder, fontsOffset)
 		builder.Finish(ResourceSetEnd(builder))
 
-		with open(path, 'wb') as f:
+		with open(outputPath, 'wb') as f:
 			f.write(builder.Output())
 
 if __name__ == '__main__':

@@ -16,26 +16,26 @@ find_package(PythonInterp QUIET)
 
 # ds_convert_svg(container
 #                FILE file
-#                OUTPUT ARGS_OUTPUT
+#                OUTPUT output
 #                [DEPENDENCY pattern1 [pattern2 ...]]
 #                [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
-#                [WORKING_DIR dir])
+#                [WORKING_DIRECTORY dir])
 #
 # Converts an SVG into a vector image.
 #
 # container - name of a variable to hold the vector image that will be created.
 # FILE - the input SVG file
-# OUTPUT - the path of the ARGS_OUTPUT.
+# OUTPUT - the path of the vector image, typically with the .dsvi extension.
 # DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
 #              pattern.
 # DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
-# WORKING_DIR - the working directory for creating the vector image.
+# WORKING_DIRECTORY - the working directory for creating the vector image.
 function(ds_convert_svg container)
 	if (NOT PYTHONINTERP_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
 	endif()
 
-	set(oneValueArgs FILE OUTPUT WORKING_DIR)
+	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY)
 	set(multiValueArgs DEFINE DEPENDENCY DEPENDENCY_RECURSE)
 	cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_FILE)
@@ -49,8 +49,8 @@ function(ds_convert_svg container)
 
 	file(GLOB deps ${ARGS_DEPENDENCY})
 	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDENCY_RECURSE})
-	if (ARGS_WORKING_DIR)
-		set(workingDir WORKING_DIR ${ARGS_WORKING_DIR})
+	if (ARGS_WORKING_DIRECTORY)
+		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()
 		set(workingDir "")
 	endif()
@@ -64,6 +64,7 @@ function(ds_convert_svg container)
 		COMMAND ${PYTHON_EXECUTABLE} ARGS ${convertSvg}
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT}
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${convertSvg}
+		${workingDir}
 		COMMENT "Creating vector image: ${ARGS_OUTPUT}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

@@ -19,17 +19,17 @@ find_package(PythonInterp QUIET)
 #                            OUTPUT ARGS_OUTPUT
 #                            [DEPENDENCY pattern1 [pattern2 ...]]
 #                            [DEPENDENCY_RECURSE pattern1 [pattern2 ...]]
-#                            [WORKING_DIR dir])
+#                            [WORKING_DIRECTORY dir])
 #
 # Creates vector resources to be shared among vector images.
 #
 # container - name of a variable to hold the vector resources that will be created.
 # FILE - the input json file to describe the resources
-# OUTPUT - the path of the ARGS_OUTPUT.
+# OUTPUT - the path of the vector resources, typiclly with the .dsvr extension.
 # DEPENDENCY - list of patterns to be used as dependencies. A GLOB will be performed for each
 #              pattern.
 # DEPENDENCY_RECURSE - same as DEPENDENCY, except each pattern performs a GLOB_RECURSE.
-# WORKING_DIR - the working directory for creating the vector resources.
+# WORKING_DIRECTORY - the working directory for creating the vector resources.
 function(ds_create_vector_resources container)
 	if (NOT PYTHONINTERP_FOUND)
 		message(FATAL_ERROR "Python not found on the path.")
@@ -38,7 +38,7 @@ function(ds_create_vector_resources container)
 		message(FATAL_ERROR "Program 'cuttlefish' not found on the path.")
 	endif()
 
-	set(oneValueArgs FILE OUTPUT WORKING_DIR)
+	set(oneValueArgs FILE OUTPUT WORKING_DIRECTORY)
 	set(multiValueArgs DEFINE DEPENDENCY DEPENDENCY_RECURSE)
 	cmake_parse_arguments(ARGS "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if (NOT ARGS_FILE)
@@ -52,8 +52,8 @@ function(ds_create_vector_resources container)
 
 	file(GLOB deps ${ARGS_DEPENDENCY})
 	file(GLOB_RECURSE recursiveDeps ${ARGS_DEPENDENCY_RECURSE})
-	if (ARGS_WORKING_DIR)
-		set(workingDir WORKING_DIR ${ARGS_WORKING_DIR})
+	if (ARGS_WORKING_DIRECTORY)
+		set(workingDir WORKING_DIRECTORY ${ARGS_WORKING_DIRECTORY})
 	else()
 		set(workingDir "")
 	endif()
@@ -67,6 +67,7 @@ function(ds_create_vector_resources container)
 		COMMAND ${PYTHON_EXECUTABLE} ARGS ${createVectorResources}
 			-i ${ARGS_FILE} -o ${ARGS_OUTPUT} -c ${CUTTLEFISH} -j
 		DEPENDS ${deps} ${recursiveDeps} ${ARGS_FILE} ${CUTTLEFISH} ${createVectorResources}
+		${workingDir}
 		COMMENT "Creating vector resources: ${ARGS_OUTPUT}")
 
 	set(${container} ${${container}} ${ARGS_OUTPUT} PARENT_SCOPE)

@@ -571,10 +571,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex = dsVectorScratchData_addImageVertex(scratchData);
 	if (!vertex)
 		return false;
-	vertex->position.x = bounds->max.x;
-	vertex->position.y = bounds->min.y;
-	vertex->texCoordX = 1;
-	vertex->texCoordY = 0;
+	vertex->position.x = bounds->min.x;
+	vertex->position.y = bounds->max.y;
+	vertex->texCoordX = 0;
+	vertex->texCoordY = 1;
 	vertex->shapeIndex = (uint16_t)infoIndex;
 	vertex->padding = 0;
 
@@ -592,10 +592,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex = dsVectorScratchData_addImageVertex(scratchData);
 	if (!vertex)
 		return false;
-	vertex->position.x = bounds->min.x;
-	vertex->position.y = bounds->max.y;
-	vertex->texCoordX = 0;
-	vertex->texCoordY = 1;
+	vertex->position.x = bounds->max.x;
+	vertex->position.y = bounds->min.y;
+	vertex->texCoordX = 1;
+	vertex->texCoordY = 0;
 	vertex->shapeIndex = (uint16_t)infoIndex;
 	vertex->padding = 0;
 
@@ -733,7 +733,7 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UScaled);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));

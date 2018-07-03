@@ -45,10 +45,12 @@ target_link_libraries(deepsea_test_vector_draw_app PRIVATE
 	${libraries})
 target_compile_definitions(deepsea_test_vector_draw_app PRIVATE ${defines})
 
-set(imageDir ${CMAKE_CURRENT_BINARY_DIR}/images)
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
+set(resourceDir ${CMAKE_CURRENT_BINARY_DIR}/resources)
+set(imageDir ${CMAKE_CURRENT_BINARY_DIR}/images)
 add_custom_target(deepsea_test_vector_draw_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir}
+	COMMAND ${CMAKE_COMMAND} -E make_directory ${resourceDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${imageDir})
 
 # Shaders
@@ -67,6 +69,13 @@ ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_shaders)
 
+# Shared resources
+ds_create_vector_resources(resources FILE ${CMAKE_CURRENT_SOURCE_DIR}/resources.json
+	OUTPUT ${resourceDir}/resources.dsvr)
+ds_create_vector_resources_target(deepsea_test_vector_draw_app_resources resources
+	DEPENDS deepsea_test_vector_draw_app_prepare)
+add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_resources)
+
 # SVGs
 file(GLOB svgFiles SVGs/*.svg)
 foreach (svg ${svgFiles})
@@ -77,18 +86,18 @@ ds_convert_svg_target(deepsea_test_vector_draw_app_svgs svgs
 	DEPENDS deepsea_test_vector_draw_app_prepare)
 add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_svgs)
 
-set(fontDir ${CMAKE_CURRENT_SOURCE_DIR}/../Shared/Fonts)
-
 set(assetsDir $<TARGET_FILE_DIR:deepsea_test_vector_draw_app>/TestVectorDraw-assets)
 add_custom_target(deepsea_test_vector_draw_app_assets ALL DEPENDS deepsea_test_vector_draw_app
 	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${resourceDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${imageDir} ${assetsDir}
 	COMMENT "Copying assets for TestVectorDraw")
 
 ds_set_folder(deepsea_test_vector_draw_app tests/gui)
 ds_set_folder(deepsea_test_vector_draw_app_prepare tests/gui/Resources)
 ds_set_folder(deepsea_test_vector_draw_app_shaders tests/gui/Resources)
+ds_set_folder(deepsea_test_vector_draw_app_resources tests/gui/Resources)
 ds_set_folder(deepsea_test_vector_draw_app_svgs tests/gui/Resources)
 ds_set_folder(deepsea_test_vector_draw_app_assets tests/gui/Resources)
