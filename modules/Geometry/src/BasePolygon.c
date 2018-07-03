@@ -92,33 +92,41 @@ static bool isConnected(const dsBasePolygon* polygon, const EdgeConnectionList* 
 	} while (true);
 }
 
+static double angleBetween(const dsVector2d* fromDir, const dsVector2d* toDir, bool ccw)
+{
+	dsVector2d invFromDir;
+	dsVector2_neg(invFromDir, *fromDir);
+	double cosAngle = dsVector2_dot(invFromDir, *toDir);
+	double angle = acos(dsClamp(cosAngle, -1.0, 1.0));
+	if ((fromDir->x*toDir->y - toDir->x*fromDir->y >= 0.0) != ccw)
+		angle = 2.0*M_PI - angle;
+	return angle;
+}
+
 static bool connectingEdgeInternal(const dsBasePolygon* polygon, uint32_t fromVertIdx,
 	uint32_t toVertIdx, bool ccw)
 {
 	const Vertex* fromVert = polygon->vertices + fromVertIdx;
 	const Vertex* toVert = polygon->vertices + toVertIdx;
+	uint32_t fromEdge = toVert->prevEdges.head.edge;
+	uint32_t toEdge = toVert->nextEdges.head.edge;
+	const Vertex* toPrevVert = polygon->vertices + polygon->edges[fromEdge].prevVertex;
+	const Vertex* toNextVert = polygon->vertices + polygon->edges[toEdge].nextVertex;
 
-	// Triangle made with edge that's the closest angle to the connection should be inside the
-	// polygon. (i.e. same winding order)
-	uint32_t toPrevEdge = toVert->prevEdges.head.edge;
-	uint32_t toNextEdge = toVert->nextEdges.head.edge;
+	// Sum of angles for connecting edge should match the angle between the original edges.
+	dsVector2d fromToDir, toFromDir, prevToDir, toNextDir;
+	dsVector2_sub(fromToDir, toVert->point, fromVert->point);
+	dsVector2d_normalize(&fromToDir, &fromToDir);
+	dsVector2_neg(toFromDir, fromToDir);
+	dsVector2_sub(prevToDir, toVert->point, toPrevVert->point);
+	dsVector2d_normalize(&prevToDir, &prevToDir);
+	dsVector2_sub(toNextDir, toNextVert->point, toVert->point);
+	dsVector2d_normalize(&toNextDir, &toNextDir);
 
-	dsVector2d edgeDir;
-	dsVector2_sub(edgeDir, toVert->point, fromVert->point);
-	dsVector2d_normalize(&edgeDir, &edgeDir);
-
-	double prevAngle = dsBasePolygon_edgeAngle(polygon, toPrevEdge, &edgeDir, true, ccw);
-	double nextAngle = dsBasePolygon_edgeAngle(polygon, toNextEdge, &edgeDir, true, ccw);
-	if (prevAngle <= nextAngle)
-	{
-		const dsVector2d* p1 = &polygon->vertices[polygon->edges[toPrevEdge].prevVertex].point;
-		return dsIsPolygonTriangleCCW(&fromVert->point, p1, &toVert->point) == ccw;
-	}
-	else
-	{
-		const dsVector2d* p2 = &polygon->vertices[polygon->edges[toNextEdge].nextVertex].point;
-		return dsIsPolygonTriangleCCW(&fromVert->point, &toVert->point, p2) == ccw;
-	}
+	double targetAngle = angleBetween(&prevToDir, &toNextDir, ccw);
+	double combinedAngle = angleBetween(&prevToDir, &toFromDir, ccw) +
+		angleBetween(&fromToDir, &toNextDir, ccw);
+	return dsEpsilonEquald(targetAngle, combinedAngle, polygon->intersectEpsilon);
 }
 
 static void insertEdge(dsBasePolygon* polygon, EdgeConnectionList* edgeList, uint32_t connectionIdx,
