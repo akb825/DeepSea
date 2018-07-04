@@ -264,6 +264,10 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			glyphs[index].geometry.min.y = -glyphs[index].geometry.max.y;
 			glyphs[index].geometry.max.y = -temp;
 
+			// Add the offset to the base glyph position.
+			glyphs[index].geometry.min.y += style->verticalOffset;
+			glyphs[index].geometry.max.y += style->verticalOffset;
+
 			dsTexturePosition texturePos;
 			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 				font->glyphSize);
@@ -285,7 +289,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	const float basePadding = (float)windowSize/(float)font->glyphSize;
 	unsigned int wordCount = 0;
 	bool lastIsWhitespace = false;
-	uint32_t lastNonWhitespace = 0;
+	float curWordOffset = 0.0f;
+	uint32_t curWord = 0;
+	uint32_t firstWhitespaceBeforeWord = 0;
 	for (uint32_t i = 0; i < text->characterCount; ++i)
 	{
 		if (glyphMapping[i].count == 0)
@@ -319,21 +325,49 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			}
 		}
 
+		// Detect word boundaries.
 		if (lastIsWhitespace && !isWhitespace)
+		{
+			curWordOffset = position.x;
+			curWord = i;
 			++wordCount;
+		}
+		else if (!lastIsWhitespace && isWhitespace)
+			firstWhitespaceBeforeWord = i;
 
 		// Split on newline or on word boundaries that go over the limit.
-		// Don't split on the first word in case the width is too small.
+		// Don't split on the first word in case the width is too small. (word count starts at 0
+		// for the first word)
 		bool hasNewline = false;
 		if (text->characters[i] == '\n' ||
-			(position.x + glyphWidth > maxWidth && lastIsWhitespace && wordCount > 1))
+			(position.x + glyphWidth > maxWidth && !isWhitespace && wordCount > 0))
 		{
 			hasNewline = true;
-			lastIsWhitespace = false;
-			isWhitespace = false;
 			position.y += 1.0f;
-			position.x = 0.0f;
+			position.x -= curWordOffset;
 			wordCount = 0;
+
+			// Invalidate the positions for whitespace directly before the word, since it will cause
+			// be drawn incorrectly for right to left text.
+			for (uint32_t j = firstWhitespaceBeforeWord; j < curWord; ++j)
+			{
+				for (uint32_t k = 0; k < glyphMapping[j].count; ++k)
+				{
+					glyphs[glyphMapping[j].index + k].position.x = FLT_MAX;
+					glyphs[glyphMapping[j].index + k].position.y = FLT_MAX;
+				}
+			}
+			firstWhitespaceBeforeWord = curWord;
+
+			// Offset the current word.
+			for (uint32_t j = curWord; j < i; ++j)
+			{
+				for (uint32_t k = 0; k < glyphMapping[j].count; ++k)
+				{
+					glyphs[glyphMapping[j].index + k].position.x -= curWordOffset;
+					glyphs[glyphMapping[j].index + k].position.y += 1.0f;
+				}
+			}
 		}
 		else
 			lastIsWhitespace = isWhitespace;
@@ -355,20 +389,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			position.x = 0.0f;
 			wordCount = 0;
 		}
-
-		// If a newline was added, mark any trailing spaces as invalid.
-		if (hasNewline)
-		{
-			for (uint32_t j = lastNonWhitespace + 1; j < i; ++j)
-			{
-				DS_ASSERT(glyphMapping[j].count == 1);
-				glyphs[glyphMapping[j].index].position.y = FLT_MAX;
-				glyphs[glyphMapping[j].index].position.y = FLT_MAX;
-			}
-		}
-
-		if (!isWhitespace)
-			lastNonWhitespace = i;
 	}
 
 	// Done with the lock at this point.
@@ -398,7 +418,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	float offset = 0;
 	for (uint32_t i = 0; i < text->glyphCount; ++i)
 	{
-		// Skkip glyphs on an invalid line.
+		// Skip glyphs on an invalid line.
 		if (glyphs[i].position.y == FLT_MAX)
 			continue;
 

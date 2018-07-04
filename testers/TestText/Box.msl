@@ -1,0 +1,55 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+
+uniform SharedInfo
+{
+	ivec2 screenSize;
+} sharedInfo;
+
+uniform vec4 bounds;
+
+[[vertex]] layout(location = DS_POSITION) in vec2 vertexPos;
+[[fragment]] out vec4 finalColor;
+
+[[vertex]]
+void vertexShader()
+{
+	vec2 normalizedPos = mix(uniforms.bounds.xy, uniforms.bounds.zw, vertexPos)/
+		vec2(INSTANCE(sharedInfo).screenSize);
+	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
+	gl_Position.y = -gl_Position.y;
+}
+
+[[fragment]]
+void fragmentShader()
+{
+	finalColor = vec4(0.0, 1.0, 0.0, 0.5);
+}
+
+pipeline Box
+{
+	vertex = vertexShader;
+	fragment = fragmentShader;
+
+	blend_enable = true;
+	src_color_blend_factor = src_alpha;
+	src_alpha_blend_factor = one;
+	dst_blend_factor = one_minus_src_alpha;
+	alpha_blend_op = add;
+	cull_mode = back;
+}

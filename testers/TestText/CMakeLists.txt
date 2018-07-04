@@ -10,7 +10,7 @@ endif()
 set(libraries)
 set(defines)
 set(shaderConfigs)
-set(source TestText.c Font.msl FontTess.msl)
+set(source TestText.c Font.msl FontTess.msl Box.msl)
 if (TARGET deepsea_render_opengl)
 	list(APPEND source SetupOpenGL.c SetupOpenGL.h)
 	list(APPEND libraries deepsea_render_opengl)
@@ -36,7 +36,7 @@ add_custom_target(deepsea_test_text_app_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir})
 
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/Font.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/FontTess.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/FontTess.msl ${CMAKE_CURRENT_SOURCE_DIR}/Box.msl
 	OUTPUT TestText.mslb CONFIG ${shaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include ${DEEPSEA_MODULE_DIR}/Text/include
 	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh

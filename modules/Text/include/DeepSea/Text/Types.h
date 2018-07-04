@@ -287,6 +287,11 @@ typedef struct dsTextStyle
 	 * @brief The color of the text outline.
 	 */
 	dsColor outlineColor;
+
+	/**
+	 * @brief Static offset to apply to the glyphs. (e.g. for superscript)
+	 */
+	float verticalOffset;
 } dsTextStyle;
 
 /**

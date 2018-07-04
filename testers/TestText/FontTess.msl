@@ -154,6 +154,7 @@ pipeline FontTess
 	src_blend_factor = one;
 	dst_blend_factor = one_minus_src_alpha;
 	alpha_blend_op = add;
+	cull_mode = front; // Y gets flipped, so also need to flip winding order.
 }
 
 #endif

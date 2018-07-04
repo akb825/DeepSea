@@ -26,6 +26,7 @@
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
+#include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -69,15 +70,19 @@ typedef struct TestText
 	dsMaterial* tessMaterial;
 	dsShader* shader;
 	dsShader* tessShader;
+	dsShader* limitShader;
 	dsFaceGroup* faceGroup;
 	dsFont* font;
 	dsTextLayout* text;
 	dsTextRenderBuffer* textRender;
 	dsTextLayout* tessText;
 	dsTextRenderBuffer* tessTextRender;
+	dsGfxBuffer* limitBuffer;
+	dsDrawGeometry* limitGeometry;
 
 	uint32_t screenSizeElement;
 	uint32_t positionElement;
+	uint32_t limitBoundsElement;
 	uint32_t curString;
 } TestText;
 
@@ -126,7 +131,8 @@ typedef struct TextInfo
 	dsTextStyle styles[3];
 } TextInfo;
 
-#define NO_STYLE {UINT_MAX, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{0, 0, 0, 0}}, {{0, 0, 0, 0}}}
+#define NO_STYLE {UINT_MAX, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{0, 0, 0, 0}}, {{0, 0, 0, 0}}, \
+	0.0f}
 
 static TextInfo textStrings[] =
 {
@@ -134,75 +140,77 @@ static TextInfo textStrings[] =
 		"Bottom text, if visible, is tessellated.",
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted forward.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted backward.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text has outlines.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
-			{{255, 255, 0, 255}}},
+			{{255, 255, 0, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Embolded, slanted, and outlined.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
-			{{255, 255, 0, 255}}}}},
+			{{255, 255, 0, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 11, 9.0f, 0.0f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{11, 12, 16.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.0, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}}}},
+			{{255, 255, 255, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 11, 9.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
-			{{255, 255, 0, 255}}},
+			{{255, 255, 0, 255}}, 0.0f},
 		{11, 12, 16.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
-			{{255, 255, 0, 255}}},
+			{{255, 255, 0, 255}}, 0.0f},
 		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
-			{{255, 255, 0, 255}}}}},
+			{{255, 255, 0, 255}}, 0.0f}}},
 	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
 		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}}}},
+			{{255, 255, 255, 255}}, 0.0f}}},
 	{"This text mixes wrapping based on max distance\nas well as explicit newlines."
-		"\n\nEmpty line.\nTessellated section only has newlines.",
-		"\n\n\n", dsTextJustification_Left, 200.0f, 1.0f,
+		"\n\nEmpty line.\n\nThiswordislongerthanlimit. This isn't.\n\nTessellated section only "
+			"has newlines.",
+		"\n\n\n",
+		dsTextJustification_Left, 200.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Centered text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Center, 200.0f, 1.0f,
+		dsTextJustification_Center, 162.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Right-justified text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Right, 200.0f, 1.0f,
+		dsTextJustification_Right, 180.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"The text \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\" is Arabic.\nThe text \"\xE0\xB8\x89\xE0"
 		"\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9"
@@ -210,7 +218,7 @@ static TextInfo textStrings[] =
 		"\xE0\xB9\x88\xE0\xB8\x87\xE0\xB8\x99\xE0\xB8\xB5\xE0\xB9\x89\" is Thai.",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	// Should show as "جزيرة لازورد" and "جزيرة!? لازورد"
 	{"Arabic words without punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
@@ -219,15 +227,15 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Arabic words with wrapping: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
 		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
-		NULL, dsTextJustification_Left, 350.0f, 1.3f,
+		NULL, dsTextJustification_Left, 410.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Arabic words explicit newline: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
@@ -235,7 +243,7 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Wrapping on script transition: \xE0\xB8\x89\xE0\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4"
 		"\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0"
@@ -243,14 +251,30 @@ static TextInfo textStrings[] =
 		"\xB2\xE0\xB8\x99",
 		NULL, dsTextJustification_Left, 350.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
+			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"first is left-to-right \xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
 		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 first is right-to-left",
 		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}},
-		NO_STYLE, NO_STYLE}}
+			{{255, 255, 255, 255}}, 0.0f},
+		NO_STYLE, NO_STYLE}},
+	{"Text with a negative offset in Y.",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 2.0f,
+		{{0, 12, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f},
+		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, -20.0f},
+		{20, UINT_MAX - 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f}}},
+	{"Text with a positive offset in Y.",
+		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		{{0, 12, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f},
+		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 20.0f},
+		{20, UINT_MAX - 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f}}}
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -423,6 +447,15 @@ static void setPositions(TestText* testText)
 		dsVector2_sub(position, position, testText->text->bounds.min);
 		dsMaterial_setElementData(testText->tessMaterial, testText->positionElement, &position,
 			dsMaterialType_Vec2, 0, 1);
+	}
+
+	float wrapWidth = textStrings[testText->curString].maxWidth;
+	if (wrapWidth != DS_TEXT_NO_WRAP)
+	{
+		dsAlignedBox2f bounds = {{{margin.x + wrapWidth, 0.0f}},
+			{{margin.x + wrapWidth + 2.0f, (float)height}}};
+		DS_VERIFY(dsMaterial_setElementData(testText->material, testText->limitBoundsElement,
+			&bounds, dsMaterialType_Vec4, 0, 1));
 	}
 }
 
@@ -643,46 +676,23 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		DS_VERIFY(dsShader_unbind(testText->tessShader, commandBuffer));
 	}
 
+	if (textStrings[testText->curString].maxWidth != DS_TEXT_NO_WRAP)
+	{
+		DS_VERIFY(dsShader_bind(testText->limitShader, commandBuffer, testText->material, NULL,
+			NULL));
+		dsDrawRange drawRange = {6, 1, 0, 0};
+		DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testText->limitGeometry, &drawRange));
+		DS_VERIFY(dsShader_unbind(testText->limitShader, commandBuffer));
+	}
+
 	DS_VERIFY(dsRenderPass_end(testText->renderPass, commandBuffer));
 }
 
-static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
-	dsTextQuality quality)
+static bool setupShaders(TestText* testText)
 {
-	dsRenderer* renderer = application->renderer;
+	dsRenderer* renderer = testText->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
-	testText->allocator = allocator;
-	testText->renderer = renderer;
-
-	dsEventResponder responder = {&processEvent, testText, 0, 0};
-	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
-
-	testText->window = dsWindow_create(application, allocator, "Test Text",
-		NULL, 800, 600, dsWindowFlags_Resizeable);
-	if (!testText->window)
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
-	}
-
-	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
-
-	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear, renderer->surfaceColorFormat,
-		DS_DEFAULT_ANTIALIAS_SAMPLES};
-
-	dsColorAttachmentRef colorAttachment = {0, false};
-	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;
-	dsRenderSubpassInfo subpass =
-	{
-		"TestText", NULL, &colorAttachment, 0, 1, depthStencilAttachment
-	};
-	testText->renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1,
-		NULL, 0);
-	if (!testText->renderPass)
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't create render pass: %s", dsErrorString(errno));
-		return false;
-	}
+	dsAllocator* allocator = testText->allocator;
 
 	DS_ASSERT(shaderDir);
 	char path[DS_PATH_MAX];
@@ -730,7 +740,8 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	{
 		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc, false, 0},
 		{"position", dsMaterialType_Vec2, 0, NULL, false, 0},
-		{"fontTex", dsMaterialType_Texture, 0, NULL, false, 0}
+		{"fontTex", dsMaterialType_Texture, 0, NULL, false, 0},
+		{"bounds", dsMaterialType_Vec4, 0, NULL, false, 0}
 	};
 	testText->materialDesc = dsMaterialDesc_create(resourceManager, allocator, materialElems,
 		DS_ARRAY_SIZE(materialElems));
@@ -745,6 +756,8 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	DS_ASSERT(sharedInfoElement != DS_MATERIAL_UNKNOWN);
 	testText->positionElement = dsMaterialDesc_findElement(testText->materialDesc, "position");
 	DS_ASSERT(testText->positionElement != DS_MATERIAL_UNKNOWN);
+	testText->limitBoundsElement = dsMaterialDesc_findElement(testText->materialDesc, "bounds");
+	DS_ASSERT(testText->limitBoundsElement != DS_MATERIAL_UNKNOWN);
 
 	testText->material = dsMaterial_create(allocator, testText->materialDesc);
 	if (!testText->material)
@@ -764,6 +777,46 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
+	if (renderer->hasTessellationShaders)
+	{
+		testText->tessMaterial = dsMaterial_create(allocator, testText->materialDesc);
+		if (!testText->tessMaterial)
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
+			return false;
+		}
+		DS_VERIFY(dsMaterial_setVariableGroup(testText->tessMaterial, sharedInfoElement,
+			testText->sharedInfoGroup));
+
+		testText->tessShader = dsShader_createName(resourceManager, allocator,
+			testText->shaderModule, "FontTess", testText->materialDesc, dsPrimitiveType_PatchList,
+			DS_DEFAULT_ANTIALIAS_SAMPLES);
+		if (!testText->tessShader)
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
+			return false;
+		}
+	}
+
+	testText->limitShader = dsShader_createName(resourceManager, allocator,
+		testText->shaderModule, "Box", testText->materialDesc, dsPrimitiveType_TriangleList,
+		DS_DEFAULT_ANTIALIAS_SAMPLES);
+	if (!testText->limitShader)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
+		return false;
+	}
+
+	return true;
+}
+
+static bool setupText(TestText* testText, dsTextQuality quality)
+{
+	dsRenderer* renderer = testText->renderer;
+	dsResourceManager* resourceManager = renderer->resourceManager;
+	dsAllocator* allocator = testText->allocator;
+
+	char path[DS_PATH_MAX];
 	dsVertexFormat vertexFormat;
 	DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
 	vertexFormat.elements[dsVertexAttrib_Position].format = dsGfxFormat_decorate(
@@ -792,23 +845,6 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	if (renderer->hasTessellationShaders)
 	{
-		testText->tessMaterial = dsMaterial_create(allocator, testText->materialDesc);
-		if (!testText->tessMaterial)
-		{
-			DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
-			return false;
-		}
-		DS_VERIFY(dsMaterial_setVariableGroup(testText->tessMaterial, sharedInfoElement,
-			testText->sharedInfoGroup));
-
-		testText->tessShader = dsShader_createName(resourceManager, allocator,
-			testText->shaderModule, "FontTess", testText->materialDesc, dsPrimitiveType_PatchList,
-			DS_DEFAULT_ANTIALIAS_SAMPLES);
-		if (!testText->tessShader)
-		{
-			DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
-			return false;
-		}
 
 		DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
 		vertexFormat.elements[dsVertexAttrib_Position0].format = dsGfxFormat_decorate(
@@ -888,6 +924,91 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 			dsFont_getTexture(testText->font));
 	}
 
+	return true;
+}
+
+static bool setupLimit(TestText* testText)
+{
+	dsRenderer* renderer = testText->renderer;
+	dsResourceManager* resourceManager = renderer->resourceManager;
+	dsAllocator* allocator = testText->allocator;
+
+	dsVector2f positions[] = {{{0.0f, 0.0f}}, {{0.0f, 1.0f}}, {{1.0f, 1.0f}},
+		{{1.0f, 1.0f}}, {{1.0f, 0.0f}}, {{0.0f, 0.0f}}};
+	testText->limitBuffer = dsGfxBuffer_create(resourceManager, allocator, dsGfxBufferUsage_Vertex,
+		dsGfxMemory_Draw | dsGfxMemory_Static | dsGfxMemory_GpuOnly, positions, sizeof(positions));
+	if (!testText->limitBuffer)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create graphics buffer: %s", dsErrorString(errno));
+		return false;
+	}
+
+	dsVertexFormat vertexFormat;
+	DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
+	vertexFormat.elements[dsVertexAttrib_Position].format = dsGfxFormat_decorate(dsGfxFormat_X32Y32,
+		dsGfxFormat_Float);
+	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
+	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
+	dsVertexBuffer vertexBuffer = {testText->limitBuffer, 0, 6, vertexFormat};
+	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
+		{&vertexBuffer, NULL, NULL, NULL};
+	testText->limitGeometry =
+		dsDrawGeometry_create(resourceManager, allocator, vertexBuffers, NULL);
+	if (!testText->limitBuffer)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create draw geometry: %s", dsErrorString(errno));
+		return false;
+	}
+
+	return true;
+}
+
+static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
+	dsTextQuality quality)
+{
+	dsRenderer* renderer = application->renderer;
+	testText->allocator = allocator;
+	testText->renderer = renderer;
+
+	dsEventResponder responder = {&processEvent, testText, 0, 0};
+	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
+
+	testText->window = dsWindow_create(application, allocator, "Test Text",
+		NULL, 800, 600, dsWindowFlags_Resizeable);
+	if (!testText->window)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
+		return false;
+	}
+
+	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
+
+	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear, renderer->surfaceColorFormat,
+		DS_DEFAULT_ANTIALIAS_SAMPLES};
+
+	dsColorAttachmentRef colorAttachment = {0, false};
+	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;
+	dsRenderSubpassInfo subpass =
+	{
+		"TestText", NULL, &colorAttachment, 0, 1, depthStencilAttachment
+	};
+	testText->renderPass = dsRenderPass_create(renderer, allocator, &attachment, 1, &subpass, 1,
+		NULL, 0);
+	if (!testText->renderPass)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create render pass: %s", dsErrorString(errno));
+		return false;
+	}
+
+	if (!setupShaders(testText))
+		return false;
+
+	if (!setupText(testText, quality))
+		return false;
+
+	if (!setupLimit(testText))
+		return false;
+
 	if (!createFramebuffer(testText))
 		return false;
 
@@ -925,8 +1046,11 @@ static void shutdown(TestText* testText)
 	dsFaceGroup_destroy(testText->faceGroup);
 	DS_VERIFY(dsShader_destroy(testText->tessShader));
 	DS_VERIFY(dsShader_destroy(testText->shader));
+	DS_VERIFY(dsShader_destroy(testText->limitShader));
 	dsMaterial_destroy(testText->tessMaterial);
 	dsMaterial_destroy(testText->material);
+	DS_VERIFY(dsDrawGeometry_destroy(testText->limitGeometry));
+	DS_VERIFY(dsGfxBuffer_destroy(testText->limitBuffer));
 	DS_VERIFY(dsMaterialDesc_destroy(testText->materialDesc));
 	DS_VERIFY(dsShaderVariableGroup_destroy(testText->sharedInfoGroup));
 	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testText->sharedInfoDesc));

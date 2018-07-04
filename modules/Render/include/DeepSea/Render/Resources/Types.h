@@ -520,6 +520,8 @@ typedef struct dsVertexBuffer
 
 	/**
 	 * @brief The vertex format.
+	 *
+	 * dsVertexFormat_computeOffsetsAndSize() must have been called earlier.
 	 */
 	dsVertexFormat format;
 } dsVertexBuffer;
