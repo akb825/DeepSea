@@ -338,11 +338,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		// Split on newline or on word boundaries that go over the limit.
 		// Don't split on the first word in case the width is too small. (word count starts at 0
 		// for the first word)
-		bool hasNewline = false;
 		if (text->characters[i] == '\n' ||
 			(position.x + glyphWidth > maxWidth && !isWhitespace && wordCount > 0))
 		{
-			hasNewline = true;
 			position.y += 1.0f;
 			position.x -= curWordOffset;
 			wordCount = 0;
@@ -383,7 +381,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			(!range->backward && glyphMapping[i].index + glyphMapping[i].count ==
 				range->firstGlyph + range->glyphCount)))
 		{
-			hasNewline = true;
 			lastIsWhitespace = false;
 			position.y += (float)range->newlineCount;
 			position.x = 0.0f;
