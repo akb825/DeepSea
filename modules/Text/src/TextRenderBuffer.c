@@ -98,35 +98,38 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	return renderBuffer;
 }
 
-bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLayout* text,
-	uint32_t firstGlyph, uint32_t glyphCount)
+bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
+	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount)
 {
 	DS_PROFILE_FUNC_START();
-	if (!renderBuffer || !text)
+	if (!renderBuffer || !layout)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(firstGlyph, glyphCount, text->text->glyphCount))
+	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, layout->text->characterCount))
 	{
 		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	uint32_t emptyGlyphs = 0;
-	for (uint32_t i = 0; i < glyphCount; ++i)
+	uint32_t glyphCount = 0;
+	for (uint32_t i = 0; i < charCount; ++i)
 	{
-		const dsGlyphLayout* glyph = text->glyphs + firstGlyph + i;
-		if (glyph->geometry.min.x == glyph->geometry.max.x ||
-			glyph->geometry.min.y == glyph->geometry.max.y)
+		const dsCharMapping* charMapping = layout->text->charMappings + firstChar + i;
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
-			++emptyGlyphs;
+			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
+			if (glyph->geometry.min.x < glyph->geometry.max.x &&
+				glyph->geometry.min.y < glyph->geometry.max.y)
+			{
+				++glyphCount;
+			}
 		}
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount - emptyGlyphs,
-		renderBuffer->maxGlyphs))
+	if (!DS_IS_BUFFER_RANGE_VALID(renderBuffer->queuedGlyphs, glyphCount, renderBuffer->maxGlyphs))
 	{
 		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -136,46 +139,51 @@ bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer, const dsTextLa
 	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	unsigned int vertexCount = indexSize == 0 ? 1 : 4;
 	DS_ASSERT(renderBuffer->queuedGlyphs <= renderBuffer->maxGlyphs);
-	for (uint32_t i = 0; i < glyphCount; ++i)
+	for (uint32_t i = 0; i < charCount; ++i)
 	{
-		// Skip empty glyphs.
-		const dsGlyphLayout* glyph = text->glyphs + firstGlyph + i;
-		if (glyph->geometry.min.x == glyph->geometry.max.x ||
-			glyph->geometry.min.y == glyph->geometry.max.y)
+		const dsCharMapping* charMapping = layout->text->charMappings + firstChar + i;
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
-			continue;
+			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + j;
+
+			// Skip empty glyphs.
+			if (glyph->geometry.min.x == glyph->geometry.max.x ||
+				glyph->geometry.min.y == glyph->geometry.max.y)
+			{
+				continue;
+			}
+
+			uint32_t vertexOffset = vertexSize*renderBuffer->queuedGlyphs*vertexCount;
+			renderBuffer->glyphDataFunc(renderBuffer->userData, layout, layoutUserData,
+				charMapping->firstGlyph + j, (uint8_t*)renderBuffer->tempData + vertexOffset,
+				&renderBuffer->geometry->vertexBuffers[0].format, vertexCount);
+
+			uint32_t indexOffset = renderBuffer->geometry->indexBuffer.offset +
+				indexSize*renderBuffer->queuedGlyphs*6;
+			if (indexSize == sizeof(uint32_t))
+			{
+				uint32_t* indices = (uint32_t*)((uint8_t*)renderBuffer->tempData + indexOffset);
+				*(indices++) = renderBuffer->queuedGlyphs*4;
+				*(indices++) = renderBuffer->queuedGlyphs*4 + 1;
+				*(indices++) = renderBuffer->queuedGlyphs*4 + 2;
+
+				*(indices++) = renderBuffer->queuedGlyphs*4 + 2;
+				*(indices++) = renderBuffer->queuedGlyphs*4 + 3;
+				*(indices++) = renderBuffer->queuedGlyphs*4;
+			}
+			else if (indexSize == sizeof(uint16_t))
+			{
+				uint16_t* indices = (uint16_t*)((uint8_t*)renderBuffer->tempData + indexOffset);
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 1);
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
+
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 3);
+				*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
+			}
+			++renderBuffer->queuedGlyphs;
 		}
-
-		uint32_t vertexOffset = vertexSize*renderBuffer->queuedGlyphs*vertexCount;
-		renderBuffer->glyphDataFunc(renderBuffer->userData, text, firstGlyph + i,
-			(uint8_t*)renderBuffer->tempData + vertexOffset,
-			&renderBuffer->geometry->vertexBuffers[0].format, vertexCount);
-
-		uint32_t indexOffset = renderBuffer->geometry->indexBuffer.offset +
-			indexSize*renderBuffer->queuedGlyphs*6;
-		if (indexSize == sizeof(uint32_t))
-		{
-			uint32_t* indices = (uint32_t*)((uint8_t*)renderBuffer->tempData + indexOffset);
-			*(indices++) = renderBuffer->queuedGlyphs*4;
-			*(indices++) = renderBuffer->queuedGlyphs*4 + 1;
-			*(indices++) = renderBuffer->queuedGlyphs*4 + 2;
-
-			*(indices++) = renderBuffer->queuedGlyphs*4 + 2;
-			*(indices++) = renderBuffer->queuedGlyphs*4 + 3;
-			*(indices++) = renderBuffer->queuedGlyphs*4;
-		}
-		else if (indexSize == sizeof(uint16_t))
-		{
-			uint16_t* indices = (uint16_t*)((uint8_t*)renderBuffer->tempData + indexOffset);
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 1);
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
-
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 2);
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4 + 3);
-			*(indices++) = (uint16_t)(renderBuffer->queuedGlyphs*4);
-		}
-		++renderBuffer->queuedGlyphs;
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);

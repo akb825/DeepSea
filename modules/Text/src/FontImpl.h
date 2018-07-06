@@ -38,12 +38,6 @@ typedef enum dsTextDirection
 	dsTextDirection_RightToLeft
 } dsTextDirection;
 
-typedef struct dsGlyphMapping
-{
-	uint32_t index;
-	uint32_t count;
-} dsGlyphMapping;
-
 typedef struct dsRunInfo
 {
 	uint32_t start;
@@ -103,7 +97,6 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length);
 bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount);
 bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length);
-dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length);
 
 // Locking not needed for these two functions.
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);

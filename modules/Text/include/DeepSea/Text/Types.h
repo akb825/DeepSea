@@ -64,9 +64,13 @@ typedef enum dsTextQuality
 
 /**
  * @brief Enum for the justification of text.
+ * @remark Start will be the same as left for left to right text, and the same as right for right
+ * to left text. End is the same but in reverse.
  */
 typedef enum dsTextJustification
 {
+	dsTextJustification_Start, ///< Align in the side of the bounds at the start of the text.
+	dsTextJustification_End,   ///< Align in the side of the bounds at the end of the text.
 	dsTextJustification_Left,  ///< Align in the left of the bounds.
 	dsTextJustification_Right, ///< Align in the right of the bounds.
 	dsTextJustification_Center ///< Align in the center of the bounds.
@@ -98,6 +102,22 @@ typedef struct dsFontFace dsFontFace;
  * @see Font.h
  */
 typedef struct dsFont dsFont;
+
+/**
+ * @brief Mapping from a character to the glyphs it corresponds to.
+ */
+typedef struct dsCharMapping
+{
+	/**
+	 * @brief The index of the first glyph that's associated with the character.
+	 */
+	uint32_t firstGlyph;
+
+	/**
+	 * @brief The number of lgyphs associated with the character.
+	 */
+	uint32_t glyphCount;
+} dsCharMapping;
 
 /**
  * @brief Struct containing information about a glyph.
@@ -201,6 +221,11 @@ typedef struct dsText
 	 * @brief The glyphs used with the string.
 	 */
 	const dsGlyph* glyphs;
+
+	/**
+	 * @brief Mapping from characters to the corresponding glyphs.
+	 */
+	const dsCharMapping* charMappings;
 
 	/**
 	 * @brief The ranges with unique properties for the text.
@@ -392,14 +417,19 @@ typedef struct dsTextLayout
  * @brief Function for getting the data for a glyph.
  * @param userData The user data for the function.
  * @param layout The text layout that will be added.
+ * @param layoutUserData The user data provided with the layout.
  * @param glyphIndex The index of the glyph to add.
- * @param data The vertex data to write to.
+ * @param vertexData The vertex data to write to. You should write vertexCount vertices to this
+ *     array depending on if it's 4 vertices for a quad or 1 for a tessellation shader. When writing
+ *     4 vertices for a quad, it will typically be a clockwise loop. (since Y points down, the
+ *     shader will typically flip it to become counter-clockwise)
  * @param format The vertex format.
  * @param vertexCount The number of vertices to write. This will either be 4 vertices for a quad,
  *     which should follow winding order, or 1 vertex when using the tessellation shader.
  */
-typedef void (*dsGlyphDataFunction)(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
-	void* vertexData, const dsVertexFormat* format, uint32_t vertexCount);
+typedef void (*dsGlyphDataFunction)(void* userData, const dsTextLayout* layout,
+	void* layoutUserData, uint32_t glyphIndex, void* vertexData, const dsVertexFormat* format,
+	uint32_t vertexCount);
 
 /**
  * @brief Struct containing a buffer for rendering text.

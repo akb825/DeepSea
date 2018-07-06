@@ -60,6 +60,17 @@ extern "C"
 DS_TEXT_EXPORT size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount);
 
 /**
+ * @brief Applies slant to the bounds for a glyph.
+ * @remark errno will be set on failure.
+ * @param[out] outBounds The adjusted bounds.
+ * @param glyphBounds The bounds of the glyph.
+ * @param slant The slant to apply.
+ * @return False if the parameters are invalid.
+ */
+DS_TEXT_EXPORT bool dsTextLayout_applySlantToBounds(dsAlignedBox2f* outBounds,
+	const dsAlignedBox2f* glyphBounds, float slant);
+
+/**
  * @brief Creates a layout for a piece fo text.
  *
  * The text will not be lain out until dsTextLayout_layout() is called.
@@ -73,6 +84,20 @@ DS_TEXT_EXPORT size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t st
  */
 DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	const dsTextStyle* styles, uint32_t styleCount);
+
+/**
+ * @brief Resolves the justification based on the text.
+ *
+ * This will resolve dsTextJustification_Start and dsTextJustification_End to
+ * dsTextJustification_Left or dsTextJustification_Right.
+ *
+ * @remark This is automatically called as part of dsTextLayout_layout().
+ * @param layout The text layout.
+ * @param justification The initial justification.
+ * @return The resolved justification.
+ */
+DS_TEXT_EXPORT dsTextJustification dsTextLayout_resolveJustification(const dsTextLayout* layout,
+	dsTextJustification justification);
 
 /**
  * @brief Performs layout on the text, preparing it to be rendered.
@@ -102,6 +127,12 @@ DS_TEXT_EXPORT bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* 
  * @param layout The layout to destroy.
  */
 DS_TEXT_EXPORT void dsTextLayout_destroy(dsTextLayout* layout);
+
+/**
+ * @brief Destroys a text layout object and its containing text.
+ * @param layout The layout to destroy.
+ */
+DS_TEXT_EXPORT void dsTextLayout_destroyLayoutAndText(dsTextLayout* layout);
 
 #ifdef __cplusplus
 }

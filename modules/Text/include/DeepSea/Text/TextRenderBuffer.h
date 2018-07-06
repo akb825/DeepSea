@@ -51,13 +51,14 @@ DS_TEXT_EXPORT dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* alloca
  * @brief Adds text to the render buffer.
  * @remark errno will be set on failure.
  * @param renderBuffer The text render buffer.
- * @param text The lain out text to draw.
- * @param firstGlyph The first glyph to draw.
- * @param glyphCount The number of glyphs to draw.
+ * @param layout The lain out text to draw.
+ * @param layoutUserData User data associated with the layout.
+ * @param firstChar The first character to draw.
+ * @param charCount The number of characters to draw.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
-	const dsTextLayout* text, uint32_t firstGlyph, uint32_t glyphCount);
+	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount);
 
 /**
  * @brief Commits added text to be rendered.

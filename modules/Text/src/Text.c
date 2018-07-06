@@ -79,6 +79,28 @@ static uint32_t countTextRanges(const dsFaceGroup* group, const uint32_t* codepo
 	return rangeCount;
 }
 
+static void createGlyphMappings(dsCharMapping* charMappings, uint32_t length, const dsGlyph* glyphs,
+	uint32_t glyphCount)
+{
+	for (uint32_t i = 0; i < glyphCount; ++i)
+	{
+		uint32_t charIndex = glyphs[i].charIndex;
+		DS_ASSERT(charIndex < length);
+
+		// Assume that the glyphs associated with a character are in sequence.
+		if (charMappings[charIndex].glyphCount == 0)
+		{
+			charMappings[charIndex].firstGlyph = i;
+			charMappings[charIndex].glyphCount = 1;
+		}
+		else
+		{
+			DS_ASSERT(charMappings[charIndex].firstGlyph + charMappings[charIndex].glyphCount == i);
+			++charMappings[charIndex].glyphCount;
+		}
+	}
+}
+
 static dsScriptInfo* getScriptInfo(dsText* text, uint32_t i)
 {
 	DS_STATIC_ASSERT(sizeof(dsScriptInfo) <= sizeof(dsTextRange), invalid_script_info_size);
@@ -263,9 +285,15 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	}
 	scratchText->font = font;
 
+	uint32_t* characters = (uint32_t*)scratchText->characters;
+	dsCharMapping* charMappings = (dsCharMapping*)scratchText->charMappings;
 	uint32_t index = 0;
 	for (uint32_t i = 0; i < length; ++i)
-		((uint32_t*)scratchText->characters)[i] = nextCodepoint(string, &index);
+	{
+		characters[i] = nextCodepoint(string, &index);
+		charMappings[i].firstGlyph = 0;
+		charMappings[i].glyphCount = 0;
+	}
 
 	uint32_t rangeCount;
 	if (uniformScript)
@@ -286,8 +314,11 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	if (!shapeSucceeded)
 		DS_PROFILE_FUNC_RETURN(NULL);
 
+	createGlyphMappings(charMappings, length, scratchText->glyphs, scratchText->glyphCount);
+
 	// Now copy the contents into the final text object.
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) + DS_ALIGNED_SIZE(length*sizeof(uint32_t)) +
+		DS_ALIGNED_SIZE(length*sizeof(dsCharMapping)) +
 		DS_ALIGNED_SIZE(scratchText->glyphCount*sizeof(dsGlyph)) +
 		DS_ALIGNED_SIZE(rangeCount*sizeof(dsTextRange));
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
@@ -307,6 +338,12 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		DS_ASSERT(text->characters);
 		text->characterCount = length;
 		memcpy((void*)text->characters, scratchText->characters, length*sizeof(uint32_t));
+
+		text->charMappings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsCharMapping, length);
+		DS_ASSERT(text->charMappings);
+		memcpy((void*)text->charMappings, scratchText->charMappings,
+			length*sizeof(dsCharMapping));
 
 		// Ranges may not be in monotomic increasing order due to right to left text. Re-order the
 		// glyphs so it is.

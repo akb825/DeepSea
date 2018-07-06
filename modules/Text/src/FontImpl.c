@@ -71,7 +71,9 @@ struct dsFaceGroup
 	dsText scratchText;
 
 	uint32_t* scratchCodepoints;
+	dsCharMapping* scratchCharMappings;
 	uint32_t scratchMaxCodepoints;
+	uint32_t scratchMaxCharMappings;
 
 	dsTextRange* scratchRanges;
 	uint32_t scratchMaxRanges;
@@ -88,9 +90,6 @@ struct dsFaceGroup
 
 	uint32_t* charMapping;
 	uint32_t maxCharMappingCount;
-
-	dsGlyphMapping* glyphMapping;
-	uint32_t maxGlyphMappingCount;
 
 	uint32_t maxFaces;
 	uint32_t faceCount;
@@ -496,6 +495,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 {
 	group->scratchText.characterCount = 0;
 	group->scratchText.characters = NULL;
+	group->scratchText.charMappings = NULL;
 	group->scratchText.rangeCount = 0;
 	group->scratchText.ranges = NULL;
 	group->scratchText.glyphCount = 0;
@@ -511,7 +511,15 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 		return NULL;
 	}
 
+	uint32_t tempSize = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchCharMappings, tempSize,
+		group->scratchMaxCharMappings, length))
+	{
+		return NULL;
+	}
+
 	group->scratchText.characters = group->scratchCodepoints;
+	group->scratchText.charMappings = group->scratchCharMappings;
 	return &group->scratchText;
 }
 
@@ -524,7 +532,7 @@ bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount)
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchRanges,
 		group->scratchText.rangeCount, group->scratchMaxRanges, rangeCount))
 	{
-		return NULL;
+		return false;
 	}
 
 	group->scratchText.ranges = group->scratchRanges;
@@ -562,19 +570,6 @@ uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length)
 
 	DS_ASSERT(charMappingCount == length);
 	return group->charMapping;
-}
-
-dsGlyphMapping* dsFaceGroup_glyphMapping(dsFaceGroup* group, uint32_t length)
-{
-	uint32_t glyphMappingCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->glyphMapping, glyphMappingCount,
-		group->maxGlyphMappingCount, length))
-	{
-		return NULL;
-	}
-
-	DS_ASSERT(glyphMappingCount == length);
-	return group->glyphMapping;
 }
 
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
@@ -695,11 +690,13 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	faceGroup->scratchMaxCodepoints = 0;
 
 	faceGroup->scratchRanges= NULL;
+	faceGroup->scratchCharMappings = NULL;
 	faceGroup->scratchMaxRanges = 0;
+	faceGroup->scratchMaxCharMappings = 0;
 
 	faceGroup->scratchGlyphs = NULL;
 	faceGroup->scratchGlyphCount = 0;
-	faceGroup->scratchMaxGlyphs = 0;;
+	faceGroup->scratchMaxGlyphs = 0;
 
 	faceGroup->paragraphs = NULL;
 	faceGroup->maxParagraphs = 0;
@@ -709,9 +706,6 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 
 	faceGroup->charMapping = NULL;
 	faceGroup->maxCharMappingCount = 0;
-
-	faceGroup->glyphMapping = NULL;
-	faceGroup->maxGlyphMappingCount = 0;
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
@@ -898,12 +892,12 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	FT_Done_Library(group->library);
 
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchCodepoints));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchCharMappings));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchRanges));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchGlyphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->paragraphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->runs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->charMapping));
-	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->glyphMapping));
 	DS_VERIFY(dsAllocator_free(group->allocator, group));
 }
 

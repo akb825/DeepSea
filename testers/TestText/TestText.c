@@ -288,10 +288,11 @@ static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	outPos->x -= geometryPos->y*slant;
 }
 
-static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
-	void* vertexData, const dsVertexFormat* format, uint32_t vertexCount)
+static void addTextVertex(void* userData, const dsTextLayout* layout, void* layoutUserData,
+	uint32_t glyphIndex, void* vertexData, const dsVertexFormat* format, uint32_t vertexCount)
 {
 	DS_UNUSED(userData);
+	DS_UNUSED(layoutUserData);
 	DS_ASSERT(format->elements[dsVertexAttrib_Position].offset ==
 		offsetof(StandardVertex, position));
 	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset ==
@@ -364,10 +365,11 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, uint32_t g
 	vertices[3].style.w = style->antiAlias;
 }
 
-static void addTessTextVertex(void* userData, const dsTextLayout* layout, uint32_t glyphIndex,
-	void* vertexData, const dsVertexFormat* format, uint32_t vertexCount)
+static void addTessTextVertex(void* userData, const dsTextLayout* layout, void* layoutUserData,
+	uint32_t glyphIndex, void* vertexData, const dsVertexFormat* format, uint32_t vertexCount)
 {
 	DS_UNUSED(userData);
+	DS_UNUSED(layoutUserData);
 	DS_ASSERT(format->elements[dsVertexAttrib_Position0].offset ==
 		offsetof(TessVertex, position));
 	DS_ASSERT(format->elements[dsVertexAttrib_Position1].offset ==
@@ -499,21 +501,10 @@ static void createText(TestText* testText)
 	uint32_t index = testText->curString;
 	DS_ASSERT(index < DS_ARRAY_SIZE(textStrings));
 
-	if (testText->text)
-	{
-		// Avoid having to store an extra member, but we still need to separately destroy the text.
-		dsText_destroy((dsText*)testText->text->text);
-		dsTextLayout_destroy(testText->text);
-		testText->text = NULL;
-	}
-
-	if (testText->tessText)
-	{
-		// Avoid having to store an extra member, but we still need to separately destroy the text.
-		dsText_destroy((dsText*)testText->tessText->text);
-		dsTextLayout_destroy(testText->tessText);
-		testText->tessText = NULL;
-	}
+	dsTextLayout_destroyLayoutAndText(testText->text);
+	testText->text = NULL;
+	dsTextLayout_destroyLayoutAndText(testText->tessText);
+	testText->tessText = NULL;
 
 	dsText* text = dsText_createUTF8(testText->font, testText->allocator,
 		textStrings[index].standardText, false);
@@ -539,8 +530,8 @@ static void createText(TestText* testText)
 	}
 
 	DS_VERIFY(dsTextRenderBuffer_clear(testText->textRender));
-	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, 0,
-		testText->text->text->glyphCount))
+	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, NULL, 0,
+		testText->text->text->characterCount))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 		return;
@@ -577,8 +568,8 @@ static void createText(TestText* testText)
 		}
 
 		DS_VERIFY(dsTextRenderBuffer_clear(testText->tessTextRender));
-		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, 0,
-			testText->tessText->text->glyphCount))
+		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, NULL, 0,
+			testText->tessText->text->characterCount))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 			return;
@@ -1029,19 +1020,9 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 static void shutdown(TestText* testText)
 {
 	DS_VERIFY(dsTextRenderBuffer_destroy(testText->tessTextRender));
-	if (testText->tessText)
-	{
-		// Avoid having to store an extra member, but we still need to separately destroy the text.
-		dsText_destroy((dsText*)testText->tessText->text);
-		dsTextLayout_destroy(testText->tessText);
-	}
+	dsTextLayout_destroyLayoutAndText(testText->tessText);
 	DS_VERIFY(dsTextRenderBuffer_destroy(testText->textRender));
-	if (testText->text)
-	{
-		// Avoid having to store an extra member, but we still need to separately destroy the text.
-		dsText_destroy((dsText*)testText->text->text);
-		dsTextLayout_destroy(testText->text);
-	}
+	dsTextLayout_destroyLayoutAndText(testText->text);
 	DS_VERIFY(dsFont_destroy(testText->font));
 	dsFaceGroup_destroy(testText->faceGroup);
 	DS_VERIFY(dsShader_destroy(testText->tessShader));

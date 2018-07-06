@@ -26,6 +26,7 @@
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/Font.h>
+#include <DeepSea/Text/Text.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,6 +102,36 @@ size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount)
 		DS_ALIGNED_SIZE(styleCount*sizeof(dsTextStyle));
 }
 
+bool dsTextLayout_applySlantToBounds(dsAlignedBox2f* outBounds, const dsAlignedBox2f* glyphBounds,
+	float slant)
+{
+	if (!outBounds || !glyphBounds)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (outBounds != glyphBounds)
+		*outBounds = *glyphBounds;
+
+	// Positive y points down, so positive slant will go to the left for +y and right for -y.
+	if (slant > 0.0f)
+	{
+		float minOffset = -glyphBounds->max.y*slant;
+		float maxOffset = -glyphBounds->min.y*slant;
+		outBounds->min.x += minOffset;
+		outBounds->max.x += maxOffset;
+	}
+	else if (slant < 0.0f)
+	{
+		float maxOffset = -glyphBounds->max.y*slant;
+		float minOffset = -glyphBounds->min.y*slant;
+		outBounds->min.x += minOffset;
+		outBounds->max.x += maxOffset;
+	}
+	return true;
+}
+
 dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	const dsTextStyle* styles, uint32_t styleCount)
 {
@@ -166,6 +197,25 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	return layout;
 }
 
+dsTextJustification dsTextLayout_resolveJustification(const dsTextLayout* layout,
+	dsTextJustification justification)
+{
+	bool valid = layout && layout->text && layout->text->ranges && layout->text->rangeCount > 0;
+	switch (justification)
+	{
+		case dsTextJustification_Start:
+			if (valid && layout->text->ranges[0].backward)
+				return dsTextJustification_Right;
+			return dsTextJustification_Left;
+		case dsTextJustification_End:
+			if (valid && layout->text->ranges[layout->text->rangeCount - 1].backward)
+				return dsTextJustification_Left;
+			return dsTextJustification_Right;
+		default:
+			return justification;
+	}
+}
+
 bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	dsTextJustification justification, float maxWidth, float lineScale)
 {
@@ -175,6 +225,8 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	justification = dsTextLayout_resolveJustification(layout, justification);
 
 	const dsText* text = layout->text;
 	dsFont* font = text->font;
@@ -186,14 +238,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	// First pass: get the initial cached glyph info and base positions.
 	// This part accesses shared resources and needs to be locked.
 	dsFaceGroup_lock(font->group);
-
-	dsGlyphMapping* glyphMapping = dsFaceGroup_glyphMapping(font->group, text->characterCount);
-	if (!glyphMapping)
-	{
-		dsFaceGroup_unlock(font->group);
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-	memset(glyphMapping, 0, text->characterCount*sizeof(dsGlyphMapping));
 
 	DS_ASSERT(layout->styleCount > 0);
 	DS_ASSERT(text->rangeCount > 0);
@@ -218,18 +262,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			// Advance the style.
 			uint32_t charIndex = text->glyphs[index].charIndex;
 			DS_ASSERT(charIndex < text->characterCount);
-
-			// Store the glyph mapping. Multiple glyphs might be used with the same character.
-			if (glyphMapping[charIndex].count == 0)
-			{
-				glyphMapping[charIndex].index = index;
-				glyphMapping[charIndex].count = 1;
-			}
-			else
-			{
-				DS_ASSERT(glyphMapping[charIndex].index + glyphMapping[charIndex].count == index);
-				++glyphMapping[charIndex].count;
-			}
 
 			while (charIndex >= styleRangeLimit)
 			{
@@ -294,15 +326,16 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	uint32_t firstWhitespaceBeforeWord = 0;
 	for (uint32_t i = 0; i < text->characterCount; ++i)
 	{
-		if (glyphMapping[i].count == 0)
+		if (text->charMappings[i].glyphCount == 0)
 			continue;
 
 		bool isWhitespace = dsIsSpace(text->characters[i]);
-		float scale = layout->styles[glyphs[glyphMapping[i].index].styleIndex].scale;
+		const dsCharMapping* charMapping = text->charMappings + i;
+		float scale = layout->styles[glyphs[charMapping->firstGlyph].styleIndex].scale;
 		float glyphWidth = 0.0f;
-		for (uint32_t j = 0; j < glyphMapping[i].count; ++j)
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
-			uint32_t index = glyphMapping[i].index + j;
+			uint32_t index = charMapping->firstGlyph + j;
 			uint32_t textIndex = glyphs[index].textGlyphIndex;
 			position.x += text->glyphs[textIndex].advance*scale;
 
@@ -349,10 +382,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			// be drawn incorrectly for right to left text.
 			for (uint32_t j = firstWhitespaceBeforeWord; j < curWord; ++j)
 			{
-				for (uint32_t k = 0; k < glyphMapping[j].count; ++k)
+				const dsCharMapping* otherMapping = text->charMappings + j;
+				for (uint32_t k = 0; k < otherMapping->glyphCount; ++k)
 				{
-					glyphs[glyphMapping[j].index + k].position.x = FLT_MAX;
-					glyphs[glyphMapping[j].index + k].position.y = FLT_MAX;
+					glyphs[otherMapping->firstGlyph + k].position.x = FLT_MAX;
+					glyphs[otherMapping->firstGlyph + k].position.y = FLT_MAX;
 				}
 			}
 			firstWhitespaceBeforeWord = curWord;
@@ -360,25 +394,27 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			// Offset the current word.
 			for (uint32_t j = curWord; j < i; ++j)
 			{
-				for (uint32_t k = 0; k < glyphMapping[j].count; ++k)
+				const dsCharMapping* otherMapping = text->charMappings + j;
+				for (uint32_t k = 0; k < otherMapping->glyphCount; ++k)
 				{
-					glyphs[glyphMapping[j].index + k].position.x -= curWordOffset;
-					glyphs[glyphMapping[j].index + k].position.y += 1.0f;
+					glyphs[otherMapping->firstGlyph + k].position.x -= curWordOffset;
+					glyphs[otherMapping->firstGlyph + k].position.y += 1.0f;
 				}
 			}
 		}
 		else
 			lastIsWhitespace = isWhitespace;
 
-		for (uint32_t j = 0; j < glyphMapping[i].count; ++j)
-			glyphs[glyphMapping[i].index + j].position = position;
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
+			glyphs[charMapping->firstGlyph + j].position = position;
 
 		// Add any trailing newlines at the end of the range.
-		const dsTextRange* range = findRange(text->ranges, text->rangeCount, glyphMapping[i].index);
+		const dsTextRange* range = findRange(text->ranges, text->rangeCount,
+			charMapping->firstGlyph);
 		DS_ASSERT(range);
 		if (range->newlineCount > 0 &&
-			((range->backward && glyphMapping[i].index == range->firstGlyph) ||
-			(!range->backward && glyphMapping[i].index + glyphMapping[i].count ==
+			((range->backward && charMapping->firstGlyph == range->firstGlyph) ||
+			(!range->backward && charMapping->firstGlyph + charMapping->glyphCount ==
 				range->firstGlyph + range->glyphCount)))
 		{
 			lastIsWhitespace = false;
@@ -552,4 +588,14 @@ void dsTextLayout_destroy(dsTextLayout* layout)
 		return;
 
 	dsAllocator_free(layout->allocator, layout);
+}
+
+void dsTextLayout_destroyLayoutAndText(dsTextLayout* layout)
+{
+	if (!layout)
+		return;
+
+	dsText_destroy((dsText*)layout->text);
+	if (layout->allocator)
+		dsAllocator_free(layout->allocator, layout);
 }
