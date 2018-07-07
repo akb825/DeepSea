@@ -33,20 +33,20 @@ typedef struct TextVertex
 	dsVector2f offset;
 	dsVector2f texCoords;
 	uint16_t mipLevel;
+	uint16_t infoIndex;
 	uint16_t fillMaterialIndex;
 	uint16_t outlineMaterialIndex;
-	uint16_t infoIndex;
 } TextVertex;
 
 typedef struct TessTextVertex
 {
-	dsVector3f position;
+	dsVector2f position;
 	dsAlignedBox2f geometry;
 	dsAlignedBox2f texCoords;
 	uint16_t mipLevel;
+	uint16_t infoIndex;
 	uint16_t fillMaterialIndex;
 	uint16_t outlineMaterialIndex;
-	uint16_t infoIndex;
 } TessTextVertex;
 
 static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
@@ -101,9 +101,9 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->texCoords.x = glyph->texCoords.min.x;
 	vertex->texCoords.y = glyph->texCoords.min.y;
 	vertex->mipLevel = (uint16_t)glyph->mipLevel;
+	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
 	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -112,9 +112,9 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->texCoords.x = glyph->texCoords.min.x;
 	vertex->texCoords.y = glyph->texCoords.max.y;
 	vertex->mipLevel = (uint16_t)glyph->mipLevel;
+	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
 	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -123,9 +123,9 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->texCoords.x = glyph->texCoords.max.x;
 	vertex->texCoords.y = glyph->texCoords.max.y;
 	vertex->mipLevel = (uint16_t)glyph->mipLevel;
+	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
 	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -134,9 +134,9 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->texCoords.x = glyph->texCoords.max.x;
 	vertex->texCoords.y = glyph->texCoords.min.y;
 	vertex->mipLevel = (uint16_t)glyph->mipLevel;
+	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
 	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 }
 
 static void tessTextVertexData(void* userData, const dsTextLayout* layout, void* userLayerData,
@@ -155,9 +155,9 @@ static void tessTextVertexData(void* userData, const dsTextLayout* layout, void*
 	vertex->geometry = glyph->geometry;
 	vertex->texCoords = glyph->texCoords;
 	vertex->mipLevel = (uint16_t)glyph->mipLevel;
+	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
 	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
 }
 
 bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
@@ -303,7 +303,7 @@ bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,
 	{
 		DS_VERIFY(dsVertexFormat_initialize(outVertexFormat));
 		outVertexFormat->elements[dsVertexAttrib_Position0].format =
-			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+			dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_Position1].format =
 			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_TexCoord0].format =

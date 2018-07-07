@@ -137,6 +137,20 @@ dsVectorMaterialInfo dsVectorMaterial_getInfo(float index)
 }
 
 /**
+ * @brief Creates an invalid material info.
+ * @return An invalid info.
+ */
+dsVectorMaterialInfo dsVectorMaterial_invalidInfo()
+{
+	dsVectorMaterialInfo info;
+	info.info0 = vec4(-1.0, vec3(0.0));
+	info.info1 = vec4(0.0);
+	info.info2 = vec4(0.0);
+	info.info3 = vec4(0.0);
+	return info;
+}
+
+/**
  * @brief Gets the material color for a shape.
  * @param info The info gathered from dsVectorMaterial_getInfo().
  * @param origPosition The original position of the current pixel.
@@ -149,10 +163,13 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 	float index)
 {
 	float colorCoord;
-	float adjustedIndex = index;
-	if (adjustedIndex >= DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-		adjustedIndex -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-	if (info.info0.x == 1.0 || info.info0.x == 2.0)
+
+	if (info.info0.x == 0.0)
+	{
+		// Solid color
+		colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
+	}
+	else if (info.info0.x == 1.0 || info.info0.x == 2.0)
 	{
 		// Gradient
 		vec2 gradientPos;
@@ -238,18 +255,19 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 	}
 	else
 	{
-		// Solid color
-		colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
+		// If out of range, was explicitly set to no matirial.
+		return vec4(0.0);
 	}
 
 	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
 	{
-		float materialCoord = (adjustedIndex + 0.5)/uniforms.dsVectorTextureSizes.y;
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
 		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
 	}
 	else
 	{
-		float materialCoord = (adjustedIndex + 0.5)/uniforms.dsVectorTextureSizes.z;
+		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
 		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
 	}
 }

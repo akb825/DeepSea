@@ -1,0 +1,168 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Text/Text.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorMaterial.mslh>
+
+/**
+ * @file
+ * @brief Shared code between the tessellated and non-tessellated text.
+ */
+
+/**
+ * @brief Constant for no material associated with a fill or outline.
+ */
+#define DS_NO_VECTOR_MATERIAL 65535.0
+
+/**
+ * @brief Texture holding the glyphs for the font.
+ */
+uniform sampler2D dsVectorOtherTex;
+sampler_state dsVectorOtherTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = nearest;
+}
+
+/**
+ * @brief Output from the final vertex stage.
+ */
+struct dsVectorVertexOutput
+{
+	/**
+	 * @brief The original and image position of the vertex.
+	 */
+	vec4 position;
+
+	/**
+	 * @brief The texture coordinates of the vertex and embolden factor.
+	 */
+	vec4 texCoordEmbolden;
+
+	/**
+	 * @brief The outline thickness, and anti-alias.
+	 */
+	vec2 outlineAntiAlias;
+
+	/**
+	 * @brief The opacities of the fill and outline material, outline thickness, and anti-alias.
+	 */
+	vec4 materialIndicesOpacities;
+
+	/**
+	 * @brief The bounds of the text.
+	 */
+	vec4 shapeBounds;
+};
+
+/**
+ * @brief Struct containing the raw information for materials.
+ *
+ * This is used to work around the limitation that the same struct can't be used for multiple inputs
+ * and outputs.
+ */
+struct dsVectorFillMaterialInfo
+{
+	vec4 fillInfo0;
+	vec4 fillInfo1;
+	vec4 fillInfo2;
+	vec4 fillInfo3;
+};
+
+struct dsVectorOutlineMaterialInfo
+{
+	vec4 outlineInfo0;
+	vec4 outlineInfo1;
+	vec4 outlineInfo2;
+	vec4 outlineInfo3;
+};
+
+/**
+ * @brief The vertex output.
+ */
+[[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
+[[fragment]] in dsVectorFillMaterialInfo dsVectorVertexFillMaterialOut;
+[[fragment]] in dsVectorOutlineMaterialInfo dsVectorVertexOutlineMaterialOut;
+
+/**
+ * @brief Gets the final position for a text vertex.
+ * @param position THe position of the glyph.
+ * @param offset The offset for the glyph bounds.
+ * @param slant The amount to slant the glyph.
+ */
+vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, float slant)
+{
+	return position + offset - vec2(offset.y*slant, 0.0);
+}
+
+/**
+ * @brief Gets the info for a text material.
+ * @param index The index of the material.
+ * @return The material info.
+ */
+dsVectorMaterialInfo dsVectorText_getMaterialInfo(float index)
+{
+	if (index == DS_NO_VECTOR_MATERIAL)
+		return dsVectorMaterial_invalidInfo();
+	return dsVectorMaterial_getInfo(index);
+}
+
+
+/**
+ * @brief Gets the material color of the text.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getMaterialColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	dsVectorMaterialInfo fillInfo;
+	fillInfo.info0 = dsVectorVertexFillMaterialOut.fillInfo0;
+	fillInfo.info1 = dsVectorVertexFillMaterialOut.fillInfo1;
+	fillInfo.info2 = dsVectorVertexFillMaterialOut.fillInfo2;
+	fillInfo.info3 = dsVectorVertexFillMaterialOut.fillInfo3;
+	vec4 fillColor = dsVectorMaterial_getColor(fillInfo,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.materialIndicesOpacities.x);
+	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
+
+	dsVectorMaterialInfo outlineInfo;
+	outlineInfo.info0 = dsVectorVertexOutlineMaterialOut.outlineInfo0;
+	outlineInfo.info1 = dsVectorVertexOutlineMaterialOut.outlineInfo1;
+	outlineInfo.info2 = dsVectorVertexOutlineMaterialOut.outlineInfo2;
+	outlineInfo.info3 = dsVectorVertexOutlineMaterialOut.outlineInfo3;
+	vec4 outlineColor = dsVectorMaterial_getColor(outlineInfo,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.materialIndicesOpacities.y);
+	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
+
+	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
+	float distance = textureLod(dsVectorOtherTex, texCoords.xy, texCoords.z).r;
+
+	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	float outline = dsVectorVertexOut.outlineAntiAlias.x;
+	float outlinePosition = (embolden + outline)*0.5 + 0.5;
+	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
+		fillColor, outlineColor);
+}

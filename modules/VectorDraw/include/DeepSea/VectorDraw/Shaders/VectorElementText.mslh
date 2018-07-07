@@ -1,0 +1,163 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/Color.mslh>
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorTextShared.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector text elements not using a tessellation shader.
+ *
+ * This is mutually exclusive to the functions in VectorElementTessText.mslh, which may be used to
+ * for tessellation shaders. The HAS_TESSELLATION_STAGES define may be used to dynamically choose
+ * between the tessellation and non-tessellation variants.
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipeline of the name dsVectorText. For example, the following pipeline
+ * definition will provide the default implementation:
+ *
+ * ```
+ * pipeline dsVectorText
+ * {
+ *     vertex = dsVectorElementText_defaultVertex;
+ *     fragment = dsVectorElementText_defaultFragment;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ * ```
+ *
+ * dsVectorElementText_defaultFragmentSRGB is provided to convert the final color to sRGB space.
+ * However, in some situations it's still preferable to leave the color in linear space when doing
+ * sRGB-correct rendering:
+ * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
+ * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
+ *   channel) is used in this case to avoid precision loss.
+ */
+
+/**
+ * @brief The position and offset for the current position.
+ */
+[[vertex]] layout(location = DS_POSITION) in vec4 dsVectorPositionOffset;
+
+/**
+ * @brief The texture coordinates for the text glyph.
+ */
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorTexCoords;
+
+/**
+ * @brief Indices for the vector text.
+ *
+ * - x: mip level
+ * - y: info index
+ * - z: fill material index
+ * - w: outline material index
+ */
+[[vertex]] layout(location = DS_TEXCOORD1) in vec4 dsVectorIndices;
+
+/**
+ * @brief The vertex output.
+ */
+[[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
+[[vertex]] out dsVectorFillMaterialInfo dsVectorVertexFillMaterialOut;
+[[vertex]] out dsVectorOutlineMaterialInfo dsVectorVertexOutlineMaterialOut;
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 dsVectorFinalColor;
+
+/**
+ * @brief Default render states for vector text elements.
+ */
+#define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_color_blend_factor = src_alpha; \
+	src_alpha_blend_factor = one; \
+	dst_blend_factor = one_minus_src_alpha; \
+	alpha_blend_op = add
+
+/**
+ * @brief Creates the vertex output.
+ * @param[out] outPosition The output position in clip space.
+ * @return The vertex output.
+ */
+[[vertex]]
+dsVectorVertexOutput dsVectorElementText_processVertex(out vec4 outPosition)
+{
+	vec4 elementInfo[4];
+	dsVectorShared_getElementInfo(elementInfo, dsVectorIndices.y);
+	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
+
+	dsVectorVertexOutput result;
+	result.position.xy = dsVectorTextShared_finalPosition(dsVectorPositionOffset.xy,
+		dsVectorPositionOffset.zw, elementInfo[3].y);
+	outPosition = dsVectorShared_transform(result.position.zw, result.position.xy, transform);
+	result.texCoordEmbolden = vec4(dsVectorTexCoords, dsVectorIndices.x, elementInfo[3].x);
+	result.outlineAntiAlias = elementInfo[3].zw;
+	result.materialIndicesOpacities = vec4(dsVectorIndices.zw, elementInfo[2].zw);
+	result.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
+
+	return result;
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsVectorElementText_defaultVertex()
+{
+	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
+
+	dsVectorMaterialInfo fillMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.z);
+	dsVectorMaterialInfo outlineMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.w);
+
+	dsVectorVertexFillMaterialOut.fillInfo0 = fillMaterial.info0;
+	dsVectorVertexFillMaterialOut.fillInfo1 = fillMaterial.info1;
+	dsVectorVertexFillMaterialOut.fillInfo2 = fillMaterial.info2;
+	dsVectorVertexFillMaterialOut.fillInfo3 = fillMaterial.info3;
+
+	dsVectorVertexOutlineMaterialOut.outlineInfo0 = outlineMaterial.info0;
+	dsVectorVertexOutlineMaterialOut.outlineInfo1 = outlineMaterial.info1;
+	dsVectorVertexOutlineMaterialOut.outlineInfo2 = outlineMaterial.info2;
+	dsVectorVertexOutlineMaterialOut.outlineInfo3 = outlineMaterial.info3;
+
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Default fragment shader entry point function.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragment()
+{
+	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentSRGB()
+{
+	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}

@@ -23,8 +23,8 @@ set(defines)
 set(shaderConfigs)
 set(srgbShaderConfigs)
 set(source TestVectorDraw.c
-	VectorElementShape.msl VectorElementImage.msl
-	VectorElementShapeSRGB.msl)
+	VectorElementShape.msl VectorElementImage.msl VectorElementText.msl
+	VectorElementShapeSRGB.msl VectorElementTextSRGB.msl)
 if (TARGET deepsea_render_opengl)
 	list(APPEND source SetupOpenGL.c SetupOpenGL.h)
 	list(APPEND libraries deepsea_render_opengl)
@@ -59,11 +59,13 @@ set(shaderOptions OUTPUT_DIR ${shaderDir}
 		${DEEPSEA_MODULE_DIR}/VectorDraw/include
 	DEPENDENCY_RECURSE ${DEEPSEA_MODULE_DIR}/Render/include/*.mslh
 		${DEEPSEA_MODULE_DIR}/Text/include/*.mslh ${DEEPSEA_MODULE_DIR}/VectorDraw/include/*.mslh)
-ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShape.msl OUTPUT TestVectorDraw.mslb
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShape.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementText.msl OUTPUT TestVectorDraw.mslb
 	CONFIG ${shaderConfigs} ${shaderOptions})
-ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShapeSRGB.msl OUTPUT TestVectorDrawSRGB.mslb
+ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShapeSRGB.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextSRGB.msl  OUTPUT TestVectorDrawSRGB.mslb
 	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)

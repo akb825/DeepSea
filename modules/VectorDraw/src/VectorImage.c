@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1251,8 +1251,16 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 			success = false;
 			break;
 		}
-		success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
-				vectorImage->drawGeometries[piece->type], &piece->range);
+		if (piece->type == ShaderType_Text)
+		{
+			DS_ASSERT(piece->textRender);
+			success = dsTextRenderBuffer_draw(piece->textRender, commandBuffer);
+		}
+		else
+		{
+			success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
+					vectorImage->drawGeometries[piece->type], &piece->range);
+		}
 		// Make sure we unbind the shader even if the above draw failed.
 		if (!dsShader_unbind(shader, commandBuffer) || !success)
 		{

@@ -59,14 +59,13 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		return NULL;
 	}
 
-	// TODO: Implement text.
-	/*if (textShaderIndex == DS_MATERIAL_UNKNOWN)
+	if (textShaderIndex == DS_MATERIAL_UNKNOWN)
 	{
 		errno = ENOTFOUND;
 		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
 			textShaderName);
 		return NULL;
-	}*/
+	}
 
 	dsShader* shapeShader = dsShader_createIndex(resourceManager, allocator,
 		shaderModule->shaderModule, shapeShaderIndex, shaderModule->materialDesc,
@@ -83,11 +82,7 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		return NULL;
 	}
 
-	// TODO: Implement text.
-	DS_UNUSED(textShaderIndex);
-	DS_UNUSED(textShaderName);
-	dsShader* textShader = NULL;
-	/*dsPrimitiveType textType = dsPrimitiveType_TriangleList;
+	dsPrimitiveType textType = dsPrimitiveType_TriangleList;
 	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
 		shaderModule->textShaderIndex, dsShaderStage_TessellationEvaluation))
 	{
@@ -100,7 +95,7 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		DS_VERIFY(dsShader_destroy(shapeShader));
 		DS_VERIFY(dsShader_destroy(imageShader));
 		return NULL;
-	}*/
+	}
 
 	dsVectorShaders* shaders = DS_ALLOCATE_OBJECT(allocator, dsVectorShaders);
 	if (!shaders)

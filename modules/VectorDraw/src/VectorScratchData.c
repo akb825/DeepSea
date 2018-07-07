@@ -280,7 +280,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		style->scale = range->size;
 		style->embolden = range->embolden;
 		style->slant = range->slant;
-		style->outlinePosition = 0.5f + range->outlineWidth*0.5f;
+		style->outlinePosition = 0.5f + range->embolden*0.5f + range->outlineWidth*0.5f;
 		style->outlineThickness = range->outlineWidth;
 		style->color = white;
 		style->outlineColor = white;
