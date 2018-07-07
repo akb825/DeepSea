@@ -68,7 +68,6 @@ typedef enum dsVectorCommandType
 	dsVectorCommandType_Rectangle,  ///< Draws a rectangle. The rectangle field will be set.
 	dsVectorCommandType_StrokePath, ///< Strokes the current path. The strokePath field will be set.
 	dsVectorCommandType_FillPath,   ///< Fills the current path. The fillPath field will be set.
-	dsVectorCommandType_TextPath,   ///< Draws text along a path. The textPath field will be set.
 	dsVectorCommandType_Text,       ///< Draws text. The text field will be set.
 	dsVectorCommandType_TextRange,  ///< Gives a range of information for text. The textRange field
 	                                ///< will be set.
@@ -523,32 +522,6 @@ typedef struct dsVectorCommandFillPath
 } dsVectorCommandFillPath;
 
 /**
- * @brief Struct containing information for a text path command.
- */
-typedef struct dsVectorCommandTextPath
-{
-	/**
-	 * @brief The string to display.
-	 */
-	const void* string;
-
-	/**
-	 * @brief The encoding type of the string.
-	 */
-	dsUnicodeType stringType;
-
-	/**
-	 * @brief The font to use with the string.
-	 */
-	dsFont* font;
-
-	/**
-	 * @brief The number of range commands that will follow this.
-	 */
-	uint32_t rangeCount;
-} dsVectorCommandTextPath;
-
-/**
  * @brief Struct containing information for a text command.
  */
 typedef struct dsVectorCommandText
@@ -572,6 +545,16 @@ typedef struct dsVectorCommandText
 	 * @brief The justification of the text.
 	 */
 	dsTextJustification justification;
+
+	/**
+	 * @brief Maximum length before text will wrap.
+	 */
+	float maxLength;
+
+	/**
+	 * @brief Height for each line as a multiplier of the text size.
+	 */
+	float lineHeight;
 
 	/**
 	 * @brief The transform matrix for the text.
@@ -743,13 +726,6 @@ typedef struct dsVectorCommand
 		 * This will be set if commandType is dsVectorCommandType_FillPath.
 		 */
 		dsVectorCommandFillPath fillPath;
-
-		/**
-		 * @brief Text path command parameters.
-		 *
-		 * This will be set if commandType is dsVectorCommandType_TextPath.
-		 */
-		dsVectorCommandTextPath textPath;
 
 		/**
 		 * @brief Text command parameters.
@@ -968,6 +944,11 @@ typedef struct dsVectorImageInitResources
 	dsResourceManager* resourceManager;
 
 	/**
+	 * @brief The command buffer to perform graphics operations on.
+	 */
+	dsCommandBuffer* commandBuffer;
+
+	/**
 	 * @brief Scratch data to allow for memory re-use.
 	 *
 	 * This may be re-used across multiple images, so long as it isn't used concurrently across
@@ -990,6 +971,14 @@ typedef struct dsVectorImageInitResources
 	dsVectorShaderModule* shaderModule;
 
 	/**
+	 * @brief The name of the text shader, or NULL if the default name is used.
+	 *
+	 * Different geometry will be created for text depending on whether or not this shader uses
+	 * tessellation shaders.
+	 */
+	const char* textShaderName;
+
+	/**
 	 * @brief The vector resources that house fonts and textures.
 	 *
 	 * This may be NULL when creating from a command list or loading from file or stream and no
@@ -1009,16 +998,6 @@ typedef struct dsVectorImageInitResources
 	 * the material in the shader.
 	 */
 	bool srgb;
-
-	/**
-	 * @brief The command buffer to update the loaded material set with.
-	 *
-	 * This will be unused when creating a vector image from a command list. When loading from file
-	 * or stream this may be NULL, but calling code will be responsible to call
-	 * dsMaterialSet_update(dsVectorImage_getLocalMaterials(image), commandBuffer) outside of a
-	 * render pass.
-	 */
-	dsCommandBuffer* commandBuffer;
 } dsVectorImageInitResources;
 
 #ifdef __cplusplus

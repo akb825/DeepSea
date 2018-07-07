@@ -108,6 +108,15 @@ DS_RENDER_EXPORT const char* dsShaderModule_shaderName(const dsShaderModule* sha
 	uint32_t shader);
 
 /**
+ * @brief Gets the index of a shader within a module.
+ * @param shaderModule The shader module.
+ * @param name The name of the shader.
+ * @return The index of the shader, or DS_MATERIAL_UNKNOWN if not present.
+ */
+DS_RENDER_EXPORT uint32_t dsShaderModule_shaderIndex(const dsShaderModule* shaderModule,
+	const char* name);
+
+/**
  * @brief Checks whether or not a shader in the module has a stage.
  * @param shaderModule The shader module.
  * @param name The name of the shader.

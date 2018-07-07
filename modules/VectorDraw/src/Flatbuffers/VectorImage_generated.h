@@ -48,8 +48,6 @@ struct StrokePathCommand;
 
 struct FillPathCommand;
 
-struct TextPathCommand;
-
 struct TextCommand;
 
 struct TextRangeCommand;
@@ -247,15 +245,19 @@ inline const char *EnumNameTextPosition(TextPosition e) {
 }
 
 enum class TextJustification : uint8_t {
-  Left = 0,
-  Right = 1,
-  Center = 2,
-  MIN = Left,
+  Start = 0,
+  End = 1,
+  Left = 2,
+  Right = 3,
+  Center = 4,
+  MIN = Start,
   MAX = Center
 };
 
-inline const TextJustification (&EnumValuesTextJustification())[3] {
+inline const TextJustification (&EnumValuesTextJustification())[5] {
   static const TextJustification values[] = {
+    TextJustification::Start,
+    TextJustification::End,
     TextJustification::Left,
     TextJustification::Right,
     TextJustification::Center
@@ -265,6 +267,8 @@ inline const TextJustification (&EnumValuesTextJustification())[3] {
 
 inline const char * const *EnumNamesTextJustification() {
   static const char * const names[] = {
+    "Start",
+    "End",
     "Left",
     "Right",
     "Center",
@@ -291,15 +295,14 @@ enum class VectorCommandUnion : uint8_t {
   RectangleCommand = 9,
   StrokePathCommand = 10,
   FillPathCommand = 11,
-  TextPathCommand = 12,
-  TextCommand = 13,
-  TextRangeCommand = 14,
-  ImageCommand = 15,
+  TextCommand = 12,
+  TextRangeCommand = 13,
+  ImageCommand = 14,
   MIN = NONE,
   MAX = ImageCommand
 };
 
-inline const VectorCommandUnion (&EnumValuesVectorCommandUnion())[16] {
+inline const VectorCommandUnion (&EnumValuesVectorCommandUnion())[15] {
   static const VectorCommandUnion values[] = {
     VectorCommandUnion::NONE,
     VectorCommandUnion::StartPathCommand,
@@ -313,7 +316,6 @@ inline const VectorCommandUnion (&EnumValuesVectorCommandUnion())[16] {
     VectorCommandUnion::RectangleCommand,
     VectorCommandUnion::StrokePathCommand,
     VectorCommandUnion::FillPathCommand,
-    VectorCommandUnion::TextPathCommand,
     VectorCommandUnion::TextCommand,
     VectorCommandUnion::TextRangeCommand,
     VectorCommandUnion::ImageCommand
@@ -335,7 +337,6 @@ inline const char * const *EnumNamesVectorCommandUnion() {
     "RectangleCommand",
     "StrokePathCommand",
     "FillPathCommand",
-    "TextPathCommand",
     "TextCommand",
     "TextRangeCommand",
     "ImageCommand",
@@ -395,10 +396,6 @@ template<> struct VectorCommandUnionTraits<StrokePathCommand> {
 
 template<> struct VectorCommandUnionTraits<FillPathCommand> {
   static const VectorCommandUnion enum_value = VectorCommandUnion::FillPathCommand;
-};
-
-template<> struct VectorCommandUnionTraits<TextPathCommand> {
-  static const VectorCommandUnion enum_value = VectorCommandUnion::TextPathCommand;
 };
 
 template<> struct VectorCommandUnionTraits<TextCommand> {
@@ -1589,89 +1586,15 @@ inline flatbuffers::Offset<FillPathCommand> CreateFillPathCommandDirect(
       fillRule);
 }
 
-struct TextPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  enum {
-    VT_TEXT = 4,
-    VT_FONT = 6,
-    VT_RANGECOUNT = 8
-  };
-  const flatbuffers::String *text() const {
-    return GetPointer<const flatbuffers::String *>(VT_TEXT);
-  }
-  const flatbuffers::String *font() const {
-    return GetPointer<const flatbuffers::String *>(VT_FONT);
-  }
-  uint32_t rangeCount() const {
-    return GetField<uint32_t>(VT_RANGECOUNT, 0);
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffsetRequired(verifier, VT_TEXT) &&
-           verifier.Verify(text()) &&
-           VerifyOffsetRequired(verifier, VT_FONT) &&
-           verifier.Verify(font()) &&
-           VerifyField<uint32_t>(verifier, VT_RANGECOUNT) &&
-           verifier.EndTable();
-  }
-};
-
-struct TextPathCommandBuilder {
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_text(flatbuffers::Offset<flatbuffers::String> text) {
-    fbb_.AddOffset(TextPathCommand::VT_TEXT, text);
-  }
-  void add_font(flatbuffers::Offset<flatbuffers::String> font) {
-    fbb_.AddOffset(TextPathCommand::VT_FONT, font);
-  }
-  void add_rangeCount(uint32_t rangeCount) {
-    fbb_.AddElement<uint32_t>(TextPathCommand::VT_RANGECOUNT, rangeCount, 0);
-  }
-  explicit TextPathCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  TextPathCommandBuilder &operator=(const TextPathCommandBuilder &);
-  flatbuffers::Offset<TextPathCommand> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TextPathCommand>(end);
-    fbb_.Required(o, TextPathCommand::VT_TEXT);
-    fbb_.Required(o, TextPathCommand::VT_FONT);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<TextPathCommand> CreateTextPathCommand(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> text = 0,
-    flatbuffers::Offset<flatbuffers::String> font = 0,
-    uint32_t rangeCount = 0) {
-  TextPathCommandBuilder builder_(_fbb);
-  builder_.add_rangeCount(rangeCount);
-  builder_.add_font(font);
-  builder_.add_text(text);
-  return builder_.Finish();
-}
-
-inline flatbuffers::Offset<TextPathCommand> CreateTextPathCommandDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *text = nullptr,
-    const char *font = nullptr,
-    uint32_t rangeCount = 0) {
-  return DeepSeaVectorDraw::CreateTextPathCommand(
-      _fbb,
-      text ? _fbb.CreateString(text) : 0,
-      font ? _fbb.CreateString(font) : 0,
-      rangeCount);
-}
-
 struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_TEXT = 4,
     VT_FONT = 6,
     VT_JUSTIFICATION = 8,
-    VT_TRANSFORM = 10,
-    VT_RANGECOUNT = 12
+    VT_MAXLENGTH = 10,
+    VT_LINEHEIGHT = 12,
+    VT_TRANSFORM = 14,
+    VT_RANGECOUNT = 16
   };
   const flatbuffers::String *text() const {
     return GetPointer<const flatbuffers::String *>(VT_TEXT);
@@ -1681,6 +1604,12 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   TextJustification justification() const {
     return static_cast<TextJustification>(GetField<uint8_t>(VT_JUSTIFICATION, 0));
+  }
+  float maxLength() const {
+    return GetField<float>(VT_MAXLENGTH, 0.0f);
+  }
+  float lineHeight() const {
+    return GetField<float>(VT_LINEHEIGHT, 0.0f);
   }
   const Matrix33f *transform() const {
     return GetStruct<const Matrix33f *>(VT_TRANSFORM);
@@ -1695,6 +1624,8 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_FONT) &&
            verifier.Verify(font()) &&
            VerifyField<uint8_t>(verifier, VT_JUSTIFICATION) &&
+           VerifyField<float>(verifier, VT_MAXLENGTH) &&
+           VerifyField<float>(verifier, VT_LINEHEIGHT) &&
            VerifyFieldRequired<Matrix33f>(verifier, VT_TRANSFORM) &&
            VerifyField<uint32_t>(verifier, VT_RANGECOUNT) &&
            verifier.EndTable();
@@ -1712,6 +1643,12 @@ struct TextCommandBuilder {
   }
   void add_justification(TextJustification justification) {
     fbb_.AddElement<uint8_t>(TextCommand::VT_JUSTIFICATION, static_cast<uint8_t>(justification), 0);
+  }
+  void add_maxLength(float maxLength) {
+    fbb_.AddElement<float>(TextCommand::VT_MAXLENGTH, maxLength, 0.0f);
+  }
+  void add_lineHeight(float lineHeight) {
+    fbb_.AddElement<float>(TextCommand::VT_LINEHEIGHT, lineHeight, 0.0f);
   }
   void add_transform(const Matrix33f *transform) {
     fbb_.AddStruct(TextCommand::VT_TRANSFORM, transform);
@@ -1738,12 +1675,16 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> text = 0,
     flatbuffers::Offset<flatbuffers::String> font = 0,
-    TextJustification justification = TextJustification::Left,
+    TextJustification justification = TextJustification::Start,
+    float maxLength = 0.0f,
+    float lineHeight = 0.0f,
     const Matrix33f *transform = 0,
     uint32_t rangeCount = 0) {
   TextCommandBuilder builder_(_fbb);
   builder_.add_rangeCount(rangeCount);
   builder_.add_transform(transform);
+  builder_.add_lineHeight(lineHeight);
+  builder_.add_maxLength(maxLength);
   builder_.add_font(font);
   builder_.add_text(text);
   builder_.add_justification(justification);
@@ -1754,7 +1695,9 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *text = nullptr,
     const char *font = nullptr,
-    TextJustification justification = TextJustification::Left,
+    TextJustification justification = TextJustification::Start,
+    float maxLength = 0.0f,
+    float lineHeight = 0.0f,
     const Matrix33f *transform = 0,
     uint32_t rangeCount = 0) {
   return DeepSeaVectorDraw::CreateTextCommand(
@@ -1762,6 +1705,8 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
       text ? _fbb.CreateString(text) : 0,
       font ? _fbb.CreateString(font) : 0,
       justification,
+      maxLength,
+      lineHeight,
       transform,
       rangeCount);
 }
@@ -2094,9 +2039,6 @@ struct VectorCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const FillPathCommand *command_as_FillPathCommand() const {
     return command_type() == VectorCommandUnion::FillPathCommand ? static_cast<const FillPathCommand *>(command()) : nullptr;
   }
-  const TextPathCommand *command_as_TextPathCommand() const {
-    return command_type() == VectorCommandUnion::TextPathCommand ? static_cast<const TextPathCommand *>(command()) : nullptr;
-  }
   const TextCommand *command_as_TextCommand() const {
     return command_type() == VectorCommandUnion::TextCommand ? static_cast<const TextCommand *>(command()) : nullptr;
   }
@@ -2157,10 +2099,6 @@ template<> inline const StrokePathCommand *VectorCommand::command_as<StrokePathC
 
 template<> inline const FillPathCommand *VectorCommand::command_as<FillPathCommand>() const {
   return command_as_FillPathCommand();
-}
-
-template<> inline const TextPathCommand *VectorCommand::command_as<TextPathCommand>() const {
-  return command_as_TextPathCommand();
 }
 
 template<> inline const TextCommand *VectorCommand::command_as<TextCommand>() const {
@@ -2360,10 +2298,6 @@ inline bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void
     }
     case VectorCommandUnion::FillPathCommand: {
       auto ptr = reinterpret_cast<const FillPathCommand *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case VectorCommandUnion::TextPathCommand: {
-      auto ptr = reinterpret_cast<const TextPathCommand *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case VectorCommandUnion::TextCommand: {

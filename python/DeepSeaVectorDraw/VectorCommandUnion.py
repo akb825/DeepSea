@@ -15,8 +15,7 @@ class VectorCommandUnion(object):
     RectangleCommand = 9
     StrokePathCommand = 10
     FillPathCommand = 11
-    TextPathCommand = 12
-    TextCommand = 13
-    TextRangeCommand = 14
-    ImageCommand = 15
+    TextCommand = 12
+    TextRangeCommand = 13
+    ImageCommand = 14
 

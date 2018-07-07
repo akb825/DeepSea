@@ -28,7 +28,10 @@
 #include <DeepSea/Geometry/SimpleHoledPolygon.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+#include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
+#include <DeepSea/Text/Text.h>
+#include <DeepSea/Text/TextLayout.h>
 #include <limits.h>
 #include <string.h>
 
@@ -75,22 +78,24 @@ static bool addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* text
 		return false;
 	}
 
-	data->pieces[index].type = type;
-	data->pieces[index].infoTextureIndex = infoIndex/INFOS_PER_TEXTURE;
-	data->pieces[index].range.indexCount = 0;
-	data->pieces[index].range.instanceCount = 1;
-	data->pieces[index].range.firstIndex = data->indexCount;
-	data->pieces[index].range.firstInstance = 0;
+	TempPiece* piece = data->pieces + index;
+	piece->type = type;
+	piece->infoTextureIndex = infoIndex/INFOS_PER_TEXTURE;
+	piece->range.indexCount = 0;
+	piece->range.instanceCount = 1;
+	piece->range.firstIndex = data->indexCount;
+	piece->range.firstInstance = 0;
 	switch (type)
 	{
 		case ShaderType_Shape:
-			data->pieces[index].range.vertexOffset = data->shapeVertexCount;
+			piece->range.vertexOffset = data->shapeVertexCount;
 			break;
 		case ShaderType_Image:
-			data->pieces[index].range.vertexOffset = data->imageVertexCount;
+			piece->range.vertexOffset = data->imageVertexCount;
 			break;
 		case ShaderType_Text:
-			data->pieces[index].range.vertexOffset = data->textVertexCount;
+			piece->range.firstIndex = data->textDrawInfoCount;
+			piece->range.vertexOffset = 0;
 			break;
 		default:
 			DS_ASSERT(false);
@@ -144,14 +149,17 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 	DS_VERIFY(dsAllocator_free(data->allocator, data->points));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->shapeVertices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->imageVertices));
-	DS_VERIFY(dsAllocator_free(data->allocator, data->textVertices));
-	DS_VERIFY(dsAllocator_free(data->allocator, data->textTessVertices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->indices));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->vectorInfos));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->pieces));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->loops));
 	dsSimpleHoledPolygon_destroy(data->polygon);
 	dsComplexPolygon_destroy(data->simplifier);
+	for (uint32_t i = 0; i < data->textLayoutCount; ++i)
+		dsTextLayout_destroyLayoutAndText(data->textLayouts[i]);
+	DS_VERIFY(dsAllocator_free(data->allocator, data->textLayouts));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->textDrawInfos));
+	DS_VERIFY(dsAllocator_free(data->allocator, data->textStyles));
 	DS_VERIFY(dsAllocator_free(data->allocator, data->combinedBuffer));
 	DS_VERIFY(dsAllocator_free(data->allocator, data));
 }
@@ -164,12 +172,15 @@ void dsVectorScratchData_reset(dsVectorScratchData* data)
 	data->lastStart = 0;
 	data->shapeVertexCount = 0;
 	data->imageVertexCount = 0;
-	data->textVertexCount = 0;
-	data->textTessVertexCount = 0;
 	data->indexCount = 0;
 	data->vectorInfoCount = 0;
 	data->pieceCount = 0;
 	data->loopCount = 0;
+
+	for (uint32_t i = 0; i < data->textLayoutCount; ++i)
+		dsTextLayout_destroyLayoutAndText(data->textLayouts[i]);
+	data->textLayoutCount = 0;
+	data->textDrawInfoCount = 0;
 }
 
 void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* data, dsStream* stream,
@@ -240,6 +251,78 @@ bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polyg
 	return true;
 }
 
+dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
+	dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType stringType, dsFont* font,
+	dsTextJustification justification, float maxLength, float lineHeight,
+	const dsVectorCommand* ranges, uint32_t rangeCount, float pixelSize)
+{
+	uint32_t tempCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textStyles, tempCount, data->maxTextStyles,
+		rangeCount))
+	{
+		return NULL;
+	}
+
+	const dsColor white = {{255, 255, 255, 255}};
+	for (uint32_t i = 0; i < rangeCount; ++i)
+	{
+		if (ranges[i].commandType != dsVectorCommandType_TextRange)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Vector command isn't a text range.");
+			return NULL;
+		}
+
+		const dsVectorCommandTextRange* range = &ranges[i].textRange;
+		dsTextStyle* style = data->textStyles + i;
+		style->start = range->start;
+		style->count = range->count;
+		style->scale = range->size;
+		style->embolden = range->embolden;
+		style->slant = range->slant;
+		style->outlinePosition = 0.5f + range->outlineWidth*0.5f;
+		style->outlineThickness = range->outlineWidth;
+		style->color = white;
+		style->outlineColor = white;
+		style->verticalOffset = 0.0f;
+		DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(dsFont_getFaceGroup(font), style,
+			pixelSize));
+	}
+
+	dsText* text = dsText_create(font, data->allocator, string, stringType, false);
+	if (!text)
+		return NULL;
+
+	dsTextLayout* layout = dsTextLayout_create(data->allocator, text, data->textStyles, rangeCount);
+	if (!layout)
+	{
+		dsText_destroy(text);
+		return NULL;
+	}
+
+	if (!dsTextLayout_layout(layout, commandBuffer, justification, maxLength, lineHeight))
+	{
+		dsTextLayout_destroyLayoutAndText(layout);
+		return NULL;
+	}
+
+	uint32_t layoutIdx = data->textLayoutCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textLayouts, data->textLayoutCount,
+		data->maxLayouts, 1))
+	{
+		dsTextLayout_destroyLayoutAndText(layout);
+		return NULL;
+	}
+
+	data->textLayouts[layoutIdx] = layout;
+	return layout;
+}
+
+void dsVectorScratchData_relinquishText(dsVectorScratchData* data)
+{
+	data->textLayoutCount = 0;
+}
+
 ShapeVertex* dsVectorScratchData_addShapeVertex(dsVectorScratchData* data)
 {
 	uint32_t index = data->shapeVertexCount;
@@ -262,30 +345,6 @@ ImageVertex* dsVectorScratchData_addImageVertex(dsVectorScratchData* data)
 	}
 
 	return data->imageVertices + index;
-}
-
-TextVertex* dsVectorScratchData_addTextVertex(dsVectorScratchData* data)
-{
-	uint32_t index = data->textVertexCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textVertices, data->textVertexCount,
-		data->maxTextVertices, 1))
-	{
-		return NULL;
-	}
-
-	return data->textVertices + index;
-}
-
-TextTessVertex* dsVectorScratchData_addTextTessVertex(dsVectorScratchData* data)
-{
-	uint32_t index = data->textTessVertexCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textVertices, data->textVertexCount,
-		data->maxTextTessVertices, 1))
-	{
-		return NULL;
-	}
-
-	return data->textTessVertices + index;
 }
 
 bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
@@ -313,16 +372,6 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 				if (!newVert)
 					return false;
 				*newVert = data->imageVertices[*vertex];
-				*vertex = newVertIndex;
-				break;
-			}
-			case ShaderType_Text:
-			{
-				uint32_t newVertIndex = data->textVertexCount;
-				TextVertex* newVert = dsVectorScratchData_addTextVertex(data);
-				if (!newVert)
-					return false;
-				*newVert = data->textVertices[*vertex];
 				*vertex = newVertIndex;
 				break;
 			}
@@ -416,32 +465,120 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 	return &info->shapeInfo;
 }
 
-TextInfo* dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsMatrix33f* transform,
-	const dsFont* font, float opacity)
+bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAlignedBox2f* bounds,
+	const dsMatrix33f* transform, const dsVector2f* offset, const dsFont* font, float fillOpacity,
+	float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
+	uint32_t fillMaterial, uint32_t outlineMaterial)
 {
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, ShaderType_Text, dsFont_getTexture(font), infoIndex))
-		return NULL;
+		return false;
 
-	dsAlignedBox2f_makeInvalid(&info->textInfo.bounds);
+	uint32_t drawInfoIndex = data->textDrawInfoCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textDrawInfos, data->textDrawInfoCount,
+		data->maxTextDrawInfos, 1))
+	{
+		return false;
+	}
+
+	TextDrawInfo* drawInfo = data->textDrawInfos + drawInfoIndex;
+	drawInfo->layout = layout;
+	drawInfo->firstCharacter = style->start;
+	drawInfo->characterCount = style->count;
+	drawInfo->fillMaterial = fillMaterial;
+	drawInfo->outlineMaterial = outlineMaterial;
+	drawInfo->infoIndex = infoIndex % INFOS_PER_TEXTURE;
+	drawInfo->offset = *offset;
+
+	TempPiece* piece = data->pieces + data->pieceCount - 1;
+	DS_ASSERT(piece->range.firstIndex + piece->range.indexCount == drawInfoIndex);
+	++piece->range.indexCount;
+
+	info->textInfo.bounds = *bounds;
 	info->textInfo.transformCols[0].x = transform->columns[0].x;
 	info->textInfo.transformCols[0].y = transform->columns[0].y;
 	info->textInfo.transformCols[1].x = transform->columns[1].x;
 	info->textInfo.transformCols[1].y = transform->columns[1].y;
 	info->textInfo.transformCols[2].x = transform->columns[2].x;
 	info->textInfo.transformCols[2].y = transform->columns[2].y;
-	info->textInfo.opacity = opacity;
-	return &info->textInfo;
+	info->textInfo.fillOpacity = fillOpacity;
+	info->textInfo.outlineOpacity = outlineOpacity;
+	info->textInfo.style.x = style->embolden;
+	info->textInfo.style.y = style->slant;
+	info->textInfo.style.z = style->outlineThickness;
+	info->textInfo.style.w = style->antiAlias;
+	return true;
+}
+
+bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2f* offset,
+	float fillOpacity, float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
+	uint32_t fillMaterial, uint32_t outlineMaterial)
+{
+	DS_ASSERT(data->pieceCount > 0);
+	TempPiece* prevPiece = data->pieces + data->pieceCount - 1;
+	DS_ASSERT(prevPiece->type == ShaderType_Text);
+	DS_ASSERT(data->vectorInfoCount > 0);
+	uint32_t prevInfoIndex = data->vectorInfoCount - 1;
+	VectorInfo* prevInfo = data->vectorInfos + prevInfoIndex;
+
+	uint32_t drawInfoIndex = data->textDrawInfoCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->textDrawInfos, data->textDrawInfoCount,
+		data->maxTextDrawInfos, 1))
+	{
+		return false;
+	}
+
+	TextDrawInfo* drawInfo = data->textDrawInfos + drawInfoIndex;
+	drawInfo->layout = layout;
+	drawInfo->firstCharacter = style->start;
+	drawInfo->characterCount = style->count;
+	drawInfo->fillMaterial = fillMaterial;
+	drawInfo->outlineMaterial = outlineMaterial;
+	drawInfo->infoIndex = prevInfoIndex % INFOS_PER_TEXTURE;
+	drawInfo->offset = *offset;
+
+	// Check if the previous info was compatible.
+	if (prevInfo->textInfo.fillOpacity == fillOpacity &&
+		prevInfo->textInfo.outlineOpacity == outlineOpacity &&
+		prevInfo->textInfo.style.x == style->embolden &&
+		prevInfo->textInfo.style.y == style->slant &&
+		prevInfo->textInfo.style.z == style->outlineThickness &&
+		prevInfo->textInfo.style.w == style->antiAlias)
+	{
+		DS_ASSERT(prevPiece->range.firstIndex + prevPiece->range.indexCount == drawInfoIndex);
+		++prevPiece->range.indexCount;
+		return true;
+	}
+
+	uint32_t infoIndex = data->vectorInfoCount;
+	VectorInfo* info = addVectorInfo(data);
+	if (!info || !addPiece(data, ShaderType_Text, prevPiece->texture, infoIndex))
+		return false;
+
+	// Need to get the prev info again since the array could have been re-allocated.
+	prevInfo = data->vectorInfos + prevInfoIndex;
+	*info = *prevInfo;
+	drawInfo->infoIndex = infoIndex % INFOS_PER_TEXTURE;
+
+	TempPiece* piece = data->pieces + data->pieceCount - 1;
+	DS_ASSERT(piece->range.firstIndex + piece->range.indexCount == drawInfoIndex);
+	++piece->range.indexCount;
+
+	info->textInfo.fillOpacity = fillOpacity;
+	info->textInfo.outlineOpacity = outlineOpacity;
+	info->textInfo.style.x = style->embolden;
+	info->textInfo.style.y = style->slant;
+	info->textInfo.style.z = style->outlineThickness;
+	info->textInfo.style.w = style->antiAlias;
+	return true;
 }
 
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	dsResourceManager* resourceManager, dsAllocator* allocator)
 {
-	DS_ASSERT(data->textVertexCount == 0 || data->textTessVertexCount == 0);
 	size_t totalSize = data->shapeVertexCount*sizeof(ShapeVertex) +
-		data->imageVertexCount*sizeof(ImageVertex) + data->textVertexCount*sizeof(TextVertex) +
-		data->textTessVertexCount*sizeof(TextTessVertex) + data->indexCount*sizeof(uint16_t);
+		data->imageVertexCount*sizeof(ImageVertex) + data->indexCount*sizeof(uint16_t);
 	if (totalSize == 0)
 		return NULL;
 
@@ -463,22 +600,6 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	DS_ASSERT(offset == dsVectorScratchData_imageVerticesOffset(data));
 	curSize = data->imageVertexCount*sizeof(ImageVertex);
 	memcpy(data->combinedBuffer + offset, data->imageVertices, curSize);
-	offset += curSize;
-
-	DS_ASSERT(offset == dsVectorScratchData_textVerticesOffset(data));
-	curSize = data->textVertexCount*sizeof(TextVertex);
-	memcpy(data->combinedBuffer + offset, data->textVertices, curSize);
-	offset += curSize;
-
-	DS_ASSERT(data->textTessVertexCount == 0 ||
-		offset == dsVectorScratchData_textVerticesOffset(data));
-	curSize = data->textTessVertexCount*sizeof(TextTessVertex);
-	memcpy(data->combinedBuffer + offset, data->textTessVertices, curSize);
-	offset += curSize;
-
-	DS_ASSERT(offset == dsVectorScratchData_textVerticesOffset(data));
-	curSize = data->textVertexCount*sizeof(TextVertex);
-	memcpy(data->combinedBuffer + offset, data->textVertices, curSize);
 	offset += curSize;
 
 	DS_ASSERT(offset == dsVectorScratchData_indicesOffset(data));
@@ -520,6 +641,5 @@ uint32_t dsVectorScratchData_textVerticesOffset(const dsVectorScratchData* data)
 uint32_t dsVectorScratchData_indicesOffset(const dsVectorScratchData* data)
 {
 	return (uint32_t)(data->shapeVertexCount*sizeof(ShapeVertex) +
-		data->imageVertexCount*sizeof(ImageVertex) + data->textVertexCount*sizeof(TextVertex) +
-		data->textTessVertexCount*sizeof(TextTessVertex));
+		data->imageVertexCount*sizeof(ImageVertex));
 }

@@ -401,9 +401,9 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 
 	dsTimer timer = dsTimer_create();
 	dsVector2f targetSize = {{(float)TARGET_SIZE, (float)TARGET_SIZE}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL,
-		testVectorDraw->shaderModule, &testVectorDraw->vectorResources, 1, srgb,
-		renderer->mainCommandBuffer};
+	dsVectorImageInitResources initResources = {resourceManager, renderer->mainCommandBuffer,
+		scratchData, NULL, testVectorDraw->shaderModule, NULL, &testVectorDraw->vectorResources, 1,
+		srgb};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
 	{
 		if (!dsPath_combine(path, sizeof(path), assetsDir, vectorImageFiles[i]))

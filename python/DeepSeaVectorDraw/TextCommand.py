@@ -40,8 +40,22 @@ class TextCommand(object):
         return 0
 
     # TextCommand
-    def Transform(self):
+    def MaxLength(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # TextCommand
+    def LineHeight(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+    # TextCommand
+    def Transform(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(14))
         if o != 0:
             x = o + self._tab.Pos
             from .Matrix33f import Matrix33f
@@ -52,15 +66,17 @@ class TextCommand(object):
 
     # TextCommand
     def RangeCount(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(12))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(16))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint32Flags, o + self._tab.Pos)
         return 0
 
-def TextCommandStart(builder): builder.StartObject(5)
+def TextCommandStart(builder): builder.StartObject(7)
 def TextCommandAddText(builder, text): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
 def TextCommandAddFont(builder, font): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
 def TextCommandAddJustification(builder, justification): builder.PrependUint8Slot(2, justification, 0)
-def TextCommandAddTransform(builder, transform): builder.PrependStructSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
-def TextCommandAddRangeCount(builder, rangeCount): builder.PrependUint32Slot(4, rangeCount, 0)
+def TextCommandAddMaxLength(builder, maxLength): builder.PrependFloat32Slot(3, maxLength, 0.0)
+def TextCommandAddLineHeight(builder, lineHeight): builder.PrependFloat32Slot(4, lineHeight, 0.0)
+def TextCommandAddTransform(builder, transform): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)
+def TextCommandAddRangeCount(builder, rangeCount): builder.PrependUint32Slot(6, rangeCount, 0)
 def TextCommandEnd(builder): return builder.EndObject()

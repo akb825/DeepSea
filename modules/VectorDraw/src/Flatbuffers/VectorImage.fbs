@@ -49,6 +49,8 @@ enum TextPosition : ubyte
 // Enum for the justification of text.
 enum TextJustification : ubyte
 {
+	Start,
+	End,
 	Left,
 	Right,
 	Center
@@ -310,19 +312,6 @@ table FillPathCommand
 	fillRule : FillRule;
 }
 
-// Structure defining a command to apply text to the current path.
-table TextPathCommand
-{
-	// The text to display.
-	text : string (required);
-
-	// The name of the font to draw with.
-	font : string (required);
-
-	// The number of range commands that will follow.
-	rangeCount : uint;
-}
-
 // Structure defining a command to display text.
 table TextCommand
 {
@@ -334,6 +323,12 @@ table TextCommand
 
 	// The justification of the text.
 	justification : TextJustification;
+
+	// Maximum length before text will wrap.
+	maxLength : float;
+
+	// Height for each line as a multiplier of the text size.
+	lineHeight : float;
 
 	// The transform matrix for the text.
 	transform : Matrix33f (required);
@@ -415,7 +410,6 @@ union VectorCommandUnion
 	RectangleCommand,
 	StrokePathCommand,
 	FillPathCommand,
-	TextPathCommand,
 	TextCommand,
 	TextRangeCommand,
 	ImageCommand

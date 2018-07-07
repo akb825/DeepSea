@@ -50,7 +50,6 @@ from DeepSeaVectorDraw.StartPathCommand import *
 from DeepSeaVectorDraw.StrokePathCommand import *
 from DeepSeaVectorDraw.TextCommand import *
 from DeepSeaVectorDraw.TextJustification import *
-from DeepSeaVectorDraw.TextPathCommand import *
 from DeepSeaVectorDraw.TextPosition import *
 from DeepSeaVectorDraw.TextRangeCommand import *
 from DeepSeaVectorDraw.Vector2f import *

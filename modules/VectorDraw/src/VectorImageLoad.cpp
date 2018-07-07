@@ -397,19 +397,6 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 					static_cast<dsPolygonFillRule>(fillPathCommand->fillRule());
 				break;
 			}
-			case DeepSeaVectorDraw::VectorCommandUnion::TextPathCommand:
-			{
-				auto textPathCommand = commandRef->command_as_TextPathCommand();
-				commands[i].commandType = dsVectorCommandType_TextPath;
-				commands[i].textPath.string = textPathCommand->text()->c_str();
-				commands[i].textPath.stringType = dsUnicodeType_UTF8;
-				commands[i].textPath.font = findFont(initResources->resources,
-					initResources->resourceCount, textPathCommand->font()->c_str(), name);
-				if (!commands[i].textPath.font)
-					return nullptr;
-				commands[i].textPath.rangeCount = textPathCommand->rangeCount();
-				break;
-			}
 			case DeepSeaVectorDraw::VectorCommandUnion::TextCommand:
 			{
 				auto textCommand = commandRef->command_as_TextCommand();
@@ -508,8 +495,9 @@ dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resou
 		return nullptr;
 	}
 
-	if (localMaterials && initResources->commandBuffer)
+	if (localMaterials)
 	{
+		DS_ASSERT(initResources->commandBuffer);
 		if (!dsVectorMaterialSet_update(localMaterials, initResources->commandBuffer))
 		{
 			dsVectorMaterialSet_destroy(localMaterials);

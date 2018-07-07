@@ -61,8 +61,8 @@ TEST_F(TriangulateTest, Triangle)
 	commands[5].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
-		false, NULL};
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL, NULL,
+		NULL, NULL, 0, false};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
 		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
@@ -231,8 +231,8 @@ TEST_F(TriangulateTest, Complex)
 	commands[41].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{36.0f, 16.0f}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
-		false, NULL};
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL, NULL,
+		NULL, NULL, 0, false};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
 		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
@@ -518,8 +518,8 @@ TEST_F(TriangulateTest, TriangleNoClose)
 	commands[4].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{2.0f, 2.0f}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
-		false, NULL};
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL, NULL,
+		NULL, NULL, 0, false};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
 		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
@@ -601,8 +601,8 @@ TEST_F(TriangulateTest, ClosePointOutside)
 	commands[12].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{10.0f, 10.0f}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
-		false, NULL};
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL, NULL,
+		NULL, NULL, 0, false};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
 		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);
@@ -723,8 +723,8 @@ TEST_F(TriangulateTest, ClosePointInside)
 	commands[11].fillPath.fillRule = dsPolygonFillRule_EvenOdd;
 
 	dsVector2f size = {{10.0f, 10.0f}};
-	dsVectorImageInitResources initResources = {resourceManager, scratchData, NULL, NULL, NULL, 0,
-		false, NULL};
+	dsVectorImageInitResources initResources = {resourceManager, NULL, scratchData, NULL, NULL,
+		NULL, NULL, 0, false};
 	dsVectorImage* image = dsVectorImage_create((dsAllocator*)&allocator, NULL, &initResources,
 		commands, DS_ARRAY_SIZE(commands), materialSet, &size, 0.1f);
 	ASSERT_TRUE(image);

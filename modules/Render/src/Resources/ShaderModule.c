@@ -216,21 +216,40 @@ const char* dsShaderModule_shaderName(const dsShaderModule* shaderModule, uint32
 	return pipeline.name;
 }
 
+uint32_t dsShaderModule_shaderIndex(const dsShaderModule* shaderModule, const char* name)
+{
+	if (!shaderModule || !name)
+		return DS_MATERIAL_UNKNOWN;
+
+	uint32_t shaderCount = mslModule_pipelineCount(shaderModule->module);
+	for (uint32_t i = 0; i < shaderCount; ++i)
+	{
+		mslPipeline pipeline;
+		if (!mslModule_pipeline(&pipeline, shaderModule->module, i))
+			return DS_MATERIAL_UNKNOWN;
+
+		if (strcmp(name, dsShaderModule_shaderName(shaderModule, i)) == 0)
+			return i;
+	}
+
+	return DS_MATERIAL_UNKNOWN;
+}
+
 bool dsShaderModule_shaderNameHasStage(const dsShaderModule* shaderModule, const char* name,
 	dsShaderStage stage)
 {
 	if (!shaderModule || !name || (unsigned int)stage >= (unsigned int)mslStage_Count)
 		return false;
 
-	uint32_t index = 0, shaderCount = mslModule_pipelineCount(shaderModule->module);
-	for (; index < shaderCount; ++index)
+	uint32_t shaderCount = mslModule_pipelineCount(shaderModule->module);
+	for (uint32_t i = 0; i < shaderCount; ++i)
 	{
 		mslPipeline pipeline;
-		if (!mslModule_pipeline(&pipeline, shaderModule->module, index))
+		if (!mslModule_pipeline(&pipeline, shaderModule->module, i))
 			return false;
 
-		if (strcmp(name, dsShaderModule_shaderName(shaderModule, index)) == 0)
-			return pipeline.shaders[stage] != MSL_UNKNOWN;\
+		if (strcmp(name, dsShaderModule_shaderName(shaderModule, i)) == 0)
+			return pipeline.shaders[stage] != MSL_UNKNOWN;
 	}
 
 	return false;

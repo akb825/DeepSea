@@ -3,7 +3,9 @@
 # namespace: DeepSeaVectorDraw
 
 class TextJustification(object):
-    Left = 0
-    Right = 1
-    Center = 2
+    Start = 0
+    End = 1
+    Left = 2
+    Right = 3
+    Center = 4
 

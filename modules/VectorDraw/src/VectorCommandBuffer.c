@@ -255,54 +255,6 @@ bool dsVectorCommandBuffer_addStrokePath(dsVectorCommandBuffer* commandBuffer, c
 	return true;
 }
 
-bool dsVectorCommandBuffer_addFillPath(dsVectorCommandBuffer* commandBuffer, const char* material,
-	float opacity)
-{
-	if (!material)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsVectorCommand* command = addCommand(commandBuffer);
-	if (!command)
-		return false;
-
-	command->commandType = dsVectorCommandType_FillPath;
-	command->fillPath.material = material;
-	command->fillPath.opacity = opacity;
-	return true;
-}
-
-bool dsVectorCommandBuffer_addTextPath(dsVectorCommandBuffer* commandBuffer, const void* string,
-	dsUnicodeType stringType, dsFont* font, uint32_t rangeCount)
-{
-	if (!font)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	if (rangeCount == 0)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
-			"At least one range must follow a text path command.");
-		return false;
-	}
-
-	dsVectorCommand* command = addCommand(commandBuffer);
-	if (!command)
-		return false;
-
-	command->commandType = dsVectorCommandType_TextPath;
-	command->textPath.string = string;
-	command->textPath.stringType = stringType;
-	command->textPath.font = font;
-	command->textPath.rangeCount = rangeCount;
-	return true;
-}
-
 bool dsVectorCommandBuffer_addText(dsVectorCommandBuffer* commandBuffer, const void* string,
 	dsUnicodeType stringType, dsFont* font, dsTextJustification justification,
 	const dsMatrix33f* transform, uint32_t rangeCount)

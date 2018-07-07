@@ -51,7 +51,7 @@ extern "C"
  */
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_create(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsVectorImageInitResources* initResources,
-	const dsVectorCommand* commands, uint32_t commandCount,  dsVectorMaterialSet* localMaterials,
+	const dsVectorCommand* commands, uint32_t commandCount, dsVectorMaterialSet* localMaterials,
 	const dsVector2f* size, float pixelSize);
 
 /**
@@ -106,6 +106,21 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadStream(dsAllocator* alloca
 DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator,
 	dsAllocator* resourceAllocator, const dsVectorImageInitResources* initResources,
 	const void* data, size_t size, float pixelSize, const dsVector2f* targetSize);
+
+/**
+ * @brief Updates the vector image text.
+ *
+ * This will guarantee all glyphs used are in the glyph cache if other text drawing may have
+ * evicted them. (assuming the limit isn't reached within a single frame)
+ *
+ * @remark This must be called outside of a render pass.
+ * @remark errno will be set on failure.
+ * @param vectorImage The vector image to draw.
+ * @param commandBuffer The command buffer to put the update commands on.
+ * @return False if an error occurred.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(dsVectorImage* vectorImage,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Draws a vector image.

@@ -21,6 +21,7 @@
 #include "VectorImageImpl.h"
 #include "VectorScratchDataImpl.h"
 #include "VectorStroke.h"
+#include "VectorText.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
@@ -44,41 +45,39 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <DeepSea/Render/Renderer.h>
+#include <DeepSea/Text/TextLayout.h>
+#include <DeepSea/Text/TextRenderBuffer.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <limits.h>
 #include <string.h>
 
-typedef struct TessTextVertex
-{
-	dsVector3f position;
-	dsAlignedBox2f geometry;
-	dsAlignedBox2f texCoords;
-	uint16_t fillMaterialIndex;
-	uint16_t outlineMaterialIndex;
-} TessTextVertex;
-
 DS_STATIC_ASSERT(sizeof(VectorInfo) == 4*sizeof(dsVector4f), unexpected_VectorInfo_size);
 
-typedef struct dsVectorImagePiece
+typedef struct VectorImagePiece
 {
 	dsTexture* geometryInfo;
 	dsTexture* texture;
+	dsTextRenderBuffer* textRender;
 	ShaderType type;
 	dsDrawIndexedRange range;
-} dsVectorImagePiece;
+} VectorImagePiece;
 
 struct dsVectorImage
 {
 	dsAllocator* allocator;
 	const dsVectorMaterialSet* sharedMaterials;
 	dsVectorMaterialSet* localMaterials;
-	dsVectorImagePiece* imagePieces;
+	VectorImagePiece* imagePieces;
 	dsTexture** infoTextures;
 	dsDrawGeometry* drawGeometries[ShaderType_Count];
+	dsTextLayout** textLayouts;
+	TextDrawInfo* textDrawInfos;
 	dsGfxBuffer* buffer;
 	uint32_t pieceCount;
 	uint32_t infoTextureCount;
+	uint32_t textLayoutCount;
+	uint32_t textDrawInfoCount;
 	dsVector2f size;
 };
 
@@ -100,6 +99,17 @@ static const dsMatrix44f rightBezierMatrix =
 }};
 
 static const dsVector4f bezierMid = {{0.125f, 0.375f, 0.375f, 0.125f}};
+
+static bool initResourcesValid(const dsVectorImageInitResources* initResources)
+{
+	if (!initResources || !initResources->resourceManager || !initResources->scratchData ||
+		(!initResources->resources && initResources->resourceCount > 0))
+	{
+		return false;
+	}
+
+	return dsVectorImage_testing || (initResources->commandBuffer &&initResources->shaderModule);
+}
 
 static float adjustPixelSize(const dsMatrix33f* transform, float pixelSize)
 {
@@ -617,9 +627,10 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	return true;
 }
 
-static bool processCommand(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
-	uint32_t commandCount, uint32_t* curCommand, const dsVectorMaterialSet* sharedMaterials,
-	dsVectorMaterialSet* localMaterials, float pixelSize)
+static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
+	const dsVectorCommand* commands, uint32_t commandCount, uint32_t* curCommand,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
+	float pixelSize)
 {
 	DS_UNUSED(commandCount);
 	DS_ASSERT(*curCommand < commandCount);
@@ -699,20 +710,40 @@ static bool processCommand(dsVectorScratchData* scratchData, const dsVectorComma
 			return addImage(scratchData, &image->transform, image->image, image->opacity,
 				&image->imageBounds);
 		}
+		case dsVectorCommandType_Text:
+		{
+			const dsVectorCommandText* text = &commands[(*curCommand)++].text;
+			if (!DS_IS_BUFFER_RANGE_VALID(*curCommand, text->rangeCount, commandCount))
+			{
+				errno = EINDEX;
+				DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Text ranges out of command range.");
+				return false;
+			}
+
+			if (!dsVectorText_addText(scratchData, commandBuffer, sharedMaterials, localMaterials,
+				text, commands + *curCommand, pixelSize))
+			{
+				return false;
+			}
+			*curCommand += text->rangeCount;
+			return true;
+		}
 		default:
-			DS_ASSERT(false);
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG, "Invalid vector command.");
 			return false;
 	}
 }
 
-static bool processCommands(dsVectorScratchData* scratchData, const dsVectorCommand* commands,
-	uint32_t commandCount, const dsVectorMaterialSet* sharedMaterials,
-	dsVectorMaterialSet* localMaterials, float pixelSize)
+static bool processCommands(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
+	const dsVectorCommand* commands, uint32_t commandCount,
+	const dsVectorMaterialSet* sharedMaterials, dsVectorMaterialSet* localMaterials,
+	float pixelSize)
 {
 	dsVectorScratchData_reset(scratchData);
 	for (uint32_t i = 0; i < commandCount;)
 	{
-		if (!processCommand(scratchData, commands, commandCount, &i, sharedMaterials,
+		if (!processCommand(scratchData, commandBuffer, commands, commandCount, &i, sharedMaterials,
 			localMaterials, pixelSize))
 		{
 			return false;
@@ -798,95 +829,29 @@ static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	return image->drawGeometries[ShaderType_Image] != NULL;
 }
 
-static bool createTextGeometry(dsVectorImage* image, dsVectorScratchData* scratchData,
-	dsResourceManager* resourceManager, dsAllocator* allocator)
+static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer)
 {
-	if (scratchData->textVertexCount == 0)
-		return true;
-
-	dsVertexFormat vertexFormat;
-	DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
-	vertexFormat.elements[dsVertexAttrib_Position].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_TexCoord1].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_Position].offset ==
-		offsetof(TextVertex, position));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord0].offset ==
-		offsetof(TextVertex, texCoords));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord1].offset ==
-		offsetof(TextVertex, fillMaterialIndex));
-	DS_ASSERT(vertexFormat.size == sizeof(TextVertex));
-	dsVertexBuffer vertexBuffer =
+	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
 	{
-		image->buffer, dsVectorScratchData_shapeVerticesOffset(scratchData),
-			scratchData->shapeVertexCount, vertexFormat
-	};
-	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
-		{&vertexBuffer, NULL, NULL, NULL};
-	dsIndexBuffer indexBuffer =
-	{
-		image->buffer, dsVectorScratchData_indicesOffset(scratchData), scratchData->indexCount,
-		sizeof(uint16_t)
-	};
+		const VectorImagePiece* piece = vectorImage->imagePieces + i;
+		if (piece->type != ShaderType_Text)
+			continue;
 
-	image->drawGeometries[ShaderType_Text] = dsDrawGeometry_create(resourceManager, allocator,
-		vertexBuffers, &indexBuffer);
-	return image->drawGeometries[ShaderType_Text] != NULL;
-}
+		DS_ASSERT(piece->textRender);
+		DS_VERIFY(dsTextRenderBuffer_clear(piece->textRender));
+		for (uint32_t j = 0; j < piece->range.indexCount; ++j)
+		{
+			DS_ASSERT(piece->range.firstIndex + j < vectorImage->textDrawInfoCount);
+			TextDrawInfo* drawInfo = vectorImage->textDrawInfos + piece->range.firstIndex + j;
+			DS_VERIFY(dsTextRenderBuffer_addText(piece->textRender, drawInfo->layout, drawInfo,
+				drawInfo->firstCharacter, drawInfo->characterCount));
+		}
 
-static bool createTextTessGeometry(dsVectorImage* image, dsVectorScratchData* scratchData,
-	dsResourceManager* resourceManager, dsAllocator* allocator)
-{
-	if (scratchData->textTessVertexCount == 0)
-		return true;
+		if (!dsTextRenderBuffer_commit(piece->textRender, commandBuffer))
+			return false;
+	}
 
-	dsVertexFormat vertexFormat;
-	DS_VERIFY(dsVertexFormat_initialize(&vertexFormat));
-	vertexFormat.elements[dsVertexAttrib_Position0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_Position1].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
-	vertexFormat.elements[dsVertexAttrib_TexCoord1].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UNorm);
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position1, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
-	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord1, true));
-	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_Position0].offset ==
-		offsetof(TextTessVertex, position));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_Position1].offset ==
-		offsetof(TextTessVertex, geometry));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord0].offset ==
-		offsetof(TextTessVertex, texCoords));
-	DS_ASSERT(vertexFormat.elements[dsVertexAttrib_TexCoord1].offset ==
-		offsetof(TextTessVertex, fillMaterialIndex));
-	DS_ASSERT(vertexFormat.size == sizeof(TextTessVertex));
-	dsVertexBuffer vertexBuffer =
-	{
-		image->buffer, dsVectorScratchData_shapeVerticesOffset(scratchData),
-			scratchData->shapeVertexCount, vertexFormat
-	};
-	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] =
-		{&vertexBuffer, NULL, NULL, NULL};
-	dsIndexBuffer indexBuffer =
-	{
-		image->buffer, dsVectorScratchData_indicesOffset(scratchData), scratchData->indexCount,
-		sizeof(uint16_t)
-	};
-
-	image->drawGeometries[ShaderType_Text] = dsDrawGeometry_create(resourceManager, allocator,
-		vertexBuffers, &indexBuffer);
-	return image->drawGeometries[ShaderType_Text] != NULL;
+	return true;
 }
 
 dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -900,10 +865,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !initResources || !initResources->resourceManager ||
-		!initResources->scratchData || (!dsVectorImage_testing && !initResources->shaderModule) ||
-		!commands || commandCount == 0 || (!initResources->sharedMaterials && !localMaterials) ||
-		!size || size->x <= 0.0f || size->y <= 0.0f || pixelSize <= 0.0f)
+	if (!allocator || !initResourcesValid(initResources) || !commands || commandCount == 0 || !size
+		|| size->x <= 0.0f || size->y <= 0.0f || pixelSize <= 0.0f)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -913,7 +876,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	if (!dsGfxFormat_textureSupported(initResources->resourceManager, infoFormat))
 	{
 		errno = EPERM;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
 			"Floating point textures are required for vector images.");
 		return NULL;
 	}
@@ -922,20 +885,26 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		resourceAllocator = allocator;
 
 	dsVectorScratchData* scratchData = initResources->scratchData;
-	if (!processCommands(scratchData, commands, commandCount, initResources->sharedMaterials,
-		localMaterials, pixelSize))
+	if (!processCommands(scratchData, initResources->commandBuffer, commands, commandCount,
+		initResources->sharedMaterials, localMaterials, pixelSize))
 	{
+		dsVectorScratchData_reset(scratchData);
 		return NULL;
 	}
 
 	uint32_t infoTextureCount = (scratchData->vectorInfoCount + INFOS_PER_TEXTURE - 1)/
 		INFOS_PER_TEXTURE;
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVectorImage)) +
-		DS_ALIGNED_SIZE(sizeof(dsVectorImagePiece)*scratchData->pieceCount) +
-		DS_ALIGNED_SIZE(sizeof(dsTexture*)*infoTextureCount);
+		DS_ALIGNED_SIZE(sizeof(VectorImagePiece)*scratchData->pieceCount) +
+		DS_ALIGNED_SIZE(sizeof(dsTexture*)*infoTextureCount) +
+		DS_ALIGNED_SIZE(sizeof(dsTextLayout*)*scratchData->textLayoutCount) +
+		DS_ALIGNED_SIZE(sizeof(TextDrawInfo*)*scratchData->textDrawInfoCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
+	{
+		dsVectorScratchData_reset(scratchData);
 		return NULL;
+	}
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
@@ -968,6 +937,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 				sizeof(VectorInfo)*infoTexInfo.height);
 			if (!image->infoTextures[i])
 			{
+				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
 				return NULL;
 			}
@@ -977,34 +947,87 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			resourceAllocator);
 		if (!image->buffer)
 		{
+			dsVectorScratchData_reset(scratchData);
 			DS_VERIFY(dsVectorImage_destroy(image));
 			return NULL;
 		}
 
 		if (!createShapeGeometry(image, scratchData, resourceManager, resourceAllocator) ||
-			!createImageGeometry(image, scratchData, resourceManager, resourceAllocator) ||
-			!createTextGeometry(image, scratchData, resourceManager, resourceAllocator) ||
-			!createTextTessGeometry(image, scratchData, resourceManager, resourceAllocator))
+			!createImageGeometry(image, scratchData, resourceManager, resourceAllocator))
 		{
+			dsVectorScratchData_reset(scratchData);
 			DS_VERIFY(dsVectorImage_destroy(image));
 			return NULL;
 		}
 
 		DS_ASSERT(scratchData->pieceCount > 0);
 		image->imagePieces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVectorImagePiece, scratchData->pieceCount);
+			VectorImagePiece, scratchData->pieceCount);
 		DS_ASSERT(image->imagePieces);
 		for (uint32_t i = 0; i < scratchData->pieceCount; ++i)
 		{
 			image->imagePieces[i].geometryInfo =
 				image->infoTextures[scratchData->pieces[i].infoTextureIndex];
 			image->imagePieces[i].texture = scratchData->pieces[i].texture;
+			image->imagePieces[i].textRender = NULL;
 			image->imagePieces[i].type = scratchData->pieces[i].type;
 			image->imagePieces[i].range = scratchData->pieces[i].range;
 		}
 		image->pieceCount = scratchData->pieceCount;
 		DS_ASSERT(infoTextureCount > 0);
+
+		if (scratchData->textLayoutCount > 0)
+		{
+			image->textLayoutCount = scratchData->textLayoutCount;
+			image->textLayouts = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsTextLayout*,
+				image->textLayoutCount);
+			DS_ASSERT(image->textLayouts);
+			memcpy(image->textLayouts, scratchData->textLayouts,
+				sizeof(dsTextLayout*)*image->textLayoutCount);
+			dsVectorScratchData_relinquishText(scratchData);
+
+			DS_ASSERT(scratchData->textDrawInfoCount > 0);
+			image->textDrawInfoCount = scratchData->textDrawInfoCount;
+			image->textDrawInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+				TextDrawInfo, image->textDrawInfoCount);
+			DS_ASSERT(image->textDrawInfos);
+			memcpy(image->textDrawInfos, scratchData->textDrawInfos,
+				sizeof(TextDrawInfo)*image->textDrawInfoCount);
+
+			dsVertexFormat textVertexFormat;
+			if (!dsVectorText_createVertexFormat(&textVertexFormat, initResources))
+			{
+				dsVectorScratchData_reset(scratchData);
+				DS_VERIFY(dsVectorImage_destroy(image));
+				return NULL;
+			}
+
+			for (uint32_t i = 0; i < image->pieceCount; ++i)
+			{
+				if (image->imagePieces[i].type != ShaderType_Text)
+					continue;
+
+				image->imagePieces[i].textRender = dsVectorText_createRenderBuffer(allocator,
+					resourceManager, &textVertexFormat, &image->imagePieces[i].range,
+					image->textDrawInfos, image->textDrawInfoCount);
+				if (!image->imagePieces[i].textRender)
+				{
+					dsVectorScratchData_reset(scratchData);
+					DS_VERIFY(dsVectorImage_destroy(image));
+					return NULL;
+				}
+			}
+
+			if (!addTextRanges(image, initResources->commandBuffer))
+			{
+				dsVectorScratchData_reset(scratchData);
+				DS_VERIFY(dsVectorImage_destroy(image));
+				return NULL;
+			}
+		}
 	}
+
+	dsVectorScratchData_reset(scratchData);
 
 	image->sharedMaterials = initResources->sharedMaterials;
 	image->localMaterials = localMaterials;
@@ -1018,9 +1041,7 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsAllocator* resou
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !initResources || !initResources->resourceManager ||
-		!initResources->scratchData || !initResources->shaderModule ||
-		(!initResources->resources && initResources->resourceCount > 0) || !filePath)
+	if (!allocator || !initResourcesValid(initResources) || !filePath)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -1056,9 +1077,7 @@ dsVectorImage* dsVectorImage_loadStream(dsAllocator* allocator, dsAllocator* res
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !initResources || !initResources->resourceManager ||
-		!initResources->scratchData || !initResources->shaderModule ||
-		(!initResources->resources && initResources->resourceCount > 0) || !stream)
+	if (!allocator || !initResourcesValid(initResources) || !stream)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -1086,9 +1105,7 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsAllocator* resou
 {
 	DS_PROFILE_FUNC_START();
 
-	if (!allocator || !initResources || !initResources->resourceManager ||
-		!initResources->scratchData || !initResources->shaderModule ||
-		(!initResources->resources && initResources->resourceCount > 0) || !data || size == 0)
+	if (!allocator || !initResourcesValid(initResources) || !data || size == 0)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -1102,14 +1119,43 @@ dsVectorImage* dsVectorImage_loadData(dsAllocator* allocator, dsAllocator* resou
 	DS_PROFILE_FUNC_RETURN(image);
 }
 
+bool dsVectorImage_updateText(dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!vectorImage || !commandBuffer)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (vectorImage->textLayoutCount == 0)
+	{
+		DS_PROFILE_FUNC_RETURN(true);
+	}
+
+	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
+	{
+		if (!dsTextLayout_refresh(vectorImage->textLayouts[i], commandBuffer))
+		{
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	}
+
+	bool success = addTextRanges(vectorImage, commandBuffer);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
 bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer,
 	const dsVectorShaders* shaders, dsMaterial* material, const dsMatrix44f* modelViewProjection,
 	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!vectorImage || !commandBuffer || !shaders || !material || !modelViewProjection)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (shaders->shaderModule->materialDesc != dsMaterial_getDescription(material))
@@ -1117,11 +1163,13 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
 			"Material wasn't created with the same shader module as the shaders.");
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (vectorImage->pieceCount == 0)
-		return true;
+	{
+		DS_PROFILE_FUNC_RETURN(true);
+	}
 
 	dsVectorShaderModule* shaderModule = shaders->shaderModule;
 	if (!dsMaterial_setElementData(material, shaderModule->modelViewProjectionElement,
@@ -1129,7 +1177,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		!dsMaterial_setElementData(material, shaderModule->sizeElement, &vectorImage->size,
 			dsMaterialType_Vec2, 0, 1))
 	{
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsTexture* sharedMaterialInfoTexture = dsVectorMaterialSet_getInfoTexture(
@@ -1149,7 +1197,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		!dsMaterial_setTexture(material, shaderModule->localMaterialColorTextureElement,
 			localMaterialColorTexture))
 	{
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = true;
@@ -1168,7 +1216,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 
 	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
 	{
-		const dsVectorImagePiece* piece = vectorImage->imagePieces + i;
+		const VectorImagePiece* piece = vectorImage->imagePieces + i;
 		textureSizes.x = (float)piece->geometryInfo->info.height;
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec3, 0, 1) ||
@@ -1225,7 +1273,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));
 
-	return success;
+	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsVectorImage_getSize(dsVector2f* outSize, const dsVectorImage* vectorImage)
@@ -1261,6 +1309,12 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 	if (!vectorImage)
 		return true;
 
+	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
+	{
+		if (!dsTextRenderBuffer_destroy(vectorImage->imagePieces[i].textRender))
+			return false;
+	}
+
 	for (uint32_t i = 0; i < vectorImage->infoTextureCount; ++i)
 	{
 		if (!dsTexture_destroy(vectorImage->infoTextures[i]))
@@ -1272,6 +1326,9 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 		if (!dsDrawGeometry_destroy(vectorImage->drawGeometries[i]))
 			return false;
 	}
+
+	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
+		dsTextLayout_destroy(vectorImage->textLayouts[i]);
 
 	if (!dsGfxBuffer_destroy(vectorImage->buffer))
 		return false;
