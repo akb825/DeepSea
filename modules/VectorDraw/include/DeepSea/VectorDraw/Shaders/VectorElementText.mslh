@@ -89,9 +89,11 @@
  */
 #define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
 	cull_mode = back; \
+	patch_control_points = 1; \
+	cull_mode = front; \
+	/* Pre-multiply alpha. */ \
 	blend_enable = true; \
-	src_color_blend_factor = src_alpha; \
-	src_alpha_blend_factor = one; \
+	src_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
 	alpha_blend_op = add
 

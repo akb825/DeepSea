@@ -26,6 +26,7 @@
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/ComplexPolygon.h>
 #include <DeepSea/Geometry/SimpleHoledPolygon.h>
+#include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Text/FaceGroup.h>
@@ -167,9 +168,9 @@ void dsVectorScratchData_destroy(dsVectorScratchData* data)
 void dsVectorScratchData_reset(dsVectorScratchData* data)
 {
 	data->pointCount = 0;
+	data->lastStart = 0;
 	data->inPath = false;
 	data->pathSimple = false;
-	data->lastStart = 0;
 	data->shapeVertexCount = 0;
 	data->imageVertexCount = 0;
 	data->indexCount = 0;
@@ -198,12 +199,11 @@ void* dsVectorScratchData_readUntilEnd(size_t* outSize, dsVectorScratchData* dat
 dsVectorCommand* dsVectorScratchData_createTempCommands(dsVectorScratchData* data,
 	uint32_t commandCount)
 {
-	if (!data->tempCommands || data->maxTempCommands < commandCount)
+	uint32_t tempCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(data->allocator, data->tempCommands,
+		tempCount, data->maxTempCommands, commandCount))
 	{
-		dsAllocator_free(data->allocator, data->tempCommands);
-		data->tempCommands = DS_ALLOCATE_OBJECT_ARRAY(data->allocator, dsVectorCommand,
-			commandCount);
-		data->maxTempCommands = commandCount;
+		return NULL;
 	}
 
 	return data->tempCommands;
@@ -443,6 +443,9 @@ ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
 	info->shapeInfo.transformCols[2].x = transform->columns[2].x;
 	info->shapeInfo.transformCols[2].y = transform->columns[2].y;
 	info->shapeInfo.opacity = opacity;
+	info->shapeInfo.padding = 0;
+	info->shapeInfo.dashArray.x = info->shapeInfo.dashArray.y = info->shapeInfo.dashArray.z =
+		info->shapeInfo.dashArray.w = 0.0f;
 	return &info->shapeInfo;
 }
 

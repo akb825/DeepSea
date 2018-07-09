@@ -107,7 +107,15 @@ static uint32_t countGlyphs(const dsDrawIndexedRange* range, const TextDrawInfo*
 		{
 			const dsCharMapping* charMapping = drawInfo->layout->text->charMappings +
 				drawInfo->firstCharacter + j;
-			count += charMapping->glyphCount;
+			for (uint32_t k = 0; k < charMapping->glyphCount; ++k)
+			{
+				const dsGlyphLayout* glyph = drawInfo->layout->glyphs + charMapping->firstGlyph + k;
+				if (glyph->geometry.min.x < glyph->geometry.max.y && glyph->geometry.min.y <
+					glyph->geometry.max.y)
+				{
+					++count;
+				}
+			}
 		}
 	}
 
@@ -217,6 +225,9 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			for (uint32_t k = 0; k < charMapping->glyphCount; ++k)
 			{
 				const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph + k;
+				if (glyph->position.x == FLT_MAX || glyph->position.y == FLT_MAX)
+					continue;
+
 				dsAlignedBox2f glyphBounds;
 				DS_VERIFY(dsTextLayout_applySlantToBounds(&glyphBounds, &glyph->geometry,
 					range->slant));
