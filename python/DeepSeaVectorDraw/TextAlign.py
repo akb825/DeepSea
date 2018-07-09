@@ -2,7 +2,7 @@
 
 # namespace: DeepSeaVectorDraw
 
-class TextJustification(object):
+class TextAlign(object):
     Start = 0
     End = 1
     Left = 2

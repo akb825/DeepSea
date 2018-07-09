@@ -86,32 +86,32 @@ DS_TEXT_EXPORT dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const d
 	const dsTextStyle* styles, uint32_t styleCount);
 
 /**
- * @brief Resolves the justification based on the text.
+ * @brief Resolves the alignment based on the text.
  *
- * This will resolve dsTextJustification_Start and dsTextJustification_End to
- * dsTextJustification_Left or dsTextJustification_Right.
+ * This will resolve dsTextAlign_Start and dsTextAlign_End to
+ * dsTextAlign_Left or dsTextAlign_Right.
  *
  * @remark This is automatically called as part of dsTextLayout_layout().
  * @param layout The text layout.
- * @param justification The initial justification.
- * @return The resolved justification.
+ * @param alignment The initial alignment.
+ * @return The resolved alignment.
  */
-DS_TEXT_EXPORT dsTextJustification dsTextLayout_resolveJustification(const dsTextLayout* layout,
-	dsTextJustification justification);
+DS_TEXT_EXPORT dsTextAlign dsTextLayout_resolveAlign(const dsTextLayout* layout,
+	dsTextAlign alignment);
 
 /**
  * @brief Performs layout on the text, preparing it to be rendered.
  * @remark errno will be set on failure.
  * @param layout The layout to process.
  * @param commandBuffer The command buffer to queue any texture operations on.
- * @param justification The justification to follow when laying out the text.
+ * @param alignment The alignment to follow when laying out the text.
  * @param maxWidth The maximum width before breaking text. Set to DS_TEXT_NO_WRAP to avoid wrapping.
  * @param lineScale The scale to apply to the distance between each line. Set to 1 to use the base
  *     font height directly.
  * @return False if an error occurred.
  */
 DS_TEXT_EXPORT bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
-	dsTextJustification justification, float maxWidth, float lineScale);
+	dsTextAlign alignment, float maxWidth, float lineScale);
 
 /**
  * @brief Refreshes the glyphs in the cache, ensuring they are available to be rendered.

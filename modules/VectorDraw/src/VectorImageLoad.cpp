@@ -407,8 +407,10 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 					initResources->resourceCount, textCommand->font()->c_str(), name);
 				if (!commands[i].text.font)
 					return nullptr;
-				commands[i].text.justification =
-					static_cast<dsTextJustification>(textCommand->justification());
+				commands[i].text.alignment =
+					static_cast<dsTextAlign>(textCommand->alignment());
+				commands[i].text.maxLength = textCommand->maxLength();
+				commands[i].text.lineHeight = textCommand->lineHeight();
 				commands[i].text.transform =
 					*reinterpret_cast<const dsMatrix33f*>(textCommand->transform());
 				commands[i].text.rangeCount = textCommand->rangeCount();

@@ -123,7 +123,12 @@ const char* vectorImageFiles[] =
 	"Ghostscript_Tiger.dsvi",
 	"st_ellipse_fan.dsvi",
 	"st_complex.dsvi",
-	"texture.dsvi"
+	"texture.dsvi",
+	"text.dsvi",
+	"text-preformatted.dsvi",
+	"text-autoformat.dsvi",
+	"tspan.dsvi",
+	"text-materials.dsvi"
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);

@@ -125,7 +125,7 @@ typedef struct TextInfo
 {
 	const char* standardText;
 	const char* tesselatedText;
-	dsTextJustification justification;
+	dsTextAlign alignment;
 	float maxWidth;
 	float lineScale;
 	dsTextStyle styles[3];
@@ -138,32 +138,32 @@ static TextInfo textStrings[] =
 {
 	{"Top text is standard quads.\nUse arrow keys or touch to cycle text.",
 		"Bottom text, if visible, is tessellated.",
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted forward.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted backward.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, -0.3f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text has outlines.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Embolded, slanted, and outlined.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
@@ -171,7 +171,7 @@ static TextInfo textStrings[] =
 		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 11, 9.0f, 0.0f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{11, 12, 16.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
@@ -179,7 +179,7 @@ static TextInfo textStrings[] =
 		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.0, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 11, 9.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f},
 		{11, 12, 16.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
@@ -187,7 +187,7 @@ static TextInfo textStrings[] =
 		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f}}},
 	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
-		dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{20, 6, 36.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
@@ -198,17 +198,17 @@ static TextInfo textStrings[] =
 		"\n\nEmpty line.\n\nThiswordislongerthanlimit. This isn't.\n\nTessellated section only "
 			"has newlines.",
 		"\n\n\n",
-		dsTextJustification_Left, 200.0f, 1.0f,
+		dsTextAlign_Left, 200.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Centered text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Center, 162.0f, 1.0f,
+		dsTextAlign_Center, 162.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Right-justified text that wraps\nand explicit newlines.", NULL,
-		dsTextJustification_Right, 180.0f, 1.0f,
+		dsTextAlign_Right, 180.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -216,7 +216,7 @@ static TextInfo textStrings[] =
 		"\xB8\xB1\xE0\xB8\x99\xE0\xB8\x81\xE0\xB8\xB4\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9"
 		"\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\x9E\xE0\xB8\xA3\xE0\xB8\xB8"
 		"\xE0\xB9\x88\xE0\xB8\x87\xE0\xB8\x99\xE0\xB8\xB5\xE0\xB9\x89\" is Thai.",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -225,7 +225,7 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
 		"Arabic words with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -233,7 +233,7 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
 		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
-		NULL, dsTextJustification_Left, 410.0f, 1.3f,
+		NULL, dsTextAlign_Left, 410.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -241,7 +241,7 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
 		"Explicit newline with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!?\n"
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.3f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -249,18 +249,18 @@ static TextInfo textStrings[] =
 		"\xE0\xB8\x99\xE0\xB8\x97\xE0\xB8\xB5\xE0\xB9\x88\xE0\xB8\x99\xE0\xB8\xB1\xE0\xB9\x88\xE0"
 		"\xB8\x99\xE0\xB9\x80\xE0\xB8\xA1\xE0\xB8\xB7\xE0\xB9\x88\xE0\xB8\xAD\xE0\xB8\xA7\xE0\xB8"
 		"\xB2\xE0\xB8\x99",
-		NULL, dsTextJustification_Left, 350.0f, 1.3f,
+		NULL, dsTextAlign_Left, 350.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"first is left-to-right \xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
 		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 first is right-to-left",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Text with a negative offset in Y.",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 2.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 2.0f,
 		{{0, 12, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
@@ -268,7 +268,7 @@ static TextInfo textStrings[] =
 		{20, UINT_MAX - 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}}},
 	{"Text with a positive offset in Y.",
-		NULL, dsTextJustification_Left, DS_TEXT_NO_WRAP, 1.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 12, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
@@ -522,7 +522,7 @@ static void createText(TestText* testText)
 		return;
 	}
 	if (!dsTextLayout_layout(testText->text, testText->renderer->mainCommandBuffer,
-		textStrings[index].justification, textStrings[index].maxWidth,
+		textStrings[index].alignment, textStrings[index].maxWidth,
 		textStrings[index].lineScale))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
@@ -560,7 +560,7 @@ static void createText(TestText* testText)
 			return;
 		}
 		if (!dsTextLayout_layout(testText->tessText, testText->renderer->mainCommandBuffer,
-			textStrings[index].justification, textStrings[index].maxWidth,
+			textStrings[index].alignment, textStrings[index].maxWidth,
 			textStrings[index].lineScale))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));

@@ -237,7 +237,7 @@ class VectorResources:
 			FontStartFacesVector(builder, len(faceOffsets))
 			for offset in reversed(faceOffsets):
 				builder.PrependUOffsetTRelative(offset)
-			facesOffset = builder.EndVector(len(faceGroupOffsets))
+			facesOffset = builder.EndVector(len(faceOffsets))
 
 			FontStart(builder)
 			FontAddName(builder, nameOffset)

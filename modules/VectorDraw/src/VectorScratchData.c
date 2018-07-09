@@ -253,7 +253,7 @@ bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polyg
 
 dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType stringType, dsFont* font,
-	dsTextJustification justification, float maxLength, float lineHeight,
+	dsTextAlign alignment, float maxLength, float lineHeight,
 	const dsVectorCommand* ranges, uint32_t rangeCount, float pixelSize)
 {
 	uint32_t tempCount = 0;
@@ -286,7 +286,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		style->outlineColor = white;
 		style->verticalOffset = 0.0f;
 		DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(dsFont_getFaceGroup(font), style,
-			pixelSize));
+			1.0f/pixelSize));
 	}
 
 	dsText* text = dsText_create(font, data->allocator, string, stringType, false);
@@ -300,7 +300,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		return NULL;
 	}
 
-	if (!dsTextLayout_layout(layout, commandBuffer, justification, maxLength, lineHeight))
+	if (!dsTextLayout_layout(layout, commandBuffer, alignment, maxLength, lineHeight))
 	{
 		dsTextLayout_destroyLayoutAndText(layout);
 		return NULL;
@@ -572,6 +572,12 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	info->textInfo.style.z = style->outlineThickness;
 	info->textInfo.style.w = style->antiAlias;
 	return true;
+}
+
+bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data)
+{
+	return data->shapeVertexCount*sizeof(ShapeVertex) + data->imageVertexCount*sizeof(ImageVertex) +
+		data->indexCount*sizeof(uint16_t) > 0;
 }
 
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,

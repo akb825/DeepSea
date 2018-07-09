@@ -33,7 +33,7 @@ class TextCommand(object):
         return bytes()
 
     # TextCommand
-    def Justification(self):
+    def Alignment(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
         if o != 0:
             return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
@@ -74,7 +74,7 @@ class TextCommand(object):
 def TextCommandStart(builder): builder.StartObject(7)
 def TextCommandAddText(builder, text): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(text), 0)
 def TextCommandAddFont(builder, font): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(font), 0)
-def TextCommandAddJustification(builder, justification): builder.PrependUint8Slot(2, justification, 0)
+def TextCommandAddAlignment(builder, alignment): builder.PrependUint8Slot(2, alignment, 0)
 def TextCommandAddMaxLength(builder, maxLength): builder.PrependFloat32Slot(3, maxLength, 0.0)
 def TextCommandAddLineHeight(builder, lineHeight): builder.PrependFloat32Slot(4, lineHeight, 0.0)
 def TextCommandAddTransform(builder, transform): builder.PrependStructSlot(5, flatbuffers.number_types.UOffsetTFlags.py_type(transform), 0)

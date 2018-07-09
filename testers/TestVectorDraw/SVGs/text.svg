@@ -1,0 +1,6 @@
+<svg width="240" height="80" xmlns="http://www.w3.org/2000/svg">
+  <text x="20" y="35" font-family="sans-serif" font-size="13" font-style="italic">My</text>
+  <text x="40" y="35" font-family="sans-serif" font-size="30" font-weight="bold">cat</text>
+  <text x="55" y="55" font-family="sans-serif" font-size="13" font-style="italic">is</text>
+  <text x="65" y="55" font-family="serif" font-size="40" font-style="italic" fill="red">Grumpy!</text>
+</svg>

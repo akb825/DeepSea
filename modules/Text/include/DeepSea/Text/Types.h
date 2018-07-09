@@ -63,18 +63,18 @@ typedef enum dsTextQuality
 } dsTextQuality;
 
 /**
- * @brief Enum for the justification of text.
+ * @brief Enum for the alignment of text.
  * @remark Start will be the same as left for left to right text, and the same as right for right
  * to left text. End is the same but in reverse.
  */
-typedef enum dsTextJustification
+typedef enum dsTextAlign
 {
-	dsTextJustification_Start, ///< Align in the side of the bounds at the start of the text.
-	dsTextJustification_End,   ///< Align in the side of the bounds at the end of the text.
-	dsTextJustification_Left,  ///< Align in the left of the bounds.
-	dsTextJustification_Right, ///< Align in the right of the bounds.
-	dsTextJustification_Center ///< Align in the center of the bounds.
-} dsTextJustification;
+	dsTextAlign_Start, ///< Align in the side of the bounds at the start of the text.
+	dsTextAlign_End,   ///< Align in the side of the bounds at the end of the text.
+	dsTextAlign_Left,  ///< Align in the left of the bounds.
+	dsTextAlign_Right, ///< Align in the right of the bounds.
+	dsTextAlign_Center ///< Align in the center of the bounds.
+} dsTextAlign;
 
 /**
  * @brief Enum for the type of unicode.
@@ -406,7 +406,7 @@ typedef struct dsTextLayout
 	 * @brief The bounds of the layed out text.
 	 *
 	 * This will be the logical size of the text, not including embolding or slanting. The origin
-	 * will be on the bottom of the first line at the base justification position.
+	 * will be on the bottom of the first line at the base alignment position.
 	 * (i.e. left, right, or center of text) Positive Y points down. The intent for this box is to
 	 * place the block of text on the screen.
 	 */

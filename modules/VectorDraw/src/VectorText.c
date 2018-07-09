@@ -49,17 +49,49 @@ typedef struct TessTextVertex
 	uint16_t outlineMaterialIndex;
 } TessTextVertex;
 
+static bool glyphRightToLeft(const dsTextLayout* layout, uint32_t glyphIndex)
+{
+	uint32_t textGlyphIndex = layout->glyphs[glyphIndex].textGlyphIndex;
+	for (uint32_t i = 0; i < layout->text->rangeCount; ++i)
+	{
+		const dsTextRange* range = layout->text->ranges + i;
+		if (textGlyphIndex >= range->firstGlyph &&
+			textGlyphIndex < range->firstGlyph + range->glyphCount)
+		{
+			return range->backward;
+		}
+	}
+
+	DS_ASSERT(false);
+	return false;
+}
+
 static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
 	const dsVectorCommandTextRange* range)
 {
 	if (range->positionType == dsVectorTextPosition_Absolute)
 	{
-		const dsCharMapping* charMapping = layout->text->charMappings + range->start;
-		dsVector2_sub(*outOffset, range->position,
-			layout->glyphs[charMapping->firstGlyph].position);
+		outOffset->x = 0.0f;
+		outOffset->y = 0.0f;
+		// Need to find the first character on the first line that has a valid position.
+		for (uint32_t i = 0; i < range->count; ++i)
+		{
+			const dsCharMapping* charMapping = layout->text->charMappings + range->start + i;
+			const dsGlyphLayout* glyph = layout->glyphs + charMapping->firstGlyph;
+			if (glyph->position.x != FLT_MAX && glyph->position.y == 0.0f)
+			{
+				dsVector2_sub(*outOffset, range->position, glyph->position);
+				if (glyphRightToLeft(layout, charMapping->firstGlyph))
+				{
+					outOffset->x -= layout->text->glyphs[glyph->textGlyphIndex].advance*
+						layout->styles[glyph->styleIndex].scale;
+				}
+				break;
+			}
+		}
 	}
 	else
-		*outOffset = range->position;
+		dsVector2_add(*outOffset, *outOffset, range->position);
 }
 
 static uint32_t countGlyphs(const dsDrawIndexedRange* range, const TextDrawInfo* drawInfos,
@@ -165,7 +197,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 	const dsVectorCommandText* text, const dsVectorCommand* rangeCommands, float pixelSize)
 {
 	dsTextLayout* layout = dsVectorScratchData_shapeText(scratchData, commandBuffer, text->string,
-		text->stringType, text->font, text->justification, text->maxLength, text->lineHeight,
+		text->stringType, text->font, text->alignment, text->maxLength, text->lineHeight,
 		rangeCommands, text->rangeCount, pixelSize);
 	if (!layout)
 		return false;
@@ -197,6 +229,8 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		}
 	}
 
+	offset.x = 0.0f;
+	offset.y = 0.0f;
 	for (uint32_t i = 0; i < text->rangeCount; ++i)
 	{
 		DS_ASSERT(rangeCommands[i].commandType == dsVectorCommandType_TextRange);
@@ -212,7 +246,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			{
 				fillMaterial = dsVectorMaterialSet_findMaterialIndex(localMaterials,
 					range->fillMaterial);
-				if (fillMaterial != DS_VECTOR_MATERIAL_NOT_FOUND)
+				if (fillMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 				{
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.",
@@ -232,7 +266,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			{
 				outlineMaterial = dsVectorMaterialSet_findMaterialIndex(localMaterials,
 					range->outlineMaterial);
-				if (outlineMaterial != DS_VECTOR_MATERIAL_NOT_FOUND)
+				if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
 				{
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.",
@@ -331,7 +365,7 @@ bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,
 		outVertexFormat->elements[dsVertexAttrib_Position].format =
 			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_TexCoord0].format =
-			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32, dsGfxFormat_Float);
+			dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_TexCoord1].format =
 			dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UInt);
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_Position, true));

@@ -185,13 +185,13 @@ DS_VECTORDRAW_EXPORT bool dsVectorCommandBuffer_addTextPath(dsVectorCommandBuffe
  * @param string The string to display.
  * @param stringType The encoding type of the string.
  * @param font The font to use with the string.
- * @param justification The justification of the text.
+ * @param alignment The alignment of the text.
  * @param transform The transform, or NULL for identity.
  * @param rangeCount The number of range commands that will follow this.
  * @return False if the command couldn't be added.
  */
 DS_VECTORDRAW_EXPORT bool dsVectorCommandBuffer_addText(dsVectorCommandBuffer* commandBuffer,
-	const void* string, dsUnicodeType stringType, dsFont* font, dsTextJustification justification,
+	const void* string, dsUnicodeType stringType, dsFont* font, dsTextAlign alignment,
 	const dsMatrix33f* transform, uint32_t rangeCount);
 
 /**

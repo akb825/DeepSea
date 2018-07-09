@@ -41,13 +41,12 @@ enum FillRule : ubyte
 // Enum for hwo to interpret the text position.
 enum TextPosition : ubyte
 {
-	Unused,  // Don't use the position element.
 	Offset,  // Offset from the current position.
 	Absolute // Absolute position.
 }
 
-// Enum for the justification of text.
-enum TextJustification : ubyte
+// Enum for the alignment of text.
+enum TextAlign : ubyte
 {
 	Start,
 	End,
@@ -321,8 +320,8 @@ table TextCommand
 	// The name of the font to draw with.
 	font : string (required);
 
-	// The justification of the text.
-	justification : TextJustification;
+	// The alignment of the text.
+	alignment : TextAlign;
 
 	// Maximum length before text will wrap.
 	maxLength : float;
@@ -350,7 +349,7 @@ table TextRangeCommand
 	positionType : TextPosition;
 
 	// The position of the text.
-	position : Vector2f;
+	position : Vector2f (required);
 
 	// The material for the text fill. May be unset if no fill.
 	fillMaterial : string;

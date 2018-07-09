@@ -1,0 +1,21 @@
+<svg width="300" height="400" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+
+     <text x="20" y="45" font-size="24px" font-family="sans-serif" inline-size="250px">
+       Example of text auto-wrapped.
+     </text>
+
+     <text x="50" y="130" font-size="20px" font-family="sans-serif" inline-size="200px" text-anchor="middle">
+       This text wraps at 200 pixels.
+     </text>
+
+     <text x="50" y="230" font-size="20px" font-family="sans-serif" inline-size="200px" text-anchor="end">
+       This text wraps at 200 pixels.
+     </text>
+
+     <!-- Need to go slightly over due to being right on the limit and factors such as different
+	      fonts will bring it over the limit. -->
+     <text x="250" y="330" font-size="20px" font-family="sans-serif" inline-size="205px">
+       هذا النص يلتف في 200 بكسل.
+     </text>
+
+</svg>

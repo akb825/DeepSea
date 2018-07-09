@@ -223,6 +223,7 @@ struct dsVectorTessEvalOutlineMaterialInfo
  * @brief Default render states for vector text elements.
  */
 #define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
+	patch_control_points = 1; \
 	cull_mode = front; \
 	blend_enable = true; \
 	src_color_blend_factor = src_alpha; \

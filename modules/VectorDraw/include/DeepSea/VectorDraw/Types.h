@@ -128,7 +128,6 @@ typedef enum dsLineCap
  */
 typedef enum dsVectorTextPosition
 {
-	dsVectorTextPosition_None,    ///< Don't use the position element.
 	dsVectorTextPosition_Offset,  ///< Offset from the current position.
 	dsVectorTextPosition_Absolute ///< Absolute position.
 } dsVectorTextPosition;
@@ -542,9 +541,9 @@ typedef struct dsVectorCommandText
 	dsFont* font;
 
 	/**
-	 * @brief The justification of the text.
+	 * @brief The alignment of the text.
 	 */
-	dsTextJustification justification;
+	dsTextAlign alignment;
 
 	/**
 	 * @brief Maximum length before text will wrap.

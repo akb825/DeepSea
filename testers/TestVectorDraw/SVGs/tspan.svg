@@ -1,0 +1,24 @@
+<svg width="10cm" height="6cm"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+  <g font-family="sans-serif" font-size="2em" >
+    <text x="20" y="40" fill="blue" >
+      You are
+      <tspan font-weight="bold" fill="red" >not</tspan>
+      a banana.
+    </text>
+  </g>
+
+  <g font-family="sans-serif" font-size="2em" transform="translate(0.0, 100.0)">
+    <text x="20" y="40" fill="blue" >
+      But you
+      <tspan dx="2em" dy="-20" font-weight="bold" fill="red" >
+        are
+      </tspan>
+      <tspan dy="40">
+        a peach!
+      </tspan>
+    </text>
+  </g>
+
+</svg>

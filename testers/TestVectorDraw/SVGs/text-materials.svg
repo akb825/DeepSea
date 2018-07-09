@@ -1,0 +1,26 @@
+<svg width="300" height="100" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <radialGradient id="radial"
+		    gradientUnits="userSpaceOnUse"
+			spreadMethod="repeat"
+		    cx="150" cy="150"
+			fx="225"
+		    r="100">
+      <stop offset="0%"   stop-color="#AA88FF" />
+      <stop offset="50%"  stop-color="#FFDDCC" />
+      <stop offset="100%" stop-color="#AA88FF" />
+    </radialGradient>
+
+    <linearGradient id="linear">
+      <stop offset="5%"  stop-color="green"/>
+      <stop offset="95%" stop-color="gold"/>
+    </linearGradient>
+  </defs>
+
+  <text x="5" y="20" font-size="20px" font-family="sans-serif" fill="url(#radial)"
+      stroke="url(#linear)" stroke-width="2">
+    Text with outline and gradients
+  </text>
+
+</svg>

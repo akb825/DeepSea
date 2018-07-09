@@ -256,7 +256,7 @@ bool dsVectorCommandBuffer_addStrokePath(dsVectorCommandBuffer* commandBuffer, c
 }
 
 bool dsVectorCommandBuffer_addText(dsVectorCommandBuffer* commandBuffer, const void* string,
-	dsUnicodeType stringType, dsFont* font, dsTextJustification justification,
+	dsUnicodeType stringType, dsFont* font, dsTextAlign alignment,
 	const dsMatrix33f* transform, uint32_t rangeCount)
 {
 	if (!font)
@@ -281,7 +281,7 @@ bool dsVectorCommandBuffer_addText(dsVectorCommandBuffer* commandBuffer, const v
 	command->text.string = string;
 	command->text.stringType = stringType;
 	command->text.font = font;
-	command->text.justification = justification;
+	command->text.alignment = alignment;
 	if (transform)
 		command->text.transform = *transform;
 	else
@@ -295,8 +295,7 @@ bool dsVectorCommandBuffer_addTextRange(dsVectorCommandBuffer* commandBuffer, ui
 	const char* fillMaterial, const char* outlineMaterial, float fillOpacity, float outlineOpacity,
 	float size, float embolden, float slant, float outlineWidth)
 {
-	if ((positionType != dsVectorTextPosition_None && !position) ||
-		(!fillMaterial && !outlineMaterial))
+	if (!position || (!fillMaterial && !outlineMaterial))
 	{
 		errno = EINVAL;
 		return false;
@@ -310,13 +309,7 @@ bool dsVectorCommandBuffer_addTextRange(dsVectorCommandBuffer* commandBuffer, ui
 	command->textRange.start = start;
 	command->textRange.count = count;
 	command->textRange.positionType = positionType;
-	if (command->textRange.positionType == dsVectorTextPosition_None)
-	{
-		command->textRange.position.x = FLT_MAX;
-		command->textRange.position.y = FLT_MAX;
-	}
-	else
-		command->textRange.position = *position;
+	command->textRange.position = *position;
 	command->textRange.fillMaterial = fillMaterial;
 	command->textRange.outlineMaterial = outlineMaterial;
 	command->textRange.fillOpacity = fillOpacity;

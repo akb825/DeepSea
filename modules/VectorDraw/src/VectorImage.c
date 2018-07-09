@@ -898,7 +898,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		DS_ALIGNED_SIZE(sizeof(VectorImagePiece)*scratchData->pieceCount) +
 		DS_ALIGNED_SIZE(sizeof(dsTexture*)*infoTextureCount) +
 		DS_ALIGNED_SIZE(sizeof(dsTextLayout*)*scratchData->textLayoutCount) +
-		DS_ALIGNED_SIZE(sizeof(TextDrawInfo*)*scratchData->textDrawInfoCount);
+		DS_ALIGNED_SIZE(sizeof(TextDrawInfo)*scratchData->textDrawInfoCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -943,21 +943,24 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			}
 		}
 
-		image->buffer = dsVectorScratchData_createGfxBuffer(scratchData, resourceManager,
-			resourceAllocator);
-		if (!image->buffer)
+		if (dsVectorScratchData_hasGeometry(scratchData))
 		{
-			dsVectorScratchData_reset(scratchData);
-			DS_VERIFY(dsVectorImage_destroy(image));
-			return NULL;
-		}
+			image->buffer = dsVectorScratchData_createGfxBuffer(scratchData, resourceManager,
+				resourceAllocator);
+			if (!image->buffer)
+			{
+				dsVectorScratchData_reset(scratchData);
+				DS_VERIFY(dsVectorImage_destroy(image));
+				return NULL;
+			}
 
-		if (!createShapeGeometry(image, scratchData, resourceManager, resourceAllocator) ||
-			!createImageGeometry(image, scratchData, resourceManager, resourceAllocator))
-		{
-			dsVectorScratchData_reset(scratchData);
-			DS_VERIFY(dsVectorImage_destroy(image));
-			return NULL;
+			if (!createShapeGeometry(image, scratchData, resourceManager, resourceAllocator) ||
+				!createImageGeometry(image, scratchData, resourceManager, resourceAllocator))
+			{
+				dsVectorScratchData_reset(scratchData);
+				DS_VERIFY(dsVectorImage_destroy(image));
+				return NULL;
+			}
 		}
 
 		DS_ASSERT(scratchData->pieceCount > 0);
@@ -1336,7 +1339,7 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 	}
 
 	for (uint32_t i = 0; i < vectorImage->textLayoutCount; ++i)
-		dsTextLayout_destroy(vectorImage->textLayouts[i]);
+		dsTextLayout_destroyLayoutAndText(vectorImage->textLayouts[i]);
 
 	if (!dsGfxBuffer_destroy(vectorImage->buffer))
 		return false;

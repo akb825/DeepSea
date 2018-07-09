@@ -205,7 +205,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 		void* pool = dsAllocator_alloc((dsAllocator*)&bufferAlloc, poolSize);
 		DS_ASSERT(pool);
 		DS_VERIFY(dsPoolAllocator_initialize(&resources->fontPool, sizeof(dsFontNode),
-			maxTextures, pool, poolSize));
+			maxFonts, pool, poolSize));
 	}
 	else
 	{

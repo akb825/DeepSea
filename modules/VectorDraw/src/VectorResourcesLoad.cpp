@@ -186,7 +186,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 		DS_ASSERT(faceCount <= maxFaces);
 		for (uint32_t j = 0; j < faceCount; ++j)
 		{
-			auto faceRef = (*faces)[i];
+			auto faceRef = (*faces)[j];
 			if (!faceRef)
 			{
 				errno = EFORMAT;

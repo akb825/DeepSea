@@ -50,16 +50,16 @@ static const dsTextRange* findRange(const dsTextRange* ranges, uint32_t rangeCou
 }
 
 static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float lineY,
-	dsTextJustification justification, dsGlyphLayout* glyphs, uint32_t sectionStart,
+	dsTextAlign alignment, dsGlyphLayout* glyphs, uint32_t sectionStart,
 	uint32_t sectionEnd)
 {
 	if (!dsAlignedBox2f_isValid(lineBounds))
 		return;
 
-	// Handle justification.
-	switch (justification)
+	// Handle alignment.
+	switch (alignment)
 	{
-		case dsTextJustification_Right:
+		case dsTextAlign_Right:
 			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
 			{
 				glyphs[i].position.x -= lineBounds->max.x;
@@ -68,16 +68,16 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 			lineBounds->min.x -= lineBounds->max.x;
 			lineBounds->max.x -= 0.0f;
 			break;
-		case dsTextJustification_Center:
+		case dsTextAlign_Center:
 		{
-			float justificationOffset = lineBounds->max.x/2.0f;
+			float alignmentOffset = lineBounds->max.x/2.0f;
 			for (uint32_t i = sectionStart; i < sectionEnd; ++i)
 			{
-				glyphs[i].position.x -= justificationOffset;
+				glyphs[i].position.x -= alignmentOffset;
 				glyphs[i].position.y = lineY;
 			}
-			lineBounds->min.x -= justificationOffset;
-			lineBounds->max.x -= justificationOffset;
+			lineBounds->min.x -= alignmentOffset;
+			lineBounds->max.x -= alignmentOffset;
 			break;
 		}
 		default:
@@ -197,27 +197,27 @@ dsTextLayout* dsTextLayout_create(dsAllocator* allocator, const dsText* text,
 	return layout;
 }
 
-dsTextJustification dsTextLayout_resolveJustification(const dsTextLayout* layout,
-	dsTextJustification justification)
+dsTextAlign dsTextLayout_resolveAlign(const dsTextLayout* layout,
+	dsTextAlign alignment)
 {
 	bool valid = layout && layout->text && layout->text->ranges && layout->text->rangeCount > 0;
-	switch (justification)
+	switch (alignment)
 	{
-		case dsTextJustification_Start:
+		case dsTextAlign_Start:
 			if (valid && layout->text->ranges[0].backward)
-				return dsTextJustification_Right;
-			return dsTextJustification_Left;
-		case dsTextJustification_End:
-			if (valid && layout->text->ranges[layout->text->rangeCount - 1].backward)
-				return dsTextJustification_Left;
-			return dsTextJustification_Right;
+				return dsTextAlign_Right;
+			return dsTextAlign_Left;
+		case dsTextAlign_End:
+			if (valid && layout->text->ranges[0].backward)
+				return dsTextAlign_Left;
+			return dsTextAlign_Right;
 		default:
-			return justification;
+			return alignment;
 	}
 }
 
 bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
-	dsTextJustification justification, float maxWidth, float lineScale)
+	dsTextAlign alignment, float maxWidth, float lineScale)
 {
 	DS_PROFILE_FUNC_START();
 	if (!layout || !commandBuffer)
@@ -226,7 +226,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	justification = dsTextLayout_resolveJustification(layout, justification);
+	alignment = dsTextLayout_resolveAlign(layout, alignment);
 
 	const dsText* text = layout->text;
 	dsFont* font = text->font;
@@ -464,7 +464,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			float curYIndex = glyphs[i].position.y;
 			float lastYIndex = lastY;
 			lastY = glyphs[i].position.y;
-			finishLine(layout, &lineBounds, lineY, justification, glyphs, sectionStart, i);
+			finishLine(layout, &lineBounds, lineY, alignment, glyphs, sectionStart, i);
 
 			lineY += lastScale*lineScale*(curYIndex - lastYIndex - 1.0f);
 			sectionStart = i;
@@ -499,7 +499,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		lastScale = maxScale;
 	if (sectionStart != 0)
 		lineY += lastScale*lineScale;
-	finishLine(layout, &lineBounds, lineY, justification, glyphs, sectionStart, text->glyphCount);
+	finishLine(layout, &lineBounds, lineY, alignment, glyphs, sectionStart, text->glyphCount);
 
 	// Fifth pass: add padding to the bounds and compute the final texture coordinates.
 	uint32_t paddedGlyphSize = font->glyphSize + windowSize*2;

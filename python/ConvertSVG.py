@@ -19,6 +19,7 @@ import locale
 import math
 import os
 import re
+import sys
 import xml.dom
 from xml.dom import minidom
 
@@ -49,7 +50,7 @@ from DeepSeaVectorDraw.RectangleCommand import *
 from DeepSeaVectorDraw.StartPathCommand import *
 from DeepSeaVectorDraw.StrokePathCommand import *
 from DeepSeaVectorDraw.TextCommand import *
-from DeepSeaVectorDraw.TextJustification import *
+from DeepSeaVectorDraw.TextAlign import *
 from DeepSeaVectorDraw.TextPosition import *
 from DeepSeaVectorDraw.TextRangeCommand import *
 from DeepSeaVectorDraw.Vector2f import *
@@ -60,6 +61,11 @@ from DeepSeaVectorDraw.VectorImage import *
 
 lineJoinMap = {'miter': LineJoin.Miter, 'bevel': LineJoin.Bevel, 'round': LineJoin.Round}
 lineCapMap = {'butt': LineCap.Butt, 'round': LineCap.Round, 'square': LineCap.Square}
+textAlignMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'left': TextAlign.Left, \
+	'right': TextAlign.Right, 'center': TextAlign.Center}
+textAnchorMap = {'start': TextAlign.Start, 'end': TextAlign.End, 'middle': TextAlign.Center}
+textAttributes = ['font-family', 'font-size', 'font-style', 'font-weight', 'text-align', \
+	'text-anchor', 'line-height', 'textLength', 'inline-size']
 
 def sizeFromString(sizeStr, relativeSize):
 	"""
@@ -84,6 +90,8 @@ def sizeFromString(sizeStr, relativeSize):
 		return float(sizeStr[:-2])*dpi/6.0
 	elif len(sizeStr) > 2 and sizeStr[-2:] == 'pt':
 		return float(sizeStr[:-2])*dpi/72.0
+	elif len(sizeStr) > 2 and sizeStr[-2:] == 'em':
+		return float(sizeStr[:-2])*16.0
 	elif len(sizeStr) > 2 and sizeStr[-2:] == 'px':
 		return float(sizeStr[:-2])
 	elif len(sizeStr) > 1 and sizeStr[-1:] == '%':
@@ -412,18 +420,32 @@ class Fill:
 		self.opacity = 1.0
 		self.fillRule = FillRule.EvenOdd
 
+class Font:
+	"""Class that describes font properties."""
+	def __init__(self, font):
+		self.font = font
+		self.size = 16.0
+		self.embolden = 0.0
+		self.slant = 0.0
+		self.alignment = TextAlign.Start
+		self.lineHeight = 1.2
+		self.maxLength = None
+
 class Style:
 	"""Style used within a vector element."""
-	def __init__(self, fill, stroke, opacity):
+	def __init__(self, fill, stroke, font, opacity):
 		self.fill = fill
 		self.stroke = stroke
+		self.font = font
 		self.opacity = opacity
 
 	@staticmethod
-	def create(node, materials, relativeSize, parentStyle = None, group = False):
+	def create(node, materials, relativeSize, parentStyle = None, group = False, \
+		defaultFont = None, width = None, text = False):
 		"""Constructs the style with the encoded style."""
 		fill = None
 		stroke = None
+		font = None
 		opacity = 1.0
 
 		hasAny = False
@@ -441,6 +463,15 @@ class Style:
 				stroke.width = parentStyle.stroke.width
 				stroke.miterLimit = parentStyle.stroke.miterLimit
 				stroke.dashArray = parentStyle.stroke.dashArray
+			if parentStyle.font:
+				hasAny = True
+				font = Font(parentStyle.font.font)
+				font.size = parentStyle.font.size
+				font.embolden = parentStyle.font.embolden
+				font.slant = parentStyle.font.slant
+				font.alignment = parentStyle.font.alignment
+				font.lineHeight = parentStyle.font.lineHeight
+				font.maxLength = parentStyle.font.maxLength
 			opacity = parentStyle.opacity
 
 		elements = extractAttributes(node)
@@ -500,6 +531,66 @@ class Style:
 							stroke.dashArray[i] = sizeFromString(dashArray[i].strip(),
 								relativeSize)
 
+		hasFontElement = text
+		if not hasFontElement and defaultFont:
+			for textAttr in textAttributes:
+				if textAttr in elements:
+					hasFontElement = True
+					break
+
+		if hasFontElement:
+			hasAny = True
+			if text and 'color' in elements:
+				value = elements['color']
+				if value[:4] == 'url(':
+					# Also skip starting #
+					material = value[5:-1]
+				else:
+					material = materials.addColor(colorFromString(value))
+				fill = Fill(material)
+
+			if not font:
+				font = Font(defaultFont)
+			if 'font' in elements:
+				raise Exception("Combined 'font' elelement not supported, use separate elements " \
+					"such as 'font-family' instead.")
+			if 'font-family' in elements:
+				font.font = elements['font-family']
+			if 'font-size' in elements:
+				font.size = sizeFromString(elements['font-size'], 16.0)
+			if 'font-style' in elements:
+				fontStyle = elements['font-style']
+				if fontStyle == 'italic' or fontStyle == 'oblique':
+					font.slant = 0.2
+				elif fontStyle == 'normal':
+					font.slant = 0.0
+			if 'font-weight' in elements:
+				fontWeight = elements['font-weight']
+				if fontWeight == 'normal':
+					weight = 400
+				elif fontWeight == 'bold':
+					weight = 700
+				elif fontWeight == 'bolder':
+					weight = 900
+				elif fontWeight == 'lighter':
+					weight = 200
+				else:
+					weight = int(fontWeight)
+				font.embolden = (float(weight) - 400.0)/2000.0
+			if 'text-align' in elements:
+				font.alignment = textAlignMap[elements['text-align']]
+			if 'text-anchor' in elements:
+				font.alignment = textAnchorMap[elements['text-anchor']]
+			if 'line-height' in elements:
+				try:
+					font.lineHeight = float(elements['line-height'])
+				except:
+					font.lineHeight = sizeFromString(elements['line-height'], font.size)/font.size
+			if 'textLength' in elements:
+				font.maxLength = sizeFromString(elements['textLength'], width)
+			if 'inline-size' in elements:
+				font.maxLength = sizeFromString(elements['inline-size'], width)
+
 		if 'opacity' in elements:
 			opacity = float(elements['opacity'])
 
@@ -507,7 +598,7 @@ class Style:
 			raise Exception("Shape doesn't have a stroke or a fill.")
 
 		if hasAny or opacity != 1.0:
-			return Style(fill, stroke, opacity)
+			return Style(fill, stroke, font, opacity)
 		return None
 
 	def write(self, builder):
@@ -545,6 +636,15 @@ class Style:
 			VectorCommandAddCommand(builder, commandOffset)
 			offsets.append(VectorCommandEnd(builder))
 		return offsets
+
+class TextRange:
+	"""Class containing a range of text to draw."""
+	def __init__(self, start, count, position, positionType, style):
+		self.start = start
+		self.count = count
+		self.position = position
+		self.positionType = positionType
+		self.style = style
 
 def writeStartPath(builder, transform, simple):
 	StartPathCommandStart(builder)
@@ -629,7 +729,7 @@ def writeLines(builder, transform, style, points, closePath = False):
 	return offsets
 
 def parsePointList(pointStr, size):
-	tokens = re.findall(r"[-+0-9.e]+(?:[eE][-+]?[0-9]+)?(?:cm|mm|Q|in|pc|pt|px|%)?", pointStr)
+	tokens = re.findall(r"[-+0-9.e]+(?:[eE][-+]?[0-9]+)?(?:cm|mm|Q|in|pc|pt|em|px|%)?", pointStr)
 	points = []
 	for i in range(int(len(tokens)/2)):
 		points.append((sizeFromString(tokens[i*2], size[0]),
@@ -649,7 +749,7 @@ def writePath(builder, transform, style, path, size, diagonalSize):
 
 	tokens = re.findall(
 		r"[mMzZlLhHvVcCsSqQtTaAbB]|[-+]?[0-9.]+(?:[eE][-+]?[0-9]+)?" \
-		"(?:cm|mm|Q|in|pc|pt|px|deg|grad|rad|turn|%)?", path)
+		"(?:cm|mm|Q|in|pc|pt|em|px|deg|grad|rad|turn|%)?", path)
 	pos = (0.0, 0.0)
 	lastControlPos = None
 	lastQuadraticPos = None
@@ -861,6 +961,64 @@ def writeRectangle(builder, transform, style, upperLeft, rectSize, radius):
 	offsets.extend(style.write(builder))
 	return offsets
 
+def writeText(builder, transform, style, text, rangeCount):
+	textOffset = builder.CreateString(text)
+	fontOffset = builder.CreateString(style.font.font)
+
+	TextCommandStart(builder)
+	TextCommandAddText(builder, textOffset)
+	TextCommandAddFont(builder, fontOffset)
+	TextCommandAddAlignment(builder, style.font.alignment)
+	TextCommandAddMaxLength(builder, style.font.maxLength if style.font.maxLength else 3.402823e+38)
+	TextCommandAddLineHeight(builder, style.font.lineHeight)
+	TextCommandAddTransform(builder, transform.createMatrix33f(builder))
+	TextCommandAddRangeCount(builder, rangeCount)
+	commandOffset = TextCommandEnd(builder)
+
+	VectorCommandStart(builder)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.TextCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	return [VectorCommandEnd(builder)]
+
+def writeTextRange(builder, textRange):
+	style = textRange.style
+	fillMaterialOffset = 0
+	fillOpacity = 0.0
+	if style.fill:
+		fillMaterialOffset = builder.CreateString(style.fill.material)
+		fillOpacity = style.opacity*style.fill.opacity
+
+	outlineMaterialOffset = 0
+	outlineOpacity = 0.0
+	outlineWidth = 0.0
+	if style.stroke:
+		outlineMaterialOffset = builder.CreateString(style.stroke.material)
+		outlineOpacity = style.opacity*style.stroke.opacity
+		sizeToWidthFactor = 2.0/style.font.size
+		outlineWidth = style.stroke.width*sizeToWidthFactor
+
+	TextRangeCommandStart(builder)
+	TextRangeCommandAddStart(builder, textRange.start)
+	TextRangeCommandAddCount(builder, textRange.count)
+	TextRangeCommandAddPositionType(builder, textRange.positionType)
+	TextRangeCommandAddPosition(builder, \
+		CreateVector2f(builder, textRange.position[0], textRange.position[1]))
+	TextRangeCommandAddFillMaterial(builder, fillMaterialOffset)
+	TextRangeCommandAddOutlineMaterial(builder, outlineMaterialOffset)
+	TextRangeCommandAddFillOpacity(builder, fillOpacity)
+	TextRangeCommandAddOutlineOpacity(builder, outlineOpacity)
+	TextRangeCommandAddSize(builder, style.font.size)
+	TextRangeCommandAddEmbolden(builder, style.font.embolden)
+	TextRangeCommandAddSlant(builder, style.font.slant)
+	TextRangeCommandAddOutlineWidth(builder, outlineWidth)
+	commandOffset = TextRangeCommandEnd(builder)
+
+	VectorCommandStart(builder)
+	VectorCommandAddCommandType(builder, VectorCommandUnion.TextRangeCommand)
+	VectorCommandAddCommand(builder, commandOffset)
+	return [VectorCommandEnd(builder)]
+
+
 def readMaterials(node, materials, size, diagonalSize):
 	for defNode in node.childNodes:
 		if defNode.nodeType != xml.dom.Node.ELEMENT_NODE:
@@ -874,14 +1032,15 @@ def readMaterials(node, materials, size, diagonalSize):
 				materials)
 			materials.addRadialGradient(gradient)
 
-def readShapes(node, materials, size, diagonalSize, transform, style = None):
+def readShapes(node, defaultFont, materials, size, diagonalSize, transform, style = None):
 	commands = []
 	if node.tagName == 'g':
 		groupTransform = transform*Transform.fromNode(node)
-		groupStyle = Style.create(node, materials, diagonalSize, style, group = True)
+		groupStyle = Style.create(node, materials, diagonalSize, style, group = True, \
+			defaultFont = defaultFont, width = size[0])
 		for groupNode in node.childNodes:
 			if groupNode.nodeType == xml.dom.Node.ELEMENT_NODE:
-				commands.extend(readShapes(groupNode, materials, size, diagonalSize,
+				commands.extend(readShapes(groupNode, defaultFont, materials, size, diagonalSize,
 					groupTransform, groupStyle))
 	elif node.tagName == 'circle':
 		commands.append(lambda builder,
@@ -949,9 +1108,79 @@ def readShapes(node, materials, size, diagonalSize, transform, style = None):
 				sizeFromString(node.getAttribute('ry'), size[1])) \
 				if node.hasAttribute('rx') else (0.0, 0.0):
 			writeRectangle(builder, transform, style, upperLeft, rectSize, radius))
+	elif node.tagName == 'text':
+		rootStyle = Style.create(node, materials, diagonalSize, style, defaultFont = defaultFont, \
+			width = size[0], text = True)
+		text = u""
+		initialPosition = (0.0, 0.0)
+		if node.hasAttribute('x') and node.hasAttribute('y'):
+			initialPosition = (sizeFromString(node.getAttribute('x'), size[0]), \
+				sizeFromString(node.getAttribute('y'), size[1]))
+		ranges = [TextRange(0, 0, initialPosition, TextPosition.Absolute, rootStyle)]
+
+		for child in node.childNodes:
+			if child.nodeType == xml.dom.Node.ELEMENT_NODE:
+				rangeStyle = Style.create(child, materials, diagonalSize, rootStyle, \
+					defaultFont = defaultFont, width = size[0], text = True)
+				curText = u""
+
+				for nextChild in child.childNodes:
+					if nextChild.nodeType == xml.dom.Node.TEXT_NODE:
+						if sys.version_info < (3, 0):
+							textPiece = unicode(nextChild.data)
+						else:
+							textPiece = nextChild.data
+						if curText:
+							curText += ' '
+						curText += textPiece.strip()
+
+				if text:
+					curText = ' ' + curText
+
+				position = (0.0, 0.0)
+				positionType = TextPosition.Offset
+
+				if not rootStyle.font.maxLength and child.hasAttribute('x') and \
+					child.hasAttribute('y'):
+					position = (sizeFromString(child.getAttribute('x'), size[0]), \
+						sizeFromString(child.getAttribute('y'), size[1]))
+					positionType = TextPosition.Absolute
+				elif child.hasAttribute('dx') or child.hasAttribute('dy'):
+					if child.hasAttribute('dx'):
+						position = (sizeFromString(child.getAttribute('dx'), size[0]), 0.0)
+					if child.hasAttribute('dy'):
+						position = (position[0], sizeFromString(child.getAttribute('dy'), size[1]))
+					positionType = TextPosition.Offset
+				if curText:
+					ranges.append(TextRange(len(text), len(curText), position, positionType, \
+						rangeStyle))
+				text += curText
+			elif child.nodeType == xml.dom.Node.TEXT_NODE:
+				if sys.version_info < (3, 0):
+					curText = unicode(child.data)
+				else:
+					curText = child.data
+				curText = curText.strip()
+				if curText:
+					if text:
+						curText = ' ' + curText
+					if ranges[-1].style == rootStyle:
+						ranges[-1].count += len(curText)
+					else:
+						ranges.append(TextRange(len(text), len(curText), (0.0, 0.0), \
+							TextPosition.Offset, rootStyle))
+					text += curText
+
+		commands.append(lambda builder,
+			transform = transform*Transform.fromNode(node),
+			style = rootStyle, text = text, rangeCount = len(ranges):
+			writeText(builder, transform, style, text, rangeCount))
+		for textRange in ranges:
+			commands.append(lambda builder, textRange = textRange:
+				writeTextRange(builder, textRange))
 	return commands
 
-def convertSVG(streamOrPath, outputFile):
+def convertSVG(streamOrPath, outputFile, defaultFont):
 	"""
 	Loads an SVG and converts it to a DeepSea vector image FlatBuffer format.
 
@@ -988,7 +1217,8 @@ def convertSVG(streamOrPath, outputFile):
 				if node.tagName == 'defs':
 					readMaterials(node, materials, size, diagonalSize)
 				else:
-					commands.extend(readShapes(node, materials, size, diagonalSize, Transform()))
+					commands.extend(readShapes(node, defaultFont, materials, size, diagonalSize, \
+						Transform()))
 		break
 	
 	builder = flatbuffers.Builder(0)
@@ -1023,6 +1253,8 @@ if __name__ == '__main__':
 		help = 'input svg to convert')
 	parser.add_argument('-o', '--output', required = True,
 		help = 'output file name, typically with the extension ".dsvi"')
+	parser.add_argument('-f', '--default-font', default = 'serif',
+		help = 'default font when none is specified')
 
 	args = parser.parse_args()
-	convertSVG(args.input, args.output)
+	convertSVG(args.input, args.output, args.default_font)

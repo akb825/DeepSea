@@ -195,7 +195,7 @@ bool dsVectorScratchData_loopPoint(void* outPoint, const dsComplexPolygon* polyg
 
 dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 	dsCommandBuffer* commandBuffer, const void* string, dsUnicodeType stringType, dsFont* font,
-	dsTextJustification justification, float maxLength, float lineHeight,
+	dsTextAlign alignment, float maxLength, float lineHeight,
 	const dsVectorCommand* ranges, uint32_t rangeCount, float pixelSize);
 void dsVectorScratchData_relinquishText(dsVectorScratchData* data);
 
@@ -215,6 +215,7 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	float fillOpacity, float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
 	uint32_t fillMaterial, uint32_t outlineMaterial);
 
+bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data);
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	dsResourceManager* resourceManager, dsAllocator* allocator);
 uint32_t dsVectorScratchData_shapeVerticesOffset(const dsVectorScratchData* data);

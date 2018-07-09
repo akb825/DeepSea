@@ -213,16 +213,14 @@ inline const char *EnumNameFillRule(FillRule e) {
 }
 
 enum class TextPosition : uint8_t {
-  Unused = 0,
-  Offset = 1,
-  Absolute = 2,
-  MIN = Unused,
+  Offset = 0,
+  Absolute = 1,
+  MIN = Offset,
   MAX = Absolute
 };
 
-inline const TextPosition (&EnumValuesTextPosition())[3] {
+inline const TextPosition (&EnumValuesTextPosition())[2] {
   static const TextPosition values[] = {
-    TextPosition::Unused,
     TextPosition::Offset,
     TextPosition::Absolute
   };
@@ -231,7 +229,6 @@ inline const TextPosition (&EnumValuesTextPosition())[3] {
 
 inline const char * const *EnumNamesTextPosition() {
   static const char * const names[] = {
-    "Unused",
     "Offset",
     "Absolute",
     nullptr
@@ -244,7 +241,7 @@ inline const char *EnumNameTextPosition(TextPosition e) {
   return EnumNamesTextPosition()[index];
 }
 
-enum class TextJustification : uint8_t {
+enum class TextAlign : uint8_t {
   Start = 0,
   End = 1,
   Left = 2,
@@ -254,18 +251,18 @@ enum class TextJustification : uint8_t {
   MAX = Center
 };
 
-inline const TextJustification (&EnumValuesTextJustification())[5] {
-  static const TextJustification values[] = {
-    TextJustification::Start,
-    TextJustification::End,
-    TextJustification::Left,
-    TextJustification::Right,
-    TextJustification::Center
+inline const TextAlign (&EnumValuesTextAlign())[5] {
+  static const TextAlign values[] = {
+    TextAlign::Start,
+    TextAlign::End,
+    TextAlign::Left,
+    TextAlign::Right,
+    TextAlign::Center
   };
   return values;
 }
 
-inline const char * const *EnumNamesTextJustification() {
+inline const char * const *EnumNamesTextAlign() {
   static const char * const names[] = {
     "Start",
     "End",
@@ -277,9 +274,9 @@ inline const char * const *EnumNamesTextJustification() {
   return names;
 }
 
-inline const char *EnumNameTextJustification(TextJustification e) {
+inline const char *EnumNameTextAlign(TextAlign e) {
   const size_t index = static_cast<int>(e);
-  return EnumNamesTextJustification()[index];
+  return EnumNamesTextAlign()[index];
 }
 
 enum class VectorCommandUnion : uint8_t {
@@ -1590,7 +1587,7 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_TEXT = 4,
     VT_FONT = 6,
-    VT_JUSTIFICATION = 8,
+    VT_ALIGNMENT = 8,
     VT_MAXLENGTH = 10,
     VT_LINEHEIGHT = 12,
     VT_TRANSFORM = 14,
@@ -1602,8 +1599,8 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *font() const {
     return GetPointer<const flatbuffers::String *>(VT_FONT);
   }
-  TextJustification justification() const {
-    return static_cast<TextJustification>(GetField<uint8_t>(VT_JUSTIFICATION, 0));
+  TextAlign alignment() const {
+    return static_cast<TextAlign>(GetField<uint8_t>(VT_ALIGNMENT, 0));
   }
   float maxLength() const {
     return GetField<float>(VT_MAXLENGTH, 0.0f);
@@ -1623,7 +1620,7 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(text()) &&
            VerifyOffsetRequired(verifier, VT_FONT) &&
            verifier.Verify(font()) &&
-           VerifyField<uint8_t>(verifier, VT_JUSTIFICATION) &&
+           VerifyField<uint8_t>(verifier, VT_ALIGNMENT) &&
            VerifyField<float>(verifier, VT_MAXLENGTH) &&
            VerifyField<float>(verifier, VT_LINEHEIGHT) &&
            VerifyFieldRequired<Matrix33f>(verifier, VT_TRANSFORM) &&
@@ -1641,8 +1638,8 @@ struct TextCommandBuilder {
   void add_font(flatbuffers::Offset<flatbuffers::String> font) {
     fbb_.AddOffset(TextCommand::VT_FONT, font);
   }
-  void add_justification(TextJustification justification) {
-    fbb_.AddElement<uint8_t>(TextCommand::VT_JUSTIFICATION, static_cast<uint8_t>(justification), 0);
+  void add_alignment(TextAlign alignment) {
+    fbb_.AddElement<uint8_t>(TextCommand::VT_ALIGNMENT, static_cast<uint8_t>(alignment), 0);
   }
   void add_maxLength(float maxLength) {
     fbb_.AddElement<float>(TextCommand::VT_MAXLENGTH, maxLength, 0.0f);
@@ -1675,7 +1672,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> text = 0,
     flatbuffers::Offset<flatbuffers::String> font = 0,
-    TextJustification justification = TextJustification::Start,
+    TextAlign alignment = TextAlign::Start,
     float maxLength = 0.0f,
     float lineHeight = 0.0f,
     const Matrix33f *transform = 0,
@@ -1687,7 +1684,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommand(
   builder_.add_maxLength(maxLength);
   builder_.add_font(font);
   builder_.add_text(text);
-  builder_.add_justification(justification);
+  builder_.add_alignment(alignment);
   return builder_.Finish();
 }
 
@@ -1695,7 +1692,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *text = nullptr,
     const char *font = nullptr,
-    TextJustification justification = TextJustification::Start,
+    TextAlign alignment = TextAlign::Start,
     float maxLength = 0.0f,
     float lineHeight = 0.0f,
     const Matrix33f *transform = 0,
@@ -1704,7 +1701,7 @@ inline flatbuffers::Offset<TextCommand> CreateTextCommandDirect(
       _fbb,
       text ? _fbb.CreateString(text) : 0,
       font ? _fbb.CreateString(font) : 0,
-      justification,
+      alignment,
       maxLength,
       lineHeight,
       transform,
@@ -1767,7 +1764,7 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint32_t>(verifier, VT_START) &&
            VerifyField<uint32_t>(verifier, VT_COUNT) &&
            VerifyField<uint8_t>(verifier, VT_POSITIONTYPE) &&
-           VerifyField<Vector2f>(verifier, VT_POSITION) &&
+           VerifyFieldRequired<Vector2f>(verifier, VT_POSITION) &&
            VerifyOffset(verifier, VT_FILLMATERIAL) &&
            verifier.Verify(fillMaterial()) &&
            VerifyOffset(verifier, VT_OUTLINEMATERIAL) &&
@@ -1829,6 +1826,7 @@ struct TextRangeCommandBuilder {
   flatbuffers::Offset<TextRangeCommand> Finish() {
     const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<TextRangeCommand>(end);
+    fbb_.Required(o, TextRangeCommand::VT_POSITION);
     return o;
   }
 };
@@ -1837,7 +1835,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t start = 0,
     uint32_t count = 0,
-    TextPosition positionType = TextPosition::Unused,
+    TextPosition positionType = TextPosition::Offset,
     const Vector2f *position = 0,
     flatbuffers::Offset<flatbuffers::String> fillMaterial = 0,
     flatbuffers::Offset<flatbuffers::String> outlineMaterial = 0,
@@ -1867,7 +1865,7 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     uint32_t start = 0,
     uint32_t count = 0,
-    TextPosition positionType = TextPosition::Unused,
+    TextPosition positionType = TextPosition::Offset,
     const Vector2f *position = 0,
     const char *fillMaterial = nullptr,
     const char *outlineMaterial = nullptr,

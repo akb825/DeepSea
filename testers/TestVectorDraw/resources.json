@@ -11,21 +11,27 @@
 	[
 		{
 			"name": "default",
-			"quality": "medium",
+			"quality": "high",
 			"faces":
 			[
-				{"name": "regular", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
+				{"name": "sans", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
 				{"name": "arabic", "path": "../Shared/Fonts/NotoSansArabic-Regular.ttf"},
-				{"name": "thai", "path": "../Shared/Fonts/NotoSansThai-Regular.ttf"}
+				{"name": "thai", "path": "../Shared/Fonts/NotoSansThai-Regular.ttf"},
+				{"name": "serif", "path": "../Shared/Fonts/NotoSerif-Regular.ttf"}
 			]
 		}
 	],
 	"fonts":
 	[
 		{
-			"name": "default",
+			"name": "sans-serif",
 			"faceGroup": "default",
-			"faces": ["regular", "arabic", "thai"]
+			"faces": ["sans", "arabic", "thai"]
+		},
+		{
+			"name": "serif",
+			"faceGroup": "default",
+			"faces": ["serif"]
 		}
 	]
 }
