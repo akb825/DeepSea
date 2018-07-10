@@ -413,10 +413,12 @@ static void printHelp(const char* programPath)
 	printf("Use left/right arrows or tap on touchscreen to cyle text.\n\n");
 	printf("options:\n");
 	printf("  -h, --help      print this help message and exit\n");
+	printf("  -L, --very-low  use very low quality text\n");
 	printf("  -l, --low       use low quality text\n");
 	printf("  -m, --medium    use medium quality text (default)\n");
 	printf("  -H, --high      use high quality text\n");
 	printf("  -v, --very-high use very high quality text\n");
+	printf("  -T, --highest   use highest quality text\n");
 #if DS_HAS_OPENGL
 	printf("      --opengl    render using OpenGL\n");
 #endif
@@ -1057,6 +1059,8 @@ int dsMain(int argc, const char** argv)
 			printHelp(argv[0]);
 			return 0;
 		}
+		else if (strcmp(argv[i], "-L") == 0 || strcmp(argv[i], "--very-low") == 0)
+			quality = dsTextQuality_VeryLow;
 		else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--low") == 0)
 			quality = dsTextQuality_Low;
 		else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--medium") == 0)
@@ -1065,6 +1069,8 @@ int dsMain(int argc, const char** argv)
 			quality = dsTextQuality_High;
 		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--very-high") == 0)
 			quality = dsTextQuality_VeryHigh;
+		else if (strcmp(argv[i], "-T") == 0 || strcmp(argv[i], "--highest") == 0)
+			quality = dsTextQuality_Highest;
 #if DS_HAS_OPENGL
 		else if (strcmp(argv[i], "--opengl") == 0)
 			renderType = dsRenderType_OpenGL;

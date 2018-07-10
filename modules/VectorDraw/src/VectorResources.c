@@ -110,7 +110,8 @@ static bool loadFontFaceFile(void* userData, dsFaceGroup* faceGroup, const char*
 dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
 	dsResourceManager* resourceManager, const void* data, size_t size, void* loadUserData,
 	dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const char* name);
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap,
+	const char* name);
 
 size_t dsVectorResources_fullAllocSize(uint32_t maxTextures, uint32_t maxFaceGroups,
 	uint32_t maxFonts)
@@ -217,7 +218,7 @@ dsVectorResources* dsVectorReosurces_create(dsAllocator* allocator, uint32_t max
 }
 
 dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	dsResourceManager* resourceManager, const char* filePath)
+	dsResourceManager* resourceManager, const char* filePath, const dsTextQuality* qualityRemap)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -258,7 +259,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
 		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
-		filePath);
+		qualityRemap, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
@@ -266,7 +267,7 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsStream* stream,
 	void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc)
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -287,7 +288,8 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 	}
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceManager, buffer, size, loadUserData, loadTextureFunc, loadFontFaceFunc, NULL);
+		resourceManager, buffer, size, loadUserData, loadTextureFunc, loadFontFaceFunc,
+		qualityRemap, NULL);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
 }
@@ -295,7 +297,7 @@ dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator, dsAllocator* scratchAllocator,
 	dsResourceManager* resourceManager, const void* data, size_t size, void* loadUserData,
 	dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc)
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -310,7 +312,8 @@ dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator, dsAllocato
 		scratchAllocator = allocator;
 
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceManager, data, size, loadUserData, loadTextureFunc, loadFontFaceFunc, NULL);
+		resourceManager, data, size, loadUserData, loadTextureFunc, loadFontFaceFunc,
+		qualityRemap, NULL);
 	DS_PROFILE_FUNC_RETURN(resources);
 }
 

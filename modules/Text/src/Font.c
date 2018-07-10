@@ -131,7 +131,7 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
 	unsigned int height, float* tempSdf)
 {
-	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
 
 	// Pad by the window size on each side.
 	uint32_t adjustedWidth = width + windowSize*2;
@@ -165,8 +165,8 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	}
 
 	// Scale the glyph into the texture.
-	DS_ASSERT(glyphSize <= DS_VERY_HIGH_SIZE);
-	uint8_t textureData[DS_VERY_HIGH_SIZE*DS_VERY_HIGH_SIZE];
+	DS_ASSERT(glyphSize <= DS_HIGHEST_SIZE);
+	uint8_t textureData[DS_HIGHEST_SIZE*DS_HIGHEST_SIZE];
 	memset(textureData, 0, sizeof(textureData));
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
@@ -279,7 +279,7 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
 	const dsVector2i* texSize, uint32_t glyphSize)
 {
-	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
 	float levelSize = 1.0f/(float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
@@ -330,6 +330,9 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	uint16_t glyphSize;
 	switch (dsFaceGroup_getTextQuality(group))
 	{
+		case dsTextQuality_VeryLow:
+			glyphSize = DS_VERY_LOW_SIZE;
+			break;
 		case dsTextQuality_Low:
 			glyphSize = DS_LOW_SIZE;
 			break;
@@ -338,6 +341,9 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 			break;
 		case dsTextQuality_VeryHigh:
 			glyphSize = DS_VERY_HIGH_SIZE;
+			break;
+		case dsTextQuality_Highest:
+			glyphSize = DS_HIGHEST_SIZE;
 			break;
 		case dsTextQuality_Medium:
 		default:
@@ -386,7 +392,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		return NULL;
 	}
 
-	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
 	uint32_t sdfWidth = font->maxWidth + windowSize*2;
 	uint32_t sdfHeight= font->maxHeight + windowSize*2;
 	font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);

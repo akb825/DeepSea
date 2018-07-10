@@ -17,30 +17,36 @@ struct Font;
 struct ResourceSet;
 
 enum class FaceGroupQuality : uint8_t {
-  Low = 0,
-  Medium = 1,
-  High = 2,
-  VeryHigh = 3,
-  MIN = Low,
-  MAX = VeryHigh
+  VeryLow = 0,
+  Low = 1,
+  Medium = 2,
+  High = 3,
+  VeryHigh = 4,
+  Highest = 5,
+  MIN = VeryLow,
+  MAX = Highest
 };
 
-inline const FaceGroupQuality (&EnumValuesFaceGroupQuality())[4] {
+inline const FaceGroupQuality (&EnumValuesFaceGroupQuality())[6] {
   static const FaceGroupQuality values[] = {
+    FaceGroupQuality::VeryLow,
     FaceGroupQuality::Low,
     FaceGroupQuality::Medium,
     FaceGroupQuality::High,
-    FaceGroupQuality::VeryHigh
+    FaceGroupQuality::VeryHigh,
+    FaceGroupQuality::Highest
   };
   return values;
 }
 
 inline const char * const *EnumNamesFaceGroupQuality() {
   static const char * const names[] = {
+    "VeryLow",
     "Low",
     "Medium",
     "High",
     "VeryHigh",
+    "Highest",
     nullptr
   };
   return names;
@@ -171,7 +177,7 @@ struct FaceGroupBuilder {
 inline flatbuffers::Offset<FaceGroup> CreateFaceGroup(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    FaceGroupQuality quality = FaceGroupQuality::Low,
+    FaceGroupQuality quality = FaceGroupQuality::VeryLow,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Resource>>> faces = 0) {
   FaceGroupBuilder builder_(_fbb);
   builder_.add_faces(faces);
@@ -183,7 +189,7 @@ inline flatbuffers::Offset<FaceGroup> CreateFaceGroup(
 inline flatbuffers::Offset<FaceGroup> CreateFaceGroupDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    FaceGroupQuality quality = FaceGroupQuality::Low,
+    FaceGroupQuality quality = FaceGroupQuality::VeryLow,
     const std::vector<flatbuffers::Offset<Resource>> *faces = nullptr) {
   return DeepSeaVectorDraw::CreateFaceGroup(
       _fbb,

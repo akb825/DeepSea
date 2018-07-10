@@ -388,7 +388,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	testVectorDraw->vectorResources = dsVectorResources_loadFile(allocator, NULL, resourceManager,
-		path);
+		path, NULL);
 	if (!testVectorDraw->vectorResources)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",

@@ -172,6 +172,9 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 
 	switch (group->quality)
 	{
+		case dsTextQuality_VeryLow:
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_VERY_LOW_SIZE);
+			break;
 		case dsTextQuality_Low:
 			FT_Set_Pixel_Sizes(ftFace, 0, DS_LOW_SIZE);
 			break;
@@ -180,6 +183,9 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 			break;
 		case dsTextQuality_VeryHigh:
 			FT_Set_Pixel_Sizes(ftFace, 0, DS_VERY_HIGH_SIZE);
+			break;
+		case dsTextQuality_Highest:
+			FT_Set_Pixel_Sizes(ftFace, 0, DS_HIGHEST_SIZE);
 			break;
 		case dsTextQuality_Medium:
 		default:
@@ -260,7 +266,7 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, ds
 			return false;
 		}
 
-		uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+		uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
 		uint32_t sdfWidth = font->maxWidth + windowSize*2;
 		uint32_t sdfHeight= font->maxHeight + windowSize*2;
 		font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);
@@ -725,7 +731,7 @@ bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTex
 	float hintingStart, hintingEnd;
 	float smallEmbolding, largeEmbolding;
 	float maxAntiAlias;
-	if (faceGroup->quality == dsTextQuality_Low)
+	if (faceGroup->quality == dsTextQuality_VeryLow)
 	{
 		hintingStart = 9.0f;
 		hintingEnd = 32.0f;

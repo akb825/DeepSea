@@ -13,10 +13,12 @@ table Resource
 // Enum for the face group quality.
 enum FaceGroupQuality : ubyte
 {
+	VeryLow,
 	Low,
 	Medium,
 	High,
-	VeryHigh
+	VeryHigh,
+	Highest
 }
 
 // Structure defining a face group.

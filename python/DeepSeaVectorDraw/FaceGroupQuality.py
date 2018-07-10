@@ -3,8 +3,10 @@
 # namespace: DeepSeaVectorDraw
 
 class FaceGroupQuality(object):
-    Low = 0
-    Medium = 1
-    High = 2
-    VeryHigh = 3
+    VeryLow = 0
+    Low = 1
+    Medium = 2
+    High = 3
+    VeryHigh = 4
+    Highest = 5
 

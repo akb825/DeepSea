@@ -67,7 +67,7 @@ class VectorResources:
 			[
 				{
 					"name": "<name used to reference the face group>",
-					"quality": "<Low|Medium|High|VeryHigh>",
+					"quality": "<verylow|medium|high|veryhigh|highest>",
 					"faces":
 					[
 						{
@@ -186,8 +186,9 @@ class VectorResources:
 		texturesOffset = builder.EndVector(len(textureOffsets))
 
 		faceGroupOffsets = []
-		qualityValues = {'low': FaceGroupQuality.Low, 'medium': FaceGroupQuality.Medium,
-			'high': FaceGroupQuality.High, 'veryhigh': FaceGroupQuality.VeryHigh}
+		qualityValues = {'verylow': FaceGroupQuality.VeryLow, 'low': FaceGroupQuality.Low, \
+			'medium': FaceGroupQuality.Medium, 'high': FaceGroupQuality.High, \
+			'veryhigh': FaceGroupQuality.VeryHigh, 'highest': FaceGroupQuality.Highest}
 		for faceGroup in self.faceGroups:
 			nameOffset = builder.CreateString(faceGroup['name'])
 

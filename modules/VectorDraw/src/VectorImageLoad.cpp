@@ -469,7 +469,7 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 	{
 		dsVector2f scale;
 		dsVector2_div(scale, *size, *targetSize);
-		pixelSize *= dsMin(scale.x, scale.y);
+		pixelSize *= dsMax(scale.x, scale.y);
 	}
 
 	return dsVectorImage_create(allocator, resourceAllocator, initResources,

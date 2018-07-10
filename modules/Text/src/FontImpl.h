@@ -21,11 +21,14 @@
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/Text/Types.h>
 
-#define DS_LOW_SIZE 16
-#define DS_MEDIUM_SIZE 32
-#define DS_HIGH_SIZE 48
-#define DS_VERY_HIGH_SIZE 64
-// 512 for low, 1024 for medium, 1536 for high, and 2048 for very high
+#define DS_VERY_LOW_SIZE 16
+#define DS_LOW_SIZE 32
+#define DS_MEDIUM_SIZE 48
+#define DS_HIGH_SIZE 64
+#define DS_VERY_HIGH_SIZE 96
+#define DS_HIGHEST_SIZE 128
+// 512 for very low, 1024 for low, 1536 for medium, 2048 for high, 3072 for very high, and 4096 for
+// highest
 #define DS_TEX_MULTIPLIER 32
 #define DS_TEX_MIP_LEVELS 6
 #define DS_TABLE_SIZE 1823

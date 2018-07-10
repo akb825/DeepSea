@@ -45,7 +45,8 @@ extern "C"
 dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
 	dsResourceManager* resourceManager, const void* data, size_t size,
 	void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const char* name)
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap,
+	const char* name)
 {
 	flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(data), size);
 	if (!DeepSeaVectorDraw::VerifyResourceSetBuffer(verifier))
@@ -111,6 +112,14 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 		auto faces = faceGroupRef->faces();
 		uint32_t faceCount = faces->size();
 		dsTextQuality quality = static_cast<dsTextQuality>(faceGroupRef->quality());
+		if (quality < dsTextQuality_VeryLow || quality > dsTextQuality_Highest)
+			quality = dsTextQuality_Medium;
+		if (qualityRemap)
+		{
+			DS_ASSERT(quality >= 0 && quality < DS_TEXT_QUALITY_REMAP_SIZE);
+			quality = qualityRemap[quality];
+		}
+
 		dsFaceGroup* faceGroup = dsFaceGroup_create(allocator, allocator, faceCount, quality);
 		if (!faceGroup)
 		{

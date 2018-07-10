@@ -329,7 +329,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 	// Second pass: find line breaks. Do this based on the original character order.
 	dsVector2f position = {{0.0f, 0.0f}};
-	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
+	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_VERY_LOW_SIZE;
 	const float basePadding = (float)windowSize/(float)font->glyphSize;
 	unsigned int wordCount = 0;
 	bool lastIsWhitespace = false;

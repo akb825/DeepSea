@@ -36,6 +36,11 @@ extern "C"
  */
 
 /**
+ * @brief Constant for the size of the text quality remap array.
+ */
+#define DS_TEXT_QUALITY_REMAP_SIZE (dsTextQuality_Highest + 1)
+
+/**
  * @brief Gets the full allocation size of vector resources.
  * @param maxTextures The maximum textures to store.
  * @param maxFaceGroups The maximum face groups to store.
@@ -65,10 +70,13 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorReosurces_create(dsAllocator* al
  *     allocator.
  * @param resourceManager The resource manager to create textures from.
  * @param filePath The file path for the vector resources to load.
+ * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
+ *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const char* filePath);
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const char* filePath,
+	const dsTextQuality* qualityRemap);
 
 /**
  * @brief Loads vector resources from a stream.
@@ -82,12 +90,14 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
  * @param loadUserData The user data to provide for the texture and face group load functions.
  * @param loadTextureFunc Function to perform loading of textures.
  * @param loadFontFaceFunc Function to perform loading of font faces.
+ * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
+ *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsStream* stream,
 	void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc);
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap);
 
 /**
  * @brief Loads vector resources from a data buffer.
@@ -101,12 +111,14 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadStream(dsAllocator
  * @param loadUserData The user data to provide for the texture and face group load functions.
  * @param loadTextureFunc Function to perform loading of textures.
  * @param loadFontFaceFunc Function to perform loading of font faces.
+ * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
+ *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
  * @return The created vector resources, or NULL if it couldn't be created.
  */
 DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadData(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, const void* data,
 	size_t size, void* loadUserData, dsLoadVectorResourcesTextureFunction loadTextureFunc,
-	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc);
+	dsLoadVectorResourcesFontFaceFunction loadFontFaceFunc, const dsTextQuality* qualityRemap);
 
 /**
  * @brief Gets the number of remaining textures that can be set.

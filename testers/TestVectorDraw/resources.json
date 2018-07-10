@@ -11,7 +11,7 @@
 	[
 		{
 			"name": "default",
-			"quality": "high",
+			"quality": "medium",
 			"faces":
 			[
 				{"name": "sans", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
