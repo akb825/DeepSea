@@ -352,13 +352,6 @@ typedef struct dsGlyphLayout
 	uint32_t mipLevel;
 
 	/**
-	 * The index of the glyph in the text.
-	 *
-	 * This may not match in some cases such as right to left text with text wrapping.
-	 */
-	uint32_t textGlyphIndex;
-
-	/**
 	 * @brief The index for the style.
 	 *
 	 * This indexes into the styles array in dsTextLayout.
@@ -388,6 +381,11 @@ typedef struct dsTextLayout
 	 * This will be of size text->glyphCount.
 	 */
 	const dsGlyphLayout* glyphs;
+
+	/**
+	 * @brief List of glyph indicies ordered such that glyphs on the same line are grouped together.
+	 */
+	const uint32_t* glyphsLineOrdered;
 
 	/**
 	 * @brief The styles that are used with the text.

@@ -51,12 +51,11 @@ typedef struct TessTextVertex
 
 static bool glyphRightToLeft(const dsTextLayout* layout, uint32_t glyphIndex)
 {
-	uint32_t textGlyphIndex = layout->glyphs[glyphIndex].textGlyphIndex;
 	for (uint32_t i = 0; i < layout->text->rangeCount; ++i)
 	{
 		const dsTextRange* range = layout->text->ranges + i;
-		if (textGlyphIndex >= range->firstGlyph &&
-			textGlyphIndex < range->firstGlyph + range->glyphCount)
+		if (glyphIndex >= range->firstGlyph &&
+			glyphIndex < range->firstGlyph + range->glyphCount)
 		{
 			return range->backward;
 		}
@@ -83,7 +82,7 @@ static void getRangeOffset(dsVector2f* outOffset, const dsTextLayout* layout,
 				dsVector2_sub(*outOffset, range->position, glyph->position);
 				if (glyphRightToLeft(layout, charMapping->firstGlyph))
 				{
-					outOffset->x -= layout->text->glyphs[glyph->textGlyphIndex].advance*
+					outOffset->x -= layout->text->glyphs[i].advance*
 						layout->styles[glyph->styleIndex].scale;
 				}
 				break;

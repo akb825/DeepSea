@@ -161,7 +161,7 @@ vec4 dsVectorElementText_getMaterialColor()
 
 	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
 	float outline = dsVectorVertexOut.outlineAntiAlias.x;
-	float outlinePosition = (embolden + outline)*0.5 + 0.5;
+	float outlinePosition = embolden*0.5 + 0.5;
 	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
 		fillColor, outlineColor);

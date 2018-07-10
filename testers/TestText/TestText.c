@@ -194,11 +194,16 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}, 0.0f},
 		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}}},
-	{"This text mixes wrapping based on max distance\nas well as explicit newlines."
+	{"This text mixes wrapping based on max distance as well as explicit newlines."
 		"\n\nEmpty line.\n\nThiswordislongerthanlimit. This isn't.\n\nTessellated section only "
 			"has newlines.",
 		"\n\n\n",
 		dsTextAlign_Left, 200.0f, 1.0f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f},
+		NO_STYLE, NO_STYLE}},
+	{"All words are too long.", NULL,
+		dsTextAlign_Left, 10.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -225,7 +230,7 @@ static TextInfo textStrings[] =
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
 		"Arabic words with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n",
-		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
@@ -255,12 +260,12 @@ static TextInfo textStrings[] =
 		NO_STYLE, NO_STYLE}},
 	{"first is left-to-right \xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9\n"
 		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 first is right-to-left",
-		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Text with a negative offset in Y.",
-		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 2.0f,
+		NULL, dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, 12, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
