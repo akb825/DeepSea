@@ -31,6 +31,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/BezierCurve.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix33.h>
@@ -80,25 +81,6 @@ struct dsVectorImage
 	uint32_t textDrawInfoCount;
 	dsVector2f size;
 };
-
-// Left and right subdivision matrices from http://algorithmist.net/docs/subdivision.pdf
-static const dsMatrix44f leftBezierMatrix =
-{{
-	{1.0f, 0.5f, 0.25f, 0.125f},
-	{0.0f, 0.5f, 0.5f , 0.375f},
-	{0.0f, 0.0f, 0.25f, 0.375f},
-	{0.0f, 0.0f, 0.0f , 0.125f}
-}};
-
-static const dsMatrix44f rightBezierMatrix =
-{{
-	{0.125f, 0.0f , 0.0f, 0.0f},
-	{0.375f, 0.25f, 0.0f, 0.0f},
-	{0.375f, 0.5f , 0.5f, 0.0f},
-	{0.125f, 0.25f, 0.5f, 1.0f}
-}};
-
-static const dsVector4f bezierMid = {{0.125f, 0.375f, 0.375f, 0.125f}};
 
 static bool initResourcesValid(const dsVectorImageInitResources* initResources)
 {
@@ -152,14 +134,6 @@ static void markEnd(dsVectorScratchData* scratchData)
 	scratchData->points[scratchData->pointCount - 1].type |= PointType_End;
 }
 
-static bool isBezierStraight(const dsVector4f* curveX, const dsVector4f* curveY, float pixelSize)
-{
-	// Check to see if the midpoint is within 1/4 pixel of a straight line.
-	dsVector2f midCurve = {{dsVector4_dot(*curveX, bezierMid), dsVector4_dot(*curveY, bezierMid)}};
-	dsVector2f midLine = {{(curveX->x + curveX->w)*0.5f, (curveY->x + curveY->w)*0.5f}};
-	return dsVector2_dist2(midCurve, midLine) <= dsPow2(pixelSize)*0.125f;
-}
-
 static void startPath(dsVectorScratchData* scratchData, const dsMatrix33f* transform, bool simple)
 {
 	scratchData->inPath = true;
@@ -188,79 +162,58 @@ static bool lineTo(dsVectorScratchData* scratchData, const dsVector2f* position,
 		pointType);
 }
 
-static bool addBezierRec(dsVectorScratchData* scratchData, const dsVector2f* start,
-	const dsVector2f* control1, const dsVector2f* control2, const dsVector2f* end, float pixelSize,
-	uint32_t level)
+static bool addBezierPoint(void* userData, const void* point, uint32_t axisCount, double t)
 {
-	// Sanity check to avoid too much recursion.
-	const uint32_t maxLevels = 10;
+	DS_ASSERT(axisCount == 2);
+	DS_UNUSED(axisCount);
 
-	// Subdivide the bazier: http://algorithmist.net/docs/subdivision.pdf
-	dsVector4f bezierX = {{start->x, control1->x, control2->x, end->x}};
-	dsVector4f bezierY = {{start->y, control1->y, control2->y, end->y}};
+	if (t == 0.0)
+		return true;
 
-	// Left side.
-	dsVector4f leftX;
-	dsVector4f leftY;
-	dsMatrix44_transform(leftX, leftBezierMatrix, bezierX);
-	dsMatrix44_transform(leftY, leftBezierMatrix, bezierY);
-	{
-		dsVector2f nextStart = {{leftX.x, leftY.x}};
-		dsVector2f nextControl1 = {{leftX.y, leftY.y}};
-		dsVector2f nextControl2 = {{leftX.z, leftY.z}};
-		dsVector2f nextEnd = {{leftX.w, leftY.w}};
-		if (level < maxLevels && !isBezierStraight(&leftX, &leftY, pixelSize))
-		{
-			if (!addBezierRec(scratchData, &nextStart, &nextControl1, &nextControl2, &nextEnd,
-				pixelSize, level + 1))
-			{
-				return false;
-			}
-		}
-
-		// The end point is guaranteed to be on the curve.
-		if (!dsVectorScratchData_addPoint(scratchData, &nextEnd, PointType_Normal))
-			return false;
-	}
-
-	// Right side.
-	dsVector4f rightX;
-	dsVector4f rightY;
-	dsMatrix44_transform(rightX, rightBezierMatrix, bezierX);
-	dsMatrix44_transform(rightY, rightBezierMatrix, bezierY);
-	{
-		dsVector2f nextStart = {{rightX.x, rightY.x}};
-		dsVector2f nextControl1 = {{rightX.y, rightY.y}};
-		dsVector2f nextControl2 = {{rightX.z, rightY.z}};
-		dsVector2f nextEnd = {{rightX.w, rightY.w}};
-		if (level < maxLevels && !isBezierStraight(&rightX, &rightY, pixelSize))
-		{
-			if (!addBezierRec(scratchData, &nextStart, &nextControl1, &nextControl2, &nextEnd,
-				pixelSize, level + 1))
-			{
-				return false;
-			}
-		}
-		// The end point on the right is already handled by the call before the recursive calls.
-	}
-
-	return true;
+	dsVectorScratchData* scratchData = (dsVectorScratchData*)userData;
+	const dsVector2d* pointDouble = (const dsVector2d*)point;
+	dsVector2f pointFloat = {{(float)pointDouble->x, (float)pointDouble->y}};
+	PointType pointType = t == 1.0 ? PointType_Corner : PointType_Normal;
+	return dsVectorScratchData_addPoint(scratchData, &pointFloat, pointType);
 }
 
-static bool addBezier(dsVectorScratchData* scratchData, const dsVector2f* control1,
+static bool addBezier(dsVectorScratchData* scratchData, const dsBezierCurve* curve,
+	float pixelSize)
+{
+	return dsBezierCurve_tessellate(curve, pixelSize*0.25f, 10, &addBezierPoint, scratchData);
+}
+
+static bool addCubic(dsVectorScratchData* scratchData, const dsVector2f* control1,
 	const dsVector2f* control2, const dsVector2f* end, float pixelSize)
 {
 	if (!inPathWithPoint(scratchData))
 		return false;
 
-	dsVector2f start = scratchData->points[scratchData->pointCount - 1].point;
-	// Always recurse the first time, since the overall curve may have an inflection point, causing
-	// the midpoint metric to break down. Subdivisions won't have any inflection points.
-	if (!addBezierRec(scratchData, &start, control1, control2, end, pixelSize, 1))
+	const dsVector2f* start = &scratchData->points[scratchData->pointCount - 1].point;
+	dsVector2d p0 = {{start->x, start->y}};
+	dsVector2d p1 = {{control1->x, control1->y}};
+	dsVector2d p2 = {{control2->x, control2->y}};
+	dsVector2d p3 = {{end->x, end->y}};
+
+	dsBezierCurve curve;
+	DS_VERIFY(dsBezierCurve_initialize(&curve, 2, &p0, &p1, &p2, &p3));
+	return addBezier(scratchData, &curve, pixelSize);
+}
+
+static bool addQuadratic(dsVectorScratchData* scratchData, const dsVector2f* control,
+	const dsVector2f* end, float pixelSize)
+{
+	if (!inPathWithPoint(scratchData))
 		return false;
 
-	// Add the last point.
-	return dsVectorScratchData_addPoint(scratchData, end, PointType_Corner);
+	const dsVector2f* start = &scratchData->points[scratchData->pointCount - 1].point;
+	dsVector2d p0 = {{start->x, start->y}};
+	dsVector2d p1 = {{control->x, control->y}};
+	dsVector2d p2 = {{end->x, end->y}};
+
+	dsBezierCurve curve;
+	DS_VERIFY(dsBezierCurve_initializeQuadratic(&curve, 2, &p0, &p1, &p2));
+	return addBezier(scratchData, &curve, pixelSize);
 }
 
 static bool addArc(dsVectorScratchData* scratchData, const dsVector2f* end,
@@ -649,26 +602,13 @@ static bool processCommand(dsVectorScratchData* scratchData, dsCommandBuffer* co
 		case dsVectorCommandType_Bezier:
 		{
 			const dsVectorCommandBezier* bezier = &commands[(*curCommand)++].bezier;
-			return addBezier(scratchData, &bezier->control1, &bezier->control2, &bezier->end,
+			return addCubic(scratchData, &bezier->control1, &bezier->control2, &bezier->end,
 				pixelSize);
 		}
 		case dsVectorCommandType_Quadratic:
 		{
 			const dsVectorCommandQuadratic* quadratic = &commands[(*curCommand)++].quadratic;
-			// Convert quadratic to bezier:
-			// https://stackoverflow.com/questions/3162645/convert-a-quadratic-bezier-to-a-cubic
-			const float controlT = 2.0f/3.0f;
-			dsVector2f start = scratchData->points[scratchData->pointCount - 1].point;
-			dsVector2f control1, control2, temp;
-			dsVector2_sub(temp, quadratic->control, start);
-			dsVector2_scale(temp, temp, controlT);
-			dsVector2_add(control1, start, temp);
-
-			dsVector2_sub(temp, quadratic->control, quadratic->end);
-			dsVector2_scale(temp, temp, controlT);
-			dsVector2_add(control2, quadratic->end, temp);
-			return addBezier(scratchData, &control1, &control2, &quadratic->end,
-				adjustPixelSize(&scratchData->pathTransform, pixelSize));
+			return addQuadratic(scratchData, &quadratic->control, &quadratic->end, pixelSize);
 		}
 		case dsVectorCommandType_Arc:
 		{

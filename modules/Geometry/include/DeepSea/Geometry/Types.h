@@ -89,6 +89,11 @@ extern "C"
 #define DS_POLYGON_INTERSECT_EPSILON_FLOAT 1e-5f
 
 /**
+ * @brief The maximum number of recursions for curve tessellation.
+ */
+#define DS_MAX_CURVE_RECURSIONS 64
+
+/**
  * @brief Enum for the result of an intersection.
  */
 typedef enum dsIntersectResult
@@ -382,6 +387,39 @@ typedef struct dsFrustum3d
 	 */
 	dsPlane3d planes[dsFrustumPlanes_Count];
 } dsFrustum3d;
+
+/**
+ * @brief Callback function for adding a sample when tessellating a curve.
+ * @remark errno should be set on failure.
+ * @param userData The user data provided with the function.
+ * @param point The point being added. This will be either dsVector2d or dsVector3d depending on
+ *     axisCount.
+ * @param axisCount The number of axes. This will be either 2 or 3.
+ * @param t The parametric position along the curve. This will be in the range [0, 1].
+ * @return False if an error occured.
+ * @see BezierCurve.h
+ */
+typedef bool (*dsCurveSampleFunction)(void* userData, const void* point, uint32_t axisCount,
+	double t);
+
+/**
+ * @brief Structure for a Bezier curve.
+ * @see BezierCurve.h
+ */
+typedef struct dsBezierCurve
+{
+	/**
+	 * @brief The number of axes in the curve.
+	 */
+	uint32_t axisCount;
+
+	/**
+	 * @brief The control points for the curve.
+	 *
+	 * Each vector is the set of control values for a single axis.
+	 */
+	dsVector4d controlPoints[3];
+} dsBezierCurve;
 
 /**
  * @brief Structure for a bounding volume hierarchy spacial data structure.
