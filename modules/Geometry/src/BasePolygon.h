@@ -82,6 +82,10 @@ typedef struct dsBasePolygon
 	uint32_t maxIndices;
 } dsBasePolygon;
 
+// NOTE: First edge is exclusive of end points, second edge is inclusive. In other words, the first
+// edge may touch other edges, but not vice-versa. The first edge is typically connecting two
+// points, which may have multiple edges coming together. The second edge might intersect with the
+// middle of the first edge unexpectedly, though.
 bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 	const dsVector2d* otherFrom, const dsVector2d* otherTo, double epsilon);
 

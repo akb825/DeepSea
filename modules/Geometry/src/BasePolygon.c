@@ -188,20 +188,30 @@ bool dsPolygonEdgesIntersect(const dsVector2d* from, const dsVector2d* to,
 		(from->x*to->y - from->y*to->x)*(otherFrom->x - otherTo->x) -
 			(from->x - to->x)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
 		(from->x*to->y - from->y*to->x)*(otherFrom->y - otherTo->y) -
-			(from->y - to->y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x),
+			(from->y - to->y)*(otherFrom->x*otherTo->y - otherFrom->y*otherTo->x)
 	}};
 
 	divisor = 1.0/divisor;
 	dsVector2_scale(intersect, intersect, divisor);
 
-	double t;
 	// Find T based on the largest difference to avoid issues with axis-aligned lines.
+	double t;
 	if (fabs(offset.x) > fabs(offset.y))
 		t = (intersect.x - from->x)/offset.x;
 	else
 		t = (intersect.y - from->y)/offset.y;
 
-	return t > epsilon && t < 1.0 - epsilon;
+	dsVector2d otherOffset;
+	dsVector2_sub(otherOffset, *otherTo, *otherFrom);
+	double otherT;
+	if (fabs(otherOffset.x) > fabs(otherOffset.y))
+		otherT = (intersect.x - otherFrom->x)/otherOffset.x;
+	else
+		otherT = (intersect.y - otherFrom->y)/otherOffset.y;
+
+	// Don't count the endpoints of the first line, but count the endpoints of the second line as
+	// an intersection.
+	return t > epsilon && t < 1.0 - epsilon && otherT > -epsilon && otherT < 1.0 + epsilon;
 }
 
 bool dsIsPolygonTriangleCCW(const dsVector2d* p0, const dsVector2d* p1, const dsVector2d* p2);

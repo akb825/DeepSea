@@ -100,21 +100,21 @@ TEST_F(SimpleHoledPolygonTest, TriangleWithHoleCCW)
 	EXPECT_EQ(4U, indices[4]);
 	EXPECT_EQ(0U, indices[5]);
 
-	EXPECT_EQ(5U, indices[6]);
-	EXPECT_EQ(0U, indices[7]);
-	EXPECT_EQ(3U, indices[8]);
+	EXPECT_EQ(2U, indices[6]);
+	EXPECT_EQ(3U, indices[7]);
+	EXPECT_EQ(5U, indices[8]);
 
-	EXPECT_EQ(2U, indices[9]);
-	EXPECT_EQ(0U, indices[10]);
+	EXPECT_EQ(4U, indices[9]);
+	EXPECT_EQ(2U, indices[10]);
 	EXPECT_EQ(5U, indices[11]);
 
-	EXPECT_EQ(4U, indices[12]);
+	EXPECT_EQ(1U, indices[12]);
 	EXPECT_EQ(2U, indices[13]);
-	EXPECT_EQ(5U, indices[14]);
+	EXPECT_EQ(4U, indices[14]);
 
-	EXPECT_EQ(1U, indices[15]);
-	EXPECT_EQ(2U, indices[16]);
-	EXPECT_EQ(4U, indices[17]);
+	EXPECT_EQ(2U, indices[15]);
+	EXPECT_EQ(0U, indices[16]);
+	EXPECT_EQ(3U, indices[17]);
 }
 
 TEST_F(SimpleHoledPolygonTest, TriangleWithHoleCW)
@@ -146,21 +146,21 @@ TEST_F(SimpleHoledPolygonTest, TriangleWithHoleCW)
 	EXPECT_EQ(5U, indices[4]);
 	EXPECT_EQ(0U, indices[5]);
 
-	EXPECT_EQ(4U, indices[6]);
-	EXPECT_EQ(0U, indices[7]);
-	EXPECT_EQ(3U, indices[8]);
+	EXPECT_EQ(1U, indices[6]);
+	EXPECT_EQ(3U, indices[7]);
+	EXPECT_EQ(4U, indices[8]);
 
-	EXPECT_EQ(1U, indices[9]);
-	EXPECT_EQ(0U, indices[10]);
+	EXPECT_EQ(5U, indices[9]);
+	EXPECT_EQ(1U, indices[10]);
 	EXPECT_EQ(4U, indices[11]);
 
-	EXPECT_EQ(5U, indices[12]);
+	EXPECT_EQ(2U, indices[12]);
 	EXPECT_EQ(1U, indices[13]);
-	EXPECT_EQ(4U, indices[14]);
+	EXPECT_EQ(5U, indices[14]);
 
-	EXPECT_EQ(2U, indices[15]);
-	EXPECT_EQ(1U, indices[16]);
-	EXPECT_EQ(5U, indices[17]);
+	EXPECT_EQ(1U, indices[15]);
+	EXPECT_EQ(0U, indices[16]);
+	EXPECT_EQ(3U, indices[17]);
 }
 
 TEST_F(SimpleHoledPolygonTest, TwoHoles)
@@ -193,49 +193,49 @@ TEST_F(SimpleHoledPolygonTest, TwoHoles)
 	EXPECT_EQ(3U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
 
-	EXPECT_EQ(5U, indices[3]);
+	EXPECT_EQ(1U, indices[3]);
 	EXPECT_EQ(4U, indices[4]);
 	EXPECT_EQ(0U, indices[5]);
 
-	EXPECT_EQ(9U, indices[6]);
-	EXPECT_EQ(7U, indices[7]);
-	EXPECT_EQ(5U, indices[8]);
+	EXPECT_EQ(6U, indices[6]);
+	EXPECT_EQ(3U, indices[7]);
+	EXPECT_EQ(4U, indices[8]);
 
-	EXPECT_EQ(1U, indices[9]);
-	EXPECT_EQ(8U, indices[10]);
-	EXPECT_EQ(9U, indices[11]);
+	EXPECT_EQ(7U, indices[9]);
+	EXPECT_EQ(6U, indices[10]);
+	EXPECT_EQ(5U, indices[11]);
 
-	EXPECT_EQ(1U, indices[12]);
-	EXPECT_EQ(9U, indices[13]);
-	EXPECT_EQ(5U, indices[14]);
+	EXPECT_EQ(7U, indices[12]);
+	EXPECT_EQ(3U, indices[13]);
+	EXPECT_EQ(6U, indices[14]);
 
-	EXPECT_EQ(1U, indices[15]);
-	EXPECT_EQ(5U, indices[16]);
-	EXPECT_EQ(0U, indices[17]);
+	EXPECT_EQ(2U, indices[15]);
+	EXPECT_EQ(3U, indices[16]);
+	EXPECT_EQ(7U, indices[17]);
 
-	EXPECT_EQ(8U, indices[18]);
-	EXPECT_EQ(3U, indices[19]);
-	EXPECT_EQ(7U, indices[20]);
+	EXPECT_EQ(9U, indices[18]);
+	EXPECT_EQ(7U, indices[19]);
+	EXPECT_EQ(5U, indices[20]);
 
-	EXPECT_EQ(2U, indices[21]);
+	EXPECT_EQ(1U, indices[21]);
 	EXPECT_EQ(8U, indices[22]);
-	EXPECT_EQ(1U, indices[23]);
+	EXPECT_EQ(9U, indices[23]);
 
-	EXPECT_EQ(2U, indices[24]);
-	EXPECT_EQ(3U, indices[25]);
-	EXPECT_EQ(8U, indices[26]);
+	EXPECT_EQ(1U, indices[24]);
+	EXPECT_EQ(9U, indices[25]);
+	EXPECT_EQ(5U, indices[26]);
 
-	EXPECT_EQ(6U, indices[27]);
-	EXPECT_EQ(3U, indices[28]);
+	EXPECT_EQ(1U, indices[27]);
+	EXPECT_EQ(5U, indices[28]);
 	EXPECT_EQ(4U, indices[29]);
 
-	EXPECT_EQ(7U, indices[30]);
-	EXPECT_EQ(6U, indices[31]);
-	EXPECT_EQ(5U, indices[32]);
+	EXPECT_EQ(2U, indices[30]);
+	EXPECT_EQ(8U, indices[31]);
+	EXPECT_EQ(1U, indices[32]);
 
-	EXPECT_EQ(7U, indices[33]);
-	EXPECT_EQ(3U, indices[34]);
-	EXPECT_EQ(6U, indices[35]);
+	EXPECT_EQ(2U, indices[33]);
+	EXPECT_EQ(7U, indices[34]);
+	EXPECT_EQ(8U, indices[35]);
 }
 
 TEST_F(SimpleHoledPolygonTest, EnclosedHole)
@@ -272,45 +272,45 @@ TEST_F(SimpleHoledPolygonTest, EnclosedHole)
 	ASSERT_EQ(54U, indexCount);
 	ASSERT_TRUE(indices);
 
-	EXPECT_EQ(7U, indices[0]);
-	EXPECT_EQ(15U, indices[1]);
+	EXPECT_EQ(15U, indices[0]);
+	EXPECT_EQ(3U, indices[1]);
 	EXPECT_EQ(0U, indices[2]);
 
-	EXPECT_EQ(11U, indices[3]);
-	EXPECT_EQ(7U, indices[4]);
+	EXPECT_EQ(1U, indices[3]);
+	EXPECT_EQ(15U, indices[4]);
 	EXPECT_EQ(0U, indices[5]);
 
-	EXPECT_EQ(12U, indices[6]);
-	EXPECT_EQ(11U, indices[7]);
-	EXPECT_EQ(0U, indices[8]);
+	EXPECT_EQ(14U, indices[6]);
+	EXPECT_EQ(3U, indices[7]);
+	EXPECT_EQ(15U, indices[8]);
 
-	EXPECT_EQ(1U, indices[9]);
-	EXPECT_EQ(12U, indices[10]);
-	EXPECT_EQ(0U, indices[11]);
+	EXPECT_EQ(13U, indices[9]);
+	EXPECT_EQ(3U, indices[10]);
+	EXPECT_EQ(14U, indices[11]);
 
-	EXPECT_EQ(1U, indices[12]);
+	EXPECT_EQ(2U, indices[12]);
 	EXPECT_EQ(13U, indices[13]);
-	EXPECT_EQ(12U, indices[14]);
+	EXPECT_EQ(1U, indices[14]);
 
 	EXPECT_EQ(2U, indices[15]);
-	EXPECT_EQ(13U, indices[16]);
-	EXPECT_EQ(1U, indices[17]);
+	EXPECT_EQ(3U, indices[16]);
+	EXPECT_EQ(13U, indices[17]);
 
-	EXPECT_EQ(15U, indices[18]);
-	EXPECT_EQ(3U, indices[19]);
-	EXPECT_EQ(0U, indices[20]);
+	EXPECT_EQ(1U, indices[18]);
+	EXPECT_EQ(13U, indices[19]);
+	EXPECT_EQ(12U, indices[20]);
 
-	EXPECT_EQ(14U, indices[21]);
-	EXPECT_EQ(3U, indices[22]);
-	EXPECT_EQ(15U, indices[23]);
+	EXPECT_EQ(1U, indices[21]);
+	EXPECT_EQ(12U, indices[22]);
+	EXPECT_EQ(11U, indices[23]);
 
-	EXPECT_EQ(13U, indices[24]);
-	EXPECT_EQ(3U, indices[25]);
-	EXPECT_EQ(14U, indices[26]);
+	EXPECT_EQ(1U, indices[24]);
+	EXPECT_EQ(11U, indices[25]);
+	EXPECT_EQ(7U, indices[26]);
 
-	EXPECT_EQ(2U, indices[27]);
-	EXPECT_EQ(3U, indices[28]);
-	EXPECT_EQ(13U, indices[29]);
+	EXPECT_EQ(1U, indices[27]);
+	EXPECT_EQ(7U, indices[28]);
+	EXPECT_EQ(15U, indices[29]);
 
 	EXPECT_EQ(11U, indices[30]);
 	EXPECT_EQ(5U, indices[31]);
@@ -391,37 +391,37 @@ TEST_F(SimpleHoledPolygonTest, TouchingHoles)
 	EXPECT_EQ(6U, indices[7]);
 	EXPECT_EQ(0U, indices[8]);
 
-	EXPECT_EQ(12U, indices[9]);
+	EXPECT_EQ(1U, indices[9]);
 	EXPECT_EQ(11U, indices[10]);
 	EXPECT_EQ(0U, indices[11]);
 
-	EXPECT_EQ(9U, indices[12]);
-	EXPECT_EQ(12U, indices[13]);
-	EXPECT_EQ(0U, indices[14]);
+	EXPECT_EQ(10U, indices[12]);
+	EXPECT_EQ(6U, indices[13]);
+	EXPECT_EQ(11U, indices[14]);
 
-	EXPECT_EQ(1U, indices[15]);
-	EXPECT_EQ(9U, indices[16]);
-	EXPECT_EQ(0U, indices[17]);
+	EXPECT_EQ(5U, indices[15]);
+	EXPECT_EQ(6U, indices[16]);
+	EXPECT_EQ(10U, indices[17]);
 
-	EXPECT_EQ(7U, indices[18]);
-	EXPECT_EQ(9U, indices[19]);
-	EXPECT_EQ(1U, indices[20]);
+	EXPECT_EQ(12U, indices[18]);
+	EXPECT_EQ(5U, indices[19]);
+	EXPECT_EQ(10U, indices[20]);
 
-	EXPECT_EQ(10U, indices[21]);
-	EXPECT_EQ(6U, indices[22]);
-	EXPECT_EQ(11U, indices[23]);
+	EXPECT_EQ(9U, indices[21]);
+	EXPECT_EQ(5U, indices[22]);
+	EXPECT_EQ(12U, indices[23]);
 
-	EXPECT_EQ(5U, indices[24]);
-	EXPECT_EQ(6U, indices[25]);
-	EXPECT_EQ(10U, indices[26]);
+	EXPECT_EQ(1U, indices[24]);
+	EXPECT_EQ(12U, indices[25]);
+	EXPECT_EQ(11U, indices[26]);
 
-	EXPECT_EQ(12U, indices[27]);
-	EXPECT_EQ(5U, indices[28]);
-	EXPECT_EQ(10U, indices[29]);
+	EXPECT_EQ(1U, indices[27]);
+	EXPECT_EQ(9U, indices[28]);
+	EXPECT_EQ(12U, indices[29]);
 
-	EXPECT_EQ(9U, indices[30]);
-	EXPECT_EQ(5U, indices[31]);
-	EXPECT_EQ(12U, indices[32]);
+	EXPECT_EQ(7U, indices[30]);
+	EXPECT_EQ(9U, indices[31]);
+	EXPECT_EQ(1U, indices[32]);
 
 	EXPECT_EQ(15U, indices[33]);
 	EXPECT_EQ(14U, indices[34]);
