@@ -25,61 +25,152 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Text/FaceGroup.h>
+#include <float.h>
 #include <string.h>
 
-static float computeSignedDistance(const uint8_t* pixels, uint32_t width, uint32_t height, int x,
-	int y, uint32_t windowSize)
+#define INTERSECT_EPSILON 1e-6f
+
+typedef enum PolygonResult
 {
-	float maxDistance = sqrtf((float)(dsPow2(windowSize) + dsPow2(windowSize)));
-	float distance = maxDistance;
-	bool inside = false;
-	if (x >= 0 && y >= 0 && x < (int)width && y < (int)height)
+	PolygonResult_Inside,
+	PolygonResult_Outside,
+	PolygonResult_OnEdge
+} PolygonResult;
+
+static float distanceToLine(const dsVector2f* point, const dsVector2f* start, const dsVector2f* end,
+	const dsVector2f* lineDir, float lineLength)
+{
+	dsVector2f pointDir;
+	dsVector2_sub(pointDir, *point, *start);
+
+	float projDist2 = dsVector2_dot(pointDir, *lineDir);
+	if (projDist2 < 0.0f)
+		return dsVector2f_len(&pointDir);
+
+	if (projDist2 >= dsPow2(lineLength))
+		return dsVector2f_dist(point, end);
+
+	// https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+	return fabsf(lineDir->y*point->x - lineDir->x*point->y + end->x*start->y - end->y*start->x)/
+		lineLength;
+}
+
+static PolygonResult intersectScanline(const dsVector2f* point, const dsVector2f* from,
+	const dsVector2f* to)
+{
+	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+	// Optimized for a ray in the direction (1, 0).
+	if (from->x + INTERSECT_EPSILON < point->x && to->x + INTERSECT_EPSILON < point->x)
+		return PolygonResult_Outside;
+
+	// Check if bottom Y is equal. This is inside if point is to the left of the edge, on edge if
+	// point is on the right and top Y is also equal, othewise outside. If parallel and the point
+	// is to the left of the point, consider outside since it enters and leaves the edge.
+	if (dsEpsilonEqualf(point->y, from->y, INTERSECT_EPSILON))
 	{
-		uint8_t pixel = pixels[y*width + x];
-		if (pixel == 0)
-			inside = false;
-		else if (pixel == 255)
-			inside = true;
-		else
+		bool parallel = dsEpsilonEqualf(point->y, to->y, INTERSECT_EPSILON);
+		if (from->x < point->x + INTERSECT_EPSILON)
 		{
-			// Anti-aliased pixel already has distance information.
-			distance = (pixel/255.0f - 0.5f)/maxDistance;
-			return distance*0.5f + 0.5f;
+			if (parallel)
+				return PolygonResult_OnEdge;
+			return PolygonResult_Outside;
+		}
+
+		if (parallel)
+			return PolygonResult_Outside;
+		return PolygonResult_Inside;
+	}
+
+	// Since we explicitly check for the bottm Y for intersection, don't intersect if top Y is equal
+	// to avoid double intersection in neighboring edge.
+	if (dsEpsilonEqualf(point->y, to->y, INTERSECT_EPSILON))
+		return PolygonResult_Outside;
+
+	// Parallel lines. Above code already handled if parallel lines intersected.
+	if (dsEpsilonEqualf(from->y, to->y, INTERSECT_EPSILON))
+		return PolygonResult_Outside;
+
+	// Only care about the X coordinate, we already know the Y coordinate of the intersection.
+	float intersectX =
+		(point->y*(from->x - to->x) - (from->x*to->y - from->y*to->x))/(from->y - to->y);
+
+	if (intersectX + INTERSECT_EPSILON < point->x)
+		return PolygonResult_Outside;
+	else if ((intersectX <  point->x + INTERSECT_EPSILON))
+		return PolygonResult_OnEdge;
+	return PolygonResult_Inside;
+}
+
+static PolygonResult pointInsideGlyph(const dsVector2f* point, const dsGlyphGeometry* geometry)
+{
+	if (!dsAlignedBox2_containsPoint(geometry->bounds, *point))
+		return PolygonResult_Outside;
+
+	// Use scanlines to determine if the point is inside of the polygon loop.
+	// https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
+	uint32_t intersectCount = 0;
+
+	// Start at the bottom, end once the min point is above the current point. Skip any edges where
+	// the max point is below. (since it won't hit a horizontal line originating at the current
+	// point)
+	for (uint32_t i = 0; i < geometry->pointCount; ++i)
+	{
+		const dsOrderedGlyphEdge* edge = geometry->sortedEdges + i;
+		if (edge->minPoint.y > point->y)
+			break;
+		else if (edge->maxPoint.y < point->y)
+			continue;
+
+		// Shoot a ray to the right to see if it intersects.
+		PolygonResult result = intersectScanline(point, &edge->minPoint, &edge->maxPoint);
+		if (result == PolygonResult_OnEdge)
+			return PolygonResult_OnEdge;
+		else if (result == PolygonResult_Inside)
+			++intersectCount;
+	}
+
+	if (intersectCount & 1)
+		return PolygonResult_Inside;
+	return PolygonResult_Outside;
+}
+
+static float computeSignedDistance(const dsVector2f* pos, const dsGlyphGeometry* geometry)
+{
+	// Find the closest point.
+	PolygonResult insideResult = pointInsideGlyph(pos, geometry);
+	if (insideResult == PolygonResult_OnEdge)
+		return 0.0f;
+
+	float inside = insideResult == PolygonResult_Inside ? 1.0f : -1.0f;
+	float curDistance = FLT_MAX;
+	for (uint32_t i = 0; i < geometry->loopCount; ++i)
+	{
+		if (curDistance != FLT_MAX && !dsAlignedBox2_containsPoint(geometry->loops[i].bounds, *pos))
+		{
+			dsVector2f boxPoint;
+			dsAlignedBox2_closestPoint(boxPoint, geometry->loops[i].bounds, *pos);
+			if (dsVector2_dist2(*pos, boxPoint) > dsPow2(curDistance))
+				continue;
+		}
+
+		const dsGlyphLoop* loop = geometry->loops + i;
+		for (uint32_t j = 0; j < loop->pointCount; ++j)
+		{
+			const dsGlyphPoint* curPoint = geometry->points + loop->firstPoint + j;
+			float distance = distanceToLine(pos, &curPoint->position, &curPoint->nextPos,
+				&curPoint->edgeDir, curPoint->edgeLength);
+			if (distance < curDistance)
+				curDistance = distance;
 		}
 	}
 
-	// Compute the closest distance to a pixel that is the opposite state.
-	for (uint32_t j = 0; j < windowSize*2 + 1; ++j)
-	{
-		for (uint32_t i = 0; i < windowSize*2 + 1; ++i)
-		{
-			int thisX = x + i - windowSize;
-			int thisY = y + j - windowSize;
-			float pixel = 0.0f;
-			if (thisX >= 0 && thisY >= 0 && thisX < (int)width && thisY < (int)height)
-				pixel = pixels[thisY*width + thisX]/255.0f;
-			if ((inside && pixel != 1.0f) || (!inside && pixel != 0.0f))
-			{
-				float thisDistance = sqrtf((float)(dsPow2(x - thisX) + dsPow2(y - thisY)));
-				if (inside)
-					thisDistance += pixel;
-				else
-					thisDistance += 1.0f - pixel;
-				distance = dsMin(thisDistance, distance);
-			}
-		}
-	}
-
-	// Normalize to a [0, 1] value to be placed into the texture.
-	distance = distance/maxDistance;
-	if (!inside)
-		distance = -distance;
-	return distance*0.5f + 0.5f;
+	return curDistance*inside;
 }
 
 dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
@@ -116,9 +207,8 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, u
 			(dsHashTableNode*)glyphInfo, NULL));
 	}
 
-	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, &glyphInfo->texSize, font->faces[face],
-		commandBuffer, font->texture, glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize,
-		font);
+	dsFontFace_cacheGlyph(&glyphInfo->glyphBounds, font->faces[face], commandBuffer, font->texture,
+		glyph, dsFont_getGlyphIndex(font, glyphInfo), font->glyphSize, font);
 	return glyphInfo;
 }
 
@@ -128,112 +218,45 @@ uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph)
 }
 
 bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
-	unsigned int height, float* tempSdf)
+	uint32_t glyphIndex, uint32_t glyphSize, const dsGlyphGeometry* geometry)
 {
-	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
+	float windowSize = (float)(glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE);
+	dsVector2f windowSize2f = {{windowSize, windowSize}};
+	dsAlignedBox2f paddedBounds;
+	dsVector2_sub(paddedBounds.min, geometry->bounds.min, windowSize2f);
+	dsVector2_add(paddedBounds.max, geometry->bounds.max, windowSize2f);
 
-	// Pad by the window size on each side.
-	uint32_t adjustedWidth = width + windowSize*2;
-	uint32_t adjustedHeight = height + windowSize*2;
+	dsVector2f size;
+	dsAlignedBox2_extents(size, paddedBounds);
 
 	// Scale down if needed, but not up.
 	float scaleX = 1.0f;
-	float offsetX = 1.0f;
-	if (adjustedWidth > glyphSize)
-	{
-		scaleX = (float)glyphSize/(float)adjustedWidth;
-		offsetX = 1.0f/scaleX;
-	}
+	if (size.x > glyphSize - 1)
+		scaleX = size.x/(float)(glyphSize - 1);
 
 	float scaleY = 1.0f;
-	float offsetY = 1.0f;
-	if (adjustedHeight > glyphSize)
-	{
-		scaleY = (float)glyphSize/(float)adjustedHeight;
-		offsetY = 1.0f/scaleY;
-	}
+	if (size.y > glyphSize - 1)
+		scaleY = size.y/(float)(glyphSize - 1);
 
-	// Compute signed distnace field.
-	for (uint32_t y = 0; y < adjustedHeight; ++y)
-	{
-		for (uint32_t x = 0; x < adjustedWidth; ++x)
-		{
-			tempSdf[y*adjustedWidth + x] = computeSignedDistance(pixels, width, height,
-				x - windowSize, y - windowSize, windowSize);
-		}
-	}
-
-	// Scale the glyph into the texture.
+	// Compute the signed distance field into the final glyph texture.
 	DS_ASSERT(glyphSize <= DS_HIGHEST_SIZE);
 	uint8_t textureData[DS_HIGHEST_SIZE*DS_HIGHEST_SIZE];
-	memset(textureData, 0, sizeof(textureData));
+	memset(textureData, 0, glyphSize*glyphSize);
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
-		float origY = (float)(int)(y - windowSize)*scaleY + (float)windowSize;
-		int startY = (int)origY;
-
-		// Calculate factors for linear filter.
-		float centerY = ((float)y + 0.5f)/scaleY;
-		unsigned int bottom = (int)(centerY - offsetY + 0.5f);
-		bottom = dsMax((int)bottom, 0);
-		unsigned int top = (unsigned int)(centerY + offsetY + 0.5f);
-		top = dsMin(top, adjustedHeight);
+		float glyphY = (float)y*scaleY + paddedBounds.min.y;
+		if (glyphY > paddedBounds.max.y)
+			break;
 
 		for (uint32_t x = 0; x < glyphSize; ++x)
 		{
-			float origX = (float)(int)(x - windowSize)*scaleX + (float)windowSize;
-			int startX = (int)origX;
+			dsVector2f glyphPos = {{(float)x*scaleX + paddedBounds.min.x, glyphY}};
+			if (glyphPos.x > paddedBounds.max.x)
+				break;
 
-			uint32_t dstIndex = y*glyphSize + x;
-			if (scaleX == 1.0f && scaleY == 1.0f)
-			{
-				if (startX >= 0 && startY >= 0 && startX < (int)adjustedWidth &&
-					startY < (int)adjustedHeight)
-				{
-					uint32_t srcIndex = startY*adjustedWidth + startX;
-					textureData[dstIndex] = (uint8_t)roundf(tempSdf[srcIndex]*255.0f);
-				}
-				else
-					textureData[dstIndex] = 0;
-			}
-			else
-			{
-				// Linear filter.
-				float centerX = ((float)x + 0.5f)/scaleX;
-				unsigned int left = (int)(centerX - offsetX + 0.5f);
-				left = dsMax((int)left, 0);
-				unsigned int right = (unsigned int)(centerX + offsetX + 0.5f);
-				right = dsMin(right, adjustedWidth);
-
-				float weightedDistance = 0.0f;
-				float totalWeight = 0.0f;
-				for (unsigned int y2 = bottom; y2 < top; ++y2)
-				{
-					float weightY = 1.0f - fabsf((float)y2 + 0.5f - centerY)*scaleY;
-					weightY = dsMax(weightY, 0.0f);
-					if (weightY == 0.0)
-						continue;
-
-					for (unsigned int x2 = left; x2 < right; ++x2)
-					{
-						float weightX = 1.0f - fabsf((float)x2 + 0.5f - centerX)*scaleX;
-						weightX = dsMax(weightX, 0.0f);
-						if (weightX == 0.0)
-							continue;
-
-						uint32_t srcIndex = y2*adjustedWidth + x2;
-						float weight = weightX*weightY;
-						weightedDistance += tempSdf[srcIndex]*weight;
-						totalWeight += weight;
-					}
-				}
-
-				if (totalWeight == 0)
-					textureData[dstIndex] = 0;
-				else
-					textureData[dstIndex] = (uint8_t)roundf(weightedDistance*255.0f/totalWeight);
-			}
+			float distance = computeSignedDistance(&glyphPos, geometry);
+			distance = dsClamp(distance, -windowSize, windowSize);
+			textureData[y*glyphSize + x] = (uint8_t)(((distance/windowSize)*0.5f + 0.5f)*255.0f);
 		}
 	}
 
@@ -277,16 +300,16 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 }
 
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	const dsVector2i* texSize, uint32_t glyphSize)
+	const dsVector2f* glyphBoundsSize, uint32_t glyphSize)
 {
 	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
 	float levelSize = 1.0f/(float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
 
-	dsVector2f offset = {{(float)(texSize->x + windowSize*2), (float)(texSize->y + windowSize*2)}};
-	offset.x = dsMin(offset.x, (float)glyphSize) - 1.0f;
-	offset.y = dsMin(offset.y, (float)glyphSize) - 1.0f;
+	dsVector2f offset = {{glyphBoundsSize->x + windowSize*2, glyphBoundsSize->y + windowSize*2}};
+	offset.x = dsMin(offset.x, (float)(glyphSize - 1)) - 1.0f;
+	offset.y = dsMin(offset.y, (float)(glyphSize - 1)) - 1.0f;
 
 	dsVector2f levelSize2 = {{levelSize, levelSize}};
 	dsVector2_mul(offset, offset, levelSize2);
@@ -379,31 +402,9 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	font->glyphSize = glyphSize;
 	font->usedGlyphCount = 0;
 
-	font->maxWidth = glyphSize*2;
-	font->maxHeight = glyphSize*2;
-	dsAllocator* scratchAllocator = dsFaceGroup_getScratchAllocator(group);
-	font->tempImage = (uint8_t*)dsAllocator_alloc(scratchAllocator,
-		font->maxWidth*font->maxHeight*sizeof(uint8_t));
-	if (!font->tempImage)
-	{
-		if (font->allocator)
-			dsAllocator_free(font->allocator, font);
-		dsFaceGroup_unlock(group);
-		return NULL;
-	}
-
-	unsigned int windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
-	uint32_t sdfWidth = font->maxWidth + windowSize*2;
-	uint32_t sdfHeight= font->maxHeight + windowSize*2;
-	font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);
-	if (!font->tempSdf)
-	{
-		dsAllocator_free(scratchAllocator, font->tempImage);
-		if (font->allocator)
-			dsAllocator_free(font->allocator, font);
-		dsFaceGroup_unlock(group);
-		return NULL;
-	}
+	dsGlyphGeometry* geometry = &font->glyphGeometry;
+	memset(geometry, 0, sizeof(dsGlyphGeometry));
+	geometry->allocator = dsFaceGroup_getScratchAllocator(font->group);
 
 	DS_STATIC_ASSERT(sizeof(dsGlyphKey) == sizeof(uint64_t), unexpected_glyph_key_size);
 	DS_VERIFY(dsHashTable_initialize(&font->glyphTable.hashTable, DS_TABLE_SIZE,
@@ -418,8 +419,6 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		dsTextureUsage_Texture | dsTextureUsage_CopyTo, dsGfxMemory_Dynamic, &texInfo, NULL, 0);
 	if (!font->texture)
 	{
-		dsAllocator_free(scratchAllocator, font->tempImage);
-		dsAllocator_free(scratchAllocator, font->tempSdf);
 		if (font->allocator)
 			dsAllocator_free(font->allocator, font);
 		dsFaceGroup_unlock(group);
@@ -479,8 +478,9 @@ bool dsFont_destroy(dsFont* font)
 		return false;
 
 	dsAllocator* scratchAllocator = dsFaceGroup_getScratchAllocator(font->group);
-	dsAllocator_free(scratchAllocator, font->tempImage);
-	dsAllocator_free(scratchAllocator, font->tempSdf);
+	dsAllocator_free(scratchAllocator, font->glyphGeometry.points);
+	dsAllocator_free(scratchAllocator, font->glyphGeometry.loops);
+	dsAllocator_free(scratchAllocator, font->glyphGeometry.sortedEdges);
 
 	if (font->allocator)
 		return dsAllocator_free(font->allocator, font);

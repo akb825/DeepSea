@@ -69,7 +69,7 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = textureLod(fontTex, vertexOut.texCoords.xy, vertexOut.texCoords.z).r;
+	float distance = dsComputeTextDistance(fontTex, vertexOut.texCoords);
 	color = dsComputeTextColor(distance, vertexOut.style.x, vertexOut.style.y, vertexOut.style.z,
 		vertexOut.style.w, vertexOut.textColor, vertexOut.outlineColor);
 }

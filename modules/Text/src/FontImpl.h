@@ -60,8 +60,48 @@ typedef struct dsGlyphInfo
 	dsHashTableNode node;
 	dsGlyphKey key;
 	dsAlignedBox2f glyphBounds;
-	dsVector2i texSize;
 } dsGlyphInfo;
+
+typedef struct dsGlyphPoint
+{
+	dsVector2f position;
+
+	dsVector2f nextPos;
+	dsVector2f edgeDir;
+	float edgeLength;
+} dsGlyphPoint;
+
+typedef struct dsGlyphLoop
+{
+	uint32_t firstPoint;
+	uint32_t pointCount;
+	dsAlignedBox2f bounds;
+} dsGlyphLoop;
+
+typedef struct dsOrderedGlyphEdge
+{
+	dsVector2f minPoint;
+	dsVector2f maxPoint;
+} dsOrderedGlyphEdge;
+
+typedef struct dsGlyphGeometry
+{
+	dsAllocator* allocator;
+
+	dsGlyphPoint* points;
+	uint32_t pointCount;
+	uint32_t maxPoints;
+
+	dsGlyphLoop* loops;
+	uint32_t loopCount;
+	uint32_t maxLoops;
+
+	dsOrderedGlyphEdge* sortedEdges;
+	uint32_t edgeCount;
+	uint32_t maxEdges;
+
+	dsAlignedBox2f bounds;
+} dsGlyphGeometry;
 
 struct dsFont
 {
@@ -72,11 +112,9 @@ struct dsFont
 	uint16_t glyphSize;
 	uint16_t usedGlyphCount;
 
-	uint32_t maxWidth;
-	uint32_t maxHeight;
-	// This gives up thread safety, but is already not an option for FreeType.
-	uint8_t* tempImage;
-	float* tempSdf;
+	// State of currently loaded glyph. This gives up thread safety, but is already not an option
+	// for FreeType.
+	dsGlyphGeometry glyphGeometry;
 
 	dsTexture* texture;
 	dsGlyphInfo glyphPool[DS_GLYPH_SLOTS];
@@ -85,7 +123,7 @@ struct dsFont
 
 bool dsIsSpace(uint32_t charcode);
 const char* dsFontFace_getName(const dsFontFace* face);
-bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
+bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, dsFont* font);
 
@@ -116,9 +154,8 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 
 // Pixel values are 0 or 1, +Y points down.
 bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	uint32_t glyphIndex, uint32_t glyphSize, const uint8_t* pixels, unsigned int width,
-	unsigned int height, float* tempSdf);
+	uint32_t glyphIndex, uint32_t glyphSize, const dsGlyphGeometry* geometry);
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex,
 	uint32_t glyphSize);
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	const dsVector2i* texSize, uint32_t glyphSize);
+	const dsVector2f* glyphBoundsSize, uint32_t glyphSize);

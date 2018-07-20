@@ -17,9 +17,21 @@
 #pragma once
 
 /**
+ * @brief Computes the signed distance from a texture.
+ * @param fontTex The sampler for the font texture.
+ * @param texCoords The texture coordinates for the current position. The z value is the mip level.
+ * @param mipLevel The mip level that the glyph is stored in.
+ * @return The signed distance represented in the range [0, 1].
+ */
+float dsComputeTextDistance(sampler2D fontTex, vec3 texCoords)
+{
+	return textureLod(fontTex, texCoords.xy, texCoords.z).r;
+}
+
+/**
  * @brief Computes the text color based on a signed distance field.
- * @param distance The signed distance in the range [0, 1] to the closest edge. (from the texture
- *     lookup)
+ * @param distance The signed distance represented in the range [0, 1], typically cpmputed from
+ *     dsComputeTextDistance().
  * @param embolden The amount to embolden the text.
  * @param antiAlias The amount to anti-alias the text.
  * @param outlinePosition The position of the outline in the range [0, 1], where 1 is further from

@@ -157,7 +157,7 @@ vec4 dsVectorElementText_getMaterialColor()
 	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
-	float distance = textureLod(dsVectorOtherTex, texCoords.xy, texCoords.z).r;
+	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
 
 	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
 	float outline = dsVectorVertexOut.outlineAntiAlias.x;

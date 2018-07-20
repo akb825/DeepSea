@@ -24,6 +24,9 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Sort.h>
+#include <DeepSea/Geometry/AlignedBox2.h>
+#include <DeepSea/Geometry/BezierCurve.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Text/FaceGroup.h>
@@ -36,6 +39,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_MODULE_H
+#include FT_OUTLINE_H
 #include <hb.h>
 #include <hb-ft.h>
 
@@ -96,6 +100,8 @@ struct dsFaceGroup
 	dsFontFace faces[];
 };
 
+#define CHORDAL_TOLERANCE 0.125
+#define EQUAL_EPSILON 1e-7f
 static const unsigned int fixedScale = 1 << 6;
 
 static void* ftAlloc(FT_Memory memory, long size)
@@ -212,6 +218,254 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	return face;
 }
 
+static bool addGlyphPoint(dsGlyphGeometry* geometry, const dsVector2f* position)
+{
+	uint32_t curPointIndex = geometry->pointCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->points, geometry->pointCount,
+		geometry->maxPoints, 1))
+	{
+		return false;
+	}
+
+	DS_ASSERT(geometry->loopCount > 0);
+	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
+	++loop->pointCount;
+	dsAlignedBox2_addPoint(loop->bounds, *position);
+	dsAlignedBox2_addPoint(geometry->bounds, *position);
+
+	dsGlyphPoint* point = geometry->points + curPointIndex;
+	point->position = *position;
+	return true;
+}
+
+static bool addGlyphLine(dsGlyphGeometry* geometry, const dsVector2f* end)
+{
+	DS_ASSERT(geometry->pointCount > 0);
+	dsGlyphPoint* start = geometry->points + geometry->pointCount - 1;
+	float distance = dsVector2f_dist(&start->position, end);
+	if (distance < EQUAL_EPSILON)
+		return true;
+
+	// Check if we're adding a new edge.
+	DS_ASSERT(geometry->loopCount > 0);
+	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
+	DS_ASSERT(loop->pointCount > 0);
+	if (loop->pointCount > 1)
+	{
+		const dsVector2f* prevPos = &(start - 1)->position;
+		dsVector2f prevDir;
+		dsVector2_sub(prevDir, start->position, *prevPos);
+		dsVector2f_normalize(&prevDir, &prevDir);
+
+		dsVector2f nextDir;
+		dsVector2_sub(nextDir, *end, start->position);
+		dsVector2f_normalize(&nextDir, &nextDir);
+	}
+
+	return addGlyphPoint(geometry, end);
+}
+
+static int compareGlyphEdge(const void* left, const void* right, void* context)
+{
+	DS_UNUSED(context);
+	const dsOrderedGlyphEdge* leftEdge = (const dsOrderedGlyphEdge*)left;
+	const dsOrderedGlyphEdge* rightEdge = (const dsOrderedGlyphEdge*)right;
+	if (leftEdge->minPoint.y < rightEdge->minPoint.y)
+		return -1;
+	else if (leftEdge->minPoint.y > rightEdge->minPoint.y)
+		return 1;
+	else if (leftEdge->minPoint.x < rightEdge->minPoint.y)
+		return -1;
+	else if (leftEdge->minPoint.x > rightEdge->minPoint.x)
+		return 1;
+	return 0;
+}
+
+static bool sortGlyphEdges(dsGlyphGeometry* geometry)
+{
+	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->sortedEdges, geometry->edgeCount,
+		geometry->maxEdges, geometry->pointCount))
+	{
+		return false;
+	}
+
+	uint32_t edgeIndex = 0;
+	for (uint32_t i = 0; i < geometry->loopCount; ++i)
+	{
+		const dsGlyphLoop* loop = geometry->loops + i;
+		for (uint32_t j = 0; j < loop->pointCount; ++j, ++edgeIndex)
+		{
+			const dsVector2f* firstPos = &geometry->points[loop->firstPoint + j].position;
+			uint32_t secondPosIndex = loop->firstPoint + (j + 1) % loop->pointCount;
+			const dsVector2f* secondPos = &geometry->points[secondPosIndex].position;
+
+			dsOrderedGlyphEdge* edge = geometry->sortedEdges + edgeIndex;
+			if (firstPos->y < secondPos->y ||
+				(firstPos->y == secondPos->y && firstPos->x < secondPos->x))
+			{
+				edge->minPoint = *firstPos;
+				edge->maxPoint = *secondPos;
+			}
+			else
+			{
+				edge->minPoint = *secondPos;
+				edge->maxPoint = *firstPos;
+			}
+		}
+	}
+
+	DS_ASSERT(edgeIndex == geometry->pointCount);
+	dsSort(geometry->sortedEdges, geometry->pointCount, sizeof(dsOrderedGlyphEdge),
+		&compareGlyphEdge, NULL);
+	return true;
+}
+
+static bool endGlyphLoop(dsGlyphGeometry* geometry)
+{
+	if (geometry->loopCount == 0)
+		return true;
+
+	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
+	if (loop->pointCount < 3)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid glyph geometry.");
+		return false;
+	}
+
+	// Remove duplicate ending point.
+	DS_ASSERT(loop->firstPoint + loop->pointCount == geometry->pointCount);
+	const dsGlyphPoint* firstPoint = geometry->points + loop->firstPoint;
+	dsGlyphPoint* lastPoint = geometry->points + loop->firstPoint + loop->pointCount - 1;
+	if (dsVector2f_epsilonEqual(&firstPoint->position, &lastPoint->position, EQUAL_EPSILON))
+	{
+		--loop->pointCount;
+		--geometry->pointCount;
+		--lastPoint;
+	}
+
+	for (uint32_t i = 0; i < loop->pointCount; ++i)
+	{
+		dsGlyphPoint* point = geometry->points + loop->firstPoint + i;
+		const dsGlyphPoint* nextPoint = geometry->points + loop->firstPoint +
+			((i + 1) % loop->pointCount);
+
+		point->nextPos = nextPoint->position;
+		dsVector2_sub(point->edgeDir, nextPoint->position, point->position);
+		point->edgeLength = dsVector2f_len(&point->edgeDir);
+	}
+
+	return true;
+}
+
+static bool addGlyphBezierPoint(void* userData, const void* point, uint32_t axisCount, double t)
+{
+	DS_UNUSED(axisCount);
+	if (t == 0.0f)
+		return true;
+
+	dsGlyphGeometry* geometry = (dsGlyphGeometry*)userData;
+	const dsVector2d* doublePos = (const dsVector2d*)point;
+	dsVector2f floatPos = {{(float)doublePos->x, (float)doublePos->y}};
+	return addGlyphLine(geometry, &floatPos);
+}
+
+static int glyphMoveTo(const FT_Vector* to, void* user)
+{
+	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
+	if (!endGlyphLoop(geometry))
+	{
+		if (errno == EPERM)
+			return FT_Err_Invalid_Argument;
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	uint32_t loopIndex = geometry->loopCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->loops, geometry->loopCount,
+		geometry->maxLoops, 1))
+	{
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	dsGlyphLoop* loop = geometry->loops + loopIndex;
+	loop->firstPoint = geometry->pointCount;
+	loop->pointCount = 0;
+	dsAlignedBox2f_makeInvalid(&loop->bounds);
+
+	dsVector2f position = {{(float)to->x/(float)fixedScale, (float)-to->y/(float)fixedScale}};
+	if (!addGlyphPoint(geometry, &position))
+	{
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	return 0;
+}
+
+static int glyphLineTo(const FT_Vector* to, void* user)
+{
+	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
+	dsVector2f position = {{(float)to->x/(float)fixedScale, (float)-to->y/(float)fixedScale}};
+	if (!addGlyphLine(geometry, &position))
+	{
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	return 0;
+}
+
+static int glyphConicTo(const FT_Vector* control, const FT_Vector* to, void* user)
+{
+	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
+	DS_ASSERT(geometry->pointCount > 0);
+
+	const dsVector2f* start = &geometry->points[geometry->pointCount - 1].position;
+
+	dsVector2d p0 = {{start->x, start->y}};
+	dsVector2d p1 = {{(double)control->x/(double)fixedScale,
+		(double)-control->y/(double)fixedScale}};
+	dsVector2d p2 = {{(double)to->x/(double)fixedScale, (double)-to->y/(double)fixedScale}};
+	dsBezierCurve curve;
+	DS_VERIFY(dsBezierCurve_initializeQuadratic(&curve, 2, &p0, &p1, &p2));
+
+	if (!dsBezierCurve_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	{
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	return 0;
+}
+
+static int glyphCubicTo(const FT_Vector* control1, const FT_Vector* control2, const FT_Vector* to,
+	void* user)
+{
+	dsGlyphGeometry* geometry = (dsGlyphGeometry*)user;
+	DS_ASSERT(geometry->pointCount > 0);
+
+	const dsVector2f* start = &geometry->points[geometry->pointCount - 1].position;
+
+	dsVector2d p0 = {{start->x, start->y}};
+	dsVector2d p1 = {{(double)control1->x/(double)fixedScale,
+		(double)-control1->y/(double)fixedScale}};
+	dsVector2d p2 = {{(double)control2->x/(double)fixedScale,
+		(double)-control2->y/(double)fixedScale}};
+	dsVector2d p3 = {{(double)to->x/(double)fixedScale, (double)-to->y/(double)fixedScale}};
+	dsBezierCurve curve;
+	DS_VERIFY(dsBezierCurve_initialize(&curve, 2, &p0, &p1, &p2, &p3));
+
+	if (!dsBezierCurve_tessellate(&curve, CHORDAL_TOLERANCE, 10, &addGlyphBezierPoint, geometry))
+	{
+		DS_ASSERT(errno == ENOMEM);
+		return FT_Err_Out_Of_Memory;
+	}
+
+	return 0;
+}
+
 bool dsIsSpace(uint32_t charcode)
 {
 	// Work around assert on Windows.
@@ -226,71 +480,30 @@ const char* dsFontFace_getName(const dsFontFace* face)
 	return face->name;
 }
 
-bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsVector2i* outTexSize, dsFontFace* face,
+bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, dsFont* font)
 {
 	FT_Face ftFace = hb_ft_font_get_face(face->font);
 	DS_ASSERT(ftFace);
-	FT_Load_Glyph(ftFace, glyph, FT_LOAD_NO_HINTING | FT_LOAD_RENDER);
+	FT_Load_Glyph(ftFace, glyph, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 
-	float scale = 1.0f/(float)glyphSize;
-	FT_Bitmap* bitmap = &ftFace->glyph->bitmap;
-	DS_ASSERT(bitmap->width <= face->maxWidth);
-	DS_ASSERT(bitmap->rows <= face->maxHeight);
-	outBounds->min.x = (float)ftFace->glyph->bitmap_left*scale;
-	outBounds->min.y = ((float)ftFace->glyph->bitmap_top - (float)bitmap->rows)*scale;
-	outBounds->max.x = outBounds->min.x + (float)bitmap->width*scale;
-	outBounds->max.y = outBounds->min.y + (float)bitmap->rows*scale;
+	dsGlyphGeometry* geometry = &font->glyphGeometry;
+	geometry->pointCount = 0;
+	geometry->loopCount = 0;
+	geometry->edgeCount = 0;
+	dsAlignedBox2f_makeInvalid(&geometry->bounds);
 
-	outTexSize->x = bitmap->width;
-	outTexSize->y = bitmap->rows;
+	FT_Outline_Funcs outlineFuncs =
+		{&glyphMoveTo, &glyphLineTo, &glyphConicTo, &glyphCubicTo, 0, 0};
+	if (setFontLoadErrno(FT_Outline_Decompose(&ftFace->glyph->outline, &outlineFuncs, geometry)))
+		return false;
 
-	// May need to re-allocate the temporary images.
-	if (bitmap->width > font->maxWidth || bitmap->rows > font->maxHeight)
-	{
-		font->maxWidth = dsMax(bitmap->width, font->maxWidth);
-		font->maxHeight = dsMax(bitmap->rows, font->maxHeight);
+	if (!endGlyphLoop(geometry) || !sortGlyphEdges(geometry))
+		return false;
 
-		dsAllocator* scratchAllocator = font->group->scratchAllocator;
-		dsAllocator_free(scratchAllocator, font->tempImage);
-		dsAllocator_free(scratchAllocator, font->tempSdf);
-		font->tempImage = NULL;
-		font->tempSdf = NULL;
-
-		font->tempImage = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, uint8_t,
-			font->maxWidth*font->maxHeight);
-		if (!font->tempImage)
-		{
-			font->maxWidth = font->maxHeight = 0;
-			return false;
-		}
-
-		uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
-		uint32_t sdfWidth = font->maxWidth + windowSize*2;
-		uint32_t sdfHeight= font->maxHeight + windowSize*2;
-		font->tempSdf = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, float, sdfWidth*sdfHeight);
-		if (!font->tempSdf)
-		{
-			dsAllocator_free(scratchAllocator, font->tempImage);
-			font->tempImage = NULL;
-			font->maxWidth = font->maxHeight = 0;
-			return false;
-		}
-	}
-
-	DS_ASSERT(bitmap->pixel_mode == FT_PIXEL_MODE_GRAY ||
-		(bitmap->rows == 0 && bitmap->width == 0));
-	for (unsigned int y = 0; y < bitmap->rows; ++y)
-	{
-		const uint8_t* row = bitmap->buffer + abs(bitmap->pitch)*y;
-		unsigned int destY = bitmap->pitch > 0 ? y : bitmap->rows - y - 1;
-		for (unsigned int x = 0; x < bitmap->width; ++x)
-			font->tempImage[destY*bitmap->width + x] = row[x];
-	}
-
-	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize,
-		font->tempImage, bitmap->width, bitmap->rows, font->tempSdf);
+	*outBounds = geometry->bounds;
+	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize, geometry);
 }
 
 void dsFaceGroup_lock(const dsFaceGroup* group)
@@ -730,23 +943,12 @@ bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTex
 
 	float hintingStart, hintingEnd;
 	float smallEmbolding, largeEmbolding;
-	float maxAntiAlias;
-	if (faceGroup->quality == dsTextQuality_VeryLow)
-	{
-		hintingStart = 9.0f;
-		hintingEnd = 32.0f;
-		smallEmbolding = 0.2f;
-		largeEmbolding = 0.05f;
-		maxAntiAlias = 0.4f;
-	}
-	else
-	{
-		hintingStart = 9.0f;
-		hintingEnd = 32.0f;
-		smallEmbolding = 0.15f;
-		largeEmbolding = 0.0f;
-		maxAntiAlias = 0.3f;
-	}
+	float antiAliasFactor;
+	hintingStart = 9.0f;
+	hintingEnd = 32.0f;
+	smallEmbolding = 0.15f;
+	largeEmbolding = 0.0f;
+	antiAliasFactor = 2.0f;
 
 	float pixels = pixelScale*style->scale;
 	float size = dsClamp(pixels, hintingStart, hintingEnd);
@@ -759,8 +961,8 @@ bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTex
 		style->outlineThickness += embolding*0.5f;
 	}
 
-	t = 1.0f/sqrtf(pixels);
-	style->antiAlias = t*maxAntiAlias;
+	t = 1.0f/sqrtf(pixels*style->scale);
+	style->antiAlias = t*antiAliasFactor;
 	return true;
 }
 

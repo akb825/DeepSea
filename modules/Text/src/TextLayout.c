@@ -298,16 +298,12 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 				continue;
 			}
 
-			float scale = style->scale;
+			float scale = style->scale/(float)font->glyphSize;
 			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, range->face,
 				text->glyphs[index].glyphId);
 
 			dsVector2_scale(glyphs[index].geometry.min, glyphInfo->glyphBounds.min, scale);
 			dsVector2_scale(glyphs[index].geometry.max, glyphInfo->glyphBounds.max, scale);
-			// Convert to Y pointing down.
-			float temp = glyphs[index].geometry.min.y;
-			glyphs[index].geometry.min.y = -glyphs[index].geometry.max.y;
-			glyphs[index].geometry.max.y = -temp;
 
 			// Add the offset to the base glyph position.
 			glyphs[index].geometry.min.y += style->verticalOffset;
@@ -321,8 +317,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			// calculations.
 			glyphs[index].texCoords.min.x = (float)texturePos.x;
 			glyphs[index].texCoords.min.y = (float)texturePos.y;
-			glyphs[index].texCoords.max.x = (float)glyphInfo->texSize.x;
-			glyphs[index].texCoords.max.y = (float)glyphInfo->texSize.y;
+			dsAlignedBox2_extents(glyphs[index].texCoords.max, glyphInfo->glyphBounds);
 			glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
 		}
 	}
@@ -353,9 +348,9 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			if (!isWhitespace)
 			{
 				const dsTextStyle* style = layout->styles + glyphs[index].styleIndex;
-				uint32_t glyphImageWidth = (uint32_t)glyphs[index].texCoords.max.x + windowSize*2;
+				float glyphImageWidth = glyphs[index].texCoords.max.x + windowSize*2;
 				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
-				float glyphScale = (float)font->glyphSize/(float)glyphImageWidth;
+				float glyphScale = (float)font->glyphSize/glyphImageWidth;
 				float boundsPadding = glyphScale*basePadding*style->embolden*scale;
 				dsVector2f offset;
 				dsVector2_scale(offset, text->glyphs[index].offset, scale);
@@ -525,19 +520,19 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	{
 		dsTexturePosition texturePos = {dsCubeFace_None, (uint32_t)glyphs[i].texCoords.min.x,
 			(uint32_t)glyphs[i].texCoords.min.y, 0, glyphs[i].mipLevel};
-		dsVector2i texSize = {{(int)glyphs[i].texCoords.max.x, (int)glyphs[i].texCoords.max.y}};
+		const dsVector2f* glyphSize = &glyphs[i].texCoords.max;
 
 		// Don't add padding if the geometry is degenerate.
 		if (glyphs[i].geometry.min.x < glyphs[i].geometry.max.x &&
 			glyphs[i].geometry.min.y < glyphs[i].geometry.max.y)
 		{
 			float scale = layout->styles[glyphs[i].styleIndex].scale;
-			uint32_t glyphWidth = texSize.x + windowSize*2;
-			uint32_t glyphHeight = texSize.y + windowSize*2;
+			float glyphWidth = glyphSize->x + windowSize*2;
+			float glyphHeight = glyphSize->y + windowSize*2;
 			glyphWidth = dsMax(glyphWidth, paddedGlyphSize);
 			glyphHeight = dsMax(glyphHeight, paddedGlyphSize);
-			dsVector2f glyphScale = {{(float)paddedGlyphSize/(float)glyphWidth,
-				(float)paddedGlyphSize/(float)glyphHeight}};
+			dsVector2f glyphScale = {{(float)paddedGlyphSize/glyphWidth,
+				(float)paddedGlyphSize/glyphHeight}};
 			dsVector2f padding = {{basePadding, basePadding}};
 			dsVector2_mul(padding, padding, glyphScale);
 			dsVector2_scale(padding, padding, scale);
@@ -546,7 +541,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			dsVector2_add(glyphs[i].geometry.max, glyphs[i].geometry.max, padding);
 		}
 
-		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &texSize, font->glyphSize);
+		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, glyphSize, font->glyphSize);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);
@@ -591,7 +586,10 @@ bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
 			font->glyphSize);
 		glyphs[i].mipLevel = texturePos.mipLevel;
-		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &glyphInfo->texSize,
+
+		dsVector2f glyphSize;
+		dsAlignedBox2_extents(glyphSize, glyphInfo->glyphBounds);
+		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &glyphSize,
 			font->glyphSize);
 	}
 
