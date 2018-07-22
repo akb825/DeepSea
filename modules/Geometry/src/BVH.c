@@ -567,6 +567,15 @@ void dsBVH_clear(dsBVH* bvh)
 	bvh->objectBoundsFunc = NULL;
 }
 
+bool dsBVH_getBounds(void* outBounds, const dsBVH* bvh)
+{
+	if (!bvh || bvh->nodeCount == 0)
+		return false;
+
+	memcpy(outBounds, bvh->nodes->bounds, bvh->boundsSize);
+	return true;
+}
+
 void dsBVH_destroy(dsBVH* bvh)
 {
 	if (!bvh || !bvh->allocator)

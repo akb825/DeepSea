@@ -140,6 +140,15 @@ DS_GEOMETRY_EXPORT uint32_t dsBVH_intersect(const dsBVH* bvh, const void* bounds
 	dsBVHVisitFunction visitor, void* userData);
 
 /**
+ * @brief Gets the bounds of the BVH.
+ * @param outBounds The bounds. The type should be a dsAlignedBox* type appropriate for the axis
+ *     count and precision.
+ * @param bvh The BVH to get the bounds from.
+ * @return True if the bounds are set, false if the BVH is empty or invalid.
+ */
+DS_GEOMETRY_EXPORT bool dsBVH_getBounds(void* outBounds, const dsBVH* bvh);
+
+/**
  * @brief Clears the contents of the BVH.
  *
  * Internal memory will remain allocated to re-use for future calls to dsBVH_build().

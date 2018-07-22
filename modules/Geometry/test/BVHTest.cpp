@@ -326,6 +326,11 @@ TYPED_TEST(BVHTest, SeparateBoxes)
 	visitCounts = {0, 3};
 	EXPECT_EQ(3U, dsBVH_intersect(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
+	AlignedBoxType bounds;
+	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
+	AlignedBoxType fullBounds = TestFixture::createBounds(-2, -2, 0, 2, 2, 0);
+	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+
 	dsBVH_destroy(bvh);
 }
 
@@ -404,6 +409,11 @@ TYPED_TEST(BVHTest, SeparateBoxesBalanced)
 
 	visitCounts = {0, 3};
 	EXPECT_EQ(3U, dsBVH_intersect(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
+
+	AlignedBoxType bounds;
+	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
+	AlignedBoxType fullBounds = TestFixture::createBounds(-2, -2, 0, 2, 2, 0);
+	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
 
 	dsBVH_destroy(bvh);
 }
@@ -496,6 +506,11 @@ TYPED_TEST(BVHTest, OverlappingBoxes)
 	visitCounts = {0, 4};
 	EXPECT_EQ(4U, dsBVH_intersect(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
 
+	AlignedBoxType bounds;
+	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
+	AlignedBoxType fullBounds = TestFixture::createBounds(-3, -3, 0, 3, 3, 0);
+	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
+
 	dsBVH_destroy(bvh);
 }
 
@@ -586,6 +601,11 @@ TYPED_TEST(BVHTest, OverlappingBoxesBalanced)
 
 	visitCounts = {0, 4};
 	EXPECT_EQ(4U, dsBVH_intersect(bvh, &testBounds, &TestFixture::limitedVisits, &visitCounts));
+
+	AlignedBoxType bounds;
+	EXPECT_TRUE(dsBVH_getBounds(&bounds, bvh));
+	AlignedBoxType fullBounds = TestFixture::createBounds(-3, -3, 0, 3, 3, 0);
+	EXPECT_EQ(0, memcmp(&fullBounds, &bounds, sizeof(AlignedBoxType)));
 
 	dsBVH_destroy(bvh);
 }
