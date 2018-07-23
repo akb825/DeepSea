@@ -1721,7 +1721,8 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_SIZE = 20,
     VT_EMBOLDEN = 22,
     VT_SLANT = 24,
-    VT_OUTLINEWIDTH = 26
+    VT_OUTLINEWIDTH = 26,
+    VT_FUZINESS = 28
   };
   uint32_t start() const {
     return GetField<uint32_t>(VT_START, 0);
@@ -1759,6 +1760,9 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float outlineWidth() const {
     return GetField<float>(VT_OUTLINEWIDTH, 0.0f);
   }
+  float fuziness() const {
+    return GetField<float>(VT_FUZINESS, 0.0f);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_START) &&
@@ -1775,6 +1779,7 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<float>(verifier, VT_EMBOLDEN) &&
            VerifyField<float>(verifier, VT_SLANT) &&
            VerifyField<float>(verifier, VT_OUTLINEWIDTH) &&
+           VerifyField<float>(verifier, VT_FUZINESS) &&
            verifier.EndTable();
   }
 };
@@ -1818,6 +1823,9 @@ struct TextRangeCommandBuilder {
   void add_outlineWidth(float outlineWidth) {
     fbb_.AddElement<float>(TextRangeCommand::VT_OUTLINEWIDTH, outlineWidth, 0.0f);
   }
+  void add_fuziness(float fuziness) {
+    fbb_.AddElement<float>(TextRangeCommand::VT_FUZINESS, fuziness, 0.0f);
+  }
   explicit TextRangeCommandBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -1844,8 +1852,10 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommand(
     float size = 0.0f,
     float embolden = 0.0f,
     float slant = 0.0f,
-    float outlineWidth = 0.0f) {
+    float outlineWidth = 0.0f,
+    float fuziness = 0.0f) {
   TextRangeCommandBuilder builder_(_fbb);
+  builder_.add_fuziness(fuziness);
   builder_.add_outlineWidth(outlineWidth);
   builder_.add_slant(slant);
   builder_.add_embolden(embolden);
@@ -1874,7 +1884,8 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
     float size = 0.0f,
     float embolden = 0.0f,
     float slant = 0.0f,
-    float outlineWidth = 0.0f) {
+    float outlineWidth = 0.0f,
+    float fuziness = 0.0f) {
   return DeepSeaVectorDraw::CreateTextRangeCommand(
       _fbb,
       start,
@@ -1888,7 +1899,8 @@ inline flatbuffers::Offset<TextRangeCommand> CreateTextRangeCommandDirect(
       size,
       embolden,
       slant,
-      outlineWidth);
+      outlineWidth,
+      fuziness);
 }
 
 struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

@@ -374,6 +374,10 @@ table TextRangeCommand
 
 	// The width of the outline.
 	outlineWidth : float;
+
+	// The amount to blur for anti-aliasing. A value < 1 is sharper, > 1 is blurrier, and 1 is
+	// default.
+	fuziness : float;
 }
 
 // Structure defining a command for displaying an image.

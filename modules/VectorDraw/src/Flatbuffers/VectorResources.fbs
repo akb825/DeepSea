@@ -10,15 +10,20 @@ table Resource
 	path : string (required);
 }
 
-// Enum for the face group quality.
-enum FaceGroupQuality : ubyte
+// Enum for the font render quality.
+enum FontQuality : ubyte
 {
-	VeryLow,
 	Low,
 	Medium,
 	High,
-	VeryHigh,
-	Highest
+	VeryHigh
+}
+
+// Enum for the cache size for a font.
+enum FontCacheSize : ubyte
+{
+	Small,
+	Large
 }
 
 // Structure defining a face group.
@@ -26,9 +31,6 @@ table FaceGroup
 {
 	// The name of the face group.
 	name : string (required);
-
-	// The quality of the face group.
-	quality : FaceGroupQuality;
 
 	// List of font faces within the group.
 	faces : [Resource] (required);
@@ -45,6 +47,12 @@ table Font
 
 	// The list of font face to reference within the face group.
 	faces : [string] (required);
+
+	// The render quality of the font group.
+	quality : FontQuality;
+
+	// The size of the cache.
+	cacheSize : FontCacheSize;
 }
 
 // Structure defining vector resources.

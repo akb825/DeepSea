@@ -160,12 +160,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 
 static bool createFramebuffer(TestVectorDraw* testVectorDraw)
 {
-	uint32_t width, height;
-	if (!dsWindow_getPixelSize(&width, &height, testVectorDraw->window))
-	{
-		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't get window size: %s", dsErrorString(errno));
-		return false;
-	}
+	uint32_t width = testVectorDraw->window->surface->width;
+	uint32_t height = testVectorDraw->window->surface->height;
 
 	dsFramebuffer_destroy(testVectorDraw->framebuffer);
 

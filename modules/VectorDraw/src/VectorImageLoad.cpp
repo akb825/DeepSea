@@ -437,6 +437,7 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 				commands[i].textRange.embolden = textRangeCommand->embolden();
 				commands[i].textRange.slant = textRangeCommand->slant();
 				commands[i].textRange.outlineWidth = textRangeCommand->outlineWidth();
+				commands[i].textRange.fuziness = textRangeCommand->fuziness();
 				break;
 			}
 			case DeepSeaVectorDraw::VectorCommandUnion::ImageCommand:
@@ -469,7 +470,7 @@ static dsVectorImage* readVectorImage(dsAllocator* allocator, dsAllocator* resou
 	{
 		dsVector2f scale;
 		dsVector2_div(scale, *size, *targetSize);
-		pixelSize *= dsMax(scale.x, scale.y);
+		pixelSize *= dsMin(scale.x, scale.y);
 	}
 
 	return dsVectorImage_create(allocator, resourceAllocator, initResources,

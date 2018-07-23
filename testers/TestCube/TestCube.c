@@ -185,12 +185,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 
 static bool createFramebuffer(TestCube* testCube)
 {
-	uint32_t width, height;
-	if (!dsWindow_getPixelSize(&width, &height, testCube->window))
-	{
-		DS_LOG_ERROR_F("TestCube", "Couldn't get window size: %s", dsErrorString(errno));
-		return false;
-	}
+	uint32_t width = testCube->window->surface->width;
+	uint32_t height = testCube->window->surface->height;
 
 	dsFramebuffer_destroy(testCube->framebuffer);
 

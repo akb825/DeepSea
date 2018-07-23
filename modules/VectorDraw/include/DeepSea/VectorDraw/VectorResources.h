@@ -38,7 +38,7 @@ extern "C"
 /**
  * @brief Constant for the size of the text quality remap array.
  */
-#define DS_TEXT_QUALITY_REMAP_SIZE (dsTextQuality_Highest + 1)
+#define DS_TEXT_QUALITY_REMAP_SIZE (dsTextQuality_VeryHigh + 1)
 
 /**
  * @brief Gets the full allocation size of vector resources.

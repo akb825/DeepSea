@@ -26,15 +26,8 @@ class FaceGroup(object):
         return bytes()
 
     # FaceGroup
-    def Quality(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
-        if o != 0:
-            return self._tab.Get(flatbuffers.number_types.Uint8Flags, o + self._tab.Pos)
-        return 0
-
-    # FaceGroup
     def Faces(self, j):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             x = self._tab.Vector(o)
             x += flatbuffers.number_types.UOffsetTFlags.py_type(j) * 4
@@ -47,14 +40,13 @@ class FaceGroup(object):
 
     # FaceGroup
     def FacesLength(self):
-        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(8))
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(6))
         if o != 0:
             return self._tab.VectorLen(o)
         return 0
 
-def FaceGroupStart(builder): builder.StartObject(3)
+def FaceGroupStart(builder): builder.StartObject(2)
 def FaceGroupAddName(builder, name): builder.PrependUOffsetTRelativeSlot(0, flatbuffers.number_types.UOffsetTFlags.py_type(name), 0)
-def FaceGroupAddQuality(builder, quality): builder.PrependUint8Slot(1, quality, 0)
-def FaceGroupAddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
+def FaceGroupAddFaces(builder, faces): builder.PrependUOffsetTRelativeSlot(1, flatbuffers.number_types.UOffsetTFlags.py_type(faces), 0)
 def FaceGroupStartFacesVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def FaceGroupEnd(builder): return builder.EndObject()

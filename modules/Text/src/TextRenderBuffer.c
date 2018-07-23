@@ -99,6 +99,19 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 }
 
 bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
+	const dsTextLayout* layout, void* layoutUserData)
+{
+	if (!renderBuffer || !layout)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsTextRenderBuffer_addTextRange(renderBuffer, layout, layoutUserData, 0,
+		layout->text->characterCount);
+}
+
+bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount)
 {
 	DS_PROFILE_FUNC_START();

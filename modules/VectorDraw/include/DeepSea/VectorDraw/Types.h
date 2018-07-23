@@ -630,6 +630,13 @@ typedef struct dsVectorCommandTextRange
 	 * @brief The width of the outline.
 	 */
 	float outlineWidth;
+
+	/**
+	 * @brief The amount to blur for anti-aliasing.
+	 *
+	 * A value < 1 is sharper, > 1 is blurrier, and 1 is default.
+	 */
+	float fuziness;
 } dsVectorCommandTextRange;
 
 /**

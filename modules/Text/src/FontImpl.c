@@ -50,8 +50,6 @@ struct dsFontFace
 	dsAllocator* bufferAllocator;
 	void* buffer;
 	hb_font_t* font;
-	uint32_t maxWidth;
-	uint32_t maxHeight;
 };
 
 typedef struct dsParagraphInfo
@@ -70,16 +68,12 @@ struct dsFaceGroup
 	FT_Library library;
 	hb_unicode_funcs_t* unicode;
 	hb_buffer_t* shapeBuffer;
-	dsTextQuality quality;
 
 	dsText scratchText;
 
 	uint32_t* scratchCodepoints;
-	dsCharMapping* scratchCharMappings;
-	uint32_t scratchMaxCodepoints;
-	uint32_t scratchMaxCharMappings;
-
 	dsTextRange* scratchRanges;
+	uint32_t scratchMaxCodepoints;
 	uint32_t scratchMaxRanges;
 
 	dsGlyph* scratchGlyphs;
@@ -100,7 +94,7 @@ struct dsFaceGroup
 	dsFontFace faces[];
 };
 
-#define CHORDAL_TOLERANCE 0.125
+#define CHORDAL_TOLERANCE 0.1
 #define EQUAL_EPSILON 1e-7f
 static const unsigned int fixedScale = 1 << 6;
 
@@ -176,44 +170,15 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		return NULL;
 	}
 
-	switch (group->quality)
-	{
-		case dsTextQuality_VeryLow:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_VERY_LOW_SIZE);
-			break;
-		case dsTextQuality_Low:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_LOW_SIZE);
-			break;
-		case dsTextQuality_High:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_HIGH_SIZE);
-			break;
-		case dsTextQuality_VeryHigh:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_VERY_HIGH_SIZE);
-			break;
-		case dsTextQuality_Highest:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_HIGHEST_SIZE);
-			break;
-		case dsTextQuality_Medium:
-		default:
-			FT_Set_Pixel_Sizes(ftFace, 0, DS_MEDIUM_SIZE);
-			break;
-	}
 	hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
 	if (!hbFont)
 		return NULL;
-
-	FT_Pos widthU = ftFace->bbox.xMax - ftFace->bbox.xMin;
-	FT_Pos heightU = ftFace->bbox.yMax - ftFace->bbox.yMin;
-	FT_Fixed width = widthU*ftFace->size->metrics.x_scale;
-	FT_Fixed height = heightU*ftFace->size->metrics.y_scale;
 
 	dsFontFace* face = group->faces + group->faceCount++;
 	strncpy(face->name, name, nameLength + 1);
 	face->bufferAllocator = NULL;
 	face->buffer = NULL;
 	face->font = hbFont;
-	face->maxWidth = (uint32_t)FT_CeilFix(width) >> 16;
-	face->maxHeight = (uint32_t)FT_CeilFix(height) >> 16;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
 	return face;
 }
@@ -231,7 +196,6 @@ static bool addGlyphPoint(dsGlyphGeometry* geometry, const dsVector2f* position)
 	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
 	++loop->pointCount;
 	dsAlignedBox2_addPoint(loop->bounds, *position);
-	dsAlignedBox2_addPoint(geometry->bounds, *position);
 
 	dsGlyphPoint* point = geometry->points + curPointIndex;
 	point->position = *position;
@@ -283,7 +247,9 @@ static int compareGlyphEdge(const void* left, const void* right, void* context)
 
 static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 {
-	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->sortedEdges, geometry->edgeCount,
+	// Reserve space for sorted edges. It might be less for invalid loops.
+	uint32_t dummyEdgeCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(geometry->allocator, geometry->sortedEdges, dummyEdgeCount,
 		geometry->maxEdges, geometry->pointCount))
 	{
 		return false;
@@ -293,11 +259,14 @@ static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 	for (uint32_t i = 0; i < geometry->loopCount; ++i)
 	{
 		const dsGlyphLoop* loop = geometry->loops + i;
+		if (loop->pointCount < 3)
+			continue;
+
 		for (uint32_t j = 0; j < loop->pointCount; ++j, ++edgeIndex)
 		{
-			const dsVector2f* firstPos = &geometry->points[loop->firstPoint + j].position;
-			uint32_t secondPosIndex = loop->firstPoint + (j + 1) % loop->pointCount;
-			const dsVector2f* secondPos = &geometry->points[secondPosIndex].position;
+			const dsGlyphPoint* point = geometry->points + loop->firstPoint + j;
+			const dsVector2f* firstPos = &point->position;
+			const dsVector2f* secondPos = &point->nextPos;
 
 			dsOrderedGlyphEdge* edge = geometry->sortedEdges + edgeIndex;
 			if (firstPos->y < secondPos->y ||
@@ -314,8 +283,9 @@ static bool sortGlyphEdges(dsGlyphGeometry* geometry)
 		}
 	}
 
-	DS_ASSERT(edgeIndex == geometry->pointCount);
-	dsSort(geometry->sortedEdges, geometry->pointCount, sizeof(dsOrderedGlyphEdge),
+	DS_ASSERT(edgeIndex <= geometry->pointCount);
+	geometry->edgeCount = edgeIndex;
+	dsSort(geometry->sortedEdges, geometry->edgeCount, sizeof(dsOrderedGlyphEdge),
 		&compareGlyphEdge, NULL);
 	return true;
 }
@@ -326,12 +296,9 @@ static bool endGlyphLoop(dsGlyphGeometry* geometry)
 		return true;
 
 	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
+	// Should at least be a triangle.
 	if (loop->pointCount < 3)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_TEXT_LOG_TAG, "Invalid glyph geometry.");
-		return false;
-	}
+		return true;
 
 	// Remove duplicate ending point.
 	DS_ASSERT(loop->firstPoint + loop->pointCount == geometry->pointCount);
@@ -344,6 +311,11 @@ static bool endGlyphLoop(dsGlyphGeometry* geometry)
 		--lastPoint;
 	}
 
+	// Should still at least be a triangle. Do second check here since it may or may not have
+	// removed a point, and we need at least 2 points to perform the equality check.
+	if (loop->pointCount < 3)
+		return true;
+
 	for (uint32_t i = 0; i < loop->pointCount; ++i)
 	{
 		dsGlyphPoint* point = geometry->points + loop->firstPoint + i;
@@ -355,6 +327,7 @@ static bool endGlyphLoop(dsGlyphGeometry* geometry)
 		point->edgeLength = dsVector2f_len(&point->edgeDir);
 	}
 
+	dsAlignedBox2_addBox(geometry->bounds, loop->bounds);
 	return true;
 }
 
@@ -480,12 +453,20 @@ const char* dsFontFace_getName(const dsFontFace* face)
 	return face->name;
 }
 
+uint32_t dsFontFace_getCodepointGlyph(const dsFontFace* face, uint32_t codepoint)
+{
+	FT_Face ftFace = hb_ft_font_get_face(face->font);
+	DS_ASSERT(ftFace);
+	return FT_Get_Char_Index(ftFace, codepoint);
+}
+
 bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, dsFont* font)
 {
 	FT_Face ftFace = hb_ft_font_get_face(face->font);
 	DS_ASSERT(ftFace);
+	FT_Set_Pixel_Sizes(ftFace, 0, font->glyphSize);
 	FT_Load_Glyph(ftFace, glyph, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 
 	dsGlyphGeometry* geometry = &font->glyphGeometry;
@@ -503,7 +484,8 @@ bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 		return false;
 
 	*outBounds = geometry->bounds;
-	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize, geometry);
+	return dsFont_writeGlyphToTexture(commandBuffer, texture, glyphIndex, glyphSize,
+		font->texMultiplier, geometry);
 }
 
 void dsFaceGroup_lock(const dsFaceGroup* group)
@@ -730,15 +712,7 @@ dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
 		return NULL;
 	}
 
-	uint32_t tempSize = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->scratchCharMappings, tempSize,
-		group->scratchMaxCharMappings, length))
-	{
-		return NULL;
-	}
-
 	group->scratchText.characters = group->scratchCodepoints;
-	group->scratchText.charMappings = group->scratchCharMappings;
 	return &group->scratchText;
 }
 
@@ -832,7 +806,7 @@ size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces)
 }
 
 dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllocator,
-	uint32_t maxFaces, dsTextQuality quality)
+	uint32_t maxFaces)
 {
 	if (!allocator || maxFaces == 0)
 	{
@@ -906,12 +880,9 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	memset(&faceGroup->scratchText, 0, sizeof(dsText));
 
 	faceGroup->scratchCodepoints = NULL;
+	faceGroup->scratchRanges = NULL;
 	faceGroup->scratchMaxCodepoints = 0;
-
-	faceGroup->scratchRanges= NULL;
-	faceGroup->scratchCharMappings = NULL;
 	faceGroup->scratchMaxRanges = 0;
-	faceGroup->scratchMaxCharMappings = 0;
 
 	faceGroup->scratchGlyphs = NULL;
 	faceGroup->scratchGlyphCount = 0;
@@ -928,12 +899,11 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
-	faceGroup->quality = quality;
 	return faceGroup;
 }
 
 bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTextStyle* style,
-	float pixelScale)
+	float pixelScale, float fuziness)
 {
 	if (!faceGroup || !style)
 	{
@@ -948,7 +918,7 @@ bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTex
 	hintingEnd = 32.0f;
 	smallEmbolding = 0.15f;
 	largeEmbolding = 0.0f;
-	antiAliasFactor = 2.0f;
+	antiAliasFactor = 1.5f*fuziness;
 
 	float pixels = pixelScale*style->scale;
 	float size = dsClamp(pixels, hintingStart, hintingEnd);
@@ -1073,14 +1043,6 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 	return true;
 }
 
-dsTextQuality dsFaceGroup_getTextQuality(const dsFaceGroup* group)
-{
-	if (!group)
-		return dsTextQuality_Medium;
-
-	return group->quality;
-}
-
 void dsFaceGroup_destroy(dsFaceGroup* group)
 {
 	if (!group)
@@ -1100,13 +1062,23 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	FT_Done_Library(group->library);
 
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchCodepoints));
-	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchCharMappings));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchRanges));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchGlyphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->paragraphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->runs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->charMapping));
 	DS_VERIFY(dsAllocator_free(group->allocator, group));
+}
+
+uint32_t dsFont_findFaceForCodepoint(const dsFont* font, uint32_t codepoint)
+{
+	for (uint32_t i = 0; i < font->faceCount; ++i)
+	{
+		if (FT_Get_Char_Index(hb_ft_font_get_face(font->faces[i]->font), codepoint))
+			return i;
+	}
+
+	return 0;
 }
 
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
@@ -1127,15 +1099,10 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 		return true;
 	}
 
-	uint32_t face = 0;
-	for (uint32_t i = 0; i < font->faceCount; ++i)
-	{
-		if (FT_Get_Char_Index(hb_ft_font_get_face(font->faces[i]->font), firstCodepoint))
-		{
-			face = i;
-			break;
-		}
-	}
+	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
+	hb_font_t* hbFont = font->faces[face]->font;
+	FT_Set_Pixel_Sizes(hb_ft_font_get_face(hbFont), 0, font->glyphSize);
+	hb_ft_font_changed(hbFont);
 
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
 	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
@@ -1147,7 +1114,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	hb_buffer_set_script(shapeBuffer, (hb_script_t)dsFaceGroup_codepointScript(font->group,
 		firstCodepoint));
 	hb_buffer_set_language(shapeBuffer, hb_language_get_default());
-	hb_shape(font->faces[face]->font, shapeBuffer, NULL, 0);
+	hb_shape(hbFont, shapeBuffer, NULL, 0);
 	if (!hb_buffer_allocation_successful(shapeBuffer))
 	{
 		hb_buffer_reset(shapeBuffer);

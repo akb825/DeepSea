@@ -311,7 +311,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 			dsTexturePosition texturePos;
 			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
-				font->glyphSize);
+				font->glyphSize, font->texMultiplier);
 			glyphs[index].mipLevel = texturePos.mipLevel;
 			// Store the base information in texCoords for now so we can use it for later
 			// calculations.
@@ -324,7 +324,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 	// Second pass: find line breaks. Do this based on the original character order.
 	dsVector2f position = {{0.0f, 0.0f}};
-	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_VERY_LOW_SIZE;
+	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
 	const float basePadding = (float)windowSize/(float)font->glyphSize;
 	unsigned int wordCount = 0;
 	bool lastIsWhitespace = false;
@@ -333,11 +333,11 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	uint32_t firstWhitespaceBeforeWord = 0;
 	for (uint32_t i = 0; i < text->characterCount; ++i)
 	{
-		if (text->charMappings[i].glyphCount == 0)
+		const dsCharMapping* charMapping = text->charMappings + i;
+		if (charMapping->glyphCount == 0)
 			continue;
 
 		bool isWhitespace = dsIsSpace(text->characters[i]);
-		const dsCharMapping* charMapping = text->charMappings + i;
 		float scale = layout->styles[glyphs[charMapping->firstGlyph].styleIndex].scale;
 		float glyphWidth = 0.0f;
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
@@ -541,13 +541,26 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			dsVector2_add(glyphs[i].geometry.max, glyphs[i].geometry.max, padding);
 		}
 
-		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, glyphSize, font->glyphSize);
+		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, glyphSize, font->glyphSize,
+			font->texMultiplier);
 	}
 
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
+{
+	if (!layout || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsTextLayout_refreshRange(layout, commandBuffer, 0, layout->text->characterCount);
+}
+
+bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+	uint32_t firstChar, uint32_t charCount)
 {
 	DS_PROFILE_FUNC_START();
 	if (!layout || !commandBuffer)
@@ -556,41 +569,50 @@ bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, layout->text->characterCount))
+	{
+		errno = EINDEX;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (charCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
 	const dsText* text = layout->text;
 	dsFont* font = text->font;
 	dsGlyphLayout* glyphs = (dsGlyphLayout*)layout->glyphs;
 
-	if (text->glyphCount == 0)
-		DS_PROFILE_FUNC_RETURN(true);
-
 	dsFaceGroup_lock(font->group);
 
-	DS_ASSERT(text->rangeCount > 0);
-	const dsTextRange* textRange = text->ranges;
-	uint32_t textRangeLimit = textRange->glyphCount;
-	for (uint32_t i = 0; i < layout->text->glyphCount; ++i)
+	for (uint32_t i = 0; i < charCount; ++i)
 	{
-		// Advance the text range and style.
-		while (i >= textRangeLimit)
+		const dsCharMapping* charMapping = text->charMappings + firstChar + i;
+		const dsTextRange* textRange = findRange(text->ranges, text->rangeCount,
+			charMapping->firstGlyph);
+		DS_ASSERT(textRange);
+		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
-			++textRange;
-			DS_ASSERT(textRange < text->ranges + text->rangeCount);
-			DS_ASSERT(textRange->firstGlyph == textRangeLimit);
-			textRangeLimit += textRange->glyphCount;
+			uint32_t glyphIndex = charMapping->firstGlyph + j;
+			dsGlyphLayout* glyph = glyphs + glyphIndex;
+			// Skip empty glyphs.
+			if (glyph->geometry.min.x == glyph->geometry.max.x &&
+				glyph->geometry.min.y == glyph->geometry.max.y)
+			{
+				continue;
+			}
+
+			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
+				text->glyphs[glyphIndex].glyphId);
+			dsTexturePosition texturePos;
+			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
+				font->glyphSize, font->texMultiplier);
+			glyph->mipLevel = texturePos.mipLevel;
+
+			dsVector2f glyphSize;
+			dsAlignedBox2_extents(glyphSize, glyphInfo->glyphBounds);
+			dsFont_getGlyphTextureBounds(&glyph->texCoords, &texturePos, &glyphSize,
+				font->glyphSize, font->texMultiplier);
 		}
-
-		dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
-			text->glyphs[i].glyphId);
-
-		dsTexturePosition texturePos;
-		dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
-			font->glyphSize);
-		glyphs[i].mipLevel = texturePos.mipLevel;
-
-		dsVector2f glyphSize;
-		dsAlignedBox2_extents(glyphSize, glyphInfo->glyphBounds);
-		dsFont_getGlyphTextureBounds(&glyphs[i].texCoords, &texturePos, &glyphSize,
-			font->glyphSize);
 	}
 
 	dsFaceGroup_unlock(font->group);

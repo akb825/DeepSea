@@ -62,11 +62,10 @@ DS_TEXT_EXPORT size_t dsFaceGroup_fullAllocSize(uint32_t maxFaces);
  *     font allocations that support a custom allocator. If NULL it will use allocator, and must
  *     support freeing memory.
  * @param maxFaces The maximum number of font faces to be used with the face group.
- * @param quality The quality of the rendered text.
  * @return The face group, or NULL if it couldn't be created.
  */
 DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator,
-	dsAllocator* scratchAllocator, uint32_t maxFaces, dsTextQuality quality);
+	dsAllocator* scratchAllocator, uint32_t maxFaces);
 
 /**
  * @brief Applies hinting and anti-aliasing to a style.
@@ -82,10 +81,12 @@ DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator,
  * @param faceGroup The face group.
  * @param[inout] style The style to apply hinting and anti-aliasing to.
  * @param pixelScale The value to multiply by the scale of the style to get the size in pixels.
+ * @param fuziness The amount to blur the text for anti-aliasing. A value < 1 will be sharper, while
+ *     a value > 1 will be blurrier. A value of 1 is default.
  * @return False if the parameters are invalid.
  */
 DS_TEXT_EXPORT bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup,
-	dsTextStyle* style, float pixelScale);
+	dsTextStyle* style, float pixelScale, float fuziness);
 
 /**
  * @brief Gets the allocator for a face group.
@@ -135,12 +136,6 @@ DS_TEXT_EXPORT bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fil
  */
 DS_TEXT_EXPORT bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator,
 	const void* buffer, size_t size, const char* name);
-
-/**
- * @brief Gets the text rendering quality of a face group.
- * @param group The face group.
- */
-DS_TEXT_EXPORT dsTextQuality dsFaceGroup_getTextQuality(const dsFaceGroup* group);
 
 /**
  * @brief Destroys a face group.

@@ -106,7 +106,14 @@ class TextRangeCommand(object):
             return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
         return 0.0
 
-def TextRangeCommandStart(builder): builder.StartObject(12)
+    # TextRangeCommand
+    def Fuziness(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(28))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Float32Flags, o + self._tab.Pos)
+        return 0.0
+
+def TextRangeCommandStart(builder): builder.StartObject(13)
 def TextRangeCommandAddStart(builder, start): builder.PrependUint32Slot(0, start, 0)
 def TextRangeCommandAddCount(builder, count): builder.PrependUint32Slot(1, count, 0)
 def TextRangeCommandAddPositionType(builder, positionType): builder.PrependUint8Slot(2, positionType, 0)
@@ -119,4 +126,5 @@ def TextRangeCommandAddSize(builder, size): builder.PrependFloat32Slot(8, size, 
 def TextRangeCommandAddEmbolden(builder, embolden): builder.PrependFloat32Slot(9, embolden, 0.0)
 def TextRangeCommandAddSlant(builder, slant): builder.PrependFloat32Slot(10, slant, 0.0)
 def TextRangeCommandAddOutlineWidth(builder, outlineWidth): builder.PrependFloat32Slot(11, outlineWidth, 0.0)
+def TextRangeCommandAddFuziness(builder, fuziness): builder.PrependFloat32Slot(12, fuziness, 0.0)
 def TextRangeCommandEnd(builder): return builder.EndObject()

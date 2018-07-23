@@ -16,45 +16,68 @@ struct Font;
 
 struct ResourceSet;
 
-enum class FaceGroupQuality : uint8_t {
-  VeryLow = 0,
-  Low = 1,
-  Medium = 2,
-  High = 3,
-  VeryHigh = 4,
-  Highest = 5,
-  MIN = VeryLow,
-  MAX = Highest
+enum class FontQuality : uint8_t {
+  Low = 0,
+  Medium = 1,
+  High = 2,
+  VeryHigh = 3,
+  MIN = Low,
+  MAX = VeryHigh
 };
 
-inline const FaceGroupQuality (&EnumValuesFaceGroupQuality())[6] {
-  static const FaceGroupQuality values[] = {
-    FaceGroupQuality::VeryLow,
-    FaceGroupQuality::Low,
-    FaceGroupQuality::Medium,
-    FaceGroupQuality::High,
-    FaceGroupQuality::VeryHigh,
-    FaceGroupQuality::Highest
+inline const FontQuality (&EnumValuesFontQuality())[4] {
+  static const FontQuality values[] = {
+    FontQuality::Low,
+    FontQuality::Medium,
+    FontQuality::High,
+    FontQuality::VeryHigh
   };
   return values;
 }
 
-inline const char * const *EnumNamesFaceGroupQuality() {
+inline const char * const *EnumNamesFontQuality() {
   static const char * const names[] = {
-    "VeryLow",
     "Low",
     "Medium",
     "High",
     "VeryHigh",
-    "Highest",
     nullptr
   };
   return names;
 }
 
-inline const char *EnumNameFaceGroupQuality(FaceGroupQuality e) {
+inline const char *EnumNameFontQuality(FontQuality e) {
   const size_t index = static_cast<int>(e);
-  return EnumNamesFaceGroupQuality()[index];
+  return EnumNamesFontQuality()[index];
+}
+
+enum class FontCacheSize : uint8_t {
+  Small = 0,
+  Large = 1,
+  MIN = Small,
+  MAX = Large
+};
+
+inline const FontCacheSize (&EnumValuesFontCacheSize())[2] {
+  static const FontCacheSize values[] = {
+    FontCacheSize::Small,
+    FontCacheSize::Large
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesFontCacheSize() {
+  static const char * const names[] = {
+    "Small",
+    "Large",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameFontCacheSize(FontCacheSize e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesFontCacheSize()[index];
 }
 
 struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -124,14 +147,10 @@ inline flatbuffers::Offset<Resource> CreateResourceDirect(
 struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NAME = 4,
-    VT_QUALITY = 6,
-    VT_FACES = 8
+    VT_FACES = 6
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
-  }
-  FaceGroupQuality quality() const {
-    return static_cast<FaceGroupQuality>(GetField<uint8_t>(VT_QUALITY, 0));
   }
   const flatbuffers::Vector<flatbuffers::Offset<Resource>> *faces() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<Resource>> *>(VT_FACES);
@@ -140,7 +159,6 @@ struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
-           VerifyField<uint8_t>(verifier, VT_QUALITY) &&
            VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.Verify(faces()) &&
            verifier.VerifyVectorOfTables(faces()) &&
@@ -153,9 +171,6 @@ struct FaceGroupBuilder {
   flatbuffers::uoffset_t start_;
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(FaceGroup::VT_NAME, name);
-  }
-  void add_quality(FaceGroupQuality quality) {
-    fbb_.AddElement<uint8_t>(FaceGroup::VT_QUALITY, static_cast<uint8_t>(quality), 0);
   }
   void add_faces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Resource>>> faces) {
     fbb_.AddOffset(FaceGroup::VT_FACES, faces);
@@ -177,24 +192,20 @@ struct FaceGroupBuilder {
 inline flatbuffers::Offset<FaceGroup> CreateFaceGroup(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    FaceGroupQuality quality = FaceGroupQuality::VeryLow,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<Resource>>> faces = 0) {
   FaceGroupBuilder builder_(_fbb);
   builder_.add_faces(faces);
   builder_.add_name(name);
-  builder_.add_quality(quality);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FaceGroup> CreateFaceGroupDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
-    FaceGroupQuality quality = FaceGroupQuality::VeryLow,
     const std::vector<flatbuffers::Offset<Resource>> *faces = nullptr) {
   return DeepSeaVectorDraw::CreateFaceGroup(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
-      quality,
       faces ? _fbb.CreateVector<flatbuffers::Offset<Resource>>(*faces) : 0);
 }
 
@@ -202,7 +213,9 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NAME = 4,
     VT_FACEGROUP = 6,
-    VT_FACES = 8
+    VT_FACES = 8,
+    VT_QUALITY = 10,
+    VT_CACHESIZE = 12
   };
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -213,6 +226,12 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *faces() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_FACES);
   }
+  FontQuality quality() const {
+    return static_cast<FontQuality>(GetField<uint8_t>(VT_QUALITY, 0));
+  }
+  FontCacheSize cacheSize() const {
+    return static_cast<FontCacheSize>(GetField<uint8_t>(VT_CACHESIZE, 0));
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
@@ -222,6 +241,8 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffsetRequired(verifier, VT_FACES) &&
            verifier.Verify(faces()) &&
            verifier.VerifyVectorOfStrings(faces()) &&
+           VerifyField<uint8_t>(verifier, VT_QUALITY) &&
+           VerifyField<uint8_t>(verifier, VT_CACHESIZE) &&
            verifier.EndTable();
   }
 };
@@ -237,6 +258,12 @@ struct FontBuilder {
   }
   void add_faces(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> faces) {
     fbb_.AddOffset(Font::VT_FACES, faces);
+  }
+  void add_quality(FontQuality quality) {
+    fbb_.AddElement<uint8_t>(Font::VT_QUALITY, static_cast<uint8_t>(quality), 0);
+  }
+  void add_cacheSize(FontCacheSize cacheSize) {
+    fbb_.AddElement<uint8_t>(Font::VT_CACHESIZE, static_cast<uint8_t>(cacheSize), 0);
   }
   explicit FontBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -257,11 +284,15 @@ inline flatbuffers::Offset<Font> CreateFont(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::String> faceGroup = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> faces = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> faces = 0,
+    FontQuality quality = FontQuality::Low,
+    FontCacheSize cacheSize = FontCacheSize::Small) {
   FontBuilder builder_(_fbb);
   builder_.add_faces(faces);
   builder_.add_faceGroup(faceGroup);
   builder_.add_name(name);
+  builder_.add_cacheSize(cacheSize);
+  builder_.add_quality(quality);
   return builder_.Finish();
 }
 
@@ -269,12 +300,16 @@ inline flatbuffers::Offset<Font> CreateFontDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *name = nullptr,
     const char *faceGroup = nullptr,
-    const std::vector<flatbuffers::Offset<flatbuffers::String>> *faces = nullptr) {
+    const std::vector<flatbuffers::Offset<flatbuffers::String>> *faces = nullptr,
+    FontQuality quality = FontQuality::Low,
+    FontCacheSize cacheSize = FontCacheSize::Small) {
   return DeepSeaVectorDraw::CreateFont(
       _fbb,
       name ? _fbb.CreateString(name) : 0,
       faceGroup ? _fbb.CreateString(faceGroup) : 0,
-      faces ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*faces) : 0);
+      faces ? _fbb.CreateVector<flatbuffers::Offset<flatbuffers::String>>(*faces) : 0,
+      quality,
+      cacheSize);
 }
 
 struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

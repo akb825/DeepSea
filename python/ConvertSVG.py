@@ -1011,6 +1011,7 @@ def writeTextRange(builder, textRange):
 	TextRangeCommandAddEmbolden(builder, style.font.embolden)
 	TextRangeCommandAddSlant(builder, style.font.slant)
 	TextRangeCommandAddOutlineWidth(builder, outlineWidth)
+	TextRangeCommandAddFuziness(builder, 1.0)
 	commandOffset = TextRangeCommandEnd(builder)
 
 	VectorCommandStart(builder)

@@ -111,16 +111,8 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 
 		auto faces = faceGroupRef->faces();
 		uint32_t faceCount = faces->size();
-		dsTextQuality quality = static_cast<dsTextQuality>(faceGroupRef->quality());
-		if (quality < dsTextQuality_VeryLow || quality > dsTextQuality_Highest)
-			quality = dsTextQuality_Medium;
-		if (qualityRemap)
-		{
-			DS_ASSERT(quality >= 0 && quality < DS_TEXT_QUALITY_REMAP_SIZE);
-			quality = qualityRemap[quality];
-		}
 
-		dsFaceGroup* faceGroup = dsFaceGroup_create(allocator, allocator, faceCount, quality);
+		dsFaceGroup* faceGroup = dsFaceGroup_create(allocator, allocator, faceCount);
 		if (!faceGroup)
 		{
 			DS_VERIFY(dsVectorResources_destroy(resources));
@@ -207,7 +199,14 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 			faceList[j] = faceRef->c_str();
 		}
 
-		dsFont* font = dsFont_create(faceGroup, resourceManager, allocator, faceList, faceCount);
+		dsTextQuality quality = static_cast<dsTextQuality>(fontRef->quality());
+		if (quality < dsTextQuality_Low || quality > dsTextQuality_VeryHigh)
+			quality = dsTextQuality_Medium;
+		if (qualityRemap)
+			quality = qualityRemap[quality];
+
+		dsFont* font = dsFont_create(faceGroup, resourceManager, allocator, faceList, faceCount,
+			quality, static_cast<dsTextCache>(fontRef->cacheSize()));
 		if (!font)
 		{
 			DS_VERIFY(dsVectorResources_destroy(resources));

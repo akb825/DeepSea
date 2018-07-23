@@ -783,7 +783,7 @@ static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBu
 		{
 			DS_ASSERT(piece->range.firstIndex + j < vectorImage->textDrawInfoCount);
 			TextDrawInfo* drawInfo = vectorImage->textDrawInfos + piece->range.firstIndex + j;
-			DS_VERIFY(dsTextRenderBuffer_addText(piece->textRender, drawInfo->layout, drawInfo,
+			DS_VERIFY(dsTextRenderBuffer_addTextRange(piece->textRender, drawInfo->layout, drawInfo,
 				drawInfo->firstCharacter, drawInfo->characterCount));
 		}
 

@@ -123,6 +123,19 @@ DS_TEXT_EXPORT bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* c
 DS_TEXT_EXPORT bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer);
 
 /**
+ * @brief Refreshes the glyphs in the cache for a range of characters, ensuring they are available
+ *     to be rendered.
+ * @remark errno will be set on failure.
+ * @param layout The layout to refresh.
+ * @param commandBuffer The command buffer to queue any texture operations on.
+ * @param firstChar The first character to refresh.
+ * @param charCount The number of characters to refresh.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+	uint32_t firstChar, uint32_t charCount);
+
+/**
  * @brief Destroys a text layout object.
  * @param layout The layout to destroy.
  */

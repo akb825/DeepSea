@@ -11,7 +11,6 @@
 	[
 		{
 			"name": "default",
-			"quality": "medium",
 			"faces":
 			[
 				{"name": "sans", "path": "../Shared/Fonts/NotoSans-Regular.ttc"},
@@ -26,12 +25,15 @@
 		{
 			"name": "sans-serif",
 			"faceGroup": "default",
-			"faces": ["sans", "arabic", "thai"]
+			"faces": ["sans", "arabic", "thai"],
+			"quality": "high"
 		},
 		{
 			"name": "serif",
 			"faceGroup": "default",
-			"faces": ["serif"]
+			"faces": ["serif"],
+			"quality": "high",
+			"cacheSize": "small"
 		}
 	]
 }

@@ -38,30 +38,51 @@ extern "C"
 #define DS_TEXT_LOG_TAG "text"
 
 /**
- * @brief The number of slots available for glyphs.
+ * @brief The number of slots available for glyphs in a small cache.
+ *
+ * This is based on the number of slots available in different mip levels of the texture used for
+ * storage. (16*16 + 8*8 + 4*4 + 2*2 + 1, using mip levels large enough for glyphs) This is the
+ * number of unique glyphs that can be drawn before slots are overwritten.
+ */
+#define DS_SMALL_CACHE_GLYPH_SLOTS 341
+
+/**
+ * @brief The number of slots available for glyphs in a large cache.
  *
  * This is based on the number of slots available in different mip levels of the texture used for
  * storage. (32*32 + 16*16 + 8*8 + 4*4 + 2*2 + 1, using mip levels large enough for glyphs) This is
  * the number of unique glyphs that can be drawn before slots are overwritten.
  */
-#define DS_GLYPH_SLOTS 1365
+#define DS_LARGE_CACHE_GLYPH_SLOTS 1365
+
+/**
+ * @brief Enum for the size of the text cache.
+ */
+typedef enum dsTextCache
+{
+	dsTextCache_Small, ///< Small text cache, saving memory when few glyphs are required.
+	dsTextCache_Large  ///< Large text cache, more suitable for international text.
+} dsTextCache;
 
 /**
  * @brief Enum for the quality of the text.
  *
  * The text quality will directly correlate to how much texture memory is required for each font.
- * - Low: 256 KB
- * - Medium: 1 MB
- * - High: 4 MB
+ * When the large cache size is used, the memory used will be:
+ * - Low: 333 KB
+ * - Medium: 1.33 MB
+ * - High: 3 MB
+ * - VeryHigh: 5.32 MB
+ *
+ * Memory usage is 1/4 of the above values when the small cache size is used.
  */
 typedef enum dsTextQuality
 {
-	dsTextQuality_VeryLow,  ///< Very low quality with lowest memory and CPU usage.
-	dsTextQuality_Low,      ///< Low quality that will look better in more situations than very low.
-	dsTextQuality_Medium,   ///< Tradeoff between quality and memory and CPU usage.
-	dsTextQuality_High,     ///< High quality with more memory and CPU usage.
-	dsTextQuality_VeryHigh, ///< Even higher quality with larger costs.
-	dsTextQuality_Highest   ///< Highest quality that will look the best, but most expensive.
+	dsTextQuality_Low,     ///< The lowest cost, best used for small text.
+	dsTextQuality_Medium,  ///< Tradeoff for cost and quality, suitable for most text.
+	dsTextQuality_High,    ///< High quality. This has higher cost, but will give better results for
+	                       ///  large text or highly detailed glyphs. (e.g. Chinese)
+	dsTextQuality_VeryHigh ///< Highest quality, but also highest cost.
 } dsTextQuality;
 
 /**

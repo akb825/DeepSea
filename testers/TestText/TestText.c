@@ -298,6 +298,8 @@ static void addTextVertex(void* userData, const dsTextLayout* layout, void* layo
 {
 	DS_UNUSED(userData);
 	DS_UNUSED(layoutUserData);
+	DS_UNUSED(format);
+	DS_UNUSED(vertexCount);
 	DS_ASSERT(format->elements[dsVertexAttrib_Position].offset ==
 		offsetof(StandardVertex, position));
 	DS_ASSERT(format->elements[dsVertexAttrib_Color0].offset ==
@@ -375,6 +377,8 @@ static void addTessTextVertex(void* userData, const dsTextLayout* layout, void* 
 {
 	DS_UNUSED(userData);
 	DS_UNUSED(layoutUserData);
+	DS_UNUSED(format);
+	DS_UNUSED(vertexCount);
 	DS_ASSERT(format->elements[dsVertexAttrib_Position0].offset ==
 		offsetof(TessVertex, position));
 	DS_ASSERT(format->elements[dsVertexAttrib_Position1].offset ==
@@ -413,12 +417,10 @@ static void printHelp(const char* programPath)
 	printf("Use left/right arrows or tap on touchscreen to cyle text.\n\n");
 	printf("options:\n");
 	printf("  -h, --help      print this help message and exit\n");
-	printf("  -L, --very-low  use very low quality text\n");
 	printf("  -l, --low       use low quality text\n");
 	printf("  -m, --medium    use medium quality text (default)\n");
 	printf("  -H, --high      use high quality text\n");
 	printf("  -v, --very-high use very high quality text\n");
-	printf("  -T, --highest   use highest quality text\n");
 #if DS_HAS_OPENGL
 	printf("      --opengl    render using OpenGL\n");
 #endif
@@ -470,12 +472,8 @@ static void setPositions(TestText* testText)
 
 static bool createFramebuffer(TestText* testText)
 {
-	uint32_t width, height;
-	if (!dsWindow_getPixelSize(&width, &height, testText->window))
-	{
-		DS_LOG_ERROR_F("TestText", "Couldn't get window size: %s", dsErrorString(errno));
-		return false;
-	}
+	uint32_t width = testText->window->surface->width;
+	uint32_t height = testText->window->surface->height;
 
 	dsFramebuffer_destroy(testText->framebuffer);
 
@@ -537,8 +535,7 @@ static void createText(TestText* testText)
 	}
 
 	DS_VERIFY(dsTextRenderBuffer_clear(testText->textRender));
-	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, NULL, 0,
-		testText->text->text->characterCount))
+	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, NULL))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 		return;
@@ -575,8 +572,7 @@ static void createText(TestText* testText)
 		}
 
 		DS_VERIFY(dsTextRenderBuffer_clear(testText->tessTextRender));
-		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, NULL, 0,
-			testText->tessText->text->characterCount))
+		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, NULL))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 			return;
@@ -873,7 +869,7 @@ static bool setupText(TestText* testText, dsTextQuality quality)
 		}
 	}
 
-	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES, quality);
+	testText->faceGroup = dsFaceGroup_create(allocator, NULL, DS_DEFAULT_MAX_FACES);
 	if (!testText->faceGroup)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create face group: %s", dsErrorString(errno));
@@ -906,10 +902,17 @@ static bool setupText(TestText* testText, dsTextQuality quality)
 
 	const char* faceNames[] = {"Latin", "Arabic", "Thai"};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
-		DS_ARRAY_SIZE(faceNames));
+		DS_ARRAY_SIZE(faceNames), quality, dsTextCache_Large);
 	if (!testText->font)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create font: %s", dsErrorString(errno));
+		return false;
+	}
+
+	if (!dsFont_preloadASCII(testText->font, renderer->mainCommandBuffer))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
+			dsErrorString(errno));
 		return false;
 	}
 
@@ -1015,7 +1018,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 		for (unsigned int j = 0; j < 3; ++j)
 		{
 			DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(testText->faceGroup,
-				textStrings[i].styles + j, 1.0f));
+				textStrings[i].styles + j, 1.0f, 1.0f));
 		}
 	}
 
@@ -1059,8 +1062,6 @@ int dsMain(int argc, const char** argv)
 			printHelp(argv[0]);
 			return 0;
 		}
-		else if (strcmp(argv[i], "-L") == 0 || strcmp(argv[i], "--very-low") == 0)
-			quality = dsTextQuality_VeryLow;
 		else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--low") == 0)
 			quality = dsTextQuality_Low;
 		else if (strcmp(argv[i], "-m") == 0 || strcmp(argv[i], "--medium") == 0)
@@ -1069,8 +1070,6 @@ int dsMain(int argc, const char** argv)
 			quality = dsTextQuality_High;
 		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--very-high") == 0)
 			quality = dsTextQuality_VeryHigh;
-		else if (strcmp(argv[i], "-T") == 0 || strcmp(argv[i], "--highest") == 0)
-			quality = dsTextQuality_Highest;
 #if DS_HAS_OPENGL
 		else if (strcmp(argv[i], "--opengl") == 0)
 			renderType = dsRenderType_OpenGL;

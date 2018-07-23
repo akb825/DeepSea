@@ -25,16 +25,20 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Text/FaceGroup.h>
+#include <DeepSea/Text/Unicode.h>
 #include <float.h>
 #include <string.h>
 
 #define INTERSECT_EPSILON 1e-6f
+
+typedef uint32_t (*NextCodepointFunction)(const void* string, uint32_t* index);
 
 typedef enum PolygonResult
 {
@@ -119,12 +123,12 @@ static PolygonResult pointInsideGlyph(const dsVector2f* point, const dsGlyphGeom
 	// Start at the bottom, end once the min point is above the current point. Skip any edges where
 	// the max point is below. (since it won't hit a horizontal line originating at the current
 	// point)
-	for (uint32_t i = 0; i < geometry->pointCount; ++i)
+	for (uint32_t i = 0; i < geometry->edgeCount; ++i)
 	{
 		const dsOrderedGlyphEdge* edge = geometry->sortedEdges + i;
-		if (edge->minPoint.y > point->y)
+		if (edge->minPoint.y > point->y + INTERSECT_EPSILON)
 			break;
-		else if (edge->maxPoint.y < point->y)
+		else if (edge->maxPoint.y + INTERSECT_EPSILON < point->y)
 			continue;
 
 		// Shoot a ray to the right to see if it intersects.
@@ -151,6 +155,10 @@ static float computeSignedDistance(const dsVector2f* pos, const dsGlyphGeometry*
 	float curDistance = FLT_MAX;
 	for (uint32_t i = 0; i < geometry->loopCount; ++i)
 	{
+		const dsGlyphLoop* loop = geometry->loops + i;
+		if (loop->pointCount < 3)
+			continue;
+
 		if (curDistance != FLT_MAX && !dsAlignedBox2_containsPoint(geometry->loops[i].bounds, *pos))
 		{
 			dsVector2f boxPoint;
@@ -159,7 +167,6 @@ static float computeSignedDistance(const dsVector2f* pos, const dsGlyphGeometry*
 				continue;
 		}
 
-		const dsGlyphLoop* loop = geometry->loops + i;
 		for (uint32_t j = 0; j < loop->pointCount; ++j)
 		{
 			const dsGlyphPoint* curPoint = geometry->points + loop->firstPoint + j;
@@ -171,6 +178,47 @@ static float computeSignedDistance(const dsVector2f* pos, const dsGlyphGeometry*
 	}
 
 	return curDistance*inside;
+}
+
+static bool preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const void* string,
+	NextCodepointFunction nextCodepointFunc)
+{
+	DS_PROFILE_FUNC_START();
+	if (!font || !commandBuffer || !string)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsFaceGroup_lock(font->group);
+
+	uint32_t index = 0;
+	do
+	{
+		uint32_t codepoint = nextCodepointFunc(string, &index);
+		if (codepoint == DS_UNICODE_END)
+			break;
+		else if (codepoint == DS_UNICODE_INVALID)
+		{
+			errno = EINVAL;
+			dsFaceGroup_unlock(font->group);
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+
+		if (dsIsSpace(codepoint))
+			break;
+
+		uint32_t face = dsFont_findFaceForCodepoint(font, codepoint);
+		uint32_t glyph = dsFontFace_getCodepointGlyph(font->faces[face], codepoint);
+		if (!dsFont_getGlyphInfo(font, commandBuffer, face, glyph))
+		{
+			dsFaceGroup_unlock(font->group);
+			DS_PROFILE_FUNC_RETURN(false);
+		}
+	} while (true);
+
+	dsFaceGroup_unlock(font->group);
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
@@ -186,7 +234,7 @@ dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, u
 		return glyphInfo;
 	}
 
-	if (font->usedGlyphCount < DS_GLYPH_SLOTS)
+	if (font->usedGlyphCount < font->cacheSize)
 	{
 		glyphInfo = font->glyphPool + font->usedGlyphCount++;
 		glyphInfo->key = key;
@@ -218,9 +266,10 @@ uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph)
 }
 
 bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	uint32_t glyphIndex, uint32_t glyphSize, const dsGlyphGeometry* geometry)
+	uint32_t glyphIndex, uint32_t glyphSize, uint32_t texMultiplier,
+	const dsGlyphGeometry* geometry)
 {
-	float windowSize = (float)(glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE);
+	float windowSize = (float)(glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE);
 	dsVector2f windowSize2f = {{windowSize, windowSize}};
 	dsAlignedBox2f paddedBounds;
 	dsVector2_sub(paddedBounds.min, geometry->bounds.min, windowSize2f);
@@ -239,8 +288,8 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 		scaleY = size.y/(float)(glyphSize - 1);
 
 	// Compute the signed distance field into the final glyph texture.
-	DS_ASSERT(glyphSize <= DS_HIGHEST_SIZE);
-	uint8_t textureData[DS_HIGHEST_SIZE*DS_HIGHEST_SIZE];
+	DS_ASSERT(glyphSize <= DS_VERY_HIGH_SIZE);
+	uint8_t textureData[DS_VERY_HIGH_SIZE*DS_VERY_HIGH_SIZE];
 	memset(textureData, 0, glyphSize*glyphSize);
 	for (uint32_t y = 0; y < glyphSize; ++y)
 	{
@@ -261,25 +310,41 @@ bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* textu
 	}
 
 	dsTexturePosition texturePos;
-	dsFont_getGlyphTexturePos(&texturePos, glyphIndex, glyphSize);
+	dsFont_getGlyphTexturePos(&texturePos, glyphIndex, glyphSize, texMultiplier);
 	return dsTexture_copyData(texture, commandBuffer, &texturePos, glyphSize, glyphSize, 1,
 		textureData, glyphSize*glyphSize);
 }
 
-void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize)
+void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, uint32_t glyphSize,
+	uint32_t texMultiplier)
 {
 	outPos->face = dsCubeFace_None;
 	outPos->depth = 0;
 
-	static const uint32_t limits[DS_TEX_MIP_LEVELS] =
+	static const uint32_t smallLimits[DS_TEX_MIP_LEVELS] =
 	{
-		dsPow2(DS_TEX_MULTIPLIER),
-		dsPow2(DS_TEX_MULTIPLIER/2),
-		dsPow2(DS_TEX_MULTIPLIER/4),
-		dsPow2(DS_TEX_MULTIPLIER/8),
-		dsPow2(DS_TEX_MULTIPLIER/16),
-		dsPow2(DS_TEX_MULTIPLIER/32)
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER),
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/2),
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/4),
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/8),
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/16),
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/32)
 	};
+
+	static const uint32_t largeLimits[DS_TEX_MIP_LEVELS] =
+	{
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER),
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/2),
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/4),
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/8),
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/16),
+		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/32)
+	};
+
+	DS_ASSERT(texMultiplier == DS_SMALL_CACHE_TEX_MULTIPLIER ||
+		texMultiplier == DS_LARGE_CACHE_TEX_MULTIPLIER);
+	const uint32_t* limits =
+		texMultiplier == DS_SMALL_CACHE_TEX_MULTIPLIER ? smallLimits : largeLimits;
 
 	uint32_t prevLimit = 0;
 	for (uint32_t i = 0; i < DS_TEX_MIP_LEVELS; ++i)
@@ -289,8 +354,8 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 		{
 			uint32_t index = glyphIndex - prevLimit;
 			outPos->mipLevel = i;
-			outPos->x = index%(DS_TEX_MULTIPLIER >> i)*glyphSize;
-			outPos->y = index/(DS_TEX_MULTIPLIER >> i)*glyphSize;
+			outPos->x = index%(texMultiplier >> i)*glyphSize;
+			outPos->y = index/(texMultiplier >> i)*glyphSize;
 			return;
 		}
 
@@ -300,10 +365,10 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 }
 
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	const dsVector2f* glyphBoundsSize, uint32_t glyphSize)
+	const dsVector2f* glyphBoundsSize, uint32_t glyphSize, uint32_t texMultiplier)
 {
-	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_VERY_LOW_SIZE;
-	float levelSize = 1.0f/(float)(DS_TEX_MULTIPLIER*glyphSize >> texturePos->mipLevel);
+	uint32_t windowSize = glyphSize*DS_BASE_WINDOW_SIZE/DS_LOW_SIZE;
+	float levelSize = 1.0f/(float)(texMultiplier*glyphSize >> texturePos->mipLevel);
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
 
@@ -317,7 +382,8 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 }
 
 dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char** faceNames, uint32_t faceCount)
+	dsAllocator* allocator, const char** faceNames, uint32_t faceCount, dsTextQuality quality,
+	dsTextCache cacheSize)
 {
 	if (!group || !resourceManager || (!allocator && !dsFaceGroup_getAllocator(group)) ||
 		!faceNames || faceCount == 0)
@@ -351,11 +417,8 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		allocator = dsFaceGroup_getAllocator(group);
 
 	uint16_t glyphSize;
-	switch (dsFaceGroup_getTextQuality(group))
+	switch (quality)
 	{
-		case dsTextQuality_VeryLow:
-			glyphSize = DS_VERY_LOW_SIZE;
-			break;
 		case dsTextQuality_Low:
 			glyphSize = DS_LOW_SIZE;
 			break;
@@ -364,9 +427,6 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 			break;
 		case dsTextQuality_VeryHigh:
 			glyphSize = DS_VERY_HIGH_SIZE;
-			break;
-		case dsTextQuality_Highest:
-			glyphSize = DS_HIGHEST_SIZE;
 			break;
 		case dsTextQuality_Medium:
 		default:
@@ -400,6 +460,17 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 
 	font->faceCount = faceCount;
 	font->glyphSize = glyphSize;
+	font->quality = quality;
+	if (cacheSize == dsTextCache_Small)
+	{
+		font->cacheSize = DS_SMALL_CACHE_GLYPH_SLOTS;
+		font->texMultiplier = DS_SMALL_CACHE_TEX_MULTIPLIER;
+	}
+	else
+	{
+		font->cacheSize = DS_LARGE_CACHE_GLYPH_SLOTS;
+		font->texMultiplier = DS_LARGE_CACHE_TEX_MULTIPLIER;
+	}
 	font->usedGlyphCount = 0;
 
 	dsGlyphGeometry* geometry = &font->glyphGeometry;
@@ -410,7 +481,7 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	DS_VERIFY(dsHashTable_initialize(&font->glyphTable.hashTable, DS_TABLE_SIZE,
 		&dsHash64, &dsHash64Equal));
 
-	uint32_t texSize = font->glyphSize*DS_TEX_MULTIPLIER;
+	uint32_t texSize = font->glyphSize*font->texMultiplier;
 	uint32_t mipLevels = resourceManager->hasArbitraryMipmapping ?
 		DS_TEX_MIP_LEVELS : DS_ALL_MIP_LEVELS;
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
@@ -461,12 +532,91 @@ const char* dsFont_getFaceName(const dsFont* font, uint32_t face)
 	return dsFontFace_getName(font->faces[face]);
 }
 
+dsTextQuality dsFont_getTextQuality(const dsFont* font)
+{
+	if (!font)
+		return dsTextQuality_Medium;
+
+	return font->quality;
+}
+
 dsTexture* dsFont_getTexture(const dsFont* font)
 {
 	if (!font)
 		return NULL;
 
 	return font->texture;
+}
+
+bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const void* string,
+	dsUnicodeType type)
+{
+	if (!font || !commandBuffer || !string)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	NextCodepointFunction nextCodepoint;
+	switch (type)
+	{
+		case dsUnicodeType_UTF8:
+			nextCodepoint = (NextCodepointFunction)&dsUTF8_nextCodepoint;
+			break;
+		case dsUnicodeType_UTF16:
+			nextCodepoint = (NextCodepointFunction)&dsUTF16_nextCodepoint;
+			break;
+		case dsUnicodeType_UTF32:
+			nextCodepoint = (NextCodepointFunction)&dsUTF32_nextCodepoint;
+			break;
+		default:
+			errno = EINVAL;
+			return false;
+	}
+
+	return preloadGlyphs(font, commandBuffer, string, nextCodepoint);
+}
+
+bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* commandBuffer, const char* string)
+{
+	if (!font || !commandBuffer || !string)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return preloadGlyphs(font, commandBuffer, string, (NextCodepointFunction)&dsUTF8_nextCodepoint);
+}
+
+bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* commandBuffer, const uint16_t* string)
+{
+	if (!font || !commandBuffer || !string)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return preloadGlyphs(font, commandBuffer, string,
+		(NextCodepointFunction)&dsUTF16_nextCodepoint);
+}
+
+bool dsFont_preloadGlyphsUTF32(dsFont* font, dsCommandBuffer* commandBuffer, const uint32_t* string)
+{
+	if (!font || !commandBuffer || !string)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return preloadGlyphs(font, commandBuffer, string,
+		(NextCodepointFunction)&dsUTF32_nextCodepoint);
+}
+
+bool dsFont_preloadASCII(dsFont* font, dsCommandBuffer* commandBuffer)
+{
+	const char* ascii = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+	return dsFont_preloadGlyphsUTF8(font, commandBuffer, ascii);
 }
 
 bool dsFont_destroy(dsFont* font)

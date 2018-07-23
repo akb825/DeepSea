@@ -79,9 +79,10 @@ static uint32_t countTextRanges(const dsFaceGroup* group, const uint32_t* codepo
 	return rangeCount;
 }
 
-static void createGlyphMappings(dsCharMapping* charMappings, uint32_t length, const dsGlyph* glyphs,
+static void createCharMappings(dsCharMapping* charMappings, uint32_t length, const dsGlyph* glyphs,
 	uint32_t glyphCount)
 {
+	memset(charMappings, 0, length*sizeof(dsCharMapping));
 	for (uint32_t i = 0; i < glyphCount; ++i)
 	{
 		uint32_t charIndex = glyphs[i].charIndex;
@@ -286,14 +287,9 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	scratchText->font = font;
 
 	uint32_t* characters = (uint32_t*)scratchText->characters;
-	dsCharMapping* charMappings = (dsCharMapping*)scratchText->charMappings;
 	uint32_t index = 0;
 	for (uint32_t i = 0; i < length; ++i)
-	{
 		characters[i] = nextCodepoint(string, &index);
-		charMappings[i].firstGlyph = 0;
-		charMappings[i].glyphCount = 0;
-	}
 
 	uint32_t rangeCount;
 	if (uniformScript)
@@ -313,8 +309,6 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 	dsFaceGroup_unlock(font->group);
 	if (!shapeSucceeded)
 		DS_PROFILE_FUNC_RETURN(NULL);
-
-	createGlyphMappings(charMappings, length, scratchText->glyphs, scratchText->glyphCount);
 
 	// Now copy the contents into the final text object.
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsText)) + DS_ALIGNED_SIZE(length*sizeof(uint32_t)) +
@@ -342,8 +336,6 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 		text->charMappings = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			dsCharMapping, length);
 		DS_ASSERT(text->charMappings);
-		memcpy((void*)text->charMappings, scratchText->charMappings,
-			length*sizeof(dsCharMapping));
 
 		// Ranges may not be in monotomic increasing order due to right to left text. Re-order the
 		// glyphs so it is.
@@ -368,6 +360,9 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 			curGlyphStart += text->ranges[i].glyphCount;
 		}
 		DS_ASSERT(curGlyphStart == text->glyphCount);
+
+		createCharMappings((dsCharMapping*)text->charMappings, length, text->glyphs,
+			text->glyphCount);
 	}
 	else
 	{

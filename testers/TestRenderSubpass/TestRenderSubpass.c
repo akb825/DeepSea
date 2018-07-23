@@ -228,12 +228,8 @@ static bool validateAllocator(dsAllocator* allocator, const char* name)
 
 static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 {
-	uint32_t width, height;
-	if (!dsWindow_getPixelSize(&width, &height, testRenderSubpass->window))
-	{
-		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't get window size: %s", dsErrorString(errno));
-		return false;
-	}
+	uint32_t width = testRenderSubpass->window->surface->width;
+	uint32_t height = testRenderSubpass->window->surface->height;
 
 	DS_VERIFY(dsFramebuffer_destroy(testRenderSubpass->framebuffer));
 	DS_VERIFY(dsTexture_destroy(testRenderSubpass->rColor));

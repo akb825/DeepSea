@@ -22,8 +22,9 @@ import subprocess
 
 import flatbuffers
 from DeepSeaVectorDraw.FaceGroup import *
-from DeepSeaVectorDraw.FaceGroupQuality import *
 from DeepSeaVectorDraw.Font import *
+from DeepSeaVectorDraw.FontCacheSize import *
+from DeepSeaVectorDraw.FontQuality import *
 from DeepSeaVectorDraw.Resource import *
 from DeepSeaVectorDraw.ResourceSet import *
 
@@ -67,7 +68,6 @@ class VectorResources:
 			[
 				{
 					"name": "<name used to reference the face group>",
-					"quality": "<verylow|medium|high|veryhigh|highest>",
 					"faces":
 					[
 						{
@@ -88,7 +88,9 @@ class VectorResources:
 					[
 						"<font in faceGroup>",
 						...
-					]
+					],
+					"quality": "<low|medium|high|veryhigh>",
+					"cacheSize": "<small|large>" (optional, defaults to large)
 				}
 			]
 		}
@@ -186,9 +188,6 @@ class VectorResources:
 		texturesOffset = builder.EndVector(len(textureOffsets))
 
 		faceGroupOffsets = []
-		qualityValues = {'verylow': FaceGroupQuality.VeryLow, 'low': FaceGroupQuality.Low, \
-			'medium': FaceGroupQuality.Medium, 'high': FaceGroupQuality.High, \
-			'veryhigh': FaceGroupQuality.VeryHigh, 'highest': FaceGroupQuality.Highest}
 		for faceGroup in self.faceGroups:
 			nameOffset = builder.CreateString(faceGroup['name'])
 
@@ -216,7 +215,6 @@ class VectorResources:
 
 			FaceGroupStart(builder)
 			FaceGroupAddName(builder, nameOffset)
-			FaceGroupAddQuality(builder, qualityValues[faceGroup['quality'].lower()])
 			FaceGroupAddFaces(builder, facesOffset)
 			faceGroupOffsets.append(FaceGroupEnd(builder))
 
@@ -226,6 +224,9 @@ class VectorResources:
 		faceGroupsOffset = builder.EndVector(len(faceGroupOffsets))
 
 		fontOffsets = []
+		qualityValues = {'low': FontQuality.Low, 'medium': FontQuality.Medium, \
+			'high': FontQuality.High, 'veryhigh': FontQuality.VeryHigh}
+		cacheValues = {'small': FontCacheSize.Small, 'large': FontCacheSize.Large}
 		for font in self.fonts:
 			nameOffset = builder.CreateString(font['name'])
 			faceGroupOffset = builder.CreateString(font['faceGroup'])
@@ -244,6 +245,12 @@ class VectorResources:
 			FontAddName(builder, nameOffset)
 			FontAddFaceGroup(builder, faceGroupOffset)
 			FontAddFaces(builder, facesOffset)
+			FontAddQuality(builder, qualityValues[font['quality'].lower()])
+			if 'cacheSize' in font:
+				cacheSize = cacheValues[font['cacheSize'].lower()]
+			else:
+				cacheSize = FontCacheSize.Large
+			FontAddCacheSize(builder, cacheSize)
 			fontOffsets.append(FontEnd(builder))
 
 		ResourceSetStartFontsVector(builder, len(fontOffsets))

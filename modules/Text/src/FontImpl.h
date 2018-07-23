@@ -21,15 +21,14 @@
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/Text/Types.h>
 
-#define DS_VERY_LOW_SIZE 16
-#define DS_LOW_SIZE 32
-#define DS_MEDIUM_SIZE 48
-#define DS_HIGH_SIZE 64
-#define DS_VERY_HIGH_SIZE 96
-#define DS_HIGHEST_SIZE 128
+#define DS_LOW_SIZE 16
+#define DS_MEDIUM_SIZE 32
+#define DS_HIGH_SIZE 48
+#define DS_VERY_HIGH_SIZE 64
 // 512 for very low, 1024 for low, 1536 for medium, 2048 for high, 3072 for very high, and 4096 for
 // highest
-#define DS_TEX_MULTIPLIER 32
+#define DS_SMALL_CACHE_TEX_MULTIPLIER 16
+#define DS_LARGE_CACHE_TEX_MULTIPLIER 32
 #define DS_TEX_MIP_LEVELS 6
 #define DS_TABLE_SIZE 1823
 #define DS_BASE_WINDOW_SIZE 3
@@ -108,8 +107,11 @@ struct dsFont
 	dsAllocator* allocator;
 	dsFaceGroup* group;
 	dsFontFace** faces;
+	dsTextQuality quality;
 	uint32_t faceCount;
 	uint16_t glyphSize;
+	uint16_t cacheSize;
+	uint16_t texMultiplier;
 	uint16_t usedGlyphCount;
 
 	// State of currently loaded glyph. This gives up thread safety, but is already not an option
@@ -117,12 +119,13 @@ struct dsFont
 	dsGlyphGeometry glyphGeometry;
 
 	dsTexture* texture;
-	dsGlyphInfo glyphPool[DS_GLYPH_SLOTS];
+	dsGlyphInfo glyphPool[DS_LARGE_CACHE_GLYPH_SLOTS];
 	DS_STATIC_HASH_TABLE(DS_TABLE_SIZE) glyphTable;
 };
 
 bool dsIsSpace(uint32_t charcode);
 const char* dsFontFace_getName(const dsFontFace* face);
+uint32_t dsFontFace_getCodepointGlyph(const dsFontFace* face, uint32_t codepoint);
 bool dsFontFace_cacheGlyph(dsAlignedBox2f* outBounds, dsFontFace* face,
 	dsCommandBuffer* commandBuffer, dsTexture* texture, uint32_t glyph, uint32_t glyphIndex,
 	uint32_t glyphSize, dsFont* font);
@@ -139,8 +142,9 @@ bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount);
 bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length);
 
-// Locking not needed for these two functions.
+// Locking not needed for this function.
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
+
 bool dsFaceGroup_isScriptUnique(uint32_t script);
 bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2);
 dsTextDirection dsFaceGroup_textDirection(uint32_t script);
@@ -148,14 +152,16 @@ dsTextDirection dsFaceGroup_textDirection(uint32_t script);
 dsGlyphInfo* dsFont_getGlyphInfo(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
 	uint32_t glyph);
 uint32_t dsFont_getGlyphIndex(dsFont* font, dsGlyphInfo* glyph);
+uint32_t dsFont_findFaceForCodepoint(const dsFont* font, uint32_t codepoint);
 bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t firstCodepoint, uint32_t start, uint32_t count, uint32_t newlineCount,
 	dsTextDirection direction);
 
 // Pixel values are 0 or 1, +Y points down.
 bool dsFont_writeGlyphToTexture(dsCommandBuffer* commandBuffer, dsTexture* texture,
-	uint32_t glyphIndex, uint32_t glyphSize, const dsGlyphGeometry* geometry);
+	uint32_t glyphIndex, uint32_t glyphSize, uint32_t texMultiplier,
+	const dsGlyphGeometry* geometry);
 void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex,
-	uint32_t glyphSize);
+	uint32_t glyphSize, uint32_t texMultiplier);
 void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosition* texturePos,
-	const dsVector2f* glyphBoundsSize, uint32_t glyphSize);
+	const dsVector2f* glyphBoundsSize, uint32_t glyphSize, uint32_t texMultiplier);

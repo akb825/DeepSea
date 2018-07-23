@@ -53,11 +53,22 @@ DS_TEXT_EXPORT dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* alloca
  * @param renderBuffer The text render buffer.
  * @param layout The lain out text to draw.
  * @param layoutUserData User data associated with the layout.
+ * @return False if an error occurred.
+ */
+DS_TEXT_EXPORT bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
+	const dsTextLayout* layout, void* layoutUserData);
+
+/**
+ * @brief Adds a text range to the render buffer.
+ * @remark errno will be set on failure.
+ * @param renderBuffer The text render buffer.
+ * @param layout The lain out text to draw.
+ * @param layoutUserData User data associated with the layout.
  * @param firstChar The first character to draw.
  * @param charCount The number of characters to draw.
  * @return False if an error occurred.
  */
-DS_TEXT_EXPORT bool dsTextRenderBuffer_addText(dsTextRenderBuffer* renderBuffer,
+DS_TEXT_EXPORT bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 	const dsTextLayout* layout, void* layoutUserData, uint32_t firstChar, uint32_t charCount);
 
 /**

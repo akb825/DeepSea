@@ -44,10 +44,13 @@ extern "C"
  *     will use the first face that contains that glyph. This way multiple faces may be used
  *     for different language sets.
  * @param faceCount The number of faces in faceNames.
+ * @param quality The quality of the rendered text.
+ * @param cacheSize The size of the text cache.
  * @return The created font, or NULL if the font couldn't be created.
  */
 DS_TEXT_EXPORT dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
-	dsAllocator* allocator, const char** faceNames, uint32_t faceCount);
+	dsAllocator* allocator, const char** faceNames, uint32_t faceCount, dsTextQuality quality,
+	dsTextCache cacheSize);
 
 /**
  * @brief Gets the allocator for a font.
@@ -79,11 +82,80 @@ DS_TEXT_EXPORT uint32_t dsFont_getFaceCount(const dsFont* font);
 DS_TEXT_EXPORT const char* dsFont_getFaceName(const dsFont* font, uint32_t face);
 
 /**
+ * @brief Gets the text rendering quality of a font.
+ * @param font The font.
+ * @return The quality.
+ */
+DS_TEXT_EXPORT dsTextQuality dsFont_getTextQuality(const dsFont* font);
+
+/**
  * @brief Gets the texture for the font.
  * @param font The font.
  * @return The texture.
  */
 DS_TEXT_EXPORT dsTexture* dsFont_getTexture(const dsFont* font);
+
+/**
+ * @brief Preloads glyphs from a string.
+ * @remark This will load the direct mapping from codepoint to glyph. In cases where glyphs depend
+ *     on the surrounding text (e.g. Arabic) this will usually not be the glyph used in actual text.
+ * @remark errno will be set on failure.
+ * @param font The font to pre-load glyphs for.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @param string The string containing code points to pre-load glyphs for.
+ * @param type The unicode type for the string.
+ * @return False if an error occured.
+ */
+DS_TEXT_EXPORT bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer,
+	const void* string, dsUnicodeType type);
+
+/**
+ * @brief Preloads glyphs from a string.
+ * @remark This will load the direct mapping from codepoint to glyph. In cases where glyphs depend
+ *     on the surrounding text (e.g. Arabic) this will usually not be the glyph used in actual text.
+ * @remark errno will be set on failure.
+ * @param font The font to pre-load glyphs for.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @param string The string containing code points to pre-load glyphs for in UTF-8.
+ * @return False if an error occured.
+ */
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF8(dsFont* font, dsCommandBuffer* commandBuffer,
+	const char* string);
+
+/**
+ * @brief Preloads glyphs from a string.
+ * @remark This will load the direct mapping from codepoint to glyph. In cases where glyphs depend
+ *     on the surrounding text (e.g. Arabic) this will usually not be the glyph used in actual text.
+ * @remark errno will be set on failure.
+ * @param font The font to pre-load glyphs for.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @param string The string containing code points to pre-load glyphs for in UTF-16.
+ * @return False if an error occured.
+ */
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF16(dsFont* font, dsCommandBuffer* commandBuffer,
+	const uint16_t* string);
+
+/**
+ * @brief Preloads glyphs from a string.
+ * @remark This will load the direct mapping from codepoint to glyph. In cases where glyphs depend
+ *     on the surrounding text (e.g. Arabic) this will usually not be the glyph used in actual text.
+ * @remark errno will be set on failure.
+ * @param font The font to pre-load glyphs for.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @param string The string containing code points to pre-load glyphs for in UTF-32.
+ * @return False if an error occured.
+ */
+DS_TEXT_EXPORT bool dsFont_preloadGlyphsUTF32(dsFont* font, dsCommandBuffer* commandBuffer,
+	const uint32_t* string);
+
+/**
+ * @brief Preloads glyphs for ASCII characters.
+ * @remark errno will be set on failure.
+ * @param font The font to pre-load glyphs for.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @return False if an error occured.
+ */
+DS_TEXT_EXPORT bool dsFont_preloadASCII(dsFont* font, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Destroyes the font.
