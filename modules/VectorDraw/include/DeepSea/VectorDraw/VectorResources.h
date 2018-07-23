@@ -289,6 +289,16 @@ DS_VECTORDRAW_EXPORT dsFont* dsVectorResources_findFont(const dsVectorResources*
 	const char* name);
 
 /**
+ * @brief Preloads glyphs for ASCII characters for all fonts inside of the vector resources.
+ * @remark errno will be set on failure.
+ * @param resources The vector resources.
+ * @param commandBuffer The command buffer to place texture commands onto.
+ * @return False if an error occured.
+ */
+DS_VECTORDRAW_EXPORT bool dsVectorResources_preloadASCII(dsVectorResources* resources,
+	dsCommandBuffer* commandBuffer);
+
+/**
  * @brief Destroys a vector resources object.
  *
  * Any owned resources will also be destroyed.

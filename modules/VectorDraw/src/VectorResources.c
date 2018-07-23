@@ -422,6 +422,24 @@ dsFont* dsVectorResources_findFont(const dsVectorResources* resources, const cha
 	return node->font;
 }
 
+bool dsVectorResources_preloadASCII(dsVectorResources* resources, dsCommandBuffer* commandBuffer)
+{
+	if (!resources || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	for (dsListNode* node = resources->fontTable->list.head; node; node = node->next)
+	{
+		dsFont* font = ((dsFontNode*)node)->font;
+		if (!dsFont_preloadASCII(font, commandBuffer))
+			return false;
+	}
+
+	return true;
+}
+
 uint32_t dsVectorResources_getRemainingFaceGroups(const dsVectorResources* resources)
 {
 	if (!resources)
