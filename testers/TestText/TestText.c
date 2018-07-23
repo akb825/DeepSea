@@ -172,7 +172,7 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}, 0.0f},
 		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
-		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.55f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.55f, 0.1f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,

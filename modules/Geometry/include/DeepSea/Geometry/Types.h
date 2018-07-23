@@ -600,7 +600,7 @@ typedef struct dsComplexPolygon dsComplexPolygon;
 /**
  * @brief Function for getting the position for a point.
  * @remark errno should be set on failure.
- * @param[out[ outPosition The position for the point. This should be cast to the appropriate
+ * @param[out] outPosition The position for the point. This should be cast to the appropriate
  *     dsVector2* type based on the element from the polygon.
  * @param polygon The complex polygon requesting the points.
  * @param points The points for the current loop.
