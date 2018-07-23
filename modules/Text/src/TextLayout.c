@@ -348,7 +348,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			if (!isWhitespace)
 			{
 				const dsTextStyle* style = layout->styles + glyphs[index].styleIndex;
-				float glyphImageWidth = glyphs[index].texCoords.max.x + windowSize*2;
+				float glyphImageWidth = glyphs[index].texCoords.max.x + (float)windowSize*2.0f;
 				glyphImageWidth = dsMax(glyphImageWidth, font->glyphSize);
 				float glyphScale = (float)font->glyphSize/glyphImageWidth;
 				float boundsPadding = glyphScale*basePadding*style->embolden*scale;
@@ -527,10 +527,10 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			glyphs[i].geometry.min.y < glyphs[i].geometry.max.y)
 		{
 			float scale = layout->styles[glyphs[i].styleIndex].scale;
-			float glyphWidth = glyphSize->x + windowSize*2;
-			float glyphHeight = glyphSize->y + windowSize*2;
-			glyphWidth = dsMax(glyphWidth, paddedGlyphSize);
-			glyphHeight = dsMax(glyphHeight, paddedGlyphSize);
+			float glyphWidth = glyphSize->x + (float)windowSize*2.0f;
+			float glyphHeight = glyphSize->y + (float)windowSize*2.0f;
+			glyphWidth = dsMax(glyphWidth, (float)paddedGlyphSize);
+			glyphHeight = dsMax(glyphHeight, (float)paddedGlyphSize);
 			dsVector2f glyphScale = {{(float)paddedGlyphSize/glyphWidth,
 				(float)paddedGlyphSize/glyphHeight}};
 			dsVector2f padding = {{basePadding, basePadding}};

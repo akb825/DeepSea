@@ -372,7 +372,8 @@ void dsFont_getGlyphTextureBounds(dsAlignedBox2f* outBounds, const dsTexturePosi
 	outBounds->min.x = (float)texturePos->x*levelSize;
 	outBounds->min.y = (float)texturePos->y*levelSize;
 
-	dsVector2f offset = {{glyphBoundsSize->x + windowSize*2, glyphBoundsSize->y + windowSize*2}};
+	dsVector2f offset = {{glyphBoundsSize->x + (float)windowSize*2.0f,
+		glyphBoundsSize->y + (float)windowSize*2.0f}};
 	offset.x = dsMin(offset.x, (float)(glyphSize - 1)) - 1.0f;
 	offset.y = dsMin(offset.y, (float)(glyphSize - 1)) - 1.0f;
 
@@ -574,7 +575,7 @@ bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style, 
 		smallEmbolding = 0.1f;
 		largeEmbolding = 0.0f;
 	}
-	antiAliasFactor = 1.0f*fuziness;
+	antiAliasFactor = 1.5f*fuziness;
 
 	float pixels = pixelScale*style->scale;
 	float size = dsClamp(pixels, hintingStart, hintingEnd);
