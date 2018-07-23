@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Timer.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
 #include <DeepSea/Math/Vector2.h>
@@ -909,12 +910,16 @@ static bool setupText(TestText* testText, dsTextQuality quality)
 		return false;
 	}
 
+	dsTimer timer = dsTimer_create();
+	double startTime = dsTimer_time(timer);
 	if (!dsFont_preloadASCII(testText->font, renderer->mainCommandBuffer))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
 			dsErrorString(errno));
 		return false;
 	}
+	DS_LOG_INFO_F("TestText", "Loading ASCII characters took %f s.",
+		dsTimer_time(timer) - startTime);
 
 	uint32_t textureElement = dsMaterialDesc_findElement(testText->materialDesc, "fontTex");
 	DS_ASSERT(textureElement != DS_MATERIAL_UNKNOWN);
