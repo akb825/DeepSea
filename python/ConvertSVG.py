@@ -576,7 +576,7 @@ class Style:
 					weight = 200
 				else:
 					weight = int(fontWeight)
-				font.embolden = (float(weight) - 400.0)/2000.0
+				font.embolden = (float(weight) - 400.0)/2666.0
 			if 'text-align' in elements:
 				font.alignment = textAlignMap[elements['text-align']]
 			if 'text-anchor' in elements:
@@ -994,7 +994,7 @@ def writeTextRange(builder, textRange):
 	if style.stroke:
 		outlineMaterialOffset = builder.CreateString(style.stroke.material)
 		outlineOpacity = style.opacity*style.stroke.opacity
-		sizeToWidthFactor = 2.0/style.font.size
+		sizeToWidthFactor = 1.5/style.font.size
 		outlineWidth = style.stroke.width*sizeToWidthFactor
 
 	TextRangeCommandStart(builder)

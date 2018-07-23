@@ -285,8 +285,7 @@ dsTextLayout* dsVectorScratchData_shapeText(dsVectorScratchData* data,
 		style->color = white;
 		style->outlineColor = white;
 		style->verticalOffset = 0.0f;
-		DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(dsFont_getFaceGroup(font), style,
-			1.0f/pixelSize, range->fuziness));
+		DS_VERIFY(dsFont_applyHintingAndAntiAliasing(font, style, 1.0f/pixelSize, range->fuziness));
 	}
 
 	dsText* text = dsText_create(font, data->allocator, string, stringType, false);

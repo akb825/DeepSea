@@ -902,40 +902,6 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	return faceGroup;
 }
 
-bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup, dsTextStyle* style,
-	float pixelScale, float fuziness)
-{
-	if (!faceGroup || !style)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	float hintingStart, hintingEnd;
-	float smallEmbolding, largeEmbolding;
-	float antiAliasFactor;
-	hintingStart = 9.0f;
-	hintingEnd = 32.0f;
-	smallEmbolding = 0.15f;
-	largeEmbolding = 0.0f;
-	antiAliasFactor = 1.5f*fuziness;
-
-	float pixels = pixelScale*style->scale;
-	float size = dsClamp(pixels, hintingStart, hintingEnd);
-	float t = (size - hintingStart)/(hintingEnd - hintingStart);
-	float embolding = dsLerp(smallEmbolding, largeEmbolding, t);
-	style->embolden += embolding;
-	if (style->outlineThickness > 0.0f)
-	{
-		style->outlinePosition += embolding*0.5f;
-		style->outlineThickness += embolding*0.5f;
-	}
-
-	t = 1.0f/sqrtf(pixels*style->scale);
-	style->antiAlias = t*antiAliasFactor;
-	return true;
-}
-
 dsAllocator* dsFaceGroup_getAllocator(const dsFaceGroup* group)
 {
 	if (!group)

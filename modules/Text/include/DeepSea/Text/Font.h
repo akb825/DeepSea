@@ -96,6 +96,27 @@ DS_TEXT_EXPORT dsTextQuality dsFont_getTextQuality(const dsFont* font);
 DS_TEXT_EXPORT dsTexture* dsFont_getTexture(const dsFont* font);
 
 /**
+ * @brief Applies hinting and anti-aliasing to a style.
+ *
+ * For smaller sizes, this will "hint" the text, which will add to the embolden value of the style,
+ * as well as a corresponding amount to outlinePosition and outlineThickness. It will also set the
+ * antiAlias value to an appropriate value for the size.
+ *
+ * Since this may add to the embolden, outlinePosition, and outlineThickness values, it's not
+ * advisable to call this multiple times on the same style.
+ *
+ * @remark errno will be set on failure.
+ * @param font The font.
+ * @param[inout] style The style to apply hinting and anti-aliasing to.
+ * @param pixelScale The value to multiply by the scale of the style to get the size in pixels.
+ * @param fuziness The amount to blur the text for anti-aliasing. A value < 1 will be sharper, while
+ *     a value > 1 will be blurrier. A value of 1 is default.
+ * @return False if the parameters are invalid.
+ */
+DS_TEXT_EXPORT bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style,
+	float pixelScale, float fuziness);
+
+/**
  * @brief Preloads glyphs from a string.
  * @remark This will load the direct mapping from codepoint to glyph. In cases where glyphs depend
  *     on the surrounding text (e.g. Arabic) this will usually not be the glyph used in actual text.

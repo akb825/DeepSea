@@ -50,6 +50,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Set to a valid font path to test Chinese text
+//#define CHINESE_FONT_PATH "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc"
+
 typedef enum dsRenderType
 {
 	dsRenderType_OpenGL,
@@ -145,7 +148,7 @@ static TextInfo textStrings[] =
 		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+		{{0, UINT_MAX, 24.0f, 0.15f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"This text is slanted forward.", NULL,
@@ -160,16 +163,16 @@ static TextInfo textStrings[] =
 		NO_STYLE, NO_STYLE}},
 	{"This text has outlines.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.55f, 0.1f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
 	{"Embolded, slanted, and outlined.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, 10, 24.0f, 0.2f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+		{{0, 10, 24.0f, 0.15f, 0.0f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		{10, 9, 24.0f, 0.0f, 0.3f, 0.6f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
-		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{19, UINT_MAX - 19, 24.0f, 0.0f, 0.0f, 0.55f, 0.15f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
@@ -181,11 +184,11 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}, 0.0f}}},
 	{"Tiny text.\nSmall text.\nHuge text.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
-		{{0, 11, 9.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{{0, 11, 9.0f, 0.0f, 0.0f, 0.55f, 0.1f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f},
-		{11, 12, 16.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{11, 12, 16.0f, 0.0f, 0.0f, 0.55f, 0.1f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f},
-		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.575f, 0.15f, 0.0f, {{255, 0, 0, 255}},
+		{23, UINT_MAX - 23, 128.0f, 0.0f, 0.0f, 0.55f, 0.1f, 0.0f, {{255, 0, 0, 255}},
 			{{255, 255, 0, 255}}, 0.0f}}},
 	{"After this line\nhas larger text in the middle.\nAnd another line for good measure.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
@@ -280,7 +283,16 @@ static TextInfo textStrings[] =
 		{12, 8, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 20.0f},
 		{20, UINT_MAX - 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
-			{{255, 255, 255, 255}}, 0.0f}}}
+			{{255, 255, 255, 255}}, 0.0f}}},
+#ifdef CHINESE_FONT_PATH
+	{"Chinese text: \xE5\x9C\xB0\xE7\x82\xB9\xE6\x96\xB9\xE8\xA8\x80 "
+		"\xE5\x9C\xB0\xE9\xBB\x9E\xE6\x96\xB9\xE8\xA8\x80 "
+		"\xE8\xAA\x8D\xE8\xAD\x98 \xE6\x8B\x96\xE6\x8B\x89\xE6\xA9\x9F", NULL,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.2f,
+		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f},
+		NO_STYLE, NO_STYLE}},
+#endif
 };
 
 typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
@@ -901,7 +913,19 @@ static bool setupText(TestText* testText, dsTextQuality quality)
 		return false;
 	}
 
-	const char* faceNames[] = {"Latin", "Arabic", "Thai"};
+#ifdef CHINESE_FONT_PATH
+	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, CHINESE_FONT_PATH, "Chinese"))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
+		return false;
+	}
+#endif
+
+	const char* faceNames[] = {"Latin", "Arabic", "Thai",
+#ifdef CHINESE_FONT_PATH
+		"Chinese"
+#endif
+	};
 	testText->font = dsFont_create(testText->faceGroup, resourceManager, allocator, faceNames,
 		DS_ARRAY_SIZE(faceNames), quality, dsTextCache_Large);
 	if (!testText->font)
@@ -1022,7 +1046,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	{
 		for (unsigned int j = 0; j < 3; ++j)
 		{
-			DS_VERIFY(dsFaceGroup_applyHintingAndAntiAliasing(testText->faceGroup,
+			DS_VERIFY(dsFont_applyHintingAndAntiAliasing(testText->font,
 				textStrings[i].styles + j, 1.0f, 1.0f));
 		}
 	}

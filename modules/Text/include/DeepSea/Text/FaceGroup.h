@@ -68,27 +68,6 @@ DS_TEXT_EXPORT dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator,
 	dsAllocator* scratchAllocator, uint32_t maxFaces);
 
 /**
- * @brief Applies hinting and anti-aliasing to a style.
- *
- * For smaller sizes, this will "hint" the text, which will add to the embolden value of the style,
- * as well as a corresponding amount to outlinePosition and outlineThickness. It will also set the
- * antiAlias value to an appropriate value for the size.
- *
- * Since this may add to the embolden, outlinePosition, and outlineThickness values, it's not
- * advisable to call this multiple times on the same style.
- *
- * @remark errno will be set on failure.
- * @param faceGroup The face group.
- * @param[inout] style The style to apply hinting and anti-aliasing to.
- * @param pixelScale The value to multiply by the scale of the style to get the size in pixels.
- * @param fuziness The amount to blur the text for anti-aliasing. A value < 1 will be sharper, while
- *     a value > 1 will be blurrier. A value of 1 is default.
- * @return False if the parameters are invalid.
- */
-DS_TEXT_EXPORT bool dsFaceGroup_applyHintingAndAntiAliasing(const dsFaceGroup* faceGroup,
-	dsTextStyle* style, float pixelScale, float fuziness);
-
-/**
  * @brief Gets the allocator for a face group.
  * @param group The face group.
  * @return The allocator.

@@ -548,6 +548,50 @@ dsTexture* dsFont_getTexture(const dsFont* font)
 	return font->texture;
 }
 
+bool dsFont_applyHintingAndAntiAliasing(const dsFont* font, dsTextStyle* style, float pixelScale,
+	float fuziness)
+{
+	if (!font || !style)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	float hintingStart, hintingEnd;
+	float smallEmbolding, largeEmbolding;
+	float antiAliasFactor;
+	if (font->quality == dsTextQuality_Low)
+	{
+		hintingStart = 9.0f;
+		hintingEnd = 32.0f;
+		smallEmbolding = 0.1f;
+		largeEmbolding = 0.05f;
+	}
+	else
+	{
+		hintingStart = 9.0f;
+		hintingEnd = 32.0f;
+		smallEmbolding = 0.1f;
+		largeEmbolding = 0.0f;
+	}
+	antiAliasFactor = 1.0f*fuziness;
+
+	float pixels = pixelScale*style->scale;
+	float size = dsClamp(pixels, hintingStart, hintingEnd);
+	float t = (size - hintingStart)/(hintingEnd - hintingStart);
+	float embolding = dsLerp(smallEmbolding, largeEmbolding, t);
+	style->embolden += embolding;
+	if (style->outlineThickness > 0.0f)
+	{
+		style->outlinePosition += embolding*0.5f;
+		style->outlineThickness += embolding*0.5f;
+	}
+
+	t = 1.0f/sqrtf(pixels*style->scale);
+	style->antiAlias = t*antiAliasFactor;
+	return true;
+}
+
 bool dsFont_preloadGlyphs(dsFont* font, dsCommandBuffer* commandBuffer, const void* string,
 	dsUnicodeType type)
 {
