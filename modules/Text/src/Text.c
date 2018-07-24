@@ -123,12 +123,17 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 	{
 		uint32_t startInfo = curInfo;
 		scriptInfo = getScriptInfo(text, curInfo++);
-		// First codepoint may be set again later.
+		// Initialize for the entire run in case there's no script boundaries. First codepoint may
+		// be set again later.
 		scriptInfo->firstCodepoint = text->characters[runs[i].start];
 		scriptInfo->start = runs[i].start;
 		scriptInfo->count = runs[i].count;
 
-		// Loop backward for right to left text.
+		// Loop backward for right to left text. This has the following properties:
+		// 1. Use pre-increment when going backwards to avoid negative counters, and post-increment
+		//    when going forward.
+		// 2. Always apply newlines to the last range we visit for the current run. This means the
+		//    first range in right to left text due to iterating backward.
 		uint32_t start, end;
 		int preIncr, postIncr;
 		uint32_t firstNewlineCount, lastNewlineCount;
@@ -183,6 +188,9 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 					return false;
 				}
 
+				// Prepare the next range. Initialize the start and count to match the rest of the
+				// text (end for left to right, or start for right to left) in case we don't
+				// encounter another script boundary.
 				scriptInfo = getScriptInfo(text, curInfo++);
 				scriptInfo->firstCodepoint = text->characters[index];
 				if (runs[i].direction == dsTextDirection_RightToLeft)

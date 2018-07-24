@@ -658,6 +658,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	{
 		if (!group->paragraphs[i].line)
 		{
+			// An empty paragraph indicates that there was an empty line. Add it to the last run if
+			// it exists.
 			if (run > 0)
 				++group->runs[run - 1].newlineCount;
 			continue;
@@ -673,6 +675,9 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			group->runs[run].start = charMapping[runArray[j].offset];
 			uint32_t end = charMapping[runArray[j].offset + runArray[j].length];
 			group->runs[run].count = end - group->runs[run].start;
+
+			// Once we reach the end of the paragraph, mark as having a newline if more paragraphs
+			// remain.
 			group->runs[run].newlineCount = j == curCount - 1 && i != paragraphCount - 1;
 		}
 	}
