@@ -1073,7 +1073,18 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
 	hb_font_t* hbFont = font->faces[face]->font;
 	FT_Set_Pixel_Sizes(hb_ft_font_get_face(hbFont), 0, font->glyphSize);
+#if HB_VERSION_ATLEAST(1, 6, 0)
 	hb_ft_font_changed(hbFont);
+#else
+	// This is the portion of hb_ft_font_changed() that we need to support older versions of
+	// HarfBuzz.
+	FT_Face ftFace = hb_ft_font_get_face(hbFont);
+	hb_font_set_scale(hbFont,
+		(int)(((uint64_t)ftFace->size->metrics.x_scale*(uint64_t)ftFace->units_per_EM +
+			(1u<<15)) >> 16),
+		(int)(((uint64_t)ftFace->size->metrics.y_scale*(uint64_t)ftFace->units_per_EM +
+			(1u<<15)) >> 16));
+#endif
 
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
 	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
