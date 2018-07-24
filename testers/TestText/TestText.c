@@ -146,6 +146,14 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
+	{"All ASCII characters:\n"
+		"!\"#$%&'()*+,-./0123456789:;<=>?@\n"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ\n"
+		"[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", NULL,
+		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.2f,
+		{{0, UINT_MAX, 42.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
+			{{255, 255, 255, 255}}, 0.0f},
+		NO_STYLE, NO_STYLE}},
 	{"This text has been emboldened.", NULL,
 		dsTextAlign_Left, DS_TEXT_NO_WRAP, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.15f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
@@ -433,6 +441,7 @@ static void printHelp(const char* programPath)
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
 	printf("Use left/right arrows or tap on touchscreen to cyle text.\n\n");
 	printf("options:\n");
+	printf("  -f, --font path path to a custom font file for Latin glyphs\n");
 	printf("  -h, --help      print this help message and exit\n");
 	printf("  -l, --low       use low quality text\n");
 	printf("  -m, --medium    use medium quality text (default)\n");
@@ -821,7 +830,7 @@ static bool setupShaders(TestText* testText)
 	return true;
 }
 
-static bool setupText(TestText* testText, dsTextQuality quality)
+static bool setupText(TestText* testText, dsTextQuality quality, const char* fontPath)
 {
 	dsRenderer* renderer = testText->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
@@ -893,9 +902,16 @@ static bool setupText(TestText* testText, dsTextQuality quality)
 		return false;
 	}
 
-	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
-		!dsPath_combine(path, sizeof(path), path, "NotoSans-Regular.ttc") ||
-		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Latin"))
+	if (!fontPath)
+	{
+		if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
+			!dsPath_combine(path, sizeof(path), path, "NotoSans-Regular.ttc"))
+		{
+			DS_LOG_ERROR_F("TestText", "Couldn't create font path: %s", dsErrorString(errno));
+		}
+		fontPath = path;
+	}
+	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, fontPath, "Latin"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		return false;
@@ -998,7 +1014,7 @@ static bool setupLimit(TestText* testText)
 }
 
 static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
-	dsTextQuality quality)
+	dsTextQuality quality, const char* fontPath)
 {
 	dsRenderer* renderer = application->renderer;
 	testText->allocator = allocator;
@@ -1037,7 +1053,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	if (!setupShaders(testText))
 		return false;
 
-	if (!setupText(testText, quality))
+	if (!setupText(testText, quality, fontPath))
 		return false;
 
 	if (!setupLimit(testText))
@@ -1088,12 +1104,23 @@ int dsMain(int argc, const char** argv)
 {
 	dsRenderType renderType = defaultRenderType;
 	dsTextQuality quality = dsTextQuality_Medium;
+	const char* fontPath = NULL;
 	for (int i = 1; i < argc; ++i)
 	{
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			printHelp(argv[0]);
 			return 0;
+		}
+		else if (strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--font") == 0)
+		{
+			if (i == argc - 1)
+			{
+				printf("-f/--font requires an extra argument\n");
+				printHelp(argv[0]);
+				return 1;
+			}
+			fontPath = argv[++i];
 		}
 		else if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--low") == 0)
 			quality = dsTextQuality_Low;
@@ -1166,7 +1193,7 @@ int dsMain(int argc, const char** argv)
 
 	TestText testText;
 	memset(&testText, 0, sizeof(testText));
-	if (!setup(&testText, application, (dsAllocator*)&testTextAllocator, quality))
+	if (!setup(&testText, application, (dsAllocator*)&testTextAllocator, quality, fontPath))
 	{
 		shutdown(&testText);
 		return 3;

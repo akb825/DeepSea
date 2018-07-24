@@ -36,7 +36,7 @@
 #include <float.h>
 #include <string.h>
 
-#define INTERSECT_EPSILON 1e-6f
+#define INTERSECT_EPSILON 1e-5f
 
 typedef uint32_t (*NextCodepointFunction)(const void* string, uint32_t* index);
 
