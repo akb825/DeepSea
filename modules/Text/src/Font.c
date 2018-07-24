@@ -321,17 +321,16 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 	outPos->face = dsCubeFace_None;
 	outPos->depth = 0;
 
-	static const uint32_t smallLimits[DS_TEX_MIP_LEVELS] =
+	static const uint32_t smallLimits[DS_SMALL_CACHE_TEX_MIP_LEVELS] =
 	{
 		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER),
 		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/2),
 		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/4),
 		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/8),
-		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/16),
-		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/32)
+		dsPow2(DS_SMALL_CACHE_TEX_MULTIPLIER/16)
 	};
 
-	static const uint32_t largeLimits[DS_TEX_MIP_LEVELS] =
+	static const uint32_t largeLimits[DS_LARGE_CACHE_TEX_MIP_LEVELS] =
 	{
 		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER),
 		dsPow2(DS_LARGE_CACHE_TEX_MULTIPLIER/2),
@@ -343,11 +342,21 @@ void dsFont_getGlyphTexturePos(dsTexturePosition* outPos, uint32_t glyphIndex, u
 
 	DS_ASSERT(texMultiplier == DS_SMALL_CACHE_TEX_MULTIPLIER ||
 		texMultiplier == DS_LARGE_CACHE_TEX_MULTIPLIER);
-	const uint32_t* limits =
-		texMultiplier == DS_SMALL_CACHE_TEX_MULTIPLIER ? smallLimits : largeLimits;
+	const uint32_t* limits;
+	uint32_t mipLevels;
+	if (texMultiplier == DS_SMALL_CACHE_TEX_MULTIPLIER)
+	{
+		limits = smallLimits;
+		mipLevels = DS_SMALL_CACHE_TEX_MIP_LEVELS;
+	}
+	else
+	{
+		limits = largeLimits;
+		mipLevels = DS_LARGE_CACHE_TEX_MIP_LEVELS;
+	}
 
 	uint32_t prevLimit = 0;
-	for (uint32_t i = 0; i < DS_TEX_MIP_LEVELS; ++i)
+	for (uint32_t i = 0; i < mipLevels; ++i)
 	{
 		uint32_t curLimit = prevLimit + limits[i];
 		if (glyphIndex < curLimit)
@@ -462,15 +471,18 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 	font->faceCount = faceCount;
 	font->glyphSize = glyphSize;
 	font->quality = quality;
+	uint32_t mipLevels;
 	if (cacheSize == dsTextCache_Small)
 	{
 		font->cacheSize = DS_SMALL_CACHE_GLYPH_SLOTS;
 		font->texMultiplier = DS_SMALL_CACHE_TEX_MULTIPLIER;
+		mipLevels = DS_SMALL_CACHE_TEX_MIP_LEVELS;
 	}
 	else
 	{
 		font->cacheSize = DS_LARGE_CACHE_GLYPH_SLOTS;
 		font->texMultiplier = DS_LARGE_CACHE_TEX_MULTIPLIER;
+		mipLevels = DS_SMALL_CACHE_TEX_MIP_LEVELS;
 	}
 	font->usedGlyphCount = 0;
 
@@ -483,8 +495,8 @@ dsFont* dsFont_create(dsFaceGroup* group, dsResourceManager* resourceManager,
 		&dsHash64, &dsHash64Equal));
 
 	uint32_t texSize = font->glyphSize*font->texMultiplier;
-	uint32_t mipLevels = resourceManager->hasArbitraryMipmapping ?
-		DS_TEX_MIP_LEVELS : DS_ALL_MIP_LEVELS;
+	if (!resourceManager->hasArbitraryMipmapping)
+		mipLevels = DS_ALL_MIP_LEVELS;
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, texSize, texSize, 0, mipLevels, 0};
 	font->texture = dsTexture_create(resourceManager, allocator,
