@@ -97,6 +97,28 @@ static void finishLine(dsTextLayout* layout, dsAlignedBox2f* lineBounds, float l
 	dsAlignedBox2f_makeInvalid(lineBounds);
 }
 
+static void updateGlyph(dsFont* font, dsCommandBuffer* commandBuffer, uint32_t face,
+	uint32_t glyphId, dsGlyphLayout* glyph)
+{
+	// Skip empty glyphs.
+	if (glyph->geometry.min.x == glyph->geometry.max.x &&
+		glyph->geometry.min.y == glyph->geometry.max.y)
+	{
+		return;
+	}
+
+	dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, face, glyphId);
+	dsTexturePosition texturePos;
+	dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
+		font->glyphSize, font->texMultiplier);
+	glyph->mipLevel = texturePos.mipLevel;
+
+	dsVector2f glyphSize;
+	dsAlignedBox2_extents(glyphSize, glyphInfo->glyphBounds);
+	dsFont_getGlyphTextureBounds(&glyph->texCoords, &texturePos, &glyphSize,
+		font->glyphSize, font->texMultiplier);
+}
+
 size_t dsTextLayout_fullAllocSize(const dsText* text, uint32_t styleCount)
 {
 	if (!text || styleCount == 0)
@@ -550,18 +572,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 bool dsTextLayout_refresh(dsTextLayout* layout, dsCommandBuffer* commandBuffer)
 {
-	if (!layout || !commandBuffer)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	return dsTextLayout_refreshRange(layout, commandBuffer, 0, layout->text->characterCount);
-}
-
-bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
-	uint32_t firstChar, uint32_t charCount)
-{
 	DS_PROFILE_FUNC_START();
 	if (!layout || !commandBuffer)
 	{
@@ -569,7 +579,47 @@ bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuf
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, layout->text->characterCount))
+	const dsText* text = layout->text;
+	if (text->characterCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	dsFont* font = text->font;
+	dsGlyphLayout* glyphs = (dsGlyphLayout*)layout->glyphs;
+
+	dsFaceGroup_lock(font->group);
+
+	for (uint32_t i = 0; i < text->rangeCount; ++i)
+	{
+		const dsTextRange* range = text->ranges + i;
+		for (uint32_t j = 0; j < range->glyphCount; ++j)
+		{
+			uint32_t glyphIndex = range->firstGlyph + j;
+			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphId,
+				glyphs + glyphIndex);
+		}
+	}
+
+	dsFaceGroup_unlock(font->group);
+
+	DS_PROFILE_FUNC_RETURN(true);
+}
+
+bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
+	uint32_t firstChar, uint32_t charCount)
+{
+	if (!layout || !commandBuffer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsText* text = layout->text;
+	if (firstChar == 0 && charCount == text->characterCount)
+		return dsTextLayout_refresh(layout, commandBuffer);
+
+	DS_PROFILE_FUNC_START();
+
+	if (!DS_IS_BUFFER_RANGE_VALID(firstChar, charCount, text->characterCount))
 	{
 		errno = EINDEX;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -578,7 +628,6 @@ bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuf
 	if (charCount == 0)
 		DS_PROFILE_FUNC_RETURN(true);
 
-	const dsText* text = layout->text;
 	dsFont* font = text->font;
 	dsGlyphLayout* glyphs = (dsGlyphLayout*)layout->glyphs;
 
@@ -587,31 +636,14 @@ bool dsTextLayout_refreshRange(dsTextLayout* layout, dsCommandBuffer* commandBuf
 	for (uint32_t i = 0; i < charCount; ++i)
 	{
 		const dsCharMapping* charMapping = text->charMappings + firstChar + i;
-		const dsTextRange* textRange = findRange(text->ranges, text->rangeCount,
+		const dsTextRange* range = findRange(text->ranges, text->rangeCount,
 			charMapping->firstGlyph);
-		DS_ASSERT(textRange);
+		DS_ASSERT(range);
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
 			uint32_t glyphIndex = charMapping->firstGlyph + j;
-			dsGlyphLayout* glyph = glyphs + glyphIndex;
-			// Skip empty glyphs.
-			if (glyph->geometry.min.x == glyph->geometry.max.x &&
-				glyph->geometry.min.y == glyph->geometry.max.y)
-			{
-				continue;
-			}
-
-			dsGlyphInfo* glyphInfo = dsFont_getGlyphInfo(font, commandBuffer, textRange->face,
-				text->glyphs[glyphIndex].glyphId);
-			dsTexturePosition texturePos;
-			dsFont_getGlyphTexturePos(&texturePos, dsFont_getGlyphIndex(font, glyphInfo),
-				font->glyphSize, font->texMultiplier);
-			glyph->mipLevel = texturePos.mipLevel;
-
-			dsVector2f glyphSize;
-			dsAlignedBox2_extents(glyphSize, glyphInfo->glyphBounds);
-			dsFont_getGlyphTextureBounds(&glyph->texCoords, &texturePos, &glyphSize,
-				font->glyphSize, font->texMultiplier);
+			updateGlyph(font, commandBuffer, range->face, text->glyphs[glyphIndex].glyphId,
+				glyphs + glyphIndex);
 		}
 	}
 
