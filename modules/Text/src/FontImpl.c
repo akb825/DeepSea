@@ -86,8 +86,8 @@ struct dsFaceGroup
 	dsRunInfo* runs;
 	uint32_t maxRuns;
 
-	uint32_t* charMapping;
-	uint32_t maxCharMappingCount;
+	uint32_t* codepointMapping;
+	uint32_t maxCodepointMappingCount;
 
 	uint32_t maxFaces;
 	uint32_t faceCount;
@@ -181,6 +181,19 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	face->font = hbFont;
 	DS_VERIFY(dsHashTable_insert(group->faceHashTable, face->name, (dsHashTableNode*)face, NULL));
 	return face;
+}
+
+uint32_t* createCodepointMapping(dsFaceGroup* group, uint32_t length)
+{
+	uint32_t codepointMappingCount = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->codepointMapping,
+		codepointMappingCount, group->maxCodepointMappingCount, length))
+	{
+		return NULL;
+	}
+
+	DS_ASSERT(codepointMappingCount == length);
+	return group->codepointMapping;
 }
 
 static bool addGlyphPoint(dsGlyphGeometry* geometry, const dsVector2f* position)
@@ -545,10 +558,10 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		return NULL;
 	}
 
-	// Create a mapping between the characters and codepoinds.
+	// Create a mapping between the characters and codepoints.
 	uint32_t mappingSize = (uint32_t)sequence.stringLength + 1;
-	uint32_t* charMapping = dsFaceGroup_charMapping(group, mappingSize);
-	if (!charMapping)
+	uint32_t* codepointMapping = createCodepointMapping(group, mappingSize);
+	if (!codepointMapping)
 		return NULL;
 
 	uint32_t codepointIndex = 0;
@@ -559,12 +572,12 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		uint32_t codepoint = SBCodepointSequenceGetCodepointAt(&sequence, &index);
 		if (codepoint == SBCodepointInvalid)
 		{
-			charMapping[prevIndex] = codepointIndex;
+			codepointMapping[prevIndex] = codepointIndex;
 			break;
 		}
 
 		for (SBUInteger i = prevIndex; i < index; ++i)
-			charMapping[i] = codepointIndex;
+			codepointMapping[i] = codepointIndex;
 		++codepointIndex;
 	}
 	while (true);
@@ -672,8 +685,8 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			// Convert from character run to codepoint run.
 			DS_ASSERT(runArray[j].offset < mappingSize);
 			DS_ASSERT(runArray[j].offset + runArray[j].length < mappingSize);
-			group->runs[run].start = charMapping[runArray[j].offset];
-			uint32_t end = charMapping[runArray[j].offset + runArray[j].length];
+			group->runs[run].start = codepointMapping[runArray[j].offset];
+			uint32_t end = codepointMapping[runArray[j].offset + runArray[j].length];
 			group->runs[run].count = end - group->runs[run].start;
 
 			// Once we reach the end of the paragraph, mark as having a newline if more paragraphs
@@ -755,19 +768,6 @@ bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length)
 	group->scratchText.glyphCount = length;
 	group->scratchText.glyphs = group->scratchGlyphs;
 	return true;
-}
-
-uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length)
-{
-	uint32_t charMappingCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->charMapping, charMappingCount,
-		group->maxCharMappingCount, length))
-	{
-		return NULL;
-	}
-
-	DS_ASSERT(charMappingCount == length);
-	return group->charMapping;
 }
 
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint)
@@ -899,8 +899,8 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	faceGroup->runs = NULL;
 	faceGroup->maxRuns = 0;
 
-	faceGroup->charMapping = NULL;
-	faceGroup->maxCharMappingCount = 0;
+	faceGroup->codepointMapping = NULL;
+	faceGroup->maxCodepointMappingCount = 0;
 
 	faceGroup->maxFaces = maxFaces;
 	faceGroup->faceCount = 0;
@@ -1037,7 +1037,7 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->scratchGlyphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->paragraphs));
 	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->runs));
-	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->charMapping));
+	DS_VERIFY(dsAllocator_free(group->scratchAllocator, group->codepointMapping));
 	DS_VERIFY(dsAllocator_free(group->allocator, group));
 }
 

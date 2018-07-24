@@ -141,7 +141,6 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length);
 bool dsFaceGroup_scratchRanges(dsFaceGroup* group, uint32_t rangeCount);
 bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
-uint32_t* dsFaceGroup_charMapping(dsFaceGroup* group, uint32_t length);
 
 // Locking not needed for this function.
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
