@@ -344,7 +344,18 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		}
 	}
 
-	// Second pass: find line breaks. Do this based on the original character order.
+	// Second pass: resolve line breaks from ranges, which were detected when finding BiDi runs.
+	uint32_t line = 0;
+	for (uint32_t i = 0; i < text->rangeCount; ++i)
+	{
+		const dsTextRange* range = text->ranges + i;
+		for (uint32_t j = 0; j < range->glyphCount; ++j)
+			glyphs[range->firstGlyph + j].position.y = (float)line;
+		line += range->newlineCount;
+	}
+
+	// Third pass: find line breaks from newlines and wrapping. Do this based on the original
+	// character order.
 	dsVector2f position = {{0.0f, 0.0f}};
 	const unsigned int windowSize = DS_BASE_WINDOW_SIZE*font->glyphSize/DS_LOW_SIZE;
 	const float basePadding = (float)windowSize/(float)font->glyphSize;
@@ -353,6 +364,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 	float curWordOffset = 0.0f;
 	uint32_t curWord = 0;
 	uint32_t firstWhitespaceBeforeWord = 0;
+	line = 0;
 	for (uint32_t i = 0; i < text->characterCount; ++i)
 	{
 		const dsCharMapping* charMapping = text->charMappings + i;
@@ -365,6 +377,22 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 		{
 			uint32_t index = charMapping->firstGlyph + j;
+
+			// Handle line change from previous pass.
+			if (glyphs[index].position.y != line)
+			{
+				// For right to left text, the characters will be reversed within a line, but
+				// shouldn't pass a line boundary.
+				DS_ASSERT(glyphs[index].position.y > line);
+				position.x = 0.0f;
+				position.y += glyphs[index].position.y - (float)line;
+				wordCount = 0;
+				curWord = i;
+				curWordOffset = 0.0f;
+				lastIsWhitespace = false;
+				line = (uint32_t)glyphs[index].position.y;
+			}
+
 			position.x += text->glyphs[index].advance*scale;
 
 			if (!isWhitespace)
@@ -402,8 +430,15 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		if (text->characters[i] == '\n' ||
 			(position.x + glyphWidth > maxWidth && !isWhitespace && wordCount > 0))
 		{
+			if (text->characters[i] == '\n')
+			{
+				firstWhitespaceBeforeWord = curWord = i;
+				lastIsWhitespace = true;
+				position.x = 0.0f;
+			}
+			else
+				position.x -= curWordOffset;
 			position.y += 1.0f;
-			position.x -= curWordOffset;
 			wordCount = 0;
 
 			// Invalidate the positions for whitespace directly before the word, since it will cause
@@ -433,21 +468,6 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 		for (uint32_t j = 0; j < charMapping->glyphCount; ++j)
 			glyphs[charMapping->firstGlyph + j].position = position;
-
-		// Add any trailing newlines at the end of the range.
-		const dsTextRange* range = findRange(text->ranges, text->rangeCount,
-			charMapping->firstGlyph);
-		DS_ASSERT(range);
-		if (range->newlineCount > 0 &&
-			((range->backward && charMapping->firstGlyph == range->firstGlyph) ||
-			(!range->backward && charMapping->firstGlyph + charMapping->glyphCount ==
-				range->firstGlyph + range->glyphCount)))
-		{
-			lastIsWhitespace = false;
-			position.y += (float)range->newlineCount;
-			position.x = 0.0f;
-			wordCount = 0;
-		}
 	}
 
 	// Done with the lock at this point.
@@ -471,7 +491,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 		}
 	}
 
-	// Third pass: find the offsets.
+	// Fourth pass: find the offsets.
 	dsAlignedBox2f lineBounds;
 	dsAlignedBox2f_makeInvalid(&lineBounds);
 	dsAlignedBox2f_makeInvalid(&layout->bounds);

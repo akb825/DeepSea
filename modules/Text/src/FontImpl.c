@@ -689,6 +689,10 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			uint32_t end = codepointMapping[runArray[j].offset + runArray[j].length];
 			group->runs[run].count = end - group->runs[run].start;
 
+			// Odd levels indicate right to left text.
+			group->runs[run].direction = runArray[j].level & 1 ? dsTextDirection_RightToLeft :
+				dsTextDirection_LeftToRight;
+
 			// Once we reach the end of the paragraph, mark as having a newline if more paragraphs
 			// remain.
 			group->runs[run].newlineCount = j == curCount - 1 && i != paragraphCount - 1;
@@ -781,6 +785,11 @@ uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoin
 bool dsFaceGroup_isScriptUnique(uint32_t script)
 {
 	return script != HB_SCRIPT_INHERITED && script != HB_SCRIPT_UNKNOWN;
+}
+
+bool dsFaceGroup_isScriptCommon(uint32_t script)
+{
+	return script == HB_SCRIPT_COMMON;
 }
 
 bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2)

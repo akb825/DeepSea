@@ -45,17 +45,6 @@ static uint32_t countTextRanges(const dsFaceGroup* group, const uint32_t* codepo
 	uint32_t rangeCount = runCount;
 	for (uint32_t i = 0; i < runCount; ++i)
 	{
-		// Also find the direction.
-		runInfos[i].direction = dsTextDirection_Either;
-		for (uint32_t j = 0;
-			j < runInfos[i].count && runInfos[i].direction == dsTextDirection_Either; ++j)
-		{
-			uint32_t index = runInfos[i].start + j;
-			DS_ASSERT(index < length);
-			runInfos[i].direction = dsFaceGroup_textDirection(dsFaceGroup_codepointScript(group,
-				codepoints[index]));
-		}
-
 		uint32_t lastScript = 0;
 		bool hasLastScript = false;
 		for (uint32_t j = 0; j < runInfos[i].count; ++j)
@@ -129,38 +118,10 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 		scriptInfo->start = runs[i].start;
 		scriptInfo->count = runs[i].count;
 
-		// Loop backward for right to left text. This has the following properties:
-		// 1. Use pre-increment when going backwards to avoid negative counters, and post-increment
-		//    when going forward.
-		// 2. Always apply newlines to the last range we visit for the current run. This means the
-		//    first range in right to left text due to iterating backward.
-		uint32_t start, end;
-		int preIncr, postIncr;
-		uint32_t firstNewlineCount, lastNewlineCount;
-		if (runs[i].direction == dsTextDirection_RightToLeft)
-		{
-			start = runs[i].count;
-			end = 0;
-			preIncr = -1;
-			postIncr = 0;
-			firstNewlineCount = runs[i].newlineCount;
-			lastNewlineCount = 0;
-		}
-		else
-		{
-			start = 0;
-			end = runs[i].count;
-			preIncr = 0;
-			postIncr = 1;
-			firstNewlineCount = 0;
-			lastNewlineCount = runs[i].newlineCount;
-		}
-
 		uint32_t lastScript = 0;
 		bool hasLastScript = false;
-		for (uint32_t j = start; j != end; j += postIncr)
+		for (uint32_t j = 0; j < runs[i].count; ++j)
 		{
-			j += preIncr;
 			uint32_t index = runs[i].start + j;
 			uint32_t script = dsFaceGroup_codepointScript(group, text->characters[index]);
 			if (!dsFaceGroup_isScriptUnique(script) ||
@@ -171,38 +132,16 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 
 			if (hasLastScript)
 			{
-				// Shape the current range and move onto the next one.
-				if (runs[i].direction == dsTextDirection_RightToLeft)
-				{
-					DS_ASSERT(index + 1 < scriptInfo->start + scriptInfo->count);
-					scriptInfo->count = scriptInfo->start + scriptInfo->count - (index + 1);
-					scriptInfo->start = index + 1;
-				}
-				else
-					scriptInfo->count = index - scriptInfo->start;
-				DS_ASSERT(curInfo < text->rangeCount);
-				uint32_t newlineCount = curInfo - 1 == startInfo ? firstNewlineCount : 0;
-				if (!dsFont_shapeRange(text->font, text, curInfo - 1, scriptInfo->firstCodepoint,
-					scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
-				{
-					return false;
-				}
+				// End the current range and move onto the next one.
+				scriptInfo->count = index - scriptInfo->start;
 
 				// Prepare the next range. Initialize the start and count to match the rest of the
 				// text (end for left to right, or start for right to left) in case we don't
 				// encounter another script boundary.
 				scriptInfo = getScriptInfo(text, curInfo++);
 				scriptInfo->firstCodepoint = text->characters[index];
-				if (runs[i].direction == dsTextDirection_RightToLeft)
-				{
-					scriptInfo->start = runs[i].start;
-					scriptInfo->count = index + 1 - runs[i].start;
-				}
-				else
-				{
-					scriptInfo->start = index;
-					scriptInfo->count = runs[i].start + runs[i].count - index;
-				}
+				scriptInfo->start = index;
+				scriptInfo->count = runs[i].start + runs[i].count - index;
 			}
 			else
 			{
@@ -214,20 +153,43 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 				// When we know the script will be uniform, just need to find the first unique
 				// script codepoint.
 				if (uniformScript)
-					break;
+				{
+					// Keep searching if common script.
+					if (dsFaceGroup_isScriptCommon(script))
+						hasLastScript = false;
+					else
+						break;
+				}
 			}
 
 			lastScript = script;
 		}
 
-		// Shape the last range.
-		uint32_t newlineCount = lastNewlineCount;
-		if (curInfo - 1 == startInfo && firstNewlineCount)
-			newlineCount = firstNewlineCount;
-		if (!dsFont_shapeRange(text->font, text, curInfo - 1, scriptInfo->firstCodepoint,
-			scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
+		// Reverse the ranges for right to left text.
+		if (runs[i].direction == dsTextDirection_RightToLeft)
 		{
-			return false;
+			uint32_t count = curInfo - startInfo;
+			for (uint32_t j = 0; j < count/2; ++j)
+			{
+				dsScriptInfo* first = getScriptInfo(text, startInfo + j);
+				dsScriptInfo* second = getScriptInfo(text, startInfo + count - j - 1);
+				dsScriptInfo temp = *first;
+				*first = *second;
+				*second = temp;
+			}
+		}
+
+		// Shape the ranges. Go backwards for right to left text.
+		for (uint32_t j = startInfo; j < curInfo; ++j)
+		{
+			uint32_t infoIndex = j;
+			uint32_t newlineCount = j == curInfo - 1 ? runs[i].newlineCount : 0;
+			scriptInfo = getScriptInfo(text, infoIndex);
+			if (!dsFont_shapeRange(text->font, text, infoIndex, scriptInfo->firstCodepoint,
+				scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
+			{
+				return false;
+			}
 		}
 	}
 	DS_ASSERT(curInfo == text->rangeCount);
@@ -301,7 +263,25 @@ static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* 
 
 	uint32_t rangeCount;
 	if (uniformScript)
+	{
 		rangeCount = runCount;
+
+		// Find the direction based on the first unique script.
+		runs[0].direction = dsTextDirection_LeftToRight;
+		for (uint32_t i = 0; i < length; ++i)
+		{
+			uint32_t script = dsFaceGroup_codepointScript(font->group, characters[i]);
+			if (dsFaceGroup_isScriptUnique(script))
+			{
+				dsTextDirection direction = dsFaceGroup_textDirection(script);
+				if (direction != dsTextDirection_Either)
+				{
+					runs[0].direction = direction;
+					break;
+				}
+			}
+		}
+	}
 	else
 	{
 		rangeCount = countTextRanges(font->group, scratchText->characters,

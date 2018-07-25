@@ -146,6 +146,7 @@ bool dsFaceGroup_scratchGlyphs(dsFaceGroup* group, uint32_t length);
 uint32_t dsFaceGroup_codepointScript(const dsFaceGroup* group, uint32_t codepoint);
 
 bool dsFaceGroup_isScriptUnique(uint32_t script);
+bool dsFaceGroup_isScriptCommon(uint32_t script);
 bool dsFaceGroup_areScriptsEqual(uint32_t script1, uint32_t script2);
 dsTextDirection dsFaceGroup_textDirection(uint32_t script);
 
