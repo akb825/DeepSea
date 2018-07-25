@@ -209,8 +209,8 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}, 0.0f},
 		{26, UINT_MAX - 26, 24.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}}},
-	{"This text mixes wrapping based on max distance as well as explicit newlines."
-		"\n\nEmpty line.\n\nThiswordislongerthanlimit. This isn't.\n\nTessellated section only "
+	{"  This text mixes               wrapping based on max distance as well as explicit newlines."
+		"\n\n  Empty line.\n\nThiswordislongerthanlimit. This isn't.\n\nTessellated section only "
 			"has newlines.",
 		"\n\n\n", false,
 		dsTextAlign_Left, 200.0f, 1.0f,
@@ -222,12 +222,12 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
-	{"Centered text that wraps\nand explicit newlines.", NULL, false,
+	{"Centered text                that wraps\nand explicit newlines.", NULL, false,
 		dsTextAlign_Center, 162.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
-	{"Right-justified text that wraps\nand explicit newlines.", NULL, false,
+	{"Right-justified              text that wraps\nand explicit newlines.", NULL, false,
 		dsTextAlign_Right, 180.0f, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
@@ -249,9 +249,9 @@ static TextInfo textStrings[] =
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f},
 		NO_STYLE, NO_STYLE}},
-	{"Arabic words with wrapping: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
+	{"Arabic words with wrapping: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9                    "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"\n"
-		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!? "
+		"Wrapping with punctuation: \"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9!?                "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF\"", NULL, false,
 		dsTextAlign_Left, 410.0f, 1.3f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
@@ -315,7 +315,7 @@ static TextInfo textStrings[] =
 			{{255, 255, 255, 255}}, 20.0f},
 		{20, UINT_MAX - 20, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
 			{{255, 255, 255, 255}}, 0.0f}}},
-	{"Uniform script with a mixture of wrapping\n\nand\nexplicit\nnewlines.\n\n"
+	{"  Uniform script                with a mixture of wrapping\n\n  and\nexplicit\nnewlines.\n\n"
 		"Next uses Arabic only", NULL, true,
 		dsTextAlign_Start, 200, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},
@@ -325,9 +325,10 @@ static TextInfo textStrings[] =
 		"\xD8\xAC\xD8\xB2\xD9\x8A\xD8\xB1\xD8\xA9 "
 		"\xD9\x84\xD8\xA7\xD8\xB2\xD9\x88\xD8\xB1\xD8\xAF!\n\n"
 		"\xD9\x83\xD9\x86\xD8\xAA\x20\xD8\xA3\xD8\xB1\xD9\x8A\xD8\xAF\x20\xD8\xA3\xD9\x86\x20\xD8"
-		"\xA3\xD9\x82\xD8\xB1\xD8\xA3\x20\xD9\x83\xD8\xAA\xD8\xA7\xD8\xA8\xD8\xA7\x20\xD8\xB9\xD9"
-		"\x86\x20\xD8\xAA\xD8\xA7\xD8\xB1\xD9\x8A\xD8\xAE\x20\xD8\xA7\xD9\x84\xD9\x85\xD8\xB1\xD8"
-		"\xA3\xD8\xA9\x20\xD9\x81\xD9\x8A\x20\xD9\x81\xD8\xB1\xD9\x86\xD8\xB3\xD8\xA7\xE2\x80\xAC",
+		"\xA3\xD9\x82\xD8\xB1\xD8\xA3\x20                       "
+		"\xD9\x83\xD8\xAA\xD8\xA7\xD8\xA8\xD8\xA7\x20\xD8\xB9\xD9\x86\x20\xD8\xAA\xD8\xA7\xD8"
+		"\xB1\xD9\x8A\xD8\xAE\x20\xD8\xA7\xD9\x84\xD9\x85\xD8\xB1\xD8\xA3\xD8\xA9\x20\xD9\x81\xD9"
+		"\x8A\x20\xD9\x81\xD8\xB1\xD9\x86\xD8\xB3\xD8\xA7\xE2\x80\xAC",
 		NULL, true,
 		dsTextAlign_Start, 200, 1.0f,
 		{{0, UINT_MAX, 24.0f, 0.0f, 0.0f, 0.0f, 0.15f, 0.0f, {{255, 255, 255, 255}},

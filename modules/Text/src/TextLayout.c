@@ -546,6 +546,15 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			dsVector2_add(glyphBounds.max, relativePosition, glyph->geometry.max);
 			dsAlignedBox2_addBox(lineBounds, glyphBounds);
 		}
+		else
+		{
+			// This will catch leading whitespace for right to left text.
+			if (text->characters[text->glyphs[textIndex].charIndex] != '\n')
+			{
+				dsVector2f point = {{offset, glyph->position.y}};
+				dsAlignedBox2_addPoint(lineBounds, point);
+			}
+		}
 	}
 
 	// Last line.
