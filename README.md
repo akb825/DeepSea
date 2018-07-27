@@ -7,7 +7,7 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 The following software is required to build DeepSea:
 
 * [cmake](https://cmake.org/) 3.0.2 or later
-* Modular Shader Language (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be built separately to compile shaders)
+* [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be built separately and available on `PATH` to compile shaders)
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)

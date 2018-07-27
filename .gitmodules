@@ -1,6 +1,6 @@
 [submodule "Render/ModularShaderLanguage"]
 	path = modules/Render/ModularShaderLanguage
-	url = git://server.local/ModularShaderLanguage
+	url = https://github.com/akb825/ModularShaderLanguage
 [submodule "Text/SheenBidi"]
 	path = modules/Text/SheenBidi
 	url = https://github.com/mta452/SheenBidi.git
