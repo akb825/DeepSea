@@ -716,7 +716,7 @@ bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 		glRenderer->renderContextBound = true;
 		if (!glRenderer->renderContextReset)
 		{
-			glRenderer->renderContextBound = true;
+			glRenderer->renderContextReset = true;
 			dsGLMainCommandBuffer_resetState((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
 		}
 	}
