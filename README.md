@@ -11,6 +11,7 @@ The following software is required to build DeepSea:
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
+* [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
