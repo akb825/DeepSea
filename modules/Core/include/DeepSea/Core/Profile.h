@@ -167,7 +167,8 @@ DS_CORE_EXPORT void dsProfile_clearFunctions(void);
 
 /**
  * @brief Registers a thread.
- * @remark This will automatically be called when dsThread_setThisThreadName() is called.
+ * @remark This will automatically be called when dsThread_setThisThreadName() is called. It is also
+ *     automatic when creating a thread using dsTHread.
  * @param name The name of the thread.
  */
 DS_CORE_EXPORT void dsProfile_registerThread(const char* name);
@@ -219,10 +220,11 @@ DS_CORE_EXPORT void dsProfile_stat(void** localData, const char* category, const
 
 /**
  * @brief Profiles a GPU timing.
- * @param name The name of the portion being timed.
+ * @param view The name of the view being timed.
+ * @param name The name of the pass being timed.
  * @param timeNs The time spent in nanoseconds.
  */
-DS_CORE_EXPORT void dsProfile_gpu(const char* name, uint64_t timeNs);
+DS_CORE_EXPORT void dsProfile_gpu(const char* view, const char* pass, uint64_t timeNs);
 
 #ifdef __cplusplus
 }

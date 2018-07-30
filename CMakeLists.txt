@@ -15,6 +15,8 @@ endif()
 set(DEEPSEA_BUILD_TESTS ON CACHE BOOL "Build unit tests.")
 set(DEEPSEA_BUILD_DOCS ON CACHE BOOL "Build documentation.")
 
+set(DEEPSEA_BUILD_EASY_PROFILER ON CACHE BOOL "Build the easy_profiler integration for profiling.")
+
 set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
 set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation, used by tests.")
 set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")

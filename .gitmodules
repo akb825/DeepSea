@@ -4,3 +4,6 @@
 [submodule "Text/SheenBidi"]
 	path = modules/Text/SheenBidi
 	url = https://github.com/mta452/SheenBidi.git
+[submodule "modules/Core/EasyProfiler/easy_profiler"]
+	path = modules/Core/EasyProfiler/easy_profiler
+	url = https://github.com/yse/easy_profiler.git

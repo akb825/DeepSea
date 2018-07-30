@@ -4,6 +4,11 @@ ds_start_modules()
 ds_add_module(Core)
 ds_add_module(Math)
 
+# Profiling
+if (DEEPSEA_BUILD_EASY_PROFILER)
+	ds_add_module(Core/EasyProfiler)
+endif()
+
 # Render libraries
 if (DEEPSEA_BUILD_RENDER)
 	ds_add_module(Geometry)

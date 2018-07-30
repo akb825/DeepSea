@@ -95,10 +95,10 @@ void dsProfile_stat(void** localData, const char* category, const char* name, do
 	gFunctions.statFunc(gUserData, localData, category, name, value, file, function, line);
 }
 
-void dsProfile_gpu(const char* name, uint64_t timeNs)
+void dsProfile_gpu(const char* view, const char* pass, uint64_t timeNs)
 {
 	if (!gFunctions.gpuFunc)
 		return;
 
-	gFunctions.gpuFunc(gUserData, name, timeNs);
+	gFunctions.gpuFunc(gUserData, view, pass, timeNs);
 }

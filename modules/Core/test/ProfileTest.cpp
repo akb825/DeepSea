@@ -115,7 +115,7 @@ void profileStat(void* userData, void**, const char* category, const char* name,
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
-void profileGpu(void*, const char*, uint64_t)
+void profileGpu(void*, const char*, const char*, uint64_t)
 {
 }
 
