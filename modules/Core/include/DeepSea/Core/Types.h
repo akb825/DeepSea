@@ -160,11 +160,11 @@ typedef void (*dsProfileStatFunction)(void* userData, void** localData, const ch
  * @brief Type for a function reporting time spent on the GPU.
  * @remark This will only be called from the main thread.
  * @param userData The user data for profiling functions.
- * @param view The name of the view being profiled.
- * @param pass The name of the pass being profiled.
+ * @param surface The name of the view being drawn to.
+ * @param pass The name of the pass being drawn to.
  * @param timeNs The time spent for rendering in nanoseconds.
  */
-typedef void (*dsProfileGpuFunction)(void* userData, const char* view, const char* pass,
+typedef void (*dsProfileGpuFunction)(void* userData, const char* surface, const char* pass,
 	uint64_t timeNs);
 
 /**

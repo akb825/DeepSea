@@ -47,35 +47,48 @@ enum class ExpandedProfileType
 	GPU
 };
 
-bool createSpinlock(dsSpinlock& spinlock)
+class UniqueStringContainer
 {
-	dsSpinlock_initialize(&spinlock);
-	return true;
-}
+public:
+	UniqueStringContainer()
+	{
+		dsSpinlock_initialize(&m_spinlock);
+	}
+
+	~UniqueStringContainer()
+	{
+		dsSpinlock_shutdown(&m_spinlock);
+	}
+
+	const char* uniqueString(const char* string)
+	{
+		DS_VERIFY(dsSpinlock_lock(&m_spinlock));
+
+		// NOTE: insertion will allocate even if already present, so search first.
+		uint32_t hash = dsHashString(string);
+		auto iter = m_uniqueStrings.find(hash);
+		const char* finalString;
+		if (iter == m_uniqueStrings.end())
+			finalString = m_uniqueStrings.emplace(hash, string).first->second.c_str();
+		else
+		{
+			DS_ASSERT(iter->second == string);
+			finalString = iter->second.c_str();
+		}
+
+		DS_VERIFY(dsSpinlock_unlock(&m_spinlock));
+		return finalString;
+	}
+
+private:
+	std::unordered_map<uint32_t, std::string> m_uniqueStrings;
+	dsSpinlock m_spinlock;
+};
 
 const char* uniqueString(const char* string)
 {
-	static std::unordered_map<uint32_t, std::string> uniqueStrings;
-	static dsSpinlock spinlock;
-	static bool created = createSpinlock(spinlock);
-	DS_UNUSED(created);
-
-	DS_VERIFY(dsSpinlock_lock(&spinlock));
-
-	// NOTE: insertion will allocate even if already present, so search first.
-	uint32_t hash = dsHashString(string);
-	auto iter = uniqueStrings.find(hash);
-	const char* finalString;
-	if (iter == uniqueStrings.end())
-		finalString = uniqueStrings.emplace(hash, string).first->second.c_str();
-	else
-	{
-		DS_ASSERT(iter->second == string);
-		finalString = iter->second.c_str();
-	}
-
-	DS_VERIFY(dsSpinlock_unlock(&spinlock));
-	return finalString;
+	static UniqueStringContainer uniqueStrings;
+	return uniqueStrings.uniqueString(string);
 }
 
 profiler::color_t getColor(ExpandedProfileType type)
@@ -178,13 +191,13 @@ void statValue(void*, void** blockData, const char* category, const char* name, 
 		profiler::ValueId(blockData));
 }
 
-void gpuValue(void*, const char* view, const char* pass, uint64_t timeNs)
+void gpuValue(void*, const char* surface, const char* pass, uint64_t timeNs)
 {
 	// NOTE: This is a little slow, but we can't just cache the block data in this case. There
 	// shouldn't be a massive number of render passes, so it shouldn't be a large impact.
 	constexpr uint32_t maxSize = 256;
 	char buffer[maxSize];
-	int result = std::snprintf(buffer, maxSize, "%s: %s (ms)", view, pass);
+	int result = std::snprintf(buffer, maxSize, "%s: %s (ms)", surface, pass);
 	DS_UNUSED(result);
 	DS_ASSERT(result >= 0 && (uint32_t)result < maxSize);
 
