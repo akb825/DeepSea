@@ -39,7 +39,7 @@ DeepSea has been built for and tested on the following platforms:
 
 In order to perform a full build of DeepSea, the dependencies should be installed first.
 
-* Modular Shader Language: the tool is required to build shaders. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
+* [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage): the tool is required to build shaders. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
 * [Cuttlefish](https://github.com/akb825/Cuttlefish): this is recommended to create textures. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
 * [gtest](https://github.com/google/googletest): after installing the library you may need to set the `GTEST_ROOT` CMake variable to the installation location.
 * [SDL](https://www.libsdl.org/): after installing the library you may need to set the `SDL_PATH` CMake variable to the installation location.

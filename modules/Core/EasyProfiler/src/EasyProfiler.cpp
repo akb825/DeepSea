@@ -95,11 +95,6 @@ const char* uniqueString(const char* string, uint32_t hash)
 	return uniqueStrings.uniqueString(string, hash);
 }
 
-const char* uniqueString(const char* string)
-{
-	return uniqueString(string, dsHashString(string));
-}
-
 profiler::color_t hsvColor(float hue, float saturation, float value)
 {
 	// https://www.rapidtables.com/convert/color/hsv-to-rgb.html
