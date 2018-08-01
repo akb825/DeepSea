@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,16 @@ namespace
 struct PushInfo
 {
 	PushInfo(dsProfileType type_, const char* name_, const char* file_, const char* function_,
-		unsigned int line_)
-		: type(type_), name(name_), file(file_), function(function_), line(line_) {}
+		unsigned int line_, bool dynamic_)
+		: type(type_), name(name_), file(file_), function(function_), line(line_),
+		  dynamic(dynamic_) {}
 
 	dsProfileType type;
 	std::string name;
 	std::string file;
 	std::string function;
 	unsigned int line;
+	bool dynamic;
 };
 
 struct PopInfo
@@ -54,9 +56,9 @@ struct PopInfo
 struct StatInfo
 {
 	StatInfo(const char* category_, const char* name_, double value_, const char* file_,
-		const char* function_, unsigned int line_)
+		const char* function_, unsigned int line_, bool dynamic_)
 		: category(category_), name(name_), value(value_), file(file_), function(function_),
-		  line(line_) {}
+		  line(line_), dynamic(dynamic_) {}
 
 	std::string category;
 	std::string name;
@@ -64,6 +66,7 @@ struct StatInfo
 	std::string file;
 	std::string function;
 	unsigned int line;
+	bool dynamic;
 };
 
 struct ProfileInfo
@@ -92,10 +95,10 @@ void profileEndFrame(void*)
 }
 
 void profilePush(void* userData, void**, dsProfileType type, const char* name, const char* file,
-	const char* function, unsigned int line)
+	const char* function, unsigned int line, bool dynamic)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line);
+	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line, dynamic);
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
@@ -108,10 +111,11 @@ void profilePop(void* userData, dsProfileType type, const char* file, const char
 }
 
 void profileStat(void* userData, void**, const char* category, const char* name, double value,
-	const char* file, const char* function, unsigned int line)
+	const char* file, const char* function, unsigned int line, bool dynamic)
 {
 	EXPECT_TRUE(dsSpinlock_lock(&((ProfileInfo*)userData)->spinlock));
-	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line);
+	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line,
+		dynamic);
 	EXPECT_TRUE(dsSpinlock_unlock(&((ProfileInfo*)userData)->spinlock));
 }
 
@@ -209,18 +213,26 @@ TEST(Profile, Macros)
 	EXPECT_EQ(10, intFunction(10));
 	DS_PROFILE_SCOPE_START("Scope");
 	DS_PROFILE_SCOPE_END();
+	DS_PROFILE_DYNAMIC_SCOPE_START("DynamicScope");
+	DS_PROFILE_SCOPE_END();
 	DS_PROFILE_WAIT_START("Wait");
+	DS_PROFILE_WAIT_END();
+	DS_PROFILE_DYNAMIC_WAIT_START("DynamicWait");
 	DS_PROFILE_WAIT_END();
 	DS_PROFILE_LOCK_START("Lock");
 	DS_PROFILE_LOCK_END();
+	DS_PROFILE_DYNAMIC_LOCK_START("DynamicLock");
+	DS_PROFILE_LOCK_END();
 	DS_PROFILE_STAT("Category", "Name", 10);
+	DS_PROFILE_DYNAMIC_STAT("Dynamic", "Name", 10);
 
 	dsProfile_clearFunctions();
 
 	const char* fileName = "ProfileTest.cpp";
 	const char* functionName = "TestBody";
 
-	ASSERT_EQ(5U, info.push.size());
+	// Push
+	ASSERT_EQ(8U, info.push.size());
 	EXPECT_EQ(dsProfileType_Function, info.push[0].type);
 	EXPECT_NE(std::string::npos, info.push[0].name.find("voidFunction"));
 	std::size_t separatorIndex = info.push[0].file.find_last_of("/\\");
@@ -228,6 +240,7 @@ TEST(Profile, Macros)
 	EXPECT_STRCASEEQ(fileName, info.push[0].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.push[0].function.find("voidFunction"));
 	EXPECT_NE(0, info.push[0].line);
+	EXPECT_FALSE(info.push[0].dynamic);
 
 	EXPECT_EQ(dsProfileType_Function, info.push[1].type);
 	EXPECT_EQ("Custom Function", info.push[1].name);
@@ -236,6 +249,7 @@ TEST(Profile, Macros)
 	EXPECT_STRCASEEQ(fileName, info.push[1].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.push[1].function.find("intFunction"));
 	EXPECT_NE(0, info.push[1].line);
+	EXPECT_FALSE(info.push[1].dynamic);
 
 	EXPECT_EQ(dsProfileType_Scope, info.push[2].type);
 	EXPECT_EQ("Scope", info.push[2].name);
@@ -244,24 +258,55 @@ TEST(Profile, Macros)
 	EXPECT_STRCASEEQ(fileName, info.push[2].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.push[2].function.find(functionName));
 	EXPECT_NE(0, info.push[2].line);
+	EXPECT_FALSE(info.push[2].dynamic);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
-	EXPECT_EQ("Wait", info.push[3].name);
+	EXPECT_EQ(dsProfileType_Scope, info.push[3].type);
+	EXPECT_EQ("DynamicScope", info.push[3].name);
 	separatorIndex = info.push[3].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ(fileName, info.push[3].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.push[3].function.find(functionName));
 	EXPECT_NE(0, info.push[3].line);
+	EXPECT_TRUE(info.push[3].dynamic);
 
-	EXPECT_EQ(dsProfileType_Lock, info.push[4].type);
-	EXPECT_EQ("Lock", info.push[4].name);
+	EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+	EXPECT_EQ("Wait", info.push[4].name);
 	separatorIndex = info.push[4].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ(fileName, info.push[4].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.push[4].function.find(functionName));
 	EXPECT_NE(0, info.push[4].line);
+	EXPECT_FALSE(info.push[4].dynamic);
 
-	ASSERT_EQ(5U, info.pop.size());
+	EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+	EXPECT_EQ("DynamicWait", info.push[5].name);
+	separatorIndex = info.push[5].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.push[5].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.push[5].function.find(functionName));
+	EXPECT_NE(0, info.push[5].line);
+	EXPECT_TRUE(info.push[5].dynamic);
+
+	EXPECT_EQ(dsProfileType_Lock, info.push[6].type);
+	EXPECT_EQ("Lock", info.push[6].name);
+	separatorIndex = info.push[6].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.push[6].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.push[6].function.find(functionName));
+	EXPECT_NE(0, info.push[6].line);
+	EXPECT_FALSE(info.push[6].dynamic);
+
+	EXPECT_EQ(dsProfileType_Lock, info.push[7].type);
+	EXPECT_EQ("DynamicLock", info.push[7].name);
+	separatorIndex = info.push[7].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.push[7].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.push[7].function.find(functionName));
+	EXPECT_NE(0, info.push[7].line);
+	EXPECT_TRUE(info.push[7].dynamic);
+
+	// Pop
+	ASSERT_EQ(8U, info.pop.size());
 	EXPECT_EQ(dsProfileType_Function, info.pop[0].type);
 	separatorIndex = info.pop[0].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
@@ -283,27 +328,58 @@ TEST(Profile, Macros)
 	EXPECT_NE(std::string::npos, info.pop[2].function.find(functionName));
 	EXPECT_NE(0, info.pop[2].line);
 
-	EXPECT_EQ(dsProfileType_Wait, info.pop[3].type);
+	EXPECT_EQ(dsProfileType_Scope, info.pop[3].type);
 	separatorIndex = info.pop[3].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ(fileName, info.pop[3].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.pop[3].function.find(functionName));
 	EXPECT_NE(0, info.pop[3].line);
 
-	EXPECT_EQ(dsProfileType_Lock, info.pop[4].type);
+	EXPECT_EQ(dsProfileType_Wait, info.pop[4].type);
 	separatorIndex = info.pop[4].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ(fileName, info.pop[4].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.pop[4].function.find(functionName));
 	EXPECT_NE(0, info.pop[4].line);
 
-	ASSERT_EQ(1U, info.stat.size());
+	EXPECT_EQ(dsProfileType_Wait, info.pop[5].type);
+	separatorIndex = info.pop[5].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.pop[5].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.pop[5].function.find(functionName));
+	EXPECT_NE(0, info.pop[5].line);
+
+	EXPECT_EQ(dsProfileType_Lock, info.pop[6].type);
+	separatorIndex = info.pop[6].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.pop[6].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.pop[6].function.find(functionName));
+	EXPECT_NE(0, info.pop[6].line);
+
+	EXPECT_EQ(dsProfileType_Lock, info.pop[7].type);
+	separatorIndex = info.pop[7].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.pop[7].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.pop[7].function.find(functionName));
+	EXPECT_NE(0, info.pop[7].line);
+
+	// Stat
+	ASSERT_EQ(2U, info.stat.size());
 	EXPECT_EQ("Category", info.stat[0].category);
 	EXPECT_EQ("Name", info.stat[0].name);
 	EXPECT_EQ(10, info.stat[0].value);
 	separatorIndex = info.stat[0].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ(fileName, info.stat[0].file.c_str() + separatorIndex + 1);
+	EXPECT_NE(std::string::npos, info.stat[0].function.find(functionName));
+	EXPECT_NE(0, info.stat[0].line);
+
+	EXPECT_EQ("Dynamic", info.stat[1].category);
+	EXPECT_EQ("Name", info.stat[1].name);
+	EXPECT_EQ(10, info.stat[1].value);
+	separatorIndex = info.stat[1].file.find_last_of("/\\");
+	ASSERT_NE(std::string::npos, separatorIndex);
+	EXPECT_STRCASEEQ(fileName, info.stat[1].file.c_str() + separatorIndex + 1);
 	EXPECT_NE(std::string::npos, info.stat[0].function.find(functionName));
 	EXPECT_NE(0, info.stat[0].line);
 }
@@ -348,6 +424,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_tryLock", info.push[0].function);
 	EXPECT_NE(0, info.push[0].line);
+	EXPECT_FALSE(info.push[0].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[1].type);
 	EXPECT_EQ("Mutex", info.push[1].name);
@@ -356,6 +433,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[1].function);
 	EXPECT_NE(0, info.push[1].line);
+	EXPECT_FALSE(info.push[1].dynamic);
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[2].type);
 	EXPECT_EQ("Mutex", info.push[2].name);
@@ -364,6 +442,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
+	EXPECT_FALSE(info.push[2].dynamic);
 
 	if (info.push[3].name == "Mutex")
 	{
@@ -374,6 +453,7 @@ TEST(Profile, ThreadTypes)
 		EXPECT_STRCASEEQ("Mutex.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
+		EXPECT_FALSE(info.push[3].dynamic);
 
 		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
 		EXPECT_EQ("Condition", info.push[4].name);
@@ -382,6 +462,7 @@ TEST(Profile, ThreadTypes)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
 		EXPECT_NE(0, info.push[4].line);
+		EXPECT_FALSE(info.push[4].dynamic);
 	}
 	else
 	{
@@ -392,6 +473,7 @@ TEST(Profile, ThreadTypes)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
+		EXPECT_FALSE(info.push[3].dynamic);
 
 		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
 		EXPECT_EQ("Mutex", info.push[4].name);
@@ -399,7 +481,8 @@ TEST(Profile, ThreadTypes)
 		ASSERT_NE(std::string::npos, separatorIndex);
 		EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[4].function);
-		EXPECT_NE(0, info.push[3].line);
+		EXPECT_NE(0, info.push[4].line);
+		EXPECT_FALSE(info.push[4].dynamic);
 	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
@@ -409,6 +492,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[5].function);
 	EXPECT_NE(0, info.push[5].line);
+	EXPECT_FALSE(info.push[5].dynamic);
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[6].type);
 	EXPECT_EQ("Mutex", info.push[6].name);
@@ -417,6 +501,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("ConditionVariable.c", info.push[6].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsConditionVariable_wait", info.push[6].function);
 	EXPECT_NE(0, info.push[6].line);
+	EXPECT_FALSE(info.push[6].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[7].type);
 	EXPECT_EQ("Thread", info.push[7].name);
@@ -425,6 +510,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Thread.c", info.push[7].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
+	EXPECT_FALSE(info.push[7].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
 	EXPECT_EQ("Sleep", info.push[8].name);
@@ -433,6 +519,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Thread.c", info.push[8].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_sleep", info.push[8].function);
 	EXPECT_NE(0, info.push[8].line);
+	EXPECT_FALSE(info.push[8].dynamic);
 
 	// pop
 	ASSERT_EQ(9U, info.pop.size());
@@ -540,6 +627,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_tryLock", info.push[0].function);
 	EXPECT_NE(0, info.push[0].line);
+	EXPECT_FALSE(info.push[0].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[1].type);
 	EXPECT_EQ("TestMutex", info.push[1].name);
@@ -548,6 +636,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[1].function);
 	EXPECT_NE(0, info.push[1].line);
+	EXPECT_FALSE(info.push[1].dynamic);
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[2].type);
 	EXPECT_EQ("TestMutex", info.push[2].name);
@@ -556,6 +645,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
+	EXPECT_FALSE(info.push[2].dynamic);
 
 	if (info.push[3].name == "TestMutex")
 	{
@@ -566,6 +656,7 @@ TEST(Profile, ThreadTypesNamed)
 		EXPECT_STRCASEEQ("Mutex.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
+		EXPECT_FALSE(info.push[3].dynamic);
 
 		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
 		EXPECT_EQ("TestCondition", info.push[4].name);
@@ -574,6 +665,7 @@ TEST(Profile, ThreadTypesNamed)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
 		EXPECT_NE(0, info.push[4].line);
+		EXPECT_FALSE(info.push[4].dynamic);
 	}
 	else
 	{
@@ -584,6 +676,7 @@ TEST(Profile, ThreadTypesNamed)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
+		EXPECT_FALSE(info.push[3].dynamic);
 
 		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
 		EXPECT_EQ("TestMutex", info.push[4].name);
@@ -592,6 +685,7 @@ TEST(Profile, ThreadTypesNamed)
 		EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[4].function);
 		EXPECT_NE(0, info.push[3].line);
+		EXPECT_FALSE(info.push[4].dynamic);
 	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
@@ -601,6 +695,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[5].function);
 	EXPECT_NE(0, info.push[5].line);
+	EXPECT_FALSE(info.push[5].dynamic);
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[6].type);
 	EXPECT_EQ("TestMutex", info.push[6].name);
@@ -609,6 +704,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("ConditionVariable.c", info.push[6].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsConditionVariable_wait", info.push[6].function);
 	EXPECT_NE(0, info.push[6].line);
+	EXPECT_FALSE(info.push[6].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[7].type);
 	EXPECT_EQ("TestThread", info.push[7].name);
@@ -617,6 +713,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Thread.c", info.push[7].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
+	EXPECT_FALSE(info.push[7].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
 	EXPECT_EQ("TestSleep", info.push[8].name);
@@ -625,6 +722,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Thread.c", info.push[8].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_sleep", info.push[8].function);
 	EXPECT_NE(0, info.push[8].line);
+	EXPECT_FALSE(info.push[8].dynamic);
 
 	// pop
 	ASSERT_EQ(9U, info.pop.size());

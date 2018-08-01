@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,16 @@ namespace
 struct PushInfo
 {
 	PushInfo(dsProfileType type_, const char* name_, const char* file_, const char* function_,
-		unsigned int line_)
-		: type(type_), name(name_), file(file_), function(function_), line(line_) {}
+		unsigned int line_, bool dynamic_)
+		: type(type_), name(name_), file(file_), function(function_), line(line_),
+		  dynamic(dynamic_) {}
 
 	dsProfileType type;
 	std::string name;
 	std::string file;
 	std::string function;
 	unsigned int line;
+	bool dynamic;
 };
 
 struct PopInfo
@@ -55,9 +57,9 @@ struct PopInfo
 struct StatInfo
 {
 	StatInfo(const char* category_, const char* name_, double value_, const char* file_,
-		const char* function_, unsigned int line_)
+		const char* function_, unsigned int line_, bool dynamic_)
 		: category(category_), name(name_), value(value_), file(file_), function(function_),
-		  line(line_) {}
+		  line(line_), dynamic(dynamic_) {}
 
 	std::string category;
 	std::string name;
@@ -65,6 +67,7 @@ struct StatInfo
 	std::string file;
 	std::string function;
 	unsigned int line;
+	bool dynamic;
 };
 
 struct ProfileInfo
@@ -75,9 +78,9 @@ struct ProfileInfo
 };
 
 void profilePush(void* userData, void**, dsProfileType type, const char* name, const char* file,
-	const char* function, unsigned int line)
+	const char* function, unsigned int line, bool dynamic)
 {
-	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line);
+	((ProfileInfo*)userData)->push.emplace_back(type, name, file, function, line, dynamic);
 }
 
 void profilePop(void* userData, dsProfileType type, const char* file, const char* function,
@@ -87,9 +90,10 @@ void profilePop(void* userData, dsProfileType type, const char* file, const char
 }
 
 void profileStat(void* userData, void**, const char* category, const char* name, double value,
-	const char* file, const char* function, unsigned int line)
+	const char* file, const char* function, unsigned int line, bool dynamic)
 {
-	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line);
+	((ProfileInfo*)userData)->stat.emplace_back(category, name, value, file, function, line,
+		dynamic);
 }
 
 void voidFunction()
@@ -119,11 +123,18 @@ TEST(ProfileDisabled, Macros)
 	EXPECT_EQ(10, intFunction(10));
 	DS_PROFILE_SCOPE_START("Scope");
 	DS_PROFILE_SCOPE_END();
+	DS_PROFILE_DYNAMIC_SCOPE_START("DynamicScope");
+	DS_PROFILE_SCOPE_END();
 	DS_PROFILE_WAIT_START("Wait");
+	DS_PROFILE_WAIT_END();
+	DS_PROFILE_DYNAMIC_WAIT_START("DynamicWait");
 	DS_PROFILE_WAIT_END();
 	DS_PROFILE_LOCK_START("Lock");
 	DS_PROFILE_LOCK_END();
+	DS_PROFILE_DYNAMIC_LOCK_START("DynamicLock");
+	DS_PROFILE_LOCK_END();
 	DS_PROFILE_STAT("Category", "Name", 10);
+	DS_PROFILE_DYNAMIC_STAT("Dynamic", "Name", 10);
 
 	dsProfile_clearFunctions();
 

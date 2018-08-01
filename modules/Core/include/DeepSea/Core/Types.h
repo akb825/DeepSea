@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,9 +125,10 @@ typedef void (*dsProfileFrameFunction)(void* userData);
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
+ * @param dynamicName True if the name can be dynamic.
  */
 typedef void (*dsProfilePushFunction)(void* userData, void** localData, dsProfileType type,
-	const char* name, const char* file, const char* function, unsigned int line);
+	const char* name, const char* file, const char* function, unsigned int line, bool dynamicName);
 
 /**
  * @brief Type for the function popping a profile scope.
@@ -143,6 +144,7 @@ typedef void (*dsProfilePopFunction)(void* userData, dsProfileType type, const c
 
 /**
  * @brief Type for the function profiling a statistic.
+ * @remark It's assumed that the category and name paired will uniquely identify the statistic.
  * @remark This may be called across multiple threads.
  * @param userData The user data for profiling functions.
  * @param localData A pointer to a void* for data unique to the call site.
@@ -152,12 +154,15 @@ typedef void (*dsProfilePopFunction)(void* userData, dsProfileType type, const c
  * @param file The name of the source file.
  * @param function The function calling this.
  * @param line The line of the function call.
+ * @param dynamicName True if the name can be dynamic.
  */
 typedef void (*dsProfileStatFunction)(void* userData, void** localData, const char* category,
-	const char* name, double value, const char* file, const char* function, unsigned int line);
+	const char* name, double value, const char* file, const char* function, unsigned int line,
+	bool dynamicName);
 
 /**
  * @brief Type for a function reporting time spent on the GPU.
+ * @remark It's assumed that the category and name paired will uniquely identify the statistic.
  * @remark This will only be called from the main thread.
  * @param userData The user data for profiling functions.
  * @param surface The name of the view being drawn to.

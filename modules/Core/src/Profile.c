@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,12 +70,12 @@ void dsProfile_endFrame()
 }
 
 void dsProfile_push(void** localData, dsProfileType type, const char* name, const char* file,
-	const char* function, unsigned int line)
+	const char* function, unsigned int line, bool dynamicName)
 {
 	if (!gFunctions.pushFunc)
 		return;
 
-	gFunctions.pushFunc(gUserData, localData, type, name, file, function, line);
+	gFunctions.pushFunc(gUserData, localData, type, name, file, function, line, dynamicName);
 }
 
 void dsProfile_pop(dsProfileType type, const char* file, const char* function, unsigned int line)
@@ -87,12 +87,13 @@ void dsProfile_pop(dsProfileType type, const char* file, const char* function, u
 }
 
 void dsProfile_stat(void** localData, const char* category, const char* name, double value,
-	const char* file, const char* function, unsigned int line)
+	const char* file, const char* function, unsigned int line, bool dynamicName)
 {
 	if (!gFunctions.statFunc)
 		return;
 
-	gFunctions.statFunc(gUserData, localData, category, name, value, file, function, line);
+	gFunctions.statFunc(gUserData, localData, category, name, value, file, function, line,
+		dynamicName);
 }
 
 void dsProfile_gpu(const char* surface, const char* pass, uint64_t timeNs)

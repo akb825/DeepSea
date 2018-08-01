@@ -28,11 +28,11 @@
 #include <easy/profiler.h>
 #include <easy/arbitrary_value.h>
 
+#include <cmath>
 #include <cstdio>
-#include <functional>
+#include <limits>
 #include <unordered_map>
 #include <string>
-#include <string_view>
 
 namespace
 {
@@ -60,12 +60,11 @@ public:
 		dsSpinlock_shutdown(&m_spinlock);
 	}
 
-	const char* uniqueString(const char* string)
+	const char* uniqueString(const char* string, uint32_t hash)
 	{
 		DS_VERIFY(dsSpinlock_lock(&m_spinlock));
 
 		// NOTE: insertion will allocate even if already present, so search first.
-		uint32_t hash = dsHashString(string);
 		auto iter = m_uniqueStrings.find(hash);
 		const char* finalString;
 		if (iter == m_uniqueStrings.end())
@@ -85,60 +84,128 @@ private:
 	dsSpinlock m_spinlock;
 };
 
-const char* uniqueString(const char* string)
+const char* uniqueString(const char* string, uint32_t hash)
 {
 	static UniqueStringContainer uniqueStrings;
-	return uniqueStrings.uniqueString(string);
+	return uniqueStrings.uniqueString(string, hash);
 }
 
-profiler::color_t getColor(ExpandedProfileType type)
+const char* uniqueString(const char* string)
+{
+	return uniqueString(string, dsHashString(string));
+}
+
+profiler::color_t hsvColor(float hue, float saturation, float value)
+{
+	// https://www.rapidtables.com/convert/color/hsv-to-rgb.html
+	float c = value*saturation;
+	float x = c*(1.0f - std::fabs(std::fmod(hue/60.0f, 2.0f) - 1.0f));
+	float m = value - c;
+	c += m;
+	x += m;
+
+	float r, g, b;
+	if (hue >= 0.0f && hue < 60.0f)
+	{
+		r = c;
+		g = x;
+		b = m;
+	}
+	else if (hue >= 60.0f && hue < 120.0f)
+	{
+		r = x;
+		g = c;
+		b = m;
+	}
+	else if (hue >= 120.0f && hue < 180.0f)
+	{
+		r = m;
+		g = c;
+		b = x;
+	}
+	else if (hue >= 180.0f && hue < 240.0f)
+	{
+		r = m;
+		g = x;
+		b = c;
+	}
+	else if (hue >= 240.0f && hue < 300.0f)
+	{
+		r = x;
+		g = m;
+		b = c;
+	}
+	else
+	{
+		r = c;
+		g = m;
+		b = x;
+	}
+
+	return profiler::colors::color((uint8_t)std::roundf(r*255.0f), (uint8_t)std::roundf(g*255.0f),
+		(uint8_t)std::roundf(b*255.0f));
+}
+
+float hashToHue(uint32_t hash)
+{
+	return (float)((double)hash/(double)std::numeric_limits<uint32_t>::max())*360.0f;
+}
+
+profiler::color_t getColor(ExpandedProfileType type, uint32_t hash = 0)
 {
 	switch (type)
 	{
 		case ExpandedProfileType::Function:
-			return profiler::colors::LightGreen500;
 		case ExpandedProfileType::Scope:
-			return profiler::colors::Cyan300;
+			return hsvColor(hashToHue(hash), 0.5f, 1.0f);
 		case ExpandedProfileType::Wait:
-			return profiler::colors::Red500;
+			return profiler::colors::Red900;
 		case ExpandedProfileType::Lock:
-			return profiler::colors::Orange400;
+			return profiler::colors::Orange800;
 		case ExpandedProfileType::Value:
-			return profiler::colors::Brown500;
 		case ExpandedProfileType::GPU:
-			return profiler::colors::Purple700;
+			return hsvColor(hashToHue(hash), 0.8f, 0.5f);
 	}
 	return profiler::colors::Black;
 }
 
-void registerProfilerBlock(void** blockData, const char* name, const char* file, unsigned int line,
-	profiler::BlockType blockType, ExpandedProfileType profileType,
-	const std::function<void (char*, uint32_t, const char*)>& customNameFunc = nullptr)
+const profiler::BaseBlockDescriptor* registerProfilerBlock(void** blockData, const char* category,
+	const char* name, const char* file, unsigned int line, profiler::BlockType blockType,
+	ExpandedProfileType profileType)
 {
 	void* ptrValue;
 	DS_ATOMIC_LOAD_PTR(blockData, &ptrValue);
 	if (ptrValue)
-		return;
+		return (const profiler::BaseBlockDescriptor*)*blockData;
 
 	// Max size: max path + ':' + max uint32_t digits + null terminator
 	constexpr uint32_t maxSize = DS_PATH_MAX + 1 + 10 + 1;
 	char buffer[maxSize];
 
-	int result = std::snprintf(buffer, maxSize, "%s:%u", file, line);
-	DS_UNUSED(result);
-	DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
-	const char* uniqueName = uniqueString(buffer);
-
 	bool copyName = false;
-	if (customNameFunc)
+	if (category)
 	{
 		copyName = true;
-		customNameFunc(buffer, maxSize, name);
+		int result = std::snprintf(buffer, maxSize, "%s: %s", category, name);
+		DS_UNUSED(result);
+		DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
 		name = buffer;
 	}
+	else
+	{
+		int result = std::snprintf(buffer, maxSize, "%s:%u", file, line);
+		DS_UNUSED(result);
+		DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
+
+		if (!name)
+			name = buffer;
+	}
+
+	uint32_t hash = dsHashString(buffer);
+	const char* uniqueName = uniqueString(buffer, hash);
 
 	const profiler::BaseBlockDescriptor* block = profiler::registerDescription(profiler::ON,
-		uniqueName, name, file, line, blockType, getColor(profileType), copyName);
+		uniqueName, name, file, line, blockType, getColor(profileType, hash), copyName);
 	bool succeeded = DS_ATOMIC_COMPARE_EXCHANGE_PTR(blockData, &ptrValue, (void**)&block, false);
 	DS_UNUSED(succeeded);
 
@@ -146,6 +213,30 @@ void registerProfilerBlock(void** blockData, const char* name, const char* file,
 	// executed will assign the pointer. easy_profiler uses a map internally to identify the blocks,
 	// so this should return the same value if another thread also tried to register the same block.
 	DS_ASSERT(succeeded || ptrValue == block);
+
+	return block;
+}
+
+const profiler::BaseBlockDescriptor* registerDynamicProfilerBlock(const char* category,
+	const char* name, const char* units, const char* file, unsigned int line,
+	profiler::BlockType blockType, ExpandedProfileType profileType)
+{
+	constexpr uint32_t maxSize = 256;
+	char buffer[maxSize];
+
+	int result;
+	if (units)
+		result = std::snprintf(buffer, maxSize, "%s: %s (%s)", category, name, units);
+	else
+		result = std::snprintf(buffer, maxSize, "%s: %s", category, name);
+	DS_UNUSED(result);
+	DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
+
+	uint32_t hash = dsHashString(buffer);
+	const char* uniqueName = uniqueString(buffer, hash);
+
+	return profiler::registerDescription(profiler::ON, uniqueName, uniqueName, file, line,
+		blockType, getColor(profileType, hash), true);
 }
 
 void registerThread(void*, const char* name)
@@ -164,11 +255,11 @@ void endFrame(void*)
 }
 
 void push(void*, void** blockData, dsProfileType type, const char* name, const char* file,
-	const char*, unsigned int line)
+	const char*, unsigned int line, bool dynamic)
 {
-	registerProfilerBlock(blockData, name, file, line, profiler::BlockType::Block,
-		(ExpandedProfileType)type);
-	profiler::beginNonScopedBlock((const profiler::BaseBlockDescriptor*)*blockData);
+	auto block = registerProfilerBlock(blockData, nullptr, dynamic ? nullptr : name, file, line,
+		profiler::BlockType::Block, (ExpandedProfileType)type);
+	profiler::beginNonScopedBlock(block, dynamic ? name : "");
 }
 
 void pop(void*, dsProfileType, const char*, const char*, unsigned int)
@@ -177,37 +268,30 @@ void pop(void*, dsProfileType, const char*, const char*, unsigned int)
 }
 
 void statValue(void*, void** blockData, const char* category, const char* name, double value,
-	const char* file, const char*, unsigned int line)
+	const char* file, const char*, unsigned int line, bool dynamic)
 {
-	registerProfilerBlock(blockData, name, file, line, profiler::BlockType::Value,
-		ExpandedProfileType::Value,
-		[category](char* buffer, uint32_t maxSize, const char* name)
-		{
-			int result = std::snprintf(buffer, maxSize, "%s: %s", category, name);
-			DS_UNUSED(result);
-			DS_ASSERT(result >= 0 && (uint32_t)result < maxSize);
-		});
-	profiler::setValue((const profiler::BaseBlockDescriptor*)*blockData, value,
-		profiler::ValueId(blockData));
+	const profiler::BaseBlockDescriptor* block;
+	if (dynamic)
+	{
+		block = registerProfilerBlock(blockData, category, name, file, line,
+			profiler::BlockType::Value, ExpandedProfileType::Value);
+	}
+	else
+	{
+		block = registerDynamicProfilerBlock(category, name, nullptr, file, line,
+			profiler::BlockType::Value, ExpandedProfileType::Value);
+	}
+
+	profiler::setValue(block, value, profiler::ValueId(block));
 }
 
 void gpuValue(void*, const char* surface, const char* pass, uint64_t timeNs)
 {
-	// NOTE: This is a little slow, but we can't just cache the block data in this case. There
-	// shouldn't be a massive number of render passes, so it shouldn't be a large impact.
-	constexpr uint32_t maxSize = 256;
-	char buffer[maxSize];
-	int result = std::snprintf(buffer, maxSize, "%s: %s (ms)", surface, pass);
-	DS_UNUSED(result);
-	DS_ASSERT(result >= 0 && (uint32_t)result < maxSize);
+	auto block = registerDynamicProfilerBlock(surface, pass, "GPU ms", __FILE__, __LINE__,
+		profiler::BlockType::Value, ExpandedProfileType::Value);
 
-	const char* uniqueName = uniqueString(buffer);
-
-	const profiler::BaseBlockDescriptor* block = profiler::registerDescription(profiler::ON,
-		uniqueName, uniqueName, __FILE__, __LINE__, profiler::BlockType::Value,
-		getColor(ExpandedProfileType::GPU));
 	double timeMs = (double)timeNs*1000000.0;
-	profiler::setValue(block, timeMs, profiler::ValueId(uniqueName));
+	profiler::setValue(block, timeMs, profiler::ValueId(block));
 }
 
 } // namespace
