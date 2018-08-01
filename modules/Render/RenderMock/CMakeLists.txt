@@ -1,5 +1,5 @@
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h)
-ds_add_library(deepsea_render_mock MODULE Render/RenderMock FILES ${sources} DEPENDS deepsea_render)
+ds_add_library(deepsea_render_mock MODULE RenderMock FILES ${sources} DEPENDS deepsea_render)
 
 ds_target_include_directories(deepsea_render_mock
 	PRIVATE ${DEEPSEA_MODULE_DIR}/Render/RenderMock/src)

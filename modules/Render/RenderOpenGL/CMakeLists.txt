@@ -40,7 +40,7 @@ if (APPLE)
 	set(extraPatterns src/*.m)
 endif()
 file(GLOB_RECURSE sources src/*.c src/*.h include/*.h ${extraPatterns})
-ds_add_library(deepsea_render_opengl MODULE Render/RenderOpenGL FILES ${sources}
+ds_add_library(deepsea_render_opengl MODULE RenderOpenGL FILES ${sources}
 	DEPENDS deepsea_render)
 
 ds_target_include_directories(deepsea_render_opengl

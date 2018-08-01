@@ -15,13 +15,18 @@
  */
 
 #include <DeepSea/EasyProfiler/EasyProfiler.h>
+#include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
+
+#define LOG_TAG "easy_profiler"
+
+#if DS_PROFILING_ENABLED
 
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
-#include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Profile.h>
 
 // Order is important, since arbitrary_value.h doesn't #include all of its dependencies.
@@ -305,6 +310,7 @@ bool dsEasyProfiler_start(void)
 	if (curFunctions->pushFunc)
 	{
 		errno = EPERM;
+		DS_LOG_ERROR(LOG_TAG, "Profiler already started.");
 		return false;
 	}
 
@@ -349,3 +355,43 @@ bool dsEasyProfiler_dumpToFile(const char* filePath)
 }
 
 } // extern "C"
+
+#else
+
+extern "C"
+{
+
+bool dsEasyProfiler_start(void)
+{
+	errno = EPERM;
+	return false;
+}
+
+bool dsEasyProfiler_stop(void)
+{
+	errno = EPERM;
+	return false;
+}
+
+bool dsEasyProfiler_startListening(uint16_t)
+{
+	errno = EPERM;
+	return false;
+}
+
+bool dsEasyProfiler_stopListening(void)
+{
+	errno = EPERM;
+	return false;
+}
+
+bool dsEasyProfiler_dumpToFile(const char*)
+{
+	errno = EPERM;
+	DS_LOG_WARNING(LOG_TAG, "Profiling disabled.");
+	return false;
+}
+
+} // extern "C"
+
+#endif

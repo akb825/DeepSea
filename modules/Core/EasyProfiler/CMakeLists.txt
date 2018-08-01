@@ -1,10 +1,14 @@
 file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h)
 
-set(easyProfilerCoreDir easy_profiler/easy_profiler_core)
-set(easyProfilerMajorVersion 2)
-set(easyProfilerMinorVersion 0)
-set(easyProfilerPatchVersion 1)
-file(GLOB_RECURSE externalSources ${easyProfilerCoreDir}/*.cpp ${easyProfilerCoreDir}/*.h)
+if (DEEPSEA_PROFILING)
+	set(easyProfilerCoreDir easy_profiler/easy_profiler_core)
+	set(easyProfilerMajorVersion 2)
+	set(easyProfilerMinorVersion 0)
+	set(easyProfilerPatchVersion 1)
+	file(GLOB_RECURSE externalSources ${easyProfilerCoreDir}/*.cpp ${easyProfilerCoreDir}/*.h)
+else()
+	set(externalSources)
+endif()
 
 ds_add_library(deepsea_easy_profiler MODULE EasyProfiler FILES ${sources}
 	EXTERNAL_FILES ${externalSources} DEPENDS deepsea_core)
