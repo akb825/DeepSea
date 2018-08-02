@@ -19,6 +19,12 @@ extern "C" {
 #define GLX_VERSION_1_0 1
 #define ANYGLX_VERSION_1_0 1
 
+typedef struct __GLXcontextRec *GLXContext;
+typedef XID GLXDrawable;
+typedef XID GLXPixmap;
+
+#endif /* GLX_VERSION_1_0 */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_EXTENSION_NAME                "GLX"
 #define GLX_PbufferClobber                0
 #define GLX_BufferSwapComplete            1
@@ -47,11 +53,8 @@ extern "C" {
 #define GLX_ACCUM_GREEN_SIZE              15
 #define GLX_ACCUM_BLUE_SIZE               16
 #define GLX_ACCUM_ALPHA_SIZE              17
-typedef struct __GLXcontextRec *GLXContext;
-typedef XID GLXDrawable;
-typedef XID GLXPixmap;
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_VERSION_1_0 */
 typedef XVisualInfo *(APIENTRY* PFNANYGLXCHOOSEVISUALPROC)(Display *dpy, int screen, int *attribList);
 typedef GLXContext (APIENTRY* PFNANYGLXCREATECONTEXTPROC)(Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct);
 typedef void (APIENTRY* PFNANYGLXDESTROYCONTEXTPROC)(Display *dpy, GLXContext ctx);
@@ -88,7 +91,7 @@ ANYGL_EXPORT extern PFNANYGLXWAITGLPROC AnyGL_glXWaitGL;
 ANYGL_EXPORT extern PFNANYGLXWAITXPROC AnyGL_glXWaitX;
 ANYGL_EXPORT extern PFNANYGLXUSEXFONTPROC AnyGL_glXUseXFont;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXChooseVisual(dpy, screen, attribList) AnyGL_glXChooseVisual(dpy, screen, attribList)
 #define glXCreateContext(dpy, vis, shareList, direct) AnyGL_glXCreateContext(dpy, vis, shareList, direct)
 #define glXDestroyContext(dpy, ctx) AnyGL_glXDestroyContext(dpy, ctx)
@@ -106,17 +109,20 @@ ANYGL_EXPORT extern PFNANYGLXUSEXFONTPROC AnyGL_glXUseXFont;
 #define glXWaitGL() AnyGL_glXWaitGL()
 #define glXWaitX() AnyGL_glXWaitX()
 #define glXUseXFont(font, first, count, list) AnyGL_glXUseXFont(font, first, count, list)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_VERSION_1_1
 #define GLX_VERSION_1_1 1
 #define ANYGLX_VERSION_1_1 1
 
+
+#endif /* GLX_VERSION_1_1 */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_VENDOR                        0x1
 #define GLX_VERSION                       0x2
 #define GLX_EXTENSIONS                    0x3
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_VERSION_1_1 */
 typedef const char *(APIENTRY* PFNANYGLXQUERYEXTENSIONSSTRINGPROC)(Display *dpy, int screen);
 typedef const char *(APIENTRY* PFNANYGLXQUERYSERVERSTRINGPROC)(Display *dpy, int screen, int name);
 typedef const char *(APIENTRY* PFNANYGLXGETCLIENTSTRINGPROC)(Display *dpy, int name);
@@ -125,11 +131,11 @@ ANYGL_EXPORT extern PFNANYGLXQUERYEXTENSIONSSTRINGPROC AnyGL_glXQueryExtensionsS
 ANYGL_EXPORT extern PFNANYGLXQUERYSERVERSTRINGPROC AnyGL_glXQueryServerString;
 ANYGL_EXPORT extern PFNANYGLXGETCLIENTSTRINGPROC AnyGL_glXGetClientString;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXQueryExtensionsString(dpy, screen) AnyGL_glXQueryExtensionsString(dpy, screen)
 #define glXQueryServerString(dpy, screen, name) AnyGL_glXQueryServerString(dpy, screen, name)
 #define glXGetClientString(dpy, name) AnyGL_glXGetClientString(dpy, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_VERSION_1_2
 #define GLX_VERSION_1_2 1
@@ -141,15 +147,21 @@ typedef Display *(APIENTRY* PFNANYGLXGETCURRENTDISPLAYPROC)();
 
 ANYGL_EXPORT extern PFNANYGLXGETCURRENTDISPLAYPROC AnyGL_glXGetCurrentDisplay;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetCurrentDisplay() AnyGL_glXGetCurrentDisplay()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_VERSION_1_3
 #define GLX_VERSION_1_3 1
 #define ANYGLX_VERSION_1_3 1
 
 typedef XID GLXContextID;
+typedef struct __GLXFBConfigRec *GLXFBConfig;
+typedef XID GLXWindow;
+typedef XID GLXPbuffer;
+
+#endif /* GLX_VERSION_1_3 */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_WINDOW_BIT                    0x00000001
 #define GLX_PIXMAP_BIT                    0x00000002
 #define GLX_PBUFFER_BIT                   0x00000004
@@ -206,11 +218,8 @@ typedef XID GLXContextID;
 #define GLX_PBUFFER                       0x8023
 #define GLX_PBUFFER_HEIGHT                0x8040
 #define GLX_PBUFFER_WIDTH                 0x8041
-typedef struct __GLXFBConfigRec *GLXFBConfig;
-typedef XID GLXWindow;
-typedef XID GLXPbuffer;
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_VERSION_1_3 */
 typedef GLXFBConfig *(APIENTRY* PFNANYGLXGETFBCONFIGSPROC)(Display *dpy, int screen, int *nelements);
 typedef GLXFBConfig *(APIENTRY* PFNANYGLXCHOOSEFBCONFIGPROC)(Display *dpy, int screen, const int *attrib_list, int *nelements);
 typedef int (APIENTRY* PFNANYGLXGETFBCONFIGATTRIBPROC)(Display *dpy, GLXFBConfig config, int attribute, int *value);
@@ -247,7 +256,7 @@ ANYGL_EXPORT extern PFNANYGLXQUERYCONTEXTPROC AnyGL_glXQueryContext;
 ANYGL_EXPORT extern PFNANYGLXSELECTEVENTPROC AnyGL_glXSelectEvent;
 ANYGL_EXPORT extern PFNANYGLXGETSELECTEDEVENTPROC AnyGL_glXGetSelectedEvent;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetFBConfigs(dpy, screen, nelements) AnyGL_glXGetFBConfigs(dpy, screen, nelements)
 #define glXChooseFBConfig(dpy, screen, attrib_list, nelements) AnyGL_glXChooseFBConfig(dpy, screen, attrib_list, nelements)
 #define glXGetFBConfigAttrib(dpy, config, attribute, value) AnyGL_glXGetFBConfigAttrib(dpy, config, attribute, value)
@@ -265,116 +274,138 @@ ANYGL_EXPORT extern PFNANYGLXGETSELECTEDEVENTPROC AnyGL_glXGetSelectedEvent;
 #define glXQueryContext(dpy, ctx, attribute, value) AnyGL_glXQueryContext(dpy, ctx, attribute, value)
 #define glXSelectEvent(dpy, draw, event_mask) AnyGL_glXSelectEvent(dpy, draw, event_mask)
 #define glXGetSelectedEvent(dpy, draw, event_mask) AnyGL_glXGetSelectedEvent(dpy, draw, event_mask)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_VERSION_1_4
 #define GLX_VERSION_1_4 1
 #define ANYGLX_VERSION_1_4 1
 
-#define GLX_SAMPLE_BUFFERS                100000
-#define GLX_SAMPLES                       100001
 typedef void (APIENTRY *__GLXextFuncPtr)(void);
 
 #endif /* GLX_VERSION_1_4 */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_SAMPLE_BUFFERS                100000
+#define GLX_SAMPLES                       100001
+#endif /* ANYGL_NO_DEFINES */
+
 typedef __GLXextFuncPtr (APIENTRY* PFNANYGLXGETPROCADDRESSPROC)(const GLubyte *procName);
 
 ANYGL_EXPORT extern PFNANYGLXGETPROCADDRESSPROC AnyGL_glXGetProcAddress;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetProcAddress(procName) AnyGL_glXGetProcAddress(procName)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_context_flush_control
 #define GLX_ARB_context_flush_control 1
 #define ANYGLX_ARB_context_flush_control 1
 
+
+#endif /* GLX_ARB_context_flush_control */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_ARB  0x2097
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB 0
 #define GLX_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB 0x2098
-
-#endif /* GLX_ARB_context_flush_control */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_create_context
 #define GLX_ARB_create_context 1
 #define ANYGLX_ARB_create_context 1
 
+
+#endif /* GLX_ARB_create_context */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_CONTEXT_DEBUG_BIT_ARB         0x00000001
 #define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 #define GLX_CONTEXT_MAJOR_VERSION_ARB     0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB     0x2092
 #define GLX_CONTEXT_FLAGS_ARB             0x2094
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_ARB_create_context */
 typedef GLXContext (APIENTRY* PFNANYGLXCREATECONTEXTATTRIBSARBPROC)(Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list);
 
 ANYGL_EXPORT extern PFNANYGLXCREATECONTEXTATTRIBSARBPROC AnyGL_glXCreateContextAttribsARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXCreateContextAttribsARB(dpy, config, share_context, direct, attrib_list) AnyGL_glXCreateContextAttribsARB(dpy, config, share_context, direct, attrib_list)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_create_context_no_error
 #define GLX_ARB_create_context_no_error 1
 #define ANYGLX_ARB_create_context_no_error 1
 
-#define GLX_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
 
 #endif /* GLX_ARB_create_context_no_error */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_create_context_profile
 #define GLX_ARB_create_context_profile 1
 #define ANYGLX_ARB_create_context_profile 1
 
+
+#endif /* GLX_ARB_create_context_profile */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB  0x00000001
 #define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #define GLX_CONTEXT_PROFILE_MASK_ARB      0x9126
-
-#endif /* GLX_ARB_create_context_profile */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_create_context_robustness
 #define GLX_ARB_create_context_robustness 1
 #define ANYGLX_ARB_create_context_robustness 1
 
+
+#endif /* GLX_ARB_create_context_robustness */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB 0x00000004
 #define GLX_LOSE_CONTEXT_ON_RESET_ARB     0x8252
 #define GLX_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB 0x8256
 #define GLX_NO_RESET_NOTIFICATION_ARB     0x8261
-
-#endif /* GLX_ARB_create_context_robustness */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_fbconfig_float
 #define GLX_ARB_fbconfig_float 1
 #define ANYGLX_ARB_fbconfig_float 1
 
-#define GLX_RGBA_FLOAT_TYPE_ARB           0x20B9
-#define GLX_RGBA_FLOAT_BIT_ARB            0x00000004
 
 #endif /* GLX_ARB_fbconfig_float */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_RGBA_FLOAT_TYPE_ARB           0x20B9
+#define GLX_RGBA_FLOAT_BIT_ARB            0x00000004
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_framebuffer_sRGB
 #define GLX_ARB_framebuffer_sRGB 1
 #define ANYGLX_ARB_framebuffer_sRGB 1
 
-#define GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB  0x20B2
 
 #endif /* GLX_ARB_framebuffer_sRGB */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB  0x20B2
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_multisample
 #define GLX_ARB_multisample 1
 #define ANYGLX_ARB_multisample 1
 
-#define GLX_SAMPLE_BUFFERS_ARB            100000
-#define GLX_SAMPLES_ARB                   100001
 
 #endif /* GLX_ARB_multisample */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_SAMPLE_BUFFERS_ARB            100000
+#define GLX_SAMPLES_ARB                   100001
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_robustness_application_isolation
 #define GLX_ARB_robustness_application_isolation 1
 #define ANYGLX_ARB_robustness_application_isolation 1
 
-#define GLX_CONTEXT_RESET_ISOLATION_BIT_ARB 0x00000008
 
 #endif /* GLX_ARB_robustness_application_isolation */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_RESET_ISOLATION_BIT_ARB 0x00000008
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_ARB_robustness_share_group_isolation
 #define GLX_ARB_robustness_share_group_isolation 1
@@ -387,23 +418,30 @@ ANYGL_EXPORT extern PFNANYGLXCREATECONTEXTATTRIBSARBPROC AnyGL_glXCreateContextA
 #define GLX_ARB_vertex_buffer_object 1
 #define ANYGLX_ARB_vertex_buffer_object 1
 
-#define GLX_CONTEXT_ALLOW_BUFFER_BYTE_ORDER_MISMATCH_ARB 0x2095
 
 #endif /* GLX_ARB_vertex_buffer_object */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_ALLOW_BUFFER_BYTE_ORDER_MISMATCH_ARB 0x2095
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_3DFX_multisample
 #define GLX_3DFX_multisample 1
 #define ANYGLX_3DFX_multisample 1
 
-#define GLX_SAMPLE_BUFFERS_3DFX           0x8050
-#define GLX_SAMPLES_3DFX                  0x8051
 
 #endif /* GLX_3DFX_multisample */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_SAMPLE_BUFFERS_3DFX           0x8050
+#define GLX_SAMPLES_3DFX                  0x8051
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_AMD_gpu_association
 #define GLX_AMD_gpu_association 1
 #define ANYGLX_AMD_gpu_association 1
 
+
+#endif /* GLX_AMD_gpu_association */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_GPU_VENDOR_AMD                0x1F00
 #define GLX_GPU_RENDERER_STRING_AMD       0x1F01
 #define GLX_GPU_OPENGL_VERSION_STRING_AMD 0x1F02
@@ -414,8 +452,8 @@ ANYGL_EXPORT extern PFNANYGLXCREATECONTEXTATTRIBSARBPROC AnyGL_glXCreateContextA
 #define GLX_GPU_NUM_SIMD_AMD              0x21A6
 #define GLX_GPU_NUM_RB_AMD                0x21A7
 #define GLX_GPU_NUM_SPI_AMD               0x21A8
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_AMD_gpu_association */
 typedef unsigned int (APIENTRY* PFNANYGLXGETGPUIDSAMDPROC)(unsigned int maxCount, unsigned int *ids);
 typedef int (APIENTRY* PFNANYGLXGETGPUINFOAMDPROC)(unsigned int id, int property, GLenum dataType, unsigned int size, void *data);
 typedef unsigned int (APIENTRY* PFNANYGLXGETCONTEXTGPUIDAMDPROC)(GLXContext ctx);
@@ -436,7 +474,7 @@ ANYGL_EXPORT extern PFNANYGLXMAKEASSOCIATEDCONTEXTCURRENTAMDPROC AnyGL_glXMakeAs
 ANYGL_EXPORT extern PFNANYGLXGETCURRENTASSOCIATEDCONTEXTAMDPROC AnyGL_glXGetCurrentAssociatedContextAMD;
 ANYGL_EXPORT extern PFNANYGLXBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_glXBlitContextFramebufferAMD;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetGPUIDsAMD(maxCount, ids) AnyGL_glXGetGPUIDsAMD(maxCount, ids)
 #define glXGetGPUInfoAMD(id, property, dataType, size, data) AnyGL_glXGetGPUInfoAMD(id, property, dataType, size, data)
 #define glXGetContextGPUIDAMD(ctx) AnyGL_glXGetContextGPUIDAMD(ctx)
@@ -446,58 +484,71 @@ ANYGL_EXPORT extern PFNANYGLXBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_glXBlitContextF
 #define glXMakeAssociatedContextCurrentAMD(ctx) AnyGL_glXMakeAssociatedContextCurrentAMD(ctx)
 #define glXGetCurrentAssociatedContextAMD() AnyGL_glXGetCurrentAssociatedContextAMD()
 #define glXBlitContextFramebufferAMD(dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) AnyGL_glXBlitContextFramebufferAMD(dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_buffer_age
 #define GLX_EXT_buffer_age 1
 #define ANYGLX_EXT_buffer_age 1
 
-#define GLX_BACK_BUFFER_AGE_EXT           0x20F4
 
 #endif /* GLX_EXT_buffer_age */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_BACK_BUFFER_AGE_EXT           0x20F4
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_create_context_es2_profile
 #define GLX_EXT_create_context_es2_profile 1
 #define ANYGLX_EXT_create_context_es2_profile 1
 
-#define GLX_CONTEXT_ES2_PROFILE_BIT_EXT   0x00000004
 
 #endif /* GLX_EXT_create_context_es2_profile */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_ES2_PROFILE_BIT_EXT   0x00000004
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_create_context_es_profile
 #define GLX_EXT_create_context_es_profile 1
 #define ANYGLX_EXT_create_context_es_profile 1
 
-#define GLX_CONTEXT_ES_PROFILE_BIT_EXT    0x00000004
 
 #endif /* GLX_EXT_create_context_es_profile */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_CONTEXT_ES_PROFILE_BIT_EXT    0x00000004
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_fbconfig_packed_float
 #define GLX_EXT_fbconfig_packed_float 1
 #define ANYGLX_EXT_fbconfig_packed_float 1
 
-#define GLX_RGBA_UNSIGNED_FLOAT_TYPE_EXT  0x20B1
-#define GLX_RGBA_UNSIGNED_FLOAT_BIT_EXT   0x00000008
 
 #endif /* GLX_EXT_fbconfig_packed_float */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_RGBA_UNSIGNED_FLOAT_TYPE_EXT  0x20B1
+#define GLX_RGBA_UNSIGNED_FLOAT_BIT_EXT   0x00000008
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_framebuffer_sRGB
 #define GLX_EXT_framebuffer_sRGB 1
 #define ANYGLX_EXT_framebuffer_sRGB 1
 
-#define GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT  0x20B2
 
 #endif /* GLX_EXT_framebuffer_sRGB */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT  0x20B2
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_import_context
 #define GLX_EXT_import_context 1
 #define ANYGLX_EXT_import_context 1
 
+
+#endif /* GLX_EXT_import_context */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_SHARE_CONTEXT_EXT             0x800A
 #define GLX_VISUAL_ID_EXT                 0x800B
 #define GLX_SCREEN_EXT                    0x800C
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_EXT_import_context */
 typedef Display *(APIENTRY* PFNANYGLXGETCURRENTDISPLAYEXTPROC)();
 typedef int (APIENTRY* PFNANYGLXQUERYCONTEXTINFOEXTPROC)(Display *dpy, GLXContext context, int attribute, int *value);
 typedef GLXContextID (APIENTRY* PFNANYGLXGETCONTEXTIDEXTPROC)(const GLXContext context);
@@ -510,21 +561,23 @@ ANYGL_EXPORT extern PFNANYGLXGETCONTEXTIDEXTPROC AnyGL_glXGetContextIDEXT;
 ANYGL_EXPORT extern PFNANYGLXIMPORTCONTEXTEXTPROC AnyGL_glXImportContextEXT;
 ANYGL_EXPORT extern PFNANYGLXFREECONTEXTEXTPROC AnyGL_glXFreeContextEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetCurrentDisplayEXT() AnyGL_glXGetCurrentDisplayEXT()
 #define glXQueryContextInfoEXT(dpy, context, attribute, value) AnyGL_glXQueryContextInfoEXT(dpy, context, attribute, value)
 #define glXGetContextIDEXT(context) AnyGL_glXGetContextIDEXT(context)
 #define glXImportContextEXT(dpy, contextID) AnyGL_glXImportContextEXT(dpy, contextID)
 #define glXFreeContextEXT(dpy, context) AnyGL_glXFreeContextEXT(dpy, context)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_libglvnd
 #define GLX_EXT_libglvnd 1
 #define ANYGLX_EXT_libglvnd 1
 
-#define GLX_VENDOR_NAMES_EXT              0x20F6
 
 #endif /* GLX_EXT_libglvnd */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_VENDOR_NAMES_EXT              0x20F6
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_no_config_context
 #define GLX_EXT_no_config_context 1
@@ -547,40 +600,50 @@ typedef struct {
     GLXDrawable window;
     Bool stereo_tree;
 } GLXStereoNotifyEventEXT;
+
+#endif /* GLX_EXT_stereo_tree */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_STEREO_TREE_EXT               0x20F5
 #define GLX_STEREO_NOTIFY_MASK_EXT        0x00000001
 #define GLX_STEREO_NOTIFY_EXT             0x00000000
-
-#endif /* GLX_EXT_stereo_tree */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_swap_control
 #define GLX_EXT_swap_control 1
 #define ANYGLX_EXT_swap_control 1
 
-#define GLX_SWAP_INTERVAL_EXT             0x20F1
-#define GLX_MAX_SWAP_INTERVAL_EXT         0x20F2
 
 #endif /* GLX_EXT_swap_control */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_SWAP_INTERVAL_EXT             0x20F1
+#define GLX_MAX_SWAP_INTERVAL_EXT         0x20F2
+#endif /* ANYGL_NO_DEFINES */
+
 typedef void (APIENTRY* PFNANYGLXSWAPINTERVALEXTPROC)(Display *dpy, GLXDrawable drawable, int interval);
 
 ANYGL_EXPORT extern PFNANYGLXSWAPINTERVALEXTPROC AnyGL_glXSwapIntervalEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXSwapIntervalEXT(dpy, drawable, interval) AnyGL_glXSwapIntervalEXT(dpy, drawable, interval)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_swap_control_tear
 #define GLX_EXT_swap_control_tear 1
 #define ANYGLX_EXT_swap_control_tear 1
 
-#define GLX_LATE_SWAPS_TEAR_EXT           0x20F3
 
 #endif /* GLX_EXT_swap_control_tear */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_LATE_SWAPS_TEAR_EXT           0x20F3
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_texture_from_pixmap
 #define GLX_EXT_texture_from_pixmap 1
 #define ANYGLX_EXT_texture_from_pixmap 1
 
+
+#endif /* GLX_EXT_texture_from_pixmap */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_TEXTURE_1D_BIT_EXT            0x00000001
 #define GLX_TEXTURE_2D_BIT_EXT            0x00000002
 #define GLX_TEXTURE_RECTANGLE_BIT_EXT     0x00000004
@@ -614,23 +677,26 @@ ANYGL_EXPORT extern PFNANYGLXSWAPINTERVALEXTPROC AnyGL_glXSwapIntervalEXT;
 #define GLX_AUX7_EXT                      0x20E9
 #define GLX_AUX8_EXT                      0x20EA
 #define GLX_AUX9_EXT                      0x20EB
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_EXT_texture_from_pixmap */
 typedef void (APIENTRY* PFNANYGLXBINDTEXIMAGEEXTPROC)(Display *dpy, GLXDrawable drawable, int buffer, const int *attrib_list);
 typedef void (APIENTRY* PFNANYGLXRELEASETEXIMAGEEXTPROC)(Display *dpy, GLXDrawable drawable, int buffer);
 
 ANYGL_EXPORT extern PFNANYGLXBINDTEXIMAGEEXTPROC AnyGL_glXBindTexImageEXT;
 ANYGL_EXPORT extern PFNANYGLXRELEASETEXIMAGEEXTPROC AnyGL_glXReleaseTexImageEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXBindTexImageEXT(dpy, drawable, buffer, attrib_list) AnyGL_glXBindTexImageEXT(dpy, drawable, buffer, attrib_list)
 #define glXReleaseTexImageEXT(dpy, drawable, buffer) AnyGL_glXReleaseTexImageEXT(dpy, drawable, buffer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_visual_info
 #define GLX_EXT_visual_info 1
 #define ANYGLX_EXT_visual_info 1
 
+
+#endif /* GLX_EXT_visual_info */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_X_VISUAL_TYPE_EXT             0x22
 #define GLX_TRANSPARENT_TYPE_EXT          0x23
 #define GLX_TRANSPARENT_INDEX_VALUE_EXT   0x24
@@ -647,29 +713,32 @@ ANYGL_EXPORT extern PFNANYGLXRELEASETEXIMAGEEXTPROC AnyGL_glXReleaseTexImageEXT;
 #define GLX_STATIC_GRAY_EXT               0x8007
 #define GLX_TRANSPARENT_RGB_EXT           0x8008
 #define GLX_TRANSPARENT_INDEX_EXT         0x8009
-
-#endif /* GLX_EXT_visual_info */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_EXT_visual_rating
 #define GLX_EXT_visual_rating 1
 #define ANYGLX_EXT_visual_rating 1
 
+
+#endif /* GLX_EXT_visual_rating */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_VISUAL_CAVEAT_EXT             0x20
 #define GLX_SLOW_VISUAL_EXT               0x8001
 #define GLX_NON_CONFORMANT_VISUAL_EXT     0x800D
-
-#endif /* GLX_EXT_visual_rating */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_INTEL_swap_event
 #define GLX_INTEL_swap_event 1
 #define ANYGLX_INTEL_swap_event 1
 
+
+#endif /* GLX_INTEL_swap_event */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK 0x04000000
 #define GLX_EXCHANGE_COMPLETE_INTEL       0x8180
 #define GLX_COPY_COMPLETE_INTEL           0x8181
 #define GLX_FLIP_COMPLETE_INTEL           0x8182
-
-#endif /* GLX_INTEL_swap_event */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_agp_offset
 #define GLX_MESA_agp_offset 1
@@ -681,9 +750,9 @@ typedef unsigned int (APIENTRY* PFNANYGLXGETAGPOFFSETMESAPROC)(const void *point
 
 ANYGL_EXPORT extern PFNANYGLXGETAGPOFFSETMESAPROC AnyGL_glXGetAGPOffsetMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetAGPOffsetMESA(pointer) AnyGL_glXGetAGPOffsetMESA(pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_copy_sub_buffer
 #define GLX_MESA_copy_sub_buffer 1
@@ -695,9 +764,9 @@ typedef void (APIENTRY* PFNANYGLXCOPYSUBBUFFERMESAPROC)(Display *dpy, GLXDrawabl
 
 ANYGL_EXPORT extern PFNANYGLXCOPYSUBBUFFERMESAPROC AnyGL_glXCopySubBufferMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXCopySubBufferMESA(dpy, drawable, x, y, width, height) AnyGL_glXCopySubBufferMESA(dpy, drawable, x, y, width, height)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_pixmap_colormap
 #define GLX_MESA_pixmap_colormap 1
@@ -709,14 +778,17 @@ typedef GLXPixmap (APIENTRY* PFNANYGLXCREATEGLXPIXMAPMESAPROC)(Display *dpy, XVi
 
 ANYGL_EXPORT extern PFNANYGLXCREATEGLXPIXMAPMESAPROC AnyGL_glXCreateGLXPixmapMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXCreateGLXPixmapMESA(dpy, visual, pixmap, cmap) AnyGL_glXCreateGLXPixmapMESA(dpy, visual, pixmap, cmap)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_query_renderer
 #define GLX_MESA_query_renderer 1
 #define ANYGLX_MESA_query_renderer 1
 
+
+#endif /* GLX_MESA_query_renderer */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_RENDERER_VENDOR_ID_MESA       0x8183
 #define GLX_RENDERER_DEVICE_ID_MESA       0x8184
 #define GLX_RENDERER_VERSION_MESA         0x8185
@@ -729,8 +801,8 @@ ANYGL_EXPORT extern PFNANYGLXCREATEGLXPIXMAPMESAPROC AnyGL_glXCreateGLXPixmapMES
 #define GLX_RENDERER_OPENGL_ES_PROFILE_VERSION_MESA 0x818C
 #define GLX_RENDERER_OPENGL_ES2_PROFILE_VERSION_MESA 0x818D
 #define GLX_RENDERER_ID_MESA              0x818E
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_MESA_query_renderer */
 typedef Bool (APIENTRY* PFNANYGLXQUERYCURRENTRENDERERINTEGERMESAPROC)(int attribute, unsigned int *value);
 typedef const char *(APIENTRY* PFNANYGLXQUERYCURRENTRENDERERSTRINGMESAPROC)(int attribute);
 typedef Bool (APIENTRY* PFNANYGLXQUERYRENDERERINTEGERMESAPROC)(Display *dpy, int screen, int renderer, int attribute, unsigned int *value);
@@ -741,12 +813,12 @@ ANYGL_EXPORT extern PFNANYGLXQUERYCURRENTRENDERERSTRINGMESAPROC AnyGL_glXQueryCu
 ANYGL_EXPORT extern PFNANYGLXQUERYRENDERERINTEGERMESAPROC AnyGL_glXQueryRendererIntegerMESA;
 ANYGL_EXPORT extern PFNANYGLXQUERYRENDERERSTRINGMESAPROC AnyGL_glXQueryRendererStringMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXQueryCurrentRendererIntegerMESA(attribute, value) AnyGL_glXQueryCurrentRendererIntegerMESA(attribute, value)
 #define glXQueryCurrentRendererStringMESA(attribute) AnyGL_glXQueryCurrentRendererStringMESA(attribute)
 #define glXQueryRendererIntegerMESA(dpy, screen, renderer, attribute, value) AnyGL_glXQueryRendererIntegerMESA(dpy, screen, renderer, attribute, value)
 #define glXQueryRendererStringMESA(dpy, screen, renderer, attribute) AnyGL_glXQueryRendererStringMESA(dpy, screen, renderer, attribute)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_release_buffers
 #define GLX_MESA_release_buffers 1
@@ -758,25 +830,28 @@ typedef Bool (APIENTRY* PFNANYGLXRELEASEBUFFERSMESAPROC)(Display *dpy, GLXDrawab
 
 ANYGL_EXPORT extern PFNANYGLXRELEASEBUFFERSMESAPROC AnyGL_glXReleaseBuffersMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXReleaseBuffersMESA(dpy, drawable) AnyGL_glXReleaseBuffersMESA(dpy, drawable)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_set_3dfx_mode
 #define GLX_MESA_set_3dfx_mode 1
 #define ANYGLX_MESA_set_3dfx_mode 1
 
-#define GLX_3DFX_WINDOW_MODE_MESA         0x1
-#define GLX_3DFX_FULLSCREEN_MODE_MESA     0x2
 
 #endif /* GLX_MESA_set_3dfx_mode */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_3DFX_WINDOW_MODE_MESA         0x1
+#define GLX_3DFX_FULLSCREEN_MODE_MESA     0x2
+#endif /* ANYGL_NO_DEFINES */
+
 typedef Bool (APIENTRY* PFNANYGLXSET3DFXMODEMESAPROC)(int mode);
 
 ANYGL_EXPORT extern PFNANYGLXSET3DFXMODEMESAPROC AnyGL_glXSet3DfxModeMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXSet3DfxModeMESA(mode) AnyGL_glXSet3DfxModeMESA(mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_MESA_swap_control
 #define GLX_MESA_swap_control 1
@@ -790,10 +865,10 @@ typedef int (APIENTRY* PFNANYGLXSWAPINTERVALMESAPROC)(unsigned int interval);
 ANYGL_EXPORT extern PFNANYGLXGETSWAPINTERVALMESAPROC AnyGL_glXGetSwapIntervalMESA;
 ANYGL_EXPORT extern PFNANYGLXSWAPINTERVALMESAPROC AnyGL_glXSwapIntervalMESA;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetSwapIntervalMESA() AnyGL_glXGetSwapIntervalMESA()
 #define glXSwapIntervalMESA(interval) AnyGL_glXSwapIntervalMESA(interval)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_copy_buffer
 #define GLX_NV_copy_buffer 1
@@ -807,10 +882,10 @@ typedef void (APIENTRY* PFNANYGLXNAMEDCOPYBUFFERSUBDATANVPROC)(Display *dpy, GLX
 ANYGL_EXPORT extern PFNANYGLXCOPYBUFFERSUBDATANVPROC AnyGL_glXCopyBufferSubDataNV;
 ANYGL_EXPORT extern PFNANYGLXNAMEDCOPYBUFFERSUBDATANVPROC AnyGL_glXNamedCopyBufferSubDataNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXCopyBufferSubDataNV(dpy, readCtx, writeCtx, readTarget, writeTarget, readOffset, writeOffset, size) AnyGL_glXCopyBufferSubDataNV(dpy, readCtx, writeCtx, readTarget, writeTarget, readOffset, writeOffset, size)
 #define glXNamedCopyBufferSubDataNV(dpy, readCtx, writeCtx, readBuffer, writeBuffer, readOffset, writeOffset, size) AnyGL_glXNamedCopyBufferSubDataNV(dpy, readCtx, writeCtx, readBuffer, writeBuffer, readOffset, writeOffset, size)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_copy_image
 #define GLX_NV_copy_image 1
@@ -822,9 +897,9 @@ typedef void (APIENTRY* PFNANYGLXCOPYIMAGESUBDATANVPROC)(Display *dpy, GLXContex
 
 ANYGL_EXPORT extern PFNANYGLXCOPYIMAGESUBDATANVPROC AnyGL_glXCopyImageSubDataNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXCopyImageSubDataNV(dpy, srcCtx, srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstCtx, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, width, height, depth) AnyGL_glXCopyImageSubDataNV(dpy, srcCtx, srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstCtx, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, width, height, depth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_delay_before_swap
 #define GLX_NV_delay_before_swap 1
@@ -836,52 +911,61 @@ typedef Bool (APIENTRY* PFNANYGLXDELAYBEFORESWAPNVPROC)(Display *dpy, GLXDrawabl
 
 ANYGL_EXPORT extern PFNANYGLXDELAYBEFORESWAPNVPROC AnyGL_glXDelayBeforeSwapNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXDelayBeforeSwapNV(dpy, drawable, seconds) AnyGL_glXDelayBeforeSwapNV(dpy, drawable, seconds)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_float_buffer
 #define GLX_NV_float_buffer 1
 #define ANYGLX_NV_float_buffer 1
 
-#define GLX_FLOAT_COMPONENTS_NV           0x20B0
 
 #endif /* GLX_NV_float_buffer */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_FLOAT_COMPONENTS_NV           0x20B0
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_multisample_coverage
 #define GLX_NV_multisample_coverage 1
 #define ANYGLX_NV_multisample_coverage 1
 
-#define GLX_COVERAGE_SAMPLES_NV           100001
-#define GLX_COLOR_SAMPLES_NV              0x20B3
 
 #endif /* GLX_NV_multisample_coverage */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_COVERAGE_SAMPLES_NV           100001
+#define GLX_COLOR_SAMPLES_NV              0x20B3
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_present_video
 #define GLX_NV_present_video 1
 #define ANYGLX_NV_present_video 1
 
-#define GLX_NUM_VIDEO_SLOTS_NV            0x20F0
 
 #endif /* GLX_NV_present_video */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_NUM_VIDEO_SLOTS_NV            0x20F0
+#endif /* ANYGL_NO_DEFINES */
+
 typedef unsigned int *(APIENTRY* PFNANYGLXENUMERATEVIDEODEVICESNVPROC)(Display *dpy, int screen, int *nelements);
 typedef int (APIENTRY* PFNANYGLXBINDVIDEODEVICENVPROC)(Display *dpy, unsigned int video_slot, unsigned int video_device, const int *attrib_list);
 
 ANYGL_EXPORT extern PFNANYGLXENUMERATEVIDEODEVICESNVPROC AnyGL_glXEnumerateVideoDevicesNV;
 ANYGL_EXPORT extern PFNANYGLXBINDVIDEODEVICENVPROC AnyGL_glXBindVideoDeviceNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXEnumerateVideoDevicesNV(dpy, screen, nelements) AnyGL_glXEnumerateVideoDevicesNV(dpy, screen, nelements)
 #define glXBindVideoDeviceNV(dpy, video_slot, video_device, attrib_list) AnyGL_glXBindVideoDeviceNV(dpy, video_slot, video_device, attrib_list)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_robustness_video_memory_purge
 #define GLX_NV_robustness_video_memory_purge 1
 #define ANYGLX_NV_robustness_video_memory_purge 1
 
-#define GLX_GENERATE_RESET_ON_VIDEO_MEMORY_PURGE_NV 0x20F7
 
 #endif /* GLX_NV_robustness_video_memory_purge */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_GENERATE_RESET_ON_VIDEO_MEMORY_PURGE_NV 0x20F7
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_swap_group
 #define GLX_NV_swap_group 1
@@ -903,25 +987,28 @@ ANYGL_EXPORT extern PFNANYGLXQUERYMAXSWAPGROUPSNVPROC AnyGL_glXQueryMaxSwapGroup
 ANYGL_EXPORT extern PFNANYGLXQUERYFRAMECOUNTNVPROC AnyGL_glXQueryFrameCountNV;
 ANYGL_EXPORT extern PFNANYGLXRESETFRAMECOUNTNVPROC AnyGL_glXResetFrameCountNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXJoinSwapGroupNV(dpy, drawable, group) AnyGL_glXJoinSwapGroupNV(dpy, drawable, group)
 #define glXBindSwapBarrierNV(dpy, group, barrier) AnyGL_glXBindSwapBarrierNV(dpy, group, barrier)
 #define glXQuerySwapGroupNV(dpy, drawable, group, barrier) AnyGL_glXQuerySwapGroupNV(dpy, drawable, group, barrier)
 #define glXQueryMaxSwapGroupsNV(dpy, screen, maxGroups, maxBarriers) AnyGL_glXQueryMaxSwapGroupsNV(dpy, screen, maxGroups, maxBarriers)
 #define glXQueryFrameCountNV(dpy, screen, count) AnyGL_glXQueryFrameCountNV(dpy, screen, count)
 #define glXResetFrameCountNV(dpy, screen) AnyGL_glXResetFrameCountNV(dpy, screen)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_video_capture
 #define GLX_NV_video_capture 1
 #define ANYGLX_NV_video_capture 1
 
-#define GLX_DEVICE_ID_NV                  0x20CD
-#define GLX_UNIQUE_ID_NV                  0x20CE
-#define GLX_NUM_VIDEO_CAPTURE_SLOTS_NV    0x20CF
 typedef XID GLXVideoCaptureDeviceNV;
 
 #endif /* GLX_NV_video_capture */
+#ifndef ANYGL_NO_DEFINES
+#define GLX_DEVICE_ID_NV                  0x20CD
+#define GLX_UNIQUE_ID_NV                  0x20CE
+#define GLX_NUM_VIDEO_CAPTURE_SLOTS_NV    0x20CF
+#endif /* ANYGL_NO_DEFINES */
+
 typedef int (APIENTRY* PFNANYGLXBINDVIDEOCAPTUREDEVICENVPROC)(Display *dpy, unsigned int video_capture_slot, GLXVideoCaptureDeviceNV device);
 typedef GLXVideoCaptureDeviceNV *(APIENTRY* PFNANYGLXENUMERATEVIDEOCAPTUREDEVICESNVPROC)(Display *dpy, int screen, int *nelements);
 typedef void (APIENTRY* PFNANYGLXLOCKVIDEOCAPTUREDEVICENVPROC)(Display *dpy, GLXVideoCaptureDeviceNV device);
@@ -934,18 +1021,22 @@ ANYGL_EXPORT extern PFNANYGLXLOCKVIDEOCAPTUREDEVICENVPROC AnyGL_glXLockVideoCapt
 ANYGL_EXPORT extern PFNANYGLXQUERYVIDEOCAPTUREDEVICENVPROC AnyGL_glXQueryVideoCaptureDeviceNV;
 ANYGL_EXPORT extern PFNANYGLXRELEASEVIDEOCAPTUREDEVICENVPROC AnyGL_glXReleaseVideoCaptureDeviceNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXBindVideoCaptureDeviceNV(dpy, video_capture_slot, device) AnyGL_glXBindVideoCaptureDeviceNV(dpy, video_capture_slot, device)
 #define glXEnumerateVideoCaptureDevicesNV(dpy, screen, nelements) AnyGL_glXEnumerateVideoCaptureDevicesNV(dpy, screen, nelements)
 #define glXLockVideoCaptureDeviceNV(dpy, device) AnyGL_glXLockVideoCaptureDeviceNV(dpy, device)
 #define glXQueryVideoCaptureDeviceNV(dpy, device, attribute, value) AnyGL_glXQueryVideoCaptureDeviceNV(dpy, device, attribute, value)
 #define glXReleaseVideoCaptureDeviceNV(dpy, device) AnyGL_glXReleaseVideoCaptureDeviceNV(dpy, device)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_NV_video_out
 #define GLX_NV_video_out 1
 #define ANYGLX_NV_video_out 1
 
+typedef unsigned int GLXVideoDeviceNV;
+
+#endif /* GLX_NV_video_out */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_VIDEO_OUT_COLOR_NV            0x20C3
 #define GLX_VIDEO_OUT_ALPHA_NV            0x20C4
 #define GLX_VIDEO_OUT_DEPTH_NV            0x20C5
@@ -956,9 +1047,8 @@ ANYGL_EXPORT extern PFNANYGLXRELEASEVIDEOCAPTUREDEVICENVPROC AnyGL_glXReleaseVid
 #define GLX_VIDEO_OUT_FIELD_2_NV          0x20CA
 #define GLX_VIDEO_OUT_STACKED_FIELDS_1_2_NV 0x20CB
 #define GLX_VIDEO_OUT_STACKED_FIELDS_2_1_NV 0x20CC
-typedef unsigned int GLXVideoDeviceNV;
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* GLX_NV_video_out */
 typedef int (APIENTRY* PFNANYGLXGETVIDEODEVICENVPROC)(Display *dpy, int screen, int numVideoDevices, GLXVideoDeviceNV *pVideoDevice);
 typedef int (APIENTRY* PFNANYGLXRELEASEVIDEODEVICENVPROC)(Display *dpy, int screen, GLXVideoDeviceNV VideoDevice);
 typedef int (APIENTRY* PFNANYGLXBINDVIDEOIMAGENVPROC)(Display *dpy, GLXVideoDeviceNV VideoDevice, GLXPbuffer pbuf, int iVideoBuffer);
@@ -973,25 +1063,27 @@ ANYGL_EXPORT extern PFNANYGLXRELEASEVIDEOIMAGENVPROC AnyGL_glXReleaseVideoImageN
 ANYGL_EXPORT extern PFNANYGLXSENDPBUFFERTOVIDEONVPROC AnyGL_glXSendPbufferToVideoNV;
 ANYGL_EXPORT extern PFNANYGLXGETVIDEOINFONVPROC AnyGL_glXGetVideoInfoNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetVideoDeviceNV(dpy, screen, numVideoDevices, pVideoDevice) AnyGL_glXGetVideoDeviceNV(dpy, screen, numVideoDevices, pVideoDevice)
 #define glXReleaseVideoDeviceNV(dpy, screen, VideoDevice) AnyGL_glXReleaseVideoDeviceNV(dpy, screen, VideoDevice)
 #define glXBindVideoImageNV(dpy, VideoDevice, pbuf, iVideoBuffer) AnyGL_glXBindVideoImageNV(dpy, VideoDevice, pbuf, iVideoBuffer)
 #define glXReleaseVideoImageNV(dpy, pbuf) AnyGL_glXReleaseVideoImageNV(dpy, pbuf)
 #define glXSendPbufferToVideoNV(dpy, pbuf, iBufferType, pulCounterPbuffer, bBlock) AnyGL_glXSendPbufferToVideoNV(dpy, pbuf, iBufferType, pulCounterPbuffer, bBlock)
 #define glXGetVideoInfoNV(dpy, screen, VideoDevice, pulCounterOutputPbuffer, pulCounterOutputVideo) AnyGL_glXGetVideoInfoNV(dpy, screen, VideoDevice, pulCounterOutputPbuffer, pulCounterOutputVideo)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_OML_swap_method
 #define GLX_OML_swap_method 1
 #define ANYGLX_OML_swap_method 1
 
+
+#endif /* GLX_OML_swap_method */
+#ifndef ANYGL_NO_DEFINES
 #define GLX_SWAP_METHOD_OML               0x8060
 #define GLX_SWAP_EXCHANGE_OML             0x8061
 #define GLX_SWAP_COPY_OML                 0x8062
 #define GLX_SWAP_UNDEFINED_OML            0x8063
-
-#endif /* GLX_OML_swap_method */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_OML_sync_control
 #define GLX_OML_sync_control 1
@@ -1048,13 +1140,13 @@ ANYGL_EXPORT extern PFNANYGLXSWAPBUFFERSMSCOMLPROC AnyGL_glXSwapBuffersMscOML;
 ANYGL_EXPORT extern PFNANYGLXWAITFORMSCOMLPROC AnyGL_glXWaitForMscOML;
 ANYGL_EXPORT extern PFNANYGLXWAITFORSBCOMLPROC AnyGL_glXWaitForSbcOML;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetSyncValuesOML(dpy, drawable, ust, msc, sbc) AnyGL_glXGetSyncValuesOML(dpy, drawable, ust, msc, sbc)
 #define glXGetMscRateOML(dpy, drawable, numerator, denominator) AnyGL_glXGetMscRateOML(dpy, drawable, numerator, denominator)
 #define glXSwapBuffersMscOML(dpy, drawable, target_msc, divisor, remainder) AnyGL_glXSwapBuffersMscOML(dpy, drawable, target_msc, divisor, remainder)
 #define glXWaitForMscOML(dpy, drawable, target_msc, divisor, remainder, ust, msc, sbc) AnyGL_glXWaitForMscOML(dpy, drawable, target_msc, divisor, remainder, ust, msc, sbc)
 #define glXWaitForSbcOML(dpy, drawable, target_sbc, ust, msc, sbc) AnyGL_glXWaitForSbcOML(dpy, drawable, target_sbc, ust, msc, sbc)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef GLX_SUN_get_transparent_index
 #define GLX_SUN_get_transparent_index 1
@@ -1066,9 +1158,9 @@ typedef Status (APIENTRY* PFNANYGLXGETTRANSPARENTINDEXSUNPROC)(Display *dpy, Win
 
 ANYGL_EXPORT extern PFNANYGLXGETTRANSPARENTINDEXSUNPROC AnyGL_glXGetTransparentIndexSUN;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glXGetTransparentIndexSUN(dpy, overlay, underlay, pTransparentIndex) AnyGL_glXGetTransparentIndexSUN(dpy, overlay, underlay, pTransparentIndex)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 
 #ifdef __cplusplus

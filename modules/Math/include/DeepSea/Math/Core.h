@@ -93,7 +93,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
 		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
 			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
-		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((double*)&(doubleStruct))[_dsConvertI] = \
@@ -114,7 +114,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
 		DS_STATIC_ASSERT(sizeof(doubleStruct)/sizeof(double) == \
 			sizeof(floatStruct)/sizeof(float), doubleStruct_elements_not_equal_to_floatStruct); \
-		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((float*)&(floatStruct))[_dsConvertI] = \
@@ -135,7 +135,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
 		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
 			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
-		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((int*)&(intStruct))[_dsConvertI] = \
@@ -156,7 +156,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(floatStruct) % sizeof(float) == 0, floatStruct_must_be_float); \
 		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
 			sizeof(floatStruct)/sizeof(float), intStruct_elements_not_equal_to_floatStruct); \
-		unsigned int _dsConvertLen = sizeof(floatStruct)/sizeof(float); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(floatStruct)/sizeof(float)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((float*)&(floatStruct))[_dsConvertI] = \
@@ -177,7 +177,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
 		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
 			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
-		unsigned int _dsConvertLen = sizeof(doubleStruct)/sizeof(double); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(doubleStruct)/sizeof(double)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((int*)&(intStruct))[_dsConvertI] = \
@@ -198,7 +198,7 @@ extern "C"
 		DS_STATIC_ASSERT(sizeof(doubleStruct) % sizeof(double) == 0, doubleStruct_must_be_double); \
 		DS_STATIC_ASSERT(sizeof(intStruct)/sizeof(int) == \
 			sizeof(doubleStruct)/sizeof(double), intStruct_elements_not_equal_to_doubleStruct); \
-		unsigned int _dsConvertLen = sizeof(doubleStruct)/sizeof(double); \
+		unsigned int _dsConvertLen = (unsigned int)(sizeof(doubleStruct)/sizeof(double)); \
 		for (unsigned int _dsConvertI = 0; _dsConvertI < _dsConvertLen; ++_dsConvertI) \
 		{ \
 			((double*)&(doubleStruct))[_dsConvertI] = \

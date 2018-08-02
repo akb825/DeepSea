@@ -2863,7 +2863,7 @@ void Clipper::ProcessIntersectList()
 }
 //------------------------------------------------------------------------------
 
-bool IntersectListSort(IntersectNode& node1, IntersectNode& node2)
+bool IntersectListSort(const IntersectNode& node1, const IntersectNode& node2)
 {
   return node2.Pt.Y < node1.Pt.Y;
 }

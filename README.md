@@ -42,7 +42,7 @@ In order to perform a full build of DeepSea, the dependencies should be installe
 * [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage): the tool is required to build shaders. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
 * [Cuttlefish](https://github.com/akb825/Cuttlefish): this is recommended to create textures. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
 * [gtest](https://github.com/google/googletest): after installing the library you may need to set the `GTEST_ROOT` CMake variable to the installation location.
-* [SDL](https://www.libsdl.org/): after installing the library you may need to set the `SDL_PATH` CMake variable to the installation location.
+* [SDL](https://www.libsdl.org/): after installing the library you may need to set the `SDL2_PATH` CMake variable to the installation location.
 * [FreeType](https://www.freetype.org/): after installing the library, you may need to set the `FREETYPE_DIR` environment variable to the installation location.
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/): after installing the library you may need to set the `HARFBUZZ_PATH` CMake variable to the installation location. Some notes when building HarfBuzz from source:
 	* The [ragel](http://www.colm.net/open-source/ragel/) tool is required. Make sure that the `RAGEL` CMake variable is set to the path to `ragel`.

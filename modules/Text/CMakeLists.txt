@@ -1,6 +1,6 @@
 find_package(Freetype QUIET)
 find_package(HarfBuzz QUIET)
-if (NOT Freetype_FOUND OR NOT HarfBuzz_FOUND)
+if (NOT FREETYPE_FOUND OR NOT HARFBUZZ_FOUND)
 	message("Freetype or HarfBuzz not found. Skipping Text.")
 	return()
 endif()

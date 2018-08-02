@@ -24,12 +24,15 @@ extern "C" {
 #define WGL_ARB_buffer_region 1
 #define ANYWGL_ARB_buffer_region 1
 
+
+#endif /* WGL_ARB_buffer_region */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_FRONT_COLOR_BUFFER_BIT_ARB    0x00000001
 #define WGL_BACK_COLOR_BUFFER_BIT_ARB     0x00000002
 #define WGL_DEPTH_BUFFER_BIT_ARB          0x00000004
 #define WGL_STENCIL_BUFFER_BIT_ARB        0x00000008
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_ARB_buffer_region */
 typedef HANDLE (APIENTRY* PFNANYWGLCREATEBUFFERREGIONARBPROC)(HDC hDC, int iLayerPlane, UINT uType);
 typedef VOID (APIENTRY* PFNANYWGLDELETEBUFFERREGIONARBPROC)(HANDLE hRegion);
 typedef BOOL (APIENTRY* PFNANYWGLSAVEBUFFERREGIONARBPROC)(HANDLE hRegion, int x, int y, int width, int height);
@@ -40,27 +43,32 @@ ANYGL_EXPORT extern PFNANYWGLDELETEBUFFERREGIONARBPROC AnyGL_wglDeleteBufferRegi
 ANYGL_EXPORT extern PFNANYWGLSAVEBUFFERREGIONARBPROC AnyGL_wglSaveBufferRegionARB;
 ANYGL_EXPORT extern PFNANYWGLRESTOREBUFFERREGIONARBPROC AnyGL_wglRestoreBufferRegionARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreateBufferRegionARB(hDC, iLayerPlane, uType) AnyGL_wglCreateBufferRegionARB(hDC, iLayerPlane, uType)
 #define wglDeleteBufferRegionARB(hRegion) AnyGL_wglDeleteBufferRegionARB(hRegion)
 #define wglSaveBufferRegionARB(hRegion, x, y, width, height) AnyGL_wglSaveBufferRegionARB(hRegion, x, y, width, height)
 #define wglRestoreBufferRegionARB(hRegion, x, y, width, height, xSrc, ySrc) AnyGL_wglRestoreBufferRegionARB(hRegion, x, y, width, height, xSrc, ySrc)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_context_flush_control
 #define WGL_ARB_context_flush_control 1
 #define ANYWGL_ARB_context_flush_control 1
 
+
+#endif /* WGL_ARB_context_flush_control */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_ARB  0x2097
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB 0
 #define WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB 0x2098
-
-#endif /* WGL_ARB_context_flush_control */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_create_context
 #define WGL_ARB_create_context 1
 #define ANYWGL_ARB_create_context 1
 
+
+#endif /* WGL_ARB_create_context */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_CONTEXT_DEBUG_BIT_ARB         0x00000001
 #define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
 #define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
@@ -68,45 +76,51 @@ ANYGL_EXPORT extern PFNANYWGLRESTOREBUFFERREGIONARBPROC AnyGL_wglRestoreBufferRe
 #define WGL_CONTEXT_LAYER_PLANE_ARB       0x2093
 #define WGL_CONTEXT_FLAGS_ARB             0x2094
 #define ERROR_INVALID_VERSION_ARB         0x2095
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_ARB_create_context */
 typedef HGLRC (APIENTRY* PFNANYWGLCREATECONTEXTATTRIBSARBPROC)(HDC hDC, HGLRC hShareContext, const int *attribList);
 
 ANYGL_EXPORT extern PFNANYWGLCREATECONTEXTATTRIBSARBPROC AnyGL_wglCreateContextAttribsARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreateContextAttribsARB(hDC, hShareContext, attribList) AnyGL_wglCreateContextAttribsARB(hDC, hShareContext, attribList)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_create_context_no_error
 #define WGL_ARB_create_context_no_error 1
 #define ANYWGL_ARB_create_context_no_error 1
 
-#define WGL_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
 
 #endif /* WGL_ARB_create_context_no_error */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_CONTEXT_OPENGL_NO_ERROR_ARB   0x31B3
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_create_context_profile
 #define WGL_ARB_create_context_profile 1
 #define ANYWGL_ARB_create_context_profile 1
 
+
+#endif /* WGL_ARB_create_context_profile */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_CONTEXT_PROFILE_MASK_ARB      0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB  0x00000001
 #define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #define ERROR_INVALID_PROFILE_ARB         0x2096
-
-#endif /* WGL_ARB_create_context_profile */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_create_context_robustness
 #define WGL_ARB_create_context_robustness 1
 #define ANYWGL_ARB_create_context_robustness 1
 
+
+#endif /* WGL_ARB_create_context_robustness */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB 0x00000004
 #define WGL_LOSE_CONTEXT_ON_RESET_ARB     0x8252
 #define WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB 0x8256
 #define WGL_NO_RESET_NOTIFICATION_ARB     0x8261
-
-#endif /* WGL_ARB_create_context_robustness */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_extensions_string
 #define WGL_ARB_extensions_string 1
@@ -118,50 +132,61 @@ typedef const char *(APIENTRY* PFNANYWGLGETEXTENSIONSSTRINGARBPROC)(HDC hdc);
 
 ANYGL_EXPORT extern PFNANYWGLGETEXTENSIONSSTRINGARBPROC AnyGL_wglGetExtensionsStringARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetExtensionsStringARB(hdc) AnyGL_wglGetExtensionsStringARB(hdc)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_framebuffer_sRGB
 #define WGL_ARB_framebuffer_sRGB 1
 #define ANYWGL_ARB_framebuffer_sRGB 1
 
-#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB  0x20A9
 
 #endif /* WGL_ARB_framebuffer_sRGB */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB  0x20A9
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_make_current_read
 #define WGL_ARB_make_current_read 1
 #define ANYWGL_ARB_make_current_read 1
 
-#define ERROR_INVALID_PIXEL_TYPE_ARB      0x2043
-#define ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB 0x2054
 
 #endif /* WGL_ARB_make_current_read */
+#ifndef ANYGL_NO_DEFINES
+#define ERROR_INVALID_PIXEL_TYPE_ARB      0x2043
+#define ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB 0x2054
+#endif /* ANYGL_NO_DEFINES */
+
 typedef BOOL (APIENTRY* PFNANYWGLMAKECONTEXTCURRENTARBPROC)(HDC hDrawDC, HDC hReadDC, HGLRC hglrc);
 typedef HDC (APIENTRY* PFNANYWGLGETCURRENTREADDCARBPROC)();
 
 ANYGL_EXPORT extern PFNANYWGLMAKECONTEXTCURRENTARBPROC AnyGL_wglMakeContextCurrentARB;
 ANYGL_EXPORT extern PFNANYWGLGETCURRENTREADDCARBPROC AnyGL_wglGetCurrentReadDCARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglMakeContextCurrentARB(hDrawDC, hReadDC, hglrc) AnyGL_wglMakeContextCurrentARB(hDrawDC, hReadDC, hglrc)
 #define wglGetCurrentReadDCARB() AnyGL_wglGetCurrentReadDCARB()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_multisample
 #define WGL_ARB_multisample 1
 #define ANYWGL_ARB_multisample 1
 
-#define WGL_SAMPLE_BUFFERS_ARB            0x2041
-#define WGL_SAMPLES_ARB                   0x2042
 
 #endif /* WGL_ARB_multisample */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_SAMPLE_BUFFERS_ARB            0x2041
+#define WGL_SAMPLES_ARB                   0x2042
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_pbuffer
 #define WGL_ARB_pbuffer 1
 #define ANYWGL_ARB_pbuffer 1
 
+DECLARE_HANDLE(HPBUFFERARB);
+
+#endif /* WGL_ARB_pbuffer */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_DRAW_TO_PBUFFER_ARB           0x202D
 #define WGL_MAX_PBUFFER_PIXELS_ARB        0x202E
 #define WGL_MAX_PBUFFER_WIDTH_ARB         0x202F
@@ -170,9 +195,8 @@ ANYGL_EXPORT extern PFNANYWGLGETCURRENTREADDCARBPROC AnyGL_wglGetCurrentReadDCAR
 #define WGL_PBUFFER_WIDTH_ARB             0x2034
 #define WGL_PBUFFER_HEIGHT_ARB            0x2035
 #define WGL_PBUFFER_LOST_ARB              0x2036
-DECLARE_HANDLE(HPBUFFERARB);
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_ARB_pbuffer */
 typedef HPBUFFERARB (APIENTRY* PFNANYWGLCREATEPBUFFERARBPROC)(HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int *piAttribList);
 typedef HDC (APIENTRY* PFNANYWGLGETPBUFFERDCARBPROC)(HPBUFFERARB hPbuffer);
 typedef int (APIENTRY* PFNANYWGLRELEASEPBUFFERDCARBPROC)(HPBUFFERARB hPbuffer, HDC hDC);
@@ -185,18 +209,21 @@ ANYGL_EXPORT extern PFNANYWGLRELEASEPBUFFERDCARBPROC AnyGL_wglReleasePbufferDCAR
 ANYGL_EXPORT extern PFNANYWGLDESTROYPBUFFERARBPROC AnyGL_wglDestroyPbufferARB;
 ANYGL_EXPORT extern PFNANYWGLQUERYPBUFFERARBPROC AnyGL_wglQueryPbufferARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreatePbufferARB(hDC, iPixelFormat, iWidth, iHeight, piAttribList) AnyGL_wglCreatePbufferARB(hDC, iPixelFormat, iWidth, iHeight, piAttribList)
 #define wglGetPbufferDCARB(hPbuffer) AnyGL_wglGetPbufferDCARB(hPbuffer)
 #define wglReleasePbufferDCARB(hPbuffer, hDC) AnyGL_wglReleasePbufferDCARB(hPbuffer, hDC)
 #define wglDestroyPbufferARB(hPbuffer) AnyGL_wglDestroyPbufferARB(hPbuffer)
 #define wglQueryPbufferARB(hPbuffer, iAttribute, piValue) AnyGL_wglQueryPbufferARB(hPbuffer, iAttribute, piValue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_pixel_format
 #define WGL_ARB_pixel_format 1
 #define ANYWGL_ARB_pixel_format 1
 
+
+#endif /* WGL_ARB_pixel_format */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
 #define WGL_DRAW_TO_WINDOW_ARB            0x2001
 #define WGL_DRAW_TO_BITMAP_ARB            0x2002
@@ -246,8 +273,8 @@ ANYGL_EXPORT extern PFNANYWGLQUERYPBUFFERARBPROC AnyGL_wglQueryPbufferARB;
 #define WGL_SWAP_UNDEFINED_ARB            0x202A
 #define WGL_TYPE_RGBA_ARB                 0x202B
 #define WGL_TYPE_COLORINDEX_ARB           0x202C
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_ARB_pixel_format */
 typedef BOOL (APIENTRY* PFNANYWGLGETPIXELFORMATATTRIBIVARBPROC)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
 typedef BOOL (APIENTRY* PFNANYWGLGETPIXELFORMATATTRIBFVARBPROC)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, FLOAT *pfValues);
 typedef BOOL (APIENTRY* PFNANYWGLCHOOSEPIXELFORMATARBPROC)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
@@ -256,24 +283,29 @@ ANYGL_EXPORT extern PFNANYWGLGETPIXELFORMATATTRIBIVARBPROC AnyGL_wglGetPixelForm
 ANYGL_EXPORT extern PFNANYWGLGETPIXELFORMATATTRIBFVARBPROC AnyGL_wglGetPixelFormatAttribfvARB;
 ANYGL_EXPORT extern PFNANYWGLCHOOSEPIXELFORMATARBPROC AnyGL_wglChoosePixelFormatARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetPixelFormatAttribivARB(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, piValues) AnyGL_wglGetPixelFormatAttribivARB(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, piValues)
 #define wglGetPixelFormatAttribfvARB(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, pfValues) AnyGL_wglGetPixelFormatAttribfvARB(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, pfValues)
 #define wglChoosePixelFormatARB(hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats) AnyGL_wglChoosePixelFormatARB(hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_pixel_format_float
 #define WGL_ARB_pixel_format_float 1
 #define ANYWGL_ARB_pixel_format_float 1
 
-#define WGL_TYPE_RGBA_FLOAT_ARB           0x21A0
 
 #endif /* WGL_ARB_pixel_format_float */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_TYPE_RGBA_FLOAT_ARB           0x21A0
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_render_texture
 #define WGL_ARB_render_texture 1
 #define ANYWGL_ARB_render_texture 1
 
+
+#endif /* WGL_ARB_render_texture */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_BIND_TO_TEXTURE_RGB_ARB       0x2070
 #define WGL_BIND_TO_TEXTURE_RGBA_ARB      0x2071
 #define WGL_TEXTURE_FORMAT_ARB            0x2072
@@ -307,8 +339,8 @@ ANYGL_EXPORT extern PFNANYWGLCHOOSEPIXELFORMATARBPROC AnyGL_wglChoosePixelFormat
 #define WGL_AUX7_ARB                      0x208E
 #define WGL_AUX8_ARB                      0x208F
 #define WGL_AUX9_ARB                      0x2090
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_ARB_render_texture */
 typedef BOOL (APIENTRY* PFNANYWGLBINDTEXIMAGEARBPROC)(HPBUFFERARB hPbuffer, int iBuffer);
 typedef BOOL (APIENTRY* PFNANYWGLRELEASETEXIMAGEARBPROC)(HPBUFFERARB hPbuffer, int iBuffer);
 typedef BOOL (APIENTRY* PFNANYWGLSETPBUFFERATTRIBARBPROC)(HPBUFFERARB hPbuffer, const int *piAttribList);
@@ -317,19 +349,21 @@ ANYGL_EXPORT extern PFNANYWGLBINDTEXIMAGEARBPROC AnyGL_wglBindTexImageARB;
 ANYGL_EXPORT extern PFNANYWGLRELEASETEXIMAGEARBPROC AnyGL_wglReleaseTexImageARB;
 ANYGL_EXPORT extern PFNANYWGLSETPBUFFERATTRIBARBPROC AnyGL_wglSetPbufferAttribARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglBindTexImageARB(hPbuffer, iBuffer) AnyGL_wglBindTexImageARB(hPbuffer, iBuffer)
 #define wglReleaseTexImageARB(hPbuffer, iBuffer) AnyGL_wglReleaseTexImageARB(hPbuffer, iBuffer)
 #define wglSetPbufferAttribARB(hPbuffer, piAttribList) AnyGL_wglSetPbufferAttribARB(hPbuffer, piAttribList)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_robustness_application_isolation
 #define WGL_ARB_robustness_application_isolation 1
 #define ANYWGL_ARB_robustness_application_isolation 1
 
-#define WGL_CONTEXT_RESET_ISOLATION_BIT_ARB 0x00000008
 
 #endif /* WGL_ARB_robustness_application_isolation */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_CONTEXT_RESET_ISOLATION_BIT_ARB 0x00000008
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ARB_robustness_share_group_isolation
 #define WGL_ARB_robustness_share_group_isolation 1
@@ -342,33 +376,41 @@ ANYGL_EXPORT extern PFNANYWGLSETPBUFFERATTRIBARBPROC AnyGL_wglSetPbufferAttribAR
 #define WGL_3DFX_multisample 1
 #define ANYWGL_3DFX_multisample 1
 
-#define WGL_SAMPLE_BUFFERS_3DFX           0x2060
-#define WGL_SAMPLES_3DFX                  0x2061
 
 #endif /* WGL_3DFX_multisample */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_SAMPLE_BUFFERS_3DFX           0x2060
+#define WGL_SAMPLES_3DFX                  0x2061
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_3DL_stereo_control
 #define WGL_3DL_stereo_control 1
 #define ANYWGL_3DL_stereo_control 1
 
+
+#endif /* WGL_3DL_stereo_control */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_STEREO_EMITTER_ENABLE_3DL     0x2055
 #define WGL_STEREO_EMITTER_DISABLE_3DL    0x2056
 #define WGL_STEREO_POLARITY_NORMAL_3DL    0x2057
 #define WGL_STEREO_POLARITY_INVERT_3DL    0x2058
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_3DL_stereo_control */
 typedef BOOL (APIENTRY* PFNANYWGLSETSTEREOEMITTERSTATE3DLPROC)(HDC hDC, UINT uState);
 
 ANYGL_EXPORT extern PFNANYWGLSETSTEREOEMITTERSTATE3DLPROC AnyGL_wglSetStereoEmitterState3DL;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglSetStereoEmitterState3DL(hDC, uState) AnyGL_wglSetStereoEmitterState3DL(hDC, uState)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_AMD_gpu_association
 #define WGL_AMD_gpu_association 1
 #define ANYWGL_AMD_gpu_association 1
 
+
+#endif /* WGL_AMD_gpu_association */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_GPU_VENDOR_AMD                0x1F00
 #define WGL_GPU_RENDERER_STRING_AMD       0x1F01
 #define WGL_GPU_OPENGL_VERSION_STRING_AMD 0x1F02
@@ -379,8 +421,8 @@ ANYGL_EXPORT extern PFNANYWGLSETSTEREOEMITTERSTATE3DLPROC AnyGL_wglSetStereoEmit
 #define WGL_GPU_NUM_SIMD_AMD              0x21A6
 #define WGL_GPU_NUM_RB_AMD                0x21A7
 #define WGL_GPU_NUM_SPI_AMD               0x21A8
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_AMD_gpu_association */
 typedef UINT (APIENTRY* PFNANYWGLGETGPUIDSAMDPROC)(UINT maxCount, UINT *ids);
 typedef INT (APIENTRY* PFNANYWGLGETGPUINFOAMDPROC)(UINT id, int property, GLenum dataType, UINT size, void *data);
 typedef UINT (APIENTRY* PFNANYWGLGETCONTEXTGPUIDAMDPROC)(HGLRC hglrc);
@@ -401,7 +443,7 @@ ANYGL_EXPORT extern PFNANYWGLMAKEASSOCIATEDCONTEXTCURRENTAMDPROC AnyGL_wglMakeAs
 ANYGL_EXPORT extern PFNANYWGLGETCURRENTASSOCIATEDCONTEXTAMDPROC AnyGL_wglGetCurrentAssociatedContextAMD;
 ANYGL_EXPORT extern PFNANYWGLBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_wglBlitContextFramebufferAMD;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetGPUIDsAMD(maxCount, ids) AnyGL_wglGetGPUIDsAMD(maxCount, ids)
 #define wglGetGPUInfoAMD(id, property, dataType, size, data) AnyGL_wglGetGPUInfoAMD(id, property, dataType, size, data)
 #define wglGetContextGPUIDAMD(hglrc) AnyGL_wglGetContextGPUIDAMD(hglrc)
@@ -411,49 +453,59 @@ ANYGL_EXPORT extern PFNANYWGLBLITCONTEXTFRAMEBUFFERAMDPROC AnyGL_wglBlitContextF
 #define wglMakeAssociatedContextCurrentAMD(hglrc) AnyGL_wglMakeAssociatedContextCurrentAMD(hglrc)
 #define wglGetCurrentAssociatedContextAMD() AnyGL_wglGetCurrentAssociatedContextAMD()
 #define wglBlitContextFramebufferAMD(dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) AnyGL_wglBlitContextFramebufferAMD(dstCtx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_ATI_pixel_format_float
 #define WGL_ATI_pixel_format_float 1
 #define ANYWGL_ATI_pixel_format_float 1
 
-#define WGL_TYPE_RGBA_FLOAT_ATI           0x21A0
 
 #endif /* WGL_ATI_pixel_format_float */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_TYPE_RGBA_FLOAT_ATI           0x21A0
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_colorspace
 #define WGL_EXT_colorspace 1
 #define ANYWGL_EXT_colorspace 1
 
+
+#endif /* WGL_EXT_colorspace */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_COLORSPACE_EXT                0x3087
 #define WGL_COLORSPACE_SRGB_EXT           0x3089
 #define WGL_COLORSPACE_LINEAR_EXT         0x308A
-
-#endif /* WGL_EXT_colorspace */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_create_context_es2_profile
 #define WGL_EXT_create_context_es2_profile 1
 #define ANYWGL_EXT_create_context_es2_profile 1
 
-#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT   0x00000004
 
 #endif /* WGL_EXT_create_context_es2_profile */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_CONTEXT_ES2_PROFILE_BIT_EXT   0x00000004
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_create_context_es_profile
 #define WGL_EXT_create_context_es_profile 1
 #define ANYWGL_EXT_create_context_es_profile 1
 
-#define WGL_CONTEXT_ES_PROFILE_BIT_EXT    0x00000004
 
 #endif /* WGL_EXT_create_context_es_profile */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_CONTEXT_ES_PROFILE_BIT_EXT    0x00000004
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_depth_float
 #define WGL_EXT_depth_float 1
 #define ANYWGL_EXT_depth_float 1
 
-#define WGL_DEPTH_FLOAT_EXT               0x2040
 
 #endif /* WGL_EXT_depth_float */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_DEPTH_FLOAT_EXT               0x2040
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_display_color_table
 #define WGL_EXT_display_color_table 1
@@ -471,12 +523,12 @@ ANYGL_EXPORT extern PFNANYWGLLOADDISPLAYCOLORTABLEEXTPROC AnyGL_wglLoadDisplayCo
 ANYGL_EXPORT extern PFNANYWGLBINDDISPLAYCOLORTABLEEXTPROC AnyGL_wglBindDisplayColorTableEXT;
 ANYGL_EXPORT extern PFNANYWGLDESTROYDISPLAYCOLORTABLEEXTPROC AnyGL_wglDestroyDisplayColorTableEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreateDisplayColorTableEXT(id) AnyGL_wglCreateDisplayColorTableEXT(id)
 #define wglLoadDisplayColorTableEXT(table, length) AnyGL_wglLoadDisplayColorTableEXT(table, length)
 #define wglBindDisplayColorTableEXT(id) AnyGL_wglBindDisplayColorTableEXT(id)
 #define wglDestroyDisplayColorTableEXT(id) AnyGL_wglDestroyDisplayColorTableEXT(id)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_extensions_string
 #define WGL_EXT_extensions_string 1
@@ -488,49 +540,60 @@ typedef const char *(APIENTRY* PFNANYWGLGETEXTENSIONSSTRINGEXTPROC)();
 
 ANYGL_EXPORT extern PFNANYWGLGETEXTENSIONSSTRINGEXTPROC AnyGL_wglGetExtensionsStringEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetExtensionsStringEXT() AnyGL_wglGetExtensionsStringEXT()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_framebuffer_sRGB
 #define WGL_EXT_framebuffer_sRGB 1
 #define ANYWGL_EXT_framebuffer_sRGB 1
 
-#define WGL_FRAMEBUFFER_SRGB_CAPABLE_EXT  0x20A9
 
 #endif /* WGL_EXT_framebuffer_sRGB */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_EXT  0x20A9
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_make_current_read
 #define WGL_EXT_make_current_read 1
 #define ANYWGL_EXT_make_current_read 1
 
-#define ERROR_INVALID_PIXEL_TYPE_EXT      0x2043
 
 #endif /* WGL_EXT_make_current_read */
+#ifndef ANYGL_NO_DEFINES
+#define ERROR_INVALID_PIXEL_TYPE_EXT      0x2043
+#endif /* ANYGL_NO_DEFINES */
+
 typedef BOOL (APIENTRY* PFNANYWGLMAKECONTEXTCURRENTEXTPROC)(HDC hDrawDC, HDC hReadDC, HGLRC hglrc);
 typedef HDC (APIENTRY* PFNANYWGLGETCURRENTREADDCEXTPROC)();
 
 ANYGL_EXPORT extern PFNANYWGLMAKECONTEXTCURRENTEXTPROC AnyGL_wglMakeContextCurrentEXT;
 ANYGL_EXPORT extern PFNANYWGLGETCURRENTREADDCEXTPROC AnyGL_wglGetCurrentReadDCEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglMakeContextCurrentEXT(hDrawDC, hReadDC, hglrc) AnyGL_wglMakeContextCurrentEXT(hDrawDC, hReadDC, hglrc)
 #define wglGetCurrentReadDCEXT() AnyGL_wglGetCurrentReadDCEXT()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_multisample
 #define WGL_EXT_multisample 1
 #define ANYWGL_EXT_multisample 1
 
-#define WGL_SAMPLE_BUFFERS_EXT            0x2041
-#define WGL_SAMPLES_EXT                   0x2042
 
 #endif /* WGL_EXT_multisample */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_SAMPLE_BUFFERS_EXT            0x2041
+#define WGL_SAMPLES_EXT                   0x2042
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_pbuffer
 #define WGL_EXT_pbuffer 1
 #define ANYWGL_EXT_pbuffer 1
 
+DECLARE_HANDLE(HPBUFFEREXT);
+
+#endif /* WGL_EXT_pbuffer */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_DRAW_TO_PBUFFER_EXT           0x202D
 #define WGL_MAX_PBUFFER_PIXELS_EXT        0x202E
 #define WGL_MAX_PBUFFER_WIDTH_EXT         0x202F
@@ -540,9 +603,8 @@ ANYGL_EXPORT extern PFNANYWGLGETCURRENTREADDCEXTPROC AnyGL_wglGetCurrentReadDCEX
 #define WGL_PBUFFER_LARGEST_EXT           0x2033
 #define WGL_PBUFFER_WIDTH_EXT             0x2034
 #define WGL_PBUFFER_HEIGHT_EXT            0x2035
-DECLARE_HANDLE(HPBUFFEREXT);
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_EXT_pbuffer */
 typedef HPBUFFEREXT (APIENTRY* PFNANYWGLCREATEPBUFFEREXTPROC)(HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int *piAttribList);
 typedef HDC (APIENTRY* PFNANYWGLGETPBUFFERDCEXTPROC)(HPBUFFEREXT hPbuffer);
 typedef int (APIENTRY* PFNANYWGLRELEASEPBUFFERDCEXTPROC)(HPBUFFEREXT hPbuffer, HDC hDC);
@@ -555,18 +617,21 @@ ANYGL_EXPORT extern PFNANYWGLRELEASEPBUFFERDCEXTPROC AnyGL_wglReleasePbufferDCEX
 ANYGL_EXPORT extern PFNANYWGLDESTROYPBUFFEREXTPROC AnyGL_wglDestroyPbufferEXT;
 ANYGL_EXPORT extern PFNANYWGLQUERYPBUFFEREXTPROC AnyGL_wglQueryPbufferEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreatePbufferEXT(hDC, iPixelFormat, iWidth, iHeight, piAttribList) AnyGL_wglCreatePbufferEXT(hDC, iPixelFormat, iWidth, iHeight, piAttribList)
 #define wglGetPbufferDCEXT(hPbuffer) AnyGL_wglGetPbufferDCEXT(hPbuffer)
 #define wglReleasePbufferDCEXT(hPbuffer, hDC) AnyGL_wglReleasePbufferDCEXT(hPbuffer, hDC)
 #define wglDestroyPbufferEXT(hPbuffer) AnyGL_wglDestroyPbufferEXT(hPbuffer)
 #define wglQueryPbufferEXT(hPbuffer, iAttribute, piValue) AnyGL_wglQueryPbufferEXT(hPbuffer, iAttribute, piValue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_pixel_format
 #define WGL_EXT_pixel_format 1
 #define ANYWGL_EXT_pixel_format 1
 
+
+#endif /* WGL_EXT_pixel_format */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_NUMBER_PIXEL_FORMATS_EXT      0x2000
 #define WGL_DRAW_TO_WINDOW_EXT            0x2001
 #define WGL_DRAW_TO_BITMAP_EXT            0x2002
@@ -612,8 +677,8 @@ ANYGL_EXPORT extern PFNANYWGLQUERYPBUFFEREXTPROC AnyGL_wglQueryPbufferEXT;
 #define WGL_SWAP_UNDEFINED_EXT            0x202A
 #define WGL_TYPE_RGBA_EXT                 0x202B
 #define WGL_TYPE_COLORINDEX_EXT           0x202C
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_EXT_pixel_format */
 typedef BOOL (APIENTRY* PFNANYWGLGETPIXELFORMATATTRIBIVEXTPROC)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, int *piAttributes, int *piValues);
 typedef BOOL (APIENTRY* PFNANYWGLGETPIXELFORMATATTRIBFVEXTPROC)(HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, int *piAttributes, FLOAT *pfValues);
 typedef BOOL (APIENTRY* PFNANYWGLCHOOSEPIXELFORMATEXTPROC)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
@@ -622,19 +687,21 @@ ANYGL_EXPORT extern PFNANYWGLGETPIXELFORMATATTRIBIVEXTPROC AnyGL_wglGetPixelForm
 ANYGL_EXPORT extern PFNANYWGLGETPIXELFORMATATTRIBFVEXTPROC AnyGL_wglGetPixelFormatAttribfvEXT;
 ANYGL_EXPORT extern PFNANYWGLCHOOSEPIXELFORMATEXTPROC AnyGL_wglChoosePixelFormatEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetPixelFormatAttribivEXT(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, piValues) AnyGL_wglGetPixelFormatAttribivEXT(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, piValues)
 #define wglGetPixelFormatAttribfvEXT(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, pfValues) AnyGL_wglGetPixelFormatAttribfvEXT(hdc, iPixelFormat, iLayerPlane, nAttributes, piAttributes, pfValues)
 #define wglChoosePixelFormatEXT(hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats) AnyGL_wglChoosePixelFormatEXT(hdc, piAttribIList, pfAttribFList, nMaxFormats, piFormats, nNumFormats)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_pixel_format_packed_float
 #define WGL_EXT_pixel_format_packed_float 1
 #define ANYWGL_EXT_pixel_format_packed_float 1
 
-#define WGL_TYPE_RGBA_UNSIGNED_FLOAT_EXT  0x20A8
 
 #endif /* WGL_EXT_pixel_format_packed_float */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_TYPE_RGBA_UNSIGNED_FLOAT_EXT  0x20A8
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_swap_control
 #define WGL_EXT_swap_control 1
@@ -648,10 +715,10 @@ typedef int (APIENTRY* PFNANYWGLGETSWAPINTERVALEXTPROC)();
 ANYGL_EXPORT extern PFNANYWGLSWAPINTERVALEXTPROC AnyGL_wglSwapIntervalEXT;
 ANYGL_EXPORT extern PFNANYWGLGETSWAPINTERVALEXTPROC AnyGL_wglGetSwapIntervalEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglSwapIntervalEXT(interval) AnyGL_wglSwapIntervalEXT(interval)
 #define wglGetSwapIntervalEXT() AnyGL_wglGetSwapIntervalEXT()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_EXT_swap_control_tear
 #define WGL_EXT_swap_control_tear 1
@@ -664,31 +731,37 @@ ANYGL_EXPORT extern PFNANYWGLGETSWAPINTERVALEXTPROC AnyGL_wglGetSwapIntervalEXT;
 #define WGL_I3D_digital_video_control 1
 #define ANYWGL_I3D_digital_video_control 1
 
+
+#endif /* WGL_I3D_digital_video_control */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_DIGITAL_VIDEO_CURSOR_ALPHA_FRAMEBUFFER_I3D 0x2050
 #define WGL_DIGITAL_VIDEO_CURSOR_ALPHA_VALUE_I3D 0x2051
 #define WGL_DIGITAL_VIDEO_CURSOR_INCLUDED_I3D 0x2052
 #define WGL_DIGITAL_VIDEO_GAMMA_CORRECTED_I3D 0x2053
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_I3D_digital_video_control */
 typedef BOOL (APIENTRY* PFNANYWGLGETDIGITALVIDEOPARAMETERSI3DPROC)(HDC hDC, int iAttribute, int *piValue);
 typedef BOOL (APIENTRY* PFNANYWGLSETDIGITALVIDEOPARAMETERSI3DPROC)(HDC hDC, int iAttribute, const int *piValue);
 
 ANYGL_EXPORT extern PFNANYWGLGETDIGITALVIDEOPARAMETERSI3DPROC AnyGL_wglGetDigitalVideoParametersI3D;
 ANYGL_EXPORT extern PFNANYWGLSETDIGITALVIDEOPARAMETERSI3DPROC AnyGL_wglSetDigitalVideoParametersI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetDigitalVideoParametersI3D(hDC, iAttribute, piValue) AnyGL_wglGetDigitalVideoParametersI3D(hDC, iAttribute, piValue)
 #define wglSetDigitalVideoParametersI3D(hDC, iAttribute, piValue) AnyGL_wglSetDigitalVideoParametersI3D(hDC, iAttribute, piValue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_I3D_gamma
 #define WGL_I3D_gamma 1
 #define ANYWGL_I3D_gamma 1
 
-#define WGL_GAMMA_TABLE_SIZE_I3D          0x204E
-#define WGL_GAMMA_EXCLUDE_DESKTOP_I3D     0x204F
 
 #endif /* WGL_I3D_gamma */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_GAMMA_TABLE_SIZE_I3D          0x204E
+#define WGL_GAMMA_EXCLUDE_DESKTOP_I3D     0x204F
+#endif /* ANYGL_NO_DEFINES */
+
 typedef BOOL (APIENTRY* PFNANYWGLGETGAMMATABLEPARAMETERSI3DPROC)(HDC hDC, int iAttribute, int *piValue);
 typedef BOOL (APIENTRY* PFNANYWGLSETGAMMATABLEPARAMETERSI3DPROC)(HDC hDC, int iAttribute, const int *piValue);
 typedef BOOL (APIENTRY* PFNANYWGLGETGAMMATABLEI3DPROC)(HDC hDC, int iEntries, USHORT *puRed, USHORT *puGreen, USHORT *puBlue);
@@ -699,17 +772,20 @@ ANYGL_EXPORT extern PFNANYWGLSETGAMMATABLEPARAMETERSI3DPROC AnyGL_wglSetGammaTab
 ANYGL_EXPORT extern PFNANYWGLGETGAMMATABLEI3DPROC AnyGL_wglGetGammaTableI3D;
 ANYGL_EXPORT extern PFNANYWGLSETGAMMATABLEI3DPROC AnyGL_wglSetGammaTableI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetGammaTableParametersI3D(hDC, iAttribute, piValue) AnyGL_wglGetGammaTableParametersI3D(hDC, iAttribute, piValue)
 #define wglSetGammaTableParametersI3D(hDC, iAttribute, piValue) AnyGL_wglSetGammaTableParametersI3D(hDC, iAttribute, piValue)
 #define wglGetGammaTableI3D(hDC, iEntries, puRed, puGreen, puBlue) AnyGL_wglGetGammaTableI3D(hDC, iEntries, puRed, puGreen, puBlue)
 #define wglSetGammaTableI3D(hDC, iEntries, puRed, puGreen, puBlue) AnyGL_wglSetGammaTableI3D(hDC, iEntries, puRed, puGreen, puBlue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_I3D_genlock
 #define WGL_I3D_genlock 1
 #define ANYWGL_I3D_genlock 1
 
+
+#endif /* WGL_I3D_genlock */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_GENLOCK_SOURCE_MULTIVIEW_I3D  0x2044
 #define WGL_GENLOCK_SOURCE_EXTERNAL_SYNC_I3D 0x2045
 #define WGL_GENLOCK_SOURCE_EXTERNAL_FIELD_I3D 0x2046
@@ -719,8 +795,8 @@ ANYGL_EXPORT extern PFNANYWGLSETGAMMATABLEI3DPROC AnyGL_wglSetGammaTableI3D;
 #define WGL_GENLOCK_SOURCE_EDGE_FALLING_I3D 0x204A
 #define WGL_GENLOCK_SOURCE_EDGE_RISING_I3D 0x204B
 #define WGL_GENLOCK_SOURCE_EDGE_BOTH_I3D  0x204C
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_I3D_genlock */
 typedef BOOL (APIENTRY* PFNANYWGLENABLEGENLOCKI3DPROC)(HDC hDC);
 typedef BOOL (APIENTRY* PFNANYWGLDISABLEGENLOCKI3DPROC)(HDC hDC);
 typedef BOOL (APIENTRY* PFNANYWGLISENABLEDGENLOCKI3DPROC)(HDC hDC, BOOL *pFlag);
@@ -747,7 +823,7 @@ ANYGL_EXPORT extern PFNANYWGLGENLOCKSOURCEDELAYI3DPROC AnyGL_wglGenlockSourceDel
 ANYGL_EXPORT extern PFNANYWGLGETGENLOCKSOURCEDELAYI3DPROC AnyGL_wglGetGenlockSourceDelayI3D;
 ANYGL_EXPORT extern PFNANYWGLQUERYGENLOCKMAXSOURCEDELAYI3DPROC AnyGL_wglQueryGenlockMaxSourceDelayI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglEnableGenlockI3D(hDC) AnyGL_wglEnableGenlockI3D(hDC)
 #define wglDisableGenlockI3D(hDC) AnyGL_wglDisableGenlockI3D(hDC)
 #define wglIsEnabledGenlockI3D(hDC, pFlag) AnyGL_wglIsEnabledGenlockI3D(hDC, pFlag)
@@ -760,16 +836,19 @@ ANYGL_EXPORT extern PFNANYWGLQUERYGENLOCKMAXSOURCEDELAYI3DPROC AnyGL_wglQueryGen
 #define wglGenlockSourceDelayI3D(hDC, uDelay) AnyGL_wglGenlockSourceDelayI3D(hDC, uDelay)
 #define wglGetGenlockSourceDelayI3D(hDC, uDelay) AnyGL_wglGetGenlockSourceDelayI3D(hDC, uDelay)
 #define wglQueryGenlockMaxSourceDelayI3D(hDC, uMaxLineDelay, uMaxPixelDelay) AnyGL_wglQueryGenlockMaxSourceDelayI3D(hDC, uMaxLineDelay, uMaxPixelDelay)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_I3D_image_buffer
 #define WGL_I3D_image_buffer 1
 #define ANYWGL_I3D_image_buffer 1
 
-#define WGL_IMAGE_BUFFER_MIN_ACCESS_I3D   0x00000001
-#define WGL_IMAGE_BUFFER_LOCK_I3D         0x00000002
 
 #endif /* WGL_I3D_image_buffer */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_IMAGE_BUFFER_MIN_ACCESS_I3D   0x00000001
+#define WGL_IMAGE_BUFFER_LOCK_I3D         0x00000002
+#endif /* ANYGL_NO_DEFINES */
+
 typedef LPVOID (APIENTRY* PFNANYWGLCREATEIMAGEBUFFERI3DPROC)(HDC hDC, DWORD dwSize, UINT uFlags);
 typedef BOOL (APIENTRY* PFNANYWGLDESTROYIMAGEBUFFERI3DPROC)(HDC hDC, LPVOID pAddress);
 typedef BOOL (APIENTRY* PFNANYWGLASSOCIATEIMAGEBUFFEREVENTSI3DPROC)(HDC hDC, const HANDLE *pEvent, const LPVOID *pAddress, const DWORD *pSize, UINT count);
@@ -780,12 +859,12 @@ ANYGL_EXPORT extern PFNANYWGLDESTROYIMAGEBUFFERI3DPROC AnyGL_wglDestroyImageBuff
 ANYGL_EXPORT extern PFNANYWGLASSOCIATEIMAGEBUFFEREVENTSI3DPROC AnyGL_wglAssociateImageBufferEventsI3D;
 ANYGL_EXPORT extern PFNANYWGLRELEASEIMAGEBUFFEREVENTSI3DPROC AnyGL_wglReleaseImageBufferEventsI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCreateImageBufferI3D(hDC, dwSize, uFlags) AnyGL_wglCreateImageBufferI3D(hDC, dwSize, uFlags)
 #define wglDestroyImageBufferI3D(hDC, pAddress) AnyGL_wglDestroyImageBufferI3D(hDC, pAddress)
 #define wglAssociateImageBufferEventsI3D(hDC, pEvent, pAddress, pSize, count) AnyGL_wglAssociateImageBufferEventsI3D(hDC, pEvent, pAddress, pSize, count)
 #define wglReleaseImageBufferEventsI3D(hDC, pAddress, count) AnyGL_wglReleaseImageBufferEventsI3D(hDC, pAddress, count)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_I3D_swap_frame_lock
 #define WGL_I3D_swap_frame_lock 1
@@ -803,12 +882,12 @@ ANYGL_EXPORT extern PFNANYWGLDISABLEFRAMELOCKI3DPROC AnyGL_wglDisableFrameLockI3
 ANYGL_EXPORT extern PFNANYWGLISENABLEDFRAMELOCKI3DPROC AnyGL_wglIsEnabledFrameLockI3D;
 ANYGL_EXPORT extern PFNANYWGLQUERYFRAMELOCKMASTERI3DPROC AnyGL_wglQueryFrameLockMasterI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglEnableFrameLockI3D() AnyGL_wglEnableFrameLockI3D()
 #define wglDisableFrameLockI3D() AnyGL_wglDisableFrameLockI3D()
 #define wglIsEnabledFrameLockI3D(pFlag) AnyGL_wglIsEnabledFrameLockI3D(pFlag)
 #define wglQueryFrameLockMasterI3D(pFlag) AnyGL_wglQueryFrameLockMasterI3D(pFlag)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_I3D_swap_frame_usage
 #define WGL_I3D_swap_frame_usage 1
@@ -826,22 +905,25 @@ ANYGL_EXPORT extern PFNANYWGLBEGINFRAMETRACKINGI3DPROC AnyGL_wglBeginFrameTracki
 ANYGL_EXPORT extern PFNANYWGLENDFRAMETRACKINGI3DPROC AnyGL_wglEndFrameTrackingI3D;
 ANYGL_EXPORT extern PFNANYWGLQUERYFRAMETRACKINGI3DPROC AnyGL_wglQueryFrameTrackingI3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetFrameUsageI3D(pUsage) AnyGL_wglGetFrameUsageI3D(pUsage)
 #define wglBeginFrameTrackingI3D() AnyGL_wglBeginFrameTrackingI3D()
 #define wglEndFrameTrackingI3D() AnyGL_wglEndFrameTrackingI3D()
 #define wglQueryFrameTrackingI3D(pFrameCount, pMissedFrames, pLastMissedUsage) AnyGL_wglQueryFrameTrackingI3D(pFrameCount, pMissedFrames, pLastMissedUsage)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_DX_interop
 #define WGL_NV_DX_interop 1
 #define ANYWGL_NV_DX_interop 1
 
+
+#endif /* WGL_NV_DX_interop */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_ACCESS_READ_ONLY_NV           0x00000000
 #define WGL_ACCESS_READ_WRITE_NV          0x00000001
 #define WGL_ACCESS_WRITE_DISCARD_NV       0x00000002
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_NV_DX_interop */
 typedef BOOL (APIENTRY* PFNANYWGLDXSETRESOURCESHAREHANDLENVPROC)(void *dxObject, HANDLE shareHandle);
 typedef HANDLE (APIENTRY* PFNANYWGLDXOPENDEVICENVPROC)(void *dxDevice);
 typedef BOOL (APIENTRY* PFNANYWGLDXCLOSEDEVICENVPROC)(HANDLE hDevice);
@@ -860,7 +942,7 @@ ANYGL_EXPORT extern PFNANYWGLDXOBJECTACCESSNVPROC AnyGL_wglDXObjectAccessNV;
 ANYGL_EXPORT extern PFNANYWGLDXLOCKOBJECTSNVPROC AnyGL_wglDXLockObjectsNV;
 ANYGL_EXPORT extern PFNANYWGLDXUNLOCKOBJECTSNVPROC AnyGL_wglDXUnlockObjectsNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglDXSetResourceShareHandleNV(dxObject, shareHandle) AnyGL_wglDXSetResourceShareHandleNV(dxObject, shareHandle)
 #define wglDXOpenDeviceNV(dxDevice) AnyGL_wglDXOpenDeviceNV(dxDevice)
 #define wglDXCloseDeviceNV(hDevice) AnyGL_wglDXCloseDeviceNV(hDevice)
@@ -869,7 +951,7 @@ ANYGL_EXPORT extern PFNANYWGLDXUNLOCKOBJECTSNVPROC AnyGL_wglDXUnlockObjectsNV;
 #define wglDXObjectAccessNV(hObject, access) AnyGL_wglDXObjectAccessNV(hObject, access)
 #define wglDXLockObjectsNV(hDevice, count, hObjects) AnyGL_wglDXLockObjectsNV(hDevice, count, hObjects)
 #define wglDXUnlockObjectsNV(hDevice, count, hObjects) AnyGL_wglDXUnlockObjectsNV(hDevice, count, hObjects)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_DX_interop2
 #define WGL_NV_DX_interop2 1
@@ -888,9 +970,9 @@ typedef BOOL (APIENTRY* PFNANYWGLCOPYIMAGESUBDATANVPROC)(HGLRC hSrcRC, GLuint sr
 
 ANYGL_EXPORT extern PFNANYWGLCOPYIMAGESUBDATANVPROC AnyGL_wglCopyImageSubDataNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglCopyImageSubDataNV(hSrcRC, srcName, srcTarget, srcLevel, srcX, srcY, srcZ, hDstRC, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, width, height, depth) AnyGL_wglCopyImageSubDataNV(hSrcRC, srcName, srcTarget, srcLevel, srcX, srcY, srcZ, hDstRC, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, width, height, depth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_delay_before_swap
 #define WGL_NV_delay_before_swap 1
@@ -902,14 +984,17 @@ typedef BOOL (APIENTRY* PFNANYWGLDELAYBEFORESWAPNVPROC)(HDC hDC, GLfloat seconds
 
 ANYGL_EXPORT extern PFNANYWGLDELAYBEFORESWAPNVPROC AnyGL_wglDelayBeforeSwapNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglDelayBeforeSwapNV(hDC, seconds) AnyGL_wglDelayBeforeSwapNV(hDC, seconds)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_float_buffer
 #define WGL_NV_float_buffer 1
 #define ANYWGL_NV_float_buffer 1
 
+
+#endif /* WGL_NV_float_buffer */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_FLOAT_COMPONENTS_NV           0x20B0
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_R_NV 0x20B1
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RG_NV 0x20B2
@@ -919,15 +1004,12 @@ ANYGL_EXPORT extern PFNANYWGLDELAYBEFORESWAPNVPROC AnyGL_wglDelayBeforeSwapNV;
 #define WGL_TEXTURE_FLOAT_RG_NV           0x20B6
 #define WGL_TEXTURE_FLOAT_RGB_NV          0x20B7
 #define WGL_TEXTURE_FLOAT_RGBA_NV         0x20B8
-
-#endif /* WGL_NV_float_buffer */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_gpu_affinity
 #define WGL_NV_gpu_affinity 1
 #define ANYWGL_NV_gpu_affinity 1
 
-#define ERROR_INCOMPATIBLE_AFFINITY_MASKS_NV 0x20D0
-#define ERROR_MISSING_AFFINITY_MASK_NV    0x20D1
 DECLARE_HANDLE(HGPUNV);
 struct _GPU_DEVICE {
     DWORD  cb;
@@ -939,6 +1021,11 @@ struct _GPU_DEVICE {
 typedef struct _GPU_DEVICE *PGPU_DEVICE;
 
 #endif /* WGL_NV_gpu_affinity */
+#ifndef ANYGL_NO_DEFINES
+#define ERROR_INCOMPATIBLE_AFFINITY_MASKS_NV 0x20D0
+#define ERROR_MISSING_AFFINITY_MASK_NV    0x20D1
+#endif /* ANYGL_NO_DEFINES */
+
 typedef BOOL (APIENTRY* PFNANYWGLENUMGPUSNVPROC)(UINT iGpuIndex, HGPUNV *phGpu);
 typedef BOOL (APIENTRY* PFNANYWGLENUMGPUDEVICESNVPROC)(HGPUNV hGpu, UINT iDeviceIndex, PGPU_DEVICE lpGpuDevice);
 typedef HDC (APIENTRY* PFNANYWGLCREATEAFFINITYDCNVPROC)(const HGPUNV *phGpuList);
@@ -951,31 +1038,36 @@ ANYGL_EXPORT extern PFNANYWGLCREATEAFFINITYDCNVPROC AnyGL_wglCreateAffinityDCNV;
 ANYGL_EXPORT extern PFNANYWGLENUMGPUSFROMAFFINITYDCNVPROC AnyGL_wglEnumGpusFromAffinityDCNV;
 ANYGL_EXPORT extern PFNANYWGLDELETEDCNVPROC AnyGL_wglDeleteDCNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglEnumGpusNV(iGpuIndex, phGpu) AnyGL_wglEnumGpusNV(iGpuIndex, phGpu)
 #define wglEnumGpuDevicesNV(hGpu, iDeviceIndex, lpGpuDevice) AnyGL_wglEnumGpuDevicesNV(hGpu, iDeviceIndex, lpGpuDevice)
 #define wglCreateAffinityDCNV(phGpuList) AnyGL_wglCreateAffinityDCNV(phGpuList)
 #define wglEnumGpusFromAffinityDCNV(hAffinityDC, iGpuIndex, hGpu) AnyGL_wglEnumGpusFromAffinityDCNV(hAffinityDC, iGpuIndex, hGpu)
 #define wglDeleteDCNV(hdc) AnyGL_wglDeleteDCNV(hdc)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_multisample_coverage
 #define WGL_NV_multisample_coverage 1
 #define ANYWGL_NV_multisample_coverage 1
 
-#define WGL_COVERAGE_SAMPLES_NV           0x2042
-#define WGL_COLOR_SAMPLES_NV              0x20B9
 
 #endif /* WGL_NV_multisample_coverage */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_COVERAGE_SAMPLES_NV           0x2042
+#define WGL_COLOR_SAMPLES_NV              0x20B9
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_present_video
 #define WGL_NV_present_video 1
 #define ANYWGL_NV_present_video 1
 
-#define WGL_NUM_VIDEO_SLOTS_NV            0x20F0
 DECLARE_HANDLE(HVIDEOOUTPUTDEVICENV);
 
 #endif /* WGL_NV_present_video */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_NUM_VIDEO_SLOTS_NV            0x20F0
+#endif /* ANYGL_NO_DEFINES */
+
 typedef int (APIENTRY* PFNANYWGLENUMERATEVIDEODEVICESNVPROC)(HDC hDC, HVIDEOOUTPUTDEVICENV *phDeviceList);
 typedef BOOL (APIENTRY* PFNANYWGLBINDVIDEODEVICENVPROC)(HDC hDC, unsigned int uVideoSlot, HVIDEOOUTPUTDEVICENV hVideoDevice, const int *piAttribList);
 typedef BOOL (APIENTRY* PFNANYWGLQUERYCURRENTCONTEXTNVPROC)(int iAttribute, int *piValue);
@@ -984,33 +1076,37 @@ ANYGL_EXPORT extern PFNANYWGLENUMERATEVIDEODEVICESNVPROC AnyGL_wglEnumerateVideo
 ANYGL_EXPORT extern PFNANYWGLBINDVIDEODEVICENVPROC AnyGL_wglBindVideoDeviceNV;
 ANYGL_EXPORT extern PFNANYWGLQUERYCURRENTCONTEXTNVPROC AnyGL_wglQueryCurrentContextNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglEnumerateVideoDevicesNV(hDC, phDeviceList) AnyGL_wglEnumerateVideoDevicesNV(hDC, phDeviceList)
 #define wglBindVideoDeviceNV(hDC, uVideoSlot, hVideoDevice, piAttribList) AnyGL_wglBindVideoDeviceNV(hDC, uVideoSlot, hVideoDevice, piAttribList)
 #define wglQueryCurrentContextNV(iAttribute, piValue) AnyGL_wglQueryCurrentContextNV(iAttribute, piValue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_render_depth_texture
 #define WGL_NV_render_depth_texture 1
 #define ANYWGL_NV_render_depth_texture 1
 
+
+#endif /* WGL_NV_render_depth_texture */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_BIND_TO_TEXTURE_DEPTH_NV      0x20A3
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_DEPTH_NV 0x20A4
 #define WGL_DEPTH_TEXTURE_FORMAT_NV       0x20A5
 #define WGL_TEXTURE_DEPTH_COMPONENT_NV    0x20A6
 #define WGL_DEPTH_COMPONENT_NV            0x20A7
-
-#endif /* WGL_NV_render_depth_texture */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_render_texture_rectangle
 #define WGL_NV_render_texture_rectangle 1
 #define ANYWGL_NV_render_texture_rectangle 1
 
+
+#endif /* WGL_NV_render_texture_rectangle */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV 0x20A0
 #define WGL_BIND_TO_TEXTURE_RECTANGLE_RGBA_NV 0x20A1
 #define WGL_TEXTURE_RECTANGLE_NV          0x20A2
-
-#endif /* WGL_NV_render_texture_rectangle */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_swap_group
 #define WGL_NV_swap_group 1
@@ -1032,14 +1128,14 @@ ANYGL_EXPORT extern PFNANYWGLQUERYMAXSWAPGROUPSNVPROC AnyGL_wglQueryMaxSwapGroup
 ANYGL_EXPORT extern PFNANYWGLQUERYFRAMECOUNTNVPROC AnyGL_wglQueryFrameCountNV;
 ANYGL_EXPORT extern PFNANYWGLRESETFRAMECOUNTNVPROC AnyGL_wglResetFrameCountNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglJoinSwapGroupNV(hDC, group) AnyGL_wglJoinSwapGroupNV(hDC, group)
 #define wglBindSwapBarrierNV(group, barrier) AnyGL_wglBindSwapBarrierNV(group, barrier)
 #define wglQuerySwapGroupNV(hDC, group, barrier) AnyGL_wglQuerySwapGroupNV(hDC, group, barrier)
 #define wglQueryMaxSwapGroupsNV(hDC, maxGroups, maxBarriers) AnyGL_wglQueryMaxSwapGroupsNV(hDC, maxGroups, maxBarriers)
 #define wglQueryFrameCountNV(hDC, count) AnyGL_wglQueryFrameCountNV(hDC, count)
 #define wglResetFrameCountNV(hDC) AnyGL_wglResetFrameCountNV(hDC)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_vertex_array_range
 #define WGL_NV_vertex_array_range 1
@@ -1053,20 +1149,23 @@ typedef void (APIENTRY* PFNANYWGLFREEMEMORYNVPROC)(void *pointer);
 ANYGL_EXPORT extern PFNANYWGLALLOCATEMEMORYNVPROC AnyGL_wglAllocateMemoryNV;
 ANYGL_EXPORT extern PFNANYWGLFREEMEMORYNVPROC AnyGL_wglFreeMemoryNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglAllocateMemoryNV(size, readfreq, writefreq, priority) AnyGL_wglAllocateMemoryNV(size, readfreq, writefreq, priority)
 #define wglFreeMemoryNV(pointer) AnyGL_wglFreeMemoryNV(pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_video_capture
 #define WGL_NV_video_capture 1
 #define ANYWGL_NV_video_capture 1
 
-#define WGL_UNIQUE_ID_NV                  0x20CE
-#define WGL_NUM_VIDEO_CAPTURE_SLOTS_NV    0x20CF
 DECLARE_HANDLE(HVIDEOINPUTDEVICENV);
 
 #endif /* WGL_NV_video_capture */
+#ifndef ANYGL_NO_DEFINES
+#define WGL_UNIQUE_ID_NV                  0x20CE
+#define WGL_NUM_VIDEO_CAPTURE_SLOTS_NV    0x20CF
+#endif /* ANYGL_NO_DEFINES */
+
 typedef BOOL (APIENTRY* PFNANYWGLBINDVIDEOCAPTUREDEVICENVPROC)(UINT uVideoSlot, HVIDEOINPUTDEVICENV hDevice);
 typedef UINT (APIENTRY* PFNANYWGLENUMERATEVIDEOCAPTUREDEVICESNVPROC)(HDC hDc, HVIDEOINPUTDEVICENV *phDeviceList);
 typedef BOOL (APIENTRY* PFNANYWGLLOCKVIDEOCAPTUREDEVICENVPROC)(HDC hDc, HVIDEOINPUTDEVICENV hDevice);
@@ -1079,18 +1178,22 @@ ANYGL_EXPORT extern PFNANYWGLLOCKVIDEOCAPTUREDEVICENVPROC AnyGL_wglLockVideoCapt
 ANYGL_EXPORT extern PFNANYWGLQUERYVIDEOCAPTUREDEVICENVPROC AnyGL_wglQueryVideoCaptureDeviceNV;
 ANYGL_EXPORT extern PFNANYWGLRELEASEVIDEOCAPTUREDEVICENVPROC AnyGL_wglReleaseVideoCaptureDeviceNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglBindVideoCaptureDeviceNV(uVideoSlot, hDevice) AnyGL_wglBindVideoCaptureDeviceNV(uVideoSlot, hDevice)
 #define wglEnumerateVideoCaptureDevicesNV(hDc, phDeviceList) AnyGL_wglEnumerateVideoCaptureDevicesNV(hDc, phDeviceList)
 #define wglLockVideoCaptureDeviceNV(hDc, hDevice) AnyGL_wglLockVideoCaptureDeviceNV(hDc, hDevice)
 #define wglQueryVideoCaptureDeviceNV(hDc, hDevice, iAttribute, piValue) AnyGL_wglQueryVideoCaptureDeviceNV(hDc, hDevice, iAttribute, piValue)
 #define wglReleaseVideoCaptureDeviceNV(hDc, hDevice) AnyGL_wglReleaseVideoCaptureDeviceNV(hDc, hDevice)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_NV_video_output
 #define WGL_NV_video_output 1
 #define ANYWGL_NV_video_output 1
 
+DECLARE_HANDLE(HPVIDEODEV);
+
+#endif /* WGL_NV_video_output */
+#ifndef ANYGL_NO_DEFINES
 #define WGL_BIND_TO_VIDEO_RGB_NV          0x20C0
 #define WGL_BIND_TO_VIDEO_RGBA_NV         0x20C1
 #define WGL_BIND_TO_VIDEO_RGB_AND_DEPTH_NV 0x20C2
@@ -1104,9 +1207,8 @@ ANYGL_EXPORT extern PFNANYWGLRELEASEVIDEOCAPTUREDEVICENVPROC AnyGL_wglReleaseVid
 #define WGL_VIDEO_OUT_FIELD_2             0x20CA
 #define WGL_VIDEO_OUT_STACKED_FIELDS_1_2  0x20CB
 #define WGL_VIDEO_OUT_STACKED_FIELDS_2_1  0x20CC
-DECLARE_HANDLE(HPVIDEODEV);
+#endif /* ANYGL_NO_DEFINES */
 
-#endif /* WGL_NV_video_output */
 typedef BOOL (APIENTRY* PFNANYWGLGETVIDEODEVICENVPROC)(HDC hDC, int numDevices, HPVIDEODEV *hVideoDevice);
 typedef BOOL (APIENTRY* PFNANYWGLRELEASEVIDEODEVICENVPROC)(HPVIDEODEV hVideoDevice);
 typedef BOOL (APIENTRY* PFNANYWGLBINDVIDEOIMAGENVPROC)(HPVIDEODEV hVideoDevice, HPBUFFERARB hPbuffer, int iVideoBuffer);
@@ -1121,14 +1223,14 @@ ANYGL_EXPORT extern PFNANYWGLRELEASEVIDEOIMAGENVPROC AnyGL_wglReleaseVideoImageN
 ANYGL_EXPORT extern PFNANYWGLSENDPBUFFERTOVIDEONVPROC AnyGL_wglSendPbufferToVideoNV;
 ANYGL_EXPORT extern PFNANYWGLGETVIDEOINFONVPROC AnyGL_wglGetVideoInfoNV;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetVideoDeviceNV(hDC, numDevices, hVideoDevice) AnyGL_wglGetVideoDeviceNV(hDC, numDevices, hVideoDevice)
 #define wglReleaseVideoDeviceNV(hVideoDevice) AnyGL_wglReleaseVideoDeviceNV(hVideoDevice)
 #define wglBindVideoImageNV(hVideoDevice, hPbuffer, iVideoBuffer) AnyGL_wglBindVideoImageNV(hVideoDevice, hPbuffer, iVideoBuffer)
 #define wglReleaseVideoImageNV(hPbuffer, iVideoBuffer) AnyGL_wglReleaseVideoImageNV(hPbuffer, iVideoBuffer)
 #define wglSendPbufferToVideoNV(hPbuffer, iBufferType, pulCounterPbuffer, bBlock) AnyGL_wglSendPbufferToVideoNV(hPbuffer, iBufferType, pulCounterPbuffer, bBlock)
 #define wglGetVideoInfoNV(hpVideoDevice, pulCounterOutputPbuffer, pulCounterOutputVideo) AnyGL_wglGetVideoInfoNV(hpVideoDevice, pulCounterOutputPbuffer, pulCounterOutputVideo)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 #ifndef WGL_OML_sync_control
 #define WGL_OML_sync_control 1
@@ -1150,14 +1252,14 @@ ANYGL_EXPORT extern PFNANYWGLSWAPLAYERBUFFERSMSCOMLPROC AnyGL_wglSwapLayerBuffer
 ANYGL_EXPORT extern PFNANYWGLWAITFORMSCOMLPROC AnyGL_wglWaitForMscOML;
 ANYGL_EXPORT extern PFNANYWGLWAITFORSBCOMLPROC AnyGL_wglWaitForSbcOML;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define wglGetSyncValuesOML(hdc, ust, msc, sbc) AnyGL_wglGetSyncValuesOML(hdc, ust, msc, sbc)
 #define wglGetMscRateOML(hdc, numerator, denominator) AnyGL_wglGetMscRateOML(hdc, numerator, denominator)
 #define wglSwapBuffersMscOML(hdc, target_msc, divisor, remainder) AnyGL_wglSwapBuffersMscOML(hdc, target_msc, divisor, remainder)
 #define wglSwapLayerBuffersMscOML(hdc, fuPlanes, target_msc, divisor, remainder) AnyGL_wglSwapLayerBuffersMscOML(hdc, fuPlanes, target_msc, divisor, remainder)
 #define wglWaitForMscOML(hdc, target_msc, divisor, remainder, ust, msc, sbc) AnyGL_wglWaitForMscOML(hdc, target_msc, divisor, remainder, ust, msc, sbc)
 #define wglWaitForSbcOML(hdc, target_sbc, ust, msc, sbc) AnyGL_wglWaitForSbcOML(hdc, target_sbc, ust, msc, sbc)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 
 #ifdef __cplusplus

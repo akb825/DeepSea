@@ -22,7 +22,7 @@ if (DEEPSEA_BUILD_RENDER)
 
 	if (DEEPSEA_BUILD_TEXT)
 		ds_add_module(Text)
-		if (DEEPSEA_BUILD_VECTOR_DRAW)
+		if (DEEPSEA_BUILD_VECTOR_DRAW AND TARGET deepsea_text)
 			ds_add_module(VectorDraw)
 		endif()
 	endif()

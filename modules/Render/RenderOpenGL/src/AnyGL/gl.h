@@ -2917,6 +2917,7 @@ typedef double GLclampd;
 #endif
 
 /* Enum definitions */
+#ifndef ANYGL_NO_DEFINES
 #ifdef ANYGL_ES_VERSION_2_0
 #define GL_DEPTH_BUFFER_BIT               0x00000100
 #define GL_STENCIL_BUFFER_BIT             0x00000400
@@ -7582,6 +7583,7 @@ typedef double GLclampd;
 #define GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG 0x9138
 #endif /* GL_IMG_texture_compression_pvrtc2 */
 
+#endif /* ANYGL_NO_DEFINES */
 /* Workaround for GL_HALF_FLOAT_OES */
 ANYGL_EXPORT extern GLenum AnyGL_HALF_FLOAT;
 
@@ -7873,7 +7875,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIB4FVPROC AnyGL_glVertexAttrib4fv;
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBPOINTERPROC AnyGL_glVertexAttribPointer;
 ANYGL_EXPORT extern PFNANYGLVIEWPORTPROC AnyGL_glViewport;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glActiveTexture(texture) ANYGL_CALL(AnyGL_glActiveTexture)(texture)
 #define glAttachShader(program, shader) ANYGL_CALL(AnyGL_glAttachShader)(program, shader)
 #define glBindAttribLocation(program, index, name) ANYGL_CALL(AnyGL_glBindAttribLocation)(program, index, name)
@@ -8016,7 +8018,7 @@ ANYGL_EXPORT extern PFNANYGLVIEWPORTPROC AnyGL_glViewport;
 #define glVertexAttrib4fv(index, v) ANYGL_CALL(AnyGL_glVertexAttrib4fv)(index, v)
 #define glVertexAttribPointer(index, size, type, normalized, stride, pointer) ANYGL_CALL(AnyGL_glVertexAttribPointer)(index, size, type, normalized, stride, pointer)
 #define glViewport(x, y, width, height) ANYGL_CALL(AnyGL_glViewport)(x, y, width, height)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ES_VERSION_3_0 */
 typedef void (APIENTRY* PFNANYGLREADBUFFERPROC)(GLenum src);
@@ -8229,7 +8231,7 @@ ANYGL_EXPORT extern PFNANYGLTEXSTORAGE2DPROC AnyGL_glTexStorage2D;
 ANYGL_EXPORT extern PFNANYGLTEXSTORAGE3DPROC AnyGL_glTexStorage3D;
 ANYGL_EXPORT extern PFNANYGLGETINTERNALFORMATIVPROC AnyGL_glGetInternalformativ;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glReadBuffer(src) ANYGL_CALL(AnyGL_glReadBuffer)(src)
 #define glDrawRangeElements(mode, start, end, count, type, indices) ANYGL_CALL(AnyGL_glDrawRangeElements)(mode, start, end, count, type, indices)
 #define glTexImage3D(target, level, internalformat, width, height, depth, border, format, type, pixels) ANYGL_CALL(AnyGL_glTexImage3D)(target, level, internalformat, width, height, depth, border, format, type, pixels)
@@ -8334,7 +8336,7 @@ ANYGL_EXPORT extern PFNANYGLGETINTERNALFORMATIVPROC AnyGL_glGetInternalformativ;
 #define glTexStorage2D(target, levels, internalformat, width, height) ANYGL_CALL(AnyGL_glTexStorage2D)(target, levels, internalformat, width, height)
 #define glTexStorage3D(target, levels, internalformat, width, height, depth) ANYGL_CALL(AnyGL_glTexStorage3D)(target, levels, internalformat, width, height, depth)
 #define glGetInternalformativ(target, internalformat, pname, bufSize, params) ANYGL_CALL(AnyGL_glGetInternalformativ)(target, internalformat, pname, bufSize, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ES_VERSION_3_1 */
 typedef void (APIENTRY* PFNANYGLDISPATCHCOMPUTEPROC)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
@@ -8475,7 +8477,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBIFORMATPROC AnyGL_glVertexAttribIFormat;
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBBINDINGPROC AnyGL_glVertexAttribBinding;
 ANYGL_EXPORT extern PFNANYGLVERTEXBINDINGDIVISORPROC AnyGL_glVertexBindingDivisor;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDispatchCompute(num_groups_x, num_groups_y, num_groups_z) ANYGL_CALL(AnyGL_glDispatchCompute)(num_groups_x, num_groups_y, num_groups_z)
 #define glDispatchComputeIndirect(indirect) ANYGL_CALL(AnyGL_glDispatchComputeIndirect)(indirect)
 #define glDrawArraysIndirect(mode, indirect) ANYGL_CALL(AnyGL_glDrawArraysIndirect)(mode, indirect)
@@ -8544,7 +8546,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBINDINGDIVISORPROC AnyGL_glVertexBindingDiviso
 #define glVertexAttribIFormat(attribindex, size, type, relativeoffset) ANYGL_CALL(AnyGL_glVertexAttribIFormat)(attribindex, size, type, relativeoffset)
 #define glVertexAttribBinding(attribindex, bindingindex) ANYGL_CALL(AnyGL_glVertexAttribBinding)(attribindex, bindingindex)
 #define glVertexBindingDivisor(bindingindex, divisor) ANYGL_CALL(AnyGL_glVertexBindingDivisor)(bindingindex, divisor)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ES_VERSION_3_2 */
 typedef void (APIENTRY* PFNANYGLBLENDBARRIERPROC)();
@@ -8637,7 +8639,7 @@ ANYGL_EXPORT extern PFNANYGLTEXBUFFERPROC AnyGL_glTexBuffer;
 ANYGL_EXPORT extern PFNANYGLTEXBUFFERRANGEPROC AnyGL_glTexBufferRange;
 ANYGL_EXPORT extern PFNANYGLTEXSTORAGE3DMULTISAMPLEPROC AnyGL_glTexStorage3DMultisample;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendBarrier() ANYGL_CALL(AnyGL_glBlendBarrier)()
 #define glCopyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth) ANYGL_CALL(AnyGL_glCopyImageSubData)(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth)
 #define glDebugMessageControl(source, type, severity, count, ids, enabled) ANYGL_CALL(AnyGL_glDebugMessageControl)(source, type, severity, count, ids, enabled)
@@ -8682,7 +8684,7 @@ ANYGL_EXPORT extern PFNANYGLTEXSTORAGE3DMULTISAMPLEPROC AnyGL_glTexStorage3DMult
 #define glTexBuffer(target, internalformat, buffer) ANYGL_CALL(AnyGL_glTexBuffer)(target, internalformat, buffer)
 #define glTexBufferRange(target, internalformat, buffer, offset, size) ANYGL_CALL(AnyGL_glTexBufferRange)(target, internalformat, buffer, offset, size)
 #define glTexStorage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations) ANYGL_CALL(AnyGL_glTexStorage3DMultisample)(target, samples, internalformat, width, height, depth, fixedsamplelocations)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_0 */
 typedef void (APIENTRY* PFNANYGLPOINTSIZEPROC)(GLfloat size);
@@ -9223,7 +9225,7 @@ ANYGL_EXPORT extern PFNANYGLSCALEFPROC AnyGL_glScalef;
 ANYGL_EXPORT extern PFNANYGLTRANSLATEDPROC AnyGL_glTranslated;
 ANYGL_EXPORT extern PFNANYGLTRANSLATEFPROC AnyGL_glTranslatef;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPointSize(size) ANYGL_CALL(AnyGL_glPointSize)(size)
 #define glPolygonMode(face, mode) ANYGL_CALL(AnyGL_glPolygonMode)(face, mode)
 #define glTexImage1D(target, level, internalformat, width, border, format, type, pixels) ANYGL_CALL(AnyGL_glTexImage1D)(target, level, internalformat, width, border, format, type, pixels)
@@ -9492,7 +9494,7 @@ ANYGL_EXPORT extern PFNANYGLTRANSLATEFPROC AnyGL_glTranslatef;
 #define glScalef(x, y, z) ANYGL_CALL(AnyGL_glScalef)(x, y, z)
 #define glTranslated(x, y, z) ANYGL_CALL(AnyGL_glTranslated)(x, y, z)
 #define glTranslatef(x, y, z) ANYGL_CALL(AnyGL_glTranslatef)(x, y, z)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_1 */
 typedef void (APIENTRY* PFNANYGLCOPYTEXIMAGE1DPROC)(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
@@ -9535,7 +9537,7 @@ ANYGL_EXPORT extern PFNANYGLINDEXUBVPROC AnyGL_glIndexubv;
 ANYGL_EXPORT extern PFNANYGLPOPCLIENTATTRIBPROC AnyGL_glPopClientAttrib;
 ANYGL_EXPORT extern PFNANYGLPUSHCLIENTATTRIBPROC AnyGL_glPushClientAttrib;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCopyTexImage1D(target, level, internalformat, x, y, width, border) ANYGL_CALL(AnyGL_glCopyTexImage1D)(target, level, internalformat, x, y, width, border)
 #define glCopyTexSubImage1D(target, level, xoffset, x, y, width) ANYGL_CALL(AnyGL_glCopyTexSubImage1D)(target, level, xoffset, x, y, width)
 #define glTexSubImage1D(target, level, xoffset, width, format, type, pixels) ANYGL_CALL(AnyGL_glTexSubImage1D)(target, level, xoffset, width, format, type, pixels)
@@ -9555,13 +9557,13 @@ ANYGL_EXPORT extern PFNANYGLPUSHCLIENTATTRIBPROC AnyGL_glPushClientAttrib;
 #define glIndexubv(c) ANYGL_CALL(AnyGL_glIndexubv)(c)
 #define glPopClientAttrib() ANYGL_CALL(AnyGL_glPopClientAttrib)()
 #define glPushClientAttrib(mask) ANYGL_CALL(AnyGL_glPushClientAttrib)(mask)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_3 */
 typedef void (APIENTRY* PFNANYGLCOMPRESSEDTEXIMAGE1DPROC)(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border, GLsizei imageSize, const void *data);
@@ -9646,7 +9648,7 @@ ANYGL_EXPORT extern PFNANYGLLOADTRANSPOSEMATRIXDPROC AnyGL_glLoadTransposeMatrix
 ANYGL_EXPORT extern PFNANYGLMULTTRANSPOSEMATRIXFPROC AnyGL_glMultTransposeMatrixf;
 ANYGL_EXPORT extern PFNANYGLMULTTRANSPOSEMATRIXDPROC AnyGL_glMultTransposeMatrixd;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCompressedTexImage1D(target, level, internalformat, width, border, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexImage1D)(target, level, internalformat, width, border, imageSize, data)
 #define glCompressedTexSubImage1D(target, level, xoffset, width, format, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexSubImage1D)(target, level, xoffset, width, format, imageSize, data)
 #define glGetCompressedTexImage(target, level, img) ANYGL_CALL(AnyGL_glGetCompressedTexImage)(target, level, img)
@@ -9687,7 +9689,7 @@ ANYGL_EXPORT extern PFNANYGLMULTTRANSPOSEMATRIXDPROC AnyGL_glMultTransposeMatrix
 #define glLoadTransposeMatrixd(m) ANYGL_CALL(AnyGL_glLoadTransposeMatrixd)(m)
 #define glMultTransposeMatrixf(m) ANYGL_CALL(AnyGL_glMultTransposeMatrixf)(m)
 #define glMultTransposeMatrixd(m) ANYGL_CALL(AnyGL_glMultTransposeMatrixd)(m)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_4 */
 typedef void (APIENTRY* PFNANYGLMULTIDRAWARRAYSPROC)(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount);
@@ -9780,7 +9782,7 @@ ANYGL_EXPORT extern PFNANYGLWINDOWPOS3IVPROC AnyGL_glWindowPos3iv;
 ANYGL_EXPORT extern PFNANYGLWINDOWPOS3SPROC AnyGL_glWindowPos3s;
 ANYGL_EXPORT extern PFNANYGLWINDOWPOS3SVPROC AnyGL_glWindowPos3sv;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiDrawArrays(mode, first, count, drawcount) ANYGL_CALL(AnyGL_glMultiDrawArrays)(mode, first, count, drawcount)
 #define glMultiDrawElements(mode, count, type, indices, drawcount) ANYGL_CALL(AnyGL_glMultiDrawElements)(mode, count, type, indices, drawcount)
 #define glPointParameterf(pname, param) ANYGL_CALL(AnyGL_glPointParameterf)(pname, param)
@@ -9825,7 +9827,7 @@ ANYGL_EXPORT extern PFNANYGLWINDOWPOS3SVPROC AnyGL_glWindowPos3sv;
 #define glWindowPos3iv(v) ANYGL_CALL(AnyGL_glWindowPos3iv)(v)
 #define glWindowPos3s(x, y, z) ANYGL_CALL(AnyGL_glWindowPos3s)(x, y, z)
 #define glWindowPos3sv(v) ANYGL_CALL(AnyGL_glWindowPos3sv)(v)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_1_5 */
 typedef void (APIENTRY* PFNANYGLGETQUERYOBJECTIVPROC)(GLuint id, GLenum pname, GLint *params);
@@ -9836,11 +9838,11 @@ ANYGL_EXPORT extern PFNANYGLGETQUERYOBJECTIVPROC AnyGL_glGetQueryObjectiv;
 ANYGL_EXPORT extern PFNANYGLGETBUFFERSUBDATAPROC AnyGL_glGetBufferSubData;
 ANYGL_EXPORT extern PFNANYGLMAPBUFFERPROC AnyGL_glMapBuffer;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetQueryObjectiv(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectiv)(id, pname, params)
 #define glGetBufferSubData(target, offset, size, data) ANYGL_CALL(AnyGL_glGetBufferSubData)(target, offset, size, data)
 #define glMapBuffer(target, access) ANYGL_CALL(AnyGL_glMapBuffer)(target, access)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_2_0 */
 typedef void (APIENTRY* PFNANYGLGETVERTEXATTRIBDVPROC)(GLuint index, GLenum pname, GLdouble *params);
@@ -9903,7 +9905,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIB4UBVPROC AnyGL_glVertexAttrib4ubv;
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIB4UIVPROC AnyGL_glVertexAttrib4uiv;
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIB4USVPROC AnyGL_glVertexAttrib4usv;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetVertexAttribdv(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribdv)(index, pname, params)
 #define glVertexAttrib1d(index, x) ANYGL_CALL(AnyGL_glVertexAttrib1d)(index, x)
 #define glVertexAttrib1dv(index, v) ANYGL_CALL(AnyGL_glVertexAttrib1dv)(index, v)
@@ -9933,13 +9935,13 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIB4USVPROC AnyGL_glVertexAttrib4usv;
 #define glVertexAttrib4ubv(index, v) ANYGL_CALL(AnyGL_glVertexAttrib4ubv)(index, v)
 #define glVertexAttrib4uiv(index, v) ANYGL_CALL(AnyGL_glVertexAttrib4uiv)(index, v)
 #define glVertexAttrib4usv(index, v) ANYGL_CALL(AnyGL_glVertexAttrib4usv)(index, v)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_2_1 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_3_0 */
 typedef void (APIENTRY* PFNANYGLCLAMPCOLORPROC)(GLenum target, GLenum clamp);
@@ -9988,7 +9990,7 @@ ANYGL_EXPORT extern PFNANYGLBINDFRAGDATALOCATIONPROC AnyGL_glBindFragDataLocatio
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE1DPROC AnyGL_glFramebufferTexture1D;
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE3DPROC AnyGL_glFramebufferTexture3D;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClampColor(target, clamp) ANYGL_CALL(AnyGL_glClampColor)(target, clamp)
 #define glBeginConditionalRender(id, mode) ANYGL_CALL(AnyGL_glBeginConditionalRender)(id, mode)
 #define glEndConditionalRender() ANYGL_CALL(AnyGL_glEndConditionalRender)()
@@ -10011,7 +10013,7 @@ ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE3DPROC AnyGL_glFramebufferTexture3
 #define glBindFragDataLocation(program, color, name) ANYGL_CALL(AnyGL_glBindFragDataLocation)(program, color, name)
 #define glFramebufferTexture1D(target, attachment, textarget, texture, level) ANYGL_CALL(AnyGL_glFramebufferTexture1D)(target, attachment, textarget, texture, level)
 #define glFramebufferTexture3D(target, attachment, textarget, texture, level, zoffset) ANYGL_CALL(AnyGL_glFramebufferTexture3D)(target, attachment, textarget, texture, level, zoffset)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_3_1 */
 typedef void (APIENTRY* PFNANYGLPRIMITIVERESTARTINDEXPROC)(GLuint index);
@@ -10020,10 +10022,10 @@ typedef void (APIENTRY* PFNANYGLGETACTIVEUNIFORMNAMEPROC)(GLuint program, GLuint
 ANYGL_EXPORT extern PFNANYGLPRIMITIVERESTARTINDEXPROC AnyGL_glPrimitiveRestartIndex;
 ANYGL_EXPORT extern PFNANYGLGETACTIVEUNIFORMNAMEPROC AnyGL_glGetActiveUniformName;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPrimitiveRestartIndex(index) ANYGL_CALL(AnyGL_glPrimitiveRestartIndex)(index)
 #define glGetActiveUniformName(program, uniformIndex, bufSize, length, uniformName) ANYGL_CALL(AnyGL_glGetActiveUniformName)(program, uniformIndex, bufSize, length, uniformName)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_3_2 */
 typedef void (APIENTRY* PFNANYGLMULTIDRAWELEMENTSBASEVERTEXPROC)(GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount, const GLint *basevertex);
@@ -10036,12 +10038,12 @@ ANYGL_EXPORT extern PFNANYGLPROVOKINGVERTEXPROC AnyGL_glProvokingVertex;
 ANYGL_EXPORT extern PFNANYGLTEXIMAGE2DMULTISAMPLEPROC AnyGL_glTexImage2DMultisample;
 ANYGL_EXPORT extern PFNANYGLTEXIMAGE3DMULTISAMPLEPROC AnyGL_glTexImage3DMultisample;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiDrawElementsBaseVertex(mode, count, type, indices, drawcount, basevertex) ANYGL_CALL(AnyGL_glMultiDrawElementsBaseVertex)(mode, count, type, indices, drawcount, basevertex)
 #define glProvokingVertex(mode) ANYGL_CALL(AnyGL_glProvokingVertex)(mode)
 #define glTexImage2DMultisample(target, samples, internalformat, width, height, fixedsamplelocations) ANYGL_CALL(AnyGL_glTexImage2DMultisample)(target, samples, internalformat, width, height, fixedsamplelocations)
 #define glTexImage3DMultisample(target, samples, internalformat, width, height, depth, fixedsamplelocations) ANYGL_CALL(AnyGL_glTexImage3DMultisample)(target, samples, internalformat, width, height, depth, fixedsamplelocations)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_3_3 */
 typedef void (APIENTRY* PFNANYGLBINDFRAGDATALOCATIONINDEXEDPROC)(GLuint program, GLuint colorNumber, GLuint index, const GLchar *name);
@@ -10132,7 +10134,7 @@ ANYGL_EXPORT extern PFNANYGLCOLORP4UIVPROC AnyGL_glColorP4uiv;
 ANYGL_EXPORT extern PFNANYGLSECONDARYCOLORP3UIPROC AnyGL_glSecondaryColorP3ui;
 ANYGL_EXPORT extern PFNANYGLSECONDARYCOLORP3UIVPROC AnyGL_glSecondaryColorP3uiv;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindFragDataLocationIndexed(program, colorNumber, index, name) ANYGL_CALL(AnyGL_glBindFragDataLocationIndexed)(program, colorNumber, index, name)
 #define glGetFragDataIndex(program, name) ANYGL_CALL(AnyGL_glGetFragDataIndex)(program, name)
 #define glQueryCounter(id, target) ANYGL_CALL(AnyGL_glQueryCounter)(id, target)
@@ -10176,7 +10178,7 @@ ANYGL_EXPORT extern PFNANYGLSECONDARYCOLORP3UIVPROC AnyGL_glSecondaryColorP3uiv;
 #define glColorP4uiv(type, color) ANYGL_CALL(AnyGL_glColorP4uiv)(type, color)
 #define glSecondaryColorP3ui(type, color) ANYGL_CALL(AnyGL_glSecondaryColorP3ui)(type, color)
 #define glSecondaryColorP3uiv(type, color) ANYGL_CALL(AnyGL_glSecondaryColorP3uiv)(type, color)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_0 */
 typedef void (APIENTRY* PFNANYGLUNIFORM1DPROC)(GLint location, GLdouble x);
@@ -10245,7 +10247,7 @@ ANYGL_EXPORT extern PFNANYGLBEGINQUERYINDEXEDPROC AnyGL_glBeginQueryIndexed;
 ANYGL_EXPORT extern PFNANYGLENDQUERYINDEXEDPROC AnyGL_glEndQueryIndexed;
 ANYGL_EXPORT extern PFNANYGLGETQUERYINDEXEDIVPROC AnyGL_glGetQueryIndexediv;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glUniform1d(location, x) ANYGL_CALL(AnyGL_glUniform1d)(location, x)
 #define glUniform2d(location, x, y) ANYGL_CALL(AnyGL_glUniform2d)(location, x, y)
 #define glUniform3d(location, x, y, z) ANYGL_CALL(AnyGL_glUniform3d)(location, x, y, z)
@@ -10278,7 +10280,7 @@ ANYGL_EXPORT extern PFNANYGLGETQUERYINDEXEDIVPROC AnyGL_glGetQueryIndexediv;
 #define glBeginQueryIndexed(target, index, id) ANYGL_CALL(AnyGL_glBeginQueryIndexed)(target, index, id)
 #define glEndQueryIndexed(target, index) ANYGL_CALL(AnyGL_glEndQueryIndexed)(target, index)
 #define glGetQueryIndexediv(target, index, pname, params) ANYGL_CALL(AnyGL_glGetQueryIndexediv)(target, index, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_1 */
 typedef void (APIENTRY* PFNANYGLPROGRAMUNIFORM1DPROC)(GLuint program, GLint location, GLdouble v0);
@@ -10357,7 +10359,7 @@ ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDPROC AnyGL_glDepthRangeIndexed;
 ANYGL_EXPORT extern PFNANYGLGETFLOATI_VPROC AnyGL_glGetFloati_v;
 ANYGL_EXPORT extern PFNANYGLGETDOUBLEI_VPROC AnyGL_glGetDoublei_v;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProgramUniform1d(program, location, v0) ANYGL_CALL(AnyGL_glProgramUniform1d)(program, location, v0)
 #define glProgramUniform1dv(program, location, count, value) ANYGL_CALL(AnyGL_glProgramUniform1dv)(program, location, count, value)
 #define glProgramUniform2d(program, location, v0, v1) ANYGL_CALL(AnyGL_glProgramUniform2d)(program, location, v0, v1)
@@ -10395,7 +10397,7 @@ ANYGL_EXPORT extern PFNANYGLGETDOUBLEI_VPROC AnyGL_glGetDoublei_v;
 #define glDepthRangeIndexed(index, n, f) ANYGL_CALL(AnyGL_glDepthRangeIndexed)(index, n, f)
 #define glGetFloati_v(target, index, data) ANYGL_CALL(AnyGL_glGetFloati_v)(target, index, data)
 #define glGetDoublei_v(target, index, data) ANYGL_CALL(AnyGL_glGetDoublei_v)(target, index, data)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_2 */
 typedef void (APIENTRY* PFNANYGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC)(GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
@@ -10414,7 +10416,7 @@ ANYGL_EXPORT extern PFNANYGLTEXSTORAGE1DPROC AnyGL_glTexStorage1D;
 ANYGL_EXPORT extern PFNANYGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC AnyGL_glDrawTransformFeedbackInstanced;
 ANYGL_EXPORT extern PFNANYGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC AnyGL_glDrawTransformFeedbackStreamInstanced;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawArraysInstancedBaseInstance(mode, first, count, instancecount, baseinstance) ANYGL_CALL(AnyGL_glDrawArraysInstancedBaseInstance)(mode, first, count, instancecount, baseinstance)
 #define glDrawElementsInstancedBaseInstance(mode, count, type, indices, instancecount, baseinstance) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseInstance)(mode, count, type, indices, instancecount, baseinstance)
 #define glDrawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices, instancecount, basevertex, baseinstance) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseVertexBaseInstance)(mode, count, type, indices, instancecount, basevertex, baseinstance)
@@ -10422,7 +10424,7 @@ ANYGL_EXPORT extern PFNANYGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC AnyGL_glDra
 #define glTexStorage1D(target, levels, internalformat, width) ANYGL_CALL(AnyGL_glTexStorage1D)(target, levels, internalformat, width)
 #define glDrawTransformFeedbackInstanced(mode, id, instancecount) ANYGL_CALL(AnyGL_glDrawTransformFeedbackInstanced)(mode, id, instancecount)
 #define glDrawTransformFeedbackStreamInstanced(mode, id, stream, instancecount) ANYGL_CALL(AnyGL_glDrawTransformFeedbackStreamInstanced)(mode, id, stream, instancecount)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_3 */
 typedef void (APIENTRY* PFNANYGLCLEARBUFFERDATAPROC)(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data);
@@ -10453,7 +10455,7 @@ ANYGL_EXPORT extern PFNANYGLSHADERSTORAGEBLOCKBINDINGPROC AnyGL_glShaderStorageB
 ANYGL_EXPORT extern PFNANYGLTEXTUREVIEWPROC AnyGL_glTextureView;
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBLFORMATPROC AnyGL_glVertexAttribLFormat;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClearBufferData(target, internalformat, format, type, data) ANYGL_CALL(AnyGL_glClearBufferData)(target, internalformat, format, type, data)
 #define glClearBufferSubData(target, internalformat, offset, size, format, type, data) ANYGL_CALL(AnyGL_glClearBufferSubData)(target, internalformat, offset, size, format, type, data)
 #define glGetInternalformati64v(target, internalformat, pname, bufSize, params) ANYGL_CALL(AnyGL_glGetInternalformati64v)(target, internalformat, pname, bufSize, params)
@@ -10467,7 +10469,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBLFORMATPROC AnyGL_glVertexAttribLFormat;
 #define glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding) ANYGL_CALL(AnyGL_glShaderStorageBlockBinding)(program, storageBlockIndex, storageBlockBinding)
 #define glTextureView(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers) ANYGL_CALL(AnyGL_glTextureView)(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers)
 #define glVertexAttribLFormat(attribindex, size, type, relativeoffset) ANYGL_CALL(AnyGL_glVertexAttribLFormat)(attribindex, size, type, relativeoffset)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_4 */
 typedef void (APIENTRY* PFNANYGLBUFFERSTORAGEPROC)(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
@@ -10490,7 +10492,7 @@ ANYGL_EXPORT extern PFNANYGLBINDSAMPLERSPROC AnyGL_glBindSamplers;
 ANYGL_EXPORT extern PFNANYGLBINDIMAGETEXTURESPROC AnyGL_glBindImageTextures;
 ANYGL_EXPORT extern PFNANYGLBINDVERTEXBUFFERSPROC AnyGL_glBindVertexBuffers;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBufferStorage(target, size, data, flags) ANYGL_CALL(AnyGL_glBufferStorage)(target, size, data, flags)
 #define glClearTexImage(texture, level, format, type, data) ANYGL_CALL(AnyGL_glClearTexImage)(texture, level, format, type, data)
 #define glClearTexSubImage(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data) ANYGL_CALL(AnyGL_glClearTexSubImage)(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data)
@@ -10500,7 +10502,7 @@ ANYGL_EXPORT extern PFNANYGLBINDVERTEXBUFFERSPROC AnyGL_glBindVertexBuffers;
 #define glBindSamplers(first, count, samplers) ANYGL_CALL(AnyGL_glBindSamplers)(first, count, samplers)
 #define glBindImageTextures(first, count, textures) ANYGL_CALL(AnyGL_glBindImageTextures)(first, count, textures)
 #define glBindVertexBuffers(first, count, buffers, offsets, strides) ANYGL_CALL(AnyGL_glBindVertexBuffers)(first, count, buffers, offsets, strides)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_5 */
 typedef void (APIENTRY* PFNANYGLCLIPCONTROLPROC)(GLenum origin, GLenum depth);
@@ -10737,7 +10739,7 @@ ANYGL_EXPORT extern PFNANYGLGETNHISTOGRAMPROC AnyGL_glGetnHistogram;
 ANYGL_EXPORT extern PFNANYGLGETNMINMAXPROC AnyGL_glGetnMinmax;
 ANYGL_EXPORT extern PFNANYGLTEXTUREBARRIERPROC AnyGL_glTextureBarrier;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClipControl(origin, depth) ANYGL_CALL(AnyGL_glClipControl)(origin, depth)
 #define glCreateTransformFeedbacks(n, ids) ANYGL_CALL(AnyGL_glCreateTransformFeedbacks)(n, ids)
 #define glTransformFeedbackBufferBase(xfb, index, buffer) ANYGL_CALL(AnyGL_glTransformFeedbackBufferBase)(xfb, index, buffer)
@@ -10854,7 +10856,7 @@ ANYGL_EXPORT extern PFNANYGLTEXTUREBARRIERPROC AnyGL_glTextureBarrier;
 #define glGetnHistogram(target, reset, format, type, bufSize, values) ANYGL_CALL(AnyGL_glGetnHistogram)(target, reset, format, type, bufSize, values)
 #define glGetnMinmax(target, reset, format, type, bufSize, values) ANYGL_CALL(AnyGL_glGetnMinmax)(target, reset, format, type, bufSize, values)
 #define glTextureBarrier() ANYGL_CALL(AnyGL_glTextureBarrier)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_VERSION_4_6 */
 typedef void (APIENTRY* PFNANYGLSPECIALIZESHADERPROC)(GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants, const GLuint *pConstantIndex, const GLuint *pConstantValue);
@@ -10867,49 +10869,49 @@ ANYGL_EXPORT extern PFNANYGLMULTIDRAWARRAYSINDIRECTCOUNTPROC AnyGL_glMultiDrawAr
 ANYGL_EXPORT extern PFNANYGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC AnyGL_glMultiDrawElementsIndirectCount;
 ANYGL_EXPORT extern PFNANYGLPOLYGONOFFSETCLAMPPROC AnyGL_glPolygonOffsetClamp;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glSpecializeShader(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue) ANYGL_CALL(AnyGL_glSpecializeShader)(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue)
 #define glMultiDrawArraysIndirectCount(mode, indirect, drawcount, maxdrawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawArraysIndirectCount)(mode, indirect, drawcount, maxdrawcount, stride)
 #define glMultiDrawElementsIndirectCount(mode, type, indirect, drawcount, maxdrawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawElementsIndirectCount)(mode, type, indirect, drawcount, maxdrawcount, stride)
 #define glPolygonOffsetClamp(factor, units, clamp) ANYGL_CALL(AnyGL_glPolygonOffsetClamp)(factor, units, clamp)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_ES2_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_ES3_1_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_ES3_2_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPrimitiveBoundingBoxARB(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW) ANYGL_CALL(AnyGL_glPrimitiveBoundingBox)(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_ES3_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_arrays_of_arrays */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_base_instance */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_bindless_texture */
 typedef GLuint64 (APIENTRY* PFNANYGLGETTEXTUREHANDLEARBPROC)(GLuint texture);
@@ -10946,7 +10948,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBL1UI64ARBPROC AnyGL_glVertexAttribL1ui64
 ANYGL_EXPORT extern PFNANYGLVERTEXATTRIBL1UI64VARBPROC AnyGL_glVertexAttribL1ui64vARB;
 ANYGL_EXPORT extern PFNANYGLGETVERTEXATTRIBLUI64VARBPROC AnyGL_glGetVertexAttribLui64vARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetTextureHandleARB(texture) ANYGL_CALL(AnyGL_glGetTextureHandleARB)(texture)
 #define glGetTextureSamplerHandleARB(texture, sampler) ANYGL_CALL(AnyGL_glGetTextureSamplerHandleARB)(texture, sampler)
 #define glMakeTextureHandleResidentARB(handle) ANYGL_CALL(AnyGL_glMakeTextureHandleResidentARB)(handle)
@@ -10963,217 +10965,217 @@ ANYGL_EXPORT extern PFNANYGLGETVERTEXATTRIBLUI64VARBPROC AnyGL_glGetVertexAttrib
 #define glVertexAttribL1ui64ARB(index, x) ANYGL_CALL(AnyGL_glVertexAttribL1ui64ARB)(index, x)
 #define glVertexAttribL1ui64vARB(index, v) ANYGL_CALL(AnyGL_glVertexAttribL1ui64vARB)(index, v)
 #define glGetVertexAttribLui64vARB(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribLui64vARB)(index, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_blend_func_extended */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_buffer_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_cl_event */
 typedef GLsync (APIENTRY* PFNANYGLCREATESYNCFROMCLEVENTARBPROC)(struct _cl_context *context, struct _cl_event *event, GLbitfield flags);
 
 ANYGL_EXPORT extern PFNANYGLCREATESYNCFROMCLEVENTARBPROC AnyGL_glCreateSyncFromCLeventARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCreateSyncFromCLeventARB(context, event, flags) ANYGL_CALL(AnyGL_glCreateSyncFromCLeventARB)(context, event, flags)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_clear_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_clear_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_clip_control */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_color_buffer_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClampColorARB(target, clamp) ANYGL_CALL(AnyGL_glClampColor)(target, clamp)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_compressed_texture_pixel_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_compute_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_compute_variable_group_size */
 typedef void (APIENTRY* PFNANYGLDISPATCHCOMPUTEGROUPSIZEARBPROC)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z, GLuint group_size_x, GLuint group_size_y, GLuint group_size_z);
 
 ANYGL_EXPORT extern PFNANYGLDISPATCHCOMPUTEGROUPSIZEARBPROC AnyGL_glDispatchComputeGroupSizeARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDispatchComputeGroupSizeARB(num_groups_x, num_groups_y, num_groups_z, group_size_x, group_size_y, group_size_z) ANYGL_CALL(AnyGL_glDispatchComputeGroupSizeARB)(num_groups_x, num_groups_y, num_groups_z, group_size_x, group_size_y, group_size_z)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_conditional_render_inverted */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_conservative_depth */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_copy_buffer */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_copy_image */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_cull_distance */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_debug_output */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDebugMessageControlARB(source, type, severity, count, ids, enabled) ANYGL_CALL(AnyGL_glDebugMessageControl)(source, type, severity, count, ids, enabled)
 #define glDebugMessageInsertARB(source, type, id, severity, length, buf) ANYGL_CALL(AnyGL_glDebugMessageInsert)(source, type, id, severity, length, buf)
 #define glDebugMessageCallbackARB(callback, userParam) ANYGL_CALL(AnyGL_glDebugMessageCallback)(callback, userParam)
 #define glGetDebugMessageLogARB(count, bufSize, sources, types, ids, severities, lengths, messageLog) ANYGL_CALL(AnyGL_glGetDebugMessageLog)(count, bufSize, sources, types, ids, severities, lengths, messageLog)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_depth_buffer_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_depth_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_depth_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_derivative_control */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_direct_state_access */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_draw_buffers */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawBuffersARB(n, bufs) ANYGL_CALL(AnyGL_glDrawBuffers)(n, bufs)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_draw_buffers_blend */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendEquationiARB(buf, mode) ANYGL_CALL(AnyGL_glBlendEquationi)(buf, mode)
 #define glBlendEquationSeparateiARB(buf, modeRGB, modeAlpha) ANYGL_CALL(AnyGL_glBlendEquationSeparatei)(buf, modeRGB, modeAlpha)
 #define glBlendFunciARB(buf, src, dst) ANYGL_CALL(AnyGL_glBlendFunci)(buf, src, dst)
 #define glBlendFuncSeparateiARB(buf, srcRGB, dstRGB, srcAlpha, dstAlpha) ANYGL_CALL(AnyGL_glBlendFuncSeparatei)(buf, srcRGB, dstRGB, srcAlpha, dstAlpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_draw_elements_base_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_draw_indirect */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_draw_instanced */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawArraysInstancedARB(mode, first, count, primcount) ANYGL_CALL(AnyGL_glDrawArraysInstanced)(mode, first, count, primcount)
 #define glDrawElementsInstancedARB(mode, count, type, indices, primcount) ANYGL_CALL(AnyGL_glDrawElementsInstanced)(mode, count, type, indices, primcount)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_enhanced_layouts */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_explicit_attrib_location */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_explicit_uniform_location */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_coord_conventions */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_layer_viewport */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_program */
 typedef void (APIENTRY* PFNANYGLPROGRAMSTRINGARBPROC)(GLenum target, GLenum format, GLsizei len, const void *string);
@@ -11216,7 +11218,7 @@ ANYGL_EXPORT extern PFNANYGLGETPROGRAMIVARBPROC AnyGL_glGetProgramivARB;
 ANYGL_EXPORT extern PFNANYGLGETPROGRAMSTRINGARBPROC AnyGL_glGetProgramStringARB;
 ANYGL_EXPORT extern PFNANYGLISPROGRAMARBPROC AnyGL_glIsProgramARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProgramStringARB(target, format, len, string) ANYGL_CALL(AnyGL_glProgramStringARB)(target, format, len, string)
 #define glBindProgramARB(target, program) ANYGL_CALL(AnyGL_glBindProgramARB)(target, program)
 #define glDeleteProgramsARB(n, programs) ANYGL_CALL(AnyGL_glDeleteProgramsARB)(n, programs)
@@ -11236,86 +11238,86 @@ ANYGL_EXPORT extern PFNANYGLISPROGRAMARBPROC AnyGL_glIsProgramARB;
 #define glGetProgramivARB(target, pname, params) ANYGL_CALL(AnyGL_glGetProgramivARB)(target, pname, params)
 #define glGetProgramStringARB(target, pname, string) ANYGL_CALL(AnyGL_glGetProgramStringARB)(target, pname, string)
 #define glIsProgramARB(program) ANYGL_CALL(AnyGL_glIsProgramARB)(program)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_program_shadow */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_fragment_shader_interlock */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_framebuffer_no_attachments */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_framebuffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_framebuffer_sRGB */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_geometry_shader4 */
 typedef void (APIENTRY* PFNANYGLFRAMEBUFFERTEXTUREFACEARBPROC)(GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTUREFACEARBPROC AnyGL_glFramebufferTextureFaceARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProgramParameteriARB(program, pname, value) ANYGL_CALL(AnyGL_glProgramParameteri)(program, pname, value)
 #define glFramebufferTextureARB(target, attachment, texture, level) ANYGL_CALL(AnyGL_glFramebufferTexture)(target, attachment, texture, level)
 #define glFramebufferTextureLayerARB(target, attachment, texture, level, layer) ANYGL_CALL(AnyGL_glFramebufferTextureLayer)(target, attachment, texture, level, layer)
 #define glFramebufferTextureFaceARB(target, attachment, texture, level, face) ANYGL_CALL(AnyGL_glFramebufferTextureFaceARB)(target, attachment, texture, level, face)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_get_program_binary */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_get_texture_sub_image */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_gl_spirv */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glSpecializeShaderARB(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue) ANYGL_CALL(AnyGL_glSpecializeShader)(shader, pEntryPoint, numSpecializationConstants, pConstantIndex, pConstantValue)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_gpu_shader5 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_gpu_shader_fp64 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_gpu_shader_int64 */
 typedef void (APIENTRY* PFNANYGLUNIFORM1I64ARBPROC)(GLint location, GLint64 x);
@@ -11392,7 +11394,7 @@ ANYGL_EXPORT extern PFNANYGLPROGRAMUNIFORM2UI64VARBPROC AnyGL_glProgramUniform2u
 ANYGL_EXPORT extern PFNANYGLPROGRAMUNIFORM3UI64VARBPROC AnyGL_glProgramUniform3ui64vARB;
 ANYGL_EXPORT extern PFNANYGLPROGRAMUNIFORM4UI64VARBPROC AnyGL_glProgramUniform4ui64vARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glUniform1i64ARB(location, x) ANYGL_CALL(AnyGL_glUniform1i64ARB)(location, x)
 #define glUniform2i64ARB(location, x, y) ANYGL_CALL(AnyGL_glUniform2i64ARB)(location, x, y)
 #define glUniform3i64ARB(location, x, y, z) ANYGL_CALL(AnyGL_glUniform3i64ARB)(location, x, y, z)
@@ -11429,19 +11431,19 @@ ANYGL_EXPORT extern PFNANYGLPROGRAMUNIFORM4UI64VARBPROC AnyGL_glProgramUniform4u
 #define glProgramUniform2ui64vARB(program, location, count, value) ANYGL_CALL(AnyGL_glProgramUniform2ui64vARB)(program, location, count, value)
 #define glProgramUniform3ui64vARB(program, location, count, value) ANYGL_CALL(AnyGL_glProgramUniform3ui64vARB)(program, location, count, value)
 #define glProgramUniform4ui64vARB(program, location, count, value) ANYGL_CALL(AnyGL_glProgramUniform4ui64vARB)(program, location, count, value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_half_float_pixel */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_half_float_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_imaging */
 typedef void (APIENTRY* PFNANYGLCOLORTABLEPROC)(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const void *table);
@@ -11510,7 +11512,7 @@ ANYGL_EXPORT extern PFNANYGLMINMAXPROC AnyGL_glMinmax;
 ANYGL_EXPORT extern PFNANYGLRESETHISTOGRAMPROC AnyGL_glResetHistogram;
 ANYGL_EXPORT extern PFNANYGLRESETMINMAXPROC AnyGL_glResetMinmax;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glColorTable(target, internalformat, width, format, type, table) ANYGL_CALL(AnyGL_glColorTable)(target, internalformat, width, format, type, table)
 #define glColorTableParameterfv(target, pname, params) ANYGL_CALL(AnyGL_glColorTableParameterfv)(target, pname, params)
 #define glColorTableParameteriv(target, pname, params) ANYGL_CALL(AnyGL_glColorTableParameteriv)(target, pname, params)
@@ -11543,52 +11545,52 @@ ANYGL_EXPORT extern PFNANYGLRESETMINMAXPROC AnyGL_glResetMinmax;
 #define glMinmax(target, internalformat, sink) ANYGL_CALL(AnyGL_glMinmax)(target, internalformat, sink)
 #define glResetHistogram(target) ANYGL_CALL(AnyGL_glResetHistogram)(target)
 #define glResetMinmax(target) ANYGL_CALL(AnyGL_glResetMinmax)(target)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_indirect_parameters */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiDrawArraysIndirectCountARB(mode, indirect, drawcount, maxdrawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawArraysIndirectCount)(mode, indirect, drawcount, maxdrawcount, stride)
 #define glMultiDrawElementsIndirectCountARB(mode, type, indirect, drawcount, maxdrawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawElementsIndirectCount)(mode, type, indirect, drawcount, maxdrawcount, stride)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_instanced_arrays */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glVertexAttribDivisorARB(index, divisor) ANYGL_CALL(AnyGL_glVertexAttribDivisor)(index, divisor)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_internalformat_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_internalformat_query2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_invalidate_subdata */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_map_buffer_alignment */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_map_buffer_range */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_matrix_palette */
 typedef void (APIENTRY* PFNANYGLCURRENTPALETTEMATRIXARBPROC)(GLint index);
@@ -11603,37 +11605,37 @@ ANYGL_EXPORT extern PFNANYGLMATRIXINDEXUSVARBPROC AnyGL_glMatrixIndexusvARB;
 ANYGL_EXPORT extern PFNANYGLMATRIXINDEXUIVARBPROC AnyGL_glMatrixIndexuivARB;
 ANYGL_EXPORT extern PFNANYGLMATRIXINDEXPOINTERARBPROC AnyGL_glMatrixIndexPointerARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCurrentPaletteMatrixARB(index) ANYGL_CALL(AnyGL_glCurrentPaletteMatrixARB)(index)
 #define glMatrixIndexubvARB(size, indices) ANYGL_CALL(AnyGL_glMatrixIndexubvARB)(size, indices)
 #define glMatrixIndexusvARB(size, indices) ANYGL_CALL(AnyGL_glMatrixIndexusvARB)(size, indices)
 #define glMatrixIndexuivARB(size, indices) ANYGL_CALL(AnyGL_glMatrixIndexuivARB)(size, indices)
 #define glMatrixIndexPointerARB(size, type, stride, pointer) ANYGL_CALL(AnyGL_glMatrixIndexPointerARB)(size, type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_multi_bind */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_multi_draw_indirect */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_multisample */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glSampleCoverageARB(value, invert) ANYGL_CALL(AnyGL_glSampleCoverage)(value, invert)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_multitexture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glActiveTextureARB(texture) ANYGL_CALL(AnyGL_glActiveTexture)(texture)
 #define glClientActiveTextureARB(texture) ANYGL_CALL(AnyGL_glClientActiveTexture)(texture)
 #define glMultiTexCoord1dARB(target, s) ANYGL_CALL(AnyGL_glMultiTexCoord1d)(target, s)
@@ -11668,12 +11670,12 @@ ANYGL_EXPORT extern PFNANYGLMATRIXINDEXPOINTERARBPROC AnyGL_glMatrixIndexPointer
 #define glMultiTexCoord4ivARB(target, v) ANYGL_CALL(AnyGL_glMultiTexCoord4iv)(target, v)
 #define glMultiTexCoord4sARB(target, s, t, r, q) ANYGL_CALL(AnyGL_glMultiTexCoord4s)(target, s, t, r, q)
 #define glMultiTexCoord4svARB(target, v) ANYGL_CALL(AnyGL_glMultiTexCoord4sv)(target, v)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_occlusion_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGenQueriesARB(n, ids) ANYGL_CALL(AnyGL_glGenQueries)(n, ids)
 #define glDeleteQueriesARB(n, ids) ANYGL_CALL(AnyGL_glDeleteQueries)(n, ids)
 #define glIsQueryARB(id) ANYGL_CALL(AnyGL_glIsQuery)(id)
@@ -11682,87 +11684,87 @@ ANYGL_EXPORT extern PFNANYGLMATRIXINDEXPOINTERARBPROC AnyGL_glMatrixIndexPointer
 #define glGetQueryivARB(target, pname, params) ANYGL_CALL(AnyGL_glGetQueryiv)(target, pname, params)
 #define glGetQueryObjectivARB(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectiv)(id, pname, params)
 #define glGetQueryObjectuivARB(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectuiv)(id, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_occlusion_query2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_parallel_shader_compile */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMaxShaderCompilerThreadsARB(count) ANYGL_CALL(AnyGL_glMaxShaderCompilerThreadsKHR)(count)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_pipeline_statistics_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_pixel_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_point_parameters */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPointParameterfARB(pname, param) ANYGL_CALL(AnyGL_glPointParameterf)(pname, param)
 #define glPointParameterfvARB(pname, params) ANYGL_CALL(AnyGL_glPointParameterfv)(pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_point_sprite */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_polygon_offset_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_post_depth_coverage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_program_interface_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_provoking_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_query_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_robust_buffer_access_behavior */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_robustness */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetGraphicsResetStatusARB() ANYGL_CALL(AnyGL_glGetGraphicsResetStatus)()
 #define glGetnTexImageARB(target, level, format, type, bufSize, img) ANYGL_CALL(AnyGL_glGetnTexImage)(target, level, format, type, bufSize, img)
 #define glReadnPixelsARB(x, y, width, height, format, type, bufSize, data) ANYGL_CALL(AnyGL_glReadnPixels)(x, y, width, height, format, type, bufSize, data)
@@ -11783,13 +11785,13 @@ ANYGL_EXPORT extern PFNANYGLMATRIXINDEXPOINTERARBPROC AnyGL_glMatrixIndexPointer
 #define glGetnSeparableFilterARB(target, format, type, rowBufSize, row, columnBufSize, column, span) ANYGL_CALL(AnyGL_glGetnSeparableFilter)(target, format, type, rowBufSize, row, columnBufSize, column, span)
 #define glGetnHistogramARB(target, reset, format, type, bufSize, values) ANYGL_CALL(AnyGL_glGetnHistogram)(target, reset, format, type, bufSize, values)
 #define glGetnMinmaxARB(target, reset, format, type, bufSize, values) ANYGL_CALL(AnyGL_glGetnMinmax)(target, reset, format, type, bufSize, values)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_robustness_isolation */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sample_locations */
 typedef void (APIENTRY* PFNANYGLFRAMEBUFFERSAMPLELOCATIONSFVARBPROC)(GLenum target, GLuint start, GLsizei count, const GLfloat *v);
@@ -11800,96 +11802,96 @@ ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERSAMPLELOCATIONSFVARBPROC AnyGL_glFramebuf
 ANYGL_EXPORT extern PFNANYGLNAMEDFRAMEBUFFERSAMPLELOCATIONSFVARBPROC AnyGL_glNamedFramebufferSampleLocationsfvARB;
 ANYGL_EXPORT extern PFNANYGLEVALUATEDEPTHVALUESARBPROC AnyGL_glEvaluateDepthValuesARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferSampleLocationsfvARB(target, start, count, v) ANYGL_CALL(AnyGL_glFramebufferSampleLocationsfvARB)(target, start, count, v)
 #define glNamedFramebufferSampleLocationsfvARB(framebuffer, start, count, v) ANYGL_CALL(AnyGL_glNamedFramebufferSampleLocationsfvARB)(framebuffer, start, count, v)
 #define glEvaluateDepthValuesARB() ANYGL_CALL(AnyGL_glEvaluateDepthValuesARB)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sample_shading */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMinSampleShadingARB(value) ANYGL_CALL(AnyGL_glMinSampleShading)(value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sampler_objects */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_seamless_cube_map */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_seamless_cubemap_per_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_separate_shader_objects */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_atomic_counter_ops */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_atomic_counters */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_ballot */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_bit_encoding */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_clock */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_draw_parameters */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_group_vote */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_image_load_store */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_image_size */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_objects */
 typedef void (APIENTRY* PFNANYGLDELETEOBJECTARBPROC)(GLhandleARB obj);
@@ -11906,7 +11908,7 @@ ANYGL_EXPORT extern PFNANYGLGETOBJECTPARAMETERIVARBPROC AnyGL_glGetObjectParamet
 ANYGL_EXPORT extern PFNANYGLGETINFOLOGARBPROC AnyGL_glGetInfoLogARB;
 ANYGL_EXPORT extern PFNANYGLGETATTACHEDOBJECTSARBPROC AnyGL_glGetAttachedObjectsARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDeleteObjectARB(obj) ANYGL_CALL(AnyGL_glDeleteObjectARB)(obj)
 #define glGetHandleARB(pname) ANYGL_CALL(AnyGL_glGetHandleARB)(pname)
 #define glDetachObjectARB(containerObj, attachedObj) ANYGL_CALL(AnyGL_glDetachShader)(containerObj, attachedObj)
@@ -11946,61 +11948,61 @@ ANYGL_EXPORT extern PFNANYGLGETATTACHEDOBJECTSARBPROC AnyGL_glGetAttachedObjects
 #define glGetUniformfvARB(programObj, location, params) ANYGL_CALL(AnyGL_glGetUniformfv)(programObj, location, params)
 #define glGetUniformivARB(programObj, location, params) ANYGL_CALL(AnyGL_glGetUniformiv)(programObj, location, params)
 #define glGetShaderSourceARB(obj, maxLength, length, source) ANYGL_CALL(AnyGL_glGetShaderSource)(obj, maxLength, length, source)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_precision */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_stencil_export */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_storage_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_subroutine */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_texture_image_samples */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_texture_lod */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shader_viewport_layer_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shading_language_100 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shading_language_420pack */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shading_language_include */
 typedef void (APIENTRY* PFNANYGLNAMEDSTRINGARBPROC)(GLenum type, GLint namelen, const GLchar *name, GLint stringlen, const GLchar *string);
@@ -12017,32 +12019,32 @@ ANYGL_EXPORT extern PFNANYGLISNAMEDSTRINGARBPROC AnyGL_glIsNamedStringARB;
 ANYGL_EXPORT extern PFNANYGLGETNAMEDSTRINGARBPROC AnyGL_glGetNamedStringARB;
 ANYGL_EXPORT extern PFNANYGLGETNAMEDSTRINGIVARBPROC AnyGL_glGetNamedStringivARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glNamedStringARB(type, namelen, name, stringlen, string) ANYGL_CALL(AnyGL_glNamedStringARB)(type, namelen, name, stringlen, string)
 #define glDeleteNamedStringARB(namelen, name) ANYGL_CALL(AnyGL_glDeleteNamedStringARB)(namelen, name)
 #define glCompileShaderIncludeARB(shader, count, path, length) ANYGL_CALL(AnyGL_glCompileShaderIncludeARB)(shader, count, path, length)
 #define glIsNamedStringARB(namelen, name) ANYGL_CALL(AnyGL_glIsNamedStringARB)(namelen, name)
 #define glGetNamedStringARB(namelen, name, bufSize, stringlen, string) ANYGL_CALL(AnyGL_glGetNamedStringARB)(namelen, name, bufSize, stringlen, string)
 #define glGetNamedStringivARB(namelen, name, pname, params) ANYGL_CALL(AnyGL_glGetNamedStringivARB)(namelen, name, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shading_language_packing */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shadow */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_shadow_ambient */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sparse_buffer */
 typedef void (APIENTRY* PFNANYGLBUFFERPAGECOMMITMENTARBPROC)(GLenum target, GLintptr offset, GLsizeiptr size, GLboolean commit);
@@ -12053,92 +12055,92 @@ ANYGL_EXPORT extern PFNANYGLBUFFERPAGECOMMITMENTARBPROC AnyGL_glBufferPageCommit
 ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERPAGECOMMITMENTEXTPROC AnyGL_glNamedBufferPageCommitmentEXT;
 ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERPAGECOMMITMENTARBPROC AnyGL_glNamedBufferPageCommitmentARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBufferPageCommitmentARB(target, offset, size, commit) ANYGL_CALL(AnyGL_glBufferPageCommitmentARB)(target, offset, size, commit)
 #define glNamedBufferPageCommitmentEXT(buffer, offset, size, commit) ANYGL_CALL(AnyGL_glNamedBufferPageCommitmentEXT)(buffer, offset, size, commit)
 #define glNamedBufferPageCommitmentARB(buffer, offset, size, commit) ANYGL_CALL(AnyGL_glNamedBufferPageCommitmentARB)(buffer, offset, size, commit)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sparse_texture */
 typedef void (APIENTRY* PFNANYGLTEXPAGECOMMITMENTARBPROC)(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLboolean commit);
 
 ANYGL_EXPORT extern PFNANYGLTEXPAGECOMMITMENTARBPROC AnyGL_glTexPageCommitmentARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexPageCommitmentARB(target, level, xoffset, yoffset, zoffset, width, height, depth, commit) ANYGL_CALL(AnyGL_glTexPageCommitmentARB)(target, level, xoffset, yoffset, zoffset, width, height, depth, commit)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sparse_texture2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sparse_texture_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_spirv_extensions */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_stencil_texturing */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_sync */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_tessellation_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_barrier */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_border_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexBufferARB(target, internalformat, buffer) ANYGL_CALL(AnyGL_glTexBuffer)(target, internalformat, buffer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_buffer_object_rgb32 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_buffer_range */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_compression */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCompressedTexImage3DARB(target, level, internalformat, width, height, depth, border, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexImage3D)(target, level, internalformat, width, height, depth, border, imageSize, data)
 #define glCompressedTexImage2DARB(target, level, internalformat, width, height, border, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexImage2D)(target, level, internalformat, width, height, border, imageSize, data)
 #define glCompressedTexImage1DARB(target, level, internalformat, width, border, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexImage1D)(target, level, internalformat, width, border, imageSize, data)
@@ -12146,233 +12148,233 @@ ANYGL_EXPORT extern PFNANYGLTEXPAGECOMMITMENTARBPROC AnyGL_glTexPageCommitmentAR
 #define glCompressedTexSubImage2DARB(target, level, xoffset, yoffset, width, height, format, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexSubImage2D)(target, level, xoffset, yoffset, width, height, format, imageSize, data)
 #define glCompressedTexSubImage1DARB(target, level, xoffset, width, format, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexSubImage1D)(target, level, xoffset, width, format, imageSize, data)
 #define glGetCompressedTexImageARB(target, level, img) ANYGL_CALL(AnyGL_glGetCompressedTexImage)(target, level, img)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_compression_bptc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_compression_rgtc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_cube_map */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_cube_map_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_env_add */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_env_combine */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_env_crossbar */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_env_dot3 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_filter_anisotropic */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_filter_minmax */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_gather */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_mirror_clamp_to_edge */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_mirrored_repeat */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_multisample */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_non_power_of_two */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_query_levels */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_query_lod */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_rectangle */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_rg */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_rgb10_a2ui */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_stencil8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_storage_multisample */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_swizzle */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_texture_view */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_timer_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_transform_feedback2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_transform_feedback3 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_transform_feedback_instanced */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_transform_feedback_overflow_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_transpose_matrix */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glLoadTransposeMatrixfARB(m) ANYGL_CALL(AnyGL_glLoadTransposeMatrixf)(m)
 #define glLoadTransposeMatrixdARB(m) ANYGL_CALL(AnyGL_glLoadTransposeMatrixd)(m)
 #define glMultTransposeMatrixfARB(m) ANYGL_CALL(AnyGL_glMultTransposeMatrixf)(m)
 #define glMultTransposeMatrixdARB(m) ANYGL_CALL(AnyGL_glMultTransposeMatrixd)(m)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_uniform_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_array_bgra */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_array_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_attrib_64bit */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_attrib_binding */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_blend */
 typedef void (APIENTRY* PFNANYGLWEIGHTBVARBPROC)(GLint size, const GLbyte *weights);
@@ -12397,7 +12399,7 @@ ANYGL_EXPORT extern PFNANYGLWEIGHTUIVARBPROC AnyGL_glWeightuivARB;
 ANYGL_EXPORT extern PFNANYGLWEIGHTPOINTERARBPROC AnyGL_glWeightPointerARB;
 ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glWeightbvARB(size, weights) ANYGL_CALL(AnyGL_glWeightbvARB)(size, weights)
 #define glWeightsvARB(size, weights) ANYGL_CALL(AnyGL_glWeightsvARB)(size, weights)
 #define glWeightivARB(size, weights) ANYGL_CALL(AnyGL_glWeightivARB)(size, weights)
@@ -12408,12 +12410,12 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #define glWeightuivARB(size, weights) ANYGL_CALL(AnyGL_glWeightuivARB)(size, weights)
 #define glWeightPointerARB(size, type, stride, pointer) ANYGL_CALL(AnyGL_glWeightPointerARB)(size, type, stride, pointer)
 #define glVertexBlendARB(count) ANYGL_CALL(AnyGL_glVertexBlendARB)(count)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindBufferARB(target, buffer) ANYGL_CALL(AnyGL_glBindBuffer)(target, buffer)
 #define glDeleteBuffersARB(n, buffers) ANYGL_CALL(AnyGL_glDeleteBuffers)(n, buffers)
 #define glGenBuffersARB(n, buffers) ANYGL_CALL(AnyGL_glGenBuffers)(n, buffers)
@@ -12425,12 +12427,12 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #define glUnmapBufferARB(target) ANYGL_CALL(AnyGL_glUnmapBuffer)(target)
 #define glGetBufferParameterivARB(target, pname, params) ANYGL_CALL(AnyGL_glGetBufferParameteriv)(target, pname, params)
 #define glGetBufferPointervARB(target, pname, params) ANYGL_CALL(AnyGL_glGetBufferPointerv)(target, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_program */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glVertexAttrib1dARB(index, x) ANYGL_CALL(AnyGL_glVertexAttrib1d)(index, x)
 #define glVertexAttrib1dvARB(index, v) ANYGL_CALL(AnyGL_glVertexAttrib1dv)(index, v)
 #define glVertexAttrib1fARB(index, x) ANYGL_CALL(AnyGL_glVertexAttrib1f)(index, x)
@@ -12474,39 +12476,39 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #define glGetVertexAttribfvARB(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribfv)(index, pname, params)
 #define glGetVertexAttribivARB(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribiv)(index, pname, params)
 #define glGetVertexAttribPointervARB(index, pname, pointer) ANYGL_CALL(AnyGL_glGetVertexAttribPointerv)(index, pname, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindAttribLocationARB(programObj, index, name) ANYGL_CALL(AnyGL_glBindAttribLocation)(programObj, index, name)
 #define glGetActiveAttribARB(programObj, index, maxLength, length, size, type, name) ANYGL_CALL(AnyGL_glGetActiveAttrib)(programObj, index, maxLength, length, size, type, name)
 #define glGetAttribLocationARB(programObj, name) ANYGL_CALL(AnyGL_glGetAttribLocation)(programObj, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_type_10f_11f_11f_rev */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_vertex_type_2_10_10_10_rev */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_viewport_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_ARB_window_pos */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glWindowPos2dARB(x, y) ANYGL_CALL(AnyGL_glWindowPos2d)(x, y)
 #define glWindowPos2dvARB(v) ANYGL_CALL(AnyGL_glWindowPos2dv)(v)
 #define glWindowPos2fARB(x, y) ANYGL_CALL(AnyGL_glWindowPos2f)(x, y)
@@ -12523,31 +12525,31 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #define glWindowPos3ivARB(v) ANYGL_CALL(AnyGL_glWindowPos3iv)(v)
 #define glWindowPos3sARB(x, y, z) ANYGL_CALL(AnyGL_glWindowPos3s)(x, y, z)
 #define glWindowPos3svARB(v) ANYGL_CALL(AnyGL_glWindowPos3sv)(v)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_blend_equation_advanced */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendBarrierKHR() ANYGL_CALL(AnyGL_glBlendBarrier)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_blend_equation_advanced_coherent */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_context_flush_control */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_debug */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDebugMessageControlKHR(source, type, severity, count, ids, enabled) ANYGL_CALL(AnyGL_glDebugMessageControl)(source, type, severity, count, ids, enabled)
 #define glDebugMessageInsertKHR(source, type, id, severity, length, buf) ANYGL_CALL(AnyGL_glDebugMessageInsert)(source, type, id, severity, length, buf)
 #define glDebugMessageCallbackKHR(callback, userParam) ANYGL_CALL(AnyGL_glDebugMessageCallback)(callback, userParam)
@@ -12559,57 +12561,57 @@ ANYGL_EXPORT extern PFNANYGLVERTEXBLENDARBPROC AnyGL_glVertexBlendARB;
 #define glObjectPtrLabelKHR(ptr, length, label) ANYGL_CALL(AnyGL_glObjectPtrLabel)(ptr, length, label)
 #define glGetObjectPtrLabelKHR(ptr, bufSize, length, label) ANYGL_CALL(AnyGL_glGetObjectPtrLabel)(ptr, bufSize, length, label)
 #define glGetPointervKHR(pname, params) ANYGL_CALL(AnyGL_glGetPointerv)(pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_no_error */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_parallel_shader_compile */
 typedef void (APIENTRY* PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC)(GLuint count);
 
 ANYGL_EXPORT extern PFNANYGLMAXSHADERCOMPILERTHREADSKHRPROC AnyGL_glMaxShaderCompilerThreadsKHR;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMaxShaderCompilerThreadsKHR(count) ANYGL_CALL(AnyGL_glMaxShaderCompilerThreadsKHR)(count)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_robust_buffer_access_behavior */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_robustness */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetGraphicsResetStatusKHR() ANYGL_CALL(AnyGL_glGetGraphicsResetStatus)()
 #define glReadnPixelsKHR(x, y, width, height, format, type, bufSize, data) ANYGL_CALL(AnyGL_glReadnPixels)(x, y, width, height, format, type, bufSize, data)
 #define glGetnUniformfvKHR(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformfv)(program, location, bufSize, params)
 #define glGetnUniformivKHR(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformiv)(program, location, bufSize, params)
 #define glGetnUniformuivKHR(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformuiv)(program, location, bufSize, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_texture_compression_astc_hdr */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_texture_compression_astc_ldr */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_KHR_texture_compression_astc_sliced_3d */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_EGL_image */
 typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETTEXTURE2DOESPROC)(GLenum target, GLeglImageOES image);
@@ -12618,43 +12620,43 @@ typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC)(GLenum
 ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXTURE2DOESPROC AnyGL_glEGLImageTargetTexture2DOES;
 ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC AnyGL_glEGLImageTargetRenderbufferStorageOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glEGLImageTargetTexture2DOES(target, image) ANYGL_CALL(AnyGL_glEGLImageTargetTexture2DOES)(target, image)
 #define glEGLImageTargetRenderbufferStorageOES(target, image) ANYGL_CALL(AnyGL_glEGLImageTargetRenderbufferStorageOES)(target, image)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_EGL_image_external */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_EGL_image_external_essl3 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_blend_equation_separate */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendEquationSeparateOES(modeRGB, modeAlpha) ANYGL_CALL(AnyGL_glBlendEquationSeparate)(modeRGB, modeAlpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_blend_func_separate */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendFuncSeparateOES(srcRGB, dstRGB, srcAlpha, dstAlpha) ANYGL_CALL(AnyGL_glBlendFuncSeparate)(srcRGB, dstRGB, srcAlpha, dstAlpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_blend_subtract */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendEquationOES(mode) ANYGL_CALL(AnyGL_glBlendEquation)(mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_byte_coordinates */
 typedef void (APIENTRY* PFNANYGLMULTITEXCOORD1BOESPROC)(GLenum texture, GLbyte s);
@@ -12703,7 +12705,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEX3BVOESPROC AnyGL_glVertex3bvOES;
 ANYGL_EXPORT extern PFNANYGLVERTEX4BOESPROC AnyGL_glVertex4bOES;
 ANYGL_EXPORT extern PFNANYGLVERTEX4BVOESPROC AnyGL_glVertex4bvOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiTexCoord1bOES(texture, s) ANYGL_CALL(AnyGL_glMultiTexCoord1bOES)(texture, s)
 #define glMultiTexCoord1bvOES(texture, coords) ANYGL_CALL(AnyGL_glMultiTexCoord1bvOES)(texture, coords)
 #define glMultiTexCoord2bOES(texture, s, t) ANYGL_CALL(AnyGL_glMultiTexCoord2bOES)(texture, s, t)
@@ -12726,55 +12728,55 @@ ANYGL_EXPORT extern PFNANYGLVERTEX4BVOESPROC AnyGL_glVertex4bvOES;
 #define glVertex3bvOES(coords) ANYGL_CALL(AnyGL_glVertex3bvOES)(coords)
 #define glVertex4bOES(x, y, z, w) ANYGL_CALL(AnyGL_glVertex4bOES)(x, y, z, w)
 #define glVertex4bvOES(coords) ANYGL_CALL(AnyGL_glVertex4bvOES)(coords)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_compressed_ETC1_RGB8_sub_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_compressed_ETC1_RGB8_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_compressed_paletted_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_copy_image */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCopyImageSubDataOES(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth) ANYGL_CALL(AnyGL_glCopyImageSubData)(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_depth24 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_depth32 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_depth_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_draw_buffers_indexed */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glEnableiOES(target, index) ANYGL_CALL(AnyGL_glEnablei)(target, index)
 #define glDisableiOES(target, index) ANYGL_CALL(AnyGL_glDisablei)(target, index)
 #define glBlendEquationiOES(buf, mode) ANYGL_CALL(AnyGL_glBlendEquationi)(buf, mode)
@@ -12783,17 +12785,17 @@ ANYGL_EXPORT extern PFNANYGLVERTEX4BVOESPROC AnyGL_glVertex4bvOES;
 #define glBlendFuncSeparateiOES(buf, srcRGB, dstRGB, srcAlpha, dstAlpha) ANYGL_CALL(AnyGL_glBlendFuncSeparatei)(buf, srcRGB, dstRGB, srcAlpha, dstAlpha)
 #define glColorMaskiOES(index, r, g, b, a) ANYGL_CALL(AnyGL_glColorMaski)(index, r, g, b, a)
 #define glIsEnablediOES(target, index) ANYGL_CALL(AnyGL_glIsEnabledi)(target, index)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_draw_elements_base_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawElementsBaseVertexOES(mode, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawElementsBaseVertex)(mode, count, type, indices, basevertex)
 #define glDrawRangeElementsBaseVertexOES(mode, start, end, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawRangeElementsBaseVertex)(mode, start, end, count, type, indices, basevertex)
 #define glDrawElementsInstancedBaseVertexOES(mode, count, type, indices, instancecount, basevertex) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseVertex)(mode, count, type, indices, instancecount, basevertex)
 #define glMultiDrawElementsBaseVertexEXT(mode, count, type, indices, primcount, basevertex) ANYGL_CALL(AnyGL_glMultiDrawElementsBaseVertex)(mode, count, type, indices, primcount, basevertex)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_draw_texture */
 typedef void (APIENTRY* PFNANYGLDRAWTEXSOESPROC)(GLshort x, GLshort y, GLshort z, GLshort width, GLshort height);
@@ -12814,7 +12816,7 @@ ANYGL_EXPORT extern PFNANYGLDRAWTEXXVOESPROC AnyGL_glDrawTexxvOES;
 ANYGL_EXPORT extern PFNANYGLDRAWTEXFOESPROC AnyGL_glDrawTexfOES;
 ANYGL_EXPORT extern PFNANYGLDRAWTEXFVOESPROC AnyGL_glDrawTexfvOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawTexsOES(x, y, z, width, height) ANYGL_CALL(AnyGL_glDrawTexsOES)(x, y, z, width, height)
 #define glDrawTexiOES(x, y, z, width, height) ANYGL_CALL(AnyGL_glDrawTexiOES)(x, y, z, width, height)
 #define glDrawTexxOES(x, y, z, width, height) ANYGL_CALL(AnyGL_glDrawTexxOES)(x, y, z, width, height)
@@ -12823,25 +12825,25 @@ ANYGL_EXPORT extern PFNANYGLDRAWTEXFVOESPROC AnyGL_glDrawTexfvOES;
 #define glDrawTexxvOES(coords) ANYGL_CALL(AnyGL_glDrawTexxvOES)(coords)
 #define glDrawTexfOES(x, y, z, width, height) ANYGL_CALL(AnyGL_glDrawTexfOES)(x, y, z, width, height)
 #define glDrawTexfvOES(coords) ANYGL_CALL(AnyGL_glDrawTexfvOES)(coords)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_element_index_uint */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_extended_matrix_palette */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_fbo_render_mipmap */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_fixed_point */
 typedef void (APIENTRY* PFNANYGLALPHAFUNCXOESPROC)(GLenum func, GLfixed ref);
@@ -13052,7 +13054,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEX3XVOESPROC AnyGL_glVertex3xvOES;
 ANYGL_EXPORT extern PFNANYGLVERTEX4XOESPROC AnyGL_glVertex4xOES;
 ANYGL_EXPORT extern PFNANYGLVERTEX4XVOESPROC AnyGL_glVertex4xvOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glAlphaFuncxOES(func, ref) ANYGL_CALL(AnyGL_glAlphaFuncxOES)(func, ref)
 #define glClearColorxOES(red, green, blue, alpha) ANYGL_CALL(AnyGL_glClearColorxOES)(red, green, blue, alpha)
 #define glClearDepthxOES(depth) ANYGL_CALL(AnyGL_glClearDepthxOES)(depth)
@@ -13156,18 +13158,18 @@ ANYGL_EXPORT extern PFNANYGLVERTEX4XVOESPROC AnyGL_glVertex4xvOES;
 #define glVertex3xvOES(coords) ANYGL_CALL(AnyGL_glVertex3xvOES)(coords)
 #define glVertex4xOES(x, y, z) ANYGL_CALL(AnyGL_glVertex4xOES)(x, y, z)
 #define glVertex4xvOES(coords) ANYGL_CALL(AnyGL_glVertex4xvOES)(coords)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_fragment_precision_high */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_framebuffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glIsRenderbufferOES(renderbuffer) ANYGL_CALL(AnyGL_glIsRenderbuffer)(renderbuffer)
 #define glBindRenderbufferOES(target, renderbuffer) ANYGL_CALL(AnyGL_glBindRenderbuffer)(target, renderbuffer)
 #define glDeleteRenderbuffersOES(n, renderbuffers) ANYGL_CALL(AnyGL_glDeleteRenderbuffers)(n, renderbuffers)
@@ -13183,49 +13185,49 @@ ANYGL_EXPORT extern PFNANYGLVERTEX4XVOESPROC AnyGL_glVertex4xvOES;
 #define glFramebufferTexture2DOES(target, attachment, textarget, texture, level) ANYGL_CALL(AnyGL_glFramebufferTexture2D)(target, attachment, textarget, texture, level)
 #define glGetFramebufferAttachmentParameterivOES(target, attachment, pname, params) ANYGL_CALL(AnyGL_glGetFramebufferAttachmentParameteriv)(target, attachment, pname, params)
 #define glGenerateMipmapOES(target) ANYGL_CALL(AnyGL_glGenerateMipmap)(target)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_geometry_point_size */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_geometry_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferTextureOES(target, attachment, texture, level) ANYGL_CALL(AnyGL_glFramebufferTexture)(target, attachment, texture, level)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_get_program_binary */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetProgramBinaryOES(program, bufSize, length, binaryFormat, binary) ANYGL_CALL(AnyGL_glGetProgramBinary)(program, bufSize, length, binaryFormat, binary)
 #define glProgramBinaryOES(program, binaryFormat, binary, length) ANYGL_CALL(AnyGL_glProgramBinary)(program, binaryFormat, binary, length)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_gpu_shader5 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_mapbuffer */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMapBufferOES(target, access) ANYGL_CALL(AnyGL_glMapBuffer)(target, access)
 #define glUnmapBufferOES(target) ANYGL_CALL(AnyGL_glUnmapBuffer)(target)
 #define glGetBufferPointervOES(target, pname, params) ANYGL_CALL(AnyGL_glGetBufferPointerv)(target, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_matrix_get */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_matrix_palette */
 typedef void (APIENTRY* PFNANYGLCURRENTPALETTEMATRIXOESPROC)(GLuint matrixpaletteindex);
@@ -13238,98 +13240,98 @@ ANYGL_EXPORT extern PFNANYGLLOADPALETTEFROMMODELVIEWMATRIXOESPROC AnyGL_glLoadPa
 ANYGL_EXPORT extern PFNANYGLMATRIXINDEXPOINTEROESPROC AnyGL_glMatrixIndexPointerOES;
 ANYGL_EXPORT extern PFNANYGLWEIGHTPOINTEROESPROC AnyGL_glWeightPointerOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCurrentPaletteMatrixOES(matrixpaletteindex) ANYGL_CALL(AnyGL_glCurrentPaletteMatrixOES)(matrixpaletteindex)
 #define glLoadPaletteFromModelViewMatrixOES() ANYGL_CALL(AnyGL_glLoadPaletteFromModelViewMatrixOES)()
 #define glMatrixIndexPointerOES(size, type, stride, pointer) ANYGL_CALL(AnyGL_glMatrixIndexPointerOES)(size, type, stride, pointer)
 #define glWeightPointerOES(size, type, stride, pointer) ANYGL_CALL(AnyGL_glWeightPointerOES)(size, type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_packed_depth_stencil */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_point_size_array */
 typedef void (APIENTRY* PFNANYGLPOINTSIZEPOINTEROESPROC)(GLenum type, GLsizei stride, const void *pointer);
 
 ANYGL_EXPORT extern PFNANYGLPOINTSIZEPOINTEROESPROC AnyGL_glPointSizePointerOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPointSizePointerOES(type, stride, pointer) ANYGL_CALL(AnyGL_glPointSizePointerOES)(type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_point_sprite */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_primitive_bounding_box */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPrimitiveBoundingBoxOES(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW) ANYGL_CALL(AnyGL_glPrimitiveBoundingBox)(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_query_matrix */
 typedef GLbitfield (APIENTRY* PFNANYGLQUERYMATRIXXOESPROC)(GLfixed *mantissa, GLint *exponent);
 
 ANYGL_EXPORT extern PFNANYGLQUERYMATRIXXOESPROC AnyGL_glQueryMatrixxOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glQueryMatrixxOES(mantissa, exponent) ANYGL_CALL(AnyGL_glQueryMatrixxOES)(mantissa, exponent)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_read_format */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_required_internalformat */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_rgb8_rgba8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_sample_shading */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMinSampleShadingOES(value) ANYGL_CALL(AnyGL_glMinSampleShading)(value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_sample_variables */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_shader_image_atomic */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_shader_io_blocks */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_shader_multisample_interpolation */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_single_precision */
 typedef void (APIENTRY* PFNANYGLCLIPPLANEFOESPROC)(GLenum plane, const GLfloat *equation);
@@ -13342,63 +13344,63 @@ ANYGL_EXPORT extern PFNANYGLFRUSTUMFOESPROC AnyGL_glFrustumfOES;
 ANYGL_EXPORT extern PFNANYGLGETCLIPPLANEFOESPROC AnyGL_glGetClipPlanefOES;
 ANYGL_EXPORT extern PFNANYGLORTHOFOESPROC AnyGL_glOrthofOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClearDepthfOES(depth) ANYGL_CALL(AnyGL_glClearDepthf)(depth)
 #define glClipPlanefOES(plane, equation) ANYGL_CALL(AnyGL_glClipPlanefOES)(plane, equation)
 #define glDepthRangefOES(n, f) ANYGL_CALL(AnyGL_glDepthRangef)(n, f)
 #define glFrustumfOES(l, r, b, t, n, f) ANYGL_CALL(AnyGL_glFrustumfOES)(l, r, b, t, n, f)
 #define glGetClipPlanefOES(plane, equation) ANYGL_CALL(AnyGL_glGetClipPlanefOES)(plane, equation)
 #define glOrthofOES(l, r, b, t, n, f) ANYGL_CALL(AnyGL_glOrthofOES)(l, r, b, t, n, f)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_standard_derivatives */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_stencil1 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_stencil4 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_stencil8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_stencil_wrap */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_surfaceless_context */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_tessellation_point_size */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_tessellation_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPatchParameteriOES(pname, value) ANYGL_CALL(AnyGL_glPatchParameteri)(pname, value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_3D */
 typedef void (APIENTRY* PFNANYGLTEXIMAGE3DOESPROC)(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels);
@@ -13415,19 +13417,19 @@ ANYGL_EXPORT extern PFNANYGLCOMPRESSEDTEXIMAGE3DOESPROC AnyGL_glCompressedTexIma
 ANYGL_EXPORT extern PFNANYGLCOMPRESSEDTEXSUBIMAGE3DOESPROC AnyGL_glCompressedTexSubImage3DOES;
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE3DOESPROC AnyGL_glFramebufferTexture3DOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexImage3DOES(target, level, internalformat, width, height, depth, border, format, type, pixels) ANYGL_CALL(AnyGL_glTexImage3DOES)(target, level, internalformat, width, height, depth, border, format, type, pixels)
 #define glTexSubImage3DOES(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) ANYGL_CALL(AnyGL_glTexSubImage3DOES)(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels)
 #define glCopyTexSubImage3DOES(target, level, xoffset, yoffset, zoffset, x, y, width, height) ANYGL_CALL(AnyGL_glCopyTexSubImage3DOES)(target, level, xoffset, yoffset, zoffset, x, y, width, height)
 #define glCompressedTexImage3DOES(target, level, internalformat, width, height, depth, border, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexImage3DOES)(target, level, internalformat, width, height, depth, border, imageSize, data)
 #define glCompressedTexSubImage3DOES(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data) ANYGL_CALL(AnyGL_glCompressedTexSubImage3DOES)(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data)
 #define glFramebufferTexture3DOES(target, attachment, textarget, texture, level, zoffset) ANYGL_CALL(AnyGL_glFramebufferTexture3DOES)(target, attachment, textarget, texture, level, zoffset)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_border_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexParameterIivOES(target, pname, params) ANYGL_CALL(AnyGL_glTexParameterIiv)(target, pname, params)
 #define glTexParameterIuivOES(target, pname, params) ANYGL_CALL(AnyGL_glTexParameterIuiv)(target, pname, params)
 #define glGetTexParameterIivOES(target, pname, params) ANYGL_CALL(AnyGL_glGetTexParameterIiv)(target, pname, params)
@@ -13436,21 +13438,21 @@ ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE3DOESPROC AnyGL_glFramebufferTextu
 #define glSamplerParameterIuivOES(sampler, pname, param) ANYGL_CALL(AnyGL_glSamplerParameterIuiv)(sampler, pname, param)
 #define glGetSamplerParameterIivOES(sampler, pname, params) ANYGL_CALL(AnyGL_glGetSamplerParameterIiv)(sampler, pname, params)
 #define glGetSamplerParameterIuivOES(sampler, pname, params) ANYGL_CALL(AnyGL_glGetSamplerParameterIuiv)(sampler, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_buffer */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexBufferOES(target, internalformat, buffer) ANYGL_CALL(AnyGL_glTexBuffer)(target, internalformat, buffer)
 #define glTexBufferRangeOES(target, internalformat, buffer, offset, size) ANYGL_CALL(AnyGL_glTexBufferRange)(target, internalformat, buffer, offset, size)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_compression_astc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_cube_map */
 typedef void (APIENTRY* PFNANYGLTEXGENFOESPROC)(GLenum coord, GLenum pname, GLfloat param);
@@ -13467,104 +13469,104 @@ ANYGL_EXPORT extern PFNANYGLTEXGENIVOESPROC AnyGL_glTexGenivOES;
 ANYGL_EXPORT extern PFNANYGLGETTEXGENFVOESPROC AnyGL_glGetTexGenfvOES;
 ANYGL_EXPORT extern PFNANYGLGETTEXGENIVOESPROC AnyGL_glGetTexGenivOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexGenfOES(coord, pname, param) ANYGL_CALL(AnyGL_glTexGenfOES)(coord, pname, param)
 #define glTexGenfvOES(coord, pname, params) ANYGL_CALL(AnyGL_glTexGenfvOES)(coord, pname, params)
 #define glTexGeniOES(coord, pname, param) ANYGL_CALL(AnyGL_glTexGeniOES)(coord, pname, param)
 #define glTexGenivOES(coord, pname, params) ANYGL_CALL(AnyGL_glTexGenivOES)(coord, pname, params)
 #define glGetTexGenfvOES(coord, pname, params) ANYGL_CALL(AnyGL_glGetTexGenfvOES)(coord, pname, params)
 #define glGetTexGenivOES(coord, pname, params) ANYGL_CALL(AnyGL_glGetTexGenivOES)(coord, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_cube_map_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_env_crossbar */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_float_linear */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_half_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_half_float_linear */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_mirrored_repeat */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_npot */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_stencil8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_storage_multisample_2d_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexStorage3DMultisampleOES(target, samples, internalformat, width, height, depth, fixedsamplelocations) ANYGL_CALL(AnyGL_glTexStorage3DMultisample)(target, samples, internalformat, width, height, depth, fixedsamplelocations)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_texture_view */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTextureViewOES(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers) ANYGL_CALL(AnyGL_glTextureView)(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_vertex_array_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindVertexArrayOES(array) ANYGL_CALL(AnyGL_glBindVertexArray)(array)
 #define glDeleteVertexArraysOES(n, arrays) ANYGL_CALL(AnyGL_glDeleteVertexArrays)(n, arrays)
 #define glGenVertexArraysOES(n, arrays) ANYGL_CALL(AnyGL_glGenVertexArrays)(n, arrays)
 #define glIsVertexArrayOES(array) ANYGL_CALL(AnyGL_glIsVertexArray)(array)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_vertex_half_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_vertex_type_10_10_10_2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_OES_viewport_array */
 typedef void (APIENTRY* PFNANYGLDEPTHRANGEARRAYFVOESPROC)(GLuint first, GLsizei count, const GLfloat *v);
@@ -13573,7 +13575,7 @@ typedef void (APIENTRY* PFNANYGLDEPTHRANGEINDEXEDFOESPROC)(GLuint index, GLfloat
 ANYGL_EXPORT extern PFNANYGLDEPTHRANGEARRAYFVOESPROC AnyGL_glDepthRangeArrayfvOES;
 ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDFOESPROC AnyGL_glDepthRangeIndexedfOES;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glViewportArrayvOES(first, count, v) ANYGL_CALL(AnyGL_glViewportArrayv)(first, count, v)
 #define glViewportIndexedfOES(index, x, y, w, h) ANYGL_CALL(AnyGL_glViewportIndexedf)(index, x, y, w, h)
 #define glViewportIndexedfvOES(index, v) ANYGL_CALL(AnyGL_glViewportIndexedfv)(index, v)
@@ -13583,19 +13585,19 @@ ANYGL_EXPORT extern PFNANYGLDEPTHRANGEINDEXEDFOESPROC AnyGL_glDepthRangeIndexedf
 #define glDepthRangeArrayfvOES(first, count, v) ANYGL_CALL(AnyGL_glDepthRangeArrayfvOES)(first, count, v)
 #define glDepthRangeIndexedfOES(index, n, f) ANYGL_CALL(AnyGL_glDepthRangeIndexedfOES)(index, n, f)
 #define glGetFloati_vOES(target, index, data) ANYGL_CALL(AnyGL_glGetFloati_v)(target, index, data)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_422_pixels */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_EGL_image_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_EGL_image_storage */
 typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC)(GLenum target, GLeglImageOES image, const GLint* attrib_list);
@@ -13604,37 +13606,37 @@ typedef void (APIENTRY* PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC)(GLuint text
 ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXSTORAGEEXTPROC AnyGL_glEGLImageTargetTexStorageEXT;
 ANYGL_EXPORT extern PFNANYGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC AnyGL_glEGLImageTargetTextureStorageEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glEGLImageTargetTexStorageEXT(target, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTexStorageEXT)(target, image, attrib_list)
 #define glEGLImageTargetTextureStorageEXT(texture, image, attrib_list) ANYGL_CALL(AnyGL_glEGLImageTargetTextureStorageEXT)(texture, image, attrib_list)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_YUV_target */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_abgr */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_base_instance */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawArraysInstancedBaseInstanceEXT(mode, first, count, instancecount, baseinstance) ANYGL_CALL(AnyGL_glDrawArraysInstancedBaseInstance)(mode, first, count, instancecount, baseinstance)
 #define glDrawElementsInstancedBaseInstanceEXT(mode, count, type, indices, instancecount, baseinstance) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseInstance)(mode, count, type, indices, instancecount, baseinstance)
 #define glDrawElementsInstancedBaseVertexBaseInstanceEXT(mode, count, type, indices, instancecount, basevertex, baseinstance) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseVertexBaseInstance)(mode, count, type, indices, instancecount, basevertex, baseinstance)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_bgra */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_bindable_uniform */
 typedef void (APIENTRY* PFNANYGLUNIFORMBUFFEREXTPROC)(GLuint program, GLint location, GLuint buffer);
@@ -13645,121 +13647,121 @@ ANYGL_EXPORT extern PFNANYGLUNIFORMBUFFEREXTPROC AnyGL_glUniformBufferEXT;
 ANYGL_EXPORT extern PFNANYGLGETUNIFORMBUFFERSIZEEXTPROC AnyGL_glGetUniformBufferSizeEXT;
 ANYGL_EXPORT extern PFNANYGLGETUNIFORMOFFSETEXTPROC AnyGL_glGetUniformOffsetEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glUniformBufferEXT(program, location, buffer) ANYGL_CALL(AnyGL_glUniformBufferEXT)(program, location, buffer)
 #define glGetUniformBufferSizeEXT(program, location) ANYGL_CALL(AnyGL_glGetUniformBufferSizeEXT)(program, location)
 #define glGetUniformOffsetEXT(program, location) ANYGL_CALL(AnyGL_glGetUniformOffsetEXT)(program, location)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_color */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendColorEXT(red, green, blue, alpha) ANYGL_CALL(AnyGL_glBlendColor)(red, green, blue, alpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_equation_separate */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendEquationSeparateEXT(modeRGB, modeAlpha) ANYGL_CALL(AnyGL_glBlendEquationSeparate)(modeRGB, modeAlpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_func_extended */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindFragDataLocationIndexedEXT(program, colorNumber, index, name) ANYGL_CALL(AnyGL_glBindFragDataLocationIndexed)(program, colorNumber, index, name)
 #define glBindFragDataLocationEXT(program, color, name) ANYGL_CALL(AnyGL_glBindFragDataLocation)(program, color, name)
 #define glGetProgramResourceLocationIndexEXT(program, programInterface, name) ANYGL_CALL(AnyGL_glGetProgramResourceLocationIndex)(program, programInterface, name)
 #define glGetFragDataIndexEXT(program, name) ANYGL_CALL(AnyGL_glGetFragDataIndex)(program, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_func_separate */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendFuncSeparateEXT(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha) ANYGL_CALL(AnyGL_glBlendFuncSeparate)(sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_logic_op */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_minmax */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlendEquationEXT(mode) ANYGL_CALL(AnyGL_glBlendEquation)(mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_blend_subtract */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_buffer_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBufferStorageEXT(target, size, data, flags) ANYGL_CALL(AnyGL_glBufferStorage)(target, size, data, flags)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_clear_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClearTexImageEXT(texture, level, format, type, data) ANYGL_CALL(AnyGL_glClearTexImage)(texture, level, format, type, data)
 #define glClearTexSubImageEXT(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data) ANYGL_CALL(AnyGL_glClearTexSubImage)(texture, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_clip_control */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClipControlEXT(origin, depth) ANYGL_CALL(AnyGL_glClipControl)(origin, depth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_clip_cull_distance */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_clip_volume_hint */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_cmyka */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_color_buffer_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_color_buffer_half_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_color_subtable */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glColorSubTableEXT(target, start, count, format, type, data) ANYGL_CALL(AnyGL_glColorSubTable)(target, start, count, format, type, data)
 #define glCopyColorSubTableEXT(target, start, x, y, width) ANYGL_CALL(AnyGL_glCopyColorSubTable)(target, start, x, y, width)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_compiled_vertex_array */
 typedef void (APIENTRY* PFNANYGLLOCKARRAYSEXTPROC)(GLint first, GLsizei count);
@@ -13768,16 +13770,16 @@ typedef void (APIENTRY* PFNANYGLUNLOCKARRAYSEXTPROC)();
 ANYGL_EXPORT extern PFNANYGLLOCKARRAYSEXTPROC AnyGL_glLockArraysEXT;
 ANYGL_EXPORT extern PFNANYGLUNLOCKARRAYSEXTPROC AnyGL_glUnlockArraysEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glLockArraysEXT(first, count) ANYGL_CALL(AnyGL_glLockArraysEXT)(first, count)
 #define glUnlockArraysEXT() ANYGL_CALL(AnyGL_glUnlockArraysEXT)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_conservative_depth */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_convolution */
 typedef void (APIENTRY* PFNANYGLGETCONVOLUTIONFILTEREXTPROC)(GLenum target, GLenum format, GLenum type, void *image);
@@ -13790,7 +13792,7 @@ ANYGL_EXPORT extern PFNANYGLGETCONVOLUTIONPARAMETERFVEXTPROC AnyGL_glGetConvolut
 ANYGL_EXPORT extern PFNANYGLGETCONVOLUTIONPARAMETERIVEXTPROC AnyGL_glGetConvolutionParameterivEXT;
 ANYGL_EXPORT extern PFNANYGLGETSEPARABLEFILTEREXTPROC AnyGL_glGetSeparableFilterEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glConvolutionFilter1DEXT(target, internalformat, width, format, type, image) ANYGL_CALL(AnyGL_glConvolutionFilter1D)(target, internalformat, width, format, type, image)
 #define glConvolutionFilter2DEXT(target, internalformat, width, height, format, type, image) ANYGL_CALL(AnyGL_glConvolutionFilter2D)(target, internalformat, width, height, format, type, image)
 #define glConvolutionParameterfEXT(target, pname, params) ANYGL_CALL(AnyGL_glConvolutionParameterf)(target, pname, params)
@@ -13804,7 +13806,7 @@ ANYGL_EXPORT extern PFNANYGLGETSEPARABLEFILTEREXTPROC AnyGL_glGetSeparableFilter
 #define glGetConvolutionParameterivEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetConvolutionParameterivEXT)(target, pname, params)
 #define glGetSeparableFilterEXT(target, format, type, row, column, span) ANYGL_CALL(AnyGL_glGetSeparableFilterEXT)(target, format, type, row, column, span)
 #define glSeparableFilter2DEXT(target, internalformat, width, height, format, type, row, column) ANYGL_CALL(AnyGL_glSeparableFilter2D)(target, internalformat, width, height, format, type, row, column)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_coordinate_frame */
 typedef void (APIENTRY* PFNANYGLTANGENT3BEXTPROC)(GLbyte tx, GLbyte ty, GLbyte tz);
@@ -13853,7 +13855,7 @@ ANYGL_EXPORT extern PFNANYGLBINORMAL3SVEXTPROC AnyGL_glBinormal3svEXT;
 ANYGL_EXPORT extern PFNANYGLTANGENTPOINTEREXTPROC AnyGL_glTangentPointerEXT;
 ANYGL_EXPORT extern PFNANYGLBINORMALPOINTEREXTPROC AnyGL_glBinormalPointerEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTangent3bEXT(tx, ty, tz) ANYGL_CALL(AnyGL_glTangent3bEXT)(tx, ty, tz)
 #define glTangent3bvEXT(v) ANYGL_CALL(AnyGL_glTangent3bvEXT)(v)
 #define glTangent3dEXT(tx, ty, tz) ANYGL_CALL(AnyGL_glTangent3dEXT)(tx, ty, tz)
@@ -13876,25 +13878,25 @@ ANYGL_EXPORT extern PFNANYGLBINORMALPOINTEREXTPROC AnyGL_glBinormalPointerEXT;
 #define glBinormal3svEXT(v) ANYGL_CALL(AnyGL_glBinormal3svEXT)(v)
 #define glTangentPointerEXT(type, stride, pointer) ANYGL_CALL(AnyGL_glTangentPointerEXT)(type, stride, pointer)
 #define glBinormalPointerEXT(type, stride, pointer) ANYGL_CALL(AnyGL_glBinormalPointerEXT)(type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_copy_image */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCopyImageSubDataEXT(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth) ANYGL_CALL(AnyGL_glCopyImageSubData)(srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel, dstX, dstY, dstZ, srcWidth, srcHeight, srcDepth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_copy_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCopyTexImage1DEXT(target, level, internalformat, x, y, width, border) ANYGL_CALL(AnyGL_glCopyTexImage1D)(target, level, internalformat, x, y, width, border)
 #define glCopyTexImage2DEXT(target, level, internalformat, x, y, width, height, border) ANYGL_CALL(AnyGL_glCopyTexImage2D)(target, level, internalformat, x, y, width, height, border)
 #define glCopyTexSubImage1DEXT(target, level, xoffset, x, y, width) ANYGL_CALL(AnyGL_glCopyTexSubImage1D)(target, level, xoffset, x, y, width)
 #define glCopyTexSubImage2DEXT(target, level, xoffset, yoffset, x, y, width, height) ANYGL_CALL(AnyGL_glCopyTexSubImage2D)(target, level, xoffset, yoffset, x, y, width, height)
 #define glCopyTexSubImage3DEXT(target, level, xoffset, yoffset, zoffset, x, y, width, height) ANYGL_CALL(AnyGL_glCopyTexSubImage3D)(target, level, xoffset, yoffset, zoffset, x, y, width, height)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_cull_vertex */
 typedef void (APIENTRY* PFNANYGLCULLPARAMETERDVEXTPROC)(GLenum pname, GLdouble *params);
@@ -13903,10 +13905,10 @@ typedef void (APIENTRY* PFNANYGLCULLPARAMETERFVEXTPROC)(GLenum pname, GLfloat *p
 ANYGL_EXPORT extern PFNANYGLCULLPARAMETERDVEXTPROC AnyGL_glCullParameterdvEXT;
 ANYGL_EXPORT extern PFNANYGLCULLPARAMETERFVEXTPROC AnyGL_glCullParameterfvEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glCullParameterdvEXT(pname, params) ANYGL_CALL(AnyGL_glCullParameterdvEXT)(pname, params)
 #define glCullParameterfvEXT(pname, params) ANYGL_CALL(AnyGL_glCullParameterfvEXT)(pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_debug_label */
 typedef void (APIENTRY* PFNANYGLLABELOBJECTEXTPROC)(GLenum type, GLuint object, GLsizei length, const GLchar *label);
@@ -13915,10 +13917,10 @@ typedef void (APIENTRY* PFNANYGLGETOBJECTLABELEXTPROC)(GLenum type, GLuint objec
 ANYGL_EXPORT extern PFNANYGLLABELOBJECTEXTPROC AnyGL_glLabelObjectEXT;
 ANYGL_EXPORT extern PFNANYGLGETOBJECTLABELEXTPROC AnyGL_glGetObjectLabelEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glLabelObjectEXT(type, object, length, label) ANYGL_CALL(AnyGL_glLabelObjectEXT)(type, object, length, label)
 #define glGetObjectLabelEXT(type, object, bufSize, length, label) ANYGL_CALL(AnyGL_glGetObjectLabelEXT)(type, object, bufSize, length, label)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_debug_marker */
 typedef void (APIENTRY* PFNANYGLINSERTEVENTMARKEREXTPROC)(GLsizei length, const GLchar *marker);
@@ -13929,20 +13931,20 @@ ANYGL_EXPORT extern PFNANYGLINSERTEVENTMARKEREXTPROC AnyGL_glInsertEventMarkerEX
 ANYGL_EXPORT extern PFNANYGLPUSHGROUPMARKEREXTPROC AnyGL_glPushGroupMarkerEXT;
 ANYGL_EXPORT extern PFNANYGLPOPGROUPMARKEREXTPROC AnyGL_glPopGroupMarkerEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glInsertEventMarkerEXT(length, marker) ANYGL_CALL(AnyGL_glInsertEventMarkerEXT)(length, marker)
 #define glPushGroupMarkerEXT(length, marker) ANYGL_CALL(AnyGL_glPushGroupMarkerEXT)(length, marker)
 #define glPopGroupMarkerEXT() ANYGL_CALL(AnyGL_glPopGroupMarkerEXT)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_depth_bounds_test */
 typedef void (APIENTRY* PFNANYGLDEPTHBOUNDSEXTPROC)(GLclampd zmin, GLclampd zmax);
 
 ANYGL_EXPORT extern PFNANYGLDEPTHBOUNDSEXTPROC AnyGL_glDepthBoundsEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDepthBoundsEXT(zmin, zmax) ANYGL_CALL(AnyGL_glDepthBoundsEXT)(zmin, zmax)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_direct_state_access */
 typedef void (APIENTRY* PFNANYGLMATRIXLOADFEXTPROC)(GLenum mode, const GLfloat *m);
@@ -14369,7 +14371,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXARRAYVERTEXATTRIBLOFFSETEXTPROC AnyGL_glVertex
 ANYGL_EXPORT extern PFNANYGLTEXTUREPAGECOMMITMENTEXTPROC AnyGL_glTexturePageCommitmentEXT;
 ANYGL_EXPORT extern PFNANYGLVERTEXARRAYVERTEXATTRIBDIVISOREXTPROC AnyGL_glVertexArrayVertexAttribDivisorEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMatrixLoadfEXT(mode, m) ANYGL_CALL(AnyGL_glMatrixLoadfEXT)(mode, m)
 #define glMatrixLoaddEXT(mode, m) ANYGL_CALL(AnyGL_glMatrixLoaddEXT)(mode, m)
 #define glMatrixMultfEXT(mode, m) ANYGL_CALL(AnyGL_glMatrixMultfEXT)(mode, m)
@@ -14625,21 +14627,21 @@ ANYGL_EXPORT extern PFNANYGLVERTEXARRAYVERTEXATTRIBDIVISOREXTPROC AnyGL_glVertex
 #define glVertexArrayVertexAttribLOffsetEXT(vaobj, buffer, index, size, type, stride, offset) ANYGL_CALL(AnyGL_glVertexArrayVertexAttribLOffsetEXT)(vaobj, buffer, index, size, type, stride, offset)
 #define glTexturePageCommitmentEXT(texture, level, xoffset, yoffset, zoffset, width, height, depth, commit) ANYGL_CALL(AnyGL_glTexturePageCommitmentEXT)(texture, level, xoffset, yoffset, zoffset, width, height, depth, commit)
 #define glVertexArrayVertexAttribDivisorEXT(vaobj, index, divisor) ANYGL_CALL(AnyGL_glVertexArrayVertexAttribDivisorEXT)(vaobj, index, divisor)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_discard_framebuffer */
 typedef void (APIENTRY* PFNANYGLDISCARDFRAMEBUFFEREXTPROC)(GLenum target, GLsizei numAttachments, const GLenum *attachments);
 
 ANYGL_EXPORT extern PFNANYGLDISCARDFRAMEBUFFEREXTPROC AnyGL_glDiscardFramebufferEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDiscardFramebufferEXT(target, numAttachments, attachments) ANYGL_CALL(AnyGL_glDiscardFramebufferEXT)(target, numAttachments, attachments)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_disjoint_timer_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGenQueriesEXT(n, ids) ANYGL_CALL(AnyGL_glGenQueries)(n, ids)
 #define glDeleteQueriesEXT(n, ids) ANYGL_CALL(AnyGL_glDeleteQueries)(n, ids)
 #define glIsQueryEXT(id) ANYGL_CALL(AnyGL_glIsQuery)(id)
@@ -14651,26 +14653,26 @@ ANYGL_EXPORT extern PFNANYGLDISCARDFRAMEBUFFEREXTPROC AnyGL_glDiscardFramebuffer
 #define glGetQueryObjectuivEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectuiv)(id, pname, params)
 #define glGetQueryObjecti64vEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjecti64v)(id, pname, params)
 #define glGetQueryObjectui64vEXT(id, pname, params) ANYGL_CALL(AnyGL_glGetQueryObjectui64v)(id, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_buffers */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawBuffersEXT(n, bufs) ANYGL_CALL(AnyGL_glDrawBuffers)(n, bufs)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_buffers2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glColorMaskIndexedEXT(index, r, g, b, a) ANYGL_CALL(AnyGL_glColorMaski)(index, r, g, b, a)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_buffers_indexed */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glEnableiEXT(target, index) ANYGL_CALL(AnyGL_glEnablei)(target, index)
 #define glDisableiEXT(target, index) ANYGL_CALL(AnyGL_glDisablei)(target, index)
 #define glBlendEquationiEXT(buf, mode) ANYGL_CALL(AnyGL_glBlendEquationi)(buf, mode)
@@ -14679,39 +14681,39 @@ ANYGL_EXPORT extern PFNANYGLDISCARDFRAMEBUFFEREXTPROC AnyGL_glDiscardFramebuffer
 #define glBlendFuncSeparateiEXT(buf, srcRGB, dstRGB, srcAlpha, dstAlpha) ANYGL_CALL(AnyGL_glBlendFuncSeparatei)(buf, srcRGB, dstRGB, srcAlpha, dstAlpha)
 #define glColorMaskiEXT(index, r, g, b, a) ANYGL_CALL(AnyGL_glColorMaski)(index, r, g, b, a)
 #define glIsEnablediEXT(target, index) ANYGL_CALL(AnyGL_glIsEnabledi)(target, index)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_elements_base_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawElementsBaseVertexEXT(mode, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawElementsBaseVertex)(mode, count, type, indices, basevertex)
 #define glDrawRangeElementsBaseVertexEXT(mode, start, end, count, type, indices, basevertex) ANYGL_CALL(AnyGL_glDrawRangeElementsBaseVertex)(mode, start, end, count, type, indices, basevertex)
 #define glDrawElementsInstancedBaseVertexEXT(mode, count, type, indices, instancecount, basevertex) ANYGL_CALL(AnyGL_glDrawElementsInstancedBaseVertex)(mode, count, type, indices, instancecount, basevertex)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_instanced */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawArraysInstancedEXT(mode, start, count, primcount) ANYGL_CALL(AnyGL_glDrawArraysInstanced)(mode, start, count, primcount)
 #define glDrawElementsInstancedEXT(mode, count, type, indices, primcount) ANYGL_CALL(AnyGL_glDrawElementsInstanced)(mode, count, type, indices, primcount)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_range_elements */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawRangeElementsEXT(mode, start, end, count, type, indices) ANYGL_CALL(AnyGL_glDrawRangeElements)(mode, start, end, count, type, indices)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_draw_transform_feedback */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glDrawTransformFeedbackEXT(mode, id) ANYGL_CALL(AnyGL_glDrawTransformFeedback)(mode, id)
 #define glDrawTransformFeedbackInstancedEXT(mode, id, instancecount) ANYGL_CALL(AnyGL_glDrawTransformFeedbackInstanced)(mode, id, instancecount)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_external_buffer */
 typedef void (APIENTRY* PFNANYGLBUFFERSTORAGEEXTERNALEXTPROC)(GLenum target, GLintptr offset, GLsizeiptr size, GLeglClientBufferEXT clientBuffer, GLbitfield flags);
@@ -14720,52 +14722,52 @@ typedef void (APIENTRY* PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC)(GLuint buffer
 ANYGL_EXPORT extern PFNANYGLBUFFERSTORAGEEXTERNALEXTPROC AnyGL_glBufferStorageExternalEXT;
 ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC AnyGL_glNamedBufferStorageExternalEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBufferStorageExternalEXT(target, offset, size, clientBuffer, flags) ANYGL_CALL(AnyGL_glBufferStorageExternalEXT)(target, offset, size, clientBuffer, flags)
 #define glNamedBufferStorageExternalEXT(buffer, offset, size, clientBuffer, flags) ANYGL_CALL(AnyGL_glNamedBufferStorageExternalEXT)(buffer, offset, size, clientBuffer, flags)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_float_blend */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_fog_coord */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFogCoordfEXT(coord) ANYGL_CALL(AnyGL_glFogCoordf)(coord)
 #define glFogCoordfvEXT(coord) ANYGL_CALL(AnyGL_glFogCoordfv)(coord)
 #define glFogCoorddEXT(coord) ANYGL_CALL(AnyGL_glFogCoordd)(coord)
 #define glFogCoorddvEXT(coord) ANYGL_CALL(AnyGL_glFogCoorddv)(coord)
 #define glFogCoordPointerEXT(type, stride, pointer) ANYGL_CALL(AnyGL_glFogCoordPointer)(type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_blit */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBlitFramebufferEXT(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter) ANYGL_CALL(AnyGL_glBlitFramebuffer)(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_multisample */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glRenderbufferStorageMultisampleEXT(target, samples, internalformat, width, height) ANYGL_CALL(AnyGL_glRenderbufferStorageMultisample)(target, samples, internalformat, width, height)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_multisample_blit_scaled */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glIsRenderbufferEXT(renderbuffer) ANYGL_CALL(AnyGL_glIsRenderbuffer)(renderbuffer)
 #define glBindRenderbufferEXT(target, renderbuffer) ANYGL_CALL(AnyGL_glBindRenderbuffer)(target, renderbuffer)
 #define glDeleteRenderbuffersEXT(n, renderbuffers) ANYGL_CALL(AnyGL_glDeleteRenderbuffers)(n, renderbuffers)
@@ -14783,33 +14785,33 @@ ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERSTORAGEEXTERNALEXTPROC AnyGL_glNamedBuffe
 #define glFramebufferRenderbufferEXT(target, attachment, renderbuffertarget, renderbuffer) ANYGL_CALL(AnyGL_glFramebufferRenderbuffer)(target, attachment, renderbuffertarget, renderbuffer)
 #define glGetFramebufferAttachmentParameterivEXT(target, attachment, pname, params) ANYGL_CALL(AnyGL_glGetFramebufferAttachmentParameteriv)(target, attachment, pname, params)
 #define glGenerateMipmapEXT(target) ANYGL_CALL(AnyGL_glGenerateMipmap)(target)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_framebuffer_sRGB */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_geometry_point_size */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_geometry_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferTextureEXT(target, attachment, texture, level) ANYGL_CALL(AnyGL_glFramebufferTexture)(target, attachment, texture, level)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_geometry_shader4 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProgramParameteriEXT(program, pname, value) ANYGL_CALL(AnyGL_glProgramParameteri)(program, pname, value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_gpu_program_parameters */
 typedef void (APIENTRY* PFNANYGLPROGRAMENVPARAMETERS4FVEXTPROC)(GLenum target, GLuint index, GLsizei count, const GLfloat *params);
@@ -14818,15 +14820,15 @@ typedef void (APIENTRY* PFNANYGLPROGRAMLOCALPARAMETERS4FVEXTPROC)(GLenum target,
 ANYGL_EXPORT extern PFNANYGLPROGRAMENVPARAMETERS4FVEXTPROC AnyGL_glProgramEnvParameters4fvEXT;
 ANYGL_EXPORT extern PFNANYGLPROGRAMLOCALPARAMETERS4FVEXTPROC AnyGL_glProgramLocalParameters4fvEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProgramEnvParameters4fvEXT(target, index, count, params) ANYGL_CALL(AnyGL_glProgramEnvParameters4fvEXT)(target, index, count, params)
 #define glProgramLocalParameters4fvEXT(target, index, count, params) ANYGL_CALL(AnyGL_glProgramLocalParameters4fvEXT)(target, index, count, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_gpu_shader4 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetUniformuivEXT(program, location, params) ANYGL_CALL(AnyGL_glGetUniformuiv)(program, location, params)
 #define glGetFragDataLocationEXT(program, name) ANYGL_CALL(AnyGL_glGetFragDataLocation)(program, name)
 #define glUniform1uiEXT(location, v0) ANYGL_CALL(AnyGL_glUniform1ui)(location, v0)
@@ -14837,13 +14839,13 @@ ANYGL_EXPORT extern PFNANYGLPROGRAMLOCALPARAMETERS4FVEXTPROC AnyGL_glProgramLoca
 #define glUniform2uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform2uiv)(location, count, value)
 #define glUniform3uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform3uiv)(location, count, value)
 #define glUniform4uivEXT(location, count, value) ANYGL_CALL(AnyGL_glUniform4uiv)(location, count, value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_gpu_shader5 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_histogram */
 typedef void (APIENTRY* PFNANYGLGETHISTOGRAMEXTPROC)(GLenum target, GLboolean reset, GLenum format, GLenum type, void *values);
@@ -14860,7 +14862,7 @@ ANYGL_EXPORT extern PFNANYGLGETMINMAXEXTPROC AnyGL_glGetMinmaxEXT;
 ANYGL_EXPORT extern PFNANYGLGETMINMAXPARAMETERFVEXTPROC AnyGL_glGetMinmaxParameterfvEXT;
 ANYGL_EXPORT extern PFNANYGLGETMINMAXPARAMETERIVEXTPROC AnyGL_glGetMinmaxParameterivEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetHistogramEXT(target, reset, format, type, values) ANYGL_CALL(AnyGL_glGetHistogramEXT)(target, reset, format, type, values)
 #define glGetHistogramParameterfvEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetHistogramParameterfvEXT)(target, pname, params)
 #define glGetHistogramParameterivEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetHistogramParameterivEXT)(target, pname, params)
@@ -14871,44 +14873,44 @@ ANYGL_EXPORT extern PFNANYGLGETMINMAXPARAMETERIVEXTPROC AnyGL_glGetMinmaxParamet
 #define glMinmaxEXT(target, internalformat, sink) ANYGL_CALL(AnyGL_glMinmax)(target, internalformat, sink)
 #define glResetHistogramEXT(target) ANYGL_CALL(AnyGL_glResetHistogram)(target)
 #define glResetMinmaxEXT(target) ANYGL_CALL(AnyGL_glResetMinmax)(target)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_index_array_formats */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_index_func */
 typedef void (APIENTRY* PFNANYGLINDEXFUNCEXTPROC)(GLenum func, GLclampf ref);
 
 ANYGL_EXPORT extern PFNANYGLINDEXFUNCEXTPROC AnyGL_glIndexFuncEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glIndexFuncEXT(func, ref) ANYGL_CALL(AnyGL_glIndexFuncEXT)(func, ref)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_index_material */
 typedef void (APIENTRY* PFNANYGLINDEXMATERIALEXTPROC)(GLenum face, GLenum mode);
 
 ANYGL_EXPORT extern PFNANYGLINDEXMATERIALEXTPROC AnyGL_glIndexMaterialEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glIndexMaterialEXT(face, mode) ANYGL_CALL(AnyGL_glIndexMaterialEXT)(face, mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_index_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_instanced_arrays */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glVertexAttribDivisorEXT(index, divisor) ANYGL_CALL(AnyGL_glVertexAttribDivisor)(index, divisor)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_light_texture */
 typedef void (APIENTRY* PFNANYGLAPPLYTEXTUREEXTPROC)(GLenum mode);
@@ -14919,19 +14921,19 @@ ANYGL_EXPORT extern PFNANYGLAPPLYTEXTUREEXTPROC AnyGL_glApplyTextureEXT;
 ANYGL_EXPORT extern PFNANYGLTEXTURELIGHTEXTPROC AnyGL_glTextureLightEXT;
 ANYGL_EXPORT extern PFNANYGLTEXTUREMATERIALEXTPROC AnyGL_glTextureMaterialEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glApplyTextureEXT(mode) ANYGL_CALL(AnyGL_glApplyTextureEXT)(mode)
 #define glTextureLightEXT(pname) ANYGL_CALL(AnyGL_glTextureLightEXT)(pname)
 #define glTextureMaterialEXT(face, mode) ANYGL_CALL(AnyGL_glTextureMaterialEXT)(face, mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_map_buffer_range */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMapBufferRangeEXT(target, offset, length, access) ANYGL_CALL(AnyGL_glMapBufferRange)(target, offset, length, access)
 #define glFlushMappedBufferRangeEXT(target, offset, length) ANYGL_CALL(AnyGL_glFlushMappedBufferRange)(target, offset, length)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_memory_object */
 typedef void (APIENTRY* PFNANYGLGETUNSIGNEDBYTEVEXTPROC)(GLenum pname, GLubyte *data);
@@ -14974,7 +14976,7 @@ ANYGL_EXPORT extern PFNANYGLNAMEDBUFFERSTORAGEMEMEXTPROC AnyGL_glNamedBufferStor
 ANYGL_EXPORT extern PFNANYGLTEXSTORAGEMEM1DEXTPROC AnyGL_glTexStorageMem1DEXT;
 ANYGL_EXPORT extern PFNANYGLTEXTURESTORAGEMEM1DEXTPROC AnyGL_glTextureStorageMem1DEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetUnsignedBytevEXT(pname, data) ANYGL_CALL(AnyGL_glGetUnsignedBytevEXT)(pname, data)
 #define glGetUnsignedBytei_vEXT(target, index, data) ANYGL_CALL(AnyGL_glGetUnsignedBytei_vEXT)(target, index, data)
 #define glDeleteMemoryObjectsEXT(n, memoryObjects) ANYGL_CALL(AnyGL_glDeleteMemoryObjectsEXT)(n, memoryObjects)
@@ -14994,16 +14996,16 @@ ANYGL_EXPORT extern PFNANYGLTEXTURESTORAGEMEM1DEXTPROC AnyGL_glTextureStorageMem
 #define glNamedBufferStorageMemEXT(buffer, size, memory, offset) ANYGL_CALL(AnyGL_glNamedBufferStorageMemEXT)(buffer, size, memory, offset)
 #define glTexStorageMem1DEXT(target, levels, internalFormat, width, memory, offset) ANYGL_CALL(AnyGL_glTexStorageMem1DEXT)(target, levels, internalFormat, width, memory, offset)
 #define glTextureStorageMem1DEXT(texture, levels, internalFormat, width, memory, offset) ANYGL_CALL(AnyGL_glTextureStorageMem1DEXT)(texture, levels, internalFormat, width, memory, offset)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_memory_object_fd */
 typedef void (APIENTRY* PFNANYGLIMPORTMEMORYFDEXTPROC)(GLuint memory, GLuint64 size, GLenum handleType, GLint fd);
 
 ANYGL_EXPORT extern PFNANYGLIMPORTMEMORYFDEXTPROC AnyGL_glImportMemoryFdEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glImportMemoryFdEXT(memory, size, handleType, fd) ANYGL_CALL(AnyGL_glImportMemoryFdEXT)(memory, size, handleType, fd)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_memory_object_win32 */
 typedef void (APIENTRY* PFNANYGLIMPORTMEMORYWIN32HANDLEEXTPROC)(GLuint memory, GLuint64 size, GLenum handleType, void *handle);
@@ -15012,32 +15014,32 @@ typedef void (APIENTRY* PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC)(GLuint memory, GLu
 ANYGL_EXPORT extern PFNANYGLIMPORTMEMORYWIN32HANDLEEXTPROC AnyGL_glImportMemoryWin32HandleEXT;
 ANYGL_EXPORT extern PFNANYGLIMPORTMEMORYWIN32NAMEEXTPROC AnyGL_glImportMemoryWin32NameEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glImportMemoryWin32HandleEXT(memory, size, handleType, handle) ANYGL_CALL(AnyGL_glImportMemoryWin32HandleEXT)(memory, size, handleType, handle)
 #define glImportMemoryWin32NameEXT(memory, size, handleType, name) ANYGL_CALL(AnyGL_glImportMemoryWin32NameEXT)(memory, size, handleType, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_misc_attribute */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multi_draw_arrays */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiDrawArraysEXT(mode, first, count, primcount) ANYGL_CALL(AnyGL_glMultiDrawArrays)(mode, first, count, primcount)
 #define glMultiDrawElementsEXT(mode, count, type, indices, primcount) ANYGL_CALL(AnyGL_glMultiDrawElements)(mode, count, type, indices, primcount)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multi_draw_indirect */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glMultiDrawArraysIndirectEXT(mode, indirect, drawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawArraysIndirect)(mode, indirect, drawcount, stride)
 #define glMultiDrawElementsIndirectEXT(mode, type, indirect, drawcount, stride) ANYGL_CALL(AnyGL_glMultiDrawElementsIndirect)(mode, type, indirect, drawcount, stride)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multisample */
 typedef void (APIENTRY* PFNANYGLSAMPLEMASKEXTPROC)(GLclampf value, GLboolean invert);
@@ -15046,25 +15048,25 @@ typedef void (APIENTRY* PFNANYGLSAMPLEPATTERNEXTPROC)(GLenum pattern);
 ANYGL_EXPORT extern PFNANYGLSAMPLEMASKEXTPROC AnyGL_glSampleMaskEXT;
 ANYGL_EXPORT extern PFNANYGLSAMPLEPATTERNEXTPROC AnyGL_glSamplePatternEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glSampleMaskEXT(value, invert) ANYGL_CALL(AnyGL_glSampleMaskEXT)(value, invert)
 #define glSamplePatternEXT(pattern) ANYGL_CALL(AnyGL_glSamplePatternEXT)(pattern)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multisampled_compatibility */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multisampled_render_to_texture */
 typedef void (APIENTRY* PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLsizei samples);
 
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC AnyGL_glFramebufferTexture2DMultisampleEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferTexture2DMultisampleEXT(target, attachment, textarget, texture, level, samples) ANYGL_CALL(AnyGL_glFramebufferTexture2DMultisampleEXT)(target, attachment, textarget, texture, level, samples)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_multiview_draw_buffers */
 typedef void (APIENTRY* PFNANYGLREADBUFFERINDEXEDEXTPROC)(GLenum src, GLint index);
@@ -15075,51 +15077,51 @@ ANYGL_EXPORT extern PFNANYGLREADBUFFERINDEXEDEXTPROC AnyGL_glReadBufferIndexedEX
 ANYGL_EXPORT extern PFNANYGLDRAWBUFFERSINDEXEDEXTPROC AnyGL_glDrawBuffersIndexedEXT;
 ANYGL_EXPORT extern PFNANYGLGETINTEGERI_VEXTPROC AnyGL_glGetIntegeri_vEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glReadBufferIndexedEXT(src, index) ANYGL_CALL(AnyGL_glReadBufferIndexedEXT)(src, index)
 #define glDrawBuffersIndexedEXT(n, location, indices) ANYGL_CALL(AnyGL_glDrawBuffersIndexedEXT)(n, location, indices)
 #define glGetIntegeri_vEXT(target, index, data) ANYGL_CALL(AnyGL_glGetIntegeri_vEXT)(target, index, data)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_occlusion_query_boolean */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_packed_depth_stencil */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_packed_float */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_packed_pixels */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_paletted_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glColorTableEXT(target, internalFormat, width, format, type, table) ANYGL_CALL(AnyGL_glColorTable)(target, internalFormat, width, format, type, table)
 #define glGetColorTableEXT(target, format, type, data) ANYGL_CALL(AnyGL_glGetColorTable)(target, format, type, data)
 #define glGetColorTableParameterivEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetColorTableParameteriv)(target, pname, params)
 #define glGetColorTableParameterfvEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetColorTableParameterfv)(target, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_pixel_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_pixel_transform */
 typedef void (APIENTRY* PFNANYGLPIXELTRANSFORMPARAMETERIEXTPROC)(GLenum target, GLenum pname, GLint param);
@@ -15136,130 +15138,130 @@ ANYGL_EXPORT extern PFNANYGLPIXELTRANSFORMPARAMETERFVEXTPROC AnyGL_glPixelTransf
 ANYGL_EXPORT extern PFNANYGLGETPIXELTRANSFORMPARAMETERIVEXTPROC AnyGL_glGetPixelTransformParameterivEXT;
 ANYGL_EXPORT extern PFNANYGLGETPIXELTRANSFORMPARAMETERFVEXTPROC AnyGL_glGetPixelTransformParameterfvEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPixelTransformParameteriEXT(target, pname, param) ANYGL_CALL(AnyGL_glPixelTransformParameteriEXT)(target, pname, param)
 #define glPixelTransformParameterfEXT(target, pname, param) ANYGL_CALL(AnyGL_glPixelTransformParameterfEXT)(target, pname, param)
 #define glPixelTransformParameterivEXT(target, pname, params) ANYGL_CALL(AnyGL_glPixelTransformParameterivEXT)(target, pname, params)
 #define glPixelTransformParameterfvEXT(target, pname, params) ANYGL_CALL(AnyGL_glPixelTransformParameterfvEXT)(target, pname, params)
 #define glGetPixelTransformParameterivEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetPixelTransformParameterivEXT)(target, pname, params)
 #define glGetPixelTransformParameterfvEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetPixelTransformParameterfvEXT)(target, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_pixel_transform_color_table */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_point_parameters */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPointParameterfEXT(pname, param) ANYGL_CALL(AnyGL_glPointParameterf)(pname, param)
 #define glPointParameterfvEXT(pname, params) ANYGL_CALL(AnyGL_glPointParameterfv)(pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_polygon_offset */
 typedef void (APIENTRY* PFNANYGLPOLYGONOFFSETEXTPROC)(GLfloat factor, GLfloat bias);
 
 ANYGL_EXPORT extern PFNANYGLPOLYGONOFFSETEXTPROC AnyGL_glPolygonOffsetEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPolygonOffsetEXT(factor, bias) ANYGL_CALL(AnyGL_glPolygonOffsetEXT)(factor, bias)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_polygon_offset_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPolygonOffsetClampEXT(factor, units, clamp) ANYGL_CALL(AnyGL_glPolygonOffsetClamp)(factor, units, clamp)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_post_depth_coverage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_primitive_bounding_box */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPrimitiveBoundingBoxEXT(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW) ANYGL_CALL(AnyGL_glPrimitiveBoundingBox)(minX, minY, minZ, minW, maxX, maxY, maxZ, maxW)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_protected_textures */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_provoking_vertex */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glProvokingVertexEXT(mode) ANYGL_CALL(AnyGL_glProvokingVertex)(mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_pvrtc_sRGB */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_raster_multisample */
 typedef void (APIENTRY* PFNANYGLRASTERSAMPLESEXTPROC)(GLuint samples, GLboolean fixedsamplelocations);
 
 ANYGL_EXPORT extern PFNANYGLRASTERSAMPLESEXTPROC AnyGL_glRasterSamplesEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glRasterSamplesEXT(samples, fixedsamplelocations) ANYGL_CALL(AnyGL_glRasterSamplesEXT)(samples, fixedsamplelocations)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_read_format_bgra */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_render_snorm */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_rescale_normal */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_robustness */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGetGraphicsResetStatusEXT() ANYGL_CALL(AnyGL_glGetGraphicsResetStatus)()
 #define glReadnPixelsEXT(x, y, width, height, format, type, bufSize, data) ANYGL_CALL(AnyGL_glReadnPixels)(x, y, width, height, format, type, bufSize, data)
 #define glGetnUniformfvEXT(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformfv)(program, location, bufSize, params)
 #define glGetnUniformivEXT(program, location, bufSize, params) ANYGL_CALL(AnyGL_glGetnUniformiv)(program, location, bufSize, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_sRGB */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_sRGB_write_control */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_secondary_color */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glSecondaryColor3bEXT(red, green, blue) ANYGL_CALL(AnyGL_glSecondaryColor3b)(red, green, blue)
 #define glSecondaryColor3bvEXT(v) ANYGL_CALL(AnyGL_glSecondaryColor3bv)(v)
 #define glSecondaryColor3dEXT(red, green, blue) ANYGL_CALL(AnyGL_glSecondaryColor3d)(red, green, blue)
@@ -15277,7 +15279,7 @@ ANYGL_EXPORT extern PFNANYGLRASTERSAMPLESEXTPROC AnyGL_glRasterSamplesEXT;
 #define glSecondaryColor3usEXT(red, green, blue) ANYGL_CALL(AnyGL_glSecondaryColor3us)(red, green, blue)
 #define glSecondaryColor3usvEXT(v) ANYGL_CALL(AnyGL_glSecondaryColor3usv)(v)
 #define glSecondaryColorPointerEXT(size, type, stride, pointer) ANYGL_CALL(AnyGL_glSecondaryColorPointer)(size, type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_semaphore */
 typedef void (APIENTRY* PFNANYGLGENSEMAPHORESEXTPROC)(GLsizei n, GLuint *semaphores);
@@ -15296,7 +15298,7 @@ ANYGL_EXPORT extern PFNANYGLGETSEMAPHOREPARAMETERUI64VEXTPROC AnyGL_glGetSemapho
 ANYGL_EXPORT extern PFNANYGLWAITSEMAPHOREEXTPROC AnyGL_glWaitSemaphoreEXT;
 ANYGL_EXPORT extern PFNANYGLSIGNALSEMAPHOREEXTPROC AnyGL_glSignalSemaphoreEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glGenSemaphoresEXT(n, semaphores) ANYGL_CALL(AnyGL_glGenSemaphoresEXT)(n, semaphores)
 #define glDeleteSemaphoresEXT(n, semaphores) ANYGL_CALL(AnyGL_glDeleteSemaphoresEXT)(n, semaphores)
 #define glIsSemaphoreEXT(semaphore) ANYGL_CALL(AnyGL_glIsSemaphoreEXT)(semaphore)
@@ -15304,16 +15306,16 @@ ANYGL_EXPORT extern PFNANYGLSIGNALSEMAPHOREEXTPROC AnyGL_glSignalSemaphoreEXT;
 #define glGetSemaphoreParameterui64vEXT(semaphore, pname, params) ANYGL_CALL(AnyGL_glGetSemaphoreParameterui64vEXT)(semaphore, pname, params)
 #define glWaitSemaphoreEXT(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, srcLayouts) ANYGL_CALL(AnyGL_glWaitSemaphoreEXT)(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, srcLayouts)
 #define glSignalSemaphoreEXT(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, dstLayouts) ANYGL_CALL(AnyGL_glSignalSemaphoreEXT)(semaphore, numBufferBarriers, buffers, numTextureBarriers, textures, dstLayouts)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_semaphore_fd */
 typedef void (APIENTRY* PFNANYGLIMPORTSEMAPHOREFDEXTPROC)(GLuint semaphore, GLenum handleType, GLint fd);
 
 ANYGL_EXPORT extern PFNANYGLIMPORTSEMAPHOREFDEXTPROC AnyGL_glImportSemaphoreFdEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glImportSemaphoreFdEXT(semaphore, handleType, fd) ANYGL_CALL(AnyGL_glImportSemaphoreFdEXT)(semaphore, handleType, fd)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_semaphore_win32 */
 typedef void (APIENTRY* PFNANYGLIMPORTSEMAPHOREWIN32HANDLEEXTPROC)(GLuint semaphore, GLenum handleType, void *handle);
@@ -15322,10 +15324,10 @@ typedef void (APIENTRY* PFNANYGLIMPORTSEMAPHOREWIN32NAMEEXTPROC)(GLuint semaphor
 ANYGL_EXPORT extern PFNANYGLIMPORTSEMAPHOREWIN32HANDLEEXTPROC AnyGL_glImportSemaphoreWin32HandleEXT;
 ANYGL_EXPORT extern PFNANYGLIMPORTSEMAPHOREWIN32NAMEEXTPROC AnyGL_glImportSemaphoreWin32NameEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glImportSemaphoreWin32HandleEXT(semaphore, handleType, handle) ANYGL_CALL(AnyGL_glImportSemaphoreWin32HandleEXT)(semaphore, handleType, handle)
 #define glImportSemaphoreWin32NameEXT(semaphore, handleType, name) ANYGL_CALL(AnyGL_glImportSemaphoreWin32NameEXT)(semaphore, handleType, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_separate_shader_objects */
 typedef void (APIENTRY* PFNANYGLUSESHADERPROGRAMEXTPROC)(GLenum type, GLuint program);
@@ -15356,7 +15358,7 @@ ANYGL_EXPORT extern PFNANYGLISPROGRAMPIPELINEEXTPROC AnyGL_glIsProgramPipelineEX
 ANYGL_EXPORT extern PFNANYGLUSEPROGRAMSTAGESEXTPROC AnyGL_glUseProgramStagesEXT;
 ANYGL_EXPORT extern PFNANYGLVALIDATEPROGRAMPIPELINEEXTPROC AnyGL_glValidateProgramPipelineEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glUseShaderProgramEXT(type, program) ANYGL_CALL(AnyGL_glUseShaderProgramEXT)(type, program)
 #define glActiveProgramEXT(program) ANYGL_CALL(AnyGL_glActiveProgramEXT)(program)
 #define glCreateShaderProgramEXT(type, string) ANYGL_CALL(AnyGL_glCreateShaderProgramEXT)(type, string)
@@ -15370,78 +15372,78 @@ ANYGL_EXPORT extern PFNANYGLVALIDATEPROGRAMPIPELINEEXTPROC AnyGL_glValidateProgr
 #define glIsProgramPipelineEXT(pipeline) ANYGL_CALL(AnyGL_glIsProgramPipelineEXT)(pipeline)
 #define glUseProgramStagesEXT(pipeline, stages, program) ANYGL_CALL(AnyGL_glUseProgramStagesEXT)(pipeline, stages, program)
 #define glValidateProgramPipelineEXT(pipeline) ANYGL_CALL(AnyGL_glValidateProgramPipelineEXT)(pipeline)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_separate_specular_color */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_framebuffer_fetch */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_framebuffer_fetch_non_coherent */
 typedef void (APIENTRY* PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC)();
 
 ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERFETCHBARRIEREXTPROC AnyGL_glFramebufferFetchBarrierEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferFetchBarrierEXT() ANYGL_CALL(AnyGL_glFramebufferFetchBarrierEXT)()
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_group_vote */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_image_load_formatted */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_image_load_store */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBindImageTextureEXT(index, texture, level, layered, layer, access, format) ANYGL_CALL(AnyGL_glBindImageTexture)(index, texture, level, layered, layer, access, format)
 #define glMemoryBarrierEXT(barriers) ANYGL_CALL(AnyGL_glMemoryBarrier)(barriers)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_implicit_conversions */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_integer_mix */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_io_blocks */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_non_constant_global_initializers */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_pixel_local_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_pixel_local_storage2 */
 typedef void (APIENTRY* PFNANYGLFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC)(GLuint target, GLsizei size);
@@ -15452,119 +15454,119 @@ ANYGL_EXPORT extern PFNANYGLFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC AnyGL_glFram
 ANYGL_EXPORT extern PFNANYGLGETFRAMEBUFFERPIXELLOCALSTORAGESIZEEXTPROC AnyGL_glGetFramebufferPixelLocalStorageSizeEXT;
 ANYGL_EXPORT extern PFNANYGLCLEARPIXELLOCALSTORAGEUIEXTPROC AnyGL_glClearPixelLocalStorageuiEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferPixelLocalStorageSizeEXT(target, size) ANYGL_CALL(AnyGL_glFramebufferPixelLocalStorageSizeEXT)(target, size)
 #define glGetFramebufferPixelLocalStorageSizeEXT(target) ANYGL_CALL(AnyGL_glGetFramebufferPixelLocalStorageSizeEXT)(target)
 #define glClearPixelLocalStorageuiEXT(offset, n, values) ANYGL_CALL(AnyGL_glClearPixelLocalStorageuiEXT)(offset, n, values)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shader_texture_lod */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shadow_funcs */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shadow_samplers */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_shared_texture_palette */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_sparse_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexPageCommitmentEXT(target, level, xoffset, yoffset, zoffset, width, height, depth, commit) ANYGL_CALL(AnyGL_glTexPageCommitmentARB)(target, level, xoffset, yoffset, zoffset, width, height, depth, commit)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_sparse_texture2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_stencil_clear_tag */
 typedef void (APIENTRY* PFNANYGLSTENCILCLEARTAGEXTPROC)(GLsizei stencilTagBits, GLuint stencilClearTag);
 
 ANYGL_EXPORT extern PFNANYGLSTENCILCLEARTAGEXTPROC AnyGL_glStencilClearTagEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glStencilClearTagEXT(stencilTagBits, stencilClearTag) ANYGL_CALL(AnyGL_glStencilClearTagEXT)(stencilTagBits, stencilClearTag)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_stencil_two_side */
 typedef void (APIENTRY* PFNANYGLACTIVESTENCILFACEEXTPROC)(GLenum face);
 
 ANYGL_EXPORT extern PFNANYGLACTIVESTENCILFACEEXTPROC AnyGL_glActiveStencilFaceEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glActiveStencilFaceEXT(face) ANYGL_CALL(AnyGL_glActiveStencilFaceEXT)(face)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_stencil_wrap */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_subtexture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexSubImage1DEXT(target, level, xoffset, width, format, type, pixels) ANYGL_CALL(AnyGL_glTexSubImage1D)(target, level, xoffset, width, format, type, pixels)
 #define glTexSubImage2DEXT(target, level, xoffset, yoffset, width, height, format, type, pixels) ANYGL_CALL(AnyGL_glTexSubImage2D)(target, level, xoffset, yoffset, width, height, format, type, pixels)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_tessellation_point_size */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_tessellation_shader */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glPatchParameteriEXT(pname, value) ANYGL_CALL(AnyGL_glPatchParameteri)(pname, value)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture3D */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexImage3DEXT(target, level, internalformat, width, height, depth, border, format, type, pixels) ANYGL_CALL(AnyGL_glTexImage3D)(target, level, internalformat, width, height, depth, border, format, type, pixels)
 #define glTexSubImage3DEXT(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels) ANYGL_CALL(AnyGL_glTexSubImage3D)(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glFramebufferTextureLayerEXT(target, attachment, texture, level, layer) ANYGL_CALL(AnyGL_glFramebufferTextureLayer)(target, attachment, texture, level, layer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_border_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexParameterIivEXT(target, pname, params) ANYGL_CALL(AnyGL_glTexParameterIiv)(target, pname, params)
 #define glTexParameterIuivEXT(target, pname, params) ANYGL_CALL(AnyGL_glTexParameterIuiv)(target, pname, params)
 #define glGetTexParameterIivEXT(target, pname, params) ANYGL_CALL(AnyGL_glGetTexParameterIiv)(target, pname, params)
@@ -15573,117 +15575,117 @@ ANYGL_EXPORT extern PFNANYGLACTIVESTENCILFACEEXTPROC AnyGL_glActiveStencilFaceEX
 #define glSamplerParameterIuivEXT(sampler, pname, param) ANYGL_CALL(AnyGL_glSamplerParameterIuiv)(sampler, pname, param)
 #define glGetSamplerParameterIivEXT(sampler, pname, params) ANYGL_CALL(AnyGL_glGetSamplerParameterIiv)(sampler, pname, params)
 #define glGetSamplerParameterIuivEXT(sampler, pname, params) ANYGL_CALL(AnyGL_glGetSamplerParameterIuiv)(sampler, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_buffer */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexBufferEXT(target, internalformat, buffer) ANYGL_CALL(AnyGL_glTexBuffer)(target, internalformat, buffer)
 #define glTexBufferRangeEXT(target, internalformat, buffer, offset, size) ANYGL_CALL(AnyGL_glTexBufferRange)(target, internalformat, buffer, offset, size)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_buffer_object */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_astc_decode_mode */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_bptc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_dxt1 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_latc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_rgtc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_s3tc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_compression_s3tc_srgb */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_cube_map */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_cube_map_array */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_env_add */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_env_combine */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_env_dot3 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_filter_anisotropic */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_filter_minmax */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_format_BGRA8888 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_format_sRGB_override */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_integer */
 typedef void (APIENTRY* PFNANYGLCLEARCOLORIIEXTPROC)(GLint red, GLint green, GLint blue, GLint alpha);
@@ -15692,140 +15694,140 @@ typedef void (APIENTRY* PFNANYGLCLEARCOLORIUIEXTPROC)(GLuint red, GLuint green, 
 ANYGL_EXPORT extern PFNANYGLCLEARCOLORIIEXTPROC AnyGL_glClearColorIiEXT;
 ANYGL_EXPORT extern PFNANYGLCLEARCOLORIUIEXTPROC AnyGL_glClearColorIuiEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glClearColorIiEXT(red, green, blue, alpha) ANYGL_CALL(AnyGL_glClearColorIiEXT)(red, green, blue, alpha)
 #define glClearColorIuiEXT(red, green, blue, alpha) ANYGL_CALL(AnyGL_glClearColorIuiEXT)(red, green, blue, alpha)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_lod_bias */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_mirror_clamp */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_mirror_clamp_to_edge */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_norm16 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_object */
 typedef GLboolean (APIENTRY* PFNANYGLARETEXTURESRESIDENTEXTPROC)(GLsizei n, const GLuint *textures, GLboolean *residences);
 
 ANYGL_EXPORT extern PFNANYGLARETEXTURESRESIDENTEXTPROC AnyGL_glAreTexturesResidentEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glAreTexturesResidentEXT(n, textures, residences) ANYGL_CALL(AnyGL_glAreTexturesResidentEXT)(n, textures, residences)
 #define glBindTextureEXT(target, texture) ANYGL_CALL(AnyGL_glBindTexture)(target, texture)
 #define glDeleteTexturesEXT(n, textures) ANYGL_CALL(AnyGL_glDeleteTextures)(n, textures)
 #define glGenTexturesEXT(n, textures) ANYGL_CALL(AnyGL_glGenTextures)(n, textures)
 #define glIsTextureEXT(texture) ANYGL_CALL(AnyGL_glIsTexture)(texture)
 #define glPrioritizeTexturesEXT(n, textures, priorities) ANYGL_CALL(AnyGL_glPrioritizeTextures)(n, textures, priorities)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_perturb_normal */
 typedef void (APIENTRY* PFNANYGLTEXTURENORMALEXTPROC)(GLenum mode);
 
 ANYGL_EXPORT extern PFNANYGLTEXTURENORMALEXTPROC AnyGL_glTextureNormalEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTextureNormalEXT(mode) ANYGL_CALL(AnyGL_glTextureNormalEXT)(mode)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_rg */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_sRGB */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_sRGB_R8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_sRGB_RG8 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_sRGB_decode */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_shared_exponent */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_snorm */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_storage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTexStorage1DEXT(target, levels, internalformat, width) ANYGL_CALL(AnyGL_glTexStorage1D)(target, levels, internalformat, width)
 #define glTexStorage2DEXT(target, levels, internalformat, width, height) ANYGL_CALL(AnyGL_glTexStorage2D)(target, levels, internalformat, width, height)
 #define glTexStorage3DEXT(target, levels, internalformat, width, height, depth) ANYGL_CALL(AnyGL_glTexStorage3D)(target, levels, internalformat, width, height, depth)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_swizzle */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_type_2_10_10_10_REV */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_texture_view */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glTextureViewEXT(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers) ANYGL_CALL(AnyGL_glTextureView)(texture, target, origtexture, internalformat, minlevel, numlevels, minlayer, numlayers)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_timer_query */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_transform_feedback */
 typedef void (APIENTRY* PFNANYGLBINDBUFFEROFFSETEXTPROC)(GLenum target, GLuint index, GLuint buffer, GLintptr offset);
 
 ANYGL_EXPORT extern PFNANYGLBINDBUFFEROFFSETEXTPROC AnyGL_glBindBufferOffsetEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBeginTransformFeedbackEXT(primitiveMode) ANYGL_CALL(AnyGL_glBeginTransformFeedback)(primitiveMode)
 #define glEndTransformFeedbackEXT() ANYGL_CALL(AnyGL_glEndTransformFeedback)()
 #define glBindBufferRangeEXT(target, index, buffer, offset, size) ANYGL_CALL(AnyGL_glBindBufferRange)(target, index, buffer, offset, size)
@@ -15833,13 +15835,13 @@ ANYGL_EXPORT extern PFNANYGLBINDBUFFEROFFSETEXTPROC AnyGL_glBindBufferOffsetEXT;
 #define glBindBufferBaseEXT(target, index, buffer) ANYGL_CALL(AnyGL_glBindBufferBase)(target, index, buffer)
 #define glTransformFeedbackVaryingsEXT(program, count, varyings, bufferMode) ANYGL_CALL(AnyGL_glTransformFeedbackVaryings)(program, count, varyings, bufferMode)
 #define glGetTransformFeedbackVaryingEXT(program, index, bufSize, length, size, type, name) ANYGL_CALL(AnyGL_glGetTransformFeedbackVarying)(program, index, bufSize, length, size, type, name)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_unpack_subimage */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_vertex_array */
 typedef void (APIENTRY* PFNANYGLCOLORPOINTEREXTPROC)(GLint size, GLenum type, GLsizei stride, GLsizei count, const void *pointer);
@@ -15856,7 +15858,7 @@ ANYGL_EXPORT extern PFNANYGLNORMALPOINTEREXTPROC AnyGL_glNormalPointerEXT;
 ANYGL_EXPORT extern PFNANYGLTEXCOORDPOINTEREXTPROC AnyGL_glTexCoordPointerEXT;
 ANYGL_EXPORT extern PFNANYGLVERTEXPOINTEREXTPROC AnyGL_glVertexPointerEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glArrayElementEXT(i) ANYGL_CALL(AnyGL_glArrayElement)(i)
 #define glColorPointerEXT(size, type, stride, count, pointer) ANYGL_CALL(AnyGL_glColorPointerEXT)(size, type, stride, count, pointer)
 #define glDrawArraysEXT(mode, first, count) ANYGL_CALL(AnyGL_glDrawArrays)(mode, first, count)
@@ -15866,18 +15868,18 @@ ANYGL_EXPORT extern PFNANYGLVERTEXPOINTEREXTPROC AnyGL_glVertexPointerEXT;
 #define glNormalPointerEXT(type, stride, count, pointer) ANYGL_CALL(AnyGL_glNormalPointerEXT)(type, stride, count, pointer)
 #define glTexCoordPointerEXT(size, type, stride, count, pointer) ANYGL_CALL(AnyGL_glTexCoordPointerEXT)(size, type, stride, count, pointer)
 #define glVertexPointerEXT(size, type, stride, count, pointer) ANYGL_CALL(AnyGL_glVertexPointerEXT)(size, type, stride, count, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_vertex_array_bgra */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_vertex_attrib_64bit */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glVertexAttribL1dEXT(index, x) ANYGL_CALL(AnyGL_glVertexAttribL1d)(index, x)
 #define glVertexAttribL2dEXT(index, x, y) ANYGL_CALL(AnyGL_glVertexAttribL2d)(index, x, y)
 #define glVertexAttribL3dEXT(index, x, y, z) ANYGL_CALL(AnyGL_glVertexAttribL3d)(index, x, y, z)
@@ -15888,7 +15890,7 @@ ANYGL_EXPORT extern PFNANYGLVERTEXPOINTEREXTPROC AnyGL_glVertexPointerEXT;
 #define glVertexAttribL4dvEXT(index, v) ANYGL_CALL(AnyGL_glVertexAttribL4dv)(index, v)
 #define glVertexAttribLPointerEXT(index, size, type, stride, pointer) ANYGL_CALL(AnyGL_glVertexAttribLPointer)(index, size, type, stride, pointer)
 #define glGetVertexAttribLdvEXT(index, pname, params) ANYGL_CALL(AnyGL_glGetVertexAttribLdv)(index, pname, params)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_vertex_shader */
 typedef void (APIENTRY* PFNANYGLBEGINVERTEXSHADEREXTPROC)();
@@ -15977,7 +15979,7 @@ ANYGL_EXPORT extern PFNANYGLGETLOCALCONSTANTBOOLEANVEXTPROC AnyGL_glGetLocalCons
 ANYGL_EXPORT extern PFNANYGLGETLOCALCONSTANTINTEGERVEXTPROC AnyGL_glGetLocalConstantIntegervEXT;
 ANYGL_EXPORT extern PFNANYGLGETLOCALCONSTANTFLOATVEXTPROC AnyGL_glGetLocalConstantFloatvEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glBeginVertexShaderEXT() ANYGL_CALL(AnyGL_glBeginVertexShaderEXT)()
 #define glEndVertexShaderEXT() ANYGL_CALL(AnyGL_glEndVertexShaderEXT)()
 #define glBindVertexShaderEXT(id) ANYGL_CALL(AnyGL_glBindVertexShaderEXT)(id)
@@ -16020,7 +16022,7 @@ ANYGL_EXPORT extern PFNANYGLGETLOCALCONSTANTFLOATVEXTPROC AnyGL_glGetLocalConsta
 #define glGetLocalConstantBooleanvEXT(id, value, data) ANYGL_CALL(AnyGL_glGetLocalConstantBooleanvEXT)(id, value, data)
 #define glGetLocalConstantIntegervEXT(id, value, data) ANYGL_CALL(AnyGL_glGetLocalConstantIntegervEXT)(id, value, data)
 #define glGetLocalConstantFloatvEXT(id, value, data) ANYGL_CALL(AnyGL_glGetLocalConstantFloatvEXT)(id, value, data)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_vertex_weighting */
 typedef void (APIENTRY* PFNANYGLVERTEXWEIGHTFEXTPROC)(GLfloat weight);
@@ -16031,11 +16033,11 @@ ANYGL_EXPORT extern PFNANYGLVERTEXWEIGHTFEXTPROC AnyGL_glVertexWeightfEXT;
 ANYGL_EXPORT extern PFNANYGLVERTEXWEIGHTFVEXTPROC AnyGL_glVertexWeightfvEXT;
 ANYGL_EXPORT extern PFNANYGLVERTEXWEIGHTPOINTEREXTPROC AnyGL_glVertexWeightPointerEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glVertexWeightfEXT(weight) ANYGL_CALL(AnyGL_glVertexWeightfEXT)(weight)
 #define glVertexWeightfvEXT(weight) ANYGL_CALL(AnyGL_glVertexWeightfvEXT)(weight)
 #define glVertexWeightPointerEXT(size, type, stride, pointer) ANYGL_CALL(AnyGL_glVertexWeightPointerEXT)(size, type, stride, pointer)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_win32_keyed_mutex */
 typedef GLboolean (APIENTRY* PFNANYGLACQUIREKEYEDMUTEXWIN32EXTPROC)(GLuint memory, GLuint64 key, GLuint timeout);
@@ -16044,40 +16046,40 @@ typedef GLboolean (APIENTRY* PFNANYGLRELEASEKEYEDMUTEXWIN32EXTPROC)(GLuint memor
 ANYGL_EXPORT extern PFNANYGLACQUIREKEYEDMUTEXWIN32EXTPROC AnyGL_glAcquireKeyedMutexWin32EXT;
 ANYGL_EXPORT extern PFNANYGLRELEASEKEYEDMUTEXWIN32EXTPROC AnyGL_glReleaseKeyedMutexWin32EXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glAcquireKeyedMutexWin32EXT(memory, key, timeout) ANYGL_CALL(AnyGL_glAcquireKeyedMutexWin32EXT)(memory, key, timeout)
 #define glReleaseKeyedMutexWin32EXT(memory, key) ANYGL_CALL(AnyGL_glReleaseKeyedMutexWin32EXT)(memory, key)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_window_rectangles */
 typedef void (APIENTRY* PFNANYGLWINDOWRECTANGLESEXTPROC)(GLenum mode, GLsizei count, const GLint *box);
 
 ANYGL_EXPORT extern PFNANYGLWINDOWRECTANGLESEXTPROC AnyGL_glWindowRectanglesEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glWindowRectanglesEXT(mode, count, box) ANYGL_CALL(AnyGL_glWindowRectanglesEXT)(mode, count, box)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_EXT_x11_sync_object */
 typedef GLsync (APIENTRY* PFNANYGLIMPORTSYNCEXTPROC)(GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
 
 ANYGL_EXPORT extern PFNANYGLIMPORTSYNCEXTPROC AnyGL_glImportSyncEXT;
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
+#ifndef ANYGL_NO_DEFINES
 #define glImportSyncEXT(external_sync_type, external_sync, flags) ANYGL_CALL(AnyGL_glImportSyncEXT)(external_sync_type, external_sync, flags)
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_IMG_texture_compression_pvrtc */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 /* GL_IMG_texture_compression_pvrtc2 */
 
 
-#ifndef ANYGL_NO_FUNCTION_DEFINES
-#endif /* ANYGL_NO_FUNCTION_DEFINES */
+#ifndef ANYGL_NO_DEFINES
+#endif /* ANYGL_NO_DEFINES */
 
 #if defined(__clang__)
 #pragma GCC diagnostic pop

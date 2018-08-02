@@ -158,11 +158,6 @@ typedef struct dsGlyph
 	uint32_t charIndex;
 
 	/**
-	 * @brief True if a line break is safe on this glyph.
-	 */
-	bool canBreak;
-
-	/**
 	 * @brief The offset before drawing the glyph.
 	 *
 	 * Positive Y points down.

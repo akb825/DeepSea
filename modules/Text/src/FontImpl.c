@@ -43,6 +43,12 @@
 #include <hb.h>
 #include <hb-ft.h>
 
+#ifdef HB_VERSION_AT_LEAST
+#define HAS_FONT_CHANGED HB_VERSION_ATLEAST(1, 6, 0)
+#else
+#define HAS_FONT_CHANGED 0
+#endif
+
 struct dsFontFace
 {
 	dsHashTableNode node;
@@ -170,7 +176,7 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 		return NULL;
 	}
 
-	hb_font_t* hbFont = hb_ft_font_create_referenced(ftFace);
+	hb_font_t* hbFont = hb_ft_font_create(ftFace, (hb_destroy_func_t)&FT_Done_Face);
 	if (!hbFont)
 		return NULL;
 
@@ -889,7 +895,6 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	}
 
 	FT_Add_Default_Modules(faceGroup->library);
-	FT_Set_Default_Properties(faceGroup->library);
 
 	memset(&faceGroup->scratchText, 0, sizeof(dsText));
 
@@ -1082,7 +1087,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	uint32_t face = dsFont_findFaceForCodepoint(font, firstCodepoint);
 	hb_font_t* hbFont = font->faces[face]->font;
 	FT_Set_Pixel_Sizes(hb_ft_font_get_face(hbFont), 0, font->glyphSize);
-#if HB_VERSION_ATLEAST(1, 6, 0)
+#if HAS_FONT_CHANGED
 	hb_ft_font_changed(hbFont);
 #else
 	// This is the portion of hb_ft_font_changed() that we need to support older versions of
@@ -1096,8 +1101,7 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 #endif
 
 	hb_buffer_t* shapeBuffer = font->group->shapeBuffer;
-	hb_buffer_add_codepoints(shapeBuffer, text->characters, text->characterCount, start,
-		count);
+	hb_buffer_add_utf32(shapeBuffer, text->characters, text->characterCount, start, count);
 	if (direction == dsTextDirection_RightToLeft)
 		hb_buffer_set_direction(shapeBuffer, HB_DIRECTION_RTL);
 	else
@@ -1157,7 +1161,6 @@ bool dsFont_shapeRange(const dsFont* font, dsText* text, uint32_t rangeIndex,
 	{
 		glyphs[i].glyphId = glyphInfos[i].codepoint;
 		glyphs[i].charIndex = glyphInfos[i].cluster;
-		glyphs[i].canBreak = (glyphInfos[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK) == 0;
 		glyphs[i].offset.x = (float)glyphPos[i].x_offset*scale;
 		glyphs[i].offset.y = -(float)glyphPos[i].y_offset*scale;
 		// Special handling for newlines, since they are used in layout but will have an invalid
