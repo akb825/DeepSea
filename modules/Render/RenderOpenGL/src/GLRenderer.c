@@ -435,9 +435,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	renderer->renderConfig = dsCreateGLConfig(allocator, display, options, true);
 	if (!renderer->sharedConfig || !renderer->renderConfig)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL configuration.");
 		dsGLRenderer_destroy(baseRenderer);
+		// Set errno after destroy so it doesn't get changed.
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -445,9 +446,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		&renderer->dummyOsSurface);
 	if (!renderer->dummySurface)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create dummy OpenGL surface.");
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -455,24 +456,24 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		NULL);
 	if (!renderer->sharedContext)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create OpenGL context.");
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
 	if (!dsBindGLContext(display, renderer->sharedContext, renderer->dummySurface))
 	{
-		errno = EPERM;
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
 	if (!AnyGL_load())
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't load GL functions.");
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -480,9 +481,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	AnyGL_getGLVersion(&major, &minor, NULL);
 	if (!hasRequiredFunctions())
 	{
-		errno = EPERM;
 		DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL %d.%d is too old.", major, minor);
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 
@@ -531,9 +532,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		renderer->sharedContext);
 	if (!renderer->renderContext)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't create GL context.");
 		dsGLRenderer_destroy(baseRenderer);
+		errno = EPERM;
 		return NULL;
 	}
 

@@ -27,6 +27,13 @@ dsRenderer* dsTestVectorDraw_createGLRenderer(dsAllocator* allocator)
 	options.depthBits = 0;
 	options.stencilBits = 0;
 	dsRenderer* renderer = dsGLRenderer_create(allocator, &options);
+	if (!renderer && errno == EPERM)
+	{
+		DS_LOG_INFO("TestCube",
+			"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
+		options.samples = 1;
+		renderer = dsGLRenderer_create(allocator, &options);
+	}
 
 #ifndef NDEBUG
 	if (renderer)
