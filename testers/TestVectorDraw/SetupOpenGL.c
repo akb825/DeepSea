@@ -29,7 +29,7 @@ dsRenderer* dsTestVectorDraw_createGLRenderer(dsAllocator* allocator)
 	dsRenderer* renderer = dsGLRenderer_create(allocator, &options);
 	if (!renderer && errno == EPERM)
 	{
-		DS_LOG_INFO("TestCube",
+		DS_LOG_INFO("TestVectorDraw",
 			"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
 		options.samples = 1;
 		renderer = dsGLRenderer_create(allocator, &options);
