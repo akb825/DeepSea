@@ -48,7 +48,7 @@ extern "C"
 /**
  * @brief The maximum length of a formatted log message, including the null terminator.
  */
-#define DS_LOG_MAX_LENGTH 1024
+#define DS_LOG_MAX_LENGTH 16384
 
 /**
  * @brief Default log printing function, which will be called when the logging function is NULL.

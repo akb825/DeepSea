@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,6 +150,56 @@ static bool hasRequiredFunctions(void)
 	}
 
 	return true;
+}
+
+static void printGLInfo(dsGLRenderer* renderer, uint32_t major, uint32_t minor, uint32_t glslMajor,
+	uint32_t glslMinor)
+{
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
+		minor);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
+		glslMajor, glslMinor);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", renderer->vendorString);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Renderer: %s", renderer->rendererString);
+	if (ANYGL_SUPPORTED(glGetStringi))
+	{
+		dsAllocator* allocator = ((dsRenderer*)renderer)->allocator;
+		GLint extensionCount = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+
+		char* buffer = NULL;
+		uint32_t bufferSize = 0;
+		uint32_t maxBufferSize = 0;
+		for (GLint i = 0; i < extensionCount; ++i)
+		{
+			const char* extension = (const char*)glGetStringi(GL_EXTENSIONS, i);
+			size_t length = strlen(extension);
+			uint32_t pos;
+			uint32_t addLength = (uint32_t)length + 1;
+			if (bufferSize == 0)
+			{
+				pos = 0;
+				++addLength;
+			}
+			else
+				pos = bufferSize - 1;
+
+			if (!DS_RESIZEABLE_ARRAY_ADD(allocator, buffer, bufferSize, maxBufferSize, addLength))
+			{
+				dsAllocator_free(allocator, buffer);
+				return;
+			}
+
+			buffer[pos++] = ' ';
+			DS_ASSERT(bufferSize - pos == length + 1);
+			strncpy(buffer + pos, extension, bufferSize - pos);
+		}
+
+		DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Extensions:%s", buffer);
+		dsAllocator_free(allocator, buffer);
+	}
+	else
+		DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Extensions: %s", glGetString(GL_EXTENSIONS));
 }
 
 static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools, uint32_t* curPools,
@@ -506,12 +556,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
 	DS_ASSERT(renderer->rendererString);
 
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
-		minor);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
-		glslMajor, glslMinor);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", renderer->vendorString);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Renderer: %s", renderer->rendererString);
+	printGLInfo(renderer, major, minor, glslMajor, glslMinor);
 
 	// Temporary FBOs used when the shared context
 	glGenFramebuffers(1, &renderer->sharedTempFramebuffer);
