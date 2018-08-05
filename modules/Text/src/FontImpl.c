@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Sort.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/BezierCurve.h>
@@ -533,11 +534,13 @@ dsFontFace* dsFaceGroup_findFace(const dsFaceGroup* group, const char* name)
 dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, const void* string,
 	dsUnicodeType type)
 {
+	DS_PROFILE_FUNC_START();
+
 	*outCount = DS_UNICODE_INVALID;
 	if (!string)
 	{
 		*outCount = 0;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	SBCodepointSequence sequence;
@@ -561,14 +564,16 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	if (sequence.stringLength == 0)
 	{
 		outCount = 0;
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	// Create a mapping between the characters and codepoints.
 	uint32_t mappingSize = (uint32_t)sequence.stringLength + 1;
 	uint32_t* codepointMapping = createCodepointMapping(group, mappingSize);
 	if (!codepointMapping)
-		return NULL;
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
 
 	uint32_t codepointIndex = 0;
 	SBUInteger index = 0;
@@ -590,7 +595,9 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 
 	SBAlgorithmRef algorithm = SBAlgorithmCreate(&sequence);
 	if (!algorithm)
-		return NULL;
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
 
 	// Count the paragraphs to allocate the array.
 	SBUInteger offset = 0;
@@ -609,7 +616,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 		group->maxParagraphs, paragraphCount))
 	{
 		SBAlgorithmRelease(algorithm);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 	DS_ASSERT(tempArrayCount == paragraphCount);
 
@@ -647,7 +654,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 				SBParagraphRelease(group->paragraphs[j].paragraph);
 			}
 			SBAlgorithmRelease(algorithm);
-			return NULL;
+			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
 		offset += length + separatorLength;
@@ -668,7 +675,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 			SBParagraphRelease(group->paragraphs[i].paragraph);
 		}
 		SBAlgorithmRelease(algorithm);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 	DS_ASSERT(tempArrayCount == *outCount);
 
@@ -717,7 +724,7 @@ dsRunInfo* dsFaceGroup_findBidiRuns(uint32_t* outCount, dsFaceGroup* group, cons
 	}
 	SBAlgorithmRelease(algorithm);
 
-	return group->runs;
+	DS_PROFILE_FUNC_RETURN(group->runs);
 }
 
 dsText* dsFaceGroup_scratchText(dsFaceGroup* group, uint32_t length)
@@ -863,7 +870,7 @@ dsFaceGroup* dsFaceGroup_create(dsAllocator* allocator, dsAllocator* scratchAllo
 	DS_VERIFY(dsHashTable_initialize(faceGroup->faceHashTable, hashTableSize, &dsHashString,
 		dsHashStringEqual));
 
-	faceGroup->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "dsFaceGroup");
+	faceGroup->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "Face Group");
 	faceGroup->unicode = hb_unicode_funcs_get_default();
 	if (!faceGroup->unicode)
 	{

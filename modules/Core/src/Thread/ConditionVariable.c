@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* conditio
 	}
 
 	DS_PROFILE_LOCK_END();
-	DS_PROFILE_WAIT_START(condition->name);
+	DS_PROFILE_DYNAMIC_WAIT_START(condition->name);
 
 #if DS_WINDOWS
 	bool retVal = SleepConditionVariableCS(&condition->condition, &mutex->mutex, INFINITE);
@@ -105,7 +105,7 @@ dsConditionVariableResult dsConditionVariable_wait(dsConditionVariable* conditio
 #endif
 
 	DS_PROFILE_WAIT_END();
-	DS_PROFILE_LOCK_START(mutex->name);
+	DS_PROFILE_DYNAMIC_LOCK_START(mutex->name);
 	return retVal ? dsConditionVariableResult_Success : dsConditionVariableResult_Error;
 }
 
@@ -119,7 +119,7 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 	}
 
 	DS_PROFILE_LOCK_END();
-	DS_PROFILE_WAIT_START(condition->name);
+	DS_PROFILE_DYNAMIC_WAIT_START(condition->name);
 
 	dsConditionVariableResult result;
 #if DS_WINDOWS
@@ -160,7 +160,7 @@ dsConditionVariableResult dsConditionVariable_timedWait(
 #endif
 
 	DS_PROFILE_WAIT_END();
-	DS_PROFILE_LOCK_START(mutex->name);
+	DS_PROFILE_DYNAMIC_LOCK_START(mutex->name);
 	return result;
 }
 

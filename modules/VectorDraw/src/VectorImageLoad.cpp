@@ -19,8 +19,8 @@
 #include "Flatbuffers/VectorImage_generated.h"
 #include "VectorScratchDataImpl.h"
 #include <DeepSea/Core/Assert.h>
-#include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/VectorDraw/Gradient.h>

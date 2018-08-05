@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Core/Timer.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
@@ -49,6 +50,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if DS_HAS_EASY_PROFILER
+#include <DeepSea/EasyProfiler/EasyProfiler.h>
+#endif
 
 // Set to a valid font path to test Chinese text
 //#define CHINESE_FONT_PATH "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc"
@@ -566,6 +571,8 @@ static bool createFramebuffer(TestText* testText)
 
 static void createText(TestText* testText)
 {
+	DS_PROFILE_FUNC_START();
+
 	uint32_t index = testText->curString;
 	DS_ASSERT(index < DS_ARRAY_SIZE(textStrings));
 
@@ -579,7 +586,7 @@ static void createText(TestText* testText)
 	if (!text)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
-		return;
+		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 	testText->text = dsTextLayout_create(testText->allocator, text, textStrings[index].styles,
 		DS_ARRAY_SIZE(textStrings[index].styles));
@@ -587,21 +594,21 @@ static void createText(TestText* testText)
 	{
 		dsText_destroy(text);
 		DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
-		return;
+		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 	if (!dsTextLayout_layout(testText->text, testText->renderer->mainCommandBuffer,
 		textStrings[index].alignment, textStrings[index].maxWidth,
 		textStrings[index].lineScale))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
-		return;
+		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 
 	DS_VERIFY(dsTextRenderBuffer_clear(testText->textRender));
 	if (!dsTextRenderBuffer_addText(testText->textRender, testText->text, NULL))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
-		return;
+		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 	DS_VERIFY(dsTextRenderBuffer_commit(testText->textRender,
 		testText->renderer->mainCommandBuffer));
@@ -617,7 +624,7 @@ static void createText(TestText* testText)
 		if (!text)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
-			return;
+			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 		testText->tessText = dsTextLayout_create(testText->allocator, text,
 			textStrings[index].styles, DS_ARRAY_SIZE(textStrings[index].styles));
@@ -625,27 +632,28 @@ static void createText(TestText* testText)
 		{
 			dsText_destroy(text);
 			DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
-			return;
+			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 		if (!dsTextLayout_layout(testText->tessText, testText->renderer->mainCommandBuffer,
 			textStrings[index].alignment, textStrings[index].maxWidth,
 			textStrings[index].lineScale))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
-			return;
+			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 
 		DS_VERIFY(dsTextRenderBuffer_clear(testText->tessTextRender));
 		if (!dsTextRenderBuffer_addText(testText->tessTextRender, testText->tessText, NULL))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
-			return;
+			DS_PROFILE_FUNC_RETURN_VOID();
 		}
 		DS_VERIFY(dsTextRenderBuffer_commit(testText->tessTextRender,
 			testText->renderer->mainCommandBuffer));
 	}
 
 	setPositions(testText);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 static void nextText(TestText* testText)
@@ -748,6 +756,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 static bool setupShaders(TestText* testText)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsRenderer* renderer = testText->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsAllocator* allocator = testText->allocator;
@@ -758,14 +768,14 @@ static bool setupShaders(TestText* testText)
 		!dsPath_combine(path, sizeof(path), path, "TestText.mslb"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader path: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testText->shaderModule = dsShaderModule_loadFile(resourceManager, allocator, path, "TestText");
 	if (!testText->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load shader: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsShaderVariableElement sharedInfoElems[] =
@@ -778,7 +788,7 @@ static bool setupShaders(TestText* testText)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader variable group description: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testText->screenSizeElement = dsShaderVariableGroupDesc_findElement(testText->sharedInfoDesc,
@@ -791,7 +801,7 @@ static bool setupShaders(TestText* testText)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader variable group: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsMaterialElement materialElems[] =
@@ -807,7 +817,7 @@ static bool setupShaders(TestText* testText)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create material description: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	uint32_t sharedInfoElement = dsMaterialDesc_findElement(testText->materialDesc, "SharedInfo");
@@ -821,7 +831,7 @@ static bool setupShaders(TestText* testText)
 	if (!testText->material)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 	DS_VERIFY(dsMaterial_setVariableGroup(testText->material, sharedInfoElement,
 		testText->sharedInfoGroup));
@@ -832,7 +842,7 @@ static bool setupShaders(TestText* testText)
 	if (!testText->shader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (renderer->hasTessellationShaders)
@@ -841,7 +851,7 @@ static bool setupShaders(TestText* testText)
 		if (!testText->tessMaterial)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 		DS_VERIFY(dsMaterial_setVariableGroup(testText->tessMaterial, sharedInfoElement,
 			testText->sharedInfoGroup));
@@ -852,7 +862,7 @@ static bool setupShaders(TestText* testText)
 		if (!testText->tessShader)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 
@@ -862,14 +872,16 @@ static bool setupShaders(TestText* testText)
 	if (!testText->limitShader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static bool setupText(TestText* testText, dsTextQuality quality, const char* fontPath)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsRenderer* renderer = testText->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsAllocator* allocator = testText->allocator;
@@ -898,7 +910,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	if (!testText->textRender)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create text render: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (renderer->hasTessellationShaders)
@@ -929,7 +941,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		if (!testText->tessTextRender)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create text render: %s", dsErrorString(errno));
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 
@@ -937,7 +949,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	if (!testText->faceGroup)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create face group: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!fontPath)
@@ -952,7 +964,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, fontPath, "Latin"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
@@ -960,7 +972,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Arabic"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
@@ -968,14 +980,14 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Thai"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 #ifdef CHINESE_FONT_PATH
 	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, CHINESE_FONT_PATH, "Chinese"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 #endif
 
@@ -989,7 +1001,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	if (!testText->font)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create font: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsTimer timer = dsTimer_create();
@@ -998,7 +1010,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 	DS_LOG_INFO_F("TestText", "Loading ASCII characters took %f s.",
 		dsTimer_time(timer) - startTime);
@@ -1012,7 +1024,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 			dsFont_getTexture(testText->font));
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static bool setupLimit(TestText* testText)
@@ -1054,6 +1066,8 @@ static bool setupLimit(TestText* testText)
 static bool setup(TestText* testText, dsApplication* application, dsAllocator* allocator,
 	dsTextQuality quality, const char* fontPath)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsRenderer* renderer = application->renderer;
 	testText->allocator = allocator;
 	testText->renderer = renderer;
@@ -1066,7 +1080,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	if (!testText->window)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
@@ -1085,20 +1099,20 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	if (!testText->renderPass)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create render pass: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (!setupShaders(testText))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!setupText(testText, quality, fontPath))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!setupLimit(testText))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!createFramebuffer(testText))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
 	{
@@ -1111,7 +1125,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	testText->curString = 0;
 	createText(testText);
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static void shutdown(TestText* testText)
@@ -1140,6 +1154,11 @@ static void shutdown(TestText* testText)
 
 int dsMain(int argc, const char** argv)
 {
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start();
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+
 	dsRenderType renderType = defaultRenderType;
 	dsTextQuality quality = dsTextQuality_Medium;
 	const char* fontPath = NULL;

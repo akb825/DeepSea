@@ -678,6 +678,8 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!result || !texture || !texture->resourceManager ||
 		!texture->resourceManager->getTextureDataFunc || !position)
 	{

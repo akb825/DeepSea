@@ -277,6 +277,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 
 	DS_ASSERT(layout->styleCount > 0);
 	DS_ASSERT(text->rangeCount > 0);
+	DS_PROFILE_SCOPE_START("Cache Glyphs");
 	for (uint32_t i = 0; i < text->rangeCount; ++i)
 	{
 		const dsTextRange* range = text->ranges + i;
@@ -343,6 +344,7 @@ bool dsTextLayout_layout(dsTextLayout* layout, dsCommandBuffer* commandBuffer,
 			glyphs[index].styleIndex = (uint32_t)(style - layout->styles);
 		}
 	}
+	DS_PROFILE_SCOPE_END();
 
 	// Second pass: resolve line breaks from ranges, which were detected when finding BiDi runs.
 	uint32_t line = 0;

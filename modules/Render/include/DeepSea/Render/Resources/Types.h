@@ -1762,11 +1762,6 @@ struct dsResourceManager
 	uint32_t materialDescCount;
 
 	/**
-	 * @brief The number of materials currently allocated by the resource manager.
-	 */
-	uint32_t materialCount;
-
-	/**
 	 * @brief The number of shader variable group descriptions currently allocated by the resource
 	 * manager.
 	 */

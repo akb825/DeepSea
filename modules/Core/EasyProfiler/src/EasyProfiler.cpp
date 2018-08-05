@@ -95,6 +95,11 @@ const char* uniqueString(const char* string, uint32_t hash)
 	return uniqueStrings.uniqueString(string, hash);
 }
 
+const char* uniqueString(const char* string)
+{
+	return uniqueString(string, dsHashString(string));
+}
+
 profiler::color_t hsvColor(float hue, float saturation, float value)
 {
 	// https://www.rapidtables.com/convert/color/hsv-to-rgb.html
@@ -157,21 +162,21 @@ profiler::color_t getColor(ExpandedProfileType type, uint32_t hash = 0)
 	{
 		case ExpandedProfileType::Function:
 		case ExpandedProfileType::Scope:
-			return hsvColor(hashToHue(hash), 0.5f, 1.0f);
+			return hsvColor(hashToHue(hash), 0.2f, 1.0f);
 		case ExpandedProfileType::Wait:
 			return profiler::colors::Red900;
 		case ExpandedProfileType::Lock:
 			return profiler::colors::Orange800;
 		case ExpandedProfileType::Value:
 		case ExpandedProfileType::GPU:
-			return hsvColor(hashToHue(hash), 0.8f, 0.5f);
+			return hsvColor(hashToHue(hash), 0.5f, 0.8f);
 	}
 	return profiler::colors::Black;
 }
 
 const profiler::BaseBlockDescriptor* registerProfilerBlock(void** blockData, const char* category,
 	const char* name, const char* file, unsigned int line, profiler::BlockType blockType,
-	ExpandedProfileType profileType)
+	ExpandedProfileType profileType, bool copyName)
 {
 	void* ptrValue;
 	DS_ATOMIC_LOAD_PTR(blockData, &ptrValue);
@@ -182,14 +187,16 @@ const profiler::BaseBlockDescriptor* registerProfilerBlock(void** blockData, con
 	constexpr uint32_t maxSize = DS_PATH_MAX + 1 + 10 + 1;
 	char buffer[maxSize];
 
-	bool copyName = false;
 	if (category)
 	{
 		copyName = true;
-		int result = std::snprintf(buffer, maxSize, "%s: %s", category, name);
+		int result = std::snprintf(buffer, maxSize, "%u %s: %s", (uint32_t)profileType, category,
+			name);
 		DS_UNUSED(result);
 		DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
-		name = buffer;
+
+		constexpr uint32_t nameOffset = 2;
+		name = buffer + nameOffset;
 	}
 	else
 	{
@@ -224,18 +231,24 @@ const profiler::BaseBlockDescriptor* registerDynamicProfilerBlock(const char* ca
 	constexpr uint32_t maxSize = 256;
 	char buffer[maxSize];
 
+	constexpr uint32_t nameOffset = 2;
 	int result;
 	if (units)
-		result = std::snprintf(buffer, maxSize, "%s: %s (%s)", category, name, units);
+	{
+		result = std::snprintf(buffer, maxSize, "%u %s: %s (%s)", (uint32_t)profileType, category,
+			name, units);
+	}
 	else
-		result = std::snprintf(buffer, maxSize, "%s: %s", category, name);
+		result = std::snprintf(buffer, maxSize, "%u %s: %s", (uint32_t)profileType, category, name);
+
 	DS_UNUSED(result);
 	DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
 
 	uint32_t hash = dsHashString(buffer);
 	const char* uniqueName = uniqueString(buffer, hash);
+	const char* blockName = uniqueString(buffer + nameOffset);
 
-	return profiler::registerDescription(profiler::ON, uniqueName, uniqueName, file, line,
+	return profiler::registerDescription(profiler::ON, uniqueName, blockName, file, line,
 		blockType, getColor(profileType, hash), true);
 }
 
@@ -257,8 +270,33 @@ void endFrame(void*)
 void push(void*, void** blockData, dsProfileType type, const char* name, const char* file,
 	const char*, unsigned int line, bool dynamic)
 {
+	constexpr uint32_t maxSize = 256;
+	char nameBuffer[maxSize];
+	bool copyName = false;
+	if (type == dsProfileType_Wait || type == dsProfileType_Lock)
+	{
+		const char* prefix = NULL;
+		switch (type)
+		{
+			case dsProfileType_Wait:
+				prefix = "Wait";
+				break;
+			case dsProfileType_Lock:
+				prefix = "Lock";
+				break;
+			default:
+				DS_ASSERT(false);
+				break;
+		}
+
+		int result = std::snprintf(nameBuffer, maxSize, "%s: %s", prefix, name);
+		DS_UNUSED(result);
+		DS_ASSERT(result > 0 && (uint32_t)result < maxSize);
+		name = nameBuffer;
+		copyName = true;
+	}
 	auto block = registerProfilerBlock(blockData, nullptr, dynamic ? nullptr : name, file, line,
-		profiler::BlockType::Block, (ExpandedProfileType)type);
+		profiler::BlockType::Block, (ExpandedProfileType)type, copyName);
 	profiler::beginNonScopedBlock(block, dynamic ? name : "");
 }
 
@@ -274,7 +312,7 @@ void statValue(void*, void** blockData, const char* category, const char* name, 
 	if (dynamic)
 	{
 		block = registerProfilerBlock(blockData, category, name, file, line,
-			profiler::BlockType::Value, ExpandedProfileType::Value);
+			profiler::BlockType::Value, ExpandedProfileType::Value, true);
 	}
 	else
 	{
@@ -282,7 +320,7 @@ void statValue(void*, void** blockData, const char* category, const char* name, 
 			profiler::BlockType::Value, ExpandedProfileType::Value);
 	}
 
-	profiler::setValue(block, value, profiler::ValueId(block));
+	profiler::setValue(block, value, profiler::ValueId(*block));
 }
 
 void gpuValue(void*, const char* surface, const char* pass, uint64_t timeNs)
@@ -291,7 +329,7 @@ void gpuValue(void*, const char* surface, const char* pass, uint64_t timeNs)
 		profiler::BlockType::Value, ExpandedProfileType::Value);
 
 	double timeMs = (double)timeNs*1000000.0;
-	profiler::setValue(block, timeMs, profiler::ValueId(block));
+	profiler::setValue(block, timeMs, profiler::ValueId(*block));
 }
 
 } // namespace
@@ -315,6 +353,7 @@ bool dsEasyProfiler_start(void)
 	};
 	dsProfile_setFunctions(NULL, &functions);
 
+	EASY_MAIN_THREAD;
 	profiler::startCapture();
 	return true;
 }

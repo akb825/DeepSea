@@ -424,45 +424,77 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_tryLock", info.push[0].function);
 	EXPECT_NE(0, info.push[0].line);
-	EXPECT_FALSE(info.push[0].dynamic);
+	EXPECT_TRUE(info.push[0].dynamic);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[1].type);
+	EXPECT_EQ(dsProfileType_Lock, info.push[1].type);
 	EXPECT_EQ("Mutex", info.push[1].name);
 	separatorIndex = info.push[1].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ("Mutex.c", info.push[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[1].function);
 	EXPECT_NE(0, info.push[1].line);
-	EXPECT_FALSE(info.push[1].dynamic);
+	EXPECT_TRUE(info.push[1].dynamic);
 
-	EXPECT_EQ(dsProfileType_Lock, info.push[2].type);
+	EXPECT_EQ(dsProfileType_Wait, info.push[2].type);
 	EXPECT_EQ("Mutex", info.push[2].name);
 	separatorIndex = info.push[2].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ("Mutex.c", info.push[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
-	EXPECT_FALSE(info.push[2].dynamic);
+	EXPECT_TRUE(info.push[2].dynamic);
 
 	if (info.push[3].name == "Mutex")
 	{
-		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ(dsProfileType_Lock, info.push[3].type);
 		EXPECT_EQ("Mutex", info.push[3].name);
 		separatorIndex = info.push[3].file.find_last_of("/\\");
 		ASSERT_NE(std::string::npos, separatorIndex);
 		EXPECT_STRCASEEQ("Mutex.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
-		EXPECT_FALSE(info.push[3].dynamic);
+		EXPECT_TRUE(info.push[3].dynamic);
 
-		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
-		EXPECT_EQ("Condition", info.push[4].name);
-		separatorIndex = info.push[4].file.find_last_of("/\\");
-		ASSERT_NE(std::string::npos, separatorIndex);
-		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
-		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
-		EXPECT_NE(0, info.push[4].line);
-		EXPECT_FALSE(info.push[4].dynamic);
+		if (info.push[4].name == "Mutex")
+		{
+			EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+			EXPECT_EQ("Mutex", info.push[4].name);
+			separatorIndex = info.push[4].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsMutex_lock", info.push[4].function);
+			EXPECT_NE(0, info.push[4].line);
+			EXPECT_TRUE(info.push[4].dynamic);
+
+			EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+			EXPECT_EQ("Condition", info.push[5].name);
+			separatorIndex = info.push[5].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[5].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsConditionVariable_wait", info.push[5].function);
+			EXPECT_NE(0, info.push[5].line);
+			EXPECT_TRUE(info.push[5].dynamic);
+		}
+		else
+		{
+			EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+			EXPECT_EQ("Condition", info.push[4].name);
+			separatorIndex = info.push[4].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
+			EXPECT_NE(0, info.push[4].line);
+			EXPECT_TRUE(info.push[4].dynamic);
+
+			EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+			EXPECT_EQ("Mutex", info.push[5].name);
+			separatorIndex = info.push[5].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsMutex_lock", info.push[5].function);
+			EXPECT_NE(0, info.push[5].line);
+			EXPECT_TRUE(info.push[5].dynamic);
+		}
 	}
 	else
 	{
@@ -473,26 +505,26 @@ TEST(Profile, ThreadTypes)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
-		EXPECT_FALSE(info.push[3].dynamic);
+		EXPECT_TRUE(info.push[3].dynamic);
 
-		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ(dsProfileType_Lock, info.push[4].type);
 		EXPECT_EQ("Mutex", info.push[4].name);
 		separatorIndex = info.push[4].file.find_last_of("/\\");
 		ASSERT_NE(std::string::npos, separatorIndex);
 		EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[4].function);
 		EXPECT_NE(0, info.push[4].line);
-		EXPECT_FALSE(info.push[4].dynamic);
-	}
+		EXPECT_TRUE(info.push[4].dynamic);
 
-	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
-	EXPECT_EQ("Mutex", info.push[5].name);
-	separatorIndex = info.push[5].file.find_last_of("/\\");
-	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
-	EXPECT_EQ("dsMutex_lock", info.push[5].function);
-	EXPECT_NE(0, info.push[5].line);
-	EXPECT_FALSE(info.push[5].dynamic);
+		EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+		EXPECT_EQ("Mutex", info.push[5].name);
+		separatorIndex = info.push[5].file.find_last_of("/\\");
+		ASSERT_NE(std::string::npos, separatorIndex);
+		EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
+		EXPECT_EQ("dsMutex_lock", info.push[5].function);
+		EXPECT_NE(0, info.push[5].line);
+		EXPECT_TRUE(info.push[5].dynamic);
+	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[6].type);
 	EXPECT_EQ("Mutex", info.push[6].name);
@@ -501,7 +533,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("ConditionVariable.c", info.push[6].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsConditionVariable_wait", info.push[6].function);
 	EXPECT_NE(0, info.push[6].line);
-	EXPECT_FALSE(info.push[6].dynamic);
+	EXPECT_TRUE(info.push[6].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[7].type);
 	EXPECT_EQ("Thread", info.push[7].name);
@@ -510,7 +542,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Thread.c", info.push[7].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
-	EXPECT_FALSE(info.push[7].dynamic);
+	EXPECT_TRUE(info.push[7].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
 	EXPECT_EQ("Sleep", info.push[8].name);
@@ -519,7 +551,7 @@ TEST(Profile, ThreadTypes)
 	EXPECT_STRCASEEQ("Thread.c", info.push[8].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_sleep", info.push[8].function);
 	EXPECT_NE(0, info.push[8].line);
-	EXPECT_FALSE(info.push[8].dynamic);
+	EXPECT_TRUE(info.push[8].dynamic);
 
 	// pop
 	ASSERT_EQ(9U, info.pop.size());
@@ -627,45 +659,77 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Mutex.c", info.push[0].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_tryLock", info.push[0].function);
 	EXPECT_NE(0, info.push[0].line);
-	EXPECT_FALSE(info.push[0].dynamic);
+	EXPECT_TRUE(info.push[0].dynamic);
 
-	EXPECT_EQ(dsProfileType_Wait, info.push[1].type);
+	EXPECT_EQ(dsProfileType_Lock, info.push[1].type);
 	EXPECT_EQ("TestMutex", info.push[1].name);
 	separatorIndex = info.push[1].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ("Mutex.c", info.push[1].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[1].function);
 	EXPECT_NE(0, info.push[1].line);
-	EXPECT_FALSE(info.push[1].dynamic);
+	EXPECT_TRUE(info.push[1].dynamic);
 
-	EXPECT_EQ(dsProfileType_Lock, info.push[2].type);
+	EXPECT_EQ(dsProfileType_Wait, info.push[2].type);
 	EXPECT_EQ("TestMutex", info.push[2].name);
 	separatorIndex = info.push[2].file.find_last_of("/\\");
 	ASSERT_NE(std::string::npos, separatorIndex);
 	EXPECT_STRCASEEQ("Mutex.c", info.push[2].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsMutex_lock", info.push[2].function);
 	EXPECT_NE(0, info.push[2].line);
-	EXPECT_FALSE(info.push[2].dynamic);
+	EXPECT_TRUE(info.push[2].dynamic);
 
 	if (info.push[3].name == "TestMutex")
 	{
-		EXPECT_EQ(dsProfileType_Wait, info.push[3].type);
+		EXPECT_EQ(dsProfileType_Lock, info.push[3].type);
 		EXPECT_EQ("TestMutex", info.push[3].name);
 		separatorIndex = info.push[3].file.find_last_of("/\\");
 		ASSERT_NE(std::string::npos, separatorIndex);
 		EXPECT_STRCASEEQ("Mutex.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
-		EXPECT_FALSE(info.push[3].dynamic);
+		EXPECT_TRUE(info.push[3].dynamic);
 
-		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
-		EXPECT_EQ("TestCondition", info.push[4].name);
-		separatorIndex = info.push[4].file.find_last_of("/\\");
-		ASSERT_NE(std::string::npos, separatorIndex);
-		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
-		EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
-		EXPECT_NE(0, info.push[4].line);
-		EXPECT_FALSE(info.push[4].dynamic);
+		if (info.push[4].name == "TestMutex")
+		{
+			EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+			EXPECT_EQ("TestMutex", info.push[4].name);
+			separatorIndex = info.push[4].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsMutex_lock", info.push[4].function);
+			EXPECT_NE(0, info.push[4].line);
+			EXPECT_TRUE(info.push[4].dynamic);
+
+			EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+			EXPECT_EQ("TestCondition", info.push[5].name);
+			separatorIndex = info.push[5].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsConditionVariable_wait", info.push[5].function);
+			EXPECT_NE(0, info.push[5].line);
+			EXPECT_TRUE(info.push[5].dynamic);
+		}
+		else
+		{
+			EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+			EXPECT_EQ("TestCondition", info.push[4].name);
+			separatorIndex = info.push[4].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsConditionVariable_wait", info.push[4].function);
+			EXPECT_NE(0, info.push[4].line);
+			EXPECT_TRUE(info.push[4].dynamic);
+
+			EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+			EXPECT_EQ("TestMutex", info.push[5].name);
+			separatorIndex = info.push[5].file.find_last_of("/\\");
+			ASSERT_NE(std::string::npos, separatorIndex);
+			EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
+			EXPECT_EQ("dsMutex_lock", info.push[5].function);
+			EXPECT_NE(0, info.push[5].line);
+			EXPECT_TRUE(info.push[5].dynamic);
+		}
 	}
 	else
 	{
@@ -676,26 +740,26 @@ TEST(Profile, ThreadTypesNamed)
 		EXPECT_STRCASEEQ("ConditionVariable.c", info.push[3].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsConditionVariable_wait", info.push[3].function);
 		EXPECT_NE(0, info.push[3].line);
-		EXPECT_FALSE(info.push[3].dynamic);
+		EXPECT_TRUE(info.push[3].dynamic);
 
-		EXPECT_EQ(dsProfileType_Wait, info.push[4].type);
+		EXPECT_EQ(dsProfileType_Lock, info.push[4].type);
 		EXPECT_EQ("TestMutex", info.push[4].name);
 		separatorIndex = info.push[4].file.find_last_of("/\\");
 		ASSERT_NE(std::string::npos, separatorIndex);
 		EXPECT_STRCASEEQ("Mutex.c", info.push[4].file.c_str() + separatorIndex + 1);
 		EXPECT_EQ("dsMutex_lock", info.push[4].function);
-		EXPECT_NE(0, info.push[3].line);
-		EXPECT_FALSE(info.push[4].dynamic);
-	}
+		EXPECT_NE(0, info.push[4].line);
+		EXPECT_TRUE(info.push[4].dynamic);
 
-	EXPECT_EQ(dsProfileType_Lock, info.push[5].type);
-	EXPECT_EQ("TestMutex", info.push[5].name);
-	separatorIndex = info.push[5].file.find_last_of("/\\");
-	ASSERT_NE(std::string::npos, separatorIndex);
-	EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
-	EXPECT_EQ("dsMutex_lock", info.push[5].function);
-	EXPECT_NE(0, info.push[5].line);
-	EXPECT_FALSE(info.push[5].dynamic);
+		EXPECT_EQ(dsProfileType_Wait, info.push[5].type);
+		EXPECT_EQ("TestMutex", info.push[5].name);
+		separatorIndex = info.push[5].file.find_last_of("/\\");
+		ASSERT_NE(std::string::npos, separatorIndex);
+		EXPECT_STRCASEEQ("Mutex.c", info.push[5].file.c_str() + separatorIndex + 1);
+		EXPECT_EQ("dsMutex_lock", info.push[5].function);
+		EXPECT_NE(0, info.push[5].line);
+		EXPECT_TRUE(info.push[5].dynamic);
+	}
 
 	EXPECT_EQ(dsProfileType_Lock, info.push[6].type);
 	EXPECT_EQ("TestMutex", info.push[6].name);
@@ -704,7 +768,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("ConditionVariable.c", info.push[6].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsConditionVariable_wait", info.push[6].function);
 	EXPECT_NE(0, info.push[6].line);
-	EXPECT_FALSE(info.push[6].dynamic);
+	EXPECT_TRUE(info.push[6].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[7].type);
 	EXPECT_EQ("TestThread", info.push[7].name);
@@ -713,7 +777,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Thread.c", info.push[7].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_join", info.push[7].function);
 	EXPECT_NE(0, info.push[7].line);
-	EXPECT_FALSE(info.push[7].dynamic);
+	EXPECT_TRUE(info.push[7].dynamic);
 
 	EXPECT_EQ(dsProfileType_Wait, info.push[8].type);
 	EXPECT_EQ("TestSleep", info.push[8].name);
@@ -722,7 +786,7 @@ TEST(Profile, ThreadTypesNamed)
 	EXPECT_STRCASEEQ("Thread.c", info.push[8].file.c_str() + separatorIndex + 1);
 	EXPECT_EQ("dsThread_sleep", info.push[8].function);
 	EXPECT_NE(0, info.push[8].line);
-	EXPECT_FALSE(info.push[8].dynamic);
+	EXPECT_TRUE(info.push[8].dynamic);
 
 	// pop
 	ASSERT_EQ(9U, info.pop.size());

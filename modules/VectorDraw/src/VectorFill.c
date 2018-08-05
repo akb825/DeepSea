@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Geometry/ComplexPolygon.h>
 #include <DeepSea/Geometry/SimpleHoledPolygon.h>
@@ -41,8 +42,10 @@ static bool getShapePosition(dsVector2d* outPosition, void* userData, const void
 bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSet* sharedMaterials,
 	const dsVectorMaterialSet* localMaterials, const dsVectorCommandFillPath* fill)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (scratchData->pointCount < 3)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		fill->material);
@@ -53,7 +56,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		{
 			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", fill->material);
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 	}
@@ -62,7 +65,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
 		&scratchData->pathTransform, fill->opacity);
 	if (!curInfo)
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	uint32_t indexOffset = scratchData->shapeVertexCount;
 	uint32_t firstPoint = 0;
@@ -87,7 +90,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		{
 			ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 			if (!curVertex)
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 
 			curVertex->position.x = scratchData->points[i].point.x;
 			curVertex->position.y = scratchData->points[i].point.y;
@@ -112,13 +115,13 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 					scratchData->polygon, scratchData->shapeVertices + indexOffset, pointCount,
 					&loop, 1, &getShapePosition, dsTriangulateWinding_CW);
 				if (!indices)
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 
 				for (uint32_t j = 0; j < indexCount; ++j)
 				{
 					uint32_t index = indices[j] + indexOffset;
 					if (!dsVectorScratchData_addIndex(scratchData, &index))
-						return false;
+						DS_PROFILE_FUNC_RETURN(false);
 				}
 
 				indexOffset = scratchData->shapeVertexCount;
@@ -126,7 +129,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			else
 			{
 				if (!dsVectorScratchData_addLoop(scratchData, firstPoint, pointCount))
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 			}
 
 			firstPoint = i + 1;
@@ -134,13 +137,13 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 	}
 
 	if (scratchData->pathSimple)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	// Need to simplify the loops to triangulate if the path isn't already simple.
 	if (!dsComplexPolygon_simplify(scratchData->simplifier, scratchData->loops,
 		scratchData->loopCount, &dsVectorScratchData_loopPoint, fill->fillRule))
 	{
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	uint32_t polygonCount = dsComplexPolygon_getHoledPolygonCount(scratchData->simplifier);
@@ -154,7 +157,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 		{
 			ShapeVertex* curVertex = dsVectorScratchData_addShapeVertex(scratchData);
 			if (!curVertex)
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 
 			curVertex->position.x = points[j].x;
 			curVertex->position.y = points[j].y;
@@ -172,17 +175,17 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			dsComplexPolygon_getHoledPolygonLoopCount(scratchData->simplifier, i),
 			&dsSimplePolygon_getPointVector2f, dsTriangulateWinding_CW);
 		if (!indices)
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 
 		for (uint32_t j = 0; j < indexCount; ++j)
 		{
 			uint32_t index = indices[j] + indexOffset;
 			if (!dsVectorScratchData_addIndex(scratchData, &index))
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 		}
 
 		indexOffset = scratchData->shapeVertexCount;
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }

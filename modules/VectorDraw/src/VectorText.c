@@ -18,6 +18,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -203,11 +204,13 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 	const dsVectorMaterialSet* sharedMaterials, const dsVectorMaterialSet* localMaterials,
 	const dsVectorCommandText* text, const dsVectorCommand* rangeCommands, float pixelSize)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsTextLayout* layout = dsVectorScratchData_shapeText(scratchData, commandBuffer, text->string,
 		text->stringType, text->font, text->alignment, text->maxLength, text->lineHeight,
 		rangeCommands, text->rangeCount, pixelSize);
 	if (!layout)
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	dsAlignedBox2f bounds;
 	dsAlignedBox2f_makeInvalid(&bounds);
@@ -261,7 +264,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.",
 						range->fillMaterial);
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 				}
 				fillMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 			}
@@ -281,7 +284,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 					errno = ENOTFOUND;
 					DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.",
 						range->outlineMaterial);
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 				}
 				outlineMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 			}
@@ -303,18 +306,18 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 				text->font, range->fillOpacity, range->outlineOpacity, layout,
 				scratchData->textStyles + i, fillMaterial, outlineMaterial))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else if (!dsVectorScratchData_addTextRange(scratchData, &offset, range->fillOpacity,
 			range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
 			outlineMaterial))
 		{
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,

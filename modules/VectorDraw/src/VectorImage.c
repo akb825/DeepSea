@@ -818,7 +818,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		errno = EPERM;
 		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
 			"Floating point textures are required for vector images.");
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	if (!resourceAllocator)
@@ -829,7 +829,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		initResources->sharedMaterials, localMaterials, pixelSize))
 	{
 		dsVectorScratchData_reset(scratchData);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	uint32_t infoTextureCount = (scratchData->vectorInfoCount + INFOS_PER_TEXTURE - 1)/
@@ -843,7 +843,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	if (!buffer)
 	{
 		dsVectorScratchData_reset(scratchData);
-		return NULL;
+		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsBufferAllocator bufferAlloc;
@@ -879,7 +879,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 		}
 
@@ -891,7 +891,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
 			if (!createShapeGeometry(image, scratchData, resourceManager, resourceAllocator) ||
@@ -899,7 +899,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 		}
 
@@ -942,7 +942,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
 			for (uint32_t i = 0; i < image->pieceCount; ++i)
@@ -957,7 +957,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 				{
 					dsVectorScratchData_reset(scratchData);
 					DS_VERIFY(dsVectorImage_destroy(image));
-					return NULL;
+					DS_PROFILE_FUNC_RETURN(NULL);
 				}
 			}
 
@@ -965,7 +965,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			{
 				dsVectorScratchData_reset(scratchData);
 				DS_VERIFY(dsVectorImage_destroy(image));
-				return NULL;
+				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 		}
 	}
@@ -975,7 +975,7 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 	image->sharedMaterials = initResources->sharedMaterials;
 	image->localMaterials = localMaterials;
 	image->size = *size;
-	return image;
+	DS_PROFILE_FUNC_RETURN(image);
 }
 
 dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsAllocator* resourceAllocator,

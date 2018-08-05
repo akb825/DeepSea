@@ -26,6 +26,7 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -49,6 +50,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if DS_HAS_EASY_PROFILER
+#include <DeepSea/EasyProfiler/EasyProfiler.h>
+#endif
 
 typedef enum dsRenderType
 {
@@ -282,6 +287,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsAllocator* allocator, bool srgb)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsRenderer* renderer = application->renderer;
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	testVectorDraw->allocator = allocator;
@@ -295,13 +302,13 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testVectorDraw->window, &draw, testVectorDraw));
 
 	if (!createFramebuffer(testVectorDraw))
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 
 	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear, renderer->surfaceColorFormat,
 		DS_DEFAULT_ANTIALIAS_SAMPLES};
@@ -317,7 +324,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->renderPass)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create render pass: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	DS_ASSERT(shaderDir);
@@ -327,7 +334,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		!dsPath_combine(path, sizeof(path), path, shaderFilename))
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shader path: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->shaderModule = dsVectorShaderModule_loadFile(resourceManager, allocator, path,
@@ -335,7 +342,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load shader module: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->shaders = dsVectorShaders_create(resourceManager, allocator,
@@ -343,7 +350,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->wireframeShaders = dsVectorShaders_createCustom(resourceManager, allocator,
@@ -352,7 +359,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->material = dsMaterial_create(allocator,
@@ -360,7 +367,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	if (!testVectorDraw->material)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create material: %s", dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->vectorResources = NULL;
@@ -371,7 +378,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't allocate vector image array: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 	memset(testVectorDraw->vectorImages, 0,
 		sizeof(dsVectorImage*)*testVectorDraw->vectorImageCount);
@@ -380,7 +387,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create vector resources path: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	testVectorDraw->vectorResources = dsVectorResources_loadFile(allocator, NULL, resourceManager,
@@ -389,7 +396,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsVectorScratchData* scratchData = dsVectorScratchData_create(allocator);
@@ -397,7 +404,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create vector scratch data: %s",
 			dsErrorString(errno));
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsTimer timer = dsTimer_create();
@@ -412,25 +419,27 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 			DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create vector image path: %s",
 				dsErrorString(errno));
 			dsVectorScratchData_destroy(scratchData);
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 
 		double start = dsTimer_time(timer);
+		DS_PROFILE_DYNAMIC_SCOPE_START(vectorImageFiles[i]);
 		testVectorDraw->vectorImages[i] = dsVectorImage_loadFile(allocator, NULL, &initResources,
 			path, 1.0f, &targetSize);
+		DS_PROFILE_SCOPE_END();
 		if (!testVectorDraw->vectorImages[i])
 		{
 			DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector image %s: %s",
 				vectorImageFiles[i], dsErrorString(errno));
 			dsVectorScratchData_destroy(scratchData);
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 		DS_LOG_INFO_F("TestVectorDraw", "Loaded %s in %g s", vectorImageFiles[i],
 			dsTimer_time(timer) - start);
 	}
 
 	dsVectorScratchData_destroy(scratchData);
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static void shutdown(TestVectorDraw* testVectorDraw)
@@ -453,6 +462,11 @@ static void shutdown(TestVectorDraw* testVectorDraw)
 
 int dsMain(int argc, const char** argv)
 {
+#if DS_HAS_EASY_PROFILER
+	dsEasyProfiler_start();
+	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
+#endif
+
 	dsRenderType renderType = defaultRenderType;
 	bool srgb = false;
 	for (int i = 1; i < argc; ++i)

@@ -15,7 +15,48 @@
  */
 
 #include <DeepSea/Core/Profile.h>
+
+#include <DeepSea/Core/Thread/ThreadStorage.h>
+#include <DeepSea/Core/Debug.h>
+#include <DeepSea/Core/Log.h>
 #include <string.h>
+#include <stdlib.h>
+
+#if DS_DEBUG
+typedef struct ScopeInfo
+{
+	const char* file;
+	const char* function;
+	uint32_t line;
+	dsProfileType type;
+} ScopeInfo;
+
+#define MAX_PROFILE_DEPTH 128
+#define PROFILE_LOG_TAG "profile"
+
+static const char* gScopeNames[] =
+{
+	"Function",
+	"Scope",
+	"Wait",
+	"Lock"
+};
+
+static DS_THREAD_LOCAL ScopeInfo gThreadScopes[MAX_PROFILE_DEPTH];
+static DS_THREAD_LOCAL uint32_t gCurThreadScope;
+
+static void printCurrentScopes(const char* file, unsigned int line, const char* function)
+{
+	dsLog_message(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function, "Current scopes:");
+	for (uint32_t i = 0; i < gCurThreadScope; ++i)
+	{
+		const ScopeInfo* scope = gThreadScopes + i;
+		dsLog_message(dsLogLevel_Fatal, PROFILE_LOG_TAG, scope->file, scope->line, scope->function,
+			gScopeNames[scope->type]);
+	}
+}
+
+#endif
 
 static void* gUserData;
 static dsProfileFunctions gFunctions;
@@ -55,6 +96,16 @@ void dsProfile_registerThread(const char* name)
 
 void dsProfile_startFrame(void)
 {
+#if DS_DEBUG
+	if (gCurThreadScope > 0)
+	{
+		DS_LOG_FATAL(PROFILE_LOG_TAG, "Start frame must be inside another profile scope.");
+		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
+		DS_DEBUG_BREAK();
+		abort();
+	}
+#endif
+
 	if (!gFunctions.startFrameFunc)
 		return;
 
@@ -63,6 +114,16 @@ void dsProfile_startFrame(void)
 
 void dsProfile_endFrame()
 {
+#if DS_DEBUG
+	if (gCurThreadScope > 0)
+	{
+		DS_LOG_FATAL(PROFILE_LOG_TAG, "End frame must be inside another profile scope.");
+		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
+		DS_DEBUG_BREAK();
+		abort();
+	}
+#endif
+
 	if (!gFunctions.endFrameFunc)
 		return;
 
@@ -72,6 +133,23 @@ void dsProfile_endFrame()
 void dsProfile_push(void** localData, dsProfileType type, const char* name, const char* file,
 	const char* function, unsigned int line, bool dynamicName)
 {
+#if DS_DEBUG
+	if (gCurThreadScope >= MAX_PROFILE_DEPTH)
+	{
+		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
+			"Profile depth exceeds max of %u.", MAX_PROFILE_DEPTH);
+		printCurrentScopes(file, line, function);
+		DS_DEBUG_BREAK();
+		abort();
+	}
+
+	ScopeInfo* scope = gThreadScopes + gCurThreadScope++;
+	scope->file = file;
+	scope->function = function;
+	scope->line = line;
+	scope->type = type;
+#endif
+
 	if (!gFunctions.pushFunc)
 		return;
 
@@ -80,6 +158,36 @@ void dsProfile_push(void** localData, dsProfileType type, const char* name, cons
 
 void dsProfile_pop(dsProfileType type, const char* file, const char* function, unsigned int line)
 {
+#if DS_DEBUG
+	if (gCurThreadScope == 0)
+	{
+		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
+			"Profile pop with no corresponding push.");
+		DS_DEBUG_BREAK();
+		abort();
+	}
+
+	const ScopeInfo* scope = gThreadScopes + gCurThreadScope - 1;
+	if (scope->type != type)
+	{
+		dsLog_messagef(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
+			"Scope of type %s doesn't match previous scope.", gScopeNames[type]);
+		printCurrentScopes(file, line, function);
+		DS_DEBUG_BREAK();
+		abort();
+	}
+
+	if (scope->type == dsProfileType_Function && strcmp(function, scope->function) != 0)
+	{
+		dsLog_message(dsLogLevel_Fatal, PROFILE_LOG_TAG, file, line, function,
+			"Function pop outside of the previous function push.");
+		printCurrentScopes(file, line, function);
+		DS_DEBUG_BREAK();
+		abort();
+	}
+	--gCurThreadScope;
+#endif
+
 	if (!gFunctions.popFunc)
 		return;
 

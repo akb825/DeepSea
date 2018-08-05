@@ -21,6 +21,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Geometry/AlignedBox2.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix22.h>
@@ -825,8 +826,10 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 	const dsVectorMaterialSet* sharedMaterials, const dsVectorMaterialSet* localMaterials,
 	const dsVectorCommandStrokePath* stroke, float pixelSize)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (scratchData->pointCount == 0)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		stroke->material);
@@ -837,7 +840,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		{
 			errno = ENOTFOUND;
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", stroke->material);
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 	}
@@ -868,7 +871,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
 		&scratchData->pathTransform, stroke->opacity*sizeAlpha);
 	if (!curInfo)
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	curInfo->dashArray = stroke->dashArray;
 
 	float subpathDistance = 0.0f, distance = 0.0f;
@@ -917,7 +920,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 						stroke->joinType, cosMiterThetaLimit, segmentDistance, distance,
 						subpathDistance, pixelSize, &curInfo->bounds, false))
 					{
-						return false;
+						DS_PROFILE_FUNC_RETURN(false);
 					}
 				}
 				else
@@ -926,7 +929,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 						expandSize, &firstVertex, &secondVertex, material, infoIndex, distance,
 						subpathDistance, &curInfo->bounds))
 					{
-						return false;
+						DS_PROFILE_FUNC_RETURN(false);
 					}
 				}
 			}
@@ -934,7 +937,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				&firstVertex, &secondVertex, material, infoIndex, stroke->capType, distance,
 				subpathDistance, pixelSize, true, &curInfo->bounds))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 			lastDir = firstDir;
 			continue;
@@ -959,7 +962,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				cosMiterThetaLimit, segmentDistance, distance, subpathDistance, pixelSize,
 				&curInfo->bounds, end))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else
@@ -971,7 +974,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 				&firstVertex, &secondVertex, material, infoIndex, distance, subpathDistance,
 				&curInfo->bounds))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 
@@ -983,7 +986,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 					&firstVertex, &secondVertex, material, infoIndex, stroke->capType, distance,
 					subpathDistance, pixelSize, false, &curInfo->bounds))
 				{
-					return false;
+					DS_PROFILE_FUNC_RETURN(false);
 				}
 			}
 
@@ -995,5 +998,5 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 		lastDir = nextDir;
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }

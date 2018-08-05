@@ -149,7 +149,6 @@ void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager
 	DS_PROFILE_STAT("ResourceManager", "Shader modules", resourceManager->shaderModuleCount);
 	DS_PROFILE_STAT("ResourceManager", "Shaders", resourceManager->shaderCount);
 	DS_PROFILE_STAT("ResourceManager", "Material descriptions", resourceManager->materialDescCount);
-	DS_PROFILE_STAT("ResourceManager", "Materials", resourceManager->materialCount);
 	DS_PROFILE_STAT("ResourceManager", "Shader variable group descriptions",
 		resourceManager->shaderVariableGroupDescCount);
 	DS_PROFILE_STAT("ResourceManager", "Shader variable groups",
@@ -207,12 +206,6 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u material descriptions remain allocated.",
 			resourceManager->materialDescCount);
-	}
-
-	if (resourceManager->materialCount)
-	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u materials remain allocated.",
-			resourceManager->materialCount);
 	}
 
 	if (resourceManager->shaderVariableGroupDescCount)

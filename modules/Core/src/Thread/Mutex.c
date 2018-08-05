@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ bool dsMutex_tryLock(dsMutex* mutex)
 
 	if (retVal)
 	{
-		DS_PROFILE_LOCK_START(mutex->name);
+		DS_PROFILE_DYNAMIC_LOCK_START(mutex->name);
 	}
 	return retVal;
 }
@@ -100,7 +100,8 @@ bool dsMutex_lock(dsMutex* mutex)
 		return false;
 	}
 
-	DS_PROFILE_WAIT_START(mutex->name);
+	DS_PROFILE_DYNAMIC_LOCK_START(mutex->name);
+	DS_PROFILE_DYNAMIC_WAIT_START(mutex->name);
 
 	bool retVal;
 #if DS_WINDOWS
@@ -114,9 +115,9 @@ bool dsMutex_lock(dsMutex* mutex)
 #endif
 
 	DS_PROFILE_WAIT_END();
-	if (retVal)
+	if (!retVal)
 	{
-		DS_PROFILE_LOCK_START(mutex->name);
+		DS_PROFILE_LOCK_END();
 	}
 	return retVal;
 }

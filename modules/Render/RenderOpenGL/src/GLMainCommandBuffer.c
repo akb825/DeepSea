@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <limits.h>
@@ -251,6 +252,8 @@ static void clearDrawBufferPart(GLenum buffer, dsGfxFormat format, uint32_t colo
 static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpassIndex,
 	const dsSurfaceClearValue* clearValues)
 {
+	DS_PROFILE_FUNC_START();
+
 	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
@@ -273,11 +276,15 @@ static void clearOtherFramebuffer(const dsRenderPass* renderPass, uint32_t subpa
 				clearValues + attachment);
 		}
 	}
+
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpassIndex,
 	const dsSurfaceClearValue* clearValues)
 {
+	DS_PROFILE_FUNC_START();
+
 	GLenum clearMask = 0;
 	const dsGLRenderPass* glRenderPass = (dsGLRenderPass*)renderPass;
 	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
@@ -306,6 +313,8 @@ static void clearMainFramebuffer(const dsRenderPass* renderPass, uint32_t subpas
 
 	if (clearMask)
 		glClear(clearMask);
+
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 static bool beginRenderSubpass(dsGLMainCommandBuffer* commandBuffer,

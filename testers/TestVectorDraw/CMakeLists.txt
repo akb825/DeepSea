@@ -39,6 +39,11 @@ if (NOT libraries)
 	return()
 endif()
 
+if (TARGET deepsea_easy_profiler)
+	list(APPEND libraries deepsea_easy_profiler)
+	list(APPEND defines DS_HAS_EASY_PROFILER=1)
+endif()
+
 add_executable(deepsea_test_vector_draw_app WIN32 ${source})
 target_link_libraries(deepsea_test_vector_draw_app PRIVATE
 	deepsea_application_sdl deepsea_application_sdl_main deepsea_vector_draw

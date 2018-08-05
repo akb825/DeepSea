@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
-				DS_PROFILE_FUNC_RETURN(false);
+				return false;
 			}
 			break;
 		}
@@ -114,21 +114,21 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Attempting to copy data from a texture without the copy from usage flag set.");
-				DS_PROFILE_FUNC_RETURN(false);
+				return false;
 			}
 			else if (!read && !(realSurface->usage & dsTextureUsage_CopyTo))
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 					"Attempting to copy data to a texture without the copy to usage flag set.");
-				DS_PROFILE_FUNC_RETURN(false);
+				return false;
 			}
 
 			if (!realSurface->resolve && realSurface->info.samples > 1)
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
-				DS_PROFILE_FUNC_RETURN(false);
+				return false;
 			}
 
 			break;
@@ -147,7 +147,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			{
 				errno = EPERM;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
-				DS_PROFILE_FUNC_RETURN(false);
+				return false;
 			}
 			break;
 		}
@@ -257,79 +257,73 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 
 bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!renderer || !renderer->setSurfaceSamplesFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (samples > renderer->maxSurfaceSamples)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximume.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples may only be set on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	bool success = renderer->setSurfaceSamplesFunc(renderer, samples);
-	DS_PROFILE_FUNC_RETURN(success);
+	return success;
 }
 
 bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!renderer || !renderer->setVsyncFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Vsync may only be set on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	bool success = renderer->setVsyncFunc(renderer, vsync);
-	DS_PROFILE_FUNC_RETURN(success);
+	return success;
 }
 
 bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 {
-	DS_PROFILE_FUNC_START();
-
 	if (!renderer || !renderer->setDefaultAnisotropyFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (anisotropy > renderer->maxAnisotropy)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Anisotropy is above the maximum.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Default anisotropy may only be set on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
 	bool success = renderer->setDefaultAnisotropyFunc(renderer, anisotropy);
-	DS_PROFILE_FUNC_RETURN(success);
+	return success;
 }
 
 bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -884,9 +878,11 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 
 bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 {
+	DS_PROFILE_WAIT_START(__FUNCTION__);
 	if (!renderer || !renderer->waitUntilIdleFunc)
 	{
 		errno = EINVAL;
+		DS_PROFILE_WAIT_END();
 		return false;
 	}
 
@@ -894,10 +890,13 @@ bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Waiting for idle must be done on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_WAIT_END();
+		return false;
 	}
 
-	return renderer->waitUntilIdleFunc(renderer);
+	bool success = renderer->waitUntilIdleFunc(renderer);
+	DS_PROFILE_WAIT_END();
+	return success;
 }
 
 bool dsRenderer_restoreGlobalState(dsRenderer* renderer)
@@ -917,10 +916,11 @@ bool dsRenderer_restoreGlobalState(dsRenderer* renderer)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Restoring the global state must be done on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
-	return renderer->restoreGlobalStateFunc(renderer);
+	bool success = renderer->restoreGlobalStateFunc(renderer);
+	return success;
 }
 
 bool dsRenderer_initialize(dsRenderer* renderer)

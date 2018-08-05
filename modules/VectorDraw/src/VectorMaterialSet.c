@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix33.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -364,6 +365,8 @@ bool dsVectorMaterialSet_setMaterial(dsVectorMaterialSet* materials,
 bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 	dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!materials || !commandBuffer)
 	{
 		errno = EINVAL;
@@ -392,7 +395,7 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 			if (!dsTexture_copyData(materials->colorTexture, commandBuffer, &texturePos, TEX_WIDTH,
 				1, 1, buffer, sizeof(buffer)))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else
@@ -401,7 +404,7 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 			if (!dsTexture_copyData(materials->colorTexture, commandBuffer, &texturePos, 1, 1, 1,
 				buffer, sizeof(*buffer)))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 
@@ -463,7 +466,7 @@ bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
 		node->dirtyType = DirtyType_None;
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 dsTexture* dsVectorMaterialSet_getColorTexture(const dsVectorMaterialSet* materials)

@@ -99,8 +99,10 @@ static dsScriptInfo* getScriptInfo(dsText* text, uint32_t i)
 
 static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bool uniformScript)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (text->characterCount == 0)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	const dsFaceGroup* group = dsFont_getFaceGroup(text->font);
 
@@ -188,12 +190,12 @@ static bool shapeText(dsText* text, const dsRunInfo* runs, uint32_t runCount, bo
 			if (!dsFont_shapeRange(text->font, text, infoIndex, scriptInfo->firstCodepoint,
 				scriptInfo->start, scriptInfo->count, newlineCount, runs[i].direction))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 	}
 	DS_ASSERT(curInfo == text->rangeCount);
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 static dsText* createTextImpl(dsFont* font, dsAllocator* allocator, const void* string,

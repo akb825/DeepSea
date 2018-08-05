@@ -251,7 +251,7 @@ void dsThread_yield(void)
 
 void dsThread_sleep(unsigned int milliseconds, const char* name)
 {
-	DS_PROFILE_WAIT_START(name ? name : "Sleep");
+	DS_PROFILE_DYNAMIC_WAIT_START(name ? name : "Sleep");
 
 #if DS_WINDOWS
 	Sleep(milliseconds);
@@ -307,7 +307,7 @@ bool dsThread_join(dsThread* thread, dsThreadReturnType* returnVal)
 	}
 
 	DS_ASSERT(thread->name);
-	DS_PROFILE_WAIT_START(thread->name);
+	DS_PROFILE_DYNAMIC_WAIT_START(thread->name);
 
 	bool result;
 
