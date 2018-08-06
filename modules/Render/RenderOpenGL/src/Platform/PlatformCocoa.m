@@ -3,6 +3,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 #include <string.h>
 
 #if DS_MAC
@@ -221,6 +222,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 
 bool dsBindGLContext(void* display, void* context, void* surface)
 {
+	DS_PROFILE_FUNC_START();
 	NSOpenGLContext* nsContext = (__bridge NSOpenGLContext*)context;
 	NSOpenGLContext* curContext = [NSOpenGLContext currentContext];
 	NSView* view = surface == &dummyValue ? NULL : (__bridge NSView*)surface;
@@ -247,7 +249,7 @@ bool dsBindGLContext(void* display, void* context, void* surface)
 	if (nsContext)
 		[nsContext update];
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 void* dsGetCurrentGLContext(void* display)

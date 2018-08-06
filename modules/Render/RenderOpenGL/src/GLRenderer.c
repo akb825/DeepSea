@@ -282,8 +282,6 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 
 	glFlush();
 	glRenderer->withinFrame = false;
-	// Force the context to be re-bound next frame.
-	glRenderer->curGLSurface = NULL;
 	return true;
 }
 

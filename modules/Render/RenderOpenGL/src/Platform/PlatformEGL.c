@@ -3,6 +3,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 #include <string.h>
 
 #if ANYGL_LOAD == ANYGL_LOAD_EGL
@@ -336,14 +337,15 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 
 bool dsBindGLContext(void* display, void* context, void* surface)
 {
+	DS_PROFILE_FUNC_START();
 	if (!eglMakeCurrent((EGLDisplay)display, (EGLSurface)surface, (EGLSurface)surface,
 		(EGLContext)context))
 	{
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Couldn't bind GL context.");
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 void* dsGetCurrentGLContext(void* display)
