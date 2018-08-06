@@ -204,14 +204,18 @@ bool dsTextRenderBuffer_addTextRange(dsTextRenderBuffer* renderBuffer,
 
 bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!renderBuffer || !commandBuffer)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (renderBuffer->queuedGlyphs == 0)
-		return true;
+	{
+		DS_PROFILE_FUNC_RETURN(true);
+	}
 
 	// If close to the full size, do one copy operation.
 	uint32_t vertexSize = renderBuffer->geometry->vertexBuffers[0].format.size;
@@ -224,7 +228,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 			renderBuffer->geometry->vertexBuffers[0].count*vertexSize +
 			renderBuffer->geometry->indexBuffer.count*indexSize))
 		{
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 	else
@@ -232,7 +236,7 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 		if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, 0, renderBuffer->tempData,
 			renderBuffer->queuedGlyphs*vertexSize*vertexCount))
 		{
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 
 		if (indexSize > 0)
@@ -241,12 +245,12 @@ bool dsTextRenderBuffer_commit(dsTextRenderBuffer* renderBuffer, dsCommandBuffer
 			if (!dsGfxBuffer_copyData(gfxBuffer, commandBuffer, offset,
 				(uint8_t*)renderBuffer->tempData + offset, renderBuffer->queuedGlyphs*indexSize*6))
 			{
-				return false;
+				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer)
@@ -263,14 +267,16 @@ bool dsTextRenderBuffer_clear(dsTextRenderBuffer* renderBuffer)
 
 bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
+
 	if (!renderBuffer || !commandBuffer)
 	{
 		errno = EINVAL;
-		return false;
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (renderBuffer->queuedGlyphs == 0)
-		return true;
+		DS_PROFILE_FUNC_RETURN(true);
 
 	uint32_t indexSize = renderBuffer->geometry->indexBuffer.indexSize;
 	if (indexSize == 0)
@@ -279,7 +285,7 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 		if (!dsRenderer_draw(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 			&drawRange))
 		{
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 	else
@@ -288,11 +294,11 @@ bool dsTextRenderBuffer_draw(dsTextRenderBuffer* renderBuffer, dsCommandBuffer* 
 		if (!dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer, renderBuffer->geometry,
 			&drawRange))
 		{
-			return false;
+			DS_PROFILE_FUNC_RETURN(false);
 		}
 	}
 
-	return true;
+	DS_PROFILE_FUNC_RETURN(true);
 }
 
 bool dsTextRenderBuffer_destroy(dsTextRenderBuffer* renderBuffer)

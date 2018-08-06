@@ -77,6 +77,7 @@ typedef struct TestVectorDraw
 
 	uint32_t vectorImageCount;
 	uint32_t curVectorImage;
+	bool updateImage;
 	bool wireframe;
 } TestVectorDraw;
 
@@ -192,6 +193,7 @@ static void nextImage(TestVectorDraw* testVectorDraw)
 	++testVectorDraw->curVectorImage;
 	if (testVectorDraw->curVectorImage >= testVectorDraw->vectorImageCount)
 		testVectorDraw->curVectorImage = 0;
+	testVectorDraw->updateImage = true;
 }
 
 static void prevImage(TestVectorDraw* testVectorDraw)
@@ -200,6 +202,7 @@ static void prevImage(TestVectorDraw* testVectorDraw)
 		testVectorDraw->curVectorImage = testVectorDraw->vectorImageCount - 1;
 	else
 		--testVectorDraw->curVectorImage;
+	testVectorDraw->updateImage = true;
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
@@ -250,6 +253,13 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_ASSERT(testVectorDraw->window == window);
 	dsRenderer* renderer = testVectorDraw->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	if (testVectorDraw->updateImage)
+	{
+		DS_VERIFY(dsVectorImage_updateText(
+			testVectorDraw->vectorImages[testVectorDraw->curVectorImage], commandBuffer));
+		testVectorDraw->updateImage = false;
+	}
 
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 1.0f;
