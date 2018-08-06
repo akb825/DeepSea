@@ -39,6 +39,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Renderer.h>
@@ -280,7 +281,9 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 	if (glRenderer->renderContextBound)
 		deleteDestroyedObjects(glRenderer);
 
+	DS_PROFILE_SCOPE_START("glFlush");
 	glFlush();
+	DS_PROFILE_SCOPE_END();
 	glRenderer->withinFrame = false;
 	return true;
 }
