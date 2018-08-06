@@ -177,7 +177,7 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	ASSERT_TRUE(renderPass);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, "test");
 	ASSERT_TRUE(renderSurface);
 
 	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,

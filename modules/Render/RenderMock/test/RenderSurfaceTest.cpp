@@ -26,10 +26,10 @@ extern "C" DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
 TEST_F(RenderSurfaceTest, Create)
 {
-	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, dsRenderSurfaceType_Direct));
+	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, dsRenderSurfaceType_Direct, NULL));
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, "test");
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -38,7 +38,7 @@ TEST_F(RenderSurfaceTest, Create)
 TEST_F(RenderSurfaceTest, Update)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, "test");
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_update(NULL));
@@ -62,7 +62,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, "test");
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
@@ -79,7 +79,7 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 TEST_F(RenderSurfaceTest, SwapBuffers)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct);
+		dsRenderSurfaceType_Direct, "test");
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));

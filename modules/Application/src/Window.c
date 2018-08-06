@@ -22,10 +22,11 @@
 #include <DeepSea/Core/Error.h>
 
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
-	const dsVector2i* position, uint32_t width, uint32_t height, unsigned int flags)
+	const char* surfaceName, const dsVector2i* position, uint32_t width, uint32_t height,
+	unsigned int flags)
 {
 	if (!application || (!allocator && !application->allocator) || !application->createWindowFunc ||
-		!application->destroyWindowFunc)
+		!application->destroyWindowFunc || !title)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -33,6 +34,9 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 
 	if (!allocator)
 		allocator = application->allocator;
+
+	if (!surfaceName)
+		surfaceName = title;
 
 	if ((flags & dsWindowFlags_Center) && position &&
 		(uint32_t)position->x >= application->displayCount)
@@ -43,8 +47,8 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 		return NULL;
 	}
 
-	dsWindow* window = application->createWindowFunc(application, allocator, title, position, width,
-		height, flags);
+	dsWindow* window = application->createWindowFunc(application, allocator, title, surfaceName,
+		position, width, height, flags);
 	if (!window)
 		return NULL;
 

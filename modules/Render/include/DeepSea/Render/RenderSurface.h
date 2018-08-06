@@ -48,10 +48,12 @@ extern "C"
  * @param osHandle The handle to the OS surface, such as the window handle. In the case of a MacOS
  *     window, it will actually be an NSView instance.
  * @param type The render surface type.
+ * @param name The name of the render surface, used for profiling info. This should remain allocated
+ *     for the duration of the application, such as a string constant.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name);
 
 /**
  * @brief Updates a render surface.
@@ -64,6 +66,9 @@ DS_RENDER_EXPORT bool dsRenderSurface_update(dsRenderSurface* renderSurface);
 /**
  * @brief Begins drawing to a render surface.
  * @remark errno will be set on failure.
+ * @remark This will create a profiler scope for the render surface. Be careful not to have any
+ *     profiler scope or function active that will end before the next call to
+ *     dsRenderSurface_endDraw().
  * @param renderSurface The render surface to draw to.
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't begin.
@@ -74,6 +79,9 @@ DS_RENDER_EXPORT bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSur
 /**
  * @brief Ends drawing to a render surface.
  * @remark errno will be set on failure.
+ * @remark This will end the profiler scope for the render surface. Be careful not to have any
+ *     profiler scope or function active that wasn't previously active when the render surface was
+ *     begun.
  * @param renderSurface The render surface to draw to.
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render surface couldn't end.

@@ -727,6 +727,7 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  * @param application The application.
  * @param allocator The allocator to create the window with.
  * @param title The title of the window.
+ * @param surfaceName The name of the render surface.
  * @param position The position of the window, or NULL for the default position.
  * @param width The width of the window.
  * @param height The height of the window.
@@ -734,8 +735,8 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  * @param flags Combination of dsWindowFlags values to create the window.
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
-	unsigned int flags);
+	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
+	uint32_t height, unsigned int flags);
 
 /**
  * @brief Function for destroying a window.

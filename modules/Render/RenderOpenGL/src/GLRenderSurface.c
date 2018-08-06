@@ -23,10 +23,11 @@
 #include <DeepSea/Core/Assert.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	void* osHandle, dsRenderSurfaceType type)
+	void* osHandle, dsRenderSurfaceType type, const char* name)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
+	DS_ASSERT(name);
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;
@@ -45,6 +46,7 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	dsRenderSurface* baseSurface = (dsRenderSurface*)renderSurface;
 	baseSurface->renderer = renderer;
 	baseSurface->allocator = dsAllocator_keepPointer(allocator);
+	baseSurface->name = name;
 	baseSurface->surfaceType = type;
 	DS_VERIFY(dsGetGLSurfaceSize(&baseSurface->width, &baseSurface->height, display, type,
 		glSurface));

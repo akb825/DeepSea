@@ -1075,7 +1075,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	dsEventResponder responder = {&processEvent, testText, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
-	testText->window = dsWindow_create(application, allocator, "Test Text",
+	testText->window = dsWindow_create(application, allocator, "Test Text", NULL,
 		NULL, 800, 600, dsWindowFlags_Resizeable);
 	if (!testText->window)
 	{

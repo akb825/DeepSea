@@ -86,6 +86,15 @@ extern "C"
 	} while(0)
 
 /**
+ * @brief Profiles the end of the function.
+ *
+ * In nearly all cases you want to use DS_PROFILE_FUNC_RETURN() or DS_PROFILE_FUNC_RETURN_VOID()
+ * instead. One example when you would want to use this is if you need to maintain an explicit scope
+ * within a function.
+ */
+#define DS_PROFILE_FUNC_END() DS_PROFILE_POP_IMPL(dsProfileType_Function)
+
+/**
  * @brief Profiles the start of a scope.
  * @param name The name of the scope. This must be consistent across calls.
  */

@@ -244,6 +244,7 @@ static void updateWindowSamples(dsApplication* application)
 		dsSDLWindow_getPosition(&position, application, window);
 
 		const char* title = window->title;
+		const char* surfaceName = window->surface->name;
 		dsDisplayMode displayMode = window->displayMode;
 		dsWindowStyle style = window->style;
 
@@ -262,7 +263,8 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= SDL_WINDOW_OPENGL;
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
-		if (!dsSDLWindow_createComponents(window, title, &position, width, height, flags))
+		if (!dsSDLWindow_createComponents(window, title, surfaceName, &position, width, height,
+			flags))
 		{
 			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s",
 				dsErrorString(errno));

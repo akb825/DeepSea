@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,13 @@
 #include <DeepSea/Render/RenderPass.h>
 
 #include <DeepSea/Core/Thread/Thread.h>
+#include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <stdio.h>
 
 typedef enum SurfaceType
 {
@@ -30,6 +32,115 @@ typedef enum SurfaceType
 	SurfaceType_Right = 0x2,
 	SurfaceType_Other = 0x4
 } SurfaceType;
+
+typedef struct SubpassInfo
+{
+	uint32_t index;
+	bool scopeActive;
+} SubpassInfo;
+
+#define SCOPE_SIZE 256
+
+static DS_THREAD_LOCAL SubpassInfo gThreadSubpass;
+
+static bool startRenderPassScope(const dsRenderPass* renderPass)
+{
+	// Error checking for this will be later.
+	if (!renderPass)
+		return true;
+
+	if (gThreadSubpass.scopeActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot start a render pass when another render pass is active.");
+		return false;
+	}
+
+#if DS_PROFILING_ENABLED
+
+	char buffer[SCOPE_SIZE];
+	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s", renderPass->subpasses[0].name);
+	DS_UNUSED(result);
+	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
+
+	DS_ASSERT(renderPass->subpassCount > 0);
+	DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
+
+#endif
+
+	gThreadSubpass.scopeActive = true;
+	gThreadSubpass.index = 0;
+	return true;
+}
+
+static bool nextSubpassScope(const dsRenderPass* renderPass)
+{
+	// Error checking for this will be later.
+	if (!renderPass)
+		return true;
+
+	if (!gThreadSubpass.scopeActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "No render pass is currently active.");
+		return false;
+	}
+
+	if (gThreadSubpass.index + 1 >= renderPass->subpassCount)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Already at the end of the current render pass.");
+		return false;
+	}
+
+#if DS_PROFILING_ENABLED
+
+	char buffer[SCOPE_SIZE];
+	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s",
+		renderPass->subpasses[gThreadSubpass.index].name);
+	DS_UNUSED(result);
+	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
+
+	DS_PROFILE_SCOPE_END();
+	DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
+
+#endif
+
+	++gThreadSubpass.index;
+	return true;
+}
+
+static void restorePreviousSubpassScope(const dsRenderPass* renderPass)
+{
+	if (!renderPass || !gThreadSubpass.scopeActive)
+		return;
+
+#if DS_PROFILING_ENABLED
+
+	char buffer[SCOPE_SIZE];
+	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s",
+		renderPass->subpasses[gThreadSubpass.index].name);
+	DS_UNUSED(result);
+	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
+
+	DS_ASSERT(gThreadSubpass.index > 0);
+	DS_PROFILE_SCOPE_END();
+	DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
+
+#endif
+
+	--gThreadSubpass.index;
+}
+
+static void endRenderPassScope()
+{
+	if (gThreadSubpass.scopeActive)
+	{
+		DS_PROFILE_SCOPE_END();
+		gThreadSubpass.scopeActive = false;
+	}
+}
 
 static bool isDepthStencil(dsGfxFormat format)
 {
@@ -312,6 +423,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool indirectCommands)
 {
+	if (!startRenderPassScope(renderPass))
+		return false;
+
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !renderPass || !renderPass->renderer ||
@@ -320,14 +434,18 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		!framebuffer)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope();
+		return false;
 	}
 
 	if (framebuffer->surfaceCount != renderPass->attachmentCount)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Framebuffer not compatible with render pass attachments.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope();
+		return false;
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
@@ -340,7 +458,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface format doesn't match attachment format.");
-			DS_PROFILE_FUNC_RETURN(false);
+			DS_PROFILE_FUNC_END();
+			endRenderPassScope();
+			return false;
 		}
 
 		uint32_t samples = renderPass->attachments[i].samples;
@@ -351,7 +471,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface samples don't match attachment samples.");
-			DS_PROFILE_FUNC_RETURN(false);
+			DS_PROFILE_FUNC_END();
+			endRenderPassScope();
+			return false;
 		}
 
 		if (renderPass->attachments[i].usage & dsAttachmentUsage_Clear)
@@ -368,7 +490,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");
-				DS_PROFILE_FUNC_RETURN(false);
+				DS_PROFILE_FUNC_END();
+				endRenderPassScope();
+				return false;
 			}
 		}
 
@@ -398,7 +522,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 					errno = EPERM;
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support mixing the "
 						"main framebuffer and other render surfaces.");
-					DS_PROFILE_FUNC_RETURN(false);
+					DS_PROFILE_FUNC_END();
+					endRenderPassScope();
+					return false;
 				}
 			}
 		}
@@ -410,7 +536,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	{
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope();
+		return false;
 	}
 
 	if (needsClear && clearValueCount == 0)
@@ -418,7 +546,9 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"No clear values provided for render pass that clears attachments.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope();
+		return false;
 	}
 
 	if ((!clearValues && clearValueCount > 0) ||
@@ -427,30 +557,44 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"When clear values are provided they must equal the number of attachments.");
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endRenderPassScope();
+		return false;
 	}
 
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
 		viewport, clearValues, clearValueCount, indirectCommands);
-	DS_PROFILE_FUNC_RETURN(success);
+	DS_PROFILE_FUNC_END();
+	if (!success)
+		endRenderPassScope();
+	return success;
 }
 
 bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	bool indirectCommands)
 {
+	// End the previous scope
+	if (!nextSubpassScope(renderPass))
+		return false;
+
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !renderPass || !renderPass->renderer ||
 		!renderPass->renderer->nextRenderSubpassFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		restorePreviousSubpassScope(renderPass);
+		return false;
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->nextRenderSubpassFunc(renderer, commandBuffer, renderPass,
 		indirectCommands);
-	DS_PROFILE_FUNC_RETURN(success);
+	DS_PROFILE_FUNC_END();
+	if (!success)
+		restorePreviousSubpassScope(renderPass);
+	return success;
 }
 
 bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
@@ -466,7 +610,10 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->endRenderPassFunc(renderer, commandBuffer, renderPass);
-	DS_PROFILE_FUNC_RETURN(success);
+	DS_PROFILE_FUNC_END();
+	if (success)
+		endRenderPassScope();
+	return success;
 }
 
 bool dsRenderPass_destroy(dsRenderPass* renderPass)

@@ -23,7 +23,7 @@
 DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type)
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
@@ -35,6 +35,7 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
 
 	renderSurface->renderer = renderer;
 	renderSurface->allocator = dsAllocator_keepPointer(allocator);
+	renderSurface->name = name;
 	renderSurface->surfaceType = type;
 	renderSurface->width = 1920;
 	renderSurface->height = 1080;

@@ -249,6 +249,11 @@ typedef struct dsRenderSurface
 	dsAllocator* allocator;
 
 	/**
+	 * @brief The name of the surface.
+	 */
+	const char* name;
+
+	/**
 	 * @brief The type of the render surface.
 	 */
 	dsRenderSurfaceType surfaceType;
@@ -632,10 +637,11 @@ typedef struct dsSurfaceBlitRegion
  * @param allocator The allocator to create the render surface.
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
+ * @param name The name of the render surface, used for profiling info
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name);
 
 /**
  * @brief Function for destroying a render surface.

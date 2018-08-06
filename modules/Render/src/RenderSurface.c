@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,49 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <stdio.h>
+
+#define SCOPE_SIZE 256
+
+static void beginSurfaceScope(const dsRenderSurface* renderSurface)
+{
+#if DS_PROFILING_ENABLED
+	if (renderSurface)
+	{
+		char buffer[SCOPE_SIZE];
+		int result = snprintf(buffer, SCOPE_SIZE, "Surface: %s", renderSurface->name);
+		DS_UNUSED(result);
+		DS_ASSERT(result > 0 && result < SCOPE_SIZE);
+		DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
+	}
+#else
+	DS_UNUSED(renderSurace);
+#endif
+}
+
+static void endSurfaceScope(const dsRenderSurface* renderSurface)
+{
+#if DS_PROFILING_ENABLED
+	if (renderSurface)
+	{
+		DS_PROFILE_SCOPE_END();
+	}
+#else
+	DS_UNUSED(renderSurace);
+#endif
+}
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	void* osHandle, dsRenderSurfaceType type)
+	void* osHandle, dsRenderSurfaceType type, const char* name)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!renderer || (!allocator && !renderer->allocator) || !renderer->createRenderSurfaceFunc ||
-		!renderer->destroyRenderSurfaceFunc)
+		!renderer->destroyRenderSurfaceFunc || !name)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -45,7 +77,7 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 	}
 
 	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator,
-		osHandle, type);
+		osHandle, type, name);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
 }
 
@@ -72,6 +104,7 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 
 bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer)
 {
+	beginSurfaceScope(renderSurface);
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !renderSurface || !renderSurface->renderer ||
@@ -79,12 +112,17 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		!renderSurface->renderer->endRenderSurfaceFunc)
 	{
 		errno = EINVAL;
-		DS_PROFILE_FUNC_RETURN(false);
+		DS_PROFILE_FUNC_END();
+		endSurfaceScope(renderSurface);
+		return false;
 	}
 
 	dsRenderer* renderer = renderSurface->renderer;
 	bool begun = renderer->beginRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
-	DS_PROFILE_FUNC_RETURN(begun);
+	DS_PROFILE_FUNC_END();
+	if (!begun)
+		endSurfaceScope(renderSurface);
+	return begun;
 }
 
 bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer)
@@ -100,7 +138,10 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 
 	dsRenderer* renderer = renderSurface->renderer;
 	bool ended = renderer->endRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
-	DS_PROFILE_FUNC_RETURN(ended);
+	DS_PROFILE_FUNC_END();
+	if (ended)
+		endSurfaceScope(renderSurface);
+	return ended;
 }
 
 bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)

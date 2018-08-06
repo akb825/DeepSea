@@ -19,7 +19,7 @@
 #include <DeepSea/Render/Types.h>
 
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type);
+	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name);
 bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
 bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);

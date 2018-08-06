@@ -293,7 +293,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testCube));
 
-	testCube->window = dsWindow_create(application, allocator, "Test Cube",
+	testCube->window = dsWindow_create(application, allocator, "Test Cube", NULL,
 		NULL, 800, 600, dsWindowFlags_Resizeable);
 	if (!testCube->window)
 	{

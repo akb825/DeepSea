@@ -42,6 +42,8 @@ extern "C"
  * @param allocator The allocator to create the window with. If NULL, it will use the same allocator
  *     as the application.
  * @param title The title of the window.
+ * @param surfaceName The name of the render surface. If NULL, it will be the same as title. This
+ *     should remain allocated for the duration of the application, such as a string constant.
  * @param position The position of the window in screen space, or NULL if the default position.
  *     If flags contains the dsWindowFlags_Center flag, then the x coordinate of the position is the
  *     display index.
@@ -51,8 +53,8 @@ extern "C"
  * @return The created window or NULL if an error occurred.
  */
 DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
-	unsigned int flags);
+	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
+	uint32_t height, unsigned int flags);
 
 /**
  * @brief Sets the draw function for a window.

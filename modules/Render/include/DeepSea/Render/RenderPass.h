@@ -71,6 +71,8 @@ DS_RENDER_EXPORT dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAlloc
 /**
  * @brief Begins drawing a render pass.
  * @remark errno will be set on failure.
+ * @remark This will create a profiler scope for the first subpass. Be careful not to have any
+ *     profiler scope or function active that will end before the next call to dsRenderPass_end().
  * @param renderPass The render pass to begin.
  * @param commandBuffer The command buffer to push the commands on.
  * @param framebuffer The framebuffer to draw the render pass to.
@@ -93,6 +95,8 @@ DS_RENDER_EXPORT bool dsRenderPass_begin(const dsRenderPass* renderPass,
 /**
  * @brief Advances to the next subpass in a render pass.
  * @remark errno will be set on failure.
+ * @remark This will create a profiler scope for the subpass. Be careful not to have any profiler
+ *     scope or function active that will end before the next call to dsRenderPass_end().
  * @param renderPass The render pass to continue.
  * @param commandBuffer The command buffer to push the commands on.
  * @param indirectCommands True if the render commands for the subpass will be provided with command
@@ -105,6 +109,8 @@ DS_RENDER_EXPORT bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass,
 /**
  * @brief Ends drawing to a render pass.
  * @remark errno will be set on failure.
+ * @remark This will end the profiler scope for the last subpass. Be careful not to have any
+ *     profiler scope or function active that wasn't previously active when the subpass was begun.
  * @param renderPass The render pass to end.
  * @param commandBuffer The command buffer to push the commands on.
  * @return False if the render pass couldn't be ended.

@@ -50,8 +50,8 @@ static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, boo
 		*outX = *outY = SDL_WINDOWPOS_UNDEFINED;
 }
 
-bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsVector2i* position,
-	uint32_t width, uint32_t height, unsigned int flags)
+bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,
+	const dsVector2i* position, uint32_t width, uint32_t height, unsigned int flags)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
@@ -143,7 +143,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 	}
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
-		windowHandle, dsRenderSurfaceType_Window);
+		windowHandle, dsRenderSurfaceType_Window, surfaceName);
 
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 	if (info.subsystem == SDL_SYSWM_COCOA)
@@ -168,8 +168,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const dsV
 }
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
-	const char* title, const dsVector2i* position, uint32_t width, uint32_t height,
-	unsigned int flags)
+	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
+	uint32_t height, unsigned int flags)
 {
 	dsSDLWindow* window = DS_ALLOCATE_OBJECT(allocator, dsSDLWindow);
 	if (!window)
@@ -180,7 +180,8 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	baseWindow->application = application;
 	baseWindow->allocator = dsAllocator_keepPointer(allocator);
 
-	if (!dsSDLWindow_createComponents(baseWindow, title, position, width, height, flags))
+	if (!dsSDLWindow_createComponents(baseWindow, title, surfaceName, position, width, height,
+		flags))
 	{
 		DS_VERIFY(dsAllocator_free(allocator, window));
 		return NULL;
