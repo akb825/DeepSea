@@ -41,8 +41,8 @@ __int64 dsAtomic_interlockedExchangeAdd64Impl(__int64* xPtr, __int64 value)
 	return InterlockedExchangeAdd64(xPtr, value);
 }
 
-DS_CORE_EXPORT int dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* valuePtr);
-DS_CORE_EXPORT int dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr,
+DS_CORE_EXPORT bool dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* valuePtr);
+DS_CORE_EXPORT bool dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr,
 	__int64* valuePtr);
 
 #endif
