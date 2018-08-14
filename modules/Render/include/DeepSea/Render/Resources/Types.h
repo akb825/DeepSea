@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -373,6 +373,16 @@ typedef enum dsGfxFenceResult
 	dsGfxFenceResult_WaitingToQueue, ///< Still waiting to queue the fence on the GPU.
 	dsGfxFenceResult_Error           ///< An error occurred. errno will have more info.
 } dsGfxFenceResult;
+
+/**
+ * @brief Enum for the type of query.
+ */
+typedef enum dsGfxQueryType
+{
+	dsGfxQueryType_SamplesPassed,    ///< The number of samples that pass the depth test.
+	dsGfxQueryType_AnySamplesPassed, ///< Non-zero if any samples passed.
+	dsGfxQueryType_Timestamp         ///< The current timestamp on the GPU in ns.
+} dsGfxQueryType;
 
 /// \{
 typedef struct dsCommandBuffer dsCommandBuffer;
@@ -992,7 +1002,7 @@ typedef struct dsFramebuffer
  *
  * Render implementations can effectively subclass this type by having it as the first member of
  * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsFramebuffer and the true internal type.
+ * casted between dsGfxFence and the true internal type.
  *
  * @see GfxFence.h
  */
@@ -1008,6 +1018,39 @@ typedef struct dsGfxFence
 	 */
 	dsAllocator* allocator;
 } dsGfxFence;
+
+/**
+ * @brief Structure defining a pool of query objects, allowing GPU information to be queried for GPU
+ * or CPU operations.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsGfxQueryPool and the true internal type.
+ *
+ * @see GfxQueryPool.h
+ */
+typedef struct dsGfxQeuryPool
+{
+	/**
+	 * The resource manager this was created with.
+	 */
+	dsResourceManager* resourceManager;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The type of query used by the pool.
+	 */
+	dsGfxQueryType type;
+
+	/**
+	 * @brief The number of queries in the pool.
+	 */
+	uint32_t queryCount;
+} dsGfxQueryPool;
 
 /**
  * @brief Struct for a resource context.
@@ -1373,7 +1416,7 @@ typedef dsGfxFence* (*dsCreateFenceFunction)(dsResourceManager* resourceManager,
 /**
  * @brief Function for destroying a fence.
  * @param resourceManager The resource manager the fence was created with.
- * @param framebuffer The fence.
+ * @param fence The fence.
  * @return False if the fence couldn't be destroyed.
  */
 typedef bool (*dsDestroyFenceFunction)(dsResourceManager* resourceManager,
@@ -1409,6 +1452,100 @@ typedef dsGfxFenceResult (*dsWaitFenceFunction)(dsResourceManager* resourceManag
  */
 typedef bool (*dsResetFenceFunction)(dsResourceManager* resourceManager,
 	dsGfxFence* fence);
+
+/**
+ * @brief Function for creating a query pool.
+ * @param resourceManager The resource manager to create the query pool from.
+ * @param allocator The allocator to create the query pool with.
+ * @param type The type of queries used by the pool.
+ * @return The created query pool, or NULL if it couldn't be created.
+ */
+typedef dsGfxQueryPool* (*dsCreateQueryPoolFunction)(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsGfxQueryType type, uint32_t count);
+
+/**
+ * @brief Function for destroying a query pool.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param queries The query pool.
+ * @return False if the query pool couldn't be destroyed.
+ */
+typedef bool (*dsDestroyQueryPoolFunction)(dsResourceManager* resourceManager,
+	dsGfxQueryPool* queries);
+
+/**
+ * @brief Function for resetting queries to an unset state.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param commandBuffer The command buffer to queue the command onto.
+ * @param queries The query pool.
+ * @param first The first query to reset.
+ * @param count The number of queries to reset.
+ * @return False if the queries couldn't be reset.
+ */
+typedef bool (*dsResetQueryPoolFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count);
+
+/**
+ * @brief Function for beginning or ending a query.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param commandBuffer The command buffer to queue the command onto.
+ * @param queries The query pool.
+ * @param query The index of the query to begin.
+ * @return False if the query couldn't begin.
+ */
+typedef bool (*dsBeginEndQueryFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries, uint32_t query);
+
+/**
+ * @brief Function for querying the current GPU timestamp.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param commandBuffer The command buffer to queue the command onto.
+ * @param queries The query pool.
+ * @param query The index of the query to set the timestamp for.
+ * @return False if the timestamp couldn't be set.
+ */
+typedef bool (*dsQueryTimestampFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries, uint32_t query);
+
+/**
+ * @brief Function for getting the query values.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param queries The query pool.
+ * @param first The first query to reset.
+ * @param count The number of queries to reset.
+ * @param data The data to write the results into.
+ * @param dataSize The size of the data buffer.
+ * @param stride The stride of the data.
+ * @param elementSize The size of each element.
+ * @param checkAvailability True to check availability and avoid waiting. When true, two values are
+ *     set for each query: the value (if available) and a 0 or 1 value for the value being
+ *     available.
+ * @return False if the values couldn't be queried.
+ */
+typedef bool (*dsGetQueryValuesFunction)(dsResourceManager* resourceManager,
+	dsGfxQueryPool* queries, uint32_t first, uint32_t count, void* data, size_t dataSize,
+	size_t stride, size_t elementSize, bool checkAvailability);
+
+/**
+ * @brief Function for copying the query values to a GPU buffer.
+ * @param resourceManager The resource manager the query pool was created with.
+ * @param commandBuffer The command buffer to queue the command onto.
+ * @param queries The query pool.
+ * @param first The first query to reset.
+ * @param count The number of queries to reset.
+ * @param buffer The graphic buffer to write the results into.
+ * @param offset The offset into the buffer for the first element.
+ * @param stride The stride of the data.
+ * @param elementSize The size of each element.
+ * @param checkAvailability True to check availability and avoid waiting. When true, two values are
+ *     set for each query: the value (if available) and a 0 or 1 value for the value being
+ *     available.
+ * @return False if the values couldn't be queried.
+ */
+typedef bool (*dsCopyQueryValuesFunction)(dsResourceManager* resourceManager,
+	dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
+	size_t elementSize, bool checkAvailability);
 
 /**
  * @brief Function for creating a shader module.
@@ -1717,6 +1854,30 @@ struct dsResourceManager
 	bool hasFences;
 
 	/**
+	 * @brief True if queries are supported.
+	 */
+	bool hasQueries;
+
+	/**
+	 * @brief True if query values may be 64 bits.
+	 *
+	 * This will always be true if timestamp queries are supported.
+	 */
+	bool has64BitQueries;
+
+	/**
+	 * @brief True if query values may be copied to a buffer.
+	 */
+	bool hasQueryBuffers;
+
+	/**
+	 * @brief The number of nanoseconds for each timestamp tick.
+	 *
+	 * This will be 0 if timestamp queries aren't supported.
+	 */
+	float timestampPeriod;
+
+	/**
 	 * @brief The current number of resource contexts.
 	 */
 	uint32_t resourceContextCount;
@@ -1750,6 +1911,11 @@ struct dsResourceManager
 	 * @brief The number of fences currently allocated by the resource manager.
 	 */
 	uint32_t fenceCount;
+
+	/**
+	 * @brief The number of query pools currently allocated by the resource manager.
+	 */
+	uint32_t queryPoolCount;
 
 	/**
 	 * @brief The number of shader modules currently allocated by the resource manager.
@@ -1975,6 +2141,46 @@ struct dsResourceManager
 	 * @brief Function for resetting a fence.
 	 */
 	dsResetFenceFunction resetFenceFunc;
+
+	/**
+	 * @brief Function for creating a qury pool
+	 */
+	dsCreateQueryPoolFunction createQueryPoolFunc;
+
+	/**
+	 * @brief Function for destroying a qury pool
+	 */
+	dsDestroyQueryPoolFunction destroyQueryPoolFunc;
+
+	/**
+	 * @brief Function for resetting a query pool.
+	 */
+	dsResetQueryPoolFunction resetQueryPoolFunc;
+
+	/**
+	 * @brief Function for beginning a query.
+	 */
+	dsBeginEndQueryFunction beginQueryFunc;
+
+	/**
+	 * @brief Function for ending a query.
+	 */
+	dsBeginEndQueryFunction endQueryFunc;
+
+	/**
+	 * @brief Function for querying the GPU timestamp.
+	 */
+	dsQueryTimestampFunction queryTimestampFunc;
+
+	/**
+	 * @brief Function for getting the query values.
+	 */
+	dsGetQueryValuesFunction getQueryValuesFunc;
+
+	/**
+	 * @brief Function for copying the query values on the GPU.
+	 */
+	dsCopyQueryValuesFunction copyQueryValuesFunc;
 
 	/**
 	 * @brief Shader module creation function.

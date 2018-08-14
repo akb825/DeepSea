@@ -37,6 +37,16 @@ bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, ds
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	uint32_t syncCount, bool bufferReadback);
 
+bool dsGLCommandBuffer_beginQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query);
+bool dsGLCommandBuffer_endQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query);
+bool dsGLCommandBuffer_queryTimestamp(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query);
+bool dsGLCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
+	size_t elementSize, bool checkAvailability);
+
 bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
 	const dsDynamicRenderStates* renderStates);

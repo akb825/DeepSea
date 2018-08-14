@@ -23,6 +23,7 @@
 #include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLGfxFence.h"
+#include "Resources/GLGfxQueryPool.h"
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLRenderbuffer.h"
 #include "Resources/GLShader.h"
@@ -1258,6 +1259,26 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->setFencesFunc = &dsGLGfxFence_set;
 	baseResourceManager->waitFenceFunc = &dsGLGfxFence_wait;
 	baseResourceManager->resetFenceFunc = &dsGLGfxFence_reset;
+
+	// Queries
+	baseResourceManager->hasQueries = ANYGL_SUPPORTED(glGenQueries);
+	baseResourceManager->has64BitQueries = ANYGL_SUPPORTED(glGetQueryBufferObjectui64v);
+	baseResourceManager->hasQueryBuffers = AnyGL_atLeastVersion(4, 4, false) ||
+		AnyGL_ARB_query_buffer_object;
+	if (AnyGL_atLeastVersion(3, 3, false) || AnyGL_ARB_timer_query || AnyGL_EXT_timer_query ||
+		AnyGL_EXT_disjoint_timer_query)
+	{
+		DS_ASSERT(baseResourceManager->has64BitQueries);
+		baseResourceManager->timestampPeriod = 1.0f;
+	}
+	baseResourceManager->createQueryPoolFunc = &dsGLGfxQueryPool_create;
+	baseResourceManager->destroyQueryPoolFunc = &dsGLGfxQueryPool_destroy;
+	baseResourceManager->resetQueryPoolFunc = &dsGLGfxQueryPool_reset;
+	baseResourceManager->beginQueryFunc = &dsGLGfxQueryPool_beginQuery;
+	baseResourceManager->endQueryFunc = &dsGLGfxQueryPool_endQuery;
+	baseResourceManager->queryTimestampFunc = &dsGLGfxQueryPool_queryTimestamp;
+	baseResourceManager->getQueryValuesFunc = &dsGLGfxQueryPool_getValues;
+	baseResourceManager->copyQueryValuesFunc = &dsGLGfxQueryPool_copyValues;
 
 	// Shaders and materials
 	baseResourceManager->createShaderModuleFunc = &dsGLShaderModule_create;

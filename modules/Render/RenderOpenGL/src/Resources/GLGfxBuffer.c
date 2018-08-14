@@ -18,7 +18,6 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
-#include "Resources/GLGfxBuffer.h"
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "GLResource.h"

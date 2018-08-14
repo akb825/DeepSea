@@ -20,6 +20,7 @@
 #include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxBuffer.h"
 #include "Resources/GLGfxFence.h"
+#include "Resources/GLGfxQueryPool.h"
 #include "Resources/GLRenderbuffer.h"
 #include "Resources/GLShader.h"
 #include "Resources/GLTexture.h"
@@ -43,6 +44,10 @@ typedef enum CommandType
 	CommandType_CopyTextureData,
 	CommandType_CopyTexture,
 	CommandType_GenerateTextureMipmaps,
+	CommandType_BeginQuery,
+	CommandType_EndQuery,
+	CommandType_QueryTimestamp,
+	CommandType_CopyQueryValues,
 	CommandType_BindShader,
 	CommandType_SetTexture,
 	CommandType_SetTextureBuffer,
@@ -118,6 +123,33 @@ typedef struct GenerateTextureMipmapsCommand
 	Command command;
 	dsTexture* texture;
 } GenerateTextureMipmapsCommand;
+
+typedef struct BeginEndQueryCommand
+{
+	Command command;
+	dsGfxQueryPool* queries;
+	uint32_t query;
+} BeginEndQueryCommand;
+
+typedef struct QueryTimestampCommand
+{
+	Command command;
+	dsGfxQueryPool* queries;
+	uint32_t query;
+} QueryTimestampCommand;
+
+typedef struct CopyQueryValuesCommand
+{
+	Command command;
+	dsGfxQueryPool* queries;
+	uint32_t first;
+	uint32_t count;
+	dsGfxBuffer* buffer;
+	size_t offset;
+	size_t stride;
+	size_t elementSize;
+	bool checkAvailability;
+} CopyQueryValuesCommand;
 
 typedef struct BindShaderCommand
 {
@@ -450,6 +482,70 @@ bool dsGLOtherCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFe
 	if (bufferReadback)
 		glCommandBuffer->bufferReadback = bufferReadback;
 
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_beginQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	BeginEndQueryCommand* command = (BeginEndQueryCommand*)allocateCommand(commandBuffer,
+		CommandType_BeginQuery, sizeof(BeginEndQueryCommand));
+	if (!command)
+		return false;
+
+	dsGLGfxQueryPool_addInternalRef(queries);
+	command->queries = queries;
+	command->query = query;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_endQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	BeginEndQueryCommand* command = (BeginEndQueryCommand*)allocateCommand(commandBuffer,
+		CommandType_EndQuery, sizeof(BeginEndQueryCommand));
+	if (!command)
+		return false;
+
+	dsGLGfxQueryPool_addInternalRef(queries);
+	command->queries = queries;
+	command->query = query;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_queryTimestamp(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	QueryTimestampCommand* command = (QueryTimestampCommand*)allocateCommand(commandBuffer,
+		CommandType_QueryTimestamp, sizeof(QueryTimestampCommand));
+	if (!command)
+		return false;
+
+	dsGLGfxQueryPool_addInternalRef(queries);
+	command->queries = queries;
+	command->query = query;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
+	size_t elementSize, bool checkAvailability)
+{
+	CopyQueryValuesCommand* command = (CopyQueryValuesCommand*)allocateCommand(commandBuffer,
+		CommandType_CopyQueryValues, sizeof(CopyQueryValuesCommand));
+	if (!command)
+		return false;
+
+	dsGLGfxQueryPool_addInternalRef(queries);
+	dsGLGfxBuffer_addInternalRef(buffer);
+	command->queries = queries;
+	command->first = first;
+	command->count = count;
+	command->buffer = buffer;
+	command->offset = offset;
+	command->stride = stride;
+	command->elementSize = elementSize;
+	command->checkAvailability = checkAvailability;
 	return true;
 }
 
@@ -870,6 +966,36 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_generateTextureMipmaps(commandBuffer, thisCommand->texture);
 				break;
 			}
+			case CommandType_BeginQuery:
+			{
+				BeginEndQueryCommand* thisCommand = (BeginEndQueryCommand*)command;
+				dsGLCommandBuffer_beginQuery(commandBuffer, thisCommand->queries,
+					thisCommand->query);
+				break;
+			}
+			case CommandType_EndQuery:
+			{
+				BeginEndQueryCommand* thisCommand = (BeginEndQueryCommand*)command;
+				dsGLCommandBuffer_endQuery(commandBuffer, thisCommand->queries,
+					thisCommand->query);
+				break;
+			}
+			case CommandType_QueryTimestamp:
+			{
+				QueryTimestampCommand* thisCommand = (QueryTimestampCommand*)command;
+				dsGLCommandBuffer_queryTimestamp(commandBuffer, thisCommand->queries,
+					thisCommand->query);
+				break;
+			}
+			case CommandType_CopyQueryValues:
+			{
+				CopyQueryValuesCommand* thisCommand = (CopyQueryValuesCommand*)command;
+				dsGLCommandBuffer_copyQueryValues(commandBuffer, thisCommand->queries,
+					thisCommand->first, thisCommand->count, thisCommand->buffer,
+					thisCommand->offset, thisCommand->stride, thisCommand->elementSize,
+					thisCommand->checkAvailability);
+				break;
+			}
 			case CommandType_BindShader:
 			{
 				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
@@ -1057,6 +1183,10 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyTexture,
 	&dsGLOtherCommandBuffer_generateTextureMipmaps,
 	&dsGLOtherCommandBuffer_setFenceSyncs,
+	&dsGLOtherCommandBuffer_beginQuery,
+	&dsGLOtherCommandBuffer_endQuery,
+	&dsGLOtherCommandBuffer_queryTimestamp,
+	&dsGLOtherCommandBuffer_copyQueryValues,
 	&dsGLOtherCommandBuffer_bindShader,
 	&dsGLOtherCommandBuffer_setTexture,
 	&dsGLOtherCommandBuffer_setTextureBuffer,
@@ -1169,6 +1299,26 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				GenerateTextureMipmapsCommand* thisCommand =
 					(GenerateTextureMipmapsCommand*)command;
 				dsGLTexture_freeInternalRef(thisCommand->texture);
+				break;
+			}
+			case CommandType_BeginQuery:
+			case CommandType_EndQuery:
+			{
+				BeginEndQueryCommand* thisCommand = (BeginEndQueryCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				break;
+			}
+			case CommandType_QueryTimestamp:
+			{
+				QueryTimestampCommand* thisCommand = (QueryTimestampCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				break;
+			}
+			case CommandType_CopyQueryValues:
+			{
+				CopyQueryValuesCommand* thisCommand = (CopyQueryValuesCommand*)command;
+				dsGLGfxQueryPool_freeInternalRef(thisCommand->queries);
+				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
 				break;
 			}
 			case CommandType_BindShader:

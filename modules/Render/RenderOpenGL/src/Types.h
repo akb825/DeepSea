@@ -132,6 +132,13 @@ typedef struct dsGLGfxFence
 	dsGLFenceSyncRef* sync;
 } dsGLGfxFence;
 
+typedef struct dsGLGfxQueryPool
+{
+	dsGfxQueryPool queries;
+	dsGLResource resource;
+	GLuint queryIds[];
+} dsGLGfxQueryPool;
+
 typedef struct dsGLShaderModule
 {
 	dsShaderModule shaderModule;
@@ -272,6 +279,14 @@ typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTextu
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
 	uint32_t syncCount, bool bufferReadback);
 
+typedef bool (*GLBeginEndQueryFunction)(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query);
+typedef bool (*GLQueryTimestampFunction)(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query);
+typedef bool (*GLCopyQueryValuesFunction)(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
+	size_t elementSize, bool checkAvailability);
+
 typedef bool (*GLBindShaderFunctiion)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);
 typedef bool (*GLSetTextureFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
@@ -339,6 +354,11 @@ typedef struct CommandBufferFunctionTable
 	GLGenerateTextureMipmaps generateTextureMipmapsFunc;
 
 	GLSetFenceSyncsFunction setFenceSyncsFunc;
+
+	GLBeginEndQueryFunction beginQueryFunc;
+	GLBeginEndQueryFunction endQueryFunc;
+	GLQueryTimestampFunction queryTimestampFunc;
+	GLCopyQueryValuesFunction copyQueryValuesFunc;
 
 	GLBindShaderFunctiion bindShaderFunc;
 	GLSetTextureFunction setTextureFunc;

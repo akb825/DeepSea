@@ -20,6 +20,7 @@
 #include "Resources/MockFramebuffer.h"
 #include "Resources/MockGfxBuffer.h"
 #include "Resources/MockGfxFence.h"
+#include "Resources/MockGfxQueryPool.h"
 #include "Resources/MockMaterialDesc.h"
 #include "Resources/MockRenderbuffer.h"
 #include "Resources/MockShader.h"
@@ -146,6 +147,10 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->requiresAnySurface = false;
 	resourceManager->canMixWithRenderSurface = true;
 	resourceManager->hasFences = true;
+	resourceManager->hasQueries = true;
+	resourceManager->has64BitQueries = true;
+	resourceManager->hasQueryBuffers = true;
+	resourceManager->timestampPeriod = 1.0f;
 
 	resourceManager->vertexFormatSupportedFunc = &vertexFormatSupported;
 	resourceManager->textureFormatSupportedFunc = &textureFormatSupported;
@@ -183,6 +188,21 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->createFramebufferFunc = &dsMockFramebuffer_create;
 	resourceManager->destroyFramebufferFunc = &dsMockFramebuffer_destroy;
 
+	resourceManager->createFenceFunc = &dsMockGfxFence_create;
+	resourceManager->destroyFenceFunc = &dsMockGfxFence_destroy;
+	resourceManager->setFencesFunc = &dsMockGfxFence_set;
+	resourceManager->waitFenceFunc = &dsMockGfxFence_wait;
+	resourceManager->resetFenceFunc = &dsMockGfxFence_reset;
+
+	resourceManager->createQueryPoolFunc = &dsMockGfxQueryPool_create;
+	resourceManager->destroyQueryPoolFunc = &dsMockGfxQueryPool_destroy;
+	resourceManager->resetQueryPoolFunc = &dsMockGfxQueryPool_reset;
+	resourceManager->beginQueryFunc = &dsMockGfxQueryPool_beginQuery;
+	resourceManager->endQueryFunc = &dsMockGfxQueryPool_endQuery;
+	resourceManager->queryTimestampFunc = &dsMockGfxQueryPool_queryTimestamp;
+	resourceManager->getQueryValuesFunc = &dsMockGfxQueryPool_getValues;
+	resourceManager->copyQueryValuesFunc = &dsMockGfxQueryPool_copyValues;
+
 	resourceManager->createShaderModuleFunc = &dsMockShaderModule_create;
 	resourceManager->destroyShaderModuleFunc = &dsMockShaderModule_destroy;
 
@@ -200,12 +220,6 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->bindComputeShaderFunc = &dsMockShader_bindCompute;
 	resourceManager->updateComputeShaderVolatileValuesFunc = &dsMockShader_updateVolatileValues;
 	resourceManager->unbindComputeShaderFunc = &dsMockShader_unbind;
-
-	resourceManager->createFenceFunc = &dsMockGfxFence_create;
-	resourceManager->destroyFenceFunc = &dsMockGfxFence_destroy;
-	resourceManager->setFencesFunc = &dsMockGfxFence_set;
-	resourceManager->waitFenceFunc = &dsMockGfxFence_wait;
-	resourceManager->resetFenceFunc = &dsMockGfxFence_reset;
 
 	return resourceManager;
 }

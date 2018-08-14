@@ -91,6 +91,29 @@ static const GLenum primitiveTypeMap[] =
 	GL_PATCHES
 };
 
+static GLenum getQueryType(dsGfxQueryType type)
+{
+	switch (type)
+	{
+		case dsGfxQueryType_SamplesPassed:
+			return GL_SAMPLES_PASSED;
+		case dsGfxQueryType_AnySamplesPassed:
+			if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_atLeastVersion(3, 0, true) ||
+				AnyGL_ARB_ES3_compatibility)
+			{
+				return GL_ANY_SAMPLES_PASSED_CONSERVATIVE;
+			}
+			else if (AnyGL_atLeastVersion(3, 3, false) || AnyGL_ARB_occlusion_query2)
+				return GL_ANY_SAMPLES_PASSED;
+			return GL_SAMPLES_PASSED;
+		case dsGfxQueryType_Timestamp:
+			return GL_TIMESTAMP;
+		default:
+			DS_ASSERT(false);
+			return 0;
+	}
+}
+
 static bool setFences(dsRenderer* renderer, dsGLFenceSyncRef** fenceSyncs, size_t fenceCount,
 	bool bufferReadback)
 {
@@ -817,6 +840,70 @@ bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFen
 	}
 	else
 		return setFences(commandBuffer->renderer, syncs, syncCount, bufferReadback);
+}
+
+bool dsGLMainCommandBuffer_beginQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	DS_UNUSED(commandBuffer);
+	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+	glBeginQuery(getQueryType(queries->type), glQueries->queryIds[query]);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_endQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(query);
+	glEndQuery(getQueryType(queries->type));
+	return true;
+}
+
+bool dsGLMainCommandBuffer_queryTimestamp(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t query)
+{
+	DS_UNUSED(commandBuffer);
+	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+	glQueryCounter(glQueries->queryIds[query], GL_TIMESTAMP);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
+	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
+	size_t elementSize, bool checkAvailability)
+{
+	DS_UNUSED(commandBuffer);
+
+	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;
+	glBindBuffer(GL_QUERY_BUFFER, glBuffer->bufferId);
+
+	GLenum requestType = checkAvailability ? GL_QUERY_RESULT_NO_WAIT : GL_QUERY_RESULT;
+	for (uint32_t i = 0; i < count; ++i, offset += stride)
+	{
+		if (elementSize == sizeof(uint64_t))
+		{
+			glGetQueryObjectui64v(glQueries->queryIds[first + i], requestType, (void*)offset);
+			if (checkAvailability)
+			{
+				glGetQueryObjectui64v(glQueries->queryIds[first + i], GL_QUERY_RESULT_AVAILABLE,
+					(void*)(offset + elementSize));
+			}
+		}
+		else
+		{
+			glGetQueryObjectuiv(glQueries->queryIds[first + i], requestType, (void*)offset);
+			if (checkAvailability)
+			{
+				glGetQueryObjectuiv(glQueries->queryIds[first + i], GL_QUERY_RESULT_AVAILABLE,
+					(void*)(offset + elementSize));
+			}
+		}
+	}
+
+	glBindBuffer(GL_QUERY_BUFFER, 0);
+	return true;
 }
 
 bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
@@ -1716,6 +1803,10 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_copyTexture,
 	&dsGLMainCommandBuffer_generateTextureMipmaps,
 	&dsGLMainCommandBuffer_setFenceSyncs,
+	&dsGLMainCommandBuffer_beginQuery,
+	&dsGLMainCommandBuffer_endQuery,
+	&dsGLMainCommandBuffer_queryTimestamp,
+	&dsGLMainCommandBuffer_copyQueryValues,
 	&dsGLMainCommandBuffer_bindShader,
 	&dsGLMainCommandBuffer_setTexture,
 	&dsGLMainCommandBuffer_setTextureBuffer,

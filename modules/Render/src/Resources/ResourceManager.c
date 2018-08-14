@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,6 +146,7 @@ void dsResourceManager_reportStatistics(const dsResourceManager* resourceManager
 		(double)resourceManager->renderbufferMemorySize);
 	DS_PROFILE_STAT("ResourceManager", "Framebuffers", resourceManager->framebufferCount);
 	DS_PROFILE_STAT("ResourceManager", "Fences", resourceManager->fenceCount);
+	DS_PROFILE_STAT("ResourceManager", "Query Pools", resourceManager->queryPoolCount);
 	DS_PROFILE_STAT("ResourceManager", "Shader modules", resourceManager->shaderModuleCount);
 	DS_PROFILE_STAT("ResourceManager", "Shaders", resourceManager->shaderCount);
 	DS_PROFILE_STAT("ResourceManager", "Material descriptions", resourceManager->materialDescCount);
@@ -196,6 +197,30 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 			resourceManager->textureCount);
 	}
 
+	if (resourceManager->renderbufferCount)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u renderbuffers remain allocated.",
+			resourceManager->renderbufferCount);
+	}
+
+	if (resourceManager->framebufferCount)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u framebuffers remain allocated.",
+			resourceManager->framebufferCount);
+	}
+
+	if (resourceManager->fenceCount)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u fences remain allocated.",
+			resourceManager->fenceCount);
+	}
+
+	if (resourceManager->queryPoolCount)
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u query pools remain allocated.",
+			resourceManager->queryPoolCount);
+	}
+
 	if (resourceManager->shaderModuleCount)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u shader modules remain allocated.",
@@ -224,11 +249,5 @@ void dsResourceManager_shutdown(dsResourceManager* resourceManager)
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u shaders remain allocated.",
 			resourceManager->shaderCount);
-	}
-
-	if (resourceManager->framebufferCount)
-	{
-		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "%u framebuffers remain allocated.",
-			resourceManager->framebufferCount);
 	}
 }
