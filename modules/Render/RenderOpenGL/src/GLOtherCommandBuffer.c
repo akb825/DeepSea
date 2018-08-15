@@ -230,6 +230,7 @@ typedef struct NextRenderSubpassCommand
 {
 	Command command;
 	const dsRenderPass* renderPass;
+	uint32_t subpassIndex;
 } NextRenderSubpassCommand;
 
 typedef struct EndRenderPassCommand
@@ -724,7 +725,6 @@ bool dsGLOtherCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 bool dsGLOtherCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex)
 {
-	DS_UNUSED(subpassIndex);
 	NextRenderSubpassCommand* command = (NextRenderSubpassCommand*)allocateCommand(commandBuffer,
 		CommandType_NextRenderSubpass, sizeof(NextRenderSubpassCommand));
 	if (!command)
@@ -732,6 +732,7 @@ bool dsGLOtherCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 
 	dsGLRenderPass_addInternalRef((dsRenderPass*)renderPass);
 	command->renderPass = renderPass;
+	command->subpassIndex = subpassIndex;
 	return true;
 }
 
@@ -1076,7 +1077,8 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 			case CommandType_NextRenderSubpass:
 			{
 				NextRenderSubpassCommand* thisCommand = (NextRenderSubpassCommand*)command;
-				dsGLCommandBuffer_nextRenderSubpass(commandBuffer, thisCommand->renderPass);
+				dsGLCommandBuffer_nextRenderSubpass(commandBuffer, thisCommand->renderPass,
+					thisCommand->subpassIndex);
 				break;
 			}
 			case CommandType_EndRenderPass:
@@ -1233,6 +1235,12 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = usage;
+	baseCommandBuffer->boundFramebuffer = NULL;
+	baseCommandBuffer->boundRenderPass = NULL;
+	baseCommandBuffer->activeRenderSubpass = 0;
+	baseCommandBuffer->indirectCommands = false;
+	baseCommandBuffer->boundShader = NULL;
+	baseCommandBuffer->boundComputeShader = NULL;
 
 	((dsGLCommandBuffer*)commandBuffer)->functions = &functionTable;
 	commandBuffer->fenceSyncs = NULL;

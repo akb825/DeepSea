@@ -42,6 +42,8 @@ extern "C"
  * @param resourceManager The resource manager to create the framebuffer from.
  * @param allocator The allocator to create the framebuffer with. If NULL, it will use the same
  *     allocator as the resource manager.
+ * @param name The name of the framebuffer, used for profiling info. This should remain allocated
+ *     for the duration of the application, such as a string constant.
  * @param surfaces The surfaces that make up the framebuffer. The surfaces must match the dimensions
  *     of the framebuffer.
  * @param surfaceCount The number of surfaces.
@@ -53,8 +55,8 @@ extern "C"
  * @return The created framebuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
-	uint32_t width, uint32_t height, uint32_t layers);
+	dsAllocator* allocator, const char* name, const dsFramebufferSurface* surfaces,
+	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
 
 /**
  * @brief Destroys a framebuffer.

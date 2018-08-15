@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/RenderSurface.h>
 #include <gtest/gtest.h>
 
@@ -26,10 +26,10 @@ extern "C" DS_RENDERMOCK_EXPORT bool dsMockRenderSurface_changeSize;
 
 TEST_F(RenderSurfaceTest, Create)
 {
-	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, dsRenderSurfaceType_Direct, NULL));
+	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct));
 
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -37,8 +37,8 @@ TEST_F(RenderSurfaceTest, Create)
 
 TEST_F(RenderSurfaceTest, Update)
 {
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_update(NULL));
@@ -61,25 +61,27 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 {
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
 	EXPECT_FALSE(dsRenderSurface_beginDraw(NULL, commandBuffer));
 	EXPECT_TRUE(dsRenderSurface_beginDraw(renderSurface, commandBuffer));
+	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, commandBuffer));
 
 	EXPECT_FALSE(dsRenderSurface_endDraw(renderSurface, NULL));
 	EXPECT_FALSE(dsRenderSurface_endDraw(NULL, commandBuffer));
 	EXPECT_TRUE(dsRenderSurface_endDraw(renderSurface, commandBuffer));
+	EXPECT_FALSE(dsRenderSurface_endDraw(renderSurface, commandBuffer));
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
 }
 
 TEST_F(RenderSurfaceTest, SwapBuffers)
 {
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));

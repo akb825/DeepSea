@@ -34,6 +34,7 @@
 #include <string.h>
 
 extern const char* dsResourceManager_noContextError;
+bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 
 static const dsMaterialType materialTypeMap[] =
 {
@@ -556,6 +557,33 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 	return true;
 }
 
+static uint32_t getSubpassSamples(const dsRenderPass* renderPass, uint32_t subpassIndex)
+{
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		if (subpass->colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
+			continue;
+
+		const dsAttachmentInfo* attachment = renderPass->attachments +
+			subpass->colorAttachments[i].attachmentIndex;
+		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			return renderPass->renderer->surfaceSamples;
+		return attachment->samples;
+	}
+
+	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+	{
+		const dsAttachmentInfo* attachment = renderPass->attachments +
+			subpass->depthStencilAttachment;
+		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			return renderPass->renderer->surfaceSamples;
+		return attachment->samples;
+	}
+
+	return 0;
+}
+
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
 	dsPrimitiveType primitiveType, uint32_t samples)
@@ -693,9 +721,43 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader binding must be performed inside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot bind a shader when another shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	uint32_t shaderSamples = shader->samples;
+	if (shader->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		shaderSamples = commandBuffer->renderer->surfaceSamples;
+	uint32_t subpassSamples = getSubpassSamples(commandBuffer->boundRenderPass,
+		commandBuffer->activeRenderSubpass);
+	if (subpassSamples && subpassSamples != shaderSamples)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader anti-alias samples don't match the attachments for "
+			"the current render subpass.");
+		return false;
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->bindShaderFunc(shader->resourceManager, commandBuffer, shader,
 		material, volatileValues, renderStates);
+	if (!success)
+		DS_PROFILE_FUNC_RETURN(success);
+
+	commandBuffer->boundShader = shader;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -717,6 +779,17 @@ bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* comm
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Can only update volatile values for the currently bound shader.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->updateShaderVolatileValuesFunc(shader->resourceManager,
 		commandBuffer, shader, volatileValues);
@@ -734,8 +807,29 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader unbinding must be performed inside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only unbind the currently bound shader.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->unbindShaderFunc(resourceManager, commandBuffer, shader);
+	if (!success)
+		DS_PROFILE_FUNC_RETURN(success);
+
+	commandBuffer->boundShader = NULL;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -773,8 +867,28 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Compute shader binding must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot bind a compute shader when another compute shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = resourceManager->bindComputeShaderFunc(shader->resourceManager, commandBuffer,
 		shader, material, volatileValues);
+	if (!success)
+		DS_PROFILE_FUNC_RETURN(success);
+
+	commandBuffer->boundComputeShader = shader;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -804,6 +918,14 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundComputeShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Can only update compute volatile values for the currently bound compute shader.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = resourceManager->updateComputeShaderVolatileValuesFunc(shader->resourceManager,
 		commandBuffer, shader, volatileValues);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -827,7 +949,26 @@ bool dsShader_unbindCompute(const dsShader* shader, dsCommandBuffer* commandBuff
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Compute shader unbinding must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundComputeShader != shader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only unbind the currently bound compute shader.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = resourceManager->unbindComputeShaderFunc(resourceManager, commandBuffer, shader);
+	if (!success)
+		DS_PROFILE_FUNC_RETURN(success);
+
+	commandBuffer->boundComputeShader = NULL;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

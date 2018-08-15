@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "AssetFixtureBase.h"
+#include "Fixtures/AssetFixtureBase.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Stream.h>

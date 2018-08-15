@@ -1321,6 +1321,21 @@ bool dsGLMainCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 bool dsGLMainCommandBuffer_clearColorSurface(dsCommandBuffer* commandBuffer,
 	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
 {
+	DS_ASSERT(surface);
+	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
+	if (surface->surfaceType != dsGfxSurfaceType_Texture &&
+		surface->surfaceType != dsGfxSurfaceType_Renderbuffer)
+	{
+		if (((dsGLRenderSurface*)surface->surface)->glSurface != glCommandBuffer->boundSurface)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
+				"Only the currently bound surface can be cleared.");
+			return false;
+		}
+	}
+
+
 	GLSurfaceType surfaceType = dsGLFramebuffer_getSurfaceType(surface->surfaceType);
 	dsSurfaceClearValue value;
 	value.colorValue = *colorValue;
@@ -1845,6 +1860,12 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = dsCommandBufferUsage_Standard;
+	baseCommandBuffer->boundFramebuffer = NULL;
+	baseCommandBuffer->boundRenderPass = NULL;
+	baseCommandBuffer->activeRenderSubpass = 0;
+	baseCommandBuffer->indirectCommands = false;
+	baseCommandBuffer->boundShader = NULL;
+	baseCommandBuffer->boundComputeShader = NULL;
 
 	((dsGLCommandBuffer*)commandBuffer)->functions = &functionTable;
 	commandBuffer->fenceSyncs = NULL;

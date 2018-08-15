@@ -52,12 +52,20 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	DS_ASSERT(pool->currentBuffers);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		pool->currentBuffers[i] = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
 			dsCommandBuffer);
-		DS_ASSERT(pool->currentBuffers[i]);
-		pool->currentBuffers[i]->renderer = renderer;
-		pool->currentBuffers[i]->allocator = pool->allocator;
-		pool->currentBuffers[i]->usage = pool->usage;
+		DS_ASSERT(commandBuffer);
+		commandBuffer->renderer = renderer;
+		commandBuffer->allocator = pool->allocator;
+		commandBuffer->usage = pool->usage;
+		commandBuffer->boundSurface = NULL;
+		commandBuffer->boundFramebuffer = NULL;
+		commandBuffer->boundRenderPass = NULL;
+		commandBuffer->activeRenderSubpass = 0;
+		commandBuffer->indirectCommands = false;
+		commandBuffer->boundShader = NULL;
+		commandBuffer->boundComputeShader = NULL;
+		pool->currentBuffers[i] = commandBuffer;
 	}
 
 	if (lists == 2)
@@ -67,12 +75,20 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			pool->otherBuffers[i] = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+			dsCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
 				dsCommandBuffer);
-			DS_ASSERT(pool->otherBuffers[i]);
-			pool->otherBuffers[i]->renderer = renderer;
-			pool->otherBuffers[i]->allocator = pool->allocator;
-			pool->otherBuffers[i]->usage = pool->usage;
+			DS_ASSERT(commandBuffer);
+			commandBuffer->renderer = renderer;
+			commandBuffer->allocator = pool->allocator;
+			commandBuffer->usage = pool->usage;
+			commandBuffer->boundSurface = NULL;
+			commandBuffer->boundFramebuffer = NULL;
+			commandBuffer->boundRenderPass = NULL;
+			commandBuffer->activeRenderSubpass = 0;
+			commandBuffer->indirectCommands = false;
+			commandBuffer->boundShader = NULL;
+			commandBuffer->boundComputeShader = NULL;
+			pool->otherBuffers[i] = commandBuffer;
 		}
 	}
 	else

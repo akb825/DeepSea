@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <gtest/gtest.h>
 #include <string.h>
 
@@ -30,7 +31,7 @@ struct TestData
 
 } // namespace
 
-class GfxBufferTest : public FixtureBase
+class GfxBufferTest : public RenderPassFixtureBase
 {
 };
 
@@ -156,6 +157,10 @@ TEST_F(GfxBufferTest, CopyData)
 	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 4, &copyData, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
 
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsGfxBuffer_copyData(buffer, commandBuffer, 0, &copyData, sizeof(copyData)));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(copyData));
 	ASSERT_TRUE(data);
 	EXPECT_EQ(0U, memcmp(&copyData, data, sizeof(copyData)));
@@ -200,6 +205,10 @@ TEST_F(GfxBufferTest, Copy)
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 4, toBuffer, 0, sizeof(testData)));
 	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 4, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsGfxBuffer_copy(commandBuffer, fromBuffer, 0, toBuffer, 0, sizeof(testData)));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	void* data = dsGfxBuffer_map(toBuffer, dsGfxBufferMap_Read, 0, sizeof(testData));
 	ASSERT_TRUE(data);

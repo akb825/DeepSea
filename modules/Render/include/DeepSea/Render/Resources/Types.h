@@ -970,6 +970,11 @@ typedef struct dsFramebuffer
 	dsAllocator* allocator;
 
 	/**
+	 * @brief The name of the framebuffer.
+	 */
+	const char* name;
+
+	/**
 	 * @brief The surfaces for the framebuffer.
 	 */
 	dsFramebufferSurface* surfaces;
@@ -1049,7 +1054,7 @@ typedef struct dsGfxQeuryPool
 	/**
 	 * @brief The number of queries in the pool.
 	 */
-	uint32_t queryCount;
+	uint32_t count;
 } dsGfxQueryPool;
 
 /**
@@ -1362,6 +1367,7 @@ typedef bool (*dsGetTextureDataFunction)(void* result, size_t size,
  * @brief Function for creeating a framebuffer.
  * @param resourceManager The resource manager to create the framebuffer from.
  * @param allocator The allocator to create the framebuffer with.
+ * @param name The name of the framebuffer.
  * @param surfaces The surfaces that make up the framebuffer.
  * @param surfaceCount The number of surfaces.
  * @param width The width of the framebuffer.
@@ -1370,8 +1376,8 @@ typedef bool (*dsGetTextureDataFunction)(void* result, size_t size,
  * @return The created framebuffer, or NULL if it couldn't be created.
  */
 typedef dsFramebuffer* (*dsCreateFramebufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
-	uint32_t width, uint32_t height, uint32_t layers);
+	dsAllocator* allocator, const char* name, const dsFramebufferSurface* surfaces,
+	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
 
 /**
  * @brief Function for destroying a renderbuffer.

@@ -27,7 +27,7 @@ bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount, bool indirectCommands);
 bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, bool indirectCommands);
+	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands);
 bool dsMockRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 bool dsMockRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);

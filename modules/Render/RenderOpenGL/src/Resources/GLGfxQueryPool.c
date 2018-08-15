@@ -40,7 +40,7 @@ dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager,
 	baseQueries->resourceManager = resourceManager;
 	baseQueries->allocator = dsAllocator_keepPointer(allocator);
 	baseQueries->type = type;
-	baseQueries->queryCount = type;
+	baseQueries->count = count;
 
 	dsGLResource_initialize(&queries->resource);
 
@@ -141,7 +141,7 @@ bool dsGLGfxQueryPool_copyValues(dsResourceManager* resourceManager,
 static bool destroyImpl(dsGfxQueryPool* queries)
 {
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
-	glDeleteQueries(queries->queryCount, glQueries->queryIds);
+	glDeleteQueries(queries->count, glQueries->queryIds);
 	if (queries->allocator)
 		return dsAllocator_free(queries->allocator, queries);
 

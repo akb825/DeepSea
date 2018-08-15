@@ -80,7 +80,7 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount);
 bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass);
+	const dsRenderPass* renderPass, uint32_t index);
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 

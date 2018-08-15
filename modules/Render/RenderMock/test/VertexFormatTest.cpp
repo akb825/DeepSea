@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
 #include <gtest/gtest.h>

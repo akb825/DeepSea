@@ -353,6 +353,13 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
 	renderer->mainCommandBuffer->usage = dsCommandBufferUsage_Standard;
+	renderer->mainCommandBuffer->boundSurface = NULL;
+	renderer->mainCommandBuffer->boundFramebuffer = NULL;
+	renderer->mainCommandBuffer->boundRenderPass = NULL;
+	renderer->mainCommandBuffer->activeRenderSubpass = 0;
+	renderer->mainCommandBuffer->indirectCommands = false;
+	renderer->mainCommandBuffer->boundShader = NULL;
+	renderer->mainCommandBuffer->boundComputeShader = NULL;
 
 	renderer->maxColorAttachments = 4;
 	renderer->maxSurfaceSamples = 16;

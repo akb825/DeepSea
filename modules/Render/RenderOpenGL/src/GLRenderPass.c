@@ -153,14 +153,14 @@ bool dsGLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 }
 
 bool dsGLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, bool indirectCommands)
+	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(renderPass);
 	DS_UNUSED(indirectCommands);
 
-	return dsGLCommandBuffer_nextRenderSubpass(commandBuffer, renderPass);
+	return dsGLCommandBuffer_nextRenderSubpass(commandBuffer, renderPass, index);
 }
 
 bool dsGLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

@@ -28,14 +28,14 @@
 extern const char* dsResourceManager_noContextError;
 
 dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
-	uint32_t layers)
+	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, uint32_t layers)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
 		!resourceManager->createFramebufferFunc || !resourceManager->destroyFramebufferFunc ||
-		(surfaceCount > 0 && !surfaces))
+		!name || (surfaceCount > 0 && !surfaces))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -216,7 +216,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	dsFramebuffer* framebuffer = resourceManager->createFramebufferFunc(resourceManager, allocator,
-		surfaces, surfaceCount, width, height, layers);
+		name, surfaces, surfaceCount, width, height, layers);
 	if (framebuffer)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->framebufferCount, 1);
 	DS_PROFILE_FUNC_RETURN(framebuffer);

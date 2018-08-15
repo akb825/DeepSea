@@ -45,15 +45,15 @@ extern "C"
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface with. If NULL, it will use the same
  *     allocator as the renderer.
+ * @param name The name of the render surface, used for profiling info. This should remain allocated
+ *     for the duration of the application, such as a string constant.
  * @param osHandle The handle to the OS surface, such as the window handle. In the case of a MacOS
  *     window, it will actually be an NSView instance.
  * @param type The render surface type.
- * @param name The name of the render surface, used for profiling info. This should remain allocated
- *     for the duration of the application, such as a string constant.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name);
+	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type);
 
 /**
  * @brief Updates a render surface.

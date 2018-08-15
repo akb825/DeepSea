@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/CommandBufferPool.h>
 
 class CommandBufferPoolTest : public FixtureBase

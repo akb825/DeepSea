@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "FixtureBase.h"
+#include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Core/Types.h>
 
-class AssetFixtureBase : public FixtureBase
+class AssetFixtureBase : public RenderPassFixtureBase
 {
 public:
 	explicit AssetFixtureBase(const char* dir);

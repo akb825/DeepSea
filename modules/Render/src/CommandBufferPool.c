@@ -47,6 +47,21 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 
 	dsCommandBufferPool* pool = renderer->createCommandBufferPoolFunc(renderer, allocator, usage,
 		count);
+	if (!pool)
+		DS_PROFILE_FUNC_RETURN(pool);
+
+	// Internally managed states, so guarantee they are properly initialized.
+	for (uint32_t i = 0; i < pool->count; ++i)
+	{
+		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
+		commandBuffer->boundSurface = NULL;
+		commandBuffer->boundFramebuffer = NULL;
+		commandBuffer->boundRenderPass = NULL;
+		commandBuffer->activeRenderSubpass = 0;
+		commandBuffer->indirectCommands = false;
+		commandBuffer->boundShader = NULL;
+		commandBuffer->boundComputeShader = NULL;
+	}
 	DS_PROFILE_FUNC_RETURN(pool);
 }
 
@@ -70,6 +85,21 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 	}
 
 	bool success = renderer->resetCommandBufferPoolFunc(renderer, pool);
+	if (!success)
+		DS_PROFILE_FUNC_RETURN(success);
+
+	// Guarantee that a freshly reset command buffer can bind a render pass.
+	for (uint32_t i = 0; i < pool->count; ++i)
+	{
+		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
+		commandBuffer->boundSurface = NULL;
+		commandBuffer->boundFramebuffer = NULL;
+		commandBuffer->boundRenderPass = NULL;
+		commandBuffer->activeRenderSubpass = 0;
+		commandBuffer->indirectCommands = false;
+		commandBuffer->boundShader = NULL;
+		commandBuffer->boundComputeShader = NULL;
+	}
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

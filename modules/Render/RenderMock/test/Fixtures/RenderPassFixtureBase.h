@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 #pragma once
 
-#include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include "Fixtures/FixtureBase.h"
+#include <DeepSea/Core/Types.h>
 
-dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
-	uint32_t height, uint32_t layers);
-bool dsMockFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
+class RenderPassFixtureBase : public FixtureBase
+{
+public:
+	void SetUp() override;
+	void TearDown() override;
+
+	dsRenderSurface* renderSurface;
+	dsFramebuffer* framebuffer;
+	dsRenderPass* renderPass;
+};

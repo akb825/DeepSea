@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxQueryPool.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <gtest/gtest.h>
 
-class GfxQueryPoolTest : public FixtureBase
+class GfxQueryPoolTest : public RenderPassFixtureBase
 {
 };
 
@@ -62,6 +63,10 @@ TEST_F(GfxQueryPoolTest, Reset)
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, NULL, 0, 10));
 	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 3, 10));
 	EXPECT_TRUE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsGfxQueryPool_reset(queries, commandBuffer, 0, 10));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsGfxQueryPool_destroy(queries));
 }
@@ -200,6 +205,11 @@ TEST_F(GfxQueryPoolTest, CopyValues)
 		sizeof(uint64_t), false));
 	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 8, stride,
 		sizeof(uint64_t), true));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsGfxQueryPool_copyValues(queries, commandBuffer, 2, 3, buffer, 4, stride,
+		sizeof(uint32_t), false));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 

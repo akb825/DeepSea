@@ -5,7 +5,7 @@ endif()
 file(GLOB_RECURSE sources *.cpp *.h)
 add_executable(deepsea_render_mock_test ${sources})
 
-target_include_directories(deepsea_render_mock_test PRIVATE ${GTEST_INCLUDE_DIRS})
+target_include_directories(deepsea_render_mock_test PRIVATE ${GTEST_INCLUDE_DIRS} .)
 target_link_libraries(deepsea_render_mock_test PRIVATE
 	deepsea_render_mock
 	${GTEST_BOTH_LIBRARIES})

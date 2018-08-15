@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <gtest/gtest.h>

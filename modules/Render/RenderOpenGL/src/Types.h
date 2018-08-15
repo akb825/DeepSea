@@ -407,9 +407,9 @@ typedef struct dsGLCommandBuffer
 	dsCommitCountInfo* commitCounts;
 	uint32_t commitCountSize;
 
+	// There is overlap with the base command buffer, but this is important to manage states when
+	// replaing from dsGLOtherCommandBuffer to another command buffer.
 	bool subpassOnly;
-	uint32_t subpassIndex;
-	uint32_t subpassSamples;
 	const dsRenderPass* boundRenderPass;
 	const dsShader* boundShader;
 	void* boundSurface;

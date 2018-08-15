@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Math/Types.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <gtest/gtest.h>
 #include <string.h>
 
-class TextureTest : public FixtureBase
+class TextureTest : public RenderPassFixtureBase
 {
 };
 
@@ -449,6 +450,12 @@ TEST_F(TextureTest, CopyData)
 		100));
 	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 2, textureData,
 		sizeof(textureData)));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
+		sizeof(textureData)));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	EXPECT_TRUE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 
@@ -559,6 +566,10 @@ TEST_F(TextureTest, Copy)
 		dsGfxMemory_Static, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsTexture_copy(commandBuffer, fromTexture, toTexture, &copyRegion, 1));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	EXPECT_TRUE(dsTexture_copy(commandBuffer, fromTexture, toTexture, &copyRegion, 1));
 
 	dsColor readTextureData[8*4];
@@ -643,6 +654,10 @@ TEST_F(TextureTest, GenerateMipmaps)
 	EXPECT_FALSE(dsTexture_generateMipmaps(NULL, commandBuffer));
 	EXPECT_TRUE(dsTexture_generateMipmaps(texture1, commandBuffer));
 	EXPECT_FALSE(dsTexture_generateMipmaps(texture2, commandBuffer));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsTexture_generateMipmaps(texture1, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsTexture_destroy(texture1));
 	EXPECT_TRUE(dsTexture_destroy(texture2));

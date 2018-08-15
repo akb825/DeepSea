@@ -349,6 +349,14 @@ bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group, dsCommandBuffer*
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Committing shader variable group values must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = true;
 	if (group->buffer && group->dirtyStart < group->dirtyEnd)
 	{

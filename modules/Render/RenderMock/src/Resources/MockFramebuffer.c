@@ -21,9 +21,9 @@
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
-	uint32_t width, uint32_t height, uint32_t layers)
+dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, uint32_t layers)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -41,6 +41,7 @@ dsFramebuffer* dsMockFramebuffer_create(dsResourceManager* resourceManager,
 	DS_ASSERT(framebuffer);
 	framebuffer->resourceManager = resourceManager;
 	framebuffer->allocator = dsAllocator_keepPointer(allocator);
+	framebuffer->name = name;
 
 	if (surfaceCount)
 	{

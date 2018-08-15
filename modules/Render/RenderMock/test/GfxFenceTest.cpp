@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxFence.h>
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <gtest/gtest.h>

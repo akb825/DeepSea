@@ -23,7 +23,7 @@
 #include <DeepSea/Core/Assert.h>
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	void* osHandle, dsRenderSurfaceType type, const char* name)
+	const char* name, void* osHandle, dsRenderSurfaceType type)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);

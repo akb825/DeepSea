@@ -551,7 +551,7 @@ static bool createFramebuffer(TestText* testText)
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testText->framebuffer = dsFramebuffer_create(testText->renderer->resourceManager,
-		testText->allocator, surfaces, 1, width, height, 1);
+		testText->allocator, "Main", surfaces, 1, width, height, 1);
 
 	if (!testText->framebuffer)
 	{

@@ -127,87 +127,6 @@ typedef enum dsClearDepthStencil
 } dsClearDepthStencil;
 
 /**
- * @brief Struct for a pool of command buffers.
- *
- * Multiple command buffers may be used to queue draw commands in parallel before submitting them to
- * the GPU. The pool is double-buffered, allowing for
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsCommandBuffer and the true internal type.
- *
- * @see CommandBufferPool.h
- */
-typedef struct dsCommandBufferPool
-{
-	/**
-	 * @brief The renderer this is used with.
-	 */
-	dsRenderer* renderer;
-
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The current command buffers to use.
-	 * @remark Even of the dsCommandBufferUsage_DoubleBuffer flag isn't set, this may still change
-	 * between resets.
-	 */
-	dsCommandBuffer** currentBuffers;
-
-	/**
-	 * @brief The other set of command buffers when double-buffering is enabled.
-	 *
-	 * When resetting the pool, the currentBuffers and otherBuffers arrays will be swapped.
-	 */
-	dsCommandBuffer** otherBuffers;
-
-	/**
-	 * @brief The number of command buffers in the pool.
-	 */
-	uint32_t count;
-
-	/**
-	 * @brief The usage flags for the command buffers.
-	 */
-	dsCommandBufferUsage usage;
-} dsCommandBufferPool;
-
-/**
- * @brief Struct for a command buffer.
- *
- * This is used to queue render commands. It is used as a part of dsRenderPass in order to either
- * send render commands to the GPU or hold onto the commands for later execution.
- *
- * Render implementations can effectively subclass this type by having it as the first member of
- * the structure. This can be done to add additional data to the structure and have it be freely
- * casted between dsCommandBuffer and the true internal type.
- *
- * @see CommandBuffer.h
- */
-typedef struct dsCommandBuffer
-{
-	/**
-	 * @brief The renderer this is used with.
-	 */
-	dsRenderer* renderer;
-
-	/**
-	 * @brief The allocator this was created with.
-	 */
-	dsAllocator* allocator;
-
-	/**
-	 * @brief The usage of the command buffer.
-	 *
-	 * This should be inherited from the parent pool or dsCommandBufferUsage if not part of a pool.
-	 */
-	dsCommandBufferUsage usage;
-} dsCommandBuffer;
-
-/**
  * @brief Base object for interfacing with the DeepSea Render library.
  *
  * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
@@ -461,6 +380,124 @@ struct dsRenderPass
 };
 
 /**
+ * @brief Struct for a pool of command buffers.
+ *
+ * Multiple command buffers may be used to queue draw commands in parallel before submitting them to
+ * the GPU. The pool is double-buffered, allowing for
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsCommandBuffer and the true internal type.
+ *
+ * @see CommandBufferPool.h
+ */
+typedef struct dsCommandBufferPool
+{
+	/**
+	 * @brief The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The current command buffers to use.
+	 * @remark Even of the dsCommandBufferUsage_DoubleBuffer flag isn't set, this may still change
+	 * between resets.
+	 */
+	dsCommandBuffer** currentBuffers;
+
+	/**
+	 * @brief The other set of command buffers when double-buffering is enabled.
+	 *
+	 * When resetting the pool, the currentBuffers and otherBuffers arrays will be swapped.
+	 */
+	dsCommandBuffer** otherBuffers;
+
+	/**
+	 * @brief The number of command buffers in the pool.
+	 */
+	uint32_t count;
+
+	/**
+	 * @brief The usage flags for the command buffers.
+	 */
+	dsCommandBufferUsage usage;
+} dsCommandBufferPool;
+
+/**
+ * @brief Struct for a command buffer.
+ *
+ * This is used to queue render commands. It is used as a part of dsRenderPass in order to either
+ * send render commands to the GPU or hold onto the commands for later execution.
+ *
+ * Render implementations can effectively subclass this type by having it as the first member of
+ * the structure. This can be done to add additional data to the structure and have it be freely
+ * casted between dsCommandBuffer and the true internal type.
+ *
+ * @see CommandBuffer.h
+ */
+typedef struct dsCommandBuffer
+{
+	/**
+	 * @brief The renderer this is used with.
+	 */
+	dsRenderer* renderer;
+
+	/**
+	 * @brief The allocator this was created with.
+	 */
+	dsAllocator* allocator;
+
+	/**
+	 * @brief The usage of the command buffer.
+	 *
+	 * This should be inherited from the parent pool or dsCommandBufferUsage if not part of a pool.
+	 */
+	dsCommandBufferUsage usage;
+
+	/**
+	 * @brief The currently bound render surface.
+	 * @remark This might be NULL even within a render pass for sub-command buffers.
+	 */
+	const dsRenderSurface* boundSurface;
+
+	/**
+	 * @brief The currently bound framebuffer.
+	 * @remark This might be NULL even within a render pass for sub-command buffers.
+	 */
+	const dsFramebuffer* boundFramebuffer;
+
+	/**
+	 * @brief The currently bound render pass.
+	 */
+	const dsRenderPass* boundRenderPass;
+
+	/**
+	 * @brief The currently active render subpass.
+	 */
+	uint32_t activeRenderSubpass;
+
+	/**
+	 * @brief True if only indirect commands are supported.
+	 */
+	bool indirectCommands;
+
+	/**
+	 * @brief The currently bound shader.
+	 */
+	const dsShader* boundShader;
+
+	/**
+	 * @brief The currently bound compute shader.
+	 */
+	const dsShader* boundComputeShader;
+} dsCommandBuffer;
+
+/**
  * @brief Union for a color value of a surface.
  *
  * Which member of the union is used depends on the type of the surface.
@@ -635,13 +672,13 @@ typedef struct dsSurfaceBlitRegion
  * @brief Function for creating a render surface.
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface.
+ * @param name The name of the render surface, used for profiling info
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
- * @param name The name of the render surface, used for profiling info
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, void* osHandle, dsRenderSurfaceType type, const char* name);
+	dsAllocator* allocator, const char* name, void* osHandle, dsRenderSurfaceType type);
 
 /**
  * @brief Function for destroying a render surface.
@@ -807,12 +844,13 @@ typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer*
  * @param renderer The renderer the render pass was created with.
  * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to continue.
+ * @param index The index of the subpass.
  * @param indirectCommands True if the render commands for the subpass will be provided with command
  *     buffers, false if the render commands will be inlined.
  * @return False if the render pass couldn't be advanced.
  */
 typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, bool indirectCommands);
+	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands);
 
 /**
  * @brief Function for ending a render pass.

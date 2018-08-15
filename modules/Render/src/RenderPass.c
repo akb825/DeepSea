@@ -17,7 +17,6 @@
 #include <DeepSea/Render/RenderPass.h>
 
 #include <DeepSea/Core/Thread/Thread.h>
-#include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -33,23 +32,16 @@ typedef enum SurfaceType
 	SurfaceType_Other = 0x4
 } SurfaceType;
 
-typedef struct SubpassInfo
-{
-	uint32_t index;
-	bool scopeActive;
-} SubpassInfo;
-
 #define SCOPE_SIZE 256
 
-static DS_THREAD_LOCAL SubpassInfo gThreadSubpass;
-
-static bool startRenderPassScope(const dsRenderPass* renderPass)
+static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, bool indirectCommands)
 {
 	// Error checking for this will be later.
-	if (!renderPass)
+	if (!renderPass || !commandBuffer || !framebuffer)
 		return true;
 
-	if (gThreadSubpass.scopeActive)
+	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -57,10 +49,19 @@ static bool startRenderPassScope(const dsRenderPass* renderPass)
 		return false;
 	}
 
+	if (commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot start a render pass when a compute shader is bound.");
+		return false;
+	}
+
 #if DS_PROFILING_ENABLED
 
 	char buffer[SCOPE_SIZE];
-	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s", renderPass->subpasses[0].name);
+	int result = snprintf(buffer, SCOPE_SIZE, "%s: %s", framebuffer->name,
+		renderPass->subpasses[0].name);
 	DS_UNUSED(result);
 	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
 
@@ -69,36 +70,58 @@ static bool startRenderPassScope(const dsRenderPass* renderPass)
 
 #endif
 
-	gThreadSubpass.scopeActive = true;
-	gThreadSubpass.index = 0;
+	commandBuffer->boundFramebuffer = framebuffer;
+	commandBuffer->boundRenderPass = renderPass;
+	commandBuffer->activeRenderSubpass = 0;
+	commandBuffer->indirectCommands = indirectCommands;
 	return true;
 }
 
-static bool nextSubpassScope(const dsRenderPass* renderPass)
+static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
+	bool indirectCommands)
 {
 	// Error checking for this will be later.
-	if (!renderPass)
+	if (!renderPass || !commandBuffer)
 		return true;
 
-	if (!gThreadSubpass.scopeActive)
+	if (commandBuffer->usage & dsCommandBufferUsage_Subpass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "No render pass is currently active.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot go to the next subpass within a subpass-only command buffer.");
 		return false;
 	}
 
-	if (gThreadSubpass.index + 1 >= renderPass->subpassCount)
+	if (commandBuffer->boundRenderPass != renderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Can only go to the next subpass for the currently active render pass.");
+		return false;
+	}
+
+	if (commandBuffer->activeRenderSubpass + 1 >= renderPass->subpassCount)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Already at the end of the current render pass.");
 		return false;
 	}
 
+	if (commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot go to the next subpass while a shader is bound.");
+		return false;
+	}
+
+	++commandBuffer->activeRenderSubpass;
+	commandBuffer->indirectCommands = indirectCommands;
+
 #if DS_PROFILING_ENABLED
 
 	char buffer[SCOPE_SIZE];
-	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s",
-		renderPass->subpasses[gThreadSubpass.index].name);
+	int result = snprintf(buffer, SCOPE_SIZE, "%s: %s", commandBuffer->boundFramebuffer->name,
+		renderPass->subpasses[commandBuffer->activeRenderSubpass].name);
 	DS_UNUSED(result);
 	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
 
@@ -107,39 +130,43 @@ static bool nextSubpassScope(const dsRenderPass* renderPass)
 
 #endif
 
-	++gThreadSubpass.index;
 	return true;
 }
 
-static void restorePreviousSubpassScope(const dsRenderPass* renderPass)
+static void restorePreviousSubpassScope(const dsRenderPass* renderPass,
+	dsCommandBuffer* commandBuffer, bool indirectCommands)
 {
-	if (!renderPass || !gThreadSubpass.scopeActive)
+	if (!renderPass || !commandBuffer || commandBuffer->boundRenderPass != renderPass)
 		return;
+
+	DS_ASSERT(commandBuffer->activeRenderSubpass > 0);
+	--commandBuffer->activeRenderSubpass;
+	commandBuffer->indirectCommands = indirectCommands;
 
 #if DS_PROFILING_ENABLED
 
 	char buffer[SCOPE_SIZE];
-	int result = snprintf(buffer, SCOPE_SIZE, "Subpass: %s",
-		renderPass->subpasses[gThreadSubpass.index].name);
+	int result = snprintf(buffer, SCOPE_SIZE, "%s: %s", commandBuffer->boundFramebuffer->name,
+		renderPass->subpasses[commandBuffer->activeRenderSubpass].name);
 	DS_UNUSED(result);
 	DS_ASSERT(result > 0 && result < SCOPE_SIZE);
 
-	DS_ASSERT(gThreadSubpass.index > 0);
 	DS_PROFILE_SCOPE_END();
 	DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
 
 #endif
-
-	--gThreadSubpass.index;
 }
 
-static void endRenderPassScope()
+static void endRenderPassScope(dsCommandBuffer* commandBuffer)
 {
-	if (gThreadSubpass.scopeActive)
-	{
-		DS_PROFILE_SCOPE_END();
-		gThreadSubpass.scopeActive = false;
-	}
+	if (!commandBuffer || !commandBuffer->boundRenderPass)
+		return;
+
+	DS_PROFILE_SCOPE_END();
+	commandBuffer->boundFramebuffer = NULL;
+	commandBuffer->boundRenderPass = NULL;
+	commandBuffer->activeRenderSubpass = 0;
+	commandBuffer->indirectCommands = false;
 }
 
 static bool isDepthStencil(dsGfxFormat format)
@@ -423,7 +450,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool indirectCommands)
 {
-	if (!startRenderPassScope(renderPass))
+	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, indirectCommands))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -435,7 +462,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_END();
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 		return false;
 	}
 
@@ -444,7 +471,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Framebuffer not compatible with render pass attachments.");
 		DS_PROFILE_FUNC_END();
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 		return false;
 	}
 
@@ -459,7 +486,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface format doesn't match attachment format.");
 			DS_PROFILE_FUNC_END();
-			endRenderPassScope();
+			endRenderPassScope(commandBuffer);
 			return false;
 		}
 
@@ -472,7 +499,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface samples don't match attachment samples.");
 			DS_PROFILE_FUNC_END();
-			endRenderPassScope();
+			endRenderPassScope(commandBuffer);
 			return false;
 		}
 
@@ -491,7 +518,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass inputs must be offscreens.");
 				DS_PROFILE_FUNC_END();
-				endRenderPassScope();
+				endRenderPassScope(commandBuffer);
 				return false;
 			}
 		}
@@ -523,7 +550,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 					DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support mixing the "
 						"main framebuffer and other render surfaces.");
 					DS_PROFILE_FUNC_END();
-					endRenderPassScope();
+					endRenderPassScope(commandBuffer);
 					return false;
 				}
 			}
@@ -537,7 +564,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		errno = ERANGE;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");
 		DS_PROFILE_FUNC_END();
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 		return false;
 	}
 
@@ -547,7 +574,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"No clear values provided for render pass that clears attachments.");
 		DS_PROFILE_FUNC_END();
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 		return false;
 	}
 
@@ -558,7 +585,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"When clear values are provided they must equal the number of attachments.");
 		DS_PROFILE_FUNC_END();
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 		return false;
 	}
 
@@ -566,7 +593,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		viewport, clearValues, clearValueCount, indirectCommands);
 	DS_PROFILE_FUNC_END();
 	if (!success)
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 	return success;
 }
 
@@ -574,7 +601,8 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	bool indirectCommands)
 {
 	// End the previous scope
-	if (!nextSubpassScope(renderPass))
+	bool prevIndirectCommands = commandBuffer ? commandBuffer->indirectCommands : false;
+	if (!nextSubpassScope(renderPass, commandBuffer, indirectCommands))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -584,16 +612,16 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_END();
-		restorePreviousSubpassScope(renderPass);
+		restorePreviousSubpassScope(renderPass, commandBuffer, prevIndirectCommands);
 		return false;
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->nextRenderSubpassFunc(renderer, commandBuffer, renderPass,
-		indirectCommands);
+		commandBuffer->activeRenderSubpass, indirectCommands);
 	DS_PROFILE_FUNC_END();
 	if (!success)
-		restorePreviousSubpassScope(renderPass);
+		restorePreviousSubpassScope(renderPass, commandBuffer, prevIndirectCommands);
 	return success;
 }
 
@@ -608,11 +636,40 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->usage & dsCommandBufferUsage_Subpass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot end a ender pass within a subpass-only command buffer.");
+		return false;
+	}
+
+	if (commandBuffer->boundRenderPass != renderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only end the currently active render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->activeRenderSubpass != renderPass->subpassCount - 1)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Must draw all render subpasses.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a render pass while a shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->endRenderPassFunc(renderer, commandBuffer, renderPass);
 	DS_PROFILE_FUNC_END();
 	if (success)
-		endRenderPassScope();
+		endRenderPassScope(commandBuffer);
 	return success;
 }
 

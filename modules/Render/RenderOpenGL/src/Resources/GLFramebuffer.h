@@ -19,9 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "Types.h"
 
-dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
-	uint32_t width, uint32_t height, uint32_t layers);
+dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, uint32_t layers);
 bool dsGLFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
 
 GLSurfaceType dsGLFramebuffer_getSurfaceType(dsGfxSurfaceType framebufferSurfaceType);

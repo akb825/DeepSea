@@ -20,6 +20,19 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
+bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer)
+{
+	if (commandBuffer->indirectCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "May only use indirect commands from secondary command "
+			"buffers inside this render subpass.");
+		return true;
+	}
+
+	return false;
+}
+
 bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -33,9 +46,17 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if ((commandBuffer->usage & dsCommandBufferUsage_Subpass) && !renderPass)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Must provide a render pass for a subpass command buffer");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (renderPass && subpassIndex >= renderPass->subpassCount)
 	{
 		errno = EINDEX;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass index out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -49,6 +70,13 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 
 	bool success = renderer->beginCommandBufferFunc(renderer, commandBuffer, renderPass,
 		subpassIndex, framebuffer);
+	if (!success || !(commandBuffer->usage & dsCommandBufferUsage_Subpass))
+		DS_PROFILE_FUNC_RETURN(success);
+
+	commandBuffer->boundRenderPass = renderPass;
+	commandBuffer->activeRenderSubpass = subpassIndex;
+	commandBuffer->indirectCommands = false;
+	commandBuffer->boundFramebuffer = framebuffer;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -112,6 +140,16 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 			"Cannot submit the main command buffer to another command buffer.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (commandBuffer->boundRenderPass && !commandBuffer->indirectCommands)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only submit a command buffer inside a render pass if "
+			"indirectCommands is set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	// TODO: look into checking for render pass compatibility.
 
 	bool success = renderer->submitCommandBufferFunc(renderer, commandBuffer, submitBuffer);
 	DS_PROFILE_FUNC_RETURN(success);

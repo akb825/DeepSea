@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
@@ -176,8 +176,8 @@ TEST_F(RenderPassTest, BeginNextEnd)
 		subpasses, subpassCount, dependencies, dependencyCount);
 	ASSERT_TRUE(renderPass);
 
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,
@@ -214,20 +214,20 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	};
 	uint32_t surface2Count = DS_ARRAY_SIZE(surfaces2);
 
-	dsFramebuffer* framebuffer1 = dsFramebuffer_create(resourceManager, NULL, surfaces1,
+	dsFramebuffer* framebuffer1 = dsFramebuffer_create(resourceManager, NULL, "test", surfaces1,
 		surface1Count, renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer1);
 
-	dsFramebuffer* framebuffer2 = dsFramebuffer_create(resourceManager, NULL, surfaces1, 2,
+	dsFramebuffer* framebuffer2 = dsFramebuffer_create(resourceManager, NULL, "test", surfaces1, 2,
 		renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer2);
 
 	surfaces1[3].surface = offscreen3;
-	dsFramebuffer* framebuffer3 = dsFramebuffer_create(resourceManager, NULL, surfaces1,
+	dsFramebuffer* framebuffer3 = dsFramebuffer_create(resourceManager, NULL, "test", surfaces1,
 		surface1Count, renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer3);
 
-	dsFramebuffer* framebuffer4 = dsFramebuffer_create(resourceManager, NULL, surfaces2,
+	dsFramebuffer* framebuffer4 = dsFramebuffer_create(resourceManager, NULL, "test", surfaces2,
 		surface2Count, renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer4);
 
@@ -286,8 +286,10 @@ TEST_F(RenderPassTest, BeginNextEnd)
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, renderer->mainCommandBuffer, framebuffer4,
 		&validViewport, clearValues, clearValueCount, false));
+	EXPECT_FALSE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
 	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
 	EXPECT_TRUE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
+	EXPECT_FALSE(dsRenderPass_nextSubpass(renderPass, renderer->mainCommandBuffer, false));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, renderer->mainCommandBuffer));
 
 	resourceManager->canMixWithRenderSurface = false;

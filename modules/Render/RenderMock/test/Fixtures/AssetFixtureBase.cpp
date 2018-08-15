@@ -1,4 +1,4 @@
-#include "AssetFixtureBase.h"
+#include "Fixtures/AssetFixtureBase.h"
 #include <DeepSea/Core/Streams/Path.h>
 
 extern char assetsDir[];

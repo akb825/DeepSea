@@ -200,7 +200,7 @@ DS_RENDER_EXPORT bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer,
 
 /**
  * @brief Draws vertex geometry with the currently bound shader.
- * @remark This must be called inside of a render pass.
+ * @remark This must be called inside of a render pass with a shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the draw command on.
@@ -213,7 +213,7 @@ DS_RENDER_EXPORT bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* com
 
 /**
  * @brief Draws indexed geometry with the currently bound shader.
- * @remark This must be called inside of a render pass.
+ * @remark This must be called inside of a render pass with a shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the draw command on.
@@ -226,7 +226,7 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuff
 
 /**
  * @brief Indirectly draws vertex geometry with the currently bound shader.
- * @remark This must be called inside of a render pass.
+ * @remark This must be called inside of a render pass with a shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the draw command on.
@@ -244,7 +244,7 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuf
 
 /**
  * @brief Indirectly draws indexed geometry with the currently bound shader.
- * @remark This must be called inside of a render pass.
+ * @remark This must be called inside of a render pass with a shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the draw command on.
@@ -262,7 +262,7 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer,
 
 /**
  * @brief Dispatches a compute job.
- * @remark This must be called outside of a render pass.
+ * @remark This must be called outside of a render pass with a compute shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the dispatch command on.
@@ -276,7 +276,7 @@ DS_RENDER_EXPORT bool dsRenderer_dispatchCompute(dsRenderer* renderer,
 
 /**
  * @brief Dispatches an indirect compute job.
- * @remark This must be called outside of a render pass.
+ * @remark This must be called outside of a render pass with a compute shader bound.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the dispatch command on.

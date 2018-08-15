@@ -24,6 +24,7 @@
 #include <DeepSea/Render/Types.h>
 
 extern const char* dsResourceManager_noContextError;
+bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 
 dsGfxQueryPool* dsGfxQueryPool_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxQueryType type, uint32_t count)
@@ -96,10 +97,18 @@ bool dsGfxQueryPool_reset(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount))
+	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->count))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to reset queries out of range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Resetting query pools must be performed outside a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -128,12 +137,15 @@ bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (query >= queries->queryCount)
+	if (query >= queries->count)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to begin a query out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->beginQueryFunc(resourceManager, commandBuffer, queries,
@@ -160,12 +172,15 @@ bool dsGfxQueryPool_endQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (query >= queries->queryCount)
+	if (query >= queries->count)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to end a query out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->endQueryFunc(resourceManager, commandBuffer, queries,
@@ -192,13 +207,16 @@ bool dsGfxQueryPool_queryTimestamp(dsGfxQueryPool* queries, dsCommandBuffer* com
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (query >= queries->queryCount)
+	if (query >= queries->count)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Attempting to get the timestamp with a query out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->queryTimestampFunc(resourceManager, commandBuffer, queries,
@@ -218,7 +236,7 @@ bool dsGfxQueryPool_getValues(dsGfxQueryPool* queries, uint32_t first, uint32_t 
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount))
+	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->count))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to get query values out of range.");
@@ -282,7 +300,7 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount))
+	if (!DS_IS_BUFFER_RANGE_VALID(first, count, queries->count))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to get query values out of range.");
@@ -333,6 +351,14 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Copying query values to buffers isn't supported.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Copying query values must be performed outside a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

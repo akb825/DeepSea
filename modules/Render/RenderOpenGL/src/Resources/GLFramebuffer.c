@@ -98,9 +98,9 @@ static bool bindFramebufferSurface(GLenum attachment, const dsFramebufferSurface
 	}
 }
 
-dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsFramebufferSurface* surfaces, uint32_t surfaceCount,
-	uint32_t width, uint32_t height, uint32_t layers)
+dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
+	uint32_t height, uint32_t layers)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -121,6 +121,7 @@ dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager,
 	dsFramebuffer* baseFramebuffer = (dsFramebuffer*)framebuffer;
 	baseFramebuffer->resourceManager = resourceManager;
 	baseFramebuffer->allocator = dsAllocator_keepPointer(allocator);
+	baseFramebuffer->name = name;
 	if (surfaceCount > 0)
 	{
 		baseFramebuffer->surfaces = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,

@@ -29,6 +29,8 @@
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <string.h>
 
+bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
+
 static bool isDepthStencil(dsGfxFormat format)
 {
 	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
@@ -231,7 +233,17 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 	}
 
 	dsProfile_startFrame();
-	return renderer->beginFrameFunc(renderer);
+	if (!renderer->beginFrameFunc(renderer))
+		return false;
+
+	// Gurarantee that errors in one frame won't carry over into the next.
+	renderer->mainCommandBuffer->boundSurface = NULL;
+	renderer->mainCommandBuffer->boundFramebuffer = NULL;
+	renderer->mainCommandBuffer->boundRenderPass = NULL;
+	renderer->mainCommandBuffer->activeRenderSubpass = 0;
+	renderer->mainCommandBuffer->boundShader = NULL;
+	renderer->mainCommandBuffer->boundComputeShader = NULL;
+	return true;
 }
 
 bool dsRenderer_endFrame(dsRenderer* renderer)
@@ -398,6 +410,13 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = renderer->clearColorSurfaceFunc(renderer, commandBuffer, surface, colorValue);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -471,6 +490,13 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	bool success = renderer->clearDepthStencilSurfaceFunc(renderer, commandBuffer, surface,
 		surfaceParts, depthStencilValue);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -511,6 +537,16 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 			"Current target doesn't support setting the start instance.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawFunc(renderer, commandBuffer, geometry, drawRange);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -559,6 +595,16 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	bool success = renderer->drawIndexedFunc(renderer, commandBuffer, geometry, drawRange);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -603,6 +649,16 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect draws outside of indirect buffer range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawIndirectFunc(renderer, commandBuffer, geometry, indirectBuffer,
 		offset, count, stride);
@@ -658,6 +714,16 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (dsCommandBuffer_isIndirect(commandBuffer))
+		DS_PROFILE_FUNC_RETURN(false);
+
 	bool success = renderer->drawIndexedIndirectFunc(renderer, commandBuffer, geometry,
 		indirectBuffer, offset, count, stride);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -678,6 +744,14 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Dispatching a compute shader must be done with a compute shader bound");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -721,6 +795,14 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Indirect dispatch outside of indirect buffer range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Dispatching a compute shader must be done with a compute shader bound");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -869,6 +951,14 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 				"edge of the image.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Surface blitting must be performed outside a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = renderer->blitSurfaceFunc(renderer, commandBuffer, srcSurfaceType, srcSurface,

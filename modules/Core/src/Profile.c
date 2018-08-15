@@ -99,7 +99,7 @@ void dsProfile_startFrame(void)
 #if DS_DEBUG
 	if (gCurThreadScope > 0)
 	{
-		DS_LOG_FATAL(PROFILE_LOG_TAG, "Start frame must be inside another profile scope.");
+		DS_LOG_FATAL(PROFILE_LOG_TAG, "Start frame must not be inside another profile scope.");
 		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
 		DS_DEBUG_BREAK();
 		abort();
@@ -117,7 +117,7 @@ void dsProfile_endFrame()
 #if DS_DEBUG
 	if (gCurThreadScope > 0)
 	{
-		DS_LOG_FATAL(PROFILE_LOG_TAG, "End frame must be inside another profile scope.");
+		DS_LOG_FATAL(PROFILE_LOG_TAG, "End frame must not be inside another profile scope.");
 		printCurrentScopes(__FILE__, __LINE__, __FUNCTION__);
 		DS_DEBUG_BREAK();
 		abort();

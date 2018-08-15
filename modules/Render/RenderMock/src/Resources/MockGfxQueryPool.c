@@ -31,7 +31,7 @@ dsGfxQueryPool* dsMockGfxQueryPool_create(dsResourceManager* resourceManager,
 	queries->resourceManager = resourceManager;
 	queries->allocator = dsAllocator_keepPointer(allocator);
 	queries->type = type;
-	queries->queryCount = count;
+	queries->count = count;
 	return queries;
 }
 
@@ -41,7 +41,7 @@ bool dsMockGfxQueryPool_reset(dsResourceManager* resourceManager, dsCommandBuffe
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(queries);
-	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount));
+	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->count));
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -57,7 +57,7 @@ bool dsMockGfxQueryPool_beginQuery(dsResourceManager* resourceManager,
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(queries);
-	DS_ASSERT(query < queries->queryCount);
+	DS_ASSERT(query < queries->count);
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -72,7 +72,7 @@ bool dsMockGfxQueryPool_endQuery(dsResourceManager* resourceManager, dsCommandBu
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(queries);
-	DS_ASSERT(query < queries->queryCount);
+	DS_ASSERT(query < queries->count);
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -87,7 +87,7 @@ bool dsMockGfxQueryPool_queryTimestamp(dsResourceManager* resourceManager,
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(queries);
-	DS_ASSERT(query < queries->queryCount);
+	DS_ASSERT(query < queries->count);
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);
@@ -103,7 +103,7 @@ bool dsMockGfxQueryPool_getValues(dsResourceManager* resourceManager,
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(queries);
-	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount));
+	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->count));
 	DS_ASSERT(data);
 	DS_ASSERT(dataSize >= stride*count);
 
@@ -127,7 +127,7 @@ bool dsMockGfxQueryPool_copyValues(dsResourceManager* resourceManager,
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(queries);
-	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->queryCount));
+	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->count));
 	DS_ASSERT(buffer);
 	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, stride*count, buffer->size));
 

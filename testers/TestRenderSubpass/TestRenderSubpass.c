@@ -307,8 +307,8 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	if (!testRenderSubpass->combinedColor)
 		--surfaceCount;
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
-		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, surfaces,
-		surfaceCount, width, height, 1);
+		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, "Main",
+		surfaces, surfaceCount, width, height, 1);
 
 	if (!testRenderSubpass->framebuffer)
 	{

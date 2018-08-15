@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>

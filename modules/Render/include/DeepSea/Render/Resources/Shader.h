@@ -146,7 +146,7 @@ DS_RENDER_EXPORT bool dsShader_bindCompute(const dsShader* shader, dsCommandBuff
  *
  * This will try to only update the values that have changed.
  *
- * @remark This must be called inside of a render pass.
+ * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.
  * @param shader The shader to update the values on.
  * @param commandBuffer The command buffer to queue commands onto.

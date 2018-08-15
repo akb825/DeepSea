@@ -177,7 +177,7 @@ static bool createFramebuffer(TestVectorDraw* testVectorDraw)
 		{dsGfxSurfaceType_ColorRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testVectorDraw->framebuffer = dsFramebuffer_create(testVectorDraw->renderer->resourceManager,
-		testVectorDraw->allocator, surfaces, 1, width, height, 1);
+		testVectorDraw->allocator, "Main", surfaces, 1, width, height, 1);
 
 	if (!testVectorDraw->framebuffer)
 	{

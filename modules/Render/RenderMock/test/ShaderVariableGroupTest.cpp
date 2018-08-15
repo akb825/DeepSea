@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/RenderPassFixtureBase.h"
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
+#include <DeepSea/Render/RenderPass.h>
 #include <gtest/gtest.h>
 #include <string.h>
 
@@ -51,7 +52,7 @@ struct TestGfxBufferStruct
 	float floatArrayMem[5][4];
 };
 
-class ShaderVariableGroupTest : public FixtureBase
+class ShaderVariableGroupTest : public RenderPassFixtureBase
 {
 public:
 	dsShaderVariableGroupDesc* createDesc()
@@ -284,6 +285,10 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	EXPECT_EQ(3.1f, gfxBufferValues->floatArrayMem[3][0]);
 	EXPECT_EQ(3.2f, gfxBufferValues->floatArrayMem[4][0]);
 
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsShaderVariableGroup_commit(group, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 	EXPECT_TRUE(dsShaderVariableGroup_destroy(group));
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(desc));
@@ -444,6 +449,10 @@ TEST_F(ShaderVariableGroupTest, NoGfxBuffer)
 	elementPtr = dsShaderVariableGroup_getRawElementData(group, 8);
 	ASSERT_TRUE(elementPtr);
 	EXPECT_EQ(0, memcmp(&testValues.floatArrayMem, elementPtr, sizeof(testValues.floatArrayMem)));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsShaderVariableGroup_commit(group, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsShaderVariableGroup_destroy(group));
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(desc));

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/Renderbuffer.h>
@@ -43,8 +43,8 @@ TEST_F(FramebufferTest, Create)
 		1920, 1080, 4);
 	ASSERT_TRUE(depthBuffer);
 
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =
@@ -56,13 +56,13 @@ TEST_F(FramebufferTest, Create)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, texture}
 	};
 
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1280, 720, 1));
 
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
 
-	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces) - 1, 1920, 1080, 1);
 	ASSERT_TRUE(framebuffer);
 
@@ -92,10 +92,10 @@ TEST_F(FramebufferTest, CreateLayers)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 2));
 
-	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 4);
 	ASSERT_TRUE(framebuffer);
 
@@ -123,11 +123,11 @@ TEST_F(FramebufferTest, CreateMipmaps)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, offscreen2}
 	};
 
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 960, 540, 1));
 
 	surfaces[0].mipLevel = 1;
-	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 960, 540, 1);
 	ASSERT_TRUE(framebuffer);
 
@@ -148,11 +148,11 @@ TEST_F(FramebufferTest, NoColorSurface)
 	};
 
 	resourceManager->requiresColorBuffer = true;
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1));
 	resourceManager->requiresColorBuffer = false;
 
-	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), 1920, 1080, 1);
 	ASSERT_TRUE(framebuffer);
 
@@ -162,8 +162,8 @@ TEST_F(FramebufferTest, NoColorSurface)
 
 TEST_F(FramebufferTest, Stereoscopic)
 {
-	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, NULL,
-		dsRenderSurfaceType_Direct, "test");
+	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
+		dsRenderSurfaceType_Direct);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =
@@ -172,12 +172,12 @@ TEST_F(FramebufferTest, Stereoscopic)
 		{dsGfxSurfaceType_DepthRenderSurfaceLeft, dsCubeFace_None, 0, 0, renderSurface}
 	};
 
-	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, surfaces,
+	EXPECT_FALSE(dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1));
 
 	renderer->stereoscopic = true;
 
-	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, surfaces,
+	dsFramebuffer* framebuffer = dsFramebuffer_create(resourceManager, NULL, "test", surfaces,
 		DS_ARRAY_SIZE(surfaces), renderSurface->width, renderSurface->height, 1);
 	ASSERT_TRUE(framebuffer);
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "FixtureBase.h"
+#include "Fixtures/FixtureBase.h"
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Atomic.h>

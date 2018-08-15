@@ -143,7 +143,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	}
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
-		windowHandle, dsRenderSurfaceType_Window, surfaceName);
+		surfaceName, windowHandle, dsRenderSurfaceType_Window);
 
 #if defined(SDL_VIDEO_DRIVER_COCOA)
 	if (info.subsystem == SDL_SYSWM_COCOA)

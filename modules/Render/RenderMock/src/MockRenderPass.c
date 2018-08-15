@@ -156,7 +156,7 @@ bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 }
 
 bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, bool indirectCommands)
+	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -164,6 +164,8 @@ bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* command
 	DS_UNUSED(commandBuffer);
 	DS_ASSERT(renderPass);
 	DS_UNUSED(renderPass);
+	DS_ASSERT(index < renderPass->subpassCount);
+	DS_UNUSED(index);
 	DS_UNUSED(indirectCommands);
 
 	return true;

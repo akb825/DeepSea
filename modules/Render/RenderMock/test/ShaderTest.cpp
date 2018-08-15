@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include "AssetFixtureBase.h"
+#include "Fixtures/AssetFixtureBase.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
@@ -29,6 +30,8 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/Render/RenderSurface.h>
 #include <gtest/gtest.h>
 
 class ShaderTest : public AssetFixtureBase
@@ -389,6 +392,8 @@ TEST_F(ShaderTest, BindAndUpdate)
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
 
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+
 	EXPECT_FALSE(dsShader_bind(shader, NULL, material, volatileValues, NULL));
 	EXPECT_FALSE(dsShader_bind(NULL, commandBuffer, material, volatileValues, NULL));
 	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, NULL, volatileValues, NULL));
@@ -438,7 +443,11 @@ TEST_F(ShaderTest, BindAndUpdate)
 	EXPECT_FALSE(dsShader_unbind(shader, NULL));
 	EXPECT_FALSE(dsShader_unbind(NULL, commandBuffer));
 
+	EXPECT_FALSE(dsRenderPass_end(renderPass, commandBuffer));
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsShader_destroy(shader));
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
@@ -494,6 +503,8 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		(dsAllocator*)&allocator, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
 	ASSERT_TRUE(volatileValues);
 
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+
 	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer2, 0,
@@ -518,7 +529,11 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 	EXPECT_FALSE(dsShader_unbind(shader, NULL));
 	EXPECT_FALSE(dsShader_unbind(NULL, commandBuffer));
 
+	EXPECT_FALSE(dsRenderPass_end(renderPass, commandBuffer));
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
+	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
 	EXPECT_TRUE(dsShader_destroy(shader));
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
@@ -624,7 +639,13 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 
 	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, NULL));
 
@@ -715,7 +736,13 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
 		buffer1->size));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
+
 	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
 	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
@@ -731,7 +758,12 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
 	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
 
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsShader_unbindCompute(shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsShader_destroy(shader));
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));

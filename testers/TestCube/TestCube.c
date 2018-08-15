@@ -197,7 +197,7 @@ static bool createFramebuffer(TestCube* testCube)
 		{dsGfxSurfaceType_DepthRenderSurface, dsCubeFace_None, 0, 0, surface}
 	};
 	testCube->framebuffer = dsFramebuffer_create(testCube->renderer->resourceManager,
-		testCube->allocator, surfaces, 2, width, height, 1);
+		testCube->allocator, "Main", surfaces, 2, width, height, 1);
 
 	if (!testCube->framebuffer)
 	{

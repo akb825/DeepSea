@@ -55,7 +55,7 @@ static void endSurfaceScope(const dsRenderSurface* renderSurface)
 }
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
-	void* osHandle, dsRenderSurfaceType type, const char* name)
+	const char* name, void* osHandle, dsRenderSurfaceType type)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -76,8 +76,8 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator,
-		osHandle, type, name);
+	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator, name,
+		osHandle, type);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
 }
 
@@ -117,10 +117,22 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		return false;
 	}
 
+	if (commandBuffer->boundSurface)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_END();
+		endSurfaceScope(renderSurface);
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface when one is already bound.");
+		return false;
+	}
+
 	dsRenderer* renderer = renderSurface->renderer;
 	bool begun = renderer->beginRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
 	DS_PROFILE_FUNC_END();
-	if (!begun)
+	if (begun)
+		commandBuffer->boundSurface = renderSurface;
+	else
 		endSurfaceScope(renderSurface);
 	return begun;
 }
@@ -136,11 +148,22 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (commandBuffer->boundSurface != renderSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Can only end drawing to the currently bound render surface.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsRenderer* renderer = renderSurface->renderer;
 	bool ended = renderer->endRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
 	DS_PROFILE_FUNC_END();
 	if (ended)
+	{
 		endSurfaceScope(renderSurface);
+		commandBuffer->boundSurface = NULL;
+	}
 	return ended;
 }
 
