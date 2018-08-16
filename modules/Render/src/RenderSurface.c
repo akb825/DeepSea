@@ -127,6 +127,26 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		return false;
 	}
 
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_END();
+		endSurfaceScope(renderSurface);
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface inside of a render pass.");
+		return false;
+	}
+
+	if (commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_END();
+		endSurfaceScope(renderSurface);
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface while a compute shader is bound.");
+		return false;
+	}
+
 	dsRenderer* renderer = renderSurface->renderer;
 	bool begun = renderer->beginRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
 	DS_PROFILE_FUNC_END();
@@ -153,6 +173,22 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Can only end drawing to the currently bound render surface.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot end drawing to a render surface inside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot end drawing to a render surface while a compute shader is bound.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

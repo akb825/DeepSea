@@ -353,7 +353,7 @@ bool dsShaderVariableGroup_commit(dsShaderVariableGroup* group, dsCommandBuffer*
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Committing shader variable group values must be performed outside a render pass.");
+			"Committing shader variable group values must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

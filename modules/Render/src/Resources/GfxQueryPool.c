@@ -108,7 +108,7 @@ bool dsGfxQueryPool_reset(dsGfxQueryPool* queries, dsCommandBuffer* commandBuffe
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Resetting query pools must be performed outside a render pass.");
+			"Resetting query pools must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -358,7 +358,7 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Copying query values must be performed outside a render pass.");
+			"Copying query values must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

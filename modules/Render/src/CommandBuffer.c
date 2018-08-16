@@ -73,10 +73,14 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 	if (!success || !(commandBuffer->usage & dsCommandBufferUsage_Subpass))
 		DS_PROFILE_FUNC_RETURN(success);
 
+	// Guarantee a consistent starting state.
+	commandBuffer->boundSurface = NULL;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = subpassIndex;
 	commandBuffer->indirectCommands = false;
 	commandBuffer->boundFramebuffer = framebuffer;
+	commandBuffer->boundShader = NULL;
+	commandBuffer->boundComputeShader = NULL;
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -96,6 +100,36 @@ bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end the main command buffer.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot end a command buffer while a render surface is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(commandBuffer->usage & dsCommandBufferUsage_Subpass) && commandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a command buffer inside of a render pass.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a command buffer while a shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (commandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot end a command buffer while a compute shader is bound.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -144,8 +178,8 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 	if (commandBuffer->boundRenderPass && !commandBuffer->indirectCommands)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only submit a command buffer inside a render pass if "
-			"indirectCommands is set to true.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only submit a command buffer inside of a render pass "
+			"if indirectCommands is set to true.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

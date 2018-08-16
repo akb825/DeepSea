@@ -291,7 +291,8 @@ bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer, s
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer copying must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer copying must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -350,7 +351,8 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer copying must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Buffer copying must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

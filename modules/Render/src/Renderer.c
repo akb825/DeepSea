@@ -232,6 +232,27 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 		return false;
 	}
 
+	if (renderer->mainCommandBuffer->boundSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot begin a frame while a render surface is bound.");
+		return false;
+	}
+
+	if (renderer->mainCommandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot begin a frame inside of a render pass.");
+		return false;
+	}
+
+	if (renderer->mainCommandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot begin a frame while a compute shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsProfile_startFrame();
 	if (!renderer->beginFrameFunc(renderer))
 		return false;
@@ -259,6 +280,27 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Frames may only be ended on the main thread.");
 		return false;
+	}
+
+	if (renderer->mainCommandBuffer->boundSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a frame while a render surface is bound.");
+		return false;
+	}
+
+	if (renderer->mainCommandBuffer->boundRenderPass)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a frame inside of a render pass.");
+		return false;
+	}
+
+	if (renderer->mainCommandBuffer->boundComputeShader)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a frame while a compute shader is bound.");
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool success = renderer->endFrameFunc(renderer);
@@ -413,7 +455,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -493,7 +535,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -957,7 +999,7 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Surface blitting must be performed outside a render pass.");
+			"Surface blitting must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

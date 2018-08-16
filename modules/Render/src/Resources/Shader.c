@@ -724,7 +724,8 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	if (!commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader binding must be performed inside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Shader binding must be performed inside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -810,7 +811,8 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 	if (!commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader unbinding must be performed inside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Shader unbinding must be performed inside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -871,7 +873,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Compute shader binding must be performed outside a render pass.");
+			"Compute shader binding must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -953,7 +955,7 @@ bool dsShader_unbindCompute(const dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Compute shader unbinding must be performed outside a render pass.");
+			"Compute shader unbinding must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

@@ -499,7 +499,8 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture copying must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture copying must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -645,7 +646,8 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture copying must be performed outside a render pass.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Texture copying must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -688,7 +690,7 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Generating mipmaps must be performed outside a render pass.");
+			"Generating mipmaps must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
