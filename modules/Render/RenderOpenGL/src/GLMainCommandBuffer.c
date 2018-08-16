@@ -1860,6 +1860,7 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = dsCommandBufferUsage_Standard;
+	baseCommandBuffer->boundSurface = NULL;
 	baseCommandBuffer->boundFramebuffer = NULL;
 	baseCommandBuffer->boundRenderPass = NULL;
 	baseCommandBuffer->activeRenderSubpass = 0;
