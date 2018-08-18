@@ -1235,6 +1235,7 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	baseCommandBuffer->renderer = renderer;
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = usage;
+	baseCommandBuffer->frameActive = true;
 	baseCommandBuffer->boundSurface = NULL;
 	baseCommandBuffer->boundFramebuffer = NULL;
 	baseCommandBuffer->boundRenderPass = NULL;

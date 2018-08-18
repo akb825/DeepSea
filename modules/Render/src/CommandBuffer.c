@@ -74,6 +74,7 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 		DS_PROFILE_FUNC_RETURN(success);
 
 	// Guarantee a consistent starting state.
+	commandBuffer->frameActive = true;
 	commandBuffer->boundSurface = NULL;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = subpassIndex;
@@ -180,6 +181,14 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only submit a command buffer inside of a render pass "
 			"if indirectCommands is set to true.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Submitting a command buffer must be performed within a frame.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

@@ -496,6 +496,13 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture copying must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
@@ -643,6 +650,13 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 		}
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Texture copying must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
@@ -685,6 +699,13 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 
 	if (texture->info.mipLevels == 1)
 		DS_PROFILE_FUNC_RETURN(true);
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Generating mipmaps must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	if (commandBuffer->boundRenderPass)
 	{

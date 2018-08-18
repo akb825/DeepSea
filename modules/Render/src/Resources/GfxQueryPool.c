@@ -147,6 +147,13 @@ bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* command
 	if (dsCommandBuffer_isIndirect(commandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Beginning a query must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->beginQueryFunc(resourceManager, commandBuffer, queries,
 		query);
@@ -181,6 +188,13 @@ bool dsGfxQueryPool_endQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBu
 
 	if (dsCommandBuffer_isIndirect(commandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Ending a query must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->endQueryFunc(resourceManager, commandBuffer, queries,
@@ -217,6 +231,14 @@ bool dsGfxQueryPool_queryTimestamp(dsGfxQueryPool* queries, dsCommandBuffer* com
 
 	if (dsCommandBuffer_isIndirect(commandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Querying a timestamp must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
 	bool success = resourceManager->queryTimestampFunc(resourceManager, commandBuffer, queries,
@@ -351,6 +373,14 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Copying query values to buffers isn't supported.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Copying query values must be performed inside of a frame.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

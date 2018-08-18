@@ -222,7 +222,6 @@ typedef struct dsGLRenderer
 
 	bool renderContextBound;
 	bool renderContextReset;
-	bool withinFrame;
 	uint32_t contextCount;
 	void* sharedConfig;
 	void* sharedContext;

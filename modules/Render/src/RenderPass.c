@@ -41,6 +41,13 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	if (!renderPass || !commandBuffer || !framebuffer)
 		return true;
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A render pass must start within a frame.");
+		return false;
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;

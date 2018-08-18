@@ -17,6 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Memory/SystemAllocator.h>
+#include <DeepSea/Render/Renderer.h>
 #include <DeepSea/RenderMock/MockRenderer.h>
 #include <gtest/gtest.h>
 
@@ -29,10 +30,14 @@ public:
 		renderer = dsMockRenderer_create(&allocator.allocator);
 		ASSERT_TRUE(renderer);
 		resourceManager = renderer->resourceManager;
+
+		EXPECT_TRUE(dsRenderer_beginFrame(renderer));
 	}
 
 	void TearDown() override
 	{
+		EXPECT_TRUE(dsRenderer_endFrame(renderer));
+
 		dsMockRenderer_destroy(renderer);
 		EXPECT_EQ(0U, allocator.allocator.size);
 	}

@@ -101,10 +101,12 @@ public:
 
 TEST_F(RendererTest, BeginEndFrame)
 {
-	EXPECT_FALSE(dsRenderer_beginFrame(nullptr));
-	EXPECT_TRUE(dsRenderer_beginFrame(renderer));
+	// NOTE: frame was already begun in fixture, so end frame first for this test.
 	EXPECT_FALSE(dsRenderer_endFrame(nullptr));
 	EXPECT_TRUE(dsRenderer_endFrame(renderer));
+
+	EXPECT_FALSE(dsRenderer_beginFrame(nullptr));
+	EXPECT_TRUE(dsRenderer_beginFrame(renderer));
 }
 
 TEST_F(RendererTest, SetSurfaceSamples)

@@ -252,31 +252,15 @@ static void clearDestroyedObjects(dsGLRenderer* renderer)
 bool dsGLRenderer_beginFrame(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (glRenderer->withinFrame)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Cannot begin a frame while a frame is currently active.");
-		return false;
-	}
-
 	if (glRenderer->renderContextBound)
 		deleteDestroyedObjects(glRenderer);
 
-	glRenderer->withinFrame = true;
 	return true;
 }
 
 bool dsGLRenderer_endFrame(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (!glRenderer->withinFrame)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Cannot end a frame when a frame isn't currently active.");
-		return false;
-	}
 
 	if (glRenderer->renderContextBound)
 		deleteDestroyedObjects(glRenderer);
@@ -284,21 +268,12 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 	DS_PROFILE_SCOPE_START("glFlush");
 	glFlush();
 	DS_PROFILE_SCOPE_END();
-	glRenderer->withinFrame = false;
 	return true;
 }
 
 bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (glRenderer->withinFrame)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG,
-			"Cannot set the number of surface samples within a frame.");
-		return false;
-	}
-
 	samples = dsMin(samples, (uint8_t)renderer->maxSurfaceSamples);
 	if (samples == renderer->surfaceSamples)
 		return true;

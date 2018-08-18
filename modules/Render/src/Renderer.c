@@ -232,6 +232,13 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 		return false;
 	}
 
+	if (renderer->mainCommandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot begin a frame while a frame is already active.");
+		return false;
+	}
+
 	if (renderer->mainCommandBuffer->boundSurface)
 	{
 		errno = EPERM;
@@ -256,6 +263,8 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 	dsProfile_startFrame();
 	if (!renderer->beginFrameFunc(renderer))
 		return false;
+
+	renderer->mainCommandBuffer->frameActive = true;
 
 	// Gurarantee that errors in one frame won't carry over into the next.
 	renderer->mainCommandBuffer->boundSurface = NULL;
@@ -282,6 +291,13 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 		return false;
 	}
 
+	if (!renderer->mainCommandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A frame must be active to end the frame.");
+		return false;
+	}
+
 	if (renderer->mainCommandBuffer->boundSurface)
 	{
 		errno = EPERM;
@@ -300,13 +316,16 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a frame while a compute shader is bound.");
-		DS_PROFILE_FUNC_RETURN(false);
+		return false;
 	}
 
-	bool success = renderer->endFrameFunc(renderer);
+	if (!renderer->endFrameFunc(renderer))
+		return false;
+
 	dsResourceManager_reportStatistics(renderer->resourceManager);
 	dsProfile_endFrame();
-	return success;
+	renderer->mainCommandBuffer->frameActive = false;
+	return true;
 }
 
 bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
@@ -452,6 +471,13 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
@@ -529,6 +555,13 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot clear a color surface as a depth-stencil surface.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Clearing must be performed inside of a frame.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

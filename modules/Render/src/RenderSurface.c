@@ -117,6 +117,14 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		return false;
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface outside of a frame.");
+		return false;
+	}
+
 	if (commandBuffer->boundSurface)
 	{
 		errno = EPERM;

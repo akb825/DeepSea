@@ -107,6 +107,8 @@ bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 	DS_ASSERT(renderSurfaces);
 	DS_ASSERT(count > 0);
 
+	// Since swap buffers may block, guarantee that the current commands are flushed first.
+	glFlush();
 	dsSwapGLBuffers(((dsGLRenderer*)renderer)->options.display, renderSurfaces, count,
 		renderer->vsync);
 	return true;

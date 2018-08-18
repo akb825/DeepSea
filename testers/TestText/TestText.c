@@ -40,6 +40,8 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
+#include <DeepSea/Render/CommandBuffer.h>
+#include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Text/FaceGroup.h>
@@ -68,6 +70,7 @@ typedef struct TestText
 {
 	dsAllocator* allocator;
 	dsRenderer* renderer;
+	dsCommandBufferPool* setupCommands;
 	dsWindow* window;
 	dsFramebuffer* framebuffer;
 	dsRenderPass* renderPass;
@@ -538,7 +541,7 @@ static void setPositions(TestText* testText)
 	}
 }
 
-static bool createFramebuffer(TestText* testText)
+static bool createFramebuffer(TestText* testText, dsCommandBuffer* commandBuffer)
 {
 	uint32_t width = testText->window->surface->width;
 	uint32_t height = testText->window->surface->height;
@@ -562,14 +565,13 @@ static bool createFramebuffer(TestText* testText)
 	unsigned int screenSize[] = {width, height};
 	DS_VERIFY(dsShaderVariableGroup_setElementData(testText->sharedInfoGroup,
 		testText->screenSizeElement, &screenSize, dsMaterialType_IVec2, 0, 1));
-	DS_VERIFY(dsShaderVariableGroup_commit(testText->sharedInfoGroup,
-		testText->renderer->mainCommandBuffer));
+	DS_VERIFY(dsShaderVariableGroup_commit(testText->sharedInfoGroup, commandBuffer));
 
 	setPositions(testText);
 	return true;
 }
 
-static void createText(TestText* testText)
+static void createText(TestText* testText, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -596,9 +598,8 @@ static void createText(TestText* testText)
 		DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
-	if (!dsTextLayout_layout(testText->text, testText->renderer->mainCommandBuffer,
-		textStrings[index].alignment, textStrings[index].maxWidth,
-		textStrings[index].lineScale))
+	if (!dsTextLayout_layout(testText->text, commandBuffer, textStrings[index].alignment,
+		textStrings[index].maxWidth, textStrings[index].lineScale))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN_VOID();
@@ -610,8 +611,7 @@ static void createText(TestText* testText)
 		DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
-	DS_VERIFY(dsTextRenderBuffer_commit(testText->textRender,
-		testText->renderer->mainCommandBuffer));
+	DS_VERIFY(dsTextRenderBuffer_commit(testText->textRender, commandBuffer));
 
 	const char* tessString = textStrings[index].tesselatedText;
 	if (!tessString)
@@ -634,9 +634,8 @@ static void createText(TestText* testText)
 			DS_LOG_ERROR_F("TestText", "Couldn't create text: %s", dsErrorString(errno));
 			DS_PROFILE_FUNC_RETURN_VOID();
 		}
-		if (!dsTextLayout_layout(testText->tessText, testText->renderer->mainCommandBuffer,
-			textStrings[index].alignment, textStrings[index].maxWidth,
-			textStrings[index].lineScale))
+		if (!dsTextLayout_layout(testText->tessText, commandBuffer, textStrings[index].alignment,
+			textStrings[index].maxWidth, textStrings[index].lineScale))
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't layout text: %s", dsErrorString(errno));
 			DS_PROFILE_FUNC_RETURN_VOID();
@@ -648,8 +647,7 @@ static void createText(TestText* testText)
 			DS_LOG_ERROR_F("TestText", "Couldn't add text: %s", dsErrorString(errno));
 			DS_PROFILE_FUNC_RETURN_VOID();
 		}
-		DS_VERIFY(dsTextRenderBuffer_commit(testText->tessTextRender,
-			testText->renderer->mainCommandBuffer));
+		DS_VERIFY(dsTextRenderBuffer_commit(testText->tessTextRender, commandBuffer));
 	}
 
 	setPositions(testText);
@@ -661,7 +659,7 @@ static void nextText(TestText* testText)
 	++testText->curString;
 	if (testText->curString >= DS_ARRAY_SIZE(textStrings))
 		testText->curString = 0;
-	createText(testText);
+	createText(testText, testText->renderer->mainCommandBuffer);
 }
 
 static void prevText(TestText* testText)
@@ -670,7 +668,7 @@ static void prevText(TestText* testText)
 		testText->curString = DS_ARRAY_SIZE(textStrings) - 1;
 	else
 		--testText->curString;
-	createText(testText);
+	createText(testText, testText->renderer->mainCommandBuffer);
 }
 
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
@@ -687,7 +685,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			testText->window = NULL;
 			return false;
 		case dsEventType_WindowResized:
-			if (!createFramebuffer(testText))
+			if (!createFramebuffer(testText, testText->renderer->mainCommandBuffer))
 				abort();
 			return true;
 		case dsEventType_KeyDown:
@@ -718,6 +716,14 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_ASSERT(testText->window == window);
 	dsRenderer* renderer = testText->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+
+	if (testText->setupCommands)
+	{
+		dsCommandBuffer* setupCommands = testText->setupCommands->currentBuffers[0];
+		DS_VERIFY(dsCommandBuffer_submit(commandBuffer, setupCommands));
+		DS_VERIFY(dsCommandBufferPool_destroy(testText->setupCommands));
+		testText->setupCommands = NULL;
+	}
 
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 0.0f;
@@ -1006,7 +1012,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	dsTimer timer = dsTimer_create();
 	double startTime = dsTimer_time(timer);
-	if (!dsFont_preloadASCII(testText->font, renderer->mainCommandBuffer))
+	if (!dsFont_preloadASCII(testText->font, testText->setupCommands->currentBuffers[0]))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create preload ASCII characters: %s",
 			dsErrorString(errno));
@@ -1072,6 +1078,23 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	testText->allocator = allocator;
 	testText->renderer = renderer;
 
+	testText->setupCommands = dsCommandBufferPool_create(renderer, allocator,
+		dsCommandBufferUsage_Standard, 1);
+	if (!testText->setupCommands)
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't create setup command buffer: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	dsCommandBuffer* setupCommands = testText->setupCommands->currentBuffers[0];
+	if (!dsCommandBuffer_begin(setupCommands, NULL, 0, NULL))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsEventResponder responder = {&processEvent, testText, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
@@ -1111,7 +1134,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	if (!setupLimit(testText))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	if (!createFramebuffer(testText))
+	if (!createFramebuffer(testText, setupCommands))
 		DS_PROFILE_FUNC_RETURN(false);
 
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
@@ -1124,7 +1147,14 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	}
 
 	testText->curString = 0;
-	createText(testText);
+	createText(testText, setupCommands);
+
+	if (!dsCommandBuffer_end(setupCommands))
+	{
+		DS_LOG_ERROR_F("TestText", "Couldn't end setup command buffer: %s",
+			dsErrorString(errno));
+		DS_PROFILE_FUNC_RETURN(false);
+	}
 	DS_PROFILE_FUNC_RETURN(true);
 }
 
@@ -1150,6 +1180,7 @@ static void shutdown(TestText* testText)
 	DS_VERIFY(dsRenderPass_destroy(testText->renderPass));
 	DS_VERIFY(dsFramebuffer_destroy(testText->framebuffer));
 	DS_VERIFY(dsWindow_destroy(testText->window));
+	DS_VERIFY(dsCommandBufferPool_destroy(testText->setupCommands));
 }
 
 int dsMain(int argc, const char** argv)

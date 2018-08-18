@@ -54,6 +54,7 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 	for (uint32_t i = 0; i < pool->count; ++i)
 	{
 		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
+		commandBuffer->frameActive = true;
 		commandBuffer->boundSurface = NULL;
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;
@@ -92,6 +93,7 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 	for (uint32_t i = 0; i < pool->count; ++i)
 	{
 		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
+		commandBuffer->frameActive = true;
 		commandBuffer->boundSurface = NULL;
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;

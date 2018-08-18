@@ -353,6 +353,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	DS_ASSERT(renderer->mainCommandBuffer);
 	renderer->mainCommandBuffer->renderer = renderer;
 	renderer->mainCommandBuffer->usage = dsCommandBufferUsage_Standard;
+	renderer->mainCommandBuffer->frameActive = false;
 	renderer->mainCommandBuffer->boundSurface = NULL;
 	renderer->mainCommandBuffer->boundFramebuffer = NULL;
 	renderer->mainCommandBuffer->boundRenderPass = NULL;

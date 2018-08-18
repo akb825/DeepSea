@@ -78,6 +78,13 @@ bool dsGfxFence_set(dsGfxFence* fence, dsCommandBuffer* commandBuffer, bool buff
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Setting a fence must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsResourceManager* resourceManager = fence->resourceManager;
 	bool retVal = resourceManager->setFencesFunc(resourceManager, commandBuffer, &fence, 1,
 		bufferReadback);
@@ -110,6 +117,13 @@ bool dsGfxFence_setMultiple(dsCommandBuffer* commandBuffer, dsGfxFence** fences,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Fences cannot be set on a command buffers that can be submitted multiple times.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Setting a fence must be performed inside of a frame.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

@@ -1048,7 +1048,6 @@ void dsFaceGroup_destroy(dsFaceGroup* group)
 			DS_VERIFY(dsAllocator_free(face->bufferAllocator, face->buffer));
 	}
 	dsMutex_destroy(group->mutex);
-	hb_unicode_funcs_destroy(group->unicode);
 	hb_buffer_destroy(group->shapeBuffer);
 
 	FT_Done_Library(group->library);

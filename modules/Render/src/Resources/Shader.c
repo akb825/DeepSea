@@ -869,6 +869,14 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Compute shader binding must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;

@@ -58,6 +58,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 		commandBuffer->renderer = renderer;
 		commandBuffer->allocator = pool->allocator;
 		commandBuffer->usage = pool->usage;
+		commandBuffer->frameActive = true;
 		commandBuffer->boundSurface = NULL;
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;
@@ -81,6 +82,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 			commandBuffer->renderer = renderer;
 			commandBuffer->allocator = pool->allocator;
 			commandBuffer->usage = pool->usage;
+			commandBuffer->frameActive = true;
 			commandBuffer->boundSurface = NULL;
 			commandBuffer->boundFramebuffer = NULL;
 			commandBuffer->boundRenderPass = NULL;

@@ -288,6 +288,13 @@ bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer, s
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer copying must be performed inside of a frame.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
@@ -345,6 +352,13 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to copy buffer data out of range.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!commandBuffer->frameActive)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer copying must be performed inside of a frame.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
