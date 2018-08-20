@@ -846,6 +846,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->resourceManager = resourceManager;
 	baseShader->allocator = dsAllocator_keepPointer(allocator);
 	baseShader->module = module;
+	baseShader->name = pipeline.name;
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;

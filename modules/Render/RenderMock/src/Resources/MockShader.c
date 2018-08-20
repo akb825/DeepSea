@@ -50,6 +50,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 	shader->pipeline = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, mslPipeline);
 	DS_ASSERT(shader->pipeline);
 	DS_VERIFY(mslModule_pipeline(shader->pipeline, module->module, shaderIndex));
+	shader->name = shader->pipeline->name;
 	shader->materialDesc = materialDesc;
 	shader->primitiveType = primitiveType;
 	shader->samples = samples;

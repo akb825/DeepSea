@@ -35,4 +35,8 @@ void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuff
 	const char* subpassName);
 void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer);
 
+void dsGPUProfileContext_beginCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
+	const char* moduleName, const char* shaderName);
+void dsGPUProfileContext_endCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer);
+
 void dsGPUProfileContext_destroy(dsGPUProfileContext* context);

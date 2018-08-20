@@ -429,6 +429,37 @@ void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffe
 	dsSpinlock_unlock(&context->spinlock);
 }
 
+void dsGPUProfileContext_beginCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
+	const char* moduleName, const char* shaderName)
+{
+	if (!context || !commandBufferValid(commandBuffer))
+		return;
+
+	dsSpinlock_lock(&context->spinlock);
+	if (!context->error)
+	{
+		QueryPools* pools = context->queryPools + context->queryPoolIndex;
+		commandBuffer->_profileInfo.beginComputeIndex = pools->queryCount;
+		commandBuffer->_profileInfo.beginComputeSwapCount = context->swapCount;;
+		addQuery(context, commandBuffer, moduleName, shaderName, INVALID_INDEX, context->swapCount);
+	}
+	dsSpinlock_unlock(&context->spinlock);
+}
+
+void dsGPUProfileContext_endCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer)
+{
+	if (!context || !commandBufferValid(commandBuffer))
+		return;
+
+	dsSpinlock_lock(&context->spinlock);
+	if (!context->error)
+	{
+		addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginComputeIndex,
+			commandBuffer->_profileInfo.beginComputeSwapCount);
+	}
+	dsSpinlock_unlock(&context->spinlock);
+}
+
 void dsGPUProfileContext_destroy(dsGPUProfileContext* context)
 {
 	if (!context)

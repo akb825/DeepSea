@@ -236,6 +236,11 @@ typedef struct dsShader
 	dsShaderModule* module;
 
 	/**
+	 * @brief The name of the shader.
+	 */
+	const char* name;
+
+	/**
 	 * @brief The index of the shader pipeline.
 	 */
 	uint32_t pipelineIndex;

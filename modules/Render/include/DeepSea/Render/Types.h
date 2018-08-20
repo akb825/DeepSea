@@ -436,6 +436,8 @@ typedef struct dsCommandBufferProfileInfo
 	uint32_t beginSurfaceSwapCount;
 	uint32_t beginSubpassIndex;
 	uint32_t beginSubpassSwapCount;
+	uint32_t beginComputeIndex;
+	uint32_t beginComputeSwapCount;
 } dsCommandBufferProfileInfo;
 /// \}
 /// @endcond

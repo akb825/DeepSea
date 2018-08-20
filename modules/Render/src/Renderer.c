@@ -828,7 +828,8 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!commandBuffer->boundComputeShader)
+	const dsShader* computeShader = commandBuffer->boundComputeShader;
+	if (!computeShader)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -836,7 +837,10 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	dsGPUProfileContext_beginCompute(renderer->_profileContext, commandBuffer,
+		computeShader->module->name, computeShader->name);
 	bool success = renderer->dispatchComputeFunc(renderer, commandBuffer, x, y, z);
+	dsGPUProfileContext_endCompute(renderer->_profileContext, commandBuffer);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -879,7 +883,8 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!commandBuffer->boundComputeShader)
+	const dsShader* computeShader = commandBuffer->boundComputeShader;
+	if (!computeShader)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -887,8 +892,11 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	dsGPUProfileContext_beginCompute(renderer->_profileContext, commandBuffer,
+		computeShader->module->name, computeShader->name);
 	bool success = renderer->dispatchComputeIndirectFunc(renderer, commandBuffer, indirectBuffer,
 		offset);
+	dsGPUProfileContext_endCompute(renderer->_profileContext, commandBuffer);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
