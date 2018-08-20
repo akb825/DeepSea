@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/Renderer.h>
 
+#include "GPUProfileContext.h"
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -264,6 +265,7 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 	if (!renderer->beginFrameFunc(renderer))
 		return false;
 
+	++renderer->frameNumber;
 	renderer->mainCommandBuffer->frameActive = true;
 
 	// Gurarantee that errors in one frame won't carry over into the next.
@@ -273,6 +275,9 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 	renderer->mainCommandBuffer->activeRenderSubpass = 0;
 	renderer->mainCommandBuffer->boundShader = NULL;
 	renderer->mainCommandBuffer->boundComputeShader = NULL;
+
+	dsGPUProfileContext_beginFrame(renderer->_profileContext);
+
 	return true;
 }
 
@@ -322,6 +327,7 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 	if (!renderer->endFrameFunc(renderer))
 		return false;
 
+	dsGPUProfileContext_endFrame(renderer->_profileContext);
 	dsResourceManager_reportStatistics(renderer->resourceManager);
 	dsProfile_endFrame();
 	renderer->mainCommandBuffer->frameActive = false;
@@ -1098,6 +1104,31 @@ bool dsRenderer_initialize(dsRenderer* renderer)
 
 	memset(renderer, 0, sizeof(dsRenderer));
 	renderer->mainThread = dsThread_thisThreadId();
+	return true;
+}
+
+bool dsRenderer_initializeResources(dsRenderer* renderer)
+{
+	if (!renderer || !renderer->resourceManager || !renderer->allocator)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	renderer->_profileContext = dsGPUProfileContext_create(renderer->resourceManager,
+		renderer->allocator);
+	return true;
+}
+
+bool dsRenderer_shutdownResources(dsRenderer* renderer)
+{
+	if (!renderer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsGPUProfileContext_destroy(renderer->_profileContext);
 	return true;
 }
 

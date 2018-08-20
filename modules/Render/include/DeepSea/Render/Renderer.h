@@ -345,6 +345,31 @@ DS_RENDER_EXPORT bool dsRenderer_restoreGlobalState(dsRenderer* renderer);
 DS_RENDER_EXPORT bool dsRenderer_initialize(dsRenderer* renderer);
 
 /**
+ * @brief Initializes additional internal resources of a renderer.
+ *
+ * This will initiialize all graphics resources for internal use. This is called by the render
+ * implementation after the implementation has been fully set up.
+ *
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsRenderer_initializeResources(dsRenderer* renderer);
+
+
+/**
+ * @brief Shuts down additional internal resources of a renderer.
+ *
+ * This will shut down all graphics resources for internal use. This is called by the render
+ * implementation while the renderer is still valid.
+ *
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsRenderer_shutdownResources(dsRenderer* renderer);
+
+/**
  * @brief Destroys the private members of a renderer.
  *
  * This is called by the render implementation.

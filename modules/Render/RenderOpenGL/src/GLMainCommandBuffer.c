@@ -847,6 +847,9 @@ bool dsGLMainCommandBuffer_beginQuery(dsCommandBuffer* commandBuffer, dsGfxQuery
 {
 	DS_UNUSED(commandBuffer);
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+	// Work around garbage drivers being garbage.
+	if (!glQueries->queryIds[query])
+		glGenQueries(1, glQueries->queryIds + query);
 	glBeginQuery(getQueryType(queries->type), glQueries->queryIds[query]);
 	return true;
 }
@@ -865,6 +868,9 @@ bool dsGLMainCommandBuffer_queryTimestamp(dsCommandBuffer* commandBuffer, dsGfxQ
 {
 	DS_UNUSED(commandBuffer);
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+	// Work around garbage drivers being garbage.
+	if (!glQueries->queryIds[query])
+		glGenQueries(1, glQueries->queryIds + query);
 	glQueryCounter(glQueries->queryIds[query], GL_TIMESTAMP);
 	return true;
 }

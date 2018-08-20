@@ -105,7 +105,7 @@ bool dsMockGfxQueryPool_getValues(dsResourceManager* resourceManager,
 	DS_ASSERT(queries);
 	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->count));
 	DS_ASSERT(data);
-	DS_ASSERT(dataSize >= stride*count);
+	DS_ASSERT(dataSize >= stride*(count - 1) + elementSize*(checkAvailability != false + 1));
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(queries);
@@ -129,7 +129,8 @@ bool dsMockGfxQueryPool_copyValues(dsResourceManager* resourceManager,
 	DS_ASSERT(queries);
 	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(first, count, queries->count));
 	DS_ASSERT(buffer);
-	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, stride*count, buffer->size));
+	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset,
+		stride*(count - 1) + elementSize*(checkAvailability != false + 1), buffer->size));
 
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(commandBuffer);

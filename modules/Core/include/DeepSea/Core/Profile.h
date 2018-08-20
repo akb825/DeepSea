@@ -283,11 +283,11 @@ DS_CORE_EXPORT void dsProfile_stat(void** localData, const char* category, const
  * GPU timings are always dynamic, meaning the names may change each call.
  *
  * @remark It's assumed that the category and name paired will uniquely identify the statistic.
- * @param surface The name of the surface being drawn to.
- * @param pass The name of the pass being drawn to.
+ * @param category The category for the time.
+ * @param name The name of the time.
  * @param timeNs The time spent in nanoseconds.
  */
-DS_CORE_EXPORT void dsProfile_gpu(const char* surface, const char* pass, uint64_t timeNs);
+DS_CORE_EXPORT void dsProfile_gpu(const char* category, const char* name, uint64_t timeNs);
 
 #ifdef __cplusplus
 }

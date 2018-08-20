@@ -419,6 +419,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->waitUntilIdleFunc = &dsMockRenderer_waitUntilIdle;
 	renderer->restoreGlobalStateFunc = &dsMockRenderer_restoreGlobalState;
 
+	DS_VERIFY(dsRenderer_initializeResources(renderer));
+
 	return renderer;
 }
 
@@ -426,6 +428,8 @@ void dsMockRenderer_destroy(dsRenderer* renderer)
 {
 	if (!renderer)
 		return;
+
+	DS_VERIFY(dsRenderer_shutdownResources(renderer));
 
 	dsMockResourceManager_destroy(renderer->resourceManager);
 	dsRenderer_shutdown(renderer);

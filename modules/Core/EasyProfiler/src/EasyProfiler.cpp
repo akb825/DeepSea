@@ -323,12 +323,12 @@ void statValue(void*, void** blockData, const char* category, const char* name, 
 	profiler::setValue(block, value, profiler::ValueId(*block));
 }
 
-void gpuValue(void*, const char* surface, const char* pass, uint64_t timeNs)
+void gpuValue(void*, const char* category, const char* name, uint64_t timeNs)
 {
-	auto block = registerDynamicProfilerBlock(surface, pass, "GPU ms", __FILE__, __LINE__,
+	auto block = registerDynamicProfilerBlock(category, name, "GPU ms", __FILE__, __LINE__,
 		profiler::BlockType::Value, ExpandedProfileType::Value);
 
-	double timeMs = (double)timeNs*1000000.0;
+	double timeMs = (double)timeNs/1000000.0;
 	profiler::setValue(block, timeMs, profiler::ValueId(*block));
 }
 

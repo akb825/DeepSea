@@ -428,6 +428,18 @@ typedef struct dsCommandBufferPool
 	dsCommandBufferUsage usage;
 } dsCommandBufferPool;
 
+/// @cond Doxygen_Suppress
+/// \{
+typedef struct dsCommandBufferProfileInfo
+{
+	uint32_t beginSurfaceIndex;
+	uint32_t beginSurfaceSwapCount;
+	uint32_t beginSubpassIndex;
+	uint32_t beginSubpassSwapCount;
+} dsCommandBufferProfileInfo;
+/// \}
+/// @endcond
+
 /**
  * @brief Struct for a command buffer.
  *
@@ -500,6 +512,11 @@ typedef struct dsCommandBuffer
 	 * @brief The currently bound compute shader.
 	 */
 	const dsShader* boundComputeShader;
+
+	/**
+	 * @brief Internal value used for GPU profiling.
+	 */
+	dsCommandBufferProfileInfo _profileInfo;
 } dsCommandBuffer;
 
 /**
@@ -672,6 +689,10 @@ typedef struct dsSurfaceBlitRegion
 	 */
 	uint32_t layers;
 } dsSurfaceBlitRegion;
+
+/// \{
+typedef struct dsGPUProfileContext dsGPUProfileContext;
+/// \}
 
 /**
  * @brief Function for creating a render surface.
@@ -1192,6 +1213,11 @@ struct dsRenderer
 	 * This is incremented when calling dsRenderer_beginFrame().
 	 */
 	uint64_t frameNumber;
+
+	/**
+	 * @brief Context used internally for GPU profiling.
+	 */
+	dsGPUProfileContext* _profileContext;
 
 	/**
 	 * @brief Render surface creation function.

@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/RenderSurface.h>
 
+#include "GPUProfileContext.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
@@ -159,7 +160,11 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 	bool begun = renderer->beginRenderSurfaceFunc(renderer, commandBuffer, renderSurface);
 	DS_PROFILE_FUNC_END();
 	if (begun)
+	{
+		dsGPUProfileContext_beginSurface(renderer->_profileContext, commandBuffer,
+			renderSurface->name);
 		commandBuffer->boundSurface = renderSurface;
+	}
 	else
 		endSurfaceScope(renderSurface);
 	return begun;
@@ -205,6 +210,7 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 	DS_PROFILE_FUNC_END();
 	if (ended)
 	{
+		dsGPUProfileContext_endSurface(renderer->_profileContext, commandBuffer);
 		endSurfaceScope(renderSurface);
 		commandBuffer->boundSurface = NULL;
 	}

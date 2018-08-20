@@ -165,11 +165,11 @@ typedef void (*dsProfileStatFunction)(void* userData, void** localData, const ch
  * @remark It's assumed that the category and name paired will uniquely identify the statistic.
  * @remark This will only be called from the main thread.
  * @param userData The user data for profiling functions.
- * @param surface The name of the view being drawn to.
- * @param pass The name of the pass being drawn to.
+ * @param category The category for the time.
+ * @param name The name of the time.
  * @param timeNs The time spent for rendering in nanoseconds.
  */
-typedef void (*dsProfileGpuFunction)(void* userData, const char* surface, const char* pass,
+typedef void (*dsProfileGpuFunction)(void* userData, const char* category, const char* name,
 	uint64_t timeNs);
 
 /**

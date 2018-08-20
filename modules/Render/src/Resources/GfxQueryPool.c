@@ -290,7 +290,8 @@ bool dsGfxQueryPool_getValues(dsGfxQueryPool* queries, uint32_t first, uint32_t 
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dataSize < stride*count)
+	size_t minDataSize = count == 0 ? 0 : stride*(count - 1) + minSize;
+	if (dataSize < minDataSize)
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Data buffer is too small for query values.");
@@ -303,6 +304,9 @@ bool dsGfxQueryPool_getValues(dsGfxQueryPool* queries, uint32_t first, uint32_t 
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (queries->count == 0)
+		DS_PROFILE_FUNC_RETURN(true);
 
 	bool success = resourceManager->getQueryValuesFunc(resourceManager, queries, first, count, data,
 		dataSize, stride, elementSize, checkAvailability);
@@ -362,7 +366,8 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!DS_IS_BUFFER_RANGE_VALID(offset, count*stride, buffer->size))
+	size_t minDataSize = count == 0 ? 0 : stride*(count - 1) + minSize;
+	if (!DS_IS_BUFFER_RANGE_VALID(offset, minDataSize, buffer->size))
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Query copy out of buffer range.");
@@ -391,6 +396,9 @@ bool dsGfxQueryPool_copyValues(dsGfxQueryPool* queries, dsCommandBuffer* command
 			"Copying query values must be performed outside of a render pass.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
+
+	if (queries->count == 0)
+		DS_PROFILE_FUNC_RETURN(true);
 
 	bool success = resourceManager->copyQueryValuesFunc(resourceManager, commandBuffer, queries,
 		first, count, buffer, offset, stride, elementSize, checkAvailability);

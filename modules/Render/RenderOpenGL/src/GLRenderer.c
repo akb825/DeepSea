@@ -670,6 +670,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
 	baseRenderer->restoreGlobalStateFunc = &dsGLRenderer_restoreGlobalState;
 
+	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
+
 	return baseRenderer;
 }
 
@@ -1054,6 +1056,8 @@ void dsGLRenderer_destroy(dsRenderer* renderer)
 {
 	if (!renderer)
 		return;
+
+	dsRenderer_shutdownResources(renderer);
 
 	dsGLResourceManager_destroy((dsGLResourceManager*)renderer->resourceManager);
 	dsGLMainCommandBuffer_destroy((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);

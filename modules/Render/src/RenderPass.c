@@ -16,6 +16,7 @@
 
 #include <DeepSea/Render/RenderPass.h>
 
+#include "GPUProfileContext.h"
 #include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -596,11 +597,16 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 		return false;
 	}
 
+	dsGPUProfileContext_beginSubpass(renderer->_profileContext, commandBuffer,
+		framebuffer->name, renderPass->subpasses[0].name);
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
 		viewport, clearValues, clearValueCount, indirectCommands);
 	DS_PROFILE_FUNC_END();
 	if (!success)
+	{
+		dsGPUProfileContext_endSubpass(renderer->_profileContext, commandBuffer);
 		endRenderPassScope(commandBuffer);
+	}
 	return success;
 }
 
@@ -626,6 +632,11 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->nextRenderSubpassFunc(renderer, commandBuffer, renderPass,
 		commandBuffer->activeRenderSubpass, indirectCommands);
+	if (success)
+	{
+		dsGPUProfileContext_nextSubpass(renderer->_profileContext, commandBuffer,
+			renderPass->subpasses[commandBuffer->activeRenderSubpass].name);
+	}
 	DS_PROFILE_FUNC_END();
 	if (!success)
 		restorePreviousSubpassScope(renderPass, commandBuffer, prevIndirectCommands);
@@ -674,6 +685,8 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->endRenderPassFunc(renderer, commandBuffer, renderPass);
+	if (success)
+		dsGPUProfileContext_endSubpass(renderer->_profileContext, commandBuffer);
 	DS_PROFILE_FUNC_END();
 	if (success)
 		endRenderPassScope(commandBuffer);

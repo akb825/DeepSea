@@ -204,10 +204,10 @@ void dsProfile_stat(void** localData, const char* category, const char* name, do
 		dynamicName);
 }
 
-void dsProfile_gpu(const char* surface, const char* pass, uint64_t timeNs)
+void dsProfile_gpu(const char* category, const char* name, uint64_t timeNs)
 {
 	if (!gFunctions.gpuFunc)
 		return;
 
-	gFunctions.gpuFunc(gUserData, surface, pass, timeNs);
+	gFunctions.gpuFunc(gUserData, category, name, timeNs);
 }

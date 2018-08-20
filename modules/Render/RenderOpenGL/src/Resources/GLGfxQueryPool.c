@@ -24,9 +24,10 @@
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <string.h>
 
-dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxQueryType type, uint32_t count)
+dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	dsGfxQueryType type, uint32_t count)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -44,7 +45,10 @@ dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager,
 
 	dsGLResource_initialize(&queries->resource);
 
-	glGenQueries(count, queries->queryIds);
+	//glGenQueries(count, queries->queryIds);
+	// Garbage drivers do garbage things, such return the same IDs for glGenQueries() multiple
+	// times. Work around this garbage by delaying the creation of the queries.
+	memset(queries->queryIds, 0, count*sizeof(GLuint));
 	return baseQueries;
 }
 
@@ -59,6 +63,7 @@ bool dsGLGfxQueryPool_reset(dsResourceManager* resourceManager, dsCommandBuffer*
 
 	return true;
 }
+
 bool dsGLGfxQueryPool_beginQuery(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxQueryPool* queries, uint32_t query)
 {
@@ -87,7 +92,6 @@ bool dsGLGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPo
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(dataSize);
 
-	DS_ASSERT(stride*count < dataSize);
 	DS_ASSERT(elementSize == sizeof(uint32_t) || elementSize == sizeof(uint64_t));
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
 	uint8_t* dataBytes = (uint8_t*)data;
