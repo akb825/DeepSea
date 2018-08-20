@@ -4,7 +4,7 @@ endif()
 
 set(docSource "\"${DEEPSEA_SOURCE_DIR}/README.md\"")
 set(dependencies ${DEEPSEA_SOURCE_DIR}/README.md)
-get_property(modules GLOBAL PROPERTY DEEPSEA_MODULES)
+get_property(modules GLOBAL PROPERTY DEEPSEA_MODULE_PATHS)
 foreach (docProject ${modules})
 	set(thisDir ${DEEPSEA_MODULE_DIR}/${docProject})
 	set(docSource "${docSource} \"${thisDir}/include\" \"${thisDir}/README.md\"")

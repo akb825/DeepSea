@@ -104,6 +104,7 @@ endfunction()
 
 macro(ds_add_module moduleName)
     get_filename_component(mainModuleName ${moduleName} NAME)
+	set_property(GLOBAL APPEND PROPERTY DEEPSEA_MODULE_PATHS ${moduleName})
 	set_property(GLOBAL APPEND PROPERTY DEEPSEA_MODULES ${mainModuleName})
 	add_subdirectory(${moduleName})
 endmacro()
