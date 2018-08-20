@@ -103,7 +103,8 @@ function(ds_setup_filters)
 endfunction()
 
 macro(ds_add_module moduleName)
-	set_property(GLOBAL APPEND PROPERTY DEEPSEA_MODULES ${moduleName})
+    get_filename_component(mainModuleName ${moduleName} NAME)
+	set_property(GLOBAL APPEND PROPERTY DEEPSEA_MODULES ${mainModuleName})
 	add_subdirectory(${moduleName})
 endmacro()
 
@@ -125,8 +126,9 @@ macro(ds_finish_modules)
 		foreach (module ${modules})
 			get_property(filters GLOBAL PROPERTY DEEPSEA_${module}_FILTERS)
 			ds_setup_filters(${filters})
-			if (DEEPSEA_${module}_EXTERNAL_FILTERS)
-				get_property(filters GLOBAL PROPERTY DEEPSEA_${module}_EXTERNAL_FILTERS)
+
+			get_property(filters GLOBAL PROPERTY DEEPSEA_${module}_EXTERNAL_FILTERS)
+			if (filters)
 				ds_setup_filters(${filters})
 			endif()
 		endforeach()
@@ -147,7 +149,6 @@ macro(ds_add_library target)
 		message(FATAL_ERROR "No module set for ds_add_library()")
 	endif()
 
-	get_filename_component(mainModule ${ARGS_MODULE} NAME)
 	if (DEEPSEA_SINGLE_SHARED)
 		add_library(${target} INTERFACE)
 		target_link_libraries(${target} INTERFACE deepsea ${ARGS_DEPENDS})
@@ -162,11 +163,11 @@ macro(ds_add_library target)
 
 		set_property(GLOBAL PROPERTY DEEPSEA_${ARGS_MODULE}_FILTERS SRC_DIR
 			${CMAKE_CURRENT_SOURCE_DIR}/src INCLUDE_DIR
-			${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${mainModule}
-			FILES ${ARGS_FILES} FOLDER ${mainModule})
+			${CMAKE_CURRENT_SOURCE_DIR}/include/DeepSea/${ARGS_MODULE}
+			FILES ${ARGS_FILES} FOLDER ${ARGS_MODULE})
 		if (ARGS_EXTERNAL_FILES)
 			set_property(GLOBAL PROPERTY DEEPSEA_${ARGS_MODULE}_EXTERNAL_FILTERS SRC_DIR
-				${CMAKE_CURRENT_SOURCE_DIR} FILES ${ARGS_EXTERNAL_FILES})
+				${CMAKE_CURRENT_SOURCE_DIR} FILES ${ARGS_EXTERNAL_FILES} FOLDER ${ARGS_MODULE})
 		endif()
 	else()
 		# NOTE: This only takes affect if set in the same scope as the target was created.

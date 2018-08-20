@@ -28,6 +28,7 @@
 
 #define INVALID_INDEX (uint32_t)-1
 #define QUERY_POOL_SIZE 1000
+#define DELAY_FRAMES 2
 
 typedef struct QueryNode
 {
@@ -68,13 +69,14 @@ struct dsGPUProfileContext
 	dsResourceManager* resourceManager;
 
 	/*
-	 * Tripple buffer pools:
+	 * Quad buffer pools:
 	 * - Delay a frame before getting the results to avoid stalling the CPU to wait for the GPU.
 	 * - Avoid having to keep the spinlock locked while processing the results of the previous
 	 *   frame. This is important if there are command buffer operations happening on other threads
 	 *   that aren't tied to the frame. (e.g. resource processing)
+	 * - One extra to avoid delays for normal rendering double fuffering.
 	 */
-	QueryPools queryPools[3];
+	QueryPools queryPools[4];
 
 	QueryNode* nodes;
 	dsHashTable* hashTable;
@@ -321,10 +323,10 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
 		submitResults = !context->error;
 	}
 	uint32_t prevIndex;
-	if (context->queryPoolIndex == 0)
-		prevIndex = DS_ARRAY_SIZE(context->queryPools) - 1;
+	if (context->queryPoolIndex < DELAY_FRAMES)
+		prevIndex = DS_ARRAY_SIZE(context->queryPools) - DELAY_FRAMES + context->queryPoolIndex;
 	else
-		prevIndex = context->queryPoolIndex - 1;
+		prevIndex = context->queryPoolIndex - DELAY_FRAMES;
 
 	context->queryPoolIndex = (context->queryPoolIndex + 1)%DS_ARRAY_SIZE(context->queryPools);
 	QueryPools* pools = context->queryPools + context->queryPoolIndex;
