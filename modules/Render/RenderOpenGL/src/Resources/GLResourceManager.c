@@ -1262,7 +1262,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 
 	// Queries
 	baseResourceManager->hasQueries = ANYGL_SUPPORTED(glGenQueries);
-	baseResourceManager->has64BitQueries = ANYGL_SUPPORTED(glGetQueryBufferObjectui64v);
+	baseResourceManager->has64BitQueries = ANYGL_SUPPORTED(glGetQueryObjectui64v);
 	baseResourceManager->hasQueryBuffers = AnyGL_atLeastVersion(4, 4, false) ||
 		AnyGL_ARB_query_buffer_object;
 	if (AnyGL_atLeastVersion(3, 3, false) || AnyGL_ARB_timer_query || AnyGL_EXT_timer_query ||
