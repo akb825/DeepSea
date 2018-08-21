@@ -27,6 +27,14 @@ ds_add_library(deepsea_render MODULE Render FILES ${sources} DEPENDS deepsea_cor
 	deepsea_geometry)
 ds_target_link_libraries(deepsea_render PRIVATE msl_client)
 
+if (DEEPSEA_GPU_PROFILING)
+	set(gpuProfilingEnabled 1)
+else()
+	set(gpuProfilingEnabled 0)
+endif()
+ds_target_compile_definitions(deepsea_render PRIVATE
+	DS_GPU_PROFILING_ENABLED=${gpuProfilingEnabled})
+
 if (NOT DEEPSEA_SYSTEM_MSL)
 	set(externalPrefixes MSL)
 endif()

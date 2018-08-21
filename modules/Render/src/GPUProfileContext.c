@@ -76,7 +76,7 @@ struct dsGPUProfileContext
 	 *   that aren't tied to the frame. (e.g. resource processing)
 	 * - One extra to avoid delays for normal rendering double fuffering.
 	 */
-	QueryPools queryPools[4];
+	QueryPools queryPools[DELAY_FRAMES + 2];
 
 	QueryNode* nodes;
 	dsHashTable* hashTable;
@@ -274,8 +274,11 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator)
 {
-	if (!DS_PROFILING_ENABLED || !resourceManager || resourceManager->timestampPeriod <= 0.0f)
+	if (!DS_PROFILING_ENABLED || !DS_GPU_PROFILING_ENABLED || !resourceManager ||
+		resourceManager->timestampPeriod <= 0.0f)
+	{
 		return NULL;
+	}
 
 	if (!allocator->freeFunc)
 		return NULL;
