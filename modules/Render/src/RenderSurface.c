@@ -262,7 +262,9 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)
 		return false;
 	}
 
+	dsGPUProfileContext_beginSwapBuffers(renderer->_profileContext);
 	bool swapped = renderer->swapRenderSurfaceBuffersFunc(renderer, renderSurfaces, count);
+	dsGPUProfileContext_endSwapBuffers(renderer->_profileContext);
 	DS_PROFILE_WAIT_END();
 	return swapped;
 }

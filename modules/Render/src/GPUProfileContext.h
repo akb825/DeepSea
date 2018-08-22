@@ -25,6 +25,9 @@ dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManag
 void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context);
 void dsGPUProfileContext_endFrame(dsGPUProfileContext* context);
 
+void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context);
+void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context);
+
 void dsGPUProfileContext_beginSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
 	const char* surfaceName);
 void dsGPUProfileContext_endSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer);

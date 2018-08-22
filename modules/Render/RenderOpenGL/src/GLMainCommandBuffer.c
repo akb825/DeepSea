@@ -967,7 +967,7 @@ bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsSh
 	}
 	else if (glTexture)
 	{
-		mslSamplerState* samplerState = NULL;;
+		mslSamplerState* samplerState = NULL;
 		if (samplerIndex != MSL_UNKNOWN)
 			samplerState = glShader->samplerStates + samplerIndex;
 		dsGLTexture_setState(texture, samplerState, isShadowSampler);

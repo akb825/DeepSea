@@ -72,7 +72,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	if (lists == 2)
 	{
 		pool->otherBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
-			dsCommandBuffer*, count);;
+			dsCommandBuffer*, count);
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
 		{

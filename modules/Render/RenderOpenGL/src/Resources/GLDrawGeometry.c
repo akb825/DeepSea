@@ -148,7 +148,7 @@ bool dsGLDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry
 
 void dsGLDrawGeometry_bind(const dsDrawGeometry* geometry, int32_t baseVertex)
 {
-	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;;
+	dsGLDrawGeometry* glGeometry = (dsGLDrawGeometry*)geometry;
 	if (ANYGL_SUPPORTED(glGenVertexArrays))
 	{
 		bool rebind = baseVertex != glGeometry->lastBaseVertex;

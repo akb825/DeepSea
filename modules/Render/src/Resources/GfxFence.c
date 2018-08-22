@@ -190,6 +190,6 @@ bool dsGfxFence_destroy(dsGfxFence* fence)
 
 	bool success = resourceManager->destroyFenceFunc(resourceManager, fence);
 	if (success)
-		DS_ATOMIC_FETCH_ADD32(&resourceManager->fenceCount, -1);;
+		DS_ATOMIC_FETCH_ADD32(&resourceManager->fenceCount, -1);
 	DS_PROFILE_FUNC_RETURN(success);
 }

@@ -537,7 +537,7 @@ void dsMatrix44f_makeOrtho(dsMatrix44f* result, float left, float right, float b
 	result->values[2][3] = 0;
 
 	result->values[3][0] = (left + right)/(left - right);
-	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;;
+	result->values[3][1] = (bottom + top)/(bottom - top)*yMult;
 	if (halfDepth)
 		result->values[3][2] = near/(near - far);
 	else

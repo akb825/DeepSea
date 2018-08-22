@@ -570,7 +570,7 @@ TEST_F(MaterialTest, MixedTypes)
 		groupDesc);
 	ASSERT_TRUE(variableGroup);
 
-	float floatVal = 1.2f;;
+	float floatVal = 1.2f;
 	EXPECT_TRUE(dsMaterial_setElementData(material, 0, &floatVal, dsMaterialType_Float, 0, 1));
 	EXPECT_TRUE(dsMaterial_setTexture(material, 2, texture));
 	EXPECT_TRUE(dsMaterial_setBuffer(material, 3, buffer, 0, 128));

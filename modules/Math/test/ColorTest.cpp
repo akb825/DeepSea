@@ -84,7 +84,7 @@ static bool testHSVColor4f(float red, float green, float blue, float hue, float 
 
 	dsColor4f color4f;
 	dsColor4f_fromHSVColor(&color4f, &hsvColor);
-	success = success && dsColor4f_epsilonEqual(&expectedColor4f, &color4f, epsilon);;
+	success = success && dsColor4f_epsilonEqual(&expectedColor4f, &color4f, epsilon);
 	EXPECT_NEAR(red, color4f.r, epsilon);
 	EXPECT_NEAR(green, color4f.g, epsilon);
 	EXPECT_NEAR(blue, color4f.b, epsilon);
@@ -159,7 +159,7 @@ static bool testHSLColor4f(float red, float green, float blue, float hue, float 
 
 	dsColor4f color4f;
 	dsColor4f_fromHSLColor(&color4f, &hslColor);
-	success = success && dsColor4f_epsilonEqual(&expectedColor4f, &color4f, epsilon);;
+	success = success && dsColor4f_epsilonEqual(&expectedColor4f, &color4f, epsilon);
 	EXPECT_NEAR(red, color4f.r, epsilon);
 	EXPECT_NEAR(green, color4f.g, epsilon);
 	EXPECT_NEAR(blue, color4f.b, epsilon);
