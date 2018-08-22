@@ -1055,6 +1055,25 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
+DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!commandBuffer || !renderer || (!barriers && barrierCount > 0))
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	// OK if no implementation, in which case barriers are ignored.
+	if (!renderer->memoryBarrierFunc || barrierCount == 0)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	bool success = renderer->memoryBarrierFunc(renderer, commandBuffer, barriers, barrierCount);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
 bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 {
 	DS_PROFILE_WAIT_START(__FUNCTION__);

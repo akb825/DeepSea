@@ -69,7 +69,8 @@ typedef enum CommandType
 	CommandType_DrawIndexedIndirect,
 	CommandType_DispatchCompute,
 	CommandType_DispatchComputeIndirect,
-	CommandType_BlitSurface
+	CommandType_BlitSurface,
+	CommandType_MemoryBarrier
 } CommandType;
 
 typedef struct Command
@@ -304,6 +305,13 @@ typedef struct BlitSurfaceCommand
 	size_t regionCount;
 	dsSurfaceBlitRegion regions[];
 } BlitSurfaceCommand;
+
+typedef struct MemoryBarrierCommand
+{
+	Command command;
+	uint32_t barrierCount;
+	dsGfxMemoryBarrier barriers[];
+} MemoryBarrierCommand;
 
 struct dsGLOtherCommandBuffer
 {
@@ -902,6 +910,20 @@ bool dsGLOtherCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
+{
+	size_t commandSize = sizeof(MemoryBarrierCommand) + sizeof(dsGfxMemoryBarrier)*barrierCount;
+	MemoryBarrierCommand* command = (MemoryBarrierCommand*)allocateCommand(commandBuffer,
+		CommandType_MemoryBarrier, commandSize);
+	if (!command)
+		return false;
+
+	command->barrierCount = barrierCount;
+	memcpy(command->barriers, barriers, sizeof(dsGfxMemoryBarrier)*barrierCount);
+	return true;
+}
+
 bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -1156,6 +1178,13 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->regionCount, thisCommand->filter);
 				break;
 			}
+			case CommandType_MemoryBarrier:
+			{
+				MemoryBarrierCommand* thisCommand = (MemoryBarrierCommand*)command;
+				dsGLCommandBuffer_memoryBarrier(commandBuffer->renderer, commandBuffer,
+					thisCommand->barriers, thisCommand->barrierCount);
+				break;
+			}
 			default:
 				DS_ASSERT(false);
 		}
@@ -1211,6 +1240,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_dispatchCompute,
 	&dsGLOtherCommandBuffer_dispatchComputeIndirect,
 	&dsGLOtherCommandBuffer_blitSurface,
+	&dsGLOtherCommandBuffer_memoryBarrier,
 	&dsGLOtherCommandBuffer_begin,
 	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
@@ -1451,6 +1481,8 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				freeSurfaceRef(thisCommand->dstSurfaceType, thisCommand->dstSurface);
 				break;
 			}
+			case CommandType_MemoryBarrier:
+				break;
 			default:
 				DS_ASSERT(false);
 		}

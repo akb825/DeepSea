@@ -768,6 +768,19 @@ TEST_F(RendererTest, Blit)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 }
 
+TEST_F(RendererTest, MemoryBarrier)
+{
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	dsGfxMemoryBarrier barriers[] = {{dsGfxAccess_UniformBuffer, dsGfxAccess_Index},
+		{dsGfxAccess_MappedBuffer, dsGfxAccess_VertexAttribute}};
+	EXPECT_FALSE(dsRenderer_memoryBarrier(NULL, commandBuffer, barriers, DS_ARRAY_SIZE(barriers)));
+	EXPECT_FALSE(dsRenderer_memoryBarrier(renderer, NULL, barriers, DS_ARRAY_SIZE(barriers)));
+	EXPECT_FALSE(dsRenderer_memoryBarrier(renderer, commandBuffer, NULL, DS_ARRAY_SIZE(barriers)));
+	EXPECT_TRUE(dsRenderer_memoryBarrier(renderer, commandBuffer, barriers,
+		DS_ARRAY_SIZE(barriers)));
+	EXPECT_TRUE(dsRenderer_memoryBarrier(renderer, commandBuffer, NULL, 0));
+}
+
 TEST_F(RendererTest, WaitUntilIdle)
 {
 	EXPECT_FALSE(dsRenderer_waitUntilIdle(NULL));

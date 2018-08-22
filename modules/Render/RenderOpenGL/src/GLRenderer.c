@@ -667,6 +667,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->dispatchComputeFunc = &dsGLCommandBuffer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
 	baseRenderer->blitSurfaceFunc = &dsGLCommandBuffer_blitSurface;
+	baseRenderer->memoryBarrierFunc = &dsGLCommandBuffer_memoryBarrier;
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
 	baseRenderer->restoreGlobalStateFunc = &dsGLRenderer_restoreGlobalState;
 

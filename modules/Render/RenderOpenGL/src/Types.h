@@ -336,6 +336,8 @@ typedef bool (*GLDispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer
 typedef bool (*GLBlitSurfaceFunction)(dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+typedef bool (*GLGfxMemoryBarrierFunction)(dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
@@ -386,6 +388,7 @@ typedef struct CommandBufferFunctionTable
 	GLDispatchComputeFunction dispatchComputeFunc;
 	GLDispatchComputeIndirectFunction dispatchComputeIndirectFunc;
 	GLBlitSurfaceFunction blitSurfaceFunc;
+	GLGfxMemoryBarrierFunction memoryBarrierFunc;
 
 	GLBeginCommandBufferFunction beginFunc;
 	GLEndCommandBufferFunction endFunc;

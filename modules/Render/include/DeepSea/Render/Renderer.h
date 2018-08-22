@@ -308,6 +308,17 @@ DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuff
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 
 /**
+ * @brief Adds a memory barrier to ensure writes are properly performed before reads.
+ * @param renderer The rendferer.
+ * @param commandBuffer The command buffer to place the barrier on.
+ * @param barriers List of write/read dependencies to place barriers for.
+ * @param barrierCount The number of barriers.
+ * @return False if the barrier couldn't be added.
+ */
+DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
+
+/**
  * @brief Waits until the GPU is idle.
  *
  * Waiting until idle is useful when destroying large numbers of graphics resources (e.g. unloading

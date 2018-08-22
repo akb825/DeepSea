@@ -1785,6 +1785,48 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
+{
+	if (!ANYGL_SUPPORTED(glMemoryBarrier))
+		return true;
+
+	dsResourceManager* resourceManager = commandBuffer->renderer->resourceManager;
+	GLbitfield bitmask = 0;
+	for (uint32_t i = 0; i < barrierCount; ++i)
+	{
+		dsGfxAccess readAccess = barriers[i].readAccess;
+		if (readAccess & dsGfxAccess_IndirectCommand)
+			bitmask |= GL_COMMAND_BARRIER_BIT;
+		if (readAccess & dsGfxAccess_Index)
+			bitmask |= GL_ELEMENT_ARRAY_BARRIER_BIT;
+		if (readAccess & dsGfxAccess_VertexAttribute)
+			bitmask |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+		if (readAccess & dsGfxAccess_UniformBlock)
+			bitmask |= GL_UNIFORM_BARRIER_BIT;
+		if ((readAccess & dsGfxAccess_UniformBuffer) &&
+			(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
+		{
+			bitmask |= GL_SHADER_STORAGE_BARRIER_BIT;
+		}
+		if (readAccess & dsGfxAccess_InputAttachment)
+			bitmask |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+		if ((readAccess & dsGfxAccess_DepthStencilAttachment) ||
+			(readAccess & dsGfxAccess_ColorStencilAttachment))
+		{
+			bitmask |= GL_FRAMEBUFFER_BARRIER_BIT | GL_PIXEL_BUFFER_BARRIER_BIT;
+		}
+		// No equivalent for dsGfxAccess_Copy
+		if (readAccess & dsGfxAccess_MappedBuffer)
+			bitmask |= GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
+		if (readAccess & dsGfxAccess_Memory)
+			bitmask |= GL_ALL_BARRIER_BITS;
+	}
+
+	glMemoryBarrier(bitmask);
+	return true;
+}
+
 bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
 	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
 {
@@ -1850,6 +1892,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_dispatchCompute,
 	&dsGLMainCommandBuffer_dispatchComputeIndirect,
 	&dsGLMainCommandBuffer_blitSurface,
+	&dsGLMainCommandBuffer_memoryBarrier,
 	&dsGLMainCommandBuffer_begin,
 	&dsGLMainCommandBuffer_end,
 	&dsGLMainCommandBuffer_submit

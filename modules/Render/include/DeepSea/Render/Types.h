@@ -118,6 +118,7 @@ typedef enum dsCommandBufferUsage
 
 /**
  * @brief Enum for whether to clear the depth or stencil value for a surface.
+ * @see Renderer.h
  */
 typedef enum dsClearDepthStencil
 {
@@ -125,6 +126,24 @@ typedef enum dsClearDepthStencil
 	dsClearDepthStencil_Stencil, ///< Clear only the stencil value.
 	dsClearDepthStencil_Both     ///< Clear both depth and stencil values.
 } dsClearDepthStencil;
+
+/**
+ * @brief Bitmask enum for determining graphics memory access.
+ */
+typedef enum dsGfxAccess
+{
+    dsGfxAccess_IndirectCommand = 0x1,         ///< Indirect draw/compute buffers.
+    dsGfxAccess_Index = 0x2,                   ///< Index buffers.
+    dsGfxAccess_VertexAttribute = 0x4,         ///< Vertex buffers.
+    dsGfxAccess_UniformBlock = 0x8,            ///< Uniform blocks.
+    dsGfxAccess_UniformBuffer = 0x10,          ///< Uniform buffers.
+    dsGfxAccess_InputAttachment = 0x20,        ///< Render pass input attachments.
+    dsGfxAccess_DepthStencilAttachment = 0x40, ///< Depth/stencil attachments.
+    dsGfxAccess_ColorStencilAttachment = 0x80, ///< Color attachments.
+    dsGfxAccess_Copy = 0x100,                  ///< Copy operation.
+    dsGfxAccess_MappedBuffer = 0x200,          ///< Direct access to a mapped buffer.
+    dsGfxAccess_Memory = 0x400                 ///< General memory access.
+} dsGfxAccess;
 
 /**
  * @brief Base object for interfacing with the DeepSea Render library.
@@ -692,6 +711,23 @@ typedef struct dsSurfaceBlitRegion
 	uint32_t layers;
 } dsSurfaceBlitRegion;
 
+/**
+ * @brief Struct declaring a memory dependency for a barrier.
+ * @see Renderer.h
+ */
+typedef struct dsGfxMemoryBarrier
+{
+	/**
+	 * @brief Access bitmask for what was written.
+	 */
+	dsGfxAccess writeAccess;
+
+	/**
+	 * @brief Access bitmask for what will be read.
+	 */
+	dsGfxAccess readAccess;
+} dsGfxMemoryBarrier;
+
 /// \{
 typedef struct dsGPUProfileContext dsGPUProfileContext;
 /// \}
@@ -1055,6 +1091,17 @@ typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* com
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
 
 /**
+ * @brief Function for adding a memory barrier.
+ * @param renderer The rendferer.
+ * @param commandBuffer The command buffer to place the barrier on.
+ * @param barriers List of write/read dependencies to place barriers for.
+ * @param barrierCount The number of barriers.
+ * @return False if the barrier couldn't be added.
+ */
+typedef bool (*dsGfxMemoryBarrierFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
+
+/**
  * @brief Function for waiting until the GPU is idle.
  * @param renderer The renderer.
  * @return False if the renderer is in an invalid state.
@@ -1375,6 +1422,11 @@ struct dsRenderer
 	 * @brief Surface blitting function.
 	 */
 	dsBlitSurfaceFunction blitSurfaceFunc;
+
+	/**
+	 * @brief Memory barrier function.
+	 */
+	dsGfxMemoryBarrierFunction memoryBarrierFunc;
 
 	/**
 	 * @brief Idle waiting function.
