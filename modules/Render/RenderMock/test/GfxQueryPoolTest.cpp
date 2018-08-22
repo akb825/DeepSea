@@ -167,8 +167,8 @@ TEST_F(GfxQueryPoolTest, CopyValues)
 	ASSERT_TRUE(queries);
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo, dsGfxMemory_GpuOnly, NULL,
-		10*sizeof(uint64_t));
+		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo),
+		dsGfxMemory_GpuOnly, NULL, 10*sizeof(uint64_t));
 	ASSERT_TRUE(buffer);
 
 	const size_t stride = 2*sizeof(uint64_t);

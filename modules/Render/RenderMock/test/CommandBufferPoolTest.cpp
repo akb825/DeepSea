@@ -23,10 +23,11 @@ class CommandBufferPoolTest : public FixtureBase
 
 TEST_F(CommandBufferPoolTest, Create)
 {
-	EXPECT_FALSE(dsCommandBufferPool_create(NULL, NULL, 0, 4));
-	EXPECT_FALSE(dsCommandBufferPool_create(renderer, NULL, 0, 0));
+	EXPECT_FALSE(dsCommandBufferPool_create(NULL, NULL, dsCommandBufferUsage_Standard, 4));
+	EXPECT_FALSE(dsCommandBufferPool_create(renderer, NULL, dsCommandBufferUsage_Standard, 0));
 
-	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL, 0, 4);
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_Standard, 4);
 	ASSERT_TRUE(pool);
 
 	EXPECT_TRUE(pool->currentBuffers);
@@ -45,7 +46,8 @@ TEST_F(CommandBufferPoolTest, Create)
 
 TEST_F(CommandBufferPoolTest, Reset)
 {
-	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL, 0, 4);
+	dsCommandBufferPool* pool = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_Standard, 4);
 	ASSERT_TRUE(pool);
 
 	EXPECT_FALSE(dsCommandBufferPool_reset(NULL));

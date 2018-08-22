@@ -26,7 +26,7 @@ typedef struct dsMockGfxBuffer
 } dsMockGfxBuffer;
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const void* data, size_t size)
+	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -37,8 +37,8 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 
 	buffer->buffer.resourceManager = resourceManager;
 	buffer->buffer.allocator = dsAllocator_keepPointer(allocator);
-	buffer->buffer.usage = (dsGfxBufferUsage)usage;
-	buffer->buffer.memoryHints = (dsGfxMemory)memoryHints;
+	buffer->buffer.usage = usage;
+	buffer->buffer.memoryHints = memoryHints;
 	buffer->buffer.size = size;
 	if (data)
 		memcpy(buffer->data, data, size);
@@ -47,7 +47,7 @@ dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager, dsAlloca
 }
 
 void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	unsigned int flags, size_t offset, size_t size)
+	dsGfxBufferMap flags, size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	DS_UNUSED(flags);

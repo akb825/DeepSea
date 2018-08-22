@@ -29,7 +29,7 @@
 #include <DeepSea/Math/Core.h>
 
 dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const void* data, size_t size)
+	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -41,8 +41,8 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	dsGfxBuffer* baseBuffer = (dsGfxBuffer*)buffer;
 	baseBuffer->resourceManager = resourceManager;
 	baseBuffer->allocator = dsAllocator_keepPointer(allocator);
-	baseBuffer->usage = (dsGfxBufferUsage)usage;
-	baseBuffer->memoryHints = (dsGfxMemory)memoryHints;
+	baseBuffer->usage = usage;
+	baseBuffer->memoryHints = memoryHints;
 	baseBuffer->size = size;
 
 	buffer->bufferId = 0;
@@ -144,8 +144,8 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	return baseBuffer;
 }
 
-void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer, unsigned int flags,
-	size_t offset, size_t size)
+void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
+	dsGfxBufferMap flags, size_t offset, size_t size)
 {
 	DS_UNUSED(resourceManager);
 	dsGLGfxBuffer* glBuffer = (dsGLGfxBuffer*)buffer;

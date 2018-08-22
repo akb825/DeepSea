@@ -615,7 +615,8 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 	memcpy(data->combinedBuffer + offset, data->indices, curSize);
 	DS_ASSERT(offset + curSize == totalSize);
 
-	unsigned int usageFlags = dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index;
+	dsGfxBufferUsage usageFlags =
+		(dsGfxBufferUsage)(dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index);
 	unsigned int memoryFlags = dsGfxMemory_Static | dsGfxMemory_Draw;
 	if (dsVectorImage_testing)
 	{

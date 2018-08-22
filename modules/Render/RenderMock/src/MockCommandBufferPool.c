@@ -20,7 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 
 dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	unsigned int usage, uint32_t count)
+	dsCommandBufferUsage usage, uint32_t count)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
@@ -45,7 +45,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 	pool->renderer = renderer;
 	pool->allocator = dsAllocator_keepPointer(allocator);
 	pool->count = count;
-	pool->usage = (dsCommandBufferUsage)usage;
+	pool->usage = usage;
 
 	pool->currentBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
 		dsCommandBuffer*, count);

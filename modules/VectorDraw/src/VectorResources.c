@@ -76,8 +76,8 @@ static uint32_t tableSize(uint32_t maxSize)
 }
 
 static dsTexture* loadTextureFile(void* userData, dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, unsigned int usage,
-	unsigned int memoryHints)
+	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
 {
 	const char* basePath = (const char*)userData;
 	char finalPath[DS_PATH_MAX];

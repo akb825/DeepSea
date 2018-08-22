@@ -1115,7 +1115,7 @@ dsTextureData* dsTextureData_loadKtxStream(dsAllocator* allocator, dsStream* str
 
 dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !filePath)
 	{
@@ -1143,7 +1143,7 @@ dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager
 
 dsTexture* dsTextureData_loadKtxStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !stream)
 	{

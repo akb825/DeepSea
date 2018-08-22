@@ -33,7 +33,7 @@
 #include <string.h>
 
 dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
 	DS_ASSERT(resourceManager);
@@ -46,8 +46,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	dsTexture* baseTexture = (dsTexture*)texture;
 	baseTexture->resourceManager = resourceManager;
 	baseTexture->allocator = dsAllocator_keepPointer(allocator);
-	baseTexture->usage = (dsTextureUsage)usage;
-	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
+	baseTexture->usage = usage;
+	baseTexture->memoryHints = memoryHints;
 	baseTexture->info = *info;
 	baseTexture->offscreen = false;
 	baseTexture->resolve = 0;
@@ -399,7 +399,7 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 }
 
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, bool resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -411,8 +411,8 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	dsTexture* baseTexture = (dsTexture*)texture;
 	baseTexture->resourceManager = resourceManager;
 	baseTexture->allocator = dsAllocator_keepPointer(allocator);
-	baseTexture->usage = (dsTextureUsage)usage;
-	baseTexture->memoryHints = (dsGfxMemory)memoryHints;
+	baseTexture->usage = usage;
+	baseTexture->memoryHints = memoryHints;
 	baseTexture->info = *info;
 	baseTexture->offscreen = true;
 	baseTexture->resolve = resolve;

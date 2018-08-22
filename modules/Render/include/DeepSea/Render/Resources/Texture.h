@@ -107,8 +107,8 @@ DS_RENDER_EXPORT size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_
  * @return The created texture, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
-	const void* data, size_t size);
+	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
+	const dsTextureInfo* info, const void* data, size_t size);
 
 /**
  * @brief Creates an offscreen texture.
@@ -129,7 +129,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints,
+	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
 	const dsTextureInfo* info, bool resolve);
 
 /**

@@ -20,10 +20,10 @@
 #include <DeepSea/Render/Resources/Types.h>
 
 dsGfxBuffer* dsMockGfxBuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const void* data,
+	dsAllocator* allocator, dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data,
 	size_t size);
 void* dsMockGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	unsigned int flags, size_t offset, size_t size);
+	dsGfxBufferMap flags, size_t offset, size_t size);
 bool dsMockGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 bool dsMockGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	size_t offset, size_t size);

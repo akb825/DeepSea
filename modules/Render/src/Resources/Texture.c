@@ -173,7 +173,7 @@ size_t dsTexture_layerOffset(const dsTextureInfo* info, uint32_t layerIndex, uin
 }
 
 dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
 	DS_PROFILE_FUNC_START();
@@ -289,7 +289,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 }
 
 dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, bool resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	DS_PROFILE_FUNC_START();
 

@@ -51,7 +51,7 @@ static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, boo
 }
 
 bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,
-	const dsVector2i* position, uint32_t width, uint32_t height, unsigned int flags)
+	const dsVector2i* position, uint32_t width, uint32_t height, dsWindowFlags flags)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
@@ -169,7 +169,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, unsigned int flags)
+	uint32_t height, dsWindowFlags flags)
 {
 	dsSDLWindow* window = DS_ALLOCATE_OBJECT(allocator, dsSDLWindow);
 	if (!window)

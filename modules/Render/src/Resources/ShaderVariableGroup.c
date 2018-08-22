@@ -214,7 +214,8 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 	DS_ASSERT(bufferSize > 0);
 	if (useGfxBuffer)
 	{
-		unsigned int usageFlags = dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo;
+		dsGfxBufferUsage usageFlags =
+			(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_CopyTo);
 		unsigned int memoryFlags;
 		if (dsShaderVariableGroup_testing)
 		{

@@ -54,7 +54,7 @@ extern "C"
  * @return The created command buffer pool, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer,
-	dsAllocator* allocator, unsigned int usage, uint32_t count);
+	dsAllocator* allocator, dsCommandBufferUsage usage, uint32_t count);
 
 /**
  * @brief Resets a command buffer pool.

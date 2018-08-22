@@ -380,11 +380,11 @@ TEST_F(TextureDataTest, LoadDdsFileToTexture)
 	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0));
+		getPath("texture.r8g8b8a8.dds"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
 	dsTexture* texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.dds"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
@@ -430,8 +430,8 @@ TEST_F(TextureDataTest, LoadDdsStreamToTexture)
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
 	dsTexture* texture = dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		(dsStream*)&fileStream, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
@@ -749,11 +749,11 @@ TEST_F(TextureDataTest, LoadKtxFileToTexture)
 	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.ktx"), NULL, 0, 0));
+		getPath("texture.r8g8b8a8.ktx"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
 	dsTexture* texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.ktx"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
@@ -798,8 +798,8 @@ TEST_F(TextureDataTest, LoadKtxStreamToTexture)
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
 	dsTexture* texture = dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		(dsStream*)&fileStream, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
@@ -1115,11 +1115,11 @@ TEST_F(TextureDataTest, LoadPvrFileToTexture)
 	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.pvr"), NULL, 0, 0));
+		getPath("texture.r8g8b8a8.pvr"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
 	dsTexture* texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.pvr"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
@@ -1164,8 +1164,8 @@ TEST_F(TextureDataTest, LoadPvrStreamToTexture)
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
 	dsTexture* texture = dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		(dsStream*)&fileStream, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
 
@@ -1203,18 +1203,18 @@ TEST_F(TextureDataTest, LoadPvrStreamToTexture)
 TEST_F(TextureDataTest, LoadFileToTexture)
 {
 	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("test.txt"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static));
+		getPath("test.txt"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadFileToTexture(NULL, NULL, NULL, getPath("texture.r8g8b8a8.dds"),
 		NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, 0, 0));
+		getPath("texture.r8g8b8a8.dds"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
 	dsTexture* texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.dds"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
@@ -1227,8 +1227,8 @@ TEST_F(TextureDataTest, LoadFileToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.ktx"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
@@ -1241,8 +1241,8 @@ TEST_F(TextureDataTest, LoadFileToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	texture = dsTextureData_loadFileToTexture(resourceManager, NULL, NULL,
-		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		getPath("texture.r8g8b8a8.pvr"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
@@ -1260,8 +1260,8 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.txt"), "rb"));
 	EXPECT_FALSE(dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static));
+		(dsStream*)&fileStream, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static));
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
@@ -1274,13 +1274,13 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
 	EXPECT_FALSE(dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, 0, 0));
+		(dsStream*)&fileStream, NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
 	dsTexture* texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL,
-		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static);
+		(dsStream*)&fileStream, NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
@@ -1295,7 +1295,8 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.ktx"), "rb"));
 	texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, (dsStream*)&fileStream,
-		NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
+		NULL, (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom),
+		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
@@ -1310,7 +1311,8 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.pvr"), "rb"));
 	texture = dsTextureData_loadStreamToTexture(resourceManager, NULL, NULL, (dsStream*)&fileStream,
-		NULL, dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
+		NULL, (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom),
+		dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 	EXPECT_TRUE(dsFileStream_close(&fileStream));
 
@@ -1334,10 +1336,11 @@ TEST_F(TextureDataTest, CreateTexture)
 		dsGfxMemory_Static));
 	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, textureData, NULL, 0, 0));
+	EXPECT_FALSE(dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
+		(dsTextureUsage)0, (dsGfxMemory)0));
 
 	dsTexture* texture = dsTextureData_createTexture(resourceManager, NULL, textureData, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static);
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
 
 	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);

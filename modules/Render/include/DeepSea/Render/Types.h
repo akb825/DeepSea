@@ -799,7 +799,7 @@ typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
  * @return The command buffer pool.
  */
 typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, unsigned int usage, uint32_t count);
+	dsAllocator* allocator, dsCommandBufferUsage usage, uint32_t count);
 
 /**
  * @brief Function for destroying a command buffer pool.

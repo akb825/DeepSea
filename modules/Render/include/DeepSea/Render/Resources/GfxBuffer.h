@@ -51,7 +51,7 @@ extern "C"
  * @return The created buffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const void* data,
+	dsAllocator* allocator, dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data,
 	size_t size);
 
 /**
@@ -66,7 +66,7 @@ DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceMana
  *     offset to the end of the buffer.
  * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped.
  */
-DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset,
+DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset,
 	size_t size);
 
 /**

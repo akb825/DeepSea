@@ -40,7 +40,8 @@ TEST_F(GfxFenceTest, Create)
 
 TEST_F(GfxFenceTest, Set)
 {
-	dsCommandBufferPool* pool1 = dsCommandBufferPool_create(renderer, NULL, 0, 1);
+	dsCommandBufferPool* pool1 = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_Standard, 1);
 	ASSERT_TRUE(pool1);
 
 	dsCommandBufferPool* pool2 = dsCommandBufferPool_create(renderer, NULL,
@@ -68,7 +69,8 @@ TEST_F(GfxFenceTest, Set)
 
 TEST_F(GfxFenceTest, SetMultiple)
 {
-	dsCommandBufferPool* pool1 = dsCommandBufferPool_create(renderer, NULL, 0, 1);
+	dsCommandBufferPool* pool1 = dsCommandBufferPool_create(renderer, NULL,
+		dsCommandBufferUsage_Standard, 1);
 	ASSERT_TRUE(pool1);
 
 	dsCommandBufferPool* pool2 = dsCommandBufferPool_create(renderer, NULL,

@@ -129,7 +129,7 @@ TEST_F(ShaderVariableGroupTest, GfxBuffer)
 	ASSERT_TRUE(buffer);
 
 	TestGfxBufferStruct* gfxBufferValues = (TestGfxBufferStruct*)dsGfxBuffer_map(buffer,
-		dsGfxBufferMap_Read | dsGfxBufferMap_Write, 0, DS_MAP_FULL_BUFFER);
+		(dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write), 0, DS_MAP_FULL_BUFFER);
 	ASSERT_TRUE(gfxBufferValues);
 	memset(gfxBufferValues, 0, sizeof(TestGfxBufferStruct));
 

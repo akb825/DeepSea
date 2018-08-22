@@ -145,7 +145,7 @@ typedef enum dsVectorTextPosition
  */
 typedef dsTexture* (*dsLoadVectorResourcesTextureFunction)(void* userData,
 	dsResourceManager* resourceManager, dsAllocator* allocator, dsAllocator* tempAllocator,
-	const char* path, unsigned int usage, unsigned int memoryHints);
+	const char* path, dsTextureUsage usage, dsGfxMemory memoryHints);
 
 /**
  * @brief Function for loading a font face for a dsVectorResources instance.

@@ -127,9 +127,10 @@ TEST_F(TextureTest, Create)
 	dsTextureInfo info = {format, dsTextureDim_2D, 128, 256, 0, 1, 1};
 	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
 		NULL, NULL, 0));
-	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, 0, dsGfxMemory_Static, &info, NULL, 0));
-	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, 0, &info, NULL,
-		0));
+	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, (dsTextureUsage)0, dsGfxMemory_Static,
+		&info, NULL, 0));
+	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, (dsGfxMemory)0,
+		&info, NULL, 0));
 	info.format = dsGfxFormat_R8G8B8A8;
 	EXPECT_FALSE(dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, &info, NULL, 0));
@@ -216,10 +217,10 @@ TEST_F(TextureTest, CreateOffscreen)
 	dsTextureInfo info = {format, dsTextureDim_2D, 128, 256, 0, 1, 1};
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, NULL, true));
-	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, 0, dsGfxMemory_Static, &info,
-		true));
-	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture, 0, &info,
-		true));
+	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, (dsTextureUsage)0,
+		dsGfxMemory_Static, &info, true));
+	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
+		(dsGfxMemory)0, &info, true));
 	info.format = dsGfxFormat_R8G8B8A8;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, &info, true));
@@ -367,8 +368,8 @@ TEST_F(TextureTest, GetData)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	texture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &info, textureData,
-		sizeof(textureData));
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static,
+		&info, textureData, sizeof(textureData));
 	ASSERT_TRUE(texture);
 	EXPECT_FALSE(dsTexture_getData(NULL, 8*4*4, texture, &position, 8, 4));
 	EXPECT_FALSE(dsTexture_getData(readTextureData, 100, texture, &position, 8, 4));
@@ -437,7 +438,7 @@ TEST_F(TextureTest, CopyData)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 
 	texture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom),
 		dsGfxMemory_Static, &info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_FALSE(dsTexture_copyData(texture, NULL, &position, 8, 4, 1, textureData,
@@ -528,7 +529,7 @@ TEST_F(TextureTest, Copy)
 
 	dsTextureInfo toInfo = {format, dsTextureDim_2D, 16, 32, 5, 2, 1};
 	dsTexture* toTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom),
 		dsGfxMemory_Static, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
@@ -544,8 +545,8 @@ TEST_F(TextureTest, Copy)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &fromInfo,
-		textureData, sizeof(textureData));
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static,
+		&fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
 	toTexture = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture, dsGfxMemory_Static,
@@ -557,12 +558,12 @@ TEST_F(TextureTest, Copy)
 	EXPECT_TRUE(dsTexture_destroy(toTexture));
 
 	fromTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &fromInfo,
-		textureData, sizeof(textureData));
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static,
+		&fromInfo, textureData, sizeof(textureData));
 	ASSERT_TRUE(fromTexture);
 
 	toTexture = dsTexture_create(resourceManager, NULL,
-		dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom),
 		dsGfxMemory_Static, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 

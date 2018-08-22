@@ -736,7 +736,7 @@ typedef uint32_t (*dsGetApplicationPressedMouseButtonsFunction)(const dsApplicat
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, unsigned int flags);
+	uint32_t height, dsWindowFlags flags);
 
 /**
  * @brief Function for destroying a window.

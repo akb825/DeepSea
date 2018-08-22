@@ -1130,7 +1130,7 @@ typedef bool (*dsDestroyResourceContextFunction)(dsResourceManager* resourceMana
  * @return The created buffer, or NULL if it couldn't be created.
  */
 typedef dsGfxBuffer* (*dsCreateGfxBufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const void* data,
+	dsAllocator* allocator, dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data,
 	size_t size);
 
 /**
@@ -1154,7 +1154,7 @@ typedef bool (*dsDestroyGfxBufferFunction)(dsResourceManager* resourceManager, d
  * @return A pointer to the mapped memory or NULL if the memory couldn't be mapped.
  */
 typedef void* (*dsMapGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	unsigned int flags, size_t offset, size_t size);
+	dsGfxBufferMap flags, size_t offset, size_t size);
 
 /**
  * @brief Function for unmapping previously mapped memory from a buffer.
@@ -1271,8 +1271,8 @@ typedef bool (*dsDestroyDrawGeometryFunction)(dsResourceManager* resourceManager
  * @return The created texture, or NULL if it couldn't be created.
  */
 typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
-	const void* data, size_t size);
+	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
+	const dsTextureInfo* info, const void* data, size_t size);
 
 /**
  * @brief Function for creating an offscreen texture.
@@ -1288,8 +1288,8 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
-	bool resolve);
+	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
+	const dsTextureInfo* info, bool resolve);
 
 /**
  * @brief Function for destroying a texture or offscreen.

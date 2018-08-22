@@ -26,7 +26,7 @@
 #include <string.h>
 
 dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size)
 {
 	DS_ASSERT(resourceManager);
@@ -39,8 +39,8 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 
 	texture->texture.resourceManager = resourceManager;
 	texture->texture.allocator = dsAllocator_keepPointer(allocator);
-	texture->texture.usage = (dsTextureUsage)usage;
-	texture->texture.memoryHints = (dsGfxMemory)memoryHints;
+	texture->texture.usage = usage;
+	texture->texture.memoryHints = memoryHints;
 	texture->texture.info = *info;
 	texture->texture.offscreen = false;
 	texture->texture.resolve = false;
@@ -55,8 +55,8 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 }
 
 dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
-	dsAllocator* allocator, unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info,
-	bool resolve)
+	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
+	const dsTextureInfo* info, bool resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -68,8 +68,8 @@ dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 
 	texture->texture.resourceManager = resourceManager;
 	texture->texture.allocator = dsAllocator_keepPointer(allocator);
-	texture->texture.usage = (dsTextureUsage)usage;
-	texture->texture.memoryHints = (dsGfxMemory)memoryHints;
+	texture->texture.usage = usage;
+	texture->texture.memoryHints = memoryHints;
 	texture->texture.info = *info;
 	texture->texture.offscreen = true;
 	texture->texture.resolve = resolve;

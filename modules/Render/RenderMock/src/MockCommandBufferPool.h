@@ -20,6 +20,6 @@
 #include <DeepSea/Render/Types.h>
 
 dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	unsigned int usage, uint32_t count);
+	dsCommandBufferUsage usage, uint32_t count);
 bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
 bool dsMockCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);

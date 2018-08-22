@@ -23,7 +23,7 @@
 
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
 	const char* surfaceName, const dsVector2i* position, uint32_t width, uint32_t height,
-	unsigned int flags)
+	dsWindowFlags flags)
 {
 	if (!application || (!allocator && !application->allocator) || !application->createWindowFunc ||
 		!application->destroyWindowFunc || !title)

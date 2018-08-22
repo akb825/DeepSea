@@ -54,7 +54,7 @@ extern "C"
  */
 DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
-	uint32_t height, unsigned int flags);
+	uint32_t height, dsWindowFlags flags);
 
 /**
  * @brief Sets the draw function for a window.

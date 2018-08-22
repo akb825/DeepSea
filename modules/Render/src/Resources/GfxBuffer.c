@@ -26,7 +26,7 @@
 extern const char* dsResourceManager_noContextError;
 
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const void* data, size_t size)
+	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -72,7 +72,7 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 	DS_PROFILE_FUNC_RETURN(buffer);
 }
 
-void* dsGfxBuffer_map(dsGfxBuffer* buffer, unsigned int flags, size_t offset, size_t size)
+void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, size_t size)
 {
 	DS_PROFILE_FUNC_START();
 

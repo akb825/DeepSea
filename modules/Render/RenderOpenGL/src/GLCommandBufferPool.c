@@ -22,7 +22,7 @@
 #include <string.h>
 
 dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
-	unsigned int usage, uint32_t count)
+	dsCommandBufferUsage usage, uint32_t count)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
@@ -60,7 +60,7 @@ dsCommandBufferPool* dsGLCommandBufferPool_create(dsRenderer* renderer, dsAlloca
 		pool->otherBuffers = NULL;
 
 	pool->count = count;
-	pool->usage = (dsCommandBufferUsage)usage;
+	pool->usage = usage;
 
 	for (uint32_t i = 0; i < count; ++i)
 	{

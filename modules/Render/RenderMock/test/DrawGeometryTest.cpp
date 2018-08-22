@@ -35,10 +35,10 @@ TEST_F(DrawGeometryTest, Create)
 	dsIndexBuffer indexBuffer = {};
 
 	dsGfxBuffer* vertexGfxBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 1024);
+		dsGfxBufferUsage_Vertex, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw), NULL, 1024);
 	ASSERT_TRUE(vertexGfxBuffer);
 	dsGfxBuffer* indexGfxBuffer = dsGfxBuffer_create(resourceManager, NULL,
-		dsGfxBufferUsage_Index, dsGfxMemory_Static | dsGfxMemory_Draw, NULL, 1024);
+		dsGfxBufferUsage_Index, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw), NULL, 1024);
 	ASSERT_TRUE(indexGfxBuffer);
 
 	dsVertexBuffer* vertexBufferArray[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {};

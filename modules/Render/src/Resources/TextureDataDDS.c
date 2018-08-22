@@ -762,7 +762,7 @@ dsTextureData* dsTextureData_loadDdsStream(dsAllocator* allocator, dsStream* str
 
 dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !filePath)
 	{
@@ -790,7 +790,7 @@ dsTexture* dsTextureData_loadDdsFileToTexture(dsResourceManager* resourceManager
 
 dsTexture* dsTextureData_loadDdsStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !stream)
 	{

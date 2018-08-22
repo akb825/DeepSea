@@ -49,7 +49,7 @@ dsTextRenderBuffer* dsTextRenderBuffer_create(dsAllocator* allocator,
 	uint32_t vertexCount = tessellationShader ? 1 : 4;
 	uint32_t vertexBufferSize = vertexFormat->size*maxGlyphs*vertexCount;
 	uint32_t indexBufferSize = tessellationShader ? 0 : indexSize*maxGlyphs*6;
-	unsigned int usage = dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo;
+	dsGfxBufferUsage usage = (dsGfxBufferUsage)(dsGfxBufferUsage_Vertex | dsGfxBufferUsage_CopyTo);
 	if (!tessellationShader)
 		usage |= dsGfxBufferUsage_Index;
 	dsGfxBuffer* gfxBuffer = dsGfxBuffer_create(resourceManager, allocator, usage,

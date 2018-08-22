@@ -23,10 +23,10 @@
 #include <MSL/Client/TypesC.h>
 
 dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, const void* data,
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size);
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	unsigned int usage, unsigned int memoryHints, const dsTextureInfo* info, bool resolve);
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve);
 bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size);

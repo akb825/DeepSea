@@ -105,7 +105,7 @@ dsTextureData* dsTextureData_create(dsAllocator* allocator, const dsTextureInfo*
 
 dsTexture* dsTextureData_createTexture(dsResourceManager* resourceManager,
 	dsAllocator* allocator, const dsTextureData* textureData, const dsTextureDataOptions* options,
-	unsigned int usage, unsigned int memoryHints)
+	dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !textureData)
 	{
@@ -245,7 +245,7 @@ dsTextureData* dsTextureData_loadStream(dsAllocator* allocator, dsStream* stream
 
 dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !filePath)
 	{
@@ -273,7 +273,7 @@ dsTexture* dsTextureData_loadFileToTexture(dsResourceManager* resourceManager,
 
 dsTexture* dsTextureData_loadStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
-	const dsTextureDataOptions* options, unsigned int usage, unsigned int memoryHints)
+	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
 	if (!resourceManager || !stream)
 	{
