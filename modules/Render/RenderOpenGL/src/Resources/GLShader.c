@@ -253,7 +253,7 @@ static bool writeShader(dsResourceManager* resourceManager, const char* shaderCa
 
 	// Rename the temporary file to the final location once we're done so it's atomic on the
 	// filesystem.
-	DS_VERIFY(rename(tempPath, path));
+	DS_VERIFY(rename(tempPath, path) == 0);
 	return true;
 
 error:
