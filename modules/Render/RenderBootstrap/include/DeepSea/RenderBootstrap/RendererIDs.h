@@ -68,6 +68,25 @@ extern "C"
 #endif
 
 #if !DS_HAS_RENDER_VULKAN
+/**
+ * @brief Log tag for the RenderVulkan library.
+ */
+#define DS_RENDER_VULKAN_LOG_TAG "vulkan"
+
+/**
+ * @brief Constant for the renderer type ID of the Vulkan renderer.
+ */
+#define DS_VK_RENDERER_ID DS_FOURCC('V', 'K', 0, 0)
+
+/**
+ * @brief Constant for the renderer platform type ID of xlib.
+ */
+#define DS_VK_XLIB_RENDERER_PLATFORM_ID DS_FOURCC('X', 'L', 'I', 'B')
+
+/**
+ * @brief Constant for the renderer platform type ID of Win32.
+ */
+#define DS_VK_WIN32_RENDERER_PLATFORM_ID DS_FOURCC('W', 'I', 'N', 0)
 #endif
 
 #ifdef __cplusplus
