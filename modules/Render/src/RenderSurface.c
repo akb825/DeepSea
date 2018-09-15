@@ -70,7 +70,7 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 	if (!allocator)
 		allocator = renderer->allocator;
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render surfaces may only be created on the main thread.");
@@ -92,7 +92,7 @@ bool dsRenderSurface_update(dsRenderSurface* renderSurface)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderSurface->renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderSurface->renderer->mainThread))
 	{
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render surfaces may only be updated on the main thread.");
 		DS_PROFILE_FUNC_RETURN(false);
@@ -253,7 +253,7 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)
 	}
 
 	dsRenderer* renderer = renderSurfaces[0]->renderer;
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -283,7 +283,7 @@ bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
 	}
 
 	dsRenderer* renderer = renderSurface->renderer;
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

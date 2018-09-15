@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,48 @@ extern "C"
  * @remark All functions that don't take a command buffer must be called on the main thread.
  * @see dsRenderer
  */
+
+/**
+ * @brief Populates an options structure with the default options.
+ * @param[out] options The options.
+ * @param applicationName The name of the application.
+ * @param applicationVersion The version of the application.
+ */
+DS_RENDER_EXPORT void dsRenderer_defaultOptions(dsRendererOptions* options,
+	const char* applicationName, uint32_t applicationVersion);
+
+/**
+ * @brief Sets whether or not to enable extra debugging.
+ * @param renderer The renderer.
+ * @param enable True to enable extra debugging, false to disable.
+ */
+DS_RENDER_EXPORT void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool enable);
+
+/**
+ * @brief Chooses the shader version to use.
+ * @param renderer The renderer to choose the shader version for.
+ * @param versions The list of shader versions.
+ * @param versionCount The number of shader versions.
+ * @return The shader version to use, or NULL if no suitable version could be found.
+ */
+DS_RENDER_EXPORT const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer,
+	const dsShaderVersion* versions, uint32_t versionCount);
+
+/**
+ * @brief Gets the string for a shader version.
+ *
+ * This should match the standard shader configuration names provided by the standard renderers,
+ * and can be used to help determine which direcory to find shaders in.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outBuffer The buffer to place the name in.
+ * @param bufferSize The size of the buffer, including the NULL terminator.
+ * @param renderer The renderer to get the version string for.
+ * @param version The shader version.
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
+	const dsRenderer* renderer, const dsShaderVersion* version);
 
 /**
  * @brief Makes an orthographic projection matrix.
@@ -342,6 +384,14 @@ DS_RENDER_EXPORT bool dsRenderer_waitUntilIdle(dsRenderer* renderer);
  * @return False if the state couldn't be restored.
  */
 DS_RENDER_EXPORT bool dsRenderer_restoreGlobalState(dsRenderer* renderer);
+
+/**
+ * @brief Destroys a renderer.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @return False if the renderer couldn't be destroyed.
+ */
+DS_RENDER_EXPORT bool dsRenderer_destroy(dsRenderer* renderer);
 
 /**
  * @brief Initializes the members of a renderer.

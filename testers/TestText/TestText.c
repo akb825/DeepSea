@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "SetupOpenGL.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
@@ -44,6 +43,7 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
@@ -59,12 +59,6 @@
 
 // Set to a valid font path to test Chinese text
 //#define CHINESE_FONT_PATH "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc"
-
-typedef enum dsRenderType
-{
-	dsRenderType_OpenGL,
-	dsRenderType_Count
-} dsRenderType;
 
 typedef struct TestText
 {
@@ -98,21 +92,8 @@ typedef struct TestText
 	uint32_t curString;
 } TestText;
 
-static const char* renderTypeNames[] =
-{
-	"OpenGL"
-};
-
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(renderTypeNames) == dsRenderType_Count, renderer_type_mismatch);
-
-#if DS_HAS_OPENGL
-static dsRenderType defaultRenderType = dsRenderType_OpenGL;
-#else
-#error No renderer type available
-#endif
-
 static char assetsDir[DS_PATH_MAX];
-static const char* shaderDir;
+static char shaderDir[100];
 
 typedef struct StandardVertex
 {
@@ -352,10 +333,6 @@ static TextInfo textStrings[] =
 #endif
 };
 
-typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
-typedef void (*DestroyRendererFunction)(dsRenderer* renderer);
-typedef const char* (*GetShaderDirFunction)(dsRenderer* renderer);
-
 static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	const dsVector2f* geometryPos, float slant)
 {
@@ -486,16 +463,19 @@ static void printHelp(const char* programPath)
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
 	printf("Use left/right arrows or tap on touchscreen to cyle text.\n\n");
 	printf("options:\n");
-	printf("  -f, --font path path to a custom font file for Latin glyphs\n");
-	printf("  -h, --help      print this help message and exit\n");
-	printf("  -l, --low       use low quality text\n");
-	printf("  -m, --medium    use medium quality text (default)\n");
-	printf("  -H, --high      use high quality text\n");
-	printf("  -v, --very-high use very high quality text\n");
-#if DS_HAS_OPENGL
-	printf("      --opengl    render using OpenGL\n");
-#endif
-	printf("default renderer: %s\n", renderTypeNames[defaultRenderType]);
+	printf("  -h, --help                   print this help message and exit\n");
+	printf("  -f, --font <path>            path to a custom font file for Latin glyphs\n");
+	printf("  -h, --help                   print this help message and exit\n");
+	printf("  -l, --low                    use low quality text\n");
+	printf("  -m, --medium                 use medium quality text (default)\n");
+	printf("  -H, --high                   use high quality text\n");
+	printf("  -v, --very-high              use very high quality text\n");
+	printf("  -r, --renderer <renderer>    explicitly use a renderer; options are:\n");
+	for (int i = 0; i < dsRendererType_Default; ++i)
+	{
+		printf("                                 %s\n",
+			dsRenderBootstrap_rendererName((dsRendererType)i));
+	}
 }
 
 static bool validateAllocator(dsAllocator* allocator, const char* name)
@@ -1190,7 +1170,7 @@ int dsMain(int argc, const char** argv)
 	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
 #endif
 
-	dsRenderType renderType = defaultRenderType;
+	dsRendererType rendererType = dsRendererType_Default;
 	dsTextQuality quality = dsTextQuality_Medium;
 	const char* fontPath = NULL;
 	for (int i = 1; i < argc; ++i)
@@ -1218,10 +1198,22 @@ int dsMain(int argc, const char** argv)
 			quality = dsTextQuality_High;
 		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--very-high") == 0)
 			quality = dsTextQuality_VeryHigh;
-#if DS_HAS_OPENGL
-		else if (strcmp(argv[i], "--opengl") == 0)
-			renderType = dsRenderType_OpenGL;
-#endif
+		if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
+		{
+			if (i == argc - 1)
+			{
+				printf("--renderer option requires an argument\n");
+				printHelp(argv[0]);
+				return 1;
+			}
+			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
+			if (rendererType == dsRendererType_Default)
+			{
+				printf("Unknown renderer type: %s\n", argv[i]);
+				printHelp(argv[0]);
+				return 1;
+			}
+		}
 		else
 		{
 			printf("Unknown option: %s\n", argv[i]);
@@ -1233,24 +1225,7 @@ int dsMain(int argc, const char** argv)
 	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
 	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestText-assets"));
 
-	DS_LOG_INFO_F("TestText", "Render using %s", renderTypeNames[renderType]);
-
-	CreateRendererFunction createRendererFunc = NULL;
-	DestroyRendererFunction destroyRendererFunc = NULL;
-	GetShaderDirFunction getShaderDirFunc = NULL;
-	switch (renderType)
-	{
-#if DS_HAS_OPENGL
-		case dsRenderType_OpenGL:
-			createRendererFunc = &dsTestText_createGLRenderer;
-			destroyRendererFunc = &dsTestText_destroyGLRenderer;
-			getShaderDirFunc = &dsTestText_getGLShaderDir;
-			break;
-#endif
-		default:
-			DS_ASSERT(false);
-			break;
-	}
+	DS_LOG_INFO_F("TestText", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
@@ -1259,23 +1234,43 @@ int dsMain(int argc, const char** argv)
 	dsSystemAllocator testTextAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testTextAllocator, DS_ALLOCATOR_NO_LIMIT));
 
-	dsRenderer* renderer = createRendererFunc((dsAllocator*)&renderAllocator);
+	dsRendererOptions rendererOptions;
+	dsRenderer_defaultOptions(&rendererOptions, "TestText", 0);
+	rendererOptions.depthBits = 0;
+	rendererOptions.stencilBits = 0;
+	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
+		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create renderer: %s", dsErrorString(errno));
 		return 2;
 	}
+
 	dsRenderer_setVsync(renderer, true);
 	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
+#if DS_DEBUG
+	dsRenderer_setExtraDebugging(renderer, true);
+#endif
 
-	shaderDir = getShaderDirFunc(renderer);
+	dsShaderVersion shaderVersions[] =
+	{
+		{DS_VK_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 5, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(4, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 2, 0)},
+	};
+	DS_VERIFY(dsRenderer_shaderVersionToString(shaderDir, DS_ARRAY_SIZE(shaderDir), renderer,
+		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
 		renderer);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create application: %s", dsErrorString(errno));
-		destroyRendererFunc(renderer);
+		dsRenderer_destroy(renderer);
 		return 2;
 	}
 
@@ -1291,7 +1286,7 @@ int dsMain(int argc, const char** argv)
 
 	shutdown(&testText);
 	dsSDLApplication_destroy(application);
-	destroyRendererFunc(renderer);
+	dsRenderer_destroy(renderer);
 
 	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
 		exitCode = 4;

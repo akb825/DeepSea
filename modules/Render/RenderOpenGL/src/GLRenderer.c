@@ -89,7 +89,7 @@ static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum s
 	dsLog_message(level, tag, file, line, function, (const char*)message);
 }
 
-static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
+static dsGfxFormat getColorFormat(const dsRendererOptions* options)
 {
 	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
 	{
@@ -125,7 +125,7 @@ static dsGfxFormat getColorFormat(const dsOpenGLOptions* options)
 	return dsGfxFormat_Unknown;
 }
 
-static dsGfxFormat getDepthFormat(const dsOpenGLOptions* options)
+static dsGfxFormat getDepthFormat(const dsRendererOptions* options)
 {
 	if (options->depthBits == 24)
 		return dsGfxFormat_D24S8;
@@ -135,7 +135,7 @@ static dsGfxFormat getDepthFormat(const dsOpenGLOptions* options)
 	return dsGfxFormat_Unknown;
 }
 
-static size_t dsGLRenderer_fullAllocSize(const dsOpenGLOptions* options)
+static size_t dsGLRenderer_fullAllocSize(const dsRendererOptions* options)
 {
 	size_t pathLen = options->shaderCacheDir ? strlen(options->shaderCacheDir) + 1 : 0;
 	return DS_ALIGNED_SIZE(sizeof(dsGLRenderer)) + dsMutex_fullAllocSize() +
@@ -156,12 +156,13 @@ static bool hasRequiredFunctions(void)
 static void printGLInfo(dsGLRenderer* renderer, uint32_t major, uint32_t minor, uint32_t glslMajor,
 	uint32_t glslMinor)
 {
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "OpenGL%s %u.%u", ANYGL_GLES ? " ES" : "", major,
 		minor);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
 		glslMajor, glslMinor);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", renderer->vendorString);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Renderer: %s", renderer->rendererString);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", baseRenderer->vendorName);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Driver: %s", baseRenderer->driverName);
 	if (ANYGL_SUPPORTED(glGetStringi))
 	{
 		dsAllocator* allocator = ((dsRenderer*)renderer)->allocator;
@@ -249,6 +250,58 @@ static void clearDestroyedObjects(dsGLRenderer* renderer)
 	renderer->curDestroyFbos = 0;
 }
 
+bool dsGLRenderer_destroy(dsRenderer* renderer)
+{
+	dsRenderer_shutdownResources(renderer);
+
+	dsGLResourceManager_destroy((dsGLResourceManager*)renderer->resourceManager);
+	dsGLMainCommandBuffer_destroy((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
+
+	// Since the context is destroyed, don't worry about deleting any associated OpenGL objects.
+	// (especially since some, like FBOs and VAOs, aren't shared across contexts)
+	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
+	void* display = glRenderer->options.display;
+	dsDestroyGLContext(display, glRenderer->renderContext);
+	dsDestroyGLContext(display, glRenderer->sharedContext);\
+	dsDestroyDummyGLSurface(display, glRenderer->dummySurface, glRenderer->dummyOsSurface);
+	dsDestroyGLConfig(display, glRenderer->sharedConfig);
+	dsDestroyGLConfig(display, glRenderer->renderConfig);
+
+	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
+	dsMutex_destroy(glRenderer->contextMutex);
+
+	if (glRenderer->syncPools)
+	{
+		for (size_t i = 0; i < glRenderer->curSyncPools; ++i)
+			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools[i].buffer));
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools));
+	}
+	dsSpinlock_shutdown(&glRenderer->syncPoolLock);
+
+	if (glRenderer->syncRefPools)
+	{
+		for (size_t i = 0; i < glRenderer->curSyncRefPools; ++i)
+			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools[i].buffer));
+		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools));
+	}
+	dsSpinlock_shutdown(&glRenderer->syncRefPoolLock);
+
+	if (glRenderer->releaseDisplay)
+		dsReleaseGLDisplay(glRenderer->options.display);
+
+	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
+
+	AnyGL_shutdown();
+	return true;
+}
+
+void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer, bool enabled)
+{
+	DS_UNUSED(renderer);
+	AnyGL_setDebugEnabled(enabled);
+}
+
 bool dsGLRenderer_beginFrame(dsRenderer* renderer)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -283,7 +336,7 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	DS_ASSERT(glRenderer->renderConfig);
 
 	void* display = glRenderer->options.display;
-	dsOpenGLOptions newOptions = glRenderer->options;
+	dsRendererOptions newOptions = glRenderer->options;
 	newOptions.samples = (uint8_t)samples;
 	void* newConfig = dsCreateGLConfig(renderer->allocator, display, &newOptions, true);
 	if (!newConfig)
@@ -365,28 +418,7 @@ bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
 	return true;
 }
 
-void dsGLRenderer_defaultOptions(dsOpenGLOptions* options)
-{
-	if (!options)
-		return;
-
-	options->display = NULL;
-	options->redBits = 8;
-	options->greenBits = 8;
-	options->blueBits = 8;
-	options->alphaBits = 0;
-	options->depthBits = 24;
-	options->stencilBits = 8;
-	options->samples = 4;
-	options->doubleBuffer = true;
-	options->srgb = false;
-	options->stereoscopic = false;
-	options->debug = ANYGL_ALLOW_DEBUG;
-	options->maxResourceThreads = 0;
-	options->shaderCacheDir = NULL;
-}
-
-dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* options)
+dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
 {
 	if (!allocator || !options)
 	{
@@ -513,7 +545,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		return NULL;
 	}
 
-	if (options->debug && ANYGL_ALLOW_DEBUG && ANYGL_SUPPORTED(glDebugMessageCallback))
+	if (options->debug && ANYGL_SUPPORTED(glDebugMessageCallback))
 	{
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(&debugOutput, NULL);
@@ -523,14 +555,23 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	DS_ASSERT(glslVersion);
 	unsigned int glslMajor, glslMinor;
 	if (ANYGL_GLES)
+	{
+		baseRenderer->name = "OpenGL ES";
+		baseRenderer->shaderLanguage = "glsl-es";
 		DS_VERIFY(sscanf(glslVersion, "OpenGL ES GLSL ES %u.%u", &glslMajor, &glslMinor) == 2);
+	}
 	else
+	{
+		baseRenderer->name = "OpenGL";
+		baseRenderer->shaderLanguage = "glsl";
 		DS_VERIFY(sscanf(glslVersion, "%u.%u", &glslMajor, &glslMinor) == 2);
-	renderer->shaderVersion = glslMajor*100 + glslMinor;
-	renderer->vendorString = (const char*)glGetString(GL_VENDOR);
-	DS_ASSERT(renderer->vendorString);
-	renderer->rendererString = (const char*)glGetString(GL_RENDERER);
-	DS_ASSERT(renderer->rendererString);
+	}
+	glslMinor /= 10;
+	baseRenderer->shaderVersion = DS_ENCODE_VERSION(glslMajor, glslMinor, 0);
+	baseRenderer->vendorName = (const char*)glGetString(GL_VENDOR);
+	DS_ASSERT(baseRenderer->vendorName);
+	baseRenderer->driverName = (const char*)glGetString(GL_RENDERER);
+	DS_ASSERT(baseRenderer->driverName);
 
 	printGLInfo(renderer, major, minor, glslMajor, glslMinor);
 
@@ -574,23 +615,23 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	}
 
 	if (ANYGL_GLES)
-		baseRenderer->type = DS_GLES_RENDERER_TYPE;
+		baseRenderer->rendererID = DS_GLES_RENDERER_ID;
 	else
-		baseRenderer->type = DS_GL_RENDERER_TYPE;
+		baseRenderer->rendererID = DS_GL_RENDERER_ID;
 
 	switch (ANYGL_LOAD)
 	{
 		case ANYGL_LOAD_EGL:
-			baseRenderer->platformType = DS_EGL_RENDERER_PLATFORM_TYPE;
+			baseRenderer->platformID = DS_EGL_RENDERER_PLATFORM_ID;
 			break;
 		case ANYGL_LOAD_GLX:
-			baseRenderer->platformType = DS_GLX_RENDERER_PLATFORM_TYPE;
+			baseRenderer->platformID = DS_GLX_RENDERER_PLATFORM_ID;
 			break;
 		case ANYGL_LOAD_WGL:
-			baseRenderer->platformType = DS_WGL_RENDERER_PLATFORM_TYPE;
+			baseRenderer->platformID = DS_WGL_RENDERER_PLATFORM_ID;
 			break;
 		default:
-			baseRenderer->platformType = 0;
+			baseRenderer->platformID = 0;
 			break;
 	}
 
@@ -614,12 +655,15 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	baseRenderer->clipInvertY = false;
 	baseRenderer->defaultAnisotropy = 1;
 
-	baseRenderer->hasGeometryShaders = (ANYGL_GLES && renderer->shaderVersion >= 320) ||
-		(!ANYGL_GLES && renderer->shaderVersion >= 320);
-	baseRenderer->hasTessellationShaders = (ANYGL_GLES && renderer->shaderVersion >= 320) ||
-		(!ANYGL_GLES && renderer->shaderVersion >= 400);
-	baseRenderer->hasComputeShaders = (ANYGL_GLES && renderer->shaderVersion >= 310) ||
-		(!ANYGL_GLES && renderer->shaderVersion >= 430);
+	baseRenderer->hasGeometryShaders =
+		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0));
+	baseRenderer->hasTessellationShaders =
+		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 0, 0));
+	baseRenderer->hasComputeShaders =
+		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0));
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
 	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);
@@ -628,6 +672,9 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &baseRenderer->maxAnisotropy);
 	else
 		baseRenderer->maxAnisotropy = 1.0f;
+
+	baseRenderer->destroyFunc = &dsGLRenderer_destroy;
+	baseRenderer->setExtraDebuggingFunc = &dsGLRenderer_setEnableErrorChecking;
 
 	// Render surfaces
 	baseRenderer->createRenderSurfaceFunc = &dsGLRenderSurface_create;
@@ -676,54 +723,6 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsOpenGLOptions* o
 	return baseRenderer;
 }
 
-void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer, bool enabled)
-{
-	if (!renderer)
-		return;
-
-	AnyGL_setDebugEnabled(enabled);
-}
-
-bool dsGLRenderer_getShaderVersion(uint32_t* outVersion, bool* outGles, const dsRenderer* renderer)
-{
-	if (!renderer)
-	{
-		errno = EINVAL;
-		return false;
-	}
-
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (outVersion)
-		*outVersion = glRenderer->shaderVersion;
-	if (outGles)
-		*outGles = ANYGL_GLES;
-	return true;
-}
-
-const char* dsGLRenderer_getVendor(const dsRenderer* renderer)
-{
-	if (!renderer)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	return glRenderer->vendorString;
-}
-
-const char* dsGLRenderer_getGLRenderer(const dsRenderer* renderer)
-{
-	if (!renderer)
-	{
-		errno = EINVAL;
-		return NULL;
-	}
-
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	return glRenderer->rendererString;
-}
-
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
@@ -768,7 +767,7 @@ void dsGLRenderer_destroyVao(dsRenderer* renderer, GLuint vao, uint32_t contextC
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread) &&
 		glRenderer->renderContextBound)
 	{
 		if (contextCount == glRenderer->contextCount)
@@ -802,7 +801,7 @@ void dsGLRenderer_destroyFbo(dsRenderer* renderer, GLuint fbo, uint32_t contextC
 		return;
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread) &&
 		glRenderer->renderContextBound)
 	{
 		if (contextCount == glRenderer->contextCount)
@@ -834,7 +833,7 @@ void dsGLRenderer_destroyTexture(dsRenderer* renderer, GLuint texture)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 
-	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread) &&
+	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread) &&
 		texture == glRenderer->curTexture0)
 	{
 		glRenderer->curTexture0 = 0;
@@ -961,7 +960,7 @@ void dsGLRenderer_bindTexture(dsRenderer* renderer, unsigned int unit, GLenum ta
 	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(target, texture);
 
-	if (unit == 0 && dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (unit == 0 && dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 		glRenderer->curTexture0Target = target;
@@ -978,7 +977,7 @@ void dsGLRenderer_beginTextureOp(dsRenderer* renderer, GLenum target, GLuint tex
 
 void dsGLRenderer_endTextureOp(dsRenderer* renderer)
 {
-	if (dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 		glBindTexture(glRenderer->curTexture0Target, glRenderer->curTexture0);
@@ -1051,52 +1050,4 @@ void dsGLRenderer_bindFramebuffer(dsRenderer* renderer, GLSurfaceType surfaceTyp
 		else if (ANYGL_SUPPORTED(glReadBuffer))
 			glReadBuffer(bufferType);
 	}
-}
-
-void dsGLRenderer_destroy(dsRenderer* renderer)
-{
-	if (!renderer)
-		return;
-
-	dsRenderer_shutdownResources(renderer);
-
-	dsGLResourceManager_destroy((dsGLResourceManager*)renderer->resourceManager);
-	dsGLMainCommandBuffer_destroy((dsGLMainCommandBuffer*)renderer->mainCommandBuffer);
-
-	// Since the context is destroyed, don't worry about deleting any associated OpenGL objects.
-	// (especially since some, like FBOs and VAOs, aren't shared across contexts)
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	void* display = glRenderer->options.display;
-	dsDestroyGLContext(display, glRenderer->renderContext);
-	dsDestroyGLContext(display, glRenderer->sharedContext);\
-	dsDestroyDummyGLSurface(display, glRenderer->dummySurface, glRenderer->dummyOsSurface);
-	dsDestroyGLConfig(display, glRenderer->sharedConfig);
-	dsDestroyGLConfig(display, glRenderer->renderConfig);
-
-	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyVaos));
-	DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->destroyFbos));
-	dsMutex_destroy(glRenderer->contextMutex);
-
-	if (glRenderer->syncPools)
-	{
-		for (size_t i = 0; i < glRenderer->curSyncPools; ++i)
-			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools[i].buffer));
-		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncPools));
-	}
-	dsSpinlock_shutdown(&glRenderer->syncPoolLock);
-
-	if (glRenderer->syncRefPools)
-	{
-		for (size_t i = 0; i < glRenderer->curSyncRefPools; ++i)
-			DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools[i].buffer));
-		DS_VERIFY(dsAllocator_free(renderer->allocator, glRenderer->syncRefPools));
-	}
-	dsSpinlock_shutdown(&glRenderer->syncRefPoolLock);
-
-	if (glRenderer->releaseDisplay)
-		dsReleaseGLDisplay(glRenderer->options.display);
-
-	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
-
-	AnyGL_shutdown();
 }

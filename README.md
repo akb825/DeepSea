@@ -6,13 +6,14 @@ DeepSea is a game engine written in C. It is designed to be modular, allowing on
 
 The following software is required to build DeepSea:
 
-* [cmake](https://cmake.org/) 3.0.2 or later
+* [cmake](https://cmake.org/) 3.1 or later
 * [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage) (required for rendering, provided as submodule; will only build the client library without tests, which doesn't have extra required dependencies; tool should be built separately and available on `PATH` to compile shaders)
 * [EasyProfiler](https://github.com/yse/easy_profiler) (optional default profiling implementation, provided as submodule)
 * [SDL](https://www.libsdl.org/) 2.0.4 or later (optional)
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
 * [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
+* [Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) (required for Vulkan)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
@@ -49,8 +50,38 @@ In order to perform a full build of DeepSea, the dependencies should be installe
 	* When building under Windows, building `ragel` must be done using [MinGW](https://sourceforge.net/projects/mingw/). Be sure to install the developer-tools, base, and gcc-g++ packages, then run `C:\MinGW\msys\1.0\msys.bat` for the console to perform the build. (use `/c/` prefix for paths to the C: drive) Also add `C:\MinGW\bin` to `PATH` to make sure `ragel` can be run oustide of a MinGW console.
 	* The `HB_HAVE_FREETYPE` CMake variable should be set to `ON`. 
 	* If you intend to build DeepSea as a shared library, it is recommended you build HarfBuzz as a shared library as well. This prevents you from manually linking HarfBuzz's direct dependencies with DeepSea as well.
+* [FlatBuffers](https://github.com/google/flatbuffers): optional to build the generated code from FlatBuffer schemas. Pre-generated files are provided, so this is only necessary if changes to the schemas are made.
 
-## Linux/Mac OS X
+## Linux/macOS
+
+Many of the above dependencies are available in system packages, though some will still need to be built on source. Package names for some commonly used systems are listed below, though equivalents should be available on other disttributions.
+
+For Ubuntu:
+
+* libsdl2-dev
+* libfreetype6-dev
+* harfbuzz-dev
+* (rest must be built from source)
+
+For Arch Linux all dependencies are available, though Modular Shader Language and Cuttlefush must be built through the Arch User Repository (aur):
+
+* [msl](https://aur.archlinux.org/packages/msl)
+* [cuttlefish-tool](https://aur.archlinux.org/packages/cuttlefish-tool)
+* gtest
+* sdl2
+* freetype2
+* harfbuzz
+* flatbuffers
+
+For macOS using [Homebrew](https://brew.sh/):
+
+* sdl2
+* freetype
+* harfbuzz
+* flatbuffers
+* (rest must be built from source)
+
+> **Note:** In order to make a build suitable for distribution on macOS, you may want to build all dependencies from source to avoid a dependency on Homebrew-specific libraries.
 
 To create a release build, execute the following commands:
 
@@ -65,7 +96,9 @@ The tests can be run by running the command:
 
 ## Windows
 
-Building is generally performed through Visual Studio. This can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
+Building is generally performed through Visual Studio. Unlike Linux and Mac, there is no commonly available package manager system to install the depndencies, so they must be built from source using their respective instructions.
+
+Generating Visual Studio projects can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
 
 	DeepSea$ mkdir build
 	DeepSea$ cd build
@@ -88,6 +121,7 @@ Building is generally performed through Visual Studio. This can either be done t
 * `-DDEEPSEA_BUILD_RENDER=ON|OFF`: Set to `ON` to build the libraries related to rendering. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_RENDER_VULKAN=ON|OFF`: Set to `ON` to build the Vulkan render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_VECTOR_DRAW=ON|OFF`: Set to `ON` to build the vector draw library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.
@@ -124,10 +158,12 @@ DeepSea contains the following modules:
 * [Render](modules/Render/README.md): Interface to the rendering engine. This provides the interface that will be implemented for various system graphics APIs.
 * [RenderMock](modules/Render/RenderMock/README.md): Mock implementation of the Render library, used for unit tests.
 * [RenderOpenGL](modules/Render/RenderOpenGL/README.md): OpenGL implementation of the Render library. This supports both desktop OpenGL and OpenGL ES.
+* [RenderVulkan](modules/Render/RenderVulkan/README.md): Vulkan implementation of the Render library.
+* [RenderBootstrap](modules/Render/RenderVulkan/README.md): Library that aids in creating one of the various renderers based on what is supported.
 * [Text](modules/Text/README.md): Draws Unicode text.
 * [VectorDraw](modules/VectorDraw/README.md): Draws vector graphics.
 * [Application](modules/Application/README.md): Application library, providing functionality such as input and window events.
-* [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library..
+* [ApplicationSDL](modules/Application/ApplicationSDL/README.md): SDL implementation of the Application library.
 
 The directory structure of the include files is:
 

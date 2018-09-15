@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,22 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Types.h>
 
-dsRenderer* dsTestText_createGLRenderer(dsAllocator* allocator);
-void dsTestText_destroyGLRenderer(dsRenderer* renderer);
-const char* dsTestText_getGLShaderDir(dsRenderer* renderer);
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * @file
+ * @brief File containing the renderer ID for the mock renderer.
+ */
+
+/**
+ * @brief Constant for the renderer ID of the mock renderer.
+ */
+#define DS_MOCK_RENDERER_ID DS_FOURCC('M', 'O', 'C', 'K')
+
+#ifdef __cplusplus
+}
+#endif

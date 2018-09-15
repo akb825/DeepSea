@@ -208,8 +208,8 @@ static bool setGLAttributes(dsRenderer* renderer)
 
 static bool shouldSetOpenGL(const dsRenderer* renderer)
 {
-	return renderer->type == DS_GL_RENDERER_TYPE &&
-		renderer->platformType == DS_GLX_RENDERER_PLATFORM_TYPE;
+	return renderer->rendererID == DS_GL_RENDERER_TYPE &&
+		renderer->platformID == DS_GLX_RENDERER_PLATFORM_TYPE;
 }
 
 static void updateWindowSamples(dsApplication* application)
@@ -809,7 +809,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	}
 	dsRenderer_restoreGlobalState(renderer);
 
-	if (renderer->type == DS_GL_RENDERER_TYPE || renderer->type == DS_GLES_RENDERER_TYPE)
+	if (renderer->rendererID == DS_GL_RENDERER_TYPE ||
+		renderer->rendererID == DS_GLES_RENDERER_TYPE)
 	{
 		if (!setGLAttributes(renderer))
 		{

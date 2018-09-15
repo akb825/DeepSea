@@ -166,6 +166,125 @@ typedef enum dsGfxAccess
 typedef struct dsRenderer dsRenderer;
 
 /**
+ * @brief Struct containing the otpions for initializing a renderer.
+ */
+typedef struct dsRendererOptions
+{
+	/**
+	 * @brief The platform display.
+	 */
+	void* display;
+
+	/**
+	 * @brief The name of the application.
+	 */
+	const char* applicationName;
+
+	/**
+	 * @brief The version of the application.
+	 */
+	uint32_t applicationVersion;
+
+	/**
+	 * @brief The number of bits for the red channel.
+	 */
+	uint8_t redBits;
+
+	/**
+	 * @brief The number of bits for the green channel.
+	 */
+	uint8_t greenBits;
+
+	/**
+	 * @brief The number of bits for the blue channel.
+	 */
+	uint8_t blueBits;
+
+	/**
+	 * @brief The number of bits for the alpha channel.
+	 */
+	uint8_t alphaBits;
+
+	/**
+	 * @brief The number of bits for the depth buffer.
+	 */
+	uint8_t depthBits;
+
+	/**
+	 * @brief The number of bits for the stencil buffer.
+	 */
+	uint8_t stencilBits;
+
+	/**
+	 * @brief The default number of anti-alias samples.
+	 *
+	 * This may be changed later, but all surfaces must be re-created. It will be clamped to the
+	 * maximum number of supported samples.
+	 */
+	uint8_t samples;
+
+	/**
+	 * @brief True to double-buffer rendering, false to single-buffer.
+	 */
+	bool doubleBuffer;
+
+	/**
+	 * @brief True to use sRGB, false to use linear color space.
+	 */
+	bool srgb;
+
+	/**
+	 * @brief True to use stereoscopic rendering, false to use a single surface.
+	 */
+	bool stereoscopic;
+
+	/**
+	 * @brief True to enable debugging.
+	 */
+	bool debug;
+
+	/**
+	 * @brief The maximum number of resource threads.
+	 */
+	uint8_t maxResourceThreads;
+
+	/**
+	 * @brief Directory to cache shader binaries.
+	 *
+	 * This will be copied when the renderer is created so it need not be permanently allocated.
+	 */
+	const char* shaderCacheDir;
+
+	/**
+	 * @brief The allocator to use for the graphics API when supported.
+	 */
+	dsAllocator* gfxAPIAllocator;
+} dsRendererOptions;
+
+/**
+ * @brief Struct containing a shader version.
+ *
+ * Applications will typically compile for specific shader versions. This structure can be used to
+ * provide what versions are available, which can then be used to choose which version to use at
+ * runtime.
+ */
+typedef struct dsShaderVersion
+{
+	/**
+	 * @brief The renderer ID the shader version is used for.
+	 *
+	 * This not only differentiates between completely different renderer types (e.g. Vulkan vs.
+	 * OpenGL), but also different variations of the same renderer. (e.g. OpenGL vs. OpenGL ES)
+	 */
+	uint32_t rendererID;
+
+	/**
+	 * @brief The version of the shader, encoded with DS_ENCODE_VERSION().
+	 */
+	uint32_t version;
+} dsShaderVersion;
+
+/**
  * @brief Structure defining a render surface, such as a window.
  *
  * Render implementations can effectively subclass this type by having it as the first member of
@@ -733,6 +852,32 @@ typedef struct dsGPUProfileContext dsGPUProfileContext;
 /// \}
 
 /**
+ * @brief Function for creating a renderer.
+ *
+ * The renderer implementations will provide a ds*Renderer_create() function with this signature.
+ *
+ * @param allocator The allocator for the renderer.
+ * @param options The options for the renderer.
+ * @return The renderer, or NULL if an error occurred.
+ */
+typedef dsRenderer* (*dsCreateRendererFunction)(dsAllocator* allocator,
+	const dsRendererOptions* options);
+
+/**
+ * @brief Function for destroying a renderer.
+ * @param renderer The renderer to destroy.
+ * @return False if the renderer couldn't be destroyed.
+ */
+typedef bool (*dsDestroyRendererFunction)(dsRenderer* renderer);
+
+/**
+ * @brief Function for enabling/disabling extra debugging for a renderer.
+ * @param renderer The renderer to enable/disable extra debugging for.
+ * @param enable True to enable, false to disable.
+ */
+typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool enable);
+
+/**
  * @brief Function for creating a render surface.
  * @param renderer The renderer to use the render surface with.
  * @param allocator The allocator to create the render surface.
@@ -1118,6 +1263,9 @@ typedef bool (*dsRenderRestoreGlobalState)(dsRenderer* renderer);
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
+
+	// ----------------------------------- Internal objects ----------------------------------------
+
 	/**
 	 * @brief The main allocator for the Renderer library.
 	 */
@@ -1129,33 +1277,97 @@ struct dsRenderer
 	dsResourceManager* resourceManager;
 
 	/**
-	 * @brief The type of the renderer.
-	 *
-	 * This is typically created with DS_FOURCC() to describe the type.
-	 */
-	uint32_t type;
-
-	/**
-	 * @brief The type of the renderer platform.
-	 *
-	 * This is typically created with DS_FOURCC() to describe the type.
-	 */
-	uint32_t platformType;
-
-	/**
-	 * @brief Thread ID for the main thread.
-	 *
-	 * Some operations may only be done from the main thread.
-	 */
-	dsThreadId mainThread;
-
-	/**
 	 * @brief The main command buffer.
 	 *
 	 * This should only be used from the main thread. The pointer may change after calling
 	 * dsRenderer_beginFrame() depending on the implementation.
 	 */
 	dsCommandBuffer* mainCommandBuffer;
+
+	// --------------------------------- Renderer information --------------------------------------
+
+	/**
+	 * @brief The ID of the renderer.
+	 *
+	 * This is typically created with DS_FOURCC() to describe the ID.
+	 */
+	uint32_t rendererID;
+
+	/**
+	 * @brief The ID of the renderer platform.
+	 *
+	 * This is typically created with DS_FOURCC() to describe the ID.
+	 */
+	uint32_t platformID;
+
+	/**
+	 * @brief The name of the renderer.
+	 */
+	const char* name;
+
+	/**
+	 * @brief The name for the shader language.
+	 *
+	 * This should be set by the renderer so "shaderLanguage-shaderVersion" is the same as the
+	 * standard configs provided by the standard renderer implementations.
+	 */
+	const char* shaderLanguage;
+
+	/**
+	 * @brief The name of the GPU vendor.
+	 *
+	 * This may be NULL if not known. Either vendorName or vendorID should be set.
+	 */
+	const char* vendorName;
+
+	/**
+	 * @brief The name of the GPU driver.
+	 *
+	 * This should never be NULL.
+	 */
+	const char* driverName;
+
+	/**
+	 * @brief The shader version number, encoded with DS_ENCODE_VERSION().
+	 */
+	uint32_t shaderVersion;
+
+	/**
+	 * @brief The ID of the GPU vendor.
+	 *
+	 * This may be 0 if not known. Either vendorName or vendorID should be set.
+	 */
+	uint32_t vendorID;
+
+	/**
+	 * @brief The ID of the GPU driver.
+	 *
+	 * This may be 0 if not known.
+	 */
+	uint32_t driverID;
+
+	/**
+	 * @brief The version of the GPU driver.
+	 *
+	 * This will either be encoded with DS_ENCODE_VERSION() or 0 if not known.
+	 */
+	uint32_t driverVersion;
+
+	/**
+	 * @brief Thread ID for the main thread.
+	 *
+	 * Some operations may only be done from the main thread.
+	 */
+	dsThreadID mainThread;
+
+	/**
+	 * @brief The current frame number.
+	 *
+	 * This is incremented when calling dsRenderer_beginFrame().
+	 */
+	uint64_t frameNumber;
+
+	// --------------------------------- Renderer capabilities -------------------------------------
 
 	/**
 	 * @brief The maximum number of color attachments when drawing a render subpass.
@@ -1256,17 +1468,22 @@ struct dsRenderer
 	 */
 	float defaultAnisotropy;
 
-	/**
-	 * @brief The current frame number.
-	 *
-	 * This is incremented when calling dsRenderer_beginFrame().
-	 */
-	uint64_t frameNumber;
+	// ----------------------------- Internals and function table ----------------------------------
 
 	/**
 	 * @brief Context used internally for GPU profiling.
 	 */
 	dsGPUProfileContext* _profileContext;
+
+	/**
+	 * @brief Render destroy function.
+	 */
+	dsDestroyRendererFunction destroyFunc;
+
+	/**
+	 * @brief Extra debugging set function.
+	 */
+	dsSetExtraRendererDebuggingFunction setExtraDebuggingFunc;
 
 	/**
 	 * @brief Render surface creation function.

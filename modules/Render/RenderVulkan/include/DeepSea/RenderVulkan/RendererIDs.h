@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/RenderMock/Export.h>
-#include <DeepSea/RenderMock/RendererIDs.h>
-#include <DeepSea/Render/Renderer.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -28,17 +25,28 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and destroying a mock renderer.
- *
- * The mock renderer cannot be used to do actual rendering. Its intent is to be used for unit tests.
+ * @brief File containing the renderer IDs for Vulkan.
  */
 
 /**
- * @brief Creates a mock renderer.
- * @param allocator The allocator to use.
- * @return The renderer.
+ * @brief Log tag for the RenderVulkan library.
  */
-DS_RENDERMOCK_EXPORT dsRenderer* dsMockRenderer_create(dsAllocator* allocator);
+#define DS_RENDER_VULKAN_LOG_TAG "vulkan"
+
+/**
+ * @brief Constant for the renderer type ID of the Vulkan renderer.
+ */
+#define DS_VK_RENDERER_ID DS_FOURCC('V', 'K', 0, 0)
+
+/**
+ * @brief Constant for the renderer platform type ID of xlib.
+ */
+#define DS_VK_XLIB_RENDERER_PLATFORM_ID DS_FOURCC('X', 'L', 'I', 'B')
+
+/**
+ * @brief Constant for the renderer platform type ID of Win32.
+ */
+#define DS_VK_WIN32_RENDERER_PLATFORM_ID DS_FOURCC('W', 'I', 'N', 0)
 
 #ifdef __cplusplus
 }

@@ -70,8 +70,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
-	if (application->renderer->platformType == DS_GLX_RENDERER_PLATFORM_TYPE ||
-		application->renderer->platformType == DS_WGL_RENDERER_PLATFORM_TYPE)
+	if (application->renderer->platformID == DS_GLX_RENDERER_PLATFORM_TYPE ||
+		application->renderer->platformID == DS_WGL_RENDERER_PLATFORM_TYPE)
 	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
 	}

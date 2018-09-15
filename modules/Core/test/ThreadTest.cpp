@@ -58,7 +58,7 @@ dsThreadReturnType namedThread(void* data)
 
 struct ThreadIdData
 {
-	dsThreadId threadId;
+	dsThreadID threadId;
 	dsConditionVariable* condition;
 	dsMutex* mutex;
 	bool ready;
@@ -75,7 +75,7 @@ dsThreadReturnType threadId(void* data)
 	}
 	EXPECT_TRUE(dsMutex_unlock(threadIdData->mutex));
 
-	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadId(), threadIdData->threadId));
+	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadID(), threadIdData->threadId));
 	return 0;
 }
 
@@ -154,10 +154,10 @@ TEST(Thread, NameThread)
 
 TEST(Thread, ThreadId)
 {
-	EXPECT_TRUE(dsThread_equal(dsThread_invalidId(), dsThread_invalidId()));
-	EXPECT_FALSE(dsThread_equal(dsThread_thisThreadId(), dsThread_invalidId()));
-	EXPECT_FALSE(dsThread_equal(dsThread_invalidId(), dsThread_thisThreadId()));
-	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadId(), dsThread_thisThreadId()));
+	EXPECT_TRUE(dsThread_equal(dsThread_invalidID(), dsThread_invalidID()));
+	EXPECT_FALSE(dsThread_equal(dsThread_thisThreadID(), dsThread_invalidID()));
+	EXPECT_FALSE(dsThread_equal(dsThread_invalidID(), dsThread_thisThreadID()));
+	EXPECT_TRUE(dsThread_equal(dsThread_thisThreadID(), dsThread_thisThreadID()));
 
 	dsConditionVariable* condition = dsConditionVariable_create(nullptr, nullptr);
 	ASSERT_NE(nullptr, condition);
@@ -178,9 +178,9 @@ TEST(Thread, ThreadId)
 	EXPECT_TRUE(dsThread_create(&thread2, &threadId, &data2, 0, nullptr));
 	EXPECT_TRUE(dsThread_create(&thread3, &threadId, &data3, 0, nullptr));
 
-	data1.threadId = dsThread_getId(thread1);
-	data2.threadId = dsThread_getId(thread2);
-	data3.threadId = dsThread_getId(thread3);
+	data1.threadId = dsThread_getID(thread1);
+	data2.threadId = dsThread_getID(thread2);
+	data3.threadId = dsThread_getID(thread3);
 
 	EXPECT_TRUE(dsMutex_lock(mutex));
 	data1.ready = data2.ready = data3.ready = true;

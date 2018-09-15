@@ -12,28 +12,19 @@ if (NOT CUTTLEFISH)
 	return()
 endif()
 
-set(libraries)
-set(defines)
 set(shaderConfigs)
 set(source TestRenderSubpass.c Cube.msl Resolve.msl)
 if (TARGET deepsea_render_opengl)
-	list(APPEND source SetupOpenGL.c SetupOpenGL.h)
-	list(APPEND libraries deepsea_render_opengl)
-	list(APPEND defines DS_HAS_OPENGL=1)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-es-1.0 glsl-es-3.0)
-else()
-	list(APPEND defines DS_HAS_OPENGL=0)
 endif()
 
-if (NOT libraries)
+if (NOT shaderConfigs)
 	return()
 endif()
 
 add_executable(deepsea_test_render_subpass_app WIN32 ${source})
 target_link_libraries(deepsea_test_render_subpass_app PRIVATE
-	deepsea_application_sdl deepsea_application_sdl_main
-	${libraries})
-target_compile_definitions(deepsea_test_render_subpass_app PRIVATE ${defines})
+	deepsea_render_bootstrap deepsea_application_sdl deepsea_application_sdl_main)
 
 # Cannot use generator expressions for the custom commands.
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)

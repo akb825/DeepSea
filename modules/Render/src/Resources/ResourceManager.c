@@ -40,7 +40,7 @@ bool dsResourceManager_createResourceContext(dsResourceManager* resourceManager)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadId()))
+	if (dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot create a resource context for the main thread.");
@@ -124,7 +124,7 @@ bool dsResourceManager_canUseResources(const dsResourceManager* resourceManager)
 	if (!resourceManager || !resourceManager->renderer)
 		return false;
 
-	return dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadId()) ||
+	return dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()) ||
 		dsThreadStorage_get(resourceManager->_resourceContext);
 }
 

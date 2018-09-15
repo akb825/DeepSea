@@ -184,6 +184,56 @@
 #define DS_FOURCC(a, b, c, d) ((unsigned int)(a) | ((unsigned int)(b) << 8) | \
 	((unsigned int)(c) << 16) | ((unsigned int)(d) << 24 ))
 
+/**
+ * @brief Encodes a version number into a 32-bit integer.
+ * @param major The major version number. This must fit within 10 bits.
+ * @param minor The minor version number. This must fit within 10 bits.
+ * @param patch The patch version number. This must fit within 12 bits.
+ */
+#define DS_ENCODE_VERSION(major, minor, patch) ((((unsigned int)(major) & 0x3FF) << 22) | \
+	(((unsigned int)(minor) & 0x3FF) << 12) | (((unsigned int)(patch) & 0xFFF)))
+
+/**
+ * @brief Decodes a version number.
+ * @param[out] outMajor The major version.
+ * @param[out] outMinor The minor version.
+ * @param[out] outPatch The patch version.
+ * @param version The encoded version number
+ */
+#define DS_DECODE_VERSION(outMajor, outMinor, outPatch, version) \
+	do \
+	{ \
+		(outMajor) = ((unsigned int)(version) >> 22) & 0x3FF; \
+		(outMinor) = ((unsigned int)(version) >> 12) & 0x3FF; \
+		(outPatch) = (unsigned int)(version) & 0xFFF; \
+	} while (0)
+
+/**
+ * @brief The major version of DeepSea.
+ */
+#ifndef DS_MAJOR_VERSION
+#define DS_MAJOR_VERSION 0
+#endif
+
+/**
+ * @brief The minor version of DeepSea.
+ */
+#ifndef DS_MINOR_VERSION
+#define DS_MINOR_VERSION 0
+#endif
+
+/**
+ * @brief The patch version of DeepSea.
+ */
+#ifndef DS_PATCH_VERSION
+#define DS_PATCH_VERSION 0
+#endif
+
+/**
+ * @brief The encoded version number of DeepSea.
+ */
+#define DS_VERSION DS_ENCODE_VERSION(DS_MAJOR_VERSION, DS_MINOR_VERSION, DS_PATCH_VERSION)
+
 #if DS_MSC
 #pragma warning(disable: 4200) // nonstandard extension used : zero-sized array in struct/union
 #endif

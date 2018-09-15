@@ -163,6 +163,93 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 	return true;
 }
 
+void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicationName,
+	uint32_t applicationVersion)
+{
+	if (!options)
+		return;
+
+	options->display = NULL;
+	options->applicationName = applicationName;
+	options->applicationVersion = applicationVersion;
+	options->redBits = 8;
+	options->greenBits = 8;
+	options->blueBits = 8;
+	options->alphaBits = 0;
+	options->depthBits = 24;
+	options->stencilBits = 8;
+	options->samples = 4;
+	options->doubleBuffer = true;
+	options->srgb = false;
+	options->stereoscopic = false;
+#if DS_DEBUG
+	options->debug = true;
+#else
+	options->debug = false;
+#endif
+	options->maxResourceThreads = 0;
+	options->shaderCacheDir = NULL;
+	options->gfxAPIAllocator = NULL;
+}
+
+void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool enable)
+{
+	if (!renderer || !renderer->setExtraDebuggingFunc)
+		return;
+
+	renderer->setExtraDebuggingFunc(renderer, enable);
+}
+
+const dsShaderVersion* dsRenderer_chooseShaderVersion(const dsRenderer* renderer,
+	const dsShaderVersion* versions, uint32_t versionCount)
+{
+	if (!renderer || !versions || versionCount == 0)
+		return NULL;
+
+	const dsShaderVersion* curVersion = 0;
+	for (uint32_t i = 0; i < versionCount; ++i)
+	{
+		if (renderer->rendererID == versions[i].rendererID &&
+			versions[i].version <= renderer->shaderVersion &&
+			(!curVersion || versions[i].version >= curVersion->version))
+		{
+			curVersion = versions + i;
+		}
+	}
+
+	return curVersion;
+}
+
+bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
+	const dsRenderer* renderer, const dsShaderVersion* version)
+{
+	if (!outBuffer || bufferSize == 0 || !renderer || !version ||
+		renderer->rendererID != version->rendererID)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (renderer->rendererID != version->rendererID)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	uint32_t major, minor, patch;
+	DS_DECODE_VERSION(major, minor, patch, version->version);
+
+	int result = snprintf(outBuffer, bufferSize, "%s-%u.%u", renderer->shaderLanguage, major,
+		minor);
+	if (result < 0 || (uint32_t)result >= bufferSize)
+	{
+		errno = ESIZE;
+		return false;
+	}
+
+	return true;
+}
+
 bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer* renderer, float left, float right,
 	float bottom, float top, float near, float far)
 {
@@ -226,7 +313,7 @@ bool dsRenderer_beginFrame(dsRenderer* renderer)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Frames may only be begun on the main thread.");
@@ -289,7 +376,7 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Frames may only be ended on the main thread.");
@@ -349,7 +436,7 @@ bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples may only be set on the main thread.");
@@ -368,7 +455,7 @@ bool dsRenderer_setVsync(dsRenderer* renderer, bool vsync)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Vsync may only be set on the main thread.");
@@ -394,7 +481,7 @@ bool dsRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Default anisotropy may only be set on the main thread.");
@@ -1084,7 +1171,7 @@ bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 		return false;
 	}
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Waiting for idle must be done on the main thread.");
@@ -1109,7 +1196,7 @@ bool dsRenderer_restoreGlobalState(dsRenderer* renderer)
 	if (!renderer->restoreGlobalStateFunc)
 		return true;
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -1121,6 +1208,25 @@ bool dsRenderer_restoreGlobalState(dsRenderer* renderer)
 	return success;
 }
 
+bool dsRenderer_destroy(dsRenderer* renderer)
+{
+	if (!renderer || !renderer->destroyFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Destroying a renderer must be done on the main thread.");
+		return false;
+	}
+
+	return renderer->destroyFunc(renderer);
+}
+
 bool dsRenderer_initialize(dsRenderer* renderer)
 {
 	if (!renderer)
@@ -1130,7 +1236,7 @@ bool dsRenderer_initialize(dsRenderer* renderer)
 	}
 
 	memset(renderer, 0, sizeof(dsRenderer));
-	renderer->mainThread = dsThread_thisThreadId();
+	renderer->mainThread = dsThread_thisThreadID();
 	return true;
 }
 

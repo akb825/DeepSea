@@ -79,7 +79,7 @@ typedef struct dsSpinlock
 /**
  * @brief Type of a thread ID.
  */
-typedef struct dsThreadId
+typedef struct dsThreadID
 {
 	/** Internal */
 #if DS_WINDOWS
@@ -87,7 +87,7 @@ typedef struct dsThreadId
 #else
 	pthread_t threadId;
 #endif
-} dsThreadId;
+} dsThreadID;
 
 /**
  * @brief Type of the thread return type.

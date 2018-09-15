@@ -21,7 +21,7 @@
 
 void* dsGetGLDisplay(void);
 void dsReleaseGLDisplay(void* display);
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,
+void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
 	bool render);
 void* dsGetPublicGLConfig(void* display, void* config);
 void dsDestroyGLConfig(void* display, void* config);

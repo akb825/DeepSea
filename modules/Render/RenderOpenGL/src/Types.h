@@ -20,8 +20,9 @@
 
 #include "AnyGL/gl.h"
 #include <MSL/Client/TypesC.h>
-#include <DeepSea/RenderOpenGL/Types.h>
 #include <DeepSea/Core/Types.h>
+#include <DeepSea/Render/Types.h>
+#include <DeepSea/RenderOpenGL/GLRenderer.h>
 
 typedef enum GLSurfaceType
 {
@@ -214,10 +215,7 @@ typedef struct dsGLResourceManager
 typedef struct dsGLRenderer
 {
 	dsRenderer renderer;
-	dsOpenGLOptions options;
-	uint32_t shaderVersion;
-	const char* vendorString;
-	const char* rendererString;
+	dsRendererOptions options;
 	bool releaseDisplay;
 
 	bool renderContextBound;

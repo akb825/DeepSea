@@ -39,7 +39,7 @@ void dsReleaseGLDisplay(void* display)
 	DS_UNUSED(display);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,
+void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
 	bool render)
 {
 	DS_UNUSED(allocator);

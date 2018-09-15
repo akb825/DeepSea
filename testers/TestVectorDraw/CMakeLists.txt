@@ -26,16 +26,11 @@ set(source TestVectorDraw.c
 	VectorElementShape.msl VectorElementImage.msl VectorElementText.msl
 	VectorElementShapeSRGB.msl VectorElementTextSRGB.msl)
 if (TARGET deepsea_render_opengl)
-	list(APPEND source SetupOpenGL.c SetupOpenGL.h)
-	list(APPEND libraries deepsea_render_opengl)
-	list(APPEND defines DS_HAS_OPENGL=1)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-4.0 glsl-es-1.0 glsl-es-3.0 glsl-es-3.2)
 	list(APPEND srgbShaderConfigs glsl-1.5 glsl-4.0 glsl-es-3.0 glsl-es-3.2)
-else()
-	list(APPEND defines DS_HAS_OPENGL=0)
 endif()
 
-if (NOT libraries)
+if (NOT shaderConfigs)
 	return()
 endif()
 
@@ -45,9 +40,8 @@ if (TARGET deepsea_easy_profiler)
 endif()
 
 add_executable(deepsea_test_vector_draw_app WIN32 ${source})
-target_link_libraries(deepsea_test_vector_draw_app PRIVATE
-	deepsea_application_sdl deepsea_application_sdl_main deepsea_vector_draw
-	${libraries})
+target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_render_bootstrap
+	deepsea_application_sdl deepsea_application_sdl_main deepsea_vector_draw ${libraries})
 target_compile_definitions(deepsea_test_vector_draw_app PRIVATE ${defines})
 
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)

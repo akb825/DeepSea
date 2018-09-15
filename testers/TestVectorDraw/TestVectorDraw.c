@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "SetupOpenGL.h"
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/ApplicationSDL/SDLApplication.h>
@@ -24,9 +23,9 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Math/Matrix44.h>
-#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Vector2.h>
 #include <DeepSea/Render/Resources/Framebuffer.h>
 #include <DeepSea/Render/Resources/GfxBuffer.h>
@@ -43,6 +42,7 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
+#include <DeepSea/RenderBootstrap/RenderBootstrap.h>
 #include <DeepSea/VectorDraw/VectorImage.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
 #include <DeepSea/VectorDraw/VectorScratchData.h>
@@ -56,12 +56,6 @@
 #if DS_HAS_EASY_PROFILER
 #include <DeepSea/EasyProfiler/EasyProfiler.h>
 #endif
-
-typedef enum dsRenderType
-{
-	dsRenderType_OpenGL,
-	dsRenderType_Count
-} dsRenderType;
 
 typedef struct TestVectorDraw
 {
@@ -84,23 +78,10 @@ typedef struct TestVectorDraw
 	bool wireframe;
 } TestVectorDraw;
 
-static const char* renderTypeNames[] =
-{
-	"OpenGL"
-};
-
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(renderTypeNames) == dsRenderType_Count, renderer_type_mismatch);
-
-#if DS_HAS_OPENGL
-static dsRenderType defaultRenderType = dsRenderType_OpenGL;
-#else
-#error No renderer type available
-#endif
-
 #define TARGET_SIZE 800
 
 static char assetsDir[DS_PATH_MAX];
-static const char* shaderDir;
+static char shaderDir[100];
 
 const char* vectorImageFiles[] =
 {
@@ -140,21 +121,20 @@ const char* vectorImageFiles[] =
 	"text-materials.dsvi"
 };
 
-typedef dsRenderer* (*CreateRendererFunction)(dsAllocator* allocator);
-typedef void (*DestroyRendererFunction)(dsRenderer* renderer);
-typedef const char* (*GetShaderDirFunction)(dsRenderer* renderer);
-
 static void printHelp(const char* programPath)
 {
 	printf("usage: %s [OPTIONS]\n", dsPath_getFileName(programPath));
 	printf("Use left/right arrows or tap on touchscreen to cyle images.\n");
 	printf("Press 'w' to toggle wireframe.\n\n");
 	printf("options:\n");
-	printf("--srgb      use sRGB-correct drawing\n");
-#if DS_HAS_OPENGL
-	printf("--opengl    render using OpenGL\n");
-#endif
-	printf("default renderer: %s\n", renderTypeNames[defaultRenderType]);
+	printf("  -h, --help                   print this help message and exit\n");
+	printf("--srgb                         use sRGB-correct drawing\n");
+	printf("  -r, --renderer <renderer>    explicitly use a renderer; options are:\n");
+	for (int i = 0; i < dsRendererType_Default; ++i)
+	{
+		printf("                                 %s\n",
+			dsRenderBootstrap_rendererName((dsRendererType)i));
+	}
 }
 
 static bool validateAllocator(dsAllocator* allocator, const char* name)
@@ -512,7 +492,7 @@ int dsMain(int argc, const char** argv)
 	dsEasyProfiler_startListening(DS_DEFAULT_EASY_PROFILER_PORT);
 #endif
 
-	dsRenderType renderType = defaultRenderType;
+	dsRendererType rendererType = dsRendererType_Default;
 	bool srgb = false;
 	for (int i = 1; i < argc; ++i)
 	{
@@ -523,10 +503,22 @@ int dsMain(int argc, const char** argv)
 		}
 		else if (strcmp(argv[i], "--srgb") == 0)
 			srgb = true;
-#if DS_HAS_OPENGL
-		else if (strcmp(argv[i], "--opengl") == 0)
-			renderType = dsRenderType_OpenGL;
-#endif
+		if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
+		{
+			if (i == argc - 1)
+			{
+				printf("--renderer option requires an argument\n");
+				printHelp(argv[0]);
+				return 1;
+			}
+			rendererType = dsRenderBootstrap_rendererTypeFromName(argv[++i]);
+			if (rendererType == dsRendererType_Default)
+			{
+				printf("Unknown renderer type: %s\n", argv[i]);
+				printHelp(argv[0]);
+				return 1;
+			}
+		}
 		else
 		{
 			printf("Unknown option: %s\n", argv[i]);
@@ -538,24 +530,8 @@ int dsMain(int argc, const char** argv)
 	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
 	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestVectorDraw-assets"));
 
-	DS_LOG_INFO_F("TestVectorDraw", "Render using %s", renderTypeNames[renderType]);
-
-	CreateRendererFunction createRendererFunc = NULL;
-	DestroyRendererFunction destroyRendererFunc = NULL;
-	GetShaderDirFunction getShaderDirFunc = NULL;
-	switch (renderType)
-	{
-#if DS_HAS_OPENGL
-		case dsRenderType_OpenGL:
-			createRendererFunc = &dsTestVectorDraw_createGLRenderer;
-			destroyRendererFunc = &dsTestVectorDraw_destroyGLRenderer;
-			getShaderDirFunc = &dsTestVectorDraw_getGLShaderDir;
-			break;
-#endif
-		default:
-			DS_ASSERT(false);
-			break;
-	}
+	DS_LOG_INFO_F("TestVectorDraw", "Render using %s",
+		dsRenderBootstrap_rendererName(rendererType));
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));
@@ -564,14 +540,23 @@ int dsMain(int argc, const char** argv)
 	dsSystemAllocator testVectorDrawAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&testVectorDrawAllocator, DS_ALLOCATOR_NO_LIMIT));
 
-	dsRenderer* renderer = createRendererFunc((dsAllocator*)&renderAllocator);
+	dsRendererOptions rendererOptions;
+	dsRenderer_defaultOptions(&rendererOptions, "TestVectorDraw", 0);
+	rendererOptions.depthBits = 0;
+	rendererOptions.stencilBits = 0;
+	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
+		(dsAllocator*)&renderAllocator, &rendererOptions);
 	if (!renderer)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create renderer: %s", dsErrorString(errno));
 		return 2;
 	}
+
 	dsRenderer_setVsync(renderer, true);
 	dsRenderer_setDefaultAnisotropy(renderer, renderer->maxAnisotropy);
+#if DS_DEBUG
+	dsRenderer_setExtraDebugging(renderer, true);
+#endif
 
 	if (srgb && !dsGfxFormat_textureSupported(renderer->resourceManager,
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB)))
@@ -580,14 +565,25 @@ int dsMain(int argc, const char** argv)
 		return 2;
 	}
 
-	shaderDir = getShaderDirFunc(renderer);
+	dsShaderVersion shaderVersions[] =
+	{
+		{DS_VK_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 5, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(4, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 2, 0)},
+	};
+	DS_VERIFY(dsRenderer_shaderVersionToString(shaderDir, DS_ARRAY_SIZE(shaderDir), renderer,
+		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
 		renderer);
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create application: %s", dsErrorString(errno));
-		destroyRendererFunc(renderer);
+		dsRenderer_destroy(renderer);
 		return 2;
 	}
 
@@ -603,7 +599,7 @@ int dsMain(int argc, const char** argv)
 
 	shutdown(&testVectorDraw);
 	dsSDLApplication_destroy(application);
-	destroyRendererFunc(renderer);
+	dsRenderer_destroy(renderer);
 
 	if (!validateAllocator((dsAllocator*)&renderAllocator, "render"))
 		exitCode = 4;

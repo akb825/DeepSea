@@ -33,6 +33,20 @@
 
 #include <string.h>
 
+bool dsMockRenderer_destroy(dsRenderer* renderer)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+
+	DS_VERIFY(dsRenderer_shutdownResources(renderer));
+
+	dsMockResourceManager_destroy(renderer->resourceManager);
+	dsRenderer_shutdown(renderer);
+	if (renderer->allocator)
+		return dsAllocator_free(renderer->allocator, renderer);
+	return true;
+}
+
 bool dsMockRenderer_beginFrame(dsRenderer* renderer)
 {
 	DS_ASSERT(renderer);
@@ -345,8 +359,12 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	renderer->allocator = dsAllocator_keepPointer(allocator);
 	renderer->resourceManager = resourceManager;
-	renderer->type = DS_MOCK_RENDERER_TYPE;
-	renderer->platformType = DS_MOCK_RENDERER_TYPE;
+	renderer->rendererID = DS_MOCK_RENDERER_ID;
+	renderer->platformID = DS_MOCK_RENDERER_ID;
+	renderer->name = "Mock";
+	renderer->shaderLanguage = "spirv";
+	renderer->shaderVersion = DS_ENCODE_VERSION(1, 0, 0);
+	renderer->driverName = "None";
 
 	renderer->mainCommandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
 		dsCommandBuffer);
@@ -380,6 +398,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->hasNativeMultidraw = true;
 	renderer->supportsInstancedDrawing = true;
 	renderer->supportsStartInstance = true;
+
+	renderer->destroyFunc = &dsMockRenderer_destroy;
 
 	renderer->createRenderSurfaceFunc = &dsMockRenderSurface_create;
 	renderer->destroyRenderSurfaceFunc = &dsMockRenderSurface_destroy;
@@ -422,17 +442,4 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	DS_VERIFY(dsRenderer_initializeResources(renderer));
 
 	return renderer;
-}
-
-void dsMockRenderer_destroy(dsRenderer* renderer)
-{
-	if (!renderer)
-		return;
-
-	DS_VERIFY(dsRenderer_shutdownResources(renderer));
-
-	dsMockResourceManager_destroy(renderer->resourceManager);
-	dsRenderer_shutdown(renderer);
-	if (renderer->allocator)
-		dsAllocator_free(renderer->allocator, renderer);
 }

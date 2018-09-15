@@ -50,7 +50,7 @@ enum FormatBit
 	FormatBit_TextureBuffer = 0x8
 };
 
-static size_t dsGLResourceManager_fullAllocSize(const dsOpenGLOptions* options)
+static size_t dsGLResourceManager_fullAllocSize(const dsRendererOptions* options)
 {
 	return DS_ALIGNED_SIZE(sizeof(dsGLResourceManager)) +
 		DS_ALIGNED_SIZE(options->maxResourceThreads*sizeof(dsResourceContext)) +
@@ -98,7 +98,8 @@ static dsGfxBufferUsage getSupportedBuffers(uint32_t shaderVersion)
 	// Use shader version to determine if uniform blocks are enabled. MSL requires named uniform
 	// blocks, and it's possible that the extension is supported but the shaders loaded wouldn't
 	// use uniform blocks.
-	if ((ANYGL_GLES && shaderVersion >= 300) || (!ANYGL_GLES && shaderVersion >= 150))
+	if ((ANYGL_GLES && shaderVersion >= DS_ENCODE_VERSION(3, 0, 0)) ||
+		(!ANYGL_GLES && shaderVersion >= DS_ENCODE_VERSION(1, 5, 0)))
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBlock);
 
 	if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_atLeastVersion(3, 1, true) ||
@@ -1041,7 +1042,7 @@ dsResourceContext* dsGLResourceManager_createResourceContext(dsResourceManager* 
 
 	// This should only be null in case of a bug or somebody manually messing with the members.
 	DS_ASSERT(context);
-	const dsOpenGLOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
+	const dsRendererOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
 	DS_VERIFY(dsBindGLContext(options->display, context->context, context->dummySurface));
 	return context;
 }
@@ -1052,7 +1053,7 @@ bool dsGLResourceManager_destroyResourceContext(dsResourceManager* resourceManag
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(context);
 
-	const dsOpenGLOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
+	const dsRendererOptions* options = &((dsGLRenderer*)resourceManager->renderer)->options;
 	DS_VERIFY(dsBindGLContext(options->display, NULL, NULL));
 
 	dsGLResourceManager* glResourceManager = (dsGLResourceManager*)resourceManager;
@@ -1068,7 +1069,8 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	DS_ASSERT(allocator);
 	DS_ASSERT(renderer);
 
-	const dsOpenGLOptions* options = &renderer->options;
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	const dsRendererOptions* options = &renderer->options;
 	size_t bufferSize = dsGLResourceManager_fullAllocSize(options);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
@@ -1154,7 +1156,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT,
 			(GLint*)&baseResourceManager->minMappingAlignment);
 	}
-	baseResourceManager->supportedBuffers = getSupportedBuffers(renderer->shaderVersion);
+	baseResourceManager->supportedBuffers = getSupportedBuffers(baseRenderer->shaderVersion);
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
 	baseResourceManager->hasTextureBufferSubrange = ANYGL_SUPPORTED(glTexBufferRange);
@@ -1410,7 +1412,7 @@ void dsGLResourceManager_destroy(dsGLResourceManager* resourceManager)
 		return;
 
 	dsResourceManager* baseResourceManager = (dsResourceManager*)resourceManager;
-	const dsOpenGLOptions* options = &((dsGLRenderer*)baseResourceManager->renderer)->options;
+	const dsRendererOptions* options = &((dsGLRenderer*)baseResourceManager->renderer)->options;
 	for (uint8_t i = 0; i < ((dsResourceManager*)resourceManager)->maxResourceContexts; ++i)
 	{
 		dsResourceContext* resourceContext = resourceManager->resourceContexts + i;

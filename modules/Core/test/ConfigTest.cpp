@@ -50,3 +50,28 @@ TEST(ConfigTest, IsBufferRangeValid)
 	offset = 2;
 	EXPECT_FALSE(DS_IS_BUFFER_RANGE_VALID(offset, rangeSize, bufferSize));
 }
+
+TEST(ConfigTest, EncodeVersion)
+{
+	uint32_t version = DS_ENCODE_VERSION(1, 2, 3);
+	uint32_t major, minor, patch;
+	DS_DECODE_VERSION(major, minor, patch, version);
+	EXPECT_EQ(1U, major);
+	EXPECT_EQ(2U, minor);
+	EXPECT_EQ(3U, patch);
+
+	version = DS_ENCODE_VERSION(0xFFFFFE00, 0xFFFFFE00, 0xFFFFF800);
+	DS_DECODE_VERSION(major, minor, patch, version);
+	EXPECT_EQ(0x200, major);
+	EXPECT_EQ(0x200, minor);
+	EXPECT_EQ(0x800, patch);
+
+	EXPECT_LT(DS_ENCODE_VERSION(1, 2, 3), DS_ENCODE_VERSION(1, 2, 4));
+	EXPECT_LT(DS_ENCODE_VERSION(1, 1, 3), DS_ENCODE_VERSION(1, 2, 4));
+	EXPECT_LT(DS_ENCODE_VERSION(0, 3, 3), DS_ENCODE_VERSION(1, 2, 4));
+}
+
+TEST(ConfigTest, LibraryVersion)
+{
+	EXPECT_NE(0, DS_VERSION);
+}

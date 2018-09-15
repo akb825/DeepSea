@@ -68,7 +68,7 @@ void dsReleaseGLDisplay(void* display)
 	XCloseDisplay(display);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,
+void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
 	bool render)
 {
 	if (!allocator || !display)

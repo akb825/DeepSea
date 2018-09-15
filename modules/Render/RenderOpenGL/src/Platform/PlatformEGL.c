@@ -60,7 +60,7 @@ void dsReleaseGLDisplay(void* display)
 	eglTerminate((EGLDisplay)display);
 }
 
-void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsOpenGLOptions* options,
+void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOptions* options,
 	bool render)
 {
 	if (!allocator || !display)

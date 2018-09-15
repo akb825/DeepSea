@@ -18,7 +18,8 @@
 
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/RenderOpenGL/Export.h>
-#include <DeepSea/RenderOpenGL/Types.h>
+#include <DeepSea/RenderOpenGL/RendererIDs.h>
+#include <DeepSea/Render/Renderer.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -31,12 +32,6 @@ extern "C"
  */
 
 /**
- * @brief Initializes the dsOpenGLOptions structure with the default options.
- * @param options The options to initialize.
- */
-DS_RENDEROPENGL_EXPORT void dsGLRenderer_defaultOptions(dsOpenGLOptions* options);
-
-/**
  * @brief Creates an OpenGL renderer.
  * @remark errno will be set on failure.
  * @param allocator The allocator to use.
@@ -44,54 +39,7 @@ DS_RENDEROPENGL_EXPORT void dsGLRenderer_defaultOptions(dsOpenGLOptions* options
  * @return The created renderer, or NULL if the renderer coulnd't be created.
  */
 DS_RENDEROPENGL_EXPORT dsRenderer* dsGLRenderer_create(dsAllocator* allocator,
-	const dsOpenGLOptions* options);
-
-/**
- * @brief Sets whether or not to enable error checking.
- *
- * When enabled, errors will be aggressively checked at the cost of performance. This won't have any
- * effect in release builds.
- *
- * @remark This shouldn't be called when other threads might be processing graphics resources.
- * @param renderer The renderer.
- * @param enabled True to enable error checking, false to disable it.
- */
-DS_RENDEROPENGL_EXPORT void dsGLRenderer_setEnableErrorChecking(dsRenderer* renderer,
-	bool enabled);
-
-/**
- * @brief Gets the shader version.
- * @remark errno will be set on failure.
- * @param[out] outVersion Output for the GLSL version. The numbers will be in the hundreds.
- *     (e.g. 130, 450)
- * @param[out] outGles Output for whether not GLES.
- * @param renderer The renderer.
- * @return False if renderer is NULL.
- */
-DS_RENDEROPENGL_EXPORT bool dsGLRenderer_getShaderVersion(uint32_t* outVersion, bool* outGles,
-	const dsRenderer* renderer);
-
-/**
- * @brief Gets the vendor string.
- * @remark errno will be set on failure.
- * @param renderer The renderer.
- * @return The vendor string.
- */
-DS_RENDEROPENGL_EXPORT const char* dsGLRenderer_getVendor(const dsRenderer* renderer);
-
-/**
- * @brief Gets the OpenGL renderer string.
- * @remark errno will be set on failure.
- * @param renderer The renderer.
- * @return The OpenGL renderer string.
- */
-DS_RENDEROPENGL_EXPORT const char* dsGLRenderer_getGLRenderer(const dsRenderer* renderer);
-
-/**
- * @brief Destroys an OpenGL renderer.
- * @param renderer The renderer to destroy.
- */
-DS_RENDEROPENGL_EXPORT void dsGLRenderer_destroy(dsRenderer* renderer);
+	const dsRendererOptions* options);
 
 #ifdef __cplusplus
 }

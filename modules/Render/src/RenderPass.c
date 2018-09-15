@@ -442,7 +442,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	if (!allocator)
 		allocator = renderer->allocator;
 
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render passes may only be created on the main thread.");
@@ -707,7 +707,7 @@ bool dsRenderPass_destroy(dsRenderPass* renderPass)
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
-	if (!dsThread_equal(dsThread_thisThreadId(), renderer->mainThread))
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

@@ -38,7 +38,7 @@ public:
 	{
 		EXPECT_TRUE(dsRenderer_endFrame(renderer));
 
-		dsMockRenderer_destroy(renderer);
+		dsRenderer_destroy(renderer);
 		EXPECT_EQ(0U, allocator.allocator.size);
 	}
 
