@@ -551,7 +551,6 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		return false;
 	}
 
-	DS_ASSERT(shaderDir);
 	char path[DS_PATH_MAX];
 	if (!dsPath_combine(path, sizeof(path), assetsDir, shaderDir) ||
 		!dsPath_combine(path, sizeof(path), path, "TestRenderSubpass.mslb"))

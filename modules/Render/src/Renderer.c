@@ -238,6 +238,7 @@ bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 
 	uint32_t major, minor, patch;
 	DS_DECODE_VERSION(major, minor, patch, version->version);
+	DS_UNUSED(patch);
 
 	int result = snprintf(outBuffer, bufferSize, "%s-%u.%u", renderer->shaderLanguage, major,
 		minor);

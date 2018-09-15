@@ -748,7 +748,6 @@ static bool setupShaders(TestText* testText)
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsAllocator* allocator = testText->allocator;
 
-	DS_ASSERT(shaderDir);
 	char path[DS_PATH_MAX];
 	if (!dsPath_combine(path, sizeof(path), assetsDir, shaderDir) ||
 		!dsPath_combine(path, sizeof(path), path, "TestText.mslb"))

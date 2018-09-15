@@ -345,7 +345,6 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	DS_ASSERT(shaderDir);
 	char path[DS_PATH_MAX];
 	const char* shaderFilename = srgb ? "TestVectorDrawSRGB.mslb" : "TestVectorDraw.mslb";
 	if (!dsPath_combine(path, sizeof(path), assetsDir, shaderDir) ||

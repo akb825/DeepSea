@@ -305,7 +305,6 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
-	DS_ASSERT(shaderDir);
 	char path[DS_PATH_MAX];
 	if (!dsPath_combine(path, sizeof(path), assetsDir, shaderDir) ||
 		!dsPath_combine(path, sizeof(path), path, "TestCube.mslb"))
