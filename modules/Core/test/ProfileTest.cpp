@@ -705,7 +705,7 @@ TEST(Profile, ThreadTypesNamed)
 			EXPECT_EQ("TestCondition", info.push[5].name);
 			separatorIndex = info.push[5].file.find_last_of("/\\");
 			ASSERT_NE(std::string::npos, separatorIndex);
-			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[4].file.c_str() + separatorIndex + 1);
+			EXPECT_STRCASEEQ("ConditionVariable.c", info.push[5].file.c_str() + separatorIndex + 1);
 			EXPECT_EQ("dsConditionVariable_wait", info.push[5].function);
 			EXPECT_NE(0, info.push[5].line);
 			EXPECT_TRUE(info.push[5].dynamic);
