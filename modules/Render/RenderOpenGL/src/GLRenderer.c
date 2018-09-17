@@ -47,6 +47,32 @@
 
 #define DS_SYNC_POOL_COUNT 100
 
+static uint32_t initializeCount;
+
+static bool initializeGL()
+{
+	if (initializeCount > 0)
+	{
+		++initializeCount;
+		return true;
+	}
+
+	if (!AnyGL_initialize())
+		return false;
+
+	initializeCount = 1;
+	return true;
+}
+
+static void shutdownGL()
+{
+	if (initializeCount == 0)
+		return;
+
+	if (--initializeCount == 0)
+		AnyGL_shutdown();
+}
+
 static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity,
 	GLsizei length, const GLchar* message, const void* userParam)
 {
@@ -292,7 +318,7 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 
-	AnyGL_shutdown();
+	shutdownGL();
 	return true;
 }
 
@@ -420,8 +446,8 @@ bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
 
 bool dsGLRenderer_isSupported(void)
 {
-	bool supported = AnyGL_initialize();
-	AnyGL_shutdown();
+	bool supported = initializeGL();
+	shutdownGL();
 	return supported;
 }
 
@@ -453,7 +479,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	if (!AnyGL_initialize())
+	if (!initializeGL())
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize OpenGL.");
