@@ -210,6 +210,11 @@ typedef struct dsRenderDeviceInfo
 	dsRenderDeviceType deviceType;
 
 	/**
+	 * @brief True if the device will be the default.
+	 */
+	bool isDefault;
+
+	/**
 	 * @brief UUID uniquely identifying the device.
 	 */
 	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];

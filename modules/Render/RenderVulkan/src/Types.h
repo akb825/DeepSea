@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Render/Types.h>
+#include <DeepSea/RenderVulkan/RendererIDs.h>
 #include <vulkan/vulkan_core.h>
 
 typedef struct dsVkInstance
@@ -30,8 +31,18 @@ typedef struct dsVkInstance
 	PFN_vkCreateInstance vkCreateInstance;
 	PFN_vkDestroyInstance vkDestroyInstance;
 	PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+	PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 	PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 	PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
+	PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+	PFN_vkCreateDevice vkCreateDevice;
+	PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+
+	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+	PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+
+	VkDebugReportCallbackEXT debugCallback;
 
 	VkAllocationCallbacks allocCallbacks;
 	const VkAllocationCallbacks* allocCallbacksPtr;
@@ -42,9 +53,12 @@ typedef struct dsVkDevice
 {
 	dsVkInstance instance;
 
-	PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+	PFN_vkDestroyDevice vkDestroyDevice;
+	PFN_vkGetDeviceQueue vkGetDeviceQueue;
 
+	VkPhysicalDeviceFeatures features;
 	VkDevice device;
+	VkQueue queue;
 } dsVkDevice;
 
 typedef struct dsVkRenderer

@@ -13,7 +13,6 @@ The following software is required to build DeepSea:
 * [FreeType](https://www.freetype.org/) (required for text)
 * [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/) (required for text)
 * [SheenBidi](https://github.com/mta452/SheenBidi) (required for text, provided as submodule)
-* [Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) (required for Vulkan)
 * [doxygen](http://www.stack.nl/~dimitri/doxygen/) (optional)
 * [gtest](https://github.com/google/googletest) (optional)
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)

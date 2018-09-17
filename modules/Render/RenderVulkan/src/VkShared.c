@@ -15,7 +15,12 @@
  */
 
 #include "VkShared.h"
+#include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Error.h>
+
+static DS_THREAD_LOCAL const char* lastFile;
+static DS_THREAD_LOCAL const char* lastFunction;
+static DS_THREAD_LOCAL unsigned int lastLine;
 
 bool dsHandleVkResult(VkResult result)
 {
@@ -33,4 +38,18 @@ bool dsHandleVkResult(VkResult result)
 			errno = EPERM;
 			return false;
 	}
+}
+
+void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line)
+{
+	lastFile = file;
+	lastFunction = function;
+	lastLine = line;
+}
+
+void dsGetLastVkCallsite(const char** file, const char** function, unsigned int* line)
+{
+	*file = lastFile;
+	*function = lastFunction;
+	*line = lastLine;
 }
