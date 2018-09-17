@@ -228,13 +228,13 @@ bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 		renderer->rendererID != version->rendererID)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	if (renderer->rendererID != version->rendererID)
 	{
 		errno = EINVAL;
-		return NULL;
+		return false;
 	}
 
 	uint32_t major, minor, patch;

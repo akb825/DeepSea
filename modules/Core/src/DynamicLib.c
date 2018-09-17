@@ -75,7 +75,7 @@ bool dsDynamicLib_open(dsDynamicLib* library, const char* path)
 	if (!library->library)
 	{
 		getErrorString(library);
-		return NULL;
+		return false;
 	}
 
 	library->error = NULL;

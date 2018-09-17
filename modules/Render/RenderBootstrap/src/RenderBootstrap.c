@@ -155,7 +155,7 @@ bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* ou
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
 				"Vulkan renderer not supported on this platform.");
-			return NULL;
+			return false;
 #endif
 		case dsRendererType_OpenGL:
 #if DS_HAS_RENDER_OPENGL
