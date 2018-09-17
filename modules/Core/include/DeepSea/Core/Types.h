@@ -223,6 +223,35 @@ typedef struct dsTimer
 	double scale;
 } dsTimer;
 
+/**
+ * @brief Structure that holds a handle to a dynamic library.
+ * @see DynamicLib.h
+ */
+typedef struct dsDynamicLib
+{
+	/**
+	 * @brief The handle to the library.
+	 */
+	void* library;
+
+	/**
+	 * @brief Error string for the last operation, or NULL if no error occurred.
+	 *
+	 * This should be used immediately after the function returns. It's possible that dynamic
+	 * library functions called on the same thread for other dsDynamicLib instances will change the
+	 * contents of this string.
+	 */
+	const char* error;
+
+	/**
+	 * @brief True if the error string was allocated and must be freed.
+	 *
+	 * This is used internally. External code shouldn't use this, especially since it may need a
+	 * syste-specific function to free the memory.
+	 */
+	bool errorAllocated;
+} dsDynamicLib;
+
 #ifdef __cplusplus
 }
 #endif
