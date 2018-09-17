@@ -28,13 +28,33 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and destroying a mock renderer.
+ * @brief Functions for creating a mock renderer.
  *
  * The mock renderer cannot be used to do actual rendering. Its intent is to be used for unit tests.
  */
 
 /**
+ * @brief Gets whether or not the mock renderer is supported.
+ * @return Always returns true.
+ */
+DS_RENDERMOCK_EXPORT bool dsMockRenderer_isSupported(void);
+
+/**
+ * @brief Queries the devices available for use.
+ *
+ * This will always return an empty set of devices.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outDevices Output pointer for the devices.
+ * @param[out] outDeviceCount The number of devices. This will be set to 0.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDERMOCK_EXPORT bool dsMockRenderer_queryDevices(dsRenderDeviceInfo* outDevices,
+	uint32_t* outDeviceCount);
+
+/**
  * @brief Creates a mock renderer.
+ * @remark errno will be set on failure.
  * @param allocator The allocator to use.
  * @return The renderer.
  */

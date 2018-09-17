@@ -189,6 +189,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 #endif
 	options->maxResourceThreads = 0;
 	options->shaderCacheDir = NULL;
+	memset(options->deviceUUID, 0, sizeof(options->deviceUUID));
 	options->gfxAPIAllocator = NULL;
 }
 

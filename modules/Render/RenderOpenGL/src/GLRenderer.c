@@ -418,6 +418,26 @@ bool dsGLRenderer_restoreGlobalState(dsRenderer* renderer)
 	return true;
 }
 
+bool dsGLRenderer_isSupported(void)
+{
+	bool supported = AnyGL_initialize();
+	AnyGL_shutdown();
+	return supported;
+}
+
+bool dsGLRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
+{
+	DS_UNUSED(outDevices);
+	if (!outDeviceCount)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	*outDeviceCount = 0;
+	return true;
+}
+
 dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
 {
 	if (!allocator || !options)

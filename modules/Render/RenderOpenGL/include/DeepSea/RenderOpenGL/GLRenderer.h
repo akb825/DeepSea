@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,27 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and destroying an OpenGL renderer.
+ * @brief Functions for creating an OpenGL renderer.
  */
+
+/**
+ * @brief Gets whether or not the OpenGL renderer is supported.
+ * @return True if supported.
+ */
+DS_RENDEROPENGL_EXPORT bool dsGLRenderer_isSupported(void);
+
+/**
+ * @brief Queries the devices available for use.
+ *
+ * This will always return an empty set of devices.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outDevices Output pointer for the devices.
+ * @param[inout] outDeviceCount The number of devices. This will be set to 0.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDEROPENGL_EXPORT bool dsGLRenderer_queryDevices(dsRenderDeviceInfo* outDevices,
+	uint32_t* outDeviceCount);
 
 /**
  * @brief Creates an OpenGL renderer.

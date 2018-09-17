@@ -45,74 +45,7 @@ static const char* rendererNames[] =
 DS_STATIC_ASSERT(DS_ARRAY_SIZE(rendererNames) == (uint32_t)dsRendererType_Default,
 	unexpected_names_size);
 
-static dsRenderer* createRendererImpl(dsRendererType type, dsAllocator* allocator,
-	const dsRendererOptions* options, bool handleError)
-{
-	switch (type)
-	{
-		case dsRendererType_Metal:
-		{
-#if DS_HAS_RENDER_METAL
-			if (handleError)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
-					"Metal renderer not yet implemented.");
-			}
-			return NULL;
-#else
-			if (handleError)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
-					"Metal renderer not supported on this platform.");
-			}
-			return NULL;
-#endif
-		}
-		case dsRendererType_Vulkan:
-		{
-#if DS_HAS_RENDER_VULKAN
-			return NULL;
-#else
-			if (handleError)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
-					"Vulkan renderer not supported on this platform.");
-			}
-			return NULL;
-#endif
-		}
-		case dsRendererType_OpenGL:
-		{
-#if DS_HAS_RENDER_OPENGL
-			dsRenderer* renderer = dsGLRenderer_create(allocator, options);
-			if (!renderer && errno == EPERM && options->samples > 1)
-			{
-				DS_LOG_INFO(DS_RENDER_BOOTSTRAP_LOG_TAG,
-					"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
-				dsRendererOptions altOptions = *options;
-				altOptions.samples = 1;
-				renderer = dsGLRenderer_create(allocator, &altOptions);
-			}
-			return renderer;
-#else
-			if (handleError)
-			{
-				errno = EPERM;
-				DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
-					"OpenGL renderer not supported on this platform.");
-			}
-			return NULL;
-#endif
-		}
-		default:
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG, "Unknown renderer type.");
-			return NULL;
-	}
-}
+static dsRendererType defaultRenderer = dsRendererType_Default;
 
 const char* dsRenderBootstrap_rendererName(dsRendererType type)
 {
@@ -134,21 +67,168 @@ dsRendererType dsRenderBootstrap_rendererTypeFromName(const char* name)
 	return dsRendererType_Default;
 }
 
+dsRendererType dsRenderBootstrap_defaultRenderer(void)
+{
+	if (defaultRenderer != dsRendererType_Default)
+		return defaultRenderer;
+
+#if DS_HAS_RENDER_METAL
+	if (dsMetalRenderer_isSupported())
+	{
+		defaultRenderer = dsRendererType_Metal;
+		return defaultRenderer;
+	}
+#endif
+
+#if DS_HAS_RENDER_VULKAN
+	/*if (dsVkRenderer_isSupported())
+	{
+		defaultRenderer = dsRendererType_Vulkan;
+		return defaultRenderer;
+	}*/
+#endif
+
+#if DS_HAS_RENDER_OPENGL
+	if (dsGLRenderer_isSupported())
+	{
+		defaultRenderer = dsRendererType_OpenGL;
+		return defaultRenderer;
+	}
+#endif
+
+	return defaultRenderer;
+}
+
+bool dsRenderBootstrap_isSupported(dsRendererType type)
+{
+	if (type == dsRendererType_Default)
+		return dsRenderBootstrap_defaultRenderer() != dsRendererType_Default;
+
+	switch (type)
+	{
+		case dsRendererType_Metal:
+#if DS_HAS_RENDER_METAL
+			return false;
+#else
+			return false;
+#endif
+		case dsRendererType_Vulkan:
+#if DS_HAS_RENDER_VULKAN
+			return dsVkRenderer_isSupported();
+#else
+			return false;
+#endif
+		case dsRendererType_OpenGL:
+#if DS_HAS_RENDER_OPENGL
+			return dsGLRenderer_isSupported();
+#else
+			return false;
+#endif
+		default:
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG, "Unknown renderer type.");
+			return false;
+	}
+}
+
+bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount,
+	dsRendererType type)
+{
+	if (type == dsRendererType_Default)
+		type = dsRenderBootstrap_defaultRenderer();
+
+	switch (type)
+	{
+		case dsRendererType_Metal:
+#if DS_HAS_RENDER_METAL
+			return dsMetalRenderer_queryDevices(outDevices, outDeviceCount);
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"Metal renderer not supported on this platform.");
+			return false;
+#endif
+		case dsRendererType_Vulkan:
+#if DS_HAS_RENDER_VULKAN
+			return dsVkRenderer_queryDevices(outDevices, outDeviceCount);
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"Vulkan renderer not supported on this platform.");
+			return NULL;
+#endif
+		case dsRendererType_OpenGL:
+#if DS_HAS_RENDER_OPENGL
+			return dsGLRenderer_queryDevices(outDevices, outDeviceCount);
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"OpenGL renderer not supported on this platform.");
+			return false;
+#endif
+		default:
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG, "Unknown renderer type.");
+			return false;
+	}
+}
+
 dsRenderer* dsRenderBootstrap_createRenderer(dsRendererType type, dsAllocator* allocator,
 	const dsRendererOptions* options)
 {
 	if (type == dsRendererType_Default)
-	{
-		for (int i = 0; i < dsRendererType_Default; ++i)
-		{
-			dsRenderer* renderer = createRendererImpl((dsRendererType)i, allocator, options, false);
-			if (renderer)
-				return renderer;
-		}
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG, "No suitable renderer found.");
-		return NULL;
-	}
+		type = dsRenderBootstrap_defaultRenderer();
 
-	return createRendererImpl(type, allocator, options, true);
+	switch (type)
+	{
+		case dsRendererType_Metal:
+		{
+#if DS_HAS_RENDER_METAL
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"Metal renderer not yet implemented.");
+			return NULL;
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"Metal renderer not supported on this platform.");
+			return NULL;
+#endif
+		}
+		case dsRendererType_Vulkan:
+		{
+#if DS_HAS_RENDER_VULKAN
+			return dsVkRenderer_create(allocator, options);
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"Vulkan renderer not supported on this platform.");
+			return NULL;
+#endif
+		}
+		case dsRendererType_OpenGL:
+		{
+#if DS_HAS_RENDER_OPENGL
+			dsRenderer* renderer = dsGLRenderer_create(allocator, options);
+			if (!renderer && errno == EPERM && options->samples > 1)
+			{
+				DS_LOG_INFO(DS_RENDER_BOOTSTRAP_LOG_TAG,
+					"Failed creating OpenGL renderer. Trying again without anti-aliasing.");
+				dsRendererOptions altOptions = *options;
+				altOptions.samples = 1;
+				renderer = dsGLRenderer_create(allocator, &altOptions);
+			}
+			return renderer;
+#else
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
+				"OpenGL renderer not supported on this platform.");
+			return NULL;
+#endif
+		}
+		default:
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG, "Unknown renderer type.");
+			return NULL;
+	}
 }

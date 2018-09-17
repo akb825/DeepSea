@@ -323,6 +323,24 @@ bool dsMockRenderer_restoreGlobalState(dsRenderer* renderer)
 	return true;
 }
 
+bool dsMockRenderer_isSupported(void)
+{
+	return true;
+}
+
+bool dsMockRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
+{
+	DS_UNUSED(outDevices);
+	if (!outDeviceCount)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	*outDeviceCount = 0;
+	return true;
+}
+
 dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 {
 	if (!allocator)

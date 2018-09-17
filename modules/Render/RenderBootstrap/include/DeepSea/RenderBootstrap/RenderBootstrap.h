@@ -46,6 +46,35 @@ DS_RENDERBOOTSTRAP_EXPORT const char* dsRenderBootstrap_rendererName(dsRendererT
 DS_RENDERBOOTSTRAP_EXPORT dsRendererType dsRenderBootstrap_rendererTypeFromName(const char* name);
 
 /**
+ * @brief Gets the default renderer.
+ * @return The default renderer, or dsRenderType_Default if no renderer is supported.
+ */
+DS_RENDERBOOTSTRAP_EXPORT dsRendererType dsRenderBootstrap_defaultRenderer(void);
+
+/**
+ * @brief Gets whether or not a renderer is supported.
+ * @param type The renderer type to check.
+ * @return True if the renderer is supported.
+ */
+DS_RENDERBOOTSTRAP_EXPORT bool dsRenderBootstrap_isSupported(dsRendererType type);
+
+/**
+ * @brief Queries the devices available for use.
+ *
+ * This may return an empty list of devices if the renderer doesn't expose a list of devices.
+ *
+ * @remark errno will be set on failure.
+ * @param[out] outDevices Output pointer for the devices. This may be NULL to query the total number
+ *     of devices.
+ * @param[out] outDeviceCount The number of devices that were set. If outDevices isn't NULL, the
+ *     initial value is the capacity of outDevices.
+ * @param type The type of renderer to get the devices for.
+ * @return False if an error occurred.
+ */
+DS_RENDERBOOTSTRAP_EXPORT bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices,
+	uint32_t* outDeviceCount, dsRendererType type);
+
+/**
  * @brief Creates a renderer.
  * @remark errno will be set on failure.
  * @param type The type of renderer to create.

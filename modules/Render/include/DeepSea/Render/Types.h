@@ -59,6 +59,25 @@ extern "C"
 #define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-1
 
 /**
+ * @brief The size of the UUID that uniquely identifies a device.
+ */
+#define DS_DEVICE_UUID_SIZE 16
+
+/**
+ * @brief Enum for the type of render device.
+ *
+ * This enum is ordered from most to least desireable.
+ */
+typedef enum dsRenderDeviceType
+{
+	dsRenderDeviceType_Discrete,   ///< Discrete GPU. (separate graphics card)
+	dsRenderDeviceType_Virtual,    ///< Virtual GPU in a virtualized environment.
+	dsRenderDeviceType_Integrated, ///< Integrated GPU. (built into CPU or mobile device)
+	dsRenderDeviceType_CPU,        ///< CPU without hardware graphics acceleration.
+	dsRenderDeviceType_Unknown     ///< Unknown device type.
+} dsRenderDeviceType;
+
+/**
  * @brief Enum for how an image attachment will be used.
  *
  * This enum is a bitmask to allow multiple combinations of the usage bits.
@@ -166,6 +185,37 @@ typedef enum dsGfxAccess
 typedef struct dsRenderer dsRenderer;
 
 /**
+ * @brief Description for the physical device to render on.
+ */
+typedef struct dsRenderDeviceInfo
+{
+	/**
+	 * @brief The name of the device.
+	 */
+	const char* name;
+
+	/**
+	 * @brief ID for the vendor that provides the device.
+	 */
+	uint32_t vendorID;
+
+	/**
+	 * @brief The ID for the device provided by the vendor.
+	 */
+	uint32_t deviceID;
+
+	/**
+	 * @brief The type of the device.
+	 */
+	dsRenderDeviceType deviceType;
+
+	/**
+	 * @brief UUID uniquely identifying the device.
+	 */
+	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];
+} dsRenderDeviceInfo;
+
+/**
  * @brief Struct containing the otpions for initializing a renderer.
  */
 typedef struct dsRendererOptions
@@ -254,6 +304,14 @@ typedef struct dsRendererOptions
 	 * This will be copied when the renderer is created so it need not be permanently allocated.
 	 */
 	const char* shaderCacheDir;
+
+	/**
+	 * @brief The UUID of the device to use.
+	 *
+	 * If not found, the default will be used. Use ds*Renderer_queryDevices() to get the list of
+	 * devices and UUIDs associated with them.
+	 */
+	uint8_t deviceUUID[DS_DEVICE_UUID_SIZE];
 
 	/**
 	 * @brief The allocator to use for the graphics API when supported.
@@ -850,6 +908,31 @@ typedef struct dsGfxMemoryBarrier
 /// \{
 typedef struct dsGPUProfileContext dsGPUProfileContext;
 /// \}
+
+/**
+ * @brief Function to query whether or not a renderer is supported.
+ *
+ * This render implementation will provide a ds*Renderer_isSupported() function to query if it's
+ * supported.
+ *
+ * @return True if the renderer is supported.
+ */
+typedef bool (*dsIsRendererSupportedFunction)(void);
+
+/**
+ * @brief Function for querying the devices.
+ *
+ * The render implementation will provide a ds*Renderer_queryDevices() function. This may return an
+ * empty set of devices if no information is provided by the renderer implementation.
+ *
+ * @param[out] outDevices The output devices. This can be NULL to simply query the number of
+ *     devices.
+ * @param[inout] outDeviceCount The number of devices that were set. If outDevices isn't NULL, the
+ *     initial value is the capacity of outDevices.
+ * @return False if an error occurred.
+ */
+typedef bool (*dsQueryRenderDevicesFunction)(dsRenderDeviceInfo* outDevices,
+	uint32_t* outDeviceCount);
 
 /**
  * @brief Function for creating a renderer.
