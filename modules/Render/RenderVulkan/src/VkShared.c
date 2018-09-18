@@ -18,9 +18,14 @@
 #include <DeepSea/Core/Thread/ThreadStorage.h>
 #include <DeepSea/Core/Error.h>
 
-static DS_THREAD_LOCAL const char* lastFile;
-static DS_THREAD_LOCAL const char* lastFunction;
-static DS_THREAD_LOCAL unsigned int lastLine;
+typedef struct LastCallsite
+{
+	const char* lastFile;
+	const char* lastFunction;
+	unsigned int lastLine;
+} LastCallsite;
+
+static DS_THREAD_LOCAL LastCallsite lastCallsite;
 
 bool dsHandleVkResult(VkResult result)
 {
@@ -42,14 +47,16 @@ bool dsHandleVkResult(VkResult result)
 
 void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line)
 {
-	lastFile = file;
-	lastFunction = function;
-	lastLine = line;
+	LastCallsite* curLastCallsite = &lastCallsite;
+	curLastCallsite->lastFile = file;
+	curLastCallsite->lastFunction = function;
+	curLastCallsite->lastLine = line;
 }
 
 void dsGetLastVkCallsite(const char** file, const char** function, unsigned int* line)
 {
-	*file = lastFile;
-	*function = lastFunction;
-	*line = lastLine;
+	const LastCallsite* curLastCallsite = &lastCallsite;
+	*file = curLastCallsite->lastFile;
+	*function = curLastCallsite->lastFunction;
+	*line = curLastCallsite->lastLine;
 }
