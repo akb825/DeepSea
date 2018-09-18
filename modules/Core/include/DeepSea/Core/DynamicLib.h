@@ -15,6 +15,7 @@
  */
 
 #include <DeepSea/Core/Config.h>
+#include <DeepSea/Core/Export.h>
 #include <DeepSea/Core/Types.h>
 
 #ifdef __cplusplus
@@ -64,7 +65,7 @@ extern "C"
  * @param path The path or name of the library to load.
  * @return False if the library couldn't be loaded.
  */
-bool dsDynamicLib_open(dsDynamicLib* library, const char* path);
+DS_CORE_EXPORT bool dsDynamicLib_open(dsDynamicLib* library, const char* path);
 
 /**
  * @brief Loads a symbol from a dynamic library.
@@ -74,7 +75,7 @@ bool dsDynamicLib_open(dsDynamicLib* library, const char* path);
  * @param name The name of the symbol to load.
  * @return The loaded symbol or NULL if it couldn't be loaded.
  */
-void* dsDynamicLib_loadSymbol(dsDynamicLib* library, const char* name);
+DS_CORE_EXPORT void* dsDynamicLib_loadSymbol(dsDynamicLib* library, const char* name);
 
 /**
  * @brief Closes a dynamic library.
@@ -82,7 +83,7 @@ void* dsDynamicLib_loadSymbol(dsDynamicLib* library, const char* name);
  * @param library The library to close.
  * @return False if the library couldn't be loaded.
  */
-void dsDynamicLib_close(dsDynamicLib* library);
+DS_CORE_EXPORT void dsDynamicLib_close(dsDynamicLib* library);
 
 #ifdef __cplusplus
 }
