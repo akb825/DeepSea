@@ -52,7 +52,7 @@ const char* dsRenderBootstrap_rendererName(dsRendererType type)
 	if (type == dsRendererType_Default)
 		type = dsRenderBootstrap_defaultRenderer();
 
-	if (type < 0 || type >= dsRendererType_Default)
+	if ((int)type < 0 || type >= dsRendererType_Default)
 		return NULL;
 	return rendererNames[type];
 }
