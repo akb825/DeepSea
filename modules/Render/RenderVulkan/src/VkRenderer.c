@@ -48,7 +48,8 @@ bool dsVkRenderer_isSupported(void)
 	if (supported >= 0)
 		return supported;
 
-	dsVkInstance instance = {};
+	dsVkInstance instance;
+	memset(&instance, 0, sizeof(dsVkInstance));
 	supported = dsCreateVkInstance(&instance, NULL, false);
 	if (supported)
 		supported = dsGatherVkPhysicalDevices(&instance);

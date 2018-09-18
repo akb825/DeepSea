@@ -233,31 +233,13 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 			hasDeviceProperties = true;
 		else if (strcmp(extensions[i].extensionName, memoryCapabilitiesExtensionName) == 0)
 			hasMemoryCapabilities = true;
+		else if (hasDebugLayer && strcmp(extensions[i].extensionName, debugExtensionName) == 0)
+			instanceExtensions.debug = true;
 	}
 	free(extensions);
 
 	if (hasDeviceProperties && hasMemoryCapabilities)
 		instanceExtensions.deviceInfo = true;
-
-	if (hasDebugLayer)
-	{
-		instance->vkEnumerateInstanceExtensionProperties(debugLayerName, &extensionCount, NULL);
-		extensions = (VkExtensionProperties*)malloc(extensionCount*sizeof(VkExtensionProperties));
-		if (!extensions)
-			return false;
-
-		instance->vkEnumerateInstanceExtensionProperties(debugLayerName, &extensionCount,
-			extensions);
-		for (uint32_t i = 0; i < extensionCount; ++i)
-		{
-			if (strcmp(extensions[i].extensionName, debugExtensionName) == 0)
-			{
-				instanceExtensions.debug = true;
-				return true;
-			}
-		}
-		free(extensions);
-	}
 
 	instanceExtensions.initialized = true;
 	return true;
@@ -382,7 +364,7 @@ static uint32_t findQueueFamily(dsVkInstance* instance, VkPhysicalDevice physica
 	DS_VK_CALL(instance->vkGetPhysicalDeviceQueueFamilyProperties)(physicalDevice,
 		&queueFamilyCount, queueFamilies);
 	uint32_t queueFamily = 0;
-	VkQueueFlagBits queueFlags = 0;
+	VkQueueFlags queueFlags = 0;
 	for (uint32_t i = 0; i < queueFamilyCount; ++i)
 	{
 		// Find the graphics queue with the most functionality.
@@ -616,7 +598,8 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 
 	if (physicalDeviceCount == 0)
 	{
-		dsVkInstance instance = {};
+		dsVkInstance instance;
+		memset(&instance, 0, sizeof(dsVkInstance));
 		if (!dsCreateVkInstance(&instance, NULL, true))
 		{
 			dsDestroyVkInstance(&instance);
