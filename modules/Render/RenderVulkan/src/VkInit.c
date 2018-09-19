@@ -103,7 +103,7 @@ static const char* ignoredMessages[] =
 	"UNASSIGNED-CoreValidation-DevLimitCountMismatch"
 };
 
-static VKAPI_PTR void* vkAllocFunc(void* pUserData, size_t size, size_t alignment,
+static void* VKAPI_PTR vkAllocFunc(void* pUserData, size_t size, size_t alignment,
 	VkSystemAllocationScope allocationScope)
 {
 	DS_UNUSED(allocationScope);
@@ -111,7 +111,7 @@ static VKAPI_PTR void* vkAllocFunc(void* pUserData, size_t size, size_t alignmen
 	return allocator->allocFunc(allocator, size, (unsigned int)alignment);
 }
 
-static VKAPI_PTR void* vkReallocFunc(void* pUserData, void* pOriginal, size_t size,
+static void* VKAPI_PTR vkReallocFunc(void* pUserData, void* pOriginal, size_t size,
 	size_t alignment, VkSystemAllocationScope allocationScope)
 {
 	DS_UNUSED(allocationScope);
@@ -119,13 +119,13 @@ static VKAPI_PTR void* vkReallocFunc(void* pUserData, void* pOriginal, size_t si
 	return allocator->reallocFunc(allocator, pOriginal, size, (unsigned int)alignment);
 }
 
-static VKAPI_PTR void vkFreeFunc(void* pUserData, void* pMemory)
+static void VKAPI_PTR vkFreeFunc(void* pUserData, void* pMemory)
 {
 	dsAllocator* allocator = (dsAllocator*)pUserData;
 	allocator->freeFunc(allocator, pMemory);
 }
 
-static VKAPI_PTR VkBool32 debugFunc(VkDebugReportFlagsEXT flags,
+static VkBool32 VKAPI_PTR debugFunc(VkDebugReportFlagsEXT flags,
 	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode,
 	const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
