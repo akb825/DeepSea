@@ -143,7 +143,7 @@ uint64_t dsStream_skip(dsStream* stream, uint64_t size)
 			if (readSize > sizeof(buffer))
 				readSize = sizeof(buffer);
 
-			uint64_t thisReadSize = dsStream_read(stream, buffer, readSize);
+			uint64_t thisReadSize = dsStream_read(stream, buffer, (size_t)readSize);
 			totalSize += thisReadSize;
 			if (thisReadSize != readSize)
 				return totalSize;

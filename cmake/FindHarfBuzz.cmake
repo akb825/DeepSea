@@ -43,6 +43,7 @@ SET(HARFBUZZ_SEARCH_PATHS
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
   /opt
+  /
   ${HARFBUZZ_PATH}
 )
 

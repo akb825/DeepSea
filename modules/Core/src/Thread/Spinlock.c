@@ -17,8 +17,6 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Error.h>
 
-#define DS_CUSTOM_SPINLOCK DS_WINDOWS || DS_APPLE
-
 #if DS_CUSTOM_SPINLOCK
 #include <DeepSea/Core/Atomic.h>
 #else

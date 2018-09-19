@@ -36,6 +36,11 @@ extern "C"
  */
 
 /// \{
+#ifdef _POSIX_C_SOURCE
+#define DS_CUSTOM_SPINLOCK _POSIX_C_SOURCE < 200112L
+#else
+#define DS_CUSTOM_SPINLOCK 1
+#endif
 typedef struct dsAllocator dsAllocator;
 /// \}
 
@@ -69,7 +74,7 @@ typedef struct dsMutex dsMutex;
 typedef struct dsSpinlock
 {
 	/** Internal */
-#if DS_WINDOWS || DS_APPLE
+#if DS_CUSTOM_SPINLOCK
 	uint32_t counter;
 #else
 	pthread_spinlock_t spinlock;

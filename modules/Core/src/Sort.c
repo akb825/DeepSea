@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #if DS_WINDOWS
 #include <search.h>
+#elif DS_ANDROID
+#include <DeepSea/Core/Thread/ThreadStorage.h>
 #endif
 
 #if DS_APPLE || DS_BSD || DS_WINDOWS
@@ -33,6 +35,30 @@ static int sortWrapper(void* context, const void* left, const void* right)
 	ContextWrapper* contextWrapper = (ContextWrapper*)context;
 	return contextWrapper->func(left, right, contextWrapper->context);
 }
+#elif DS_ANDROID
+// Android currently doesn't have qsort_r(), so emulate using thread-local storage.
+typedef struct ContextWrapper
+{
+	dsSortCompareFunction func;
+	void* context;
+} ContextWrapper;
+
+static DS_THREAD_LOCAL ContextWrapper sortContext;
+
+static int sortWrapper(const void* left, const void* right)
+{
+	ContextWrapper* contextWrapper = &sortContext;
+	return contextWrapper->func(left, right, contextWrapper->context);
+}
+
+static void qsort_r_workaround(void* array, size_t memberCount, size_t memberSize,
+	dsSortCompareFunction compareFunc, void* context)
+{
+	ContextWrapper* contextWrapper = &sortContext;
+	contextWrapper->func = compareFunc;
+	contextWrapper->context = context;
+	qsort(array, memberCount, memberSize, &sortWrapper);
+}
 #endif
 
 void dsSort(void* array, size_t memberCount, size_t memberSize, dsSortCompareFunction compareFunc,
@@ -44,6 +70,8 @@ void dsSort(void* array, size_t memberCount, size_t memberSize, dsSortCompareFun
 #elif DS_APPLE
 	ContextWrapper wrapper = {compareFunc, context};
 	qsort_r(array, memberCount, memberSize, &wrapper, &sortWrapper);
+#elif DS_ANDROID
+	qsort_r_workaround(array, memberCount, memberSize, compareFunc, context);
 #else
 	qsort_r(array, memberCount, memberSize, compareFunc, context);
 #endif

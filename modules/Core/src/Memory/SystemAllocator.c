@@ -72,7 +72,9 @@ inline static void* adjustPointer(void* ptr, size_t size, unsigned int alignment
 	if (!ptr)
 		return NULL;
 
+#if DS_64BIT
 	DS_ASSERT(size < (2ULL << 48));
+#endif
 	DS_ASSERT(alignment < (2U << 16));
 
 	dsMallocInfo* mallocInfo = (dsMallocInfo*)((uint8_t*)ptr + alignment - sizeof(dsMallocInfo));

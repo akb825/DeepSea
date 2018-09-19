@@ -25,7 +25,11 @@
 #define SIZET_FORMAT "I"
 #else
 #define ANYGL_THREAD __thread
+#if ANYGL_GLES
+#define SIZET_FORMAT "l"
+#else
 #define SIZET_FORMAT "z"
+#endif
 #endif
 #if ANYGL_APPLE
 #define HANDLE_FORMAT "p"
@@ -4751,7 +4755,7 @@ static const char* getAnyEnumStr(GLenum e)
 		return enumNames[e - 0x80000 + 2414];
 	if (e >= 0x20000000 && e <= 0x20000000)
 		return enumNames[e - 0x20000000 + 2415];
-	if (e >= 0xffffffff && e <= 0xffffffff)
+	if (e >= 0xffffffff && e == 0xffffffff)
 		return enumNames[e - 0xffffffff + 2416];
 	return "INVALID";
 }
