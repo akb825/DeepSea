@@ -193,6 +193,27 @@ macro(ds_add_library target)
 	endif()
 endmacro()
 
+macro(ds_add_executable target)
+	set(options WIN32 MACOSX_BUNDLE)
+	set(oneValueArgs)
+	set(multiValueArgs)
+	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	if (ANDROID)
+		add_library(${target} SHARED ${ARGS_UNPARSED_ARGUMENTS})
+	else()
+		set(ARGS_FORWARDED)
+		if (ARGS_WIN32)
+			list(APPEND ARGS_FORWARDED WIN32)
+		endif()
+		if (ARGS_MACOSX_BUNDLE)
+			list(APPEND ARGS_FORWARDED MACOSX_BUNDLE)
+		endif()
+
+		add_executable(${target} ${ARGS_FORWARDED} ${ARGS_UNPARSED_ARGUMENTS})
+	endif()
+endmacro()
+
 macro(ds_target_link_libraries target)
 	if (DEEPSEA_SINGLE_SHARED)
 		set_property(GLOBAL APPEND PROPERTY DEEPSEA_EXTERNAL_LIBRARIES ${ARGN})
@@ -214,5 +235,30 @@ macro(ds_target_compile_definitions target)
 		target_compile_definitions(deepsea ${ARGN})
 	else()
 		target_compile_definitions(${target} ${ARGN})
+	endif()
+endmacro()
+
+macro(ds_build_assets_dir output)
+	if (ANDROID)
+		# Get the assets directory based on the structure defined by Android Studio.
+		# Base output directory, minus obj/${ANDROID_ABI}
+		get_filename_component(_baseOutputDir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} DIRECTORY)
+		get_filename_component(_baseOutputDir ${_baseOutputDir} DIRECTORY)
+		# Root build directory for the APK.
+		string(REGEX MATCH ".*/build/intermediates" _rootBuildDir ${_baseOutputDir})
+		# Target name
+		file(RELATIVE_PATH _targetName ${_rootBuildDir}/cmake ${_baseOutputDir})
+		# Final assets directory based on the root build directory and target name.
+		set(${output} ${_rootBuildDir}/assets/${_targetName})
+	else()
+		if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+			set(${output} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+		else()
+			set(${output} ${CMAKE_CURRENT_BINARY_DIR})
+		endif()
+
+		if (CMAKE_CONFIGURATION_TYPES)
+			set(${output} ${${output}}/$<CONFIG>)
+		endif()
 	endif()
 endmacro()

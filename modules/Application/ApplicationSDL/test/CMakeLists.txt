@@ -3,7 +3,7 @@ if (NOT GTEST_FOUND OR NOT DEEPSEA_BUILD_TESTS)
 endif()
 
 file(GLOB_RECURSE sources *.cpp *.h)
-add_executable(deepsea_application_sdl_test ${sources})
+ds_add_executable(deepsea_application_sdl_test ${sources})
 
 target_include_directories(deepsea_application_sdl_test PRIVATE
 	../src

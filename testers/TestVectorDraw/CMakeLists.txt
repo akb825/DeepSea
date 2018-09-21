@@ -39,7 +39,7 @@ if (TARGET deepsea_easy_profiler)
 	list(APPEND defines DS_HAS_EASY_PROFILER=1)
 endif()
 
-add_executable(deepsea_test_vector_draw_app WIN32 ${source})
+ds_add_executable(deepsea_test_vector_draw_app WIN32 ${source})
 target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_render_bootstrap
 	deepsea_application_sdl deepsea_application_sdl_main deepsea_vector_draw ${libraries})
 target_compile_definitions(deepsea_test_vector_draw_app PRIVATE ${defines})
@@ -68,14 +68,12 @@ ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementShapeSR
 	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)
-add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_shaders)
 
 # Shared resources
 ds_create_vector_resources(resources FILE ${CMAKE_CURRENT_SOURCE_DIR}/resources.json
 	OUTPUT ${resourceDir}/resources.dsvr)
 ds_create_vector_resources_target(deepsea_test_vector_draw_app_resources resources
 	DEPENDS deepsea_test_vector_draw_app_prepare)
-add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_resources)
 
 # SVGs
 file(GLOB svgFiles SVGs/*.svg)
@@ -85,16 +83,19 @@ foreach (svg ${svgFiles})
 endforeach()
 ds_convert_svg_target(deepsea_test_vector_draw_app_svgs svgs
 	DEPENDS deepsea_test_vector_draw_app_prepare)
-add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_svgs)
 
-set(assetsDir $<TARGET_FILE_DIR:deepsea_test_vector_draw_app>/TestVectorDraw-assets)
-add_custom_target(deepsea_test_vector_draw_app_assets ALL DEPENDS deepsea_test_vector_draw_app
+ds_build_assets_dir(assetsDir)
+set(assetsDir ${assetsDir}/TestVectorDraw-assets)
+add_custom_target(deepsea_test_vector_draw_app_assets
+	DEPENDS deepsea_test_vector_draw_app_shaders deepsea_test_vector_draw_app_resources
+		deepsea_test_vector_draw_app_svgs
 	COMMAND ${CMAKE_COMMAND} -E remove_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${shaderDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${resourceDir} ${assetsDir}
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${imageDir} ${assetsDir}
 	COMMENT "Copying assets for TestVectorDraw")
+add_dependencies(deepsea_test_vector_draw_app deepsea_test_vector_draw_app_assets)
 
 ds_set_folder(deepsea_test_vector_draw_app tests/gui)
 ds_set_folder(deepsea_test_vector_draw_app_prepare tests/gui/Resources)
