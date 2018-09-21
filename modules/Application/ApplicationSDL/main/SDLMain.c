@@ -16,10 +16,17 @@
 
 #include <SDL_main.h>
 
+// Make sure the main function is visible on Android.
+#if DS_ANDROID
+#define DS_MAIN_EXPORT __attribute__((visibility("default")))
+#else
+#define DS_MAIN_EXPORT
+#endif
+
 extern int dsMain(int argc, const char** argv);
 
 // SDL_main.h will #define main to SDL_main when it needs to be replaced.
-int main(int argc, char* argv[])
+DS_MAIN_EXPORT int main(int argc, char* argv[])
 {
 	return dsMain(argc, (const char**)argv);
 }

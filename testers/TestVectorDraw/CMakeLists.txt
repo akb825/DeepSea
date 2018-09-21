@@ -41,7 +41,8 @@ endif()
 
 ds_add_executable(deepsea_test_vector_draw_app WIN32 ${source})
 target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_application_sdl_main deepsea_vector_draw ${libraries})
+	deepsea_application_sdl deepsea_vector_draw ${libraries})
+ds_link_main_lib(deepsea_test_vector_draw_app deepsea_application_sdl_main)
 target_compile_definitions(deepsea_test_vector_draw_app PRIVATE ${defines})
 
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)

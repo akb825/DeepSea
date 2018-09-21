@@ -25,7 +25,8 @@ endif()
 
 ds_add_executable(deepsea_test_text_app WIN32 ${source})
 target_link_libraries(deepsea_test_text_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_application_sdl_main deepsea_text ${libraries})
+	deepsea_application_sdl deepsea_text ${libraries})
+ds_link_main_lib(deepsea_test_text_app deepsea_application_sdl_main)
 target_compile_definitions(deepsea_test_text_app PRIVATE ${defines})
 
 # Cannot use generator expressions for the custom commands.
