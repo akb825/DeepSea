@@ -15,6 +15,10 @@ ds_target_compile_definitions(deepsea_core PUBLIC DS_PROFILING_ENABLED=${profili
 	DS_PATCH_VERSION=${DEEPSEA_PATCH_VERSION})
 ds_target_link_libraries(deepsea_core PRIVATE ${CMAKE_DL_LIBS})
 
+if (ANDROID)
+	ds_target_link_libraries(deepsea_core PRIVATE log)
+endif()
+
 ds_install_library(TARGET deepsea_core MODULE Core)
 
 add_subdirectory(test)

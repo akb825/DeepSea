@@ -23,11 +23,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <string.h>
+#elif DS_ANDROID
+#include <android/log.h>
 #endif
 
 static void* gUserData;
 static dsLogFunction gFunction;
 
+#if !DS_ANDROID
 static const char* logLevelStrings[] =
 {
 	"trace",
@@ -37,6 +40,7 @@ static const char* logLevelStrings[] =
 	"error",
 	"fatal"
 };
+#endif
 
 void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 	unsigned int line, const char* function, const char* message)
@@ -75,6 +79,23 @@ void dsLog_defaultPrint(dsLogLevel level, const char* tag, const char* file,
 
 	fwrite(buffer, sizeof(char), strlen(buffer), dest);
 	OutputDebugStringA(buffer);
+#elif DS_ANDROID
+	static int priorities[] =
+	{
+		ANDROID_LOG_VERBOSE,
+		ANDROID_LOG_DEBUG,
+		ANDROID_LOG_INFO,
+		ANDROID_LOG_WARN,
+		ANDROID_LOG_ERROR,
+		ANDROID_LOG_FATAL
+	};
+	if (level < dsLogLevel_Warning)
+		__android_log_write(priorities[level], tag, message);
+	else
+	{
+		__android_log_print(priorities[level], tag, "%s:%u %s(): %s", file, line, function,
+			message);
+	}
 #else
 	if (level < dsLogLevel_Warning)
 	{
