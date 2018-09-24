@@ -228,14 +228,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &texInfo, true);
 	testRenderSubpass->gColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &texInfo, true);
 	testRenderSubpass->bColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly, &texInfo, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static, &texInfo, true);
 	if (!testRenderSubpass->rColor || !testRenderSubpass->gColor || !testRenderSubpass->bColor)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create offscreen: %s",
@@ -674,7 +671,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	}
 
 	testRenderSubpass->texture = dsTextureData_loadFileToTexture(resourceManager, allocator, NULL,
-		path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GpuOnly);
+		path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
 	if (!testRenderSubpass->texture)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't load texture: %s", dsErrorString(errno));
@@ -710,8 +707,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	memcpy(combinedBufferData + sizeof(vertices), indices, sizeof(indices));
 	testRenderSubpass->cubeBuffer = dsGfxBuffer_create(resourceManager, allocator,
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index,
-		dsGfxMemory_Static | dsGfxMemory_GpuOnly | dsGfxMemory_Draw, combinedBufferData,
-		sizeof(combinedBufferData));
+		dsGfxMemory_Static | dsGfxMemory_Draw, combinedBufferData, sizeof(combinedBufferData));
 	if (!testRenderSubpass->cubeBuffer)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create graphics buffer: %s",
@@ -720,8 +716,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	}
 
 	testRenderSubpass->resolveBuffer = dsGfxBuffer_create(resourceManager, allocator,
-		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_GpuOnly | dsGfxMemory_Draw,
-		quad, sizeof(quad));
+		dsGfxBufferUsage_Vertex, dsGfxMemory_Static | dsGfxMemory_Draw, quad, sizeof(quad));
 	if (!testRenderSubpass->resolveBuffer)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create graphics buffer: %s",

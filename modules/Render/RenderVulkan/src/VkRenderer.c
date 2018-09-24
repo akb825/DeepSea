@@ -18,11 +18,15 @@
 
 #include "Types.h"
 #include "VkInit.h"
+#include "VkResourceManager.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Math/Core.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
 static size_t dsVkRenderer_fullAllocSize(const dsRendererOptions* options)
@@ -33,9 +37,11 @@ static size_t dsVkRenderer_fullAllocSize(const dsRendererOptions* options)
 
 bool dsVkRenderer_destroy(dsRenderer* renderer)
 {
+	DS_ASSERT(renderer);
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
+	dsVkResourceManager_destroy((dsVkResourceManager*)renderer->resourceManager);
 	dsDestroyVkDevice(device);
 	dsDestroyVkInstance(&device->instance);
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
@@ -77,6 +83,16 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options);
+	if (!dsGfxFormat_isValid(colorFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Invalid color format.");
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+
 	size_t bufferSize = dsVkRenderer_fullAllocSize(options);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
@@ -93,7 +109,60 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->allocator = allocator;
 
 	if (!dsCreateVkInstance(&renderer->device.instance, options, true) ||
-		!dsCreateVkDevice(&renderer->device, options))
+		!dsCreateVkDevice(&renderer->device, allocator, options))
+	{
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	dsVkDevice* device = &renderer->device;
+	dsVkInstance* instance = &device->instance;
+
+	baseRenderer->rendererID = DS_VK_RENDERER_ID;
+	baseRenderer->platformID = 0;
+	baseRenderer->name = "Vulkan";
+	baseRenderer->shaderLanguage = "spirv";
+
+	const VkPhysicalDeviceProperties* deviceProperties = &device->properties;
+	baseRenderer->deviceName = device->properties.deviceName;
+	baseRenderer->vendorID = deviceProperties->vendorID;
+	baseRenderer->deviceID = deviceProperties->deviceID;
+	baseRenderer->driverVersion = deviceProperties->driverVersion;
+	// NOTE: Vulkan version encoding happens to be the same as DeepSea. (unintentional, but
+	// convenient)
+	baseRenderer->shaderVersion = deviceProperties->apiVersion;
+
+	VkPhysicalDeviceFeatures deviceFeatures;
+	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);
+
+	const VkPhysicalDeviceLimits* limits = &deviceProperties->limits;
+	baseRenderer->maxColorAttachments = limits->maxColorAttachments;
+	// framebufferColorSampleCounts is a bitmask. Compute the maximum bit that's set.
+	baseRenderer->maxSurfaceSamples = 1 << (31 - dsClz(limits->framebufferColorSampleCounts));
+	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
+	baseRenderer->surfaceColorFormat = colorFormat;
+	baseRenderer->surfaceDepthStencilFormat = depthFormat;
+
+	baseRenderer->surfaceSamples = dsNextPowerOf2(dsMax(options->samples, 1U));
+	baseRenderer->surfaceSamples = dsMin(baseRenderer->surfaceSamples,
+		baseRenderer->maxSurfaceSamples);
+
+	baseRenderer->doubleBuffer = options->doubleBuffer;
+	baseRenderer->stereoscopic = options->stereoscopic;
+	baseRenderer->vsync = false;
+	baseRenderer->clipHalfDepth = true;
+	baseRenderer->clipInvertY = true;
+	baseRenderer->hasGeometryShaders = deviceFeatures.geometryShader != 0;
+	baseRenderer->hasTessellationShaders = deviceFeatures.tessellationShader != 0;
+	baseRenderer->maxComputeInvocations = limits->maxComputeWorkGroupInvocations;
+	baseRenderer->hasNativeMultidraw = true;
+	baseRenderer->supportsInstancedDrawing = true;
+	baseRenderer->supportsStartInstance = deviceFeatures.drawIndirectFirstInstance;
+	baseRenderer->defaultAnisotropy = 1;
+
+	baseRenderer->resourceManager = (dsResourceManager*)dsVkResourceManager_create(allocator,
+		renderer);
+	if (!baseRenderer->resourceManager)
 	{
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;

@@ -193,6 +193,52 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->gfxAPIAllocator = NULL;
 }
 
+dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options)
+{
+	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
+	{
+		if (options->alphaBits == 8)
+		{
+			if (options->srgb)
+				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
+			else
+				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+		}
+		else
+		{
+			if (options->srgb)
+				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SRGB);
+			else
+				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
+		}
+	}
+	else if (options->redBits == 10 && options->greenBits == 10 && options->blueBits == 10 &&
+		options->alphaBits == 2)
+	{
+		if (options->srgb)
+			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_SRGB);
+		else
+			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
+	}
+	else if (options->redBits == 5 && options->greenBits == 6 && options->blueBits == 5 &&
+		options->alphaBits == 0 && !options->srgb)
+	{
+		return dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm);
+	}
+
+	return dsGfxFormat_Unknown;
+}
+
+dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options)
+{
+	if (options->depthBits == 24)
+		return dsGfxFormat_D24S8;
+	else if (options->depthBits == 16 && options->stencilBits == 0)
+		return dsGfxFormat_D16;
+
+	return dsGfxFormat_Unknown;
+}
+
 void dsRenderer_setExtraDebugging(dsRenderer* renderer, bool enable)
 {
 	if (!renderer || !renderer->setExtraDebuggingFunc)
@@ -910,10 +956,17 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->dispatchComputeFunc || !renderer->hasComputeShaders)
+	if (!renderer->dispatchComputeFunc || renderer->maxComputeInvocations == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (x*y*z > renderer->maxComputeInvocations)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Too many compute shader invocations.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -944,7 +997,7 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->dispatchComputeIndirectFunc || !renderer->hasComputeShaders)
+	if (!renderer->dispatchComputeIndirectFunc || renderer->maxComputeInvocations == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
@@ -1144,7 +1197,7 @@ bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
 	DS_PROFILE_FUNC_START();

@@ -60,7 +60,11 @@ extern "C"
  */
 typedef enum dsGfxMemory
 {
-	dsGfxMemory_GpuOnly = 0x001,    ///< The memory will only ever be accessed by the GPU.
+	/**
+	 * The memory will only ever be accessed by the GPU. This means no initial data, mapping, or
+	 * readback. Data may be copied on the command buffer, however.
+	 */
+	dsGfxMemory_GpuOnly = 0x001,
 	dsGfxMemory_Static = 0x002,     ///< The memory will never be modified from the CPU.
 	dsGfxMemory_Dynamic = 0x004,    ///< The memory will be modified on the CPU occasionally.
 	dsGfxMemory_Stream = 0x008,     ///< The memory will be modified on the CPU constantly.
@@ -1706,8 +1710,6 @@ typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
 /** @copydoc dsResourceManager */
 struct dsResourceManager
 {
-	// Public members
-
 	/**
 	 * The renderer this belongs to.
 	 */
@@ -1720,15 +1722,17 @@ struct dsResourceManager
 	 */
 	dsAllocator* allocator;
 
+	// --------------------------------- Resource capabilities -------------------------------------
+
 	/**
 	 * @brief The number of resource contexts that may be created for other threads.
 	 */
 	uint32_t maxResourceContexts;
 
 	/**
-	 * @brief The minimum alignment when mapping the range of a buffer.
+	 * @brief The minimum alignment when mapping the range of a non-coherent buffer.
 	 */
-	uint32_t minMappingAlignment;
+	uint32_t minNonCoherentMappingAlignment;
 
 	/**
 	 * @brief The minimum alignment for texture buffers.
@@ -1815,6 +1819,13 @@ struct dsResourceManager
 	uint32_t maxFramebufferLayers;
 
 	/**
+	 * @brief Maximum number of samples that a texture supports.
+	 *
+	 * This is set to 1 if multisampled textures aren't supported.
+	 */
+	uint32_t maxTextureSamples;
+
+	/**
 	 * @brief Boolean for whether or not textures can be arbitrarily mipmapped.
 	 *
 	 * When false, textures may only be created with 1 or the maximum mip levels.
@@ -1825,11 +1836,6 @@ struct dsResourceManager
 	 * @brief Boolean for whether or not cubemap arrays are supported.
 	 */
 	bool hasCubeArrays;
-
-	/**
-	 * @brief Boolean for whether or not multisample textures are supported.
-	 */
-	bool hasMultisampleTextures;
 
 	/**
 	 * @brief Boolean for whether or not textures are readable.
@@ -1853,6 +1859,17 @@ struct dsResourceManager
 	 * framebuffer.
 	 */
 	bool canMixWithRenderSurface;
+
+	/**
+	 * @brief True if vertex, geometry, and tessellation shaders can write to uniform buffers and
+	 * images.
+	 */
+	bool hasVertexPipelineWrites;
+
+	/**
+	 * @brief True if fragment shaders can write to uniform buffers and images.
+	 */
+	bool hasFragmentWrites;
 
 	/**
 	 * @brief True if fences are supported.
@@ -1882,6 +1899,8 @@ struct dsResourceManager
 	 * This will be 0 if timestamp queries aren't supported.
 	 */
 	float timestampPeriod;
+
+	// ---------------------------------- Resource statistics --------------------------------------
 
 	/**
 	 * @brief The current number of resource contexts.
@@ -1964,7 +1983,7 @@ struct dsResourceManager
 	 */
 	size_t renderbufferMemorySize;
 
-	// Private members
+	// ----------------------------- Internals and function table ----------------------------------
 
 	/**
 	 * Current thread's resource context.

@@ -1409,11 +1409,11 @@ struct dsRenderer
 	const char* vendorName;
 
 	/**
-	 * @brief The name of the GPU driver.
+	 * @brief The name of the GPU and driver.
 	 *
 	 * This should never be NULL.
 	 */
-	const char* driverName;
+	const char* deviceName;
 
 	/**
 	 * @brief The shader version number, encoded with DS_ENCODE_VERSION().
@@ -1428,11 +1428,11 @@ struct dsRenderer
 	uint32_t vendorID;
 
 	/**
-	 * @brief The ID of the GPU driver.
+	 * @brief The ID of the GPU and driver.
 	 *
 	 * This may be 0 if not known.
 	 */
-	uint32_t driverID;
+	uint32_t deviceID;
 
 	/**
 	 * @brief The version of the GPU driver.
@@ -1532,9 +1532,12 @@ struct dsRenderer
 	bool hasTessellationShaders;
 
 	/**
-	 * @brief True if compute shaders are supported.
+	 * @brief The maximum number of invocations per compute dispatch.
+	 *
+	 * This is the product between the X, Y, and Z dimensions. If 0, compute shaders aren't
+	 * supported.
 	 */
-	bool hasComputeShaders;
+	uint32_t maxComputeInvocations;
 
 	/**
 	 * @brief True if indirect draws with a count > 1 will use a single graphics API call.

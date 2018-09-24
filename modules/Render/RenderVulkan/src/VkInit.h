@@ -25,5 +25,6 @@ void dsDestroyVkInstance(dsVkInstance* instance);
 bool dsGatherVkPhysicalDevices(dsVkInstance* instance);
 bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount);
 
-bool dsCreateVkDevice(dsVkDevice* device, const dsRendererOptions* options);
+bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator,
+	const dsRendererOptions* options);
 void dsDestroyVkDevice(dsVkDevice* device);

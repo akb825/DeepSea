@@ -215,7 +215,7 @@ DS_RENDER_EXPORT bool dsGfxFormat_generateMipmapsSupported(const dsResourceManag
  * @param resourceManager The resource manager.
  * @param srcFormat The graphics format to blit from.
  * @param dstFormat The graphics format to blit to.
- * @return True if the format can be used for copying textures.
+ * @return True if the formats can be used for copying textures.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat);
@@ -227,10 +227,24 @@ DS_RENDER_EXPORT bool dsGfxFormat_textureCopySupported(const dsResourceManager* 
  * @param srcFormat The graphics format to blit from.
  * @param dstFormat The graphics format to blit to.
  * @param filter The filter to blit with.
- * @return True if the format can be used for copying textures.
+ * @return True if the formats can be used for copyinblitting textures.
  */
 DS_RENDER_EXPORT bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter);
+
+/**
+ * @brief Standard cross-library logic for determining if blitting is supported.
+ *
+ * Render implementations will typically use this as part of their internal logic for implementing
+ * dsGfxFormat_surfaceBlitSupported().
+ *
+ * @param srcFormat The graphics format to blit from.
+ * @param dstFormat The graphics format to blit to.
+ * @param filter The filter to blit with.
+ * @return True if the formats can be used for copyinblitting textures.
+ */
+DS_RENDER_EXPORT bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat,
+	dsGfxFormat dstFormat, dsBlitFilter filter);
 
 inline unsigned int dsGfxFormat_standardIndex(dsGfxFormat format)
 {

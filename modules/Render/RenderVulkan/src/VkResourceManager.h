@@ -16,19 +16,8 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "Types.h"
-#include <DeepSea/Core/Debug.h>
 
-#if DS_DEBUG
-#define DS_VK_CALL(func) (dsSetLastVkCallsite(__FILE__, __FUNCTION__,__LINE__), (func))
-#else
-#define DS_VK_CALL(func) (func)
-#endif
-
-bool dsHandleVkResult(VkResult result);
-void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line);
-void dsGetLastVkCallsite(const char** file, const char** function,
-	unsigned int* line);
-
-VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
-	const VkMemoryRequirements* requirements, dsGfxMemory memoryFlags);
+dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer);
+void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager);

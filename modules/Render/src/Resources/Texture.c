@@ -271,6 +271,14 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if ((memoryHints & dsGfxMemory_GpuOnly) && data)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot provide initial data to GPU-only resources.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -383,11 +391,10 @@ dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAll
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (texInfo.samples > 1 && !resolve && !resourceManager->hasMultisampleTextures)
+	if (texInfo.samples > resourceManager->maxTextureSamples && !resolve)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Multisampled textures aren't supported by the current target.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Too many samples for multisampled texture.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

@@ -623,8 +623,6 @@ dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,
 		usageFlags |= dsGfxBufferUsage_CopyFrom;
 		memoryFlags |= dsGfxMemory_Read;
 	}
-	else
-		memoryFlags |= dsGfxMemory_GpuOnly;
 
 	return dsGfxBuffer_create(resourceManager, allocator, usageFlags, memoryFlags,
 		data->combinedBuffer, totalSize);

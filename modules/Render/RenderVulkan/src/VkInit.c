@@ -16,6 +16,7 @@
 
 #include "VkInit.h"
 #include "VkShared.h"
+#include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/DynamicLib.h>
@@ -89,6 +90,7 @@ static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
 static const char* debugExtensionName = "VK_EXT_debug_report";
 static const char* devicePropertiesExtensionName = "VK_KHR_get_physical_device_properties2";
 static const char* memoryCapabilitiesExtensionName = "VK_KHR_external_memory_capabilities";
+static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
 
 static InstanceExtensions instanceExtensions;
 static uint32_t physicalDeviceCount;
@@ -274,9 +276,39 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, debugExtensionName);
 }
 
-static void addDeviceExtensions(const char** extensionNames, uint32_t* extensionCount)
+static void findDeviceExtensions(dsVkDevice* device, dsAllocator* allocator)
 {
+	dsVkInstance* instance = &device->instance;
+	device->hasPVRTC = false;
+
+	uint32_t extensionCount = 0;
+	DS_VK_CALL(instance->vkEnumerateDeviceExtensionProperties)(device->physicalDevice, NULL,
+		&extensionCount, NULL);
+	if (extensionCount == 0)
+		return;
+
+	VkExtensionProperties* extensions = DS_ALLOCATE_OBJECT_ARRAY(allocator, VkExtensionProperties,
+		extensionCount);
+	if (!extensions)
+		return;
+
+	instance->vkEnumerateDeviceExtensionProperties(device->physicalDevice, NULL, &extensionCount,
+		extensions);
+	for (uint32_t i = 0; i < extensionCount; ++i)
+	{
+		if (strcmp(extensions[i].extensionName, pvrtcExtensionName) == 0)
+			device->hasPVRTC = true;
+	}
+	dsAllocator_free(allocator, extensions);
+}
+
+static void addDeviceExtensions(dsVkDevice* device, dsAllocator* allocator,
+	const char** extensionNames, uint32_t* extensionCount)
+{
+	findDeviceExtensions(device, allocator);
 	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_swapchain");
+	if (device->hasPVRTC)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, pvrtcExtensionName);
 }
 
 static VkPhysicalDevice findPhysicalDevice(dsVkInstance* instance,
@@ -480,8 +512,10 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	if (instanceExtensions.deviceInfo)
 		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceFeatures);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceFormatProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDevice);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties);
 
 	if (options && options->debug && instanceExtensions.debug)
 	{
@@ -636,31 +670,34 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 	return true;
 }
 
-bool dsCreateVkDevice(dsVkDevice* device, const dsRendererOptions* options)
+bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRendererOptions* options)
 {
+	DS_ASSERT(allocator->freeFunc);
 	dsVkInstance* instance = &device->instance;
-	VkPhysicalDevice physicalDevice = findPhysicalDevice(instance, options);
-	if (!physicalDevice)
+	device->physicalDevice = findPhysicalDevice(instance, options);
+	if (!device->physicalDevice)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't find a suitable physical device.");
 		return false;
 	}
 
-	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(physicalDevice, &device->features);
+	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &device->features);
+	DS_VK_CALL(instance->vkGetPhysicalDeviceProperties)(device->physicalDevice,
+		&device->properties);
 
 	// We don't need these features.
 	device->features.robustBufferAccess = false;
 	device->features.largePoints = false;
 
 	float queuePriority = 1.0f;
-	uint32_t queueFamilyIndex = findQueueFamily(instance, physicalDevice);
+	device->queueFamilyIndex = findQueueFamily(instance, device->physicalDevice);
 	VkDeviceQueueCreateInfo queueCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
 		NULL,
 		0,
-		queueFamilyIndex,
+		device->queueFamilyIndex,
 		1,
 		&queuePriority
 	};
@@ -671,7 +708,7 @@ bool dsCreateVkDevice(dsVkDevice* device, const dsRendererOptions* options)
 
 	const char* enabledExtensions[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledExtensionCount = 0;
-	addDeviceExtensions(enabledExtensions, &enabledExtensionCount);
+	addDeviceExtensions(device, allocator, enabledExtensions, &enabledExtensionCount);
 
 	VkDeviceCreateInfo deviceCreateInfo =
 	{
@@ -683,8 +720,8 @@ bool dsCreateVkDevice(dsVkDevice* device, const dsRendererOptions* options)
 		enabledExtensionCount, enabledExtensions,
 		&device->features
 	};
-	VkResult result = DS_VK_CALL(instance->vkCreateDevice)(physicalDevice, &deviceCreateInfo,
-		instance->allocCallbacksPtr, &device->device);
+	VkResult result = DS_VK_CALL(instance->vkCreateDevice)(device->physicalDevice,
+		&deviceCreateInfo, instance->allocCallbacksPtr, &device->device);
 	if (!dsHandleVkResult(result))
 	{
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Couldn't create Vulkan device.");
@@ -693,8 +730,23 @@ bool dsCreateVkDevice(dsVkDevice* device, const dsRendererOptions* options)
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAllocateMemory);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFreeMemory);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkMapMemory);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFlushMappedMemoryRanges);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkInvalidateMappedMemoryRanges);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkUnmapMemory);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBuffer);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBuffer);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetBufferMemoryRequirements);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindBufferMemory);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 
-	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, queueFamilyIndex, 0, &device->queue);
+	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
+		&device->queue);
+	DS_VK_CALL(instance->vkGetPhysicalDeviceMemoryProperties)(device->physicalDevice,
+		&device->memoryProperties);
 
 	return true;
 }

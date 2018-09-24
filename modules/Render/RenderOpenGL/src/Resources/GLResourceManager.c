@@ -796,8 +796,14 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 
 	if (AnyGL_atLeastVersion(3, 0, true) || AnyGL_ARB_ES3_compatibility)
 	{
+		if (!AnyGL_OES_compressed_ETC1_RGB8_texture)
+		{
+			setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8, dsGfxFormat_UNorm,
+				FormatBit_Texture, GL_COMPRESSED_RGB8_ETC2, GL_RGB);
+		}
+
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8, dsGfxFormat_UNorm,
-			FormatBit_Texture, GL_COMPRESSED_RGB8_ETC2, GL_RGBA);
+			FormatBit_Texture, GL_COMPRESSED_RGB8_ETC2, GL_RGB);
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A1, dsGfxFormat_UNorm,
 			FormatBit_Texture, GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA);
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A8, dsGfxFormat_UNorm,
@@ -808,7 +814,7 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 			FormatBit_Texture, GL_COMPRESSED_RG11_EAC, GL_RG);
 
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8, dsGfxFormat_SRGB,
-			FormatBit_Texture, GL_COMPRESSED_SRGB8_ETC2, GL_RGBA);
+			FormatBit_Texture, GL_COMPRESSED_SRGB8_ETC2, GL_RGB);
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A1, dsGfxFormat_SRGB,
 			FormatBit_Texture, GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2, GL_RGBA);
 		setCompressedFormat(resourceManager, dsGfxFormat_ETC2_R8G8B8A8, dsGfxFormat_SRGB,
@@ -983,25 +989,7 @@ bool dsGLResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* re
 	if (!ANYGL_SUPPORTED(glBlitFramebuffer))
 		return false;
 
-	dsGfxFormat srcDecorator = (dsGfxFormat)(srcFormat & dsGfxFormat_DecoratorMask);
-	dsGfxFormat dstDecorator = (dsGfxFormat)(dstFormat & dsGfxFormat_DecoratorMask);
-	if (srcDecorator == dsGfxFormat_Float || srcFormat == dsGfxFormat_B10G11R11_UFloat ||
-		srcFormat == dsGfxFormat_E5B9G9R9_UFloat)
-	{
-		return dstDecorator == dsGfxFormat_Float || dstFormat == dsGfxFormat_B10G11R11_UFloat ||
-			dstFormat == dsGfxFormat_E5B9G9R9_UFloat;
-	}
-
-	if (srcDecorator == dsGfxFormat_UInt)
-		return dstDecorator == dsGfxFormat_UInt && filter == dsBlitFilter_Nearest;
-
-	if (srcDecorator == dsGfxFormat_SInt)
-		return dstDecorator == dsGfxFormat_SInt && filter == dsBlitFilter_Nearest;
-
-	if (!srcDecorator || !dstDecorator)
-		return srcFormat == dstFormat && filter == dsBlitFilter_Nearest;
-
-	return true;
+	return dsGfxFormat_standardSurfaceBlitSupported(srcFormat, dstFormat, filter);
 }
 
 bool dsGLResourceManager_textureCopyFormatsSupported(const dsResourceManager* resourceManager,
@@ -1099,7 +1087,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	resourceManager->mutex = dsMutex_create((dsAllocator*)&bufferAlloc, "Resource Manager");
 	DS_ASSERT(resourceManager->mutex);
 
-	baseResourceManager->renderer = (dsRenderer*)renderer;
+	baseResourceManager->renderer = baseRenderer;
 	baseResourceManager->allocator = dsAllocator_keepPointer(allocator);
 	baseResourceManager->maxResourceContexts = options->maxResourceThreads;
 
@@ -1151,11 +1139,6 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->destroyResourceContextFunc = &dsGLResourceManager_destroyResourceContext;
 
 	// Buffers
-	if (AnyGL_atLeastVersion(4, 2, false) || AnyGL_ARB_map_buffer_alignment)
-	{
-		glGetIntegerv(GL_MIN_MAP_BUFFER_ALIGNMENT,
-			(GLint*)&baseResourceManager->minMappingAlignment);
-	}
 	baseResourceManager->supportedBuffers = getSupportedBuffers(baseRenderer->shaderVersion);
 	baseResourceManager->bufferMapSupport = getBufferMapSupport();
 	baseResourceManager->canCopyBuffers = ANYGL_SUPPORTED(glCopyBufferSubData);
@@ -1223,7 +1206,10 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->maxSamplers = maxSamplers;
 	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxSamplers);
 	baseResourceManager->maxVertexSamplers = maxSamplers;
-	baseResourceManager->hasMultisampleTextures = ANYGL_SUPPORTED(glTexStorage2DMultisample);
+	if (ANYGL_SUPPORTED(glTexStorage2DMultisample))
+		glGetIntegerv(GL_MAX_SAMPLES, (GLint*)&baseResourceManager->maxTextureSamples);
+	else
+		baseResourceManager->maxTextureSamples = 1;
 	baseResourceManager->texturesReadable = ANYGL_SUPPORTED(glGetTexImage);
 	baseResourceManager->createTextureFunc = &dsGLTexture_create;
 	baseResourceManager->createOffscreenFunc = &dsGLTexture_createOffscreen;
@@ -1251,6 +1237,9 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->requiresAnySurface = !AnyGL_atLeastVersion(4, 3, false) &&
 		(!ANYGL_SUPPORTED(glFramebufferParameteri) || !AnyGL_ARB_framebuffer_no_attachments);
 	baseResourceManager->canMixWithRenderSurface = false;
+	baseResourceManager->hasVertexPipelineWrites = AnyGL_atLeastVersion(4, 2, false) ||
+		AnyGL_atLeastVersion(3, 1, true);
+	baseResourceManager->hasFragmentWrites = baseResourceManager->hasVertexPipelineWrites;
 	baseResourceManager->createFramebufferFunc = &dsGLFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsGLFramebuffer_destroy;
 

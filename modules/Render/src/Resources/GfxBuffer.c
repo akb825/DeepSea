@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
 
@@ -52,6 +53,14 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"At least one memory hint flag must be set when creating a buffer.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if ((memoryHints & dsGfxMemory_GpuOnly) && data)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot provide initial data to GPU-only resources.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
@@ -157,10 +166,18 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 	else
 	{
 		size_t rem = 0;
-		if (resourceManager->minMappingAlignment > 0)
-			rem = offset % resourceManager->minMappingAlignment;
-		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset - rem,
-			size + rem);
+		uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
+		if (alignment > 0 && !(buffer->memoryHints & dsGfxMemory_Coherent))
+		{
+			rem = offset % alignment;
+			offset = offset - rem;
+			size = size + rem;
+
+			size_t count = (size + alignment - 1)/alignment;
+			size = count*alignment;
+			size = dsMin(size, buffer->size - offset);
+		}
+		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset, size);
 		if (!ptr)
 			DS_PROFILE_FUNC_RETURN(NULL);
 		ptr = ((uint8_t*)ptr + rem);

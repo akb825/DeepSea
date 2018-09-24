@@ -87,7 +87,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 
 		dsTexture* texture = loadTextureFunc(loadUserData, resourceManager, allocator,
 			scratchAllocator, textureRef->path()->c_str(), dsTextureUsage_Texture,
-			(dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GpuOnly));
+			dsGfxMemory_Static);
 		if (!texture)
 		{
 			DS_VERIFY(dsVectorResources_destroy(resources));

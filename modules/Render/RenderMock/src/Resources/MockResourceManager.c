@@ -118,7 +118,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->renderer = renderer;
 	resourceManager->allocator = dsAllocator_keepPointer(allocator);
 	resourceManager->maxResourceContexts = 1;
-	resourceManager->minMappingAlignment = 16;
+	resourceManager->minNonCoherentMappingAlignment = 16;
 	resourceManager->minTextureBufferAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw |
@@ -141,11 +141,13 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxFramebufferLayers = 1024;
 	resourceManager->hasArbitraryMipmapping = true;
 	resourceManager->hasCubeArrays = true;
-	resourceManager->hasMultisampleTextures = true;
+	resourceManager->maxTextureSamples = 16;
 	resourceManager->texturesReadable = true;
 	resourceManager->requiresColorBuffer = false;
 	resourceManager->requiresAnySurface = false;
 	resourceManager->canMixWithRenderSurface = true;
+	resourceManager->hasVertexPipelineWrites = true;
+	resourceManager->hasFragmentWrites = true;
 	resourceManager->hasFences = true;
 	resourceManager->hasQueries = true;
 	resourceManager->has64BitQueries = true;

@@ -31,12 +31,15 @@ typedef struct dsVkInstance
 	PFN_vkCreateInstance vkCreateInstance;
 	PFN_vkDestroyInstance vkDestroyInstance;
 	PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+	PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties;
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 	PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 	PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
 	PFN_vkGetPhysicalDeviceFeatures vkGetPhysicalDeviceFeatures;
+	PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties;
 	PFN_vkCreateDevice vkCreateDevice;
 	PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+	PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
 
 	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
 	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
@@ -55,14 +58,56 @@ typedef struct dsVkDevice
 
 	PFN_vkDestroyDevice vkDestroyDevice;
 	PFN_vkGetDeviceQueue vkGetDeviceQueue;
+	PFN_vkAllocateMemory vkAllocateMemory;
+	PFN_vkFreeMemory vkFreeMemory;
+	PFN_vkMapMemory vkMapMemory;
+	PFN_vkFlushMappedMemoryRanges vkFlushMappedMemoryRanges;
+	PFN_vkInvalidateMappedMemoryRanges vkInvalidateMappedMemoryRanges;
+	PFN_vkUnmapMemory vkUnmapMemory;
+	PFN_vkCreateBuffer vkCreateBuffer;
+	PFN_vkDestroyBuffer vkDestroyBuffer;
+	PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+	PFN_vkBindBufferMemory vkBindBufferMemory;
+	PFN_vkCreateBufferView vkCreateBufferView;
+	PFN_vkDestroyBufferView vkDestroyBufferView;
 
-	VkPhysicalDeviceFeatures features;
+	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
+	uint32_t queueFamilyIndex;
+
+	VkPhysicalDeviceFeatures features;
+	VkPhysicalDeviceProperties properties;
+	bool hasPVRTC;
+
+	VkPhysicalDeviceMemoryProperties memoryProperties;
 } dsVkDevice;
+
+typedef struct dsVkFormatInfo
+{
+	VkFormat vkFormat;
+	VkFormatProperties properties;
+} dsVkFormatInfo;
+
+typedef struct dsVkGfxBuffer
+{
+	dsGfxBuffer buffer;
+	VkDeviceMemory memory;
+	VkBuffer vkBuffer;
+} dsVkGfxBuffer;
 
 typedef struct dsVkRenderer
 {
 	dsRenderer renderer;
 	dsVkDevice device;
 } dsVkRenderer;
+
+typedef struct dsVkResourceManager
+{
+	dsResourceManager resourceManager;
+	dsVkDevice* device;
+
+	dsVkFormatInfo standardFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
+	dsVkFormatInfo specialFormats[dsGfxFormat_SpecialCount];
+	dsVkFormatInfo compressedFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
+} dsVkResourceManager;

@@ -115,52 +115,6 @@ static void APIENTRY debugOutput(GLenum source, GLenum type, GLuint id, GLenum s
 	dsLog_message(level, tag, file, line, function, (const char*)message);
 }
 
-static dsGfxFormat getColorFormat(const dsRendererOptions* options)
-{
-	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
-	{
-		if (options->alphaBits == 8)
-		{
-			if (options->srgb)
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
-			else
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-		}
-		else
-		{
-			if (options->srgb)
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SRGB);
-			else
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
-		}
-	}
-	else if (options->redBits == 10 && options->greenBits == 10 && options->blueBits == 10 &&
-		options->alphaBits == 2)
-	{
-		if (options->srgb)
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_SRGB);
-		else
-			return dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm);
-	}
-	else if (options->redBits == 5 && options->greenBits == 6 && options->blueBits == 5 &&
-		options->alphaBits == 0 && !options->srgb)
-	{
-		return dsGfxFormat_decorate(dsGfxFormat_R5G6B5, dsGfxFormat_UNorm);
-	}
-
-	return dsGfxFormat_Unknown;
-}
-
-static dsGfxFormat getDepthFormat(const dsRendererOptions* options)
-{
-	if (options->depthBits == 24)
-		return dsGfxFormat_D24S8;
-	else if (options->depthBits == 16 && options->stencilBits == 0)
-		return dsGfxFormat_D16;
-
-	return dsGfxFormat_Unknown;
-}
-
 static size_t dsGLRenderer_fullAllocSize(const dsRendererOptions* options)
 {
 	size_t pathLen = options->shaderCacheDir ? strlen(options->shaderCacheDir) + 1 : 0;
@@ -188,7 +142,7 @@ static void printGLInfo(dsGLRenderer* renderer, uint32_t major, uint32_t minor, 
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Shader version: %s%u.%u", ANYGL_GLES ? "ES " : "",
 		glslMajor, glslMinor);
 	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Vendor: %s", baseRenderer->vendorName);
-	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Driver: %s", baseRenderer->driverName);
+	DS_LOG_DEBUG_F(DS_RENDER_OPENGL_LOG_TAG, "Driver: %s", baseRenderer->deviceName);
 	if (ANYGL_SUPPORTED(glGetStringi))
 	{
 		dsAllocator* allocator = ((dsRenderer*)renderer)->allocator;
@@ -479,23 +433,22 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options);
+	if (!dsGfxFormat_isValid(colorFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Invalid color format.");
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+
 	if (!initializeGL())
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot initialize OpenGL.");
 		return NULL;
 	}
-
-	dsGfxFormat colorFormat = getColorFormat(options);
-	if (!dsGfxFormat_isValid(colorFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Invalid color format.");
-		AnyGL_shutdown();
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = getDepthFormat(options);
 
 	size_t bufferSize = dsGLRenderer_fullAllocSize(options);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
@@ -616,8 +569,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->shaderVersion = DS_ENCODE_VERSION(glslMajor, glslMinor, 0);
 	baseRenderer->vendorName = (const char*)glGetString(GL_VENDOR);
 	DS_ASSERT(baseRenderer->vendorName);
-	baseRenderer->driverName = (const char*)glGetString(GL_RENDERER);
-	DS_ASSERT(baseRenderer->driverName);
+	baseRenderer->deviceName = (const char*)glGetString(GL_RENDERER);
+	DS_ASSERT(baseRenderer->deviceName);
 
 	printGLInfo(renderer, major, minor, glslMajor, glslMinor);
 
@@ -633,7 +586,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	GLint maxSamples = 0;
 	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	maxSamples = dsMax(1, maxSamples);
-	baseRenderer->maxSurfaceSamples = (uint16_t)maxSamples;
+	baseRenderer->maxSurfaceSamples = maxSamples;
 	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,
@@ -707,9 +660,15 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->hasTessellationShaders =
 		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
 		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 0, 0));
-	baseRenderer->hasComputeShaders =
-		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
-		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0));
+	if ((ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
+		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0)))
+	{
+		GLint maxInvocations = 0;
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &maxInvocations);
+		baseRenderer->maxComputeInvocations = maxInvocations;
+	}
+	else
+		baseRenderer->maxComputeInvocations = 0;
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
 	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);

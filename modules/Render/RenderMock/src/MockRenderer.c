@@ -382,7 +382,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->name = "Mock";
 	renderer->shaderLanguage = "spirv";
 	renderer->shaderVersion = DS_ENCODE_VERSION(1, 0, 0);
-	renderer->driverName = "None";
+	renderer->deviceName = "None";
 
 	renderer->mainCommandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
 		dsCommandBuffer);
@@ -412,7 +412,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->clipInvertY = false;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
-	renderer->hasComputeShaders = true;
+	renderer->maxComputeInvocations = 128;
 	renderer->hasNativeMultidraw = true;
 	renderer->supportsInstancedDrawing = true;
 	renderer->supportsStartInstance = true;

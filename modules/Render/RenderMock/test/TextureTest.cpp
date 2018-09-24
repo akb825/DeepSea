@@ -317,7 +317,7 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
 		dsGfxMemory_Static, &info, true));
 
-	resourceManager->hasMultisampleTextures = false;
+	resourceManager->maxTextureSamples = 1;
 	info.dimension = dsTextureDim_2D;
 	info.depth = 1;
 	info.samples = 4;

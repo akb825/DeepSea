@@ -563,11 +563,12 @@ TEST_F(RendererTest, DispatchCompute)
 
 	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
 
+	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer, commandBuffer, 64, 64, 64));
 	EXPECT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, 1, 1, 1));
-	renderer->hasComputeShaders = false;
+	renderer->maxComputeInvocations = 0;
 	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer, commandBuffer, 1, 1, 1));
 
-	renderer->hasComputeShaders = true;
+	renderer->maxComputeInvocations = 128;
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
 	EXPECT_FALSE(dsRenderer_dispatchCompute(renderer, commandBuffer, 1, 1, 1));
@@ -602,11 +603,11 @@ TEST_F(RendererTest, DispatchComputeIndirect)
 
 	EXPECT_TRUE(dsRenderer_dispatchComputeIndirect(renderer, commandBuffer,
 		indirectBuffer, sizeof(uint32_t)));
-	renderer->hasComputeShaders = false;
+	renderer->maxComputeInvocations = 0;
 	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, commandBuffer,
 		indirectBuffer, sizeof(uint32_t)));
 
-	renderer->hasComputeShaders = true;
+	renderer->maxComputeInvocations = 1;
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
 	EXPECT_FALSE(dsRenderer_dispatchComputeIndirect(renderer, commandBuffer,

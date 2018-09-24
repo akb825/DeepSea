@@ -472,3 +472,27 @@ dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
 unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
 dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
 dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
+
+bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat dstFormat,
+	dsBlitFilter filter)
+{
+	dsGfxFormat srcDecorator = (dsGfxFormat)(srcFormat & dsGfxFormat_DecoratorMask);
+	dsGfxFormat dstDecorator = (dsGfxFormat)(dstFormat & dsGfxFormat_DecoratorMask);
+	if (srcDecorator == dsGfxFormat_Float || srcFormat == dsGfxFormat_B10G11R11_UFloat ||
+		srcFormat == dsGfxFormat_E5B9G9R9_UFloat)
+	{
+		return dstDecorator == dsGfxFormat_Float || dstFormat == dsGfxFormat_B10G11R11_UFloat ||
+			dstFormat == dsGfxFormat_E5B9G9R9_UFloat;
+	}
+
+	if (srcDecorator == dsGfxFormat_UInt)
+		return dstDecorator == dsGfxFormat_UInt && filter == dsBlitFilter_Nearest;
+
+	if (srcDecorator == dsGfxFormat_SInt)
+		return dstDecorator == dsGfxFormat_SInt && filter == dsBlitFilter_Nearest;
+
+	if (!srcDecorator || !dstDecorator)
+		return srcFormat == dstFormat && filter == dsBlitFilter_Nearest;
+
+	return true;
+}

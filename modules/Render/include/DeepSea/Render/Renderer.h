@@ -49,6 +49,20 @@ DS_RENDER_EXPORT void dsRenderer_defaultOptions(dsRendererOptions* options,
 	const char* applicationName, uint32_t applicationVersion);
 
 /**
+ * @brief Gets the color format based on what's defined in the options.
+ * @param options The renderer options.
+ * @return The color format.
+ */
+DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options);
+
+/**
+ * @brief Gets the depth/stencil format based on what's defined in the options.
+ * @param options The renderer options.
+ * @return The depth/stencil format.
+ */
+DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options);
+
+/**
  * @brief Sets whether or not to enable extra debugging.
  * @param renderer The renderer.
  * @param enable True to enable extra debugging, false to disable.
