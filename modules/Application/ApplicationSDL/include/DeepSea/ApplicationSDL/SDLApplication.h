@@ -58,10 +58,14 @@ DS_APPLICATIONSDL_EXPORT uint32_t dsSDLApplication_showMessageBox(dsMessageBoxTy
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the application with.
  * @param renderer The renderer to use with the application.
+ * @param argc The number of command-line arguments.
+ * @param argv The vector of command-line arguments.
+ * @param orgName The name of the organization that created the application.
+ * @param appName The name of the application.
  * @return The application, or NULL if the application couldn't be created.
  */
 DS_APPLICATIONSDL_EXPORT dsApplication* dsSDLApplication_create(dsAllocator* allocator,
-	dsRenderer* renderer);
+	dsRenderer* renderer, int argc, const char** argv, const char* orgName, const char* appName);
 
 /**
  * @brief Destroys an SDL application.

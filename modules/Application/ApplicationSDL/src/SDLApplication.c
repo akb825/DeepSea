@@ -23,6 +23,8 @@
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -261,6 +263,10 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_GrabInput;
 		if (shouldSetOpenGL(application->renderer))
 			flags |= SDL_WINDOW_OPENGL;
+#if DS_ANDROID
+		// HACK: SDL will always create an EGL surface unless set to vulkan.
+		flags |= SDL_WINDOW_VULKAN;
+#endif
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, surfaceName, &position, width, height,
@@ -758,8 +764,11 @@ uint32_t dsSDLApplication_showMessageBox(dsMessageBoxType type, const char* titl
 		escapeButton);
 }
 
-dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* renderer)
+dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* renderer, int argc,
+	const char** argv, const char* orgName, const char* appName)
 {
+	DS_UNUSED(argc);
+	DS_UNUSED(argv);
 	if (!allocator || !renderer)
 	{
 		errno = EINVAL;
@@ -973,6 +982,24 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->getControllerHatDirectionFunc = &dsSDLController_getHatDirection;
 	baseApplication->startControllerRumbleFunc = &dsSDLController_startRumble;
 	baseApplication->stopControllerRumbleFunc = &dsSDLController_stopRumble;
+
+#if DS_ANDROID
+	DS_UNUSED(orgName);
+	DS_UNUSED(appName);
+	dsResourceStream_setContext(SDL_AndroidGetJNIEnv(), SDL_AndroidGetActivity(), NULL,
+		SDL_AndroidGetInternalStoragePath(), SDL_AndroidGetExternalStoragePath());
+#else
+	char* basePath = SDL_GetBasePath();
+	char* prefPath = SDL_GetPrefPath(orgName, appName);
+	if (!prefPath)
+	{
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create preference path.");
+		SDL_free(basePath);
+	}
+	dsResourceStream_setContext(NULL, NULL, basePath, basePath, prefPath);
+	SDL_free(basePath);
+	SDL_free(prefPath);
+#endif
 
 	return baseApplication;
 }

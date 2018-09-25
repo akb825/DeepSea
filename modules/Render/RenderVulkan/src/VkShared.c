@@ -101,7 +101,7 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	{
 		errno = ENOMEM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "No suitable GPU heap found.");
-		return NULL;
+		return 0;
 	}
 
 	VkMemoryAllocateInfo allocInfo =
@@ -112,11 +112,11 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 		memoryIndex
 	};
 	const dsVkInstance* instance = &device->instance;
-	VkDeviceMemory memory = NULL;
+	VkDeviceMemory memory = 0;
 	VkResult result = DS_VK_CALL(device->vkAllocateMemory)(device->device, &allocInfo,
 		instance->allocCallbacksPtr, &memory);
 	if (!dsHandleVkResult(result))
-		return NULL;
+		return 0;
 
 	return memory;
 }

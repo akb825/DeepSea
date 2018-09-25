@@ -80,7 +80,7 @@ typedef struct TestVectorDraw
 
 #define TARGET_SIZE 800
 
-static char assetsDir[DS_PATH_MAX];
+static const char* assetsDir = "TestVectorDraw-assets";
 static char shaderDir[100];
 
 const char* vectorImageFiles[] =
@@ -354,8 +354,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testVectorDraw->shaderModule = dsVectorShaderModule_loadFile(resourceManager, allocator, path,
-		NULL, 0);
+	testVectorDraw->shaderModule = dsVectorShaderModule_loadResource(resourceManager, allocator,
+		dsFileResourceType_Embedded, path, NULL, 0);
 	if (!testVectorDraw->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load shader module: %s", dsErrorString(errno));
@@ -407,8 +407,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testVectorDraw->vectorResources = dsVectorResources_loadFile(allocator, NULL, resourceManager,
-		path, NULL);
+	testVectorDraw->vectorResources = dsVectorResources_loadResource(allocator, NULL,
+		resourceManager, dsFileResourceType_Embedded, path, NULL);
 	if (!testVectorDraw->vectorResources)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't load vector resources: %s",
@@ -440,8 +440,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 
 		double start = dsTimer_time(timer);
 		DS_PROFILE_DYNAMIC_SCOPE_START(vectorImageFiles[i]);
-		testVectorDraw->vectorImages[i] = dsVectorImage_loadFile(allocator, NULL, &initResources,
-			path, 1.0f, &targetSize);
+		testVectorDraw->vectorImages[i] = dsVectorImage_loadResource(allocator, NULL,
+			&initResources, dsFileResourceType_Embedded, path, 1.0f, &targetSize);
 		DS_PROFILE_SCOPE_END();
 		if (!testVectorDraw->vectorImages[i])
 		{
@@ -526,9 +526,6 @@ int dsMain(int argc, const char** argv)
 		}
 	}
 
-	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
-	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestVectorDraw-assets"));
-
 	DS_LOG_INFO_F("TestVectorDraw", "Render using %s",
 		dsRenderBootstrap_rendererName(rendererType));
 
@@ -578,7 +575,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer);
+		renderer, argc, argv, "DeepSea", "TestVectorDraw");
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create application: %s", dsErrorString(errno));

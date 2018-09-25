@@ -17,6 +17,7 @@
 #include <DeepSea/Render/Resources/TextureData.h>
 
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
@@ -30,7 +31,7 @@
 	((uint64_t)(bits0) << 32) | ((uint64_t)(bits1) << 40) | ((uint64_t)(bits2) << 48) | \
 		((uint64_t)(bits3) << 56)))
 
-typedef enum PvrFormat
+typedef enum PVRFormat
 {
 	PVRTC_2bppRGB,
 	PVRTC_2bppRGBA,
@@ -86,10 +87,10 @@ typedef enum PvrFormat
 	ASTC_6x5x5,
 	ASTC_6x6x5,
 	ASTC_6x6x6,
-	PvrFormatCount
-} PvrFormat;
+	PVRFormatCount
+} PVRFormat;
 
-DS_STATIC_ASSERT(PvrFormatCount == 51, invalid_pvr_type_enum);
+DS_STATIC_ASSERT(PVRFormatCount == 51, invalid_pvr_type_enum);
 
 static dsGfxFormat formatMap[] =
 {
@@ -146,7 +147,7 @@ static dsGfxFormat formatMap[] =
 	dsGfxFormat_Unknown,          // ASTC_6x6x6
 };
 
-DS_STATIC_ASSERT(DS_ARRAY_SIZE(formatMap) == PvrFormatCount, format_map_mismatch);
+DS_STATIC_ASSERT(DS_ARRAY_SIZE(formatMap) == PVRFormatCount, format_map_mismatch);
 
 typedef struct GenericFormat
 {
@@ -189,7 +190,7 @@ static GenericFormat genericFormats[] =
 	{PVR_GENERIC_FORMAT('r', 64, 'g', 64, 'b', 64, 'a', 64), dsGfxFormat_R64G64B64A64}
 };
 
-typedef enum PvrChannelType
+typedef enum PVRChannelType
 {
 	UByteN,
 	SByteN,
@@ -205,10 +206,10 @@ typedef enum PvrChannelType
 	SInt,
 	Float,
 	UFloat,
-	PvrChannelTypeCount
-} PvrChannelType;
+	PVRChannelTypeCount
+} PVRChannelType;
 
-DS_STATIC_ASSERT(PvrChannelTypeCount == 14, invalidpvr_channel_type_enum);
+DS_STATIC_ASSERT(PVRChannelTypeCount == 14, invalidpvr_channel_type_enum);
 
 static void pvrError(const char* errorString, const char* filePath)
 {
@@ -302,11 +303,11 @@ static bool readMetadata(dsStream* stream, dsGfxFormat* format, uint32_t* depth,
 	return true;
 }
 
-dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStream* stream,
+dsTextureData* dsTextureData_loadPVR(bool* isPVR, dsAllocator* allocator, dsStream* stream,
 	const char* filePath)
 {
-	if (isPvr)
-		*isPvr = true;
+	if (isPVR)
+		*isPVR = true;
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
@@ -320,8 +321,8 @@ dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStre
 	const uint32_t expectedVersion = 0x03525650;
 	if (version != expectedVersion)
 	{
-		if (isPvr)
-			*isPvr = false;
+		if (isPVR)
+			*isPVR = false;
 		else
 		{
 			pvrError("Invalid PVR file", filePath);
@@ -359,7 +360,7 @@ dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStre
 	}
 	else
 	{
-		if (pvrFormat >= (uint64_t)PvrFormatCount ||
+		if (pvrFormat >= (uint64_t)PVRFormatCount ||
 			formatMap[(size_t)pvrFormat] == dsGfxFormat_Unknown)
 		{
 			pvrError("Unsupported PVR texture format", filePath);
@@ -508,7 +509,7 @@ dsTextureData* dsTextureData_loadPvr(bool* isPvr, dsAllocator* allocator, dsStre
 	return textureData;
 }
 
-dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator, const char* filePath)
+dsTextureData* dsTextureData_loadPVRFile(dsAllocator* allocator, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -518,31 +519,66 @@ dsTextureData* dsTextureData_loadPvrFile(dsAllocator* allocator, const char* fil
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsFileStream fileStream;
-	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open PVR file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* textureData = dsTextureData_loadPvr(NULL, allocator, (dsStream*)&fileStream,
+	dsTextureData* textureData = dsTextureData_loadPVR(NULL, allocator, (dsStream*)&stream,
 		filePath);
 	if (textureData)
 	{
-		uint64_t pos = dsStream_tell((dsStream*)&fileStream);
-		dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_End);
-		if (pos != dsStream_tell((dsStream*)&fileStream))
+		uint64_t pos = dsStream_tell((dsStream*)&stream);
+		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
+		if (pos != dsStream_tell((dsStream*)&stream))
 		{
 			pvrError("Unexpected file size", filePath);
 			dsTextureData_destroy(textureData);
 			textureData = NULL;
 		}
 	}
-	DS_VERIFY(dsStream_close((dsStream*)&fileStream));
+	DS_VERIFY(dsStream_close((dsStream*)&stream));
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
-dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocator, dsStream* stream)
+dsTextureData* dsTextureData_loadPVRResource(dsAllocator* allocator, dsFileResourceType type,
+	const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open PVR file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsTextureData* textureData = dsTextureData_loadPVR(NULL, allocator, (dsStream*)&stream,
+		filePath);
+	if (textureData)
+	{
+		uint64_t pos = dsStream_tell((dsStream*)&stream);
+		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
+		if (pos != dsStream_tell((dsStream*)&stream))
+		{
+			pvrError("Unexpected file size", filePath);
+			dsTextureData_destroy(textureData);
+			textureData = NULL;
+		}
+	}
+	DS_VERIFY(dsStream_close((dsStream*)&stream));
+	DS_PROFILE_FUNC_RETURN(textureData);
+}
+
+dsTextureData* dsTextureData_loadPVRStream(dsAllocator* allocator, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -552,11 +588,11 @@ dsTextureData* dsTextureData_loadPvrStream(dsAllocator* allocator, dsStream* str
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* result = dsTextureData_loadPvr(NULL, allocator, stream, NULL);
+	dsTextureData* result = dsTextureData_loadPVR(NULL, allocator, stream, NULL);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 
-dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager,
+dsTexture* dsTextureData_loadPVRFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
 	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
@@ -574,7 +610,7 @@ dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager
 			tempAllocator = resourceManager->allocator;
 	}
 
-	dsTextureData* textureData = dsTextureData_loadPvrFile(tempAllocator, filePath);
+	dsTextureData* textureData = dsTextureData_loadPVRFile(tempAllocator, filePath);
 	if (!textureData)
 		return NULL;
 
@@ -584,7 +620,36 @@ dsTexture* dsTextureData_loadPvrFileToTexture(dsResourceManager* resourceManager
 	return texture;
 }
 
-dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManager,
+dsTexture* dsTextureData_loadPVRResourceToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsFileResourceType type,
+	const char* filePath, const dsTextureDataOptions* options, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
+{
+	if (!resourceManager || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!tempAllocator)
+	{
+		if (textureAllocator)
+			tempAllocator = textureAllocator;
+		else
+			tempAllocator = resourceManager->allocator;
+	}
+
+	dsTextureData* textureData = dsTextureData_loadPVRResource(tempAllocator, type, filePath);
+	if (!textureData)
+		return NULL;
+
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
+		options, usage, memoryHints);
+	dsTextureData_destroy(textureData);
+	return texture;
+}
+
+dsTexture* dsTextureData_loadPVRStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
 	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
@@ -602,7 +667,7 @@ dsTexture* dsTextureData_loadPvrStreamToTexture(dsResourceManager* resourceManag
 			tempAllocator = resourceManager->allocator;
 	}
 
-	dsTextureData* textureData = dsTextureData_loadPvrStream(tempAllocator, stream);
+	dsTextureData* textureData = dsTextureData_loadPVRStream(tempAllocator, stream);
 	if (!textureData)
 		return NULL;
 

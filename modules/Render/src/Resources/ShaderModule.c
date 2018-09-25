@@ -18,6 +18,7 @@
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
@@ -47,6 +48,27 @@ static dsShaderModule* createShaderModule(dsResourceManager* resourceManager,
 	return shaderModule;
 }
 
+static dsShaderModule* dsShaderModule_loadImpl(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsStream* stream, const char* name)
+{
+	DS_VERIFY(dsStream_seek(stream, 0, dsStreamSeekWay_End));
+	size_t size = (size_t)dsStream_tell(stream);
+	DS_VERIFY(dsStream_seek(stream, 0, dsStreamSeekWay_Beginning));
+
+	mslAllocator allocWrapper;
+	allocWrapper.userData = allocator;
+	allocWrapper.allocateFunc = (mslAllocateFunction)&dsAllocator_alloc;
+	allocWrapper.freeFunc = (mslFreeFunction)&dsAllocator_free;
+
+	mslModule_setInvalidFormatErrno(EFORMAT);
+	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, stream, size,
+		&allocWrapper);
+	if (!module)
+		return NULL;
+
+	return createShaderModule(resourceManager, allocator, module, name);
+}
+
 dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const char* filePath, const char* name)
 {
@@ -70,34 +92,62 @@ dsShaderModule* dsShaderModule_loadFile(dsResourceManager* resourceManager, dsAl
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsFileStream fileStream;
-	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open shader module file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	DS_VERIFY(dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_End));
-	size_t size = (size_t)dsStream_tell((dsStream*)&fileStream);
-	DS_VERIFY(dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_Beginning));
-
-	mslAllocator allocWrapper;
-	allocWrapper.userData = allocator;
-	allocWrapper.allocateFunc = (mslAllocateFunction)&dsAllocator_alloc;
-	allocWrapper.freeFunc = (mslFreeFunction)&dsAllocator_free;
-
-	mslModule_setInvalidFormatErrno(EFORMAT);
-	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, &fileStream, size,
-		&allocWrapper);
-	dsFileStream_close(&fileStream);
-	if (!module)
+	dsShaderModule* shaderModule = dsShaderModule_loadImpl(resourceManager, allocator,
+		(dsStream*)&stream, name);
+	dsStream_close((dsStream*)&stream);
+	if (!shaderModule)
 	{
 		if (errno == EFORMAT)
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file '%s'.", filePath);
+	}
+	DS_PROFILE_FUNC_RETURN(shaderModule);
+}
+
+dsShaderModule* dsShaderModule_loadResource(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath, const char* name)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!resourceManager || (!allocator && !resourceManager->allocator) ||
+		!resourceManager->createShaderModuleFunc || !resourceManager->destroyShaderModuleFunc ||
+		!filePath || !name)
+	{
+		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module, name);
+	if (!allocator)
+		allocator = resourceManager->allocator;
+
+	if (!dsResourceManager_canUseResources(resourceManager))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, dsResourceManager_noContextError);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open shader module file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsShaderModule* shaderModule = dsShaderModule_loadImpl(resourceManager, allocator,
+		(dsStream*)&stream, name);
+	dsStream_close((dsStream*)&stream);
+	if (!shaderModule)
+	{
+		if (errno == EFORMAT)
+			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shader module file '%s'.", filePath);
+	}
 	DS_PROFILE_FUNC_RETURN(shaderModule);
 }
 
@@ -131,27 +181,13 @@ dsShaderModule* dsShaderModule_loadStream(dsResourceManager* resourceManager,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	uint64_t curPos = dsStream_tell(stream);
-	DS_VERIFY(dsStream_seek(stream, 0, dsStreamSeekWay_End));
-	size_t size = (size_t)(dsStream_tell(stream) - curPos);
-	DS_VERIFY(dsStream_seek(stream, curPos, dsStreamSeekWay_Beginning));
-
-	mslAllocator allocWrapper;
-	allocWrapper.userData = allocator;
-	allocWrapper.allocateFunc = (mslAllocateFunction)&dsAllocator_alloc;
-	allocWrapper.freeFunc = (mslFreeFunction)&dsAllocator_free;
-
-	mslModule_setInvalidFormatErrno(EFORMAT);
-	mslModule* module = mslModule_readStream((mslReadFunction)&dsStream_read, stream, size,
-		&allocWrapper);
-	if (!module)
+	dsShaderModule* shaderModule = dsShaderModule_loadImpl(resourceManager, allocator, stream,
+		name);
+	if (!shaderModule)
 	{
 		if (errno == EFORMAT)
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Invalid shader module stream.");
-		DS_PROFILE_FUNC_RETURN(NULL);
 	}
-
-	dsShaderModule* shaderModule = createShaderModule(resourceManager, allocator, module, name);
 	DS_PROFILE_FUNC_RETURN(shaderModule);
 }
 

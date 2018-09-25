@@ -8401,14 +8401,14 @@ public:
     eG16B16R162Plane422UnormKHR = VK_FORMAT_G16_B16R16_2PLANE_422_UNORM,
     eG16B16R163Plane444Unorm = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM,
     eG16B16R163Plane444UnormKHR = VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM,
-    ePvrtc12BppUnormBlockIMG = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG,
-    ePvrtc14BppUnormBlockIMG = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG,
-    ePvrtc22BppUnormBlockIMG = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG,
-    ePvrtc24BppUnormBlockIMG = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG,
-    ePvrtc12BppSrgbBlockIMG = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG,
-    ePvrtc14BppSrgbBlockIMG = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG,
-    ePvrtc22BppSrgbBlockIMG = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG,
-    ePvrtc24BppSrgbBlockIMG = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG
+    ePVRtc12BppUnormBlockIMG = VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG,
+    ePVRtc14BppUnormBlockIMG = VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG,
+    ePVRtc22BppUnormBlockIMG = VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG,
+    ePVRtc24BppUnormBlockIMG = VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG,
+    ePVRtc12BppSrgbBlockIMG = VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG,
+    ePVRtc14BppSrgbBlockIMG = VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG,
+    ePVRtc22BppSrgbBlockIMG = VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG,
+    ePVRtc24BppSrgbBlockIMG = VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG
   };
 
   struct VertexInputAttributeDescription
@@ -42315,14 +42315,14 @@ public:
     case Format::eG16B16R163Plane422Unorm: return "G16B16R163Plane422Unorm";
     case Format::eG16B16R162Plane422Unorm: return "G16B16R162Plane422Unorm";
     case Format::eG16B16R163Plane444Unorm: return "G16B16R163Plane444Unorm";
-    case Format::ePvrtc12BppUnormBlockIMG: return "Pvrtc12BppUnormBlockIMG";
-    case Format::ePvrtc14BppUnormBlockIMG: return "Pvrtc14BppUnormBlockIMG";
-    case Format::ePvrtc22BppUnormBlockIMG: return "Pvrtc22BppUnormBlockIMG";
-    case Format::ePvrtc24BppUnormBlockIMG: return "Pvrtc24BppUnormBlockIMG";
-    case Format::ePvrtc12BppSrgbBlockIMG: return "Pvrtc12BppSrgbBlockIMG";
-    case Format::ePvrtc14BppSrgbBlockIMG: return "Pvrtc14BppSrgbBlockIMG";
-    case Format::ePvrtc22BppSrgbBlockIMG: return "Pvrtc22BppSrgbBlockIMG";
-    case Format::ePvrtc24BppSrgbBlockIMG: return "Pvrtc24BppSrgbBlockIMG";
+    case Format::ePVRtc12BppUnormBlockIMG: return "PVRtc12BppUnormBlockIMG";
+    case Format::ePVRtc14BppUnormBlockIMG: return "PVRtc14BppUnormBlockIMG";
+    case Format::ePVRtc22BppUnormBlockIMG: return "PVRtc22BppUnormBlockIMG";
+    case Format::ePVRtc24BppUnormBlockIMG: return "PVRtc24BppUnormBlockIMG";
+    case Format::ePVRtc12BppSrgbBlockIMG: return "PVRtc12BppSrgbBlockIMG";
+    case Format::ePVRtc14BppSrgbBlockIMG: return "PVRtc14BppSrgbBlockIMG";
+    case Format::ePVRtc22BppSrgbBlockIMG: return "PVRtc22BppSrgbBlockIMG";
+    case Format::ePVRtc24BppSrgbBlockIMG: return "PVRtc24BppSrgbBlockIMG";
     default: return "invalid";
     }
   }

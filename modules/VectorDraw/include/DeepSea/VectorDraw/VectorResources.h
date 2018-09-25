@@ -79,6 +79,23 @@ DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadFile(dsAllocator* 
 	const dsTextQuality* qualityRemap);
 
 /**
+ * @brief Loads vector resources from a resource.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector resources and sub-resources with.
+ * @param scratchAllocator The allocator to use for scratch data. If NULL, it will use the same as
+ *     allocator.
+ * @param resourceManager The resource manager to create textures from.
+ * @param type The resource type.
+ * @param filePath The file path for the vector resources to load.
+ * @param qualityRemap Array to remap text qualities, or NULL to use values as-is. If not NULL,
+ *     it must be of size DS_TEXT_QUALITY_REMAP_SIZE.
+ * @return The created vector resources, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsFileResourceType type,
+	const char* filePath, const dsTextQuality* qualityRemap);
+
+/**
  * @brief Loads vector resources from a stream.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector resources and sub-resources with.

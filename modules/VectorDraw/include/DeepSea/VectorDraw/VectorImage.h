@@ -72,6 +72,24 @@ DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocato
 	const char* filePath, float pixelSize, const dsVector2f* targetSize);
 
 /**
+ * @brief Loads a vector image from a resource file.
+ * @remark errno will be set on failure.
+ * @param allocator The allocator to create the vector image.
+ * @param resourceAllocator The allocator to create graphics resources with. If NULL, it will use
+ *     the vector image allocator.
+ * @param initResources The resources used for initialization.
+ * @param type The resource type.
+ * @param filePath The file path for the vector image to load.
+ * @param pixelSize The size of a pixel, determining tessellation quality.
+ * @param targetSize The target size of the image. If not NULL, it will be used in place of the real
+ *     image size for calculating the tessellation quality.
+ * @return The created vector image, or NULL if it couldn't be created.
+ */
+DS_VECTORDRAW_EXPORT dsVectorImage* dsVectorImage_loadResource(dsAllocator* allocator,
+	dsAllocator* resourceAllocator, const dsVectorImageInitResources* initResources,
+	dsFileResourceType type, const char* filePath, float pixelSize, const dsVector2f* targetSize);
+
+/**
  * @brief Loads a vector image from a stream.
  * @remark errno will be set on failure.
  * @param allocator The allocator to create the vector image.

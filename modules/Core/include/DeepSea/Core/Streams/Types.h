@@ -63,6 +63,10 @@ extern "C"
  */
 #define DS_STREAM_INVALID_POS ((uint64_t)-1)
 
+/// \{
+typedef struct dsAllocator dsAllocator;
+/// \}
+
 /**
  * @brief Structure that defines a stream.
  *
@@ -86,6 +90,17 @@ typedef enum dsStreamSeekWay
 	dsStreamSeekWay_Current,   ///< Relative to the current position of the stream.
 	dsStreamSeekWay_End        ///< Relative to the end of the stream.
 } dsStreamSeekWay;
+
+/**
+ * @brief Enum for the type of resource to load for.
+ * @see FileResource.h
+ */
+typedef enum dsFileResourceType
+{
+	dsFileResourceType_Embedded,  ///< Resource embedded with the application package.
+	dsFileResourceType_Installed, ///< Resource installed with the application.
+	dsFileResourceType_Dynamic    ///< Resource created locally.
+} dsFileResourceType;
 
 /**
  * @brief Function for reading from a stream.
@@ -181,7 +196,6 @@ struct dsStream
 	dsStreamCloseFunction closeFunc;
 };
 
-
 /**
  * @brief Structure that defines a file stream.
  *
@@ -233,6 +247,57 @@ typedef struct dsMemoryStream
 	 */
 	size_t position;
 } dsMemoryStream;
+
+/**
+ * @brief Structure that defines a generic stream.
+ *
+ * This simply holds a user data pointer for the stream. The implementor should set the function
+ * pointers for the implementation.
+ *
+ * This is effectively a subclass of dsStream and a pointer to dsMemoryStream can be freely
+ * cast between the two types.
+ */
+typedef struct dsGenericStream
+{
+	/**
+	 * @brief The base stream.
+	 */
+	dsStream stream;
+
+	/**
+	 * @brief The user data for the stream.
+	 */
+	void* userData;
+} dsGenericStream;
+
+/**
+ * @brief Structure that defines a stream for a resource.
+ * @see ResourceStream.h
+ */
+typedef struct dsResourceStream
+{
+	union
+	{
+		/**
+		 * @brief The file stream.
+		 *
+		 * This will be used if isFile is true.
+		 */
+		dsFileStream fileStream;
+
+		/**
+		 * @brief The generic stream.
+		 *
+		 * This will be used if isFile is false.
+		 */
+		dsGenericStream genericStream;
+	};
+
+	/**
+	 * @brief True if the stream is a file stream, false if it's a generic stream.
+	 */
+	bool isFile;
+} dsResourceStream;
 
 #ifdef __cplusplus
 }

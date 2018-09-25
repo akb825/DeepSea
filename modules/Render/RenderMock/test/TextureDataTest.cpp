@@ -97,13 +97,13 @@ TEST_F(TextureDataTest, Create)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_R8G8B8A8)
+TEST_F(TextureDataTest, LoadDDSFile_R8G8B8A8)
 {
-	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("asdf")));
-	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("test.txt")));
-	EXPECT_FALSE(dsTextureData_loadDdsFile((dsAllocator*)&allocator, getPath("empty.txt")));
+	EXPECT_FALSE(dsTextureData_loadDDSFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadDDSFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadDDSFile((dsAllocator*)&allocator, getPath("empty.txt")));
 
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("texture.r8g8b8a8.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -137,13 +137,13 @@ TEST_F(TextureDataTest, LoadDdsFile_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsStream_R8G8B8A8)
+TEST_F(TextureDataTest, LoadDDSStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
-	EXPECT_FALSE(dsTextureData_loadDdsStream((dsAllocator*)&allocator, NULL));
+	EXPECT_FALSE(dsTextureData_loadDDSStream((dsAllocator*)&allocator, NULL));
 
-	dsTextureData*textureData = dsTextureData_loadDdsStream((dsAllocator*)&allocator,
+	dsTextureData*textureData = dsTextureData_loadDDSStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
@@ -178,9 +178,9 @@ TEST_F(TextureDataTest, LoadDdsStream_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_B8G8R8A8)
+TEST_F(TextureDataTest, LoadDDSFile_B8G8R8A8)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("texture.b8g8r8a8.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -221,9 +221,9 @@ TEST_F(TextureDataTest, LoadDdsFile_B8G8R8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_R16G16B16A16F)
+TEST_F(TextureDataTest, LoadDDSFile_R16G16B16A16F)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("texture.r16g16b16a16f.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -264,9 +264,9 @@ TEST_F(TextureDataTest, LoadDdsFile_R16G16B16A16F)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_R5G6B5)
+TEST_F(TextureDataTest, LoadDDSFile_R5G6B5)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("texture.r5g6b5.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -307,9 +307,9 @@ TEST_F(TextureDataTest, LoadDdsFile_R5G6B5)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_BC1SRGB)
+TEST_F(TextureDataTest, LoadDDSFile_BC1SRGB)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("texture.bc1srgb.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -324,9 +324,9 @@ TEST_F(TextureDataTest, LoadDdsFile_BC1SRGB)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_Array)
+TEST_F(TextureDataTest, LoadDDSFile_Array)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("array.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -347,9 +347,9 @@ TEST_F(TextureDataTest, LoadDdsFile_Array)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFile_Cube)
+TEST_F(TextureDataTest, LoadDDSFile_Cube)
 {
-	dsTextureData* textureData = dsTextureData_loadDdsFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadDDSFile((dsAllocator*)&allocator,
 		getPath("cube.dds"));
 	ASSERT_TRUE(textureData);
 
@@ -373,16 +373,16 @@ TEST_F(TextureDataTest, LoadDdsFile_Cube)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadDdsFileToTexture)
+TEST_F(TextureDataTest, LoadDDSFileToTexture)
 {
-	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadDDSFileToTexture(NULL, NULL, NULL,
 		getPath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadDDSFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadDDSFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.dds"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
-	dsTexture* texture = dsTextureData_loadDdsFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadDDSFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.dds"), NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -419,17 +419,17 @@ TEST_F(TextureDataTest, LoadDdsFileToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
-TEST_F(TextureDataTest, LoadDdsStreamToTexture)
+TEST_F(TextureDataTest, LoadDDSStreamToTexture)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.dds"), "rb"));
 
-	EXPECT_FALSE(dsTextureData_loadDdsStreamToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadDDSStreamToTexture(NULL, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadDDSStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	dsTexture* texture = dsTextureData_loadDdsStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadDDSStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -466,13 +466,13 @@ TEST_F(TextureDataTest, LoadDdsStreamToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_R8G8B8A8)
+TEST_F(TextureDataTest, LoadKTXFile_R8G8B8A8)
 {
-	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("asdf")));
-	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("test.txt")));
-	EXPECT_FALSE(dsTextureData_loadKtxFile((dsAllocator*)&allocator, getPath("empty.txt")));
+	EXPECT_FALSE(dsTextureData_loadKTXFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadKTXFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadKTXFile((dsAllocator*)&allocator, getPath("empty.txt")));
 
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("texture.r8g8b8a8.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -506,13 +506,13 @@ TEST_F(TextureDataTest, LoadKtxFile_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxStream_R8G8B8A8)
+TEST_F(TextureDataTest, LoadKTXStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.ktx"), "rb"));
-	EXPECT_FALSE(dsTextureData_loadKtxStream((dsAllocator*)&allocator, NULL));
+	EXPECT_FALSE(dsTextureData_loadKTXStream((dsAllocator*)&allocator, NULL));
 
-	dsTextureData* textureData = dsTextureData_loadKtxStream((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
@@ -547,9 +547,9 @@ TEST_F(TextureDataTest, LoadKtxStream_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_B8G8R8A8)
+TEST_F(TextureDataTest, LoadKTXFile_B8G8R8A8)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("texture.b8g8r8a8.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -590,9 +590,9 @@ TEST_F(TextureDataTest, LoadKtxFile_B8G8R8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_R16G16B16A16F)
+TEST_F(TextureDataTest, LoadKTXFile_R16G16B16A16F)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("texture.r16g16b16a16f.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -633,9 +633,9 @@ TEST_F(TextureDataTest, LoadKtxFile_R16G16B16A16F)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_R5G6B5)
+TEST_F(TextureDataTest, LoadKTXFile_R5G6B5)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("texture.r5g6b5.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -676,9 +676,9 @@ TEST_F(TextureDataTest, LoadKtxFile_R5G6B5)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_BC1SRGB)
+TEST_F(TextureDataTest, LoadKTXFile_BC1SRGB)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("texture.bc1srgb.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -693,9 +693,9 @@ TEST_F(TextureDataTest, LoadKtxFile_BC1SRGB)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_Array)
+TEST_F(TextureDataTest, LoadKTXFile_Array)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("array.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -716,9 +716,9 @@ TEST_F(TextureDataTest, LoadKtxFile_Array)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFile_Cube)
+TEST_F(TextureDataTest, LoadKTXFile_Cube)
 {
-	dsTextureData* textureData = dsTextureData_loadKtxFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadKTXFile((dsAllocator*)&allocator,
 		getPath("cube.ktx"));
 	ASSERT_TRUE(textureData);
 
@@ -742,16 +742,16 @@ TEST_F(TextureDataTest, LoadKtxFile_Cube)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadKtxFileToTexture)
+TEST_F(TextureDataTest, LoadKTXFileToTexture)
 {
-	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadKTXFileToTexture(NULL, NULL, NULL,
 		getPath("texture.r8g8b8a8.ktx"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadKTXFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadKTXFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.ktx"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
-	dsTexture* texture = dsTextureData_loadKtxFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadKTXFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.ktx"), NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -787,17 +787,17 @@ TEST_F(TextureDataTest, LoadKtxFileToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
-TEST_F(TextureDataTest, LoadKtxStreamToTexture)
+TEST_F(TextureDataTest, LoadKTXStreamToTexture)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.ktx"), "rb"));
 
-	EXPECT_FALSE(dsTextureData_loadKtxStreamToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadKTXStreamToTexture(NULL, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadKTXStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	dsTexture* texture = dsTextureData_loadKtxStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadKTXStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -834,13 +834,13 @@ TEST_F(TextureDataTest, LoadKtxStreamToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_R8G8B8A8)
+TEST_F(TextureDataTest, LoadPVRFile_R8G8B8A8)
 {
-	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("asdf")));
-	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("test.txt")));
-	EXPECT_FALSE(dsTextureData_loadPvrFile((dsAllocator*)&allocator, getPath("empty.txt")));
+	EXPECT_FALSE(dsTextureData_loadPVRFile((dsAllocator*)&allocator, getPath("asdf")));
+	EXPECT_FALSE(dsTextureData_loadPVRFile((dsAllocator*)&allocator, getPath("test.txt")));
+	EXPECT_FALSE(dsTextureData_loadPVRFile((dsAllocator*)&allocator, getPath("empty.txt")));
 
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.r8g8b8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -874,13 +874,13 @@ TEST_F(TextureDataTest, LoadPvrFile_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrStream_R8G8B8A8)
+TEST_F(TextureDataTest, LoadPVRStream_R8G8B8A8)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.pvr"), "rb"));
-	EXPECT_FALSE(dsTextureData_loadPvrStream((dsAllocator*)&allocator, NULL));
+	EXPECT_FALSE(dsTextureData_loadPVRStream((dsAllocator*)&allocator, NULL));
 
-	dsTextureData* textureData = dsTextureData_loadPvrStream((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRStream((dsAllocator*)&allocator,
 		(dsStream*)&fileStream);
 	ASSERT_TRUE(textureData);
 	EXPECT_TRUE(dsStream_close((dsStream*)&fileStream));
@@ -915,9 +915,9 @@ TEST_F(TextureDataTest, LoadPvrStream_R8G8B8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_B8G8R8A8)
+TEST_F(TextureDataTest, LoadPVRFile_B8G8R8A8)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.b8g8r8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -958,9 +958,9 @@ TEST_F(TextureDataTest, LoadPvrFile_B8G8R8A8)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
+TEST_F(TextureDataTest, LoadPVRFile_R16G16B16A16F)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.r16g16b16a16f.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -1001,9 +1001,9 @@ TEST_F(TextureDataTest, LoadPvrFile_R16G16B16A16F)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_R5G6B5)
+TEST_F(TextureDataTest, LoadPVRFile_R5G6B5)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.r5g6b5.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -1044,9 +1044,9 @@ TEST_F(TextureDataTest, LoadPvrFile_R5G6B5)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_BC1SRGB)
+TEST_F(TextureDataTest, LoadPVRFile_BC1SRGB)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.bc1srgb.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -1061,9 +1061,9 @@ TEST_F(TextureDataTest, LoadPvrFile_BC1SRGB)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_Array)
+TEST_F(TextureDataTest, LoadPVRFile_Array)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("array.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -1083,9 +1083,9 @@ TEST_F(TextureDataTest, LoadPvrFile_Array)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFile_Cube)
+TEST_F(TextureDataTest, LoadPVRFile_Cube)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("cube.pvr"));
 	ASSERT_TRUE(textureData);
 
@@ -1108,16 +1108,16 @@ TEST_F(TextureDataTest, LoadPvrFile_Cube)
 	dsTextureData_destroy(textureData);
 }
 
-TEST_F(TextureDataTest, LoadPvrFileToTexture)
+TEST_F(TextureDataTest, LoadPVRFileToTexture)
 {
-	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadPVRFileToTexture(NULL, NULL, NULL,
 		getPath("texture.r8g8b8a8.pvr"), NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadPVRFileToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadPVRFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.pvr"), NULL, (dsTextureUsage)0, (dsGfxMemory)0));
 
-	dsTexture* texture = dsTextureData_loadPvrFileToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadPVRFileToTexture(resourceManager, NULL, NULL,
 		getPath("texture.r8g8b8a8.pvr"), NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -1153,17 +1153,17 @@ TEST_F(TextureDataTest, LoadPvrFileToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
-TEST_F(TextureDataTest, LoadPvrStreamToTexture)
+TEST_F(TextureDataTest, LoadPVRStreamToTexture)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("texture.r8g8b8a8.pvr"), "rb"));
 
-	EXPECT_FALSE(dsTextureData_loadPvrStreamToTexture(NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadPVRStreamToTexture(NULL, NULL, NULL,
 		(dsStream*)&fileStream, NULL, dsTextureUsage_Texture, dsGfxMemory_Static));
-	EXPECT_FALSE(dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
+	EXPECT_FALSE(dsTextureData_loadPVRStreamToTexture(resourceManager, NULL, NULL, NULL, NULL,
 		dsTextureUsage_Texture, dsGfxMemory_Static));
 
-	dsTexture* texture = dsTextureData_loadPvrStreamToTexture(resourceManager, NULL, NULL,
+	dsTexture* texture = dsTextureData_loadPVRStreamToTexture(resourceManager, NULL, NULL,
 		(dsStream*)&fileStream, NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Static);
 	ASSERT_TRUE(texture);
@@ -1328,7 +1328,7 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 
 TEST_F(TextureDataTest, CreateTexture)
 {
-	dsTextureData* textureData = dsTextureData_loadPvrFile((dsAllocator*)&allocator,
+	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
 		getPath("texture.r8g8b8a8.pvr"));
 	ASSERT_TRUE(textureData);
 

@@ -64,7 +64,7 @@ typedef struct TestCube
 	dsMatrix44f projection;
 } TestCube;
 
-static char assetsDir[DS_PATH_MAX];
+static const char* assetsDir = "TestCube-assets";
 static char shaderDir[100];
 
 typedef struct Vertex
@@ -313,7 +313,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
-	testCube->shaderModule = dsShaderModule_loadFile(resourceManager, allocator, path, "TestCube");
+	testCube->shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
+		dsFileResourceType_Embedded, path, "TestCube");
 	if (!testCube->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't load shader: %s", dsErrorString(errno));
@@ -356,8 +357,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
-	testCube->texture = dsTextureData_loadFileToTexture(resourceManager, allocator, NULL, path,
-		NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
+	testCube->texture = dsTextureData_loadResourceToTexture(resourceManager, allocator, NULL,
+		dsFileResourceType_Embedded, path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
 	if (!testCube->texture)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't load texture: %s", dsErrorString(errno));
@@ -468,9 +469,6 @@ int dsMain(int argc, const char** argv)
 		}
 	}
 
-	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
-	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestCube-assets"));
-
 	DS_LOG_INFO_F("TestCube", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 
 	dsSystemAllocator renderAllocator;
@@ -507,7 +505,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer);
+		renderer, argc, argv, "DeepSea", "TestCube");
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create application: %s", dsErrorString(errno));

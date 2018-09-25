@@ -95,7 +95,7 @@ typedef struct TestRenderSubpass
 	dsMatrix44f projection;
 } TestRenderSubpass;
 
-static char assetsDir[DS_PATH_MAX];
+static const char* assetsDir = "TestRenderSubpass-assets";
 static char shaderDir[100];
 
 typedef struct Vertex
@@ -557,8 +557,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		return false;
 	}
 
-	testRenderSubpass->shaderModule = dsShaderModule_loadFile(resourceManager, allocator, path,
-		"TestRenderSubpass");
+	testRenderSubpass->shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
+		dsFileResourceType_Embedded, path, "TestRenderSubpass");
 	if (!testRenderSubpass->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't load shader: %s", dsErrorString(errno));
@@ -670,8 +670,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		return false;
 	}
 
-	testRenderSubpass->texture = dsTextureData_loadFileToTexture(resourceManager, allocator, NULL,
-		path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
+	testRenderSubpass->texture = dsTextureData_loadResourceToTexture(resourceManager, allocator,
+		NULL, dsFileResourceType_Embedded, path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
 	if (!testRenderSubpass->texture)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't load texture: %s", dsErrorString(errno));
@@ -870,9 +870,6 @@ int dsMain(int argc, const char** argv)
 		}
 	}
 
-	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
-	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestRenderSubpass-assets"));
-
 	DS_LOG_INFO_F("TestRenderSubpass", "Render using %s",
 		dsRenderBootstrap_rendererName(rendererType));
 
@@ -914,7 +911,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer);
+		renderer, argc, argv, "DeepSea", "TestRenderSubpass");
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create application: %s", dsErrorString(errno));

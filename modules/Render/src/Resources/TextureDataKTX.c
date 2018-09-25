@@ -17,6 +17,7 @@
 #include <DeepSea/Render/Resources/TextureData.h>
 
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
@@ -888,11 +889,11 @@ static dsGfxFormat getTextureFormat(uint32_t glType, uint32_t glFormat, uint32_t
 	return dsGfxFormat_Unknown;
 }
 
-dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStream* stream,
+dsTextureData* dsTextureData_loadKTX(bool* isKTX, dsAllocator* allocator, dsStream* stream,
 	const char* filePath)
 {
-	if (isKtx)
-		*isKtx = false;
+	if (isKTX)
+		*isKTX = false;
 	if (!allocator || !stream)
 	{
 		errno = EINVAL;
@@ -902,8 +903,8 @@ dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStre
 	char header[sizeof(ktxHeader)];
 	if (dsStream_read(stream, header, sizeof(header)) != sizeof(header))
 	{
-		if (isKtx)
-			*isKtx = false;
+		if (isKTX)
+			*isKTX = false;
 		else
 			ktxSizeError(filePath);
 		return NULL;
@@ -911,8 +912,8 @@ dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStre
 
 	if (memcmp(header, ktxHeader, sizeof(ktxHeader)) != 0)
 	{
-		if (isKtx)
-			*isKtx = false;
+		if (isKTX)
+			*isKTX = false;
 		else
 		{
 			ktxError("Invalid KTX file", filePath);
@@ -1065,7 +1066,7 @@ dsTextureData* dsTextureData_loadKtx(bool* isKtx, dsAllocator* allocator, dsStre
 	return textureData;
 }
 
-dsTextureData* dsTextureData_loadKtxFile(dsAllocator* allocator, const char* filePath)
+dsTextureData* dsTextureData_loadKTXFile(dsAllocator* allocator, const char* filePath)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1075,31 +1076,66 @@ dsTextureData* dsTextureData_loadKtxFile(dsAllocator* allocator, const char* fil
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsFileStream fileStream;
-	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open KTX file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* textureData = dsTextureData_loadKtx(NULL, allocator, (dsStream*)&fileStream,
+	dsTextureData* textureData = dsTextureData_loadKTX(NULL, allocator, (dsStream*)&stream,
 		filePath);
 	if (textureData)
 	{
-		uint64_t pos = dsStream_tell((dsStream*)&fileStream);
-		dsStream_seek((dsStream*)&fileStream, 0, dsStreamSeekWay_End);
-		if (pos != dsStream_tell((dsStream*)&fileStream))
+		uint64_t pos = dsStream_tell((dsStream*)&stream);
+		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
+		if (pos != dsStream_tell((dsStream*)&stream))
 		{
 			ktxError("Unexpected file size", filePath);
 			dsTextureData_destroy(textureData);
 			textureData = NULL;
 		}
 	}
-	DS_VERIFY(dsStream_close((dsStream*)&fileStream));
+	DS_VERIFY(dsStream_close((dsStream*)&stream));
 	DS_PROFILE_FUNC_RETURN(textureData);
 }
 
-dsTextureData* dsTextureData_loadKtxStream(dsAllocator* allocator, dsStream* stream)
+dsTextureData* dsTextureData_loadKTXResource(dsAllocator* allocator, dsFileResourceType type,
+	const char* filePath)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open KTX file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsTextureData* textureData = dsTextureData_loadKTX(NULL, allocator, (dsStream*)&stream,
+		filePath);
+	if (textureData)
+	{
+		uint64_t pos = dsStream_tell((dsStream*)&stream);
+		dsStream_seek((dsStream*)&stream, 0, dsStreamSeekWay_End);
+		if (pos != dsStream_tell((dsStream*)&stream))
+		{
+			ktxError("Unexpected file size", filePath);
+			dsTextureData_destroy(textureData);
+			textureData = NULL;
+		}
+	}
+	DS_VERIFY(dsStream_close((dsStream*)&stream));
+	DS_PROFILE_FUNC_RETURN(textureData);
+}
+
+dsTextureData* dsTextureData_loadKTXStream(dsAllocator* allocator, dsStream* stream)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -1109,11 +1145,11 @@ dsTextureData* dsTextureData_loadKtxStream(dsAllocator* allocator, dsStream* str
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	dsTextureData* result = dsTextureData_loadKtx(NULL, allocator, stream, NULL);
+	dsTextureData* result = dsTextureData_loadKTX(NULL, allocator, stream, NULL);
 	DS_PROFILE_FUNC_RETURN(result);
 }
 
-dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager,
+dsTexture* dsTextureData_loadKTXFileToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, const char* filePath,
 	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
@@ -1131,7 +1167,7 @@ dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager
 			tempAllocator = resourceManager->allocator;
 	}
 
-	dsTextureData* textureData = dsTextureData_loadKtxFile(tempAllocator, filePath);
+	dsTextureData* textureData = dsTextureData_loadKTXFile(tempAllocator, filePath);
 	if (!textureData)
 		return NULL;
 
@@ -1141,7 +1177,36 @@ dsTexture* dsTextureData_loadKtxFileToTexture(dsResourceManager* resourceManager
 	return texture;
 }
 
-dsTexture* dsTextureData_loadKtxStreamToTexture(dsResourceManager* resourceManager,
+dsTexture* dsTextureData_loadKTXResourceToTexture(dsResourceManager* resourceManager,
+	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsFileResourceType type,
+	const char* filePath, const dsTextureDataOptions* options, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
+{
+	if (!resourceManager || !filePath)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	if (!tempAllocator)
+	{
+		if (textureAllocator)
+			tempAllocator = textureAllocator;
+		else
+			tempAllocator = resourceManager->allocator;
+	}
+
+	dsTextureData* textureData = dsTextureData_loadKTXResource(tempAllocator, type, filePath);
+	if (!textureData)
+		return NULL;
+
+	dsTexture* texture = dsTextureData_createTexture(resourceManager, textureAllocator, textureData,
+		options, usage, memoryHints);
+	dsTextureData_destroy(textureData);
+	return texture;
+}
+
+dsTexture* dsTextureData_loadKTXStreamToTexture(dsResourceManager* resourceManager,
 	dsAllocator* textureAllocator, dsAllocator* tempAllocator, dsStream* stream,
 	const dsTextureDataOptions* options, dsTextureUsage usage, dsGfxMemory memoryHints)
 {
@@ -1159,7 +1224,7 @@ dsTexture* dsTextureData_loadKtxStreamToTexture(dsResourceManager* resourceManag
 			tempAllocator = resourceManager->allocator;
 	}
 
-	dsTextureData* textureData = dsTextureData_loadKtxStream(tempAllocator, stream);
+	dsTextureData* textureData = dsTextureData_loadKTXStream(tempAllocator, stream);
 	if (!textureData)
 		return NULL;
 

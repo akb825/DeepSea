@@ -102,6 +102,33 @@ DS_TEXT_EXPORT bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fil
 	const char* name);
 
 /**
+ * @brief Loads a font face from resource file.
+ * @remark errno will be set on failure.
+ * @param group The face group.
+ * @param allocator The allocator to use hold the font data in.
+ * @param type The resource type.
+ * @param fileName The name of the font file to load the face from.
+ * @param name The name of the font face. The length, including null terminator, must not exceed
+ *     DS_MAX_FACE_NAME_LENGTH.
+ * @return True if the face was loaded.
+ */
+DS_TEXT_EXPORT bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
+	dsFileResourceType type, const char* fileName, const char* name);
+
+/**
+ * @brief Loads a font face from stream.
+ * @remark errno will be set on failure.
+ * @param group The face group.
+ * @param allocator The allocator to use hold the font data in.
+ * @param stream The stream to load the file from.
+ * @param name The name of the font face. The length, including null terminator, must not exceed
+ *     DS_MAX_FACE_NAME_LENGTH.
+ * @return True if the face was loaded.
+ */
+DS_TEXT_EXPORT bool dsFaceGroup_loadFaceStream(dsFaceGroup* group, dsAllocator* allocator,
+	dsStream* stream, const char* name);
+
+/**
  * @brief Loads a font face from a memory buffer.
  * @remark errno will be set on failure.
  * @param group The face group.

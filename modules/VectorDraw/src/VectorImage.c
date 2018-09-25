@@ -25,6 +25,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -992,8 +993,8 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsAllocator* resou
 	if (!resourceAllocator)
 		resourceAllocator = allocator;
 
-	dsFileStream fileStream;
-	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector image file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
@@ -1001,8 +1002,44 @@ dsVectorImage* dsVectorImage_loadFile(dsAllocator* allocator, dsAllocator* resou
 
 	size_t size;
 	void* buffer = dsVectorScratchData_readUntilEnd(&size, initResources->scratchData,
-		(dsStream*)&fileStream, initResources->scratchData->allocator);
-	dsFileStream_close(&fileStream);
+		(dsStream*)&stream, initResources->scratchData->allocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorImage* image = dsVectorImage_loadImpl(allocator, resourceAllocator, initResources,
+		buffer, size, pixelSize, targetSize, filePath);
+	DS_PROFILE_FUNC_RETURN(image);
+}
+
+dsVectorImage* dsVectorImage_loadResource(dsAllocator* allocator, dsAllocator* resourceAllocator,
+	const dsVectorImageInitResources* initResources, dsFileResourceType type, const char* filePath,
+	float pixelSize, const dsVector2f* targetSize)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !initResourcesValid(initResources) || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!resourceAllocator)
+		resourceAllocator = allocator;
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector image file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsVectorScratchData_readUntilEnd(&size, initResources->scratchData,
+		(dsStream*)&stream, initResources->scratchData->allocator);
+	dsStream_close((dsStream*)&stream);
 	if (!buffer)
 	{
 		DS_PROFILE_FUNC_RETURN(NULL);

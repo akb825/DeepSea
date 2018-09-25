@@ -54,6 +54,25 @@ DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadFile(dsResourceManager* reso
 	dsAllocator* allocator, const char* filePath, const char* name);
 
 /**
+ * @brief Loads a shader module from a resource file.
+ *
+ * The shader module is expected to be an mslb file created with ModuleShaderLanguage.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the shader module from.
+ * @param allocator The allocator to create the shader module with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param type The resource type.
+ * @param filePath The file path for the shader module to load.
+ * @param name The name of the module. This will be used for error checking and caching of shader
+ *     binaries and should be unique. The lifetime of name should exceed the lifetime of the shader
+ *     module. (such as a string constant)
+ * @return The created shader module, or NULL if it couldn't be created.
+ */
+DS_RENDER_EXPORT dsShaderModule* dsShaderModule_loadResource(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath, const char* name);
+
+/**
  * @brief Loads a shader module from a stream.
  *
  * The shader module is expected to have been created with ModuleShaderLanguage.

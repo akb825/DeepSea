@@ -51,6 +51,26 @@ DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadFile(
 	dsMaterialElement* customElements, uint32_t customElementCount);
 
 /**
+ * @brief Creates the vector shader module from a resource file.
+ *
+ * The shader module is expected to be an mslb file created with ModuleShaderLanguage.
+ *
+ * @remark errno will be set on failure.
+ * @param resourceManager The resource manager to create the shader module from.
+ * @param allocator The allocator to create the shader module with. If NULL, it will use the same
+ *     allocator as the resource manager.
+ * @param type The resource type.
+ * @param filePath The file path for the shader module to load.
+ * @param customElements Custom elements to add to the material description when using a custom
+ *     shader module. This may be NULL for no custom elements.
+ * @param customElementCount The number of custom elements to add.
+ * @return The vector shaders, or NULL if it couldn't be loaded.
+ */
+DS_VECTORDRAW_EXPORT dsVectorShaderModule* dsVectorShaderModule_loadResource(
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsFileResourceType type,
+	const char* filePath, dsMaterialElement* customElements, uint32_t customElementCount);
+
+/**
  * @brief Creates the vector shader module from a stream.
  *
  * The shader module is expected to be an mslb file created with ModuleShaderLanguage.

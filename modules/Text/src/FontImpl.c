@@ -20,6 +20,9 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
+#include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -190,7 +193,49 @@ static dsFontFace* insertFace(dsFaceGroup* group, const char* name, FT_Face ftFa
 	return face;
 }
 
-uint32_t* createCodepointMapping(dsFaceGroup* group, uint32_t length)
+static bool dsFaceGroup_loadFaceImpl(dsFaceGroup* group, dsAllocator* allocator, dsStream* stream,
+	const char* name)
+{
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, stream, allocator);
+	if (!buffer)
+		return false;
+
+	DS_VERIFY(dsMutex_lock(group->mutex));
+	FT_Open_Args args;
+	args.flags = FT_OPEN_MEMORY;
+	args.memory_base = (const FT_Byte*)buffer;
+	args.memory_size = (FT_Long)size;
+	FT_Face ftFace;
+	if (setFontLoadErrno(FT_Open_Face(group->library, &args, 0, &ftFace)))
+	{
+		DS_VERIFY(dsMutex_unlock(group->mutex));
+		if (dsAllocator_keepPointer(allocator))
+			dsAllocator_free(allocator, buffer);
+		return false;
+	}
+
+	dsFontFace* face = insertFace(group, name, ftFace);
+	if (!face)
+	{
+		FT_Done_Face(ftFace);
+		DS_VERIFY(dsMutex_unlock(group->mutex));
+		if (dsAllocator_keepPointer(allocator))
+			dsAllocator_free(allocator, buffer);
+		return false;
+	}
+
+	if (dsAllocator_keepPointer(allocator))
+	{
+		face->bufferAllocator = allocator;
+		face->buffer = buffer;
+	}
+
+	DS_VERIFY(dsMutex_unlock(group->mutex));
+	return true;
+}
+
+static uint32_t* createCodepointMapping(dsFaceGroup* group, uint32_t length)
 {
 	uint32_t codepointMappingCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(group->scratchAllocator, group->codepointMapping,
@@ -985,6 +1030,47 @@ bool dsFaceGroup_loadFaceFile(dsFaceGroup* group, const char* fileName, const ch
 	return true;
 }
 
+bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
+	dsFileResourceType type, const char* fileName, const char* name)
+{
+	if (dsResourceStream_isFile(type))
+	{
+		char path[DS_PATH_MAX];
+		if (!dsPath_combine(path, DS_PATH_MAX, dsResourceStream_getDirectory(type), fileName))
+			return false;
+		return dsFaceGroup_loadFaceFile(group, path, name);
+	}
+
+	if (!group || !allocator || !fileName || !name)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, fileName, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Couldn't open font face file '%s'.", fileName);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	bool retVal = dsFaceGroup_loadFaceImpl(group, allocator, (dsStream*)&stream, name);
+	dsStream_close((dsStream*)&stream);
+	return retVal;
+}
+
+bool dsFaceGroup_loadFaceStream(dsFaceGroup* group, dsAllocator* allocator,
+	dsStream* stream, const char* name)
+{
+	if (!group || !allocator || !stream || !name)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	return dsFaceGroup_loadFaceImpl(group, allocator, stream, name);
+}
+
 bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, const void* buffer,
 	size_t size, const char* name)
 {
@@ -1014,6 +1100,8 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 	if (setFontLoadErrno(FT_Open_Face(group->library, &args, 0, &ftFace)))
 	{
 		DS_VERIFY(dsMutex_unlock(group->mutex));
+		if (loadBuffer != buffer && dsAllocator_keepPointer(allocator))
+			dsAllocator_free(allocator, loadBuffer);
 		return false;
 	}
 
@@ -1022,6 +1110,8 @@ bool dsFaceGroup_loadFaceBuffer(dsFaceGroup* group, dsAllocator* allocator, cons
 	{
 		FT_Done_Face(ftFace);
 		DS_VERIFY(dsMutex_unlock(group->mutex));
+		if (loadBuffer != buffer && dsAllocator_keepPointer(allocator))
+			dsAllocator_free(allocator, loadBuffer);
 		return false;
 	}
 

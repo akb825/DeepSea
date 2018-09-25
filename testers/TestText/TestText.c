@@ -92,7 +92,7 @@ typedef struct TestText
 	uint32_t curString;
 } TestText;
 
-static char assetsDir[DS_PATH_MAX];
+static const char* assetsDir = "TestText-assets";
 static char shaderDir[100];
 
 typedef struct StandardVertex
@@ -756,7 +756,8 @@ static bool setupShaders(TestText* testText)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testText->shaderModule = dsShaderModule_loadFile(resourceManager, allocator, path, "TestText");
+	testText->shaderModule = dsShaderModule_loadResource(resourceManager, allocator,
+		dsFileResourceType_Embedded, path, "TestText");
 	if (!testText->shaderModule)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load shader: %s", dsErrorString(errno));
@@ -946,7 +947,8 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 		}
 		fontPath = path;
 	}
-	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, fontPath, "Latin"))
+	if (!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
+		fontPath, "Latin"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -954,7 +956,8 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
 		!dsPath_combine(path, sizeof(path), path, "NotoSansArabic-Regular.ttf") ||
-		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Arabic"))
+		!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
+			path, "Arabic"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -962,14 +965,16 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 
 	if (!dsPath_combine(path, sizeof(path), assetsDir, "Fonts") ||
 		!dsPath_combine(path, sizeof(path), path, "NotoSansThai-Regular.ttf") ||
-		!dsFaceGroup_loadFaceFile(testText->faceGroup, path, "Thai"))
+		!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
+			path, "Thai"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 #ifdef CHINESE_FONT_PATH
-	if (!dsFaceGroup_loadFaceFile(testText->faceGroup, CHINESE_FONT_PATH, "Chinese"))
+	if (!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
+		CHINESE_FONT_PATH, "Chinese"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
@@ -1221,9 +1226,6 @@ int dsMain(int argc, const char** argv)
 		}
 	}
 
-	DS_VERIFY(dsPath_getDirectoryName(assetsDir, sizeof(assetsDir), argv[0]));
-	DS_VERIFY(dsPath_combine(assetsDir, sizeof(assetsDir), assetsDir, "TestText-assets"));
-
 	DS_LOG_INFO_F("TestText", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
 
 	dsSystemAllocator renderAllocator;
@@ -1265,7 +1267,7 @@ int dsMain(int argc, const char** argv)
 		dsRenderer_chooseShaderVersion(renderer, shaderVersions, DS_ARRAY_SIZE(shaderVersions))));
 
 	dsApplication* application = dsSDLApplication_create((dsAllocator*)&applicationAllocator,
-		renderer);
+		renderer, argc, argv, "DeepSea", "TestText");
 	if (!application)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create application: %s", dsErrorString(errno));

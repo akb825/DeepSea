@@ -177,6 +177,22 @@ dsVectorShaderModule* dsVectorShaderModule_loadFile(dsResourceManager* resourceM
 		customElementCount);
 }
 
+dsVectorShaderModule* dsVectorShaderModule_loadResource(dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsFileResourceType type, const char* filePath,
+	dsMaterialElement* customElements, uint32_t customElementCount)
+{
+	if (!targetSupported(resourceManager))
+		return NULL;
+
+	dsShaderModule* module = dsShaderModule_loadResource(resourceManager, allocator, type, filePath,
+		"VectorImage");
+	if (!module)
+		return NULL;
+
+	return createVectorShaderModule(resourceManager, allocator, module, customElements,
+		customElementCount);
+}
+
 dsVectorShaderModule* dsVectorShaderModule_loadStream(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsStream* stream, dsMaterialElement* customElements,
 	uint32_t customElementCount)

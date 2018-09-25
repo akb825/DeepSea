@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Profile.h>
@@ -242,16 +243,64 @@ dsVectorResources* dsVectorResources_loadFile(dsAllocator* allocator, dsAllocato
 		}
 	}
 
-	dsFileStream fileStream;
-	if (!dsFileStream_openPath(&fileStream, filePath, "rb"))
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, filePath, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector resources file '%s'.", filePath);
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	size_t size;
-	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&fileStream, scratchAllocator);
-	dsFileStream_close(&fileStream);
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsFileStream_close(&stream);
+	if (!buffer)
+	{
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
+		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
+		qualityRemap, filePath);
+	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
+	DS_PROFILE_FUNC_RETURN(resources);
+}
+
+dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
+	dsAllocator* scratchAllocator, dsResourceManager* resourceManager, dsFileResourceType type,
+	const char* filePath, const dsTextQuality* qualityRemap)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!allocator || !resourceManager || !filePath)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	if (!scratchAllocator)
+		scratchAllocator = allocator;
+
+	char baseDirectory[DS_PATH_MAX];
+	if (!dsPath_getDirectoryName(baseDirectory, sizeof(baseDirectory), filePath))
+	{
+		if (errno == EINVAL)
+			baseDirectory[0] = 0;
+		else
+		{
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+	}
+
+	dsResourceStream stream;
+	if (!dsResourceStream_open(&stream, type, filePath, "rb"))
+	{
+		DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Couldn't open vector resources file '%s'.", filePath);
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
+	size_t size;
+	void* buffer = dsStream_readUntilEnd(&size, (dsStream*)&stream, scratchAllocator);
+	dsStream_close((dsStream*)&stream);
 	if (!buffer)
 	{
 		DS_PROFILE_FUNC_RETURN(NULL);
