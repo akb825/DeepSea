@@ -91,7 +91,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	}
 
 	SDL_Window* internalWindow = SDL_CreateWindow(title, x, y, width, height, sdlFlags);
-	if (!sdlWindow)
+	if (!internalWindow)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
