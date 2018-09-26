@@ -75,10 +75,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
 	}
-#if DS_ANDROID
-	// HACK: SDL will always create an EGL surface unless set to vulkan.
-	sdlFlags |= SDL_WINDOW_VULKAN;
-#endif
 
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;

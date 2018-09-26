@@ -263,10 +263,6 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_GrabInput;
 		if (shouldSetOpenGL(application->renderer))
 			flags |= SDL_WINDOW_OPENGL;
-#if DS_ANDROID
-		// HACK: SDL will always create an EGL surface unless set to vulkan.
-		flags |= SDL_WINDOW_VULKAN;
-#endif
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, surfaceName, &position, width, height,
