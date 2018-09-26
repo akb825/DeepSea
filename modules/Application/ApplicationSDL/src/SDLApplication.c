@@ -322,7 +322,7 @@ int dsSDLApplication_run(dsApplication* application)
 	dsTimer timer = dsTimer_create();
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	double lastTime = dsTimer_time(timer);
-	while (!sdlApplication->quit || application->windowCount > 0)
+	while (!sdlApplication->quit && application->windowCount > 0)
 	{
 		double curTime = dsTimer_time(timer);
 		double lastFrameTime = curTime - lastTime;
@@ -331,6 +331,23 @@ int dsSDLApplication_run(dsApplication* application)
 		DS_VERIFY(dsRenderer_beginFrame(application->renderer));
 
 		DS_PROFILE_SCOPE_START("Process Events");
+		// Check if any size has changed.
+		for (uint32_t i = 0; i < application->windowCount; ++i)
+		{
+			dsWindow* window = application->windows[i];
+			uint32_t oldWidth = window->surface->width;
+			uint32_t oldHeight = window->surface->height;
+			dsRenderSurface_update(window->surface);
+			if (window->surface->width != oldWidth || window->surface->height != oldHeight)
+			{
+				dsEvent event;
+				event.type = dsEventType_WindowResized;
+				event.resize.width = window->surface->width;
+				event.resize.height = window->surface->height;
+				dsApplication_dispatchEvent(application, window, &event);
+			}
+		}
+
 		SDL_Event sdlEvent;
 		while (SDL_PollEvent(&sdlEvent))
 		{
@@ -363,12 +380,6 @@ int dsSDLApplication_run(dsApplication* application)
 							break;
 						case SDL_WINDOWEVENT_HIDDEN:
 							event.type = dsEventType_WindowHidden;
-							break;
-						case SDL_WINDOWEVENT_SIZE_CHANGED:
-							event.type = dsEventType_WindowResized;
-							event.resize.width = sdlEvent.window.data1;
-							event.resize.height = sdlEvent.window.data2;
-							dsRenderSurface_update(window->surface);
 							break;
 						case SDL_WINDOWEVENT_MINIMIZED:
 							event.type = dsEventType_WindowMinimized;

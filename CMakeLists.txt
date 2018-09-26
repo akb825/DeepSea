@@ -42,6 +42,8 @@ set(DEEPSEA_EXPORTS_DIR ${CMAKE_BINARY_DIR}/cmake CACHE PATH
 set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 	"Root folder for the DeepSea projects. Usefull when embedding in other projects.")
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
+set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
+	"Folder relative to project app directory to place assets for Android.")
 
 # Call this function to get the following variables:
 # DEEPSEA_SOURCE_DIR: Root source directory for DeepSea.

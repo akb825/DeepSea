@@ -207,6 +207,10 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (!createFramebuffer(testCube))
 				abort();
 			return true;
+		case dsEventType_KeyDown:
+			if (event->key.key == dsKeyCode_ACBack)
+				dsApplication_quit(application, 0);
+			return true;
 		default:
 			return true;
 	}

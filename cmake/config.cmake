@@ -241,15 +241,11 @@ endmacro()
 macro(ds_build_assets_dir output)
 	if (ANDROID)
 		# Get the assets directory based on the structure defined by Android Studio.
-		# Base output directory, minus obj/${ANDROID_ABI}
-		get_filename_component(_baseOutputDir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} DIRECTORY)
-		get_filename_component(_baseOutputDir ${_baseOutputDir} DIRECTORY)
 		# Root build directory for the APK.
-		string(REGEX MATCH ".*/build/intermediates" _rootBuildDir ${_baseOutputDir})
-		# Target name
-		file(RELATIVE_PATH _targetName ${_rootBuildDir}/cmake ${_baseOutputDir})
+		string(REGEX MATCH ".*/build" _buildDir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 		# Final assets directory based on the root build directory and target name.
-		set(${output} ${_rootBuildDir}/assets/${_targetName})
+		get_filename_component(_appDir ${_buildDir} DIRECTORY)
+		set(${output} ${_appDir}/${DEEPSEA_ANDROID_ASSETS_DIR})
 	else()
 		if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 			set(${output} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
