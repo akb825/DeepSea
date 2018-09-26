@@ -201,7 +201,7 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				return false;
 			}
 
-			dsPath_combine(finalPath, DS_PATH_MAX, gEmbeddedDir, path);
+			dsPath_combine(finalPath, sizeof(finalPath), gEmbeddedDir, path);
 #if DS_ANDROID
 			if (!gAssetManager)
 			{
@@ -237,10 +237,10 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				DS_LOG_ERROR(DS_CORE_LOG_TAG, "Installed assets cannot be written to.");
 				return false;
 			}
-			dsPath_combine(finalPath, DS_PATH_MAX, gLocalDir, path);
+			dsPath_combine(finalPath, sizeof(finalPath), gLocalDir, path);
 			break;
 		case dsFileResourceType_Dynamic:
-			dsPath_combine(finalPath, DS_PATH_MAX, gDynamicDir, path);
+			dsPath_combine(finalPath, sizeof(finalPath), gDynamicDir, path);
 			break;
 	}
 

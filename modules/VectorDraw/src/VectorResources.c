@@ -69,6 +69,13 @@ typedef struct dsFontNode
 	bool owned;
 } dsFontNode;
 
+typedef struct dsResourceInfo
+{
+	dsAllocator* allocator;
+	const char* basePath;
+	dsFileResourceType type;
+} dsResourceInfo;
+
 static const float loadFactor = 0.75f;
 
 static uint32_t tableSize(uint32_t maxSize)
@@ -106,6 +113,39 @@ static bool loadFontFaceFile(void* userData, dsFaceGroup* faceGroup, const char*
 	}
 
 	return dsFaceGroup_loadFaceFile(faceGroup, finalPath, name);
+}
+
+static dsTexture* loadTextureResource(void* userData, dsResourceManager* resourceManager,
+	dsAllocator* allocator, dsAllocator* tempAllocator, const char* path, dsTextureUsage usage,
+	dsGfxMemory memoryHints)
+{
+	dsResourceInfo* resourceInfo = (dsResourceInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), resourceInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", resourceInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return NULL;
+	}
+
+	return dsTextureData_loadResourceToTexture(resourceManager, allocator, tempAllocator,
+		resourceInfo->type, finalPath, NULL, usage, memoryHints);
+}
+
+static bool loadFontFaceResource(void* userData, dsFaceGroup* faceGroup, const char* path,
+	const char* name)
+{
+	dsResourceInfo* resourceInfo = (dsResourceInfo*)userData;
+	char finalPath[DS_PATH_MAX];
+	if (!dsPath_combine(finalPath, sizeof(finalPath), resourceInfo->basePath, path))
+	{
+		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Path '%s%c%s' is too long.", resourceInfo->basePath,
+			DS_PATH_SEPARATOR, path);
+		return false;
+	}
+
+	return dsFaceGroup_loadFaceResource(faceGroup, resourceInfo->allocator, resourceInfo->type,
+		finalPath, name);
 }
 
 dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocator* scratchAllocator,
@@ -306,8 +346,9 @@ dsVectorResources* dsVectorResources_loadResource(dsAllocator* allocator,
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	dsResourceInfo resourceInfo = {scratchAllocator, baseDirectory, type};
 	dsVectorResources* resources = dsVectorResources_loadImpl(allocator, scratchAllocator,
-		resourceManager, buffer, size, baseDirectory, &loadTextureFile, &loadFontFaceFile,
+		resourceManager, buffer, size, &resourceInfo, &loadTextureResource, &loadFontFaceResource,
 		qualityRemap, filePath);
 	DS_VERIFY(dsAllocator_free(scratchAllocator, buffer));
 	DS_PROFILE_FUNC_RETURN(resources);
