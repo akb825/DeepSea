@@ -33,6 +33,7 @@ typedef struct dsSDLWindow
 
 bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,
 	const dsVector2i* position, uint32_t width, uint32_t height, dsWindowFlags flags);
+bool dsSDLWindow_createSurface(dsWindow* window, const char* surfaceName);
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,

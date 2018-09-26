@@ -289,6 +289,20 @@ static void updateWindowSamples(dsApplication* application)
 	}
 }
 
+#if DS_ANDROID
+static void invalidateWindowSurfaces(dsApplication* application)
+{
+	for (unsigned int i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		const char* surfaceName = window->surface->name;
+		dsRenderSurface_destroy(window->surface);
+		window->surface = NULL;
+		dsSDLWindow_createSurface(window, surfaceName);
+	}
+}
+#endif
+
 bool dsSDLApplication_addCustomEvent(dsApplication* application, dsWindow* window,
 	const dsCustomEvent* event)
 {
@@ -369,6 +383,9 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_APP_DIDENTERFOREGROUND:
 					event.type = dsEventType_DidEnterForeground;
+#if DS_ANDROID
+					invalidateWindowSurfaces(application);
+#endif
 					break;
 				case SDL_WINDOWEVENT:
 				{

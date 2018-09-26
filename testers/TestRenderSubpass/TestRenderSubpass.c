@@ -323,6 +323,10 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			if (!createFramebuffer(testRenderSubpass))
 				abort();
 			return true;
+		case dsEventType_KeyDown:
+			if (event->key.key == dsKeyCode_ACBack)
+				dsApplication_quit(application, 0);
+			return false;
 		default:
 			return true;
 	}

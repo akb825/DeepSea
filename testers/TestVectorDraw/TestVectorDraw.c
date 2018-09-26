@@ -74,6 +74,8 @@ typedef struct TestVectorDraw
 
 	uint32_t vectorImageCount;
 	uint32_t curVectorImage;
+	uint32_t fingerCount;
+	uint32_t maxFingers;
 	bool updateImage;
 	bool wireframe;
 } TestVectorDraw;
@@ -217,11 +219,40 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				case dsKeyCode_W:
 					testVectorDraw->wireframe = !testVectorDraw->wireframe;
 					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
 				default:
 					return true;
 			}
 		case dsEventType_TouchFingerDown:
-			nextImage(testVectorDraw);
+			++testVectorDraw->fingerCount;
+			testVectorDraw->maxFingers = dsMax(testVectorDraw->fingerCount,
+				testVectorDraw->maxFingers);
+			return true;
+		case dsEventType_TouchFingerUp:
+			if (testVectorDraw->fingerCount == 0)
+				return true;
+
+			--testVectorDraw->fingerCount;
+			if (testVectorDraw->fingerCount == 0)
+			{
+				switch (testVectorDraw->maxFingers)
+				{
+					case 1:
+						nextImage(testVectorDraw);
+						break;
+					case 2:
+						prevImage(testVectorDraw);
+						break;
+					case 3:
+						testVectorDraw->wireframe = !testVectorDraw->wireframe;
+						break;
+					default:
+						break;
+				}
+				testVectorDraw->maxFingers = 0;
+			}
 			return true;
 		default:
 			return true;

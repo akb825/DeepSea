@@ -97,14 +97,35 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		DS_LOG_ERROR_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create window: %s", SDL_GetError());
 		return false;
 	}
-	dsRenderer_restoreGlobalState(application->renderer);
 
+	window->surface = NULL;
 	sdlWindow->samples = application->renderer->surfaceSamples;
 	sdlWindow->sdlWindow = internalWindow;
+	if (!dsSDLWindow_createSurface(window, surfaceName))
+	{
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
+		SDL_DestroyWindow(internalWindow);
+		dsRenderer_restoreGlobalState(application->renderer);
+		sdlWindow->sdlWindow = NULL;
+		return false;
+	}
+
+	window->style = dsWindowStyle_Normal;
+	DS_ASSERT(application->displayCount > 0);
+	window->displayMode = application->displays[0].displayModes[
+		application->displays[0].defaultMode];
+	return true;
+}
+
+bool dsSDLWindow_createSurface(dsWindow* window, const char* surfaceName)
+{
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	dsApplication* application = window->application;
+	dsRenderer_restoreGlobalState(application->renderer);
 
 	SDL_SysWMinfo info;
 	SDL_VERSION(&info.version);
-	DS_VERIFY(SDL_GetWindowWMInfo(internalWindow, &info));
+	DS_VERIFY(SDL_GetWindowWMInfo(sdlWindow->sdlWindow, &info));
 	void* windowHandle = NULL;
 	switch (info.subsystem)
 	{
@@ -141,8 +162,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		default:
 			errno = EPERM;
 			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
-			SDL_DestroyWindow(internalWindow);
-			dsRenderer_restoreGlobalState(application->renderer);
 			return false;
 	}
 
@@ -154,21 +173,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		dsSDLWindow_releaseUsableWindowHandle(windowHandle);
 #endif
 
-	if (!window->surface)
-	{
-		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
-		SDL_DestroyWindow(internalWindow);
-		dsRenderer_restoreGlobalState(application->renderer);
-		return false;
-	}
-
-	sdlWindow->sdlWindow = internalWindow;
-
-	window->style = dsWindowStyle_Normal;
-	DS_ASSERT(application->displayCount > 0);
-	window->displayMode = application->displays[0].displayModes[
-		application->displays[0].defaultMode];
-	return true;
+	return window->surface != NULL;
 }
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,

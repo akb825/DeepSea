@@ -210,7 +210,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 		case dsEventType_KeyDown:
 			if (event->key.key == dsKeyCode_ACBack)
 				dsApplication_quit(application, 0);
-			return true;
+			return false;
 		default:
 			return true;
 	}

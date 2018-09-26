@@ -677,6 +677,9 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 				case dsKeyCode_Left:
 					prevText(testText);
 					return false;
+				case dsKeyCode_ACBack:
+					dsApplication_quit(application, 0);
+					return false;
 				default:
 					return true;
 			}
