@@ -432,10 +432,14 @@ static void createSamplers(dsGLShader* shader, mslModule* module, uint32_t shade
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 
-		if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+		if (AnyGL_atLeastVersion(2, 0, false))
 		{
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_LOD_BIAS,
 				samplerState.mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.mipLodBias);
+		}
+
+		if (AnyGL_atLeastVersion(2, 0, false) || AnyGL_atLeastVersion(3, 0, true))
+		{
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MIN_LOD,
 				samplerState.minLod == MSL_UNKNOWN_FLOAT ? -1000.0f : samplerState.minLod);
 			glSamplerParameterf(shader->samplerIds[i], GL_TEXTURE_MAX_LOD,

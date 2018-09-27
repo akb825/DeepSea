@@ -235,7 +235,7 @@ static void update(dsApplication* application, double lastFrameTime, void* userD
 	dsMatrix44_affineMul(modelView, testCube->view, model);
 	dsMatrix44_mul(modelViewProjection, testCube->projection, modelView);
 	DS_VERIFY(dsMaterial_setElementData(testCube->material, 0, &modelViewProjection,
-		dsMaterialType_Mat4, 0,  1));
+		dsMaterialType_Mat4, 0, 1));
 }
 
 static void draw(dsApplication* application, dsWindow* window, void* userData)
