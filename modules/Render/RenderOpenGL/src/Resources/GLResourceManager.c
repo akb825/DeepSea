@@ -89,24 +89,28 @@ static dsGfxBufferUsage getSupportedBuffers(uint32_t shaderVersion)
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_IndirectDispatch);
 	}
 
-	if (AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 0, true) ||
+	if (AnyGL_atLeastVersion(3, 1, false) || AnyGL_atLeastVersion(3, 2, true) ||
 		AnyGL_ARB_texture_buffer_object || AnyGL_EXT_texture_buffer_object)
 	{
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_Image);
 	}
+
+	if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_atLeastVersion(3, 2, true))
+		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_MutableImage);
 
 	// Use shader version to determine if uniform blocks are enabled. MSL requires named uniform
 	// blocks, and it's possible that the extension is supported but the shaders loaded wouldn't
 	// use uniform blocks.
 	if ((ANYGL_GLES && shaderVersion >= DS_ENCODE_VERSION(3, 0, 0)) ||
 		(!ANYGL_GLES && shaderVersion >= DS_ENCODE_VERSION(1, 5, 0)))
+	{
 		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBlock);
+	}
 
 	if (AnyGL_atLeastVersion(4, 3, false) || AnyGL_atLeastVersion(3, 1, true) ||
 		AnyGL_ARB_shader_storage_buffer_object)
 	{
-		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBuffer |
-			dsGfxBufferUsage_MutableImage);
+		supportedBuffers = (dsGfxBufferUsage)(supportedBuffers | dsGfxBufferUsage_UniformBuffer);
 	}
 
 	return supportedBuffers;

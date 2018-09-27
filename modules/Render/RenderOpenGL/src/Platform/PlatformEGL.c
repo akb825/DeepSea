@@ -39,6 +39,7 @@ static void addOption(GLint* attr, unsigned int* size, GLint option, GLint value
 
 static EGLint eglMajor;
 static EGLint eglMinor;
+static bool hasColorspace;
 
 static bool atLeastVersion(EGLint major, EGLint minor)
 {
@@ -52,6 +53,8 @@ void* dsGetGLDisplay(void)
 		return NULL;
 
 	eglInitialize(display, &eglMajor, &eglMinor);
+	const char* extensions = eglQueryString(display, EGL_EXTENSIONS);
+	hasColorspace = strstr(extensions, "EGL_KHR_gl_colorspace") != NULL;
 	return display;
 }
 
@@ -272,8 +275,9 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 		return NULL;
 
 	// If sRGB is requested, it means convert from linear to sRGB.
-	GLint attr[] = {EGL_COLORSPACE, configPtr->srgb ? EGL_COLORSPACE_LINEAR : EGL_COLORSPACE_sRGB,
-		EGL_NONE};
+	GLint attrArray[] = {EGL_COLORSPACE,
+		configPtr->srgb ? EGL_COLORSPACE_sRGB : EGL_COLORSPACE_LINEAR, EGL_NONE};
+	GLint* attr = hasColorspace ? attrArray : NULL;
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
