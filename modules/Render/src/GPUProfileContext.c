@@ -246,7 +246,7 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 		DS_ASSERT(query->beginIndex < pools->queryCount);
 		QueryInfo* beginQuery = pools->queries + query->beginIndex;
 
-		// Sime drivers seem to wrap the timestamp value rather than using all 64 bits.
+		// Some drivers seem to wrap the timestamp value rather than using all 64 bits.
 		if (beginQuery->time > query->time)
 			node->invalid = true;
 
