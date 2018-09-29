@@ -362,7 +362,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	}
 
 	testCube->texture = dsTextureData_loadResourceToTexture(resourceManager, allocator, NULL,
-		dsFileResourceType_Embedded, path, NULL, dsTextureUsage_Texture, dsGfxMemory_Static);
+		dsFileResourceType_Embedded, path, NULL, dsTextureUsage_Texture,
+		dsGfxMemory_Static | dsGfxMemory_GPUOnly);
 	if (!testCube->texture)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't load texture: %s", dsErrorString(errno));
@@ -378,7 +379,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	memcpy(combinedBufferData + sizeof(vertices), indices, sizeof(indices));
 	testCube->drawBuffer = dsGfxBuffer_create(resourceManager, allocator,
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_Index,
-		dsGfxMemory_Static | dsGfxMemory_Draw, combinedBufferData, sizeof(combinedBufferData));
+		dsGfxMemory_Static | dsGfxMemory_Draw | dsGfxMemory_GPUOnly, combinedBufferData,
+		sizeof(combinedBufferData));
 	if (!testCube->drawBuffer)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create graphics buffer: %s", dsErrorString(errno));

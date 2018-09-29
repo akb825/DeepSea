@@ -74,7 +74,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		if (!noUpdate)
 			flags |= GL_DYNAMIC_STORAGE_BIT;
 
-		if (!(memoryHints & dsGfxMemory_GpuOnly))
+		if (!(memoryHints & dsGfxMemory_GPUOnly))
 		{
 			if (!noUpdate)
 				flags |= GL_MAP_WRITE_BIT;

@@ -70,7 +70,7 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 {
 	uint32_t requiredFlags = 0;
 	uint32_t optimalFlags = 0;
-	if (!(memoryFlags & dsGfxMemory_GpuOnly))
+	if (!(memoryFlags & dsGfxMemory_GPUOnly))
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 	if (memoryFlags & dsGfxMemory_Coherent)
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;

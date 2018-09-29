@@ -271,14 +271,6 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((memoryHints & dsGfxMemory_GpuOnly) && data)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Cannot provide initial data to GPU-only resources.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -747,7 +739,7 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((texture->memoryHints & dsGfxMemory_GpuOnly))
+	if ((texture->memoryHints & dsGfxMemory_GPUOnly))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

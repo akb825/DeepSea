@@ -873,7 +873,8 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			}
 
 			image->infoTextures[i] = dsTexture_create(resourceManager, resourceAllocator,
-				dsTextureUsage_Texture, dsGfxMemory_Static, &infoTexInfo, scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
+				dsTextureUsage_Texture, dsGfxMemory_Static | dsGfxMemory_GPUOnly, &infoTexInfo,
+				scratchData->vectorInfos + i*INFOS_PER_TEXTURE,
 				sizeof(VectorInfo)*infoTexInfo.height);
 			if (!image->infoTextures[i])
 			{

@@ -56,14 +56,6 @@ dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator*
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((memoryHints & dsGfxMemory_GpuOnly) && data)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Cannot provide initial data to GPU-only resources.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
 	if (!dsResourceManager_canUseResources(resourceManager))
 	{
 		errno = EPERM;
@@ -116,7 +108,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((buffer->memoryHints & dsGfxMemory_GpuOnly))
+	if ((buffer->memoryHints & dsGfxMemory_GPUOnly))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,

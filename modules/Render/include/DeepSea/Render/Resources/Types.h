@@ -60,11 +60,7 @@ extern "C"
  */
 typedef enum dsGfxMemory
 {
-	/**
-	 * The memory will only ever be accessed by the GPU. This means no initial data, mapping, or
-	 * readback. Data may be copied on the command buffer, however.
-	 */
-	dsGfxMemory_GpuOnly = 0x001,
+	dsGfxMemory_GPUOnly = 0x001,    ///< The memory will only ever be accessed by the GPU.
 	dsGfxMemory_Static = 0x002,     ///< The memory will never be modified from the CPU.
 	dsGfxMemory_Dynamic = 0x004,    ///< The memory will be modified on the CPU occasionally.
 	dsGfxMemory_Stream = 0x008,     ///< The memory will be modified on the CPU constantly.

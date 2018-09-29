@@ -223,7 +223,7 @@ dsShaderVariableGroup* dsShaderVariableGroup_create(dsResourceManager* resourceM
 			memoryFlags = dsGfxMemory_Draw | dsGfxMemory_Dynamic | dsGfxMemory_Read;
 		}
 		else
-			memoryFlags = dsGfxMemory_GpuOnly | dsGfxMemory_Draw | dsGfxMemory_Dynamic;
+			memoryFlags = dsGfxMemory_GPUOnly | dsGfxMemory_Draw | dsGfxMemory_Dynamic;
 		group->buffer = dsGfxBuffer_create(resourceManager, gfxBufferAllocator, usageFlags,
 			memoryFlags, NULL, DS_ALIGNED_SIZE(bufferSize));
 

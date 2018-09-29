@@ -1029,7 +1029,7 @@ static bool setupLimit(TestText* testText)
 	dsVector2f positions[] = {{{0.0f, 0.0f}}, {{0.0f, 1.0f}}, {{1.0f, 1.0f}},
 		{{1.0f, 1.0f}}, {{1.0f, 0.0f}}, {{0.0f, 0.0f}}};
 	testText->limitBuffer = dsGfxBuffer_create(resourceManager, allocator, dsGfxBufferUsage_Vertex,
-		dsGfxMemory_Draw | dsGfxMemory_Static, positions, sizeof(positions));
+		dsGfxMemory_Draw | dsGfxMemory_Static | dsGfxMemory_GPUOnly, positions, sizeof(positions));
 	if (!testText->limitBuffer)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create graphics buffer: %s", dsErrorString(errno));
