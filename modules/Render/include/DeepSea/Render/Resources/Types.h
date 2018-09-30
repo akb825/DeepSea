@@ -1766,9 +1766,9 @@ struct dsResourceManager
 	size_t maxUniformBlockSize;
 
 	/**
-	 * @brief The maximum size of a texture buffer.
+	 * @brief The maximum number of elements in a texture buffer.
 	 */
-	size_t maxTextureBufferSize;
+	size_t maxTextureBufferElements;
 
 	/**
 	 * @brief The maximum number of vertex attributes.

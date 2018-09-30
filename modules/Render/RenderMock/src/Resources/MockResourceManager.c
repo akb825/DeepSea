@@ -130,7 +130,7 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->hasTextureBufferSubrange = true;
 	resourceManager->maxIndexSize = (uint32_t)sizeof(uint32_t);
 	resourceManager->maxUniformBlockSize = 1024*1024*1024;
-	resourceManager->maxTextureBufferSize = 64*1024;
+	resourceManager->maxTextureBufferElements = 16*1024*1024;
 	resourceManager->maxVertexAttribs = 16;
 	resourceManager->maxSamplers = 16;
 	resourceManager->maxVertexSamplers = 16;

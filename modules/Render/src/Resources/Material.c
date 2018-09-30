@@ -460,11 +460,11 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 			return false;
 		}
 
-		if (count*formatSize > resourceManager->maxTextureBufferSize)
+		if (count > resourceManager->maxTextureBufferElements)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Buffer size exceeds the maximum texture buffer size for the current target.");
+				"Texture buffer elements exceeds the maximum for the current target.");
 			return false;
 		}
 	}

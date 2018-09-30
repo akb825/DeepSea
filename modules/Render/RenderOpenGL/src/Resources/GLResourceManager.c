@@ -1164,7 +1164,7 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
 		glGetSizeT(GL_MAX_UNIFORM_BLOCK_SIZE, &baseResourceManager->maxUniformBlockSize);
 	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_Image)
-		glGetSizeT(GL_MAX_TEXTURE_BUFFER_SIZE, &baseResourceManager->maxTextureBufferSize);
+		glGetSizeT(GL_MAX_TEXTURE_BUFFER_SIZE, &baseResourceManager->maxTextureBufferElements);
 
 	baseResourceManager->createBufferFunc = &dsGLGfxBuffer_create;
 	baseResourceManager->destroyBufferFunc = &dsGLGfxBuffer_destroy;

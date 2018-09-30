@@ -636,6 +636,7 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->maxIndexSize = features->fullDrawIndexUint32 ? sizeof(uint32_t) :
 		sizeof(uint16_t);
 	baseResourceManager->maxUniformBlockSize = limits->maxUniformBufferRange;
+	baseResourceManager->maxTextureBufferElements = limits->maxTexelBufferElements;
 	baseResourceManager->maxVertexAttribs = limits->maxVertexInputAttributes;
 	baseResourceManager->maxSamplers = limits->maxDescriptorSetSamplers;
 	baseResourceManager->maxVertexSamplers = limits->maxDescriptorSetSamplers;

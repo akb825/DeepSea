@@ -16,9 +16,9 @@
 
 #include <DeepSea/RenderVulkan/VkRenderer.h>
 
+#include "Resources/VkResourceManager.h"
 #include "Types.h"
 #include "VkInit.h"
-#include "VkResourceManager.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
