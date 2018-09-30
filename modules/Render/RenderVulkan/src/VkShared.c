@@ -20,8 +20,6 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 
-#define DS_INVALID_INDEX (uint32_t)-1
-
 typedef struct LastCallsite
 {
 	const char* lastFile;
@@ -65,8 +63,8 @@ void dsGetLastVkCallsite(const char** file, const char** function, unsigned int*
 	*line = curLastCallsite->lastLine;
 }
 
-VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
-	const VkMemoryRequirements* requirements, dsGfxMemory memoryFlags)
+uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	dsGfxMemory memoryFlags)
 {
 	uint32_t requiredFlags = 0;
 	uint32_t optimalFlags = 0;
@@ -74,33 +72,45 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 	if (memoryFlags & dsGfxMemory_Coherent)
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	if (memoryFlags & (dsGfxMemory_Dynamic | dsGfxMemory_Draw))
+	if (memoryFlags & (dsGfxMemory_Dynamic | dsGfxMemory_Stream))
 		optimalFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 
-	uint32_t memoryIndex = DS_INVALID_INDEX;
+	uint32_t memoryIndex = DS_INVALID_HEAP;
+	VkDeviceSize memorySize = 0;
 
 	const VkPhysicalDeviceMemoryProperties* memoryProperties = &device->memoryProperties;
 	for (uint32_t curBitmask = requirements->memoryTypeBits; curBitmask;
 		curBitmask = dsRemoveLastBit(curBitmask))
 	{
 		uint32_t i = dsBitmaskIndex(curBitmask);
-		if ((memoryProperties->memoryTypes[i].propertyFlags & requiredFlags) != requiredFlags)
+		const VkMemoryType* memoryType = memoryProperties->memoryTypes + i;
+		if ((memoryType->propertyFlags & requiredFlags) != requiredFlags)
 			continue;
 
-		if (memoryIndex == DS_INVALID_INDEX)
+		if (memoryIndex == DS_INVALID_HEAP)
 			memoryIndex = i;
 
-		if ((memoryProperties->memoryTypes[i].propertyFlags & optimalFlags) == optimalFlags)
-		{
+		// Find the largest optimal heap.
+		VkDeviceSize size = memoryProperties->memoryHeaps[memoryType->heapIndex].size;
+		if ((memoryType->propertyFlags & optimalFlags) == optimalFlags && size > memorySize)
 			memoryIndex = i;
-			break;
-		}
 	}
 
-	if (memoryIndex == DS_INVALID_INDEX)
+	if (memoryIndex == DS_INVALID_HEAP)
 	{
 		errno = ENOMEM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "No suitable GPU heap found.");
+	}
+
+	return memoryIndex;
+}
+
+VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
+	const VkMemoryRequirements* requirements, uint32_t memoryIndex)
+{
+	if (memoryIndex == DS_INVALID_HEAP)
+	{
+		errno = ENOMEM;
 		return 0;
 	}
 

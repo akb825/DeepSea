@@ -25,10 +25,14 @@
 #define DS_VK_CALL(func) (func)
 #endif
 
+#define DS_INVALID_HEAP (uint32_t)-1
+
 bool dsHandleVkResult(VkResult result);
 void dsSetLastVkCallsite(const char* file, const char* function, unsigned int line);
 void dsGetLastVkCallsite(const char** file, const char** function,
 	unsigned int* line);
 
+uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	dsGfxMemory memoryFlags);
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
-	const VkMemoryRequirements* requirements, dsGfxMemory memoryFlags);
+	const VkMemoryRequirements* requirements, uint32_t memoryIndex);

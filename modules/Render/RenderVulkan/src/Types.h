@@ -21,6 +21,8 @@
 #include <DeepSea/RenderVulkan/RendererIDs.h>
 #include <vulkan/vulkan_core.h>
 
+#define DS_NOT_SUBMITTED (uint64_t)-1
+
 typedef struct dsVkInstance
 {
 	dsDynamicLib library;
@@ -89,11 +91,25 @@ typedef struct dsVkFormatInfo
 	VkFormatProperties properties;
 } dsVkFormatInfo;
 
+typedef struct dsVkGfxBufferData
+{
+	dsAllocator* allocator;
+	VkDeviceMemory deviceMemory;
+	VkBuffer deviceBuffer;
+	uint64_t lastUsedSubmit;
+
+	VkDeviceMemory hostMemory;
+	VkBuffer hostBuffer;
+	uint64_t uploadedSubmit;
+	bool needsUpload;
+	bool keepHost;
+} dsVkGfxBufferData;
+
 typedef struct dsVkGfxBuffer
 {
 	dsGfxBuffer buffer;
-	VkDeviceMemory memory;
-	VkBuffer vkBuffer;
+	dsSpinlock lock;
+	dsVkGfxBufferData* bufferData;
 } dsVkGfxBuffer;
 
 typedef struct dsVkRenderer
