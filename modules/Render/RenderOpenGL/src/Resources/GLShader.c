@@ -30,6 +30,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
@@ -985,6 +986,10 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			shaderHash);
 		errno = prevErrno;
 	}
+
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
 
 	return baseShader;
 }

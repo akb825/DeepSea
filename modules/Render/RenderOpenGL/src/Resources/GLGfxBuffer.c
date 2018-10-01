@@ -23,6 +23,7 @@
 #include "GLResource.h"
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -141,6 +142,10 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 		return NULL;
 	}
 
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
+
 	return baseBuffer;
 }
 
@@ -207,6 +212,10 @@ bool dsGLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	bool success = glUnmapBuffer(bufferType);
 	glBindBuffer(bufferType, 0);
 
+	// Make sure it's visible from the main render thread.
+	if (success && !dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
+
 	return success;
 }
 
@@ -222,6 +231,10 @@ bool dsGLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	glBindBuffer(bufferType, glBuffer->bufferId);
 	glFlushMappedBufferRange(bufferType, offset, size);
 	glBindBuffer(bufferType, 0);
+
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
 
 	return true;
 }

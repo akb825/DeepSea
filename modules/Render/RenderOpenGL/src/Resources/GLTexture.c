@@ -25,6 +25,7 @@
 #include "GLRendererInternal.h"
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -395,6 +396,10 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 		return NULL;
 	}
 
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
+
 	return baseTexture;
 }
 
@@ -593,6 +598,10 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 		dsGLTexture_destroy(resourceManager, baseTexture);
 		return NULL;
 	}
+
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
 
 	return baseTexture;
 }

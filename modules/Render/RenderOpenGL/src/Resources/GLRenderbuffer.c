@@ -23,6 +23,7 @@
 #include "GLHelpers.h"
 #include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Thread/Thread.h>
 #include <DeepSea/Core/Assert.h>
 
 dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
@@ -83,6 +84,10 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		dsGLRenderbuffer_destroy(resourceManager, baseRenderbuffer);
 		return NULL;
 	}
+
+	// Make sure it's visible from the main render thread.
+	if (!dsThread_equal(resourceManager->renderer->mainThread, dsThread_thisThreadID()))
+		glFlush();
 
 	return baseRenderbuffer;
 }
