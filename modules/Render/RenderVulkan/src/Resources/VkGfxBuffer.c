@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "VkGfxBuffer.h"
+#include "Resources/VkGfxBuffer.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
@@ -23,33 +23,6 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Math/Core.h>
 #include <string.h>
-
-static void destroyBufferData(dsVkDevice* device, dsVkGfxBufferData* buffer)
-{
-	dsVkInstance* instance = &device->instance;
-	if (buffer->deviceBuffer)
-	{
-		DS_VK_CALL(device->vkDestroyBuffer)(device->device, buffer->deviceBuffer,
-			instance->allocCallbacksPtr);
-	}
-	if (buffer->hostMemory)
-	{
-		DS_VK_CALL(device->vkFreeMemory)(device->device, buffer->deviceMemory,
-			instance->allocCallbacksPtr);
-	}
-	if (buffer->hostBuffer)
-	{
-		DS_VK_CALL(device->vkDestroyBuffer)(device->device, buffer->hostBuffer,
-			instance->allocCallbacksPtr);
-	}
-	if (buffer->hostMemory)
-	{
-		DS_VK_CALL(device->vkFreeMemory)(device->device, buffer->hostMemory,
-			instance->allocCallbacksPtr);
-	}
-	if (buffer->allocator)
-		dsAllocator_free(buffer->allocator, buffer);
-}
 
 static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allocator,
 	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
@@ -60,6 +33,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 
 	memset(buffer, 0, sizeof(dsVkGfxBuffer));
 	buffer->allocator = dsAllocator_keepPointer(allocator);
+	DS_VERIFY(dsSpinlock_initialize(&buffer->lock));
 
 	dsVkInstance* instance = &device->instance;
 
@@ -124,7 +98,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->deviceBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
@@ -133,7 +107,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		deviceMemoryIndex = dsVkMemoryIndex(device, &deviceRequirements, deviceHints);
 		if (deviceMemoryIndex == DS_INVALID_HEAP)
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 	}
@@ -162,7 +136,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
@@ -171,7 +145,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, hostHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 	}
@@ -202,7 +176,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
@@ -211,7 +185,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, memoryHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 	}
@@ -222,7 +196,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		buffer->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex);
 		if (!buffer->deviceMemory)
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
@@ -230,7 +204,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			buffer->deviceBuffer, buffer->deviceMemory, 0);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 	}
@@ -240,7 +214,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		buffer->hostMemory = dsAllocateVkMemory(device, &hostRequirements, hostMemoryIndex);
 		if (!buffer->hostMemory)
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
@@ -248,7 +222,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			buffer->hostMemory, 0);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 	}
@@ -262,13 +236,14 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			size, 0, &mappedData);
 		if (!dsHandleVkResult(result))
 		{
-			destroyBufferData(device, buffer);
+			dsVkGfxBufferData_destroy(device, buffer);
 			return NULL;
 		}
 
 		memcpy(mappedData, data, size);
 		DS_VK_CALL(device->vkUnmapMemory)(device->device, buffer->hostMemory);
-		buffer->needsUpload = true;
+		buffer->dirtyStart = 0;
+		buffer->dirtySize = size;
 	}
 
 	buffer->lastUsedSubmit = DS_NOT_SUBMITTED;
@@ -301,8 +276,41 @@ dsGfxBuffer* dsVkGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 	{
 		if (baseBuffer->allocator)
 			dsAllocator_free(baseBuffer->allocator, buffer);
+		return NULL;
 	}
 
 	DS_VERIFY(dsSpinlock_initialize(&buffer->lock));
 	return baseBuffer;
+}
+
+void dsVkGfxBufferData_destroy(dsVkDevice* device, dsVkGfxBufferData* buffer)
+{
+	if (!buffer)
+		return;
+
+	dsVkInstance* instance = &device->instance;
+	if (buffer->deviceBuffer)
+	{
+		DS_VK_CALL(device->vkDestroyBuffer)(device->device, buffer->deviceBuffer,
+			instance->allocCallbacksPtr);
+	}
+	if (buffer->hostMemory)
+	{
+		DS_VK_CALL(device->vkFreeMemory)(device->device, buffer->deviceMemory,
+			instance->allocCallbacksPtr);
+	}
+	if (buffer->hostBuffer)
+	{
+		DS_VK_CALL(device->vkDestroyBuffer)(device->device, buffer->hostBuffer,
+			instance->allocCallbacksPtr);
+	}
+	if (buffer->hostMemory)
+	{
+		DS_VK_CALL(device->vkFreeMemory)(device->device, buffer->hostMemory,
+			instance->allocCallbacksPtr);
+	}
+
+	dsSpinlock_shutdown(&buffer->lock);
+	if (buffer->allocator)
+		dsAllocator_free(buffer->allocator, buffer);
 }

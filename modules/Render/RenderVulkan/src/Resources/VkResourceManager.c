@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include "VkResourceManager.h"
+#include "Resources/VkResourceManager.h"
 
+#include "Resources/VkGfxBuffer.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>

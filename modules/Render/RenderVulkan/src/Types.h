@@ -16,12 +16,18 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/RenderVulkan/RendererIDs.h>
 #include <vulkan/vulkan_core.h>
 
 #define DS_NOT_SUBMITTED (uint64_t)-1
+#define DS_DELAY_FRAMES 3
+#define DS_EXPECTED_FRAME_FLUSHES 10
+#define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)
+#define DS_PENDING_RESOURCES_ARRAY 2
+#define DS_DELETE_RESOURCES_ARRAY 2
 
 typedef struct dsVkInstance
 {
@@ -60,6 +66,21 @@ typedef struct dsVkDevice
 
 	PFN_vkDestroyDevice vkDestroyDevice;
 	PFN_vkGetDeviceQueue vkGetDeviceQueue;
+	PFN_vkCreateCommandPool vkCreateCommandPool;
+	PFN_vkResetCommandPool vkResetCommandPool;
+	PFN_vkDestroyCommandPool vkDestroyCommandPool;
+	PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
+	PFN_vkResetCommandBuffer vkResetCommandBuffer;
+	PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
+	PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+	PFN_vkEndCommandBuffer vkEndCommandBuffer;
+	PFN_vkCmdExecuteCommands vkCmdExecuteCommands;
+	PFN_vkQueueSubmit vkQueueSubmit;
+	PFN_vkQueueWaitIdle vkQueueWaitIdle;
+	PFN_vkCreateFence vkCreateFence;
+	PFN_vkDestroyFence vkDestroyFence;
+	PFN_vkResetFences vkResetFences;
+	PFN_vkWaitForFences vkWaitForFences;
 	PFN_vkAllocateMemory vkAllocateMemory;
 	PFN_vkFreeMemory vkFreeMemory;
 	PFN_vkMapMemory vkMapMemory;
@@ -70,6 +91,7 @@ typedef struct dsVkDevice
 	PFN_vkDestroyBuffer vkDestroyBuffer;
 	PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
 	PFN_vkBindBufferMemory vkBindBufferMemory;
+	PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 	PFN_vkCreateBufferView vkCreateBufferView;
 	PFN_vkDestroyBufferView vkDestroyBufferView;
 
@@ -94,6 +116,8 @@ typedef struct dsVkFormatInfo
 typedef struct dsVkGfxBufferData
 {
 	dsAllocator* allocator;
+	dsSpinlock lock;
+
 	VkDeviceMemory deviceMemory;
 	VkBuffer deviceBuffer;
 	uint64_t lastUsedSubmit;
@@ -101,8 +125,16 @@ typedef struct dsVkGfxBufferData
 	VkDeviceMemory hostMemory;
 	VkBuffer hostBuffer;
 	uint64_t uploadedSubmit;
-	bool needsUpload;
+	void* submitQueue;
+	size_t dirtyStart;
+	size_t dirtySize;
+
+	size_t mappedStart;
+	size_t mappedSize;
+
 	bool keepHost;
+
+	uint32_t commandBufferCount;
 } dsVkGfxBufferData;
 
 typedef struct dsVkGfxBuffer
@@ -112,10 +144,42 @@ typedef struct dsVkGfxBuffer
 	dsVkGfxBufferData* bufferData;
 } dsVkGfxBuffer;
 
+typedef struct dsVkSubmitInfo
+{
+	uint64_t submitIndex;
+	VkCommandBuffer resourceCommands;
+	VkCommandBuffer renderCommands;
+	VkFence fence;
+} dsVkSubmitInfo;
+
+typedef struct dsVkResourceList
+{
+	dsVkGfxBufferData** buffers;
+	uint32_t bufferCount;
+	uint32_t maxBuffers;
+} dsVkResourceList;
+
 typedef struct dsVkRenderer
 {
 	dsRenderer renderer;
 	dsVkDevice device;
+
+	dsSpinlock resourceLock;
+	dsSpinlock deleteLock;
+	dsMutex* submitLock;
+	dsConditionVariable* waitCondition;
+
+	uint64_t submitCount;
+	uint64_t finishedSubmitCount;
+	VkCommandPool commandPool;
+	dsVkSubmitInfo submits[DS_MAX_SUBMITS];
+	uint32_t curSubmit;
+	uint32_t waitCount;
+
+	dsVkResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
+	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];
+	uint32_t curPendingResources;
+	uint32_t curDeleteResources;
 } dsVkRenderer;
 
 typedef struct dsVkResourceManager
