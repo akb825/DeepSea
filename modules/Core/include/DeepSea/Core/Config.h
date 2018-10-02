@@ -131,10 +131,65 @@
 /**
  * @brief Macro defined to whether or not the system is 64-bit.
  */
-#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__) || defined(__arm64__)
+#if defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__) || \
+	defined(__arm64__) || defined(__aarch64__)
 #define DS_64BIT 1
 #else
 #define DS_64BIT 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 64-bit x86.
+ */
+#if defined(__x86_64__) || defined(_M_AMD64)
+#define DS_X86_64 1
+#else
+#define DS_X86_64 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 32-bit x86.
+ */
+#if defined(__i386__) || defined(_M_I86)
+#define DS_X86_32 1
+#else
+#define DS_X86_32 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 64-bit ARM.
+ */
+#if defined(__arm64__) || defined(__aarch64__)
+#define DS_ARM_64 1
+#else
+#define DS_ARM_64 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 32-bit ARM.
+ */
+#if defined(__arm__) || defined(_M_ARM)
+#define DS_ARM_32 1
+#else
+#define DS_ARM_32 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 64-bit PPC.
+ */
+#if defined(__ppc64__)
+#define DS_PPC_64 1
+#else
+#define DS_PPC_64 0
+#endif
+
+/**
+ * @brief Macro defined to whether or not the system is 32-bit PPC.
+ */
+#if defined(__ppc__)
+#define DS_PPC_32 1
+#else
+#define DS_PPC_32 0
 #endif
 
 /**

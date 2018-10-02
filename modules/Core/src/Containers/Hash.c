@@ -122,6 +122,10 @@ uint32_t dsHashBytes(const void* buffer, size_t size)
 	return dsHashCombineBytes(DEFAULT_SEED, buffer, size);
 }
 
+// Optimization on 32-bit ARM with Clang (e.g. Android) causes unaligned access.
+#if DS_ARM_32 && DS_CLANG
+__attribute__((optnone))
+#endif
 uint32_t dsHashCombineBytes(uint32_t seed, const void* buffer, size_t size)
 {
 	// https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp

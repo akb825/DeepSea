@@ -163,7 +163,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		size_t dirtyStart = buffer->dirtyStart;
 		size_t dirtySize = buffer->dirtySize;
 		VkDeviceMemory hostMemory = 0;
-		VkBuffer hostBuffer = NULL;
+		VkBuffer hostBuffer = 0;
 		buffer->dirtyStart = 0;
 		buffer->dirtySize = 0;
 		if (dirtySize > 0)
@@ -173,7 +173,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		{
 			hostMemory = buffer->hostMemory;
 			hostBuffer = buffer->hostBuffer;
-			buffer->hostBuffer = NULL;
+			buffer->hostBuffer = 0;
 			buffer->hostMemory = 0;
 		}
 		DS_VERIFY(dsSpinlock_unlock(&buffer->lock));

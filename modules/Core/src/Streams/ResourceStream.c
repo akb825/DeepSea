@@ -147,11 +147,11 @@ bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 #endif
 
 	if (embeddedDir)
-		strncpy(gEmbeddedDir, embeddedDir, DS_PATH_MAX);
+		strncpy(gEmbeddedDir, embeddedDir, sizeof(gEmbeddedDir) - 1);
 	if (localDir)
-		strncpy(gLocalDir, localDir, DS_PATH_MAX);
+		strncpy(gLocalDir, localDir, sizeof(gLocalDir) - 1);
 	if (dynamicDir)
-		strncpy(gDynamicDir, dynamicDir, DS_PATH_MAX);
+		strncpy(gDynamicDir, dynamicDir, sizeof(gDynamicDir) - 1);
 
 	return true;
 }
