@@ -32,21 +32,28 @@
  * You may write your own functions to incorperate them plus additional functionality, or simply
  * use the defaults.
  *
- * Shaders must provide a pipeline of the name dsVectorText. For example, the following pipeline
- * definition will provide the default implementation:
+ * Shaders must provide a pipeline of the name dsVectorText and dsVectorTextGradient. For example,
+ * the following pipeline definition will provide the default implementation:
  *
  * ```
- * pipeline dsVectorText
+ * pipeline dsVectorTextColor
  * {
- *     vertex = dsVectorElementText_defaultVertex;
- *     fragment = dsVectorElementText_defaultFragment;
+ *     vertex = dsVectorElementText_defaultVertexColor;
+ *     fragment = dsVectorElementText_defaultFragmentColor;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorTextGradient
+ * {
+ *     vertex = dsVectorElementText_defaultVertexGradient;
+ *     fragment = dsVectorElementText_defaultFragmentGradient;
  *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
  * }
  * ```
  *
- * dsVectorElementText_defaultFragmentSRGB is provided to convert the final color to sRGB space.
- * However, in some situations it's still preferable to leave the color in linear space when doing
- * sRGB-correct rendering:
+ * dsVectorElementText_defaultFragmentColorSRGB is provided to convert the final color to sRGB
+ * space. However, in some situations it's still preferable to leave the color in linear space when
+ * doing sRGB-correct rendering:
  * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
  * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
  *   channel) is used in this case to avoid precision loss.
@@ -104,7 +111,7 @@
 dsVectorVertexOutput dsVectorElementText_processVertex(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, dsVectorIndices.y);
+	dsVectorShared_getElementLineInfo(elementInfo, dsVectorIndices.y);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	dsVectorVertexOutput result;
@@ -123,7 +130,17 @@ dsVectorVertexOutput dsVectorElementText_processVertex(out vec4 outPosition)
  * @brief Default vertex shader entry point function.
  */
 [[vertex]]
-void dsVectorElementText_defaultVertex()
+void dsVectorElementText_defaultVertexColor()
+{
+	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Default vertex shader entry point function for gradients.
+ */
+[[vertex]]
+void dsVectorElementText_defaultVertexGradient()
 {
 	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
 
@@ -144,19 +161,38 @@ void dsVectorElementText_defaultVertex()
 }
 
 /**
- * @brief Default fragment shader entry point function.
+ * @brief Default fragment shader entry point function for solid colors.
  */
 [[fragment]]
-void dsVectorElementText_defaultFragment()
+void dsVectorElementText_defaultFragmentColor()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradient()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
 }
 
 /**
- * @brief Default fragment shader entry point function that converts to sRGB.
+ * @brief Default fragment shader entry point function for solid colors that converts to sRGB.
  */
 [[fragment]]
-void dsVectorElementText_defaultFragmentSRGB()
+void dsVectorElementText_defaultFragmentColorSRGB()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientSRGB()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
 	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);

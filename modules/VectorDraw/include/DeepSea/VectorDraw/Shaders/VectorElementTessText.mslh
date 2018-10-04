@@ -32,16 +32,25 @@
  * You may write your own functions to incorperate them plus additional functionality, or simply
  * use the defaults.
  *
- * Shaders must provide a pipeline of the name dsVectorText. For example, the following pipeline
- * definition will provide the default implementation:
+ * Shaders must provide a pipeline of the name dsVectorText and dsVectorTextGradient. For example,
+ * the following pipeline definition will provide the default implementation:
  *
  * ```
- * pipeline dsVectorText
+ * pipeline dsVectorTextColor
  * {
- *     vertex = dsVectorElementText_defaultVertex;
- *     tessellation_control = dsVectorElementText_defaultTessControl;
- *     tessellation_evaluation = dsVectorElementText_defaultTessEval;
- *     fragment = dsVectorElementText_defaultFragment;
+ *     vertex = dsVectorElementText_defaultVertexColor;
+ *     tessellation_control = dsVectorElementText_defaultTessControlColor;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
+ *     fragment = dsVectorElementText_defaultFragmentColor;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorTextGradient
+ * {
+ *     vertex = dsVectorElementText_defaultVertexGradient;
+ *     tessellation_control = dsVectorElementText_defaultTessControlGradient;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+ *     fragment = dsVectorElementText_defaultFragmentGradient;
  *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
  * }
  * ```
@@ -258,7 +267,7 @@ dsVectorTessVertexOutput dsVectorElementText_processVertex(out vec4 outPosition)
 dsVectorVertexOutput dsVectorElementText_processTessellatedVertex(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, dsVectorTessControlOut.indices.y);
+	dsVectorShared_getElementLineInfo(elementInfo, dsVectorTessControlOut.indices.y);
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	vec2 offset = mix(dsVectorTessControlOut.geometry.xy, dsVectorTessControlOut.geometry.zw,
@@ -279,10 +288,22 @@ dsVectorVertexOutput dsVectorElementText_processTessellatedVertex(out vec4 outPo
 }
 
 /**
- * @brief Default vertex shader entry point function.
+ * @brief Default vertex shader entry point function for solid colors.
  */
 [[vertex]]
-void dsVectorElementText_defaultVertex()
+void dsVectorElementText_defaultVertexColor()
+{
+	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
+
+	dsVectorMaterialInfo fillMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.z);
+	dsVectorMaterialInfo outlineMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.w);
+}
+
+/**
+ * @brief Default vertex shader entry point function for gradients.
+ */
+[[vertex]]
+void dsVectorElementText_defaultVertexGradient()
 {
 	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
 
@@ -301,10 +322,29 @@ void dsVectorElementText_defaultVertex()
 }
 
 /**
- * @brief Default tessellation control shader entry point function.
+ * @brief Default tessellation control shader entry point function for solid colors.
  */
 [[tessellation_control]]
-void dsVectorElementText_defaultTessControl()
+void dsVectorElementText_defaultTessControlColor()
+{
+	gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
+	dsVectorTessControlOut.geometry = dsVectorVertexOut[0].geometry;
+	dsVectorTessControlOut.texCoords = dsVectorVertexOut[0].texCoords;
+	dsVectorTessControlOut.indices = dsVectorVertexOut[0].indices;
+
+	gl_TessLevelOuter[0] = 1.0;
+	gl_TessLevelOuter[1] = 1.0;
+	gl_TessLevelOuter[2] = 1.0;
+	gl_TessLevelOuter[3] = 1.0;
+	gl_TessLevelInner[0] = 1.0;
+	gl_TessLevelInner[1] = 1.0;
+}
+
+/**
+ * @brief Default tessellation control shader entry point function for gradients.
+ */
+[[tessellation_control]]
+void dsVectorElementText_defaultTessControlGradient()
 {
 	gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
 	dsVectorTessControlOut.geometry = dsVectorVertexOut[0].geometry;
@@ -334,10 +374,19 @@ void dsVectorElementText_defaultTessControl()
 }
 
 /**
- * @brief Default tessellation evaluation shader entry point function.
+ * @brief Default tessellation evaluation shader entry point function for solid colors.
  */
 [[tessellation_evaluation]]
-void dsVectorElementText_defaultTessEval()
+void dsVectorElementText_defaultTessEvalColor()
+{
+	dsVectorVertexOut = dsVectorElementText_processTessellatedVertex(gl_Position);
+}
+
+/**
+ * @brief Default tessellation evaluation shader entry point function for gradients.
+ */
+[[tessellation_evaluation]]
+void dsVectorElementText_defaultTessEvalGradient()
 {
 	dsVectorVertexOut = dsVectorElementText_processTessellatedVertex(gl_Position);
 
@@ -357,19 +406,38 @@ void dsVectorElementText_defaultTessEval()
 }
 
 /**
- * @brief Default fragment shader entry point function.
+ * @brief Default fragment shader entry point function for solid colors.
  */
 [[fragment]]
-void dsVectorElementText_defaultFragment()
+void dsVectorElementText_defaultFragmentColor()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradient()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
 }
 
 /**
- * @brief Default fragment shader entry point function that converts to sRGB.
+ * @brief Default fragment shader entry point function for solid colors that converts to sRGB.
  */
 [[fragment]]
-void dsVectorElementText_defaultFragmentSRGB()
+void dsVectorElementText_defaultFragmentColorSRGB()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientSRGB()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
 	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);

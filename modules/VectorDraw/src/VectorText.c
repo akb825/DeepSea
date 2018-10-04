@@ -251,6 +251,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		getRangeOffset(&offset, layout, range);
 
 		uint32_t fillMaterial = DS_VECTOR_MATERIAL_NOT_FOUND;
+		dsVectorMaterialType fillMaterialType = dsVectorMaterialType_Color;
 		if (range->fillMaterial)
 		{
 			fillMaterial = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
@@ -267,10 +268,18 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 					DS_PROFILE_FUNC_RETURN(false);
 				}
 				fillMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+				fillMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
+					range->fillMaterial);
+			}
+			else
+			{
+				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
+					range->fillMaterial);
 			}
 		}
 
 		uint32_t outlineMaterial = DS_VECTOR_MATERIAL_NOT_FOUND;
+		dsVectorMaterialType outlineMaterialType = dsVectorMaterialType_Color;
 		if (range->outlineMaterial)
 		{
 			outlineMaterial = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
@@ -287,6 +296,13 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 					DS_PROFILE_FUNC_RETURN(false);
 				}
 				outlineMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+				outlineMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
+					range->outlineMaterial);
+			}
+			else
+			{
+				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
+					range->outlineMaterial);
 			}
 		}
 
@@ -304,14 +320,15 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		{
 			if (!dsVectorScratchData_addTextPiece(scratchData, &bounds, &text->transform, &offset,
 				text->font, range->fillOpacity, range->outlineOpacity, layout,
-				scratchData->textStyles + i, fillMaterial, outlineMaterial))
+				scratchData->textStyles + i, fillMaterial, outlineMaterial, fillMaterialType,
+				outlineMaterialType))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else if (!dsVectorScratchData_addTextRange(scratchData, &offset, range->fillOpacity,
 			range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
-			outlineMaterial))
+			outlineMaterial, fillMaterialType, outlineMaterialType))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}
@@ -323,7 +340,8 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,
 	const dsVectorImageInitResources* initResources)
 {
-	uint32_t textShaderIndex = initResources->shaderModule->textShaderIndex;
+	uint32_t textShaderIndex =
+		initResources->shaderModule->shaderIndices[dsVectorShaderType_TextColor];
 	if (initResources->textShaderName)
 	{
 		textShaderIndex = dsShaderModule_shaderIndex(initResources->shaderModule->shaderModule,

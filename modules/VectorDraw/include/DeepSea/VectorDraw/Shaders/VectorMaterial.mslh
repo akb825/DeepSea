@@ -151,12 +151,194 @@ dsVectorMaterialInfo dsVectorMaterial_invalidInfo()
 }
 
 /**
+ * @brief Gets the solid color for a shape.
+ * @param index The index of the material.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorMaterial_getSolidColor(float index)
+{
+	float colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
+	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+	{
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
+		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+	else
+	{
+		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
+		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+}
+
+/**
+ * @brief Gets the linear gradient for a shape.
+ * @param info The info gathered from dsVectorMaterial_getInfo().
+ * @param origPosition The original position of the current pixel.
+ * @param bounds The bounds of the shape.
+ * @param imagePosition The position in the image of the current pixel.
+ * @param index The index of the material.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
+    vec4 bounds, float index)
+{
+	vec2 gradientPos;
+	if (info.info0.z == 1.0)
+		gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.xy);
+	else
+		gradientPos = origPosition;
+
+	// Apply the gradient in the coordinate space of the gradient. This matrix was inverted
+	// before setting on the shader.
+	mat3 transform = mat3(vec3(info.info2.xy, 0.0), vec3(info.info2.zw, 0.0),
+		vec3(info.info3.xy, 1.0));
+	gradientPos = (transform*vec3(gradientPos, 1.0)).xy;
+
+	vec2 dir = info.info1.zw - info.info1.xy;
+	float invDirLen = 1.0/length(dir);
+	vec2 dirNorm = dir*vec2(invDirLen);
+	float gradientT = dot(dirNorm, gradientPos - info.info1.xy)*invDirLen;
+
+	float colorCoord;
+	if (info.info0.y == 1.0)
+	{
+		// Repeat
+		colorCoord = fract(gradientT);
+	}
+	else if (info.info0.y == 2.0)
+	{
+		// Mirror
+		colorCoord = fract(gradientT);
+		float evenVal = floor(gradientT)/2.0;
+		if (evenVal != floor(evenVal))
+			colorCoord = 1.0 - colorCoord;
+	}
+	else
+	{
+		// Clamp
+		colorCoord = gradientT;
+	}
+
+	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+	{
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
+		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+	else
+	{
+		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
+		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+}
+
+/**
+ * @brief Gets the radial gradient for a shape.
+ * @param info The info gathered from dsVectorMaterial_getInfo().
+ * @param origPosition The original position of the current pixel.
+ * @param bounds The bounds of the shape.
+ * @param imagePosition The position in the image of the current pixel.
+ * @param index The index of the material.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorMaterial_getRadialGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
+    vec4 bounds, float index)
+{
+	vec2 gradientPos;
+	if (info.info0.z == 1.0)
+		gradientPos = (origPosition - bounds.xy)/(bounds.zw - bounds.xy);
+	else
+		gradientPos = origPosition;
+
+	// Apply the gradient in the coordinate space of the gradient. This matrix was inverted
+	// before setting on the shader.
+	mat3 transform = mat3(vec3(info.info2.xy, 0.0), vec3(info.info2.zw, 0.0),
+		vec3(info.info3.xy, 1.0));
+	gradientPos = (transform*vec3(gradientPos, 1.0)).xy;
+
+	float focusRadius = info.info3.w;
+	vec2 center = info.info1.xy;
+	float radius = info.info3.z;
+	float invRadius = 1.0/radius;
+	vec2 focusPos = info.info1.zw - center;
+	vec2 circlePos = gradientPos - center;
+	float gradientT;
+	if (dot(focusPos, focusPos) < 0.001)
+		gradientT = clamp((length(circlePos) - focusRadius)*invRadius, 0.0, 1.0);
+	else
+	{
+		vec2 focusDir = circlePos - focusPos;
+		float focusDist2 = dot(focusDir, focusDir);
+		if (focusDist2 <= focusRadius*focusRadius + 0.001)
+			gradientT = 0.0;
+		else
+		{
+			// Find the distance from the focal point to the edge of the circle, passing
+			// through the current position.
+			// Intersect the line between the focus position and current position with the
+			// circle. http://mathworld.wolfram.com/Circle-LineIntersection.html
+			float determinant = focusPos.x*circlePos.y - focusPos.y*circlePos.x;
+			float signY = focusDir.y < 0.0 ? -1.0 : 1.0;
+
+			vec2 intersectCenter = vec2(focusDir.y, -focusDir.x)*vec2(determinant);
+			vec2 intersectOffset = vec2(signY*focusDir.x, abs(focusDir.y))*
+				vec2(sqrt(radius*radius*focusDist2 - determinant*determinant));
+			float invFocusDist2 = 1.0/focusDist2;
+			if (dot(intersectOffset, focusDir) < 0.0)
+				intersectOffset = -intersectOffset;
+			vec2 circleIntersect = (intersectCenter + intersectOffset)*
+				vec2(invFocusDist2);
+
+			float invGradiantDist = 1.0/(length(circleIntersect - focusPos) - focusRadius);
+			gradientT = (sqrt(focusDist2) - focusRadius)*invGradiantDist;
+		}
+	}
+
+	float colorCoord;
+	if (info.info0.y == 1.0)
+	{
+		// Repeat
+		colorCoord = fract(gradientT);
+	}
+	else if (info.info0.y == 2.0)
+	{
+		// Mirror
+		colorCoord = fract(gradientT);
+		float evenVal = floor(gradientT)/2.0;
+		if (evenVal != floor(evenVal))
+			colorCoord = 1.0 - colorCoord;
+	}
+	else
+	{
+		// Clamp
+		colorCoord = gradientT;
+	}
+
+	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
+	{
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
+		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+	else
+	{
+		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
+		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
+	}
+}
+
+/**
  * @brief Gets the material color for a shape.
  * @param info The info gathered from dsVectorMaterial_getInfo().
  * @param origPosition The original position of the current pixel.
  * @param bounds The bounds of the shape.
  * @param imagePosition The position in the image of the current pixel.
  * @param index The index of the material.
+ * @return The material color.
  */
 [[fragment]]
 vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec4 bounds,

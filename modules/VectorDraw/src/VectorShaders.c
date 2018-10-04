@@ -25,14 +25,12 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <string.h>
 
-extern const char* dsDefaultShapeShaderName;
-extern const char* dsDefaultImageShaderName;
-extern const char* dsDefaultTextShaderName;
+extern const char* dsDefaultVectorShaderNames[dsVectorShaderType_Count];
 
 static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsVectorShaderModule* shaderModule, uint32_t shapeShaderIndex,
-	const char* shapeShaderName, uint32_t imageShaderIndex, const char* imageShaderName,
-	uint32_t textShaderIndex, const char* textShaderName, uint32_t samples)
+	dsAllocator* allocator, dsVectorShaderModule* shaderModule,
+	uint32_t shaderIndices[dsVectorShaderType_Count],
+	const char* shaderNames[dsVectorShaderType_Count], uint32_t samples)
 {
 	if (!resourceManager || (!allocator && !resourceManager->allocator) || !shaderModule)
 	{
@@ -43,74 +41,68 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 	if (!allocator)
 		allocator = resourceManager->allocator;
 
-	if (shapeShaderIndex == DS_MATERIAL_UNKNOWN)
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
 	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			shapeShaderName);
-		return NULL;
+		if (shaderIndices[i] == DS_MATERIAL_UNKNOWN)
+		{
+			errno = ENOTFOUND;
+			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG,
+				"Vector shader module doesn't contain shader '%s'.", shaderNames[i]);
+			return NULL;
+		}
 	}
 
-	if (imageShaderIndex == DS_MATERIAL_UNKNOWN)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			imageShaderName);
-		return NULL;
-	}
-
-	if (textShaderIndex == DS_MATERIAL_UNKNOWN)
-	{
-		errno = ENOTFOUND;
-		DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Vector shader module doesn't contain shader '%s'.",
-			textShaderName);
-		return NULL;
-	}
-
-	dsShader* shapeShader = dsShader_createIndex(resourceManager, allocator,
-		shaderModule->shaderModule, shapeShaderIndex, shaderModule->materialDesc,
-		dsPrimitiveType_TriangleList, samples);
-	if (!shapeShader)
-		return NULL;
-
-	dsShader* imageShader = dsShader_createIndex(resourceManager, allocator,
-		shaderModule->shaderModule, imageShaderIndex, shaderModule->materialDesc,
-		dsPrimitiveType_TriangleList, samples);
-	if (!imageShader)
-	{
-		DS_VERIFY(dsShader_destroy(shapeShader));
-		return NULL;
-	}
-
-	dsPrimitiveType textType = dsPrimitiveType_TriangleList;
+	bool textHasTessellation = dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
+		shaderModule->shaderIndices[dsVectorShaderType_TextColor],
+		dsShaderStage_TessellationEvaluation);
 	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
-		shaderModule->textShaderIndex, dsShaderStage_TessellationEvaluation))
+		shaderModule->shaderIndices[dsVectorShaderType_TextGradient],
+		dsShaderStage_TessellationEvaluation) != textHasTessellation)
 	{
-		textType = dsPrimitiveType_PatchList;
-	}
-	dsShader* textShader = dsShader_createIndex(resourceManager, allocator,
-		shaderModule->shaderModule, textShaderIndex, shaderModule->materialDesc, textType, samples);
-	if (!textShader)
-	{
-		DS_VERIFY(dsShader_destroy(shapeShader));
-		DS_VERIFY(dsShader_destroy(imageShader));
+		errno = EPERM;
+		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
+			"Cannot have a mixture of text shaders with and without tessellation.");
 		return NULL;
+	}
+
+	dsPrimitiveType textPrimitiveType = dsPrimitiveType_TriangleList;
+	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
+		shaderModule->shaderIndices[dsVectorShaderType_TextColor],
+		dsShaderStage_TessellationEvaluation))
+	{
+		textPrimitiveType = dsPrimitiveType_PatchList;
 	}
 
 	dsVectorShaders* shaders = DS_ALLOCATE_OBJECT(allocator, dsVectorShaders);
 	if (!shaders)
-	{
-		DS_VERIFY(dsShader_destroy(shapeShader));
-		DS_VERIFY(dsShader_destroy(imageShader));
-		DS_VERIFY(dsShader_destroy(textShader));
 		return NULL;
-	}
 
 	shaders->allocator = dsAllocator_keepPointer(allocator);
 	shaders->shaderModule = shaderModule;
-	shaders->shapeShader = shapeShader;
-	shaders->imageShader = imageShader;
-	shaders->textShader = textShader;
+
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
+	{
+		dsVectorShaderType shaderType = (dsVectorShaderType)i;
+		dsPrimitiveType primitiveType = dsPrimitiveType_TriangleList;
+		if (shaderType == dsVectorShaderType_TextColor ||
+			shaderType == dsVectorShaderType_TextGradient)
+		{
+			primitiveType = textPrimitiveType;
+		}
+
+		shaders->shaders[i] = dsShader_createIndex(resourceManager, allocator,
+			shaderModule->shaderModule, shaderIndices[i], shaderModule->materialDesc,
+			primitiveType, samples);
+		if (!shaders->shaders[i])
+		{
+			for (uint32_t j = 0; j < i; ++j)
+				DS_VERIFY(dsShader_destroy(shaders->shaders[j]));
+
+			if (shaders->allocator)
+				DS_VERIFY(dsAllocator_free(allocator, shaders));
+			return NULL;
+		}
+	}
 
 	return shaders;
 }
@@ -119,13 +111,12 @@ dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVectorShaderModule* shaderModule, uint32_t samples)
 {
 	return dsVectorShaders_createImpl(resourceManager, allocator, shaderModule,
-		shaderModule->shapeShaderIndex, dsDefaultShapeShaderName, shaderModule->imageShaderIndex,
-		dsDefaultImageShaderName, shaderModule->textShaderIndex, dsDefaultTextShaderName, samples);
+		shaderModule->shaderIndices, dsDefaultVectorShaderNames, samples);
 }
 
 dsVectorShaders* dsVectorShaders_createCustom(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsVectorShaderModule* shaderModule, const char* shapeShaderName,
-	const char* imageShaderName, const char* textShaderName, uint32_t samples)
+	dsAllocator* allocator, dsVectorShaderModule* shaderModule,
+	const char* shaderNames[dsVectorShaderType_Count], uint32_t samples)
 {
 	if (!resourceManager || (!allocator && !resourceManager->allocator) || !shaderModule)
 	{
@@ -133,27 +124,34 @@ dsVectorShaders* dsVectorShaders_createCustom(dsResourceManager* resourceManager
 		return NULL;
 	}
 
-	uint32_t shapeShaderIndex = shapeShaderName ? DS_MATERIAL_UNKNOWN :
-		shaderModule->shapeShaderIndex;
-	uint32_t imageShaderIndex = imageShaderName ? DS_MATERIAL_UNKNOWN :
-		shaderModule->imageShaderIndex;
-	uint32_t textShaderIndex = textShaderName ? DS_MATERIAL_UNKNOWN : shaderModule->textShaderIndex;
-	for (uint32_t i = 0, count = dsShaderModule_shaderCount(shaderModule->shaderModule);
-		i < count && (shapeShaderIndex == DS_MATERIAL_UNKNOWN ||
-		imageShaderIndex == DS_MATERIAL_UNKNOWN || textShaderIndex == DS_MATERIAL_UNKNOWN); ++i)
+	uint32_t shaderIndices[dsVectorShaderType_Count];
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
 	{
-		const char* name = dsShaderModule_shaderName(shaderModule->shaderModule, i);
-		if (shapeShaderName && strcmp(name, shapeShaderName) == 0)
-			shapeShaderIndex = i;
-		else if (imageShaderName && strcmp(name, imageShaderName) == 0)
-			imageShaderIndex = i;
-		else if (textShaderName && strcmp(name, textShaderName) == 0)
-			textShaderIndex = i;
+		if (shaderNames[i])
+			shaderIndices[i] = DS_MATERIAL_UNKNOWN;
+		else
+			shaderIndices[i] = shaderModule->shaderIndices[i];
 	}
 
-	return dsVectorShaders_createImpl(resourceManager, allocator, shaderModule,
-		shapeShaderIndex, shapeShaderName, imageShaderIndex, imageShaderName, textShaderIndex,
-		textShaderName, samples);
+	uint32_t shaderCount = dsShaderModule_shaderCount(shaderModule->shaderModule);
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
+	{
+		if (!shaderNames[i])
+			continue;
+
+		for (uint32_t j = 0; j < shaderCount; ++j)
+		{
+			const char* name = dsShaderModule_shaderName(shaderModule->shaderModule, j);
+			if (strcmp(name, shaderNames[i]) == 0)
+			{
+				shaderIndices[i] = j;
+				break;
+			}
+		}
+	}
+
+	return dsVectorShaders_createImpl(resourceManager, allocator, shaderModule, shaderIndices,
+		shaderNames, samples);
 }
 
 bool dsVectorShaders_destroy(dsVectorShaders* shaders)
@@ -161,10 +159,14 @@ bool dsVectorShaders_destroy(dsVectorShaders* shaders)
 	if (!shaders)
 		return true;
 
-	if (!dsShader_destroy(shaders->shapeShader))
-		return false;
-	DS_VERIFY(dsShader_destroy(shaders->imageShader));
-	DS_VERIFY(dsShader_destroy(shaders->textShader));
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
+	{
+		if (!dsShader_destroy(shaders->shaders[i]))
+		{
+			DS_ASSERT(i == 0);
+			return false;
+		}
+	}
 
 	if (shaders->allocator)
 		DS_VERIFY(dsAllocator_free(shaders->allocator, shaders));

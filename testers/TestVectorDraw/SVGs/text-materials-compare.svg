@@ -1,0 +1,31 @@
+<svg width="300" height="250" viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg">
+
+  <defs>
+    <radialGradient id="radial"
+		    gradientUnits="userSpaceOnUse"
+			spreadMethod="repeat"
+		    cx="150" cy="150"
+			fx="225"
+		    r="100">
+      <stop offset="0%"   stop-color="#AA88FF" />
+      <stop offset="50%"  stop-color="#FFDDCC" />
+      <stop offset="100%" stop-color="#AA88FF" />
+    </radialGradient>
+
+    <linearGradient id="linear">
+      <stop offset="5%"  stop-color="green"/>
+      <stop offset="95%" stop-color="gold"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="100%" height="100%" fill="black"/>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#radial)" fill-opacity="0.5"/>
+
+  <text x="20" y="40" font-size="25px" font-family="sans-serif" fill="#AA88FF"
+      stroke="gold" stroke-width="1" textLength="250">
+    Text with without using gradients with multiple lines,
+    <tspan font-style="italic" font-weight="bold">in order to better test</tspan>
+    the difference in performance with gradients.
+  </text>
+
+</svg>

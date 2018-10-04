@@ -869,7 +869,7 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform, stroke->opacity*sizeAlpha);
+		&scratchData->pathTransform, stroke->opacity*sizeAlpha, true, dsVectorMaterialType_Color);
 	if (!curInfo)
 		DS_PROFILE_FUNC_RETURN(false);
 	curInfo->dashArray = stroke->dashArray;

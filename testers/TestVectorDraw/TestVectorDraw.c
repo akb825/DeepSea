@@ -120,7 +120,8 @@ const char* vectorImageFiles[] =
 	"text-preformatted.dsvi",
 	"text-autoformat.dsvi",
 	"tspan.dsvi",
-	"text-materials.dsvi"
+	"text-materials.dsvi",
+	"text-materials-compare.dsvi"
 };
 
 static void printHelp(const char* programPath)
@@ -401,9 +402,18 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	const char* shaderNames[dsVectorShaderType_Count] =
+	{
+		"dsVectorFillColorWireframe",
+		"dsVectorFillLinearGradientWireframe",
+		"dsVectorFillRadialGradientWireframe",
+		"dsVectorLineWireframe",
+		NULL,
+		NULL,
+		NULL
+	};
 	testVectorDraw->wireframeShaders = dsVectorShaders_createCustom(resourceManager, allocator,
-		testVectorDraw->shaderModule, "dsVectorShapeWireframe", NULL, NULL,
-		DS_DEFAULT_ANTIALIAS_SAMPLES);
+		testVectorDraw->shaderModule, shaderNames, DS_DEFAULT_ANTIALIAS_SAMPLES);
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));

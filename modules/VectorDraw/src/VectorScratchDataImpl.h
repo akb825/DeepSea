@@ -28,14 +28,6 @@ extern "C"
 #define INFOS_PER_TEXTURE 1024
 #define NOT_FOUND (uint32_t)-1
 
-typedef enum ShaderType
-{
-	ShaderType_Shape,
-	ShaderType_Image,
-	ShaderType_Text,
-	ShaderType_Count
-} ShaderType;
-
 typedef enum PointType
 {
 	PointType_Normal = 0,
@@ -62,14 +54,14 @@ typedef struct ImageVertex
 
 typedef struct TempGeometryRange
 {
-	ShaderType type;
+	dsVectorShaderType type;
 	uint32_t vertexOffset;
 	uint32_t vertexCount;
 } TempGeometryRange;
 
 typedef struct TempPiece
 {
-	ShaderType type;
+	dsVectorShaderType type;
 	uint32_t infoTextureIndex;
 	dsDrawIndexedRange range;
 	dsTexture* texture;
@@ -204,16 +196,18 @@ ImageVertex* dsVectorScratchData_addImageVertex(dsVectorScratchData* data);
 bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex);
 
 ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform, float opacity);
+	const dsMatrix33f* transform, float opacity, bool line, dsVectorMaterialType materialType);
 ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 	const dsMatrix33f* transform, dsTexture* texture, float opacity, const dsAlignedBox2f* bounds);
 bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAlignedBox2f* bounds,
 	const dsMatrix33f* transform, const dsVector2f* offset, const dsFont* font, float fillOpacity,
 	float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
-	uint32_t fillMaterial, uint32_t outlineMaterial);
+	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
+	dsVectorMaterialType outlineMaterialType);
 bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2f* offset,
 	float fillOpacity, float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
-	uint32_t fillMaterial, uint32_t outlineMaterial);
+	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
+	dsVectorMaterialType outlineMaterialType);
 
 bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data);
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,

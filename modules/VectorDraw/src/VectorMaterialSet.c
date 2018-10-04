@@ -331,6 +331,19 @@ uint32_t dsVectorMaterialSet_findMaterialIndex(const dsVectorMaterialSet* materi
 	return node->index;
 }
 
+dsVectorMaterialType dsVectorMaterialSet_getMaterialType(const dsVectorMaterialSet* materials,
+	const char* name)
+{
+	if (!materials || !name)
+		return dsVectorMaterialType_Color;
+
+	dsMaterialNode* node = (dsMaterialNode*)dsHashTable_find(materials->materialTable, name);
+	if (!node)
+		return dsVectorMaterialType_Color;
+
+	return node->material.materialType;
+}
+
 bool dsVectorMaterialSet_setMaterial(dsVectorMaterialSet* materials,
 	const char* name, const dsVectorMaterial* material, bool own)
 {

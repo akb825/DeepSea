@@ -133,6 +133,21 @@ typedef enum dsVectorTextPosition
 } dsVectorTextPosition;
 
 /**
+ * @brief Enum for the different types of shaders.
+ */
+typedef enum dsVectorShaderType
+{
+	dsVectorShaderType_FillColor,                ///< Fill with a solid color.
+	dsVectorShaderType_FillLinearGradient,       ///< Fill with a linear gradient.
+	dsVectorShaderType_FillRadialGradient,       ///< Fill with a radial gradient.
+	dsVectorShaderType_Line,                     ///< Line with a color or gradient.
+	dsVectorShaderType_Image,                    ///< Texture applied as an image.
+	dsVectorShaderType_TextColor,                ///< Standard text.
+	dsVectorShaderType_TextGradient,             ///< Text that can contain a gradient.
+	dsVectorShaderType_Count                     ///< The number of shader types.
+} dsVectorShaderType;
+
+/**
  * @brief Function for loading a texture for a dsVectorResources instance.
  * @param userData The user data for the load.
  * @param resourceManager The resource manager to create the texture with.
@@ -864,19 +879,9 @@ typedef struct dsVectorShadersModule
 	uint32_t textureSizesElement;
 
 	/**
-	 * @brief The index for the default vector shape shader.
+	 * @brief The indices for the shaders.
 	 */
-	uint32_t shapeShaderIndex;
-
-	/**
-	 * @brief The index for the default vector image shader.
-	 */
-	uint32_t imageShaderIndex;
-
-	/**
-	 * @brief The index for the default vector text shader.
-	 */
-	uint32_t textShaderIndex;
+	uint32_t shaderIndices[dsVectorShaderType_Count];
 } dsVectorShaderModule;
 
 /**
@@ -896,19 +901,9 @@ typedef struct dsVectorShaders
 	dsVectorShaderModule* shaderModule;
 
 	/**
-	 * @brief The shader for the shape portions.
+	 * @brief The list of shaders.
 	 */
-	dsShader* shapeShader;
-
-	/**
-	 * @brief The shader for the bitmap image portions.
-	 */
-	dsShader* imageShader;
-
-	/**
-	 * @brief The shader for the text portions.
-	 */
-	dsShader* textShader;
+	dsShader* shaders[dsVectorShaderType_Count];
 } dsVectorShaders;
 
 /**

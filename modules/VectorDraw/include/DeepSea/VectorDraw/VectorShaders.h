@@ -52,15 +52,14 @@ DS_VECTORDRAW_EXPORT dsVectorShaders* dsVectorShaders_create(dsResourceManager* 
  * @param allocator The allocator to create the shader module with. If NULL, it will use the same
  *     allocator as the resource manager.
  * @param shaderModule The shader module to create the shaders with.
- * @param shapeShaderName The name of the shader to use for shapes, or NULL for the default.
- * @param imageShaderName The name of the shader to use for images, or NULL for the default.
- * @param textShaderName The name of the shader to use for text, or NULL for the default.
+ * @param shaderNames The name of the shaders to use. If any element is NULL, the the default will
+ *     be used.
  * @param samples The number of anti-alias samples, or DS_DEFAULT_ANTIALIAS_SAMPLES for the default.
  * @return The vector shaders, or NULL an error occurred.
  */
-DS_VECTORDRAW_EXPORT dsVectorShaders* dsVectorShaders_createCustom(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsVectorShaderModule* shaderModule, const char* shapeShaderName,
-	const char* imageShaderName, const char* textShaderName, uint32_t samples);
+DS_VECTORDRAW_EXPORT dsVectorShaders* dsVectorShaders_createCustom(
+	dsResourceManager* resourceManager, dsAllocator* allocator, dsVectorShaderModule* shaderModule,
+	const char* shaderNames[dsVectorShaderType_Count], uint32_t samples);
 
 /**
  * @brief Destroys the vector shaders.

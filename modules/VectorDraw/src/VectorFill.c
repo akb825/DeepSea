@@ -49,6 +49,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		fill->material);
+	dsVectorMaterialType materialType;
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
 	{
 		material = dsVectorMaterialSet_findMaterialIndex(localMaterials, fill->material);
@@ -59,11 +60,14 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			DS_PROFILE_FUNC_RETURN(false);
 		}
 		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		materialType = dsVectorMaterialSet_getMaterialType(localMaterials, fill->material);
 	}
+	else
+		materialType = dsVectorMaterialSet_getMaterialType(sharedMaterials, fill->material);
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform, fill->opacity);
+		&scratchData->pathTransform, fill->opacity, false, materialType);
 	if (!curInfo)
 		DS_PROFILE_FUNC_RETURN(false);
 

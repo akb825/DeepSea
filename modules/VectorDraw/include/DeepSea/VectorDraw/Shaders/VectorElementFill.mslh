@@ -1,0 +1,262 @@
+/*
+ * Copyright 2018 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/Color.mslh>
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorMaterial.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector fill elements.
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipelines of the name dsVectorFillColor, dsVectorFillLinearGradient, and
+ * dsVectorFillRadialGradient. For example, the following pipelines definition will provide the
+ * default implementation:
+ *
+ * ```
+ * pipeline dsVectorFillColor
+ * {
+ *     vertex = dsVectorElementFill_defaultVertexColor;
+ *     fragment = dsVectorElementFill_defaultFragmentColor;
+ *     DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorFillLinearGradient
+ * {
+ *     vertex = dsVectorElementFill_defaultVertex;
+ *     fragment = dsVectorElementFill_defaultFragmentLinearGradient;
+ *     DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorFillRadialGradient
+ * {
+ *     vertex = dsVectorElementFill_defaultVertex;
+ *     fragment = dsVectorElementFill_defaultFragmentRadialGradient;
+ *     DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES;
+ * }
+ * ```
+ *
+ * dsVectorElementFill_defaultFragmentColorSRGB (with linear and radial gradient versions) are
+ * provided to convert the final color to sRGB space. However, in some situations it's still
+ * preferable to leave the color in linear space when doing sRGB-correct rendering:
+ * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
+ * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
+ *   channel) is used in this case to avoid precision loss.
+ */
+
+/**
+ * @brief The position of the vertex.
+ */
+[[vertex]] layout(location = DS_POSITION) in vec2 dsVectorPosition;
+
+/**
+ * @brief The indices within the material and shape.
+ */
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
+
+/**
+ * @brief Output from the vertex stage.
+ */
+struct dsVectorVertexOutput
+{
+	/**
+	 * @brief The original and image position of the vertex.
+	 */
+	vec4 position;
+
+	/**
+	 * @brief Opacity and material index.
+	 */
+	vec2 opacityMaterialIndex;
+
+	/**
+	 * @brief The bounds of the shape.
+	 */
+	vec4 shapeBounds;
+};
+
+/**
+ * @brief The vertex output.
+ */
+[[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
+[[vertex]] out dsVectorMaterialInfo dsVectorVertexMaterialOut;
+[[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
+[[fragment]] in dsVectorMaterialInfo dsVectorVertexMaterialOut;
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 dsVectorFinalColor;
+
+/**
+ * @brief Default render states for vector shape elements.
+ */
+#define DS_DEFAULT_VECTOR_ELEMENT_FILL_RENDER_STATES \
+	cull_mode = back; \
+	blend_enable = true; \
+	src_color_blend_factor = src_alpha; \
+	src_alpha_blend_factor = one; \
+	dst_blend_factor = one_minus_src_alpha; \
+	alpha_blend_op = add
+
+/**
+ * @brief Creates the vertex output.
+ * @param[out] outPosition The output position in clip space.
+ * @return The vertex output.
+ */
+[[vertex]]
+dsVectorVertexOutput dsVectorElementFill_processVertex(out vec4 outPosition)
+{
+	vec4 elementInfo[4];
+	dsVectorShared_getElementInfo(elementInfo, dsVectorElementMaterialIndex.x);
+	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
+
+	dsVectorVertexOutput result;
+	result.position.xy = dsVectorPosition;
+	outPosition = dsVectorShared_transform(result.position.zw, dsVectorPosition, transform);
+	result.opacityMaterialIndex = vec2(elementInfo[2].z, dsVectorElementMaterialIndex.y);
+	result.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
+
+	return result;
+}
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsVectorElementFill_defaultVertex()
+{
+	dsVectorVertexOut = dsVectorElementFill_processVertex(gl_Position);
+	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(dsVectorElementMaterialIndex.y);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Default vertex shader entry point function for solid colors.
+ */
+[[vertex]]
+void dsVectorElementFill_defaultVertexColor()
+{
+	dsVectorVertexOut = dsVectorElementFill_processVertex(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Gets the material color of the fill as a solid color.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementFill_getSolidColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	vec4 color = dsVectorMaterial_getSolidColor(dsVectorVertexOut.opacityMaterialIndex.y);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+}
+
+/**
+ * @brief Gets the material color of the fill as a linear gradient.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementFill_getLinearGradientColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	vec4 color = dsVectorMaterial_getLinearGradientColor(dsVectorVertexMaterialOut,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.opacityMaterialIndex.y);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+}
+
+/**
+ * @brief Gets the material color of the fill as a radial gradient.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementFill_getRadialGradientColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	vec4 color = dsVectorMaterial_getRadialGradientColor(dsVectorVertexMaterialOut,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.opacityMaterialIndex.y);
+	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentColor()
+{
+	dsVectorFinalColor = dsVectorElementFill_getSolidColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for linear gradients.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentLinearGradient()
+{
+	dsVectorFinalColor = dsVectorElementFill_getLinearGradientColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for radial gradients.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentRadialGradient()
+{
+	dsVectorFinalColor = dsVectorElementFill_getRadialGradientColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentColorSRGB()
+{
+	dsVectorFinalColor = dsVectorElementFill_getSolidColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for linear gradients that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentLinearGradientSRGB()
+{
+	dsVectorFinalColor = dsVectorElementFill_getLinearGradientColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for radial gradients that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementFill_defaultFragmentRadialGradientSRGB()
+{
+	dsVectorFinalColor = dsVectorElementFill_getRadialGradientColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}

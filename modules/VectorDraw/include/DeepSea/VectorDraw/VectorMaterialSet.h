@@ -160,6 +160,15 @@ DS_VECTORDRAW_EXPORT uint32_t dsVectorMaterialSet_findMaterialIndex(
 	const dsVectorMaterialSet* materials, const char* name);
 
 /**
+ * @brief Gets the type of a material.
+ * @param materials The material set.
+ * @param name The name of the material to get the type of.
+ * @return The type of the material.
+ */
+DS_VECTORDRAW_EXPORT dsVectorMaterialType dsVectorMaterialSet_getMaterialType(
+	const dsVectorMaterialSet* materials, const char* name);
+
+/**
  * @brief Updates the material set, committing any changes to the textures.
  * @remark This may not be called within a render pass.
  * @remark errno will be set on failure.

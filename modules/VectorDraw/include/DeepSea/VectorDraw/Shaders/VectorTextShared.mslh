@@ -126,9 +126,35 @@ dsVectorMaterialInfo dsVectorText_getMaterialInfo(float index)
 	return dsVectorMaterial_getInfo(index);
 }
 
+/**
+ * @brief Gets the material color of the text for gradients.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getSolidColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	vec4 fillColor = dsVectorMaterial_getSolidColor(dsVectorVertexOut.materialIndicesOpacities.x);
+	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
+
+	vec4 outlineColor = dsVectorMaterial_getSolidColor(
+		dsVectorVertexOut.materialIndicesOpacities.y);
+	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
+
+	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
+	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	float outline = dsVectorVertexOut.outlineAntiAlias.x;
+	float outlinePosition = embolden*0.5 + 0.5;
+	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
+		fillColor, outlineColor);
+}
 
 /**
- * @brief Gets the material color of the text.
+ * @brief Gets the material color of the text for gradients.
  * @return The material color.
  */
 [[fragment]]

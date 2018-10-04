@@ -56,12 +56,20 @@
 
 DS_STATIC_ASSERT(sizeof(VectorInfo) == 4*sizeof(dsVector4f), unexpected_VectorInfo_size);
 
+typedef enum BaseType
+{
+	BaseType_Shape,
+	BaseType_Image,
+	BaseType_Text,
+	BaseType_Count
+} BaseType;
+
 typedef struct VectorImagePiece
 {
 	dsTexture* geometryInfo;
 	dsTexture* texture;
 	dsTextRenderBuffer* textRender;
-	ShaderType type;
+	dsVectorShaderType type;
 	dsDrawIndexedRange range;
 } VectorImagePiece;
 
@@ -72,7 +80,7 @@ struct dsVectorImage
 	dsVectorMaterialSet* localMaterials;
 	VectorImagePiece* imagePieces;
 	dsTexture** infoTextures;
-	dsDrawGeometry* drawGeometries[ShaderType_Count];
+	dsDrawGeometry* drawGeometries[BaseType_Count];
 	dsTextLayout** textLayouts;
 	TextDrawInfo* textDrawInfos;
 	dsGfxBuffer* buffer;
@@ -727,9 +735,9 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 		sizeof(uint16_t)
 	};
 
-	image->drawGeometries[ShaderType_Shape] = dsDrawGeometry_create(resourceManager, allocator,
+	image->drawGeometries[BaseType_Shape] = dsDrawGeometry_create(resourceManager, allocator,
 		vertexBuffers, &indexBuffer);
-	return image->drawGeometries[ShaderType_Shape] != NULL;
+	return image->drawGeometries[BaseType_Shape] != NULL;
 }
 
 static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scratchData,
@@ -765,9 +773,9 @@ static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 		sizeof(uint16_t)
 	};
 
-	image->drawGeometries[ShaderType_Image] = dsDrawGeometry_create(resourceManager, allocator,
+	image->drawGeometries[BaseType_Image] = dsDrawGeometry_create(resourceManager, allocator,
 		vertexBuffers, &indexBuffer);
-	return image->drawGeometries[ShaderType_Image] != NULL;
+	return image->drawGeometries[BaseType_Image] != NULL;
 }
 
 static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBuffer)
@@ -775,8 +783,11 @@ static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBu
 	for (uint32_t i = 0; i < vectorImage->pieceCount; ++i)
 	{
 		const VectorImagePiece* piece = vectorImage->imagePieces + i;
-		if (piece->type != ShaderType_Text)
+		if (piece->type != dsVectorShaderType_TextColor &&
+			piece->type != dsVectorShaderType_TextGradient)
+		{
 			continue;
+		}
 
 		DS_ASSERT(piece->textRender);
 		DS_VERIFY(dsTextRenderBuffer_clear(piece->textRender));
@@ -793,6 +804,26 @@ static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBu
 	}
 
 	return true;
+}
+
+static BaseType getBaseType(dsVectorShaderType type)
+{
+	switch (type)
+	{
+		case dsVectorShaderType_FillColor:
+		case dsVectorShaderType_FillLinearGradient:
+		case dsVectorShaderType_FillRadialGradient:
+		case dsVectorShaderType_Line:
+			return BaseType_Shape;
+		case dsVectorShaderType_Image:
+			return BaseType_Image;
+		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextGradient:
+			return BaseType_Text;
+		default:
+			DS_ASSERT(false);
+			return BaseType_Count;
+	}
 }
 
 dsVectorImage* dsVectorImage_loadImpl(dsAllocator* allocator, dsAllocator* resourceAllocator,
@@ -948,8 +979,11 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 
 			for (uint32_t i = 0; i < image->pieceCount; ++i)
 			{
-				if (image->imagePieces[i].type != ShaderType_Text)
+				if (image->imagePieces[i].type != dsVectorShaderType_TextColor &&
+					image->imagePieces[i].type != dsVectorShaderType_TextGradient)
+				{
 					continue;
+				}
 
 				image->imagePieces[i].textRender = dsVectorText_createRenderBuffer(allocator,
 					resourceManager, &textVertexFormat, &image->imagePieces[i].range,
@@ -1208,30 +1242,14 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 			break;
 		}
 
-		dsShader* shader;
-		switch (piece->type)
-		{
-			case ShaderType_Shape:
-				shader = shaders->shapeShader;
-				break;
-			case ShaderType_Image:
-				shader = shaders->imageShader;
-				break;
-			case ShaderType_Text:
-				shader = shaders->textShader;
-				break;
-			default:
-				DS_ASSERT(false);
-				shader = NULL;
-				break;
-		}
-
+		dsShader* shader = shaders->shaders[piece->type];
 		if (!dsShader_bind(shader, commandBuffer, material, volatileValues, renderStates))
 		{
 			success = false;
 			break;
 		}
-		if (piece->type == ShaderType_Text)
+		if (piece->type == dsVectorShaderType_TextColor ||
+			piece->type == dsVectorShaderType_TextGradient)
 		{
 			DS_ASSERT(piece->textRender);
 			success = dsTextRenderBuffer_draw(piece->textRender, commandBuffer);
@@ -1239,7 +1257,7 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		else
 		{
 			success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
-					vectorImage->drawGeometries[piece->type], &piece->range);
+					vectorImage->drawGeometries[getBaseType(piece->type)], &piece->range);
 		}
 		// Make sure we unbind the shader even if the above draw failed.
 		if (!dsShader_unbind(shader, commandBuffer) || !success)
@@ -1309,7 +1327,7 @@ bool dsVectorImage_destroy(dsVectorImage* vectorImage)
 			return false;
 	}
 
-	for (int i = 0; i < ShaderType_Count; ++i)
+	for (int i = 0; i < BaseType_Count; ++i)
 	{
 		if (!dsDrawGeometry_destroy(vectorImage->drawGeometries[i]))
 			return false;

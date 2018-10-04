@@ -62,12 +62,25 @@ static VectorInfo* addVectorInfo(dsVectorScratchData* data)
 	return data->vectorInfos + index;
 }
 
-static bool addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* texture,
+static bool hasTexture(dsVectorShaderType type)
+{
+	switch (type)
+	{
+		case dsVectorShaderType_Image:
+		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextGradient:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool addPiece(dsVectorScratchData* data, dsVectorShaderType type, dsTexture* texture,
 	uint32_t infoIndex)
 {
 	bool force = infoIndex % INFOS_PER_TEXTURE == 0;
 	if (!force && data->pieceCount > 0 && data->pieces[data->pieceCount - 1].type == type &&
-		(type == ShaderType_Shape || data->pieces[data->pieceCount - 1].texture == texture))
+		(!hasTexture(type) || data->pieces[data->pieceCount - 1].texture == texture))
 	{
 		return true;
 	}
@@ -88,13 +101,17 @@ static bool addPiece(dsVectorScratchData* data, ShaderType type, dsTexture* text
 	piece->range.firstInstance = 0;
 	switch (type)
 	{
-		case ShaderType_Shape:
+		case dsVectorShaderType_FillColor:
+		case dsVectorShaderType_FillLinearGradient:
+		case dsVectorShaderType_FillRadialGradient:
+		case dsVectorShaderType_Line:
 			piece->range.vertexOffset = data->shapeVertexCount;
 			break;
-		case ShaderType_Image:
+		case dsVectorShaderType_Image:
 			piece->range.vertexOffset = data->imageVertexCount;
 			break;
-		case ShaderType_Text:
+		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextGradient:
 			piece->range.firstIndex = data->textDrawInfoCount;
 			piece->range.vertexOffset = 0;
 			break;
@@ -354,7 +371,10 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 	{
 		switch (piece->type)
 		{
-			case ShaderType_Shape:
+			case dsVectorShaderType_FillColor:
+			case dsVectorShaderType_FillLinearGradient:
+			case dsVectorShaderType_FillRadialGradient:
+			case dsVectorShaderType_Line:
 			{
 				uint32_t newVertIndex = data->shapeVertexCount;
 				ShapeVertex* newVert = dsVectorScratchData_addShapeVertex(data);
@@ -364,7 +384,7 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 				*vertex = newVertIndex;
 				break;
 			}
-			case ShaderType_Image:
+			case dsVectorShaderType_Image:
 			{
 				uint32_t newVertIndex = data->imageVertexCount;
 				ImageVertex* newVert = dsVectorScratchData_addImageVertex(data);
@@ -427,11 +447,33 @@ bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex)
 }
 
 ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform, float opacity)
+	const dsMatrix33f* transform, float opacity, bool line, dsVectorMaterialType materialType)
 {
+	dsVectorShaderType type;
+	if (line)
+		type = dsVectorShaderType_Line;
+	else
+	{
+		switch (materialType)
+		{
+			case dsVectorMaterialType_Color:
+				type = dsVectorShaderType_FillColor;
+				break;
+			case dsVectorMaterialType_LinearGradient:
+				type = dsVectorShaderType_FillLinearGradient;
+				break;
+			case dsVectorMaterialType_RadialGradient:
+				type = dsVectorShaderType_FillRadialGradient;
+				break;
+			default:
+				DS_ASSERT(false);
+				break;
+		}
+	}
+
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
-	if (!info || !addPiece(data, ShaderType_Shape, NULL, infoIndex))
+	if (!info || !addPiece(data, type, NULL, infoIndex))
 		return NULL;
 
 	dsAlignedBox2f_makeInvalid(&info->shapeInfo.bounds);
@@ -453,7 +495,7 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 {
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
-	if (!info || !addPiece(data, ShaderType_Image, texture, infoIndex))
+	if (!info || !addPiece(data, dsVectorShaderType_Image, texture, infoIndex))
 		return NULL;
 
 	info->shapeInfo.bounds = *bounds;
@@ -470,11 +512,21 @@ ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAlignedBox2f* bounds,
 	const dsMatrix33f* transform, const dsVector2f* offset, const dsFont* font, float fillOpacity,
 	float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
-	uint32_t fillMaterial, uint32_t outlineMaterial)
+	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
+	dsVectorMaterialType outlineMaterialType)
 {
+	dsVectorShaderType type;
+	if (fillMaterialType == dsVectorMaterialType_Color &&
+		outlineMaterialType == dsVectorMaterialType_Color)
+	{
+		type = dsVectorShaderType_TextColor;
+	}
+	else
+		type = dsVectorShaderType_TextGradient;
+
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
-	if (!info || !addPiece(data, ShaderType_Text, dsFont_getTexture(font), infoIndex))
+	if (!info || !addPiece(data, type, dsFont_getTexture(font), infoIndex))
 		return false;
 
 	uint32_t drawInfoIndex = data->textDrawInfoCount;
@@ -515,11 +567,22 @@ bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAligned
 
 bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2f* offset,
 	float fillOpacity, float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
-	uint32_t fillMaterial, uint32_t outlineMaterial)
+	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
+	dsVectorMaterialType outlineMaterialType)
 {
+	dsVectorShaderType type;
+	if (fillMaterialType == dsVectorMaterialType_Color &&
+		outlineMaterialType == dsVectorMaterialType_Color)
+	{
+		type = dsVectorShaderType_TextColor;
+	}
+	else
+		type = dsVectorShaderType_TextGradient;
+
 	DS_ASSERT(data->pieceCount > 0);
 	TempPiece* prevPiece = data->pieces + data->pieceCount - 1;
-	DS_ASSERT(prevPiece->type == ShaderType_Text);
+	DS_ASSERT(prevPiece->type == dsVectorShaderType_TextColor ||
+		prevPiece->type == dsVectorShaderType_TextGradient);
 	DS_ASSERT(data->vectorInfoCount > 0);
 	uint32_t prevInfoIndex = data->vectorInfoCount - 1;
 	VectorInfo* prevInfo = data->vectorInfos + prevInfoIndex;
@@ -555,7 +618,7 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
-	if (!info || !addPiece(data, ShaderType_Text, prevPiece->texture, infoIndex))
+	if (!info || !addPiece(data, type, prevPiece->texture, infoIndex))
 		return false;
 
 	// Need to get the prev info again since the array could have been re-allocated.

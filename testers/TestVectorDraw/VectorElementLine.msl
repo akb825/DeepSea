@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#include <DeepSea/VectorDraw/Shaders/VectorElementShape.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorElementLine.mslh>
 
-pipeline dsVectorShape
+pipeline dsVectorLine
 {
-	vertex = dsVectorElementShape_defaultVertex;
-	fragment = dsVectorElementShape_defaultFragment;
-	DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+	vertex = dsVectorElementLine_defaultVertex;
+	fragment = dsVectorElementLine_defaultFragment;
+	DS_DEFAULT_VECTOR_ELEMENT_LINE_RENDER_STATES;
 }
 
-pipeline dsVectorShapeWireframe
+pipeline dsVectorLineWireframe
 {
-	vertex = dsVectorElementShape_defaultVertex;
-	fragment = dsVectorElementShape_defaultFragment;
-	DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+	vertex = dsVectorElementLine_defaultVertex;
+	fragment = dsVectorElementLine_defaultFragment;
+	DS_DEFAULT_VECTOR_ELEMENT_LINE_RENDER_STATES;
 	polygon_mode = line;
 }

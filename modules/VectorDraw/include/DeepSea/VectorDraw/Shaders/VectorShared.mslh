@@ -60,6 +60,19 @@ void dsVectorShared_getElementInfo(out vec4 info[4], float index)
 	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));
 	info[1] = texture(dsVectorInfoTex, vec2(0.375f, elementCoord));
 	info[2] = texture(dsVectorInfoTex, vec2(0.625f, elementCoord));
+}
+
+/**
+ * @brief Gets the info for a line element.
+ * @param[out] info The element info.
+ * @param index The index of the element.
+ */
+void dsVectorShared_getElementLineInfo(out vec4 info[4], float index)
+{
+	float elementCoord = (float(index) + 0.5)/uniforms.dsVectorTextureSizes.x;
+	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));
+	info[1] = texture(dsVectorInfoTex, vec2(0.375f, elementCoord));
+	info[2] = texture(dsVectorInfoTex, vec2(0.625f, elementCoord));
 	info[3] = texture(dsVectorInfoTex, vec2(0.875f, elementCoord));
 }
 

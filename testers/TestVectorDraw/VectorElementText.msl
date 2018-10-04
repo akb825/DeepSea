@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-#if HAS_TESSELLATION_STAGES
+#if HAS_TESSELLATION_STAGES && 0
 #include <DeepSea/VectorDraw/Shaders/VectorElementTessText.mslh>
 #else
 #include <DeepSea/VectorDraw/Shaders/VectorElementText.mslh>
 #endif
 
-pipeline dsVectorText
+pipeline dsVectorTextColor
 {
-	vertex = dsVectorElementText_defaultVertex;
-#if HAS_TESSELLATION_STAGES
-	tessellation_control = dsVectorElementText_defaultTessControl;
-	tessellation_evaluation = dsVectorElementText_defaultTessEval;
+	vertex = dsVectorElementText_defaultVertexColor;
+#if HAS_TESSELLATION_STAGES && 0
+	tessellation_control = dsVectorElementText_defaultTessControlColor;
+	tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
 #endif
-	fragment = dsVectorElementText_defaultFragment;
+	fragment = dsVectorElementText_defaultFragmentColor;
+	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
+}
+
+pipeline dsVectorTextGradient
+{
+	vertex = dsVectorElementText_defaultVertexGradient;
+#if HAS_TESSELLATION_STAGES && 0
+	tessellation_control = dsVectorElementText_defaultTessControlGradient;
+	tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+#endif
+	fragment = dsVectorElementText_defaultFragmentGradient;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }

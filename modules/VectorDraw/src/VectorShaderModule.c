@@ -45,9 +45,16 @@ static const char* sizeName = "dsVectorImageSize";
 static const char* textureSizesName = "dsVectorTextureSizes";
 
 // Shaders
-const char* dsDefaultShapeShaderName = "dsVectorShape";
-const char* dsDefaultImageShaderName = "dsVectorImage";
-const char* dsDefaultTextShaderName = "dsVectorText";
+const char* dsDefaultVectorShaderNames[dsVectorShaderType_Count] =
+{
+	"dsVectorFillColor",          // dsVectorShaderType_FillColor
+	"dsVectorFillLinearGradient", // dsVectorShaderType_FillLinearGradient
+	"dsVectorFillRadialGradient", // dsVectorShaderType_FillRadialGradient
+	"dsVectorLine",               // dsVectorShaderType_Line
+	"dsVectorImage",              // dsVectorShaderType_Image
+	"dsVectorTextColor",          // dsVectorShaderType_TextColor
+	"dsVectorTextGradient"        // dsVectorShaderType_TextGradient
+};
 
 static bool targetSupported(dsResourceManager* resourceManager)
 {
@@ -104,20 +111,20 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 		return NULL;
 	}
 
-	uint32_t shapeIndex = DS_MATERIAL_UNKNOWN;
-	uint32_t imageIndex = DS_MATERIAL_UNKNOWN;
-	uint32_t textIndex = DS_MATERIAL_UNKNOWN;
-	for (uint32_t i = 0, count = dsShaderModule_shaderCount(module); i < count &&
-		(shapeIndex == DS_MATERIAL_UNKNOWN || imageIndex == DS_MATERIAL_UNKNOWN ||
-		textIndex == DS_MATERIAL_UNKNOWN); ++i)
+	uint32_t shaderIndices[dsVectorShaderType_Count];
+	uint32_t shaderCount = dsShaderModule_shaderCount(module);
+	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
 	{
-		const char* name = dsShaderModule_shaderName(module, i);
-		if (strcmp(name, dsDefaultShapeShaderName) == 0)
-			shapeIndex = i;
-		else if (strcmp(name, dsDefaultImageShaderName) == 0)
-			imageIndex = i;
-		else if (strcmp(name, dsDefaultTextShaderName) == 0)
-			textIndex = i;
+		shaderIndices[i] = DS_MATERIAL_UNKNOWN;
+		for (uint32_t j = 0; j < shaderCount; ++j)
+		{
+			const char* name = dsShaderModule_shaderName(module, j);
+			if (strcmp(name, dsDefaultVectorShaderNames[i]) == 0)
+			{
+				shaderIndices[i] = j;
+				break;
+			}
+		}
 	}
 
 	dsVectorShaderModule* vectorModule = DS_ALLOCATE_OBJECT(allocator, dsVectorShaderModule);
@@ -154,9 +161,7 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	DS_ASSERT(vectorModule->sizeElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->textureSizesElement = dsMaterialDesc_findElement(materialDesc, textureSizesName);
 	DS_ASSERT(vectorModule->textureSizesElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->shapeShaderIndex = shapeIndex;
-	vectorModule->imageShaderIndex = imageIndex;
-	vectorModule->textShaderIndex = textIndex;
+	memcpy(vectorModule->shaderIndices, shaderIndices, sizeof(uint32_t)*dsVectorShaderType_Count);
 
 	return vectorModule;
 }
