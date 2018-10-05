@@ -305,7 +305,7 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			}
 			else
 			{
-				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
+				outlineMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
 					range->outlineMaterial);
 				outlineMaterialSource = MaterialSource_Shared;
 			}
