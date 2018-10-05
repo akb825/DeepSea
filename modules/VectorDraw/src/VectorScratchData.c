@@ -473,7 +473,7 @@ ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
 				break;
 			default:
 				DS_ASSERT(false);
-				break;
+				return NULL;
 		}
 	}
 
