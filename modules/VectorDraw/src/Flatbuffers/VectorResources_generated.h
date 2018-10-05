@@ -94,9 +94,9 @@ struct Resource FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_PATH) &&
-           verifier.Verify(path()) &&
+           verifier.VerifyString(path()) &&
            verifier.EndTable();
   }
 };
@@ -158,9 +158,9 @@ struct FaceGroup FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_FACES) &&
-           verifier.Verify(faces()) &&
+           verifier.VerifyVector(faces()) &&
            verifier.VerifyVectorOfTables(faces()) &&
            verifier.EndTable();
   }
@@ -235,11 +235,11 @@ struct Font FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_FACEGROUP) &&
-           verifier.Verify(faceGroup()) &&
+           verifier.VerifyString(faceGroup()) &&
            VerifyOffsetRequired(verifier, VT_FACES) &&
-           verifier.Verify(faces()) &&
+           verifier.VerifyVector(faces()) &&
            verifier.VerifyVectorOfStrings(faces()) &&
            VerifyField<uint8_t>(verifier, VT_QUALITY) &&
            VerifyField<uint8_t>(verifier, VT_CACHESIZE) &&
@@ -330,13 +330,13 @@ struct ResourceSet FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TEXTURES) &&
-           verifier.Verify(textures()) &&
+           verifier.VerifyVector(textures()) &&
            verifier.VerifyVectorOfTables(textures()) &&
            VerifyOffset(verifier, VT_FACEGROUPS) &&
-           verifier.Verify(faceGroups()) &&
+           verifier.VerifyVector(faceGroups()) &&
            verifier.VerifyVectorOfTables(faceGroups()) &&
            VerifyOffset(verifier, VT_FONTS) &&
-           verifier.Verify(fonts()) &&
+           verifier.VerifyVector(fonts()) &&
            verifier.VerifyVectorOfTables(fonts()) &&
            verifier.EndTable();
   }

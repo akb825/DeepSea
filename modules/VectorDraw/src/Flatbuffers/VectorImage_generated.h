@@ -410,7 +410,7 @@ template<> struct VectorCommandUnionTraits<ImageCommand> {
 bool VerifyVectorCommandUnion(flatbuffers::Verifier &verifier, const void *obj, VectorCommandUnion type);
 bool VerifyVectorCommandUnionVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
  private:
   uint8_t r_;
   uint8_t g_;
@@ -440,9 +440,9 @@ MANUALLY_ALIGNED_STRUCT(1) Color FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(a_);
   }
 };
-STRUCT_END(Color, 4);
+FLATBUFFERS_STRUCT_END(Color, 4);
 
-MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
   float y_;
@@ -462,9 +462,9 @@ MANUALLY_ALIGNED_STRUCT(4) Vector2f FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(y_);
   }
 };
-STRUCT_END(Vector2f, 8);
+FLATBUFFERS_STRUCT_END(Vector2f, 8);
 
-MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
  private:
   float x_;
   float y_;
@@ -489,9 +489,9 @@ MANUALLY_ALIGNED_STRUCT(4) Vector3f FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(z_);
   }
 };
-STRUCT_END(Vector3f, 12);
+FLATBUFFERS_STRUCT_END(Vector3f, 12);
 
-MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
  private:
   Vector3f column0_;
   Vector3f column1_;
@@ -516,9 +516,9 @@ MANUALLY_ALIGNED_STRUCT(4) Matrix33f FLATBUFFERS_FINAL_CLASS {
     return column2_;
   }
 };
-STRUCT_END(Matrix33f, 36);
+FLATBUFFERS_STRUCT_END(Matrix33f, 36);
 
-MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
  private:
   float solid0_;
   float gap0_;
@@ -548,9 +548,9 @@ MANUALLY_ALIGNED_STRUCT(4) DashArray FLATBUFFERS_FINAL_CLASS {
     return flatbuffers::EndianScalar(gap1_);
   }
 };
-STRUCT_END(DashArray, 16);
+FLATBUFFERS_STRUCT_END(DashArray, 16);
 
-MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
  private:
   float position_;
   Color color_;
@@ -570,7 +570,7 @@ MANUALLY_ALIGNED_STRUCT(4) GradientStop FLATBUFFERS_FINAL_CLASS {
     return color_;
   }
 };
-STRUCT_END(GradientStop, 8);
+FLATBUFFERS_STRUCT_END(GradientStop, 8);
 
 struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
@@ -586,7 +586,7 @@ struct ColorMaterial FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyFieldRequired<Color>(verifier, VT_COLOR) &&
            verifier.EndTable();
   }
@@ -669,9 +669,9 @@ struct LinearGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_GRADIENT) &&
-           verifier.Verify(gradient()) &&
+           verifier.VerifyVector(gradient()) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_START) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_END) &&
            VerifyField<uint8_t>(verifier, VT_EDGE) &&
@@ -804,9 +804,9 @@ struct RadialGradient FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_NAME) &&
-           verifier.Verify(name()) &&
+           verifier.VerifyString(name()) &&
            VerifyOffsetRequired(verifier, VT_GRADIENT) &&
-           verifier.Verify(gradient()) &&
+           verifier.VerifyVector(gradient()) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_CENTER) &&
            VerifyField<float>(verifier, VT_RADIUS) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_FOCUS) &&
@@ -1420,7 +1420,7 @@ struct StrokePathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
-           verifier.Verify(material()) &&
+           verifier.VerifyString(material()) &&
            VerifyField<float>(verifier, VT_OPACITY) &&
            VerifyField<uint8_t>(verifier, VT_JOINTYPE) &&
            VerifyField<uint8_t>(verifier, VT_CAPTYPE) &&
@@ -1527,7 +1527,7 @@ struct FillPathCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_MATERIAL) &&
-           verifier.Verify(material()) &&
+           verifier.VerifyString(material()) &&
            VerifyField<float>(verifier, VT_OPACITY) &&
            VerifyField<uint8_t>(verifier, VT_FILLRULE) &&
            verifier.EndTable();
@@ -1617,9 +1617,9 @@ struct TextCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_TEXT) &&
-           verifier.Verify(text()) &&
+           verifier.VerifyString(text()) &&
            VerifyOffsetRequired(verifier, VT_FONT) &&
-           verifier.Verify(font()) &&
+           verifier.VerifyString(font()) &&
            VerifyField<uint8_t>(verifier, VT_ALIGNMENT) &&
            VerifyField<float>(verifier, VT_MAXLENGTH) &&
            VerifyField<float>(verifier, VT_LINEHEIGHT) &&
@@ -1770,9 +1770,9 @@ struct TextRangeCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_POSITIONTYPE) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_POSITION) &&
            VerifyOffset(verifier, VT_FILLMATERIAL) &&
-           verifier.Verify(fillMaterial()) &&
+           verifier.VerifyString(fillMaterial()) &&
            VerifyOffset(verifier, VT_OUTLINEMATERIAL) &&
-           verifier.Verify(outlineMaterial()) &&
+           verifier.VerifyString(outlineMaterial()) &&
            VerifyField<float>(verifier, VT_FILLOPACITY) &&
            VerifyField<float>(verifier, VT_OUTLINEOPACITY) &&
            VerifyField<float>(verifier, VT_SIZE) &&
@@ -1929,7 +1929,7 @@ struct ImageCommand FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffsetRequired(verifier, VT_IMAGE) &&
-           verifier.Verify(image()) &&
+           verifier.VerifyString(image()) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_UPPERLEFT) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_LOWERRIGHT) &&
            VerifyField<float>(verifier, VT_OPACITY) &&
@@ -2181,16 +2181,16 @@ struct VectorImage FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_COLORMATERIALS) &&
-           verifier.Verify(colorMaterials()) &&
+           verifier.VerifyVector(colorMaterials()) &&
            verifier.VerifyVectorOfTables(colorMaterials()) &&
            VerifyOffset(verifier, VT_LINEARGRADIENTS) &&
-           verifier.Verify(linearGradients()) &&
+           verifier.VerifyVector(linearGradients()) &&
            verifier.VerifyVectorOfTables(linearGradients()) &&
            VerifyOffset(verifier, VT_RADIALGRADIENTS) &&
-           verifier.Verify(radialGradients()) &&
+           verifier.VerifyVector(radialGradients()) &&
            verifier.VerifyVectorOfTables(radialGradients()) &&
            VerifyOffsetRequired(verifier, VT_COMMANDS) &&
-           verifier.Verify(commands()) &&
+           verifier.VerifyVector(commands()) &&
            verifier.VerifyVectorOfTables(commands()) &&
            VerifyFieldRequired<Vector2f>(verifier, VT_SIZE) &&
            verifier.EndTable();
