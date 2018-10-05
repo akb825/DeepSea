@@ -839,24 +839,24 @@ typedef struct dsVectorShadersModule
 	uint32_t shapeInfoTextureElement;
 
 	/**
-	 * @brief The element index for the shared material info texture.
+	 * @brief The element index for the material info texture.
 	 */
-	uint32_t sharedMaterialInfoTextureElement;
+	uint32_t materialInfoTextureElement;
 
 	/**
-	 * @brief The element index for the shared material texture.
+	 * @brief The element index for the material texture.
 	 */
-	uint32_t sharedMaterialColorTextureElement;
+	uint32_t materialColorTextureElement;
 
 	/**
-	 * @brief The element index for the local material info texture.
+	 * @brief The element index for the text outline material info texture.
 	 */
-	uint32_t localMaterialInfoTextureElement;
+	uint32_t textOutlineMaterialInfoTextureElement;
 
 	/**
-	 * @brief The element index for the local material texture.
+	 * @brief The element index for the text outline material texture.
 	 */
-	uint32_t localMaterialColorTextureElement;
+	uint32_t textOutlineMaterialColorTextureElement;
 
 	/**
 	 * @brief The element index for the font or image texture.

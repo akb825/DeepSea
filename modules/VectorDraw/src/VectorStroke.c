@@ -833,6 +833,8 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		stroke->material);
+	dsVectorMaterialType materialType = dsVectorMaterialType_Color;
+	MaterialSource materialSource;
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
 	{
 		material = dsVectorMaterialSet_findMaterialIndex(localMaterials, stroke->material);
@@ -842,7 +844,13 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", stroke->material);
 			DS_PROFILE_FUNC_RETURN(false);
 		}
-		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
+		materialType = dsVectorMaterialSet_getMaterialType(localMaterials, stroke->material);
+		materialSource = MaterialSource_Local;
+	}
+	else
+	{
+		materialType = dsVectorMaterialSet_getMaterialType(sharedMaterials, stroke->material);
+		materialSource = MaterialSource_Shared;
 	}
 
 	float cosMiterThetaLimit = 0.0f;
@@ -867,9 +875,15 @@ bool dsVectorStroke_add(dsVectorScratchData* scratchData,
 	float expandSize = dsMax(stroke->width, pixelSize*0.5f);
 	float sizeAlpha = stroke->width/expandSize;
 
+	// As an optimization, use the fill shader when no dashing.
+	float dashDistance = stroke->dashArray.x + stroke->dashArray.y + stroke->dashArray.z +
+		stroke->dashArray.w;
+	bool dashed = dashDistance > 0.0f;
+
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform, stroke->opacity*sizeAlpha, true, dsVectorMaterialType_Color);
+		&scratchData->pathTransform, stroke->opacity*sizeAlpha, dashed, materialType,
+		materialSource);
 	if (!curInfo)
 		DS_PROFILE_FUNC_RETURN(false);
 	curInfo->dashArray = stroke->dashArray;

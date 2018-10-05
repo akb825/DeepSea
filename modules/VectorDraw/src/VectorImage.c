@@ -70,6 +70,8 @@ typedef struct VectorImagePiece
 	dsTexture* texture;
 	dsTextRenderBuffer* textRender;
 	dsVectorShaderType type;
+	MaterialSource materialSource;
+	MaterialSource textOutlineMaterialSource;
 	dsDrawIndexedRange range;
 } VectorImagePiece;
 
@@ -941,12 +943,15 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 		DS_ASSERT(image->imagePieces);
 		for (uint32_t i = 0; i < scratchData->pieceCount; ++i)
 		{
-			image->imagePieces[i].geometryInfo =
-				image->infoTextures[scratchData->pieces[i].infoTextureIndex];
-			image->imagePieces[i].texture = scratchData->pieces[i].texture;
-			image->imagePieces[i].textRender = NULL;
-			image->imagePieces[i].type = scratchData->pieces[i].type;
-			image->imagePieces[i].range = scratchData->pieces[i].range;
+			TempPiece* tempPiece = scratchData->pieces + i;
+			VectorImagePiece* imagePiece = image->imagePieces + i;
+			imagePiece->geometryInfo = image->infoTextures[tempPiece->infoTextureIndex];
+			imagePiece->texture = tempPiece->texture;
+			imagePiece->textRender = NULL;
+			imagePiece->type = tempPiece->type;
+			imagePiece->materialSource = tempPiece->materialSource;
+			imagePiece->textOutlineMaterialSource = tempPiece->textOutlineMaterialSource;
+			imagePiece->range = tempPiece->range;
 		}
 		image->pieceCount = scratchData->pieceCount;
 		DS_ASSERT(infoTextureCount > 0);
@@ -1202,17 +1207,6 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		vectorImage->localMaterials);
 	dsTexture* localMaterialColorTexture = dsVectorMaterialSet_getColorTexture(
 		vectorImage->localMaterials);
-	if (!dsMaterial_setTexture(material, shaderModule->sharedMaterialInfoTextureElement,
-			sharedMaterialInfoTexture) ||
-		!dsMaterial_setTexture(material, shaderModule->sharedMaterialColorTextureElement,
-			sharedMaterialColorTexture) ||
-		!dsMaterial_setTexture(material, shaderModule->localMaterialInfoTextureElement,
-			localMaterialInfoTexture) ||
-		!dsMaterial_setTexture(material, shaderModule->localMaterialColorTextureElement,
-			localMaterialColorTexture))
-	{
-		DS_PROFILE_FUNC_RETURN(false);
-	}
 
 	bool success = true;
 	dsVector3f textureSizes = {{0.0f, 0.0f, 0.0f}};
@@ -1232,11 +1226,53 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	{
 		const VectorImagePiece* piece = vectorImage->imagePieces + i;
 		textureSizes.x = (float)piece->geometryInfo->info.height;
+
+		dsTexture* materialInfoTexture;
+		dsTexture* materialColorTexture;
+		dsTexture* textOutlineMaterialInfoTexture;
+		dsTexture* textOutlineMaterialColorTexture;
+		if (piece->materialSource == MaterialSource_Local)
+		{
+			materialInfoTexture = localMaterialInfoTexture;
+			materialColorTexture = localMaterialColorTexture;
+		}
+		else
+		{
+			DS_ASSERT(piece->materialSource == MaterialSource_Shared);
+			materialInfoTexture = sharedMaterialInfoTexture;
+			materialColorTexture = sharedMaterialColorTexture;
+		}
+
+		if (piece->textOutlineMaterialSource == MaterialSource_Local)
+		{
+			textOutlineMaterialInfoTexture = localMaterialInfoTexture;
+			textOutlineMaterialColorTexture = localMaterialColorTexture;
+		}
+		else
+		{
+			DS_ASSERT(piece->textOutlineMaterialSource == MaterialSource_Shared);
+			textOutlineMaterialInfoTexture = sharedMaterialInfoTexture;
+			textOutlineMaterialColorTexture = sharedMaterialColorTexture;
+		}
+
+		textureSizes.y = (float)materialInfoTexture->info.height;
+		textureSizes.z = (float)textOutlineMaterialInfoTexture->info.height;
+
 		if (!dsMaterial_setElementData(material, shaderModule->textureSizesElement, &textureSizes,
 				dsMaterialType_Vec3, 0, 1) ||
 			!dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement,
 				piece->geometryInfo) ||
-			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture))
+			!dsMaterial_setTexture(material, shaderModule->otherTextureElement, piece->texture) ||
+			!dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
+				materialInfoTexture) ||
+			!dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
+				materialColorTexture) ||
+			!dsMaterial_setTexture(material,
+				shaderModule->textOutlineMaterialInfoTextureElement,
+				textOutlineMaterialInfoTexture) ||
+			!dsMaterial_setTexture(material,
+				shaderModule->textOutlineMaterialColorTextureElement,
+				textOutlineMaterialColorTexture))
 		{
 			success = false;
 			break;
@@ -1268,13 +1304,13 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 	}
 
 	// Clean up textures that might be deleted before the next draw.
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->sharedMaterialInfoTextureElement,
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialInfoTextureElement,
 		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->sharedMaterialColorTextureElement,
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->materialColorTextureElement,
 		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->localMaterialInfoTextureElement,
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->textOutlineMaterialInfoTextureElement,
 		NULL));
-	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->localMaterialColorTextureElement,
+	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->textOutlineMaterialColorTextureElement,
 		NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->shapeInfoTextureElement, NULL));
 	DS_VERIFY(dsMaterial_setTexture(material, shaderModule->otherTextureElement, NULL));

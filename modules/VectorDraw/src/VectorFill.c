@@ -50,6 +50,7 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 	uint32_t material = dsVectorMaterialSet_findMaterialIndex(sharedMaterials,
 		fill->material);
 	dsVectorMaterialType materialType;
+	MaterialSource materialSource;
 	if (material == DS_VECTOR_MATERIAL_NOT_FOUND)
 	{
 		material = dsVectorMaterialSet_findMaterialIndex(localMaterials, fill->material);
@@ -59,15 +60,18 @@ bool dsVectorFill_add(dsVectorScratchData* scratchData, const dsVectorMaterialSe
 			DS_LOG_ERROR_F(DS_VECTOR_DRAW_LOG_TAG, "Material '%s' not found.", fill->material);
 			DS_PROFILE_FUNC_RETURN(false);
 		}
-		material += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 		materialType = dsVectorMaterialSet_getMaterialType(localMaterials, fill->material);
+		materialSource = MaterialSource_Local;
 	}
 	else
+	{
 		materialType = dsVectorMaterialSet_getMaterialType(sharedMaterials, fill->material);
+		materialSource = MaterialSource_Shared;
+	}
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
 	ShapeInfo* curInfo = dsVectorScratchData_addShapePiece(scratchData,
-		&scratchData->pathTransform, fill->opacity, false, materialType);
+		&scratchData->pathTransform, fill->opacity, false, materialType, materialSource);
 	if (!curInfo)
 		DS_PROFILE_FUNC_RETURN(false);
 

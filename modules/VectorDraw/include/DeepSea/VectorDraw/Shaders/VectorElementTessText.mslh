@@ -294,9 +294,6 @@ dsVectorVertexOutput dsVectorElementText_processTessellatedVertex(out vec4 outPo
 void dsVectorElementText_defaultVertexColor()
 {
 	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
-
-	dsVectorMaterialInfo fillMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.z);
-	dsVectorMaterialInfo outlineMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.w);
 }
 
 /**
@@ -307,8 +304,8 @@ void dsVectorElementText_defaultVertexGradient()
 {
 	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
 
-	dsVectorMaterialInfo fillMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.z);
-	dsVectorMaterialInfo outlineMaterial = dsVectorText_getMaterialInfo(dsVectorIndices.w);
+	dsVectorMaterialInfo fillMaterial = dsVectorText_getFillMaterialInfo(dsVectorIndices.z);
+	dsVectorMaterialInfo outlineMaterial = dsVectorText_getOutlineMaterialInfo(dsVectorIndices.w);
 
 	dsVectorVertexFillMaterialOut.fillInfo0 = fillMaterial.info0;
 	dsVectorVertexFillMaterialOut.fillInfo1 = fillMaterial.info1;

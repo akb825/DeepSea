@@ -36,6 +36,12 @@ typedef enum PointType
 	PointType_End = 0x4
 } PointType;
 
+typedef enum MaterialSource
+{
+	MaterialSource_Shared,
+	MaterialSource_Local
+} MaterialSource;
+
 typedef struct ShapeVertex
 {
 	dsVector4f position;
@@ -62,6 +68,8 @@ typedef struct TempGeometryRange
 typedef struct TempPiece
 {
 	dsVectorShaderType type;
+	MaterialSource materialSource;
+	MaterialSource textOutlineMaterialSource;
 	uint32_t infoTextureIndex;
 	dsDrawIndexedRange range;
 	dsTexture* texture;
@@ -196,18 +204,21 @@ ImageVertex* dsVectorScratchData_addImageVertex(dsVectorScratchData* data);
 bool dsVectorScratchData_addIndex(dsVectorScratchData* data, uint32_t* vertex);
 
 ShapeInfo* dsVectorScratchData_addShapePiece(dsVectorScratchData* data,
-	const dsMatrix33f* transform, float opacity, bool line, dsVectorMaterialType materialType);
+	const dsMatrix33f* transform, float opacity, bool line, dsVectorMaterialType materialType,
+	MaterialSource materialSource);
 ShapeInfo* dsVectorScratchData_addImagePiece(dsVectorScratchData* data,
 	const dsMatrix33f* transform, dsTexture* texture, float opacity, const dsAlignedBox2f* bounds);
 bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAlignedBox2f* bounds,
 	const dsMatrix33f* transform, const dsVector2f* offset, const dsFont* font, float fillOpacity,
 	float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
 	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
-	dsVectorMaterialType outlineMaterialType);
+	dsVectorMaterialType outlineMaterialType, MaterialSource fillMaterialSource,
+	MaterialSource outlineMaterialSource);
 bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2f* offset,
 	float fillOpacity, float outlineOpacity, const dsTextLayout* layout, const dsTextStyle* style,
 	uint32_t fillMaterial, uint32_t outlineMaterial, dsVectorMaterialType fillMaterialType,
-	dsVectorMaterialType outlineMaterialType);
+	dsVectorMaterialType outlineMaterialType, MaterialSource fillMaterialSource,
+	MaterialSource outlineMaterialSource);
 
 bool dsVectorScratchData_hasGeometry(const dsVectorScratchData* data);
 dsGfxBuffer* dsVectorScratchData_createGfxBuffer(dsVectorScratchData* data,

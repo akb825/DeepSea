@@ -242,6 +242,9 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 		}
 	}
 
+	MaterialSource fillMaterialSource = MaterialSource_Local;
+	MaterialSource outlineMaterialSource = MaterialSource_Local;
+
 	offset.x = 0.0f;
 	offset.y = 0.0f;
 	for (uint32_t i = 0; i < text->rangeCount; ++i)
@@ -267,14 +270,15 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 						range->fillMaterial);
 					DS_PROFILE_FUNC_RETURN(false);
 				}
-				fillMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 				fillMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
 					range->fillMaterial);
+				fillMaterialSource = MaterialSource_Local;
 			}
 			else
 			{
 				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
 					range->fillMaterial);
+				fillMaterialSource = MaterialSource_Shared;
 			}
 		}
 
@@ -295,14 +299,15 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 						range->outlineMaterial);
 					DS_PROFILE_FUNC_RETURN(false);
 				}
-				outlineMaterial += DS_VECTOR_LOCAL_MATERIAL_OFFSET;
 				outlineMaterialType = dsVectorMaterialSet_getMaterialType(localMaterials,
 					range->outlineMaterial);
+				outlineMaterialSource = MaterialSource_Local;
 			}
 			else
 			{
 				fillMaterialType = dsVectorMaterialSet_getMaterialType(sharedMaterials,
 					range->outlineMaterial);
+				outlineMaterialSource = MaterialSource_Shared;
 			}
 		}
 
@@ -321,14 +326,15 @@ bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* com
 			if (!dsVectorScratchData_addTextPiece(scratchData, &bounds, &text->transform, &offset,
 				text->font, range->fillOpacity, range->outlineOpacity, layout,
 				scratchData->textStyles + i, fillMaterial, outlineMaterial, fillMaterialType,
-				outlineMaterialType))
+				outlineMaterialType, fillMaterialSource, outlineMaterialSource))
 			{
 				DS_PROFILE_FUNC_RETURN(false);
 			}
 		}
 		else if (!dsVectorScratchData_addTextRange(scratchData, &offset, range->fillOpacity,
 			range->outlineOpacity, layout, scratchData->textStyles + i, fillMaterial,
-			outlineMaterial, fillMaterialType, outlineMaterialType))
+			outlineMaterial, fillMaterialType, outlineMaterialType, fillMaterialSource,
+			outlineMaterialSource))
 		{
 			DS_PROFILE_FUNC_RETURN(false);
 		}

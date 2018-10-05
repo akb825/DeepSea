@@ -24,10 +24,10 @@
  */
 
 /**
- * @brief Texture holding general information about the shared vector material.
+ * @brief Texture holding general information about the vector material.
  */
-uniform sampler2D dsVectorSharedMaterialInfoTex;
-sampler_state dsVectorSharedMaterialInfoTex
+uniform sampler2D dsVectorMaterialInfoTex;
+sampler_state dsVectorMaterialInfoTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -37,36 +37,10 @@ sampler_state dsVectorSharedMaterialInfoTex
 }
 
 /**
- * @brief Texture holding general information about the local vector material.
+ * @brief Texture holding color information about the vector material.
  */
-uniform sampler2D dsVectorLocalMaterialInfoTex;
-sampler_state dsVectorLocalMaterialInfoTex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = nearest;
-	mag_filter = nearest;
-	mip_filter = none;
-}
-
-/**
- * @brief Texture holding general information about the shared vector material.
- */
-uniform sampler2D dsVectorSharedMaterialColorTex;
-sampler_state dsVectorSharedMaterialColorTex
-{
-	address_mode_u = clamp_to_edge;
-	address_mode_v = clamp_to_edge;
-	min_filter = linear;
-	mag_filter = linear;
-	mip_filter = none;
-}
-
-/**
- * @brief Texture holding general information about the local vector material.
- */
-uniform sampler2D dsVectorLocalMaterialColorTex;
-sampler_state dsVectorLocalMaterialColorTex
+uniform sampler2D dsVectorMaterialColorTex;
+sampler_state dsVectorMaterialColorTex
 {
 	address_mode_u = clamp_to_edge;
 	address_mode_v = clamp_to_edge;
@@ -90,11 +64,6 @@ struct dsVectorMaterialInfo
  * @brief Constant for the width of the material color texture.
  */
 #define DS_MATERIAL_COLOR_WIDTH 256.0
-
-/**
- * @brief Constant for the offset for a local material.
- */
-#define DS_VECTOR_LOCAL_MATERIAL_OFFSET 1024.0
 
 dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex, float height)
 {
@@ -124,16 +93,8 @@ dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex
  */
 dsVectorMaterialInfo dsVectorMaterial_getInfo(float index)
 {
-	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-	{
-		return dsVectorMaterial_getInfoImpl(index, dsVectorSharedMaterialInfoTex,
-			uniforms.dsVectorTextureSizes.y);
-	}
-	else
-	{
-		return dsVectorMaterial_getInfoImpl(index - DS_VECTOR_LOCAL_MATERIAL_OFFSET,
-			dsVectorLocalMaterialInfoTex, uniforms.dsVectorTextureSizes.z);
-	}
+	return dsVectorMaterial_getInfoImpl(index, dsVectorMaterialInfoTex,
+		uniforms.dsVectorTextureSizes.y);
 }
 
 /**
@@ -150,6 +111,14 @@ dsVectorMaterialInfo dsVectorMaterial_invalidInfo()
 	return info;
 }
 
+[[fragment]]
+vec4 dsVectorMaterial_getSolidColorImpl(float index, sampler2D materialTex, float height)
+{
+	float colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
+	float materialCoord = (index + 0.5)/height;
+	return texture(materialTex, vec2(colorCoord, materialCoord));
+}
+
 /**
  * @brief Gets the solid color for a shape.
  * @param index The index of the material.
@@ -158,32 +127,13 @@ dsVectorMaterialInfo dsVectorMaterial_invalidInfo()
 [[fragment]]
 vec4 dsVectorMaterial_getSolidColor(float index)
 {
-	float colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
-	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-	{
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
-		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
-	else
-	{
-		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
-		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
+	return dsVectorMaterial_getSolidColorImpl(index, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
 }
 
-/**
- * @brief Gets the linear gradient for a shape.
- * @param info The info gathered from dsVectorMaterial_getInfo().
- * @param origPosition The original position of the current pixel.
- * @param bounds The bounds of the shape.
- * @param imagePosition The position in the image of the current pixel.
- * @param index The index of the material.
- * @return The material color.
- */
 [[fragment]]
-vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
-    vec4 bounds, float index)
+vec4 dsVectorMaterial_getLinearGradientColorImpl(dsVectorMaterialInfo info, vec2 origPosition,
+    vec4 bounds, float index, sampler2D materialTex, float height)
 {
 	vec2 gradientPos;
 	if (info.info0.z == 1.0)
@@ -222,21 +172,12 @@ vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 ori
 		colorCoord = gradientT;
 	}
 
-	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-	{
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
-		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
-	else
-	{
-		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
-		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
+	float materialCoord = (index + 0.5)/height;
+	return texture(materialTex, vec2(colorCoord, materialCoord));
 }
 
 /**
- * @brief Gets the radial gradient for a shape.
+ * @brief Gets the linear gradient for a shape.
  * @param info The info gathered from dsVectorMaterial_getInfo().
  * @param origPosition The original position of the current pixel.
  * @param bounds The bounds of the shape.
@@ -245,8 +186,16 @@ vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 ori
  * @return The material color.
  */
 [[fragment]]
-vec4 dsVectorMaterial_getRadialGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
+vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
     vec4 bounds, float index)
+{
+	return dsVectorMaterial_getLinearGradientColorImpl(info, origPosition, bounds, index,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+}
+
+[[fragment]]
+vec4 dsVectorMaterial_getRadialGradientColorImpl(dsVectorMaterialInfo info, vec2 origPosition,
+    vec4 bounds, float index, sampler2D materialTex, float height)
 {
 	vec2 gradientPos;
 	if (info.info0.z == 1.0)
@@ -318,21 +267,12 @@ vec4 dsVectorMaterial_getRadialGradientColor(dsVectorMaterialInfo info, vec2 ori
 		colorCoord = gradientT;
 	}
 
-	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-	{
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
-		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
-	else
-	{
-		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
-		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
+	float materialCoord = (index + 0.5)/height;
+	return texture(materialTex, vec2(colorCoord, materialCoord));
 }
 
 /**
- * @brief Gets the material color for a shape.
+ * @brief Gets the radial gradient for a shape.
  * @param info The info gathered from dsVectorMaterial_getInfo().
  * @param origPosition The original position of the current pixel.
  * @param bounds The bounds of the shape.
@@ -341,8 +281,16 @@ vec4 dsVectorMaterial_getRadialGradientColor(dsVectorMaterialInfo info, vec2 ori
  * @return The material color.
  */
 [[fragment]]
-vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec4 bounds,
-	float index)
+vec4 dsVectorMaterial_getRadialGradientColor(dsVectorMaterialInfo info, vec2 origPosition,
+    vec4 bounds, float index)
+{
+	return dsVectorMaterial_getRadialGradientColorImpl(info, origPosition, bounds, index,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+}
+
+[[fragment]]
+vec4 dsVectorMaterial_getColorImpl(dsVectorMaterialInfo info, vec2 origPosition, vec4 bounds,
+	float index, sampler2D materialTex, float height)
 {
 	float colorCoord;
 
@@ -441,15 +389,23 @@ vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec
 		return vec4(0.0);
 	}
 
-	if (index < DS_VECTOR_LOCAL_MATERIAL_OFFSET)
-	{
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.y;
-		return texture(dsVectorSharedMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
-	else
-	{
-		index -= DS_VECTOR_LOCAL_MATERIAL_OFFSET;
-		float materialCoord = (index + 0.5)/uniforms.dsVectorTextureSizes.z;
-		return texture(dsVectorLocalMaterialColorTex, vec2(colorCoord, materialCoord));
-	}
+	float materialCoord = (index + 0.5)/height;
+	return texture(materialTex, vec2(colorCoord, materialCoord));
+}
+
+/**
+ * @brief Gets the material color for a shape.
+ * @param info The info gathered from dsVectorMaterial_getInfo().
+ * @param origPosition The original position of the current pixel.
+ * @param bounds The bounds of the shape.
+ * @param imagePosition The position in the image of the current pixel.
+ * @param index The index of the material.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorMaterial_getColor(dsVectorMaterialInfo info, vec2 origPosition, vec4 bounds,
+	float index)
+{
+	return dsVectorMaterial_getColorImpl(info, origPosition, bounds, index,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
 }

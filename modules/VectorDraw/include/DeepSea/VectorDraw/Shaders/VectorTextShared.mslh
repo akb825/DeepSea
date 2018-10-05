@@ -31,6 +31,32 @@
 #define DS_NO_VECTOR_MATERIAL 65535.0
 
 /**
+ * @brief Texture holding general information about the text outline material.
+ */
+uniform sampler2D dsVectorTextOutlineMaterialInfoTex;
+sampler_state dsVectorTextOutlineMaterialInfoTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = nearest;
+	mag_filter = nearest;
+	mip_filter = none;
+}
+
+/**
+ * @brief Texture holding color information about the text outline material.
+ */
+uniform sampler2D dsVectorTextOutlineMaterialColorTex;
+sampler_state dsVectorTextOutlineMaterialColorTex
+{
+	address_mode_u = clamp_to_edge;
+	address_mode_v = clamp_to_edge;
+	min_filter = linear;
+	mag_filter = linear;
+	mip_filter = none;
+}
+
+/**
  * @brief Texture holding the glyphs for the font.
  */
 uniform sampler2D dsVectorOtherTex;
@@ -115,15 +141,29 @@ vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, float slant)
 }
 
 /**
- * @brief Gets the info for a text material.
+ * @brief Gets the info for a text fill material.
  * @param index The index of the material.
  * @return The material info.
  */
-dsVectorMaterialInfo dsVectorText_getMaterialInfo(float index)
+dsVectorMaterialInfo dsVectorText_getFillMaterialInfo(float index)
 {
 	if (index == DS_NO_VECTOR_MATERIAL)
 		return dsVectorMaterial_invalidInfo();
-	return dsVectorMaterial_getInfo(index);
+	return dsVectorMaterial_getInfoImpl(index, dsVectorMaterialInfoTex,
+		uniforms.dsVectorTextureSizes.y);
+}
+
+/**
+ * @brief Gets the info for a text outline material.
+ * @param index The index of the material.
+ * @return The material info.
+ */
+dsVectorMaterialInfo dsVectorText_getOutlineMaterialInfo(float index)
+{
+	if (index == DS_NO_VECTOR_MATERIAL)
+		return dsVectorMaterial_invalidInfo();
+	return dsVectorMaterial_getInfoImpl(index, dsVectorTextOutlineMaterialInfoTex,
+		uniforms.dsVectorTextureSizes.z);
 }
 
 /**
@@ -135,11 +175,14 @@ vec4 dsVectorElementText_getSolidColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 fillColor = dsVectorMaterial_getSolidColor(dsVectorVertexOut.materialIndicesOpacities.x);
+	vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
+		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
 
-	vec4 outlineColor = dsVectorMaterial_getSolidColor(
-		dsVectorVertexOut.materialIndicesOpacities.y);
+	vec4 outlineColor = dsVectorMaterial_getSolidColorImpl(
+		dsVectorVertexOut.materialIndicesOpacities.y, dsVectorTextOutlineMaterialColorTex,
+		uniforms.dsVectorTextureSizes.z);
 	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
@@ -167,9 +210,10 @@ vec4 dsVectorElementText_getMaterialColor()
 	fillInfo.info1 = dsVectorVertexFillMaterialOut.fillInfo1;
 	fillInfo.info2 = dsVectorVertexFillMaterialOut.fillInfo2;
 	fillInfo.info3 = dsVectorVertexFillMaterialOut.fillInfo3;
-	vec4 fillColor = dsVectorMaterial_getColor(fillInfo,
+	vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
-		dsVectorVertexOut.materialIndicesOpacities.x);
+		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
 
 	dsVectorMaterialInfo outlineInfo;
@@ -177,9 +221,10 @@ vec4 dsVectorElementText_getMaterialColor()
 	outlineInfo.info1 = dsVectorVertexOutlineMaterialOut.outlineInfo1;
 	outlineInfo.info2 = dsVectorVertexOutlineMaterialOut.outlineInfo2;
 	outlineInfo.info3 = dsVectorVertexOutlineMaterialOut.outlineInfo3;
-	vec4 outlineColor = dsVectorMaterial_getColor(outlineInfo,
+	vec4 outlineColor = dsVectorMaterial_getColorImpl(outlineInfo,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
-		dsVectorVertexOut.materialIndicesOpacities.y);
+		dsVectorVertexOut.materialIndicesOpacities.y, dsVectorTextOutlineMaterialColorTex,
+		uniforms.dsVectorTextureSizes.z);
 	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;

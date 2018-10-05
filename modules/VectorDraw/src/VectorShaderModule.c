@@ -35,10 +35,10 @@
 
 // Uniforms
 static const char* shapeInfoName = "dsVectorInfoTex";
-static const char* sharedMaterialInfoName = "dsVectorSharedMaterialInfoTex";
-static const char* sharedMaterialColorName = "dsVectorSharedMaterialColorTex";
-static const char* localMaterialInfoName = "dsVectorLocalMaterialInfoTex";
-static const char* localMaterialColorName = "dsVectorLocalMaterialColorTex";
+static const char* materialInfoName = "dsVectorMaterialInfoTex";
+static const char* materialColorName = "dsVectorMaterialColorTex";
+static const char* textOutlineMaterialInfoName = "dsVectorTextOutlineMaterialInfoTex";
+static const char* textOutlineMaterialColorName = "dsVectorTextOutlineMaterialColorTex";
 static const char* otherTextureName = "dsVectorOtherTex";
 static const char* modelViewProjectionName = "dsVectorModelViewProjection";
 static const char* sizeName = "dsVectorImageSize";
@@ -80,10 +80,10 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	dsMaterialElement materialElements[] =
 	{
 		{shapeInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{sharedMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{sharedMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{localMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
-		{localMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{materialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{materialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{textOutlineMaterialInfoName, dsMaterialType_Texture, 0, NULL, false, 0},
+		{textOutlineMaterialColorName, dsMaterialType_Texture, 0, NULL, false, 0},
 		{otherTextureName, dsMaterialType_Texture, 0, NULL, false, 0},
 		{modelViewProjectionName, dsMaterialType_Mat4, 0, NULL, false, 0},
 		{sizeName, dsMaterialType_Vec2, 0, NULL, false, 0},
@@ -140,18 +140,18 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	vectorModule->materialDesc = materialDesc;
 	vectorModule->shapeInfoTextureElement = dsMaterialDesc_findElement(materialDesc, shapeInfoName);
 	DS_ASSERT(vectorModule->shapeInfoTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->sharedMaterialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
-		sharedMaterialInfoName);
-	DS_ASSERT(vectorModule->sharedMaterialInfoTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->sharedMaterialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
-		sharedMaterialColorName);
-	DS_ASSERT(vectorModule->sharedMaterialColorTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->localMaterialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
-		localMaterialInfoName);
-	DS_ASSERT(vectorModule->localMaterialInfoTextureElement != DS_MATERIAL_UNKNOWN);
-	vectorModule->localMaterialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
-		localMaterialColorName);
-	DS_ASSERT(vectorModule->localMaterialColorTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->materialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
+		materialInfoName);
+	DS_ASSERT(vectorModule->materialInfoTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->materialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
+		materialColorName);
+	DS_ASSERT(vectorModule->materialColorTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->textOutlineMaterialInfoTextureElement = dsMaterialDesc_findElement(materialDesc,
+		textOutlineMaterialInfoName);
+	DS_ASSERT(vectorModule->textOutlineMaterialInfoTextureElement != DS_MATERIAL_UNKNOWN);
+	vectorModule->textOutlineMaterialColorTextureElement = dsMaterialDesc_findElement(materialDesc,
+		textOutlineMaterialColorName);
+	DS_ASSERT(vectorModule->textOutlineMaterialColorTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->otherTextureElement = dsMaterialDesc_findElement(materialDesc, otherTextureName);
 	DS_ASSERT(vectorModule->otherTextureElement != DS_MATERIAL_UNKNOWN);
 	vectorModule->modelViewProjectionElement = dsMaterialDesc_findElement(materialDesc,
