@@ -375,8 +375,7 @@ bool dsVectorMaterialSet_setMaterial(dsVectorMaterialSet* materials,
 	return true;
 }
 
-bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials,
-	dsCommandBuffer* commandBuffer)
+bool dsVectorMaterialSet_update(dsVectorMaterialSet* materials, dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 

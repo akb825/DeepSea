@@ -623,13 +623,18 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 		prevInfo->textInfo.style.x == style->embolden &&
 		prevInfo->textInfo.style.y == style->slant &&
 		prevInfo->textInfo.style.z == style->outlineThickness &&
-		prevInfo->textInfo.style.w == style->antiAlias)
+		prevInfo->textInfo.style.w == style->antiAlias &&
+		prevPiece->type == type &&
+		prevPiece->materialSource == fillMaterialSource &&
+		prevPiece->textOutlineMaterialSource == outlineMaterialSource)
 	{
 		DS_ASSERT(prevPiece->range.firstIndex + prevPiece->range.indexCount == drawInfoIndex);
 		++prevPiece->range.indexCount;
 		return true;
 	}
 
+	// Temporarily decrement draw info count so the piece gets the right index.
+	--data->textDrawInfoCount;
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
 	if (!info || !addPiece(data, type, prevPiece->texture, infoIndex, fillMaterialSource,
@@ -637,6 +642,8 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	{
 		return false;
 	}
+	// Put the draw info back.
+	++data->textDrawInfoCount;
 
 	// Need to get the prev info again since the array could have been re-allocated.
 	prevInfo = data->vectorInfos + prevInfoIndex;
