@@ -45,12 +45,30 @@
  *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
  * }
  *
+ * pipeline dsVectorTextColorOutline
+ * {
+ *     vertex = dsVectorElementText_defaultVertexColor;
+ *     tessellation_control = dsVectorElementText_defaultTessControlColor;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
+ *     fragment = dsVectorElementText_defaultFragmentColorOutline;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
  * pipeline dsVectorTextGradient
  * {
  *     vertex = dsVectorElementText_defaultVertexGradient;
  *     tessellation_control = dsVectorElementText_defaultTessControlGradient;
  *     tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
  *     fragment = dsVectorElementText_defaultFragmentGradient;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorTextGradientOutline
+ * {
+ *     vertex = dsVectorElementText_defaultVertexGradient;
+ *     tessellation_control = dsVectorElementText_defaultTessControlGradient;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+ *     fragment = dsVectorElementText_defaultFragmentGradientOutline;
  *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
  * }
  * ```
@@ -412,12 +430,30 @@ void dsVectorElementText_defaultFragmentColor()
 }
 
 /**
+ * @brief Default fragment shader entry point function for solid colors with outlines.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColorOutline()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColorOutline();
+}
+
+/**
  * @brief Default fragment shader entry point function for gradients.
  */
 [[fragment]]
 void dsVectorElementText_defaultFragmentGradient()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients with outlines.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientOutline()
+{
+	dsVectorFinalColor = dsVectorElementText_getMaterialColorOutline();
 }
 
 /**
@@ -431,11 +467,33 @@ void dsVectorElementText_defaultFragmentColorSRGB()
 }
 
 /**
+ * @brief Default fragment shader entry point function for solid colors with outlines that converts
+ * to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColorOutlineSRGB()
+{
+	dsVectorFinalColor = dsVectorElementText_getSolidColorOutline();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
  * @brief Default fragment shader entry point function for gradients that converts to sRGB.
  */
 [[fragment]]
 void dsVectorElementText_defaultFragmentGradientSRGB()
 {
 	dsVectorFinalColor = dsVectorElementText_getMaterialColor();
+	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients with outlines that converts to
+ * sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientOutlineSRGB()
+{
+	dsVectorFinalColor = dsVectorElementText_getMaterialColorOutline();
 	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
 }

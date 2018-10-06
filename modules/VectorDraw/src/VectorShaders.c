@@ -55,14 +55,18 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 	bool textHasTessellation = dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
 		shaderModule->shaderIndices[dsVectorShaderType_TextColor],
 		dsShaderStage_TessellationEvaluation);
-	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
-		shaderModule->shaderIndices[dsVectorShaderType_TextGradient],
-		dsShaderStage_TessellationEvaluation) != textHasTessellation)
+	for (uint32_t i = dsVectorShaderType_TextColorOutline;
+		i <= dsVectorShaderType_TextGradientOutline; ++i)
 	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
-			"Cannot have a mixture of text shaders with and without tessellation.");
-		return NULL;
+		if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
+			shaderModule->shaderIndices[i],
+			dsShaderStage_TessellationEvaluation) != textHasTessellation)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_VECTOR_DRAW_LOG_TAG,
+				"Cannot have a mixture of text shaders with and without tessellation.");
+			return NULL;
+		}
 	}
 
 	dsPrimitiveType textPrimitiveType = dsPrimitiveType_TriangleList;
@@ -85,7 +89,9 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		dsVectorShaderType shaderType = (dsVectorShaderType)i;
 		dsPrimitiveType primitiveType = dsPrimitiveType_TriangleList;
 		if (shaderType == dsVectorShaderType_TextColor ||
-			shaderType == dsVectorShaderType_TextGradient)
+			shaderType == dsVectorShaderType_TextColorOutline ||
+			shaderType == dsVectorShaderType_TextGradient ||
+			shaderType == dsVectorShaderType_TextGradientOutline)
 		{
 			primitiveType = textPrimitiveType;
 		}

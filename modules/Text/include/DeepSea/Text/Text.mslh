@@ -34,6 +34,23 @@ float dsComputeTextDistance(sampler2D fontTex, vec3 texCoords)
  *     dsComputeTextDistance().
  * @param embolden The amount to embolden the text.
  * @param antiAlias The amount to anti-alias the text.
+ * @param textColor The color of the text.
+ * @return The text color. This uses pre-multiplied alpha.
+ */
+vec4 dsComputeTextColor(float distance, float embolden, float antiAlias, vec4 textColor)
+{
+	textColor *= textColor.a;
+	float insideThreshold = -embolden*0.5 + 0.5;
+	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
+	return textColor*inside;
+}
+
+/**
+ * @brief Computes the text color based on a signed distance field.
+ * @param distance The signed distance represented in the range [0, 1], typically cpmputed from
+ *     dsComputeTextDistance().
+ * @param embolden The amount to embolden the text.
+ * @param antiAlias The amount to anti-alias the text.
  * @param outlinePosition The position of the outline in the range [0, 1], where 1 is further from
  *     the center.
  * @param outlineThickness The thickness of the outline in the range [0, 1]..
@@ -44,14 +61,14 @@ float dsComputeTextDistance(sampler2D fontTex, vec3 texCoords)
 vec4 dsComputeTextColor(float distance, float embolden, float outlinePosition,
 	float outlineThickness, float antiAlias, vec4 textColor, vec4 outlineColor)
 {
-	textColor = vec4(textColor.rgb*textColor.a, textColor.a);
-	outlineColor = vec4(outlineColor.rgb*outlineColor.a, outlineColor.a);
+	textColor.rgb *= textColor.a;
 	float insideThreshold = -embolden*0.5 + 0.5;
 	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
 	vec4 color = textColor;
 
 	if (outlineThickness > 0.0 && outlineColor.a > 0)
 	{
+		outlineColor.rgb *= outlineColor.a;
 		float outlineMinThreshold = 1.0 - outlinePosition - outlineThickness*0.5;
 		float outlineMaxThreshold = 1.0 - outlinePosition + outlineThickness*0.5;
 
@@ -60,7 +77,6 @@ vec4 dsComputeTextColor(float distance, float embolden, float outlinePosition,
 		float insideMaxOutline = 1.0 - smoothstep(outlineMaxThreshold - antiAlias,
 			outlineMaxThreshold + antiAlias, distance);
 		float insideOutline = insideMinOutline*insideMaxOutline;
-
 		color = mix(color, outlineColor, 1.0 - inside);
 		color = mix(color, outlineColor, insideOutline);
 		inside = mix(inside, 1.0, insideOutline);

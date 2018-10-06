@@ -143,7 +143,9 @@ typedef enum dsVectorShaderType
 	dsVectorShaderType_Line,                     ///< Line with a color or gradient.
 	dsVectorShaderType_Image,                    ///< Texture applied as an image.
 	dsVectorShaderType_TextColor,                ///< Standard text.
-	dsVectorShaderType_TextGradient,             ///< Text that can contain a gradient.
+	dsVectorShaderType_TextColorOutline,         ///< Standard text with an outline.
+	dsVectorShaderType_TextGradient,             ///< Text with a gradient.
+	dsVectorShaderType_TextGradientOutline,      ///< Text with a gradient and outline.
 	dsVectorShaderType_Count                     ///< The number of shader types.
 } dsVectorShaderType;
 

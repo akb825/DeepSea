@@ -410,6 +410,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		"dsVectorLineWireframe",
 		NULL,
 		NULL,
+		NULL,
+		NULL,
 		NULL
 	};
 	testVectorDraw->wireframeShaders = dsVectorShaders_createCustom(resourceManager, allocator,

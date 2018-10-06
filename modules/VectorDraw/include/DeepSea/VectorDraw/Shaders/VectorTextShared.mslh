@@ -167,11 +167,33 @@ dsVectorMaterialInfo dsVectorText_getOutlineMaterialInfo(float index)
 }
 
 /**
- * @brief Gets the material color of the text for gradients.
+ * @brief Gets the material color of the text for a solid color.
  * @return The material color.
  */
 [[fragment]]
 vec4 dsVectorElementText_getSolidColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
+		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
+
+	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
+	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
+}
+
+/**
+ * @brief Gets the material color of the text for a solid color with an outline.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getSolidColorOutline()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
@@ -202,6 +224,34 @@ vec4 dsVectorElementText_getSolidColor()
  */
 [[fragment]]
 vec4 dsVectorElementText_getMaterialColor()
+{
+	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+
+	dsVectorMaterialInfo fillInfo;
+	fillInfo.info0 = dsVectorVertexFillMaterialOut.fillInfo0;
+	fillInfo.info1 = dsVectorVertexFillMaterialOut.fillInfo1;
+	fillInfo.info2 = dsVectorVertexFillMaterialOut.fillInfo2;
+	fillInfo.info3 = dsVectorVertexFillMaterialOut.fillInfo3;
+	vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
+		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
+		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
+
+	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
+	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
+}
+
+/**
+ * @brief Gets the material color of the text for gradients with an outline.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getMaterialColorOutline()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 

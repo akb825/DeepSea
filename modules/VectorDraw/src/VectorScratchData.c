@@ -33,6 +33,7 @@
 #include <DeepSea/Text/Font.h>
 #include <DeepSea/Text/Text.h>
 #include <DeepSea/Text/TextLayout.h>
+#include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <limits.h>
 #include <string.h>
 
@@ -68,7 +69,9 @@ static bool hasTexture(dsVectorShaderType type)
 	{
 		case dsVectorShaderType_Image:
 		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextColorOutline:
 		case dsVectorShaderType_TextGradient:
+		case dsVectorShaderType_TextGradientOutline:
 			return true;
 		default:
 			return false;
@@ -116,7 +119,9 @@ static bool addPiece(dsVectorScratchData* data, dsVectorShaderType type, dsTextu
 			piece->range.vertexOffset = data->imageVertexCount;
 			break;
 		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextColorOutline:
 		case dsVectorShaderType_TextGradient:
+		case dsVectorShaderType_TextGradientOutline:
 			piece->range.firstIndex = data->textDrawInfoCount;
 			piece->range.vertexOffset = 0;
 			break;
@@ -529,10 +534,18 @@ bool dsVectorScratchData_addTextPiece(dsVectorScratchData* data, const dsAligned
 	if (fillMaterialType == dsVectorMaterialType_Color &&
 		outlineMaterialType == dsVectorMaterialType_Color)
 	{
-		type = dsVectorShaderType_TextColor;
+		if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
+			type = dsVectorShaderType_TextColor;
+		else
+			type = dsVectorShaderType_TextColorOutline;
 	}
 	else
-		type = dsVectorShaderType_TextGradient;
+	{
+		if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
+			type = dsVectorShaderType_TextGradient;
+		else
+			type = dsVectorShaderType_TextGradientOutline;
+	}
 
 	uint32_t infoIndex = data->vectorInfoCount;
 	VectorInfo* info = addVectorInfo(data);
@@ -588,15 +601,25 @@ bool dsVectorScratchData_addTextRange(dsVectorScratchData* data, const dsVector2
 	if (fillMaterialType == dsVectorMaterialType_Color &&
 		outlineMaterialType == dsVectorMaterialType_Color)
 	{
-		type = dsVectorShaderType_TextColor;
+		if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
+			type = dsVectorShaderType_TextColor;
+		else
+			type = dsVectorShaderType_TextColorOutline;
 	}
 	else
-		type = dsVectorShaderType_TextGradient;
+	{
+		if (outlineMaterial == DS_VECTOR_MATERIAL_NOT_FOUND)
+			type = dsVectorShaderType_TextGradient;
+		else
+			type = dsVectorShaderType_TextGradientOutline;
+	}
 
 	DS_ASSERT(data->pieceCount > 0);
 	TempPiece* prevPiece = data->pieces + data->pieceCount - 1;
 	DS_ASSERT(prevPiece->type == dsVectorShaderType_TextColor ||
-		prevPiece->type == dsVectorShaderType_TextGradient);
+		prevPiece->type == dsVectorShaderType_TextColorOutline ||
+		prevPiece->type == dsVectorShaderType_TextGradient ||
+		prevPiece->type == dsVectorShaderType_TextGradientOutline);
 	DS_ASSERT(data->vectorInfoCount > 0);
 	uint32_t prevInfoIndex = data->vectorInfoCount - 1;
 	VectorInfo* prevInfo = data->vectorInfos + prevInfoIndex;

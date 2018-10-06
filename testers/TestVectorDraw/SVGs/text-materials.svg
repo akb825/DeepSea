@@ -24,7 +24,7 @@
   <text x="20" y="40" font-size="25px" font-family="sans-serif" fill="url(#radial)"
       stroke="url(#linear)" stroke-width="1" textLength="250">
     Text with outline and gradients with multiple lines,
-    <tspan font-style="italic" font-weight="bold">in order to better test</tspan>
+    <tspan font-style="italic" font-weight="bold" stroke="none">in order to better test</tspan>
     if it properly handles the full bounding box.
   </text>
 

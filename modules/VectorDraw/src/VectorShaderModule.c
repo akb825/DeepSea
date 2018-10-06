@@ -53,7 +53,9 @@ const char* dsDefaultVectorShaderNames[dsVectorShaderType_Count] =
 	"dsVectorLine",               // dsVectorShaderType_Line
 	"dsVectorImage",              // dsVectorShaderType_Image
 	"dsVectorTextColor",          // dsVectorShaderType_TextColor
-	"dsVectorTextGradient"        // dsVectorShaderType_TextGradient
+	"dsVectorTextColorOutline",   // dsVectorShaderType_TextColorOutline
+	"dsVectorTextGradient",       // dsVectorShaderType_TextGradient
+	"dsVectorTextGradientOutline" // dsVectorShaderType_TextGradientOutline
 };
 
 static bool targetSupported(dsResourceManager* resourceManager)

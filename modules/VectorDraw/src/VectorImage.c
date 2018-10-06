@@ -786,7 +786,9 @@ static bool addTextRanges(dsVectorImage* vectorImage, dsCommandBuffer* commandBu
 	{
 		const VectorImagePiece* piece = vectorImage->imagePieces + i;
 		if (piece->type != dsVectorShaderType_TextColor &&
-			piece->type != dsVectorShaderType_TextGradient)
+			piece->type != dsVectorShaderType_TextColorOutline &&
+			piece->type != dsVectorShaderType_TextGradient &&
+			piece->type != dsVectorShaderType_TextGradientOutline)
 		{
 			continue;
 		}
@@ -820,7 +822,9 @@ static BaseType getBaseType(dsVectorShaderType type)
 		case dsVectorShaderType_Image:
 			return BaseType_Image;
 		case dsVectorShaderType_TextColor:
+		case dsVectorShaderType_TextColorOutline:
 		case dsVectorShaderType_TextGradient:
+		case dsVectorShaderType_TextGradientOutline:
 			return BaseType_Text;
 		default:
 			DS_ASSERT(false);
@@ -985,7 +989,9 @@ dsVectorImage* dsVectorImage_create(dsAllocator* allocator, dsAllocator* resourc
 			for (uint32_t i = 0; i < image->pieceCount; ++i)
 			{
 				if (image->imagePieces[i].type != dsVectorShaderType_TextColor &&
-					image->imagePieces[i].type != dsVectorShaderType_TextGradient)
+					image->imagePieces[i].type != dsVectorShaderType_TextColorOutline &&
+					image->imagePieces[i].type != dsVectorShaderType_TextGradient &&
+					image->imagePieces[i].type != dsVectorShaderType_TextGradientOutline)
 				{
 					continue;
 				}
@@ -1285,7 +1291,9 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 			break;
 		}
 		if (piece->type == dsVectorShaderType_TextColor ||
-			piece->type == dsVectorShaderType_TextGradient)
+			piece->type == dsVectorShaderType_TextColorOutline ||
+			piece->type == dsVectorShaderType_TextGradient ||
+			piece->type == dsVectorShaderType_TextGradientOutline)
 		{
 			DS_ASSERT(piece->textRender);
 			success = dsTextRenderBuffer_draw(piece->textRender, commandBuffer);
