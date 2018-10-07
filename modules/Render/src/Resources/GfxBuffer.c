@@ -26,6 +26,23 @@
 
 extern const char* dsResourceManager_noContextError;
 
+inline static void adjustAlignment(size_t alignment, size_t totalSize, size_t* offset, size_t* size,
+	size_t* rem)
+{
+	if (alignment > 0)
+	{
+		*rem = *offset % alignment;
+		*offset -= *rem;
+		*size += *rem;
+
+		size_t count = (*size + alignment - 1)/alignment;
+		*size = count*alignment;
+		*size = dsMin(*size, totalSize - *offset);
+	}
+	else
+		rem = 0;
+}
+
 dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size)
 {
@@ -124,6 +141,13 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	if ((flags & dsGfxBufferMap_Invalidate) && (flags & dsGfxBufferMap_Read))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot both read from and invalidate a buffer.");
+		DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if ((size == DS_MAP_FULL_BUFFER && offset > size) ||
 		(size != DS_MAP_FULL_BUFFER && !DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size)))
 	{
@@ -160,15 +184,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		size_t rem = 0;
 		uint32_t alignment = resourceManager->minNonCoherentMappingAlignment;
 		if (alignment > 0 && !(buffer->memoryHints & dsGfxMemory_Coherent))
-		{
-			rem = offset % alignment;
-			offset = offset - rem;
-			size = size + rem;
-
-			size_t count = (size + alignment - 1)/alignment;
-			size = count*alignment;
-			size = dsMin(size, buffer->size - offset);
-		}
+			adjustAlignment(alignment, buffer->size, &offset, &size, &rem);
 		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset, size);
 		if (!ptr)
 			DS_PROFILE_FUNC_RETURN(NULL);
@@ -231,6 +247,10 @@ bool dsGfxBuffer_flush(dsGfxBuffer* buffer, size_t offset, size_t size)
 		DS_PROFILE_FUNC_RETURN(true);
 	}
 
+	size_t rem;
+	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size,
+		&rem);
+
 	bool success = resourceManager->flushBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -265,6 +285,10 @@ bool dsGfxBuffer_invalidate(dsGfxBuffer* buffer, size_t offset, size_t size)
 	{
 		DS_PROFILE_FUNC_RETURN(true);
 	}
+
+	size_t rem;
+	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, buffer->size, &offset, &size,
+		&rem);
 
 	bool success = resourceManager->invalidateBufferFunc(resourceManager, buffer, offset, size);
 	DS_PROFILE_FUNC_RETURN(success);

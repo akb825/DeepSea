@@ -75,6 +75,7 @@ typedef struct dsVkDevice
 	PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
 	PFN_vkEndCommandBuffer vkEndCommandBuffer;
 	PFN_vkCmdExecuteCommands vkCmdExecuteCommands;
+	PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 	PFN_vkQueueSubmit vkQueueSubmit;
 	PFN_vkQueueWaitIdle vkQueueWaitIdle;
 	PFN_vkCreateFence vkCreateFence;
@@ -113,9 +114,16 @@ typedef struct dsVkFormatInfo
 	VkFormatProperties properties;
 } dsVkFormatInfo;
 
+typedef struct dsVkDirtyRange
+{
+	size_t start;
+	size_t size;
+} dsVkDirtyRange;
+
 typedef struct dsVkGfxBufferData
 {
 	dsAllocator* allocator;
+	dsAllocator* scratchAllocator;
 	dsSpinlock lock;
 
 	VkDeviceMemory deviceMemory;
@@ -126,13 +134,20 @@ typedef struct dsVkGfxBufferData
 	VkBuffer hostBuffer;
 	uint64_t uploadedSubmit;
 	void* submitQueue;
-	size_t dirtyStart;
-	size_t dirtySize;
+
+	size_t size;
+
+	dsVkDirtyRange* dirtyRanges;
+	uint32_t dirtyRangeCount;
+	uint32_t maxDirtyRanges;
 
 	size_t mappedStart;
 	size_t mappedSize;
+	bool mappedWrite;
 
 	bool keepHost;
+	bool used;
+	bool needsInitialCopy;
 
 	uint32_t commandBufferCount;
 } dsVkGfxBufferData;
@@ -140,7 +155,6 @@ typedef struct dsVkGfxBufferData
 typedef struct dsVkGfxBuffer
 {
 	dsGfxBuffer buffer;
-	dsSpinlock lock;
 	dsVkGfxBufferData* bufferData;
 } dsVkGfxBuffer;
 
@@ -180,6 +194,10 @@ typedef struct dsVkRenderer
 	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];
 	uint32_t curPendingResources;
 	uint32_t curDeleteResources;
+
+	VkBufferCopy* bufferCopies;
+	uint32_t bufferCopiesCount;
+	uint32_t maxBufferCopies;
 } dsVkRenderer;
 
 typedef struct dsVkResourceManager

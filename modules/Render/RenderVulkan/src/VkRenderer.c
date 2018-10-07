@@ -135,6 +135,7 @@ static void freeResources(dsVkRenderer* renderer)
 
 static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuffer)
 {
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
 	dsVkInstance* instance = &device->instance;
 
@@ -156,17 +157,42 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		{
 			// Still mapped, process later.
 			DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
-			dsVkRenderer_processGfxBuffer((dsRenderer*)renderer, buffer);
+			dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
 			continue;
 		}
 
-		size_t dirtyStart = buffer->dirtyStart;
-		size_t dirtySize = buffer->dirtySize;
+		renderer->bufferCopiesCount = 0;
+		if (buffer->needsInitialCopy)
+		{
+			if (DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopies,
+				renderer->bufferCopiesCount, renderer->maxBufferCopies, 1))
+			{
+				renderer->bufferCopies[0].srcOffset = renderer->bufferCopies[0].dstOffset = 0;
+				renderer->bufferCopies[0].size = buffer->size;
+				buffer->needsInitialCopy = false;
+			}
+		}
+
+		if (buffer->dirtyRangeCount > 0)
+		{
+			uint32_t firstCopy = renderer->bufferCopiesCount;
+			if (DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopies,
+				renderer->bufferCopiesCount, renderer->maxBufferCopies, buffer->dirtyRangeCount))
+			{
+				for (uint32_t j = 0; j < buffer->dirtyRangeCount; ++j)
+				{
+					VkBufferCopy* copyInfo = renderer->bufferCopies + firstCopy + j;
+					const dsVkDirtyRange* dirtyRange = buffer->dirtyRanges + j;
+					copyInfo->srcOffset = copyInfo->dstOffset = dirtyRange->start;
+					copyInfo->size = dirtyRange->size;
+				}
+				buffer->dirtyRangeCount = 0;
+			}
+		}
+
 		VkDeviceMemory hostMemory = 0;
 		VkBuffer hostBuffer = 0;
-		buffer->dirtyStart = 0;
-		buffer->dirtySize = 0;
-		if (dirtySize > 0)
+		if (renderer->bufferCopiesCount > 0)
 			buffer->uploadedSubmit = renderer->submitCount;
 		else if (buffer->hostBuffer && !buffer->keepHost &&
 			buffer->uploadedSubmit <= renderer->finishedSubmitCount)
@@ -178,12 +204,11 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		}
 		DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
 
-		if (dirtySize > 0)
+		if (renderer->bufferCopiesCount > 0)
 		{
 			// Process the upload.
-			VkBufferCopy copyInfo = {dirtyStart, dirtyStart, dirtySize};
 			DS_VK_CALL(device->vkCmdCopyBuffer)(commandBuffer, buffer->hostBuffer,
-				buffer->deviceBuffer, 1, &copyInfo);
+				buffer->deviceBuffer, renderer->bufferCopiesCount, renderer->bufferCopies);
 
 			// Queue to re-process if don't keep the memory.
 			if (!buffer->keepHost)
@@ -257,6 +282,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsSpinlock_shutdown(&vkRenderer->deleteLock);
 	dsMutex_destroy(vkRenderer->submitLock);
 	dsConditionVariable_destroy(vkRenderer->waitCondition);
+
+	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->bufferCopies));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 	return true;
 }
@@ -432,6 +459,30 @@ void dsVkRenderer_flush(dsRenderer* renderer)
 	vkRenderer->curSubmit = (vkRenderer->curSubmit + 1) % DS_MAX_SUBMITS;
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 
+	// Make sure any writes are visible for mapping buffers.
+	VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+		VK_PIPELINE_STAGE_TRANSFER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		srcStage |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		srcStage |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_HOST_BIT;
+
+	VkMemoryBarrier memoryBarrier =
+	{
+		VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		NULL,
+		VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_ACCESS_MEMORY_READ_BIT
+	};
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submit->renderCommands, srcStage, dstStage, 0, 1,
+		&memoryBarrier, 0, NULL, 0, NULL);
+
 	// Submit the queue.
 	VkSubmitInfo submitInfo =
 	{
@@ -505,7 +556,8 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
 
 	// Make sure this needs to be processed.
-	if (!buffer->deviceBuffer || !buffer->hostBuffer || buffer->dirtySize == 0)
+	if (!buffer->deviceBuffer || !buffer->hostBuffer ||
+		(!buffer->needsInitialCopy && buffer->dirtyRangeCount == 0))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 		return;

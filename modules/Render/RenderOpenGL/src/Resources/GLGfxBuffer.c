@@ -166,15 +166,17 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			access |= GL_MAP_READ_BIT;
 		if (flags & dsGfxBufferMap_Write)
 			access |= GL_MAP_WRITE_BIT;
+		if (flags & dsGfxBufferMap_Invalidate)
+			access |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		if (flags & dsGfxBufferMap_Persistent)
 		{
 			access |= GL_MAP_PERSISTENT_BIT;
 			if (buffer->memoryHints & dsGfxMemory_Coherent)
 				access |= GL_MAP_COHERENT_BIT;
-			else
-				access += GL_MAP_FLUSH_EXPLICIT_BIT;
+			else if (!(flags & dsGfxBufferMap_Write))
+				access |= GL_MAP_FLUSH_EXPLICIT_BIT;
 		}
-		if (!(buffer->memoryHints & dsGfxMemory_Synchronize))
+		if (!(buffer->memoryHints & dsGfxMemory_Synchronize) && !(flags & dsGfxBufferMap_Read))
 			access |= GL_MAP_UNSYNCHRONIZED_BIT;
 
 		glBindBuffer(bufferType, glBuffer->bufferId);

@@ -739,6 +739,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBeginCommandBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkEndCommandBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdExecuteCommands);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdPipelineBarrier);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueueSubmit);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueueWaitIdle);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateFence);

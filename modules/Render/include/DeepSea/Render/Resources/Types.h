@@ -112,9 +112,10 @@ typedef enum dsTextureUsage
  */
 typedef enum dsGfxBufferMap
 {
-	dsGfxBufferMap_Read = 0x1,      ///< Read data from the buffer.
-	dsGfxBufferMap_Write = 0x2,     ///< Write data to the buffer.
-	dsGfxBufferMap_Persistent = 0x4 ///< Allow the buffer to remain locked.
+	dsGfxBufferMap_Read = 0x1,       ///< Read data from the buffer.
+	dsGfxBufferMap_Write = 0x2,      ///< Write data to the buffer.
+	dsGfxBufferMap_Invalidate = 0x4, ///< Invalidate the contents of the buffer.
+	dsGfxBufferMap_Persistent = 0x8  ///< Allow the buffer to remain locked.
 } dsGfxBufferMap;
 
 /**
