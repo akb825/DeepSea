@@ -93,6 +93,7 @@ typedef struct dsVkDevice
 	PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
 	PFN_vkBindBufferMemory vkBindBufferMemory;
 	PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+	PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
 	PFN_vkCreateBufferView vkCreateBufferView;
 	PFN_vkDestroyBufferView vkDestroyBufferView;
 
@@ -173,6 +174,13 @@ typedef struct dsVkResourceList
 	uint32_t maxBuffers;
 } dsVkResourceList;
 
+typedef struct dsVkCommandBuffer
+{
+	dsCommandBuffer commandBuffer;
+	VkCommandBuffer vkCommandBuffer;
+	dsVkResourceList usedResources;
+} dsVkCommandBuffer;
+
 typedef struct dsVkRenderer
 {
 	dsRenderer renderer;
@@ -189,6 +197,8 @@ typedef struct dsVkRenderer
 	dsVkSubmitInfo submits[DS_MAX_SUBMITS];
 	uint32_t curSubmit;
 	uint32_t waitCount;
+
+	dsVkCommandBuffer mainCommandBuffer;
 
 	dsVkResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
 	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];

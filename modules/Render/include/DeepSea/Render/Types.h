@@ -1335,6 +1335,13 @@ typedef bool (*dsGfxMemoryBarrierFunction)(dsRenderer* renderer, dsCommandBuffer
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 /**
+ * @brief Function for flushing queued commands to the GPU.
+ * @param renderer The renderer.
+ * @return False if the renderer is in an invalid state.
+ */
+typedef bool (*dsRenderFlushFunction)(dsRenderer* renderer);
+
+/**
  * @brief Function for waiting until the GPU is idle.
  * @param renderer The renderer.
  * @return False if the renderer is in an invalid state.
@@ -1735,6 +1742,11 @@ struct dsRenderer
 	 * @brief Memory barrier function.
 	 */
 	dsGfxMemoryBarrierFunction memoryBarrierFunc;
+
+	/**
+	 * @brief Flush function.
+	 */
+	dsRenderFlushFunction flushFunc;
 
 	/**
 	 * @brief Idle waiting function.

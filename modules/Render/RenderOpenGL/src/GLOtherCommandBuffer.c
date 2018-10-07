@@ -1198,7 +1198,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 
 	// Reset immediately if not submitted multiple times. This frees any internal references to
 	// resources.
-	if (!(commandBuffer->usage &
+	if (!(submitBuffer->usage &
 		(dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
 	{
 		dsGLOtherCommandBuffer_reset(glSubmitBuffer);

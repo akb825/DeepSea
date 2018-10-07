@@ -18,9 +18,9 @@
 
 #include "Types.h"
 
-dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
-	uint64_t timeout);
+bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsCommandBuffer* submitBuffer);
 
-void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
-void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
-
+bool dsVkCommandBuffer_addBuffer(dsCommandBuffer* commandBuffer, dsVkGfxBufferData* buffer);
+void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount);

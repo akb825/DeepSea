@@ -1216,6 +1216,31 @@ bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
+bool dsRenderer_flush(dsRenderer* renderer)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!renderer)
+	{
+		errno = EINVAL;
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Flushing must be done on the main thread.");
+		return false;
+	}
+
+	// OK if no implementation.
+	if (!renderer->flushFunc)
+		DS_PROFILE_FUNC_RETURN(true);
+
+	bool success = renderer->flushFunc(renderer);
+	DS_PROFILE_FUNC_RETURN(success);
+}
+
 bool dsRenderer_waitUntilIdle(dsRenderer* renderer)
 {
 	DS_PROFILE_WAIT_START(__FUNCTION__);

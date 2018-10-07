@@ -757,6 +757,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetBufferMemoryRequirements);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindBufferMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyBuffer);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdUpdateBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 

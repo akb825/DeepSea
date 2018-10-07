@@ -375,6 +375,13 @@ DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBu
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 /**
+ * @brief Flushes queued commands tot he GPU.
+ * @param renderer The renderer.
+ * @return False if the renderer couldn't be flushed.
+ */
+DS_RENDER_EXPORT bool dsRenderer_flush(dsRenderer* renderer);
+
+/**
  * @brief Waits until the GPU is idle.
  *
  * Waiting until idle is useful when destroying large numbers of graphics resources (e.g. unloading

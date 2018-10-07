@@ -367,6 +367,13 @@ bool dsGLRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
+bool dsGLRenderer_flush(dsRenderer* renderer)
+{
+	DS_UNUSED(renderer);
+	glFlush();
+	return true;
+}
+
 bool dsGLRenderer_waitUntilIdle(dsRenderer* renderer)
 {
 	DS_UNUSED(renderer);
@@ -720,6 +727,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
 	baseRenderer->blitSurfaceFunc = &dsGLCommandBuffer_blitSurface;
 	baseRenderer->memoryBarrierFunc = &dsGLCommandBuffer_memoryBarrier;
+	baseRenderer->flushFunc = &dsGLRenderer_flush;
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;
 	baseRenderer->restoreGlobalStateFunc = &dsGLRenderer_restoreGlobalState;
 

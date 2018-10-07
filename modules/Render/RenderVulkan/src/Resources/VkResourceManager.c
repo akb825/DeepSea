@@ -677,6 +677,16 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->createResourceContextFunc = &dsVkResourceManager_createResourceContext;
 	baseResourceManager->destroyResourceContextFunc = &dsVkResourceManager_destroyResourceContext;
 
+	// Buffers
+	baseResourceManager->createBufferFunc = &dsVkGfxBuffer_create;
+	baseResourceManager->destroyBufferFunc = &dsVkGfxBuffer_destroy;
+	baseResourceManager->mapBufferFunc = &dsVkGfxBuffer_map;
+	baseResourceManager->unmapBufferFunc = &dsVkGfxBuffer_unmap;
+	baseResourceManager->flushBufferFunc = &dsVkGfxBuffer_flush;
+	baseResourceManager->invalidateBufferFunc = &dsVkGfxBuffer_invalidate;
+	baseResourceManager->copyBufferDataFunc = &dsVkGfxBuffer_copyData;
+	baseResourceManager->copyBufferFunc = &dsVkGfxBuffer_copy;
+
 	return resourceManager;
 }
 

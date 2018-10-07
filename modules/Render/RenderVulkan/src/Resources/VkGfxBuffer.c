@@ -15,6 +15,7 @@
  */
 
 #include "Resources/VkGfxBuffer.h"
+#include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -494,6 +495,70 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	};
 	VkResult result = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 	return dsHandleVkResult(result);
+}
+
+bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* buffer, size_t offset, const void* data, size_t size)
+{
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
+	dsVkGfxBufferData* bufferData;
+	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
+
+	dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, bufferData))
+		return false;
+
+	VkBuffer dstBuffer = bufferData->deviceBuffer ? bufferData->deviceBuffer :
+		bufferData->hostBuffer;
+	const size_t maxSize = 65536;
+	for (size_t block = 0; block < size; block += maxSize)
+	{
+		size_t copySize = dsMin(maxSize, size - block);
+		DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer->vkCommandBuffer, dstBuffer,
+			offset + block, copySize, (const uint8_t*)data + block);
+	}
+
+	return true;
+}
+
+bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
+	size_t size)
+{
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	dsVkGfxBuffer* srcVkBuffer = (dsVkGfxBuffer*)srcBuffer;
+	dsVkGfxBufferData* srcBufferData;
+	DS_ATOMIC_LOAD_PTR(&srcVkBuffer->bufferData, &srcBufferData);
+
+	dsVkRenderer_deleteGfxBuffer(renderer, srcBufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, srcBufferData))
+		return false;
+
+	dsVkGfxBuffer* dstVkBuffer = (dsVkGfxBuffer*)dstBuffer;
+	dsVkGfxBufferData* dstBufferData;
+	DS_ATOMIC_LOAD_PTR(&dstVkBuffer->bufferData, &dstBufferData);
+
+	dsVkRenderer_deleteGfxBuffer(renderer, dstBufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData))
+		return false;
+
+	VkBuffer srcCopyBuffer = srcBufferData->deviceBuffer ? srcBufferData->deviceBuffer :
+		srcBufferData->hostBuffer;
+	VkBuffer dstCopyBuffer = dstBufferData->deviceBuffer ? dstBufferData->deviceBuffer :
+		dstBufferData->hostBuffer;
+	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
+	device->vkCmdCopyBuffer(vkCommandBuffer->vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
+		&bufferCopy);
+	return true;
 }
 
 bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
