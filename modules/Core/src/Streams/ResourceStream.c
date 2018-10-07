@@ -245,7 +245,7 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 	}
 
 	stream->isFile = true;
-	return dsFileStream_openPath((dsFileStream*)stream, path, mode);
+	return dsFileStream_openPath((dsFileStream*)stream, finalPath, mode);
 }
 
 size_t dsResourceStream_read(dsResourceStream* stream, void* data, size_t size);

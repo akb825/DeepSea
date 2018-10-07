@@ -1051,7 +1051,7 @@ bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
 	if (!dsResourceStream_open(&stream, type, fileName, "rb"))
 	{
 		DS_LOG_ERROR_F(DS_TEXT_LOG_TAG, "Couldn't open font face file '%s'.", fileName);
-		DS_PROFILE_FUNC_RETURN(NULL);
+		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	bool retVal = dsFaceGroup_loadFaceImpl(group, allocator, (dsStream*)&stream, name);
