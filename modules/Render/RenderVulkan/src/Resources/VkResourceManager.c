@@ -16,6 +16,7 @@
 
 #include "Resources/VkResourceManager.h"
 
+#include "Resources/VkDrawGeometry.h"
 #include "Resources/VkGfxBuffer.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -686,6 +687,10 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->invalidateBufferFunc = &dsVkGfxBuffer_invalidate;
 	baseResourceManager->copyBufferDataFunc = &dsVkGfxBuffer_copyData;
 	baseResourceManager->copyBufferFunc = &dsVkGfxBuffer_copy;
+
+	// Draw geometry
+	baseResourceManager->createGeometryFunc = &dsVkDrawGeometry_create;
+	baseResourceManager->destroyGeometryFunc = &dsVkDrawGeometry_destroy;
 
 	return resourceManager;
 }
