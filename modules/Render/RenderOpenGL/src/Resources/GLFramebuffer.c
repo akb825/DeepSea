@@ -353,26 +353,6 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	return surfaceType;
 }
 
-void dsGLFramebuffer_setDefaultSamples(const dsFramebuffer* framebuffer, uint32_t samples)
-{
-	dsRenderer* renderer = framebuffer->resourceManager->renderer;
-	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	if (glRenderer->curSurfaceType != GLSurfaceType_Framebuffer ||
-		framebuffer->resourceManager->requiresAnySurface)
-	{
-		return;
-	}
-
-	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		samples = renderer->surfaceSamples;
-	dsGLFramebuffer* glFramebuffer = (dsGLFramebuffer*)framebuffer;
-	if (glFramebuffer->curDefaultSamples != samples)
-	{
-		glFramebufferParameteri(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_SAMPLES, samples);
-		glFramebuffer->curDefaultSamples = samples;
-	}
-}
-
 void dsGLFramebuffer_addInternalRef(dsFramebuffer* framebuffer)
 {
 	DS_ASSERT(framebuffer);

@@ -395,7 +395,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	testVectorDraw->shaders = dsVectorShaders_create(resourceManager, allocator,
-		testVectorDraw->shaderModule, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		testVectorDraw->shaderModule);
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));
@@ -415,7 +415,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		NULL
 	};
 	testVectorDraw->wireframeShaders = dsVectorShaders_createCustom(resourceManager, allocator,
-		testVectorDraw->shaderModule, shaderNames, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		testVectorDraw->shaderModule, shaderNames);
 	if (!testVectorDraw->shaders)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create shaders: %s", dsErrorString(errno));

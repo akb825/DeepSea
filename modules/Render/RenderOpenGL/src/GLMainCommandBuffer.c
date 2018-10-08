@@ -927,7 +927,6 @@ bool dsGLMainCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsSh
 		&glShader->renderState, renderStates);
 	updateSamplers(commandBuffer->renderer, glShader);
 	DS_ASSERT(glCommandBuffer->curFramebuffer);
-	dsGLFramebuffer_setDefaultSamples(glCommandBuffer->curFramebuffer, shader->samples);
 
 	// Set the internal information on the shader.
 	if (glShader->internalUniform >= 0)

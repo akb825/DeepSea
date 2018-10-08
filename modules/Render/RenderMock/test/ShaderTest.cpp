@@ -73,17 +73,17 @@ TEST_F(ShaderTest, Create)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(NULL, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, NULL, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, NULL, materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "asdf", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", NULL,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	EXPECT_TRUE(dsShader_destroy(shader));
@@ -125,7 +125,7 @@ TEST_F(ShaderTest, CreateNoBuffers)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	EXPECT_TRUE(dsShader_destroy(shader));
@@ -168,7 +168,7 @@ TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -204,7 +204,7 @@ TEST_F(ShaderTest, CreateTypeMismatch)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -239,7 +239,7 @@ TEST_F(ShaderTest, CreateMissingVariable)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -275,7 +275,7 @@ TEST_F(ShaderTest, CreateVariableGroupTypeMismatch)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -312,7 +312,7 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES));
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -359,7 +359,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -485,7 +485,7 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -586,7 +586,7 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -712,7 +712,7 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		materialDesc, dsPrimitiveType_TriangleList);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);

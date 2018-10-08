@@ -826,8 +826,7 @@ static bool setupShaders(TestText* testText)
 		testText->sharedInfoGroup));
 
 	testText->shader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
-		"Font", testText->materialDesc, dsPrimitiveType_TriangleList,
-		DS_DEFAULT_ANTIALIAS_SAMPLES);
+		"Font", testText->materialDesc, dsPrimitiveType_TriangleList);
 	if (!testText->shader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
@@ -846,8 +845,7 @@ static bool setupShaders(TestText* testText)
 			testText->sharedInfoGroup));
 
 		testText->tessShader = dsShader_createName(resourceManager, allocator,
-			testText->shaderModule, "FontTess", testText->materialDesc, dsPrimitiveType_PatchList,
-			DS_DEFAULT_ANTIALIAS_SAMPLES);
+			testText->shaderModule, "FontTess", testText->materialDesc, dsPrimitiveType_PatchList);
 		if (!testText->tessShader)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
@@ -856,8 +854,7 @@ static bool setupShaders(TestText* testText)
 	}
 
 	testText->limitShader = dsShader_createName(resourceManager, allocator,
-		testText->shaderModule, "Box", testText->materialDesc, dsPrimitiveType_TriangleList,
-		DS_DEFAULT_ANTIALIAS_SAMPLES);
+		testText->shaderModule, "Box", testText->materialDesc, dsPrimitiveType_TriangleList);
 	if (!testText->limitShader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));

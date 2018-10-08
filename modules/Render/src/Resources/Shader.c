@@ -557,36 +557,9 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 	return true;
 }
 
-static uint32_t getSubpassSamples(const dsRenderPass* renderPass, uint32_t subpassIndex)
-{
-	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
-	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
-	{
-		if (subpass->colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)
-			continue;
-
-		const dsAttachmentInfo* attachment = renderPass->attachments +
-			subpass->colorAttachments[i].attachmentIndex;
-		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-			return renderPass->renderer->surfaceSamples;
-		return attachment->samples;
-	}
-
-	if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
-	{
-		const dsAttachmentInfo* attachment = renderPass->attachments +
-			subpass->depthStencilAttachment;
-		if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-			return renderPass->renderer->surfaceSamples;
-		return attachment->samples;
-	}
-
-	return 0;
-}
-
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType, uint32_t samples)
+	dsPrimitiveType primitiveType)
 {
 	if (!resourceManager || !resourceManager->createShaderFunc ||
 		!resourceManager->destroyShaderFunc || !shaderModule || !name || !materialDesc)
@@ -610,12 +583,12 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc,
-		primitiveType, samples);
+		primitiveType);
 }
 
 dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType, uint32_t samples)
+	dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -678,9 +651,8 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	samples = dsMax(1U, samples);
 	dsShader* shader = resourceManager->createShaderFunc(resourceManager, allocator, shaderModule,
-		index, materialDesc, primitiveType, samples);
+		index, materialDesc, primitiveType);
 	if (shader)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, 1);
 	DS_PROFILE_FUNC_RETURN(shader);
@@ -734,19 +706,6 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot bind a shader when another shader is bound.");
 		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	uint32_t shaderSamples = shader->samples;
-	if (shader->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-		shaderSamples = commandBuffer->renderer->surfaceSamples;
-	uint32_t subpassSamples = getSubpassSamples(commandBuffer->boundRenderPass,
-		commandBuffer->activeRenderSubpass);
-	if (subpassSamples && subpassSamples != shaderSamples)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shader anti-alias samples don't match the attachments for "
-			"the current render subpass.");
-		return false;
 	}
 
 	if (dsCommandBuffer_isIndirect(commandBuffer))

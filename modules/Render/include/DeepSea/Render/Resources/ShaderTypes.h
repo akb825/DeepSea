@@ -261,14 +261,6 @@ typedef struct dsShader
 	 * @brief The type of primitive the shader will be drawn with.
 	 */
 	dsPrimitiveType primitiveType;
-
-	/**
-	 * @brief The number of anti-alias samples the shader will be drawn with.
-	 *
-	 * This will be set to DS_DEFAULT_ANTIALIAS_SAMPLES if it should be the same as the current
-	 * surface samples set on dsRenderer.
-	 */
-	uint32_t samples;
 } dsShader;
 
 /**

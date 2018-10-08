@@ -347,8 +347,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	}
 
 	testCube->shader = dsShader_createName(resourceManager, allocator, testCube->shaderModule,
-		"Default", testCube->materialDesc, dsPrimitiveType_TriangleList,
-		DS_DEFAULT_ANTIALIAS_SAMPLES);
+		"Default", testCube->materialDesc, dsPrimitiveType_TriangleList);
 	if (!testCube->shader)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create shader: %s", dsErrorString(errno));

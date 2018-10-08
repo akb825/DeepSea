@@ -69,8 +69,8 @@ public:
 		shaderModule = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"), "test");
 		ASSERT_TRUE(shaderModule);
 
-		shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-			materialDesc, dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
+			dsPrimitiveType_TriangleList);
 		ASSERT_TRUE(shader);
 
 		transformGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL, transformDesc);

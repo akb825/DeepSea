@@ -30,7 +30,7 @@ extern const char* dsDefaultVectorShaderNames[dsVectorShaderType_Count];
 static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVectorShaderModule* shaderModule,
 	uint32_t shaderIndices[dsVectorShaderType_Count],
-	const char* shaderNames[dsVectorShaderType_Count], uint32_t samples)
+	const char* shaderNames[dsVectorShaderType_Count])
 {
 	if (!resourceManager || (!allocator && !resourceManager->allocator) || !shaderModule)
 	{
@@ -98,7 +98,7 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 
 		shaders->shaders[i] = dsShader_createIndex(resourceManager, allocator,
 			shaderModule->shaderModule, shaderIndices[i], shaderModule->materialDesc,
-			primitiveType, samples);
+			primitiveType);
 		if (!shaders->shaders[i])
 		{
 			for (uint32_t j = 0; j < i; ++j)
@@ -114,15 +114,15 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 }
 
 dsVectorShaders* dsVectorShaders_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsVectorShaderModule* shaderModule, uint32_t samples)
+	dsAllocator* allocator, dsVectorShaderModule* shaderModule)
 {
 	return dsVectorShaders_createImpl(resourceManager, allocator, shaderModule,
-		shaderModule->shaderIndices, dsDefaultVectorShaderNames, samples);
+		shaderModule->shaderIndices, dsDefaultVectorShaderNames);
 }
 
 dsVectorShaders* dsVectorShaders_createCustom(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsVectorShaderModule* shaderModule,
-	const char* shaderNames[dsVectorShaderType_Count], uint32_t samples)
+	const char* shaderNames[dsVectorShaderType_Count])
 {
 	if (!resourceManager || (!allocator && !resourceManager->allocator) || !shaderModule)
 	{
@@ -157,7 +157,7 @@ dsVectorShaders* dsVectorShaders_createCustom(dsResourceManager* resourceManager
 	}
 
 	return dsVectorShaders_createImpl(resourceManager, allocator, shaderModule, shaderIndices,
-		shaderNames, samples);
+		shaderNames);
 }
 
 bool dsVectorShaders_destroy(dsVectorShaders* shaders)

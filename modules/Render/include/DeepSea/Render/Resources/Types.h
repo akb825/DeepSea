@@ -1626,13 +1626,11 @@ typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* reso
  * @param shaderIndex The index of the shader.
  * @param materialDesc The description of the material type used by the shader.
  * @param primitiveType The type of primitives the shader will be drawn with.
- * @param samples The number of anti-alias samples to draw the shader with. This may be set to
- *     DS_DEFAULT_ANTIALIAS_SAMPLES to remain consistent with the surface samples set on dsRenderer.
  * @return The created shader, or NULL if it couldn't be created.
  */
 typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType, uint32_t samples);
+	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for destroying a shader.

@@ -21,7 +21,7 @@
 
 dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType, uint32_t samples);
+	dsPrimitiveType primitiveType);
 bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char* name);
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,

@@ -654,7 +654,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	testRenderSubpass->cubeShader = dsShader_createName(resourceManager, allocator,
 		testRenderSubpass->shaderModule, "Cube", testRenderSubpass->cubeMaterialDesc,
-		dsPrimitiveType_TriangleList, SAMPLE_COUNT);
+		dsPrimitiveType_TriangleList);
 	if (!testRenderSubpass->cubeShader)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shader: %s", dsErrorString(errno));
@@ -663,7 +663,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	testRenderSubpass->resolveShader = dsShader_createName(resourceManager, allocator,
 		testRenderSubpass->shaderModule, "Resolve", testRenderSubpass->resolveMaterialDesc,
-		dsPrimitiveType_TriangleList, DS_DEFAULT_ANTIALIAS_SAMPLES);
+		dsPrimitiveType_TriangleList);
 	if (!testRenderSubpass->resolveShader)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shader: %s", dsErrorString(errno));
