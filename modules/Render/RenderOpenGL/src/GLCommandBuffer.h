@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly);
 void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer);

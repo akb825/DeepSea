@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "VkTypes.h"
 
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
 	uint64_t timeout);

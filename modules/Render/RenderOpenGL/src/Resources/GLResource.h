@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 void dsGLResource_initialize(dsGLResource* resource);
 void dsGLResource_addRef(dsGLResource* resource);

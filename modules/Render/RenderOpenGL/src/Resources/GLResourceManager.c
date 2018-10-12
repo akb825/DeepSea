@@ -18,7 +18,7 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
-#include "Platform/Platform.h"
+#include "Platform/GLPlatform.h"
 #include "Resources/GLDrawGeometry.h"
 #include "Resources/GLFramebuffer.h"
 #include "Resources/GLGfxBuffer.h"

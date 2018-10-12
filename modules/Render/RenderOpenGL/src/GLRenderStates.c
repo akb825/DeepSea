@@ -17,7 +17,7 @@
 #include "GLRenderStates.h"
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
-#include "Types.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Assert.h>
 
 static const GLenum polygonModeMap[] =

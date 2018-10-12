@@ -22,7 +22,6 @@
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "GLRendererInternal.h"
-#include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>

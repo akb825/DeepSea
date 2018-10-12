@@ -21,7 +21,7 @@
 #include "GLCommandBuffer.h"
 #include "GLHelpers.h"
 #include "GLResource.h"
-#include "Types.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>

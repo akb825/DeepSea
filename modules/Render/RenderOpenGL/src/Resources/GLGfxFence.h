@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 dsGfxFence* dsGLGfxFence_create(dsResourceManager* resourceManager, dsAllocator* allocator);
 bool dsGLGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRenderer* renderer);
 

@@ -23,7 +23,6 @@
 #include "Resources/GLTexture.h"
 #include "GLHelpers.h"
 #include "GLRendererInternal.h"
-#include "Types.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>

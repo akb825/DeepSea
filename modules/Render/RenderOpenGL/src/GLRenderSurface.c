@@ -15,10 +15,10 @@
  */
 
 #include "GLRenderSurface.h"
-#include "Platform/Platform.h"
+#include "Platform/GLPlatform.h"
 #include "GLCommandBuffer.h"
 #include "GLRendererInternal.h"
-#include "Types.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllocator* allocator);
 void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer);

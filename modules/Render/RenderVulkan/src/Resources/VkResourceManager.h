@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "VkTypes.h"
 
 dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer);
 void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager);

@@ -21,7 +21,7 @@
 #include "Resources/GLResourceManager.h"
 #include "Resources/GLResource.h"
 #include "GLRendererInternal.h"
-#include "Types.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Assert.h>

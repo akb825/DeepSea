@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "VkTypes.h"
 
 bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
 	bool handleErrors);

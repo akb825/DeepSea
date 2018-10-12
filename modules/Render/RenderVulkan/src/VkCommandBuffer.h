@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "VkTypes.h"
 
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

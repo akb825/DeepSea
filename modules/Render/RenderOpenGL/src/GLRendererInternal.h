@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 bool dsGLRenderer_bindSurface(dsRenderer* renderer, void* glSurface);
 void dsGLRenderer_destroySurface(dsRenderer* renderer, void* glSurface);

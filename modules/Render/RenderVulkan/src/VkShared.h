@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "VkTypes.h"
 #include <DeepSea/Core/Debug.h>
 
 #if DS_DEBUG

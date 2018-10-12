@@ -19,7 +19,6 @@
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkResourceManager.h"
 #include "VkRendererInternal.h"
-#include "Types.h"
 #include "VkCommandBuffer.h"
 #include "VkInit.h"
 #include "VkShared.h"

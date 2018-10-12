@@ -17,7 +17,7 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "Types.h"
+#include "GLTypes.h"
 
 dsFramebuffer* dsGLFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,

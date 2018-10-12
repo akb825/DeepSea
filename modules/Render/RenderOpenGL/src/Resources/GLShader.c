@@ -23,8 +23,8 @@
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderModule.h"
-#include "Platform/Platform.h"
-#include "Types.h"
+#include "Platform/GLPlatform.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>

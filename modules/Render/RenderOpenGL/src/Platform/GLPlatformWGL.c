@@ -1,4 +1,4 @@
-#include "Platform/Platform.h"
+#include "Platform/GLPlatform.h"
 #include "AnyGL/AnyGL.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>

@@ -19,7 +19,7 @@
 
 #include "AnyGL/AnyGL.h"
 #include "AnyGL/gl.h"
-#include "Platform/Platform.h"
+#include "Platform/GLPlatform.h"
 #include "Resources/GLResourceManager.h"
 #include "GLCommandBuffer.h"
 #include "GLCommandBufferPool.h"
@@ -27,7 +27,7 @@
 #include "GLMainCommandBuffer.h"
 #include "GLRenderPass.h"
 #include "GLRenderSurface.h"
-#include "Types.h"
+#include "GLTypes.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>

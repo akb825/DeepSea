@@ -17,7 +17,7 @@
 #include "Resources/GLMaterialDesc.h"
 #include "Resources/GLResource.h"
 #include "Resources/GLShaderVariableGroupDesc.h"
-#include "Types.h"
+#include "GLTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>

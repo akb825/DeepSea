@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Types.h"
+#include "VkTypes.h"
 
 dsGfxBuffer* dsVkGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxBufferUsage usage, dsGfxMemory memoryHints, const void* data, size_t size);
