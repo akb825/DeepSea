@@ -51,10 +51,12 @@ static bool hasExtension(const char* extensions, const char* extension)
 }
 
 typedef int (*X11ErrorHandler)(Display*, XErrorEvent*);
+static bool gX11Error;
 static int emptyErrorHandler(Display* display, XErrorEvent* event)
 {
 	DS_UNUSED(display);
 	DS_UNUSED(event);
+	gX11Error = true;
 	return 0;
 }
 
@@ -193,15 +195,20 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		{
 			contextAttr[1] = versions[i][0];
 			contextAttr[3] = versions[i][1];
+			gX11Error = false;
 			GLXContext context = glXCreateContextAttribsARB(display, fbConfig, NULL, true,
 				contextAttr);
-			if (context)
+			XSync(display, false);
+			if (!gX11Error && context)
 			{
 				config->major = versions[i][0];
 				config->minor = versions[i][1];
 				glXDestroyContext(display, context);
 				break;
 			}
+
+			if (context)
+				glXDestroyContext(display, context);
 		}
 		XSetErrorHandler(prevHandler);
 	}
