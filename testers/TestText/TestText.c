@@ -1082,12 +1082,28 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	dsEventResponder responder = {&processEvent, testText, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
+	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testText->window = dsWindow_create(application, allocator, "Test Text", NULL,
-		NULL, 800, 600, dsWindowFlags_Resizeable);
+		NULL, width, height, dsWindowFlags_Resizeable);
 	if (!testText->window)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	// Adjust the text size based on the DPI.
+	float dpiScale = application->displays[0].dpi/DS_DEFAULT_DPI;
+	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
+	{
+		TextInfo* text = textStrings + i;
+		if (text->maxWidth != DS_TEXT_NO_WRAP)
+			text->maxWidth *= dpiScale;
+		for (uint32_t j = 0; j < DS_ARRAY_SIZE(textStrings[i].styles); ++j)
+		{
+			text->styles[j].scale *= dpiScale;
+			text->styles[j].verticalOffset *= dpiScale;
+		}
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));

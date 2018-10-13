@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Math/Core.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -334,6 +335,21 @@ bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBounds, const dsApplicati
 
 	application->getDisplayBoundsfunc(outBounds, application, display);
 	return true;
+}
+
+uint32_t dsApplication_adjustWindowSize(const dsApplication* application, uint32_t display,
+	uint32_t size)
+{
+#if (DS_LINUX && !DS_ANDROID) || DS_WINDOWS
+	if (!application || display >= application->displayCount)
+		return size;
+
+	return (uint32_t)roundf((float)size*application->displays[display].dpi/DS_DEFAULT_DPI);
+#else
+	DS_UNUSED(application);
+	DS_UNUSED(display);
+	return size;
+#endif
 }
 
 dsCursor dsApplication_getCursor(const dsApplication* application)

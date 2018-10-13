@@ -479,8 +479,10 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 	DS_VERIFY(dsApplication_setUpdateFunction(application, &update, testRenderSubpass));
 
+	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
+	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, 800, 600, dsWindowFlags_Resizeable);
+		NULL, NULL, width, height, dsWindowFlags_Resizeable);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));

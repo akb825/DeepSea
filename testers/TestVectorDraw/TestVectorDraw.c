@@ -80,7 +80,7 @@ typedef struct TestVectorDraw
 	bool wireframe;
 } TestVectorDraw;
 
-#define TARGET_SIZE 800
+#define TARGET_SIZE 600
 
 static const char* assetsDir = "TestVectorDraw-assets";
 static char shaderDir[100];
@@ -347,8 +347,9 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	dsEventResponder responder = {&processEvent, testVectorDraw, 0, 0};
 	DS_VERIFY(dsApplication_addEventResponder(application, &responder));
 
+	uint32_t targetSize = dsApplication_adjustWindowSize(application, 0, TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
-		NULL, TARGET_SIZE, TARGET_SIZE, dsWindowFlags_Resizeable);
+		NULL, targetSize, targetSize, dsWindowFlags_Resizeable);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));
@@ -468,7 +469,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 	}
 
 	dsTimer timer = dsTimer_create();
-	dsVector2f targetSize = {{(float)TARGET_SIZE, (float)TARGET_SIZE}};
+	dsVector2f targetImageSize = {{(float)targetSize, (float)targetSize}};
 	dsVectorImageInitResources initResources = {resourceManager, setupCommands, scratchData, NULL,
 		testVectorDraw->shaderModule, NULL, &testVectorDraw->vectorResources, 1, srgb};
 	for (uint32_t i = 0; i < testVectorDraw->vectorImageCount; ++i)
@@ -484,7 +485,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		double start = dsTimer_time(timer);
 		DS_PROFILE_DYNAMIC_SCOPE_START(vectorImageFiles[i]);
 		testVectorDraw->vectorImages[i] = dsVectorImage_loadResource(allocator, NULL,
-			&initResources, dsFileResourceType_Embedded, path, 1.0f, &targetSize);
+			&initResources, dsFileResourceType_Embedded, path, 1.0f, &targetImageSize);
 		DS_PROFILE_SCOPE_END();
 		if (!testVectorDraw->vectorImages[i])
 		{

@@ -211,6 +211,21 @@ DS_APPLICATION_EXPORT bool dsApplication_getDisplayBounds(dsAlignedBox2i* outBou
 	const dsApplication* application, uint32_t display);
 
 /**
+ * @brief Adjusts the size of the window based on the DPI.
+ *
+ * On Linux and Windows this will multiply the size based on the DPI of the display compared to the
+ * reference DPI. Other platforms won't perform this step, since it's either already done by the OS
+ * (for macOS) or doesn't apply due to not having standard windows. (e.g. Android)
+ *
+ * @param application The application.
+ * @param display The index of the display.
+ * @param size The size to adjust.
+ * @return The adjusted size.
+ */
+DS_APPLICATION_EXPORT uint32_t dsApplication_adjustWindowSize(const dsApplication* application,
+	uint32_t display, uint32_t size);
+
+/**
  * @brief Gets the cursor used by the application.
  * @param application The application.
  * @return The cursor.
