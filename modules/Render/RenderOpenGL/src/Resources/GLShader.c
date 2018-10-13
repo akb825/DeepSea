@@ -803,8 +803,7 @@ static void resolveDefaultStates(mslRenderState* state)
 }
 
 dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -855,7 +854,6 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	baseShader->pipelineIndex = shaderIndex;
 	baseShader->pipeline = &shader->pipeline;
 	baseShader->materialDesc = materialDesc;
-	baseShader->primitiveType = primitiveType;
 
 	bool prevChecksEnabled = AnyGL_getErrorCheckingEnabled();
 	AnyGL_setErrorCheckingEnabled(false);

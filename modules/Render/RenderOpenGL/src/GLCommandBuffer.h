@@ -92,15 +92,16 @@ bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
 	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
 
 bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType);
 bool dsGLCommandBuffer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 bool dsGLCommandBuffer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	uint32_t x, uint32_t y, uint32_t z);
 bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

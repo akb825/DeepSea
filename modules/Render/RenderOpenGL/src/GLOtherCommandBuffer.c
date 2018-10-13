@@ -260,6 +260,7 @@ typedef struct DrawCommand
 	Command command;
 	const dsDrawGeometry* geometry;
 	dsDrawRange drawRange;
+	dsPrimitiveType primitiveType;
 } DrawCommand;
 
 typedef struct DrawIndexedCommand
@@ -267,6 +268,7 @@ typedef struct DrawIndexedCommand
 	Command command;
 	const dsDrawGeometry* geometry;
 	dsDrawIndexedRange drawRange;
+	dsPrimitiveType primitiveType;
 } DrawIndexedCommand;
 
 typedef struct DrawIndirectCommand
@@ -277,6 +279,7 @@ typedef struct DrawIndirectCommand
 	size_t offset;
 	uint32_t count;
 	uint32_t stride;
+	dsPrimitiveType primitiveType;
 } DrawIndirectCommand;
 
 typedef struct DispatchComputeCommand
@@ -795,7 +798,7 @@ bool dsGLOtherCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuf
 }
 
 bool dsGLOtherCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
-	const dsDrawRange* drawRange)
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	DrawCommand* command = (DrawCommand*)allocateCommand(commandBuffer, CommandType_Draw,
 		sizeof(DrawCommand));
@@ -805,11 +808,13 @@ bool dsGLOtherCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeo
 	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
 	command->geometry = geometry;
 	command->drawRange = *drawRange;
+	command->primitiveType = primitiveType;
 	return true;
 }
 
 bool dsGLOtherCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
 {
 	DrawIndexedCommand* command = (DrawIndexedCommand*)allocateCommand(commandBuffer,
 		CommandType_DrawIndexed, sizeof(DrawIndexedCommand));
@@ -819,12 +824,13 @@ bool dsGLOtherCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 	dsGLDrawGeometry_addInternalRef((dsDrawGeometry*)geometry);
 	command->geometry = geometry;
 	command->drawRange = *drawRange;
+	command->primitiveType = primitiveType;
 	return true;
 }
 
 bool dsGLOtherCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DrawIndirectCommand* command = (DrawIndirectCommand*)allocateCommand(commandBuffer,
 		CommandType_DrawIndirect, sizeof(DrawIndirectCommand));
@@ -838,12 +844,13 @@ bool dsGLOtherCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 	command->offset = offset;
 	command->count = count;
 	command->stride = stride;
+	command->primitiveType = primitiveType;
 	return true;
 }
 
 bool dsGLOtherCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DrawIndirectCommand* command = (DrawIndirectCommand*)allocateCommand(commandBuffer,
 		CommandType_DrawIndexedIndirect, sizeof(DrawIndirectCommand));
@@ -857,6 +864,7 @@ bool dsGLOtherCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 	command->offset = offset;
 	command->count = count;
 	command->stride = stride;
+	command->primitiveType = primitiveType;
 	return true;
 }
 
@@ -1128,14 +1136,14 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 			{
 				DrawCommand* thisCommand = (DrawCommand*)command;
 				dsGLCommandBuffer_draw(commandBuffer->renderer, commandBuffer,
-					thisCommand->geometry, &thisCommand->drawRange);
+					thisCommand->geometry, &thisCommand->drawRange, thisCommand->primitiveType);
 				break;
 			}
 			case CommandType_DrawIndexed:
 			{
 				DrawIndexedCommand* thisCommand = (DrawIndexedCommand*)command;
 				dsGLCommandBuffer_drawIndexed(commandBuffer->renderer, commandBuffer,
-					thisCommand->geometry, &thisCommand->drawRange);
+					thisCommand->geometry, &thisCommand->drawRange, thisCommand->primitiveType);
 				break;
 			}
 			case CommandType_DrawIndirect:
@@ -1143,7 +1151,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
 				dsGLCommandBuffer_drawIndirect(commandBuffer->renderer, commandBuffer,
 					thisCommand->geometry, thisCommand->indirectBuffer, thisCommand->offset,
-					thisCommand->count, thisCommand->stride);
+					thisCommand->count, thisCommand->stride, thisCommand->primitiveType);
 				break;
 			}
 			case CommandType_DrawIndexedIndirect:
@@ -1151,7 +1159,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				DrawIndirectCommand* thisCommand = (DrawIndirectCommand*)command;
 				dsGLCommandBuffer_drawIndexedIndirect(commandBuffer->renderer, commandBuffer,
 					thisCommand->geometry, thisCommand->indirectBuffer, thisCommand->offset,
-					thisCommand->count, thisCommand->stride);
+					thisCommand->count, thisCommand->stride, thisCommand->primitiveType);
 				break;
 			}
 			case CommandType_DispatchCompute:

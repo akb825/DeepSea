@@ -318,15 +318,16 @@ typedef bool (*GLClearDepthStencilSurfaceFunction)(dsCommandBuffer* commandBuffe
 	const dsDepthStencilValue* depthStencilValue);
 
 typedef bool (*GLDrawFunction)(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
-	const dsDrawRange* drawRange);
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 typedef bool (*GLDrawIndexedFunction)(dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType);
 typedef bool (*GLDrawIndirectFunction)(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 typedef bool (*GLDrawIndexedIndirectFunction)(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 typedef bool (*GLDispatchComputeFunction)(dsCommandBuffer* commandBuffer, uint32_t x, uint32_t y,
 	uint32_t z);
 typedef bool (*GLDispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer,

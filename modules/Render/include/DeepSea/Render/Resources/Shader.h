@@ -45,12 +45,11 @@ extern "C"
  * @param name The name of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
- * @param primitiveType The type of primitive the shader will be drawn with.
  * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, const char* name,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
+	const dsMaterialDesc* materialDesc);
 
 /**
  * @brief Creates a shader by index.
@@ -63,12 +62,11 @@ DS_RENDER_EXPORT dsShader* dsShader_createName(dsResourceManager* resourceManage
  * @param index The index of the shader within the shader module.
  * @param materialDesc The description of the material that will be used with the shader. It must
  *     remain alive for at least as long as the shader.
- * @param primitiveType The type of primitive the shader will be drawn with.
  * @return The created shader, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsShader* dsShader_createIndex(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* shaderModule, uint32_t index,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
+	const dsMaterialDesc* materialDesc);
 
 /**
  * @brief Checks whether or not a shader has a specific pipeline stage.

@@ -69,8 +69,7 @@ public:
 		shaderModule = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"), "test");
 		ASSERT_TRUE(shaderModule);
 
-		shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-			dsPrimitiveType_TriangleList);
+		shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc);
 		ASSERT_TRUE(shader);
 
 		transformGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL, transformDesc);
@@ -321,28 +320,37 @@ TEST_F(RendererTest, Draw)
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	dsDrawRange drawRange = {10, 1, 0, 0};
-	EXPECT_FALSE(dsRenderer_draw(NULL, commandBuffer, geometry, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(renderer, NULL, geometry, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, NULL, &drawRange));
-	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, NULL));
+	EXPECT_FALSE(dsRenderer_draw(NULL, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_draw(renderer, NULL, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, NULL, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, NULL,
+		dsPrimitiveType_TriangleList));
 
-	EXPECT_TRUE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange));
+	EXPECT_TRUE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	drawRange.firstVertex = 4;
-	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	drawRange.firstVertex = 0;
 	drawRange.instanceCount = 10;
-	EXPECT_TRUE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange));
+	EXPECT_TRUE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	renderer->supportsInstancedDrawing = false;
-	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	renderer->supportsInstancedDrawing = true;
-	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange));
+	EXPECT_FALSE(dsRenderer_draw(renderer, commandBuffer, geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
@@ -387,29 +395,39 @@ TEST_F(RendererTest, DrawIndexed)
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	dsDrawIndexedRange drawRange = {16, 1, 0, 0, 0};
-	EXPECT_FALSE(dsRenderer_drawIndexed(NULL, commandBuffer, geometry1, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, NULL, geometry1, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, NULL, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, NULL));
+	EXPECT_FALSE(dsRenderer_drawIndexed(NULL, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, NULL, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, NULL, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, NULL,
+		dsPrimitiveType_TriangleList));
 
-	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange));
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry2, &drawRange));
+	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry2, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	drawRange.firstIndex = 4;
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	drawRange.firstIndex = 0;
 	drawRange.instanceCount = 10;
-	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange));
+	EXPECT_TRUE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	renderer->supportsInstancedDrawing = false;
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	renderer->supportsInstancedDrawing = true;
-	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange));
+	EXPECT_FALSE(dsRenderer_drawIndexed(renderer, commandBuffer, geometry1, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry1));
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry2));
@@ -451,28 +469,28 @@ TEST_F(RendererTest, DrawIndirect)
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	EXPECT_FALSE(dsRenderer_drawIndirect(NULL, commandBuffer, geometry,
-		indirectBuffer, 0, 4, sizeof(dsDrawRange)));
+		indirectBuffer, 0, 4, sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, NULL, geometry, indirectBuffer, 0, 4,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, NULL, indirectBuffer, 0, 4,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, NULL, 0, 4,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, indirectBuffer, 1, 3,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, indirectBuffer, 0, 5,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, indirectBuffer, 0, 4,
-		1));
+		1, dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, indirectBuffer, 0, 4,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_FALSE(dsRenderer_drawIndirect(renderer, commandBuffer, geometry, indirectBuffer, 0, 4,
-		sizeof(dsDrawRange)));
+		sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(vertexGfxBuffer));
@@ -523,30 +541,30 @@ TEST_F(RendererTest, DrawIndexedIndirect)
 	EXPECT_TRUE(dsShader_bind(shader, commandBuffer, material, NULL, NULL));
 
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(NULL, commandBuffer, geometry1, indirectBuffer, 0,
-		4, sizeof(dsDrawRange)));
+		4, sizeof(dsDrawRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, NULL, geometry1, indirectBuffer, 0, 4,
-		sizeof(dsDrawIndexedRange)));
+		sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, NULL, indirectBuffer, 0, 4,
-		sizeof(dsDrawIndexedRange)));
+		sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, NULL, 0, 4,
-		sizeof(dsDrawIndexedRange)));
+		sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, indirectBuffer,
-		1, 3, sizeof(dsDrawIndexedRange)));
+		1, 3, sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, indirectBuffer,
-		0, 5, sizeof(dsDrawIndexedRange)));
+		0, 5, sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, indirectBuffer,
-		0, 4, 1));
+		0, 4, 1, dsPrimitiveType_TriangleList));
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry2, indirectBuffer,
-		0, 4, sizeof(dsDrawIndexedRange)));
+		0, 4, sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, indirectBuffer,
-		0, 4, sizeof(dsDrawIndexedRange)));
+		0, 4, sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsShader_unbind(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_FALSE(dsRenderer_drawIndexedIndirect(renderer, commandBuffer, geometry1, indirectBuffer,
-		0, 4, sizeof(dsDrawIndexedRange)));
+		0, 4, sizeof(dsDrawIndexedRange), dsPrimitiveType_TriangleList));
 
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry1));
 	EXPECT_TRUE(dsDrawGeometry_destroy(geometry2));

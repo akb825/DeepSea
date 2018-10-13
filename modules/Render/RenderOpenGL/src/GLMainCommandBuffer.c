@@ -1509,7 +1509,7 @@ bool dsGLMainCommandBuffer_clearDepthStencilSurface(dsCommandBuffer* commandBuff
 }
 
 bool dsGLMainCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
-	const dsDrawRange* drawRange)
+	const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (glCommandBuffer->curGeometry != geometry || glCommandBuffer->curBaseVertex != 0)
@@ -1519,7 +1519,6 @@ bool dsGLMainCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeom
 		glCommandBuffer->curBaseVertex = 0;
 	}
 
-	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
 	if (drawRange->instanceCount == 1)
 	{
@@ -1545,7 +1544,8 @@ bool dsGLMainCommandBuffer_draw(dsCommandBuffer* commandBuffer, const dsDrawGeom
 }
 
 bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	int32_t baseVertex = 0;
@@ -1558,7 +1558,6 @@ bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 		glCommandBuffer->curBaseVertex = baseVertex;
 	}
 
-	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
 	GLenum indexType = geometry->indexBuffer.indexSize == sizeof(uint32_t) ? GL_UNSIGNED_INT :
 		GL_UNSIGNED_SHORT;
@@ -1598,7 +1597,7 @@ bool dsGLMainCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 
 bool dsGLMainCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (glCommandBuffer->curGeometry != geometry || glCommandBuffer->curBaseVertex != 0)
@@ -1614,7 +1613,6 @@ bool dsGLMainCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 		glCommandBuffer->curDrawIndirectBuffer = indirectBuffer;
 	}
 
-	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
 	if (ANYGL_SUPPORTED(glMultiDrawArraysIndirect))
 	{
@@ -1635,7 +1633,7 @@ bool dsGLMainCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 
 bool dsGLMainCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	dsGLMainCommandBuffer* glCommandBuffer = (dsGLMainCommandBuffer*)commandBuffer;
 	if (glCommandBuffer->curGeometry != geometry || glCommandBuffer->curBaseVertex != 0)
@@ -1651,7 +1649,6 @@ bool dsGLMainCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
 		glCommandBuffer->curDrawIndirectBuffer = indirectBuffer;
 	}
 
-	dsPrimitiveType primitiveType = ((dsGLCommandBuffer*)commandBuffer)->boundShader->primitiveType;
 	DS_ASSERT(primitiveType < DS_ARRAY_SIZE(primitiveTypeMap));
 	GLenum indexType = geometry->indexBuffer.indexSize == sizeof(uint32_t) ? GL_UNSIGNED_INT :
 		GL_UNSIGNED_SHORT;

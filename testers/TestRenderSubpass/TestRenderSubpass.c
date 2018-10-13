@@ -394,7 +394,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->rMaterial, testRenderSubpass->volatileValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
-		&drawRange));
+		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
 	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
@@ -403,7 +403,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->gMaterial, testRenderSubpass->volatileValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
-		&drawRange));
+		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
 	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
@@ -412,7 +412,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
 		testRenderSubpass->bMaterial, testRenderSubpass->volatileValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
-		&drawRange));
+		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
 	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
@@ -423,7 +423,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_bind(testRenderSubpass->resolveShader, commandBuffer,
 		testRenderSubpass->resolveMaterial, NULL, NULL));
 	DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testRenderSubpass->resolveGeometry,
-		&resolveRange));
+		&resolveRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->resolveShader, commandBuffer));
 
 	DS_VERIFY(dsRenderPass_end(testRenderSubpass->renderPass, commandBuffer));
@@ -655,8 +655,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	}
 
 	testRenderSubpass->cubeShader = dsShader_createName(resourceManager, allocator,
-		testRenderSubpass->shaderModule, "Cube", testRenderSubpass->cubeMaterialDesc,
-		dsPrimitiveType_TriangleList);
+		testRenderSubpass->shaderModule, "Cube", testRenderSubpass->cubeMaterialDesc);
 	if (!testRenderSubpass->cubeShader)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shader: %s", dsErrorString(errno));
@@ -664,8 +663,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	}
 
 	testRenderSubpass->resolveShader = dsShader_createName(resourceManager, allocator,
-		testRenderSubpass->shaderModule, "Resolve", testRenderSubpass->resolveMaterialDesc,
-		dsPrimitiveType_TriangleList);
+		testRenderSubpass->shaderModule, "Resolve", testRenderSubpass->resolveMaterialDesc);
 	if (!testRenderSubpass->resolveShader)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shader: %s", dsErrorString(errno));

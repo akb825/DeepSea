@@ -259,7 +259,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	DS_VERIFY(dsShader_bind(testCube->shader, commandBuffer, testCube->material, NULL, NULL));
 
 	dsDrawIndexedRange drawRange = {testCube->geometry->indexBuffer.count, 1, 0, 0, 0};
-	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testCube->geometry, &drawRange));
+	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testCube->geometry, &drawRange,
+		dsPrimitiveType_TriangleList));
 
 	DS_VERIFY(dsShader_unbind(testCube->shader, commandBuffer));
 	DS_VERIFY(dsRenderPass_end(testCube->renderPass, commandBuffer));
@@ -349,7 +350,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 	}
 
 	testCube->shader = dsShader_createName(resourceManager, allocator, testCube->shaderModule,
-		"Default", testCube->materialDesc, dsPrimitiveType_TriangleList);
+		"Default", testCube->materialDesc);
 	if (!testCube->shader)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create shader: %s", dsErrorString(errno));

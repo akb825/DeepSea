@@ -558,8 +558,7 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 }
 
 dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsShaderModule* shaderModule, const char* name, const dsMaterialDesc* materialDesc)
 {
 	if (!resourceManager || !resourceManager->createShaderFunc ||
 		!resourceManager->destroyShaderFunc || !shaderModule || !name || !materialDesc)
@@ -582,13 +581,11 @@ dsShader* dsShader_createName(dsResourceManager* resourceManager, dsAllocator* a
 		return NULL;
 	}
 
-	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc,
-		primitiveType);
+	return dsShader_createIndex(resourceManager, allocator, shaderModule, index, materialDesc);
 }
 
 dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType)
+	dsShaderModule* shaderModule, uint32_t index, const dsMaterialDesc* materialDesc)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -652,7 +649,7 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 	}
 
 	dsShader* shader = resourceManager->createShaderFunc(resourceManager, allocator, shaderModule,
-		index, materialDesc, primitiveType);
+		index, materialDesc);
 	if (shader)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, 1);
 	DS_PROFILE_FUNC_RETURN(shader);

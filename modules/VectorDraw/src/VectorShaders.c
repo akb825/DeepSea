@@ -69,14 +69,6 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 		}
 	}
 
-	dsPrimitiveType textPrimitiveType = dsPrimitiveType_TriangleList;
-	if (dsShaderModule_shaderIndexHasStage(shaderModule->shaderModule,
-		shaderModule->shaderIndices[dsVectorShaderType_TextColor],
-		dsShaderStage_TessellationEvaluation))
-	{
-		textPrimitiveType = dsPrimitiveType_PatchList;
-	}
-
 	dsVectorShaders* shaders = DS_ALLOCATE_OBJECT(allocator, dsVectorShaders);
 	if (!shaders)
 		return NULL;
@@ -86,19 +78,8 @@ static dsVectorShaders* dsVectorShaders_createImpl(dsResourceManager* resourceMa
 
 	for (uint32_t i = 0; i < (uint32_t)dsVectorShaderType_Count; ++i)
 	{
-		dsVectorShaderType shaderType = (dsVectorShaderType)i;
-		dsPrimitiveType primitiveType = dsPrimitiveType_TriangleList;
-		if (shaderType == dsVectorShaderType_TextColor ||
-			shaderType == dsVectorShaderType_TextColorOutline ||
-			shaderType == dsVectorShaderType_TextGradient ||
-			shaderType == dsVectorShaderType_TextGradientOutline)
-		{
-			primitiveType = textPrimitiveType;
-		}
-
 		shaders->shaders[i] = dsShader_createIndex(resourceManager, allocator,
-			shaderModule->shaderModule, shaderIndices[i], shaderModule->materialDesc,
-			primitiveType);
+			shaderModule->shaderModule, shaderIndices[i], shaderModule->materialDesc);
 		if (!shaders->shaders[i])
 		{
 			for (uint32_t j = 0; j < i; ++j)

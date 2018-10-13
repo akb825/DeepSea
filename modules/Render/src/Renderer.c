@@ -719,7 +719,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 }
 
 bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -764,12 +764,13 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	if (dsCommandBuffer_isIndirect(commandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	bool success = renderer->drawFunc(renderer, commandBuffer, geometry, drawRange);
+	bool success = renderer->drawFunc(renderer, commandBuffer, geometry, drawRange, primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -821,13 +822,14 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	if (dsCommandBuffer_isIndirect(commandBuffer))
 		DS_PROFILE_FUNC_RETURN(false);
 
-	bool success = renderer->drawIndexedFunc(renderer, commandBuffer, geometry, drawRange);
+	bool success = renderer->drawIndexedFunc(renderer, commandBuffer, geometry, drawRange,
+		primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -877,13 +879,13 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawIndirectFunc(renderer, commandBuffer, geometry, indirectBuffer,
-		offset, count, stride);
+		offset, count, stride, primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
 bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -941,7 +943,7 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawIndexedIndirectFunc(renderer, commandBuffer, geometry,
-		indirectBuffer, offset, count, stride);
+		indirectBuffer, offset, count, stride, primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

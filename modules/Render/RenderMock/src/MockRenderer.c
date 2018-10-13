@@ -121,7 +121,7 @@ bool dsMockRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuff
 }
 
 bool dsMockRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -131,12 +131,14 @@ bool dsMockRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	DS_UNUSED(geometry);
 	DS_ASSERT(drawRange);
 	DS_UNUSED(drawRange);
+	DS_UNUSED(primitiveType);
 
 	return true;
 }
 
 bool dsMockRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -146,13 +148,14 @@ bool dsMockRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBu
 	DS_UNUSED(geometry);
 	DS_ASSERT(drawRange);
 	DS_UNUSED(drawRange);
+	DS_UNUSED(primitiveType);
 
 	return true;
 }
 
 bool dsMockRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -165,13 +168,14 @@ bool dsMockRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandB
 	DS_UNUSED(offset);
 	DS_UNUSED(count);
 	DS_UNUSED(stride);
+	DS_UNUSED(primitiveType);
 
 	return true;
 }
 
 bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -184,6 +188,7 @@ bool dsMockRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* c
 	DS_UNUSED(offset);
 	DS_UNUSED(count);
 	DS_UNUSED(stride);
+	DS_UNUSED(primitiveType);
 
 	return true;
 }

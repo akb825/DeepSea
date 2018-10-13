@@ -635,43 +635,44 @@ bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
 }
 
 bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->drawFunc(commandBuffer, geometry, drawRange);
+	return functions->drawFunc(commandBuffer, geometry, drawRange, primitiveType);
 }
 
 bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange)
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->drawIndexedFunc(commandBuffer, geometry, drawRange);
+	return functions->drawIndexedFunc(commandBuffer, geometry, drawRange, primitiveType);
 }
 
 bool dsGLCommandBuffer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
-		stride);
+		stride, primitiveType);
 }
 
 bool dsGLCommandBuffer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride)
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
-		stride);
+		stride, primitiveType);
 }
 
 bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

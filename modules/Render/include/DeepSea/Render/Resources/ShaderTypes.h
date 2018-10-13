@@ -256,11 +256,6 @@ typedef struct dsShader
 	 * @brief A description of the materials that can be used with this shader.
 	 */
 	const dsMaterialDesc* materialDesc;
-
-	/**
-	 * @brief The type of primitive the shader will be drawn with.
-	 */
-	dsPrimitiveType primitiveType;
 } dsShader;
 
 /**

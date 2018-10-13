@@ -262,10 +262,11 @@ DS_RENDER_EXPORT bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer,
  * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 DS_RENDER_EXPORT bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 
 /**
  * @brief Draws indexed geometry with the currently bound shader.
@@ -275,10 +276,12 @@ DS_RENDER_EXPORT bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* com
  * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType);
 
 /**
  * @brief Indirectly draws vertex geometry with the currently bound shader.
@@ -292,11 +295,12 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuff
  * @param offset The offset into the buffer.
  * @param count The number of draw calls.
  * @param stride The stride for each element in the indirect buffer.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 
 /**
  * @brief Indirectly draws indexed geometry with the currently bound shader.
@@ -310,11 +314,13 @@ DS_RENDER_EXPORT bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuf
  * @param offset The offset into the buffer.
  * @param count The number of draw calls.
  * @param stride The stride for each element in the indirect buffer.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 DS_RENDER_EXPORT bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
-	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride);
+	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride,
+	dsPrimitiveType primitiveType);
 
 /**
  * @brief Dispatches a compute job.

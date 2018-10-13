@@ -1234,10 +1234,11 @@ typedef bool (*dsRenderClearDepthStencilSurfaceFunction)(dsRenderer* renderer,
  * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 typedef bool (*dsRenderDrawFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for drawing indexed geometry with the currently bound shader.
@@ -1245,10 +1246,12 @@ typedef bool (*dsRenderDrawFunction)(dsRenderer* renderer, dsCommandBuffer* comm
  * @param commandBuffer The command buffer to place the draw command on.
  * @param geometry The geometry to draw.
  * @param drawRange The range of vertices to draw.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 typedef bool (*dsRenderDrawIndexedFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange);
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for indirectly drawing vertex geometry with the currently bound shader.
@@ -1260,11 +1263,12 @@ typedef bool (*dsRenderDrawIndexedFunction)(dsRenderer* renderer, dsCommandBuffe
  * @param offset The offset into the buffer.
  * @param count The number of draw calls.
  * @param stride The stride for each element in the indirect buffer.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 typedef bool (*dsRenderDrawIndirectFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
-	uint32_t count, uint32_t stride);
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for indirectly drawing indexed geometry with the currently bound shader.
@@ -1276,11 +1280,13 @@ typedef bool (*dsRenderDrawIndirectFunction)(dsRenderer* renderer, dsCommandBuff
  * @param offset The offset into the buffer.
  * @param count The number of draw calls.
  * @param stride The stride for each element in the indirect buffer.
+ * @param primitiveType The type of primitive to draw.
  * @return False if the geometry couldn't be drawn.
  */
 typedef bool (*dsRenderDrawIndexedIndirectFunction)(dsRenderer* renderer,
 	dsCommandBuffer* commandBuffer, const dsDrawGeometry* geometry,
-	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride);
+	const dsGfxBuffer* indirectBuffer, size_t offset, uint32_t count, uint32_t stride,
+	dsPrimitiveType primitiveType);
 
 /**
  * @brief Function for dispatching a compute job.

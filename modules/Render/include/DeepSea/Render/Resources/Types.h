@@ -1630,7 +1630,7 @@ typedef bool (*dsDestroyShaderVariableGroupDescFunction)(dsResourceManager* reso
  */
 typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsShaderModule* module, uint32_t shaderIndex,
-	const dsMaterialDesc* materialDesc, dsPrimitiveType primitiveType);
+	const dsMaterialDesc* materialDesc);
 
 /**
  * @brief Function for destroying a shader.

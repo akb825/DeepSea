@@ -72,18 +72,13 @@ TEST_F(ShaderTest, Create)
 		getPath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(NULL, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, NULL, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, NULL, materialDesc,
-		dsPrimitiveType_TriangleList));
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "asdf", materialDesc,
-		dsPrimitiveType_TriangleList));
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", NULL,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(NULL, NULL, shaderModule, "Test", materialDesc));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, NULL, "Test", materialDesc));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, NULL, materialDesc));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "asdf", materialDesc));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", NULL));
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	EXPECT_TRUE(dsShader_destroy(shader));
@@ -125,7 +120,7 @@ TEST_F(ShaderTest, CreateNoBuffers)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	EXPECT_TRUE(dsShader_destroy(shader));
@@ -167,8 +162,7 @@ TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 		getPath("test-nobuffers.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -203,8 +197,7 @@ TEST_F(ShaderTest, CreateTypeMismatch)
 		getPath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -238,8 +231,7 @@ TEST_F(ShaderTest, CreateMissingVariable)
 		getPath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -274,8 +266,7 @@ TEST_F(ShaderTest, CreateVariableGroupTypeMismatch)
 		getPath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -311,8 +302,7 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 		getPath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
-	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc,
-		dsPrimitiveType_TriangleList));
+	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
 
 	EXPECT_TRUE(dsShaderModule_destroy(shaderModule));
 	EXPECT_TRUE(dsMaterialDesc_destroy(materialDesc));
@@ -359,7 +349,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -485,7 +475,7 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -586,7 +576,7 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
@@ -712,7 +702,7 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
-		materialDesc, dsPrimitiveType_TriangleList);
+		materialDesc);
 	ASSERT_TRUE(shader);
 
 	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);

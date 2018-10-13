@@ -19,8 +19,7 @@
 #include <DeepSea/Render/Resources/Types.h>
 
 dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc,
-	dsPrimitiveType primitiveType);
+	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc);
 bool dsMockShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
 	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);

@@ -1301,7 +1301,8 @@ bool dsVectorImage_draw(const dsVectorImage* vectorImage, dsCommandBuffer* comma
 		else
 		{
 			success = dsRenderer_drawIndexed(commandBuffer->renderer, commandBuffer,
-					vectorImage->drawGeometries[getBaseType(piece->type)], &piece->range);
+				vectorImage->drawGeometries[getBaseType(piece->type)], &piece->range,
+				dsPrimitiveType_TriangleList);
 		}
 		// Make sure we unbind the shader even if the above draw failed.
 		if (!dsShader_unbind(shader, commandBuffer) || !success)

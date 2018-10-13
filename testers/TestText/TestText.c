@@ -760,7 +760,8 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		DS_VERIFY(dsShader_bind(testText->limitShader, commandBuffer, testText->material, NULL,
 			NULL));
 		dsDrawRange drawRange = {6, 1, 0, 0};
-		DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testText->limitGeometry, &drawRange));
+		DS_VERIFY(dsRenderer_draw(renderer, commandBuffer, testText->limitGeometry, &drawRange,
+			dsPrimitiveType_TriangleList));
 		DS_VERIFY(dsShader_unbind(testText->limitShader, commandBuffer));
 	}
 
@@ -850,7 +851,7 @@ static bool setupShaders(TestText* testText)
 		testText->sharedInfoGroup));
 
 	testText->shader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
-		"Font", testText->materialDesc, dsPrimitiveType_TriangleList);
+		"Font", testText->materialDesc);
 	if (!testText->shader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
@@ -869,7 +870,7 @@ static bool setupShaders(TestText* testText)
 			testText->sharedInfoGroup));
 
 		testText->tessShader = dsShader_createName(resourceManager, allocator,
-			testText->shaderModule, "FontTess", testText->materialDesc, dsPrimitiveType_PatchList);
+			testText->shaderModule, "FontTess", testText->materialDesc);
 		if (!testText->tessShader)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
@@ -878,7 +879,7 @@ static bool setupShaders(TestText* testText)
 	}
 
 	testText->limitShader = dsShader_createName(resourceManager, allocator,
-		testText->shaderModule, "Box", testText->materialDesc, dsPrimitiveType_TriangleList);
+		testText->shaderModule, "Box", testText->materialDesc);
 	if (!testText->limitShader)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create shader: %s", dsErrorString(errno));
