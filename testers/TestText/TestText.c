@@ -90,6 +90,8 @@ typedef struct TestText
 	uint32_t positionElement;
 	uint32_t limitBoundsElement;
 	uint32_t curString;
+	uint32_t fingerCount;
+	uint32_t maxFingers;
 } TestText;
 
 static const char* assetsDir = "TestText-assets";
@@ -684,7 +686,29 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 					return true;
 			}
 		case dsEventType_TouchFingerDown:
-			nextText(testText);
+			++testText->fingerCount;
+			testText->maxFingers = dsMax(testText->fingerCount, testText->maxFingers);
+			return true;
+		case dsEventType_TouchFingerUp:
+			if (testText->fingerCount == 0)
+				return true;
+
+			--testText->fingerCount;
+			if (testText->fingerCount == 0)
+			{
+				switch (testText->maxFingers)
+				{
+					case 1:
+						nextText(testText);
+						break;
+					case 2:
+						prevText(testText);
+						break;
+					default:
+						break;
+				}
+				testText->maxFingers = 0;
+			}
 			return true;
 		default:
 			return true;
@@ -1094,6 +1118,10 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	// Adjust the text size based on the DPI.
 	float dpiScale = application->displays[0].dpi/DS_DEFAULT_DPI;
+#if DS_ANDROID || DS_IOS
+	// This is too large for smaller screens.
+	dpiScale *= 0.5f;
+#endif
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
 	{
 		TextInfo* text = textStrings + i;
