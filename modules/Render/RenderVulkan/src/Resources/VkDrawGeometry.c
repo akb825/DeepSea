@@ -15,6 +15,8 @@
  */
 
 #include "Resources/VkDrawGeometry.h"
+#include "VkTypes.h"
+#include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
@@ -25,27 +27,33 @@ dsDrawGeometry* dsVkDrawGeometry_create(dsResourceManager* resourceManager,
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
-	dsDrawGeometry* geometry = DS_ALLOCATE_OBJECT(allocator, dsDrawGeometry);
+	dsVkDrawGeometry* geometry = DS_ALLOCATE_OBJECT(allocator, dsVkDrawGeometry);
 	if (!geometry)
 		return NULL;
 
-	geometry->resourceManager = resourceManager;
-	geometry->allocator = dsAllocator_keepPointer(allocator);
+	dsDrawGeometry* baseGeometry = (dsDrawGeometry*)geometry;
+	baseGeometry->resourceManager = resourceManager;
+	baseGeometry->allocator = dsAllocator_keepPointer(allocator);
 
+	geometry->vertexHash = 0;
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (vertexBuffers[i])
-			geometry->vertexBuffers[i] = *vertexBuffers[i];
+			baseGeometry->vertexBuffers[i] = *vertexBuffers[i];
 		else
-			memset(geometry->vertexBuffers + i, 0, sizeof(*geometry->vertexBuffers));
+			memset(baseGeometry->vertexBuffers + i, 0, sizeof(*baseGeometry->vertexBuffers));
+
+		dsVertexFormat* format = &baseGeometry->vertexBuffers[i].format;
+		uint32_t formatHash = dsHashBytes(format, sizeof(*format));
+		geometry->vertexHash = dsHashCombine(geometry->vertexHash, formatHash);
 	}
 
 	if (indexBuffer)
-		geometry->indexBuffer = *indexBuffer;
+		baseGeometry->indexBuffer = *indexBuffer;
 	else
-		memset(&geometry->indexBuffer, 0, sizeof(geometry->indexBuffer));
+		memset(&baseGeometry->indexBuffer, 0, sizeof(baseGeometry->indexBuffer));
 
-	return geometry;
+	return baseGeometry;
 }
 
 bool dsVkDrawGeometry_destroy(dsResourceManager* resourceManager, dsDrawGeometry* geometry)

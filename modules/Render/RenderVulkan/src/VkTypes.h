@@ -159,6 +159,12 @@ typedef struct dsVkGfxBuffer
 	dsVkGfxBufferData* bufferData;
 } dsVkGfxBuffer;
 
+typedef struct dsVkDrawGeometry
+{
+	dsDrawGeometry drawGeometry;
+	uint32_t vertexHash;
+} dsVkDrawGeometry;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
