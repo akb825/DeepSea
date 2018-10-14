@@ -335,6 +335,8 @@ static TextInfo textStrings[] =
 #endif
 };
 
+static bool textInitialized;
+
 static void glyphPosition(dsVector2f* outPos, const dsVector2f* basePos,
 	const dsVector2f* geometryPos, float slant)
 {
@@ -1118,21 +1120,28 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	}
 
 	// Adjust the text size based on the DPI.
-	float dpiScale = application->displays[0].dpi/DS_DEFAULT_DPI;
-#if DS_ANDROID || DS_IOS
-	// This is too large for smaller screens.
-	dpiScale *= 0.5f;
-#endif
-	for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
+	// NOTE: On Android starting a new activity will use the same address space, so avoid applying
+	// multiple times.
+	if (!textInitialized)
 	{
-		TextInfo* text = textStrings + i;
-		if (text->maxWidth != DS_TEXT_NO_WRAP)
-			text->maxWidth *= dpiScale;
-		for (uint32_t j = 0; j < DS_ARRAY_SIZE(textStrings[i].styles); ++j)
+		float dpiScale = application->displays[0].dpi/DS_DEFAULT_DPI;
+#if DS_ANDROID || DS_IOS
+		// This is too large for smaller screens.
+		dpiScale *= 0.5f;
+#endif
+		for (uint32_t i = 0; i < DS_ARRAY_SIZE(textStrings); ++i)
 		{
-			text->styles[j].scale *= dpiScale;
-			text->styles[j].verticalOffset *= dpiScale;
+			TextInfo* text = textStrings + i;
+			if (text->maxWidth != DS_TEXT_NO_WRAP)
+				text->maxWidth *= dpiScale;
+			for (uint32_t j = 0; j < DS_ARRAY_SIZE(textStrings[i].styles); ++j)
+			{
+				text->styles[j].scale *= dpiScale;
+				text->styles[j].verticalOffset *= dpiScale;
+			}
 		}
+
+		textInitialized = true;
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
