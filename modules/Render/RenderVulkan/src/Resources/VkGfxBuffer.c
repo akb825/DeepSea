@@ -15,6 +15,7 @@
  */
 
 #include "Resources/VkGfxBuffer.h"
+#include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -255,6 +256,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		buffer->needsInitialCopy = true;
 	}
 
+	buffer->usage = usage;
 	buffer->size = size;
 	buffer->lastUsedSubmit = DS_NOT_SUBMITTED;
 	buffer->uploadedSubmit = DS_NOT_SUBMITTED;
@@ -509,12 +511,16 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsVkGfxBufferData* bufferData;
 	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
 
-	dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, bufferData))
-		return false;
-
 	VkBuffer dstBuffer = bufferData->deviceBuffer ? bufferData->deviceBuffer :
 		bufferData->hostBuffer;
+	dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, bufferData) ||
+		!dsVkBarrierList_addBufferBarrier(&vkCommandBuffer->barriers, dstBuffer, offset, size,
+			buffer->usage))
+	{
+		return false;
+	}
+
 	const size_t maxSize = 65536;
 	for (size_t block = 0; block < size; block += maxSize)
 	{
@@ -547,14 +553,19 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	dsVkGfxBufferData* dstBufferData;
 	DS_ATOMIC_LOAD_PTR(&dstVkBuffer->bufferData, &dstBufferData);
 
-	dsVkRenderer_deleteGfxBuffer(renderer, dstBufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData))
-		return false;
-
 	VkBuffer srcCopyBuffer = srcBufferData->deviceBuffer ? srcBufferData->deviceBuffer :
 		srcBufferData->hostBuffer;
 	VkBuffer dstCopyBuffer = dstBufferData->deviceBuffer ? dstBufferData->deviceBuffer :
 		dstBufferData->hostBuffer;
+
+	dsVkRenderer_deleteGfxBuffer(renderer, dstBufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData) ||
+		!dsVkBarrierList_addBufferBarrier(&vkCommandBuffer->barriers, dstCopyBuffer, dstOffset,
+			size, dstBuffer->usage))
+	{
+		return false;
+	}
+
 	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
 	device->vkCmdCopyBuffer(vkCommandBuffer->vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
 		&bufferCopy);

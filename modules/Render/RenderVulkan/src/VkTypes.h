@@ -136,6 +136,7 @@ typedef struct dsVkGfxBufferData
 	uint64_t uploadedSubmit;
 	void* submitQueue;
 
+	dsGfxBufferUsage usage;
 	size_t size;
 
 	dsVkDirtyRange* dirtyRanges;
@@ -165,6 +166,37 @@ typedef struct dsVkDrawGeometry
 	uint32_t vertexHash;
 } dsVkDrawGeometry;
 
+typedef struct dsVkTextureData
+{
+	dsAllocator* allocator;
+	dsAllocator* scratchAllocator;
+	dsSpinlock lock;
+
+	dsTextureInfo info;
+
+	VkDeviceMemory deviceMemory;
+	VkImage deviceImage;
+	uint64_t lastUsedSubmit;
+
+	VkDeviceMemory hostMemory;
+	VkImage hostImage;
+	uint64_t uploadedSubmit;
+	void* submitQueue;
+
+	VkImageView imageView;
+
+	bool used;
+	bool needsInitialCopy;
+
+	uint32_t commandBufferCount;
+} dsVkTextureData;
+
+typedef struct dsVkTexture
+{
+	dsTexture texture;
+	dsVkTextureData* textureData;
+} dsVkTexture;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -175,16 +207,29 @@ typedef struct dsVkSubmitInfo
 
 typedef struct dsVkResourceList
 {
+	dsAllocator* allocator;
+
 	dsVkGfxBufferData** buffers;
 	uint32_t bufferCount;
 	uint32_t maxBuffers;
 } dsVkResourceList;
+
+typedef struct dsVkBarrierList
+{
+	dsAllocator* allocator;
+	dsVkDevice* device;
+
+	VkBufferMemoryBarrier* bufferBarriers;
+	uint32_t bufferBarrierCount;
+	uint32_t maxBufferBarriers;
+} dsVkBarrierList;
 
 typedef struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
 	VkCommandBuffer vkCommandBuffer;
 	dsVkResourceList usedResources;
+	dsVkBarrierList barriers;
 } dsVkCommandBuffer;
 
 typedef struct dsVkRenderer
@@ -206,6 +251,7 @@ typedef struct dsVkRenderer
 
 	dsVkCommandBuffer mainCommandBuffer;
 
+	dsVkBarrierList resourceBarriers;
 	dsVkResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
 	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];
 	uint32_t curPendingResources;

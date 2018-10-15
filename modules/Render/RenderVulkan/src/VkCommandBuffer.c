@@ -15,6 +15,7 @@
  */
 
 #include "VkCommandBuffer.h"
+#include "VkResourceList.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -66,16 +67,10 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 bool dsVkCommandBuffer_addBuffer(dsCommandBuffer* commandBuffer, dsVkGfxBufferData* buffer)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	dsVkResourceList* usedResources = &vkCommandBuffer->usedResources;
-	uint32_t index = usedResources->bufferCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, usedResources->buffers,
-		usedResources->bufferCount, usedResources->maxBuffers, 1))
-	{
+	if (!dsVkResourceList_addBuffer(&vkCommandBuffer->usedResources, buffer))
 		return false;
-	}
 
 	DS_ATOMIC_FETCH_ADD32(&buffer->commandBufferCount, 1);
-	usedResources->buffers[index] = buffer;
 	return true;
 }
 
@@ -86,7 +81,8 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 
 	for (uint32_t i = 0; i < usedResources->bufferCount; ++i)
 		DS_ATOMIC_FETCH_ADD32(&usedResources->buffers[i]->commandBufferCount, -1);
-	usedResources->bufferCount = 0;
+
+	dsVkResourceList_clear(usedResources);
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
@@ -102,5 +98,6 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 		buffer->lastUsedSubmit = submitCount;
 		DS_VERIFY(dsSpinlock_lock(&buffer->lock));
 	}
-	usedResources->bufferCount = 0;
+
+	dsVkResourceList_clear(usedResources);
 }
