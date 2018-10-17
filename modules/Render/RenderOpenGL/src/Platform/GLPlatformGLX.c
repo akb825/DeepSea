@@ -188,7 +188,8 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 		};
 
 		// Set an empty error handler since the implementation may throw an error for unsupported
-		// GL versions.
+		// GL versions. Sync first to ensure any existing X11 calls have gone through.
+		XSync(display, false);
 		X11ErrorHandler prevHandler = XSetErrorHandler(&emptyErrorHandler);
 		unsigned int versionCount = DS_ARRAY_SIZE(versions);
 		for (unsigned int i = 0; i < versionCount; ++i)
@@ -210,6 +211,8 @@ void* dsCreateGLConfig(dsAllocator* allocator, void* display, const dsRendererOp
 			if (context)
 				glXDestroyContext(display, context);
 		}
+		// One more sync to make sure the destroy is processed before clearing out the handler.
+		XSync(display, false);
 		XSetErrorHandler(prevHandler);
 	}
 
