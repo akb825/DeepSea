@@ -739,11 +739,11 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((texture->memoryHints & dsGfxMemory_GPUOnly))
+	if (!(texture->memoryHints & dsGfxMemory_Read))
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Attempting read from a texture with GPU only memory flag set.");
+			"Attempting read from a texture without the read memory flag set.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

@@ -32,39 +32,13 @@ struct dsResourceContext
 
 static dsResourceContext dummyContext;
 
-static dsVkFormatInfo* getFormat(dsVkResourceManager* resourceManager, dsGfxFormat format)
-{
-	uint32_t index = dsGfxFormat_standardIndex(format);
-	if (index > 0)
-	{
-		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
-		if (decoratorIndex == 0)
-			return NULL;
-		return &resourceManager->standardFormats[index][decoratorIndex];
-	}
-
-	index = dsGfxFormat_specialIndex(format);
-	if (index > 0)
-		return &resourceManager->specialFormats[index];
-
-	index = dsGfxFormat_compressedIndex(format);
-	if (index > 0)
-	{
-		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
-		if (decoratorIndex == 0)
-			return NULL;
-		return &resourceManager->compressedFormats[index][decoratorIndex];
-	}
-
-	return NULL;
-}
-
 static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat format,
 	VkFormat vkFormat)
 {
 	dsVkDevice* device = resourceManager->device;
 	dsVkInstance* instance = &device->instance;
-	dsVkFormatInfo* formatInfo = getFormat(resourceManager, format);
+	dsVkFormatInfo* formatInfo = (dsVkFormatInfo*)dsVkResourceManager_getFormat(
+		(dsResourceManager*)resourceManager, format);
 	DS_ASSERT(formatInfo);
 	formatInfo->vkFormat = vkFormat;
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFormatProperties)(device->physicalDevice,
@@ -503,8 +477,7 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 bool dsVkResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkFormatInfo* formatInfo = getFormat(vkResourceManager, format);
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
 		return false;
 
@@ -514,8 +487,7 @@ bool dsVkResourceManager_vertexFormatSupported(const dsResourceManager* resource
 bool dsVkResourceManager_textureFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkFormatInfo* formatInfo = getFormat(vkResourceManager, format);
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
 		return false;
 
@@ -526,8 +498,7 @@ bool dsVkResourceManager_textureFormatSupported(const dsResourceManager* resourc
 bool dsVkResourceManager_offscreenFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkFormatInfo* formatInfo = getFormat(vkResourceManager, format);
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
 		return false;
 
@@ -539,8 +510,7 @@ bool dsVkResourceManager_offscreenFormatSupported(const dsResourceManager* resou
 bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkFormatInfo* formatInfo = getFormat(vkResourceManager, format);
+	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
 	if (!formatInfo)
 		return false;
 
@@ -551,12 +521,11 @@ bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* r
 bool dsVkResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat srcFormat, dsGfxFormat dstFormat, dsBlitFilter filter)
 {
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkFormatInfo* srcFormatInfo = getFormat(vkResourceManager, srcFormat);
+	const dsVkFormatInfo* srcFormatInfo = dsVkResourceManager_getFormat(resourceManager, srcFormat);
 	if (!srcFormatInfo)
 		return false;
 
-	dsVkFormatInfo* dstFormatInfo = getFormat(vkResourceManager, dstFormat);
+	const dsVkFormatInfo* dstFormatInfo = dsVkResourceManager_getFormat(resourceManager, dstFormat);
 	if (!dstFormatInfo)
 		return false;
 
@@ -651,7 +620,7 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->maxTextureSamples = limits->sampledImageColorSampleCounts;
 	baseResourceManager->hasArbitraryMipmapping = true;
 	baseResourceManager->hasCubeArrays = features->imageCubeArray != 0;
-	baseResourceManager->texturesReadable = true;
+	baseResourceManager->texturesReadable = false;
 	baseResourceManager->requiresColorBuffer = false;
 	baseResourceManager->canMixWithRenderSurface = true;
 	baseResourceManager->hasVertexPipelineWrites = features->vertexPipelineStoresAndAtomics != 0;
@@ -693,6 +662,35 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->destroyGeometryFunc = &dsVkDrawGeometry_destroy;
 
 	return resourceManager;
+}
+
+const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format)
+{
+	const dsVkResourceManager* vkResourceManager = (const dsVkResourceManager*)resourceManager;
+	uint32_t index = dsGfxFormat_standardIndex(format);
+	if (index > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		if (decoratorIndex == 0)
+			return NULL;
+		return &vkResourceManager->standardFormats[index][decoratorIndex];
+	}
+
+	index = dsGfxFormat_specialIndex(format);
+	if (index > 0)
+		return &vkResourceManager->specialFormats[index];
+
+	index = dsGfxFormat_compressedIndex(format);
+	if (index > 0)
+	{
+		uint32_t decoratorIndex = dsGfxFormat_decoratorIndex(format);
+		if (decoratorIndex == 0)
+			return NULL;
+		return &vkResourceManager->compressedFormats[index][decoratorIndex];
+	}
+
+	return NULL;
 }
 
 void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager)

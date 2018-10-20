@@ -463,16 +463,6 @@ bool dsGfxFormat_surfaceBlitSupported(const dsResourceManager* resourceManager,
 		filter);
 }
 
-unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
-dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
-unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
-dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
-unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
-dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
-unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
-dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
-dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
-
 bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat dstFormat,
 	dsBlitFilter filter)
 {
@@ -496,3 +486,14 @@ bool dsGfxFormat_standardSurfaceBlitSupported(dsGfxFormat srcFormat, dsGfxFormat
 
 	return true;
 }
+
+unsigned int dsGfxFormat_standardIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_standardEnum(unsigned int index);
+unsigned int dsGfxFormat_specialIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_specialEnum(unsigned int index);
+unsigned int dsGfxFormat_compressedIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_compressedEnum(unsigned int index);
+unsigned int dsGfxFormat_decoratorIndex(dsGfxFormat format);
+dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index);
+dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
+bool dsGfxFormat_isDepthStencil(dsGfxFormat format);

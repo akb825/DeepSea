@@ -96,6 +96,11 @@ typedef struct dsVkDevice
 	PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
 	PFN_vkCreateBufferView vkCreateBufferView;
 	PFN_vkDestroyBufferView vkDestroyBufferView;
+	PFN_vkCreateImage vkCreateImage;
+	PFN_vkGetImageSubresourceLayout vkGetImageSubresourceLayout;
+	PFN_vkDestroyImage vkDestroyImage;
+	PFN_vkCreateImageView vkCreateImageView;
+	PFN_vkDestroyImageView vkDestroyImageView;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
@@ -169,7 +174,6 @@ typedef struct dsVkDrawGeometry
 typedef struct dsVkTextureData
 {
 	dsAllocator* allocator;
-	dsAllocator* scratchAllocator;
 	dsSpinlock lock;
 
 	dsTextureInfo info;
@@ -183,10 +187,16 @@ typedef struct dsVkTextureData
 	uint64_t uploadedSubmit;
 	void* submitQueue;
 
+	VkDeviceMemory surfaceMemory;
+	VkImage surfaceImage;
+	uint64_t lastDrawSubmit;
+
 	VkImageView imageView;
 
 	bool used;
 	bool needsInitialCopy;
+	bool offscreen;
+	bool resolve;
 
 	uint32_t commandBufferCount;
 } dsVkTextureData;

@@ -760,6 +760,11 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdUpdateBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageSubresourceLayout);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImageView);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImageView);
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);

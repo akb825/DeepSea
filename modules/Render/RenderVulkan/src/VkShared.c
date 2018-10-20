@@ -130,3 +130,20 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 
 	return memory;
 }
+
+VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
+{
+	if (sampleCount <= 1)
+		return VK_SAMPLE_COUNT_1_BIT;
+	else if (sampleCount <= 2)
+		return VK_SAMPLE_COUNT_2_BIT;
+	else if (sampleCount <= 4)
+		return VK_SAMPLE_COUNT_4_BIT;
+	else if (sampleCount <= 8)
+		return VK_SAMPLE_COUNT_8_BIT;
+	else if (sampleCount <= 16)
+		return VK_SAMPLE_COUNT_16_BIT;
+	else if (sampleCount <= 32)
+		return VK_SAMPLE_COUNT_32_BIT;
+	return VK_SAMPLE_COUNT_64_BIT;
+}

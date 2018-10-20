@@ -177,11 +177,6 @@ static void endRenderPassScope(dsCommandBuffer* commandBuffer)
 	commandBuffer->indirectCommands = false;
 }
 
-static bool isDepthStencil(dsGfxFormat format)
-{
-	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
-}
-
 static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)
 {
 	switch (surfaceType)
@@ -342,7 +337,7 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (isDepthStencil(attachments[attachment].format))
+			if (dsGfxFormat_isDepthStencil(attachments[attachment].format))
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
@@ -378,7 +373,8 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 				DS_PROFILE_FUNC_RETURN(NULL);
 			}
 
-			if (!isDepthStencil(attachments[subpasses[i].depthStencilAttachment].format))
+			if (!dsGfxFormat_isDepthStencil(
+				attachments[subpasses[i].depthStencilAttachment].format))
 			{
 				errno = EINVAL;
 				DS_LOG_ERROR(DS_RENDER_LOG_TAG,

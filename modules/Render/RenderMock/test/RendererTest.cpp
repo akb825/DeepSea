@@ -704,7 +704,7 @@ TEST_F(RendererTest, Blit)
 
 	toTexture = dsTexture_create(resourceManager, NULL,
 		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom),
-		dsGfxMemory_Static, &toInfo, NULL, 0);
+		dsGfxMemory_Read, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
 	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));

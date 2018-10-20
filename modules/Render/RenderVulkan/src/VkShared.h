@@ -36,3 +36,5 @@ uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* r
 	dsGfxMemory memoryFlags);
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	const VkMemoryRequirements* requirements, uint32_t memoryIndex);
+
+VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);

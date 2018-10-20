@@ -165,6 +165,13 @@ DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index
 DS_RENDER_EXPORT inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator);
 
 /**
+ * @brief Returns whether or not the format is depth-stencil.
+ * @param format The format to check.
+ * @return True if the format contains depth or stencil.
+ */
+DS_RENDER_EXPORT inline bool dsGfxFormat_isDepthStencil(dsGfxFormat format);
+
+/**
  * @brief Checks whether or not a graphics format is supported for vertices.
  * @param resourceManager The resource manager.
  * @param format The graphics format to check.
@@ -301,6 +308,11 @@ inline dsGfxFormat dsGfxFormat_decoratorEnum(unsigned int index)
 inline dsGfxFormat dsGfxFormat_decorate(dsGfxFormat format, dsGfxFormat decorator)
 {
 	return (dsGfxFormat)(format | decorator);
+}
+
+inline bool dsGfxFormat_isDepthStencil(dsGfxFormat format)
+{
+	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
 }
 
 #ifdef __cplusplus

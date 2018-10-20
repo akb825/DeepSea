@@ -20,4 +20,6 @@
 #include "VkTypes.h"
 
 dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer);
+const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
+	dsGfxFormat format);
 void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager);

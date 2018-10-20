@@ -38,7 +38,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 	if (!buffer)
 		return NULL;
 
-	memset(buffer, 0, sizeof(dsVkGfxBuffer));
+	memset(buffer, 0, sizeof(*buffer));
 	buffer->allocator = dsAllocator_keepPointer(allocator);
 	buffer->scratchAllocator = scratchAllocator;
 	DS_VERIFY(dsSpinlock_initialize(&buffer->lock));

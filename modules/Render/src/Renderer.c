@@ -32,11 +32,6 @@
 
 bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 
-static bool isDepthStencil(dsGfxFormat format)
-{
-	return format >= dsGfxFormat_D16 && format <= dsGfxFormat_D32S8_Float;
-}
-
 static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
 	uint32_t* outHeight, uint32_t* outLayers, uint32_t* outMipLevels, const dsRenderer* renderer,
 	dsGfxSurfaceType surfaceType, void* surface, bool read)
@@ -593,11 +588,11 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 					"Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-			valid = !isDepthStencil(offscreen->info.format);
+			valid = !dsGfxFormat_isDepthStencil(offscreen->info.format);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
-			valid = !isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
+			valid = !dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
 		default:
 			DS_ASSERT(false);
@@ -680,11 +675,11 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 					"Texture layer out of range for offscreen.");
 				DS_PROFILE_FUNC_RETURN(false);
 			}
-			valid = isDepthStencil(offscreen->info.format);
+			valid = dsGfxFormat_isDepthStencil(offscreen->info.format);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
-			valid = isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
+			valid = dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
 		default:
 			DS_ASSERT(false);
