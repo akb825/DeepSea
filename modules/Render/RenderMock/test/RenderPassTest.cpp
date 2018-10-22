@@ -183,17 +183,20 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,
 		renderSurface->height, 0, 0, renderer->surfaceSamples};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &colorInfo, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &colorInfo,
+		dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(offscreen1);
 
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &colorInfo, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &colorInfo,
+		dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(offscreen2);
 
 	dsTextureInfo depthInfo = {renderer->surfaceDepthStencilFormat, dsTextureDim_2D,
 		renderSurface->width, renderSurface->height, 0, 0, renderer->surfaceSamples};
 	dsOffscreen* offscreen3 = dsTexture_createOffscreen(resourceManager, 0,
-		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &depthInfo, true);
+		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &depthInfo,
+		dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(offscreen3);
 
 	dsFramebufferSurface surfaces1[] =

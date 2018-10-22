@@ -74,11 +74,74 @@ size_t dsTexture_size(const dsTextureInfo* info)
 	return size;
 }
 
+uint32_t dsTexture_surfaceCount(const dsTextureInfo* info)
+{
+	if (!info)
+		return 0;
+
+	uint32_t depth = dsMax(1U, info->depth);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
+		DS_MIP_DEPTH(info->dimension, depth));
+	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, mipLevels);
+
+	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	if (info->dimension == dsTextureDim_3D)
+	{
+		uint32_t count = 0;
+		for (uint32_t i = 0, curDepth = depth; i < mipLevels; ++i, curDepth = dsMax(1U, curDepth/2))
+			count += curDepth*faces;
+		return count;
+	}
+
+	return mipLevels*depth*faces;
+}
+
+uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex,
+	uint32_t mipIndex)
+{
+	if (!info)
+		return DS_INVALID_TEXTURE_SURFACE;
+
+	uint32_t depth = dsMax(1U, info->depth);
+	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
+		DS_MIP_DEPTH(info->dimension, depth));
+	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
+	mipLevels = dsMax(1U, mipLevels);
+
+	if (depthIndex >= depth || mipIndex >= mipLevels)
+		return DS_INVALID_TEXTURE_SURFACE;
+
+	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	if (info->dimension == dsTextureDim_3D)
+	{
+		for (uint32_t i = 0, curDepth = depth, index = 0; i < mipLevels;
+			++i, curDepth = info->dimension == dsTextureDim_3D ? dsMax(1U, curDepth/2) : depth)
+		{
+			if (i < mipIndex)
+			{
+				index += curDepth*faces;
+				continue;
+			}
+
+			if (depthIndex >= curDepth)
+				return DS_INVALID_TEXTURE_SURFACE;
+
+			return index + depthIndex;
+		}
+
+		DS_ASSERT(false);
+		return DS_INVALID_TEXTURE_SURFACE;
+	}
+
+	return mipIndex*depth*faces + depthIndex*faces + cubeFace;
+}
+
 size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace, uint32_t depthIndex,
 	uint32_t mipIndex)
 {
 	if (!info || info->width == 0 || info->height == 0)
-		return 0;
+		return DS_INVALID_TEXTURE_OFFSET;
 
 	uint32_t depth = dsMax(1U, info->depth);
 	uint32_t maxMipLevels = dsTexture_maxMipmapLevels(info->width, info->height,
@@ -113,6 +176,9 @@ size_t dsTexture_surfaceOffset(const dsTextureInfo* info, dsCubeFace cubeFace, u
 			size += baseMipSize*curDepth*faces;
 			continue;
 		}
+
+		if (depthIndex >= curDepth)
+			return DS_INVALID_TEXTURE_OFFSET;
 
 		// Offset to the current depth and face index.
 		size += baseMipSize*(depthIndex*faces + cubeFace);
@@ -289,7 +355,8 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 }
 
 dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info,
+	dsOffscreenResolve resolve)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -753,6 +820,14 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Target doesn't support reading from a non-offscreen texture.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (texture->info.samples > 1 && !texture->resolve)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Attempting to read from a non-resolved multisampled offscreen.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

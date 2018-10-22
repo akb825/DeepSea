@@ -99,6 +99,8 @@ typedef struct dsVkDevice
 	PFN_vkCreateImage vkCreateImage;
 	PFN_vkGetImageSubresourceLayout vkGetImageSubresourceLayout;
 	PFN_vkDestroyImage vkDestroyImage;
+	PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
+	PFN_vkBindImageMemory vkBindImageMemory;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -171,40 +173,37 @@ typedef struct dsVkDrawGeometry
 	uint32_t vertexHash;
 } dsVkDrawGeometry;
 
-typedef struct dsVkTextureData
+typedef struct dsVkHostImage
 {
-	dsAllocator* allocator;
-	dsSpinlock lock;
+	VkImage image;
+	size_t offset;
+	VkSubresourceLayout layout;
+} dsVkHostImage;
 
-	dsTextureInfo info;
+typedef struct dsVkTexture
+{
+	dsTexture texture;
+	dsSpinlock lock;
 
 	VkDeviceMemory deviceMemory;
 	VkImage deviceImage;
+	VkImageView deviceImageView;
 	uint64_t lastUsedSubmit;
 
 	VkDeviceMemory hostMemory;
-	VkImage hostImage;
+	uint32_t hostImageCount;
+	dsVkHostImage* hostImages;
 	uint64_t uploadedSubmit;
 	void* submitQueue;
 
 	VkDeviceMemory surfaceMemory;
 	VkImage surfaceImage;
+	VkImageView surfaceImageViews;
 	uint64_t lastDrawSubmit;
 
-	VkImageView imageView;
-
-	bool used;
 	bool needsInitialCopy;
-	bool offscreen;
-	bool resolve;
 
 	uint32_t commandBufferCount;
-} dsVkTextureData;
-
-typedef struct dsVkTexture
-{
-	dsTexture texture;
-	dsVkTextureData* textureData;
 } dsVkTexture;
 
 typedef struct dsVkSubmitInfo

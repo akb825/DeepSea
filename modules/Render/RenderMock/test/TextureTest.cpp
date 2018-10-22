@@ -77,6 +77,49 @@ TEST_F(TextureTest, Size)
 	EXPECT_EQ(8U, dsTexture_size(&info));
 }
 
+TEST_F(TextureTest, SurfaceCount)
+{
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 512, 512, 0, 1, 1};
+	EXPECT_EQ(1U, dsTexture_surfaceCount(&info));
+
+	info.mipLevels = DS_ALL_MIP_LEVELS;
+	EXPECT_EQ(10U, dsTexture_surfaceCount(&info));
+
+	info.dimension = dsTextureDim_Cube;
+	EXPECT_EQ(60U, dsTexture_surfaceCount(&info));
+
+	info.depth = 5;
+	EXPECT_EQ(300U, dsTexture_surfaceCount(&info));
+
+	info.dimension = dsTextureDim_2D;
+	EXPECT_EQ(50U, dsTexture_surfaceCount(&info));
+
+	info.dimension = dsTextureDim_3D;
+	EXPECT_EQ(15U, dsTexture_surfaceCount(&info));
+}
+
+TEST_F(TextureTest, SurfaceIndex)
+{
+	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsTextureDim_2D, 512, 512, 0, DS_ALL_MIP_LEVELS, 1};
+	EXPECT_EQ(0U, dsTexture_surfaceIndex(&info, dsCubeFace_None, 0, 0));
+	EXPECT_EQ(3U, dsTexture_surfaceIndex(&info, dsCubeFace_None, 0, 3));
+
+	info.dimension = dsTextureDim_Cube;
+	EXPECT_EQ(21U, dsTexture_surfaceIndex(&info, dsCubeFace_NegY, 0, 3));
+
+	info.depth = 5;
+	EXPECT_EQ(105U, dsTexture_surfaceIndex(&info, dsCubeFace_NegY, 2, 3));
+
+	info.dimension = dsTextureDim_2D;
+	EXPECT_EQ(17U, dsTexture_surfaceIndex(&info, dsCubeFace_None, 2, 3));
+
+	info.dimension = dsTextureDim_3D;
+	EXPECT_EQ(DS_INVALID_TEXTURE_SURFACE, dsTexture_surfaceIndex(&info, dsCubeFace_None, 2, 3));
+	EXPECT_EQ(8U, dsTexture_surfaceIndex(&info, dsCubeFace_None, 0, 3));
+}
+
 TEST_F(TextureTest, SurfaceOffset)
 {
 	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
@@ -216,18 +259,18 @@ TEST_F(TextureTest, CreateOffscreen)
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	dsTextureInfo info = {format, dsTextureDim_2D, 128, 256, 0, 1, 1};
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, NULL, true));
+		dsGfxMemory_Read, NULL, dsOffscreenResolve_ResolveSingle));
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, (dsTextureUsage)0,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		(dsGfxMemory)0, &info, true));
+		(dsGfxMemory)0, &info, dsOffscreenResolve_ResolveSingle));
 	info.format = dsGfxFormat_R8G8B8A8;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 	info.format = format;
 
 	dsTexture* texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4, resourceManager->textureMemorySize);
@@ -237,7 +280,7 @@ TEST_F(TextureTest, CreateOffscreen)
 
 	info.samples = 4;
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, false);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_NoResolve);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*4, resourceManager->textureMemorySize);
@@ -246,7 +289,7 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*5, resourceManager->textureMemorySize);
@@ -258,10 +301,10 @@ TEST_F(TextureTest, CreateOffscreen)
 	info.depth = 257;
 	info.samples = 1;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 	info.depth = 256;
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*256, resourceManager->textureMemorySize);
@@ -272,10 +315,10 @@ TEST_F(TextureTest, CreateOffscreen)
 	info.dimension = dsTextureDim_2D;
 	info.depth = 513;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 	info.depth = 512;
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*512, resourceManager->textureMemorySize);
@@ -286,12 +329,12 @@ TEST_F(TextureTest, CreateOffscreen)
 	info.format = dsGfxFormat_decorate(dsGfxFormat_BC3, dsGfxFormat_UNorm);
 	info.depth = 0;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 
 	info.format = format;
 	info.mipLevels = 3;
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ((128*256 + 64*128 + 32*64)*4, resourceManager->textureMemorySize);
@@ -302,27 +345,27 @@ TEST_F(TextureTest, CreateOffscreen)
 	info.mipLevels = 1;
 	info.samples = 32;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 
 	resourceManager->hasArbitraryMipmapping = false;
 	info.samples = 1;
 	info.mipLevels = 3;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 
 	resourceManager->hasCubeArrays = false;
 	info.dimension = dsTextureDim_Cube;
 	info.depth = 3;
 	info.mipLevels = 1;
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle));
 
 	resourceManager->maxTextureSamples = 1;
 	info.dimension = dsTextureDim_2D;
 	info.depth = 1;
 	info.samples = 4;
 	texture = dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, true);
+		dsGfxMemory_Read, &info, dsOffscreenResolve_ResolveSingle);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
 	EXPECT_EQ(128*256*4*5, resourceManager->textureMemorySize);
@@ -331,7 +374,7 @@ TEST_F(TextureTest, CreateOffscreen)
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
 
 	EXPECT_FALSE(dsTexture_createOffscreen(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, false));
+		dsGfxMemory_Read, &info, dsOffscreenResolve_NoResolve));
 }
 
 TEST_F(TextureTest, GetData)

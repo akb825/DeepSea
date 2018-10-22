@@ -56,7 +56,7 @@ dsTexture* dsMockTexture_create(dsResourceManager* resourceManager, dsAllocator*
 
 dsOffscreen* dsMockTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
-	const dsTextureInfo* info, bool resolve)
+	const dsTextureInfo* info, dsOffscreenResolve resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);

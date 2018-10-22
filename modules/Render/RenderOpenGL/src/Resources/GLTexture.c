@@ -404,7 +404,8 @@ dsTexture* dsGLTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 }
 
 dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info,
+	dsOffscreenResolve resolve)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -437,7 +438,8 @@ dsOffscreen* dsGLTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 	DS_VERIFY(dsGLResourceManager_getTextureFormatInfo(&internalFormat, &glFormat, &type,
 		resourceManager, info->format));
 
-	if (info->samples > 1 && resolve && ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
+	if (info->samples > 1 && resolve != dsOffscreenResolve_NoResolve &&
+		ANYGL_SUPPORTED(glRenderbufferStorageMultisample))
 	{
 		glGenRenderbuffers(1, &texture->drawBufferId);
 		if (!texture->drawBufferId)

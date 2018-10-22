@@ -44,6 +44,11 @@ extern "C"
 #define DS_INVALID_TEXTURE_OFFSET (size_t)-1
 
 /**
+ * @brief Constant for an invalid surface index.
+ */
+#define DS_INVALID_TEXTURE_SURFACE (uint32_t)-1
+
+/**
  * @brief Gets the maximum number of mipmap levels for a texture.
  * @param width The width of the texture.
  * @param height The height of the texture.
@@ -59,6 +64,24 @@ DS_RENDER_EXPORT uint32_t dsTexture_maxMipmapLevels(uint32_t width, uint32_t hei
  * @return The size of the texture in bytes, or 0 if invalid.
  */
 DS_RENDER_EXPORT size_t dsTexture_size(const dsTextureInfo* info);
+
+/**
+ * @brief Gets the number of surfaces in a texture.
+ * @param info The info for the texture.
+ * @return The number of surfaces, or 0 if invalid.
+ */
+DS_RENDER_EXPORT uint32_t dsTexture_surfaceCount(const dsTextureInfo* info);
+
+/**
+ * @brief Gets the index for a surface within a texture.
+ * @param info The info for the texture.
+ * @param cubeFace The cube map face when accessing a cube map.
+ * @param depthIndex The index of the depth level or array element.
+ * @param mipIndex The mipmap index.
+ * @return The index to the surface, or DS_INVALID_TEXTURE_SURFACE if the surface is out of range.
+ */
+DS_RENDER_EXPORT uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info,
+	dsCubeFace cubeFace, uint32_t depthIndex, uint32_t mipIndex);
 
 /**
  * @brief Gets the offset for a surface within a texture.
@@ -130,7 +153,7 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
-	const dsTextureInfo* info, bool resolve);
+	const dsTextureInfo* info, dsOffscreenResolve resolve);
 
 /**
  * @brief Copies data to a texture.
