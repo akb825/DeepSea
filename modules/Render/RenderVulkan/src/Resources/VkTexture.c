@@ -42,14 +42,30 @@ static size_t fullAllocSize(const dsTextureInfo* info, bool needsHost)
 	return size;
 }
 
+static bool supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* formatInfo,
+	VkImageType imageType, const dsTextureInfo* info)
+{
+	VkImageCreateFlags createFlags =
+		info->dimension == dsTextureDim_Cube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
+	VkImageFormatProperties properties;
+	VkResult result = DS_VK_CALL(device->instance.vkGetPhysicalDeviceImageFormatProperties)(
+		device->physicalDevice, formatInfo->vkFormat, imageType, VK_IMAGE_TILING_LINEAR,
+		VK_IMAGE_USAGE_TRANSFER_SRC_BIT, createFlags, &properties);
+	if (result != VK_SUCCESS)
+		return false;
+
+	if (info->dimension == dsTextureDim_3D)
+		return info->depth <= properties.maxExtent.depth && info->mipLevels <= info->mipLevels;
+	return info->depth <= properties.maxArrayLayers && info->mipLevels <= info->mipLevels;
+}
+
 static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const dsTextureInfo* info,
-	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, dsVkTexture* texture,
-	const void* data)
+	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask,
+	VkImageCreateInfo* baseCreateInfo, dsVkTexture* texture, const void* data)
 {
 	dsVkInstance* instance = &device->instance;
 	dsTexture* baseTexture = (dsTexture*)texture;
 	VkMemoryRequirements memoryRequirements = {0, 0, 0};
-	uint32_t memoryIndex = 0;
 
 	texture->hostImageCount = dsTexture_surfaceCount(info);
 	texture->hostImages = DS_ALLOCATE_OBJECT_ARRAY(allocator, dsVkHostImage,
@@ -72,68 +88,108 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	}
 
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
-	uint32_t index = 0;
-	for (uint32_t i = 0; i < info->mipLevels; ++i)
+	bool is3D = info->dimension == dsTextureDim_3D;
+	if (baseCreateInfo)
 	{
-		uint32_t width = info->width >> i;
-		uint32_t height = info->height >> i;
-		uint32_t depth = info->dimension == dsTextureDim_3D ? info->depth >> i : info->depth;
-		width = dsMax(1U, width);
-		height = dsMax(1U, height);
-		depth = dsMax(1U, depth);
-		for (uint32_t j = 0; j < depth; ++j)
+		// Single image for all surfaces.
+		VkImageCreateInfo imageCreateInfo = *baseCreateInfo;
+		imageCreateInfo.tiling = VK_IMAGE_TILING_LINEAR;
+		imageCreateInfo.usage = hostUsageFlags;
+		imageCreateInfo.initialLayout = initialLayout;
+		VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
+			instance->allocCallbacksPtr, &texture->hostImage);
+		if (!dsHandleVkResult(result))
+			return false;
+
+		DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device,
+			texture->hostImage, &memoryRequirements);
+
+		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
 		{
-			for (uint32_t k = 0; k < faceCount; ++k, ++index)
+			VkSubresourceLayout baseLayout;
+			VkImageSubresource subresource = {aspectMask, 0, i};
+			DS_VK_CALL(device->vkGetImageSubresourceLayout)(device->device, texture->hostImage,
+				&subresource, &baseLayout);
+
+			uint32_t depth = is3D ? info->depth >> i : info->depth;
+			for (uint32_t j = 0; j < depth; ++j)
 			{
-				DS_ASSERT(index < texture->hostImageCount);
-				dsVkHostImage* hostImage = texture->hostImages + index;
-				VkImageCreateInfo imageCreateInfo =
+				for (uint32_t k = 0; k < faceCount; ++k, ++index)
 				{
-					VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-					NULL,
-					0,
-					VK_IMAGE_TYPE_2D,
-					formatInfo->vkFormat,
-					{width, height, 1},
-					info->mipLevels,
-					1,
-					VK_SAMPLE_COUNT_1_BIT,
-					VK_IMAGE_TILING_LINEAR,
-					hostUsageFlags,
-					VK_SHARING_MODE_EXCLUSIVE,
-					1, &device->queueFamilyIndex,
-					initialLayout
-				};
-				VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device,
-					&imageCreateInfo, instance->allocCallbacksPtr, &hostImage->image);
-				if (!dsHandleVkResult(result))
-					return false;
-
-				VkMemoryRequirements imageRequirements;
-				DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device,
-					texture->deviceImage, &imageRequirements);
-				if (index == 0)
-				{
-					memoryIndex = dsVkMemoryIndex(device, &imageRequirements, 0);
-					if (memoryIndex == DS_INVALID_HEAP)
-						return false;
+					VkSubresourceLayout* imageLayout = &texture->hostImages[index].layout;
+					*imageLayout = baseLayout;
+					if (is3D)
+						imageLayout->offset += j*baseLayout.depthPitch;
+					else
+						imageLayout->offset += (j*faceCount + k)*baseLayout.arrayPitch;
 				}
+			}
+		}
 
-				VkDeviceSize alignment = imageRequirements.alignment;
-				memoryRequirements.size =
-					((memoryRequirements.size + (alignment - 1))/alignment)*alignment;
+	}
+	else
+	{
+		// Fall back to a separate image for each surface.
+		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
+		{
+			uint32_t width = info->width >> i;
+			uint32_t height = info->height >> i;
+			uint32_t depth = is3D ? info->depth >> i : info->depth;
+			width = dsMax(1U, width);
+			height = dsMax(1U, height);
+			depth = dsMax(1U, depth);
+			for (uint32_t j = 0; j < depth; ++j)
+			{
+				for (uint32_t k = 0; k < faceCount; ++k, ++index)
+				{
+					DS_ASSERT(index < texture->hostImageCount);
+					dsVkHostImage* hostImage = texture->hostImages + index;
+					VkImageCreateInfo imageCreateInfo =
+					{
+						VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+						NULL,
+						0,
+						VK_IMAGE_TYPE_2D,
+						formatInfo->vkFormat,
+						{width, height, 1},
+						info->mipLevels,
+						1,
+						VK_SAMPLE_COUNT_1_BIT,
+						VK_IMAGE_TILING_LINEAR,
+						hostUsageFlags,
+						VK_SHARING_MODE_EXCLUSIVE,
+						1, &device->queueFamilyIndex,
+						initialLayout
+					};
+					VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device,
+						&imageCreateInfo, instance->allocCallbacksPtr, &hostImage->image);
+					if (!dsHandleVkResult(result))
+						return false;
 
-				hostImage->offset = (size_t)memoryRequirements.size;
-				VkImageSubresource subresource = {aspectMask, 0, 0};
-				DS_VK_CALL(device->vkGetImageSubresourceLayout)(device->device,
-					hostImage->image, &subresource, &hostImage->layout);
+					VkMemoryRequirements imageRequirements;
+					DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device,
+						hostImage->image, &imageRequirements);
 
-				memoryRequirements.alignment = dsMax(alignment, memoryRequirements.alignment);
-				memoryRequirements.size += imageRequirements.size;
-				memoryRequirements.memoryTypeBits |= imageRequirements.memoryTypeBits;
+					VkDeviceSize alignment = imageRequirements.alignment;
+					memoryRequirements.size =
+						((memoryRequirements.size + (alignment - 1))/alignment)*alignment;
+
+					hostImage->offset = (size_t)memoryRequirements.size;
+					VkImageSubresource subresource = {aspectMask, 0, 0};
+					DS_VK_CALL(device->vkGetImageSubresourceLayout)(device->device,
+						hostImage->image, &subresource, &hostImage->layout);
+
+					memoryRequirements.alignment = dsMax(alignment, memoryRequirements.alignment);
+					memoryRequirements.size += imageRequirements.size;
+					memoryRequirements.memoryTypeBits |= imageRequirements.memoryTypeBits;
+				}
 			}
 		}
 	}
+
+	uint32_t memoryIndex = dsVkMemoryIndex(device, &memoryRequirements, 0);
+	if (memoryIndex == DS_INVALID_HEAP)
+		return false;
 
 	texture->hostMemory = dsAllocateVkMemory(device, &memoryRequirements, memoryIndex);
 	if (!texture->hostMemory)
@@ -165,7 +221,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 			return 0;
 		unsigned int formatSize = dsGfxFormat_size(info->format);
 
-		for (uint32_t i = 0; i < info->mipLevels; ++i)
+		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
 		{
 			uint32_t width = info->width >> i;
 			uint32_t height = info->height >> i;
@@ -182,7 +238,8 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 				for (uint32_t k = 0; k < faceCount; ++k, ++index)
 				{
 					dsVkHostImage* hostImage = texture->hostImages + index;
-					uint8_t* surfaceData = hostBytes + hostImage->offset;
+					uint8_t* surfaceData = hostBytes + hostImage->offset +
+						(size_t)hostImage->layout.offset;
 					size_t hostPitch = (size_t)hostImage->layout.rowPitch;
 					for (uint32_t y = 0; y < yBlocks; ++y, dataBytes += pitch,
 						surfaceData += hostPitch)
@@ -211,6 +268,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -220,7 +278,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		formatInfo->vkFormat,
 		{info->width, info->height, info->dimension == dsTextureDim_3D ? info->depth : 1},
 		mipLevels,
-		info->dimension == dsTextureDim_3D ? 1 : depthCount,
+		info->dimension == dsTextureDim_3D ? 1 : depthCount*faceCount,
 		resolve ? VK_SAMPLE_COUNT_1_BIT : dsVkSampleCount(info->samples),
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
@@ -262,7 +320,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		{aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}
 	};
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
-		instance->allocCallbacksPtr, &texture->deviceImageView);
+		instance->allocCallbacksPtr, &texture->surfaceImageView);
 	return dsHandleVkResult(result);
 }
 
@@ -294,6 +352,43 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			"Cannot acces depth/stencil format texture data from the host.");
 		return NULL;
 	}
+
+	VkImageType imageType;
+	VkImageViewType imageViewType;
+	switch (info->dimension)
+	{
+		case dsTextureDim_1D:
+			imageType = VK_IMAGE_TYPE_1D;
+			if (info->depth > 0)
+				imageViewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+			else
+				imageViewType = VK_IMAGE_VIEW_TYPE_1D;
+			break;
+		case dsTextureDim_2D:
+			imageType = VK_IMAGE_TYPE_2D;
+			if (info->depth > 0)
+				imageViewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+			else
+				imageViewType = VK_IMAGE_VIEW_TYPE_2D;
+			break;
+		case dsTextureDim_3D:
+			imageType = VK_IMAGE_TYPE_3D;
+			break;
+		case dsTextureDim_Cube:
+			imageType = VK_IMAGE_TYPE_2D;
+			if (info->depth > 0)
+				imageViewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+			else
+				imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
+			break;
+		default:
+			DS_ASSERT(false);
+			return NULL;
+	}
+
+	bool singleHostImage = true;
+	if (needsHostMemory)
+		singleHostImage = supportsHostImage(device, formatInfo, imageType, info);
 
 	size_t bufferSize = fullAllocSize(info, needsHostMemory);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
@@ -336,40 +431,6 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	}
 
-	VkImageType imageType;
-	VkImageViewType imageViewType;
-	switch (info->dimension)
-	{
-		case dsTextureDim_1D:
-			imageType = VK_IMAGE_TYPE_1D;
-			if (info->depth > 0)
-				imageViewType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
-			else
-				imageViewType = VK_IMAGE_VIEW_TYPE_1D;
-			break;
-		case dsTextureDim_2D:
-			imageType = VK_IMAGE_TYPE_2D;
-			if (info->depth > 0)
-				imageViewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-			else
-				imageViewType = VK_IMAGE_VIEW_TYPE_2D;
-			break;
-		case dsTextureDim_3D:
-			imageType = VK_IMAGE_TYPE_3D;
-			break;
-		case dsTextureDim_Cube:
-			imageType = VK_IMAGE_TYPE_2D;
-			if (info->depth > 0)
-				imageViewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
-			else
-				imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
-			break;
-		default:
-			DS_ASSERT(false);
-			dsVkTexture_destroyImpl(baseTexture);
-			return NULL;
-	}
-
 	VkImageAspectFlags aspectMask;
 	switch (info->format)
 	{
@@ -395,6 +456,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	if (needsHostMemory || resolve)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	uint32_t depthCount = dsMax(1U, info->depth);
+	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -404,7 +466,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		formatInfo->vkFormat,
 		{info->width, info->height, info->dimension == dsTextureDim_3D ? info->depth : 1},
 		info->mipLevels,
-		info->dimension == dsTextureDim_3D ? 1 : depthCount,
+		info->dimension == dsTextureDim_3D ? 1 : depthCount*faceCount,
 		resolve ? VK_SAMPLE_COUNT_1_BIT : dsVkSampleCount(info->samples),
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
@@ -461,7 +523,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		instance->allocCallbacksPtr, &texture->deviceImageView);
 
 	if (needsHostMemory && !createHostImages(device, (dsAllocator*)&bufferAlloc, info, formatInfo,
-		aspectMask, texture, data))
+		aspectMask, singleHostImage ? &imageCreateInfo : NULL, texture, data))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -491,4 +553,67 @@ dsOffscreen* dsVkTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 {
 	return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, NULL, 0, true,
 		resolve);
+}
+
+void dsVkTexture_destroyImpl(dsTexture* texture)
+{
+	dsVkTexture* vkTexture = (dsVkTexture*)texture;
+	dsVkDevice* device = &((dsVkRenderer*)texture->resourceManager->renderer)->device;
+
+	dsVkInstance* instance = &device->instance;
+	if (vkTexture->deviceImageView)
+	{
+		DS_VK_CALL(device->vkDestroyImageView)(device->device, vkTexture->deviceImageView,
+			instance->allocCallbacksPtr);
+	}
+	if (vkTexture->deviceImage)
+	{
+		DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->deviceImage,
+			instance->allocCallbacksPtr);
+	}
+	if (vkTexture->deviceMemory)
+	{
+		DS_VK_CALL(device->vkFreeMemory)(device->device, vkTexture->deviceMemory,
+			instance->allocCallbacksPtr);
+	}
+
+	if (vkTexture->hostImage)
+	{
+		DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->hostImage,
+			instance->allocCallbacksPtr);
+	}
+	for (uint32_t i = 0; i < vkTexture->hostImageCount; ++i)
+	{
+		dsVkHostImage* hostImage = vkTexture->hostImages + i;
+		if (hostImage->image)
+		{
+			DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->deviceImage,
+				instance->allocCallbacksPtr);
+		}
+	}
+	if (vkTexture->hostMemory)
+	{
+		DS_VK_CALL(device->vkFreeMemory)(device->device, vkTexture->hostMemory,
+			instance->allocCallbacksPtr);
+	}
+
+	if (vkTexture->surfaceImageView)
+	{
+		DS_VK_CALL(device->vkDestroyImageView)(device->device, vkTexture->surfaceImageView,
+			instance->allocCallbacksPtr);
+	}
+	if (vkTexture->surfaceImage)
+	{
+		DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->surfaceImage,
+			instance->allocCallbacksPtr);
+	}
+	if (vkTexture->surfaceMemory)
+	{
+		DS_VK_CALL(device->vkFreeMemory)(device->device, vkTexture->surfaceMemory,
+			instance->allocCallbacksPtr);
+	}
+
+	dsSpinlock_shutdown(&vkTexture->lock);
+	if (texture->allocator)
+		dsAllocator_free(texture->allocator, texture);
 }

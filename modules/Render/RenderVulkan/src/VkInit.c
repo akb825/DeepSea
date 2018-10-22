@@ -516,6 +516,7 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDevice);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceImageFormatProperties);
 
 	if (options && options->debug && instanceExtensions.debug)
 	{
@@ -760,8 +761,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdUpdateBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImage);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageSubresourceLayout);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageMemoryRequirements);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindImageMemory);

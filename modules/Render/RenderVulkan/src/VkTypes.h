@@ -48,6 +48,7 @@ typedef struct dsVkInstance
 	PFN_vkCreateDevice vkCreateDevice;
 	PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
 	PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
+	PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatProperties;
 
 	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
 	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
@@ -191,6 +192,7 @@ typedef struct dsVkTexture
 	uint64_t lastUsedSubmit;
 
 	VkDeviceMemory hostMemory;
+	VkImage hostImage;
 	uint32_t hostImageCount;
 	dsVkHostImage* hostImages;
 	uint64_t uploadedSubmit;
@@ -198,7 +200,7 @@ typedef struct dsVkTexture
 
 	VkDeviceMemory surfaceMemory;
 	VkImage surfaceImage;
-	VkImageView surfaceImageViews;
+	VkImageView surfaceImageView;
 	uint64_t lastDrawSubmit;
 
 	bool needsInitialCopy;

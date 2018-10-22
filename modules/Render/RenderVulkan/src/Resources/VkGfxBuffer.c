@@ -592,7 +592,7 @@ void dsVkGfxBufferData_destroy(dsVkDevice* device, dsVkGfxBufferData* buffer)
 		DS_VK_CALL(device->vkDestroyBuffer)(device->device, buffer->deviceBuffer,
 			instance->allocCallbacksPtr);
 	}
-	if (buffer->hostMemory)
+	if (buffer->deviceMemory)
 	{
 		if (buffer->mappedSize > 0)
 			DS_VK_CALL(device->vkUnmapMemory)(device->device, buffer->hostMemory);
