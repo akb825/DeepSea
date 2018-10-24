@@ -726,6 +726,8 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->dispatchComputeFunc = &dsGLCommandBuffer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsGLCommandBuffer_dispatchComputeIndirect;
 	baseRenderer->blitSurfaceFunc = &dsGLCommandBuffer_blitSurface;
+	baseRenderer->pushDebugGroupFunc = &dsGLCommandBuffer_pushDebugGroup;
+	baseRenderer->popDebugGroupFunc = &dsGLCommandBuffer_popDebugGroup;
 	baseRenderer->memoryBarrierFunc = &dsGLCommandBuffer_memoryBarrier;
 	baseRenderer->flushFunc = &dsGLRenderer_flush;
 	baseRenderer->waitUntilIdleFunc = &dsGLRenderer_waitUntilIdle;

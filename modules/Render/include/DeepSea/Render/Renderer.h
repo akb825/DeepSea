@@ -371,6 +371,7 @@ DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuff
 
 /**
  * @brief Adds a memory barrier to ensure writes are properly performed before reads.
+ * @remark errno will be set on failure.
  * @param renderer The rendferer.
  * @param commandBuffer The command buffer to place the barrier on.
  * @param barriers List of write/read dependencies to place barriers for.
@@ -379,6 +380,31 @@ DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuff
  */
 DS_RENDER_EXPORT bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
+
+/**
+ * @brief Pushes a debug group.
+ *
+ * This is typically used with graphics debuggers provided by vendors, such as Nsight by NVIDIA.
+ *
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to push the group on.
+ * @param name The name of the debug group. This should remain allocated for as long as the
+ *     renderer, such as with a string constant.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_pushDebugGroup(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const char* name);
+
+/**
+ * @brief Pops a debug group.
+ * @remark errno will be set on failure.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to pop the group on.
+ * @return False if the parameters are invalid.
+ */
+DS_RENDER_EXPORT bool dsRenderer_popDebugGroup(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Flushes queued commands tot he GPU.

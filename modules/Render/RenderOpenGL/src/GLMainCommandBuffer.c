@@ -1781,6 +1781,22 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLMainCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
+{
+	DS_UNUSED(commandBuffer);
+	if (ANYGL_SUPPORTED(glPushDebugGroup))
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, DS_FOURCC('D', 'S', 'D', 'G'), -1, name);
+	return true;
+}
+
+bool dsGLMainCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(commandBuffer);
+	if (ANYGL_SUPPORTED(glPopDebugGroup))
+		glPopDebugGroup();
+	return true;
+}
+
 bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
@@ -1888,6 +1904,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_dispatchCompute,
 	&dsGLMainCommandBuffer_dispatchComputeIndirect,
 	&dsGLMainCommandBuffer_blitSurface,
+	&dsGLMainCommandBuffer_pushDebugGroup,
+	&dsGLMainCommandBuffer_popDebugGroup,
 	&dsGLMainCommandBuffer_memoryBarrier,
 	&dsGLMainCommandBuffer_begin,
 	&dsGLMainCommandBuffer_end,

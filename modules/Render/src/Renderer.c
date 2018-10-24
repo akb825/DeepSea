@@ -1213,6 +1213,37 @@ bool dsRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
+bool dsRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name)
+{
+	if (!commandBuffer || !renderer || !name)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	// OK if no implementation, in which case debug groups are ignored.
+	if (!renderer->pushDebugGroupFunc)
+		return true;
+
+	return renderer->pushDebugGroupFunc(renderer, commandBuffer, name);
+}
+
+bool dsRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	if (!commandBuffer || !renderer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	// OK if no implementation, in which case debug groups are ignored.
+	if (!renderer->popDebugGroupFunc)
+		return true;
+
+	return renderer->popDebugGroupFunc(renderer, commandBuffer);
+}
+
 bool dsRenderer_flush(dsRenderer* renderer)
 {
 	DS_PROFILE_FUNC_START();

@@ -70,6 +70,8 @@ typedef enum CommandType
 	CommandType_DispatchCompute,
 	CommandType_DispatchComputeIndirect,
 	CommandType_BlitSurface,
+	CommandType_PushDebugGroup,
+	CommandType_PopDebugGroup,
 	CommandType_MemoryBarrier
 } CommandType;
 
@@ -308,6 +310,17 @@ typedef struct BlitSurfaceCommand
 	size_t regionCount;
 	dsSurfaceBlitRegion regions[];
 } BlitSurfaceCommand;
+
+typedef struct PushDebugGroupCommand
+{
+	Command command;
+	const char* name;
+} PushDebugGroupCommand;
+
+typedef struct PopDebugGroupCommand
+{
+	Command command;
+} PopDebugGroupCommand;
 
 typedef struct MemoryBarrierCommand
 {
@@ -918,6 +931,23 @@ bool dsGLOtherCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
+bool dsGLOtherCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
+{
+	PushDebugGroupCommand* command = (PushDebugGroupCommand*)allocateCommand(commandBuffer,
+		CommandType_PushDebugGroup, sizeof(PushDebugGroupCommand));
+	if (!command)
+		return false;
+
+	command->name = name;
+	return true;
+}
+
+bool dsGLOtherCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
+{
+	return allocateCommand(commandBuffer, CommandType_PopDebugGroup,
+		sizeof(PopDebugGroupCommand)) != NULL;
+}
+
 bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {
@@ -1186,6 +1216,16 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->regionCount, thisCommand->filter);
 				break;
 			}
+			case CommandType_PushDebugGroup:
+			{
+				PushDebugGroupCommand* thisCommand = (PushDebugGroupCommand*)command;
+				dsGLCommandBuffer_pushDebugGroup(commandBuffer->renderer, commandBuffer,
+					thisCommand->name);
+				break;
+			}
+			case CommandType_PopDebugGroup:
+				dsGLCommandBuffer_popDebugGroup(commandBuffer->renderer, commandBuffer);
+				break;
 			case CommandType_MemoryBarrier:
 			{
 				MemoryBarrierCommand* thisCommand = (MemoryBarrierCommand*)command;
@@ -1248,6 +1288,8 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_dispatchCompute,
 	&dsGLOtherCommandBuffer_dispatchComputeIndirect,
 	&dsGLOtherCommandBuffer_blitSurface,
+	&dsGLOtherCommandBuffer_pushDebugGroup,
+	&dsGLOtherCommandBuffer_popDebugGroup,
 	&dsGLOtherCommandBuffer_memoryBarrier,
 	&dsGLOtherCommandBuffer_begin,
 	&dsGLOtherCommandBuffer_end,
@@ -1489,6 +1531,10 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				freeSurfaceRef(thisCommand->dstSurfaceType, thisCommand->dstSurface);
 				break;
 			}
+			case CommandType_PushDebugGroup:
+				break;
+			case CommandType_PopDebugGroup:
+				break;
 			case CommandType_MemoryBarrier:
 				break;
 			default:

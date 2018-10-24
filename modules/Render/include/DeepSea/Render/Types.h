@@ -1331,7 +1331,7 @@ typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* com
 
 /**
  * @brief Function for adding a memory barrier.
- * @param renderer The rendferer.
+ * @param renderer The renderer.
  * @param commandBuffer The command buffer to place the barrier on.
  * @param barriers List of write/read dependencies to place barriers for.
  * @param barrierCount The number of barriers.
@@ -1339,6 +1339,24 @@ typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* com
  */
 typedef bool (*dsGfxMemoryBarrierFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
+
+/**
+ * @brief Function for pushing a debug group.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to push the debug group on.
+ * @param name The name of the debug group.
+ * @return False if the debug group couldn't be pushed.
+ */
+typedef bool (*dsPushRenderDebugGroupFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name);
+
+/**
+ * @brief Function for popping a debug group.
+ * @param renderer The renderer.
+ * @param commandBuffer The command buffer to pop the debug group on.
+ * @return False if the debug group couldn't be pushed.
+ */
+typedef bool (*dsPopRenderDebugGroupFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Function for flushing queued commands to the GPU.
@@ -1748,6 +1766,16 @@ struct dsRenderer
 	 * @brief Memory barrier function.
 	 */
 	dsGfxMemoryBarrierFunction memoryBarrierFunc;
+
+	/**
+	 * @brief Debug group push function.
+	 */
+	dsPushRenderDebugGroupFunction pushDebugGroupFunc;
+
+	/**
+	 * @brief Debug group pop function.
+	 */
+	dsPopRenderDebugGroupFunction popDebugGroupFunc;
 
 	/**
 	 * @brief Flush function.

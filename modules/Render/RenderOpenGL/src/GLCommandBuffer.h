@@ -109,6 +109,11 @@ bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBu
 bool dsGLCommandBuffer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
 	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+
+bool dsGLCommandBuffer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name);
+bool dsGLCommandBuffer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
+
 bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 

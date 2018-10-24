@@ -704,6 +704,21 @@ bool dsGLCommandBuffer_blitSurface(dsRenderer* renderer, dsCommandBuffer* comman
 		dstSurface, regions, regionCount, filter);
 }
 
+bool dsGLCommandBuffer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->pushDebugGroupFunc(commandBuffer, name);
+}
+
+bool dsGLCommandBuffer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	DS_UNUSED(renderer);
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
+	return functions->popDebugGroupFunc(commandBuffer);
+}
+
 bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
 {

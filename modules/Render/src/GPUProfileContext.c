@@ -24,6 +24,7 @@
 #include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxQueryPool.h>
+#include <DeepSea/Render/Renderer.h>
 #include <string.h>
 
 #define INVALID_INDEX (uint32_t)-1
@@ -68,6 +69,8 @@ struct dsGPUProfileContext
 {
 	dsAllocator* allocator;
 	dsResourceManager* resourceManager;
+
+	bool useQueries;
 
 	/*
 	 * Quad buffer pools:
@@ -275,11 +278,8 @@ static void submitGPUProfileResults(dsGPUProfileContext* context, QueryPools* po
 dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator)
 {
-	if (!DS_PROFILING_ENABLED || !DS_GPU_PROFILING_ENABLED || !resourceManager ||
-		resourceManager->timestampPeriod <= 0.0f)
-	{
+	if (!DS_PROFILING_ENABLED || !resourceManager)
 		return NULL;
-	}
 
 	if (!allocator->freeFunc)
 		return NULL;
@@ -291,8 +291,10 @@ dsGPUProfileContext* dsGPUProfileContext_create(dsResourceManager* resourceManag
 	memset(context, 0, sizeof(dsGPUProfileContext));
 	context->resourceManager = resourceManager;
 	context->allocator = allocator;
+	context->useQueries = DS_GPU_PROFILING_ENABLED && resourceManager->timestampPeriod > 0.0f;
 
-	dsSpinlock_initialize(&context->spinlock);
+	if (context->useQueries)
+		dsSpinlock_initialize(&context->spinlock);
 
 	return context;
 }
@@ -302,17 +304,24 @@ void dsGPUProfileContext_beginFrame(dsGPUProfileContext* context)
 	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, "Frame");
+
+	if (context->useQueries)
 	{
-		dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
-		QueryPools* pools = context->queryPools + context->queryPoolIndex;
-		pools->beginFrameIndex = pools->queryCount;
-		addQuery(context, commandBuffer, "Frame", "Total", INVALID_INDEX, context->swapCount);
-		pools->beginSwapIndex = pools->queryCount;
-		addQuery(context, commandBuffer, "Frame", "Pre-swap", INVALID_INDEX, context->swapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			QueryPools* pools = context->queryPools + context->queryPoolIndex;
+			pools->beginFrameIndex = pools->queryCount;
+			addQuery(context, commandBuffer, "Frame", "Total", INVALID_INDEX, context->swapCount);
+			pools->beginSwapIndex = pools->queryCount;
+			addQuery(context, commandBuffer, "Frame", "Pre-swap", INVALID_INDEX,
+				context->swapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
 }
 
 void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
@@ -321,39 +330,48 @@ void dsGPUProfileContext_endFrame(dsGPUProfileContext* context)
 		return;
 
 	dsCommandBuffer* commandBuffer = getMainCommandBuffer(context);
-	dsSpinlock_lock(&context->spinlock);
-	bool submitResults = false;
-	QueryPools* pools = context->queryPools + context->queryPoolIndex;
-	if (!context->error)
+
+	if (context->useQueries)
 	{
-		addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex, context->swapCount);
-		addQuery(context, commandBuffer, NULL, NULL, pools->beginFrameIndex, context->swapCount);
-		submitResults = !context->error;
+		dsSpinlock_lock(&context->spinlock);
+		bool submitResults = false;
+		QueryPools* pools = context->queryPools + context->queryPoolIndex;
+		if (!context->error)
+		{
+			addQuery(context, commandBuffer, NULL, NULL, pools->beginSwapIndex,
+				context->swapCount);
+			addQuery(context, commandBuffer, NULL, NULL, pools->beginFrameIndex,
+				context->swapCount);
+			submitResults = !context->error;
+		}
+		uint32_t prevIndex;
+		if (context->queryPoolIndex < DELAY_FRAMES)
+			prevIndex = DS_ARRAY_SIZE(context->queryPools) - DELAY_FRAMES + context->queryPoolIndex;
+		else
+			prevIndex = context->queryPoolIndex - DELAY_FRAMES;
+
+		context->queryPoolIndex = (context->queryPoolIndex + 1)%DS_ARRAY_SIZE(context->queryPools);
+		pools = context->queryPools + context->queryPoolIndex;
+		pools->queryCount = 0;
+		pools->totalRanges = 0;
+		for (uint32_t i = 0; i < pools->poolCount; ++i)
+			DS_VERIFY(dsGfxQueryPool_reset(pools->pools[i], commandBuffer, 0, QUERY_POOL_SIZE));
+
+		++context->swapCount;
+		context->error = false;
+		dsSpinlock_unlock(&context->spinlock);
+
+		if (submitResults)
+			submitGPUProfileResults(context, context->queryPools + prevIndex);
 	}
-	uint32_t prevIndex;
-	if (context->queryPoolIndex < DELAY_FRAMES)
-		prevIndex = DS_ARRAY_SIZE(context->queryPools) - DELAY_FRAMES + context->queryPoolIndex;
-	else
-		prevIndex = context->queryPoolIndex - DELAY_FRAMES;
 
-	context->queryPoolIndex = (context->queryPoolIndex + 1)%DS_ARRAY_SIZE(context->queryPools);
-	pools = context->queryPools + context->queryPoolIndex;
-	pools->queryCount = 0;
-	pools->totalRanges = 0;
-	for (uint32_t i = 0; i < pools->poolCount; ++i)
-		DS_VERIFY(dsGfxQueryPool_reset(pools->pools[i], commandBuffer, 0, QUERY_POOL_SIZE));
-
-	++context->swapCount;
-	context->error = false;
-	dsSpinlock_unlock(&context->spinlock);
-
-	if (submitResults)
-		submitGPUProfileResults(context, context->queryPools + prevIndex);
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
 }
 
 void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context)
 {
-	if (!context)
+	if (!context || !context->useQueries)
 		return;
 
 	dsSpinlock_lock(&context->spinlock);
@@ -370,7 +388,7 @@ void dsGPUProfileContext_beginSwapBuffers(dsGPUProfileContext* context)
 
 void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context)
 {
-	if (!context)
+	if (!context || !context->useQueries)
 		return;
 
 	dsSpinlock_lock(&context->spinlock);
@@ -388,120 +406,167 @@ void dsGPUProfileContext_endSwapBuffers(dsGPUProfileContext* context)
 void dsGPUProfileContext_beginSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
 	const char* surfaceName)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, surfaceName);
+
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		QueryPools* pools = context->queryPools + context->queryPoolIndex;
-		commandBuffer->_profileInfo.beginSurfaceIndex = pools->queryCount;
-		commandBuffer->_profileInfo.beginSurfaceSwapCount = context->swapCount;
-		addQuery(context, commandBuffer, surfaceName, "Total", INVALID_INDEX, context->swapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			QueryPools* pools = context->queryPools + context->queryPoolIndex;
+			commandBuffer->_profileInfo.beginSurfaceIndex = pools->queryCount;
+			commandBuffer->_profileInfo.beginSurfaceSwapCount = context->swapCount;
+			addQuery(context, commandBuffer, surfaceName, "Total", INVALID_INDEX,
+				context->swapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
 }
 
 void dsGPUProfileContext_endSurface(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginSurfaceIndex,
-			commandBuffer->_profileInfo.beginSurfaceSwapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			addQuery(context, commandBuffer, NULL, NULL,
+				commandBuffer->_profileInfo.beginSurfaceIndex,
+				commandBuffer->_profileInfo.beginSurfaceSwapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
+
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
 }
 
 void dsGPUProfileContext_beginSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
 	const char* framebufferName, const char* subpassName)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
+
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		QueryPools* pools = context->queryPools + context->queryPoolIndex;
-		commandBuffer->_profileInfo.beginSubpassIndex = pools->queryCount;
-		commandBuffer->_profileInfo.beginSubpassSwapCount = context->swapCount;
-		addQuery(context, commandBuffer, framebufferName, subpassName, INVALID_INDEX,
-			context->swapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			QueryPools* pools = context->queryPools + context->queryPoolIndex;
+			commandBuffer->_profileInfo.beginSubpassIndex = pools->queryCount;
+			commandBuffer->_profileInfo.beginSubpassSwapCount = context->swapCount;
+			addQuery(context, commandBuffer, framebufferName, subpassName, INVALID_INDEX,
+				context->swapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
 }
 
 void dsGPUProfileContext_nextSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
 	const char* subpassName)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
-	{
-		QueryInfo* query = addQuery(context, commandBuffer, NULL, NULL,
-			commandBuffer->_profileInfo.beginSubpassIndex,
-			commandBuffer->_profileInfo.beginSubpassSwapCount);
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, subpassName);
 
-		if (query)
+	if (context->useQueries && commandBufferValid(commandBuffer))
+	{
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
 		{
-			QueryPools* pools = context->queryPools + context->queryPoolIndex;
-			commandBuffer->_profileInfo.beginSubpassIndex = pools->queryCount;
-			commandBuffer->_profileInfo.beginSubpassSwapCount = context->swapCount;
-			addQuery(context, commandBuffer, query->category, subpassName, INVALID_INDEX,
-				context->swapCount);
+			QueryInfo* query = addQuery(context, commandBuffer, NULL, NULL,
+				commandBuffer->_profileInfo.beginSubpassIndex,
+				commandBuffer->_profileInfo.beginSubpassSwapCount);
+
+			if (query)
+			{
+				QueryPools* pools = context->queryPools + context->queryPoolIndex;
+				commandBuffer->_profileInfo.beginSubpassIndex = pools->queryCount;
+				commandBuffer->_profileInfo.beginSubpassSwapCount = context->swapCount;
+				addQuery(context, commandBuffer, query->category, subpassName, INVALID_INDEX,
+					context->swapCount);
+			}
 		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
 }
 
 void dsGPUProfileContext_endSubpass(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginSubpassIndex,
-			commandBuffer->_profileInfo.beginSubpassSwapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginSubpassIndex,
+				commandBuffer->_profileInfo.beginSubpassSwapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
+
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
 }
 
 void dsGPUProfileContext_beginCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer,
 	const char* moduleName, const char* shaderName)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_pushDebugGroup(renderer, commandBuffer, shaderName);
+
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		QueryPools* pools = context->queryPools + context->queryPoolIndex;
-		commandBuffer->_profileInfo.beginComputeIndex = pools->queryCount;
-		commandBuffer->_profileInfo.beginComputeSwapCount = context->swapCount;
-		addQuery(context, commandBuffer, moduleName, shaderName, INVALID_INDEX, context->swapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			QueryPools* pools = context->queryPools + context->queryPoolIndex;
+			commandBuffer->_profileInfo.beginComputeIndex = pools->queryCount;
+			commandBuffer->_profileInfo.beginComputeSwapCount = context->swapCount;
+			addQuery(context, commandBuffer, moduleName, shaderName, INVALID_INDEX,
+				context->swapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
 }
 
 void dsGPUProfileContext_endCompute(dsGPUProfileContext* context, dsCommandBuffer* commandBuffer)
 {
-	if (!context || !commandBufferValid(commandBuffer))
+	if (!context)
 		return;
 
-	dsSpinlock_lock(&context->spinlock);
-	if (!context->error)
+	if (context->useQueries && commandBufferValid(commandBuffer))
 	{
-		addQuery(context, commandBuffer, NULL, NULL, commandBuffer->_profileInfo.beginComputeIndex,
-			commandBuffer->_profileInfo.beginComputeSwapCount);
+		dsSpinlock_lock(&context->spinlock);
+		if (!context->error)
+		{
+			addQuery(context, commandBuffer, NULL, NULL,
+				commandBuffer->_profileInfo.beginComputeIndex,
+				commandBuffer->_profileInfo.beginComputeSwapCount);
+		}
+		dsSpinlock_unlock(&context->spinlock);
 	}
-	dsSpinlock_unlock(&context->spinlock);
+
+	dsRenderer* renderer = commandBuffer->renderer;
+	dsRenderer_popDebugGroup(renderer, commandBuffer);
 }
 
 void dsGPUProfileContext_destroy(dsGPUProfileContext* context)
@@ -509,17 +574,20 @@ void dsGPUProfileContext_destroy(dsGPUProfileContext* context)
 	if (!context)
 		return;
 
-	for (uint32_t i = 0; i < DS_ARRAY_SIZE(context->queryPools); ++i)
+	if (context->useQueries)
 	{
-		QueryPools* pools = context->queryPools + i;
-		for (uint32_t j = 0; j < pools->poolCount; ++j)
-			DS_VERIFY(dsGfxQueryPool_destroy(pools->pools[j]));
-		dsAllocator_free(context->allocator, pools->pools);
-		dsAllocator_free(context->allocator, pools->queries);
-	}
+		for (uint32_t i = 0; i < DS_ARRAY_SIZE(context->queryPools); ++i)
+		{
+			QueryPools* pools = context->queryPools + i;
+			for (uint32_t j = 0; j < pools->poolCount; ++j)
+				DS_VERIFY(dsGfxQueryPool_destroy(pools->pools[j]));
+			dsAllocator_free(context->allocator, pools->pools);
+			dsAllocator_free(context->allocator, pools->queries);
+		}
 
-	dsAllocator_free(context->allocator, context->nodes);
-	dsAllocator_free(context->allocator, context->hashTable);
-	dsSpinlock_shutdown(&context->spinlock);
+		dsAllocator_free(context->allocator, context->nodes);
+		dsAllocator_free(context->allocator, context->hashTable);
+		dsSpinlock_shutdown(&context->spinlock);
+	}
 	dsAllocator_free(context->allocator, context);
 }

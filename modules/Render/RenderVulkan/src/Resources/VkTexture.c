@@ -376,6 +376,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			break;
 		case dsTextureDim_3D:
 			imageType = VK_IMAGE_TYPE_3D;
+			imageViewType = VK_IMAGE_VIEW_TYPE_3D;
 			break;
 		case dsTextureDim_Cube:
 			imageType = VK_IMAGE_TYPE_2D;
