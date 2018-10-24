@@ -55,8 +55,11 @@ static bool supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* formatIn
 		return false;
 
 	if (info->dimension == dsTextureDim_3D)
-		return info->depth <= properties.maxExtent.depth && info->mipLevels <= info->mipLevels;
-	return info->depth <= properties.maxArrayLayers && info->mipLevels <= info->mipLevels;
+	{
+		return info->depth <= properties.maxExtent.depth &&
+			info->mipLevels <= properties.maxMipLevels;
+	}
+	return info->depth <= properties.maxArrayLayers && info->mipLevels <= properties.maxMipLevels;
 }
 
 static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const dsTextureInfo* info,
