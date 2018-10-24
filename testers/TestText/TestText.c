@@ -1256,7 +1256,7 @@ int dsMain(int argc, const char** argv)
 			quality = dsTextQuality_High;
 		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--very-high") == 0)
 			quality = dsTextQuality_VeryHigh;
-		if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
+		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
 			if (i == argc - 1)
 			{

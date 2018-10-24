@@ -546,7 +546,7 @@ int dsMain(int argc, const char** argv)
 		}
 		else if (strcmp(argv[i], "--srgb") == 0)
 			srgb = true;
-		if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
+		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
 			if (i == argc - 1)
 			{

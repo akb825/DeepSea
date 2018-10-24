@@ -856,7 +856,7 @@ int dsMain(int argc, const char** argv)
 			printHelp(argv[0]);
 			return 0;
 		}
-		if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
+		else if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--renderer") == 0)
 		{
 			if (i == argc - 1)
 			{
