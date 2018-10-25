@@ -50,11 +50,12 @@ typedef struct dsVkInstance
 	PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
 	PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatProperties;
 
-	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
-	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
-	PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
+	PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
+	PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
+	PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
 
-	VkDebugReportCallbackEXT debugCallback;
+	VkDebugUtilsMessengerEXT debugCallback;
 
 	VkAllocationCallbacks allocCallbacks;
 	const VkAllocationCallbacks* allocCallbacksPtr;

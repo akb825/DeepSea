@@ -87,7 +87,7 @@ typedef struct ExtraDeviceInfo
 } ExtraDeviceInfo;
 
 static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
-static const char* debugExtensionName = "VK_EXT_debug_report";
+static const char* debugExtensionName = "VK_EXT_debug_utils";
 static const char* devicePropertiesExtensionName = "VK_KHR_get_physical_device_properties2";
 static const char* memoryCapabilitiesExtensionName = "VK_KHR_external_memory_capabilities";
 static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
@@ -102,7 +102,8 @@ static ExtraDeviceInfo extraDeviceInfo[DS_MAX_DEVICES];
 static const char* ignoredMessages[] =
 {
 	"UNASSIGNED-CoreValidation-DevLimit-MissingQueryCount",
-	"UNASSIGNED-CoreValidation-DevLimitCountMismatch"
+	"UNASSIGNED-CoreValidation-DevLimitCountMismatch",
+	"UNASSIGNED-ObjectTracker-Info"
 };
 
 static void* VKAPI_PTR vkAllocFunc(void* pUserData, size_t size, size_t alignment,
@@ -127,34 +128,29 @@ static void VKAPI_PTR vkFreeFunc(void* pUserData, void* pMemory)
 	allocator->freeFunc(allocator, pMemory);
 }
 
-static VkBool32 VKAPI_PTR debugFunc(VkDebugReportFlagsEXT flags,
-	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode,
-	const char* pLayerPrefix, const char* pMessage, void* pUserData)
+static VkBool32 VKAPI_PTR debugFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	void* pUserData)
 {
-	DS_UNUSED(objectType);
-	DS_UNUSED(object);
-	DS_UNUSED(location);
-	DS_UNUSED(messageCode);
+	DS_UNUSED(messageType);
 	DS_UNUSED(pUserData);
 
 	uint32_t ignoredCount = DS_ARRAY_SIZE(ignoredMessages);
 	for (uint32_t i = 0; i < ignoredCount; ++i)
 	{
-		if (strstr(pMessage, ignoredMessages[i]))
+		if (strcmp(pCallbackData->pMessageIdName, ignoredMessages[i]) == 0)
 			return false;
 	}
 
 	dsLogLevel logLevel = dsLogLevel_Info;
-	if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 		logLevel = dsLogLevel_Error;
-	else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT ||
-		flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
-	{
+	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 		logLevel = dsLogLevel_Warning;
-	}
-	else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 		logLevel = dsLogLevel_Info;
-	else if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+	else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
 		logLevel = dsLogLevel_Debug;
 
 	const char* file = NULL;
@@ -167,8 +163,8 @@ static VkBool32 VKAPI_PTR debugFunc(VkDebugReportFlagsEXT flags,
 		function = "<unknown>";
 		line = 0;
 	}
-	dsLog_messagef(logLevel, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s", pLayerPrefix,
-		pMessage);
+	dsLog_messagef(logLevel, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s",
+		pCallbackData->pMessageIdName, pCallbackData->pMessage);
 
 	// Continue executing the function.
 	return false;
@@ -272,7 +268,8 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, memoryCapabilitiesExtensionName);
 	}
 
-	if (options && options->debug && instanceExtensions.debug)
+	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
+	if (options && (options->debug || DS_PROFILING_ENABLED) && instanceExtensions.debug)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, debugExtensionName);
 }
 
@@ -508,6 +505,8 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyInstance);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkEnumeratePhysicalDevices);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkEnumerateDeviceExtensionProperties);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties);
 	if (instanceExtensions.deviceInfo)
 		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR);
@@ -518,22 +517,32 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceImageFormatProperties);
 
+	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
+	{
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
+	}
+
 	if (options && options->debug && instanceExtensions.debug)
 	{
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugReportCallbackEXT);
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugReportCallbackEXT);
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDebugReportMessageEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugUtilsMessengerEXT);
 
-		VkDebugReportCallbackCreateInfoEXT debugCreateInfo =
+		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
 		{
-			VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+			VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 			NULL,
-			VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
-				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
-				VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+			0,
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
 			&debugFunc, NULL
 		};
-		instance->vkCreateDebugReportCallbackEXT(instance->instance, &debugCreateInfo,
+		instance->vkCreateDebugUtilsMessengerEXT(instance->instance, &debugCreateInfo,
 			instance->allocCallbacksPtr, &instance->debugCallback);
 	}
 	else
@@ -550,7 +559,7 @@ void dsDestroyVkInstance(dsVkInstance* instance)
 	{
 		if (instance->debugCallback)
 		{
-			instance->vkDestroyDebugReportCallbackEXT(instance->instance, instance->debugCallback,
+			instance->vkDestroyDebugUtilsMessengerEXT(instance->instance, instance->debugCallback,
 				instance->allocCallbacksPtr);
 		}
 		instance->vkDestroyInstance(instance->instance, instance->allocCallbacksPtr);
@@ -763,6 +772,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageSubresourceLayout);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageMemoryRequirements);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindImageMemory);
