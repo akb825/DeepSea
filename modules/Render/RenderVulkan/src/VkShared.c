@@ -147,3 +147,77 @@ VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
 		return VK_SAMPLE_COUNT_32_BIT;
 	return VK_SAMPLE_COUNT_64_BIT;
 }
+
+VkAccessFlags dsVkSrcBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
+{
+	VkAccessFlags flags = 0;
+	if (canMap)
+		flags |= VK_ACCESS_HOST_WRITE_BIT;
+	if (usage & dsGfxBufferUsage_CopyTo)
+		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
+	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
+		flags |= VK_ACCESS_SHADER_WRITE_BIT;
+	return flags;
+}
+
+VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage)
+{
+	VkAccessFlags flags = 0;
+	if (usage & dsGfxBufferUsage_Index)
+		flags |= VK_ACCESS_INDEX_READ_BIT;
+	if (usage & dsGfxBufferUsage_Vertex)
+		flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+	if (usage & (dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch))
+		flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+	if (usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
+		dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage))
+	{
+		flags |= VK_ACCESS_SHADER_READ_BIT;
+	}
+	if (usage & dsGfxBufferUsage_CopyFrom)
+		flags |= VK_ACCESS_TRANSFER_READ_BIT;
+	return flags;
+}
+
+VkPipelineStageFlags dsVkSrcBufferStageFlags(dsGfxBufferUsage usage, bool canMap)
+{
+	VkPipelineStageFlags flags = 0;
+	if (canMap)
+		flags |= VK_PIPELINE_STAGE_HOST_BIT;
+	if (usage & dsGfxBufferUsage_CopyTo)
+		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
+	{
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	return flags;
+}
+
+VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage)
+{
+	VkAccessFlags flags = 0;
+	if (usage & (dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex))
+		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+	if (usage & dsGfxBufferUsage_IndirectDraw)
+		flags |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+	if (usage & dsGfxBufferUsage_IndirectDispatch)
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	if (usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
+		dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage))
+	{
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	if (usage & dsGfxBufferUsage_CopyTo)
+		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	return flags;
+}

@@ -38,3 +38,8 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	const VkMemoryRequirements* requirements, uint32_t memoryIndex);
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
+VkAccessFlags dsVkSrcBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
+VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage);
+
+VkPipelineStageFlags dsVkSrcBufferStageFlags(dsGfxBufferUsage usage, bool canMap);
+VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage);

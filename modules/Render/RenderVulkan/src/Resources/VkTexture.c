@@ -425,7 +425,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
 	if (usage & dsTextureUsage_CopyFrom)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (usage & dsTextureUsage_CopyTo)
+	if (usage & dsTextureUsage_CopyTo || data)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (offscreen)
 	{

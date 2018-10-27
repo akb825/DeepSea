@@ -15,6 +15,7 @@
  */
 
 #include "VkBarrierList.h"
+#include "VkShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -30,7 +31,8 @@ void dsVkBarrierList_initialize(dsVkBarrierList* barriers, dsAllocator* allocato
 }
 
 bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer,
-	size_t offset, size_t size, dsGfxBufferUsage usage)
+	VkDeviceSize offset, VkDeviceSize size, dsGfxBufferUsage srcUsage, dsGfxBufferUsage dstUsage,
+	bool canMap)
 {
 	uint32_t index = barriers->bufferBarrierCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(barriers->allocator, barriers->bufferBarriers,
@@ -42,21 +44,8 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 	VkBufferMemoryBarrier* barrier = barriers->bufferBarriers + index;
 	barrier->sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 	barrier->pNext = NULL;
-	barrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier->dstAccessMask = 0;
-	if (usage & dsGfxBufferUsage_Index)
-		barrier->dstAccessMask |= VK_ACCESS_INDEX_READ_BIT;
-	if (usage & dsGfxBufferUsage_Vertex)
-		barrier->dstAccessMask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	if (usage & (dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch))
-		barrier->dstAccessMask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-	if (usage & (dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer |
-		dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage))
-	{
-		barrier->dstAccessMask |= VK_ACCESS_SHADER_READ_BIT;
-	}
-	if (usage & dsGfxBufferUsage_CopyFrom)
-		barrier->dstAccessMask |= VK_ACCESS_TRANSFER_READ_BIT;
+	barrier->srcAccessMask = dsVkSrcBufferAccessFlags(srcUsage, canMap);
+	barrier->dstAccessMask = dsVkDstBufferAccessFlags(dstUsage);
 	barrier->srcQueueFamilyIndex = barriers->device->queueFamilyIndex;
 	barrier->dstQueueFamilyIndex = barriers->device->queueFamilyIndex;
 	barrier->buffer = buffer;

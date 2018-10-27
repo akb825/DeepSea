@@ -146,6 +146,7 @@ typedef struct dsVkGfxBufferData
 	void* submitQueue;
 
 	dsGfxBufferUsage usage;
+	dsGfxMemory memoryHints;
 	size_t size;
 
 	dsVkDirtyRange* dirtyRanges;
@@ -236,6 +237,14 @@ typedef struct dsVkBarrierList
 	uint32_t maxBufferBarriers;
 } dsVkBarrierList;
 
+typedef struct dsVkBufferCopyInfo
+{
+	VkBuffer srcBuffer;
+	VkBuffer dstBuffer;
+	uint32_t firstRange;
+	uint32_t rangeCount;
+} dsVkBufferCopyInfo;
+
 typedef struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -263,7 +272,8 @@ typedef struct dsVkRenderer
 
 	dsVkCommandBuffer mainCommandBuffer;
 
-	dsVkBarrierList resourceBarriers;
+	dsVkBarrierList preResourceBarriers;
+	dsVkBarrierList postResourceBarriers;
 	dsVkResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
 	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];
 	uint32_t curPendingResources;
@@ -272,6 +282,10 @@ typedef struct dsVkRenderer
 	VkBufferCopy* bufferCopies;
 	uint32_t bufferCopiesCount;
 	uint32_t maxBufferCopies;
+
+	dsVkBufferCopyInfo* bufferCopyInfos;
+	uint32_t bufferCopyInfoCount;
+	uint32_t maxBufferCopyInfos;
 } dsVkRenderer;
 
 typedef struct dsVkResourceManager

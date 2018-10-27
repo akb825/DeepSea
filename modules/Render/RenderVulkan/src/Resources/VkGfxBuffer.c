@@ -83,7 +83,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		baseCreateFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 	if (usage & dsGfxBufferUsage_CopyFrom)
 		baseCreateFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	if (usage & dsGfxBufferUsage_CopyTo)
+	if (usage & dsGfxBufferUsage_CopyTo || (data && needsDeviceMemory))
 		baseCreateFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 	// Create device buffer for general usage.
@@ -108,7 +108,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->deviceBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -117,7 +117,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		deviceMemoryIndex = dsVkMemoryIndex(device, &deviceRequirements, deviceHints);
 		if (deviceMemoryIndex == DS_INVALID_HEAP)
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 	}
@@ -146,7 +146,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -155,7 +155,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, hostHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 	}
@@ -187,7 +187,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -196,7 +196,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, memoryHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 	}
@@ -207,7 +207,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		buffer->deviceMemory = dsAllocateVkMemory(device, &deviceRequirements, deviceMemoryIndex);
 		if (!buffer->deviceMemory)
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -215,7 +215,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			buffer->deviceBuffer, buffer->deviceMemory, 0);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 	}
@@ -225,7 +225,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		buffer->hostMemory = dsAllocateVkMemory(device, &hostRequirements, hostMemoryIndex);
 		if (!buffer->hostMemory)
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -233,7 +233,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			buffer->hostMemory, 0);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 	}
@@ -247,7 +247,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 			size, 0, &mappedData);
 		if (!dsHandleVkResult(result))
 		{
-			dsVkGfxBufferData_destroy(device, buffer);
+			dsVkGfxBufferData_destroy(buffer, device);
 			return NULL;
 		}
 
@@ -257,6 +257,7 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 	}
 
 	buffer->usage = usage;
+	buffer->memoryHints = memoryHints;
 	buffer->size = size;
 	buffer->lastUsedSubmit = DS_NOT_SUBMITTED;
 	buffer->uploadedSubmit = DS_NOT_SUBMITTED;
@@ -513,13 +514,6 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 
 	VkBuffer dstBuffer = bufferData->deviceBuffer ? bufferData->deviceBuffer :
 		bufferData->hostBuffer;
-	dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, bufferData) ||
-		!dsVkBarrierList_addBufferBarrier(&vkCommandBuffer->barriers, dstBuffer, offset, size,
-			buffer->usage))
-	{
-		return false;
-	}
 
 	const size_t maxSize = 65536;
 	for (size_t block = 0; block < size; block += maxSize)
@@ -544,31 +538,44 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	dsVkGfxBuffer* srcVkBuffer = (dsVkGfxBuffer*)srcBuffer;
 	dsVkGfxBufferData* srcBufferData;
 	DS_ATOMIC_LOAD_PTR(&srcVkBuffer->bufferData, &srcBufferData);
-
-	dsVkRenderer_deleteGfxBuffer(renderer, srcBufferData);
 	if (!dsVkCommandBuffer_addBuffer(commandBuffer, srcBufferData))
 		return false;
 
 	dsVkGfxBuffer* dstVkBuffer = (dsVkGfxBuffer*)dstBuffer;
 	dsVkGfxBufferData* dstBufferData;
 	DS_ATOMIC_LOAD_PTR(&dstVkBuffer->bufferData, &dstBufferData);
+	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData))
+		return false;
 
 	VkBuffer srcCopyBuffer = srcBufferData->deviceBuffer ? srcBufferData->deviceBuffer :
 		srcBufferData->hostBuffer;
 	VkBuffer dstCopyBuffer = dstBufferData->deviceBuffer ? dstBufferData->deviceBuffer :
 		dstBufferData->hostBuffer;
 
-	dsVkRenderer_deleteGfxBuffer(renderer, dstBufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData) ||
-		!dsVkBarrierList_addBufferBarrier(&vkCommandBuffer->barriers, dstCopyBuffer, dstOffset,
-			size, dstBuffer->usage))
+	if (!dsVkGfxBufferData_isStatic(srcBufferData))
 	{
-		return false;
+		bool canMap = (srcBufferData->memoryHints & dsGfxMemory_GPUOnly) == 0 &&
+			!srcBufferData->deviceBuffer;
+		VkBufferMemoryBarrier barrier =
+		{
+			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+			NULL,
+			dsVkSrcBufferAccessFlags(srcBufferData->usage, canMap),
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			device->queueFamilyIndex,
+			device->queueFamilyIndex,
+			srcCopyBuffer,
+			srcOffset,
+			size
+		};
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer->vkCommandBuffer,
+			dsVkSrcBufferStageFlags(srcBufferData->usage, canMap), VK_PIPELINE_STAGE_TRANSFER_BIT,
+			0, 0, NULL, 1, &barrier, 0, NULL);
 	}
 
 	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
-	device->vkCmdCopyBuffer(vkCommandBuffer->vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
-		&bufferCopy);
+	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer->vkCommandBuffer, srcCopyBuffer,
+		dstCopyBuffer, 1, &bufferCopy);
 	return true;
 }
 
@@ -581,7 +588,21 @@ bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buff
 	return true;
 }
 
-void dsVkGfxBufferData_destroy(dsVkDevice* device, dsVkGfxBufferData* buffer)
+bool dsVkGfxBufferData_isStatic(dsVkGfxBufferData* buffer)
+{
+	/*
+	 * Check for:
+	 * 1. Doesn't allow GPU usage that supports copying.
+	 * 2. If access on host via mapping isn't allowed.
+	 * 3. Device memory is used, in which case the data must be copied.
+	 * 1 and either 2 or 3 must be met.
+	 */
+	return !(buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_UniformBuffer |
+		dsGfxBufferUsage_MutableImage)) &&
+		((buffer->memoryHints & dsGfxMemory_GPUOnly) || buffer->deviceMemory);
+}
+
+void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer, dsVkDevice* device)
 {
 	if (!buffer)
 		return;

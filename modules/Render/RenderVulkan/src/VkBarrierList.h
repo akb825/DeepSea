@@ -22,7 +22,8 @@ void dsVkBarrierList_initialize(dsVkBarrierList* barriers, dsAllocator* allocato
 	dsVkDevice* device);
 
 bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer,
-	size_t offset, size_t size, dsGfxBufferUsage usage);
+	VkDeviceSize offset, VkDeviceSize size, dsGfxBufferUsage srcUsage, dsGfxBufferUsage dstUsage,
+	bool canMap);
 void dsVkBarrierList_clear(dsVkBarrierList* barriers);
 
 void dsVkBarrierList_shutdown(dsVkBarrierList* barriers);

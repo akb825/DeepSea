@@ -144,28 +144,71 @@ static void freeResources(dsVkRenderer* renderer)
 			continue;
 		}
 
-		dsVkGfxBufferData_destroy(device, buffer);
+		dsVkGfxBufferData_destroy(buffer, device);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
 }
 
-static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuffer)
+static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
+	const dsVkDirtyRange* dirtyRanges, uint32_t dirtyRangeCount)
+{
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+	dsVkBarrierList* postResourceBarriers = &renderer->postResourceBarriers;
+
+	uint32_t firstCopy = renderer->bufferCopiesCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopies,
+		renderer->bufferCopiesCount, renderer->maxBufferCopies, dirtyRangeCount))
+	{
+		return false;
+	}
+
+	bool isStatic = dsVkGfxBufferData_isStatic(buffer);
+	for (uint32_t i = 0; i < dirtyRangeCount; ++i)
+	{
+		VkBufferCopy* copyInfo = renderer->bufferCopies + firstCopy + i;
+		const dsVkDirtyRange* dirtyRange = dirtyRanges + i;
+		copyInfo->srcOffset = copyInfo->dstOffset = dirtyRange->start;
+		copyInfo->size = dirtyRange->size;
+
+		// Need a barrier before. If the buffer is static, have a memory barrier after
+		// the copy to avoid needing barriers for each usage.
+		dsVkBarrierList_addBufferBarrier(preResourceBarriers, buffer->hostBuffer,
+			dirtyRange->start, dirtyRange->size, 0, dsGfxBufferUsage_CopyFrom, true);
+		if (isStatic)
+		{
+			dsVkBarrierList_addBufferBarrier(postResourceBarriers, buffer->deviceBuffer,
+				dirtyRange->start, dirtyRange->size, dsGfxBufferUsage_CopyTo,
+				buffer->usage, false);
+		}
+	}
+
+	uint32_t curInfo = renderer->bufferCopyInfoCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopyInfos,
+		renderer->bufferCopyInfoCount, renderer->maxBufferCopyInfos, 1))
+	{
+		renderer->bufferCopiesCount = firstCopy;
+		return false;
+	}
+
+	dsVkBufferCopyInfo* copyInfo = renderer->bufferCopyInfos + curInfo;
+	copyInfo->srcBuffer = buffer->hostBuffer;
+	copyInfo->dstBuffer = buffer->deviceBuffer;
+	copyInfo->firstRange = firstCopy;
+	copyInfo->rangeCount = dirtyRangeCount;
+	return true;
+}
+
+static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceList)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
 	dsVkInstance* instance = &device->instance;
-	dsVkBarrierList* barriers = &renderer->resourceBarriers;
 
-	DS_VERIFY(dsSpinlock_lock(&renderer->resourceLock));
-	dsVkResourceList* prevResourceList = renderer->pendingResources + renderer->curPendingResources;
-	renderer->curPendingResources =
-		(renderer->curPendingResources + 1) % DS_PENDING_RESOURCES_ARRAY;
-	DS_VERIFY(dsSpinlock_unlock(&renderer->resourceLock));
-
-	for (uint32_t i = 0; i < prevResourceList->bufferCount; ++i)
+	for (uint32_t i = 0; i < resourceList->bufferCount; ++i)
 	{
-		dsVkGfxBufferData* buffer = prevResourceList->buffers[i];
+		dsVkGfxBufferData* buffer = resourceList->buffers[i];
 		if (!buffer->deviceBuffer || !buffer->hostBuffer)
 			continue;
 
@@ -181,40 +224,27 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		}
 
 		// Record the ranges to copy.
-		renderer->bufferCopiesCount = 0;
+		bool doUpload = false;
 		if (buffer->needsInitialCopy)
 		{
-			if (DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopies,
-				renderer->bufferCopiesCount, renderer->maxBufferCopies, 1))
-			{
-				renderer->bufferCopies[0].srcOffset = renderer->bufferCopies[0].dstOffset = 0;
-				renderer->bufferCopies[0].size = buffer->size;
-				buffer->needsInitialCopy = false;
-			}
+			DS_ASSERT(buffer->dirtyRangeCount == 0);
+			doUpload = true;
+			dsVkDirtyRange dirtyRange = {0, buffer->size};
+			addBufferCopies(renderer, buffer, &dirtyRange, 1);
+			buffer->needsInitialCopy = false;
 		}
-
-		if (buffer->dirtyRangeCount > 0)
+		else if (buffer->dirtyRangeCount > 0)
 		{
-			uint32_t firstCopy = renderer->bufferCopiesCount;
-			if (DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->bufferCopies,
-				renderer->bufferCopiesCount, renderer->maxBufferCopies, buffer->dirtyRangeCount))
-			{
-				for (uint32_t j = 0; j < buffer->dirtyRangeCount; ++j)
-				{
-					VkBufferCopy* copyInfo = renderer->bufferCopies + firstCopy + j;
-					const dsVkDirtyRange* dirtyRange = buffer->dirtyRanges + j;
-					copyInfo->srcOffset = copyInfo->dstOffset = dirtyRange->start;
-					copyInfo->size = dirtyRange->size;
-				}
-				buffer->dirtyRangeCount = 0;
-			}
+			doUpload = true;
+			addBufferCopies(renderer, buffer, buffer->dirtyRanges, buffer->dirtyRangeCount);
+			buffer->dirtyRangeCount = 0;
 		}
 
 		// Record when the latest copy occurred. If no copy to process, then see if we can destroy
 		// the host memory. (i.e. it was only used for the initial data)
 		VkDeviceMemory hostMemory = 0;
 		VkBuffer hostBuffer = 0;
-		if (renderer->bufferCopiesCount > 0)
+		if (doUpload)
 			buffer->uploadedSubmit = renderer->submitCount;
 		else if (buffer->hostBuffer && !buffer->keepHost &&
 			buffer->uploadedSubmit <= renderer->finishedSubmitCount)
@@ -226,44 +256,69 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 		}
 		DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
 
-		if (renderer->bufferCopiesCount > 0)
+		// If we don't keep the host memory, either re-queue to do the deletion if we did the copy,
+		// otherwise perform the deletion.
+		if (!buffer->keepHost)
 		{
-			// Process the upload.
-			DS_VK_CALL(device->vkCmdCopyBuffer)(commandBuffer, buffer->hostBuffer,
-				buffer->deviceBuffer, renderer->bufferCopiesCount, renderer->bufferCopies);
-
-			for (uint32_t j = 0; j < renderer->bufferCopiesCount; ++j)
-			{
-				VkBufferCopy* copy = renderer->bufferCopies + i;
-				dsVkBarrierList_addBufferBarrier(&renderer->resourceBarriers, hostBuffer,
-					(size_t)copy->dstOffset, (size_t)copy->size, buffer->usage);
-			}
-
-			// Queue to re-process if don't keep the memory.
-			if (!buffer->keepHost)
-				dsVkRenderer_processGfxBuffer((dsRenderer*)renderer, buffer);
-		}
-		else if (!buffer->keepHost)
-		{
-			// Delete the host memory if we can, otherwise re-queue it.
 			if (hostBuffer)
 			{
+				DS_ASSERT(!doUpload);
 				DS_VK_CALL(device->vkDestroyBuffer)(device->device, hostBuffer,
 					instance->allocCallbacksPtr);
 				DS_VK_CALL(device->vkFreeMemory)(device->device, hostMemory,
 					instance->allocCallbacksPtr);
 			}
 			else
-				dsVkRenderer_processGfxBuffer((dsRenderer*)renderer, buffer);
+			{
+				DS_ASSERT(doUpload);
+				dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
+			}
 		}
 	}
+}
 
-	if (barriers->bufferBarrierCount > 0)
+static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuffer)
+{
+	dsVkDevice* device = &renderer->device;
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+	dsVkBarrierList* postResourceBarriers = &renderer->postResourceBarriers;
+
+	DS_VERIFY(dsSpinlock_lock(&renderer->resourceLock));
+	dsVkResourceList* prevResourceList = renderer->pendingResources + renderer->curPendingResources;
+	renderer->curPendingResources =
+		(renderer->curPendingResources + 1) % DS_PENDING_RESOURCES_ARRAY;
+	DS_VERIFY(dsSpinlock_unlock(&renderer->resourceLock));
+
+	// Clear everything out.
+	renderer->bufferCopiesCount = 0;
+	renderer->bufferCopyInfoCount = 0;
+
+	preResourceBarriers->bufferBarrierCount = 0;
+	postResourceBarriers->bufferBarrierCount = 0;
+
+	processBuffers(renderer, prevResourceList);
+
+	// Process the uploads.
+	if (preResourceBarriers->bufferBarrierCount > 0)
+	{
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
+			preResourceBarriers->bufferBarrierCount, preResourceBarriers->bufferBarriers, 0, NULL);
+	}
+
+	for (uint32_t i = 0; i < renderer->bufferCopyInfoCount; ++i)
+	{
+		const dsVkBufferCopyInfo* copyInfo = renderer->bufferCopyInfos + i;
+		DS_VK_CALL(device->vkCmdCopyBuffer)(commandBuffer, copyInfo->srcBuffer, copyInfo->dstBuffer,
+			copyInfo->rangeCount, renderer->bufferCopies + copyInfo->firstRange);
+	}
+
+	if (postResourceBarriers->bufferBarrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, NULL,
-			barriers->bufferBarrierCount, barriers->bufferBarriers, 0, NULL);
-		dsVkBarrierList_clear(barriers);
+			postResourceBarriers->bufferBarrierCount, postResourceBarriers->bufferBarriers,
+			0, NULL);
 	}
 
 	dsVkResourceList_clear(prevResourceList);
@@ -391,14 +446,15 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsVkResourceList_shutdown(&vkRenderer->mainCommandBuffer.usedResources);
 	dsVkBarrierList_shutdown(&vkRenderer->mainCommandBuffer.barriers);
 
-	dsVkBarrierList_shutdown(&vkRenderer->resourceBarriers);
+	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
+	dsVkBarrierList_shutdown(&vkRenderer->postResourceBarriers);
 	for (unsigned int i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
 		dsVkResourceList_shutdown(&vkRenderer->pendingResources[i]);
 	for (unsigned int i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 	{
 		dsVkResourceList* deleteResources = vkRenderer->deleteResources + i;
 		for (uint32_t i = 0; i < deleteResources->bufferCount; ++i)
-			dsVkGfxBufferData_destroy(device, deleteResources->buffers[i]);
+			dsVkGfxBufferData_destroy(deleteResources->buffers[i], device);
 
 		dsVkResourceList_shutdown(deleteResources);
 	}
@@ -412,6 +468,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsConditionVariable_destroy(vkRenderer->waitCondition);
 
 	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->bufferCopies));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->bufferCopyInfos));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 	return true;
 }
@@ -495,7 +552,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	dsVkBarrierList_initialize(&renderer->mainCommandBuffer.barriers, allocator,
 		&renderer->device);
 
-	dsVkBarrierList_initialize(&renderer->resourceBarriers, allocator, &renderer->device);
+	dsVkBarrierList_initialize(&renderer->preResourceBarriers, allocator, &renderer->device);
+	dsVkBarrierList_initialize(&renderer->postResourceBarriers, allocator, &renderer->device);
 	for (uint32_t i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
 		dsVkResourceList_initialize(renderer->pendingResources + i, allocator);
 	for (uint32_t i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
