@@ -18,7 +18,9 @@
 #include "VkRendererInternal.h"
 
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkInit.h"
@@ -36,6 +38,7 @@
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
+#include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
 
 static size_t dsVkRenderer_fullAllocSize(const dsRendererOptions* options)
@@ -119,6 +122,7 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 
 static void freeResources(dsVkRenderer* renderer)
 {
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
 
 	DS_VERIFY(dsSpinlock_lock(&renderer->deleteLock));
@@ -131,20 +135,36 @@ static void freeResources(dsVkRenderer* renderer)
 		dsVkGfxBufferData* buffer = prevDeleteList->buffers[i];
 		DS_ASSERT(buffer);
 
-		uint32_t commandBufferCount;
-		DS_ATOMIC_LOAD32(&buffer->commandBufferCount, &commandBufferCount);
-		bool stillInUse = commandBufferCount > 0 ||
-			(buffer->lastUsedSubmit != DS_NOT_SUBMITTED &&
-				buffer->lastUsedSubmit > renderer->finishedSubmitCount) ||
+		bool stillInUse = dsVkResource_isInUse(&buffer->resource, baseRenderer) ||
 			(buffer->uploadedSubmit != DS_NOT_SUBMITTED &&
 				buffer->uploadedSubmit > renderer->finishedSubmitCount);
 		if (stillInUse)
 		{
-			dsVkRenderer_deleteGfxBuffer((dsRenderer*)renderer, buffer);
+			dsVkRenderer_deleteGfxBuffer(baseRenderer, buffer);
 			continue;
 		}
 
 		dsVkGfxBufferData_destroy(buffer, device);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->textureCount; ++i)
+	{
+		dsTexture* texture = prevDeleteList->textures[i];
+		DS_ASSERT(texture);
+		dsVkTexture* vkTexture = (dsVkTexture*)texture;
+
+		bool stillInUse = dsVkResource_isInUse(&vkTexture->resource, baseRenderer) ||
+			(vkTexture->uploadedSubmit != DS_NOT_SUBMITTED &&
+				vkTexture->uploadedSubmit > renderer->finishedSubmitCount) ||
+			(vkTexture->lastDrawSubmit != DS_NOT_SUBMITTED &&
+				vkTexture->lastDrawSubmit > renderer->finishedSubmitCount);
+		if (stillInUse)
+		{
+			dsVkRenderer_deleteTexture(baseRenderer, texture);
+			continue;
+		}
+
+		dsVkTexture_destroyImpl(texture);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -200,6 +220,153 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 	return true;
 }
 
+static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
+{
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	dsTexture* baseTexture = (dsTexture*)texture;
+	const dsTextureInfo* info = &baseTexture->info;
+	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
+	bool is3D = info->dimension == dsTextureDim_3D;
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+	dsVkBarrierList* postResourceBarriers = &renderer->postResourceBarriers;
+
+	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+	if (texture->hostImage)
+	{
+		uint32_t index = renderer->imageCopyCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopies,
+			renderer->imageCopyCount, renderer->maxImageCopies, info->mipLevels))
+		{
+			return false;
+		}
+
+		uint32_t infoIndex = renderer->imageCopyInfoCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopyInfos,
+			renderer->imageCopyInfoCount, renderer->maxImageCopyInfos, 1))
+		{
+			renderer->imageCopyCount = index;
+			return false;
+		}
+
+		dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + infoIndex;
+		copyInfo->srcImage = texture->hostImage;
+		copyInfo->dstImage = texture->deviceImage;
+		copyInfo->srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		copyInfo->dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+		copyInfo->firstRange = index;
+		copyInfo->rangeCount = info->mipLevels;
+
+		for (uint32_t i = 0; i < info->mipLevels; ++i)
+		{
+			uint32_t width = info->width >> i;
+			uint32_t height = info->height >> i;
+			uint32_t depth = is3D ? info->depth >> i : info->depth;
+			width = dsMax(1U, width);
+			height = dsMax(1U, height);
+			depth = dsMax(1U, depth);
+
+			uint32_t layerCount = faceCount*(is3D ? 1U : depth);
+			VkImageCopy* imageCopy = renderer->imageCopies + index + i;
+			imageCopy->srcSubresource.aspectMask = texture->aspectMask;
+			imageCopy->srcSubresource.mipLevel = 0;
+			imageCopy->srcSubresource.baseArrayLayer = 0;
+			imageCopy->srcSubresource.layerCount = layerCount;
+			imageCopy->srcOffset.x = 0;
+			imageCopy->srcOffset.y = 0;
+			imageCopy->srcOffset.z = 0;
+			imageCopy->dstSubresource = imageCopy->srcSubresource;
+			imageCopy->dstOffset = imageCopy->srcOffset;
+			imageCopy->extent.width = width;
+			imageCopy->extent.height = height;
+			imageCopy->extent.depth = is3D ? depth : 1U;
+		}
+
+		dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->hostImage, &fullLayout,
+			0, true, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_PREINITIALIZED,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	}
+	else
+	{
+		DS_ASSERT(texture->hostImageCount > 0);
+		uint32_t index = renderer->imageCopyCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopies,
+			renderer->imageCopyCount, renderer->maxImageCopies, texture->hostImageCount))
+		{
+			return false;
+		}
+
+		uint32_t infoIndex = renderer->imageCopyInfoCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(baseRenderer->allocator, renderer->imageCopyInfos,
+			renderer->imageCopyInfoCount, renderer->maxImageCopyInfos, texture->hostImageCount))
+		{
+			renderer->imageCopyCount = index;
+			return false;
+		}
+
+		for (uint32_t i = 0, imageIndex = 0; i < info->mipLevels; ++i)
+		{
+			uint32_t width = info->width >> i;
+			uint32_t height = info->height >> i;
+			uint32_t depth = is3D ? info->depth >> i : info->depth;
+			width = dsMax(1U, width);
+			height = dsMax(1U, height);
+			depth = dsMax(1U, depth);
+			for (uint32_t j = 0; j < depth; ++j)
+			{
+				for (uint32_t k = 0; k < faceCount; ++k, ++index, ++infoIndex, ++imageIndex)
+				{
+					DS_ASSERT(index < renderer->imageCopyCount);
+					DS_ASSERT(infoIndex < renderer->imageCopyInfoCount);
+
+					VkImageCopy* imageCopy = renderer->imageCopies + index;
+					imageCopy->srcSubresource.aspectMask = texture->aspectMask;
+					imageCopy->srcSubresource.mipLevel = 0;
+					imageCopy->srcSubresource.baseArrayLayer = 0;
+					imageCopy->srcSubresource.layerCount = 1;
+					imageCopy->srcOffset.x = 0;
+					imageCopy->srcOffset.y = 0;
+					imageCopy->srcOffset.z = 0;
+					imageCopy->dstSubresource.aspectMask = texture->aspectMask;
+					imageCopy->dstSubresource.mipLevel = i;
+					imageCopy->dstSubresource.baseArrayLayer = j*faceCount + k;
+					imageCopy->dstSubresource.layerCount = 1;
+					imageCopy->dstOffset.x = 0;
+					imageCopy->dstOffset.y = 0;
+					imageCopy->dstOffset.z = is3D ? j : 0;
+					imageCopy->extent.width = width;
+					imageCopy->extent.height = height;
+					imageCopy->extent.depth = 1U;
+
+					VkImage hostImage = texture->hostImages[imageIndex].image;
+					dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + infoIndex;
+					copyInfo->srcImage = hostImage;
+					copyInfo->dstImage = texture->deviceImage;
+					copyInfo->srcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+					copyInfo->dstLayout = VK_IMAGE_LAYOUT_GENERAL;
+					copyInfo->firstRange = index;
+					copyInfo->rangeCount = info->mipLevels;
+
+					dsVkBarrierList_addImageBarrier(preResourceBarriers, hostImage, &fullLayout, 0,
+						true, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_PREINITIALIZED,
+						VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+				}
+			}
+		}
+
+		DS_ASSERT(index == renderer->imageCopyCount);
+		DS_ASSERT(infoIndex == renderer->imageCopyInfoCount);
+	}
+
+	// Even non-static images will have a barrier to process the layout conversion.
+	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
+		dsTextureUsage_CopyFrom, false, baseTexture->offscreen,
+		dsGfxFormat_isDepthStencil(info->format), baseTexture->usage, VK_IMAGE_LAYOUT_GENERAL,
+		dsVkTexture_imageLayout(baseTexture));
+
+	return true;
+}
+
 static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceList)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
@@ -212,13 +379,13 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 		if (!buffer->deviceBuffer || !buffer->hostBuffer)
 			continue;
 
-		DS_VERIFY(dsSpinlock_lock(&buffer->lock));
+		DS_VERIFY(dsSpinlock_lock(&buffer->resource.lock));
 		// Clear the submit queue now that we're processing it.
 		buffer->submitQueue = NULL;
 		if (buffer->mappedSize > 0)
 		{
 			// Still mapped, process later.
-			DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
+			DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 			dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
 			continue;
 		}
@@ -254,7 +421,7 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 			buffer->hostBuffer = 0;
 			buffer->hostMemory = 0;
 		}
-		DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
+		DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 
 		// If we don't keep the host memory, either re-queue to do the deletion if we did the copy,
 		// otherwise perform the deletion.
@@ -269,10 +436,61 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 					instance->allocCallbacksPtr);
 			}
 			else
-			{
-				DS_ASSERT(doUpload);
 				dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
+		}
+	}
+}
+
+static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceList)
+{
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	dsVkDevice* device = &renderer->device;
+	dsVkInstance* instance = &device->instance;
+
+	for (uint32_t i = 0; i < resourceList->textureCount; ++i)
+	{
+		dsTexture* texture = resourceList->textures[i];
+		dsVkTexture* vkTexture = (dsVkTexture*)texture;
+		if (!vkTexture->hostImage && vkTexture->hostImageCount == 0)
+			continue;
+
+		DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
+		// Clear the submit queue now that we're processing it.
+		vkTexture->submitQueue = NULL;
+		bool doUpload = false;
+		if (vkTexture->needsInitialCopy)
+		{
+			doUpload = true;
+			addImageCopies(renderer, vkTexture);
+			vkTexture->needsInitialCopy = false;
+		}
+
+		DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
+
+		// Queue for re-processing if we still need to delete the host image.
+		if (doUpload || vkTexture->uploadedSubmit > renderer->finishedSubmitCount)
+			dsVkRenderer_processTexture(baseRenderer, texture);
+		else
+		{
+			if (vkTexture->hostImage)
+			{
+				DS_ASSERT(vkTexture->hostImageCount == 0);
+				DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->hostImage,
+					instance->allocCallbacksPtr);
+				vkTexture->hostImage = 0;
 			}
+			else
+			{
+				for (uint32_t j = 0; j < vkTexture->hostImageCount; ++j)
+				{
+					DS_VK_CALL(device->vkDestroyImage)(device->device,
+						vkTexture->hostImages[j].image, instance->allocCallbacksPtr);
+				}
+				vkTexture->hostImageCount = 0;
+			}
+			DS_VK_CALL(device->vkFreeMemory)(device->device, vkTexture->hostMemory,
+				instance->allocCallbacksPtr);
+			vkTexture->hostMemory = 0;
 		}
 	}
 }
@@ -297,13 +515,15 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	postResourceBarriers->bufferBarrierCount = 0;
 
 	processBuffers(renderer, prevResourceList);
+	processTextures(renderer, prevResourceList);
 
 	// Process the uploads.
 	if (preResourceBarriers->bufferBarrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
 			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL,
-			preResourceBarriers->bufferBarrierCount, preResourceBarriers->bufferBarriers, 0, NULL);
+			preResourceBarriers->bufferBarrierCount, preResourceBarriers->bufferBarriers,
+			preResourceBarriers->imageBarrierCount, preResourceBarriers->imageBarriers);
 	}
 
 	for (uint32_t i = 0; i < renderer->bufferCopyInfoCount; ++i)
@@ -313,12 +533,20 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 			copyInfo->rangeCount, renderer->bufferCopies + copyInfo->firstRange);
 	}
 
+	for (uint32_t i = 0; i < renderer->imageCopyInfoCount; ++i)
+	{
+		const dsVkImageCopyInfo* copyInfo = renderer->imageCopyInfos + i;
+		DS_VK_CALL(device->vkCmdCopyImage)(commandBuffer, copyInfo->srcImage, copyInfo->srcLayout,
+			copyInfo->dstImage, copyInfo->dstLayout, copyInfo->rangeCount,
+			renderer->imageCopies + copyInfo->firstRange);
+	}
+
 	if (postResourceBarriers->bufferBarrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
 			VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, NULL,
 			postResourceBarriers->bufferBarrierCount, postResourceBarriers->bufferBarriers,
-			0, NULL);
+			postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
 	}
 
 	dsVkResourceList_clear(prevResourceList);
@@ -443,8 +671,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 			instance->allocCallbacksPtr);
 	}
 
-	dsVkResourceList_shutdown(&vkRenderer->mainCommandBuffer.usedResources);
-	dsVkBarrierList_shutdown(&vkRenderer->mainCommandBuffer.barriers);
+	dsVkCommandBuffer_shutdown(&vkRenderer->mainCommandBuffer);
 
 	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
 	dsVkBarrierList_shutdown(&vkRenderer->postResourceBarriers);
@@ -469,6 +696,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 
 	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->bufferCopies));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->bufferCopyInfos));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->imageCopies));
+	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->imageCopyInfos));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
 	return true;
 }
@@ -548,9 +777,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsVkResourceList_initialize(&renderer->mainCommandBuffer.usedResources, allocator);
-	dsVkBarrierList_initialize(&renderer->mainCommandBuffer.barriers, allocator,
-		&renderer->device);
+	dsVkCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
+		dsCommandBufferUsage_Standard);
 
 	dsVkBarrierList_initialize(&renderer->preResourceBarriers, allocator, &renderer->device);
 	dsVkBarrierList_initialize(&renderer->postResourceBarriers, allocator, &renderer->device);
@@ -679,7 +907,8 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	DS_ASSERT(buffer);
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
+
+	DS_VERIFY(dsSpinlock_lock(&buffer->resource.lock));
 
 	// Once it's processed, it's now considered used.
 	buffer->used = true;
@@ -688,19 +917,19 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	if (!buffer->deviceBuffer || !buffer->hostBuffer ||
 		(!buffer->needsInitialCopy && buffer->dirtyRangeCount == 0))
 	{
-		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
+		DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 		return;
 	}
 
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
 	dsVkResourceList* resourceList = vkRenderer->pendingResources + vkRenderer->curPendingResources;
 
-	DS_VERIFY(dsSpinlock_lock(&buffer->lock));
 	// Keep track of the submit queue. If it's already on a queue, don't do anything.
 	void* submitQueue;
 	submitQueue = buffer->submitQueue;
 	if (!submitQueue)
 		buffer->submitQueue = resourceList;
-	DS_VERIFY(dsSpinlock_unlock(&buffer->lock));
+	DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 
 	if (submitQueue)
 	{
@@ -712,6 +941,39 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 }
 
+void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
+{
+	DS_ASSERT(texture);
+	dsVkTexture* vkTexture = (dsVkTexture*)texture;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
+
+	// Make sure this needs to be processed.
+	if (!vkTexture->needsInitialCopy)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
+		return;
+	}
+
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
+	dsVkResourceList* resourceList = vkRenderer->pendingResources + vkRenderer->curPendingResources;
+
+	// Keep track of the submit queue. If it's already on a queue, don't do anything.
+	void* submitQueue;
+	submitQueue = vkTexture->submitQueue;
+	if (!submitQueue)
+		vkTexture->submitQueue = resourceList;
+	DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
+
+	if (submitQueue)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
+		return;
+	}
+
+	dsVkResourceList_addTexture(resourceList, texture);
+}
+
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)
 {
 	DS_ASSERT(buffer);
@@ -721,5 +983,17 @@ void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffe
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addBuffer(resourceList, buffer);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
+{
+	DS_ASSERT(texture);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addTexture(resourceList, texture);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

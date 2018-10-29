@@ -21,6 +21,7 @@
 void dsVkResourceList_initialize(dsVkResourceList* resources, dsAllocator* allocator);
 
 bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* buffer);
+bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

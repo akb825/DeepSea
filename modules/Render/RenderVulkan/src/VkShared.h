@@ -38,8 +38,16 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	const VkMemoryRequirements* requirements, uint32_t memoryIndex);
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
+
 VkAccessFlags dsVkSrcBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
 VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage);
 
 VkPipelineStageFlags dsVkSrcBufferStageFlags(dsGfxBufferUsage usage, bool canMap);
 VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage);
+
+VkAccessFlags dsVkSrcImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
+VkAccessFlags dsVkDstImageAccessFlags(dsTextureUsage usage);
+
+VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen,
+	bool depthStencil);
+VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);

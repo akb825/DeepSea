@@ -18,14 +18,6 @@
 
 #include "VkTypes.h"
 
-void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage);
-
-bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	dsCommandBuffer* submitBuffer);
-
-bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
-void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer);
-void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount);
-
-void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer);
+void dsVkResource_initialize(dsVkResource* resource);
+bool dsVkResource_isInUse(const dsVkResource* resource, const dsRenderer* renderer);
+void dsVkResource_shutdown(dsVkResource* resource);

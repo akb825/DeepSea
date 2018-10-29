@@ -15,6 +15,7 @@
  */
 
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkResource.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
@@ -39,9 +40,9 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 		return NULL;
 
 	memset(buffer, 0, sizeof(*buffer));
+	dsVkResource_initialize(&buffer->resource);
 	buffer->allocator = dsAllocator_keepPointer(allocator);
 	buffer->scratchAllocator = scratchAllocator;
-	DS_VERIFY(dsSpinlock_initialize(&buffer->lock));
 
 	dsVkInstance* instance = &device->instance;
 
@@ -259,7 +260,6 @@ static dsVkGfxBufferData* createBufferData(dsVkDevice* device, dsAllocator* allo
 	buffer->usage = usage;
 	buffer->memoryHints = memoryHints;
 	buffer->size = size;
-	buffer->lastUsedSubmit = DS_NOT_SUBMITTED;
 	buffer->uploadedSubmit = DS_NOT_SUBMITTED;
 	buffer->keepHost = keepHostMemory;
 	buffer->used = false;
@@ -307,10 +307,10 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	dsVkGfxBufferData* bufferData;
 	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
 
-	DS_VERIFY(dsSpinlock_lock(&bufferData->lock));
+	DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 	if (bufferData->mappedSize > 0)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer is already mapped.");
 		return NULL;
@@ -318,7 +318,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 	if (!bufferData->keepHost)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be mapped.");
 		return NULL;
@@ -327,7 +327,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	// Orphan the data if invalidated.
 	if ((flags & dsGfxBufferMap_Invalidate) && bufferData->used)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		dsVkGfxBufferData* newBufferData = createBufferData(device, buffer->allocator,
 			resourceManager->allocator, buffer->usage, buffer->memoryHints, NULL, buffer->size);
 		if (!newBufferData)
@@ -338,7 +338,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		DS_ATOMIC_EXCHANGE_PTR(&vkBuffer->bufferData, &newBufferData, &bufferData);
 		dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
 		bufferData = newBufferData;
-		DS_VERIFY(dsSpinlock_lock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 		DS_ASSERT(bufferData->keepHost);
 		DS_ASSERT(bufferData->hostMemory);
 	}
@@ -346,28 +346,28 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	bufferData->mappedStart = offset;
 	bufferData->mappedSize = size;
 	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) != 0;
-	uint64_t lastUsedSubmit = bufferData->lastUsedSubmit;
-	DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+	uint64_t lastUsedSubmit = bufferData->resource.lastUsedSubmit;
+	DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 
 	// Wait for the submitted command to be finished when reading.
 	if ((flags & dsGfxBufferMap_Read) && (buffer->memoryHints & dsGfxMemory_Synchronize) &&
 		lastUsedSubmit != DS_NOT_SUBMITTED)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 
 		// 10 seconds in nanoseconds
 		const uint64_t timeout = 10000000000;
 		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit,
 			timeout);
 
-		DS_VERIFY(dsSpinlock_lock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 
 		if (fenceResult == dsGfxFenceResult_WaitingToQueue)
 		{
 			bufferData->mappedStart = 0;
 			bufferData->mappedSize = 0;
 			bufferData->mappedWrite = false;
-			DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+			DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer still queued to be rendered.");
@@ -376,7 +376,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 		if (bufferData->mappedSize == 0)
 		{
-			DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+			DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer was unlocked while waiting.");
 			return NULL;
@@ -392,11 +392,11 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		bufferData->mappedStart = 0;
 		bufferData->mappedSize = 0;
 		bufferData->mappedWrite = false;
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		return NULL;
 	}
 
-	DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+	DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 	return memory;
 }
 
@@ -409,10 +409,10 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsVkGfxBufferData* bufferData;
 	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
 
-	DS_VERIFY(dsSpinlock_lock(&bufferData->lock));
+	DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 	if (bufferData->mappedSize == 0)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer isn't mapped.");
 		return false;
@@ -435,7 +435,7 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	bufferData->mappedStart = 0;
 	bufferData->mappedSize = 0;
 	bufferData->mappedWrite = false;
-	DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+	DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 
 	return true;
 }
@@ -454,7 +454,7 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		return false;
 	}
 
@@ -484,7 +484,7 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
-		DS_VERIFY(dsSpinlock_unlock(&bufferData->lock));
+		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		return false;
 	}
 
@@ -511,6 +511,8 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
 	dsVkGfxBufferData* bufferData;
 	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &bufferData->resource))
+		return false;
 
 	VkBuffer dstBuffer = bufferData->deviceBuffer ? bufferData->deviceBuffer :
 		bufferData->hostBuffer;
@@ -538,13 +540,13 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	dsVkGfxBuffer* srcVkBuffer = (dsVkGfxBuffer*)srcBuffer;
 	dsVkGfxBufferData* srcBufferData;
 	DS_ATOMIC_LOAD_PTR(&srcVkBuffer->bufferData, &srcBufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, srcBufferData))
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &srcBufferData->resource))
 		return false;
 
 	dsVkGfxBuffer* dstVkBuffer = (dsVkGfxBuffer*)dstBuffer;
 	dsVkGfxBufferData* dstBufferData;
 	DS_ATOMIC_LOAD_PTR(&dstVkBuffer->bufferData, &dstBufferData);
-	if (!dsVkCommandBuffer_addBuffer(commandBuffer, dstBufferData))
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &dstBufferData->resource))
 		return false;
 
 	VkBuffer srcCopyBuffer = srcBufferData->deviceBuffer ? srcBufferData->deviceBuffer :
@@ -588,7 +590,7 @@ bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buff
 	return true;
 }
 
-bool dsVkGfxBufferData_isStatic(dsVkGfxBufferData* buffer)
+bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 {
 	/*
 	 * Check for:
@@ -633,7 +635,7 @@ void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer, dsVkDevice* device)
 
 	DS_VERIFY(dsAllocator_free(buffer->scratchAllocator, buffer->dirtyRanges));
 
-	dsSpinlock_shutdown(&buffer->lock);
+	dsVkResource_shutdown(&buffer->resource);
 	if (buffer->allocator)
 		dsAllocator_free(buffer->allocator, buffer);
 }

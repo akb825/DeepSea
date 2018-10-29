@@ -55,12 +55,41 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 	return true;
 }
 
+bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
+	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool host, bool offscreen,
+	bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	uint32_t index = barriers->imageBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(barriers->allocator, barriers->imageBarriers,
+		barriers->imageBarrierCount, barriers->maxImageBarriers, 1))
+	{
+		return false;
+	}
+
+	VkImageMemoryBarrier* barrier = barriers->imageBarriers + index;
+	barrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier->pNext = NULL;
+	barrier->srcAccessMask = host ? VK_ACCESS_HOST_WRITE_BIT :
+		dsVkSrcImageAccessFlags(srcUsage, offscreen, depthStencil);
+	barrier->dstAccessMask = dsVkDstImageAccessFlags(dstUsage);
+	barrier->oldLayout = oldLayout;
+	barrier->newLayout = newLayout;
+	barrier->srcQueueFamilyIndex = barriers->device->queueFamilyIndex;
+	barrier->dstQueueFamilyIndex = barriers->device->queueFamilyIndex;
+	barrier->image = image;
+	barrier->subresourceRange = *range;
+
+	return true;
+}
+
 void dsVkBarrierList_clear(dsVkBarrierList* barriers)
 {
 	barriers->bufferBarrierCount = 0;
+	barriers->imageBarrierCount = 0;
 }
 
 void dsVkBarrierList_shutdown(dsVkBarrierList* barriers)
 {
 	dsAllocator_free(barriers->allocator, barriers->bufferBarriers);
+	dsAllocator_free(barriers->allocator, barriers->imageBarriers);
 }

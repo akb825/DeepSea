@@ -24,6 +24,9 @@ void dsVkBarrierList_initialize(dsVkBarrierList* barriers, dsAllocator* allocato
 bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer,
 	VkDeviceSize offset, VkDeviceSize size, dsGfxBufferUsage srcUsage, dsGfxBufferUsage dstUsage,
 	bool canMap);
+bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
+	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool host, bool offscreen,
+	bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout, VkImageLayout newLayout);
 void dsVkBarrierList_clear(dsVkBarrierList* barriers);
 
 void dsVkBarrierList_shutdown(dsVkBarrierList* barriers);

@@ -16,6 +16,7 @@
 
 #include "Resources/VkTexture.h"
 
+#include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
@@ -115,6 +116,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 				&subresource, &baseLayout);
 
 			uint32_t depth = is3D ? info->depth >> i : info->depth;
+			depth = dsMax(depth, 1U);
 			for (uint32_t j = 0; j < depth; ++j)
 			{
 				for (uint32_t k = 0; k < faceCount; ++k, ++index)
@@ -405,6 +407,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	DS_ASSERT(texture);
 
 	memset(texture, 0, sizeof(*texture));
+	dsVkResource_initialize(&texture->resource);
 
 	dsTexture* baseTexture = (dsTexture*)texture;
 	baseTexture->resourceManager = resourceManager;
@@ -414,8 +417,6 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	baseTexture->info = *info;
 	baseTexture->offscreen = offscreen;
 	baseTexture->resolve = resolve;
-
-	DS_VERIFY(dsSpinlock_initialize(&texture->lock));
 
 	// Base flags determined from the usage flags passed in.
 	VkImageUsageFlags usageFlags = 0;
@@ -540,6 +541,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
+	texture->lastDrawSubmit = DS_NOT_SUBMITTED;
+	texture->aspectMask = aspectMask;
 	return baseTexture;
 }
 
@@ -557,6 +560,29 @@ dsOffscreen* dsVkTexture_createOffscreen(dsResourceManager* resourceManager, dsA
 {
 	return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, NULL, 0, true,
 		resolve);
+}
+
+bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
+{
+	dsVkRenderer_deleteTexture(resourceManager->renderer, texture);
+	return true;
+}
+
+bool dsVkTexture_isStatic(const dsTexture* texture)
+{
+	return (texture->usage & (dsTextureUsage_CopyTo | dsTextureUsage_Image)) == 0 &&
+		!texture->offscreen;
+}
+
+VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
+{
+	if (texture->offscreen ||
+		(texture->usage & (dsTextureUsage_Image | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo)))
+	{
+		return VK_IMAGE_LAYOUT_GENERAL;
+	}
+
+	return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
 void dsVkTexture_destroyImpl(dsTexture* texture)
@@ -617,7 +643,7 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 			instance->allocCallbacksPtr);
 	}
 
-	dsSpinlock_shutdown(&vkTexture->lock);
+	dsVkResource_shutdown(&vkTexture->resource);
 	if (texture->allocator)
 		dsAllocator_free(texture->allocator, texture);
 }

@@ -40,12 +40,27 @@ bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* 
 	return true;
 }
 
+bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture)
+{
+	uint32_t index = resources->textureCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->textures, resources->textureCount,
+		resources->maxTextures, 1))
+	{
+		return false;
+	}
+
+	resources->textures[index] = texture;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
+	resources->textureCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
 {
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->buffers));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));
 }

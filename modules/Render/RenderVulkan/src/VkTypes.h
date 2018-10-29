@@ -103,6 +103,7 @@ typedef struct dsVkDevice
 	PFN_vkDestroyImage vkDestroyImage;
 	PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
 	PFN_vkBindImageMemory vkBindImageMemory;
+	PFN_vkCmdCopyImage vkCmdCopyImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -124,6 +125,13 @@ typedef struct dsVkFormatInfo
 	VkFormatProperties properties;
 } dsVkFormatInfo;
 
+typedef struct dsVkResource
+{
+	dsSpinlock lock;
+	uint64_t lastUsedSubmit;
+	uint32_t commandBufferCount;
+} dsVkResource;
+
 typedef struct dsVkDirtyRange
 {
 	size_t start;
@@ -132,13 +140,13 @@ typedef struct dsVkDirtyRange
 
 typedef struct dsVkGfxBufferData
 {
+	dsVkResource resource;
+
 	dsAllocator* allocator;
 	dsAllocator* scratchAllocator;
-	dsSpinlock lock;
 
 	VkDeviceMemory deviceMemory;
 	VkBuffer deviceBuffer;
-	uint64_t lastUsedSubmit;
 
 	VkDeviceMemory hostMemory;
 	VkBuffer hostBuffer;
@@ -160,8 +168,6 @@ typedef struct dsVkGfxBufferData
 	bool keepHost;
 	bool used;
 	bool needsInitialCopy;
-
-	uint32_t commandBufferCount;
 } dsVkGfxBufferData;
 
 typedef struct dsVkGfxBuffer
@@ -186,12 +192,11 @@ typedef struct dsVkHostImage
 typedef struct dsVkTexture
 {
 	dsTexture texture;
-	dsSpinlock lock;
+	dsVkResource resource;
 
 	VkDeviceMemory deviceMemory;
 	VkImage deviceImage;
 	VkImageView deviceImageView;
-	uint64_t lastUsedSubmit;
 
 	VkDeviceMemory hostMemory;
 	VkImage hostImage;
@@ -205,9 +210,8 @@ typedef struct dsVkTexture
 	VkImageView surfaceImageView;
 	uint64_t lastDrawSubmit;
 
+	VkImageAspectFlags aspectMask;
 	bool needsInitialCopy;
-
-	uint32_t commandBufferCount;
 } dsVkTexture;
 
 typedef struct dsVkSubmitInfo
@@ -225,6 +229,10 @@ typedef struct dsVkResourceList
 	dsVkGfxBufferData** buffers;
 	uint32_t bufferCount;
 	uint32_t maxBuffers;
+
+	dsTexture** textures;
+	uint32_t textureCount;
+	uint32_t maxTextures;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
@@ -235,6 +243,10 @@ typedef struct dsVkBarrierList
 	VkBufferMemoryBarrier* bufferBarriers;
 	uint32_t bufferBarrierCount;
 	uint32_t maxBufferBarriers;
+
+	VkImageMemoryBarrier* imageBarriers;
+	uint32_t imageBarrierCount;
+	uint32_t maxImageBarriers;
 } dsVkBarrierList;
 
 typedef struct dsVkBufferCopyInfo
@@ -245,12 +257,25 @@ typedef struct dsVkBufferCopyInfo
 	uint32_t rangeCount;
 } dsVkBufferCopyInfo;
 
+typedef struct dsVkImageCopyInfo
+{
+	VkImage srcImage;
+	VkImage dstImage;
+	VkImageLayout srcLayout;
+	VkImageLayout dstLayout;
+	uint32_t firstRange;
+	uint32_t rangeCount;
+} dsVkImageCopyInfo;
+
 typedef struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
 	VkCommandBuffer vkCommandBuffer;
-	dsVkResourceList usedResources;
 	dsVkBarrierList barriers;
+
+	dsVkResource** usedResources;
+	uint32_t usedResourceCount;
+	uint32_t maxUsedResources;
 } dsVkCommandBuffer;
 
 typedef struct dsVkRenderer
@@ -286,6 +311,14 @@ typedef struct dsVkRenderer
 	dsVkBufferCopyInfo* bufferCopyInfos;
 	uint32_t bufferCopyInfoCount;
 	uint32_t maxBufferCopyInfos;
+
+	VkImageCopy* imageCopies;
+	uint32_t imageCopyCount;
+	uint32_t maxImageCopies;
+
+	dsVkImageCopyInfo* imageCopyInfos;
+	uint32_t imageCopyInfoCount;
+	uint32_t maxImageCopyInfos;
 } dsVkRenderer;
 
 typedef struct dsVkResourceManager

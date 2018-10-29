@@ -15,13 +15,27 @@
  */
 
 #include "VkCommandBuffer.h"
-#include "VkResourceList.h"
+#include "VkBarrierList.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Assert.h>
+#include <string.h>
+
+void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
+	dsAllocator* allocator, dsCommandBufferUsage usage)
+{
+	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+
+	memset(commandBuffer, 0, sizeof(*commandBuffer));
+	baseCommandBuffer->renderer = renderer;
+	baseCommandBuffer->allocator = allocator;
+	baseCommandBuffer->usage = usage;
+	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
+}
 
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
@@ -30,24 +44,22 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	dsVkDevice* device = &vkRenderer->device;
 
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	dsVkResourceList* usedResources = &vkCommandBuffer->usedResources;
-
 	dsVkCommandBuffer* vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
-	dsVkResourceList* submitUsedResources = &vkSubmitBuffer->usedResources;
 
 	// Copy over the used resources.
-	uint32_t offset = usedResources->bufferCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, usedResources->buffers,
-		usedResources->bufferCount, usedResources->maxBuffers, submitUsedResources->bufferCount))
+	uint32_t offset = vkCommandBuffer->usedResourceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->usedResources,
+		vkCommandBuffer->usedResourceCount, vkCommandBuffer->maxUsedResources,
+		vkSubmitBuffer->usedResourceCount))
 	{
 		return false;
 	}
 
-	for (uint32_t i = 0; i < submitUsedResources->bufferCount; ++i)
+	for (uint32_t i = 0; i < vkSubmitBuffer->usedResourceCount; ++i)
 	{
-		dsVkGfxBufferData* buffer = submitUsedResources->buffers[i];
-		DS_ATOMIC_FETCH_ADD32(&buffer->commandBufferCount, 1);
-		usedResources->buffers[offset + i] = buffer;
+		dsVkResource* resource = vkSubmitBuffer->usedResources[i];
+		DS_ATOMIC_FETCH_ADD32(&resource->commandBufferCount, 1);
+		vkCommandBuffer->usedResources[offset + i] = resource;
 	}
 
 	DS_VK_CALL(device->vkCmdExecuteCommands)(vkCommandBuffer->vkCommandBuffer, 1,
@@ -64,40 +76,50 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	return true;
 }
 
-bool dsVkCommandBuffer_addBuffer(dsCommandBuffer* commandBuffer, dsVkGfxBufferData* buffer)
+bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	if (!dsVkResourceList_addBuffer(&vkCommandBuffer->usedResources, buffer))
+	uint32_t index = vkCommandBuffer->usedResourceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->usedResources,
+		vkCommandBuffer->usedResourceCount, vkCommandBuffer->maxUsedResources, 1))
+	{
 		return false;
+	}
 
-	DS_ATOMIC_FETCH_ADD32(&buffer->commandBufferCount, 1);
+	vkCommandBuffer->usedResources[index] = resource;
+	DS_ATOMIC_FETCH_ADD32(&resource->commandBufferCount, 1);
 	return true;
 }
 
 void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	dsVkResourceList* usedResources = &vkCommandBuffer->usedResources;
 
-	for (uint32_t i = 0; i < usedResources->bufferCount; ++i)
-		DS_ATOMIC_FETCH_ADD32(&usedResources->buffers[i]->commandBufferCount, -1);
+	for (uint32_t i = 0; i < vkCommandBuffer->usedResourceCount; ++i)
+		DS_ATOMIC_FETCH_ADD32(&vkCommandBuffer->usedResources[i]->commandBufferCount, -1);
 
-	dsVkResourceList_clear(usedResources);
+	vkCommandBuffer->usedResourceCount = 0;
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	dsVkResourceList* usedResources = &vkCommandBuffer->usedResources;
 
-	for (uint32_t i = 0; i < usedResources->bufferCount; ++i)
+	for (uint32_t i = 0; i < vkCommandBuffer->usedResourceCount; ++i)
 	{
-		dsVkGfxBufferData* buffer = usedResources->buffers[i];
-		DS_ATOMIC_FETCH_ADD32(&buffer->commandBufferCount, -1);
-		DS_VERIFY(dsSpinlock_lock(&buffer->lock));
-		buffer->lastUsedSubmit = submitCount;
-		DS_VERIFY(dsSpinlock_lock(&buffer->lock));
+		dsVkResource* resource = vkCommandBuffer->usedResources[i];
+		DS_ATOMIC_FETCH_ADD32(&resource->commandBufferCount, -1);
+		DS_VERIFY(dsSpinlock_lock(&resource->lock));
+		resource->lastUsedSubmit = submitCount;
+		DS_VERIFY(dsSpinlock_lock(&resource->lock));
 	}
 
-	dsVkResourceList_clear(usedResources);
+	vkCommandBuffer->usedResourceCount = 0;
+}
+
+void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
+{
+	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->usedResources));
+	dsVkBarrierList_shutdown(&commandBuffer->barriers);
 }
