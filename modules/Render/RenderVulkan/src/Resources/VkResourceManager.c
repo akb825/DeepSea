@@ -18,6 +18,7 @@
 
 #include "Resources/VkDrawGeometry.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkTexture.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -660,6 +661,15 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	// Draw geometry
 	baseResourceManager->createGeometryFunc = &dsVkDrawGeometry_create;
 	baseResourceManager->destroyGeometryFunc = &dsVkDrawGeometry_destroy;
+
+	// Textures
+	baseResourceManager->createTextureFunc = &dsVkTexture_create;
+	baseResourceManager->createOffscreenFunc = &dsVkTexture_createOffscreen;
+	baseResourceManager->destroyTextureFunc = &dsVkTexture_destroy;
+	baseResourceManager->copyTextureDataFunc = &dsVkTexture_copyData;
+	baseResourceManager->copyTextureFunc = &dsVkTexture_copy;
+	baseResourceManager->generateTextureMipmapsFunc = &dsVkTexture_generateMipmaps;
+	baseResourceManager->getTextureDataFunc = &dsVkTexture_getData;
 
 	return resourceManager;
 }

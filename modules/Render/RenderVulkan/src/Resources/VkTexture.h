@@ -36,6 +36,8 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height);
 bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture);
 
+bool dsVkTexture_supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* formatInfo,
+	VkImageType imageType, const dsTextureInfo* info);
 bool dsVkTexture_isStatic(const dsTexture* texture);
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture);
 void dsVkTexture_destroyImpl(dsTexture* texture);

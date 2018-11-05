@@ -18,11 +18,7 @@
 
 #include "VkTypes.h"
 
-void dsVkResourceList_initialize(dsVkResourceList* resources, dsAllocator* allocator);
-
-bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* buffer);
-bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture);
-bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* image);
-void dsVkResourceList_clear(dsVkResourceList* resources);
-
-void dsVkResourceList_shutdown(dsVkResourceList* resources);
+dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, dsTexture* texture,
+	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
+	const void* data, size_t size);
+void dsVkCopyImage_destroy(dsVkCopyImage* copyImage);

@@ -355,10 +355,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 	{
 		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 
-		// 10 seconds in nanoseconds
-		const uint64_t timeout = 10000000000;
 		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit,
-			timeout);
+			DS_DEFAULT_WAIT_TIMEOUT);
 
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
 
@@ -564,8 +562,8 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 			NULL,
 			dsVkSrcBufferAccessFlags(srcBufferData->usage, canMap),
 			VK_ACCESS_TRANSFER_WRITE_BIT,
-			device->queueFamilyIndex,
-			device->queueFamilyIndex,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
 			srcCopyBuffer,
 			srcOffset,
 			size

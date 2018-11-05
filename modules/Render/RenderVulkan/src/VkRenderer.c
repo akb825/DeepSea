@@ -17,6 +17,7 @@
 #include <DeepSea/RenderVulkan/VkRenderer.h>
 #include "VkRendererInternal.h"
 
+#include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
@@ -165,6 +166,20 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkTexture_destroyImpl(texture);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->copyImageCount; ++i)
+	{
+		dsVkCopyImage* copyImage = prevDeleteList->copyImages[i];
+		DS_ASSERT(copyImage);
+
+		if (dsVkResource_isInUse(&copyImage->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteCopyImage(baseRenderer, copyImage);
+			continue;
+		}
+
+		dsVkCopyImage_destroy(copyImage);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -561,9 +576,8 @@ void dsVkRenderer_flush(dsRenderer* renderer)
 	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
-		// 10 seconds in nanoseconds
-		const uint64_t timeout = 10000000000;
-		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true, timeout);
+		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
+			DS_DEFAULT_WAIT_TIMEOUT);
 		vkRenderer->finishedSubmitCount = submit->submitIndex;
 	}
 
@@ -995,5 +1009,17 @@ void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addTexture(resourceList, texture);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage)
+{
+	DS_ASSERT(copyImage);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addCopyImage(resourceList, copyImage);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

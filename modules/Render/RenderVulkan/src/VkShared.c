@@ -275,7 +275,7 @@ VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen
 	return flags;
 }
 
-VkPipelineStageFlags dsVkDstTextureStageFlags(dsTextureUsage usage, bool depthStencilAttachment)
+VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment)
 {
 	VkAccessFlags flags = 0;
 	if (depthStencilAttachment)
@@ -292,4 +292,23 @@ VkPipelineStageFlags dsVkDstTextureStageFlags(dsTextureUsage usage, bool depthSt
 	if (usage & dsTextureUsage_CopyFrom)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 	return flags;
+}
+
+VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format)
+{
+	switch (format)
+	{
+		case dsGfxFormat_D16:
+		case dsGfxFormat_X8D24:
+		case dsGfxFormat_D32_Float:
+			return VK_IMAGE_ASPECT_DEPTH_BIT;
+		case dsGfxFormat_S8:
+			return VK_IMAGE_ASPECT_STENCIL_BIT;
+		case dsGfxFormat_D16S8:
+		case dsGfxFormat_D24S8:
+		case dsGfxFormat_D32S8_Float:
+			return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		default:
+			return VK_IMAGE_ASPECT_COLOR_BIT;
+	}
 }

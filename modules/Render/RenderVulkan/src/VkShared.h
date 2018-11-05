@@ -51,3 +51,5 @@ VkAccessFlags dsVkDstImageAccessFlags(dsTextureUsage usage);
 VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen,
 	bool depthStencil);
 VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);
+
+VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);

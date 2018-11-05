@@ -28,6 +28,8 @@
 #define DS_MAX_SUBMITS (DS_DELAY_FRAMES*DS_EXPECTED_FRAME_FLUSHES)
 #define DS_PENDING_RESOURCES_ARRAY 2
 #define DS_DELETE_RESOURCES_ARRAY 2
+// 10 seconds in nanoseconds
+#define DS_DEFAULT_WAIT_TIMEOUT 10000000000
 
 typedef struct dsVkInstance
 {
@@ -104,6 +106,7 @@ typedef struct dsVkDevice
 	PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
 	PFN_vkBindImageMemory vkBindImageMemory;
 	PFN_vkCmdCopyImage vkCmdCopyImage;
+	PFN_vkCmdBlitImage vkCmdBlitImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -189,6 +192,20 @@ typedef struct dsVkHostImage
 	VkSubresourceLayout layout;
 } dsVkHostImage;
 
+typedef struct dsVkCopyImage
+{
+	dsVkResource resource;
+	dsAllocator* allocator;
+	dsVkDevice* device;
+	dsTexture* texture;
+	VkImage* images;
+	VkImageMemoryBarrier* imageBarriers;
+	VkImageCopy* imageCopies;
+	uint32_t imageCount;
+	uint32_t imageCopyCount;
+	VkDeviceMemory memory;
+} dsVkCopyImage;
+
 typedef struct dsVkTexture
 {
 	dsTexture texture;
@@ -233,6 +250,10 @@ typedef struct dsVkResourceList
 	dsTexture** textures;
 	uint32_t textureCount;
 	uint32_t maxTextures;
+
+	dsVkCopyImage** copyImages;
+	uint32_t copyImageCount;
+	uint32_t maxCopyImages;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList

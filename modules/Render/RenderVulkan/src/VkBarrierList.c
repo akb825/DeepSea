@@ -46,8 +46,8 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 	barrier->pNext = NULL;
 	barrier->srcAccessMask = dsVkSrcBufferAccessFlags(srcUsage, canMap);
 	barrier->dstAccessMask = dsVkDstBufferAccessFlags(dstUsage);
-	barrier->srcQueueFamilyIndex = barriers->device->queueFamilyIndex;
-	barrier->dstQueueFamilyIndex = barriers->device->queueFamilyIndex;
+	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier->buffer = buffer;
 	barrier->offset = offset;
 	barrier->size = size;
@@ -74,8 +74,8 @@ bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
 	barrier->dstAccessMask = dsVkDstImageAccessFlags(dstUsage);
 	barrier->oldLayout = oldLayout;
 	barrier->newLayout = newLayout;
-	barrier->srcQueueFamilyIndex = barriers->device->queueFamilyIndex;
-	barrier->dstQueueFamilyIndex = barriers->device->queueFamilyIndex;
+	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier->image = image;
 	barrier->subresourceRange = *range;
 

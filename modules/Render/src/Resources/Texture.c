@@ -109,8 +109,11 @@ uint32_t dsTexture_surfaceIndex(const dsTextureInfo* info, dsCubeFace cubeFace, 
 	uint32_t mipLevels = dsMin(info->mipLevels, maxMipLevels);
 	mipLevels = dsMax(1U, mipLevels);
 
-	if (depthIndex >= depth || mipIndex >= mipLevels)
+	if (depthIndex >= depth || mipIndex >= mipLevels ||
+		(info->dimension != dsTextureDim_Cube && cubeFace != dsCubeFace_None))
+	{
 		return DS_INVALID_TEXTURE_SURFACE;
+	}
 
 	unsigned int faces = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	if (info->dimension == dsTextureDim_3D)
@@ -546,6 +549,13 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
+	if (texture->info.dimension != dsTextureDim_Cube && position->face != dsCubeFace_None)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot copy to a specific cube face when not a cube map.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
 	dsTextureDim dimension = texture->info.dimension;
 	if (dimension == dsTextureDim_Cube)
 		dimension = dsTextureDim_2D;
@@ -714,6 +724,17 @@ bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTex
 				"edge of the image.");
 			DS_PROFILE_FUNC_RETURN(false);
 		}
+
+		if ((srcTexture->info.dimension != dsTextureDim_Cube &&
+				regions[i].srcPosition.face != dsCubeFace_None) ||
+			(dstTexture->info.dimension != dsTextureDim_Cube &&
+				regions[i].dstPosition.face != dsCubeFace_None))
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Cannot copy to a specific cube face when not a cube map.");
+			DS_PROFILE_FUNC_RETURN(false);
+		}
 	}
 
 	if (!commandBuffer->frameActive)
@@ -760,6 +781,14 @@ bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuffer* commandBuffe
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot generate mipmaps for multisampled textures.");
+		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (!(texture->usage & dsTextureUsage_CopyFrom) || !(texture->usage & dsTextureUsage_CopyTo))
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Generating mipmaps requires both the copy from and copy to usage bits to be set.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

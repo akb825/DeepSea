@@ -682,15 +682,17 @@ TEST_F(TextureTest, Copy)
 
 TEST_F(TextureTest, GenerateMipmaps)
 {
+	dsTextureUsage usage = (dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom |
+		dsTextureUsage_CopyTo);
 	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 32, 16, 0, DS_ALL_MIP_LEVELS, 1};
-	dsTexture* texture1 = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, NULL, 0);
+	dsTexture* texture1 = dsTexture_create(resourceManager, NULL, usage, dsGfxMemory_Read, &info,
+		NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	info.format = dsGfxFormat_decorate(dsGfxFormat_BC1_RGB, dsGfxFormat_UNorm);
-	dsTexture* texture2 = dsTexture_create(resourceManager, NULL, dsTextureUsage_Texture,
-		dsGfxMemory_Read, &info, NULL, 0);
+	dsTexture* texture2 = dsTexture_create(resourceManager, NULL, usage, dsGfxMemory_Read, &info,
+		NULL, 0);
 	ASSERT_TRUE(texture1);
 
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
