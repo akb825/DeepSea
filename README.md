@@ -18,10 +18,25 @@ The following software is required to build DeepSea:
 * [Cuttlefish](https://github.com/akb825/Cuttlefish) (recommended to create textures)
 * [python](https://www.python.org/) 2.7 or 3.x (optional for flatbuffer converters)
 
-The submodule dependencies can be grabbed by running the commands
+The `update.sh` script may be used to update the code, submodules, and download pre-built binaries for the tools used for building and libraries. In the case of Windows, this script should be run in `git bash` (installed with Git for Windows) or similar environment. Apart from git, it will call into the following tools, which should be installed on most systems already:
 
-	DeepSea$ git submodule init
-	DeepSea$ git submodule update
+* curl
+* tar (for all but Windows packages)
+* unzip (for Windows packages)
+
+The first time you run `update.sh`, pass in the `-t` option to download the tools. You can also pass the `-l` with the list of platforms to download the libraries for. Supported platforms are:
+
+* linux (Linux with glibc 2.19 for x86-64)
+* mac (macOS 10.11 for x86-64)
+* win32 (Windows for x86)
+* win64 (Windows for x86-64)
+* android-x86 (Android for x86)
+* android-x86_64 (Android for x86-64)
+* android-armeabi-v7a (Android for ARM v7a)
+* android-arm64-v8a (Android for ARM64 v8a)
+* android-all (Convenience option to download all Android platforms)
+
+After you have chosen the platforms to download libraries for, run `update.sh -a` at any point to pull the current branch and update the submodules, tools, and libraries to the proper versions. If you check out a specific revision or tag, you can run `update.sh -m` to update everything but the current git branch.
 
 # Platforms
 
@@ -35,52 +50,7 @@ DeepSea has been built for and tested on the following platforms:
 
 [CMake](https://cmake.org/) is used as the build system. The way to invoke CMake differs for different platforms.
 
-## Dependencies
-
-In order to perform a full build of DeepSea, the dependencies should be installed first.
-
-* [Modular Shader Language](https://github.com/akb825/ModularShaderLanguage): the tool is required to build shaders. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
-* [Cuttlefish](https://github.com/akb825/Cuttlefish): this is recommended to create textures. Download the repository and follow the instructions to build and install the tool. Make sure the tool is on `PATH`.
-* [gtest](https://github.com/google/googletest): after installing the library you may need to set the `GTEST_ROOT` CMake variable to the installation location.
-* [SDL](https://www.libsdl.org/): after installing the library you may need to set the `SDL2_PATH` CMake variable to the installation location.
-* [FreeType](https://www.freetype.org/): after installing the library, you may need to set the `FREETYPE_DIR` environment variable to the installation location.
-* [HarfBuzz](https://www.freedesktop.org/wiki/Software/HarfBuzz/): after installing the library you may need to set the `HARFBUZZ_PATH` CMake variable to the installation location. Some notes when building HarfBuzz from source:
-	* The [ragel](http://www.colm.net/open-source/ragel/) tool is required. Make sure that the `RAGEL` CMake variable is set to the path to `ragel`.
-	* When building under Windows, building `ragel` must be done using [MinGW](https://sourceforge.net/projects/mingw/). Be sure to install the developer-tools, base, and gcc-g++ packages, then run `C:\MinGW\msys\1.0\msys.bat` for the console to perform the build. (use `/c/` prefix for paths to the C: drive) Also add `C:\MinGW\bin` to `PATH` to make sure `ragel` can be run oustide of a MinGW console.
-	* The `HB_HAVE_FREETYPE` CMake variable should be set to `ON`. 
-	* If you intend to build DeepSea as a shared library, it is recommended you build HarfBuzz as a shared library as well. This prevents you from manually linking HarfBuzz's direct dependencies with DeepSea as well.
-* [FlatBuffers](https://github.com/google/flatbuffers): optional to build the generated code from FlatBuffer schemas. Pre-generated files are provided, so this is only necessary if changes to the schemas are made.
-
 ## Linux/macOS
-
-Many of the above dependencies are available in system packages, though some will still need to be built on source. Package names for some commonly used systems are listed below, though equivalents should be available on other disttributions.
-
-For Ubuntu:
-
-* libsdl2-dev
-* libfreetype6-dev
-* harfbuzz-dev
-* (rest must be built from source)
-
-For Arch Linux all dependencies are available, though Modular Shader Language and Cuttlefush must be built through the Arch User Repository (aur):
-
-* [msl](https://aur.archlinux.org/packages/msl)
-* [cuttlefish-tool](https://aur.archlinux.org/packages/cuttlefish-tool)
-* gtest
-* sdl2
-* freetype2
-* harfbuzz
-* flatbuffers
-
-For macOS using [Homebrew](https://brew.sh/):
-
-* sdl2
-* freetype
-* harfbuzz
-* flatbuffers
-* (rest must be built from source)
-
-> **Note:** In order to make a build suitable for distribution on macOS, you may want to build all dependencies from source to avoid a dependency on Homebrew-specific libraries.
 
 To create a release build, execute the following commands:
 
@@ -93,9 +63,9 @@ The tests can be run by running the command:
 
 	DeepSea/build$ ctest
 
-## Windows
+> **Note:** When building on Linux, the freetype and harfbuzz libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev` and `harfbuzz-dev` should be installed.
 
-Building is generally performed through Visual Studio. Unlike Linux and Mac, there is no commonly available package manager system to install the depndencies, so they must be built from source using their respective instructions.
+## Windows
 
 Generating Visual Studio projects can either be done through the CMake GUI tool or on the command line. To generate Visual Studio 2017 projects from the command line, you can run the commands:
 

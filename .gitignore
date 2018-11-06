@@ -1,4 +1,5 @@
 /build
+/dependencies
 __pycache__
 .vscode
 *.pyc
