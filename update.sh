@@ -157,7 +157,7 @@ if [[ ($TOOLS -eq 2 && -d "$DEPENDENCIES_DIR/tools" ) || $TOOLS -eq 1 ]]; then
 			PLATFORM=mac
 			EXTENSION=tar.gz
 			;;
-		CYGWIN|MINGW)
+		CYGWIN*|MINGW*)
 			PLATFORM=win32
 			EXTENSION=zip
 			;;

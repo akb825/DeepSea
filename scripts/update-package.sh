@@ -22,7 +22,7 @@ cd "$DIRECTORY"
 curl -L "$URL" -o "$FILE"
 
 if [ "${FILE: -4}" = ".zip" ]; then
-	unzip "$FILE"
+	unzip -q "$FILE"
 else
 	tar xzf "$FILE"
 fi
