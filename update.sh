@@ -111,10 +111,7 @@ do
 				fi
 				shift
 			done
-
-			if [ $# -eq 0 ]; then
-				break
-			fi
+			continue
 			;;
 		-c|--clean)
 			CLEAN=1

@@ -55,20 +55,6 @@ macro(ds_get_variables)
 	get_property(DEEPSEA_MODULES GLOBAL PROPERTY DEEPSEA_MODULES)
 endmacro()
 
-if (DEEPSEA_BUILD_TESTS)
-	find_package(GTest QUIET)
-	if (NOT GTEST_FOUND)
-		message("GTest not installed. Skipping unit tests.")
-	endif()
-endif()
-
-if (DEEPSEA_BUILD_DOCS)
-	find_package(Doxygen QUIET)
-	if (NOT DOXYGEN_FOUND)
-		message("Doxygon not installed. Skipping documentation.")
-	endif()
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (DEEPSEA_SHARED)
@@ -95,7 +81,23 @@ set_property(GLOBAL PROPERTY DEEPSEA_MODULE_DIR ${DEEPSEA_MODULE_DIR})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${DEEPSEA_SOURCE_DIR}/cmake)
 include(cmake/config.cmake)
+include(cmake/helpers.cmake)
 include(cmake/install.cmake)
+include(cmake/prebuilt.cmake)
+
+if (DEEPSEA_BUILD_TESTS)
+	find_package(GTest QUIET)
+	if (NOT GTEST_FOUND)
+		message("GTest not installed. Skipping unit tests.")
+	endif()
+endif()
+
+if (DEEPSEA_BUILD_DOCS)
+	find_package(Doxygen QUIET)
+	if (NOT DOXYGEN_FOUND)
+		message("Doxygon not installed. Skipping documentation.")
+	endif()
+endif()
 
 add_subdirectory(modules)
 
