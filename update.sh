@@ -139,10 +139,12 @@ if [ $CLEAN -ne 0 ]; then
 fi
 
 if [ $GIT -ne 0 ]; then
+	echo "Updating git..."
 	git pull
 fi
 
 if [ $SUBMODULES -ne 0 ]; then
+	echo "Updating git submodules..."
 	git submodule init
 	git submodule update
 fi
@@ -168,6 +170,7 @@ if [[ ($TOOLS -eq 2 && -d "$DEPENDENCIES_DIR/tools" ) || $TOOLS -eq 1 ]]; then
 			;;
 	esac
 
+	echo "Updating tools..."
 	VERSION=`cat scripts/tools.version`
 	FILE="DeepSea-tools-$PLATFORM.$EXTENSION"
 	scripts/update-package.sh \
@@ -175,30 +178,35 @@ if [[ ($TOOLS -eq 2 && -d "$DEPENDENCIES_DIR/tools" ) || $TOOLS -eq 1 ]]; then
 		"$FILE" $VERSION "$DEPENDENCIES_DIR/tools"
 fi
 
-VERSION=`cat scripts/libs.version`
-for PLATFORM in "${SUPPORTED_PLATFORMS[@]}"; do
-	UPDATE=0
-	if [ -d "$DEPENDENCIES_DIR/libs/$PLATFORM" ]; then
-		UPDATE=1
-	else
-		for SET_PLATFORM in "${PLATFORMS[@]}"; do
-			if [ "$SET_PLATFORM" = "$PLATFORM" ]; then
-				UPDATE=1
-				break
-			fi
-		done
-	fi
+if [ $LIBS -ne 0 ]; then
+	VERSION=`cat scripts/libs.version`
+	for PLATFORM in "${SUPPORTED_PLATFORMS[@]}"; do
+		UPDATE=0
+		if [ -d "$DEPENDENCIES_DIR/libs/$PLATFORM" ]; then
+			UPDATE=1
+		else
+			for SET_PLATFORM in "${PLATFORMS[@]}"; do
+				if [ "$SET_PLATFORM" = "$PLATFORM" ]; then
+					UPDATE=1
+					break
+				fi
+			done
+		fi
 
-	if [ "${PLATFORM:0:3}" = "win" ]; then
-		EXTENSION="zip"
-	else
-		EXTENSION="tar.gz"
-	fi
+		if [ "${PLATFORM:0:3}" = "win" ]; then
+			EXTENSION="zip"
+		else
+			EXTENSION="tar.gz"
+		fi
 
-	if [ "$UPDATE" -ne 0 ]; then
-		FILE="DeepSea-libs-$PLATFORM.$EXTENSION"
-		scripts/update-package.sh \
-			"https://github.com/akb825/DeepSea-libs/releases/download/v$VERSION/$FILE" \
-			"$FILE" $VERSION "$DEPENDENCIES_DIR/libs/$PLATFORM"
-	fi
-done
+		if [ $UPDATE -ne 0 ]; then
+			echo "Updating libs for $PLATFORM..."
+			FILE="DeepSea-libs-$PLATFORM.$EXTENSION"
+			scripts/update-package.sh \
+				"https://github.com/akb825/DeepSea-libs/releases/download/v$VERSION/$FILE" \
+				"$FILE" $VERSION "$DEPENDENCIES_DIR/libs/$PLATFORM"
+		fi
+	done
+fi
+
+echo "Done."
