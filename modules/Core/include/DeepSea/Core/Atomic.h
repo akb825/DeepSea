@@ -172,7 +172,8 @@ DS_CORE_EXPORT __int64 dsAtomic_interlockedExchangeAdd64Impl(__int64* xPtr, __in
 	(void)(*(__int64*)(returnPtr) = DS_INTERLOCKED_EXCHANGE64_IMPL((__int64*)(xPtr), \
 		*(__int64*)(valuePtr)))
 
-inline bool dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* valuePtr)
+DS_CORE_EXPORT inline bool dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr,
+	long* valuePtr)
 {
 	long expected = *expectedPtr;
 	*expectedPtr = _InterlockedCompareExchange(xPtr, *valuePtr, *expectedPtr);
@@ -182,7 +183,8 @@ inline bool dsAtomic_compareExchange32Impl(long* xPtr, long* expectedPtr, long* 
 #define DS_ATOMIC_COMPARE_EXCHANGE32(xPtr, expectedPtr, valuePtr, weak) \
 	dsAtomic_compareExchange32Impl((long*)(xPtr), (long*)(expectedPtr), (long*)(valuePtr))
 
-inline bool dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr, __int64* valuePtr)
+DS_CORE_EXPORT inline bool dsAtomic_compareExchange64Impl(__int64* xPtr, __int64* expectedPtr,
+	__int64* valuePtr)
 {
 	__int64 expected = *expectedPtr;
 	*expectedPtr = DS_INTERLOCKED_COMPARE_EXCHANGE64_IMPL(xPtr, *valuePtr, *expectedPtr);

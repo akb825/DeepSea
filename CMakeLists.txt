@@ -44,6 +44,7 @@ set(DEEPSEA_ROOT_FOLDER DeepSea CACHE STRING
 set(DEEPSEA_INSTALL ON CACHE BOOL "Allow installation for DeepSea components.")
 set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
+set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 
 # Call this function to get the following variables:
 # DEEPSEA_SOURCE_DIR: Root source directory for DeepSea.

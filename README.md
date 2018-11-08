@@ -109,6 +109,7 @@ Generating Visual Studio projects can either be done through the CMake GUI tool 
 * `-DDEEPSEA_ROOT_FOLDER=folder`: The root folder for the projects in IDEs that support them. (e.g. Visual Studio or XCode) This is useful if embedding DeepSea in another project. Defaults to DeepSea.
 * `-DDEEPSEA_INSTALL=ON|OFF`: Allow installation for DeepSea components. This can be useful when embedding in other projects to prevent installations from including DeepSea. For example, when statically linking into a shared library. Defaults to `ON`.
 * `-DDEEPSEA_ANDROID_ASSETS_DIR=folder`: Folder relative to project app directory to place assets for Android. Defaults to `src/main/assets`.
+* `-DDEEPSEA_NO_PREBUILT_LIBS=ON|OFF`: Don't use any pre-built library dependencies.
 
 Once you have built and installed DeepSea, you can find the various modules with the `find_package()` CMake function. For example:
 

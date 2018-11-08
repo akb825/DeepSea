@@ -132,13 +132,9 @@ IF(MINGW)
 ENDIF(MINGW)
 
 IF(SDL2_LIBRARY_TEMP)
-	# For SDL2main
-	IF(NOT SDL2_BUILDING_LIBRARY)
-		IF(SDL2MAIN_LIBRARY)
-			SET(SDL2_LIBRARY_TEMP ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY_TEMP})
-		ENDIF(SDL2MAIN_LIBRARY)
-	ENDIF(NOT SDL2_BUILDING_LIBRARY)
-
+	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
+	SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
+	
 	# For OS X, SDL2 uses Cocoa as a backend so it must link to Cocoa.
 	# CMake doesn't display the -framework Cocoa string in the UI even
 	# though it actually is there if I modify a pre-used variable.
@@ -160,11 +156,13 @@ IF(SDL2_LIBRARY_TEMP)
 	IF(MINGW)
 		SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
 	ENDIF(MINGW)
+	
+	IF(WIN32)
+		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} winmm imm32 version uuid)
+	ENDIF()
 
 	# Set the final string here so the GUI reflects the final state.
 	SET(SDL2_LIBRARY ${SDL2_LIBRARY_TEMP} CACHE STRING "Where the SDL2 Library can be found")
-	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
-	SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
 ENDIF(SDL2_LIBRARY_TEMP)
 
 # message("</FindSDL2.cmake>")

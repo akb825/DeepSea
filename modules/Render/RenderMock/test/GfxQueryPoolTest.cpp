@@ -123,7 +123,7 @@ TEST_F(GfxQueryPoolTest, GetValues)
 		dsGfxQueryType_SamplesPassed, 10);
 	ASSERT_TRUE(queries);
 
-	uint64_t data[6];
+	DS_ALIGN(16) uint64_t data[6];
 	const size_t stride = 2*sizeof(uint64_t);
 
 	EXPECT_FALSE(dsGfxQueryPool_getValues(NULL, 2, 3, data, sizeof(data), stride, sizeof(uint32_t),
