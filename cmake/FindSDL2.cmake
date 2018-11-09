@@ -135,14 +135,22 @@ IF(SDL2_LIBRARY_TEMP)
 	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
 	SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
 	
-	# For OS X, SDL2 uses Cocoa as a backend so it must link to Cocoa.
-	# CMake doesn't display the -framework Cocoa string in the UI even
-	# though it actually is there if I modify a pre-used variable.
-	# I think it has something to do with the CACHE STRING.
-	# So I use a temporary variable until the end so I can set the
-	# "real" variable in one-shot.
+	# Libraries required for Apple for static linking.
 	IF(APPLE)
-		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} "-framework Cocoa")
+		IF(IOS)
+			set(SDL2_COCOA)
+			set(SDL2_CARBON)
+		ELSE()
+			FIND_LIBRARY(SDL2_COCOA Cocoa)
+			FIND_LIBRARY(SDL2_CARBON Carbon)
+		ENDIF()
+		FIND_LIBRARY(SDL2_COREVIDEO CoreVideo)
+		FIND_LIBRARY(SDL2_APPKIT AppKit)
+		FIND_LIBRARY(SDL2_IOKIT IOKit)
+		FIND_LIBRARY(SDL2_FF ForceFeedback)
+		FIND_LIBRARY(SDL2_ICONV iconv)
+		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} ${SDL2_COCOA} ${SDL2_CARBON} ${SDL2_COREVIDEO}
+			${SDL2_APPKIT} ${SDL2_IOKIT} ${SDL2_FF} ${SDL2_ICONV})
 	ENDIF(APPLE)
 
 	# For threads, as mentioned Apple doesn't need this.
