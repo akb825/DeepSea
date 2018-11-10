@@ -63,18 +63,9 @@ void dsGetLastVkCallsite(const char** file, const char** function, unsigned int*
 	*line = curLastCallsite->lastLine;
 }
 
-uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
-	dsGfxMemory memoryFlags)
+uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags)
 {
-	uint32_t requiredFlags = 0;
-	uint32_t optimalFlags = 0;
-	if (!(memoryFlags & dsGfxMemory_GPUOnly))
-		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-	if (memoryFlags & dsGfxMemory_Coherent)
-		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	if (memoryFlags & (dsGfxMemory_Dynamic | dsGfxMemory_Stream))
-		optimalFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-
 	uint32_t memoryIndex = DS_INVALID_HEAP;
 	VkDeviceSize memorySize = 0;
 
@@ -103,6 +94,21 @@ uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* r
 	}
 
 	return memoryIndex;
+}
+
+uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	dsGfxMemory memoryFlags)
+{
+	VkMemoryPropertyFlags requiredFlags = 0;
+	VkMemoryPropertyFlags optimalFlags = 0;
+	if (!(memoryFlags & dsGfxMemory_GPUOnly))
+		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	if (memoryFlags & dsGfxMemory_Coherent)
+		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	if (memoryFlags & (dsGfxMemory_Dynamic | dsGfxMemory_Stream))
+		optimalFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+
+	return dsVkMemoryIndexImpl(device, requirements, requiredFlags, optimalFlags);
 }
 
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,

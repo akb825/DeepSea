@@ -32,6 +32,8 @@ void dsSetLastVkCallsite(const char* file, const char* function, unsigned int li
 void dsGetLastVkCallsite(const char** file, const char** function,
 	unsigned int* line);
 
+uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags);
 uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
 	dsGfxMemory memoryFlags);
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,

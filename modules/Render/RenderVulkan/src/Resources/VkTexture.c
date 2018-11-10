@@ -262,10 +262,11 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, dsOffscreenResolve resolve,
 	VkImageType imageType, VkImageViewType imageViewType, dsVkTexture* texture)
 {
+	DS_ASSERT(resolve != dsOffscreenResolve_NoResolve);
 	dsVkInstance* instance = &device->instance;
 	uint32_t mipLevels = resolve == dsOffscreenResolve_ResolveSingle ? 1 : info->mipLevels;
 	uint32_t depthCount = dsMax(1U, info->depth);
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
@@ -296,7 +297,10 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	VkMemoryRequirements surfaceRequirements;
 	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, texture->surfaceImage,
 		&surfaceRequirements);
-	uint32_t surfaceMemoryIndex = dsVkMemoryIndex(device, &surfaceRequirements, dsGfxMemory_GPUOnly);
+
+	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
+		memoryFlags);
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
 		return false;
 
@@ -843,8 +847,11 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	DS_ASSERT(imageIndex < vkTexture->hostImageCount);
 	dsVkHostImage* hostImage = vkTexture->hostImages + imageIndex;
 
-	dsVkRenderer_waitForSubmit(resourceManager->renderer, vkTexture->lastDrawSubmit,
-		DS_DEFAULT_WAIT_TIMEOUT);
+	DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
+	uint64_t submit = vkTexture->lastDrawSubmit;
+	DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
+
+	dsVkRenderer_waitForSubmit(resourceManager->renderer, submit, DS_DEFAULT_WAIT_TIMEOUT);
 	void* imageMemory;
 	VkResult vkResult = DS_VK_CALL(device->vkMapMemory)(device->device, vkTexture->hostMemory,
 		hostImage->offset + hostImage->layout.offset, hostImage->layout.size, 0, &imageMemory);
