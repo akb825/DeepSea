@@ -26,3 +26,4 @@ void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);
+void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);

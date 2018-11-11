@@ -786,6 +786,17 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_VK_CALL(instance->vkGetPhysicalDeviceMemoryProperties)(device->physicalDevice,
 		&device->memoryProperties);
 
+	device->hasLazyAllocation = false;
+	for (uint32_t i = 0; i < device->memoryProperties.memoryTypeCount; ++i)
+	{
+		if (device->memoryProperties.memoryTypes[i].propertyFlags &
+			VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+		{
+			device->hasLazyAllocation = true;
+			break;
+		}
+	}
+
 	return true;
 }
 

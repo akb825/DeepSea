@@ -101,7 +101,9 @@ uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* r
 {
 	VkMemoryPropertyFlags requiredFlags = 0;
 	VkMemoryPropertyFlags optimalFlags = 0;
-	if (!(memoryFlags & dsGfxMemory_GPUOnly))
+	if (memoryFlags & dsGfxMemory_GPUOnly)
+		optimalFlags |= VK_MEMORY_HEAP_DEVICE_LOCAL_BIT;
+	else
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 	if (memoryFlags & dsGfxMemory_Coherent)
 		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;

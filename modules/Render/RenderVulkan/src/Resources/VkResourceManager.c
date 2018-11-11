@@ -18,6 +18,7 @@
 
 #include "Resources/VkDrawGeometry.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkRenderbuffer.h"
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -671,6 +672,10 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->copyTextureFunc = &dsVkTexture_copy;
 	baseResourceManager->generateTextureMipmapsFunc = &dsVkTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsVkTexture_getData;
+
+	// Renderbuffers
+	baseResourceManager->createRenderbufferFunc = &dsVkRenderbuffer_create;
+	baseResourceManager->destroyRenderbufferFunc = &dsVkRenderbuffer_destroy;
 
 	return resourceManager;
 }

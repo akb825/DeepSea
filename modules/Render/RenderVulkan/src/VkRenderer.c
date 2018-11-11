@@ -19,6 +19,7 @@
 
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkRenderbuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkTexture.h"
@@ -180,6 +181,21 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkCopyImage_destroy(copyImage);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->renderbufferCount; ++i)
+	{
+		dsRenderbuffer* renderbuffer = prevDeleteList->renderbuffers[i];
+		DS_ASSERT(renderbuffer);
+		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+
+		if (dsVkResource_isInUse(&vkRenderbuffer->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteRenderbuffer(baseRenderer, renderbuffer);
+			continue;
+		}
+
+		dsVkRenderbuffer_destroyImpl(renderbuffer);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -999,5 +1015,17 @@ void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addCopyImage(resourceList, copyImage);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer)
+{
+	DS_ASSERT(renderbuffer);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addRenderbuffer(resourceList, renderbuffer);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

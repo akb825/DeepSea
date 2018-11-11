@@ -16,14 +16,12 @@
 
 #pragma once
 
-#include "VkTypes.h"
+#include <DeepSea/Core/Config.h>
+#include <DeepSea/Render/Resources/Types.h>
 
-void dsVkResourceList_initialize(dsVkResourceList* resources, dsAllocator* allocator);
+dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width, uint32_t height,
+	uint32_t samples);
+bool dsVkRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer);
 
-bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* buffer);
-bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture);
-bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* image);
-bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffer* renderbuffer);
-void dsVkResourceList_clear(dsVkResourceList* resources);
-
-void dsVkResourceList_shutdown(dsVkResourceList* resources);
+void dsVkRenderbuffer_destroyImpl(dsRenderbuffer* renderbuffer);

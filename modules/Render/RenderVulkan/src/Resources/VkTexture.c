@@ -266,7 +266,9 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	dsVkInstance* instance = &device->instance;
 	uint32_t mipLevels = resolve == dsOffscreenResolve_ResolveSingle ? 1 : info->mipLevels;
 	uint32_t depthCount = dsMax(1U, info->depth);
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+	VkImageUsageFlags usageFlags = 0;
+	if (device->hasLazyAllocation)
+		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
@@ -298,7 +300,9 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, texture->surfaceImage,
 		&surfaceRequirements);
 
-	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	if (device->hasLazyAllocation)
+		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
 		memoryFlags);
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
@@ -931,8 +935,8 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 {
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
 	dsVkDevice* device = &((dsVkRenderer*)texture->resourceManager->renderer)->device;
-
 	dsVkInstance* instance = &device->instance;
+
 	if (vkTexture->deviceImageView)
 	{
 		DS_VK_CALL(device->vkDestroyImageView)(device->device, vkTexture->deviceImageView,

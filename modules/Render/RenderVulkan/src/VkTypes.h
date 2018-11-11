@@ -118,6 +118,7 @@ typedef struct dsVkDevice
 	VkPhysicalDeviceFeatures features;
 	VkPhysicalDeviceProperties properties;
 	bool hasPVRTC;
+	bool hasLazyAllocation;
 
 	VkPhysicalDeviceMemoryProperties memoryProperties;
 } dsVkDevice;
@@ -231,6 +232,16 @@ typedef struct dsVkTexture
 	bool needsInitialCopy;
 } dsVkTexture;
 
+typedef struct dsVkRenderbuffer
+{
+	dsRenderbuffer renderbuffer;
+	dsVkResource resource;
+
+	VkDeviceMemory memory;
+	VkImage image;
+	VkImageView imageView;
+} dsVkRenderbuffer;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -254,6 +265,10 @@ typedef struct dsVkResourceList
 	dsVkCopyImage** copyImages;
 	uint32_t copyImageCount;
 	uint32_t maxCopyImages;
+
+	dsRenderbuffer** renderbuffers;
+	uint32_t renderbufferCount;
+	uint32_t maxRenderbuffers;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
