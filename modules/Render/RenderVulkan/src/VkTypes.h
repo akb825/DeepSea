@@ -297,6 +297,15 @@ typedef struct dsVkCommandBuffer
 	dsVkResource** usedResources;
 	uint32_t usedResourceCount;
 	uint32_t maxUsedResources;
+
+	dsTexture** readbackOffscreens;
+	uint32_t readbackOffscreenCount;
+	uint32_t maxReadbackOffscreens;
+
+	VkImageMemoryBarrier* imageBarriers;
+	VkImageCopy* imageCopies;
+	uint32_t maxImageBarriers;
+	uint32_t maxImageCopies;
 } dsVkCommandBuffer;
 
 typedef struct dsVkRenderer

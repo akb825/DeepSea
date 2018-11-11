@@ -600,32 +600,10 @@ void dsVkRenderer_flush(dsRenderer* renderer)
 	vkRenderer->curSubmit = (vkRenderer->curSubmit + 1) % DS_MAX_SUBMITS;
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 
-	// Make sure any writes are visible for mapping buffers.
-	VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-		VK_PIPELINE_STAGE_TRANSFER_BIT;
-	if (renderer->hasTessellationShaders)
-	{
-		srcStage |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-	}
-	if (renderer->hasGeometryShaders)
-		srcStage |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-	VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_HOST_BIT;
-
-	VkMemoryBarrier memoryBarrier =
-	{
-		VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-		NULL,
-		VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-		VK_ACCESS_MEMORY_READ_BIT
-	};
-
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(submit->renderCommands, srcStage, dstStage, 0, 1,
-		&memoryBarrier, 0, NULL, 0, NULL);
-
 	// Submit the queue.
 	DS_VK_CALL(device->vkEndCommandBuffer)(submit->resourceCommands);
+
+	dsVkCommandBuffer_endSubmitCommands(renderer->mainCommandBuffer, submit->renderCommands);
 	DS_VK_CALL(device->vkEndCommandBuffer)(submit->renderCommands);
 
 	VkSubmitInfo submitInfo =
