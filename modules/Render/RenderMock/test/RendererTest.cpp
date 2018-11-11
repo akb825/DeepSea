@@ -143,11 +143,12 @@ TEST_F(RendererTest, ClearColorSurface)
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), 1920, 1080, 4);
+		dsRenderbufferUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		1920, 1080, 4);
 	ASSERT_TRUE(colorBuffer);
 
-	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL, dsGfxFormat_D24S8,
-		1920, 1080, 4);
+	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL,
+		dsRenderbufferUsage_Standard, dsGfxFormat_D24S8, 1920, 1080, 4);
 	ASSERT_TRUE(depthBuffer);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,
@@ -221,12 +222,12 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		dsRenderbufferUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		1920, 1080, 4);
 	ASSERT_TRUE(colorBuffer);
 
-	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL, dsGfxFormat_D24S8,
-		1920, 1080, 4);
+	dsRenderbuffer* depthBuffer = dsRenderbuffer_create(resourceManager, NULL,
+		dsRenderbufferUsage_Standard, dsGfxFormat_D24S8, 1920, 1080, 4);
 	ASSERT_TRUE(depthBuffer);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL,

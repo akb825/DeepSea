@@ -243,12 +243,12 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		return false;
 	}
 
-	testRenderSubpass->rDepth = dsRenderbuffer_create(resourceManager, allocator, depthFormat,
-		width, height, SAMPLE_COUNT);
-	testRenderSubpass->gDepth = dsRenderbuffer_create(resourceManager, allocator, depthFormat,
-		width, height, SAMPLE_COUNT);
-	testRenderSubpass->bDepth = dsRenderbuffer_create(resourceManager, allocator, depthFormat,
-		width, height, SAMPLE_COUNT);
+	testRenderSubpass->rDepth = dsRenderbuffer_create(resourceManager, allocator,
+		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
+	testRenderSubpass->gDepth = dsRenderbuffer_create(resourceManager, allocator,
+		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
+	testRenderSubpass->bDepth = dsRenderbuffer_create(resourceManager, allocator,
+		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
 	if (!testRenderSubpass->rDepth || !testRenderSubpass->gDepth || !testRenderSubpass->bDepth)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",
@@ -261,7 +261,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
 	{
 		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
-			combinedColorFormat, width, height, 1);
+			dsRenderbufferUsage_BlitFrom, combinedColorFormat, width, height, 1);
 		if (!testRenderSubpass->combinedColor)
 		{
 			DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",

@@ -141,6 +141,21 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outLayers = 1;
 			*outMipLevels = 1;
 
+			if (read && !(realSurface->usage & dsRenderbufferUsage_BlitFrom))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to blit from a renderbuffer without the blit from usage flag set.");
+				return false;
+			}
+			else if (!read && !(realSurface->usage & dsRenderbufferUsage_BlitTo))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to blit to a texture without the blit to usage flag set.");
+				return false;
+			}
+
 			if (realSurface->samples > 1)
 			{
 				errno = EPERM;

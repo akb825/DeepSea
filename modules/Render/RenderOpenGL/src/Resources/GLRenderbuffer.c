@@ -27,7 +27,8 @@
 #include <DeepSea/Core/Assert.h>
 
 dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
+	dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width, uint32_t height,
+	uint32_t samples)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -39,6 +40,7 @@ dsRenderbuffer* dsGLRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	dsRenderbuffer* baseRenderbuffer = (dsRenderbuffer*)renderbuffer;
 	baseRenderbuffer->resourceManager = resourceManager;
 	baseRenderbuffer->allocator = dsAllocator_keepPointer(allocator);
+	baseRenderbuffer->usage = usage;
 	baseRenderbuffer->format = format;
 	baseRenderbuffer->width = width;
 	baseRenderbuffer->height = height;

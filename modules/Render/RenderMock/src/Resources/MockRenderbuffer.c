@@ -20,7 +20,8 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 
 dsRenderbuffer* dsMockRenderbuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
+	dsAllocator* allocator, dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width,
+	uint32_t height, uint32_t samples)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -32,6 +33,7 @@ dsRenderbuffer* dsMockRenderbuffer_create(dsResourceManager* resourceManager,
 
 	renderbuffer->resourceManager = resourceManager;
 	renderbuffer->allocator = dsAllocator_keepPointer(allocator);
+	renderbuffer->usage = usage;
 	renderbuffer->format = format;
 	renderbuffer->width = width;
 	renderbuffer->height = height;

@@ -25,15 +25,16 @@ class RenderbufferTest : public FixtureBase
 
 TEST_F(RenderbufferTest, Create)
 {
-	EXPECT_FALSE(dsRenderbuffer_create(NULL, NULL, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UNorm), 128, 256, 4));
-	EXPECT_FALSE(dsRenderbuffer_create(resourceManager, NULL,
+	EXPECT_FALSE(dsRenderbuffer_create(NULL, NULL, dsRenderbufferUsage_Standard,
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), 128, 256, 4));
+	EXPECT_FALSE(dsRenderbuffer_create(resourceManager, NULL, dsRenderbufferUsage_Standard,
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), 0, 256, 4));
-	EXPECT_FALSE(dsRenderbuffer_create(resourceManager, NULL,
+	EXPECT_FALSE(dsRenderbuffer_create(resourceManager, NULL, dsRenderbufferUsage_Standard,
 		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), 128, 0, 4));
 
 	dsRenderbuffer* renderbuffer = dsRenderbuffer_create(resourceManager, NULL,
-		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), 128, 256, 4);
+		dsRenderbufferUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
+		128, 256, 4);
 	ASSERT_TRUE(renderbuffer);
 
 	EXPECT_EQ(1U, resourceManager->renderbufferCount);

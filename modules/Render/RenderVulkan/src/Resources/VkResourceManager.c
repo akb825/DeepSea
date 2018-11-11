@@ -640,7 +640,8 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 		&dsVkResourceManager_offscreenFormatSupported;
 	baseResourceManager->textureBufferFormatSupportedFunc =
 		&dsVkResourceManager_textureBufferFormatSupported;
-	baseResourceManager->generateMipmapFormatSupportedFunc = &dsVkResourceManager_generateMipmapFormatSupported;
+	baseResourceManager->generateMipmapFormatSupportedFunc =
+		&dsVkResourceManager_generateMipmapFormatSupported;
 	baseResourceManager->textureCopyFormatsSupportedFunc =
 		&dsVkResourceManager_textureCopyFormatsSupported;
 	baseResourceManager->surfaceBlitFormatsSupportedFunc =

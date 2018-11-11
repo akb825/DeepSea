@@ -35,7 +35,8 @@ static size_t framebufferSize(dsGfxFormat format, uint32_t width, uint32_t heigh
 }
 
 dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples)
+	dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width, uint32_t height,
+	uint32_t samples)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -83,7 +84,7 @@ dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager, dsAllo
 		samples = resourceManager->renderer->surfaceSamples;
 	samples = dsMax(1U, samples);
 	dsRenderbuffer* renderbuffer = resourceManager->createRenderbufferFunc(resourceManager,
-		allocator, format, width, height, samples);
+		allocator, usage, format, width, height, samples);
 	if (renderbuffer)
 	{
 		size_t size = framebufferSize(format, width, height, samples);

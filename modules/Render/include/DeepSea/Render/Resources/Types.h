@@ -107,6 +107,19 @@ typedef enum dsTextureUsage
 } dsTextureUsage;
 
 /**
+ * @brief Enum for how a renderbuffer will be used.
+ *
+ * These are bitmask values, allowing a renderbuffer to be used for multiple purposes.
+ * @see Renderbuffer.h
+ */
+typedef enum dsRenderbufferUsage
+{
+	dsRenderbufferUsage_Standard = 0x0, ///< Standard usage.
+	dsRenderbufferUsage_BlitFrom = 0x1, ///< Can blit from the renderbuffer to another surface.
+	dsRenderbufferUsage_BlitTo = 0x2    ///< Can blit from another surface to the renderbuffer.
+} dsRenderbufferUsage;
+
+/**
  * @brief Flags for how to map a graphics buffer to memory.
  * @see GfxBuffer.h
  */
@@ -896,6 +909,11 @@ typedef struct dsRenderbuffer
 	dsAllocator* allocator;
 
 	/**
+	 * @brief Flags for how the renderbuffer will be used.
+	 */
+	dsRenderbufferUsage usage;
+
+	/**
 	 * @brief The format of the buffer.
 	 */
 	dsGfxFormat format;
@@ -1403,6 +1421,7 @@ typedef bool (*dsDestroyRenderbufferFunction)(dsResourceManager* resourceManager
  * @brief Function for creating a renderbuffer.
  * @param resourceManager The resource manager to create the renderbuffer from.
  * @param allocator The allocator to create the renderbuffer with.
+ * @param usage How the renderbuffer will be used.
  * @param format The format of the renderbuffer.
  * @param width The width of the renderbuffer.
  * @param height The height of the renderbuffer.
@@ -1410,7 +1429,8 @@ typedef bool (*dsDestroyRenderbufferFunction)(dsResourceManager* resourceManager
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 typedef dsRenderbuffer* (*dsCreateRenderbufferFunction)(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples);
+	dsAllocator* allocator, dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width,
+	uint32_t height, uint32_t samples);
 
 /**
  * @brief Function for destroying a framebuffer.

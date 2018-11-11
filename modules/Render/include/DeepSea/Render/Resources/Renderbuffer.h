@@ -41,6 +41,8 @@ extern "C"
  * @param resourceManager The resource manager to create the renderbuffer from. If NULL, it will use
  *     the same allocator as the resource manager.
  * @param allocator The allocator to create the renderbuffer with.
+ * @param usage How the renderbuffer will be used. This should be a combination of
+ *     dsRenderbufferUsage flags.
  * @param format The format of the renderbuffer. This format must be compatible with offscreens.
  * @param width The width of the renderbuffer.
  * @param height The height of the renderbuffer.
@@ -50,7 +52,8 @@ extern "C"
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderbuffer* dsRenderbuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, dsGfxFormat format, uint32_t width, uint32_t height, uint32_t samples);
+	dsAllocator* allocator, dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width,
+	uint32_t height, uint32_t samples);
 
 /**
  * @brief Destroys a renderbuffer.
