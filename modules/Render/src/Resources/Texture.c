@@ -358,8 +358,7 @@ dsTexture* dsTexture_create(dsResourceManager* resourceManager, dsAllocator* all
 }
 
 dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info,
-	dsOffscreenResolve resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	DS_PROFILE_FUNC_START();
 

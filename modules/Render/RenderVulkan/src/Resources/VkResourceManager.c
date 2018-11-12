@@ -16,6 +16,7 @@
 
 #include "Resources/VkResourceManager.h"
 
+#include "Resources/VkFramebuffer.h"
 #include "Resources/VkDrawGeometry.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkRenderbuffer.h"
@@ -676,6 +677,10 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	// Renderbuffers
 	baseResourceManager->createRenderbufferFunc = &dsVkRenderbuffer_create;
 	baseResourceManager->destroyRenderbufferFunc = &dsVkRenderbuffer_destroy;
+
+	// Framebuffers
+	baseResourceManager->createFramebufferFunc = &dsVkFramebuffer_create;
+	baseResourceManager->destroyFramebufferFunc = &dsVkFramebuffer_destroy;
 
 	return resourceManager;
 }

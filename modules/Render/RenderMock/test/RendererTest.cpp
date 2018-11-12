@@ -134,12 +134,12 @@ TEST_F(RendererTest, ClearColorSurface)
 	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, dsOffscreenResolve_ResolveSingle);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, true);
 	ASSERT_TRUE(offscreen1);
 
 	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, dsOffscreenResolve_ResolveSingle);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, true);
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,
@@ -212,13 +212,13 @@ TEST_F(RendererTest, ClearDepthStencilSurface)
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, dsOffscreenResolve_ResolveSingle);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, true);
 	ASSERT_TRUE(offscreen1);
 
 	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, dsOffscreenResolve_ResolveSingle);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, true);
 	ASSERT_TRUE(offscreen2);
 
 	dsRenderbuffer* colorBuffer = dsRenderbuffer_create(resourceManager, NULL,

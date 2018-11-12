@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
 void dsVkResource_initialize(dsVkResource* resource);

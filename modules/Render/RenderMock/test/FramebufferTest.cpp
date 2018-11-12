@@ -31,7 +31,7 @@ TEST_F(FramebufferTest, Create)
 	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 1, 4};
 	dsOffscreen* offscreen = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &info, dsOffscreenResolve_ResolveSingle);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &info, true);
 	ASSERT_TRUE(offscreen);
 
 	info.samples = 1;
@@ -78,12 +78,12 @@ TEST_F(FramebufferTest, CreateLayers)
 	dsTextureInfo info = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 4, 1, 4};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &info, dsOffscreenResolve_NoResolve);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &info, false);
 	ASSERT_TRUE(offscreen1);
 
 	info.format = dsGfxFormat_D24S8;
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &info, dsOffscreenResolve_NoResolve);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &info, false);
 	ASSERT_TRUE(offscreen2);
 
 	dsFramebufferSurface surfaces[] =
@@ -109,12 +109,12 @@ TEST_F(FramebufferTest, CreateMipmaps)
 	dsTextureInfo colorInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
 		dsGfxFormat_UNorm), dsTextureDim_2D, 1920, 1080, 0, 2, 1};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, dsOffscreenResolve_NoResolve);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &colorInfo, false);
 	ASSERT_TRUE(offscreen1);
 
 	dsTextureInfo depthInfo = {dsGfxFormat_D24S8, dsTextureDim_2D, 960, 540, 0, 1, 1};
 	dsOffscreen* offscreen2 = dsTexture_createOffscreen(resourceManager, NULL,
-		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, dsOffscreenResolve_NoResolve);
+		dsTextureUsage_Texture, dsGfxMemory_Static, &depthInfo, false);
 	ASSERT_TRUE(offscreen2);
 
 	dsFramebufferSurface surfaces[] =

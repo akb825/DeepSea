@@ -316,17 +316,6 @@ typedef enum dsCubeFace
 } dsCubeFace;
 
 /**
- * @brief Enum for how to resolve a multisampled offscreen.
- */
-typedef enum dsOffscreenResolve
-{
-	dsOffscreenResolve_NoResolve,     ///< Don't resolve multisampled offscreens.
-	dsOffscreenResolve_ResolveSingle, ///< Resolve only the first mip level. Use this when
-	                                  ///< generating mipmaps from the first level.
-	dsOffscreenResolve_ResolveAll     ///< Resolve any surface.
-} dsOffscreenResolve;
-
-/**
  * @brief Enum for the filter to use when blitting.
  * @see Texture.h
  */
@@ -728,9 +717,9 @@ typedef struct dsTexture
 	bool offscreen;
 
 	/**
-	 * @brief How to resolve multisampled offscreens.
+	 * @brief True to resolve multisampled offscreens.
 	 */
-	dsOffscreenResolve resolve;
+	bool resolve;
 } dsTexture;
 
 /**
@@ -1318,7 +1307,7 @@ typedef dsTexture* (*dsCreateTextureFunction)(dsResourceManager* resourceManager
  */
 typedef dsOffscreen* (*dsCreateOffscreenFunction)(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
-	const dsTextureInfo* info, dsOffscreenResolve resolve);
+	const dsTextureInfo* info, bool resolve);
 
 /**
  * @brief Function for destroying a texture or offscreen.

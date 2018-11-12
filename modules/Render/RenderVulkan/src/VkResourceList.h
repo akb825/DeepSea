@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
 void dsVkResourceList_initialize(dsVkResourceList* resources, dsAllocator* allocator);
@@ -24,6 +25,7 @@ bool dsVkResourceList_addBuffer(dsVkResourceList* resources, dsVkGfxBufferData* 
 bool dsVkResourceList_addTexture(dsVkResourceList* resources, dsTexture* texture);
 bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* image);
 bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffer* renderbuffer);
+bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFramebuffer* framebuffer);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

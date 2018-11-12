@@ -79,12 +79,26 @@ bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffe
 	return true;
 }
 
+bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFramebuffer* framebuffer)
+{
+	uint32_t index = resources->framebufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->framebuffers,
+		resources->framebufferCount, resources->maxFramebuffers, 1))
+	{
+		return false;
+	}
+
+	resources->framebuffers[index] = framebuffer;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
 	resources->textureCount = 0;
 	resources->copyImageCount = 0;
 	resources->renderbufferCount = 0;
+	resources->framebufferCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -93,4 +107,5 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->copyImages));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderbuffers));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->framebuffers));
 }

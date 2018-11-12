@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
 dsGfxBuffer* dsVkGfxBuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,

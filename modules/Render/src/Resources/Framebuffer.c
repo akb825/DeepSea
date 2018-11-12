@@ -134,6 +134,8 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 					surfaceLayers = dsMax(1U, surface->info.depth);
 					if (surface->info.dimension == dsTextureDim_Cube)
 						surfaceLayers *= 6;
+					else if (surface->info.dimension == dsTextureDim_3D)
+						surfaceLayers = 1;
 				}
 
 				if (surfaces[i].mipLevel >= surface->info.mipLevels)

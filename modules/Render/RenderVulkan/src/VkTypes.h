@@ -70,6 +70,7 @@ typedef struct dsVkDevice
 
 	PFN_vkDestroyDevice vkDestroyDevice;
 	PFN_vkGetDeviceQueue vkGetDeviceQueue;
+
 	PFN_vkCreateCommandPool vkCreateCommandPool;
 	PFN_vkResetCommandPool vkResetCommandPool;
 	PFN_vkDestroyCommandPool vkDestroyCommandPool;
@@ -82,9 +83,11 @@ typedef struct dsVkDevice
 	PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
 	PFN_vkQueueSubmit vkQueueSubmit;
 	PFN_vkQueueWaitIdle vkQueueWaitIdle;
+
 	PFN_vkCreateFence vkCreateFence;
 	PFN_vkDestroyFence vkDestroyFence;
 	PFN_vkResetFences vkResetFences;
+
 	PFN_vkWaitForFences vkWaitForFences;
 	PFN_vkAllocateMemory vkAllocateMemory;
 	PFN_vkFreeMemory vkFreeMemory;
@@ -92,6 +95,7 @@ typedef struct dsVkDevice
 	PFN_vkFlushMappedMemoryRanges vkFlushMappedMemoryRanges;
 	PFN_vkInvalidateMappedMemoryRanges vkInvalidateMappedMemoryRanges;
 	PFN_vkUnmapMemory vkUnmapMemory;
+
 	PFN_vkCreateBuffer vkCreateBuffer;
 	PFN_vkDestroyBuffer vkDestroyBuffer;
 	PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
@@ -100,6 +104,7 @@ typedef struct dsVkDevice
 	PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
 	PFN_vkCreateBufferView vkCreateBufferView;
 	PFN_vkDestroyBufferView vkDestroyBufferView;
+
 	PFN_vkCreateImage vkCreateImage;
 	PFN_vkGetImageSubresourceLayout vkGetImageSubresourceLayout;
 	PFN_vkDestroyImage vkDestroyImage;
@@ -109,6 +114,12 @@ typedef struct dsVkDevice
 	PFN_vkCmdBlitImage vkCmdBlitImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
+
+	PFN_vkCreateFramebuffer vkCreateFramebuffer;
+	PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
+
+	PFN_vkCreateRenderPass vkCreateRenderPass;
+	PFN_vkDestroyRenderPass vkDestroyRenderPass;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
@@ -242,6 +253,30 @@ typedef struct dsVkRenderbuffer
 	VkImageView imageView;
 } dsVkRenderbuffer;
 
+typedef struct dsVkRealFramebuffer
+{
+	dsAllocator* allocator;
+	dsVkDevice* device;
+	dsVkResource resource;
+	VkFramebuffer framebuffer;
+	VkRenderPass renderPass;
+
+	VkImageView* imageViews;
+	bool* imageViewsTemp;
+	uint32_t surfaceCount;
+} dsVkRealFramebuffer;
+
+typedef struct dsVkFramebuffer
+{
+	dsFramebuffer framebuffer;
+	dsAllocator* scratchAllocator;
+	dsSpinlock lock;
+
+	dsVkRealFramebuffer** realFramebuffers;
+	uint32_t framebufferCount;
+	uint32_t maxFramebuffers;
+} dsVkFramebuffer;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -269,6 +304,10 @@ typedef struct dsVkResourceList
 	dsRenderbuffer** renderbuffers;
 	uint32_t renderbufferCount;
 	uint32_t maxRenderbuffers;
+
+	dsVkRealFramebuffer** framebuffers;
+	uint32_t framebufferCount;
+	uint32_t maxFramebuffers;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
@@ -313,7 +352,7 @@ typedef struct dsVkCommandBuffer
 	uint32_t usedResourceCount;
 	uint32_t maxUsedResources;
 
-	dsTexture** readbackOffscreens;
+	dsOffscreen** readbackOffscreens;
 	uint32_t readbackOffscreenCount;
 	uint32_t maxReadbackOffscreens;
 

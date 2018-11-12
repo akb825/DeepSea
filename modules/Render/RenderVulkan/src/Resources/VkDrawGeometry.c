@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <DeepSea/Core/Config.h>
+
 #include "Resources/VkDrawGeometry.h"
 #include "VkTypes.h"
 #include <DeepSea/Core/Containers/Hash.h>

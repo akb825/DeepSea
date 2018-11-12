@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
+
 #include "VkTypes.h"
 #include <DeepSea/Core/Debug.h>
 

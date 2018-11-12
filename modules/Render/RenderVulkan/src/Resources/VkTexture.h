@@ -16,14 +16,14 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
 dsTexture* dsVkTexture_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
 	size_t size);
 dsOffscreen* dsVkTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info,
-	dsOffscreenResolve resolve);
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve);
 bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size);

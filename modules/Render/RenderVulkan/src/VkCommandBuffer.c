@@ -45,7 +45,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
-		dsTexture* offscreen = vkCommandBuffer->readbackOffscreens[i];
+		dsOffscreen* offscreen = vkCommandBuffer->readbackOffscreens[i];
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;

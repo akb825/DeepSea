@@ -740,6 +740,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
+
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateCommandPool);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkResetCommandPool);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyCommandPool);
@@ -752,16 +753,19 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdPipelineBarrier);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueueSubmit);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueueWaitIdle);
+
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateFence);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyFence);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkResetFences);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkWaitForFences);
+
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAllocateMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFreeMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkMapMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFlushMappedMemoryRanges);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkInvalidateMappedMemoryRanges);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkUnmapMemory);
+
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetBufferMemoryRequirements);
@@ -771,6 +775,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
+
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetImageSubresourceLayout);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImage);
@@ -780,6 +785,12 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBlitImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImageView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImageView);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateFramebuffer);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyFramebuffer);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyRenderPass);
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);

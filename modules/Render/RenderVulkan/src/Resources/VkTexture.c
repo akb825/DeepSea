@@ -259,13 +259,10 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 }
 
 static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
-	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, dsOffscreenResolve resolve,
-	VkImageType imageType, VkImageViewType imageViewType, dsVkTexture* texture)
+	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask, VkImageType imageType,
+	VkImageViewType imageViewType, dsVkTexture* texture)
 {
-	DS_ASSERT(resolve != dsOffscreenResolve_NoResolve);
 	dsVkInstance* instance = &device->instance;
-	uint32_t mipLevels = resolve == dsOffscreenResolve_ResolveSingle ? 1 : info->mipLevels;
-	uint32_t depthCount = dsMax(1U, info->depth);
 	VkImageUsageFlags usageFlags = 0;
 	if (device->hasLazyAllocation)
 		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
@@ -273,7 +270,6 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -281,10 +277,10 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		info->dimension == dsTextureDim_Cube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0,
 		imageType,
 		formatInfo->vkFormat,
-		{info->width, info->height, info->dimension == dsTextureDim_3D ? info->depth : 1},
-		mipLevels,
-		info->dimension == dsTextureDim_3D ? 1 : depthCount*faceCount,
-		resolve ? VK_SAMPLE_COUNT_1_BIT : dsVkSampleCount(info->samples),
+		{info->width, info->height, 1},
+		1,
+		1,
+		dsVkSampleCount(info->samples),
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
@@ -336,7 +332,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 
 static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, const void* data,
-	size_t size, bool offscreen, dsOffscreenResolve resolve)
+	size_t size, bool offscreen, bool resolve)
 {
 	DS_ASSERT(size == 0 || size == dsTexture_size(info));
 	DS_UNUSED(size);
@@ -520,8 +516,8 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
-	if (resolve != dsOffscreenResolve_NoResolve && !createSurfaceImage(device, info, formatInfo,
-		aspectMask, resolve, imageType, imageViewType, texture))
+	if (resolve && !createSurfaceImage(device, info, formatInfo, aspectMask, imageType,
+		imageViewType, texture))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
@@ -537,12 +533,11 @@ dsTexture* dsVkTexture_create(dsResourceManager* resourceManager, dsAllocator* a
 	size_t size)
 {
 	return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, data, size,
-		false, dsOffscreenResolve_NoResolve);
+		false, false);
 }
 
 dsOffscreen* dsVkTexture_createOffscreen(dsResourceManager* resourceManager, dsAllocator* allocator,
-	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info,
-	dsOffscreenResolve resolve)
+	dsTextureUsage usage, dsGfxMemory memoryHints, const dsTextureInfo* info, bool resolve)
 {
 	return createTextureImpl(resourceManager, allocator, usage, memoryHints, info, NULL, 0, true,
 		resolve);

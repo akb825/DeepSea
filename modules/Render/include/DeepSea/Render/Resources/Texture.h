@@ -148,12 +148,12 @@ DS_RENDER_EXPORT dsTexture* dsTexture_create(dsResourceManager* resourceManager,
  *     combination of dsGfxMemory flags.
  * @param info The info for the texture.
  * @param resolve True to resolve multisampled offscreens, false to leave unresolved to sample in
- *     the shader.
+ *     the shader. When resolved, only the first mip level can be drawn to.
  * @return The created offscreen, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsOffscreen* dsTexture_createOffscreen(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsTextureUsage usage, dsGfxMemory memoryHints,
-	const dsTextureInfo* info, dsOffscreenResolve resolve);
+	const dsTextureInfo* info, bool resolve);
 
 /**
  * @brief Copies data to a texture.

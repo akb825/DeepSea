@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
@@ -27,3 +28,4 @@ void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffe
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);
 void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
+void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer);

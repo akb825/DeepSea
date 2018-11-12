@@ -45,7 +45,7 @@ extern "C"
  * @param name The name of the framebuffer, used for profiling info. This should remain allocated
  *     for the duration of the application, such as a string constant.
  * @param surfaces The surfaces that make up the framebuffer. The surfaces must match the dimensions
- *     of the framebuffer.
+ *     of the framebuffer. This array will be copied to the final object.
  * @param surfaceCount The number of surfaces.
  * @param width The width of the framebuffer.
  * @param height The height of the framebuffer.

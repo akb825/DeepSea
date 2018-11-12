@@ -19,13 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
-	bool handleErrors);
-void dsDestroyVkInstance(dsVkInstance* instance);
-
-bool dsGatherVkPhysicalDevices(dsVkInstance* instance);
-bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount);
-
-bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator,
-	const dsRendererOptions* options);
-void dsDestroyVkDevice(dsVkDevice* device);
+dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
+	dsAllocator* allocator, VkRenderPass renderPass, const dsFramebufferSurface* surfaces,
+	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
+void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer);
