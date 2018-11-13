@@ -82,12 +82,12 @@ TEST(SystemAllocator, Allocation)
 	ASSERT_FALSE(dsSystemAllocator_initialize(&systemAllocator, 0));
 	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
-	EXPECT_EQ(0, allocator->size);
+	EXPECT_EQ(0U, allocator->size);
 
 	void* ptr1 = dsAllocator_alloc(allocator, 11);
 	size_t size1 = allocator->size;
 	EXPECT_NE(nullptr, ptr1);
-	EXPECT_EQ(0, (uintptr_t)ptr1 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr1 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(10U, size1);
 	EXPECT_EQ(1U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
@@ -95,7 +95,7 @@ TEST(SystemAllocator, Allocation)
 	void* ptr2 = dsAllocator_alloc(allocator, 101);
 	size_t size2 = allocator->size;
 	EXPECT_NE(nullptr, ptr2);
-	EXPECT_EQ(0, (uintptr_t)ptr2 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr2 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(112U, size2);
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(2U, allocator->currentAllocations);
@@ -103,7 +103,7 @@ TEST(SystemAllocator, Allocation)
 	void* ptr3 = dsAllocator_alloc(allocator, 1003);
 	size_t size3 = allocator->size;
 	EXPECT_NE(nullptr, ptr3);
-	EXPECT_EQ(0, (uintptr_t)ptr3 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr3 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(1113U, size3);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(3U, allocator->currentAllocations);
@@ -129,12 +129,12 @@ TEST(SystemAllocator, DirectAllocation)
 	dsSystemAllocator systemAllocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
-	EXPECT_EQ(0, allocator->size);
+	EXPECT_EQ(0U, allocator->size);
 
 	void* ptr1 = dsSystemAllocator_alloc(&systemAllocator, 11, DS_ALLOC_ALIGNMENT);
 	size_t size1 = allocator->size;
 	EXPECT_NE(nullptr, ptr1);
-	EXPECT_EQ(0, (uintptr_t)ptr1 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr1 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(10U, size1);
 	EXPECT_EQ(1U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
@@ -142,7 +142,7 @@ TEST(SystemAllocator, DirectAllocation)
 	void* ptr2 = dsSystemAllocator_alloc(&systemAllocator, 101, DS_ALLOC_ALIGNMENT);
 	size_t size2 = allocator->size;
 	EXPECT_NE(nullptr, ptr2);
-	EXPECT_EQ(0, (uintptr_t)ptr2 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr2 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(112U, size2);
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(2U, allocator->currentAllocations);
@@ -150,7 +150,7 @@ TEST(SystemAllocator, DirectAllocation)
 	void* ptr3 = dsSystemAllocator_alloc(&systemAllocator, 1003, DS_ALLOC_ALIGNMENT);
 	size_t size3 = allocator->size;
 	EXPECT_NE(nullptr, ptr3);
-	EXPECT_EQ(0, (uintptr_t)ptr3 % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr3 % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(1113U, size3);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(3U, allocator->currentAllocations);
@@ -176,25 +176,25 @@ TEST(SystemAllocator, Reallocation)
 	dsSystemAllocator systemAllocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
-	EXPECT_EQ(0, allocator->size);
+	EXPECT_EQ(0U, allocator->size);
 
 	void* ptr = dsAllocator_realloc(allocator, nullptr, 100);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(100U, allocator->size);
 	EXPECT_EQ(1U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
 	ptr = dsAllocator_realloc(allocator, ptr, 200);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(200U, allocator->size);
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
 	ptr = dsAllocator_realloc(allocator, ptr, 50);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(50U, allocator->size);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
@@ -215,26 +215,26 @@ TEST(SystemAllocator, AlignedReallocation)
 	dsSystemAllocator systemAllocator;
 	ASSERT_TRUE(dsSystemAllocator_initialize(&systemAllocator, DS_ALLOCATOR_NO_LIMIT));
 	dsAllocator* allocator = (dsAllocator*)&systemAllocator;
-	EXPECT_EQ(0, allocator->size);
+	EXPECT_EQ(0U, allocator->size);
 
 	static unsigned int alignment = 64;
 	void* ptr = dsSystemAllocator_realloc(&systemAllocator, nullptr, 100, alignment);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % alignment);
+	EXPECT_EQ(0U, (uintptr_t)ptr % alignment);
 	EXPECT_LE(100U, allocator->size);
 	EXPECT_EQ(1U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
 	ptr = dsSystemAllocator_realloc(&systemAllocator, ptr, 200, alignment);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % alignment);
+	EXPECT_EQ(0U, (uintptr_t)ptr % alignment);
 	EXPECT_LE(200U, allocator->size);
 	EXPECT_EQ(2U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);
 
 	ptr = dsSystemAllocator_realloc(&systemAllocator, ptr, 50, alignment);
 	EXPECT_NE(nullptr, ptr);
-	EXPECT_EQ(0, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
+	EXPECT_EQ(0U, (uintptr_t)ptr % DS_ALLOC_ALIGNMENT);
 	EXPECT_LE(50U, allocator->size);
 	EXPECT_EQ(3U, allocator->totalAllocations);
 	EXPECT_EQ(1U, allocator->currentAllocations);

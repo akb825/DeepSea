@@ -40,9 +40,9 @@ dsThreadReturnType threadFunc(void* data)
 	EXPECT_TRUE(dsSpinlock_lock(&threadData->spinlock));
 
 	++threadData->counter;
-	EXPECT_EQ(1, threadData->counter);
+	EXPECT_EQ(1U, threadData->counter);
 	--threadData->counter;
-	EXPECT_EQ(0, threadData->counter);
+	EXPECT_EQ(0U, threadData->counter);
 	++threadData->executed;
 
 	EXPECT_TRUE(dsSpinlock_unlock(&threadData->spinlock));

@@ -375,10 +375,10 @@ TEST(Vector4, ConvertFloatToInt)
 	dsVector4i vectori;
 	dsConvertFloatToInt(vectori, vectorf);
 
-	EXPECT_EQ(vectorf.x, vectori.x);
-	EXPECT_EQ(vectorf.y, vectori.y);
-	EXPECT_EQ(vectorf.z, vectori.z);
-	EXPECT_EQ(vectorf.w, vectori.w);
+	EXPECT_EQ(vectorf.x, (float)vectori.x);
+	EXPECT_EQ(vectorf.y, (float)vectori.y);
+	EXPECT_EQ(vectorf.z, (float)vectori.z);
+	EXPECT_EQ(vectorf.w, (float)vectori.w);
 }
 
 TEST(Vector4, ConvertIntToFloat)
@@ -388,10 +388,10 @@ TEST(Vector4, ConvertIntToFloat)
 	dsVector4f vectorf;
 	dsConvertIntToFloat(vectorf, vectori);
 
-	EXPECT_EQ(vectori.x, vectorf.x);
-	EXPECT_EQ(vectori.y, vectorf.y);
-	EXPECT_EQ(vectori.z, vectorf.z);
-	EXPECT_EQ(vectori.w, vectorf.w);
+	EXPECT_EQ(vectori.x, (int)vectorf.x);
+	EXPECT_EQ(vectori.y, (int)vectorf.y);
+	EXPECT_EQ(vectori.z, (int)vectorf.z);
+	EXPECT_EQ(vectori.w, (int)vectorf.w);
 }
 
 TEST(Vector4, ConvertDoubleToInt)

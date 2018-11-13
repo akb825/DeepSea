@@ -97,6 +97,11 @@ if (DEEPSEA_BUILD_DOCS)
 	find_package(Doxygen QUIET)
 	if (NOT DOXYGEN_FOUND)
 		message("Doxygon not installed. Skipping documentation.")
+	elseif (UNIX AND NOT APPLE AND DEEPSEA_PREBUILT_LIBS_DIR AND
+		GTEST_INCLUDE_DIR MATCHES "${DEEPSEA_PREBUILT_LIBS_DIR}/.*")
+		# Pre-built libraries use GCC 4.9, which uses the old C++ ABI.
+		# Only GTest uses STL (or at least std::string), so this wn't affect the rest of the code.
+		add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 	endif()
 endif()
 

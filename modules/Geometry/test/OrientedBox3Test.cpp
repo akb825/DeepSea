@@ -176,23 +176,23 @@ TYPED_TEST(OrientedBox3Test, Initialize)
 		{{1, 2, 3}}, {{4, 5, 6}}
 	};
 
-	EXPECT_EQ(1, box.orientation.values[0][0]);
-	EXPECT_EQ(0, box.orientation.values[0][1]);
-	EXPECT_EQ(0, box.orientation.values[0][2]);
-	EXPECT_EQ(0, box.orientation.values[1][0]);
-	EXPECT_EQ(1, box.orientation.values[1][1]);
-	EXPECT_EQ(0, box.orientation.values[1][2]);
-	EXPECT_EQ(0, box.orientation.values[2][0]);
-	EXPECT_EQ(0, box.orientation.values[2][1]);
-	EXPECT_EQ(1, box.orientation.values[2][2]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][2]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][0]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[1][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][2]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[2][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[2][1]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[2][2]);
 
-	EXPECT_EQ(1, box.center.x);
-	EXPECT_EQ(2, box.center.y);
-	EXPECT_EQ(3, box.center.z);
+	EXPECT_EQ((TypeParam)1, box.center.x);
+	EXPECT_EQ((TypeParam)2, box.center.y);
+	EXPECT_EQ((TypeParam)3, box.center.z);
 
-	EXPECT_EQ(4, box.halfExtents.x);
-	EXPECT_EQ(5, box.halfExtents.y);
-	EXPECT_EQ(6, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)5, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)6, box.halfExtents.z);
 }
 
 TYPED_TEST(OrientedBox3Test, IsValid)
@@ -233,23 +233,23 @@ TYPED_TEST(OrientedBox3Test, FromAlignedBox)
 	AlignedBox3Type alignedBox = {{{0, 1, 2}}, {{4, 7, 10}}};
 
 	dsOrientedBox3_fromAlignedBox(box, alignedBox);
-	EXPECT_EQ(1, box.orientation.values[0][0]);
-	EXPECT_EQ(0, box.orientation.values[0][1]);
-	EXPECT_EQ(0, box.orientation.values[0][2]);
-	EXPECT_EQ(0, box.orientation.values[1][0]);
-	EXPECT_EQ(1, box.orientation.values[1][1]);
-	EXPECT_EQ(0, box.orientation.values[1][2]);
-	EXPECT_EQ(0, box.orientation.values[2][0]);
-	EXPECT_EQ(0, box.orientation.values[2][1]);
-	EXPECT_EQ(1, box.orientation.values[2][2]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][2]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][0]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[1][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][2]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[2][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[2][1]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[2][2]);
 
-	EXPECT_EQ(2, box.center.x);
-	EXPECT_EQ(4, box.center.y);
-	EXPECT_EQ(6, box.center.z);
+	EXPECT_EQ((TypeParam)2, box.center.x);
+	EXPECT_EQ((TypeParam)4, box.center.y);
+	EXPECT_EQ((TypeParam)6, box.center.z);
 
-	EXPECT_EQ(2, box.halfExtents.x);
-	EXPECT_EQ(3, box.halfExtents.y);
-	EXPECT_EQ(4, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)2, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.z);
 }
 
 TYPED_TEST(OrientedBox3Test, MakeInvalid)
@@ -288,60 +288,60 @@ TYPED_TEST(OrientedBox3Test, AddPoint)
 	Vector3Type point7 = {{5, 6, 11}};
 
 	dsOrientedBox3_addPoint(&box, &point1);
-	EXPECT_EQ(6, box.center.x);
-	EXPECT_EQ(5, box.center.y);
-	EXPECT_EQ(4, box.center.z);
-	EXPECT_EQ(3, box.halfExtents.x);
-	EXPECT_EQ(2, box.halfExtents.y);
-	EXPECT_EQ(1, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)6, box.center.x);
+	EXPECT_EQ((TypeParam)5, box.center.y);
+	EXPECT_EQ((TypeParam)4, box.center.z);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)2, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)1, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point2);
-	EXPECT_EQ(4.5, box.center.x);
-	EXPECT_EQ(5, box.center.y);
-	EXPECT_EQ(4, box.center.z);
-	EXPECT_EQ(3, box.halfExtents.x);
-	EXPECT_EQ(3.5, box.halfExtents.y);
-	EXPECT_EQ(1, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)4.5, box.center.x);
+	EXPECT_EQ((TypeParam)5, box.center.y);
+	EXPECT_EQ((TypeParam)4, box.center.z);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)1, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point3);
-	EXPECT_EQ(4.5, box.center.x);
-	EXPECT_EQ(3, box.center.y);
-	EXPECT_EQ(4, box.center.z);
-	EXPECT_EQ(3, box.halfExtents.x);
-	EXPECT_EQ(3.5, box.halfExtents.y);
-	EXPECT_EQ(3, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)4.5, box.center.x);
+	EXPECT_EQ((TypeParam)3, box.center.y);
+	EXPECT_EQ((TypeParam)4, box.center.z);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point4);
-	EXPECT_EQ(4.5, box.center.x);
-	EXPECT_EQ(3, box.center.y);
-	EXPECT_EQ(3, box.center.z);
-	EXPECT_EQ(4, box.halfExtents.x);
-	EXPECT_EQ(3.5, box.halfExtents.y);
-	EXPECT_EQ(3, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)4.5, box.center.x);
+	EXPECT_EQ((TypeParam)3, box.center.y);
+	EXPECT_EQ((TypeParam)3, box.center.z);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)3.5, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point5);
-	EXPECT_EQ(5, box.center.x);
-	EXPECT_EQ(3, box.center.y);
-	EXPECT_EQ(3, box.center.z);
-	EXPECT_EQ(4, box.halfExtents.x);
-	EXPECT_EQ(4, box.halfExtents.y);
-	EXPECT_EQ(3, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)5, box.center.x);
+	EXPECT_EQ((TypeParam)3, box.center.y);
+	EXPECT_EQ((TypeParam)3, box.center.z);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point6);
-	EXPECT_EQ(5, box.center.x);
-	EXPECT_EQ(5, box.center.y);
-	EXPECT_EQ(3, box.center.z);
-	EXPECT_EQ(4, box.halfExtents.x);
-	EXPECT_EQ(4, box.halfExtents.y);
-	EXPECT_EQ(5, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)5, box.center.x);
+	EXPECT_EQ((TypeParam)5, box.center.y);
+	EXPECT_EQ((TypeParam)3, box.center.z);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)5, box.halfExtents.z);
 
 	dsOrientedBox3_addPoint(&box, &point7);
-	EXPECT_EQ(5, box.center.x);
-	EXPECT_EQ(5, box.center.y);
-	EXPECT_EQ(5, box.center.z);
-	EXPECT_EQ(6, box.halfExtents.x);
-	EXPECT_EQ(4, box.halfExtents.y);
-	EXPECT_EQ(5, box.halfExtents.z);
+	EXPECT_EQ((TypeParam)5, box.center.x);
+	EXPECT_EQ((TypeParam)5, box.center.y);
+	EXPECT_EQ((TypeParam)5, box.center.z);
+	EXPECT_EQ((TypeParam)6, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)5, box.halfExtents.z);
 }
 
 TYPED_TEST(OrientedBox3Test, Corners)
@@ -776,39 +776,39 @@ TYPED_TEST(OrientedBox3Test, ClosestPoint)
 	EXPECT_EQ(box.center.z, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point1);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point2);
-	EXPECT_EQ(4, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)4, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point3);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(4, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)4, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point4);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(1, closest.z);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)1, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point5);
-	EXPECT_EQ(8, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)8, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point6);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsOrientedBox3_closestPoint(&closest, &box, &point7);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(6, closest.y);
-	EXPECT_EQ(7, closest.z);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)6, closest.y);
+	EXPECT_EQ((TypeParam)7, closest.z);
 }
 
 TYPED_TEST(OrientedBox3Test, Dist2)
@@ -830,14 +830,14 @@ TYPED_TEST(OrientedBox3Test, Dist2)
 	Vector3Type point6 = {{5, 10, 3}};
 	Vector3Type point7 = {{5, 6, 9}};
 
-	EXPECT_EQ(0, dsOrientedBox3_dist2(&box, &box.center));
-	EXPECT_EQ(0, dsOrientedBox3_dist2(&box, &point1));
-	EXPECT_EQ(9, dsOrientedBox3_dist2(&box, &point2));
-	EXPECT_EQ(16, dsOrientedBox3_dist2(&box, &point3));
-	EXPECT_EQ(4, dsOrientedBox3_dist2(&box, &point4));
-	EXPECT_EQ(9, dsOrientedBox3_dist2(&box, &point5));
-	EXPECT_EQ(16, dsOrientedBox3_dist2(&box, &point6));
-	EXPECT_EQ(4, dsOrientedBox3_dist2(&box, &point7));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox3_dist2(&box, &box.center));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox3_dist2(&box, &point1));
+	EXPECT_EQ((TypeParam)9, dsOrientedBox3_dist2(&box, &point2));
+	EXPECT_EQ((TypeParam)16, dsOrientedBox3_dist2(&box, &point3));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox3_dist2(&box, &point4));
+	EXPECT_EQ((TypeParam)9, dsOrientedBox3_dist2(&box, &point5));
+	EXPECT_EQ((TypeParam)16, dsOrientedBox3_dist2(&box, &point6));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox3_dist2(&box, &point7));
 }
 
 TYPED_TEST(OrientedBox3Test, Dist)

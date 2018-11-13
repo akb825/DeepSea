@@ -152,22 +152,22 @@ TYPED_TEST(Plane3Test, FromNormalPoint)
 
 	Plane3Type plane;
 	dsPlane3_fromNormalPoint(plane, normal1, point);
-	EXPECT_EQ(1, plane.n.x);
-	EXPECT_EQ(0, plane.n.y);
-	EXPECT_EQ(0, plane.n.z);
-	EXPECT_EQ(2, plane.d);
+	EXPECT_EQ((TypeParam)1, plane.n.x);
+	EXPECT_EQ((TypeParam)0, plane.n.y);
+	EXPECT_EQ((TypeParam)0, plane.n.z);
+	EXPECT_EQ((TypeParam)2, plane.d);
 
 	dsPlane3_fromNormalPoint(plane, normal2, point);
-	EXPECT_EQ(0, plane.n.x);
-	EXPECT_EQ(1, plane.n.y);
-	EXPECT_EQ(0, plane.n.z);
-	EXPECT_EQ(3, plane.d);
+	EXPECT_EQ((TypeParam)0, plane.n.x);
+	EXPECT_EQ((TypeParam)1, plane.n.y);
+	EXPECT_EQ((TypeParam)0, plane.n.z);
+	EXPECT_EQ((TypeParam)3, plane.d);
 
 	dsPlane3_fromNormalPoint(plane, normal3, point);
-	EXPECT_EQ(0, plane.n.x);
-	EXPECT_EQ(0, plane.n.y);
-	EXPECT_EQ(1, plane.n.z);
-	EXPECT_EQ(4, plane.d);
+	EXPECT_EQ((TypeParam)0, plane.n.x);
+	EXPECT_EQ((TypeParam)0, plane.n.y);
+	EXPECT_EQ((TypeParam)1, plane.n.z);
+	EXPECT_EQ((TypeParam)4, plane.d);
 }
 
 TYPED_TEST(Plane3Test, DistanceToPoint)
@@ -177,15 +177,15 @@ TYPED_TEST(Plane3Test, DistanceToPoint)
 
 	Plane3Type plane = {{{1, 0, 0}}, 2};
 	Vector3Type point = {{2, 3, 4}};
-	EXPECT_EQ(0, dsPlane3_distanceToPoint(plane, point));
+	EXPECT_EQ((TypeParam)0, dsPlane3_distanceToPoint(plane, point));
 
 	plane.n.x = 0;
 	plane.n.y = 1;
-	EXPECT_EQ(1, dsPlane3_distanceToPoint(plane, point));
+	EXPECT_EQ((TypeParam)1, dsPlane3_distanceToPoint(plane, point));
 
 	plane.n.y = 0;
 	plane.n.z = 1;
-	EXPECT_EQ(2, dsPlane3_distanceToPoint(plane, point));
+	EXPECT_EQ((TypeParam)2, dsPlane3_distanceToPoint(plane, point));
 }
 
 TYPED_TEST(Plane3Test, Normalize)

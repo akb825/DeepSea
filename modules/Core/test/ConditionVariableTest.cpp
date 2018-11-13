@@ -103,7 +103,7 @@ TEST(ConditionVariable, NotifyAll)
 		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	EXPECT_TRUE(dsMutex_lock(threadData.mutex));
-	EXPECT_EQ(0, threadData.executed);
+	EXPECT_EQ(0U, threadData.executed);
 	threadData.ready = true;
 	EXPECT_TRUE(dsConditionVariable_notifyAll(threadData.condition));
 	EXPECT_TRUE(dsMutex_unlock(threadData.mutex));
@@ -133,7 +133,7 @@ TEST(ConditionVariable, NotifyOne)
 		EXPECT_TRUE(dsThread_create(threads + i, &threadFunc, &threadData, 0, nullptr));
 
 	EXPECT_TRUE(dsMutex_lock(threadData.mutex));
-	EXPECT_EQ(0, threadData.executed);
+	EXPECT_EQ(0U, threadData.executed);
 	threadData.ready = true;
 	EXPECT_TRUE(dsMutex_unlock(threadData.mutex));
 

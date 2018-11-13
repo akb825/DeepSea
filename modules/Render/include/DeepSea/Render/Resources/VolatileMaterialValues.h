@@ -50,7 +50,7 @@ extern "C"
 /**
  * @brief The default maximum number of volatile material values.
  */
-#define DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES 100
+#define DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES 100U
 
 /**
  * @brief Gets the size of dsVolatileMaterialValues.

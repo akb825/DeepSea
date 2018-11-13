@@ -187,7 +187,7 @@ TEST_F(TextureTest, Create)
 		dsGfxMemory_Read, &info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -201,7 +201,7 @@ TEST_F(TextureTest, Create)
 		&info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*256, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*256), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -215,7 +215,7 @@ TEST_F(TextureTest, Create)
 		&info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*512, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*512), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -226,7 +226,7 @@ TEST_F(TextureTest, Create)
 		&info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -237,7 +237,7 @@ TEST_F(TextureTest, Create)
 		&info, NULL, 0);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ((128*256 + 64*128 + 32*64)*4, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)((128*256 + 64*128 + 32*64)*4), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -273,7 +273,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -283,7 +283,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, false);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*4, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*4), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -292,7 +292,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*5, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*5), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -307,7 +307,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*256, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*256), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -321,7 +321,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*512, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*512), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -337,7 +337,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ((128*256 + 64*128 + 32*64)*4, resourceManager->textureMemorySize);
+	EXPECT_EQ(((size_t)(128*256 + 64*128 + 32*64)*4), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);
@@ -368,7 +368,7 @@ TEST_F(TextureTest, CreateOffscreen)
 		dsGfxMemory_Read, &info, true);
 	ASSERT_TRUE(texture);
 	EXPECT_EQ(1U, resourceManager->textureCount);
-	EXPECT_EQ(128*256*4*5, resourceManager->textureMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*5), resourceManager->textureMemorySize);
 	EXPECT_TRUE(dsTexture_destroy(texture));
 	EXPECT_EQ(0U, resourceManager->textureCount);
 	EXPECT_EQ(0U, resourceManager->textureMemorySize);

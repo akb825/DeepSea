@@ -63,7 +63,7 @@ TEST(MemoryStream, ReadWriteFileFunctions)
 	dummyData = 2;
 	EXPECT_EQ(sizeof(dummyData), dsMemoryStream_write(&stream, &dummyData, sizeof(dummyData)));
 	dummyData = 3;
-	EXPECT_EQ(0, dsMemoryStream_write(&stream, &dummyData, sizeof(dummyData)));
+	EXPECT_EQ(0U, dsMemoryStream_write(&stream, &dummyData, sizeof(dummyData)));
 
 	EXPECT_EQ(2*sizeof(dummyData), dsMemoryStream_tell(&stream));
 	EXPECT_TRUE(dsMemoryStream_seek(&stream, 0, dsStreamSeekWay_Beginning));
@@ -211,8 +211,8 @@ TEST(MemoryStream, ReadUntilEndReuse)
 	ASSERT_TRUE(readData);
 	uint32_t* data = (uint32_t*)readData;
 
-	EXPECT_EQ(1, data[0]);
-	EXPECT_EQ(2, data[1]);
+	EXPECT_EQ(1U, data[0]);
+	EXPECT_EQ(2U, data[1]);
 
 	EXPECT_TRUE(dsMemoryStream_close(&stream));
 	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
@@ -224,8 +224,8 @@ TEST(MemoryStream, ReadUntilEndReuse)
 	ASSERT_TRUE(readData);
 	data = (uint32_t*)readData;
 
-	EXPECT_EQ(1, data[0]);
-	EXPECT_EQ(2, data[1]);
+	EXPECT_EQ(1U, data[0]);
+	EXPECT_EQ(2U, data[1]);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
@@ -252,8 +252,8 @@ TEST(MemoryStream, ReadUntilEndNoSeekReuse)
 	ASSERT_TRUE(readData);
 	uint32_t* data = (uint32_t*)readData;
 
-	EXPECT_EQ(1, data[0]);
-	EXPECT_EQ(2, data[1]);
+	EXPECT_EQ(1U, data[0]);
+	EXPECT_EQ(2U, data[1]);
 
 	EXPECT_TRUE(dsMemoryStream_close(&stream));
 	EXPECT_TRUE(dsMemoryStream_open(&stream, buffer, sizeof(buffer)));
@@ -266,8 +266,8 @@ TEST(MemoryStream, ReadUntilEndNoSeekReuse)
 	ASSERT_TRUE(readData);
 	data = (uint32_t*)readData;
 
-	EXPECT_EQ(1, data[0]);
-	EXPECT_EQ(2, data[1]);
+	EXPECT_EQ(1U, data[0]);
+	EXPECT_EQ(2U, data[1]);
 
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, data));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);

@@ -32,7 +32,7 @@ extern "C"
 /**
  * @brief Constant for the code point at the end of the string.
  */
-#define DS_UNICODE_END 0
+#define DS_UNICODE_END 0U
 
 /**
  * @brief Constant for an invalid character sequence.

@@ -39,15 +39,15 @@ TEST(BitsTest, BitmaskIterate)
 	EXPECT_EQ(0U, dsBitmaskIndex(bitmask));
 
 	bitmask = dsRemoveLastBit(bitmask);
-	EXPECT_EQ(0x38, bitmask);
+	EXPECT_EQ(0x38U, bitmask);
 	EXPECT_EQ(3U, dsBitmaskIndex(bitmask));
 
 	bitmask = dsRemoveLastBit(bitmask);
-	EXPECT_EQ(0x30, bitmask);
+	EXPECT_EQ(0x30U, bitmask);
 	EXPECT_EQ(4U, dsBitmaskIndex(bitmask));
 
 	bitmask = dsRemoveLastBit(bitmask);
-	EXPECT_EQ(0x20, bitmask);
+	EXPECT_EQ(0x20U, bitmask);
 	EXPECT_EQ(5U, dsBitmaskIndex(bitmask));
 
 	bitmask = dsRemoveLastBit(bitmask);

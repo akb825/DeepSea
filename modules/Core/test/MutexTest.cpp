@@ -40,9 +40,9 @@ dsThreadReturnType threadFunc(void* data)
 	EXPECT_TRUE(dsMutex_lock(threadData->mutex));
 
 	++threadData->counter;
-	EXPECT_EQ(1, threadData->counter);
+	EXPECT_EQ(1U, threadData->counter);
 	--threadData->counter;
-	EXPECT_EQ(0, threadData->counter);
+	EXPECT_EQ(0U, threadData->counter);
 	++threadData->executed;
 
 	EXPECT_TRUE(dsMutex_unlock(threadData->mutex));

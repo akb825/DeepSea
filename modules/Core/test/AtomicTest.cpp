@@ -180,30 +180,30 @@ TEST(Atomic, size_t)
 	size_t testVal, exchangeVal;
 
 	DS_ATOMIC_LOAD_SIZE(&atomicVal, &testVal);
-	EXPECT_EQ(15, testVal);
+	EXPECT_EQ(15U, testVal);
 
 	testVal = 20;
 	DS_ATOMIC_STORE_SIZE(&atomicVal, &testVal);
-	EXPECT_EQ(20, atomicVal);
+	EXPECT_EQ(20U, atomicVal);
 
 	exchangeVal = 0;
 	testVal = 25;
 	DS_ATOMIC_EXCHANGE_SIZE(&atomicVal, &testVal, &exchangeVal);
-	EXPECT_EQ(25, atomicVal);
-	EXPECT_EQ(20, exchangeVal);
+	EXPECT_EQ(25U, atomicVal);
+	EXPECT_EQ(20U, exchangeVal);
 
 	testVal = 30;
 	exchangeVal = 20;
 	EXPECT_FALSE(DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&atomicVal, &exchangeVal, &testVal, false));
-	EXPECT_EQ(25, atomicVal);
-	EXPECT_EQ(25, exchangeVal);
+	EXPECT_EQ(25U, atomicVal);
+	EXPECT_EQ(25U, exchangeVal);
 
 	EXPECT_TRUE(DS_ATOMIC_COMPARE_EXCHANGE_SIZE(&atomicVal, &exchangeVal, &testVal, false));
-	EXPECT_EQ(30, atomicVal);
-	EXPECT_EQ(25, exchangeVal);
+	EXPECT_EQ(30U, atomicVal);
+	EXPECT_EQ(25U, exchangeVal);
 
-	EXPECT_EQ(30, DS_ATOMIC_FETCH_ADD_SIZE(&atomicVal, -3));
-	EXPECT_EQ(27, atomicVal);
+	EXPECT_EQ(30U, DS_ATOMIC_FETCH_ADD_SIZE(&atomicVal, -3));
+	EXPECT_EQ(27U, atomicVal);
 }
 
 TEST(Atomic, double)

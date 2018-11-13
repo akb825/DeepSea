@@ -62,9 +62,9 @@ TEST(ConfigTest, EncodeVersion)
 
 	version = DS_ENCODE_VERSION(0xFFFFFE00, 0xFFFFFE00, 0xFFFFF800);
 	DS_DECODE_VERSION(major, minor, patch, version);
-	EXPECT_EQ(0x200, major);
-	EXPECT_EQ(0x200, minor);
-	EXPECT_EQ(0x800, patch);
+	EXPECT_EQ(0x200U, major);
+	EXPECT_EQ(0x200U, minor);
+	EXPECT_EQ(0x800U, patch);
 
 	EXPECT_LT(DS_ENCODE_VERSION(1, 2, 3), DS_ENCODE_VERSION(1, 2, 4));
 	EXPECT_LT(DS_ENCODE_VERSION(1, 1, 3), DS_ENCODE_VERSION(1, 2, 4));
@@ -73,5 +73,5 @@ TEST(ConfigTest, EncodeVersion)
 
 TEST(ConfigTest, LibraryVersion)
 {
-	EXPECT_NE(0, DS_VERSION);
+	EXPECT_NE(0U, DS_VERSION);
 }

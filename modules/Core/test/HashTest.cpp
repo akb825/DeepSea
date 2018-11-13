@@ -61,9 +61,9 @@ TEST(HashTest, HashCombineBytes128)
 	uint32_t testResult = finalHash[0] | (finalHash[1] << 8) | (finalHash[2] << 16) |
 		(finalHash[3] << 24);
 #if DS_64BIT
-	EXPECT_EQ(0x6384BA69, testResult);
+	EXPECT_EQ(0x6384BA69U, testResult);
 #else
-	EXPECT_EQ(0xB3ECE62A, testResult);
+	EXPECT_EQ(0xB3ECE62AU, testResult);
 #endif
 }
 

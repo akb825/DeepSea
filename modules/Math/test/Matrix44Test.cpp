@@ -244,25 +244,25 @@ TYPED_TEST(Matrix44Test, Identity)
 	Matrix44Type matrix;
 	dsMatrix44_identity(matrix);
 
-	EXPECT_EQ(1, matrix.values[0][0]);
-	EXPECT_EQ(0, matrix.values[0][1]);
-	EXPECT_EQ(0, matrix.values[0][2]);
-	EXPECT_EQ(0, matrix.values[0][3]);
+	EXPECT_EQ((TypeParam)1, matrix.values[0][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][3]);
 
-	EXPECT_EQ(0, matrix.values[1][0]);
-	EXPECT_EQ(1, matrix.values[1][1]);
-	EXPECT_EQ(0, matrix.values[1][2]);
-	EXPECT_EQ(0, matrix.values[1][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)1, matrix.values[1][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][3]);
 
-	EXPECT_EQ(0, matrix.values[2][0]);
-	EXPECT_EQ(0, matrix.values[2][1]);
-	EXPECT_EQ(1, matrix.values[2][2]);
-	EXPECT_EQ(0, matrix.values[2][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][1]);
+	EXPECT_EQ((TypeParam)1, matrix.values[2][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][3]);
 
-	EXPECT_EQ(0, matrix.values[3][0]);
-	EXPECT_EQ(0, matrix.values[3][1]);
-	EXPECT_EQ(0, matrix.values[3][2]);
-	EXPECT_EQ(1, matrix.values[3][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][2]);
+	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
 }
 
 TYPED_TEST(Matrix44Test, Multiply)
@@ -480,71 +480,71 @@ TYPED_TEST(Matrix44Test, MakeRotate)
 	Matrix44Type rotateX;
 	dsMatrix44_makeRotate(&rotateX, (TypeParam)dsDegreesToRadians(30), 0, 0);
 
-	EXPECT_EQ(1, rotateX.values[0][0]);
-	EXPECT_EQ(0, rotateX.values[0][1]);
-	EXPECT_EQ(0, rotateX.values[0][2]);
-	EXPECT_EQ(0, rotateX.values[0][3]);
+	EXPECT_EQ((TypeParam)1, rotateX.values[0][0]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[0][1]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[0][2]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[0][3]);
 
-	EXPECT_EQ(0, rotateX.values[1][0]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[1][0]);
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[1][1], epsilon);
 	EXPECT_NEAR((TypeParam)0.5, rotateX.values[1][2], epsilon);
-	EXPECT_EQ(0, rotateX.values[1][3]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[1][3]);
 
-	EXPECT_EQ(0, rotateX.values[2][0]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[2][0]);
 	EXPECT_NEAR((TypeParam)-0.5, rotateX.values[2][1], epsilon);
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateX.values[2][2], epsilon);
-	EXPECT_EQ(0, rotateX.values[2][3]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[2][3]);
 
-	EXPECT_EQ(0, rotateX.values[3][0]);
-	EXPECT_EQ(0, rotateX.values[3][1]);
-	EXPECT_EQ(0, rotateX.values[3][2]);
-	EXPECT_EQ(1, rotateX.values[3][3]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[3][0]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[3][1]);
+	EXPECT_EQ((TypeParam)0, rotateX.values[3][2]);
+	EXPECT_EQ((TypeParam)1, rotateX.values[3][3]);
 
 	Matrix44Type rotateY;
 	dsMatrix44_makeRotate(&rotateY, 0, (TypeParam)dsDegreesToRadians(-15), 0);
 
 	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[0][0], epsilon);
-	EXPECT_EQ(0, rotateY.values[0][1]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[0][1]);
 	EXPECT_NEAR((TypeParam)0.2588190451025208, rotateY.values[0][2], epsilon);
-	EXPECT_EQ(0, rotateY.values[0][3]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[0][3]);
 
-	EXPECT_EQ(0, rotateY.values[1][0]);
-	EXPECT_EQ(1, rotateY.values[1][1]);
-	EXPECT_EQ(0, rotateY.values[1][2]);
-	EXPECT_EQ(0, rotateY.values[1][3]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[1][0]);
+	EXPECT_EQ((TypeParam)1, rotateY.values[1][1]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[1][2]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[1][3]);
 
 	EXPECT_NEAR((TypeParam)-0.2588190451025208, rotateY.values[2][0], epsilon);
-	EXPECT_EQ(0, rotateY.values[2][1]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[2][1]);
 	EXPECT_NEAR((TypeParam)0.9659258262890683, rotateY.values[2][2], epsilon);
-	EXPECT_EQ(0, rotateY.values[2][3]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[2][3]);
 
-	EXPECT_EQ(0, rotateY.values[3][0]);
-	EXPECT_EQ(0, rotateY.values[3][1]);
-	EXPECT_EQ(0, rotateY.values[3][2]);
-	EXPECT_EQ(1, rotateY.values[3][3]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[3][0]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[3][1]);
+	EXPECT_EQ((TypeParam)0, rotateY.values[3][2]);
+	EXPECT_EQ((TypeParam)1, rotateY.values[3][3]);
 
 	Matrix44Type rotateZ;
 	dsMatrix44_makeRotate(&rotateZ, 0, 0, (TypeParam)dsDegreesToRadians(60));
 
 	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.866025403784439, rotateZ.values[0][1], epsilon);
-	EXPECT_EQ(0, rotateZ.values[0][2]);
-	EXPECT_EQ(0, rotateZ.values[0][3]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[0][2]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[0][3]);
 
 	EXPECT_NEAR((TypeParam)-0.866025403784439, rotateZ.values[1][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.5, rotateZ.values[1][1], epsilon);
-	EXPECT_EQ(0, rotateZ.values[1][2]);
-	EXPECT_EQ(0, rotateZ.values[1][3]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[1][2]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[1][3]);
 
-	EXPECT_EQ(0, rotateZ.values[2][0]);
-	EXPECT_EQ(0, rotateZ.values[2][1]);
-	EXPECT_EQ(1, rotateZ.values[2][2]);
-	EXPECT_EQ(0, rotateZ.values[2][3]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[2][0]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[2][1]);
+	EXPECT_EQ((TypeParam)1, rotateZ.values[2][2]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[2][3]);
 
-	EXPECT_EQ(0, rotateZ.values[3][0]);
-	EXPECT_EQ(0, rotateZ.values[3][1]);
-	EXPECT_EQ(0, rotateZ.values[3][2]);
-	EXPECT_EQ(1, rotateZ.values[3][3]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[3][0]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[3][1]);
+	EXPECT_EQ((TypeParam)0, rotateZ.values[3][2]);
+	EXPECT_EQ((TypeParam)1, rotateZ.values[3][3]);
 
 	Matrix44Type temp, result;
 	dsMatrix44_mul(temp, rotateY, rotateX);
@@ -591,22 +591,22 @@ TYPED_TEST(Matrix44Test, MakeRotateAxisAngle)
 	EXPECT_NEAR((TypeParam)0.96608673169969, matrix.values[0][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.25673182392846, matrix.values[0][1], epsilon);
 	EXPECT_NEAR((TypeParam)-0.02766220194012, matrix.values[0][2], epsilon);
-	EXPECT_EQ(0, matrix.values[0][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][3]);
 
 	EXPECT_NEAR((TypeParam)-0.25800404198456, matrix.values[1][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.95537412871306, matrix.values[1][1], epsilon);
 	EXPECT_NEAR((TypeParam)-0.14385474794174, matrix.values[1][2], epsilon);
-	EXPECT_EQ(0, matrix.values[1][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][3]);
 
 	EXPECT_NEAR((TypeParam)-0.01050433974302, matrix.values[2][0], epsilon);
 	EXPECT_NEAR((TypeParam)0.14611312318926, matrix.values[2][1], epsilon);
 	EXPECT_NEAR((TypeParam)0.98921211783846, matrix.values[2][2], epsilon);
-	EXPECT_EQ(0, matrix.values[2][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][3]);
 
-	EXPECT_EQ(0, matrix.values[3][0]);
-	EXPECT_EQ(0, matrix.values[3][1]);
-	EXPECT_EQ(0, matrix.values[3][2]);
-	EXPECT_EQ(1, matrix.values[3][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][2]);
+	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
 }
 
 TYPED_TEST(Matrix44Test, MakeTranslate)
@@ -616,25 +616,25 @@ TYPED_TEST(Matrix44Test, MakeTranslate)
 	Matrix44Type matrix;
 	dsMatrix44_makeTranslate(&matrix, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
 
-	EXPECT_EQ(1, matrix.values[0][0]);
-	EXPECT_EQ(0, matrix.values[0][1]);
-	EXPECT_EQ(0, matrix.values[0][2]);
-	EXPECT_EQ(0, matrix.values[0][3]);
+	EXPECT_EQ((TypeParam)1, matrix.values[0][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][3]);
 
-	EXPECT_EQ(0, matrix.values[1][0]);
-	EXPECT_EQ(1, matrix.values[1][1]);
-	EXPECT_EQ(0, matrix.values[1][2]);
-	EXPECT_EQ(0, matrix.values[1][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)1, matrix.values[1][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][3]);
 
-	EXPECT_EQ(0, matrix.values[2][0]);
-	EXPECT_EQ(0, matrix.values[2][1]);
-	EXPECT_EQ(1, matrix.values[2][2]);
-	EXPECT_EQ(0, matrix.values[2][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][1]);
+	EXPECT_EQ((TypeParam)1, matrix.values[2][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][3]);
 
 	EXPECT_EQ((TypeParam)1.2, matrix.values[3][0]);
 	EXPECT_EQ((TypeParam)-3.4, matrix.values[3][1]);
 	EXPECT_EQ((TypeParam)5.6, matrix.values[3][2]);
-	EXPECT_EQ(1, matrix.values[3][3]);
+	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
 }
 
 TYPED_TEST(Matrix44Test, MakeScale)
@@ -645,24 +645,24 @@ TYPED_TEST(Matrix44Test, MakeScale)
 	dsMatrix44_makeScale(&matrix, (TypeParam)1.2, (TypeParam)-3.4, (TypeParam)5.6);
 
 	EXPECT_EQ((TypeParam)1.2, matrix.values[0][0]);
-	EXPECT_EQ(0, matrix.values[0][1]);
-	EXPECT_EQ(0, matrix.values[0][2]);
-	EXPECT_EQ(0, matrix.values[0][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][3]);
 
-	EXPECT_EQ(0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
 	EXPECT_EQ((TypeParam)-3.4, matrix.values[1][1]);
-	EXPECT_EQ(0, matrix.values[1][2]);
-	EXPECT_EQ(0, matrix.values[1][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][2]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][3]);
 
-	EXPECT_EQ(0, matrix.values[2][0]);
-	EXPECT_EQ(0, matrix.values[2][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][1]);
 	EXPECT_EQ((TypeParam)5.6, matrix.values[2][2]);
-	EXPECT_EQ(0, matrix.values[2][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[2][3]);
 
-	EXPECT_EQ(0, matrix.values[3][0]);
-	EXPECT_EQ(0, matrix.values[3][1]);
-	EXPECT_EQ(0, matrix.values[3][2]);
-	EXPECT_EQ(1, matrix.values[3][3]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[3][2]);
+	EXPECT_EQ((TypeParam)1, matrix.values[3][3]);
 }
 
 TYPED_TEST(Matrix44Test, LookAt)

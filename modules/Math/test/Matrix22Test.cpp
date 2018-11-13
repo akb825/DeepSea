@@ -102,11 +102,11 @@ TYPED_TEST(Matrix22Test, Identity)
 	Matrix22Type matrix;
 	dsMatrix22_identity(matrix);
 
-	EXPECT_EQ(1, matrix.values[0][0]);
-	EXPECT_EQ(0, matrix.values[0][1]);
+	EXPECT_EQ((TypeParam)1, matrix.values[0][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][1]);
 
-	EXPECT_EQ(0, matrix.values[1][0]);
-	EXPECT_EQ(1, matrix.values[1][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)1, matrix.values[1][1]);
 }
 
 TYPED_TEST(Matrix22Test, Multiply)
@@ -265,9 +265,9 @@ TYPED_TEST(Matrix22Test, MakeScale)
 	dsMatrix22_makeScale(&matrix, (TypeParam)1.2, (TypeParam)-3.4);
 
 	EXPECT_EQ((TypeParam)1.2, matrix.values[0][0]);
-	EXPECT_EQ(0, matrix.values[0][1]);
+	EXPECT_EQ((TypeParam)0, matrix.values[0][1]);
 
-	EXPECT_EQ(0, matrix.values[1][0]);
+	EXPECT_EQ((TypeParam)0, matrix.values[1][0]);
 	EXPECT_EQ((TypeParam)-3.4, matrix.values[1][1]);
 }
 

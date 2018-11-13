@@ -82,6 +82,9 @@ bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurfac
 								imageViewType = VK_IMAGE_VIEW_TYPE_CUBE;
 							faceCount = 6;
 							break;
+						default:
+							DS_ASSERT(false);
+							return false;
 					}
 
 					const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(

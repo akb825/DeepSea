@@ -38,7 +38,7 @@ TEST_F(RenderbufferTest, Create)
 	ASSERT_TRUE(renderbuffer);
 
 	EXPECT_EQ(1U, resourceManager->renderbufferCount);
-	EXPECT_EQ(128*256*4*4, resourceManager->renderbufferMemorySize);
+	EXPECT_EQ((size_t)(128*256*4*4), resourceManager->renderbufferMemorySize);
 
 	EXPECT_TRUE(dsRenderbuffer_destroy(renderbuffer));
 	EXPECT_EQ(0U, resourceManager->renderbufferCount);

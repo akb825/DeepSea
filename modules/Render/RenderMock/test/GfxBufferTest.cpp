@@ -79,7 +79,7 @@ TEST_F(GfxBufferTest, Map)
 	EXPECT_FALSE(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(TestData) + 10));
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, DS_MAP_FULL_BUFFER);
 	ASSERT_TRUE(data);
-	EXPECT_EQ(0U, memcmp(&testData, data, sizeof(testData)));
+	EXPECT_EQ(0, memcmp(&testData, data, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	data = dsGfxBuffer_map(buffer, (dsGfxBufferMap)(dsGfxBufferMap_Read | dsGfxBufferMap_Write |
@@ -168,7 +168,7 @@ TEST_F(GfxBufferTest, CopyData)
 
 	void* data = dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0, sizeof(copyData));
 	ASSERT_TRUE(data);
-	EXPECT_EQ(0U, memcmp(&copyData, data, sizeof(copyData)));
+	EXPECT_EQ(0, memcmp(&copyData, data, sizeof(copyData)));
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
@@ -217,7 +217,7 @@ TEST_F(GfxBufferTest, Copy)
 
 	void* data = dsGfxBuffer_map(toBuffer, dsGfxBufferMap_Read, 0, sizeof(testData));
 	ASSERT_TRUE(data);
-	EXPECT_EQ(0U, memcmp(&testData, data, sizeof(testData)));
+	EXPECT_EQ(0, memcmp(&testData, data, sizeof(testData)));
 	EXPECT_TRUE(dsGfxBuffer_unmap(toBuffer));
 
 	EXPECT_TRUE(dsGfxBuffer_destroy(fromBuffer));

@@ -176,16 +176,16 @@ TYPED_TEST(OrientedBox2Test, Initialize)
 		{{1, 2}}, {{3, 4}}
 	};
 
-	EXPECT_EQ(1, box.orientation.values[0][0]);
-	EXPECT_EQ(0, box.orientation.values[0][1]);
-	EXPECT_EQ(0, box.orientation.values[1][0]);
-	EXPECT_EQ(1, box.orientation.values[1][1]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][0]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[1][1]);
 
-	EXPECT_EQ(1, box.center.x);
-	EXPECT_EQ(2, box.center.y);
+	EXPECT_EQ((TypeParam)1, box.center.x);
+	EXPECT_EQ((TypeParam)2, box.center.y);
 
-	EXPECT_EQ(3, box.halfExtents.x);
-	EXPECT_EQ(4, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)3, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)4, box.halfExtents.y);
 }
 
 TYPED_TEST(OrientedBox2Test, IsValid)
@@ -222,16 +222,16 @@ TYPED_TEST(OrientedBox2Test, FromAlignedBox)
 	AlignedBox2Type alignedBox = {{{0, 1}}, {{2, 5}}};
 
 	dsOrientedBox2_fromAlignedBox(box, alignedBox);
-	EXPECT_EQ(1, box.orientation.values[0][0]);
-	EXPECT_EQ(0, box.orientation.values[0][1]);
-	EXPECT_EQ(0, box.orientation.values[1][0]);
-	EXPECT_EQ(1, box.orientation.values[1][1]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[0][0]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[0][1]);
+	EXPECT_EQ((TypeParam)0, box.orientation.values[1][0]);
+	EXPECT_EQ((TypeParam)1, box.orientation.values[1][1]);
 
-	EXPECT_EQ(1, box.center.x);
-	EXPECT_EQ(3, box.center.y);
+	EXPECT_EQ((TypeParam)1, box.center.x);
+	EXPECT_EQ((TypeParam)3, box.center.y);
 
-	EXPECT_EQ(1, box.halfExtents.x);
-	EXPECT_EQ(2, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)1, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)2, box.halfExtents.y);
 }
 
 TYPED_TEST(OrientedBox2Test, MakeInvalid)
@@ -269,10 +269,10 @@ TYPED_TEST(OrientedBox2Test, AddPoint)
 	Vector2Type point5 = {{4, 7}};
 
 	dsOrientedBox2_addPoint(&box, &point1);
-	EXPECT_EQ(4, box.center.x);
-	EXPECT_EQ(3, box.center.y);
-	EXPECT_EQ(2, box.halfExtents.x);
-	EXPECT_EQ(1, box.halfExtents.y);
+	EXPECT_EQ((TypeParam)4, box.center.x);
+	EXPECT_EQ((TypeParam)3, box.center.y);
+	EXPECT_EQ((TypeParam)2, box.halfExtents.x);
+	EXPECT_EQ((TypeParam)1, box.halfExtents.y);
 
 	dsOrientedBox2_addPoint(&box, &point2);
 	EXPECT_NEAR(2.5, box.center.x, epsilon);
@@ -571,24 +571,24 @@ TYPED_TEST(OrientedBox2Test, ClosestPoint)
 	EXPECT_EQ(box.center.y, closest.y);
 
 	dsOrientedBox2_closestPoint(&closest, &box, &point1);
-	EXPECT_EQ(3, closest.x);
-	EXPECT_EQ(2, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
 
 	dsOrientedBox2_closestPoint(&closest, &box, &point2);
-	EXPECT_EQ(3, closest.x);
-	EXPECT_EQ(3, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.x);
+	EXPECT_EQ((TypeParam)3, closest.y);
 
 	dsOrientedBox2_closestPoint(&closest, &box, &point3);
-	EXPECT_EQ(4, closest.x);
-	EXPECT_EQ(1, closest.y);
+	EXPECT_EQ((TypeParam)4, closest.x);
+	EXPECT_EQ((TypeParam)1, closest.y);
 
 	dsOrientedBox2_closestPoint(&closest, &box, &point4);
-	EXPECT_EQ(5, closest.x);
-	EXPECT_EQ(3, closest.y);
+	EXPECT_EQ((TypeParam)5, closest.x);
+	EXPECT_EQ((TypeParam)3, closest.y);
 
 	dsOrientedBox2_closestPoint(&closest, &box, &point5);
-	EXPECT_EQ(4, closest.x);
-	EXPECT_EQ(5, closest.y);
+	EXPECT_EQ((TypeParam)4, closest.x);
+	EXPECT_EQ((TypeParam)5, closest.y);
 }
 
 TYPED_TEST(OrientedBox2Test, Dist2)
@@ -608,12 +608,12 @@ TYPED_TEST(OrientedBox2Test, Dist2)
 	Vector2Type point4 = {{6, 3}};
 	Vector2Type point5 = {{4, 7}};
 
-	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &box.center));
-	EXPECT_EQ(0, dsOrientedBox2_dist2(&box, &point1));
-	EXPECT_EQ(1, dsOrientedBox2_dist2(&box, &point2));
-	EXPECT_EQ(4, dsOrientedBox2_dist2(&box, &point3));
-	EXPECT_EQ(1, dsOrientedBox2_dist2(&box, &point4));
-	EXPECT_EQ(4, dsOrientedBox2_dist2(&box, &point5));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox2_dist2(&box, &box.center));
+	EXPECT_EQ((TypeParam)0, dsOrientedBox2_dist2(&box, &point1));
+	EXPECT_EQ((TypeParam)1, dsOrientedBox2_dist2(&box, &point2));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox2_dist2(&box, &point3));
+	EXPECT_EQ((TypeParam)1, dsOrientedBox2_dist2(&box, &point4));
+	EXPECT_EQ((TypeParam)4, dsOrientedBox2_dist2(&box, &point5));
 }
 
 TYPED_TEST(OrientedBox2Test, Dist)

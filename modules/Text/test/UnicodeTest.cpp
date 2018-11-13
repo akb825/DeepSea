@@ -24,10 +24,10 @@ TEST(Unicode, UTF8)
 	uint32_t index = 0;
 	EXPECT_EQ(4U, dsUTF8_codepointCount((const char*)utf8));
 	EXPECT_EQ(10U, dsUTF8_length((const char*)utf8));
-	EXPECT_EQ(0x24, dsUTF8_nextCodepoint((const char*)utf8, &index));
-	EXPECT_EQ(0xA2, dsUTF8_nextCodepoint((const char*)utf8, &index));
-	EXPECT_EQ(0x20AC, dsUTF8_nextCodepoint((const char*)utf8, &index));
-	EXPECT_EQ(0x10348, dsUTF8_nextCodepoint((const char*)utf8, &index));
+	EXPECT_EQ(0x24U, dsUTF8_nextCodepoint((const char*)utf8, &index));
+	EXPECT_EQ(0xA2U, dsUTF8_nextCodepoint((const char*)utf8, &index));
+	EXPECT_EQ(0x20ACU, dsUTF8_nextCodepoint((const char*)utf8, &index));
+	EXPECT_EQ(0x10348U, dsUTF8_nextCodepoint((const char*)utf8, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF8_nextCodepoint((const char*)utf8, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF8_nextCodepoint((const char*)utf8, &index));
 
@@ -54,10 +54,10 @@ TEST(Unicode, UTF16)
 	uint32_t index = 0;
 	EXPECT_EQ(4U, dsUTF16_codepointCount(utf16));
 	EXPECT_EQ(6U, dsUTF16_length(utf16));
-	EXPECT_EQ(0x24, dsUTF16_nextCodepoint(utf16, &index));
-	EXPECT_EQ(0x20AC, dsUTF16_nextCodepoint(utf16, &index));
-	EXPECT_EQ(0x10437, dsUTF16_nextCodepoint(utf16, &index));
-	EXPECT_EQ(0x24B62, dsUTF16_nextCodepoint(utf16, &index));
+	EXPECT_EQ(0x24U, dsUTF16_nextCodepoint(utf16, &index));
+	EXPECT_EQ(0x20ACU, dsUTF16_nextCodepoint(utf16, &index));
+	EXPECT_EQ(0x10437U, dsUTF16_nextCodepoint(utf16, &index));
+	EXPECT_EQ(0x24B62U, dsUTF16_nextCodepoint(utf16, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF16_nextCodepoint(utf16, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF16_nextCodepoint(utf16, &index));
 
@@ -84,10 +84,10 @@ TEST(Unicode, UTF32)
 	uint32_t index = 0;
 	EXPECT_EQ(4U, dsUTF32_codepointCount(utf32));
 	EXPECT_EQ(4U, dsUTF32_length(utf32));
-	EXPECT_EQ(0x24, dsUTF32_nextCodepoint(utf32, &index));
-	EXPECT_EQ(0x20AC, dsUTF32_nextCodepoint(utf32, &index));
-	EXPECT_EQ(0x10437, dsUTF32_nextCodepoint(utf32, &index));
-	EXPECT_EQ(0x24B62, dsUTF32_nextCodepoint(utf32, &index));
+	EXPECT_EQ(0x24U, dsUTF32_nextCodepoint(utf32, &index));
+	EXPECT_EQ(0x20ACU, dsUTF32_nextCodepoint(utf32, &index));
+	EXPECT_EQ(0x10437U, dsUTF32_nextCodepoint(utf32, &index));
+	EXPECT_EQ(0x24B62U, dsUTF32_nextCodepoint(utf32, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF32_nextCodepoint(utf32, &index));
 	EXPECT_EQ(DS_UNICODE_END, dsUTF32_nextCodepoint(utf32, &index));
 

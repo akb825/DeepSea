@@ -231,9 +231,9 @@ TYPED_TEST(Vector3Test, Cross)
 	Vector3Type yAxis = {{0, 1, 0}};
 
 	dsVector3_cross(result, xAxis, yAxis);
-	EXPECT_EQ(0, result.x);
-	EXPECT_EQ(0, result.y);
-	EXPECT_EQ(1, result.z);
+	EXPECT_EQ((TypeParam)0, result.x);
+	EXPECT_EQ((TypeParam)0, result.y);
+	EXPECT_EQ((TypeParam)1, result.z);
 }
 
 TYPED_TEST(Vector3Test, Length)
@@ -372,9 +372,9 @@ TEST(Vector3, ConvertFloatToInt)
 	dsVector3i vectori;
 	dsConvertFloatToInt(vectori, vectorf);
 
-	EXPECT_EQ(vectorf.x, vectori.x);
-	EXPECT_EQ(vectorf.y, vectori.y);
-	EXPECT_EQ(vectorf.z, vectori.z);
+	EXPECT_EQ(vectorf.x, (float)vectori.x);
+	EXPECT_EQ(vectorf.y, (float)vectori.y);
+	EXPECT_EQ(vectorf.z, (float)vectori.z);
 }
 
 TEST(Vector3, ConvertIntToFloat)
@@ -384,9 +384,9 @@ TEST(Vector3, ConvertIntToFloat)
 	dsVector3f vectorf;
 	dsConvertIntToFloat(vectorf, vectori);
 
-	EXPECT_EQ(vectori.x, vectorf.x);
-	EXPECT_EQ(vectori.y, vectorf.y);
-	EXPECT_EQ(vectori.z, vectorf.z);
+	EXPECT_EQ(vectori.x, (int)vectorf.x);
+	EXPECT_EQ(vectori.y, (int)vectorf.y);
+	EXPECT_EQ(vectori.z, (int)vectorf.z);
 }
 
 TEST(Vector3, ConvertDoubleToInt)

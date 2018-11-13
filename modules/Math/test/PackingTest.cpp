@@ -42,8 +42,8 @@ TEST(PackingTest, UInt32)
 {
 	EXPECT_EQ(0U, dsPackUInt32(0.0f));
 	EXPECT_EQ(0U, dsPackUInt32(-1.0f));
-	EXPECT_EQ(0xFFFFFFFF, dsPackUInt32(1.0f));
-	EXPECT_EQ(0xFFFFFFFF, dsPackUInt32(2.0f));
+	EXPECT_EQ(0xFFFFFFFFU, dsPackUInt32(1.0f));
+	EXPECT_EQ(0xFFFFFFFFU, dsPackUInt32(2.0f));
 
 	EXPECT_EQ(0.3f, dsUnpackUInt32(dsPackUInt32(0.3f)));
 	EXPECT_EQ(0.7f, dsUnpackUInt32(dsPackUInt32(0.7f)));
@@ -65,8 +65,8 @@ TEST(PackingTest, UInt16)
 {
 	EXPECT_EQ(0U, dsPackUInt16(0.0f));
 	EXPECT_EQ(0U, dsPackUInt16(-1.0f));
-	EXPECT_EQ(0xFFFF, dsPackUInt16(1.0f));
-	EXPECT_EQ(0xFFFF, dsPackUInt16(2.0f));
+	EXPECT_EQ(0xFFFFU, dsPackUInt16(1.0f));
+	EXPECT_EQ(0xFFFFU, dsPackUInt16(2.0f));
 
 	EXPECT_NEAR(0.3f, dsUnpackUInt16(dsPackUInt16(0.3f)), 1e-5f);
 	EXPECT_NEAR(0.7f, dsUnpackUInt16(dsPackUInt16(0.7f)), 1e-5f);
@@ -88,8 +88,8 @@ TEST(PackingTest, UInt8)
 {
 	EXPECT_EQ(0U, dsPackUInt8(0.0f));
 	EXPECT_EQ(0U, dsPackUInt8(-1.0f));
-	EXPECT_EQ(0xFF, dsPackUInt8(1.0f));
-	EXPECT_EQ(0xFF, dsPackUInt8(2.0f));
+	EXPECT_EQ(0xFFU, dsPackUInt8(1.0f));
+	EXPECT_EQ(0xFFU, dsPackUInt8(2.0f));
 
 	EXPECT_NEAR(0.3f, dsUnpackUInt8(dsPackUInt8(0.3f)), 1e-2f);
 	EXPECT_NEAR(0.7f, dsUnpackUInt8(dsPackUInt8(0.7f)), 1e-2f);
@@ -98,7 +98,7 @@ TEST(PackingTest, UInt8)
 TEST(PackingTest, IntX4Y4)
 {
 	dsVector2f value = {{-1.0f, 1.0f}};
-	EXPECT_EQ(0x97, dsPackIntX4Y4(&value));
+	EXPECT_EQ(0x97U, dsPackIntX4Y4(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -111,7 +111,7 @@ TEST(PackingTest, IntX4Y4)
 TEST(PackingTest, UIntX4Y4)
 {
 	dsVector2f value = {{0.0f, 1.0f}};
-	EXPECT_EQ(0x0F, dsPackUIntX4Y4(&value));
+	EXPECT_EQ(0x0FU, dsPackUIntX4Y4(&value));
 
 	value.x = 0.3f;
 	value.y = 0.7f;
@@ -124,7 +124,7 @@ TEST(PackingTest, UIntX4Y4)
 TEST(PackingTest, IntY4X4)
 {
 	dsVector2f value = {{-1.0f, 1.0f}};
-	EXPECT_EQ(0x79, dsPackIntY4X4(&value));
+	EXPECT_EQ(0x79U, dsPackIntY4X4(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -137,7 +137,7 @@ TEST(PackingTest, IntY4X4)
 TEST(PackingTest, UIntY4X4)
 {
 	dsVector2f value = {{0.0f, 1.0f}};
-	EXPECT_EQ(0xF0, dsPackUIntY4X4(&value));
+	EXPECT_EQ(0xF0U, dsPackUIntY4X4(&value));
 
 	value.x = 0.3f;
 	value.y = 0.7f;
@@ -150,7 +150,7 @@ TEST(PackingTest, UIntY4X4)
 TEST(PackingTest, IntX4Y4Z4W4)
 {
 	dsVector4f value = {{-1.0f, 1.0f, -1.0f, 1.0f}};
-	EXPECT_EQ(0x9797, dsPackIntX4Y4Z4W4(&value));
+	EXPECT_EQ(0x9797U, dsPackIntX4Y4Z4W4(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -167,7 +167,7 @@ TEST(PackingTest, IntX4Y4Z4W4)
 TEST(PackingTest, UIntX4Y4Z4W4)
 {
 	dsVector4f value = {{0.0f, 1.0f, 0.0f, 1.0f}};
-	EXPECT_EQ(0x0F0F, dsPackUIntX4Y4Z4W4(&value));
+	EXPECT_EQ(0x0F0FU, dsPackUIntX4Y4Z4W4(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -184,7 +184,7 @@ TEST(PackingTest, UIntX4Y4Z4W4)
 TEST(PackingTest, IntZ4Y4X4W4)
 {
 	dsVector4f value = {{-1.0f, 1.0f, -1.0f, 1.0f}};
-	EXPECT_EQ(0x9797, dsPackIntZ4Y4X4W4(&value));
+	EXPECT_EQ(0x9797U, dsPackIntZ4Y4X4W4(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -201,7 +201,7 @@ TEST(PackingTest, IntZ4Y4X4W4)
 TEST(PackingTest, UIntZ4Y4X4W4)
 {
 	dsVector4f value = {{0.0f, 1.0f, 0.0f, 1.0f}};
-	EXPECT_EQ(0x0F0F, dsPackUIntZ4Y4X4W4(&value));
+	EXPECT_EQ(0x0F0FU, dsPackUIntZ4Y4X4W4(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -218,7 +218,7 @@ TEST(PackingTest, UIntZ4Y4X4W4)
 TEST(PackingTest, IntW4X4Y4Z4)
 {
 	dsVector4f value = {{1.0f, -1.0f, 1.0f, -1.0f}};
-	EXPECT_EQ(0x9797, dsPackIntW4X4Y4Z4(&value));
+	EXPECT_EQ(0x9797U, dsPackIntW4X4Y4Z4(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -235,7 +235,7 @@ TEST(PackingTest, IntW4X4Y4Z4)
 TEST(PackingTest, UIntW4X4Y4Z4)
 {
 	dsVector4f value = {{1.0f, 0.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x0F0F, dsPackUIntW4X4Y4Z4(&value));
+	EXPECT_EQ(0x0F0FU, dsPackUIntW4X4Y4Z4(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -252,7 +252,7 @@ TEST(PackingTest, UIntW4X4Y4Z4)
 TEST(PackingTest, IntX5Y6Z5)
 {
 	dsVector3f value = {{-1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0x8BEF, dsPackIntX5Y6Z5(&value));
+	EXPECT_EQ(0x8BEFU, dsPackIntX5Y6Z5(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -267,7 +267,7 @@ TEST(PackingTest, IntX5Y6Z5)
 TEST(PackingTest, UIntXX5Y6Z5)
 {
 	dsVector3f value = {{0.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0x07FF, dsPackUIntX5Y6Z5(&value));
+	EXPECT_EQ(0x07FFU, dsPackUIntX5Y6Z5(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -282,7 +282,7 @@ TEST(PackingTest, UIntXX5Y6Z5)
 TEST(PackingTest, IntZ5Y6X5)
 {
 	dsVector3f value = {{-1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0x7BF1, dsPackIntZ5Y6X5(&value));
+	EXPECT_EQ(0x7BF1U, dsPackIntZ5Y6X5(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -297,7 +297,7 @@ TEST(PackingTest, IntZ5Y6X5)
 TEST(PackingTest, UIntZ5Y6X5)
 {
 	dsVector3f value = {{0.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0xFFE0, dsPackUIntZ5Y6X5(&value));
+	EXPECT_EQ(0xFFE0U, dsPackUIntZ5Y6X5(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -312,7 +312,7 @@ TEST(PackingTest, UIntZ5Y6X5)
 TEST(PackingTest, IntX5Y5Z5W1)
 {
 	dsVector4f value = {{-1.0f, 1.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x8BDE, dsPackIntX5Y5Z5W1(&value));
+	EXPECT_EQ(0x8BDEU, dsPackIntX5Y5Z5W1(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -329,7 +329,7 @@ TEST(PackingTest, IntX5Y5Z5W1)
 TEST(PackingTest, UIntX5Y5Z5W1)
 {
 	dsVector4f value = {{0.0f, 1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0x07FF, dsPackUIntX5Y5Z5W1(&value));
+	EXPECT_EQ(0x07FFU, dsPackUIntX5Y5Z5W1(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -346,7 +346,7 @@ TEST(PackingTest, UIntX5Y5Z5W1)
 TEST(PackingTest, IntZ5Y5X5W1)
 {
 	dsVector4f value = {{-1.0f, 1.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x7BE2, dsPackIntZ5Y5X5W1(&value));
+	EXPECT_EQ(0x7BE2U, dsPackIntZ5Y5X5W1(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -363,7 +363,7 @@ TEST(PackingTest, IntZ5Y5X5W1)
 TEST(PackingTest, UIntXZ5Y5X5W1)
 {
 	dsVector4f value = {{0.0f, 1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0xFFC1, dsPackUIntZ5Y5X5W1(&value));
+	EXPECT_EQ(0xFFC1U, dsPackUIntZ5Y5X5W1(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -380,7 +380,7 @@ TEST(PackingTest, UIntXZ5Y5X5W1)
 TEST(PackingTest, IntW1X5Y5Z5)
 {
 	dsVector4f value = {{-1.0f, 1.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x45EF, dsPackIntW1X5Y5Z5(&value));
+	EXPECT_EQ(0x45EFU, dsPackIntW1X5Y5Z5(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -397,7 +397,7 @@ TEST(PackingTest, IntW1X5Y5Z5)
 TEST(PackingTest, UIntW1X5Y5Z5)
 {
 	dsVector4f value = {{0.0f, 1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0x83FF, dsPackUIntW1X5Y5Z5(&value));
+	EXPECT_EQ(0x83FFU, dsPackUIntW1X5Y5Z5(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -414,7 +414,7 @@ TEST(PackingTest, UIntW1X5Y5Z5)
 TEST(PackingTest, IntW2X10Y10Z10)
 {
 	dsVector4f value = {{-1.0f, 1.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x2017FDFF, dsPackIntW2X10Y10Z10(&value));
+	EXPECT_EQ(0x2017FDFFU, dsPackIntW2X10Y10Z10(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -431,7 +431,7 @@ TEST(PackingTest, IntW2X10Y10Z10)
 TEST(PackingTest, UIntW2X10Y10Z10)
 {
 	dsVector4f value = {{0.0f, 1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0xC00FFFFF, dsPackUIntW2X10Y10Z10(&value));
+	EXPECT_EQ(0xC00FFFFFU, dsPackUIntW2X10Y10Z10(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;
@@ -448,7 +448,7 @@ TEST(PackingTest, UIntW2X10Y10Z10)
 TEST(PackingTest, IntW2Z10Y10X10)
 {
 	dsVector4f value = {{-1.0f, 1.0f, 1.0f, 0.0f}};
-	EXPECT_EQ(0x1FF7FE01, dsPackIntW2Z10Y10X10(&value));
+	EXPECT_EQ(0x1FF7FE01U, dsPackIntW2Z10Y10X10(&value));
 
 	value.x = -0.3f;
 	value.y = 0.3f;
@@ -465,7 +465,7 @@ TEST(PackingTest, IntW2Z10Y10X10)
 TEST(PackingTest, UIntW2Z10Y10X10)
 {
 	dsVector4f value = {{0.0f, 1.0f, 1.0f, 1.0f}};
-	EXPECT_EQ(0xFFFFFC00, dsPackUIntW2Z10Y10X10(&value));
+	EXPECT_EQ(0xFFFFFC00U, dsPackUIntW2Z10Y10X10(&value));
 
 	value.x = 0.0f;
 	value.y = 0.3f;

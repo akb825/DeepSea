@@ -99,12 +99,12 @@ TYPED_TEST(AlignedBox3Test, Initialize)
 	typedef typename AlignedBox3TypeSelector<TypeParam>::AlignedBox3Type AlignedBox3Type;
 
 	AlignedBox3Type box = {{{0, 1, 2}}, {{3, 4, 5}}};
-	EXPECT_EQ(0, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)0, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 }
 
 TYPED_TEST(AlignedBox3Test, IsValid)
@@ -143,68 +143,68 @@ TYPED_TEST(AlignedBox3Test, AddPoint)
 	Vector3Type point8 = {{0, 1, 6}};
 
 	dsAlignedBox3_addPoint(box, point1);
-	EXPECT_EQ(0, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)0, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point2);
-	EXPECT_EQ(0, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)0, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point3);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point4);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point5);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point6);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point7);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(5, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)5, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addPoint(box, point8);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(5, box.max.y);
-	EXPECT_EQ(6, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)5, box.max.y);
+	EXPECT_EQ((TypeParam)6, box.max.z);
 }
 
 TYPED_TEST(AlignedBox3Test, AddBox)
@@ -222,60 +222,60 @@ TYPED_TEST(AlignedBox3Test, AddBox)
 	AlignedBox3Type box7 = {{{1, 2, 3}}, {{3, 3, 6}}};
 
 	dsAlignedBox3_addBox(box, box1);
-	EXPECT_EQ(0, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)0, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box2);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(1, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)1, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box3);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(2, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)2, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box4);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(3, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)3, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box5);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(4, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)4, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box6);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(5, box.max.y);
-	EXPECT_EQ(5, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)5, box.max.y);
+	EXPECT_EQ((TypeParam)5, box.max.z);
 
 	dsAlignedBox3_addBox(box, box7);
-	EXPECT_EQ(-1, box.min.x);
-	EXPECT_EQ(-2, box.min.y);
-	EXPECT_EQ(-3, box.min.z);
-	EXPECT_EQ(4, box.max.x);
-	EXPECT_EQ(5, box.max.y);
-	EXPECT_EQ(6, box.max.z);
+	EXPECT_EQ((TypeParam)-1, box.min.x);
+	EXPECT_EQ((TypeParam)-2, box.min.y);
+	EXPECT_EQ((TypeParam)-3, box.min.z);
+	EXPECT_EQ((TypeParam)4, box.max.x);
+	EXPECT_EQ((TypeParam)5, box.max.y);
+	EXPECT_EQ((TypeParam)6, box.max.z);
 }
 
 TYPED_TEST(AlignedBox3Test, ContainsPoint)
@@ -396,68 +396,68 @@ TYPED_TEST(AlignedBox3Test, Intersect)
 
 	AlignedBox3Type intersection;
 	dsAlignedBox3_intersect(intersection, box, box);
-	EXPECT_EQ(0, intersection.min.x);
-	EXPECT_EQ(1, intersection.min.y);
-	EXPECT_EQ(2, intersection.min.z);
-	EXPECT_EQ(5, intersection.max.x);
-	EXPECT_EQ(6, intersection.max.y);
-	EXPECT_EQ(7, intersection.max.z);
+	EXPECT_EQ((TypeParam)0, intersection.min.x);
+	EXPECT_EQ((TypeParam)1, intersection.min.y);
+	EXPECT_EQ((TypeParam)2, intersection.min.z);
+	EXPECT_EQ((TypeParam)5, intersection.max.x);
+	EXPECT_EQ((TypeParam)6, intersection.max.y);
+	EXPECT_EQ((TypeParam)7, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box1);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box2);
-	EXPECT_EQ(0, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)0, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box3);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(1, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)1, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box4);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(2, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)2, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box5);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(5, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)5, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box6);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(6, intersection.max.y);
-	EXPECT_EQ(6, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)6, intersection.max.y);
+	EXPECT_EQ((TypeParam)6, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box7);
-	EXPECT_EQ(1, intersection.min.x);
-	EXPECT_EQ(2, intersection.min.y);
-	EXPECT_EQ(3, intersection.min.z);
-	EXPECT_EQ(4, intersection.max.x);
-	EXPECT_EQ(5, intersection.max.y);
-	EXPECT_EQ(7, intersection.max.z);
+	EXPECT_EQ((TypeParam)1, intersection.min.x);
+	EXPECT_EQ((TypeParam)2, intersection.min.y);
+	EXPECT_EQ((TypeParam)3, intersection.min.z);
+	EXPECT_EQ((TypeParam)4, intersection.max.x);
+	EXPECT_EQ((TypeParam)5, intersection.max.y);
+	EXPECT_EQ((TypeParam)7, intersection.max.z);
 
 	dsAlignedBox3_intersect(intersection, box, box8);
 	EXPECT_FALSE(dsAlignedBox3_isValid(intersection));
@@ -487,9 +487,9 @@ TYPED_TEST(AlignedBox3Test, Center)
 
 	Vector3Type center;
 	dsAlignedBox3_center(center, box);
-	EXPECT_EQ(2, center.x);
-	EXPECT_EQ(3, center.y);
-	EXPECT_EQ(4, center.z);
+	EXPECT_EQ((TypeParam)2, center.x);
+	EXPECT_EQ((TypeParam)3, center.y);
+	EXPECT_EQ((TypeParam)4, center.z);
 }
 
 TYPED_TEST(AlignedBox3Test, Extents)
@@ -501,9 +501,9 @@ TYPED_TEST(AlignedBox3Test, Extents)
 
 	Vector3Type extents;
 	dsAlignedBox3_extents(extents, box);
-	EXPECT_EQ(4, extents.x);
-	EXPECT_EQ(5, extents.y);
-	EXPECT_EQ(6, extents.z);
+	EXPECT_EQ((TypeParam)4, extents.x);
+	EXPECT_EQ((TypeParam)5, extents.y);
+	EXPECT_EQ((TypeParam)6, extents.z);
 }
 
 TYPED_TEST(AlignedBox3Test, Corners)
@@ -516,37 +516,37 @@ TYPED_TEST(AlignedBox3Test, Corners)
 	Vector3Type corners[DS_BOX3_CORNER_COUNT];
 	dsAlignedBox3_corners(corners, box);
 
-	EXPECT_EQ(0, corners[0].x);
-	EXPECT_EQ(1, corners[0].y);
-	EXPECT_EQ(2, corners[0].z);
+	EXPECT_EQ((TypeParam)0, corners[0].x);
+	EXPECT_EQ((TypeParam)1, corners[0].y);
+	EXPECT_EQ((TypeParam)2, corners[0].z);
 
-	EXPECT_EQ(0, corners[1].x);
-	EXPECT_EQ(1, corners[1].y);
-	EXPECT_EQ(5, corners[1].z);
+	EXPECT_EQ((TypeParam)0, corners[1].x);
+	EXPECT_EQ((TypeParam)1, corners[1].y);
+	EXPECT_EQ((TypeParam)5, corners[1].z);
 
-	EXPECT_EQ(0, corners[2].x);
-	EXPECT_EQ(4, corners[2].y);
-	EXPECT_EQ(2, corners[2].z);
+	EXPECT_EQ((TypeParam)0, corners[2].x);
+	EXPECT_EQ((TypeParam)4, corners[2].y);
+	EXPECT_EQ((TypeParam)2, corners[2].z);
 
-	EXPECT_EQ(0, corners[3].x);
-	EXPECT_EQ(4, corners[3].y);
-	EXPECT_EQ(5, corners[3].z);
+	EXPECT_EQ((TypeParam)0, corners[3].x);
+	EXPECT_EQ((TypeParam)4, corners[3].y);
+	EXPECT_EQ((TypeParam)5, corners[3].z);
 
-	EXPECT_EQ(3, corners[4].x);
-	EXPECT_EQ(1, corners[4].y);
-	EXPECT_EQ(2, corners[4].z);
+	EXPECT_EQ((TypeParam)3, corners[4].x);
+	EXPECT_EQ((TypeParam)1, corners[4].y);
+	EXPECT_EQ((TypeParam)2, corners[4].z);
 
-	EXPECT_EQ(3, corners[5].x);
-	EXPECT_EQ(1, corners[5].y);
-	EXPECT_EQ(5, corners[5].z);
+	EXPECT_EQ((TypeParam)3, corners[5].x);
+	EXPECT_EQ((TypeParam)1, corners[5].y);
+	EXPECT_EQ((TypeParam)5, corners[5].z);
 
-	EXPECT_EQ(3, corners[6].x);
-	EXPECT_EQ(4, corners[6].y);
-	EXPECT_EQ(2, corners[6].z);
+	EXPECT_EQ((TypeParam)3, corners[6].x);
+	EXPECT_EQ((TypeParam)4, corners[6].y);
+	EXPECT_EQ((TypeParam)2, corners[6].z);
 
-	EXPECT_EQ(3, corners[7].x);
-	EXPECT_EQ(4, corners[7].y);
-	EXPECT_EQ(5, corners[7].z);
+	EXPECT_EQ((TypeParam)3, corners[7].x);
+	EXPECT_EQ((TypeParam)4, corners[7].y);
+	EXPECT_EQ((TypeParam)5, corners[7].z);
 }
 
 TYPED_TEST(AlignedBox3Test, ClosestPoint)
@@ -566,49 +566,49 @@ TYPED_TEST(AlignedBox3Test, ClosestPoint)
 
 	Vector3Type closest;
 	dsAlignedBox3_closestPoint(closest, box, box.min);
-	EXPECT_EQ(0, closest.x);
-	EXPECT_EQ(1, closest.y);
-	EXPECT_EQ(2, closest.z);
+	EXPECT_EQ((TypeParam)0, closest.x);
+	EXPECT_EQ((TypeParam)1, closest.y);
+	EXPECT_EQ((TypeParam)2, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, box.max);
-	EXPECT_EQ(3, closest.x);
-	EXPECT_EQ(4, closest.y);
-	EXPECT_EQ(5, closest.z);
+	EXPECT_EQ((TypeParam)3, closest.x);
+	EXPECT_EQ((TypeParam)4, closest.y);
+	EXPECT_EQ((TypeParam)5, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point1);
-	EXPECT_EQ(1, closest.x);
-	EXPECT_EQ(2, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)1, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point2);
-	EXPECT_EQ(0, closest.x);
-	EXPECT_EQ(2, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)0, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point3);
-	EXPECT_EQ(1, closest.x);
-	EXPECT_EQ(1, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)1, closest.x);
+	EXPECT_EQ((TypeParam)1, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point4);
-	EXPECT_EQ(1, closest.x);
-	EXPECT_EQ(2, closest.y);
-	EXPECT_EQ(2, closest.z);
+	EXPECT_EQ((TypeParam)1, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
+	EXPECT_EQ((TypeParam)2, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point5);
-	EXPECT_EQ(3, closest.x);
-	EXPECT_EQ(2, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)3, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point6);
-	EXPECT_EQ(1, closest.x);
-	EXPECT_EQ(4, closest.y);
-	EXPECT_EQ(3, closest.z);
+	EXPECT_EQ((TypeParam)1, closest.x);
+	EXPECT_EQ((TypeParam)4, closest.y);
+	EXPECT_EQ((TypeParam)3, closest.z);
 
 	dsAlignedBox3_closestPoint(closest, box, point7);
-	EXPECT_EQ(1, closest.x);
-	EXPECT_EQ(2, closest.y);
-	EXPECT_EQ(5, closest.z);
+	EXPECT_EQ((TypeParam)1, closest.x);
+	EXPECT_EQ((TypeParam)2, closest.y);
+	EXPECT_EQ((TypeParam)5, closest.z);
 }
 
 TYPED_TEST(AlignedBox3Test, MakeInvalid)
@@ -636,15 +636,15 @@ TYPED_TEST(AlignedBox3Test, Dist2)
 	Vector3Type point6 = {{1, 6, 3}};
 	Vector3Type point7 = {{1, 2, 8}};
 
-	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.min));
-	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &box.max));
-	EXPECT_EQ(0, dsAlignedBox3_dist2(&box, &point1));
-	EXPECT_EQ(1, dsAlignedBox3_dist2(&box, &point2));
-	EXPECT_EQ(9, dsAlignedBox3_dist2(&box, &point3));
-	EXPECT_EQ(25, dsAlignedBox3_dist2(&box, &point4));
-	EXPECT_EQ(1, dsAlignedBox3_dist2(&box, &point5));
-	EXPECT_EQ(4, dsAlignedBox3_dist2(&box, &point6));
-	EXPECT_EQ(9, dsAlignedBox3_dist2(&box, &point7));
+	EXPECT_EQ((TypeParam)0, dsAlignedBox3_dist2(&box, &box.min));
+	EXPECT_EQ((TypeParam)0, dsAlignedBox3_dist2(&box, &box.max));
+	EXPECT_EQ((TypeParam)0, dsAlignedBox3_dist2(&box, &point1));
+	EXPECT_EQ((TypeParam)1, dsAlignedBox3_dist2(&box, &point2));
+	EXPECT_EQ((TypeParam)9, dsAlignedBox3_dist2(&box, &point3));
+	EXPECT_EQ((TypeParam)25, dsAlignedBox3_dist2(&box, &point4));
+	EXPECT_EQ((TypeParam)1, dsAlignedBox3_dist2(&box, &point5));
+	EXPECT_EQ((TypeParam)4, dsAlignedBox3_dist2(&box, &point6));
+	EXPECT_EQ((TypeParam)9, dsAlignedBox3_dist2(&box, &point7));
 }
 
 TYPED_TEST(AlignedBox3Test, Dist)
@@ -712,13 +712,13 @@ TEST(AlignedBox3, ConvertFloatToInt)
 	dsAlignedBox3i boxi;
 	dsConvertFloatToInt(boxi, boxf);
 
-	EXPECT_EQ(boxf.min.x, boxi.min.x);
-	EXPECT_EQ(boxf.min.y, boxi.min.y);
-	EXPECT_EQ(boxf.min.z, boxi.min.z);
+	EXPECT_EQ(boxf.min.x, (float)boxi.min.x);
+	EXPECT_EQ(boxf.min.y, (float)boxi.min.y);
+	EXPECT_EQ(boxf.min.z, (float)boxi.min.z);
 
-	EXPECT_EQ(boxf.max.x, boxi.max.x);
-	EXPECT_EQ(boxf.max.y, boxi.max.y);
-	EXPECT_EQ(boxf.max.z, boxi.max.z);
+	EXPECT_EQ(boxf.max.x, (float)boxi.max.x);
+	EXPECT_EQ(boxf.max.y, (float)boxi.max.y);
+	EXPECT_EQ(boxf.max.z, (float)boxi.max.z);
 }
 
 TEST(AlignedBox3, ConvertIntToFloat)
@@ -728,13 +728,13 @@ TEST(AlignedBox3, ConvertIntToFloat)
 	dsAlignedBox3f boxf;
 	dsConvertIntToFloat(boxf, boxi);
 
-	EXPECT_EQ(boxi.min.x, boxf.min.x);
-	EXPECT_EQ(boxi.min.y, boxf.min.y);
-	EXPECT_EQ(boxi.min.z, boxf.min.z);
+	EXPECT_EQ(boxi.min.x, (int)boxf.min.x);
+	EXPECT_EQ(boxi.min.y, (int)boxf.min.y);
+	EXPECT_EQ(boxi.min.z, (int)boxf.min.z);
 
-	EXPECT_EQ(boxi.max.x, boxf.max.x);
-	EXPECT_EQ(boxi.max.y, boxf.max.y);
-	EXPECT_EQ(boxi.max.z, boxf.max.z);
+	EXPECT_EQ(boxi.max.x, (int)boxf.max.x);
+	EXPECT_EQ(boxi.max.y, (int)boxf.max.y);
+	EXPECT_EQ(boxi.max.z, (int)boxf.max.z);
 }
 
 TEST(AlignedBox3, ConvertDoubleToInt)
@@ -760,11 +760,11 @@ TEST(AlignedBox3, ConvertIntToDouble)
 	dsAlignedBox3d boxd;
 	dsConvertIntToDouble(boxd, boxi);
 
-	EXPECT_EQ(boxi.min.x, boxd.min.x);
-	EXPECT_EQ(boxi.min.y, boxd.min.y);
-	EXPECT_EQ(boxi.min.z, boxd.min.z);
+	EXPECT_EQ(boxi.min.x, (int)boxd.min.x);
+	EXPECT_EQ(boxi.min.y, (int)boxd.min.y);
+	EXPECT_EQ(boxi.min.z, (int)boxd.min.z);
 
-	EXPECT_EQ(boxi.max.x, boxd.max.x);
-	EXPECT_EQ(boxi.max.y, boxd.max.y);
-	EXPECT_EQ(boxi.max.z, boxd.max.z);
+	EXPECT_EQ(boxi.max.x, (int)boxd.max.x);
+	EXPECT_EQ(boxi.max.y, (int)boxd.max.y);
+	EXPECT_EQ(boxi.max.z, (int)boxd.max.z);
 }
