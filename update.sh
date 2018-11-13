@@ -61,13 +61,17 @@ do
 		-a|--all)
 			GIT=1
 			SUBMODULES=1
-			TOOLS=2
+			if [ $TOOLS -eq 0 ]; then
+				TOOLS=2
+			fi
 			LIBS=1
 			ANY=1
 			;;
 		-m|--most)
 			SUBMODULES=1
-			TOOLS=2
+			if [ $TOOLS -eq 0 ]; then
+				TOOLS=2
+			fi
 			LIBS=1
 			ANY=1
 			;;
