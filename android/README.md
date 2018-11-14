@@ -2,7 +2,13 @@
 
 This directory contains an Android Studio project to build the test applications to run on Android. This also provides a reference for setting up other projects that utalize DeepSea. This provides both debug and release targets for each of the GUI testers, and will build for the four main ABIs. (x86, x86_64, armeabi-v7a, and arm64-v8a) Release builds will use debug signing so they can be deployed without setting up a signature intended for general distribution.
 
-In order to build the project, you must have run `update.sh -l android-all` to download the pre-built Android library dependnencies.
+In order to build the project, you must have run `update.sh -l android-all` to download the pre-built Android library dependnencies. You will also need the following packages installed in Android Studio:
+
+* SDK Platform API 18 (Android 4.3 Jelly Bean)
+* SDK Tools:
+	* CMake
+	* LLDB
+	* NDK
 
 # Key components
 
@@ -68,7 +74,12 @@ The `build.gradle` file in the app directory sets up how to build the applicatio
 	* When setting `app_name` like in the above example, make sure to delete `app_name` from `app/src/main/res/values/strings.xml`.
 * The following dependencies need to be added under the `dependencies` section:
 	* implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+	
+## Project files
+
+The following project files need to be added or modified:
+	
 * A properly configured `AndroidManifest.xml` file must be placed under `app/src/main`. The one included in this project can be used as a template.
 * Java source must be added for the project under `app/src/main/java`. The activity can be found under `app/src/main/java/com/akb825/deepsea/DeepSeaActivity.java`. The SDL activity source code is also present under `app/src/main/java/org/libsdl/app`. If you download the SDL source code, you can also find it under the `android-project` directory.
 
-> **Note:** In the local copy of SDLActivity.java, initialization of the `mHIDDeviceManager` member is commented out. This prevents SDL from aborthing the app due to `libhidapi.so` not being found. `HID` is an optional driver for controllers, though other drivers should be available.
+	> **Note:** In the local copy of SDLActivity.java, initialization of the `mHIDDeviceManager` member is commented out. This prevents SDL from aborthing the app due to `libhidapi.so` not being found. `HID` is an optional driver for controllers, though other drivers should be available.
