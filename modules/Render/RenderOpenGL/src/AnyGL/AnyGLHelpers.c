@@ -73,8 +73,8 @@ int AnyGL_queryExtension(const char* name)
 		while (extensions[begin])
 		{
 			for (end = begin; extensions[end] && extensions[end] != ' '; ++end)
-				/* empty */
-			if (strncmp(extensions + begin, name, end - begin) == 0)
+				/* empty */;
+			if (begin != end && strncmp(extensions + begin, name, end - begin) == 0)
 				return 1;
 
 			begin = extensions[end] == ' ' ? end + 1 : end;

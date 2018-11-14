@@ -1,0 +1,107 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.akb825.deepsea"
+        minSdkVersion 18
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            ndk {
+                abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "${projectDir}/../../CMakeLists.txt"
+        }
+    }
+    task copyArm32Libraries(type: Copy) {
+        from "${projectDir}/../../dependencies/libs/android-armeabi-v7a/lib/libSDL2.so"
+        into "${projectDir}/src/main/jniLibs/armeabi-v7a"
+    }
+    task copyArm64Libraries(type: Copy) {
+        from "${projectDir}/../../dependencies/libs/android-arm64-v8a/lib/libSDL2.so"
+        into "${projectDir}/src/main/jniLibs/arm64-v8a"
+    }
+    task copyX86Libraries(type: Copy) {
+        from "${projectDir}/../../dependencies/libs/android-x86/lib/libSDL2.so"
+        into "${projectDir}/src/main/jniLibs/x86"
+    }
+    task copyX86_64Libraries(type: Copy) {
+        from "${projectDir}/../../dependencies/libs/android-x86_64/lib/libSDL2.so"
+        into "${projectDir}/src/main/jniLibs/x86_64"
+    }
+    flavorDimensions "tester"
+    productFlavors {
+        TestCube {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_cube_app"
+                }
+            }
+            dimension "tester"
+
+            applicationIdSuffix ".testcube"
+            versionNameSuffix "-TestCube"
+            resValue "string", "app_name", "TestCube"
+        }
+        TestRenderSubpass {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_render_subpass_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testrendersubpass"
+            versionNameSuffix "-TestRenderSubpass"
+            resValue "string", "app_name", "TestRenderSubpass"
+        }
+        TestText {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_text_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testtext"
+            versionNameSuffix "-TestText"
+            resValue "string", "app_name", "TestText"
+        }
+        TestVectorDraw {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_test_vector_draw_app"
+                }
+            }
+            dimension "tester"
+            applicationIdSuffix ".testvectordraw"
+            versionNameSuffix "-TestVectorDraw"
+            resValue "string", "app_name", "TestVectorDraw"
+        }
+    }
+}
+
+preBuild.dependsOn(copyArm32Libraries)
+preBuild.dependsOn(copyArm64Libraries)
+preBuild.dependsOn(copyX86Libraries)
+preBuild.dependsOn(copyX86_64Libraries)
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}

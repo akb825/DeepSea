@@ -38,6 +38,8 @@ The first time you run `update.sh`, pass in the `-t` option to download the tool
 
 After you have chosen the platforms to download libraries for, run `update.sh -a` at any point to pull the current branch and update the submodules, tools, and libraries to the proper versions. If you check out a specific revision or tag, you can run `update.sh -m` to update everything but the current git branch.
 
+> **Note:** When updating on Windows, it's recommended to first run `git pull` followed by running `update.sh -m` instead of using `update.sh -a` for both steps. This is because Windows will lock the `update.sh` script when running it, causing errors if git attempts to update the script while it's running.
+
 # Platforms
 
 DeepSea has been built for and tested on the following platforms:
