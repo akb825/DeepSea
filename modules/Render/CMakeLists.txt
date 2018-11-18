@@ -45,4 +45,8 @@ if (NOT DEEPSEA_SHARED)
 endif()
 
 ds_install_library(TARGET deepsea_render MODULE Render DEPENDS Core Math Geometry
-	EXTERNAL_PREFIXES ${externalPrefixes} EXTERNAL_DEPENDS ${externalDependencies})
+	EXTERNAL_PREFIXES ${externalPrefixes} EXTERNAL_DEPENDS ${externalDependencies}
+	CONFIG_FILES cmake/CompileShaders.cmake cmake/ConvertTexture.cmake
+	CONFIG_LINES
+		"include(\${CMAKE_CURRENT_LIST_DIR}/CompileShaders.cmake)"
+		"include(\${CMAKE_CURRENT_LIST_DIR}/ConvertTexture.cmake)")

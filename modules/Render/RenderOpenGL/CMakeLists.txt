@@ -61,4 +61,7 @@ if (extraDefines)
 	ds_target_compile_definitions(deepsea_render_opengl ${extraDefines})
 endif()
 
-ds_install_library(TARGET deepsea_render_opengl MODULE RenderOpenGL DEPENDS Render)
+file(GLOB shaderConfigs msl-config/*)
+ds_install_library(TARGET deepsea_render_opengl MODULE RenderOpenGL DEPENDS Render
+	CONFIG_FILES ${shaderConfigs}
+	CONFIG_LINES "include(\${CMAKE_CURRENT_LIST_DIR}/ConfigPaths.cmake)")

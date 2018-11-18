@@ -6,7 +6,11 @@ file(GLOB_RECURSE flatbuffers src/*.fbs)
 ds_add_library(deepsea_vector_draw MODULE VectorDraw FILES ${sources} ${flatbuffers}
 	DEPENDS deepsea_render deepsea_text)
 ds_target_include_directories(deepsea_vector_draw PRIVATE ${FLATBUFFERS_INCLUDE_DIRS})
-ds_install_library(TARGET deepsea_vector_draw MODULE VectorDraw DEPENDS Render Text)
+ds_install_library(TARGET deepsea_vector_draw MODULE VectorDraw DEPENDS Render Text
+	CONFIG_FILES cmake/ConvertSVG.cmake cmake/CreateVectorResources.cmake
+	CONFIG_LINES
+		"include(\${CMAKE_CURRENT_LIST_DIR}/ConvertSVG.cmake)"
+		"include(\${CMAKE_CURRENT_LIST_DIR}/ConvertVectorResources.cmake)")
 
 include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers} DIRECTORY

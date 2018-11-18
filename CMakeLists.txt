@@ -105,6 +105,11 @@ if (DEEPSEA_BUILD_DOCS)
 	endif()
 endif()
 
+set(DEEPSEA_PYTHON_DIR ${DEEPSEA_SOURCE_DIR}/python)
+if (DEEPSEA_INSTALL)
+	install(DIRECTORY python DESTINATION share/deepsea USE_SOURCE_PERMISSIONS PATTERN __* EXCLUDE)
+endif()
+
 add_subdirectory(modules)
 
 if (DEEPSEA_BUILD_TESTS)

@@ -17,7 +17,7 @@ function(ds_install_library)
 	# variables in the parent scope will be for the main CMakeLists.txt.
 	set(options STATIC)
 	set(oneValueArgs TARGET MODULE)
-	set(multiValueArgs DEPENDS EXTERNAL_PREFIXES EXTERNAL_DEPENDS)
+	set(multiValueArgs DEPENDS EXTERNAL_PREFIXES EXTERNAL_DEPENDS CONFIG_LINES CONFIG_FILES)
 	cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
 	set(moduleName DeepSea${ARGS_MODULE})
@@ -154,18 +154,25 @@ function(ds_install_library)
 		endif()
 	endforeach()
 
+	set(extraLines)
+	foreach(line ${ARGS_CONFIG_LINES})
+		set(extraLines "${extraLines}${line}\n")
+	endforeach()
+
 	set(configPath ${DEEPSEA_EXPORTS_DIR}/${moduleName}Config.cmake)
 	file(WRITE ${configPath}
 		"${externalPrefixes}"
 		"${dependencies}"
 		"include(\${CMAKE_CURRENT_LIST_DIR}/${moduleName}Targets.cmake)\n"
 		"set(${moduleName}_LIBRARIES ${ARGS_TARGET})\n"
-		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n")
+		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n"
+		"${extraLines}")
 
 	set(configPackageDir lib/cmake/${moduleName})
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
-	install(FILES ${configPath} ${versionPath} DESTINATION ${configPackageDir} COMPONENT dev)
+	install(FILES ${configPath} ${versionPath} ${ARGS_CONFIG_FILES} DESTINATION ${configPackageDir}
+		COMPONENT dev)
 endfunction()
 
 function(ds_install_master_config)
