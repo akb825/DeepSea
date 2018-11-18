@@ -91,6 +91,23 @@ function(ds_install_library)
 		return()
 	endif()
 
+	# Make sure that pre-built libraries are re-mapped to the insstall directories.
+	if (DEEPSEA_PREBUILT_LIBS_DIR)
+		get_target_property(libraries ${ARGS_TARGET} INTERFACE_LINK_LIBRARIES)
+		set(finalLibraries)
+		foreach (library ${libraries})
+			if (library MATCHES "${DEEPSEA_PREBUILT_LIBS_DIR}/.*")
+				string(REGEX REPLACE "${DEEPSEA_PREBUILT_LIBS_DIR}/(.*)" "\\1" subpath ${library})
+				list(APPEND finalLibraries $<BUILD_INTERFACE:${library}>
+					$<INSTALL_INTERFACE:\${_IMPORT_PREFIX}/${subpath}>)
+			else()
+				list(APPEND finalLibraries ${library})
+			endif()
+		endforeach()
+		set_target_properties(${ARGS_TARGET} PROPERTIES INTERFACE_LINK_LIBRARIES
+			"${finalLibraries}")
+	endif()
+
 	install(TARGETS ${ARGS_TARGET} EXPORT ${moduleName}Targets
 		LIBRARY DESTINATION lib
 		ARCHIVE DESTINATION lib
@@ -207,7 +224,8 @@ endif()")
 	set(configPackageDir lib/cmake/DeepSea)
 	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
 		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
-	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake ${versionPath}
+	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake
+		${DEEPSEA_SOURCE_DIR}/cmake/helpers.cmake ${versionPath}
 		DESTINATION ${configPackageDir} COMPONENT dev)
 	if (DEEPSEA_SINGLE_SHARED)
 		install(EXPORT DeepSeaTargets FILE DeepSeaTargets.cmake

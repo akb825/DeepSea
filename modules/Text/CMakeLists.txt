@@ -22,6 +22,6 @@ ds_target_include_directories(deepsea_text PRIVATE
 ds_target_link_libraries(deepsea_text PRIVATE ${HARFBUZZ_LIBRARIES} ${FREETYPE_LIBRARIES}
 	${extraLibraries})
 
-ds_install_library(TARGET deepsea_text MODULE Text DEPENDENCIES Render)
+ds_install_library(TARGET deepsea_text MODULE Text DEPENDS Render)
 
 add_subdirectory(test)
