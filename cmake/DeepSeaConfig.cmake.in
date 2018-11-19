@@ -18,8 +18,9 @@ if(_IMPORT_PREFIX STREQUAL "/")
 	set(_IMPORT_PREFIX "")
 endif()
 
-# Python helper scripts.
+# Useful variables.
 set(DEEPSEA_PYTHON_DIR "${_IMPORT_PREFIX}/share/deepsea/python")
+set(DEEPSEA_INCLUDE_DIR "${_IMPORT_PREFIX}/include")
 
 # Add the tools directory to find the applications.
 if (IS_DIRECTORY ${_IMPORT_PREFIX}/tools)
@@ -38,8 +39,6 @@ foreach(module ${DeepSea_FIND_COMPONENTS})
 		endif()
 	endif()
 endforeach()
-
-set(DEEPSEA_INCLUDE_DIR "${_IMPORT_PREFIX}/include"
 
 if (_DeepSea_NOTFOUND_MESSAGE)
 	set(DeepSea_NOT_FOUND_MESSAGE "${_DeepSea_NOTFOUND_MESSAGE}")

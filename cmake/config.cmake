@@ -258,12 +258,3 @@ macro(ds_build_assets_dir output)
 		endif()
 	endif()
 endmacro()
-
-function(ds_link_main_lib target mainLib)
-	if (ANDROID)
-		target_link_libraries(${target} PRIVATE "-Wl,--whole-archive" ${mainLib}
-			"-Wl,--no-whole-archive")
-	else()
-		target_link_libraries(${target} PRIVATE ${mainLib})
-	endif()
-endfunction()
