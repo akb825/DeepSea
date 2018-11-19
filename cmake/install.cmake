@@ -100,7 +100,7 @@ function(ds_install_library)
 				string(REGEX REPLACE "${DEEPSEA_PREBUILT_LIBS_DIR}/(.*)" "\\1" subpath ${library})
 				list(APPEND finalLibraries $<BUILD_INTERFACE:${library}>
 					$<INSTALL_INTERFACE:\${_IMPORT_PREFIX}/${subpath}>)
-			else()
+			elseif (library)
 				list(APPEND finalLibraries ${library})
 			endif()
 		endforeach()
