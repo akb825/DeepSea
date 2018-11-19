@@ -39,7 +39,7 @@ static void beginSurfaceScope(const dsRenderSurface* renderSurface)
 		DS_PROFILE_DYNAMIC_SCOPE_START(buffer);
 	}
 #else
-	DS_UNUSED(renderSurace);
+	DS_UNUSED(renderSurface);
 #endif
 }
 
@@ -51,7 +51,7 @@ static void endSurfaceScope(const dsRenderSurface* renderSurface)
 		DS_PROFILE_SCOPE_END();
 	}
 #else
-	DS_UNUSED(renderSurace);
+	DS_UNUSED(renderSurface);
 #endif
 }
 

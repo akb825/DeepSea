@@ -181,6 +181,7 @@ extern "C"
 #define DS_PROFILE_FUNC_START_NAME(name) do {} while(0)
 #define DS_PROFILE_FUNC_RETURN_VOID() return
 #define DS_PROFILE_FUNC_RETURN(retVal) return retVal
+#define DS_PROFILE_FUNC_END() do {} while(0)
 #define DS_PROFILE_SCOPE_START(name) do {} while(0)
 #define DS_PROFILE_DYNAMIC_SCOPE_START(name) do {} while(0)
 #define DS_PROFILE_SCOPE_END() do {} while(0)
