@@ -34,7 +34,7 @@ if (NOT DEEPSEA_NO_PREBUILT_LIBS)
 		if (DEEPSEA_INSTALL)
 			file(GLOB prebuiltLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.a
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.lib)
-			file(GLOB prebuiltSharedlibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.so
+			file(GLOB prebuiltSharedLibs ${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.so
 				${DEEPSEA_PREBUILT_LIBS_DIR}/lib/*.dylib)
 			file(GLOB prebuiltDlls ${DEEPSEA_PREBUILT_LIBS_DIR}/bin/*.dll)
 			install(FILES ${prebuiltLibs} DESTINATION lib COMPONENT dev)
