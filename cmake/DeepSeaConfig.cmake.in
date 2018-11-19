@@ -24,7 +24,7 @@ set(DEEPSEA_PYTHON_DIR "${_IMPORT_PREFIX}/share/deepsea/python")
 # Add the tools directory to find the applications.
 if (IS_DIRECTORY ${_IMPORT_PREFIX}/tools)
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${_IMPORT_PREFIX}/tools)
-endif
+endif()
 
 include(CMakeFindDependencyMacro)
 set(_DeepSea_NOTFOUND_MESSAGE)

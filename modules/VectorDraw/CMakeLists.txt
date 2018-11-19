@@ -10,7 +10,7 @@ ds_install_library(TARGET deepsea_vector_draw MODULE VectorDraw DEPENDS Render T
 	CONFIG_FILES cmake/ConvertSVG.cmake cmake/CreateVectorResources.cmake
 	CONFIG_LINES
 		"include(\${CMAKE_CURRENT_LIST_DIR}/ConvertSVG.cmake)"
-		"include(\${CMAKE_CURRENT_LIST_DIR}/ConvertVectorResources.cmake)")
+		"include(\${CMAKE_CURRENT_LIST_DIR}/CreateVectorResources.cmake)")
 
 include(ConvertFlatbuffers)
 ds_convert_flatbuffers(generatedFlatbuffers FILE ${flatbuffers} DIRECTORY
