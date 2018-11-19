@@ -107,7 +107,7 @@ endif()
 
 set(DEEPSEA_PYTHON_DIR ${DEEPSEA_SOURCE_DIR}/python)
 if (DEEPSEA_INSTALL)
-	install(DIRECTORY python DESTINATION share/deepsea USE_SOURCE_PERMISSIONS
+	install(DIRECTORY python DESTINATION share/deepsea COMPONENT dev USE_SOURCE_PERMISSIONS
 		PATTERN __pycache__ EXCLUDE)
 endif()
 
