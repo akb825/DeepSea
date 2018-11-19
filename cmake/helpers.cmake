@@ -18,6 +18,8 @@
 #
 # This may depend on the current CMake directory being processed and the current configuration.
 # This will depend on whether you override the CMAKE_RUNTIME_OUTPUT_DIRECTORY and the platform.
+# On Android, you can globally change the assets directory by setting the
+# DEEPSEA_ANDROID_ASSETS_DIR variable. By default it will use src/main/assets.
 #
 # output - variable name to place the directory into.
 macro(ds_build_assets_dir output)
@@ -28,7 +30,13 @@ macro(ds_build_assets_dir output)
 		string(REGEX MATCH ".*/build" _buildDir ${_outputDir})
 		# Final assets directory based on the root build directory and target name.
 		get_filename_component(_appDir ${_buildDir} DIRECTORY)
-		set(${output} ${_appDir}/${DEEPSEA_ANDROID_ASSETS_DIR})
+
+		if (DEEPSEA_ANDROID_ASSETS_DIR)
+			set(assetsDir ${DEEPSEA_ANDROID_ASSETS_DIR})
+		else()
+			set(assetsDir src/main/assets)
+		endif()
+		set(${output} ${_appDir}/${assetsDir})
 	else()
 		if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 			set(${output} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
