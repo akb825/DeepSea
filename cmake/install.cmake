@@ -168,7 +168,11 @@ function(ds_install_library)
 		"get_target_property(${moduleName}_INCLUDE_DIRS ${ARGS_TARGET} INTERFACE_INCLUDE_DIRECTORIES)\n"
 		"${extraLines}")
 
-	set(configPackageDir lib/cmake/${moduleName})
+	if (WIN32)
+		set(configPackageDir ${moduleName}/cmake)
+	else()
+		set(configPackageDir lib/cmake/${moduleName})
+	endif()
 	install(EXPORT ${moduleName}Targets FILE ${moduleName}Targets.cmake
 		DESTINATION ${configPackageDir})
 	install(FILES ${configPath} ${versionPath} ${ARGS_CONFIG_FILES} DESTINATION ${configPackageDir}
@@ -228,7 +232,11 @@ endif()")
 		return()
 	endif()
 
-	set(configPackageDir lib/cmake/DeepSea)
+	if (WIN32)
+		set(configPackageDir DeepSea/cmake)
+	else()
+		set(configPackageDir lib/cmake/DeepSea)
+	endif()
 	configure_file(${DEEPSEA_SOURCE_DIR}/cmake/DeepSeaConfig.cmake.in
 		${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake @ONLY)
 	install(FILES ${DEEPSEA_EXPORTS_DIR}/DeepSeaConfig.cmake
