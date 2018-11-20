@@ -19,6 +19,7 @@
 
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkGfxFence.h"
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkResource.h"
@@ -211,6 +212,21 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkRealFramebuffer_destroy(framebuffer);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->fenceCount; ++i)
+	{
+		dsGfxFence* fence = prevDeleteList->fences[i];
+		DS_ASSERT(fence);
+		dsVkGfxFence* vkFence = (dsVkGfxFence*)fence;
+
+		if (dsVkResource_isInUse(&vkFence->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteFence(baseRenderer, fence);
+			continue;
+		}
+
+		dsVkGfxFence_destroyImpl(fence);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -600,67 +616,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 
 void dsVkRenderer_flush(dsRenderer* renderer)
 {
-	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	dsVkDevice* device = &vkRenderer->device;
-
-	// Get the submit queue, waiting if it's not ready.
-	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
-	if (submit->submitIndex != DS_NOT_SUBMITTED)
-	{
-		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
-			DS_DEFAULT_WAIT_TIMEOUT);
-		vkRenderer->finishedSubmitCount = submit->submitIndex;
-	}
-
-	// Free resources that are waiting to be in an unused state.
-	freeResources(vkRenderer);
-	// Process currently pending resources.
-	processResources(vkRenderer, submit->resourceCommands);
-
-	// Advance the submits.
-	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
-	if (submit->submitIndex != DS_NOT_SUBMITTED)
-	{
-		// Wait until any remaining fence waits have finished to avoid resetting while another
-		// thread uses it.
-		while (vkRenderer->waitCount > 0)
-			dsConditionVariable_wait(vkRenderer->waitCondition, vkRenderer->submitLock);
-		DS_VK_CALL(device->vkResetFences)(device->device, 1, &submit->fence);
-	}
-	submit->submitIndex = vkRenderer->submitCount++;
-	vkRenderer->curSubmit = (vkRenderer->curSubmit + 1) % DS_MAX_SUBMITS;
-	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
-
-	// Submit the queue.
-	DS_VK_CALL(device->vkEndCommandBuffer)(submit->resourceCommands);
-
-	dsVkCommandBuffer_endSubmitCommands(renderer->mainCommandBuffer, submit->renderCommands);
-	DS_VK_CALL(device->vkEndCommandBuffer)(submit->renderCommands);
-
-	VkSubmitInfo submitInfo =
-	{
-		VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		NULL,
-		0, NULL, NULL,
-		2, &submit->resourceCommands,
-		0, NULL
-	};
-	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
-
-	// Update the main command buffer.
-	dsVkCommandBuffer_submittedResources(renderer->mainCommandBuffer, vkRenderer->submitCount);
-	submit = vkRenderer->submits + vkRenderer->curSubmit;
-	vkRenderer->mainCommandBuffer.vkCommandBuffer = submit->renderCommands;
-
-	VkCommandBufferBeginInfo beginInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		NULL,
-		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-		NULL
-	};
-	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->resourceCommands, &beginInfo);
-	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->renderCommands, &beginInfo);
+	dsVkRenderer_flushImpl(renderer, true);
 }
 
 bool dsVkRenderer_destroy(dsRenderer* renderer)
@@ -872,6 +828,77 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	return baseRenderer;
 }
 
+void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
+{
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+
+	// Get the submit queue, waiting if it's not ready.
+	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
+	if (submit->submitIndex != DS_NOT_SUBMITTED)
+	{
+		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
+			DS_DEFAULT_WAIT_TIMEOUT);
+		vkRenderer->finishedSubmitCount = submit->submitIndex;
+	}
+
+	// Free resources that are waiting to be in an unused state.
+	freeResources(vkRenderer);
+	// Process currently pending resources.
+	processResources(vkRenderer, submit->resourceCommands);
+
+	// Advance the submits.
+	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
+	if (submit->submitIndex != DS_NOT_SUBMITTED)
+	{
+		// Wait until any remaining fence waits have finished to avoid resetting while another
+		// thread uses it.
+		while (vkRenderer->waitCount > 0)
+			dsConditionVariable_wait(vkRenderer->waitCondition, vkRenderer->submitLock);
+		DS_VK_CALL(device->vkResetFences)(device->device, 1, &submit->fence);
+	}
+	submit->submitIndex = vkRenderer->submitCount++;
+	vkRenderer->curSubmit = (vkRenderer->curSubmit + 1) % DS_MAX_SUBMITS;
+	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
+
+	// Submit the queue.
+	DS_VK_CALL(device->vkEndCommandBuffer)(submit->resourceCommands);
+
+	if (readback)
+		dsVkCommandBuffer_endSubmitCommands(renderer->mainCommandBuffer, submit->renderCommands);
+	DS_VK_CALL(device->vkEndCommandBuffer)(submit->renderCommands);
+
+	VkSubmitInfo submitInfo =
+	{
+		VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		NULL,
+		0, NULL, NULL,
+		2, &submit->resourceCommands,
+		0, NULL
+	};
+	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
+
+	// Update the main command buffer.
+	dsVkCommandBuffer_submittedResources(renderer->mainCommandBuffer, vkRenderer->submitCount);
+	if (readback)
+	{
+		dsVkCommandBuffer_submittedReadbackOffscreens(renderer->mainCommandBuffer,
+			vkRenderer->submitCount);
+	}
+	submit = vkRenderer->submits + vkRenderer->curSubmit;
+	vkRenderer->mainCommandBuffer.vkCommandBuffer = submit->renderCommands;
+
+	VkCommandBufferBeginInfo beginInfo =
+	{
+		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		NULL,
+		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+		NULL
+	};
+	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->resourceCommands, &beginInfo);
+	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->renderCommands, &beginInfo);
+}
+
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
 	uint64_t timeout)
 {
@@ -1054,5 +1081,17 @@ void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* f
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addFramebuffer(resourceList, framebuffer);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence)
+{
+	DS_ASSERT(fence);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addFence(resourceList, fence);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

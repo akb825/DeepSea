@@ -15,6 +15,8 @@
  */
 
 #include "VkCommandBuffer.h"
+
+#include "VkRendererInternal.h"
 #include "VkBarrierList.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -187,6 +189,24 @@ void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
 }
 
+void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	// Process immediately for the main command buffer if not in a render pass.
+	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer &&
+		!commandBuffer->boundRenderPass)
+	{
+		dsVkRenderer_flushImpl(commandBuffer->renderer, readback || vkCommandBuffer->fenceReadback);
+		vkCommandBuffer->fenceSet = false;
+		vkCommandBuffer->fenceReadback = false;
+		return;
+	}
+
+	vkCommandBuffer->fenceSet = true;
+	if (readback)
+		vkCommandBuffer->fenceReadback = true;
+}
+
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer)
 {
@@ -221,8 +241,13 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		return false;
 	}
 
-	memcpy(vkCommandBuffer->readbackOffscreens + offset, vkSubmitBuffer->readbackOffscreens,
-		sizeof(dsTexture*)*vkSubmitBuffer->readbackOffscreenCount);
+	for (uint32_t i = 0; i < vkSubmitBuffer->readbackOffscreenCount; ++i)
+	{
+		dsOffscreen* offscreen = vkSubmitBuffer->readbackOffscreens[i];
+		dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
+		DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, 1);
+		vkCommandBuffer->readbackOffscreens[offset + i] = offscreen;
+	}
 
 	DS_VK_CALL(device->vkCmdExecuteCommands)(vkCommandBuffer->vkCommandBuffer, 1,
 		&vkSubmitBuffer->vkCommandBuffer);
@@ -233,6 +258,13 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		(dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
 	{
 		dsVkCommandBuffer_clearUsedResources(submitBuffer);
+	}
+
+	if (vkSubmitBuffer->fenceSet)
+	{
+		dsVkCommandBuffer_submitFence(commandBuffer, vkSubmitBuffer->fenceReadback);
+		vkSubmitBuffer->fenceSet = false;
+		vkSubmitBuffer->fenceReadback = false;
 	}
 
 	return true;
@@ -300,6 +332,8 @@ bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsTe
 		return false;
 	}
 
+	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
+	DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, 1);
 	vkCommandBuffer->readbackOffscreens[index] = offscreen;
 	return true;
 }
@@ -310,6 +344,12 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 
 	for (uint32_t i = 0; i < vkCommandBuffer->usedResourceCount; ++i)
 		DS_ATOMIC_FETCH_ADD32(&vkCommandBuffer->usedResources[i]->commandBufferCount, -1);
+
+	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
+	{
+		dsVkTexture* vkTexture = (dsVkTexture*)vkCommandBuffer->readbackOffscreens[i];
+		DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, -1);
+	}
 
 	vkCommandBuffer->usedResourceCount = 0;
 	vkCommandBuffer->readbackOffscreenCount = 0;
@@ -329,10 +369,17 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 	}
 
 	vkCommandBuffer->usedResourceCount = 0;
+}
+
+void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
+	uint64_t submitCount)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
 		dsVkTexture* texture = (dsVkTexture*)vkCommandBuffer->readbackOffscreens[i];
+		DS_ATOMIC_FETCH_ADD32(&texture->resource.commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
 		texture->lastDrawSubmit = submitCount;
 		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
@@ -343,6 +390,7 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 {
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
+	dsVkCommandBuffer_clearUsedResources(baseCommandBuffer);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->usedResources));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));

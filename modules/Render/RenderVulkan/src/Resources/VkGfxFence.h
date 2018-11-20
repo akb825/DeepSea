@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,14 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include "GLTypes.h"
+#include "VkTypes.h"
 
-dsGfxFence* dsGLGfxFence_create(dsResourceManager* resourceManager, dsAllocator* allocator);
-bool dsGLGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+dsGfxFence* dsVkGfxFence_create(dsResourceManager* resourceManager, dsAllocator* allocator);
+bool dsVkGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxFence** fences, uint32_t fenceCount, bool bufferReadback);
-dsGfxFenceResult dsGLGfxFence_wait(dsResourceManager* resourceManager, dsGfxFence* fence,
+dsGfxFenceResult dsVkGfxFence_wait(dsResourceManager* resourceManager, dsGfxFence* fence,
 	uint64_t timeout);
-bool dsGLGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence);
-bool dsGLGfxFence_destroy(dsResourceManager* resourceManager, dsGfxFence* fence);
+bool dsVkGfxFence_reset(dsResourceManager* resourceManager, dsGfxFence* fence);
+bool dsVkGfxFence_destroy(dsResourceManager* resourceManager, dsGfxFence* fence);
 
-void dsGLFenceSync_addRef(dsGLFenceSync* sync);
-void dsGLFenceSync_freeRef(dsGLFenceSync* sync);
-void dsGLFenceSyncRef_addRef(dsGLFenceSyncRef* sync);
-void dsGLFenceSyncRef_freeRef(dsGLFenceSyncRef* sync);
+void dsVkGfxFence_destroyImpl(dsGfxFence* fence);

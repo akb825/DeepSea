@@ -16,8 +16,9 @@
 
 #include "Resources/VkResourceManager.h"
 
-#include "Resources/VkFramebuffer.h"
 #include "Resources/VkDrawGeometry.h"
+#include "Resources/VkGfxFence.h"
+#include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkTexture.h"
@@ -681,6 +682,13 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	// Framebuffers
 	baseResourceManager->createFramebufferFunc = &dsVkFramebuffer_create;
 	baseResourceManager->destroyFramebufferFunc = &dsVkFramebuffer_destroy;
+
+	// Fences
+	baseResourceManager->createFenceFunc = &dsVkGfxFence_create;
+	baseResourceManager->destroyFenceFunc = &dsVkGfxFence_destroy;
+	baseResourceManager->setFencesFunc = &dsVkGfxFence_set;
+	baseResourceManager->waitFenceFunc = &dsVkGfxFence_wait;
+	baseResourceManager->resetFenceFunc = &dsVkGfxFence_reset;
 
 	return resourceManager;
 }

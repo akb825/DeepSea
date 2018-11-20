@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
+void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback);
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
 	uint64_t timeout);
 
@@ -29,3 +30,4 @@ void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);
 void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
 void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer);
+void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence);

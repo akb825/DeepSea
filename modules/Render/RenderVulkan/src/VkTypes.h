@@ -277,6 +277,12 @@ typedef struct dsVkFramebuffer
 	uint32_t maxFramebuffers;
 } dsVkFramebuffer;
 
+typedef struct dsVkGfxFence
+{
+	dsGfxFence fence;
+	dsVkResource resource;
+} dsVkGfxFence;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -308,6 +314,10 @@ typedef struct dsVkResourceList
 	dsVkRealFramebuffer** framebuffers;
 	uint32_t framebufferCount;
 	uint32_t maxFramebuffers;
+
+	dsGfxFence** fences;
+	uint32_t fenceCount;
+	uint32_t maxFences;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
@@ -360,6 +370,9 @@ typedef struct dsVkCommandBuffer
 	VkImageCopy* imageCopies;
 	uint32_t maxImageBarriers;
 	uint32_t maxImageCopies;
+
+	bool fenceSet;
+	bool fenceReadback;
 } dsVkCommandBuffer;
 
 typedef struct dsVkRenderer

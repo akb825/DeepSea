@@ -92,6 +92,19 @@ bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFrameb
 	return true;
 }
 
+bool dsVkResourceList_addFence(dsVkResourceList* resources, dsGfxFence* fence)
+{
+	uint32_t index = resources->fenceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->fences, resources->fenceCount,
+		resources->maxFences, 1))
+	{
+		return false;
+	}
+
+	resources->fences[index] = fence;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
@@ -99,6 +112,7 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 	resources->copyImageCount = 0;
 	resources->renderbufferCount = 0;
 	resources->framebufferCount = 0;
+	resources->fenceCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -108,4 +122,5 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->copyImages));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderbuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->framebuffers));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->fences));
 }
