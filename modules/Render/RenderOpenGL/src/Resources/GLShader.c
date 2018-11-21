@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1095,7 +1095,6 @@ void dsGLShader_addInternalRef(dsShader* shader)
 {
 	DS_ASSERT(shader);
 	dsGLShader* glShader = (dsGLShader*)shader;
-	dsGLShaderModule_addInternalRef(shader->module);
 	dsGLMaterialDesc_addInternalRef((dsMaterialDesc*)shader->materialDesc);
 	dsGLResource_addRef(&glShader->resource);
 }
@@ -1104,7 +1103,6 @@ void dsGLShader_freeInternalRef(dsShader* shader)
 {
 	DS_ASSERT(shader);
 	dsGLShader* glShader = (dsGLShader*)shader;
-	dsGLShaderModule_freeInternalRef(shader->module);
 	dsGLMaterialDesc_freeInternalRef((dsMaterialDesc*)shader->materialDesc);
 	if (dsGLResource_freeRef(&glShader->resource))
 		destroyImpl(shader);

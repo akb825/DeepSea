@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@
 
 dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name);
-bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, uint32_t shaderIndex,
-	GLenum stage, const char* pipelineName);
 bool dsGLShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module);
 
-void dsGLShaderModule_addInternalRef(dsShaderModule* module);
-void dsGLShaderModule_freeInternalRef(dsShaderModule* module);
+bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, uint32_t shaderIndex,
+	GLenum stage, const char* pipelineName);

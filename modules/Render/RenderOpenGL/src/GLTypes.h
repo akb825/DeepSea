@@ -143,7 +143,6 @@ typedef struct dsGLGfxQueryPool
 typedef struct dsGLShaderModule
 {
 	dsShaderModule shaderModule;
-	dsGLResource resource;
 	GLuint* shaders;
 } dsGLShaderModule;
 

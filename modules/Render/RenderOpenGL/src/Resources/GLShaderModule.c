@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #include "Resources/GLShaderModule.h"
 
 #include "AnyGL/AnyGL.h"
-#include "Resources/GLResource.h"
 #include "GLHelpers.h"
 #include "GLTypes.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -55,7 +54,6 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 	baseShaderModule->module = module;
 	baseShaderModule->name = name;
 
-	dsGLResource_initialize(&shaderModule->resource);
 	if (shaderCount > 0)
 	{
 		shaderModule->shaders = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, GLuint,
@@ -67,6 +65,26 @@ dsShaderModule* dsGLShaderModule_create(dsResourceManager* resourceManager, dsAl
 		shaderModule->shaders = NULL;
 
 	return baseShaderModule;
+}
+
+bool dsGLShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module)
+{
+	DS_UNUSED(resourceManager);
+	DS_ASSERT(module);
+
+	dsGLShaderModule* glModule = (dsGLShaderModule*)module;
+	uint32_t shaderCount = mslModule_shaderCount(module->module);
+	for (uint32_t i = 0; i < shaderCount; ++i)
+	{
+		GLuint shaderId = glModule->shaders[i];
+		if (shaderId && shaderId != DS_SHADER_ERROR)
+			glDeleteShader(shaderId);
+	}
+
+	if (module->allocator)
+		DS_VERIFY(dsAllocator_free(module->allocator, module));
+
+	return true;
 }
 
 bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, uint32_t shaderIndex,
@@ -155,48 +173,4 @@ bool dsGLShaderModule_compileShader(GLuint* outShader, dsShaderModule* module, u
 
 	*outShader = shaderId;
 	return true;
-}
-
-static bool destroyImpl(dsShaderModule* module)
-{
-	dsGLShaderModule* glModule = (dsGLShaderModule*)module;
-	uint32_t shaderCount = mslModule_shaderCount(module->module);
-	for (uint32_t i = 0; i < shaderCount; ++i)
-	{
-		GLuint shaderId = glModule->shaders[i];
-		if (shaderId && shaderId != DS_SHADER_ERROR)
-			glDeleteShader(shaderId);
-	}
-
-	if (module->allocator)
-		return dsAllocator_free(module->allocator, module);
-
-	return true;
-}
-
-bool dsGLShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module)
-{
-	DS_UNUSED(resourceManager);
-	DS_ASSERT(module);
-
-	dsGLShaderModule* glModule = (dsGLShaderModule*)module;
-	if (dsGLResource_destroy(&glModule->resource))
-		return destroyImpl(module);
-
-	return true;
-}
-
-void dsGLShaderModule_addInternalRef(dsShaderModule* module)
-{
-	DS_ASSERT(module);
-	dsGLShaderModule* glModule = (dsGLShaderModule*)module;
-	dsGLResource_addRef(&glModule->resource);
-}
-
-void dsGLShaderModule_freeInternalRef(dsShaderModule* module)
-{
-	DS_ASSERT(module);
-	dsGLShaderModule* glModule = (dsGLShaderModule*)module;
-	if (dsGLResource_freeRef(&glModule->resource))
-		destroyImpl(module);
 }
