@@ -17,9 +17,10 @@
 #include "Resources/VkResourceManager.h"
 
 #include "Resources/VkDrawGeometry.h"
-#include "Resources/VkGfxFence.h"
 #include "Resources/VkFramebuffer.h"
+#include "Resources/VkGfxFence.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkGfxQueryPool.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
@@ -689,6 +690,16 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->setFencesFunc = &dsVkGfxFence_set;
 	baseResourceManager->waitFenceFunc = &dsVkGfxFence_wait;
 	baseResourceManager->resetFenceFunc = &dsVkGfxFence_reset;
+
+	// Queries
+	baseResourceManager->createQueryPoolFunc = &dsVkGfxQueryPool_create;
+	baseResourceManager->destroyQueryPoolFunc = &dsVkGfxQueryPool_destroy;
+	baseResourceManager->resetQueryPoolFunc = &dsVkGfxQueryPool_reset;
+	baseResourceManager->beginQueryFunc = &dsVkGfxQueryPool_beginQuery;
+	baseResourceManager->endQueryFunc = &dsVkGfxQueryPool_endQuery;
+	baseResourceManager->queryTimestampFunc = &dsVkGfxQueryPool_queryTimestamp;
+	baseResourceManager->getQueryValuesFunc = &dsVkGfxQueryPool_getValues;
+	baseResourceManager->copyQueryValuesFunc = &dsVkGfxQueryPool_copyValues;
 
 	return resourceManager;
 }

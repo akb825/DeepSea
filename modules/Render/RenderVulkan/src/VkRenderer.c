@@ -20,6 +20,7 @@
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxFence.h"
+#include "Resources/VkGfxQueryPool.h"
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkResource.h"
@@ -227,6 +228,21 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkGfxFence_destroyImpl(fence);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->queryCount; ++i)
+	{
+		dsGfxQueryPool* queries = prevDeleteList->queries[i];
+		DS_ASSERT(queries);
+		dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
+
+		if (dsVkResource_isInUse(&vkQueries->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteQueriePool(baseRenderer, queries);
+			continue;
+		}
+
+		dsVkGfxQueryPool_destroyImpl(queries);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -1093,5 +1109,17 @@ void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence)
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addFence(resourceList, fence);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries)
+{
+	DS_ASSERT(queries);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addQueries(resourceList, queries);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

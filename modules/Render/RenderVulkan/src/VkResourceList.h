@@ -27,6 +27,7 @@ bool dsVkResourceList_addCopyImage(dsVkResourceList* resources, dsVkCopyImage* i
 bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffer* renderbuffer);
 bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFramebuffer* framebuffer);
 bool dsVkResourceList_addFence(dsVkResourceList* resources, dsGfxFence* fence);
+bool dsVkResourceList_addQueries(dsVkResourceList* resources, dsGfxQueryPool* queries);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

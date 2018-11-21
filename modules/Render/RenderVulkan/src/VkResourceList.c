@@ -105,6 +105,19 @@ bool dsVkResourceList_addFence(dsVkResourceList* resources, dsGfxFence* fence)
 	return true;
 }
 
+bool dsVkResourceList_addQueries(dsVkResourceList* resources, dsGfxQueryPool* queries)
+{
+	uint32_t index = resources->queryCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->queries, resources->queryCount,
+		resources->maxQueries, 1))
+	{
+		return false;
+	}
+
+	resources->queries[index] = queries;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
@@ -113,6 +126,7 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 	resources->renderbufferCount = 0;
 	resources->framebufferCount = 0;
 	resources->fenceCount = 0;
+	resources->queryCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -123,4 +137,5 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderbuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->framebuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->fences));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->queries));
 }

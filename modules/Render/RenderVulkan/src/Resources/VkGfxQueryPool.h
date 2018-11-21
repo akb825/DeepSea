@@ -17,25 +17,24 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include "VkTypes.h"
 
-dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager,
+dsGfxQueryPool* dsVkGfxQueryPool_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, dsGfxQueryType type, uint32_t count);
-bool dsGLGfxQueryPool_reset(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsVkGfxQueryPool_reset(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxQueryPool* queries, uint32_t first, uint32_t count);
-bool dsGLGfxQueryPool_beginQuery(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsVkGfxQueryPool_beginQuery(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxQueryPool* queries, uint32_t query);
-bool dsGLGfxQueryPool_endQuery(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsVkGfxQueryPool_endQuery(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxQueryPool* queries, uint32_t query);
-bool dsGLGfxQueryPool_queryTimestamp(dsResourceManager* resourceManager,
+bool dsVkGfxQueryPool_queryTimestamp(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries, uint32_t query);
-bool dsGLGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPool* queries,
+bool dsVkGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPool* queries,
 	uint32_t first, uint32_t count, void* data, size_t dataSize, size_t stride, size_t elementSize,
 	bool checkAvailability);
-bool dsGLGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxQueryPool* queries, uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset,
 	size_t stride, size_t elementSize, bool checkAvailability);
-bool dsGLGfxQueryPool_destroy(dsResourceManager* resourceManager, dsGfxQueryPool* queries);
+bool dsVkGfxQueryPool_destroy(dsResourceManager* resourceManager, dsGfxQueryPool* queries);
 
-void dsGLGfxQueryPool_addInternalRef(dsGfxQueryPool* queries);
-void dsGLGfxQueryPool_freeInternalRef(dsGfxQueryPool* queries);
+void dsVkGfxQueryPool_destroyImpl(dsGfxQueryPool* queries);

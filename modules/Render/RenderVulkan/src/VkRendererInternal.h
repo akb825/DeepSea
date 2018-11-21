@@ -31,3 +31,4 @@ void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage
 void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
 void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer);
 void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence);
+void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries);

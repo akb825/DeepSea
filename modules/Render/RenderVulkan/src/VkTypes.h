@@ -121,6 +121,15 @@ typedef struct dsVkDevice
 	PFN_vkCreateRenderPass vkCreateRenderPass;
 	PFN_vkDestroyRenderPass vkDestroyRenderPass;
 
+	PFN_vkCreateQueryPool vkCreateQueryPool;
+	PFN_vkDestroyQueryPool vkDestroyQueryPool;
+	PFN_vkCmdResetQueryPool vkCmdResetQueryPool;
+	PFN_vkCmdBeginQuery vkCmdBeginQuery;
+	PFN_vkCmdEndQuery vkCmdEndQuery;
+	PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
+	PFN_vkCmdCopyQueryPoolResults vkCmdCopyQueryPoolResults;
+	PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -283,6 +292,13 @@ typedef struct dsVkGfxFence
 	dsVkResource resource;
 } dsVkGfxFence;
 
+typedef struct dsVkGfxQueryPool
+{
+	dsGfxQueryPool queries;
+	dsVkResource resource;
+	VkQueryPool vkQueries;
+} dsVkGfxQueryPool;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -318,6 +334,10 @@ typedef struct dsVkResourceList
 	dsGfxFence** fences;
 	uint32_t fenceCount;
 	uint32_t maxFences;
+
+	dsGfxQueryPool** queries;
+	uint32_t queryCount;
+	uint32_t maxQueries;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
