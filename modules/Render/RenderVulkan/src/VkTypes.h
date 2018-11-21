@@ -130,6 +130,9 @@ typedef struct dsVkDevice
 	PFN_vkCmdCopyQueryPoolResults vkCmdCopyQueryPoolResults;
 	PFN_vkCmdWriteTimestamp vkCmdWriteTimestamp;
 
+	PFN_vkCreateShaderModule vkCreateShaderModule;
+	PFN_vkDestroyShaderModule vkDestroyShaderModule;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -298,6 +301,12 @@ typedef struct dsVkGfxQueryPool
 	dsVkResource resource;
 	VkQueryPool vkQueries;
 } dsVkGfxQueryPool;
+
+typedef struct dsVkShaderModule
+{
+	dsShaderModule shaderModule;
+	VkShaderModule* shaders;
+} dsVkShaderModule;
 
 typedef struct dsVkSubmitInfo
 {

@@ -22,6 +22,7 @@
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxQueryPool.h"
 #include "Resources/VkRenderbuffer.h"
+#include "Resources/VkShaderModule.h"
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -700,6 +701,10 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->queryTimestampFunc = &dsVkGfxQueryPool_queryTimestamp;
 	baseResourceManager->getQueryValuesFunc = &dsVkGfxQueryPool_getValues;
 	baseResourceManager->copyQueryValuesFunc = &dsVkGfxQueryPool_copyValues;
+
+	// Shader modules
+	baseResourceManager->createShaderModuleFunc = &dsVkShaderModule_create;
+	baseResourceManager->destroyShaderModuleFunc = &dsVkShaderModule_destroy;
 
 	return resourceManager;
 }
