@@ -5,7 +5,7 @@ ds_add_module(Core)
 ds_add_module(Math)
 
 # Profiling
-if (DEEPSEA_BUILD_EASY_PROFILER)
+if (DEEPSEA_PROFILING AND DEEPSEA_BUILD_EASY_PROFILER)
 	ds_add_module(Core/EasyProfiler)
 endif()
 
