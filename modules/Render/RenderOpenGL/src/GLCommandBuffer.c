@@ -65,19 +65,26 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 				if (texture)
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
 				else
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+				break;
+			}
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_MutableTextureBuffer:
+			{
+				if (glShader->uniforms[i].location < 0)
+					continue;
+
+				dsGfxFormat format;
+				size_t offset, count;
+				dsGfxBuffer* buffer = dsVolatileMaterialValues_getTextureBufferId(&format,
+					&offset, &count, volatileValues, i);
+				if (buffer)
 				{
-					dsGfxFormat format;
-					size_t offset, count;
-					dsGfxBuffer* buffer = dsVolatileMaterialValues_getTextureBufferId(&format,
-						&offset, &count, volatileValues, i);
-					if (buffer)
-					{
-						dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
-							format, offset, count);
-					}
-					else
-						dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
+					dsGLCommandBuffer_setTextureBuffer(commandBuffer, shader, i, buffer,
+						format, offset, count);
 				}
+				else
+					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, NULL);
 				break;
 			}
 			case dsMaterialType_UniformBlock:

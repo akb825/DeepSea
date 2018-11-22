@@ -219,6 +219,8 @@ uint16_t dsMaterialType_cpuSize(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_Texture
 		sizeof(void*), // dsMaterialType_Image
 		sizeof(void*), // dsMaterialType_SubpassInput
+		sizeof(void*), // dsMaterialType_TextureBuffer
+		sizeof(void*), // dsMaterialType_MutableTextureBuffer
 		sizeof(void*), // dsMaterialType_VariableGroup
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer
@@ -281,6 +283,8 @@ uint16_t dsMaterialType_cpuAlignment(dsMaterialType type)
 		sizeof(void*), // dsMaterialType_Texture
 		sizeof(void*), // dsMaterialType_Image
 		sizeof(void*), // dsMaterialType_SubpassInput
+		sizeof(void*), // dsMaterialType_TextureBuffer
+		sizeof(void*), // dsMaterialType_MutableTextureBuffer
 		sizeof(void*), // dsMaterialType_VariableGroup
 		sizeof(void*), // dsMaterialType_UniformBlock
 		sizeof(void*), // dsMaterialType_UniformBuffer

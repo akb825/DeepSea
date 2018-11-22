@@ -559,6 +559,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
+			case dsMaterialType_TextureBuffer:
+			case dsMaterialType_MutableTextureBuffer:
 			{
 				const char* name = materialDesc->elements[i].name;
 				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline, name);

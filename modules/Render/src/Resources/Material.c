@@ -38,6 +38,14 @@ struct dsMaterial
 	uint32_t* offsets;
 };
 
+typedef struct TextureBufferData
+{
+	dsGfxBuffer* buffer;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+} TextureBufferData;
+
 typedef struct BufferData
 {
 	dsGfxBuffer* buffer;
@@ -45,37 +53,30 @@ typedef struct BufferData
 	size_t size;
 } BufferData;
 
-typedef enum TextureType
-{
-	TextureType_Texture,
-	TextureType_Buffer
-} TextureType;
-
-typedef struct TextureData
-{
-	TextureType type;
-	dsGfxFormat format;
-	size_t offset;
-	size_t count;
-	void* data;
-} TextureData;
-
 static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t count)
 {
-	if (type == dsMaterialType_UniformBlock || type == dsMaterialType_UniformBuffer)
+	if (type >= dsMaterialType_Texture && type <= dsMaterialType_SubpassInput)
+	{
+		DS_ASSERT(count == 0);
+		size_t alignment = sizeof(void*);
+		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		*curSize = offset + sizeof(dsTexture*);
+		return offset;
+	}
+	else if (type >= dsMaterialType_TextureBuffer && type <= dsMaterialType_MutableTextureBuffer)
+	{
+		DS_ASSERT(count == 0);
+		size_t alignment = sizeof(void*);
+		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
+		*curSize = offset + sizeof(TextureBufferData);
+		return offset;
+	}
+	else if (type >= dsMaterialType_UniformBlock && type <= dsMaterialType_UniformBuffer)
 	{
 		DS_ASSERT(count == 0);
 		size_t alignment = sizeof(void*);
 		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
 		*curSize = offset + sizeof(BufferData);
-		return offset;
-	}
-	else if (type >= dsMaterialType_Texture && type <= dsMaterialType_SubpassInput)
-	{
-		DS_ASSERT(count == 0);
-		size_t alignment = sizeof(void*);
-		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
-		*curSize = offset + sizeof(TextureData);
 		return offset;
 	}
 
@@ -286,12 +287,7 @@ dsTexture* dsMaterial_getTexture(const dsMaterial* material, uint32_t element)
 	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
 		return NULL;
 
-	const TextureData* textureData = (const TextureData*)(material->data +
-		material->offsets[element]);
-	if (textureData->type != TextureType_Texture)
-		return NULL;
-
-	return (dsTexture*)textureData->data;
+	return *(dsTexture**)(material->data + material->offsets[element]);
 }
 
 bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* texture)
@@ -352,9 +348,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 		}
 	}
 
-	TextureData* textureData = (TextureData*)(material->data + material->offsets[element]);
-	textureData->type = TextureType_Texture;
-	textureData->data = texture;
+	*(dsTexture**)(material->data + material->offsets[element]) = texture;
 	return true;
 }
 
@@ -368,13 +362,11 @@ dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffs
 	}
 
 	dsMaterialType type = material->description->elements[element].type;
-	if (type < dsMaterialType_Texture || type > dsMaterialType_SubpassInput)
+	if (type < dsMaterialType_TextureBuffer || type > dsMaterialType_MutableTextureBuffer)
 		return NULL;
 
-	const TextureData* textureData = (const TextureData*)(material->data +
+	const TextureBufferData* textureData = (const TextureBufferData*)(material->data +
 		material->offsets[element]);
-	if (textureData->type != TextureType_Buffer)
-		return NULL;
 
 	if (outFormat)
 		*outFormat = textureData->format;
@@ -382,7 +374,7 @@ dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffs
 		*outOffset = textureData->offset;
 	if (outCount)
 		*outCount = textureData->count;
-	return (dsGfxBuffer*)textureData->data;
+	return textureData->buffer;
 }
 
 bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer,
@@ -417,10 +409,10 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 	}
 
 	dsMaterialType type = material->description->elements[element].type;
-	if (type < dsMaterialType_Texture || type > dsMaterialType_Image)
+	if (type < dsMaterialType_TextureBuffer || type > dsMaterialType_MutableTextureBuffer)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture type.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture buffer type.");
 		return false;
 	}
 
@@ -469,12 +461,12 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 		}
 	}
 
-	TextureData* textureData = (TextureData*)(material->data + material->offsets[element]);
-	textureData->type = TextureType_Buffer;
+	TextureBufferData* textureData = (TextureBufferData*)(material->data +
+		material->offsets[element]);
+	textureData->buffer = buffer;
 	textureData->format = format;
 	textureData->offset = offset;
 	textureData->count = count;
-	textureData->data = buffer;
 	return true;
 }
 

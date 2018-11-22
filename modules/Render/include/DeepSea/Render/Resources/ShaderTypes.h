@@ -92,12 +92,14 @@ typedef enum dsMaterialType
 	dsMaterialType_DMat4x3, ///< dmat4x3
 
 	// Other types
-	dsMaterialType_Texture,       ///< Sampled texture.
-	dsMaterialType_Image,         ///< Unsampled image texture.
-	dsMaterialType_SubpassInput,  ///< Image result from a previous subpass.
-	dsMaterialType_VariableGroup, ///< Group of variables from dsShaderVariableGroup.
-	dsMaterialType_UniformBlock,  ///< Graphics buffer bound as a shader block.
-	dsMaterialType_UniformBuffer, ///< Graphics buffer bound as a shader buffer.
+	dsMaterialType_Texture,              ///< Sampled texture.
+	dsMaterialType_Image,                ///< Unsampled image texture.
+	dsMaterialType_SubpassInput,         ///< Image result from a previous subpass.
+	dsMaterialType_TextureBuffer,        ///< Read-only texture buffer.
+	dsMaterialType_MutableTextureBuffer, ///< Read/write texture buffer.
+	dsMaterialType_VariableGroup,        ///< Group of variables from dsShaderVariableGroup.
+	dsMaterialType_UniformBlock,         ///< Graphics buffer bound as a shader block.
+	dsMaterialType_UniformBuffer,        ///< Graphics buffer bound as a shader buffer.
 
 	dsMaterialType_Count, ///< The number of material types.
 } dsMaterialType;

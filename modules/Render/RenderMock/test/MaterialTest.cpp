@@ -317,12 +317,12 @@ TEST_F(MaterialTest, TextureBuffers)
 	dsMaterialElement elements[] =
 	{
 		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
+		{"texture", dsMaterialType_TextureBuffer, 0, NULL, false, 0},
 		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"image", dsMaterialType_Image, 0, NULL, false, 0},
+		{"mutableTexture", dsMaterialType_MutableTextureBuffer, 0, NULL, false, 0},
 		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
 		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-		{"volatileTexture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"volatileTexture", dsMaterialType_TextureBuffer, 0, NULL, true, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
