@@ -133,6 +133,9 @@ typedef struct dsVkDevice
 	PFN_vkCreateShaderModule vkCreateShaderModule;
 	PFN_vkDestroyShaderModule vkDestroyShaderModule;
 
+	PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
+	PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -305,8 +308,17 @@ typedef struct dsVkGfxQueryPool
 typedef struct dsVkShaderModule
 {
 	dsShaderModule shaderModule;
+	dsVkResource resource;
 	VkShaderModule* shaders;
 } dsVkShaderModule;
+
+typedef struct dsVkMaterialDesc
+{
+	dsMaterialDesc materialDesc;
+	uint32_t* elementMappings;
+	VkDescriptorSetLayoutBinding* bindings[2];
+	VkDescriptorSetLayout descriptorSets[2];
+} dsVkMaterialDesc;
 
 typedef struct dsVkSubmitInfo
 {

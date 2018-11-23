@@ -21,6 +21,7 @@
 #include "Resources/VkGfxFence.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxQueryPool.h"
+#include "Resources/VkMaterialDesc.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkShaderModule.h"
 #include "Resources/VkTexture.h"
@@ -705,6 +706,10 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	// Shader modules
 	baseResourceManager->createShaderModuleFunc = &dsVkShaderModule_create;
 	baseResourceManager->destroyShaderModuleFunc = &dsVkShaderModule_destroy;
+
+	// Material descriptions
+	baseResourceManager->createMaterialDescFunc = &dsVkMaterialDesc_create;
+	baseResourceManager->destroyMaterialDescFunc = &dsVkMaterialDesc_destroy;
 
 	return resourceManager;
 }

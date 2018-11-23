@@ -804,6 +804,9 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateShaderModule);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyShaderModule);
 
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateDescriptorSetLayout);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDescriptorSetLayout);
+
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);
 	DS_VK_CALL(instance->vkGetPhysicalDeviceMemoryProperties)(device->physicalDevice,

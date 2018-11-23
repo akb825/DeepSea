@@ -45,7 +45,7 @@ dsShaderModule* dsVkShaderModule_create(dsResourceManager* resourceManager, dsAl
 
 	dsShaderModule* baseShaderModule = (dsShaderModule*)shaderModule;
 	baseShaderModule->resourceManager = resourceManager;
-	baseShaderModule->allocator = allocator;
+	baseShaderModule->allocator = dsAllocator_keepPointer(allocator);
 	baseShaderModule->module = module;
 	baseShaderModule->name = name;
 

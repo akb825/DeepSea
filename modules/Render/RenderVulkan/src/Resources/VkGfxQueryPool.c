@@ -15,9 +15,9 @@
  */
 
 #include "Resources/VkGfxQueryPool.h"
+#include "Resources/VkResource.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
-#include "VkResource.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>

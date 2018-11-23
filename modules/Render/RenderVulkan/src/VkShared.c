@@ -320,3 +320,27 @@ VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format)
 			return VK_IMAGE_ASPECT_COLOR_BIT;
 	}
 }
+
+VkDescriptorType dsVkDescriptorType(dsMaterialType type)
+{
+	switch (type)
+	{
+		case dsMaterialType_Texture:
+			return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		case dsMaterialType_Image:
+			return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		case dsMaterialType_SubpassInput:
+			return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		case dsMaterialType_TextureBuffer:
+			return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+		case dsMaterialType_MutableTextureBuffer:
+			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+		case dsMaterialType_VariableGroup:
+		case dsMaterialType_UniformBlock:
+			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		case dsMaterialType_UniformBuffer:
+			return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		default:
+			return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+	}
+}
