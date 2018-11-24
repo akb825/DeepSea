@@ -639,13 +639,13 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	DS_VERIFY(dsVolatileMaterialValues_setVariableGroupName(testRenderSubpass->volatileValues,
 		"Transform", testRenderSubpass->transformGroup));
 
-	testRenderSubpass->rMaterial = dsMaterial_create(allocator,
+	testRenderSubpass->rMaterial = dsMaterial_create(resourceManager, allocator,
 		testRenderSubpass->cubeMaterialDesc);
-	testRenderSubpass->gMaterial = dsMaterial_create(allocator,
+	testRenderSubpass->gMaterial = dsMaterial_create(resourceManager, allocator,
 		testRenderSubpass->cubeMaterialDesc);
-	testRenderSubpass->bMaterial = dsMaterial_create(allocator,
+	testRenderSubpass->bMaterial = dsMaterial_create(resourceManager, allocator,
 		testRenderSubpass->cubeMaterialDesc);
-	testRenderSubpass->resolveMaterial = dsMaterial_create(allocator,
+	testRenderSubpass->resolveMaterial = dsMaterial_create(resourceManager, allocator,
 		testRenderSubpass->resolveMaterialDesc);
 	if (!testRenderSubpass->rMaterial || !testRenderSubpass->gMaterial ||
 		!testRenderSubpass->bMaterial || !testRenderSubpass->resolveMaterial)

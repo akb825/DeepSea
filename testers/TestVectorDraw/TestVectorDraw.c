@@ -423,7 +423,7 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	testVectorDraw->material = dsMaterial_create(allocator,
+	testVectorDraw->material = dsMaterial_create(resourceManager, allocator,
 		testVectorDraw->shaderModule->materialDesc);
 	if (!testVectorDraw->material)
 	{

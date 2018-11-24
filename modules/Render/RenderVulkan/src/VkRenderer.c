@@ -675,8 +675,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	for (unsigned int i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 	{
 		dsVkResourceList* deleteResources = vkRenderer->deleteResources + i;
-		for (uint32_t i = 0; i < deleteResources->bufferCount; ++i)
-			dsVkGfxBufferData_destroy(deleteResources->buffers[i], device);
+		for (uint32_t j = 0; j < deleteResources->bufferCount; ++j)
+			dsVkGfxBufferData_destroy(deleteResources->buffers[j], device);
 
 		dsVkResourceList_shutdown(deleteResources);
 	}
@@ -701,7 +701,7 @@ bool dsVkRenderer_isSupported(void)
 {
 	static int supported = -1;
 	if (supported >= 0)
-		return supported;
+		return (bool)supported;
 
 	dsVkInstance instance;
 	memset(&instance, 0, sizeof(dsVkInstance));
@@ -709,7 +709,7 @@ bool dsVkRenderer_isSupported(void)
 	if (supported)
 		supported = dsGatherVkPhysicalDevices(&instance);
 	dsDestroyVkInstance(&instance);
-	return supported;
+	return (bool)supported;
 }
 
 bool dsVkRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
@@ -805,7 +805,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	const VkPhysicalDeviceLimits* limits = &deviceProperties->limits;
 	baseRenderer->maxColorAttachments = limits->maxColorAttachments;
 	// framebufferColorSampleCounts is a bitmask. Compute the maximum bit that's set.
-	baseRenderer->maxSurfaceSamples = 1 << (31 - dsClz(limits->framebufferColorSampleCounts));
+	baseRenderer->maxSurfaceSamples = 1U << (31 - dsClz(limits->framebufferColorSampleCounts));
 	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
@@ -824,7 +824,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->maxComputeInvocations = limits->maxComputeWorkGroupInvocations;
 	baseRenderer->hasNativeMultidraw = true;
 	baseRenderer->supportsInstancedDrawing = true;
-	baseRenderer->supportsStartInstance = deviceFeatures.drawIndirectFirstInstance;
+	baseRenderer->supportsStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
 	baseRenderer->defaultAnisotropy = 1;
 
 	baseRenderer->resourceManager = (dsResourceManager*)dsVkResourceManager_create(allocator,

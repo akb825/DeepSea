@@ -58,10 +58,11 @@ TEST_F(MaterialTest, PrimitivesVectorsMatrices)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	EXPECT_FALSE(dsMaterial_create(NULL, materialDesc));
-	EXPECT_FALSE(dsMaterial_create((dsAllocator*)&allocator, NULL));
+	EXPECT_FALSE(dsMaterial_create(NULL, (dsAllocator*)&allocator, materialDesc));
+	EXPECT_FALSE(dsMaterial_create(resourceManager, (dsAllocator*)&allocator, NULL));
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	struct TestStruct
@@ -253,7 +254,8 @@ TEST_F(MaterialTest, Textures)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
@@ -329,7 +331,8 @@ TEST_F(MaterialTest, TextureBuffers)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL, dsGfxBufferUsage_Image,
@@ -422,7 +425,8 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsShaderVariableGroup* variableGroup1 = dsShaderVariableGroup_create(resourceManager, NULL,
@@ -478,7 +482,8 @@ TEST_F(MaterialTest, Buffers)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, NULL,
@@ -551,7 +556,8 @@ TEST_F(MaterialTest, MixedTypes)
 		DS_ARRAY_SIZE(elements));
 	ASSERT_TRUE(materialDesc);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsTextureInfo texInfo = {dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),

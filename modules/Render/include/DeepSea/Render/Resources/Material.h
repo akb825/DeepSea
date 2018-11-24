@@ -41,27 +41,24 @@ extern "C"
  */
 
 /**
- * @brief Gets the size of dsMaterial.
- * @return The size of dsMaterial.
- */
-DS_RENDER_EXPORT size_t dsMaterial_sizeof(void);
-
-/**
- * @brief Gets the full allocated size of dsMaterial.
- * @param description The description for the material.
- * @return The full allocated size of dsMaterial.
- */
-DS_RENDER_EXPORT size_t dsMaterial_fullAllocSize(const dsMaterialDesc* description);
-
-/**
  * @brief Creates a material.
+ * @param resourceManager The resource manager to create the material from.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the material with.
+ * @param allocator The allocator to create the material description with. If NULL, it will use the
+ *     same allocator as the resource manager.
  * @param description The description for the material.
  * @return The created material, or NULL if it couldn't be created.
  */
-DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsAllocator* allocator,
-	const dsMaterialDesc* description);
+DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsResourceManager* resourceManager,
+	dsAllocator* allocator,const dsMaterialDesc* description);
+
+/**
+ * @brief Gets the resource manager the material was created with.
+ * @remark errno will be set on failure.
+ * @param material The material.
+ * @return The resource manager.
+ */
+DS_RENDER_EXPORT dsResourceManager* dsMaterial_getResourceManager(const dsMaterial* material);
 
 /**
  * @brief Gets the material description.
@@ -70,6 +67,16 @@ DS_RENDER_EXPORT dsMaterial* dsMaterial_create(dsAllocator* allocator,
  * @return The material description.
  */
 DS_RENDER_EXPORT const dsMaterialDesc* dsMaterial_getDescription(const dsMaterial* material);
+
+/**
+ * @brief Gets the device material.
+ *
+ * This only has any real meaning for the renderer implementation.
+ *
+ * @param material The material.
+ * @return The device material. This may be NULL if the implementation doesn't create one.
+ */
+DS_RENDER_EXPORT dsDeviceMaterial* dsMaterial_getDeviceMaterial(dsMaterial* material);
 
 /**
  * @brief Gets the data for an element of a primitive, vector, or matrix type.

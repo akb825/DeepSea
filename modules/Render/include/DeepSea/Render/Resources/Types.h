@@ -1652,6 +1652,37 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
 	const dsMaterialDesc* materialDesc);
 
 /**
+ * @brief Function for creating data for device-specific material management.
+ * @remark Setting the device material functions is optional, but if set it's expected that
+ *     returning NULL is an error.
+ * @param resourceManager The resource manager the material was created with.
+ * @param material The material to create the device material for.
+ * @param allocator The allocator to create the device material with.
+ * @return The device material, or NULL if it couldn't be created.
+ */
+typedef void* (*dsCreateDeviceMaterialFunction)(dsResourceManager* resourceManager,
+	dsMaterial* material, dsAllocator* allocator);
+
+/**
+ * @brief Function for destroy data for device-specific material management.
+ * @param resourceManager The resource manager the material was created with.
+ * @param material The material the device material was created with.
+ * @param deviceMaterial The device material to destroy.
+ */
+typedef void (*dsDestroyDeviceMaterialFunction)(dsResourceManager* resourceManager,
+	dsMaterial* material, void* deviceMaterial);
+
+/**
+ * @brief Function for reacting to a material change.
+ * @param resourceManager The resource manager the material was created with.
+ * @param material The material the device material was created with.
+ * @param deviceMaterial The device material.
+ * @param The material element that was changed.
+ */
+typedef void (*dsDeviceMaterialChangedFunction)(dsResourceManager* resourceManager,
+	dsMaterial* material, void* deviceMaterial, uint32_t element);
+
+/**
  * @brief Function for destroying a shader.
  * @param resourceManager The resource manager the shader was created with.
  * @param shader The shader.
@@ -2250,6 +2281,21 @@ struct dsResourceManager
 	 * @brief Shader variable group description destruction function.
 	 */
 	dsDestroyShaderVariableGroupDescFunction destroyShaderVariableGroupDescFunc;
+
+	/**
+	 * @brief Device material create function.
+	 */
+	dsCreateDeviceMaterialFunction createDeviceMaterialFunc;
+
+	/**
+	 * @brief Destroy material create function.
+	 */
+	dsDestroyDeviceMaterialFunction destroyDeviceMaterialFunc;
+
+	/**
+	 * @brief Material element changed function.
+	 */
+	dsDeviceMaterialChangedFunction materialElementChangedFunc;
 
 	/**
 	 * @brief Shader creation function.

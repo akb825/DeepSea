@@ -843,7 +843,7 @@ static bool setupShaders(TestText* testText)
 	testText->limitBoundsElement = dsMaterialDesc_findElement(testText->materialDesc, "bounds");
 	DS_ASSERT(testText->limitBoundsElement != DS_MATERIAL_UNKNOWN);
 
-	testText->material = dsMaterial_create(allocator, testText->materialDesc);
+	testText->material = dsMaterial_create(resourceManager, allocator, testText->materialDesc);
 	if (!testText->material)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));
@@ -862,7 +862,8 @@ static bool setupShaders(TestText* testText)
 
 	if (renderer->hasTessellationShaders)
 	{
-		testText->tessMaterial = dsMaterial_create(allocator, testText->materialDesc);
+		testText->tessMaterial = dsMaterial_create(resourceManager, allocator,
+			testText->materialDesc);
 		if (!testText->tessMaterial)
 		{
 			DS_LOG_ERROR_F("TestText", "Couldn't create material: %s", dsErrorString(errno));

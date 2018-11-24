@@ -342,7 +342,7 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 		return false;
 	}
 
-	testCube->material = dsMaterial_create(allocator, testCube->materialDesc);
+	testCube->material = dsMaterial_create(resourceManager, allocator, testCube->materialDesc);
 	if (!testCube->material)
 	{
 		DS_LOG_ERROR_F("TestCube", "Couldn't create material: %s", dsErrorString(errno));

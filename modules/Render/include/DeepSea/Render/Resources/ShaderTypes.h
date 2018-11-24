@@ -350,6 +350,13 @@ struct dsMaterialDesc
 typedef struct dsMaterial dsMaterial;
 
 /**
+ * @brief Struct defining the device-specific material information.
+ *
+ * The implementation of this struct is defined by the renderer implementation.
+ */
+typedef struct dsDeviceMaterial dsDeviceMaterial;
+
+/**
  * @brief Struct describing an element of a shader variable.
  */
 typedef struct dsShaderVariableElement

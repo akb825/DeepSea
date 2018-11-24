@@ -352,7 +352,8 @@ TEST_F(ShaderTest, BindAndUpdate)
 		materialDesc);
 	ASSERT_TRUE(shader);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsShaderVariableGroup* transformGroup = dsShaderVariableGroup_create(resourceManager, NULL,
@@ -478,7 +479,8 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		materialDesc);
 	ASSERT_TRUE(shader);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
@@ -579,7 +581,8 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 		materialDesc);
 	ASSERT_TRUE(shader);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsShaderVariableGroup* transformGroup = dsShaderVariableGroup_create(resourceManager, NULL,
@@ -705,7 +708,8 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 		materialDesc);
 	ASSERT_TRUE(shader);
 
-	dsMaterial* material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
 	ASSERT_TRUE(material);
 
 	dsGfxBuffer* buffer1 = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,

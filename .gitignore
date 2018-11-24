@@ -1,6 +1,7 @@
 /build
 /dependencies
 __pycache__
+.idea
 .vscode
 *.pyc
 *.swp

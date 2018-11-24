@@ -75,7 +75,7 @@ public:
 		transformGroup = dsShaderVariableGroup_create(resourceManager, NULL, NULL, transformDesc);
 		ASSERT_TRUE(transformGroup);
 
-		material = dsMaterial_create((dsAllocator*)&allocator, materialDesc);
+		material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator, materialDesc);
 		ASSERT_TRUE(material);
 	}
 

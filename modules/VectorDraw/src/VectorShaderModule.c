@@ -235,7 +235,7 @@ dsVectorShaderModule* dsVectorShaderModule_loadData(dsResourceManager* resourceM
 dsMaterial* dsVectorShaderModule_createMaterial(dsVectorShaderModule* shaderModule,
 	dsAllocator* allocator)
 {
-	if (!shaderModule || !(allocator && !shaderModule->allocator))
+	if (!shaderModule || (!allocator && !shaderModule->allocator))
 	{
 		errno = EINVAL;
 		return NULL;
@@ -244,7 +244,8 @@ dsMaterial* dsVectorShaderModule_createMaterial(dsVectorShaderModule* shaderModu
 	if (!allocator)
 		allocator = shaderModule->allocator;
 
-	return dsMaterial_create(allocator, shaderModule->materialDesc);
+	return dsMaterial_create(shaderModule->shaderModule->resourceManager, allocator,
+		shaderModule->materialDesc);
 }
 
 bool dsVectorShaderModule_destroy(dsVectorShaderModule* shaderModule)

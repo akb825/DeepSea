@@ -32,7 +32,9 @@
 
 struct dsMaterial
 {
+	dsResourceManager* resourceManager;
 	dsAllocator* allocator;
+	void* deviceMaterial;
 	uint8_t* data;
 	const dsMaterialDesc* description;
 	uint32_t* offsets;
@@ -143,29 +145,25 @@ static bool validateGetSetElement(const dsMaterial* material, uint32_t element, 
 	return true;
 }
 
-size_t dsMaterial_sizeof(void)
+static size_t fullAllocSize(const dsMaterialDesc* description)
 {
-	return sizeof(dsMaterial);
-}
-
-size_t dsMaterial_fullAllocSize(const dsMaterialDesc* description)
-{
-	if (!description)
-		return 0;
-
 	return DS_ALIGNED_SIZE(sizeof(dsMaterial)) + DS_ALIGNED_SIZE(getDataSize(description)) +
 		DS_ALIGNED_SIZE(sizeof(uint32_t)*description->elementCount);
 }
 
-dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* description)
+dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* allocator,
+	const dsMaterialDesc* description)
 {
-	if (!allocator || !description)
+	if (!resourceManager || (!allocator && !resourceManager->allocator) || !description)
 	{
 		errno = EINVAL;
 		return NULL;
 	}
 
-	size_t fullSize = dsMaterial_fullAllocSize(description);
+	if (!allocator)
+		allocator = resourceManager->allocator;
+
+	size_t fullSize = fullAllocSize(description);
 	void* fullMem = dsAllocator_alloc(allocator, fullSize);
 	if (!fullMem)
 		return NULL;
@@ -176,6 +174,7 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	dsMaterial* material = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator, dsMaterial);
 	DS_ASSERT(material);
 
+	material->resourceManager = resourceManager;
 	material->allocator = dsAllocator_keepPointer(allocator);
 	material->description = description;
 
@@ -208,7 +207,32 @@ dsMaterial* dsMaterial_create(dsAllocator* allocator, const dsMaterialDesc* desc
 	}
 	DS_ASSERT(curSize == dataSize);
 
+	// Create the device material if needed.
+	if (resourceManager->createDeviceMaterialFunc && resourceManager->destroyDeviceMaterialFunc)
+	{
+		material->deviceMaterial = resourceManager->createDeviceMaterialFunc(resourceManager,
+			material, allocator);
+		if (!material->deviceMaterial)
+		{
+			dsMaterial_destroy(material);
+			return NULL;
+		}
+	}
+	else
+		material->deviceMaterial = NULL;
+
 	return material;
+}
+
+dsResourceManager* dsMaterial_getResourceManager(const dsMaterial* material)
+{
+	if (!material)
+	{
+		errno = EINVAL;
+		return NULL;
+	}
+
+	return material->resourceManager;
 }
 
 const dsMaterialDesc* dsMaterial_getDescription(const dsMaterial* material)
@@ -220,6 +244,14 @@ const dsMaterialDesc* dsMaterial_getDescription(const dsMaterial* material)
 	}
 
 	return material->description;
+}
+
+dsDeviceMaterial* dsMaterial_getDeviceMaterial(dsMaterial* material)
+{
+	if (!material)
+		return NULL;
+
+	return material->deviceMaterial;
 }
 
 bool dsMaterial_getElementData(void* outData, const dsMaterial* material, uint32_t element,
@@ -272,6 +304,14 @@ bool dsMaterial_setElementData(dsMaterial* material, uint32_t element, const voi
 	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(material->data + material->offsets[element] + firstIndex*stride, data, count*stride);
+
+	dsResourceManager* resourceManager = material->resourceManager;
+	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
+	{
+		resourceManager->materialElementChangedFunc(resourceManager, material,
+			material->deviceMaterial, element);
+	}
+
 	return true;
 }
 
@@ -349,6 +389,14 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	}
 
 	*(dsTexture**)(material->data + material->offsets[element]) = texture;
+
+	dsResourceManager* resourceManager = material->resourceManager;
+	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
+	{
+		resourceManager->materialElementChangedFunc(resourceManager, material,
+			material->deviceMaterial, element);
+	}
+
 	return true;
 }
 
@@ -400,7 +448,7 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 		return false;
 	}
 
-	dsResourceManager* resourceManager = buffer->resourceManager;
+	dsResourceManager* resourceManager = material->resourceManager;
 	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
@@ -467,6 +515,13 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 	textureData->format = format;
 	textureData->offset = offset;
 	textureData->count = count;
+
+	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
+	{
+		resourceManager->materialElementChangedFunc(resourceManager, material,
+			material->deviceMaterial, element);
+	}
+
 	return true;
 }
 
@@ -522,6 +577,14 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 	}
 
 	*(dsShaderVariableGroup**)(material->data + material->offsets[element]) = group;
+
+	dsResourceManager* resourceManager = material->resourceManager;
+	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
+	{
+		resourceManager->materialElementChangedFunc(resourceManager, material,
+			material->deviceMaterial, element);
+	}
+
 	return true;
 }
 
@@ -617,6 +680,14 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	bufferData->buffer = buffer;
 	bufferData->offset = offset;
 	bufferData->size = size;
+
+	dsResourceManager* resourceManager = material->resourceManager;
+	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
+	{
+		resourceManager->materialElementChangedFunc(resourceManager, material,
+			material->deviceMaterial, element);
+	}
+
 	return true;
 }
 
@@ -640,8 +711,16 @@ bool dsMaterial_commit(dsMaterial* material, dsCommandBuffer* commandBuffer)
 
 void dsMaterial_destroy(dsMaterial* material)
 {
-	if (!material || !material->allocator)
+	if (!material)
 		return;
 
-	DS_VERIFY(dsAllocator_free(material->allocator, material));
+	if (material->deviceMaterial)
+	{
+		dsResourceManager* resourceManager = material->resourceManager;
+		resourceManager->destroyDeviceMaterialFunc(resourceManager, material,
+			material->deviceMaterial);
+	}
+
+	if (material->allocator)
+		DS_VERIFY(dsAllocator_free(material->allocator, material));
 }
