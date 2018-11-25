@@ -19,6 +19,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <string.h>
 
 bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elementCount,
 	uint32_t* maxElements, size_t elementSize, uint32_t addCount)
@@ -53,5 +54,34 @@ bool dsResizeableArray_add(dsAllocator* allocator, void** buffer, uint32_t* elem
 	*elementCount += addCount;
 	*maxElements = newMaxElements;
 	*buffer = newBuffer;
+	return true;
+}
+
+bool dsResizeableArray_remove(void* buffer, uint32_t* elementCount, uint32_t elementSize,
+	uint32_t index, uint32_t removeCount)
+{
+	if (!buffer || !elementCount)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!DS_IS_BUFFER_RANGE_VALID(index, removeCount, *elementCount))
+	{
+		errno = EINDEX;
+		return false;
+	}
+
+	if (removeCount == 0)
+		return true;
+
+	if (index + removeCount < *elementCount)
+	{
+		uint8_t* bytes = (uint8_t*)buffer;
+		memmove(bytes + index*elementSize, bytes + (index + removeCount)*elementSize,
+			(*elementCount - (index + removeCount))*elementSize);
+	}
+
+	*elementCount -= removeCount;
 	return true;
 }

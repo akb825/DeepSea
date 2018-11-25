@@ -45,7 +45,19 @@ extern "C"
  */
 #define DS_RESIZEABLE_ARRAY_ADD(allocator, array, elementCount, maxElements, addCount) \
 	dsResizeableArray_add(allocator, (void**)&(array), &(elementCount), &(maxElements), \
-	sizeof(*(array)), (addCount))
+		sizeof(*(array)), (addCount))
+
+/**
+ * @brief Helper macro for removing elements from a resizeable array.
+ * @param[inout] array The array to remove elements from.
+ * @param[inout] elementCount The number of elements in th ebuffer. (passed by value, not by
+ *     pointer)
+ * @param index The index to remove at.
+ * @param removeCount The number of elements to remove.
+ * @return False if the parameters are invalid.
+ */
+#define DS_RESIZEABLE_ARRAY_REMOVE(array, elementCount, index, removeCount) \
+	dsRsizeableArray_remove(array, &(elementCount), sizeof(*(array)), (index), (removeCount))
 
 /**
  * @brief Adds elements to a resizeable array.
@@ -70,6 +82,19 @@ extern "C"
  */
 DS_CORE_EXPORT bool dsResizeableArray_add(dsAllocator* allocator, void** buffer,
 	uint32_t* elementCount, uint32_t* maxElements, size_t elementSize, uint32_t addCount);
+
+/**
+ * @brief Removes elements from a resizeable array.
+ * @remark errno will be set on failure.
+ * @param buffer The buffer to hold the data.
+ * @param[inout] elementCount The number of elements in the buffer.
+ * @param elementSize The size of each element in bytes.
+ * @param index The index to begin removing items.
+ * @param removeCount The number of elements to remove.
+ * @return False if the parameters are invalid.
+ */
+DS_CORE_EXPORT bool dsResizeableArray_remove(void* buffer, uint32_t* elementCount,
+	uint32_t elementSize, uint32_t index, uint32_t removeCount);
 
 #ifdef __cplusplus
 }

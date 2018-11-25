@@ -81,3 +81,33 @@ TEST(ResizeableArray, Add)
 	EXPECT_TRUE(dsAllocator_free((dsAllocator*)&allocator, buffer));
 	EXPECT_EQ(0U, ((dsAllocator*)&allocator)->size);
 }
+
+TEST(ResizeableArray, Remove)
+{
+	uint32_t* buffer = NULL;
+	uint32_t count = 0;
+	uint32_t capacity = 0;
+
+	dsSystemAllocator allocator;
+	EXPECT_TRUE(dsSystemAllocator_initialize(&allocator, DS_ALLOCATOR_NO_LIMIT));
+	ASSERT_TRUE(dsResizeableArray_add((dsAllocator*)&allocator, (void**)&buffer, &count, &capacity,
+		sizeof(*buffer), 100));
+
+	ASSERT_TRUE(buffer);
+	ASSERT_EQ(100U, count);
+	for (uint32_t i = 0; i < count; ++i)
+		buffer[i] = i;
+
+	EXPECT_FALSE(dsResizeableArray_remove(buffer, &count, sizeof(*buffer), 95, 6));
+	EXPECT_TRUE(dsResizeableArray_remove(buffer, &count, sizeof(*buffer), 95, 5));
+	ASSERT_EQ(95U, count);
+	for (uint32_t i = 0; i < count; ++i)
+		EXPECT_EQ(i, buffer[i]);
+
+	EXPECT_TRUE(dsResizeableArray_remove(buffer, &count, sizeof(*buffer), 30, 6));
+	ASSERT_EQ(89U, count);
+	for (uint32_t i = 0; i < 30; ++i)
+		EXPECT_EQ(i, buffer[i]);
+	for (uint32_t i = 30; i < count; ++i)
+		EXPECT_EQ(i + 6, buffer[i]);
+}
