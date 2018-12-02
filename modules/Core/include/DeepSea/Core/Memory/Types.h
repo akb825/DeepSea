@@ -270,6 +270,12 @@ typedef struct dsPoolAllocator
 	dsSpinlock lock;
 } dsPoolAllocator;
 
+/**
+ * @brief Structure to determine if an object is still alive.
+ * @see Lifetime.h
+ */
+typedef struct dsLifetime dsLifetime;
+
 #ifdef __cplusplus
 }
 #endif
