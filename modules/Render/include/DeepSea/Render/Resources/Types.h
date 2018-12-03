@@ -1660,7 +1660,7 @@ typedef dsShader* (*dsCreateShaderFunction)(dsResourceManager* resourceManager,
  * @param allocator The allocator to create the device material with.
  * @return The device material, or NULL if it couldn't be created.
  */
-typedef void* (*dsCreateDeviceMaterialFunction)(dsResourceManager* resourceManager,
+typedef dsDeviceMaterial* (*dsCreateDeviceMaterialFunction)(dsResourceManager* resourceManager,
 	dsMaterial* material, dsAllocator* allocator);
 
 /**
@@ -1670,7 +1670,7 @@ typedef void* (*dsCreateDeviceMaterialFunction)(dsResourceManager* resourceManag
  * @param deviceMaterial The device material to destroy.
  */
 typedef void (*dsDestroyDeviceMaterialFunction)(dsResourceManager* resourceManager,
-	dsMaterial* material, void* deviceMaterial);
+	dsMaterial* material, dsDeviceMaterial* deviceMaterial);
 
 /**
  * @brief Function for reacting to a material change.
@@ -1680,7 +1680,7 @@ typedef void (*dsDestroyDeviceMaterialFunction)(dsResourceManager* resourceManag
  * @param The material element that was changed.
  */
 typedef void (*dsDeviceMaterialChangedFunction)(dsResourceManager* resourceManager,
-	dsMaterial* material, void* deviceMaterial, uint32_t element);
+	dsMaterial* material, dsDeviceMaterial* deviceMaterial, uint32_t element);
 
 /**
  * @brief Function for destroying a shader.

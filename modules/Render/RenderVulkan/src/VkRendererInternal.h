@@ -32,3 +32,6 @@ void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* rende
 void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer);
 void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence);
 void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries);
+void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer,
+	dsVkMaterialDescriptor* descriptor);
+void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers);

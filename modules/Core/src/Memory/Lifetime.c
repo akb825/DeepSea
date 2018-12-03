@@ -63,12 +63,13 @@ dsLifetime* dsLifetime_create(dsAllocator* allocator, void* object)
 	return lifetime;
 }
 
-void dsLifetime_addRef(dsLifetime* lifetime)
+dsLifetime* dsLifetime_addRef(dsLifetime* lifetime)
 {
 	if (!lifetime)
-		return;
+		return NULL;
 
 	DS_ATOMIC_FETCH_ADD32(&lifetime->refCount, 1);
+	return lifetime;
 }
 
 void dsLifetime_freeRef(dsLifetime* lifetime)

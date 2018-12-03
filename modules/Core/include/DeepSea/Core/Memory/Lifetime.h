@@ -69,8 +69,9 @@ DS_CORE_EXPORT dsLifetime* dsLifetime_create(dsAllocator* allocator, void* objec
 /**
  * @brief Adds a reference to a lifetime instance.
  * @param lifetime The lifetime instance to add ref.
+ * @return The lifetime instance passed in.
  */
-DS_CORE_EXPORT void dsLifetime_addRef(dsLifetime* lifetime);
+DS_CORE_EXPORT dsLifetime* dsLifetime_addRef(dsLifetime* lifetime);
 
 /**
  * @brief Adds a reference to a lifetime instance.

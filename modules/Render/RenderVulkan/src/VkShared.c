@@ -321,7 +321,7 @@ VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format)
 	}
 }
 
-VkDescriptorType dsVkDescriptorType(dsMaterialType type)
+VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile)
 {
 	switch (type)
 	{
@@ -337,10 +337,37 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type)
 			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 		case dsMaterialType_VariableGroup:
 		case dsMaterialType_UniformBlock:
+			if (isVolatile)
+				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		case dsMaterialType_UniformBuffer:
+			if (isVolatile)
+				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 			return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		default:
 			return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+	}
+}
+
+VkCompareOp dsVkCompareOp(mslCompareOp compareOp)
+{
+	switch (compareOp)
+	{
+		case mslCompareOp_Less:
+			return VK_COMPARE_OP_LESS;
+		case mslCompareOp_Equal:
+			return VK_COMPARE_OP_EQUAL;
+		case mslCompareOp_LessOrEqual:
+			return VK_COMPARE_OP_LESS_OR_EQUAL;
+		case mslCompareOp_Greater:
+			return VK_COMPARE_OP_GREATER;
+		case mslCompareOp_NotEqual:
+			return VK_COMPARE_OP_NOT_EQUAL;
+		case mslCompareOp_GreaterOrEqual:
+			return VK_COMPARE_OP_GREATER_OR_EQUAL;
+		case mslCompareOp_Always:
+			return VK_COMPARE_OP_ALWAYS;
+		default:
+			return VK_COMPARE_OP_NEVER;
 	}
 }

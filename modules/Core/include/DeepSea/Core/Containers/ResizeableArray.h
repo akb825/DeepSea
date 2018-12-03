@@ -57,7 +57,7 @@ extern "C"
  * @return False if the parameters are invalid.
  */
 #define DS_RESIZEABLE_ARRAY_REMOVE(array, elementCount, index, removeCount) \
-	dsRsizeableArray_remove(array, &(elementCount), sizeof(*(array)), (index), (removeCount))
+	dsResizeableArray_remove(array, &(elementCount), sizeof(*(array)), (index), (removeCount))
 
 /**
  * @brief Adds elements to a resizeable array.

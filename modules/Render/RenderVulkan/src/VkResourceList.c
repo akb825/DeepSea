@@ -118,6 +118,33 @@ bool dsVkResourceList_addQueries(dsVkResourceList* resources, dsGfxQueryPool* qu
 	return true;
 }
 
+bool dsVkResourceList_addMaterialDescriptor(dsVkResourceList* resources,
+	dsVkMaterialDescriptor* descriptor)
+{
+	uint32_t index = resources->descriptorCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->descriptors,
+		resources->descriptorCount, resources->maxDescriptors, 1))
+	{
+		return false;
+	}
+
+	resources->descriptors[index] = descriptor;
+	return true;
+}
+
+bool dsVkResourceList_addSamplerList(dsVkResourceList* resources, dsVkSamplerList* samplers)
+{
+	uint32_t index = resources->samplerCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->samplers,
+		resources->samplerCount, resources->maxSamplers, 1))
+	{
+		return false;
+	}
+
+	resources->samplers[index] = samplers;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
@@ -127,6 +154,8 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 	resources->framebufferCount = 0;
 	resources->fenceCount = 0;
 	resources->queryCount = 0;
+	resources->descriptorCount = 0;
+	resources->samplerCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -138,4 +167,6 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->framebuffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->fences));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->queries));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->descriptors));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->samplers));
 }

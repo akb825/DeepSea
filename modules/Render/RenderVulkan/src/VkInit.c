@@ -807,6 +807,16 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateDescriptorSetLayout);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDescriptorSetLayout);
 
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateDescriptorPool);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDescriptorPool);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkResetDescriptorPool);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAllocateDescriptorSets);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFreeDescriptorSets);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkUpdateDescriptorSets);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSampler);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySampler);
+
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);
 	DS_VK_CALL(instance->vkGetPhysicalDeviceMemoryProperties)(device->physicalDevice,

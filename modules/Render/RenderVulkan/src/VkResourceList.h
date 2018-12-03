@@ -28,6 +28,9 @@ bool dsVkResourceList_addRenderbuffer(dsVkResourceList* resources, dsRenderbuffe
 bool dsVkResourceList_addFramebuffer(dsVkResourceList* resources, dsVkRealFramebuffer* framebuffer);
 bool dsVkResourceList_addFence(dsVkResourceList* resources, dsGfxFence* fence);
 bool dsVkResourceList_addQueries(dsVkResourceList* resources, dsGfxQueryPool* queries);
+bool dsVkResourceList_addMaterialDescriptor(dsVkResourceList* resources,
+	dsVkMaterialDescriptor* descriptor);
+bool dsVkResourceList_addSamplerList(dsVkResourceList* resources, dsVkSamplerList* samplers);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

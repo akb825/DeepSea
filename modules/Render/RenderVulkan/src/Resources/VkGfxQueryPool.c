@@ -15,6 +15,9 @@
  */
 
 #include "Resources/VkGfxQueryPool.h"
+
+#include "Resources/VkGfxBuffer.h"
+#include "Resources/VkGfxBufferData.h"
 #include "Resources/VkResource.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
@@ -180,14 +183,9 @@ bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBu
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
-	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
-	dsVkGfxBufferData* bufferData;
-	DS_ATOMIC_LOAD_PTR(&vkBuffer->bufferData, &bufferData);
-	if (!dsVkCommandBuffer_addResource(commandBuffer, &bufferData->resource))
-		return false;
+	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
 
-	VkBuffer dstBuffer = bufferData->deviceBuffer ? bufferData->deviceBuffer :
-		bufferData->hostBuffer;
+	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
 
 	VkQueryResultFlags flags = 0;
 	if (elementSize == sizeof(uint64_t))

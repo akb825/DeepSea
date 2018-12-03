@@ -35,5 +35,4 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	size_t size);
 bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 
-bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer);
-void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer, dsVkDevice* device);
+dsVkGfxBufferData* dsVkGfxBuffer_getData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer);

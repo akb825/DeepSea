@@ -19,12 +19,15 @@
 
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkGfxBufferData.h"
 #include "Resources/VkGfxFence.h"
 #include "Resources/VkGfxQueryPool.h"
+#include "Resources/VkMaterialDescriptor.h"
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "Resources/VkSamplerList.h"
 #include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
@@ -125,10 +128,41 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 	return true;
 }
 
+static void freeAllResources(dsVkResourceList* deleteList)
+{
+	for (uint32_t i = 0; i < deleteList->bufferCount; ++i)
+		dsVkGfxBufferData_destroy(deleteList->buffers[i]);
+
+	for (uint32_t i = 0; i < deleteList->textureCount; ++i)
+		dsVkTexture_destroyImpl(deleteList->textures[i]);
+
+	for (uint32_t i = 0; i < deleteList->copyImageCount; ++i)
+		dsVkCopyImage_destroy(deleteList->copyImages[i]);
+
+	for (uint32_t i = 0; i < deleteList->renderbufferCount; ++i)
+		dsVkRenderbuffer_destroyImpl(deleteList->renderbuffers[i]);
+
+	for (uint32_t i = 0; i < deleteList->framebufferCount; ++i)
+		dsVkRealFramebuffer_destroy(deleteList->framebuffers[i]);
+
+	for (uint32_t i = 0; i < deleteList->fenceCount; ++i)
+		dsVkGfxFence_destroyImpl(deleteList->fences[i]);
+
+	for (uint32_t i = 0; i < deleteList->queryCount; ++i)
+		dsVkGfxQueryPool_destroyImpl(deleteList->queries[i]);
+
+	for (uint32_t i = 0; i < deleteList->descriptorCount; ++i)
+		dsVkMaterialDescriptor_destroy(deleteList->descriptors[i]);
+
+	for (uint32_t i = 0; i < deleteList->samplerCount; ++i)
+		dsVkSamplerList_destroy(deleteList->samplers[i]);
+
+	dsVkResourceList_clear(deleteList);
+}
+
 static void freeResources(dsVkRenderer* renderer)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
-	dsVkDevice* device = &renderer->device;
 
 	DS_VERIFY(dsSpinlock_lock(&renderer->deleteLock));
 	dsVkResourceList* prevDeleteList = renderer->deleteResources + renderer->curDeleteResources;
@@ -149,7 +183,7 @@ static void freeResources(dsVkRenderer* renderer)
 			continue;
 		}
 
-		dsVkGfxBufferData_destroy(buffer, device);
+		dsVkGfxBufferData_destroy(buffer);
 	}
 
 	for (uint32_t i = 0; i < prevDeleteList->textureCount; ++i)
@@ -243,6 +277,34 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkGfxQueryPool_destroyImpl(queries);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->descriptorCount; ++i)
+	{
+		dsVkMaterialDescriptor* descriptor = prevDeleteList->descriptors[i];
+		DS_ASSERT(descriptor);
+
+		if (dsVkResource_isInUse(&descriptor->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteMaterialDescriptor(baseRenderer, descriptor);
+			continue;
+		}
+
+		dsVkMaterialDescriptor_destroy(descriptor);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->samplerCount; ++i)
+	{
+		dsVkSamplerList* samplers = prevDeleteList->samplers[i];
+		DS_ASSERT(samplers);
+
+		if (dsVkResource_isInUse(&samplers->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteSamplerList(baseRenderer, samplers);
+			continue;
+		}
+
+		dsVkSamplerList_destroy(samplers);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -675,9 +737,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	for (unsigned int i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 	{
 		dsVkResourceList* deleteResources = vkRenderer->deleteResources + i;
-		for (uint32_t j = 0; j < deleteResources->bufferCount; ++j)
-			dsVkGfxBufferData_destroy(deleteResources->buffers[j], device);
-
+		freeAllResources(deleteResources);
 		dsVkResourceList_shutdown(deleteResources);
 	}
 
@@ -1121,5 +1181,29 @@ void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addQueries(resourceList, queries);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer, dsVkMaterialDescriptor* descriptor)
+{
+	DS_ASSERT(descriptor);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addMaterialDescriptor(resourceList, descriptor);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers)
+{
+	DS_ASSERT(samplers);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addSamplerList(resourceList, samplers);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

@@ -37,8 +37,10 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	uint32_t bindingCounts[2] = {0, 0};
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
-		if (dsVkDescriptorType(elements[i].type) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
-			++bindingCounts[elements[i].isVolatile != false];
+		// Guarantee it's 0 or 1.
+		bool isVolatile = elements[i].isVolatile != false;
+		if (dsVkDescriptorType(elements[i].type, isVolatile) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
+			++bindingCounts[isVolatile];
 	}
 
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
@@ -97,7 +99,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 		for (uint32_t j = 0, index = 0; j < elementCount; ++j)
 		{
-			VkDescriptorType type = dsVkDescriptorType(elements[i].type);
+			VkDescriptorType type = dsVkDescriptorType(elements[i].type, elements[i].isVolatile);
 			if (type == VK_DESCRIPTOR_TYPE_MAX_ENUM)
 				continue;
 

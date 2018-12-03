@@ -20,6 +20,8 @@
 #include <DeepSea/Core/Types.h>
 #include <DeepSea/Render/Types.h>
 #include <DeepSea/RenderVulkan/RendererIDs.h>
+
+#include <MSL/Client/ModuleC.h>
 #include <vulkan/vulkan_core.h>
 
 #define DS_NOT_SUBMITTED (uint64_t)-1
@@ -136,6 +138,16 @@ typedef struct dsVkDevice
 	PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
 	PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
 
+	PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+	PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+	PFN_vkResetDescriptorPool vkResetDescriptorPool;
+	PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+	PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
+	PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
+
+	PFN_vkCreateSampler vkCreateSampler;
+	PFN_vkDestroySampler vkDestroySampler;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -168,12 +180,21 @@ typedef struct dsVkDirtyRange
 	size_t size;
 } dsVkDirtyRange;
 
+typedef struct dsVkBufferView
+{
+	VkBufferView bufferView;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+} dsVkBufferView;
+
 typedef struct dsVkGfxBufferData
 {
-	dsVkResource resource;
-
+	dsResourceManager* resourceManager;
 	dsAllocator* allocator;
 	dsAllocator* scratchAllocator;
+
+	dsVkResource resource;
 
 	VkDeviceMemory deviceMemory;
 	VkBuffer deviceBuffer;
@@ -191,6 +212,11 @@ typedef struct dsVkGfxBufferData
 	uint32_t dirtyRangeCount;
 	uint32_t maxDirtyRanges;
 
+	dsSpinlock bufferViewLock;
+	dsVkBufferView* bufferViews;
+	uint32_t bufferViewCount;
+	uint32_t maxBufferViews;
+
 	size_t mappedStart;
 	size_t mappedSize;
 	bool mappedWrite;
@@ -203,6 +229,7 @@ typedef struct dsVkGfxBufferData
 typedef struct dsVkGfxBuffer
 {
 	dsGfxBuffer buffer;
+	dsSpinlock lock;
 	dsVkGfxBufferData* bufferData;
 } dsVkGfxBuffer;
 
@@ -320,6 +347,123 @@ typedef struct dsVkMaterialDesc
 	VkDescriptorSetLayout descriptorSets[2];
 } dsVkMaterialDesc;
 
+typedef struct dsVkSamplerList
+{
+	dsResourceManager* resourceManager;
+	dsAllocator* allocator;
+	dsVkResource resource;
+	VkSampler* samplers;
+	uint32_t samplerCount;
+	float defaultAnisotropy;
+} dsVkSamplerList;
+
+typedef struct dsVkTexelBufferBinding
+{
+	dsVkGfxBufferData* buffer;
+	dsGfxFormat format;
+	size_t offset;
+	size_t count;
+} dsVkTexelBufferBinding;
+
+typedef struct dsVkGfxBufferBinding
+{
+	dsVkGfxBufferData* buffer;
+	dsGfxFormat format;
+	size_t offset;
+	size_t size;
+} dsVkGfxBufferBinding;
+
+typedef struct dsVkMaterialDescriptor
+{
+	dsRenderer* renderer;
+	dsAllocator* allocator;
+	dsVkResource resource;
+	dsLifetime* shader;
+	const dsVkSamplerList* samplers; // Only used for comparison
+
+	dsTexture** textures;
+	dsVkGfxBufferBinding* buffers;
+	dsVkTexelBufferBinding* texelBuffers;
+
+	VkDescriptorPool pool;
+	VkDescriptorSet set;
+} dsVkMaterialDescriptor;
+
+struct dsDeviceMaterial
+{
+	dsResourceManager* resourceManager;
+	dsAllocator* allocator;
+	dsAllocator* scratchAllocator;
+	dsMaterial* material;
+	dsLifetime* lifetime;
+
+	dsVkMaterialDescriptor** descriptors;
+	uint32_t descriptorCount;
+	uint32_t maxDescriptors;
+
+	VkWriteDescriptorSet* bindings;
+	VkDescriptorImageInfo* imageInfos;
+	VkDescriptorBufferInfo* bufferInfos;
+	VkBufferView* bufferViews;
+
+	dsTexture** textures;
+	dsVkGfxBufferBinding* buffers;
+	dsVkTexelBufferBinding* texelBuffers;
+
+	uint32_t bindingCount;
+	uint32_t imageInfoCount;
+	uint32_t bufferInfoCount;
+	uint32_t bufferViewCount;
+
+	dsSpinlock lock;
+};
+
+typedef struct dsVkPipeline
+{
+	dsAllocator* allocator;
+	dsVkResource resource;
+
+	VkPipeline computePipeline;
+	VkPipeline graphicsPipeline;
+
+	uint32_t samples;
+	uint32_t defaultAnisotropy;
+	dsPrimitiveType primitiveType;
+
+	uint32_t paramHash;
+} dsVkPipeline;
+
+typedef struct dsVkSamplerMapping
+{
+	uint32_t uniformIndex;
+	uint32_t samplerIndex;
+} dsVkSamplerMapping;
+
+typedef struct dsVkShader
+{
+	dsShader shader;
+	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
+	mslPipeline pipeline;
+
+	dsLifetime** usedMaterials;
+	uint32_t usedMaterialCount;
+	uint32_t maxUsedMaterials;
+
+	dsVkPipeline** pipelines;
+	uint32_t pipelineCount;
+	uint32_t maxPipelines;
+
+	dsVkSamplerList* samplers;
+	dsVkSamplerMapping* samplerMapping;
+	uint32_t samplerCount;
+	bool samplersHaveDefaultAnisotropy;
+
+	dsSpinlock materialLock;
+	dsSpinlock pipelineLock;
+	dsSpinlock samplerLock;
+} dsVkShader;
+
 typedef struct dsVkSubmitInfo
 {
 	uint64_t submitIndex;
@@ -359,6 +503,14 @@ typedef struct dsVkResourceList
 	dsGfxQueryPool** queries;
 	uint32_t queryCount;
 	uint32_t maxQueries;
+
+	dsVkMaterialDescriptor** descriptors;
+	uint32_t descriptorCount;
+	uint32_t maxDescriptors;
+
+	dsVkSamplerList** samplers;
+	uint32_t samplerCount;
+	uint32_t maxSamplers;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList

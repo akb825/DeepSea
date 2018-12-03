@@ -1348,9 +1348,8 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 	DS_ASSERT(commandBuffer);
 
 	// Free any internal refs for resources.
-	dsGLOtherCommandBuffer* glCommandBuffer = (dsGLOtherCommandBuffer*)commandBuffer;
-	uint8_t* buffer = (uint8_t*)glCommandBuffer->buffer.buffer;
-	size_t bufferSize = ((dsAllocator*)&glCommandBuffer->buffer)->size;
+	uint8_t* buffer = (uint8_t*)commandBuffer->buffer.buffer;
+	size_t bufferSize = ((dsAllocator*)&commandBuffer->buffer)->size;
 	size_t offset = 0;
 	while (offset < bufferSize)
 	{
@@ -1542,10 +1541,10 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 		}
 	}
 
-	for (size_t i = 0; i < glCommandBuffer->curFenceSyncs; ++i)
-		dsGLFenceSyncRef_freeRef(glCommandBuffer->fenceSyncs[i]);
-	glCommandBuffer->curFenceSyncs = 0;
-	glCommandBuffer->bufferReadback = false;
+	for (size_t i = 0; i < commandBuffer->curFenceSyncs; ++i)
+		dsGLFenceSyncRef_freeRef(commandBuffer->fenceSyncs[i]);
+	commandBuffer->curFenceSyncs = 0;
+	commandBuffer->bufferReadback = false;
 
 	DS_VERIFY(dsBufferAllocator_reset(&commandBuffer->buffer));
 }
