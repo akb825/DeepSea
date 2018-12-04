@@ -290,7 +290,7 @@ VkBufferView dsVkGfxBufferData_getBufferView(dsVkGfxBufferData* buffer, dsGfxFor
 	{
 		errno = EINVAL;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
-		return NULL;
+		return 0;
 	}
 
 	uint32_t index = buffer->bufferViewCount;
