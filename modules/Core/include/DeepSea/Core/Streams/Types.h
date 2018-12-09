@@ -23,6 +23,12 @@
 #include <stdio.h>
 #include <limits.h>
 
+#if DS_LINUX
+#include <linux/limits.h>
+#elif DS_APPLE
+#include <sys/syslimits.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {

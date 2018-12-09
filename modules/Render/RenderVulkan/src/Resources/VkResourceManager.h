@@ -19,7 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer);
+dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer,
+	const char* shaderCacheDir);
 const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
 	dsGfxFormat format);
-void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager);
+void dsVkResourceManager_destroy(dsResourceManager* resourceManager);

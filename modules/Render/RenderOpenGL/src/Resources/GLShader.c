@@ -47,8 +47,7 @@
 #endif
 
 #define DS_BUFFER_SIZE 256
-// DSGL
-#define DS_SHADER_MAGIC_NUMBER 0x68837176
+#define DS_SHADER_MAGIC_NUMBER DS_FOURCC('D', 'S', 'G', 'L')
 #define DS_SHADER_VERSION 0
 
 // "tmp#" where # is up to ~4 billion (10 digits) and null terminator

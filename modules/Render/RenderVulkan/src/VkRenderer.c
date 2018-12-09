@@ -49,11 +49,10 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
 
-static size_t dsVkRenderer_fullAllocSize(const dsRendererOptions* options)
+static size_t fullAllocSize(void)
 {
-	size_t pathLen = options->shaderCacheDir ? strlen(options->shaderCacheDir) + 1 : 0;
-	return DS_ALIGNED_SIZE(sizeof(dsVkRenderer)) + DS_ALIGNED_SIZE(pathLen) +
-		dsMutex_fullAllocSize() + dsConditionVariable_fullAllocSize();
+	return DS_ALIGNED_SIZE(sizeof(dsVkRenderer)) + dsMutex_fullAllocSize() +
+		dsConditionVariable_fullAllocSize();
 }
 
 static bool createCommandBuffers(dsVkRenderer* renderer)
@@ -741,7 +740,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 		dsVkResourceList_shutdown(deleteResources);
 	}
 
-	dsVkResourceManager_destroy((dsVkResourceManager*)renderer->resourceManager);
+	dsVkResourceManager_destroy(renderer->resourceManager);
 	dsDestroyVkDevice(device);
 	dsDestroyVkInstance(&device->instance);
 	dsSpinlock_shutdown(&vkRenderer->resourceLock);
@@ -802,7 +801,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
 
-	size_t bufferSize = dsVkRenderer_fullAllocSize(options);
+	size_t bufferSize = fullAllocSize();
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -887,8 +886,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->supportsStartInstance = (bool)deviceFeatures.drawIndirectFirstInstance;
 	baseRenderer->defaultAnisotropy = 1;
 
-	baseRenderer->resourceManager = (dsResourceManager*)dsVkResourceManager_create(allocator,
-		renderer);
+	baseRenderer->resourceManager = dsVkResourceManager_create(allocator, renderer,
+		options->shaderCacheDir);
 	if (!baseRenderer->resourceManager)
 	{
 		dsVkRenderer_destroy(baseRenderer);

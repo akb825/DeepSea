@@ -148,6 +148,10 @@ typedef struct dsVkDevice
 	PFN_vkCreateSampler vkCreateSampler;
 	PFN_vkDestroySampler vkDestroySampler;
 
+	PFN_vkCreatePipelineCache vkCreatePipelineCache;
+	PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
+	PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue queue;
@@ -619,4 +623,8 @@ typedef struct dsVkResourceManager
 	dsVkFormatInfo standardFormats[dsGfxFormat_StandardCount][dsGfxFormat_DecoratorCount];
 	dsVkFormatInfo specialFormats[dsGfxFormat_SpecialCount];
 	dsVkFormatInfo compressedFormats[dsGfxFormat_CompressedCount][dsGfxFormat_DecoratorCount];
+
+	const char* shaderCacheDir;
+	VkPipelineCache pipelineCache;
+	dsMutex* pipelineLock;
 } dsVkResourceManager;

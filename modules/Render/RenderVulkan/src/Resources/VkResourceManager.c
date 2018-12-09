@@ -27,10 +27,25 @@
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#if DS_WINDOWS
+#include <direct.h>
+#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
+#endif
+
+#define DS_BUFFER_SIZE 256
+#define DS_PIPELINE_MAGIC_NUMBER DS_FOURCC('D', 'S', 'V', 'K')
+#define DS_PIPELINE_VERSION 0
+#define DS_PIPELINE_FILE_NAME "vulkan_pipeline.cache"
 
 struct dsResourceContext
 {
@@ -38,6 +53,13 @@ struct dsResourceContext
 };
 
 static dsResourceContext dummyContext;
+
+static size_t fullAllocSize(const char* shaderCacheDir)
+{
+	size_t pathLen = shaderCacheDir ? strlen(shaderCacheDir) + 1 : 0;
+	return DS_ALIGNED_SIZE(sizeof(dsVkResourceManager)) + DS_ALIGNED_SIZE(pathLen) +
+		dsMutex_fullAllocSize();
+}
 
 static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat format,
 	VkFormat vkFormat)
@@ -481,6 +503,134 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	}
 }
 
+static void* readPipelineCache(uint32_t* outSize, dsAllocator* allocator,
+	const char* shaderCacheDir)
+{
+	char path[DS_PATH_MAX];
+	if (!dsPath_combine(path, DS_PATH_MAX, shaderCacheDir, DS_PIPELINE_FILE_NAME))
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Shader cache path is too long.");
+		return NULL;
+	}
+
+	dsFileStream stream;
+	uint8_t* data = NULL;
+	if (!dsFileStream_openPath(&stream, path, "rb"))
+		return false;
+
+	uint32_t magicNumber;
+	if (!dsFileStream_read(&stream, &magicNumber, sizeof(magicNumber)) ||
+		magicNumber != DS_PIPELINE_MAGIC_NUMBER)
+	{
+		goto error;
+	}
+
+	uint32_t version;
+	if (!dsFileStream_read(&stream, &version, sizeof(version)) || version != DS_PIPELINE_VERSION)
+		goto error;
+
+	if (!dsFileStream_read(&stream, outSize, sizeof(*outSize)))
+		goto error;
+
+	data = (uint8_t*)dsAllocator_alloc(allocator, *outSize);
+	if (!data || !dsFileStream_read(&stream, data, *outSize))
+		goto error;
+
+	DS_VERIFY(dsFileStream_close(&stream));
+	return data;
+
+error:
+	DS_VERIFY(dsFileStream_close(&stream));
+	DS_VERIFY(dsAllocator_free(allocator, data));
+	return NULL;
+}
+
+static bool makeDir(const char* path)
+{
+#if DS_WINDOWS
+	return mkdir(path) == 0;
+#else
+	return mkdir(path, 0755);
+#endif
+}
+
+static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDir,
+	dsVkDevice* device, VkPipelineCache pipelineCache)
+{
+	size_t size = 0;
+	VkResult result = DS_VK_CALL(device->vkGetPipelineCacheData)(device->device, pipelineCache,
+		&size, NULL);
+	if (!dsHandleVkResult(result))
+		return false;
+
+	void* data = dsAllocator_alloc(allocator, size);
+	if (!data)
+		return false;
+
+	result = DS_VK_CALL(device->vkGetPipelineCacheData)(device->device, pipelineCache,
+		&size, NULL);
+	if (!dsHandleVkResult(result))
+		goto bufferError;
+
+	struct stat statInfo;
+	bool exists = stat(shaderCacheDir, &statInfo) == 0;
+	if (exists && !S_ISDIR(statInfo.st_mode))
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG,
+			"Shader cache directory '%s' isn't a directory.", shaderCacheDir);
+		goto bufferError;
+	}
+	else if (!exists)
+	{
+		if (!makeDir(shaderCacheDir) && errno != EEXIST)
+		{
+			DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't create directory '%s': %s",
+				shaderCacheDir, dsErrorString(errno));
+			goto bufferError;
+		}
+	}
+
+	char path[DS_PATH_MAX];
+	if (!dsPath_combine(path, DS_PATH_MAX, shaderCacheDir, DS_PIPELINE_FILE_NAME))
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Shader cache path is too long.");
+		goto bufferError;
+	}
+
+	dsFileStream stream;
+	if (!dsFileStream_openPath(&stream, path, "wb"))
+	{
+		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't write to directory '%s': %s",
+			shaderCacheDir, dsErrorString(errno));
+		goto bufferError;
+	}
+
+	uint32_t magicNumber = DS_PIPELINE_MAGIC_NUMBER;
+	if (!dsFileStream_write(&stream, &magicNumber, sizeof(magicNumber)))
+		goto error;
+
+	uint32_t version = DS_PIPELINE_VERSION;
+	if (!dsFileStream_write(&stream, &version, sizeof(version)))
+		goto error;
+
+	if (!dsFileStream_write(&stream, &size, sizeof(size)))
+		goto error;
+
+	if (!dsFileStream_write(&stream, data, size))
+		goto error;
+
+	DS_VERIFY(dsFileStream_close(&stream));
+	DS_VERIFY(dsAllocator_free(allocator, data));
+
+	return true;
+
+error:
+	DS_VERIFY(dsFileStream_close(&stream));
+bufferError:
+	DS_VERIFY(dsAllocator_free(allocator, data));
+	return false;
+}
+
 bool dsVkResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
@@ -578,15 +728,23 @@ bool dsVkResourceManager_destroyResourceContext(dsResourceManager* resourceManag
 	return true;
 }
 
-dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer)
+dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRenderer* renderer,
+	const char* shaderCacheDir)
 {
 	DS_ASSERT(allocator);
 	DS_ASSERT(renderer);
 
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
-	dsVkResourceManager* resourceManager = DS_ALLOCATE_OBJECT(allocator, dsVkResourceManager);
-	if (!resourceManager)
+	size_t fullSize = fullAllocSize(shaderCacheDir);
+	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	if (!buffer)
 		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
+	dsVkResourceManager* resourceManager = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+		dsVkResourceManager);
+	DS_ASSERT(resourceManager);
 
 	dsVkDevice* device = &renderer->device;
 	memset(resourceManager, 0, sizeof(dsVkResourceManager));
@@ -711,7 +869,40 @@ dsVkResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRend
 	baseResourceManager->createMaterialDescFunc = &dsVkMaterialDesc_create;
 	baseResourceManager->destroyMaterialDescFunc = &dsVkMaterialDesc_destroy;
 
-	return resourceManager;
+	void* pipelineCacheData = NULL;
+	uint32_t pipelineCacheDataSize = 0;
+	if (shaderCacheDir)
+	{
+		size_t length = strlen(shaderCacheDir) + 1;
+		char* stringCopy = (char*)dsAllocator_alloc((dsAllocator*)&bufferAlloc, length);
+		memcpy(stringCopy, shaderCacheDir, length);
+		resourceManager->shaderCacheDir = stringCopy;
+
+		pipelineCacheData = readPipelineCache(&pipelineCacheDataSize, allocator, shaderCacheDir);
+	}
+
+	dsVkInstance* instance = &device->instance;
+	VkPipelineCacheCreateInfo pipelineCacheCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,
+		NULL,
+		0,
+		pipelineCacheDataSize,
+		pipelineCacheData
+	};
+	VkResult result = DS_VK_CALL(device->vkCreatePipelineCache)(device->device,
+		&pipelineCacheCreateInfo, instance->allocCallbacksPtr, &resourceManager->pipelineCache);
+	DS_VERIFY(dsAllocator_free(allocator, pipelineCacheData));
+	if (!dsHandleVkResult(result))
+	{
+		dsVkResourceManager_destroy(baseResourceManager);
+		return NULL;
+	}
+
+	resourceManager->pipelineLock = dsMutex_create((dsAllocator*)&bufferAlloc, "Pipeline Cache");
+	DS_ASSERT(resourceManager->pipelineLock);
+
+	return baseResourceManager;
 }
 
 const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* resourceManager,
@@ -743,11 +934,27 @@ const dsVkFormatInfo* dsVkResourceManager_getFormat(const dsResourceManager* res
 	return NULL;
 }
 
-void dsVkResourceManager_destroy(dsVkResourceManager* resourceManager)
+void dsVkResourceManager_destroy(dsResourceManager* resourceManager)
 {
 	if (!resourceManager)
 		return;
 
-	dsResourceManager* baseResourceManager = (dsResourceManager*)resourceManager;
-	dsAllocator_free(baseResourceManager->allocator, resourceManager);
+	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
+
+	dsVkDevice* device = vkResourceManager->device;
+	dsVkInstance* instance = &device->instance;
+	if (vkResourceManager->pipelineCache)
+	{
+		if (vkResourceManager->shaderCacheDir)
+		{
+			writePipelineCache(resourceManager->allocator, vkResourceManager->shaderCacheDir,
+				device, vkResourceManager->pipelineCache);
+		}
+
+		DS_VK_CALL(device->vkDestroyPipelineCache)(device->device, vkResourceManager->pipelineCache,
+			instance->allocCallbacksPtr);
+	}
+
+	dsMutex_destroy(vkResourceManager->pipelineLock);
+	DS_VERIFY(dsAllocator_free(resourceManager->allocator, resourceManager));
 }
