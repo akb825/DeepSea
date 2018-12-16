@@ -16,6 +16,8 @@
 
 #include <DeepSea/Render/Resources/Shader.h>
 
+#include <DeepSea/Core/Streams/FileUtils.h>
+#include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Error.h>
@@ -30,6 +32,7 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/VolatileMaterialValues.h>
 #include <DeepSea/Render/Types.h>
+
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
 
@@ -964,4 +967,65 @@ bool dsShader_destroy(dsShader* shader)
 	if (success)
 		DS_ATOMIC_FETCH_ADD32(&resourceManager->shaderCount, -1);
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+bool dsShader_prepareCacheDirectory(const char* cacheDir)
+{
+	static const char* lastCacheDir;
+	const char* lastCacheDirLocal;
+	DS_ATOMIC_EXCHANGE_PTR(&lastCacheDir, &cacheDir, &lastCacheDirLocal);
+	bool printError = lastCacheDirLocal != cacheDir;
+	switch (dsGetFileStatus(cacheDir))
+	{
+		case dsFileStatus_Error:
+			if (printError)
+			{
+				DS_LOG_WARNING_F(DS_RENDER_LOG_TAG,
+					"Couldn't access shader cache directory '%s': %s", cacheDir,
+					dsErrorString(errno));
+			}
+			return false;
+		case dsFileStatus_DoesntExist:
+			if (!dsCreateDirectory(cacheDir) && errno != EEXIST)
+			{
+				if (printError)
+				{
+					DS_LOG_WARNING_F(DS_RENDER_LOG_TAG, "Couldn't create directory '%s': %s",
+						cacheDir, dsErrorString(errno));
+				}
+				return false;
+			}
+			return true;
+		case dsFileStatus_ExistsFile:
+			if (printError)
+			{
+				DS_LOG_WARNING_F(DS_RENDER_LOG_TAG,
+					"Shader cache directory '%s' isn't a directory.", cacheDir);
+			}
+			return false;
+		case dsFileStatus_ExistsDirectory:
+			return true;
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+}
+
+bool dsShader_cacheFileName(char* result, size_t resultSize, const dsShader* shader,
+	const char* cacheDir, const char* extension)
+{
+	if (!dsPath_combine(result, resultSize, cacheDir, shader->module->name))
+		return false;
+
+	size_t pathLength = strlen(result);
+	size_t pipelineLength = strlen(shader->name);
+	size_t extensionLength = strlen(extension);
+	if (pathLength + 1 + pipelineLength + extensionLength + 1 > resultSize)
+		return false;
+
+	result[pathLength++] = '.';
+	memcpy(result + pathLength, shader->name, pipelineLength);
+	pathLength += pipelineLength;
+	memcpy(result + pathLength, extension, extensionLength + 1);
+	return true;
 }

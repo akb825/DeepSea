@@ -170,7 +170,7 @@ static void resetBlendState(mslBlendState* state)
 	state->logicalOpEnable = mslBool_False;
 	state->logicalOp = mslLogicOp_Copy;
 	state->separateAttachmentBlendingEnable = mslBool_False;
-	for (unsigned int i = 0; i < MSL_MAX_ATTACHMENTS; ++i)
+	for (unsigned int i = 0; i < DS_MAX_ATTACHMENTS; ++i)
 	{
 		state->blendAttachments[i].blendEnable = mslBool_False;
 		state->blendAttachments[i].srcColorBlendFactor = mslBlendFactor_One;

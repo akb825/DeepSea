@@ -32,6 +32,7 @@
 #define DS_DELETE_RESOURCES_ARRAY 2
 // 10 seconds in nanoseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000000000
+#define DS_MAX_DYNAMIC_STATES VK_DYNAMIC_STATE_STENCIL_REFERENCE + 1
 
 typedef struct dsVkInstance
 {
@@ -151,6 +152,13 @@ typedef struct dsVkDevice
 	PFN_vkCreatePipelineCache vkCreatePipelineCache;
 	PFN_vkDestroyPipelineCache vkDestroyPipelineCache;
 	PFN_vkGetPipelineCacheData vkGetPipelineCacheData;
+
+	PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
+	PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
+
+	PFN_vkCreateComputePipelines vkCreateComputePipelines;
+	PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+	PFN_vkDestroyPipeline vkDestroyPipeline;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
@@ -336,13 +344,6 @@ typedef struct dsVkGfxQueryPool
 	VkQueryPool vkQueries;
 } dsVkGfxQueryPool;
 
-typedef struct dsVkShaderModule
-{
-	dsShaderModule shaderModule;
-	dsVkResource resource;
-	VkShaderModule* shaders;
-} dsVkShaderModule;
-
 typedef struct dsVkMaterialDesc
 {
 	dsMaterialDesc materialDesc;
@@ -430,11 +431,13 @@ typedef struct dsVkPipeline
 	VkPipeline computePipeline;
 	VkPipeline graphicsPipeline;
 
+	uint32_t hash;
 	uint32_t samples;
 	uint32_t defaultAnisotropy;
+	uint32_t subpass;
 	dsPrimitiveType primitiveType;
-
-	uint32_t paramHash;
+	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	dsLifetime* renderPass;
 } dsVkPipeline;
 
 typedef struct dsVkSamplerMapping
@@ -449,6 +452,34 @@ typedef struct dsVkShader
 	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
 	mslPipeline pipeline;
+
+	VkShaderStageFlags stages;
+	mslSizedData spirv[mslStage_Count];
+	VkShaderModule shaders[mslStage_Count];
+	VkPipelineLayout layout;
+
+	VkRenderPass dummyRenderPass;
+	VkPipeline dummyComputePipeline;
+	VkPipeline dummyGraphicsPipeline;
+
+	VkPipelineTessellationStateCreateInfo tessellationInfo;
+	VkPipelineViewportStateCreateInfo viewportInfo;
+	VkPipelineRasterizationStateCreateInfo rasterizationInfo;
+	VkPipelineMultisampleStateCreateInfo multisampleInfo;
+	VkSampleMask sampleMask;
+	VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+	VkPipelineColorBlendStateCreateInfo blendInfo;
+	VkPipelineColorBlendAttachmentState attachments[DS_MAX_ATTACHMENTS];
+	VkPipelineDynamicStateCreateInfo dynamicInfo;
+	VkDynamicState dynamicStates[DS_MAX_DYNAMIC_STATES];
+
+	bool dynamicLineWidth;
+	bool dynamicDepthBias;
+	bool dynamicBlendConstants;
+	bool dynamicDepthBounds;
+	bool dynamicStencilCompareMask;
+	bool dynamicStencilWriteMask;
+	bool dynamicStencilReference;
 
 	dsLifetime** usedMaterials;
 	uint32_t usedMaterialCount;
@@ -626,5 +657,4 @@ typedef struct dsVkResourceManager
 
 	const char* shaderCacheDir;
 	VkPipelineCache pipelineCache;
-	dsMutex* pipelineLock;
 } dsVkResourceManager;

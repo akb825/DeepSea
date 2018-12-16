@@ -821,6 +821,13 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyPipelineCache);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetPipelineCacheData);
 
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreatePipelineLayout);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyPipelineLayout);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateComputePipelines);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateGraphicsPipelines);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyPipeline);
+
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);
 	DS_VK_CALL(instance->vkGetPhysicalDeviceMemoryProperties)(device->physicalDevice,

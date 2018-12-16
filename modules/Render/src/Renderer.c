@@ -28,7 +28,11 @@
 #include <DeepSea/Render/Resources/DrawGeometry.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
+
+#include <MSL/Client/ModuleC.h>
 #include <string.h>
+
+DS_STATIC_ASSERT(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, max_attachments_dont_match);
 
 bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 

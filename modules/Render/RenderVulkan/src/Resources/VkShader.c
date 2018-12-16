@@ -21,14 +21,713 @@
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Math/Core.h>
+
 #include <MSL/Client/ModuleC.h>
 #include <string.h>
+
+static VkPolygonMode polygonMode(mslPolygonMode mode)
+{
+	switch (mode)
+	{
+		case mslPolygonMode_Line:
+			return VK_POLYGON_MODE_LINE;
+		case mslPolygonMode_Point:
+			return VK_POLYGON_MODE_POINT;
+		case mslPolygonMode_Fill:
+		default:
+			return VK_POLYGON_MODE_FILL;
+	}
+}
+
+static VkCullModeFlags cullMode(mslCullMode mode)
+{
+	switch (mode)
+	{
+		case mslCullMode_Front:
+			return VK_CULL_MODE_FRONT_BIT;
+		case mslCullMode_Back:
+			return VK_CULL_MODE_BACK_BIT;
+		case mslCullMode_FrontAndBack:
+			return VK_CULL_MODE_FRONT_BIT | VK_CULL_MODE_BACK_BIT;
+		case mslCullMode_None:
+		default:
+			return VK_CULL_MODE_NONE;
+	}
+}
+
+static VkFrontFace frontFace(mslFrontFace face)
+{
+	// NOTE: Swap winding order due to inverted viewport Y coordinate.
+	switch (face)
+	{
+		case mslFrontFace_Clockwise:
+			return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		case mslFrontFace_CounterClockwise:
+		default:
+			return VK_FRONT_FACE_CLOCKWISE;
+	}
+}
+
+VkStencilOp stencilOp(mslStencilOp op)
+{
+	switch (op)
+	{
+		case mslStencilOp_Zero:
+			return VK_STENCIL_OP_ZERO;
+		case mslStencilOp_Replace:
+			return VK_STENCIL_OP_REPLACE;
+		case mslStencilOp_IncrementAndClamp:
+			return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+		case mslStencilOp_DecrementAndClamp:
+			return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+		case mslStencilOp_Invert:
+			return VK_STENCIL_OP_INVERT;
+		case mslStencilOp_IncrementAndWrap:
+			return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+		case mslStencilOp_DecrementAndWrap:
+			return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+		case mslStencilOp_Keep:
+		default:
+			return VK_STENCIL_OP_KEEP;
+	}
+}
+
+VkLogicOp logicOp(mslLogicOp op)
+{
+	switch (op)
+	{
+		case mslLogicOp_Clear:
+			return VK_LOGIC_OP_CLEAR;
+		case mslLogicOp_And:
+			return VK_LOGIC_OP_AND;
+		case mslLogicOp_AndReverse:
+			return VK_LOGIC_OP_AND_REVERSE;
+		case mslLogicOp_AndInverted:
+			return VK_LOGIC_OP_AND_INVERTED;
+		case mslLogicOp_NoOp:
+			return VK_LOGIC_OP_NO_OP;
+		case mslLogicOp_Xor:
+			return VK_LOGIC_OP_XOR;
+		case mslLogicOp_Equivalent:
+			return VK_LOGIC_OP_EQUIVALENT;
+		case mslLogicOp_Invert:
+			return VK_LOGIC_OP_INVERT;
+		case mslLogicOp_OrReverse:
+			return VK_LOGIC_OP_OR_REVERSE;
+		case mslLogicOp_CopyInverted:
+			return VK_LOGIC_OP_COPY_INVERTED;
+		case mslLogicOp_OrInverted:
+			return VK_LOGIC_OP_OR_INVERTED;
+		case mslLogicOp_Nand:
+			return VK_LOGIC_OP_NAND;
+		case mslLogicOp_Set:
+			return VK_LOGIC_OP_SET;
+		case mslLogicOp_Copy:
+		default:
+			return VK_LOGIC_OP_COPY;
+	}
+}
+
+VkBlendOp blendOp(mslBlendOp op)
+{
+	switch (op)
+	{
+		case mslBlendOp_Subtract:
+			return VK_BLEND_OP_SUBTRACT;
+		case mslBlendOp_ReverseSubtract:
+			return VK_BLEND_OP_REVERSE_SUBTRACT;
+		case mslBlendOp_Min:
+			return VK_BLEND_OP_MIN;
+		case mslBlendOp_Max:
+			return VK_BLEND_OP_MAX;
+		case mslBlendOp_Add:
+		default:
+			return VK_BLEND_OP_ADD;
+	}
+}
+
+static VkBlendFactor blendFactor(mslBlendFactor blendFactor, VkBlendFactor defaultValue)
+{
+	switch (blendFactor)
+	{
+		case mslBlendFactor_Zero:
+			return VK_BLEND_FACTOR_ZERO;
+		case mslBlendFactor_One:
+			return VK_BLEND_FACTOR_ONE;
+		case mslBlendFactor_SrcColor:
+			return VK_BLEND_FACTOR_SRC_COLOR;
+		case mslBlendFactor_OneMinusSrcColor:
+			return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+		case mslBlendFactor_DstColor:
+			return VK_BLEND_FACTOR_DST_COLOR;
+		case mslBlendFactor_OneMinusDstColor:
+			return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+		case mslBlendFactor_SrcAlpha:
+			return VK_BLEND_FACTOR_SRC_ALPHA;
+		case mslBlendFactor_OneMinusSrcAlpha:
+			return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		case mslBlendFactor_DstAlpha:
+			return VK_BLEND_FACTOR_DST_ALPHA;
+		case mslBlendFactor_OneMinusDstAlpha:
+			return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+		case mslBlendFactor_ConstColor:
+			return VK_BLEND_FACTOR_CONSTANT_COLOR;
+		case mslBlendFactor_OneMinusConstColor:
+			return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+		case mslBlendFactor_ConstAlpha:
+			return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+		case mslBlendFactor_OneMinusConstAlpha:
+			return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+		case mslBlendFactor_Src1Color:
+			return VK_BLEND_FACTOR_SRC1_COLOR;
+		case mslBlendFactor_OneMinusSrc1Color:
+			return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+		case mslBlendFactor_Src1Alpha:
+			return VK_BLEND_FACTOR_SRC1_ALPHA;
+		case mslBlendFactor_OneMinusSrc1Alpha:
+			return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+		default:
+			return defaultValue;
+	}
+}
+
+static bool hasConstantFactor(VkBlendFactor factor)
+{
+	switch (factor)
+	{
+		case VK_BLEND_FACTOR_CONSTANT_ALPHA:
+		case VK_BLEND_FACTOR_CONSTANT_COLOR:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static void copyStencilState(VkStencilOpState* vkStencilState,
+	const mslStencilOpState* stencilState)
+{
+	vkStencilState->failOp = stencilOp(stencilState->failOp);
+	vkStencilState->passOp = stencilOp(stencilState->passOp);
+	vkStencilState->depthFailOp = stencilOp(stencilState->depthFailOp);
+	vkStencilState->compareOp = dsVkCompareOp(stencilState->compareOp);
+	vkStencilState->compareMask = stencilState->compareMask;
+	vkStencilState->writeMask = stencilState->writeMask;
+	vkStencilState->reference = stencilState->reference;
+}
+
+static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlendAttachment,
+	const mslBlendAttachmentState* blendAttachment)
+{
+	vkBlendAttachment->blendEnable = blendAttachment->blendEnable == mslBool_True;
+	vkBlendAttachment->srcColorBlendFactor = blendFactor(blendAttachment->srcColorBlendFactor,
+		VK_BLEND_FACTOR_ZERO);
+	vkBlendAttachment->dstColorBlendFactor = blendFactor(blendAttachment->dstColorBlendFactor,
+		VK_BLEND_FACTOR_ONE);
+	vkBlendAttachment->colorBlendOp = blendOp(blendAttachment->colorBlendOp);
+	vkBlendAttachment->srcAlphaBlendFactor = blendFactor(blendAttachment->srcAlphaBlendFactor,
+		VK_BLEND_FACTOR_ZERO);
+	vkBlendAttachment->dstAlphaBlendFactor = blendFactor(blendAttachment->dstAlphaBlendFactor,
+		VK_BLEND_FACTOR_ONE);
+	vkBlendAttachment->alphaBlendOp = blendOp(blendAttachment->alphaBlendOp);
+	vkBlendAttachment->colorWriteMask = blendAttachment->colorWriteMask;
+}
+
+static size_t fullAllocSize(const mslModule* module, uint32_t pipelineIndex,
+	const dsMaterialDesc* materialDesc, uint32_t samplerCount)
+{
+	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
+		(samplerCount > 0 ? DS_ALIGNED_SIZE(sizeof(uint32_t)*materialDesc->elementCount) : 0U);
+	for (int i = 0; i < mslStage_Count; ++i)
+		fullSize += DS_ALIGNED_SIZE(mslModule_shaderSize(module, pipelineIndex));
+	return fullSize;
+}
+
+static void setupCommonStates(dsShader* shader)
+{
+	const mslModule* module = shader->module->module;
+	uint32_t pipelineIndex = shader->pipelineIndex;
+	dsVkDevice* device = &((dsVkRenderer*)shader->resourceManager->renderer)->device;
+	const VkPhysicalDeviceFeatures* features = &device->features;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	mslRenderState renderState;
+	mslModule_renderState(&renderState, module, pipelineIndex);
+
+	VkPipelineTessellationStateCreateInfo* tessellationInfo = &vkShader->tessellationInfo;
+	tessellationInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+	tessellationInfo->pNext = NULL;
+	tessellationInfo->flags = 0;
+	tessellationInfo->patchControlPoints =
+		renderState.patchControlPoints == MSL_UNKNOWN ? 1 : renderState.patchControlPoints;
+
+	VkPipelineViewportStateCreateInfo* viewportInfo = &vkShader->viewportInfo;
+	viewportInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportInfo->pNext = NULL;
+	viewportInfo->flags = 0;
+	viewportInfo->viewportCount = 1;
+	viewportInfo->pViewports = NULL;
+	viewportInfo->scissorCount = 1;
+	viewportInfo->pScissors = NULL;
+
+	const mslRasterizationState* rasterizationState = &renderState.rasterizationState;
+	VkPipelineRasterizationStateCreateInfo* rasterizationInfo = &vkShader->rasterizationInfo;
+	rasterizationInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizationInfo->pNext = NULL;
+	rasterizationInfo->flags = 0;
+	rasterizationInfo->depthClampEnable = features->depthClamp &&
+		rasterizationState->depthClampEnable == mslBool_True;
+	rasterizationInfo->rasterizerDiscardEnable =
+		rasterizationState->rasterizerDiscardEnable == mslBool_True;
+	if (features->fillModeNonSolid)
+		rasterizationInfo->polygonMode = polygonMode(rasterizationState->polygonMode);
+	else
+		rasterizationInfo->polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizationInfo->cullMode = cullMode(rasterizationState->cullMode);
+	rasterizationInfo->frontFace = frontFace(rasterizationState->frontFace);
+	rasterizationInfo->depthBiasEnable = rasterizationState->depthBiasEnable == mslBool_True;
+	rasterizationInfo->depthBiasConstantFactor =
+		rasterizationState->depthBiasConstantFactor == MSL_UNKNOWN_FLOAT ? 0.0f :
+			rasterizationState->depthBiasConstantFactor;
+	rasterizationInfo->depthBiasClamp =
+		rasterizationState->depthBiasClamp == MSL_UNKNOWN_FLOAT ? 0.0f :
+			rasterizationState->depthBiasClamp;
+	rasterizationInfo->depthBiasSlopeFactor =
+		rasterizationState->depthBiasSlopeFactor == MSL_UNKNOWN_FLOAT ? 0.0f :
+			rasterizationState->depthBiasSlopeFactor;
+	rasterizationInfo->lineWidth =
+		!features->wideLines || rasterizationState->lineWidth == MSL_UNKNOWN_FLOAT ? 1.0f :
+			rasterizationState->lineWidth;
+
+	const mslMultisampleState* multisampleState = &renderState.multisampleState;
+	VkPipelineMultisampleStateCreateInfo* multisampleInfo = &vkShader->multisampleInfo;
+	multisampleInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampleInfo->pNext = NULL;
+	multisampleInfo->flags = 0;
+	multisampleInfo->rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multisampleInfo->sampleShadingEnable = features->sampleRateShading &&
+		multisampleState->sampleShadingEnable == mslBool_True;
+	multisampleInfo->minSampleShading = multisampleState->minSampleShading == MSL_UNKNOWN_FLOAT ?
+		1.0f : dsClamp(multisampleState->minSampleShading, 0.0f, 1.0f);
+	vkShader->sampleMask = multisampleState->sampleMask;
+	multisampleInfo->pSampleMask = &vkShader->sampleMask;
+	multisampleInfo->alphaToCoverageEnable =
+		multisampleState->alphaToCoverageEnable == mslBool_True;
+	multisampleInfo->alphaToOneEnable = multisampleState->alphaToOneEnable == mslBool_True;
+
+	const mslDepthStencilState* depthStencilState = &renderState.depthStencilState;
+	VkPipelineDepthStencilStateCreateInfo* depthStencilInfo = &vkShader->depthStencilInfo;
+	depthStencilInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencilInfo->pNext = NULL;
+	depthStencilInfo->flags = 0;
+	depthStencilInfo->depthTestEnable = depthStencilState->depthTestEnable == mslBool_True;
+	depthStencilInfo->depthWriteEnable = depthStencilState->depthWriteEnable == mslBool_True;
+	depthStencilInfo->depthCompareOp = dsVkCompareOp(depthStencilState->depthCompareOp);
+	depthStencilInfo->depthBoundsTestEnable = features->depthBounds &&
+		depthStencilState->depthBoundsTestEnable == mslBool_True;
+	depthStencilInfo->stencilTestEnable = depthStencilState->stencilTestEnable == mslBool_True;
+	copyStencilState(&depthStencilInfo->front, &depthStencilState->frontStencil);
+	copyStencilState(&depthStencilInfo->back, &depthStencilState->backStencil);
+	depthStencilInfo->minDepthBounds = depthStencilState->minDepthBounds == MSL_UNKNOWN_FLOAT ?
+		0.0f : depthStencilState->minDepthBounds;
+	depthStencilInfo->maxDepthBounds = depthStencilState->maxDepthBounds == MSL_UNKNOWN_FLOAT ?
+		1.0f : depthStencilState->minDepthBounds;
+
+	const mslBlendState* blendState = &renderState.blendState;
+	VkPipelineColorBlendStateCreateInfo* blendInfo = &vkShader->blendInfo;
+	blendInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	blendInfo->pNext = NULL;
+	blendInfo->flags = 0;
+	blendInfo->logicOpEnable = features->logicOp && blendState->logicalOpEnable == mslBool_True;
+	blendInfo->logicOp = logicOp(blendState->logicalOp);
+	blendInfo->attachmentCount = shader->pipeline->fragmentOutputCount;
+	copyBlendAttachmentState(vkShader->attachments, blendState->blendAttachments);
+	if (features->independentBlend)
+	{
+		for (uint32_t i = 1; i < DS_MAX_ATTACHMENTS; ++i)
+			copyBlendAttachmentState(vkShader->attachments + i, blendState->blendAttachments + i);
+	}
+	else
+	{
+		for (uint32_t i = 1; i < DS_MAX_ATTACHMENTS; ++i)
+			vkShader->attachments[i] = vkShader->attachments[0];
+	}
+	blendInfo->pAttachments = vkShader->attachments;
+	if (blendState->blendConstants[0] == MSL_UNKNOWN_FLOAT)
+	{
+		blendInfo->blendConstants[0] = 0.0f;
+		blendInfo->blendConstants[1] = 0.0f;
+		blendInfo->blendConstants[2] = 0.0f;
+		blendInfo->blendConstants[3] = 1.0f;
+	}
+	else
+	{
+		for (uint32_t i = 0; i < 4; ++i)
+			blendInfo->blendConstants[i] = blendState->blendConstants[i];
+	}
+
+	uint32_t dynamicStateCount = 0;
+	vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_VIEWPORT;
+	vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_SCISSOR;
+	vkShader->dynamicLineWidth = !features->wideLines &&
+		rasterizationState->lineWidth == MSL_UNKNOWN_FLOAT;
+	if (vkShader->dynamicLineWidth)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_LINE_WIDTH;
+	vkShader->dynamicDepthBias = rasterizationInfo->depthBiasEnable &&
+		(rasterizationState->depthBiasConstantFactor == MSL_UNKNOWN_FLOAT ||
+		rasterizationState->depthBiasClamp == MSL_UNKNOWN_FLOAT ||
+		rasterizationState->depthBiasSlopeFactor == MSL_UNKNOWN_FLOAT);
+	if (vkShader->dynamicDepthBias)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_DEPTH_BIAS;
+	vkShader->dynamicBlendConstants = false;
+	if (blendState->blendConstants[0] == MSL_UNKNOWN_FLOAT)
+	{
+		for (uint32_t i = 0; i < blendInfo->attachmentCount; ++i)
+		{
+			if (hasConstantFactor(blendInfo->pAttachments[i].srcColorBlendFactor) ||
+				hasConstantFactor(blendInfo->pAttachments[i].dstColorBlendFactor) ||
+				hasConstantFactor(blendInfo->pAttachments[i].srcAlphaBlendFactor) ||
+				hasConstantFactor(blendInfo->pAttachments[i].dstAlphaBlendFactor))
+			{
+				vkShader->dynamicBlendConstants = true;
+				break;
+			}
+		}
+	}
+	if (vkShader->dynamicBlendConstants)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_BLEND_CONSTANTS;
+	vkShader->dynamicDepthBounds = depthStencilInfo->depthBoundsTestEnable &&
+		(depthStencilState->minDepthBounds == MSL_UNKNOWN_FLOAT ||
+		depthStencilState->maxDepthBounds == MSL_UNKNOWN_FLOAT);
+	if (vkShader->dynamicDepthBounds)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_DEPTH_BOUNDS;
+	vkShader->dynamicStencilCompareMask = depthStencilInfo->stencilTestEnable &&
+		(depthStencilState->frontStencil.compareMask == MSL_UNKNOWN ||
+		depthStencilState->backStencil.compareMask == MSL_UNKNOWN);
+	if (vkShader->dynamicStencilCompareMask)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
+	vkShader->dynamicStencilWriteMask = depthStencilInfo->stencilTestEnable &&
+		(depthStencilState->frontStencil.writeMask == MSL_UNKNOWN ||
+		depthStencilState->backStencil.writeMask == MSL_UNKNOWN);
+	if (vkShader->dynamicStencilWriteMask)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
+	vkShader->dynamicStencilReference = depthStencilInfo->stencilTestEnable &&
+		(depthStencilState->frontStencil.reference == MSL_UNKNOWN ||
+		depthStencilState->backStencil.reference == MSL_UNKNOWN);
+	if (vkShader->dynamicStencilReference)
+		vkShader->dynamicStates[dynamicStateCount++] = VK_DYNAMIC_STATE_STENCIL_REFERENCE;
+	DS_ASSERT(dynamicStateCount <= DS_MAX_DYNAMIC_STATES);
+
+	VkPipelineDynamicStateCreateInfo* dynamicStateInfo = &vkShader->dynamicInfo;
+	dynamicStateInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicStateInfo->pNext = NULL;
+	dynamicStateInfo->flags = 0;
+	dynamicStateInfo->dynamicStateCount = dynamicStateCount;
+	dynamicStateInfo->pDynamicStates = vkShader->dynamicStates;
+}
+
+static void setupSpirv(dsShader* shader, dsAllocator* allocator)
+{
+	const mslModule* module = shader->module->module;
+	const mslPipeline* pipeline = shader->pipeline;
+	uint32_t pipelineIndex = shader->pipelineIndex;
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	// Copy the SPIRV to patch with the bindings in the next pass.
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (pipeline->shaders[i] == MSL_UNKNOWN)
+		{
+			vkShader->spirv[i].data = NULL;
+			vkShader->spirv[i].size = 0;
+			continue;
+		}
+
+		const void* shaderSpirv = mslModule_shaderData(module, pipeline->shaders[i]);
+		uint32_t shaderSize = mslModule_shaderSize(module, pipelineIndex);
+		vkShader->spirv[i].data = dsAllocator_alloc(allocator, shaderSize);
+		DS_ASSERT(vkShader->spirv[i].data);
+		vkShader->spirv[i].size = shaderSize;
+		memcpy(vkShader->spirv[i].data, shaderSpirv, shaderSize);
+	}
+
+	// Set up the descriptor set bindings.
+	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
+	{
+		uint32_t binding = vkMaterialDesc->elementMappings[i];
+		if (binding == DS_MATERIAL_UNKNOWN)
+			continue;
+
+		uint32_t descriptorSet;
+		if (!vkMaterialDesc->descriptorSets[0])
+			descriptorSet = 0;
+		else
+			descriptorSet = materialDesc->elements[i].isVolatile != false;
+		for (uint32_t j = 0; j < pipeline->uniformCount; ++j)
+		{
+			mslUniform uniform;
+			DS_VERIFY(mslModule_uniform(&uniform, module, pipelineIndex, j));
+			if (strcmp(uniform.name, materialDesc->elements[i].name) != 0)
+				continue;
+
+			for (int k = 0; k < mslStage_Count; ++k)
+			{
+				if (!vkShader->spirv[k].data)
+					continue;
+
+				DS_VERIFY(mslModule_setUniformBindingCopy(module, pipelineIndex, i, descriptorSet,
+					binding, vkShader->spirv + k));
+			}
+		}
+	}
+}
+
+static bool setupShaders(dsShader* shader)
+{
+	dsResourceManager* resourceManager = shader->resourceManager;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsVkInstance* instance = &device->instance;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (!vkShader->spirv[i].data)
+			continue;
+
+		VkShaderModuleCreateInfo moduleCreateInfo =
+		{
+			VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+			NULL,
+			0,
+			vkShader->spirv[i].size,
+			(const uint32_t*)vkShader->spirv[i].data
+		};
+		VkResult result = device->vkCreateShaderModule(device->device, &moduleCreateInfo,
+			instance->allocCallbacksPtr, vkShader->shaders + i);
+		if (!dsHandleVkResult(result))
+		{
+			DS_LOG_ERROR_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't load shader %s.%s",
+				shader->module->name, shader->name);
+			return false;
+		}
+	}
+
+	vkShader->stages = 0;
+	if (vkShader->spirv[mslStage_Vertex].data)
+		vkShader->stages |= VK_SHADER_STAGE_VERTEX_BIT;
+	if (vkShader->spirv[mslStage_TessellationControl].data)
+		vkShader->stages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+	if (vkShader->spirv[mslStage_TessellationEvaluation].data)
+		vkShader->stages |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+	if (vkShader->spirv[mslStage_Geometry].data)
+		vkShader->stages |= VK_SHADER_STAGE_GEOMETRY_BIT;
+	if (vkShader->spirv[mslStage_Fragment].data)
+		vkShader->stages |= VK_SHADER_STAGE_FRAGMENT_BIT;
+	if (vkShader->spirv[mslStage_Compute].data)
+		vkShader->stages |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+	return true;
+}
+
+static bool createLayout(dsShader* shader)
+{
+	const dsMaterialDesc* materialDesc = shader->materialDesc;
+	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+	const mslModule* module = shader->module->module;
+	const mslPipeline* pipeline = shader->pipeline;
+	dsVkDevice* device = &((dsVkRenderer*)shader->resourceManager->renderer)->device;
+	dsVkInstance* instance = &device->instance;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	uint32_t descriptorCount = (vkMaterialDesc->descriptorSets[0] != 0) +
+		(vkMaterialDesc->descriptorSets[1] != 0);
+	const VkDescriptorSetLayout* layouts;
+	if (descriptorCount == 0)
+		layouts = NULL;
+	else if (vkMaterialDesc->descriptorSets[0])
+		layouts = vkMaterialDesc->descriptorSets;
+	else
+		layouts = vkMaterialDesc->descriptorSets + 1;
+
+	uint32_t pushConstantSize = 0;
+	if (pipeline->pushConstantStruct != MSL_UNKNOWN)
+	{
+		mslStruct pushConstantStruct;
+		DS_VERIFY(mslModule_struct(&pushConstantStruct, module, shader->pipelineIndex,
+			pipeline->pushConstantStruct));
+		pushConstantSize = pushConstantStruct.size;
+	}
+
+	VkPushConstantRange pushConstantRange =
+	{
+		vkShader->stages,
+		0,
+		pushConstantSize
+	};
+
+	VkPipelineLayoutCreateInfo createInfo =
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+		NULL,
+		0,
+		descriptorCount,
+		layouts,
+		pushConstantSize == 0 ? 0U : 1U, &pushConstantRange
+	};
+
+	VkResult result = DS_VK_CALL(device->vkCreatePipelineLayout)(device->device, &createInfo,
+		instance->allocCallbacksPtr, &vkShader->layout);
+	return dsHandleVkResult(result);
+}
+
+static bool createDummyComputePipeline(dsShader* shader)
+{
+	dsResourceManager* resourceManager = shader->resourceManager;
+	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsVkInstance* instance = &device->instance;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	if (!vkShader->shaders[mslStage_Compute])
+		return true;
+
+	VkComputePipelineCreateInfo createInfo =
+	{
+		VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+		NULL,
+		0,
+		{
+			VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+			NULL,
+			0,
+			VK_SHADER_STAGE_COMPUTE_BIT,
+			vkShader->shaders[mslStage_Compute],
+			"main",
+			NULL
+		},
+		vkShader->layout,
+		0,
+		-1
+	};
+
+	VkResult result = DS_VK_CALL(device->vkCreateComputePipelines)(device->device,
+		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
+		&vkShader->dummyComputePipeline);
+	return dsHandleVkResult(result);
+}
+
+static bool createDummyGraphicsPipelines(dsShader* shader)
+{
+	dsResourceManager* resourceManager = shader->resourceManager;
+	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsVkInstance* instance = &device->instance;
+	dsVkShader* vkShader = (dsVkShader*)shader;
+
+	uint32_t stageCount = 0;
+	VkPipelineShaderStageCreateInfo stages[mslStage_Count];
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (i == mslStage_Compute || !vkShader->shaders[i])
+			continue;
+
+		stages[stageCount].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stages[stageCount].pNext = NULL;
+		stages[stageCount].flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+		stages[stageCount].stage = dsVkShaderStage((mslStage)i);
+		stages[stageCount].module = vkShader->shaders[i];
+		stages[stageCount].pName = "main";
+		stages[stageCount].pSpecializationInfo = NULL;
+		++stageCount;
+	}
+
+	if (stageCount == 0)
+		return true;
+
+	VkSubpassDescription subpass =
+	{
+		0,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		0, NULL,
+		0, NULL,
+		NULL,
+		NULL,
+		0, NULL
+	};
+
+	VkRenderPassCreateInfo renderPassCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		NULL,
+		0,
+		0, NULL,
+		1, &subpass,
+		0, NULL
+	};
+
+	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &renderPassCreateInfo,
+		instance->allocCallbacksPtr, &vkShader->dummyRenderPass);
+	if (!dsHandleVkResult(result))
+		return false;
+
+	VkPipelineVertexInputStateCreateInfo vertexInfo =
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		NULL,
+		0,
+		0, NULL,
+		0, NULL
+	};
+
+	bool hasTessellation = vkShader->shaders[mslStage_TessellationEvaluation] ||
+		vkShader->shaders[mslStage_TessellationEvaluation];
+	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo =
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+		NULL,
+		0,
+		hasTessellation ? VK_PRIMITIVE_TOPOLOGY_PATCH_LIST : VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+		false
+	};
+
+	VkGraphicsPipelineCreateInfo createInfo =
+	{
+		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+		NULL,
+		VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT,
+		stageCount, stages,
+		&vertexInfo,
+		&inputAssemblyInfo,
+		&vkShader->tessellationInfo,
+		&vkShader->viewportInfo,
+		&vkShader->rasterizationInfo,
+		&vkShader->multisampleInfo,
+		&vkShader->depthStencilInfo,
+		&vkShader->blendInfo,
+		&vkShader->dynamicInfo,
+		vkShader->layout,
+		vkShader->dummyRenderPass,
+		0,
+		0,
+		-1
+	};
+
+	result = DS_VK_CALL(device->vkCreateGraphicsPipelines)(device->device,
+		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
+		&vkShader->dummyGraphicsPipeline);
+	return dsHandleVkResult(result);
+}
 
 dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc)
@@ -72,8 +771,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
-		(samplerCount > 0 ? DS_ALIGNED_SIZE(sizeof(uint32_t)*materialDesc->elementCount) : 0U);
+	size_t fullSize = fullAllocSize(module->module, shaderIndex, materialDesc, samplerCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -148,9 +846,24 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->samplerCount = samplerCount;
 	shader->samplersHaveDefaultAnisotropy = samplersHaveDefaultAnisotropy;
 
+	memset(shader->shaders, 0, sizeof(shader->shaders));
+	shader->layout = 0;
+	shader->dummyRenderPass = 0;
+	shader->dummyComputePipeline = 0;
+	shader->dummyGraphicsPipeline = 0;
+
 	DS_VERIFY(dsSpinlock_initialize(&shader->materialLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->pipelineLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
+
+	setupCommonStates(baseShader);
+	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
+	if (!createLayout(baseShader) || !setupShaders(baseShader) ||
+		!createDummyComputePipeline(baseShader) || !createDummyGraphicsPipelines(baseShader))
+	{
+		dsVkShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
 
 	// If no dependency on default anisotropy, create immediately.
 	if (samplerCount > 0 && !samplersHaveDefaultAnisotropy)
@@ -176,6 +889,8 @@ bool dsVkShader_isUniformInternal(dsResourceManager* resourceManager, const char
 bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 {
 	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
 	// Clear out the array inside the lock, then destroy the objects outside to avoid nested locks
@@ -206,6 +921,24 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	if (vkShader->samplers)
 		dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
+
+	if (vkShader->dummyRenderPass)
+	{
+		DS_VK_CALL(device->vkDestroyRenderPass)(device->device, vkShader->dummyRenderPass,
+			instance->allocCallbacksPtr);
+	}
+
+	if (vkShader->dummyComputePipeline)
+	{
+		DS_VK_CALL(device->vkDestroyPipeline)(device->device, vkShader->dummyComputePipeline,
+			instance->allocCallbacksPtr);
+	}
+
+	if (vkShader->dummyGraphicsPipeline)
+	{
+		DS_VK_CALL(device->vkDestroyPipeline)(device->device, vkShader->dummyGraphicsPipeline,
+			instance->allocCallbacksPtr);
+	}
 
 	dsSpinlock_shutdown(&vkShader->materialLock);
 	dsSpinlock_shutdown(&vkShader->pipelineLock);

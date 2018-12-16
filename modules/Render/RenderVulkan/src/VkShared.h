@@ -60,3 +60,4 @@ VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
 VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile);
 
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp);
+VkShaderStageFlagBits dsVkShaderStage(mslStage stage);

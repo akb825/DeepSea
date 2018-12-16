@@ -34,20 +34,16 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Render/Resources/Shader.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 
 #include <MSL/Client/ModuleC.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
 
-#if DS_WINDOWS
-#include <direct.h>
-#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
-#endif
-
 #define DS_BUFFER_SIZE 256
 #define DS_SHADER_MAGIC_NUMBER DS_FOURCC('D', 'S', 'G', 'L')
+#define DS_SHADER_EXTENSION ".glshad"
 #define DS_SHADER_VERSION 0
 
 // "tmp#" where # is up to ~4 billion (10 digits) and null terminator
@@ -69,37 +65,12 @@ static void hashShader(uint64_t shaderHash[2], const mslModule* module, const ms
 	}
 }
 
-static bool makeDir(const char* path)
-{
-#if DS_WINDOWS
-	return mkdir(path) == 0;
-#else
-	return mkdir(path, 0755);
-#endif
-}
-
-static bool shaderPath(char outPath[DS_PATH_MAX], const char* shaderCacheDir,
-	const char* moduleName, const char* pipelineName)
-{
-	if (!dsPath_combine(outPath, DS_PATH_MAX, shaderCacheDir, moduleName))
-		return false;
-
-	size_t pathLength = strlen(outPath);
-	size_t pipelineLength = strlen(pipelineName);
-	if (pathLength + pipelineLength + 2 > DS_PATH_MAX)
-		return false;
-
-	outPath[pathLength++] = '.';
-	memcpy(outPath + pathLength, pipelineName, pipelineLength + 1);
-	return true;
-}
-
 static bool loadShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
-	const char* moduleName, const char* pipelineName, GLuint program, uint64_t shaderHash[2])
+	const dsShader* shader, GLuint program, uint64_t shaderHash[2])
 {
 	static bool printedError = false;
 	char path[DS_PATH_MAX];
-	if (!shaderPath(path, shaderCacheDir, moduleName, pipelineName))
+	if (!dsShader_cacheFileName(path, DS_PATH_MAX, shader, shaderCacheDir, DS_SHADER_EXTENSION))
 	{
 		if (!printedError)
 		{
@@ -159,37 +130,14 @@ error:
 }
 
 static bool writeShader(dsResourceManager* resourceManager, const char* shaderCacheDir,
-	const char* moduleName, const char* pipelineName, GLuint program, uint64_t shaderHash[2])
+	const dsShader* shader, GLuint program, uint64_t shaderHash[2])
 {
-	static bool printedError = false;
-	struct stat statInfo;
-	bool exists = stat(shaderCacheDir, &statInfo) == 0;
-	if (exists && !S_ISDIR(statInfo.st_mode))
-	{
-		if (!printedError)
-		{
-			DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG,
-				"Shader cache directory '%s' isn't a directory.", shaderCacheDir);
-			printedError = true;
-		}
+	if (!dsShader_prepareCacheDirectory(shaderCacheDir))
 		return false;
-	}
-	else if (!exists)
-	{
-		if (!makeDir(shaderCacheDir) && errno != EEXIST)
-		{
-			if (!printedError)
-			{
-				DS_LOG_WARNING_F(DS_RENDER_OPENGL_LOG_TAG,
-					"Couldn't create directory '%s': %s", shaderCacheDir, dsErrorString(errno));
-				printedError = true;
-			}
-			return false;
-		}
-	}
 
+	static bool printedError = false;
 	char path[DS_PATH_MAX];
-	if (!shaderPath(path, shaderCacheDir, moduleName, pipelineName))
+	if (!dsShader_cacheFileName(path, DS_PATH_MAX, shader, shaderCacheDir, DS_SHADER_EXTENSION))
 	{
 		if (!printedError)
 		{
@@ -771,7 +719,7 @@ static void resolveDefaultBlendState(mslBlendState* state)
 		state->logicalOp = mslLogicOp_Copy;
 	if (state->separateAttachmentBlendingEnable == mslBool_Unset)
 		state->separateAttachmentBlendingEnable = mslBool_False;
-	for (unsigned int i = 0; i < MSL_MAX_ATTACHMENTS; ++i)
+	for (unsigned int i = 0; i < DS_MAX_ATTACHMENTS; ++i)
 	{
 		if (state->blendAttachments[i].blendEnable == mslBool_Unset)
 			state->blendAttachments[i].blendEnable = mslBool_False;
@@ -945,8 +893,8 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	{
 		hashShader(shaderHash, module->module, &pipeline);
 		int prevErrno = errno;
-		readShader = loadShader(resourceManager, shaderCacheDir, module->name, pipeline.name,
-			shader->programId, shaderHash);
+		readShader = loadShader(resourceManager, shaderCacheDir, baseShader, shader->programId,
+			shaderHash);
 		errno = prevErrno;
 	}
 
@@ -980,8 +928,7 @@ dsShader* dsGLShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (shaderCacheDir && ANYGL_SUPPORTED(glProgramBinary) && !readShader)
 	{
 		int prevErrno = errno;
-		writeShader(resourceManager, shaderCacheDir, module->name, pipeline.name, shader->programId,
-			shaderHash);
+		writeShader(resourceManager, shaderCacheDir, baseShader, shader->programId, shaderHash);
 		errno = prevErrno;
 	}
 

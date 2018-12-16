@@ -16,6 +16,7 @@
 
 #include "VkShared.h"
 #include <DeepSea/Core/Thread/ThreadStorage.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -367,7 +368,30 @@ VkCompareOp dsVkCompareOp(mslCompareOp compareOp)
 			return VK_COMPARE_OP_GREATER_OR_EQUAL;
 		case mslCompareOp_Always:
 			return VK_COMPARE_OP_ALWAYS;
+		case mslCompareOp_Never:
 		default:
 			return VK_COMPARE_OP_NEVER;
+	}
+}
+
+VkShaderStageFlagBits dsVkShaderStage(mslStage stage)
+{
+	switch (stage)
+	{
+		case mslStage_Vertex:
+			return VK_SHADER_STAGE_VERTEX_BIT;
+		case mslStage_TessellationControl:
+			return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		case mslStage_TessellationEvaluation:
+			return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		case mslStage_Geometry:
+			return VK_SHADER_STAGE_GEOMETRY_BIT;
+		case mslStage_Fragment:
+			return VK_SHADER_STAGE_FRAGMENT_BIT;
+		case mslStage_Compute:
+			return VK_SHADER_STAGE_COMPUTE_BIT;
+		default:
+			DS_ASSERT(false);
+			return VK_SHADER_STAGE_VERTEX_BIT;
 	}
 }

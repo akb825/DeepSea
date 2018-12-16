@@ -586,14 +586,18 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	glGenFramebuffers(1, &renderer->sharedTempCopyFramebuffer);
 
 	if (ANYGL_SUPPORTED(glDrawBuffers))
+	{
 		glGetIntegerv(GL_MAX_DRAW_BUFFERS, (GLint*)&baseRenderer->maxColorAttachments);
+		baseRenderer->maxColorAttachments = dsMin(baseRenderer->maxColorAttachments,
+			DS_MAX_ATTACHMENTS);
+	}
 	else
 		baseRenderer->maxColorAttachments = 1;
 
 	GLint maxSamples = 0;
 	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
 	maxSamples = dsMax(1, maxSamples);
-	baseRenderer->maxSurfaceSamples = maxSamples;
+	baseRenderer->maxSurfaceSamples = dsMin(maxSamples, DS_MAX_ANTIALIAS_SAMPLES);
 	renderer->options.samples = dsMin(renderer->options.samples, (uint8_t)maxSamples);
 
 	renderer->renderContext = dsCreateGLContext(allocator, display, renderer->renderConfig,

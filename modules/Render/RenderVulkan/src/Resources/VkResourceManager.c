@@ -30,17 +30,11 @@
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
-#include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
+#include <DeepSea/Render/Resources/Shader.h>
 #include <string.h>
-#include <sys/stat.h>
-
-#if DS_WINDOWS
-#include <direct.h>
-#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
-#endif
 
 #define DS_BUFFER_SIZE 256
 #define DS_PIPELINE_MAGIC_NUMBER DS_FOURCC('D', 'S', 'V', 'K')
@@ -57,8 +51,7 @@ static dsResourceContext dummyContext;
 static size_t fullAllocSize(const char* shaderCacheDir)
 {
 	size_t pathLen = shaderCacheDir ? strlen(shaderCacheDir) + 1 : 0;
-	return DS_ALIGNED_SIZE(sizeof(dsVkResourceManager)) + DS_ALIGNED_SIZE(pathLen) +
-		dsMutex_fullAllocSize();
+	return DS_ALIGNED_SIZE(sizeof(dsVkResourceManager)) + DS_ALIGNED_SIZE(pathLen);
 }
 
 static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat format,
@@ -545,18 +538,12 @@ error:
 	return NULL;
 }
 
-static bool makeDir(const char* path)
-{
-#if DS_WINDOWS
-	return mkdir(path) == 0;
-#else
-	return mkdir(path, 0755);
-#endif
-}
-
 static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDir,
 	dsVkDevice* device, VkPipelineCache pipelineCache)
 {
+	if (!dsShader_prepareCacheDirectory(shaderCacheDir))
+		return false;
+
 	size_t size = 0;
 	VkResult result = DS_VK_CALL(device->vkGetPipelineCacheData)(device->device, pipelineCache,
 		&size, NULL);
@@ -571,24 +558,6 @@ static bool writePipelineCache(dsAllocator* allocator, const char* shaderCacheDi
 		&size, NULL);
 	if (!dsHandleVkResult(result))
 		goto bufferError;
-
-	struct stat statInfo;
-	bool exists = stat(shaderCacheDir, &statInfo) == 0;
-	if (exists && !S_ISDIR(statInfo.st_mode))
-	{
-		DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG,
-			"Shader cache directory '%s' isn't a directory.", shaderCacheDir);
-		goto bufferError;
-	}
-	else if (!exists)
-	{
-		if (!makeDir(shaderCacheDir) && errno != EEXIST)
-		{
-			DS_LOG_WARNING_F(DS_RENDER_VULKAN_LOG_TAG, "Couldn't create directory '%s': %s",
-				shaderCacheDir, dsErrorString(errno));
-			goto bufferError;
-		}
-	}
 
 	char path[DS_PATH_MAX];
 	if (!dsPath_combine(path, DS_PATH_MAX, shaderCacheDir, DS_PIPELINE_FILE_NAME))
@@ -899,9 +868,6 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		return NULL;
 	}
 
-	resourceManager->pipelineLock = dsMutex_create((dsAllocator*)&bufferAlloc, "Pipeline Cache");
-	DS_ASSERT(resourceManager->pipelineLock);
-
 	return baseResourceManager;
 }
 
@@ -955,6 +921,5 @@ void dsVkResourceManager_destroy(dsResourceManager* resourceManager)
 			instance->allocCallbacksPtr);
 	}
 
-	dsMutex_destroy(vkResourceManager->pipelineLock);
 	DS_VERIFY(dsAllocator_free(resourceManager->allocator, resourceManager));
 }

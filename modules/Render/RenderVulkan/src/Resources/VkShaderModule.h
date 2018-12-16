@@ -22,6 +22,3 @@
 dsShaderModule* dsVkShaderModule_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	mslModule* module, const char* name);
 bool dsVkShaderModule_destroy(dsResourceManager* resourceManager, dsShaderModule* module);
-
-bool dsVkShaderModule_getShader(VkShaderModule* outShader, dsShaderModule* module,
-	uint32_t shaderIndex, const char* pipelineName);

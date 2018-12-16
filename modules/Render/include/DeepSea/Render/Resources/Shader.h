@@ -180,6 +180,33 @@ DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
  */
 DS_RENDER_EXPORT bool dsShader_destroy(dsShader* shader);
 
+/**
+ * @brief Prepares the shader cache directory.
+ *
+ * This will print an error message on failure. It will avoid re-printing error messages until a
+ * different cache directory is passed in.
+ *
+ * @remark errno will be set on failure.
+ * @remark This is primarily used for the different renderer implementations.
+ * @param cacheDir The shader cache directory.
+ * @return True if the cache directory can be used.
+ */
+DS_RENDER_EXPORT bool dsShader_prepareCacheDirectory(const char* cacheDir);
+
+/**
+ * @brief Gets the file name for a cached shader.
+ * @remark errno will be set on failure.
+ * @remark This is primarily used for the different renderer implementations.
+ * @param[out] result The output file name.
+ * @param resultSize The size of the buffer for the result.
+ * @param shader The shader to get the file name for.
+ * @param cacheDir The shader cache directory.
+ * @param extension The file extension, including the '.'
+ * @return False if an error occurred.
+ */
+DS_RENDER_EXPORT bool dsShader_cacheFileName(char* result, size_t resultSize,
+	const dsShader* shader, const char* cacheDir, const char* extension);
+
 #ifdef __cplusplus
 }
 #endif

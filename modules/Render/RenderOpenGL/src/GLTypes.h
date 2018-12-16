@@ -104,7 +104,7 @@ typedef struct dsGLFramebuffer
 	dsGLResource resource;
 	GLuint framebufferId;
 	uint32_t fboContext;
-	GLuint curColorAttachments[MSL_MAX_ATTACHMENTS];
+	GLuint curColorAttachments[DS_MAX_ATTACHMENTS];
 	GLuint curColorAttachmentCount;
 	GLuint curDepthAttachment;
 	uint32_t curDefaultSamples;

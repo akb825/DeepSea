@@ -862,9 +862,11 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);
 
 	const VkPhysicalDeviceLimits* limits = &deviceProperties->limits;
-	baseRenderer->maxColorAttachments = limits->maxColorAttachments;
+	baseRenderer->maxColorAttachments = dsMin(limits->maxColorAttachments, DS_MAX_ATTACHMENTS);
 	// framebufferColorSampleCounts is a bitmask. Compute the maximum bit that's set.
 	baseRenderer->maxSurfaceSamples = 1U << (31 - dsClz(limits->framebufferColorSampleCounts));
+	baseRenderer->maxSurfaceSamples = dsMin(baseRenderer->maxSurfaceSamples,
+		DS_MAX_ANTIALIAS_SAMPLES);
 	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;

@@ -109,6 +109,18 @@ typedef enum dsFileResourceType
 } dsFileResourceType;
 
 /**
+ * @brief Enum to determine if a file exists, and if so, if it's a file or directory.
+ * @see FileUtils.h
+ */
+typedef enum dsFileStatus
+{
+	dsFileStatus_Error,          ///< An error occurred in accessing the file.
+	dsFileStatus_DoesntExist,    ///< File doesn't exist.
+	dsFileStatus_ExistsFile,     ///< File exists as a file or file-like object.
+	dsFileStatus_ExistsDirectory ///< File exists as a directory.
+} dsFileStatus;
+
+/**
  * @brief Function for reading from a stream.
  * @param stream The stream to read from.
  * @param data The data pointer to hold the data that was read.

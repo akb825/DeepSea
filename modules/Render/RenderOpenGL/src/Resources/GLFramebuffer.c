@@ -256,7 +256,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 	{
 		// Bind the surfaces to the framebuffer.
 		bool hasChanges = false;
-		DS_ASSERT(colorAttachmentCount < MSL_MAX_ATTACHMENTS);
+		DS_ASSERT(colorAttachmentCount < DS_MAX_ATTACHMENTS);
 		for (uint32_t i = 0; i < colorAttachmentCount; ++i)
 		{
 			const dsFramebufferSurface* surface = NULL;
@@ -273,7 +273,7 @@ GLSurfaceType dsGLFramebuffer_bind(const dsFramebuffer* framebuffer,
 			ANYGL_SUPPORTED(glDrawBuffers))
 		{
 			hasChanges = true;
-			GLenum drawBuffers[MSL_MAX_ATTACHMENTS];
+			GLenum drawBuffers[DS_MAX_ATTACHMENTS];
 			for (uint32_t i = 0; i < colorAttachmentCount; ++i)
 			{
 				if (colorAttachments[i].attachmentIndex == DS_NO_ATTACHMENT)

@@ -59,6 +59,20 @@ extern "C"
 #define DS_DEFAULT_ANTIALIAS_SAMPLES (uint32_t)-1
 
 /**
+ * @brief Constant for the maximum supported anti-alias samples.
+ *
+ * This may be further limited by what's supported by the target hardware.
+ */
+#define DS_MAX_ANTIALIAS_SAMPLES 32
+
+/**
+ * @brief Constant for the maximum number of color attachments.
+ *
+ * This may be further limited by what's supported by the target hardware.
+ */
+#define DS_MAX_ATTACHMENTS 16
+
+/**
  * @brief The size of the UUID that uniquely identifies a device.
  */
 #define DS_DEVICE_UUID_SIZE 16
