@@ -17,12 +17,14 @@
 #include <DeepSea/RenderVulkan/VkRenderer.h>
 #include "VkRendererInternal.h"
 
+#include "Resources/VkComputePipeline.h"
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
 #include "Resources/VkGfxFence.h"
 #include "Resources/VkGfxQueryPool.h"
 #include "Resources/VkMaterialDescriptor.h"
+#include "Resources/VkPipeline.h"
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkRenderbuffer.h"
 #include "Resources/VkResource.h"
@@ -155,6 +157,12 @@ static void freeAllResources(dsVkResourceList* deleteList)
 
 	for (uint32_t i = 0; i < deleteList->samplerCount; ++i)
 		dsVkSamplerList_destroy(deleteList->samplers[i]);
+
+	for (uint32_t i = 0; i < deleteList->computePipelineCount; ++i)
+		dsVkComputePipeline_destroy(deleteList->computePipelines[i]);
+
+	for (uint32_t i = 0; i < deleteList->pipelineCount; ++i)
+		dsVkPipeline_destroy(deleteList->pipelines[i]);
 
 	dsVkResourceList_clear(deleteList);
 }
@@ -304,6 +312,34 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkSamplerList_destroy(samplers);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->computePipelineCount; ++i)
+	{
+		dsVkComputePipeline* pipeline = prevDeleteList->computePipelines[i];
+		DS_ASSERT(pipeline);
+
+		if (dsVkResource_isInUse(&pipeline->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteComputePipeline(baseRenderer, pipeline);
+			continue;
+		}
+
+		dsVkComputePipeline_destroy(pipeline);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->pipelineCount; ++i)
+	{
+		dsVkPipeline* pipeline = prevDeleteList->pipelines[i];
+		DS_ASSERT(pipeline);
+
+		if (dsVkResource_isInUse(&pipeline->resource, baseRenderer))
+		{
+			dsVkRenderer_deletePipeline(baseRenderer, pipeline);
+			continue;
+		}
+
+		dsVkPipeline_destroy(pipeline);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -1206,5 +1242,29 @@ void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* sampl
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addSamplerList(resourceList, samplers);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipeline* pipeline)
+{
+	DS_ASSERT(pipeline);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addComputePipeline(resourceList, pipeline);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
+{
+	DS_ASSERT(pipeline);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addPipeline(resourceList, pipeline);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

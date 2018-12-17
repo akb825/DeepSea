@@ -31,6 +31,9 @@ bool dsVkResourceList_addQueries(dsVkResourceList* resources, dsGfxQueryPool* qu
 bool dsVkResourceList_addMaterialDescriptor(dsVkResourceList* resources,
 	dsVkMaterialDescriptor* descriptor);
 bool dsVkResourceList_addSamplerList(dsVkResourceList* resources, dsVkSamplerList* samplers);
+bool dsVkResourceList_addComputePipeline(dsVkResourceList* resources,
+	dsVkComputePipeline* pipeline);
+bool dsVkResourceList_addPipeline(dsVkResourceList* resources, dsVkPipeline* pipeline);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

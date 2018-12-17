@@ -35,3 +35,5 @@ void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries
 void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer,
 	dsVkMaterialDescriptor* descriptor);
 void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers);
+void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipeline* pipeline);
+void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline);

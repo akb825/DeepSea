@@ -145,6 +145,32 @@ bool dsVkResourceList_addSamplerList(dsVkResourceList* resources, dsVkSamplerLis
 	return true;
 }
 
+bool dsVkResourceList_addComputePipeline(dsVkResourceList* resources, dsVkComputePipeline* pipeline)
+{
+	uint32_t index = resources->computePipelineCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->computePipelines,
+		resources->computePipelineCount, resources->maxComputePipelines, 1))
+	{
+		return false;
+	}
+
+	resources->computePipelines[index] = pipeline;
+	return true;
+}
+
+bool dsVkResourceList_addPipeline(dsVkResourceList* resources, dsVkPipeline* pipeline)
+{
+	uint32_t index = resources->pipelineCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->pipelines,
+		resources->pipelineCount, resources->maxPipelines, 1))
+	{
+		return false;
+	}
+
+	resources->pipelines[index] = pipeline;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
@@ -156,6 +182,8 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 	resources->queryCount = 0;
 	resources->descriptorCount = 0;
 	resources->samplerCount = 0;
+	resources->computePipelineCount = 0;
+	resources->pipelineCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -169,4 +197,6 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->queries));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->descriptors));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->samplers));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->computePipelines));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->pipelines));
 }

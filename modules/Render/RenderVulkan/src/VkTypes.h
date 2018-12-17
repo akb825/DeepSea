@@ -423,13 +423,21 @@ struct dsDeviceMaterial
 	dsSpinlock lock;
 };
 
+typedef struct dsVkComputePipeline
+{
+	dsAllocator* allocator;
+	dsVkResource resource;
+	dsVkDevice* device;
+	VkPipeline pipeline;
+} dsVkComputePipeline;
+
 typedef struct dsVkPipeline
 {
 	dsAllocator* allocator;
 	dsVkResource resource;
+	dsVkDevice* device;
 
-	VkPipeline computePipeline;
-	VkPipeline graphicsPipeline;
+	VkPipeline pipeline;
 
 	uint32_t hash;
 	uint32_t samples;
@@ -459,7 +467,6 @@ typedef struct dsVkShader
 	VkPipelineLayout layout;
 
 	VkRenderPass dummyRenderPass;
-	VkPipeline dummyComputePipeline;
 	VkPipeline dummyGraphicsPipeline;
 
 	VkPipelineTessellationStateCreateInfo tessellationInfo;
@@ -480,6 +487,8 @@ typedef struct dsVkShader
 	bool dynamicStencilCompareMask;
 	bool dynamicStencilWriteMask;
 	bool dynamicStencilReference;
+
+	dsVkComputePipeline* computePipeline;
 
 	dsLifetime** usedMaterials;
 	uint32_t usedMaterialCount;
@@ -546,6 +555,14 @@ typedef struct dsVkResourceList
 	dsVkSamplerList** samplers;
 	uint32_t samplerCount;
 	uint32_t maxSamplers;
+
+	dsVkComputePipeline** computePipelines;
+	uint32_t computePipelineCount;
+	uint32_t maxComputePipelines;
+
+	dsVkPipeline** pipelines;
+	uint32_t pipelineCount;
+	uint32_t maxPipelines;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList

@@ -16,7 +16,9 @@
 
 #include "Resources/VkShader.h"
 
+#include "Resources/VkComputePipeline.h"
 #include "Resources/VkDeviceMaterial.h"
+#include "Resources/VkPipeline.h"
 #include "Resources/VkSamplerList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
@@ -591,42 +593,6 @@ static bool createLayout(dsShader* shader)
 	return dsHandleVkResult(result);
 }
 
-static bool createDummyComputePipeline(dsShader* shader)
-{
-	dsResourceManager* resourceManager = shader->resourceManager;
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
-	dsVkInstance* instance = &device->instance;
-	dsVkShader* vkShader = (dsVkShader*)shader;
-
-	if (!vkShader->shaders[mslStage_Compute])
-		return true;
-
-	VkComputePipelineCreateInfo createInfo =
-	{
-		VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-		NULL,
-		0,
-		{
-			VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-			NULL,
-			0,
-			VK_SHADER_STAGE_COMPUTE_BIT,
-			vkShader->shaders[mslStage_Compute],
-			"main",
-			NULL
-		},
-		vkShader->layout,
-		0,
-		-1
-	};
-
-	VkResult result = DS_VK_CALL(device->vkCreateComputePipelines)(device->device,
-		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
-		&vkShader->dummyComputePipeline);
-	return dsHandleVkResult(result);
-}
-
 static bool createDummyGraphicsPipelines(dsShader* shader)
 {
 	dsResourceManager* resourceManager = shader->resourceManager;
@@ -701,6 +667,11 @@ static bool createDummyGraphicsPipelines(dsShader* shader)
 		false
 	};
 
+	// Disable rasterization for the dummy pipeline. Otherwise we need to have a much more elaborate
+	// dummy render pass when input attachments are used.
+	VkPipelineRasterizationStateCreateInfo rasterizationInfo = vkShader->rasterizationInfo;
+	rasterizationInfo.rasterizerDiscardEnable = true;
+
 	VkGraphicsPipelineCreateInfo createInfo =
 	{
 		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -711,7 +682,7 @@ static bool createDummyGraphicsPipelines(dsShader* shader)
 		&inputAssemblyInfo,
 		&vkShader->tessellationInfo,
 		&vkShader->viewportInfo,
-		&vkShader->rasterizationInfo,
+		&rasterizationInfo,
 		&vkShader->multisampleInfo,
 		&vkShader->depthStencilInfo,
 		&vkShader->blendInfo,
@@ -849,17 +820,27 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	memset(shader->shaders, 0, sizeof(shader->shaders));
 	shader->layout = 0;
 	shader->dummyRenderPass = 0;
-	shader->dummyComputePipeline = 0;
 	shader->dummyGraphicsPipeline = 0;
+	shader->computePipeline = NULL;
 
 	DS_VERIFY(dsSpinlock_initialize(&shader->materialLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->pipelineLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
 
+	if (shader->shaders[mslStage_Compute])
+	{
+		shader->computePipeline = dsVkComputePipeline_create(allocator, baseShader);
+		if (!shader->computePipeline)
+		{
+			dsVkShader_destroy(resourceManager, baseShader);
+			return NULL;
+		}
+	}
+
 	setupCommonStates(baseShader);
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
 	if (!createLayout(baseShader) || !setupShaders(baseShader) ||
-		!createDummyComputePipeline(baseShader) || !createDummyGraphicsPipelines(baseShader))
+		!createDummyGraphicsPipelines(baseShader))
 	{
 		dsVkShader_destroy(resourceManager, baseShader);
 		return NULL;
@@ -928,17 +909,14 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 			instance->allocCallbacksPtr);
 	}
 
-	if (vkShader->dummyComputePipeline)
-	{
-		DS_VK_CALL(device->vkDestroyPipeline)(device->device, vkShader->dummyComputePipeline,
-			instance->allocCallbacksPtr);
-	}
-
 	if (vkShader->dummyGraphicsPipeline)
 	{
 		DS_VK_CALL(device->vkDestroyPipeline)(device->device, vkShader->dummyGraphicsPipeline,
 			instance->allocCallbacksPtr);
 	}
+
+	if (vkShader->computePipeline)
+		dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
 
 	dsSpinlock_shutdown(&vkShader->materialLock);
 	dsSpinlock_shutdown(&vkShader->pipelineLock);
@@ -1033,4 +1011,16 @@ dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* co
 		return NULL;
 
 	return vkShader->samplers;
+}
+
+VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* commandBuffer)
+{
+	dsVkShader* vkShader = (dsVkShader*)shader;
+	if (!vkShader->computePipeline)
+		return 0;
+
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkShader->computePipeline->resource))
+		return 0;
+
+	return vkShader->computePipeline->pipeline;
 }

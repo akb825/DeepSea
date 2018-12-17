@@ -15,10 +15,12 @@
  */
 
 #include "Resources/VkPipeline.h"
+#include "Resources/VkResource.h"
 #include "VkShared.h"
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
+#include <DeepSea/Core/Assert.h>
 #include <string.h>
 
 uint32_t dsVkPipeline_hash(uint32_t samples, uint32_t defaultAnisotropy,
@@ -55,4 +57,24 @@ bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash, uint
 		memcmp(pipeline->formats, formats,
 			sizeof(dsVertexFormat)*DS_MAX_GEOMETRY_VERTEX_BUFFERS) == 0 &&
 		dsLifetime_getObject(pipeline->renderPass) == renderPass;
+}
+
+void dsVkPipeline_destroy(dsVkPipeline* pipeline)
+{
+	if (!pipeline)
+		return;
+
+	dsVkDevice* device = pipeline->device;
+	dsVkInstance* instance = &device->instance;
+	if (pipeline->pipeline)
+	{
+		DS_VK_CALL(device->vkDestroyPipeline)(device->device, pipeline->pipeline,
+			instance->allocCallbacksPtr);
+	}
+
+	dsLifetime_freeRef(pipeline->renderPass);
+
+	dsVkResource_shutdown(&pipeline->resource);
+	if (pipeline->allocator)
+		DS_VERIFY(dsAllocator_free(pipeline->allocator, pipeline));
 }
