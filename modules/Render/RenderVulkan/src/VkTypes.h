@@ -491,6 +491,10 @@ typedef struct dsVkShader
 	uint32_t usedMaterialCount;
 	uint32_t maxUsedMaterials;
 
+	dsLifetime** usedRenderPasses;
+	uint32_t usedRenderPassCount;
+	uint32_t maxUsedRenderPasses;
+
 	dsVkPipeline** pipelines;
 	uint32_t pipelineCount;
 	uint32_t maxPipelines;
@@ -509,9 +513,16 @@ typedef struct dsVkRenderPass
 {
 	dsRenderPass renderPass;
 	dsVkResource resource;
+	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
 
 	VkRenderPass vkRenderPass;
+
+	dsLifetime** usedShaders;
+	uint32_t usedShaderCount;
+	uint32_t maxUsedShaders;
+
+	dsSpinlock shaderLock;
 } dsVkRenderPass;
 
 typedef struct dsVkSubmitInfo

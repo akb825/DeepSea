@@ -22,6 +22,7 @@
 #include "Resources/VkSamplerList.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
+#include "VkRenderPass.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -669,6 +670,9 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	shader->usedMaterials = NULL;
 	shader->usedMaterialCount = 0;
 	shader->maxUsedMaterials = 0;
+	shader->usedRenderPasses = NULL;
+	shader->usedRenderPassCount = 0;
+	shader->maxUsedRenderPasses = 0;
 	shader->pipelines = NULL;
 	shader->pipelineCount = 0;
 	shader->maxPipelines = 0;
@@ -773,6 +777,20 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 	vkShader->maxUsedMaterials = 0;
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->materialLock));
 
+	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
+	dsLifetime** usedRenderPasses = vkShader->usedRenderPasses;
+	uint32_t usedRenderPassCount = vkShader->usedRenderPassCount;
+	vkShader->usedRenderPasses = NULL;
+	vkShader->usedRenderPassCount = 0;
+	vkShader->maxUsedRenderPasses = 0;
+
+	dsVkPipeline** pipelines = vkShader->pipelines;
+	uint32_t pipelineCount = vkShader->pipelineCount;
+	vkShader->pipelines = NULL;
+	vkShader->pipelineCount = 0;
+	vkShader->maxPipelines = 0;
+	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+
 	for (uint32_t i = 0; i < usedMaterialCount; ++i)
 	{
 		dsDeviceMaterial* deviceMaterial = (dsDeviceMaterial*)dsLifetime_acquire(usedMaterials[i]);
@@ -786,6 +804,19 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 	DS_VERIFY(dsAllocator_free(vkShader->scratchAllocator, usedMaterials));
 	DS_ASSERT(!vkShader->usedMaterials);
 
+	for (uint32_t i = 0; i < usedRenderPassCount; ++i)
+	{
+		dsRenderPass* renderPass = (dsRenderPass*)dsLifetime_acquire(usedRenderPasses[i]);
+		if (renderPass)
+		{
+			dsVkRenderPass_removeShader(renderPass, shader);
+			dsLifetime_release(usedRenderPasses[i]);
+		}
+		dsLifetime_freeRef(usedRenderPasses[i]);
+	}
+	DS_VERIFY(dsAllocator_free(vkShader->scratchAllocator, usedRenderPasses));
+	DS_ASSERT(!vkShader->usedRenderPasses);
+
 	dsLifetime_destroy(vkShader->lifetime);
 
 	if (vkShader->samplers)
@@ -793,6 +824,10 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	if (vkShader->computePipeline)
 		dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
+
+	for (uint32_t i = 0; i < pipelineCount; ++i)
+		dsVkRenderer_deletePipeline(renderer, pipelines[i]);
+	DS_VERIFY(dsAllocator_free(vkShader->scratchAllocator, pipelines));
 
 	dsSpinlock_shutdown(&vkShader->materialLock);
 	dsSpinlock_shutdown(&vkShader->pipelineLock);
@@ -827,9 +862,7 @@ bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material)
 	}
 
 	vkShader->usedMaterials[index] = dsLifetime_addRef(material->lifetime);
-
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->materialLock));
-
 	return true;
 }
 
@@ -849,6 +882,51 @@ void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material)
 		}
 	}
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->materialLock));
+}
+
+void dsVkShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass)
+{
+	dsVkShader* vkShader = (dsVkShader*)shader;
+	dsRenderer* renderer = shader->resourceManager->renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
+
+	// Unregister the render pass.
+	bool wasRegistered = false;
+	for (uint32_t i = 0; i < vkShader->usedRenderPassCount; ++i)
+	{
+		void* usedRenderPass = dsLifetime_getObject(vkShader->usedRenderPasses[i]);
+		DS_ASSERT(usedRenderPass);
+		if (usedRenderPass == renderPass)
+		{
+			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedRenderPasses,
+				vkShader->usedRenderPassCount, i, 1));
+			wasRegistered = true;
+			break;
+		}
+	}
+
+	if (!wasRegistered)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+		return;
+	}
+
+	// Remove all pipelines for the render pass.
+	for (uint32_t i = 0; i < vkShader->pipelineCount;)
+	{
+		void* usedRenderPass = dsLifetime_getObject(vkShader->pipelines[i]->renderPass);
+		DS_ASSERT(usedRenderPass);
+		if (usedRenderPass == renderPass)
+		{
+			dsVkRenderer_deletePipeline(renderer, vkShader->pipelines[i]);
+			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->pipelines, vkShader->pipelineCount, i,
+				1));
+		}
+		else
+			++i;
+	}
+
+	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
 }
 
 dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* commandBuffer)
@@ -975,13 +1053,42 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	vkShader->pipelines[index] = dsVkPipeline_create(vkShader->scratchAllocator, shader,
 		index > 0 ? vkShader->pipelines[0]->pipeline : 0, hash, samples, anisotropy, primitiveType,
 		formats, renderPass, subpassIndex);
-
-	VkPipeline vkPipeline = 0;
-	if (vkShader->pipelines[index])
-		vkPipeline = vkShader->pipelines[index]->pipeline;
-	else
+	if (!vkShader->pipelines[index])
+	{
 		--vkShader->pipelineCount;
+		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+	}
 
+	// Register the render pass.
+	bool hasRenderPass = false;
+	for (uint32_t i = 0; i < vkShader->usedRenderPassCount; ++i)
+	{
+		void* usedRenderPass = dsLifetime_getObject(vkShader->usedRenderPasses[i]);
+		DS_ASSERT(usedRenderPass);
+		if (usedRenderPass == renderPass)
+		{
+			hasRenderPass = true;
+			break;
+		}
+	}
+
+	if (!hasRenderPass)
+	{
+		uint32_t passIndex = vkShader->usedRenderPassCount;
+		if (!DS_RESIZEABLE_ARRAY_ADD(vkShader->scratchAllocator, vkShader->usedRenderPasses,
+			vkShader->usedRenderPassCount, vkShader->maxUsedRenderPasses, 1))
+		{
+			dsVkPipeline_destroy(vkShader->pipelines[index]);
+			--vkShader->pipelineCount;
+			DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+			return 0;
+		}
+
+		dsVkRenderPass* vkRenderPass = (dsVkRenderPass*)renderPass;
+		vkShader->usedRenderPasses[passIndex] = dsLifetime_addRef(vkRenderPass->lifetime);
+	}
+
+	VkPipeline vkPipeline = vkShader->pipelines[index]->pipeline;
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
 
 	return vkPipeline;

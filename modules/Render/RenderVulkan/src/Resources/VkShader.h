@@ -42,6 +42,7 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader);
 
 bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material);
 void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material);
+void dsVkShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass);
 dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* commandBuffer);
 VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* commandBuffer);
 VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
