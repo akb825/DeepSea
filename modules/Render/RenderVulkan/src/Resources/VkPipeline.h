@@ -19,17 +19,16 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-uint32_t dsVkPipeline_hash(uint32_t samples, uint32_t defaultAnisotropy,
-	dsPrimitiveType primitiveType, dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	dsRenderPass* renderPass, uint32_t subpass);
-dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader, const uint32_t* spirv,
-	uint32_t spirvCount, VkPipeline existingPipeline, uint32_t hash, uint32_t samples,
-	uint32_t defaultAnisotropy, dsPrimitiveType primitiveType,
-	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	dsLifetime* renderPass, uint32_t subpass);
+uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
+	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
+	const dsRenderPass* renderPass, uint32_t subpass);
+dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
+	VkPipeline existingPipeline, uint32_t hash, uint32_t samples, float defaultAnisotropy,
+	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
+	const dsRenderPass* renderPass, uint32_t subpass);
 bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash,
-	uint32_t samples, uint32_t defaultAnisotropy, dsPrimitiveType primitiveType,
-	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	dsRenderPass* renderPass, uint32_t subpass);
+	uint32_t samples, float defaultAnisotropy, dsPrimitiveType primitiveType,
+	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
+	const dsRenderPass* renderPass, uint32_t subpass);
 void dsVkPipeline_destroy(dsVkPipeline* pipeline);
 

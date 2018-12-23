@@ -593,113 +593,6 @@ static bool createLayout(dsShader* shader)
 	return dsHandleVkResult(result);
 }
 
-static bool createDummyGraphicsPipelines(dsShader* shader)
-{
-	dsResourceManager* resourceManager = shader->resourceManager;
-	dsVkResourceManager* vkResourceManager = (dsVkResourceManager*)resourceManager;
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
-	dsVkInstance* instance = &device->instance;
-	dsVkShader* vkShader = (dsVkShader*)shader;
-
-	uint32_t stageCount = 0;
-	VkPipelineShaderStageCreateInfo stages[mslStage_Count];
-	for (int i = 0; i < mslStage_Count; ++i)
-	{
-		if (i == mslStage_Compute || !vkShader->shaders[i])
-			continue;
-
-		stages[stageCount].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		stages[stageCount].pNext = NULL;
-		stages[stageCount].flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
-		stages[stageCount].stage = dsVkShaderStage((mslStage)i);
-		stages[stageCount].module = vkShader->shaders[i];
-		stages[stageCount].pName = "main";
-		stages[stageCount].pSpecializationInfo = NULL;
-		++stageCount;
-	}
-
-	if (stageCount == 0)
-		return true;
-
-	VkSubpassDescription subpass =
-	{
-		0,
-		VK_PIPELINE_BIND_POINT_GRAPHICS,
-		0, NULL,
-		0, NULL,
-		NULL,
-		NULL,
-		0, NULL
-	};
-
-	VkRenderPassCreateInfo renderPassCreateInfo =
-	{
-		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		NULL,
-		0,
-		0, NULL,
-		1, &subpass,
-		0, NULL
-	};
-
-	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &renderPassCreateInfo,
-		instance->allocCallbacksPtr, &vkShader->dummyRenderPass);
-	if (!dsHandleVkResult(result))
-		return false;
-
-	VkPipelineVertexInputStateCreateInfo vertexInfo =
-	{
-		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		NULL,
-		0,
-		0, NULL,
-		0, NULL
-	};
-
-	bool hasTessellation = vkShader->shaders[mslStage_TessellationEvaluation] ||
-		vkShader->shaders[mslStage_TessellationEvaluation];
-	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo =
-	{
-		VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-		NULL,
-		0,
-		hasTessellation ? VK_PRIMITIVE_TOPOLOGY_PATCH_LIST : VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-		false
-	};
-
-	// Disable rasterization for the dummy pipeline. Otherwise we need to have a much more elaborate
-	// dummy render pass when input attachments are used.
-	VkPipelineRasterizationStateCreateInfo rasterizationInfo = vkShader->rasterizationInfo;
-	rasterizationInfo.rasterizerDiscardEnable = true;
-
-	VkGraphicsPipelineCreateInfo createInfo =
-	{
-		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-		NULL,
-		VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT,
-		stageCount, stages,
-		&vertexInfo,
-		&inputAssemblyInfo,
-		&vkShader->tessellationInfo,
-		&vkShader->viewportInfo,
-		&rasterizationInfo,
-		&vkShader->multisampleInfo,
-		&vkShader->depthStencilInfo,
-		&vkShader->blendInfo,
-		&vkShader->dynamicInfo,
-		vkShader->layout,
-		vkShader->dummyRenderPass,
-		0,
-		0,
-		-1
-	};
-
-	result = DS_VK_CALL(device->vkCreateGraphicsPipelines)(device->device,
-		vkResourceManager->pipelineCache, 1, &createInfo, instance->allocCallbacksPtr,
-		&vkShader->dummyGraphicsPipeline);
-	return dsHandleVkResult(result);
-}
-
 dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsShaderModule* module, uint32_t shaderIndex, const dsMaterialDesc* materialDesc)
 {
@@ -819,8 +712,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	memset(shader->shaders, 0, sizeof(shader->shaders));
 	shader->layout = 0;
-	shader->dummyRenderPass = 0;
-	shader->dummyGraphicsPipeline = 0;
 	shader->computePipeline = NULL;
 
 	DS_VERIFY(dsSpinlock_initialize(&shader->materialLock));
@@ -839,8 +730,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	setupCommonStates(baseShader);
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
-	if (!createLayout(baseShader) || !setupShaders(baseShader) ||
-		!createDummyGraphicsPipelines(baseShader))
+	if (!createLayout(baseShader) || !setupShaders(baseShader))
 	{
 		dsVkShader_destroy(resourceManager, baseShader);
 		return NULL;
@@ -870,8 +760,6 @@ bool dsVkShader_isUniformInternal(dsResourceManager* resourceManager, const char
 bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 {
 	dsRenderer* renderer = resourceManager->renderer;
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
 	// Clear out the array inside the lock, then destroy the objects outside to avoid nested locks
@@ -902,18 +790,6 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	if (vkShader->samplers)
 		dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
-
-	if (vkShader->dummyRenderPass)
-	{
-		DS_VK_CALL(device->vkDestroyRenderPass)(device->device, vkShader->dummyRenderPass,
-			instance->allocCallbacksPtr);
-	}
-
-	if (vkShader->dummyGraphicsPipeline)
-	{
-		DS_VK_CALL(device->vkDestroyPipeline)(device->device, vkShader->dummyGraphicsPipeline,
-			instance->allocCallbacksPtr);
-	}
 
 	if (vkShader->computePipeline)
 		dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
@@ -1023,4 +899,90 @@ VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* comm
 		return 0;
 
 	return vkShader->computePipeline->pipeline;
+}
+
+VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
+	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS])
+{
+	const dsRenderPass* renderPass = commandBuffer->boundRenderPass;
+	if (!renderPass)
+		return 0;
+
+	dsVkShader* vkShader = (dsVkShader*)shader;
+	if (!vkShader->shaders[mslStage_Vertex])
+		return 0;
+
+	dsRenderer* renderer = commandBuffer->renderer;
+	uint32_t subpassIndex = commandBuffer->activeRenderSubpass;
+	const dsRenderSubpassInfo* subpass = renderPass->subpasses + subpassIndex;
+
+	// Get the number of samples based on the attachments.
+	const dsAttachmentInfo* attachments = renderPass->attachments;
+	uint32_t referenceAttachment = DS_NO_ATTACHMENT;
+	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+	{
+		uint32_t colorAttachment = subpass->colorAttachments[i].attachmentIndex;
+		if (colorAttachment != DS_NO_ATTACHMENT)
+		{
+			referenceAttachment = colorAttachment;
+			break;
+		}
+	}
+	if (referenceAttachment == DS_NO_ATTACHMENT)
+		referenceAttachment = subpass->depthStencilAttachment;
+
+	uint32_t samples = DS_DEFAULT_ANTIALIAS_SAMPLES;
+	if (referenceAttachment != DS_NO_ATTACHMENT)
+		samples = attachments[referenceAttachment].samples;
+
+	if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+		samples = renderer->surfaceSamples;
+
+	// Don't use default anisotropy if default isn't used within the shaders.
+	float anisotropy = renderer->defaultAnisotropy;
+	if (!vkShader->samplersHaveDefaultAnisotropy)
+		anisotropy = 1.0f;
+
+	uint32_t hash = dsVkPipeline_hash(samples, anisotropy, primitiveType, formats, renderPass,
+		subpassIndex);
+
+	DS_VERIFY(dsSpinlock_lock(&vkShader->pipelineLock));
+
+	// Search for an existing pipeline
+	for (uint32_t i = 0; i < vkShader->pipelineCount; ++i)
+	{
+		dsVkPipeline* pipeline = vkShader->pipelines[i];
+		if (dsVkPipeline_isEquivalent(pipeline, hash, samples, anisotropy,
+			primitiveType, formats, renderPass, subpassIndex))
+		{
+			VkPipeline vkPipeline = pipeline->pipeline;
+			if (!dsVkCommandBuffer_addResource(commandBuffer, &pipeline->resource))
+				vkPipeline = 0;
+			DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+			return vkPipeline;
+		}
+	}
+
+	// Add a new pipeline if not present.
+	uint32_t index = vkShader->pipelineCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(vkShader->scratchAllocator, vkShader->pipelines,
+		vkShader->pipelineCount, vkShader->maxPipelines, 1))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+		return 0;
+	}
+
+	vkShader->pipelines[index] = dsVkPipeline_create(vkShader->scratchAllocator, shader,
+		index > 0 ? vkShader->pipelines[0]->pipeline : 0, hash, samples, anisotropy, primitiveType,
+		formats, renderPass, subpassIndex);
+
+	VkPipeline vkPipeline = 0;
+	if (vkShader->pipelines[index])
+		vkPipeline = vkShader->pipelines[index]->pipeline;
+	else
+		--vkShader->pipelineCount;
+
+	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+
+	return vkPipeline;
 }

@@ -392,6 +392,36 @@ VkShaderStageFlagBits dsVkShaderStage(mslStage stage)
 			return VK_SHADER_STAGE_COMPUTE_BIT;
 		default:
 			DS_ASSERT(false);
-			return VK_SHADER_STAGE_VERTEX_BIT;
+			return 0;
+	}
+}
+
+VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type)
+{
+	switch (type)
+	{
+		case dsPrimitiveType_PointList:
+			return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		case dsPrimitiveType_LineList:
+			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+		case dsPrimitiveType_LineStrip:
+			return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+		case dsPrimitiveType_TriangleList:
+			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		case dsPrimitiveType_TriangleStrip:
+			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		case dsPrimitiveType_TriangleFan:
+			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+		case dsPrimitiveType_LineListAdjacency:
+			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+		case dsPrimitiveType_TriangleListAdjacency:
+			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+		case dsPrimitiveType_TriangleStripAdjacency:
+			return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+		case dsPrimitiveType_PatchList:
+			return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+		default:
+			DS_ASSERT(false);
+			return 0;
 	}
 }

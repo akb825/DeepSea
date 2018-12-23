@@ -44,3 +44,5 @@ bool dsVkShader_addMaterial(dsShader* shader, dsDeviceMaterial* material);
 void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material);
 dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* commandBuffer);
 VkPipeline dsVkShader_getComputePipeline(dsShader* shader, dsCommandBuffer* commandBuffer);
+VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuffer,
+	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS]);

@@ -441,7 +441,7 @@ typedef struct dsVkPipeline
 
 	uint32_t hash;
 	uint32_t samples;
-	uint32_t defaultAnisotropy;
+	float defaultAnisotropy;
 	uint32_t subpass;
 	dsPrimitiveType primitiveType;
 	dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
@@ -465,9 +465,6 @@ typedef struct dsVkShader
 	mslSizedData spirv[mslStage_Count];
 	VkShaderModule shaders[mslStage_Count];
 	VkPipelineLayout layout;
-
-	VkRenderPass dummyRenderPass;
-	VkPipeline dummyGraphicsPipeline;
 
 	VkPipelineTessellationStateCreateInfo tessellationInfo;
 	VkPipelineViewportStateCreateInfo viewportInfo;
@@ -507,6 +504,15 @@ typedef struct dsVkShader
 	dsSpinlock pipelineLock;
 	dsSpinlock samplerLock;
 } dsVkShader;
+
+typedef struct dsVkRenderPass
+{
+	dsRenderPass renderPass;
+	dsVkResource resource;
+	dsLifetime* lifetime;
+
+	VkRenderPass vkRenderPass;
+} dsVkRenderPass;
 
 typedef struct dsVkSubmitInfo
 {
