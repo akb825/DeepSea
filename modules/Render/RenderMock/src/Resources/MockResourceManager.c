@@ -25,12 +25,12 @@
 #include "Resources/MockRenderbuffer.h"
 #include "Resources/MockShader.h"
 #include "Resources/MockShaderModule.h"
-#include "Resources/MockShaderVariableGroupDesc.h"
 #include "Resources/MockTexture.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Render/Resources/DefaultShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Types.h>
@@ -211,8 +211,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->createMaterialDescFunc = &dsMockMaterialDesc_create;
 	resourceManager->destroyMaterialDescFunc = &dsMockMaterialDesc_destroy;
 
-	resourceManager->createShaderVariableGroupDescFunc = &dsMockShaderVariableGroupDesc_create;
-	resourceManager->destroyShaderVariableGroupDescFunc = &dsMockShaderVariableGroupDesc_destroy;
+	resourceManager->createShaderVariableGroupDescFunc = &dsDefaultShaderVariableGroupDesc_create;
+	resourceManager->destroyShaderVariableGroupDescFunc = &dsDefaultShaderVariableGroupDesc_destroy;
 
 	resourceManager->createShaderFunc = &dsMockShader_create;
 	resourceManager->destroyShaderFunc = &dsMockShader_destroy;

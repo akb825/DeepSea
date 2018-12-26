@@ -813,6 +813,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAllocateDescriptorSets);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFreeDescriptorSets);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkUpdateDescriptorSets);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBindDescriptorSets);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSampler);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySampler);
@@ -826,7 +827,17 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateComputePipelines);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateGraphicsPipelines);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBindPipeline);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyPipeline);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdPushConstants);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetLineWidth);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetBlendConstants);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetDepthBias);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetDepthBounds);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilCompareMask);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilWriteMask);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilReference);
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);

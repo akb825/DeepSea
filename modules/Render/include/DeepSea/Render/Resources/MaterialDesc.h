@@ -73,6 +73,16 @@ DS_RENDER_EXPORT uint32_t dsMaterialDesc_findElement(const dsMaterialDesc* mater
  */
 DS_RENDER_EXPORT bool dsMaterialDesc_destroy(dsMaterialDesc* materialDesc);
 
+/**
+ * @brief Converts from an MSL material type to a DeepSea material type.
+ *
+ * This is mainly used for internal implementations.
+ *
+ * @param type The MSL type to convert.
+ * @return The DeepSea material type.
+ */
+DS_RENDER_EXPORT dsMaterialType dsMaterialDesc_convertMaterialType(unsigned int type);
+
 #ifdef __cplusplus
 }
 #endif

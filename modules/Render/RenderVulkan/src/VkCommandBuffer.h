@@ -22,6 +22,7 @@
 void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
 	dsAllocator* allocator, dsCommandBufferUsage usage);
 
+void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer);
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback);
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
@@ -35,5 +36,7 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer);
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount);
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);
+
+uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);
 
 void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer);

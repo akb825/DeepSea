@@ -246,7 +246,7 @@ const dsMaterialDesc* dsMaterial_getDescription(const dsMaterial* material)
 	return material->description;
 }
 
-dsDeviceMaterial* dsMaterial_getDeviceMaterial(dsMaterial* material)
+dsDeviceMaterial* dsMaterial_getDeviceMaterial(const dsMaterial* material)
 {
 	if (!material)
 		return NULL;

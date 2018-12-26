@@ -36,6 +36,7 @@
 #include "VkInit.h"
 #include "VkResourceList.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
@@ -1000,6 +1001,8 @@ void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 	}
 	submit = vkRenderer->submits + vkRenderer->curSubmit;
 	vkRenderer->mainCommandBuffer.vkCommandBuffer = submit->renderCommands;
+	dsVkCommandBuffer_prepare(renderer->mainCommandBuffer);
+	DS_VK_CALL(device->vkResetCommandBuffer)(submit->resourceCommands, 0);
 
 	VkCommandBufferBeginInfo beginInfo =
 	{

@@ -16,6 +16,7 @@
 
 #include "Resources/VkResourceManager.h"
 
+#include "Resources/VkDeviceMaterial.h"
 #include "Resources/VkDrawGeometry.h"
 #include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxFence.h"
@@ -23,14 +24,17 @@
 #include "Resources/VkGfxQueryPool.h"
 #include "Resources/VkMaterialDesc.h"
 #include "Resources/VkRenderbuffer.h"
+#include "Resources/VkShader.h"
 #include "Resources/VkShaderModule.h"
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Streams/FileStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Resources/DefaultShaderVariableGroupDesc.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/ResourceManager.h>
 #include <DeepSea/Render/Resources/Shader.h>
@@ -837,6 +841,28 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	// Material descriptions
 	baseResourceManager->createMaterialDescFunc = &dsVkMaterialDesc_create;
 	baseResourceManager->destroyMaterialDescFunc = &dsVkMaterialDesc_destroy;
+
+	// Shader variable group descriptions
+	baseResourceManager->createShaderVariableGroupDescFunc =
+		&dsDefaultShaderVariableGroupDesc_create;
+	baseResourceManager->destroyShaderVariableGroupDescFunc =
+		&dsDefaultShaderVariableGroupDesc_destroy;
+
+	// Device materials
+	baseResourceManager->createDeviceMaterialFunc = &dsVkDeviceMaterial_create;
+	baseResourceManager->destroyDeviceMaterialFunc = &dsVkDeviceMaterial_destroy;
+
+	// Shaders
+	baseResourceManager->createShaderFunc = &dsVkShader_create;
+	baseResourceManager->destroyShaderFunc = &dsVkShader_destroy;
+	baseResourceManager->isShaderUniformInternalFunc = &dsVkShader_isUniformInternal;
+	baseResourceManager->bindShaderFunc = &dsVkShader_bind;
+	baseResourceManager->updateShaderVolatileValuesFunc = &dsVkShader_updateVolatileValues;
+	baseResourceManager->unbindShaderFunc = &dsVkShader_unbind;
+	baseResourceManager->bindComputeShaderFunc = &dsVkShader_bindCompute;
+	baseResourceManager->updateComputeShaderVolatileValuesFunc =
+		&dsVkShader_updateComputeVolatileValues;
+	baseResourceManager->unbindComputeShaderFunc = &dsVkShader_unbindCompute;
 
 	void* pipelineCacheData = NULL;
 	uint32_t pipelineCacheDataSize = 0;

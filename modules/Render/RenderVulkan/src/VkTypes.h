@@ -145,6 +145,7 @@ typedef struct dsVkDevice
 	PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
 	PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 	PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
+	PFN_vkCmdBindDescriptorSets vkCmdBindDescriptorSets;
 
 	PFN_vkCreateSampler vkCreateSampler;
 	PFN_vkDestroySampler vkDestroySampler;
@@ -158,7 +159,17 @@ typedef struct dsVkDevice
 
 	PFN_vkCreateComputePipelines vkCreateComputePipelines;
 	PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
+	PFN_vkCmdBindPipeline vkCmdBindPipeline;
 	PFN_vkDestroyPipeline vkDestroyPipeline;
+
+	PFN_vkCmdPushConstants vkCmdPushConstants;
+	PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
+	PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
+	PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
+	PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds;
+	PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask;
+	PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
+	PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
@@ -348,6 +359,9 @@ typedef struct dsVkMaterialDesc
 {
 	dsMaterialDesc materialDesc;
 	uint32_t* elementMappings;
+
+	// Index 0 for static material values.
+	// Index 1 for volatile material values.
 	VkDescriptorSetLayoutBinding* bindings[2];
 	VkDescriptorSetLayout descriptorSets[2];
 } dsVkMaterialDesc;
@@ -373,7 +387,6 @@ typedef struct dsVkTexelBufferBinding
 typedef struct dsVkGfxBufferBinding
 {
 	dsVkGfxBufferData* buffer;
-	dsGfxFormat format;
 	size_t offset;
 	size_t size;
 } dsVkGfxBufferBinding;
@@ -484,6 +497,10 @@ typedef struct dsVkShader
 	bool dynamicStencilCompareMask;
 	bool dynamicStencilWriteMask;
 	bool dynamicStencilReference;
+
+	float depthBiasConstantFactor;
+	float depthBiasClamp;
+	float depthBiasSlopeFactor;
 
 	dsVkComputePipeline* computePipeline;
 
@@ -614,11 +631,43 @@ typedef struct dsVkImageCopyInfo
 	uint32_t rangeCount;
 } dsVkImageCopyInfo;
 
+typedef struct dsVkVolatileDescriptorSets
+{
+	dsAllocator* allocator;
+	dsVkDevice* device;
+	VkDescriptorPool* descriptorPools;
+	uint32_t descriptorPoolCount;
+	uint32_t maxDescriptorPools;
+
+	VkDescriptorSet lastDescriptorSet;
+	VkDescriptorSetLayout lastLayout;
+
+	VkDescriptorImageInfo* images;
+	uint32_t imageCount;
+	uint32_t maxImages;
+
+	VkDescriptorBufferInfo* buffers;
+	uint32_t bufferCount;
+	uint32_t maxBuffers;
+
+	VkBufferView* texelBuffers;
+	uint32_t texelBufferCount;
+	uint32_t maxTexelBuffers;
+
+	VkWriteDescriptorSet* bindings;
+	uint32_t maxbindingCount;
+
+	uint32_t* offsets;
+	uint32_t offsetCount;
+	uint32_t maxOffsets;
+} dsVkVolatileDescriptorSets;
+
 typedef struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
 	VkCommandBuffer vkCommandBuffer;
 	dsVkBarrierList barriers;
+	dsVkVolatileDescriptorSets volatileDescriptorSets;
 
 	dsVkResource** usedResources;
 	uint32_t usedResourceCount;
@@ -632,6 +681,9 @@ typedef struct dsVkCommandBuffer
 	VkImageCopy* imageCopies;
 	uint32_t maxImageBarriers;
 	uint32_t maxImageCopies;
+
+	uint8_t* pushConstantBytes;
+	uint32_t maxPushConstantBytes;
 
 	bool fenceSet;
 	bool fenceReadback;

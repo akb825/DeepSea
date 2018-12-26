@@ -337,6 +337,7 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile)
 		case dsMaterialType_MutableTextureBuffer:
 			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 		case dsMaterialType_VariableGroup:
+			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		case dsMaterialType_UniformBlock:
 			if (isVolatile)
 				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;

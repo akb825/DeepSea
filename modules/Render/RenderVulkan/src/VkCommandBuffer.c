@@ -19,6 +19,8 @@
 #include "VkRendererInternal.h"
 #include "VkBarrierList.h"
 #include "VkShared.h"
+#include "VkVolatileDescriptorSets.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
@@ -187,6 +189,17 @@ void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	baseCommandBuffer->allocator = allocator;
 	baseCommandBuffer->usage = usage;
 	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
+	dsVkVolatileDescriptorSets_initialize(&commandBuffer->volatileDescriptorSets, allocator,
+		&vkRenderer->device);
+}
+
+void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkVolatileDescriptorSets_clear(&vkCommandBuffer->volatileDescriptorSets);
+	DS_VK_CALL(device->vkResetCommandBuffer)(vkCommandBuffer->vkCommandBuffer, 0);
 }
 
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback)
@@ -387,6 +400,20 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 	vkCommandBuffer->readbackOffscreenCount = 0;
 }
 
+uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	uint32_t count = 0;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->pushConstantBytes,
+		count, vkCommandBuffer->maxPushConstantBytes, size))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->pushConstantBytes;
+}
+
 void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 {
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
@@ -395,5 +422,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));
 	dsVkBarrierList_shutdown(&commandBuffer->barriers);
+	dsVkVolatileDescriptorSets_shutdown(&commandBuffer->volatileDescriptorSets);
 }

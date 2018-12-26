@@ -176,10 +176,18 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 			continue;
 
 		DS_ASSERT(index < deviceMaterial->bindingCount);
-		VkWriteDescriptorSet* binding = deviceMaterial->bindings + i;
+		VkWriteDescriptorSet* binding = deviceMaterial->bindings + index;
+		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		binding->pNext = NULL;
 		binding->dstSet = descriptor->set;
-
+		binding->dstBinding = vkMaterialDesc->elementMappings[i];
+		binding->dstArrayElement = 0;
+		binding->descriptorCount = 1;
+		binding->pImageInfo = NULL;
+		binding->pBufferInfo = NULL;
+		binding->pTexelBufferView = NULL;
 		++index;
+
 		switch (element->type)
 		{
 			case dsMaterialType_Texture:
@@ -211,6 +219,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 					imageInfo->imageView = 0;
 					imageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 				}
+				binding->pImageInfo = imageInfo;
 				++imageInfoIndex;
 				break;
 			}
@@ -218,14 +227,16 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 			case dsMaterialType_MutableTextureBuffer:
 			{
 				DS_ASSERT(bufferViewIndex < deviceMaterial->bufferViewCount);
-				dsVkTexelBufferBinding* binding = descriptor->texelBuffers + bufferViewIndex;
-				if (binding->buffer)
+				dsVkTexelBufferBinding* bufferBinding = descriptor->texelBuffers + bufferViewIndex;
+				if (bufferBinding->buffer)
 				{
 					deviceMaterial->bufferViews[bufferViewIndex] = dsVkGfxBufferData_getBufferView(
-						binding->buffer, binding->format, binding->offset, binding->count);
+						bufferBinding->buffer, bufferBinding->format, bufferBinding->offset,
+						bufferBinding->count);
 				}
 				else
 					deviceMaterial->bufferViews[bufferViewIndex] = 0;
+				binding->pTexelBufferView = deviceMaterial->bufferViews + bufferViewIndex;
 				++bufferViewIndex;
 				break;
 			}
@@ -234,16 +245,17 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 			case dsMaterialType_UniformBuffer:
 			{
 				DS_ASSERT(bufferInfoIndex < deviceMaterial->bufferInfoCount);
-				dsVkGfxBufferBinding* binding = descriptor->buffers + bufferInfoIndex;
+				dsVkGfxBufferBinding* bufferBinding = descriptor->buffers + bufferInfoIndex;
 				VkDescriptorBufferInfo* bufferInfo = deviceMaterial->bufferInfos + bufferInfoIndex;
-				if (binding->buffer)
+				if (bufferBinding->buffer)
 				{
-					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(binding->buffer);
+					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferBinding->buffer);
 				}
 				else
 					bufferInfo->buffer = 0;
-				bufferInfo->offset = binding->offset;
-				bufferInfo->range = binding->size;
+				bufferInfo->offset = bufferBinding->offset;
+				bufferInfo->range = bufferBinding->size;
+				binding->pBufferInfo = bufferInfo;
 				++bufferInfoIndex;
 				break;
 			}

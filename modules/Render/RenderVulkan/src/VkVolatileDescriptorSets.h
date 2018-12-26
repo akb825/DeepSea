@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,13 @@
 
 #pragma once
 
-#include <DeepSea/Render/Resources/Types.h>
+#include <DeepSea/Core/Config.h>
+#include "VkTypes.h"
 
-dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsShaderVariableElement* elements, uint32_t elementCount);
-bool dsMockShaderVariableGroupDesc_destroy(dsResourceManager* resourceManager,
-	dsShaderVariableGroupDesc* materialDesc);
+void dsVkVolatileDescriptorSets_initialize(dsVkVolatileDescriptorSets* descriptors,
+	dsAllocator* allocator, dsVkDevice* device);
+VkDescriptorSet dsVkVolatileDescriptorSets_createSet(dsVkVolatileDescriptorSets* descriptors,
+	dsCommandBuffer* commandBuffer, dsShader* shader,
+	const dsVolatileMaterialValues* volatileValues);
+void dsVkVolatileDescriptorSets_clear(dsVkVolatileDescriptorSets* descriptors);
+void dsVkVolatileDescriptorSets_shutdown(dsVkVolatileDescriptorSets* descriptors);

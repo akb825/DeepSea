@@ -76,7 +76,7 @@ DS_RENDER_EXPORT const dsMaterialDesc* dsMaterial_getDescription(const dsMateria
  * @param material The material.
  * @return The device material. This may be NULL if the implementation doesn't create one.
  */
-DS_RENDER_EXPORT dsDeviceMaterial* dsMaterial_getDeviceMaterial(dsMaterial* material);
+DS_RENDER_EXPORT dsDeviceMaterial* dsMaterial_getDeviceMaterial(const dsMaterial* material);
 
 /**
  * @brief Gets the data for an element of a primitive, vector, or matrix type.

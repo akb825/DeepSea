@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "Resources/MockShaderVariableGroupDesc.h"
+#include <DeepSea/Render/Resources/DefaultShaderVariableGroupDesc.h>
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -22,8 +23,9 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <string.h>
 
-dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsShaderVariableElement* elements, uint32_t elementCount)
+dsShaderVariableGroupDesc* dsDefaultShaderVariableGroupDesc_create(
+	dsResourceManager* resourceManager, dsAllocator* allocator,
+	const dsShaderVariableElement* elements, uint32_t elementCount)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
@@ -78,7 +80,7 @@ dsShaderVariableGroupDesc* dsMockShaderVariableGroupDesc_create(dsResourceManage
 	return groupDesc;
 }
 
-bool dsMockShaderVariableGroupDesc_destroy(dsResourceManager* resourceManager,
+bool dsDefaultShaderVariableGroupDesc_destroy(dsResourceManager* resourceManager,
 	dsShaderVariableGroupDesc* groupDesc)
 {
 	DS_UNUSED(resourceManager);

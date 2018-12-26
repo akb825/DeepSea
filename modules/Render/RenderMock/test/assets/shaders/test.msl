@@ -49,10 +49,15 @@ struct VertexOut
 	color = inputs.color*texture(diffuseTexture, inputs.texCoord);
 }
 
+[[compute]] void computeShader()
+{
+}
+
 pipeline Test
 {
 	vertex = vertexShader;
 	fragment = fragmentShader;
+	compute = computeShader;
 	blend_enable = true;
 	src_blend_factor = src_alpha;
 	dst_color_blend_factor = one_minus_src_alpha;
