@@ -12,6 +12,31 @@ ds_target_include_directories(deepsea_render_vulkan
 	${DEEPSEA_MODULE_DIR}/Render/RenderVulkan/src)
 ds_target_link_libraries(deepsea_render_vulkan PRIVATE msl_client)
 
+if (UNIX AND NOT APPLE)
+	find_package(X11 QUIET)
+	find_package(Wayland QUIET)
+endif()
+
+if (X11_FOUND)
+	ds_target_link_libraries(deepsea_render_vulkan PRIVATE ${X11_LIBRARIES})
+	ds_target_include_directories(deepsea_render_vulkan PRIVATE ${X11_INCLUDE_DIR})
+	ds_target_compile_definitions(deepsea_render_vulkan PRIVATE DS_VK_HAS_X11=1)
+else()
+	ds_target_compile_definitions(deepsea_render_vulkan PRIVATE DS_VK_HAS_X11=0)
+endif()
+
+if (WAYLAND_FOUND)
+	ds_target_link_libraries(deepsea_render_vulkan PRIVATE ${WAYLAND_LIBRARIES})
+	ds_target_include_directories(deepsea_render_vulkan PRIVATE ${WAYLAND_INCLUDE_DIR})
+	ds_target_compile_definitions(deepsea_render_vulkan PRIVATE DS_VK_HAS_WAYLAND=1)
+else()
+	ds_target_compile_definitions(deepsea_render_vulkan PRIVATE DS_VK_HAS_WAYLAND=0)
+endif()
+
+if (ANDROID)
+	ds_target_link_libraries(deepsea_render_vulkan PRIVATE android)
+endif()
+
 file(GLOB shaderConfigs msl-config/*)
 ds_install_library(TARGET deepsea_render_vulkan MODULE RenderVulkan DEPENDS Render
 	CONFIG_FILES ${shaderConfigs}

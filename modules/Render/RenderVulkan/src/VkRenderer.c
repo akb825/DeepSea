@@ -881,6 +881,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	dsVkDevice* device = &renderer->device;
 	dsVkInstance* instance = &device->instance;
 
+	baseRenderer->platform = options->platform;
 	baseRenderer->rendererID = DS_VK_RENDERER_ID;
 	baseRenderer->platformID = 0;
 	baseRenderer->name = "Vulkan";
@@ -938,6 +939,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;
 	}
+
+	baseRenderer->destroyFunc = &dsVkRenderer_destroy;
 
 	return baseRenderer;
 }

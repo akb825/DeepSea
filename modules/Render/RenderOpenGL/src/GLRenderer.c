@@ -624,6 +624,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
+	baseRenderer->platform = options->platform;
 	if (ANYGL_GLES)
 		baseRenderer->rendererID = DS_GLES_RENDERER_ID;
 	else

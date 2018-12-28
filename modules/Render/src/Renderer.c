@@ -183,6 +183,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	if (!options)
 		return;
 
+	options->platform = dsGfxPlatform_Default;
 	options->display = NULL;
 	options->applicationName = applicationName;
 	options->applicationVersion = applicationVersion;

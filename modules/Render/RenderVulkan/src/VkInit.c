@@ -16,6 +16,7 @@
 
 #include "VkInit.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -78,6 +79,10 @@ typedef struct InstanceExtensions
 	bool initialized;
 	bool debug;
 	bool deviceInfo;
+	bool hasXlib;
+	bool hasWayland;
+	bool hasWin32;
+	bool hasAndroid;
 } InstanceExtensions;
 
 typedef struct ExtraDeviceInfo
@@ -86,6 +91,12 @@ typedef struct ExtraDeviceInfo
 	bool supportsGraphics;
 } ExtraDeviceInfo;
 
+static const char* swapChainExtensionName = "VK_KHR_swapchain";
+static const char* surfaceExtensionName = "VK_KHR_surface";
+static const char* xlibDisplayExtensionName = "VK_KHR_xlib_surface";
+static const char* waylandDisplayExtensionName = "VK_KHR_wayland_surface";
+static const char* win32DisplayExtensionName = "VK_KHR_win32_surface";
+static const char* androidDisplayExtensionName = "VK_KHR_android_surface";
 static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
 static const char* debugExtensionName = "VK_EXT_debug_utils";
 static const char* devicePropertiesExtensionName = "VK_KHR_get_physical_device_properties2";
@@ -217,6 +228,8 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 
 	uint32_t extensionCount = 0;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
+	bool hasSwapChain = false;
+	bool hasSurface = false;
 	bool hasDeviceProperties = false;
 	bool hasMemoryCapabilities = false;
 	VkExtensionProperties* extensions =
@@ -227,14 +240,33 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
-		if (strcmp(extensions[i].extensionName, devicePropertiesExtensionName) == 0)
+		if (strcmp(extensions[i].extensionName, swapChainExtensionName) == 0)
+			hasSwapChain = true;
+		else if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
+			hasSurface = true;
+		else if (strcmp(extensions[i].extensionName, devicePropertiesExtensionName) == 0)
 			hasDeviceProperties = true;
 		else if (strcmp(extensions[i].extensionName, memoryCapabilitiesExtensionName) == 0)
 			hasMemoryCapabilities = true;
 		else if (hasDebugLayer && strcmp(extensions[i].extensionName, debugExtensionName) == 0)
 			instanceExtensions.debug = true;
+		else if (strcmp(extensions[i].extensionName, xlibDisplayExtensionName) == 0)
+			instanceExtensions.hasXlib = true;
+		else if (strcmp(extensions[i].extensionName, waylandDisplayExtensionName) == 0)
+			instanceExtensions.hasWayland = true;
+		else if (strcmp(extensions[i].extensionName, win32DisplayExtensionName) == 0)
+			instanceExtensions.hasWin32 = true;
+		else if (strcmp(extensions[i].extensionName, androidDisplayExtensionName) == 0)
+			instanceExtensions.hasAndroid = true;
 	}
 	free(extensions);
+
+	if (!hasSwapChain || !hasSurface)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Vulkan requires swap chain supports.");
+		return false;
+	}
 
 	if (hasDeviceProperties && hasMemoryCapabilities)
 		instanceExtensions.deviceInfo = true;
@@ -253,14 +285,15 @@ static void addLayers(const char** layerNames, uint32_t* layerCount,
 static void addInstanceExtensions(const char** extensionNames, uint32_t* extensionCount,
 	const dsRendererOptions* options)
 {
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_surface");
-#if DS_WINDOWS
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_win32_surface");
-#elif DS_ANDROID
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_android_surface");
-#else
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_xlib_surface");
-#endif
+	DS_ADD_EXTENSION(extensionNames, *extensionCount, surfaceExtensionName);
+	if (instanceExtensions.hasXlib)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, xlibDisplayExtensionName);
+	if (instanceExtensions.hasWayland)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, waylandDisplayExtensionName);
+	if (instanceExtensions.hasWin32)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, win32DisplayExtensionName);
+	if (instanceExtensions.hasAndroid)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, androidDisplayExtensionName);
 
 	if (instanceExtensions.deviceInfo)
 	{
@@ -303,7 +336,7 @@ static void addDeviceExtensions(dsVkDevice* device, dsAllocator* allocator,
 	const char** extensionNames, uint32_t* extensionCount)
 {
 	findDeviceExtensions(device, allocator);
-	DS_ADD_EXTENSION(extensionNames, *extensionCount, "VK_KHR_swapchain");
+	DS_ADD_EXTENSION(extensionNames, *extensionCount, swapChainExtensionName);
 	if (device->hasPVRTC)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, pvrtcExtensionName);
 }
@@ -445,7 +478,8 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	}
 
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateInstance);
-	queryInstanceExtensions(instance);
+	if (!queryInstanceExtensions(instance))
+		return false;
 
 	const char* enabledLayers[DS_MAX_ENABLED_EXTENSIONS];
 	uint32_t enabledLayerCount = 0;
@@ -516,6 +550,10 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceImageFormatProperties);
+
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroySurfaceKHR);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
 
 	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
 	{
@@ -740,6 +778,13 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSwapchainKHR);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySwapchainKHR);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetSwapchainStatusKHR);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetSwapchainImagesKHR);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAcquireNextImageKHR);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueuePresentKHR);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateCommandPool);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkResetCommandPool);

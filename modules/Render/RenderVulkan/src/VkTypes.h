@@ -22,6 +22,8 @@
 #include <DeepSea/RenderVulkan/RendererIDs.h>
 
 #include <MSL/Client/ModuleC.h>
+
+#define VK_NO_PROTOTYPES
 #include <vulkan/vulkan_core.h>
 
 #define DS_NOT_SUBMITTED (uint64_t)-1
@@ -55,6 +57,10 @@ typedef struct dsVkInstance
 	PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
 	PFN_vkGetPhysicalDeviceImageFormatProperties vkGetPhysicalDeviceImageFormatProperties;
 
+	PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
+	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
+	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
+
 	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 	PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 	PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
@@ -73,6 +79,13 @@ typedef struct dsVkDevice
 
 	PFN_vkDestroyDevice vkDestroyDevice;
 	PFN_vkGetDeviceQueue vkGetDeviceQueue;
+
+	PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+	PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
+	PFN_vkGetSwapchainStatusKHR vkGetSwapchainStatusKHR;
+	PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
+	PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+	PFN_vkQueuePresentKHR vkQueuePresentKHR;
 
 	PFN_vkCreateCommandPool vkCreateCommandPool;
 	PFN_vkResetCommandPool vkResetCommandPool;
@@ -688,6 +701,22 @@ typedef struct dsVkCommandBuffer
 	bool fenceSet;
 	bool fenceReadback;
 } dsVkCommandBuffer;
+
+typedef void* (*dsVkGetDisplayFunction)(void);
+typedef void (*dsVkReleaseDisplayFunction)(void* display);
+typedef VkSurfaceKHR (*dsVkCreateSurfaceFunction)(dsVkInstance* instance, void* display,
+	void* window);
+
+typedef struct dsVkPlatform
+{
+	dsVkGetDisplayFunction getDisplayFunc;
+	dsVkReleaseDisplayFunction releaseDisplayFunc;
+	dsVkCreateSurfaceFunction createSurfaceFunc;
+
+	dsVkDevice* device;
+	void* display;
+	bool createdDisplay;
+} dsVkPlatform;
 
 typedef struct dsVkRenderer
 {

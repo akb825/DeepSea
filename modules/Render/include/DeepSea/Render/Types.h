@@ -179,6 +179,19 @@ typedef enum dsGfxAccess
 } dsGfxAccess;
 
 /**
+ * @brief Enum for the platform for the graphics system.
+ *
+ * In many cases only a single choice is available. This enum will only contain the platforms that
+ * can be chosen.
+ */
+typedef enum dsGfxPlatform
+{
+	dsGfxPlatform_Default, ///< The default platform.
+	dsGfxPlatform_X11,     ///< X11 windowing platform. This is the default on Linux.
+	dsGfxPlatform_Wayland  ///< Wayland windowing platform.
+} dsGfxPlatform;
+
+/**
  * @brief Base object for interfacing with the DeepSea Render library.
  *
  * To ensure a lack of contention for system resources, only one dsRenderer instance should be used
@@ -239,6 +252,11 @@ typedef struct dsRenderDeviceInfo
  */
 typedef struct dsRendererOptions
 {
+	/**
+	 * @brief The graphics windowing platform.
+	 */
+	dsGfxPlatform platform;
+
 	/**
 	 * @brief The platform display.
 	 */
@@ -1418,6 +1436,11 @@ struct dsRenderer
 	dsCommandBuffer* mainCommandBuffer;
 
 	// --------------------------------- Renderer information --------------------------------------
+
+	/**
+	 * @brief The graphics windowing platform.
+	 */
+	dsGfxPlatform platform;
 
 	/**
 	 * @brief The ID of the renderer.

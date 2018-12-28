@@ -817,14 +817,18 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	SDL_SetHint(SDL_HINT_FRAMEBUFFER_ACCELERATION, "1");
 	const char* driver = NULL;
 #if DS_LINUX && !DS_ANDROID
-	if (renderer->surfaceConfig)
+	if (renderer->platform == dsGfxPlatform_Wayland)
+		driver = "wayland";
+	else
 	{
-		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
+		if (renderer->surfaceConfig)
+		{
+			setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
 
-		char visualId[20];
-		snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
-		setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
-
+			char visualId[20];
+			snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
+			setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
+		}
 		driver = "x11";
 	}
 #elif DS_WINDOWS

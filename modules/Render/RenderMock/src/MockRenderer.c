@@ -382,6 +382,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 
 	renderer->allocator = dsAllocator_keepPointer(allocator);
 	renderer->resourceManager = resourceManager;
+	renderer->platform = dsGfxPlatform_Default;
 	renderer->rendererID = DS_MOCK_RENDERER_ID;
 	renderer->platformID = DS_MOCK_RENDERER_ID;
 	renderer->name = "Mock";
