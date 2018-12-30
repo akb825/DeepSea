@@ -554,6 +554,7 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroySurfaceKHR);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
+	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
 
 	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
 	{
@@ -803,6 +804,9 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyFence);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkResetFences);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkWaitForFences);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSemaphore);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySemaphore);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAllocateMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkFreeMemory);

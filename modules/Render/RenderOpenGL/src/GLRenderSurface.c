@@ -101,7 +101,7 @@ bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuf
 }
 
 bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	size_t count)
+	uint32_t count)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(renderSurfaces);

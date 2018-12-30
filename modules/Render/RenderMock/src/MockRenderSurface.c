@@ -83,7 +83,7 @@ bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 }
 
 bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	size_t count)
+	uint32_t count)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);

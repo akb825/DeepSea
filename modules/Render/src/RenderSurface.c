@@ -217,7 +217,7 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 	return ended;
 }
 
-bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count)
+bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t count)
 {
 	DS_PROFILE_WAIT_START(__FUNCTION__);
 

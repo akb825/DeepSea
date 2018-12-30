@@ -34,7 +34,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle);
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface);
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync);
+void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync);
 void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* surface);
 
 bool dsBindGLContext(void* display, void* context, void* surface);

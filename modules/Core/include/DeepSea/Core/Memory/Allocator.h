@@ -29,7 +29,7 @@ extern "C"
 
 /**
  * @file
- * @brief Structure that defines a memory allocator.
+ * @brief Functions for working with a base allocator.
  * @see dsAllocator
  */
 

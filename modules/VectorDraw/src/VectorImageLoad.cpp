@@ -18,6 +18,8 @@
 
 #include "Flatbuffers/VectorImage_generated.h"
 #include "VectorScratchDataImpl.h"
+
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
@@ -27,12 +29,6 @@
 #include <DeepSea/VectorDraw/VectorMaterial.h>
 #include <DeepSea/VectorDraw/VectorMaterialSet.h>
 #include <DeepSea/VectorDraw/VectorResources.h>
-
-#if DS_WINDOWS
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 
 static void printFlatbufferError(const char* name)
 {
@@ -56,8 +52,7 @@ static dsGradient* readGradient(dsAllocator* allocator,
 		return nullptr;
 	}
 
-	auto gradientStops =
-		reinterpret_cast<dsGradientStop*>(alloca(stopCount*sizeof(dsGradientStop)));
+	auto gradientStops = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsGradientStop, stopCount);
 	for (uint32_t i = 0; i < stopCount; ++i)
 	{
 		auto stopRef = stopArray[i];

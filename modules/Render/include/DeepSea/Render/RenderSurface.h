@@ -96,7 +96,7 @@ DS_RENDER_EXPORT bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurfa
  * @param count The number of render surfaces to swap.
  * @return False if the buffers couldn't be swapped.
  */
-DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, size_t count);
+DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t count);
 
 /**
  * @brief Destroys a render surface.

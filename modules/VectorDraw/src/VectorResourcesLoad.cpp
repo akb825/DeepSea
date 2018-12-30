@@ -17,18 +17,14 @@
 #include <DeepSea/VectorDraw/VectorResources.h>
 
 #include "Flatbuffers/VectorResources_generated.h"
+
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Text/FaceGroup.h>
 #include <DeepSea/Text/Font.h>
 #include <algorithm>
-
-#if DS_WINDOWS
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 
 static void printFlatbufferError(const char* name)
 {
@@ -156,7 +152,7 @@ dsVectorResources* dsVectorResources_loadImpl(dsAllocator* allocator, dsAllocato
 
 		maxFaces = std::max(maxFaces, fontRef->faces()->size());
 	}
-	const char** faceList = (const char**)alloca(maxFaces*sizeof(const char*));
+	const char** faceList = DS_ALLOCATE_STACK_OBJECT_ARRAY(const char*, maxFaces);
 
 	for (uint32_t i = 0; i < fontCount; ++i)
 	{

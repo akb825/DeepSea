@@ -17,6 +17,7 @@
 #include <DeepSea/RenderVulkan/VkRenderer.h>
 #include "VkRendererInternal.h"
 
+#include "Platform/VkPlatform.h"
 #include "Resources/VkComputePipeline.h"
 #include "Resources/VkCopyImage.h"
 #include "Resources/VkGfxBuffer.h"
@@ -34,6 +35,8 @@
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
 #include "VkInit.h"
+#include "VkRenderSurface.h"
+#include "VkRenderSurfaceData.h"
 #include "VkResourceList.h"
 #include "VkShared.h"
 
@@ -90,6 +93,13 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 		0
 	};
 
+	VkSemaphoreCreateInfo semaphoreCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+		NULL,
+		0
+	};
+
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{
 		dsVkSubmitInfo* submit = renderer->submits + i;
@@ -101,6 +111,11 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 
 		result = DS_VK_CALL(device->vkCreateFence)(device->device, &fenceCreateInfo,
 			instance->allocCallbacksPtr, &submit->fence);
+		if (!dsHandleVkResult(result))
+			return false;
+
+		result = DS_VK_CALL(device->vkCreateSemaphore)(device->device, &semaphoreCreateInfo,
+			instance->allocCallbacksPtr, &submit->semaphore);
 		if (!dsHandleVkResult(result))
 			return false;
 	}
@@ -164,6 +179,9 @@ static void freeAllResources(dsVkResourceList* deleteList)
 
 	for (uint32_t i = 0; i < deleteList->pipelineCount; ++i)
 		dsVkPipeline_destroy(deleteList->pipelines[i]);
+
+	for (uint32_t i = 0; i < deleteList->renderSurfaceCount; ++i)
+		dsVkRenderSurfaceData_destroy(deleteList->renderSurfaces[i]);
 
 	dsVkResourceList_clear(deleteList);
 }
@@ -341,6 +359,20 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkPipeline_destroy(pipeline);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->renderSurfaceCount; ++i)
+	{
+		dsVkRenderSurfaceData* surface = prevDeleteList->renderSurfaces[i];
+		DS_ASSERT(surface);
+
+		if (dsVkResource_isInUse(&surface->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteRenderSurface(baseRenderer, surface);
+			continue;
+		}
+
+		dsVkRenderSurfaceData_destroy(surface);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -756,6 +788,12 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 			DS_VK_CALL(device->vkDestroyFence)(device->device, submit->fence,
 				instance->allocCallbacksPtr);
 		}
+
+		if (submit->semaphore)
+		{
+			DS_VK_CALL(device->vkDestroySemaphore)(device->device, submit->semaphore,
+				instance->allocCallbacksPtr);
+		}
 	}
 
 	if (vkRenderer->commandPool)
@@ -778,6 +816,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	}
 
 	dsVkResourceManager_destroy(renderer->resourceManager);
+	dsVkPlatform_shutdown(&vkRenderer->platform);
 	dsDestroyVkDevice(device);
 	dsDestroyVkInstance(&device->instance);
 	dsSpinlock_shutdown(&vkRenderer->resourceLock);
@@ -868,6 +907,13 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
+	if (!dsVkPlatform_initialize(&renderer->platform, &renderer->device, options->platform,
+		options->display))
+	{
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
 	dsVkCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
 		dsCommandBufferUsage_Standard);
 
@@ -942,10 +988,18 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	baseRenderer->destroyFunc = &dsVkRenderer_destroy;
 
+	// Render surfaces
+	baseRenderer->createRenderSurfaceFunc = &dsVkRenderSurface_create;
+	baseRenderer->destroyRenderSurfaceFunc = &dsVkRenderSurface_destroy;
+	baseRenderer->updateRenderSurfaceFunc = &dsVkRenderSurface_update;
+	baseRenderer->beginRenderSurfaceFunc = &dsVkRenderSurface_beginDraw;
+	baseRenderer->endRenderSurfaceFunc = &dsVkRenderSurface_endDraw;
+	baseRenderer->swapRenderSurfaceBuffersFunc = &dsVkRenderSurface_swapBuffers;
+
 	return baseRenderer;
 }
 
-void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
+VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
@@ -991,9 +1045,10 @@ void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 		NULL,
 		0, NULL, NULL,
 		2, &submit->resourceCommands,
-		0, NULL
+		1, &submit->semaphore
 	};
 	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
+	VkSemaphore submittedSemaphore = submit->semaphore;
 
 	// Update the main command buffer.
 	dsVkCommandBuffer_submittedResources(renderer->mainCommandBuffer, vkRenderer->submitCount);
@@ -1016,6 +1071,7 @@ void dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 	};
 	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->resourceCommands, &beginInfo);
 	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->renderCommands, &beginInfo);
+	return submittedSemaphore;
 }
 
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
@@ -1272,5 +1328,17 @@ void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addPipeline(resourceList, pipeline);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface)
+{
+	DS_ASSERT(surface);
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addRenderSurface(resourceList, surface);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

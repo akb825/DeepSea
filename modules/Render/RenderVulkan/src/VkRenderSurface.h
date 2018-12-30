@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2018 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Types.h>
+#include "VkTypes.h"
 
-dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
+dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* osHandle, dsRenderSurfaceType type);
-bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
-bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface);
+bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
-bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
-bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
+bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
 	uint32_t count);
-bool dsGLRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);
+bool dsVkRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

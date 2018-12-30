@@ -26,5 +26,5 @@ bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* comman
 bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface);
 bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	size_t count);
+	uint32_t count);
 bool dsMockRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

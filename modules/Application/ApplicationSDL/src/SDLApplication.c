@@ -20,9 +20,11 @@
 #include "SDLKeyboard.h"
 #include "SDLShared.h"
 #include "SDLWindow.h"
+
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/Window.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Path.h>
 #include <DeepSea/Core/Assert.h>
@@ -38,12 +40,6 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-
-#if DS_WINDOWS
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 
 #define DS_MAX_WINDOWS 100U
 
@@ -83,8 +79,8 @@ static uint32_t showMessageBoxImpl(SDL_Window* parentWindow, dsMessageBoxType ty
 	messageBox.numbuttons = buttonCount;
 	messageBox.colorScheme = NULL;
 
-	SDL_MessageBoxButtonData* buttonData =
-		(SDL_MessageBoxButtonData*)alloca(sizeof(SDL_MessageBoxButtonData)*buttonCount);
+	SDL_MessageBoxButtonData* buttonData = DS_ALLOCATE_STACK_OBJECT_ARRAY(SDL_MessageBoxButtonData,
+		buttonCount);
 	for (uint32_t i = 0; i < buttonCount; ++i)
 	{
 		buttonData[i].flags = 0;

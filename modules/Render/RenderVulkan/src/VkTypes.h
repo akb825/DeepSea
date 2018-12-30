@@ -60,6 +60,7 @@ typedef struct dsVkInstance
 	PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
 	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
 	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
+	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 
 	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 	PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
@@ -103,6 +104,9 @@ typedef struct dsVkDevice
 	PFN_vkCreateFence vkCreateFence;
 	PFN_vkDestroyFence vkDestroyFence;
 	PFN_vkResetFences vkResetFences;
+
+	PFN_vkCreateSemaphore vkCreateSemaphore;
+	PFN_vkDestroySemaphore vkDestroySemaphore;
 
 	PFN_vkWaitForFences vkWaitForFences;
 	PFN_vkAllocateMemory vkAllocateMemory;
@@ -561,7 +565,56 @@ typedef struct dsVkSubmitInfo
 	VkCommandBuffer resourceCommands;
 	VkCommandBuffer renderCommands;
 	VkFence fence;
+	VkSemaphore semaphore;
 } dsVkSubmitInfo;
+
+typedef struct dsVkSurfaceImageData
+{
+	VkSemaphore semaphore;
+	uint64_t lastUsedSubmit;
+} dsVkSurfaceImageData;
+
+typedef struct dsVkRenderSurfaceData
+{
+	dsAllocator* allocator;
+	dsRenderer* renderer;
+	dsVkResource resource;
+
+	VkSwapchainKHR swapchain;
+	VkImage* images;
+	VkImageView* imageViews;
+	dsVkSurfaceImageData* imageData;
+	uint32_t imageCount;
+
+	uint32_t width;
+	uint32_t height;
+
+	bool vsync;
+	bool canBlitFrom;
+	bool canBlitTo;
+
+	uint32_t imageIndex;
+	uint32_t imageDataIndex;
+
+	VkDeviceMemory resolveMemory;
+	VkImage resolveImage;
+	VkImageView resolveImageView;
+
+	VkDeviceMemory depthMemory;
+	VkImage depthImage;
+	VkImageView depthImageView;
+} dsVkRenderSurfaceData;
+
+typedef struct dsVkRenderSurface
+{
+	dsRenderSurface renderSurface;
+	dsAllocator* scratchAllocator;
+
+	VkSurfaceKHR surface;
+	dsVkRenderSurfaceData* surfaceData;
+	uint64_t updatedFrame;
+	dsSpinlock lock;
+} dsVkRenderSurface;
 
 typedef struct dsVkResourceList
 {
@@ -610,6 +663,10 @@ typedef struct dsVkResourceList
 	dsVkPipeline** pipelines;
 	uint32_t pipelineCount;
 	uint32_t maxPipelines;
+
+	dsVkRenderSurfaceData** renderSurfaces;
+	uint32_t renderSurfaceCount;
+	uint32_t maxRenderSurfaces;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
@@ -722,6 +779,7 @@ typedef struct dsVkRenderer
 {
 	dsRenderer renderer;
 	dsVkDevice device;
+	dsVkPlatform platform;
 
 	dsSpinlock resourceLock;
 	dsSpinlock deleteLock;

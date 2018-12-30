@@ -23,9 +23,11 @@
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
@@ -35,12 +37,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <string.h>
-
-#if DS_WINDOWS
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 
 static size_t fullAllocSize(const dsTextureInfo* info, bool needsHost)
 {
@@ -620,8 +616,8 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	}
 	else
 	{
-		imageCopies = (VkImageCopy*)alloca(sizeof(VkImageCopy)*regionCount);
-		imageBarriers = (VkImageMemoryBarrier*)alloca(sizeof(VkImageMemoryBarrier)*regionCount);
+		imageCopies = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkImageCopy, regionCount);
+		imageBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkImageMemoryBarrier, regionCount);
 	}
 
 	VkImageAspectFlags srcAspectMask = dsVkImageAspectFlags(srcTexture->info.format);

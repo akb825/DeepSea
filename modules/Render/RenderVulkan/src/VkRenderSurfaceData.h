@@ -19,8 +19,14 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-bool dsVkPlatform_initialize(dsVkPlatform* platform, dsVkDevice* device,
-	dsGfxPlatform gfxPlatform, void* display);
-VkSurfaceKHR dsVkPlatform_createSurface(dsVkPlatform* platform, void* window);
-void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface);
-void dsVkPlatform_shutdown(dsVkPlatform* platform);
+typedef enum dsVkSurfaceResult
+{
+	dsVkSurfaceResult_Success,
+	dsVkSurfaceResult_Error,
+	dsVkSurfaceResult_OutOfDate,
+} dsVkSurfaceResult;
+
+dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
+	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain);
+dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData);
+void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData);

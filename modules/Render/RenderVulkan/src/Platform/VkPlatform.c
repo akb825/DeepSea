@@ -105,22 +105,6 @@ void dsVkPlatform_destroySurface(dsVkPlatform* platform, VkSurfaceKHR surface)
 		instance->allocCallbacksPtr);
 }
 
-bool dsVkPlatform_getSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, dsVkPlatform* platform,
-	VkSurfaceKHR surface)
-{
-	dsVkDevice* device = platform->device;
-	dsVkInstance* instance = &device->instance;
-	VkSurfaceCapabilitiesKHR capabilities;
-	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
-		device->physicalDevice, surface, &capabilities);
-	if (!dsHandleVkResult(result))
-		return false;
-
-	*outWidth = capabilities.currentExtent.width;
-	*outHeight = capabilities.currentExtent.height;
-	return true;
-}
-
 void dsVkPlatform_shutdown(dsVkPlatform* platform)
 {
 	if (platform->releaseDisplayFunc && platform->createdDisplay)

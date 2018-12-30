@@ -62,6 +62,13 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 			*outHeight = realSurface->height;
 			*outLayers = 1;
 			*outMipLevels = 1;
+
+			if (renderer->surfaceSamples > 1)
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot blit mipmapped surfaces.");
+				return false;
+			}
 			break;
 		}
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:

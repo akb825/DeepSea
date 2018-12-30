@@ -16,6 +16,7 @@
 
 #include <DeepSea/VectorDraw/VectorShaderModule.h>
 
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -24,12 +25,6 @@
 #include <DeepSea/Render/Resources/MaterialDesc.h>
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <string.h>
-
-#if DS_WINDOWS
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 
 // Transform group
 
@@ -97,8 +92,8 @@ static dsVectorShaderModule* createVectorShaderModule(dsResourceManager* resourc
 	if (customElements && customElementCount > 0)
 	{
 		finalMaterialElementCount += customElementCount;
-		finalMaterialElements = (dsMaterialElement*)alloca(
-			sizeof(dsMaterialElement)*finalMaterialElementCount);
+		finalMaterialElements = DS_ALLOCATE_STACK_OBJECT_ARRAY(dsMaterialElement,
+			finalMaterialElementCount);
 		memcpy(finalMaterialElements, materialElements,
 			sizeof(dsMaterialElement)*DS_ARRAY_SIZE(materialElements));
 		memcpy(finalMaterialElements + DS_ARRAY_SIZE(materialElements), customElements,

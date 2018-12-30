@@ -1053,7 +1053,7 @@ typedef bool (*dsEndRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer
  * @return False if the buffers couldn't be swapped.
  */
 typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
-	dsRenderSurface** renderSurfaces, size_t count);
+	dsRenderSurface** renderSurfaces, uint32_t count);
 
 /**
  * @brief Function for creating a command buffer pool.

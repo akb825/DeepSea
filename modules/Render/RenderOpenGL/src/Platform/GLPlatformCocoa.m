@@ -182,7 +182,7 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	return true;
 }
 
-void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, size_t count, bool vsync)
+void dsSwapGLBuffers(void* display, dsRenderSurface** renderSurfaces, uint32_t count, bool vsync)
 {
 	DS_UNUSED(display);
 	NSOpenGLContext* context = [NSOpenGLContext currentContext];
