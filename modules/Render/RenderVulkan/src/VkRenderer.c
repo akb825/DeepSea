@@ -43,6 +43,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
@@ -1039,11 +1040,30 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 		dsVkCommandBuffer_endSubmitCommands(renderer->mainCommandBuffer, submit->renderCommands);
 	DS_VK_CALL(device->vkEndCommandBuffer)(submit->renderCommands);
 
+	dsVkCommandBuffer* mainCommandBuffer = &vkRenderer->mainCommandBuffer;
+	DS_ASSERT(mainCommandBuffer->vkCommandBuffer == submit->renderCommands);
+	VkSemaphore* waitSemaphores = NULL;
+	VkPipelineStageFlags* waitStages = NULL;
+	if (mainCommandBuffer->renderSurfaceCount > 0)
+	{
+		waitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore,
+			mainCommandBuffer->renderSurfaceCount);
+		waitStages = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkPipelineStageFlags,
+			mainCommandBuffer->renderSurfaceCount);
+		for (uint32_t i = 0; i < mainCommandBuffer->renderSurfaceCount; ++i)
+		{
+			dsVkRenderSurfaceData* surface = mainCommandBuffer->renderSurfaces[i];
+			waitSemaphores[i] = surface->imageData[surface->imageDataIndex].semaphore;
+			waitStages[i] = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+	}
+
 	VkSubmitInfo submitInfo =
 	{
 		VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		NULL,
-		0, NULL, NULL,
+		mainCommandBuffer->renderSurfaceCount, waitSemaphores, waitStages,
 		2, &submit->resourceCommands,
 		1, &submit->semaphore
 	};
@@ -1052,13 +1072,14 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 
 	// Update the main command buffer.
 	dsVkCommandBuffer_submittedResources(renderer->mainCommandBuffer, vkRenderer->submitCount);
+	dsVkCommandBuffer_submittedRenderSurfaces(renderer->mainCommandBuffer, vkRenderer->submitCount);
 	if (readback)
 	{
 		dsVkCommandBuffer_submittedReadbackOffscreens(renderer->mainCommandBuffer,
 			vkRenderer->submitCount);
 	}
 	submit = vkRenderer->submits + vkRenderer->curSubmit;
-	vkRenderer->mainCommandBuffer.vkCommandBuffer = submit->renderCommands;
+	mainCommandBuffer->vkCommandBuffer = submit->renderCommands;
 	dsVkCommandBuffer_prepare(renderer->mainCommandBuffer);
 	DS_VK_CALL(device->vkResetCommandBuffer)(submit->resourceCommands, 0);
 

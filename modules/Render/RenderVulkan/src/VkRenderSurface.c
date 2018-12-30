@@ -143,8 +143,8 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 		dsVkSurfaceResult result = dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData);
 		if (result == dsVkSurfaceResult_Success)
 		{
-			bool success = dsVkCommandBuffer_addResource(commandBuffer,
-				&vkSurface->surfaceData->resource);
+			bool success = dsVkCommandBuffer_addRenderSurface(commandBuffer,
+				vkSurface->surfaceData);
 			if (success)
 				vkSurface->updatedFrame = renderer->frameNumber;
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));

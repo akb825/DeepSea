@@ -31,10 +31,14 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer,
 	VkCommandBuffer renderCommands);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
-bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsTexture* offscreen);
+bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);
+bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,
+	dsVkRenderSurfaceData* surface);
 void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer);
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount);
 void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffer,
+	uint64_t submitCount);
+void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);
 
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);

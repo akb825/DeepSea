@@ -245,21 +245,21 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		vkCommandBuffer->usedResources[offset + i] = resource;
 	}
 
-	// Copy over the readback offscreens
-	offset = vkCommandBuffer->readbackOffscreenCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->readbackOffscreens,
-		vkCommandBuffer->readbackOffscreenCount, vkCommandBuffer->maxReadbackOffscreens,
-		vkSubmitBuffer->readbackOffscreenCount))
-	{
-		return false;
-	}
-
+	// Copy over the readback offscreens.
 	for (uint32_t i = 0; i < vkSubmitBuffer->readbackOffscreenCount; ++i)
 	{
-		dsOffscreen* offscreen = vkSubmitBuffer->readbackOffscreens[i];
-		dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
-		DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, 1);
-		vkCommandBuffer->readbackOffscreens[offset + i] = offscreen;
+		if (!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer,
+			vkSubmitBuffer->readbackOffscreens[i]))
+		{
+			return false;
+		}
+	}
+
+	// Copy over the render surfaces.
+	for (uint32_t i = 0; i < vkSubmitBuffer->renderSurfaceCount; ++i)
+	{
+		if (!dsVkCommandBuffer_addRenderSurface(commandBuffer, vkSubmitBuffer->renderSurfaces[i]))
+			return false;
 	}
 
 	DS_VK_CALL(device->vkCmdExecuteCommands)(vkCommandBuffer->vkCommandBuffer, 1,
@@ -335,9 +335,15 @@ bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource*
 	return true;
 }
 
-bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsTexture* offscreen)
+bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
+	{
+		if (vkCommandBuffer->readbackOffscreens[i] == offscreen)
+			return true;
+	}
+
 	uint32_t index = vkCommandBuffer->readbackOffscreenCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->readbackOffscreens,
 		vkCommandBuffer->readbackOffscreenCount, vkCommandBuffer->maxReadbackOffscreens, 1))
@@ -348,6 +354,28 @@ bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsTe
 	dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
 	DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, 1);
 	vkCommandBuffer->readbackOffscreens[index] = offscreen;
+	return true;
+}
+
+bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,
+	dsVkRenderSurfaceData* surface)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	for (uint32_t i = 0; i < vkCommandBuffer->renderSurfaceCount; ++i)
+	{
+		if (vkCommandBuffer->renderSurfaces[i] == surface)
+			return true;
+	}
+
+	uint32_t index = vkCommandBuffer->renderSurfaceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->renderSurfaces,
+		vkCommandBuffer->renderSurfaceCount, vkCommandBuffer->maxRenderSurfaces, 1))
+	{
+		return false;
+	}
+
+	DS_ATOMIC_FETCH_ADD32(&surface->resource.commandBufferCount, 1);
+	vkCommandBuffer->renderSurfaces[index] = surface;
 	return true;
 }
 
@@ -364,8 +392,12 @@ void dsVkCommandBuffer_clearUsedResources(dsCommandBuffer* commandBuffer)
 		DS_ATOMIC_FETCH_ADD32(&vkTexture->resource.commandBufferCount, -1);
 	}
 
+	for (uint32_t i = 0; i < vkCommandBuffer->renderSurfaceCount; ++i)
+		DS_ATOMIC_FETCH_ADD32(&vkCommandBuffer->renderSurfaces[i]->resource.commandBufferCount, -1);
+
 	vkCommandBuffer->usedResourceCount = 0;
 	vkCommandBuffer->readbackOffscreenCount = 0;
+	vkCommandBuffer->renderSurfaceCount = 0;
 }
 
 void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64_t submitCount)
@@ -394,10 +426,27 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 		dsVkTexture* texture = (dsVkTexture*)vkCommandBuffer->readbackOffscreens[i];
 		DS_ATOMIC_FETCH_ADD32(&texture->resource.commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
+		texture->resource.lastUsedSubmit = submitCount;
 		texture->lastDrawSubmit = submitCount;
 		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
 	}
 	vkCommandBuffer->readbackOffscreenCount = 0;
+}
+
+void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
+	uint64_t submitCount)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	for (uint32_t i = 0; i < vkCommandBuffer->renderSurfaceCount; ++i)
+	{
+		dsVkRenderSurfaceData* surface = vkCommandBuffer->renderSurfaces[i];
+		DS_ATOMIC_FETCH_ADD32(&surface->resource.commandBufferCount, -1);
+		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
+		surface->resource.lastUsedSubmit = submitCount;
+		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
+	}
+	vkCommandBuffer->renderSurfaceCount = 0;
 }
 
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size)
@@ -420,6 +469,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	dsVkCommandBuffer_clearUsedResources(baseCommandBuffer);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->usedResources));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));

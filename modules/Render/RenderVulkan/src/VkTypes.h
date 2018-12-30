@@ -747,6 +747,10 @@ typedef struct dsVkCommandBuffer
 	uint32_t readbackOffscreenCount;
 	uint32_t maxReadbackOffscreens;
 
+	dsVkRenderSurfaceData** renderSurfaces;
+	uint32_t renderSurfaceCount;
+	uint32_t maxRenderSurfaces;
+
 	VkImageMemoryBarrier* imageBarriers;
 	VkImageCopy* imageCopies;
 	uint32_t maxImageBarriers;
