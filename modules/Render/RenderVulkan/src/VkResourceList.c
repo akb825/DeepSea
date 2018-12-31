@@ -184,6 +184,19 @@ bool dsVkResourceList_addRenderSurface(dsVkResourceList* resources, dsVkRenderSu
 	return true;
 }
 
+bool dsVkResourceList_addCommandPool(dsVkResourceList* resources, dsVkCommandPoolData* pool)
+{
+	uint32_t index = resources->commandPoolCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->commandPools,
+		resources->commandPoolCount, resources->maxCommandPools, 1))
+	{
+		return false;
+	}
+
+	resources->commandPools[index] = pool;
+	return true;
+}
+
 void dsVkResourceList_clear(dsVkResourceList* resources)
 {
 	resources->bufferCount = 0;
@@ -198,6 +211,7 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 	resources->computePipelineCount = 0;
 	resources->pipelineCount = 0;
 	resources->renderSurfaceCount = 0;
+	resources->commandPoolCount = 0;
 }
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
@@ -214,4 +228,5 @@ void dsVkResourceList_shutdown(dsVkResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->computePipelines));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->pipelines));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderSurfaces));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->commandPools));
 }

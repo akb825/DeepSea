@@ -146,7 +146,11 @@ typedef enum dsCommandBufferUsage
 	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
 	 * in parallel to another set being submitted.
 	 */
-	dsCommandBufferUsage_DoubleBuffer = 0x8
+	dsCommandBufferUsage_DoubleBuffer = 0x8,
+	/**
+	 * Use occlusion queries with this buffer or a parent buffer.
+	 */
+	dsCommandBufferUsage_OcclusionQueries = 0x10
 } dsCommandBufferUsage;
 
 /**
@@ -644,11 +648,14 @@ typedef struct dsCommandBufferPool
 	dsCommandBuffer** currentBuffers;
 
 	/**
-	 * @brief The other set of command buffers when double-buffering is enabled.
+	 * @brief The previous set of command buffers when double-buffering is enabled.
 	 *
-	 * When resetting the pool, the currentBuffers and otherBuffers arrays will be swapped.
+	 * When resetting the pool, the currentBuffers will be assigned to prevBuffers.
+	 *
+	 * @remark It's not guaranteed that prevBuffers and currentBuffers are strictly swapped. In some
+	 * implementations, there could be multiple lists managed internally.
 	 */
-	dsCommandBuffer** otherBuffers;
+	dsCommandBuffer** prevBuffers;
 
 	/**
 	 * @brief The number of command buffers in the pool.

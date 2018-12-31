@@ -35,6 +35,7 @@ bool dsVkResourceList_addComputePipeline(dsVkResourceList* resources,
 	dsVkComputePipeline* pipeline);
 bool dsVkResourceList_addPipeline(dsVkResourceList* resources, dsVkPipeline* pipeline);
 bool dsVkResourceList_addRenderSurface(dsVkResourceList* resources, dsVkRenderSurfaceData* surface);
+bool dsVkResourceList_addCommandPool(dsVkResourceList* resources, dsVkCommandPoolData* pool);
 void dsVkResourceList_clear(dsVkResourceList* resources);
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources);

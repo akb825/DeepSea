@@ -616,6 +616,27 @@ typedef struct dsVkRenderSurface
 	dsSpinlock lock;
 } dsVkRenderSurface;
 
+typedef struct dsVkCommandPoolData
+{
+	dsAllocator* allocator;
+	dsRenderer* renderer;
+	dsVkResource resource;
+
+	VkCommandPool vkCommandPool;
+
+	VkCommandBuffer* vkCommandBuffers;
+	dsCommandBuffer** commandBuffers;
+	uint32_t count;
+} dsVkCommandPoolData;
+
+typedef struct dsVkCommandBufferPool
+{
+	dsCommandBufferPool commandBufferPool;
+
+	dsVkCommandPoolData* commandPools[DS_DELAY_FRAMES];
+	uint32_t curCommandPool;
+} dsVkCommandBufferPool;
+
 typedef struct dsVkResourceList
 {
 	dsAllocator* allocator;
@@ -667,6 +688,10 @@ typedef struct dsVkResourceList
 	dsVkRenderSurfaceData** renderSurfaces;
 	uint32_t renderSurfaceCount;
 	uint32_t maxRenderSurfaces;
+
+	dsVkCommandPoolData** commandPools;
+	uint32_t commandPoolCount;
+	uint32_t maxCommandPools;
 } dsVkResourceList;
 
 typedef struct dsVkBarrierList
@@ -735,6 +760,8 @@ typedef struct dsVkVolatileDescriptorSets
 typedef struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
+	dsVkResource* resource;
+
 	VkCommandBuffer vkCommandBuffer;
 	dsVkBarrierList barriers;
 	dsVkVolatileDescriptorSets volatileDescriptorSets;

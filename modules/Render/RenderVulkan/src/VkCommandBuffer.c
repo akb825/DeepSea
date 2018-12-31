@@ -16,6 +16,7 @@
 
 #include "VkCommandBuffer.h"
 
+#include "Resources/VkFramebuffer.h"
 #include "VkRendererInternal.h"
 #include "VkBarrierList.h"
 #include "VkShared.h"
@@ -193,13 +194,77 @@ void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 		&vkRenderer->device);
 }
 
-void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
+void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer, bool reset)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)commandBuffer->renderer;
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkVolatileDescriptorSets_clear(&vkCommandBuffer->volatileDescriptorSets);
-	DS_VK_CALL(device->vkResetCommandBuffer)(vkCommandBuffer->vkCommandBuffer, 0);
+	if (reset)
+		DS_VK_CALL(device->vkResetCommandBuffer)(vkCommandBuffer->vkCommandBuffer, 0);
+}
+
+bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	VkRenderPass vkRenderPass = 0;
+	VkFramebuffer vkFramebuffer = 0;
+	if (renderPass)
+	{
+		vkRenderPass = ((const dsVkRenderPass*)renderPass)->vkRenderPass;
+		if (framebuffer)
+		{
+			dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
+				(dsFramebuffer*)framebuffer, vkRenderPass);
+			if (realFramebuffer)
+				vkFramebuffer = realFramebuffer->framebuffer;
+		}
+	}
+
+	dsCommandBufferUsage usage = commandBuffer->usage;
+	VkCommandBufferUsageFlags usageFlags = 0;
+	if (usage & dsCommandBufferUsage_Subpass)
+		usageFlags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
+		usageFlags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	if (usage & dsCommandBufferUsage_MultiSubmit)
+		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+	bool occlusionQueries = (usage & dsCommandBufferUsage_OcclusionQueries) != 0;
+	VkCommandBufferInheritanceInfo inheritanceInfo =
+	{
+		VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+		NULL,
+		vkRenderPass,
+		subpassIndex,
+		vkFramebuffer,
+		occlusionQueries,
+		occlusionQueries ? VK_QUERY_CONTROL_PRECISE_BIT : 0,
+		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT
+	};
+
+	VkCommandBufferBeginInfo beginInfo =
+	{
+		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		NULL,
+		usageFlags,
+		&inheritanceInfo
+	};
+
+	VkResult result = DS_VK_CALL(device->vkBeginCommandBuffer)(vkCommandBuffer->vkCommandBuffer,
+		&beginInfo);
+	return dsHandleVkResult(result);
+}
+
+bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkResult result = DS_VK_CALL(device->vkEndCommandBuffer)(vkCommandBuffer->vkCommandBuffer);
+	return dsHandleVkResult(result);
 }
 
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback)
@@ -228,6 +293,12 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkCommandBuffer* vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
+
+	if (vkSubmitBuffer->resource &&
+		!dsVkCommandBuffer_addResource(commandBuffer, vkSubmitBuffer->resource))
+	{
+		return false;
+	}
 
 	// Copy over the used resources.
 	uint32_t offset = vkCommandBuffer->usedResourceCount;

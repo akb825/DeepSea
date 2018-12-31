@@ -71,7 +71,7 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 
 	if (lists == 2)
 	{
-		pool->otherBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+		pool->prevBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
 			dsCommandBuffer*, count);
 		DS_ASSERT(pool->currentBuffers);
 		for (uint32_t i = 0; i < count; ++i)
@@ -90,11 +90,11 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 			commandBuffer->indirectCommands = false;
 			commandBuffer->boundShader = NULL;
 			commandBuffer->boundComputeShader = NULL;
-			pool->otherBuffers[i] = commandBuffer;
+			pool->prevBuffers[i] = commandBuffer;
 		}
 	}
 	else
-		pool->otherBuffers = NULL;
+		pool->prevBuffers = NULL;
 
 	return pool;
 }
@@ -108,8 +108,8 @@ bool dsMockCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* po
 	if (pool->usage & dsCommandBufferUsage_DoubleBuffer)
 	{
 		dsCommandBuffer** temp = pool->currentBuffers;
-		pool->currentBuffers = pool->otherBuffers;
-		pool->otherBuffers = temp;
+		pool->currentBuffers = pool->prevBuffers;
+		pool->prevBuffers = temp;
 	}
 
 	return true;

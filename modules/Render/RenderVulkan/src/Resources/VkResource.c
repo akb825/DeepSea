@@ -15,6 +15,7 @@
  */
 
 #include "Resources/VkResource.h"
+#include "VkRendererInternal.h"
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
@@ -26,14 +27,28 @@ void dsVkResource_initialize(dsVkResource* resource)
 	resource->lastUsedSubmit = DS_NOT_SUBMITTED;
 }
 
-bool dsVkResource_isInUse(const dsVkResource* resource, const dsRenderer* renderer)
+bool dsVkResource_isInUse(dsVkResource* resource, const dsRenderer* renderer)
 {
 	const dsVkRenderer* vkRenderer = (const dsVkRenderer*)renderer;
 	uint32_t commandBufferCount;
 	DS_ATOMIC_LOAD32(&resource->commandBufferCount, &commandBufferCount);
+	DS_VERIFY(dsSpinlock_lock(&resource->lock));
+	uint64_t lastUsedSubmit = resource->lastUsedSubmit;
+	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
 	return commandBufferCount > 0 ||
-		(resource->lastUsedSubmit != DS_NOT_SUBMITTED &&
-			resource->lastUsedSubmit > vkRenderer->finishedSubmitCount);
+		(lastUsedSubmit != DS_NOT_SUBMITTED && lastUsedSubmit > vkRenderer->finishedSubmitCount);
+}
+
+void dsVkResource_waitUntilNotInUse(dsVkResource* resource, dsRenderer* renderer)
+{
+	DS_VERIFY(dsSpinlock_lock(&resource->lock));
+	uint64_t lastUsedSubmit = resource->lastUsedSubmit;
+	DS_VERIFY(dsSpinlock_unlock(&resource->lock));
+
+	if (lastUsedSubmit == DS_NOT_SUBMITTED)
+		return;
+
+	dsVkRenderer_waitForSubmit(renderer, lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
 }
 
 void dsVkResource_shutdown(dsVkResource* resource)

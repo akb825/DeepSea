@@ -842,11 +842,8 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	DS_ASSERT(imageIndex < vkTexture->hostImageCount);
 	dsVkHostImage* hostImage = vkTexture->hostImages + imageIndex;
 
-	DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
-	uint64_t submit = vkTexture->lastDrawSubmit;
-	DS_VERIFY(dsSpinlock_unlock(&vkTexture->resource.lock));
+	dsVkResource_waitUntilNotInUse(&vkTexture->resource, resourceManager->renderer);
 
-	dsVkRenderer_waitForSubmit(resourceManager->renderer, submit, DS_DEFAULT_WAIT_TIMEOUT);
 	void* imageMemory;
 	VkResult vkResult = DS_VK_CALL(device->vkMapMemory)(device->device, vkTexture->hostMemory,
 		hostImage->offset + hostImage->layout.offset, hostImage->layout.size, 0, &imageMemory);

@@ -19,7 +19,8 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-void dsVkResource_initialize(dsVkResource* resource);
-bool dsVkResource_isInUse(dsVkResource* resource, const dsRenderer* renderer);
-void dsVkResource_waitUntilNotInUse(dsVkResource* resource, dsRenderer* renderer);
-void dsVkResource_shutdown(dsVkResource* resource);
+dsCommandBufferPool* dsVkCommandBufferPool_create(dsRenderer* renderer, dsAllocator* allocator,
+	dsCommandBufferUsage usage, uint32_t count);
+bool dsVkCommandBufferPool_reset(dsRenderer* renderer, dsCommandBufferPool* pool);
+bool dsVkCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* pool);
+
