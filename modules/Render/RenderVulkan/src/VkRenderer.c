@@ -929,7 +929,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	}
 
 	dsVkCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
-		dsCommandBufferUsage_Standard);
+		dsCommandBufferUsage_OcclusionQueries);
 
 	dsVkBarrierList_initialize(&renderer->preResourceBarriers, allocator, &renderer->device);
 	dsVkBarrierList_initialize(&renderer->postResourceBarriers, allocator, &renderer->device);
