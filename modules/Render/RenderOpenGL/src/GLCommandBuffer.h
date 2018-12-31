@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "GLTypes.h"
 
-void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly);
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer);
 void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer);
 
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
@@ -117,8 +117,7 @@ bool dsGLCommandBuffer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* comm
 bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
-bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

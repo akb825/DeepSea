@@ -341,8 +341,7 @@ typedef bool (*GLPopDebugGroupFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLGfxMemoryBarrierFunction)(dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
-typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLEndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
@@ -417,7 +416,6 @@ typedef struct dsGLCommandBuffer
 
 	// There is overlap with the base command buffer, but this is important to manage states when
 	// replaing from dsGLOtherCommandBuffer to another command buffer.
-	bool subpassOnly;
 	const dsRenderPass* boundRenderPass;
 	const dsShader* boundShader;
 	void* boundSurface;

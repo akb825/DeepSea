@@ -17,16 +17,12 @@
 #include "MockCommandBuffer.h"
 #include <DeepSea/Core/Assert.h>
 
-bool dsMockCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsMockCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_UNUSED(commandBuffer);
-	DS_UNUSED(renderPass);
-	DS_UNUSED(subpassIndex);
-	DS_UNUSED(framebuffer);
 
 	return true;
 }

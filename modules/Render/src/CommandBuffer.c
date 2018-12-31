@@ -33,8 +33,7 @@ bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer)
 	return false;
 }
 
-bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
-	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -46,20 +45,6 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if ((commandBuffer->usage & dsCommandBufferUsage_Subpass) && !renderPass)
-	{
-		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Must provide a render pass for a subpass command buffer");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (renderPass && subpassIndex >= renderPass->subpassCount)
-	{
-		errno = EINDEX;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Subpass index out of range.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	dsRenderer* renderer = commandBuffer->renderer;
 	if (commandBuffer == renderer->mainCommandBuffer)
 	{
@@ -68,20 +53,7 @@ bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* r
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool success = renderer->beginCommandBufferFunc(renderer, commandBuffer, renderPass,
-		subpassIndex, framebuffer);
-	if (!success || !(commandBuffer->usage & dsCommandBufferUsage_Subpass))
-		DS_PROFILE_FUNC_RETURN(success);
-
-	// Guarantee a consistent starting state.
-	commandBuffer->frameActive = true;
-	commandBuffer->boundSurface = NULL;
-	commandBuffer->boundRenderPass = renderPass;
-	commandBuffer->activeRenderSubpass = subpassIndex;
-	commandBuffer->indirectCommands = false;
-	commandBuffer->boundFramebuffer = framebuffer;
-	commandBuffer->boundShader = NULL;
-	commandBuffer->boundComputeShader = NULL;
+	bool success = renderer->beginCommandBufferFunc(renderer, commandBuffer);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -112,7 +84,7 @@ bool dsCommandBuffer_end(dsCommandBuffer* commandBuffer)
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!(commandBuffer->usage & dsCommandBufferUsage_Subpass) && commandBuffer->boundRenderPass)
+	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot end a command buffer inside of a render pass.");

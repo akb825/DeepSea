@@ -962,13 +962,9 @@ bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
-	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_UNUSED(renderPass);
-	DS_UNUSED(subpassIndex);
-	DS_UNUSED(framebuffer);
 	return true;
 }
 
@@ -1339,7 +1335,7 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	}
 
 	DS_VERIFY(dsBufferAllocator_initialize(&commandBuffer->buffer, bufferData, defaultBufferSize));
-	dsGLCommandBuffer_initialize(baseCommandBuffer, (usage & dsCommandBufferUsage_Subpass) != 0);
+	dsGLCommandBuffer_initialize(baseCommandBuffer);
 	return commandBuffer;
 }
 

@@ -1839,13 +1839,9 @@ bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass,
-	uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(commandBuffer);
-	DS_UNUSED(renderPass);
-	DS_UNUSED(subpassIndex);
-	DS_UNUSED(framebuffer);
 
 	errno = EPERM;
 	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot begin or end the main command buffer.");
@@ -1971,7 +1967,7 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 	commandBuffer->defaultSamplerState.borderColor = mslBorderColor_Unset;
 	commandBuffer->defaultSamplerState.compareOp = mslCompareOp_Unset;
 
-	dsGLCommandBuffer_initialize(baseCommandBuffer, false);
+	dsGLCommandBuffer_initialize(baseCommandBuffer);
 
 	return commandBuffer;
 }

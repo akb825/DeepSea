@@ -1100,7 +1100,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	}
 
 	dsCommandBuffer* setupCommands = testText->setupCommands->currentBuffers[0];
-	if (!dsCommandBuffer_begin(setupCommands, NULL, 0, NULL))
+	if (!dsCommandBuffer_begin(setupCommands))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't begin setup command buffer: %s",
 			dsErrorString(errno));

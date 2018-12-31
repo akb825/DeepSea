@@ -204,30 +204,13 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer, bool reset)
 		DS_VK_CALL(device->vkResetCommandBuffer)(vkCommandBuffer->vkCommandBuffer, 0);
 }
 
-bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
-	VkRenderPass vkRenderPass = 0;
-	VkFramebuffer vkFramebuffer = 0;
-	if (renderPass)
-	{
-		vkRenderPass = ((const dsVkRenderPass*)renderPass)->vkRenderPass;
-		if (framebuffer)
-		{
-			dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-				(dsFramebuffer*)framebuffer, vkRenderPass);
-			if (realFramebuffer)
-				vkFramebuffer = realFramebuffer->framebuffer;
-		}
-	}
-
 	dsCommandBufferUsage usage = commandBuffer->usage;
 	VkCommandBufferUsageFlags usageFlags = 0;
-	if (usage & dsCommandBufferUsage_Subpass)
-		usageFlags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
 		usageFlags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	if (usage & dsCommandBufferUsage_MultiSubmit)
@@ -238,9 +221,9 @@ bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 	{
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
 		NULL,
-		vkRenderPass,
-		subpassIndex,
-		vkFramebuffer,
+		0,
+		0,
+		0,
 		occlusionQueries,
 		occlusionQueries ? VK_QUERY_CONTROL_PRECISE_BIT : 0,
 		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT

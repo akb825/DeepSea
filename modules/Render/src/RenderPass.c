@@ -92,14 +92,6 @@ static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* co
 	if (!renderPass || !commandBuffer)
 		return true;
 
-	if (commandBuffer->usage & dsCommandBufferUsage_Subpass)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Cannot go to the next subpass within a subpass-only command buffer.");
-		return false;
-	}
-
 	if (commandBuffer->boundRenderPass != renderPass)
 	{
 		errno = EPERM;
@@ -648,14 +640,6 @@ bool dsRenderPass_end(const dsRenderPass* renderPass, dsCommandBuffer* commandBu
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
-	}
-
-	if (commandBuffer->usage & dsCommandBufferUsage_Subpass)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Cannot end a ender pass within a subpass-only command buffer.");
-		return false;
 	}
 
 	if (commandBuffer->boundRenderPass != renderPass)

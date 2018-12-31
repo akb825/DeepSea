@@ -27,7 +27,7 @@
 static bool insideRenderPass(const dsCommandBuffer* commandBuffer)
 {
 	const dsGLCommandBuffer* glCommandBuffer = (const dsGLCommandBuffer*)commandBuffer;
-	return glCommandBuffer->subpassOnly || glCommandBuffer->boundRenderPass;
+	return glCommandBuffer->boundRenderPass;
 }
 #endif
 
@@ -305,7 +305,7 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	return true;
 }
 
-void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOnly)
+void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(commandBuffer->allocator);
@@ -313,7 +313,6 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer, bool subpassOn
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	glCommandBuffer->commitCounts = NULL;
 	glCommandBuffer->commitCountSize = 0;
-	glCommandBuffer->subpassOnly = subpassOnly;
 	glCommandBuffer->boundRenderPass = NULL;
 	glCommandBuffer->boundShader = NULL;
 	glCommandBuffer->boundSurface = NULL;
@@ -734,12 +733,11 @@ bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* comm
 	return functions->memoryBarrierFunc(commandBuffer, barriers, barrierCount);
 }
 
-bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer)
+bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_UNUSED(renderer);
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->beginFunc(commandBuffer, renderPass, subpassIndex, framebuffer);
+	return functions->beginFunc(commandBuffer);
 }
 
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)

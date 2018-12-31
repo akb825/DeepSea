@@ -28,12 +28,12 @@ TEST_F(CommandBufferTest, BeginEnd)
 		dsCommandBufferUsage_Standard, 1);
 	ASSERT_TRUE(pool);
 
-	EXPECT_FALSE(dsCommandBuffer_begin(NULL, NULL, dsCommandBufferUsage_Standard, NULL));
+	EXPECT_FALSE(dsCommandBuffer_begin(NULL));
 	EXPECT_FALSE(dsCommandBuffer_end(NULL));
-	EXPECT_FALSE(dsCommandBuffer_begin(renderer->mainCommandBuffer, NULL, 0, NULL));
+	EXPECT_FALSE(dsCommandBuffer_begin(renderer->mainCommandBuffer));
 	EXPECT_FALSE(dsCommandBuffer_end(renderer->mainCommandBuffer));
 
-	EXPECT_TRUE(dsCommandBuffer_begin(pool->currentBuffers[0], NULL, 0, NULL));
+	EXPECT_TRUE(dsCommandBuffer_begin(pool->currentBuffers[0]));
 	EXPECT_TRUE(dsCommandBuffer_end(pool->currentBuffers[0]));
 
 	EXPECT_TRUE(dsCommandBufferPool_destroy(pool));

@@ -25,8 +25,7 @@ void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer, bool reset);
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback);
 
-bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

@@ -38,16 +38,9 @@ extern "C"
  * @brief Begins drawing to a command buffer.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to begin. This should not be the main command buffer.
- * @param renderPass The render pass the command buffer will be drawn with. (or compatible, meaning
- *     that the attachments are compatible with each-other) This must be provided if the command
- *     buffer was created with the dsCommandBufferUsage_Subpass flag. This should be NULL otherwise.
- * @param subpassIndex The subpass within the render pass that will be drawn with.
- * @param framebuffer The framebuffer that will be drawn to. This may be NULL if the command buffer
- *     will be re-played to draw to multiple framebuffers, but can improve performance if provided.
  * @return False if the command buffer couldn't be begun.
  */
-DS_RENDER_EXPORT bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+DS_RENDER_EXPORT bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Ends drawing to a command buffer.

@@ -139,18 +139,17 @@ typedef enum dsRenderSurfaceType
 typedef enum dsCommandBufferUsage
 {
 	dsCommandBufferUsage_Standard = 0,      ///< Standard usage.
-	dsCommandBufferUsage_Subpass = 0x1,     ///< Will only be used within a render subpass.
-	dsCommandBufferUsage_MultiSubmit = 0x2, ///< Will be submitted multiple times in a frame.
-	dsCommandBufferUsage_MultiFrame = 0x4,  ///< Will be submitted across frames.
+	dsCommandBufferUsage_MultiSubmit = 0x1, ///< Will be submitted multiple times in a frame.
+	dsCommandBufferUsage_MultiFrame = 0x2,  ///< Will be submitted across frames.
 	/**
 	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
 	 * in parallel to another set being submitted.
 	 */
-	dsCommandBufferUsage_DoubleBuffer = 0x8,
+	dsCommandBufferUsage_DoubleBuffer = 0x4,
 	/**
 	 * Use occlusion queries with this buffer or a parent buffer.
 	 */
-	dsCommandBufferUsage_OcclusionQueries = 0x10
+	dsCommandBufferUsage_OcclusionQueries = 0x8
 } dsCommandBufferUsage;
 
 /**
@@ -1098,13 +1097,9 @@ typedef bool (*dsResetCommandBufferPoolFunction)(dsRenderer* renderer, dsCommand
  * @brief Function for starting to draw to a command buffer.
  * @param renderer The renderer that the command buffer will be drawn with.
  * @param commandBuffer The command buffer to begin.
- * @param renderPass The render pass the command buffer will be drawn with.
- * @param subpassIndex The subpass within the render pass that will be drawn with.
- * @param framebuffer The framebuffer that will be drawn to.
  * @return False if the command buffer couldn't be begun.
  */
-typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t subpassIndex, const dsFramebuffer* framebuffer);
+typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 
 /**
  * @brief Function for ending drawing to a command buffer.
