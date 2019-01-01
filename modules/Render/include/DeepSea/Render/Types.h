@@ -145,11 +145,7 @@ typedef enum dsCommandBufferUsage
 	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
 	 * in parallel to another set being submitted.
 	 */
-	dsCommandBufferUsage_DoubleBuffer = 0x4,
-	/**
-	 * Use occlusion queries with this buffer or a parent buffer.
-	 */
-	dsCommandBufferUsage_OcclusionQueries = 0x8
+	dsCommandBufferUsage_DoubleBuffer = 0x4
 } dsCommandBufferUsage;
 
 /**

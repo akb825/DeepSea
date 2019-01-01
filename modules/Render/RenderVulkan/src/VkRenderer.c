@@ -89,7 +89,7 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 		dsVkSubmitInfo* submit = renderer->submits + i;
 		submit->submitIndex = DS_NOT_SUBMITTED;
 		if (!dsVkCommandBuffer_initialize(&submit->commandBuffer, baseRenderer,
-			baseRenderer->allocator, dsCommandBufferUsage_OcclusionQueries))
+			baseRenderer->allocator, dsCommandBufferUsage_Standard))
 		{
 			return false;
 		}
@@ -114,7 +114,7 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)mainCommandBuffer;
 	baseCommandBuffer->renderer = baseRenderer;
 	baseCommandBuffer->allocator = baseRenderer->allocator;
-	baseCommandBuffer->usage = dsCommandBufferUsage_OcclusionQueries;
+	baseCommandBuffer->usage = dsCommandBufferUsage_Standard;
 	mainCommandBuffer->realCommandBuffer = (dsCommandBuffer*)&firstSubmit->commandBuffer;
 	baseRenderer->mainCommandBuffer = baseCommandBuffer;
 

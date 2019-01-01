@@ -375,25 +375,12 @@ VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffe
 	if (usage & dsCommandBufferUsage_MultiSubmit)
 		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-	bool occlusionQueries = (usage & dsCommandBufferUsage_OcclusionQueries) != 0;
-	VkCommandBufferInheritanceInfo inheritanceInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
-		NULL,
-		0,
-		0,
-		0,
-		occlusionQueries,
-		occlusionQueries ? VK_QUERY_CONTROL_PRECISE_BIT : 0,
-		VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT
-	};
-
 	VkCommandBufferBeginInfo beginInfo =
 	{
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 		NULL,
 		usageFlags,
-		&inheritanceInfo
+		NULL
 	};
 
 	DS_VK_CALL(device->vkBeginCommandBuffer)(newBuffer, &beginInfo);
