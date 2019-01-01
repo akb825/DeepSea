@@ -35,6 +35,7 @@
 // 10 seconds in nanoseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000000000
 #define DS_MAX_DYNAMIC_STATES VK_DYNAMIC_STATE_STENCIL_REFERENCE + 1
+#define DS_COMMAND_BUFFER_CHUNK_SIZE 100
 
 typedef struct dsVkInstance
 {
@@ -559,15 +560,6 @@ typedef struct dsVkRenderPass
 	dsSpinlock shaderLock;
 } dsVkRenderPass;
 
-typedef struct dsVkSubmitInfo
-{
-	uint64_t submitIndex;
-	VkCommandBuffer resourceCommands;
-	VkCommandBuffer renderCommands;
-	VkFence fence;
-	VkSemaphore semaphore;
-} dsVkSubmitInfo;
-
 typedef struct dsVkSurfaceImageData
 {
 	VkSemaphore semaphore;
@@ -616,15 +608,15 @@ typedef struct dsVkRenderSurface
 	dsSpinlock lock;
 } dsVkRenderSurface;
 
+typedef struct dsVkCommandBuffer dsVkCommandBuffer;
+
 typedef struct dsVkCommandPoolData
 {
 	dsAllocator* allocator;
 	dsRenderer* renderer;
 	dsVkResource resource;
 
-	VkCommandPool vkCommandPool;
-
-	VkCommandBuffer* vkCommandBuffers;
+	dsVkCommandBuffer* vkCommandBuffers;
 	dsCommandBuffer** commandBuffers;
 	uint32_t count;
 } dsVkCommandPoolData;
@@ -757,14 +749,42 @@ typedef struct dsVkVolatileDescriptorSets
 	uint32_t maxOffsets;
 } dsVkVolatileDescriptorSets;
 
-typedef struct dsVkCommandBuffer
+typedef struct dsVkCommandBufferChunk
+{
+	VkCommandBuffer commandBuffers[DS_COMMAND_BUFFER_CHUNK_SIZE];
+	uint32_t nextBuffer;
+} dsVkCommandBufferChunk;
+
+typedef struct dsVkCommandBufferData
+{
+	dsAllocator* allocator;
+	dsVkDevice* device;
+
+	VkCommandPool commandPool;
+	dsVkCommandBufferChunk** chunks;
+	uint32_t chunkCount;
+	uint32_t maxChunks;
+	uint32_t activeChunk;
+	bool renderPass;
+} dsVkCommandBufferData;
+
+struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
 	dsVkResource* resource;
 
-	VkCommandBuffer vkCommandBuffer;
+	VkCommandPool commandPool;
+	dsVkCommandBufferData commandBufferData;
+	dsVkCommandBufferData subpassBufferData;
+
+	VkCommandBuffer activeCommandBuffer;
+	VkCommandBuffer activeSubpassBuffer;
 	dsVkBarrierList barriers;
 	dsVkVolatileDescriptorSets volatileDescriptorSets;
+
+	VkCommandBuffer* submitBuffers;
+	uint32_t submitBufferCount;
+	uint32_t maxSubmitBuffers;
 
 	dsVkResource** usedResources;
 	uint32_t usedResourceCount;
@@ -788,7 +808,13 @@ typedef struct dsVkCommandBuffer
 
 	bool fenceSet;
 	bool fenceReadback;
-} dsVkCommandBuffer;
+};
+
+typedef struct dsVkCommandBufferWrapper
+{
+	dsCommandBuffer commandBuffer;
+	dsCommandBuffer* realCommandBuffer;
+} dsVkCommandBufferWrapper;
 
 typedef void* (*dsVkGetDisplayFunction)(void);
 typedef void (*dsVkReleaseDisplayFunction)(void* display);
@@ -806,6 +832,15 @@ typedef struct dsVkPlatform
 	bool createdDisplay;
 } dsVkPlatform;
 
+typedef struct dsVkSubmitInfo
+{
+	uint64_t submitIndex;
+	dsVkCommandBuffer commandBuffer;
+	VkCommandBuffer resourceCommands;
+	VkFence fence;
+	VkSemaphore semaphore;
+} dsVkSubmitInfo;
+
 typedef struct dsVkRenderer
 {
 	dsRenderer renderer;
@@ -819,12 +854,11 @@ typedef struct dsVkRenderer
 
 	uint64_t submitCount;
 	uint64_t finishedSubmitCount;
-	VkCommandPool commandPool;
 	dsVkSubmitInfo submits[DS_MAX_SUBMITS];
 	uint32_t curSubmit;
 	uint32_t waitCount;
 
-	dsVkCommandBuffer mainCommandBuffer;
+	dsVkCommandBufferWrapper mainCommandBuffer;
 
 	dsVkBarrierList preResourceBarriers;
 	dsVkBarrierList postResourceBarriers;

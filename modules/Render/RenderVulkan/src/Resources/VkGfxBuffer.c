@@ -21,6 +21,7 @@
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
@@ -285,7 +286,10 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
 
 	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
 	if (!bufferData)
@@ -297,8 +301,8 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	for (size_t block = 0; block < size; block += maxSize)
 	{
 		size_t copySize = dsMin(maxSize, size - block);
-		DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer->vkCommandBuffer, dstBuffer,
-			offset + block, copySize, (const uint8_t*)data + block);
+		DS_VK_CALL(device->vkCmdUpdateBuffer)(vkCommandBuffer, dstBuffer, offset + block, copySize,
+			(const uint8_t*)data + block);
 	}
 
 	return true;
@@ -311,7 +315,10 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
 
 	dsVkGfxBufferData* srcBufferData = dsVkGfxBuffer_getData(srcBuffer, commandBuffer);
 	if (!srcBufferData)
@@ -340,14 +347,14 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 			srcOffset,
 			size
 		};
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer->vkCommandBuffer,
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
 			dsVkSrcBufferStageFlags(srcBufferData->usage, canMap), VK_PIPELINE_STAGE_TRANSFER_BIT,
 			0, 0, NULL, 1, &barrier, 0, NULL);
 	}
 
 	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
-	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer->vkCommandBuffer, srcCopyBuffer,
-		dstCopyBuffer, 1, &bufferCopy);
+	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
+		&bufferCopy);
 	return true;
 }
 

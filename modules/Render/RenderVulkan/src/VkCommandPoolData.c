@@ -28,13 +28,9 @@
 dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRenderer* renderer,
 	dsCommandBufferUsage usage, uint32_t count)
 {
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	dsVkInstance* instance = &device->instance;
-
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkCommandPoolData)) +
-		DS_ALIGNED_SIZE(sizeof(VkCommandBuffer*)*count) +
-		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count) +
-		DS_ALIGNED_SIZE(sizeof(dsVkCommandBuffer))*count;
+		DS_ALIGNED_SIZE(sizeof(dsVkCommandBuffer*)*count) +
+		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -47,58 +43,22 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 	pool->allocator = dsAllocator_keepPointer(allocator);
 	pool->renderer = renderer;
 	dsVkResource_initialize(&pool->resource);
-	pool->vkCommandPool = 0;
-	pool->vkCommandBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkCommandBuffer,
+	pool->vkCommandBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsVkCommandBuffer,
 		count);
 	DS_ASSERT(pool->vkCommandBuffers);
-	memset(pool->vkCommandBuffers, 0, sizeof(VkCommandBuffer)*count);
+	memset(pool->vkCommandBuffers, 0, sizeof(dsVkCommandBuffer)*count);
 	pool->commandBuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, dsCommandBuffer*,
 		count);
 	DS_ASSERT(pool->commandBuffers);
-	memset(pool->commandBuffers, 0, sizeof(dsVkCommandBuffer*)*count);
+	memset(pool->commandBuffers, 0, sizeof(dsCommandBuffer*)*count);
 	pool->count = count;
-
-	VkCommandPoolCreateInfo commandPoolCreateInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		NULL,
-		0,
-		device->queueFamilyIndex
-	};
-
-	VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
-		&commandPoolCreateInfo, instance->allocCallbacksPtr, &pool->vkCommandPool);
-	if (!dsHandleVkResult(result))
-	{
-		dsVkCommandPoolData_destroy(pool);
-		return false;
-	}
-
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		NULL,
-		pool->vkCommandPool,
-		VK_COMMAND_BUFFER_LEVEL_SECONDARY,
-		count
-	};
-
-	result = DS_VK_CALL(device->vkAllocateCommandBuffers)(device->device,
-		&commandBufferAllocateInfo, pool->vkCommandBuffers);
-	if (!dsHandleVkResult(result))
-	{
-		dsVkCommandPoolData_destroy(pool);
-		return NULL;
-	}
 
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		dsVkCommandBuffer* commandBuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-			dsVkCommandBuffer);
-		DS_ASSERT(commandBuffer);
+		dsVkCommandBuffer* commandBuffer = pool->vkCommandBuffers + i;
 		dsVkCommandBuffer_initialize(commandBuffer, renderer, renderer->allocator, usage);
 		commandBuffer->resource = &pool->resource;
-		commandBuffer->vkCommandBuffer = pool->vkCommandBuffers[i];
+		pool->commandBuffers[i] = (dsCommandBuffer*)commandBuffer;;
 	}
 
 	return pool;
@@ -106,34 +66,16 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 
 bool dsVkCommandPoolData_prepare(dsVkCommandPoolData* pool)
 {
-	dsVkDevice* device = &((dsVkRenderer*)pool->renderer)->device;
 	dsVkResource_waitUntilNotInUse(&pool->resource, pool->renderer);
-	VkResult result = DS_VK_CALL(device->vkResetCommandPool)(device->device, pool->vkCommandPool,
-		0);
-	if (!dsHandleVkResult(result))
-		return false;
-
 	for (uint32_t i = 0; i < pool->count; ++i)
-		dsVkCommandBuffer_prepare(pool->commandBuffers[i], false);
+		dsVkCommandBuffer_prepare(pool->commandBuffers[i]);
 	return true;
 }
 
 void dsVkCommandPoolData_destroy(dsVkCommandPoolData* pool)
 {
-	dsVkDevice* device = &((dsVkRenderer*)pool->renderer)->device;
-	dsVkInstance* instance = &device->instance;
-	if (pool->vkCommandPool)
-	{
-		DS_VK_CALL(device->vkDestroyCommandPool)(device->device, pool->vkCommandPool,
-			instance->allocCallbacksPtr);
-	}
-
 	for (uint32_t i = 0; i < pool->count; ++i)
-	{
-		dsVkCommandBuffer* commandBuffer = (dsVkCommandBuffer*)pool->commandBuffers[i];
-		if (commandBuffer)
-			dsVkCommandBuffer_shutdown(commandBuffer);
-	}
+		dsVkCommandBuffer_shutdown(pool->vkCommandBuffers + i);
 
 	dsVkResource_shutdown(&pool->resource);
 	if (pool->allocator)

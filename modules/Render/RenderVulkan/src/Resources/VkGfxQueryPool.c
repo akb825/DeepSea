@@ -22,6 +22,7 @@
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
@@ -90,12 +91,14 @@ bool dsVkGfxQueryPool_reset(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
-	DS_VK_CALL(device->vkCmdResetQueryPool)(vkCommandBuffer->vkCommandBuffer, vkQueries->vkQueries,
-		first, count);
+	DS_VK_CALL(device->vkCmdResetQueryPool)(vkCommandBuffer, vkQueries->vkQueries, first, count);
 	return true;
 }
 
@@ -106,15 +109,17 @@ bool dsVkGfxQueryPool_beginQuery(dsResourceManager* resourceManager, dsCommandBu
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
 	VkQueryControlFlags flags = 0;
 	if (queries->type == dsGfxQueryType_SamplesPassed)
 		flags = VK_QUERY_CONTROL_PRECISE_BIT;
-	DS_VK_CALL(device->vkCmdBeginQuery)(vkCommandBuffer->vkCommandBuffer, vkQueries->vkQueries,
-		query, flags);
+	DS_VK_CALL(device->vkCmdBeginQuery)(vkCommandBuffer, vkQueries->vkQueries, query, flags);
 	return true;
 }
 
@@ -125,12 +130,14 @@ bool dsVkGfxQueryPool_endQuery(dsResourceManager* resourceManager, dsCommandBuff
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
-	DS_VK_CALL(device->vkCmdEndQuery)(vkCommandBuffer->vkCommandBuffer, vkQueries->vkQueries,
-		query);
+	DS_VK_CALL(device->vkCmdEndQuery)(vkCommandBuffer, vkQueries->vkQueries, query);
 	return true;
 }
 
@@ -141,12 +148,15 @@ bool dsVkGfxQueryPool_queryTimestamp(dsResourceManager* resourceManager,
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
-	DS_VK_CALL(device->vkCmdWriteTimestamp)(vkCommandBuffer->vkCommandBuffer,
-		VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vkQueries->vkQueries, query);
+	DS_VK_CALL(device->vkCmdWriteTimestamp)(vkCommandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		vkQueries->vkQueries, query);
 	return true;
 }
 
@@ -179,7 +189,10 @@ bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBu
 	dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkQueries->resource))
 		return false;
 
@@ -195,8 +208,8 @@ bool dsVkGfxQueryPool_copyValues(dsResourceManager* resourceManager, dsCommandBu
 	else
 		flags |= VK_QUERY_RESULT_WAIT_BIT;
 
-	DS_VK_CALL(device->vkCmdCopyQueryPoolResults)(vkCommandBuffer->vkCommandBuffer,
-		vkQueries->vkQueries, first, count, dstBuffer, offset, stride, flags);
+	DS_VK_CALL(device->vkCmdCopyQueryPoolResults)(vkCommandBuffer, vkQueries->vkQueries, first,
+		count, dstBuffer, offset, stride, flags);
 	return true;
 }
 

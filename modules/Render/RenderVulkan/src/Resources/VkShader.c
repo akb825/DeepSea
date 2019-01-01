@@ -608,7 +608,6 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* sh
 	const dsMaterial* material, VkShaderStageFlags stages)
 {
 	dsVkDevice* device = &((dsVkRenderer*)&commandBuffer->renderer)->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 
@@ -616,6 +615,10 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* sh
 	uint32_t structIndex = shader->pipeline->pushConstantStruct;
 	if (structIndex == MSL_UNKNOWN)
 		return true;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
 
 	const mslModule* module = shader->module->module;
 	mslStruct pushConstantStruct;
@@ -642,22 +645,25 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* sh
 		}
 	}
 
-	DS_VK_CALL(device->vkCmdPushConstants)(vkCommandBuffer->vkCommandBuffer, vkShader->layout,
-		stages, 0, pushConstantStruct.size, pushConstantData);
+	DS_VK_CALL(device->vkCmdPushConstants)(vkCommandBuffer, vkShader->layout, stages, 0,
+		pushConstantStruct.size, pushConstantData);
 	return true;
 }
 
-static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* shader,
+static bool bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates)
 {
 	dsVkDevice* device = &((dsVkRenderer*)&commandBuffer->renderer)->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
 
 	if (vkShader->dynamicLineWidth)
 	{
 		float lineWidth = renderStates ? renderStates->lineWidth : 1.0f;
-		DS_VK_CALL(device->vkCmdSetLineWidth)(vkCommandBuffer->vkCommandBuffer, lineWidth);
+		DS_VK_CALL(device->vkCmdSetLineWidth)(vkCommandBuffer, lineWidth);
 	}
 
 	if (vkShader->dynamicDepthBias)
@@ -683,8 +689,7 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 		else
 			slopeFactor = vkShader->depthBiasSlopeFactor;
 
-		DS_VK_CALL(device->vkCmdSetDepthBias)(vkCommandBuffer->vkCommandBuffer, constantFactor,
-			clamp, slopeFactor);
+		DS_VK_CALL(device->vkCmdSetDepthBias)(vkCommandBuffer, constantFactor, clamp, slopeFactor);
 	}
 
 	if (vkShader->dynamicBlendConstants)
@@ -700,8 +705,7 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 			constants.w = 1.0f;
 		}
 
-		DS_VK_CALL(device->vkCmdSetBlendConstants)(vkCommandBuffer->vkCommandBuffer,
-			constants.values);
+		DS_VK_CALL(device->vkCmdSetBlendConstants)(vkCommandBuffer, constants.values);
 	}
 
 	if (vkShader->dynamicDepthBounds)
@@ -715,8 +719,7 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 			bounds.y = 1.0f;
 		}
 
-		DS_VK_CALL(device->vkCmdSetDepthBounds)(vkCommandBuffer->vkCommandBuffer, bounds.x,
-			bounds.y);
+		DS_VK_CALL(device->vkCmdSetDepthBounds)(vkCommandBuffer, bounds.x, bounds.y);
 	}
 
 	if (vkShader->dynamicStencilCompareMask)
@@ -724,13 +727,13 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 		uint32_t mask = 0xFFFFFFFF;
 		if (renderStates)
 			mask = renderStates->frontStencilCompareMask;
-		DS_VK_CALL(device->vkCmdSetStencilCompareMask)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_FRONT_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilCompareMask)(vkCommandBuffer, VK_STENCIL_FACE_FRONT_BIT,
+			mask);
 
 		if (renderStates)
 			mask = renderStates->backStencilCompareMask;
-		DS_VK_CALL(device->vkCmdSetStencilCompareMask)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_BACK_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilCompareMask)(vkCommandBuffer, VK_STENCIL_FACE_BACK_BIT,
+			mask);
 	}
 
 	if (vkShader->dynamicStencilWriteMask)
@@ -738,13 +741,13 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 		uint32_t mask = 0;
 		if (renderStates)
 			mask = renderStates->frontStencilWriteMask;
-		DS_VK_CALL(device->vkCmdSetStencilWriteMask)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_FRONT_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilWriteMask)(vkCommandBuffer, VK_STENCIL_FACE_FRONT_BIT,
+			mask);
 
 		if (renderStates)
 			mask = renderStates->backStencilWriteMask;
-		DS_VK_CALL(device->vkCmdSetStencilWriteMask)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_BACK_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilWriteMask)(vkCommandBuffer, VK_STENCIL_FACE_BACK_BIT,
+			mask);
 	}
 
 	if (vkShader->dynamicStencilReference)
@@ -752,14 +755,16 @@ static void bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 		uint32_t mask = 0;
 		if (renderStates)
 			mask = renderStates->frontStencilReference;
-		DS_VK_CALL(device->vkCmdSetStencilReference)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_FRONT_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilReference)(vkCommandBuffer, VK_STENCIL_FACE_FRONT_BIT,
+			mask);
 
 		if (renderStates)
 			mask = renderStates->backStencilReference;
-		DS_VK_CALL(device->vkCmdSetStencilReference)(vkCommandBuffer->vkCommandBuffer,
-			VK_STENCIL_FACE_BACK_BIT, mask);
+		DS_VK_CALL(device->vkCmdSetStencilReference)(vkCommandBuffer, VK_STENCIL_FACE_BACK_BIT,
+			mask);
 	}
+
+	return true;
 }
 
 static bool updateVolatileValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -767,23 +772,26 @@ static bool updateVolatileValues(dsResourceManager* resourceManager, dsCommandBu
 	VkPipelineBindPoint bindPoint)
 {
 	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 	if (!vkMaterialDesc->descriptorSets[1])
 		return true;
 
-	dsVkVolatileDescriptorSets* descriptors = &vkCommandBuffer->volatileDescriptorSets;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
+	dsVkVolatileDescriptorSets* descriptors = dsVkCommandBuffer_getVolatileDescriptorSets(
+		commandBuffer);
 	VkDescriptorSet descriptorSet = dsVkVolatileDescriptorSets_createSet(descriptors, commandBuffer,
 		(dsShader*)shader, volatileValues);
 	if (!descriptorSet)
 		return false;
 
 	uint32_t descriptorIndex = vkMaterialDesc->descriptorSets[0] ? 1U : 0U;
-	DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer->vkCommandBuffer,
-		bindPoint, vkShader->layout, descriptorIndex, 1, &descriptorSet, descriptors->offsetCount,
-		descriptors->offsets);
+	DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer, bindPoint, vkShader->layout,
+		descriptorIndex, 1, &descriptorSet, descriptors->offsetCount, descriptors->offsets);
 	return true;
 }
 
@@ -949,16 +957,20 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
 {
 	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	dsDeviceMaterial* deviceMaterial = dsMaterial_getDeviceMaterial(material);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	if (!bindPushConstants(commandBuffer, shader, material, vkShader->stages))
 		return false;
 
-	bindShaderStates(commandBuffer, shader, renderStates);
+	if (!bindShaderStates(commandBuffer, shader, renderStates))
+		return false;
 
 	if (vkMaterialDesc->descriptorSets[0])
 	{
@@ -967,7 +979,7 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 		if (!descriptorSet)
 			return false;
 
-		DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer->vkCommandBuffer,
+		DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS, vkShader->layout, 0, 1, &descriptorSet, 0, NULL);
 	}
 
@@ -1002,11 +1014,14 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	const dsVolatileMaterialValues* volatileValues)
 {
 	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	dsDeviceMaterial* deviceMaterial = dsMaterial_getDeviceMaterial(material);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
 
 	if (!bindPushConstants(commandBuffer, shader, material, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT))
 		return false;
@@ -1018,8 +1033,8 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 		if (!descriptorSet)
 			return false;
 
-		DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer->vkCommandBuffer,
-			VK_PIPELINE_BIND_POINT_COMPUTE, vkShader->layout, 0, 1, &descriptorSet, 0, NULL);
+		DS_VK_CALL(device->vkCmdBindDescriptorSets)(vkCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+			vkShader->layout, 0, 1, &descriptorSet, 0, NULL);
 	}
 
 	if (volatileValues && !dsVkShader_updateComputeVolatileValues(resourceManager, commandBuffer,

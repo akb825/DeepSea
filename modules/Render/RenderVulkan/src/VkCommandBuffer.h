@@ -19,19 +19,20 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-void dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
+bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
 	dsAllocator* allocator, dsCommandBufferUsage usage);
-
-void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer, bool reset);
-void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback);
 
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
-bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer,
-	VkCommandBuffer renderCommands);
+void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer);
+VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_forceNewCommandBuffer(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer);
+void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback);
+bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);
@@ -44,6 +45,8 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);
 
+dsVkVolatileDescriptorSets* dsVkCommandBuffer_getVolatileDescriptorSets(
+	dsCommandBuffer* commandBuffer);
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);
 
 void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer);

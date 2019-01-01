@@ -66,28 +66,9 @@ static size_t fullAllocSize(void)
 
 static bool createCommandBuffers(dsVkRenderer* renderer)
 {
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
 	dsVkInstance* instance = &device->instance;
-	VkCommandPoolCreateInfo commandPoolCreateInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-		NULL,
-		VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-		device->queueFamilyIndex
-	};
-	VkResult result = DS_VK_CALL(device->vkCreateCommandPool)(device->device,
-		&commandPoolCreateInfo, instance->allocCallbacksPtr, &renderer->commandPool);
-	if (!dsHandleVkResult(result))
-		return false;
-
-	VkCommandBufferAllocateInfo commandAllocateInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		NULL,
-		renderer->commandPool,
-		VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		2
-	};
 
 	VkFenceCreateInfo fenceCreateInfo =
 	{
@@ -107,12 +88,13 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 	{
 		dsVkSubmitInfo* submit = renderer->submits + i;
 		submit->submitIndex = DS_NOT_SUBMITTED;
-		result = DS_VK_CALL(device->vkAllocateCommandBuffers)(device->device, &commandAllocateInfo,
-			&submit->resourceCommands);
-		if (!dsHandleVkResult(result))
+		if (!dsVkCommandBuffer_initialize(&submit->commandBuffer, baseRenderer,
+			baseRenderer->allocator, dsCommandBufferUsage_OcclusionQueries))
+		{
 			return false;
+		}
 
-		result = DS_VK_CALL(device->vkCreateFence)(device->device, &fenceCreateInfo,
+		VkResult result = DS_VK_CALL(device->vkCreateFence)(device->device, &fenceCreateInfo,
 			instance->allocCallbacksPtr, &submit->fence);
 		if (!dsHandleVkResult(result))
 			return false;
@@ -128,22 +110,17 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 
 	// Set up the main command buffer.
 	dsVkSubmitInfo* firstSubmit = renderer->submits + renderer->curSubmit;
-	dsVkCommandBuffer* mainCommandBuffer = &renderer->mainCommandBuffer;
+	dsVkCommandBufferWrapper* mainCommandBuffer = &renderer->mainCommandBuffer;
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)mainCommandBuffer;
-	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	baseCommandBuffer->renderer = baseRenderer;
 	baseCommandBuffer->allocator = baseRenderer->allocator;
-	mainCommandBuffer->vkCommandBuffer = firstSubmit->renderCommands;
+	baseCommandBuffer->usage = dsCommandBufferUsage_OcclusionQueries;
+	mainCommandBuffer->realCommandBuffer = (dsCommandBuffer*)&firstSubmit->commandBuffer;
 	baseRenderer->mainCommandBuffer = baseCommandBuffer;
 
-	VkCommandBufferBeginInfo beginInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		NULL,
-		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-		NULL
-	};
-	DS_VK_CALL(device->vkBeginCommandBuffer)(firstSubmit->resourceCommands, &beginInfo);
-	DS_VK_CALL(device->vkBeginCommandBuffer)(firstSubmit->renderCommands, &beginInfo);
+	firstSubmit->resourceCommands = dsVkCommandBuffer_getCommandBuffer(
+		mainCommandBuffer->realCommandBuffer);
+	dsVkCommandBuffer_forceNewCommandBuffer(mainCommandBuffer->realCommandBuffer);
 
 	return true;
 }
@@ -797,6 +774,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{
 		dsVkSubmitInfo* submit = vkRenderer->submits + i;
+		dsVkCommandBuffer_shutdown(&submit->commandBuffer);
+
 		if (submit->fence)
 		{
 			DS_VK_CALL(device->vkDestroyFence)(device->device, submit->fence,
@@ -809,14 +788,6 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 				instance->allocCallbacksPtr);
 		}
 	}
-
-	if (vkRenderer->commandPool)
-	{
-		DS_VK_CALL(device->vkDestroyCommandPool)(device->device, vkRenderer->commandPool,
-			instance->allocCallbacksPtr);
-	}
-
-	dsVkCommandBuffer_shutdown(&vkRenderer->mainCommandBuffer);
 
 	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
 	dsVkBarrierList_shutdown(&vkRenderer->postResourceBarriers);
@@ -928,9 +899,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsVkCommandBuffer_initialize(&renderer->mainCommandBuffer, baseRenderer, allocator,
-		dsCommandBufferUsage_OcclusionQueries);
-
 	dsVkBarrierList_initialize(&renderer->preResourceBarriers, allocator, &renderer->device);
 	dsVkBarrierList_initialize(&renderer->postResourceBarriers, allocator, &renderer->device);
 	for (uint32_t i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
@@ -1030,6 +998,9 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 
 	// Get the submit queue, waiting if it's not ready.
 	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
+	dsCommandBuffer* submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
+	DS_ASSERT(vkRenderer->mainCommandBuffer.realCommandBuffer == submitBuffer);
+	dsVkCommandBuffer* vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
 		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
@@ -1060,22 +1031,20 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 	DS_VK_CALL(device->vkEndCommandBuffer)(submit->resourceCommands);
 
 	if (readback)
-		dsVkCommandBuffer_endSubmitCommands(renderer->mainCommandBuffer, submit->renderCommands);
-	DS_VK_CALL(device->vkEndCommandBuffer)(submit->renderCommands);
+		dsVkCommandBuffer_endSubmitCommands(submitBuffer);
+	dsVkCommandBuffer_finishCommandBuffer(submitBuffer);
 
-	dsVkCommandBuffer* mainCommandBuffer = &vkRenderer->mainCommandBuffer;
-	DS_ASSERT(mainCommandBuffer->vkCommandBuffer == submit->renderCommands);
 	VkSemaphore* waitSemaphores = NULL;
 	VkPipelineStageFlags* waitStages = NULL;
-	if (mainCommandBuffer->renderSurfaceCount > 0)
+	if (vkSubmitBuffer->renderSurfaceCount > 0)
 	{
 		waitSemaphores = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSemaphore,
-			mainCommandBuffer->renderSurfaceCount);
+			vkSubmitBuffer->renderSurfaceCount);
 		waitStages = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkPipelineStageFlags,
-			mainCommandBuffer->renderSurfaceCount);
-		for (uint32_t i = 0; i < mainCommandBuffer->renderSurfaceCount; ++i)
+			vkSubmitBuffer->renderSurfaceCount);
+		for (uint32_t i = 0; i < vkSubmitBuffer->renderSurfaceCount; ++i)
 		{
-			dsVkRenderSurfaceData* surface = mainCommandBuffer->renderSurfaces[i];
+			dsVkRenderSurfaceData* surface = vkSubmitBuffer->renderSurfaces[i];
 			waitSemaphores[i] = surface->imageData[surface->imageDataIndex].semaphore;
 			waitStages[i] = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
 				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -1086,35 +1055,29 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 	{
 		VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		NULL,
-		mainCommandBuffer->renderSurfaceCount, waitSemaphores, waitStages,
-		2, &submit->resourceCommands,
+		vkSubmitBuffer->renderSurfaceCount, waitSemaphores, waitStages,
+		vkSubmitBuffer->submitBufferCount, vkSubmitBuffer->submitBuffers,
 		1, &submit->semaphore
 	};
 	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
 	VkSemaphore submittedSemaphore = submit->semaphore;
 
-	// Update the main command buffer.
-	dsVkCommandBuffer_submittedResources(renderer->mainCommandBuffer, vkRenderer->submitCount);
-	dsVkCommandBuffer_submittedRenderSurfaces(renderer->mainCommandBuffer, vkRenderer->submitCount);
+	// Clean up the previous command buffer.
+	dsVkCommandBuffer_submittedResources(submitBuffer, vkRenderer->submitCount);
+	dsVkCommandBuffer_submittedRenderSurfaces(submitBuffer, vkRenderer->submitCount);
 	if (readback)
-	{
-		dsVkCommandBuffer_submittedReadbackOffscreens(renderer->mainCommandBuffer,
-			vkRenderer->submitCount);
-	}
-	submit = vkRenderer->submits + vkRenderer->curSubmit;
-	mainCommandBuffer->vkCommandBuffer = submit->renderCommands;
-	dsVkCommandBuffer_prepare(renderer->mainCommandBuffer, true);
-	DS_VK_CALL(device->vkResetCommandBuffer)(submit->resourceCommands, 0);
+		dsVkCommandBuffer_submittedReadbackOffscreens(submitBuffer, vkRenderer->submitCount);
 
-	VkCommandBufferBeginInfo beginInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		NULL,
-		VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
-		NULL
-	};
-	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->resourceCommands, &beginInfo);
-	DS_VK_CALL(device->vkBeginCommandBuffer)(submit->renderCommands, &beginInfo);
+	// Prepare the next command buffer.
+	submit = vkRenderer->submits + vkRenderer->curSubmit;
+	submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
+	vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
+
+	vkRenderer->mainCommandBuffer.realCommandBuffer = submitBuffer;
+	dsVkCommandBuffer_prepare(submitBuffer);
+
+	submit->resourceCommands = dsVkCommandBuffer_getCommandBuffer(submitBuffer);
+	dsVkCommandBuffer_forceNewCommandBuffer(submitBuffer);
 	return submittedSemaphore;
 }
 

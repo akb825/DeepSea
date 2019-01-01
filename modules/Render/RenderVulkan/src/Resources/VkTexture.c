@@ -544,13 +544,17 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	uint32_t layers, const void* data, size_t size)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	dsVkCopyImage* copyImage = dsVkCopyImage_create(resourceManager->allocator, device, texture,
 		position, width, height, layers, data, size);
 	if (!copyImage)
 		return false;
 
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
-	VkCommandBuffer vkCommandBuffer = ((dsVkCommandBuffer*)commandBuffer)->vkCommandBuffer;
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource) ||
 		!dsVkCommandBuffer_addResource(commandBuffer, &copyImage->resource))
 	{
@@ -587,6 +591,11 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	size_t regionCount)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	dsVkTexture* srcVkTexture = (dsVkTexture*)srcTexture;
 	dsVkTexture* dstVkTexture = (dsVkTexture*)dstTexture;
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &srcVkTexture->resource) ||
@@ -718,7 +727,6 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		imageBarrier->subresourceRange.layerCount = layerCount;
 	}
 
-	VkCommandBuffer vkCommandBuffer = ((dsVkCommandBuffer*)commandBuffer)->vkCommandBuffer;
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
 		dsVkSrcImageStageFlags(srcTexture->usage, srcTexture->offscreen, srcIsDepthStencil),
 		dsVkDstImageStageFlags(dstTexture->usage, dstTexture->offscreen && dstIsDepthStencil &&
@@ -740,9 +748,13 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 	dsTexture* texture)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
 	const dsTextureInfo* info = &texture->info;
-	VkCommandBuffer vkCommandBuffer = ((dsVkCommandBuffer*)commandBuffer)->vkCommandBuffer;
 
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
 		return false;
