@@ -387,7 +387,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	if (!testRenderSubpass->combinedColor)
 		--clearValueCount;
 	DS_VERIFY(dsRenderPass_begin(testRenderSubpass->renderPass, commandBuffer,
-		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount, false));
+		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount));
 
 	// Draw red channel
 	dsDrawIndexedRange drawRange = {testRenderSubpass->cubeGeometry->indexBuffer.count, 1, 0, 0, 0};
@@ -397,7 +397,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer));
 
 	// Draw green channel
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
@@ -406,7 +406,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer));
 
 	// Draw blue channel
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
@@ -415,7 +415,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
 
-	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer, false));
+	DS_VERIFY(dsRenderPass_nextSubpass(testRenderSubpass->renderPass, commandBuffer));
 
 	// Resolve the final result
 	dsDrawRange resolveRange = {testRenderSubpass->resolveGeometry->vertexBuffers[0].count, 1, 0,

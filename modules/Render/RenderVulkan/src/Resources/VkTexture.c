@@ -64,7 +64,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	VkImageUsageFlags hostUsageFlags;
 	if (baseTexture->offscreen)
 	{
-		initialLayout = VK_IMAGE_LAYOUT_GENERAL;
+		initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		hostUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	}
 	else
@@ -281,7 +281,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		1, &device->queueFamilyIndex,
-		VK_IMAGE_LAYOUT_GENERAL
+		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &texture->surfaceImage);

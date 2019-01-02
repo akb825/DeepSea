@@ -20,19 +20,6 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
 
-bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer)
-{
-	if (commandBuffer->indirectCommands)
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "May only use indirect commands from secondary command "
-			"buffers inside this render subpass.");
-		return true;
-	}
-
-	return false;
-}
-
 bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer)
 {
 	DS_PROFILE_FUNC_START();
@@ -148,7 +135,7 @@ bool dsCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* sub
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (commandBuffer->boundRenderPass && !commandBuffer->indirectCommands)
+	if (commandBuffer->boundRenderPass)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only submit a command buffer inside of a render pass "

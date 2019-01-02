@@ -34,8 +34,6 @@
 
 DS_STATIC_ASSERT(DS_MAX_ATTACHMENTS == MSL_MAX_ATTACHMENTS, max_attachments_dont_match);
 
-bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
-
 static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uint32_t* outWidth,
 	uint32_t* outHeight, uint32_t* outLayers, uint32_t* outMipLevels, const dsRenderer* renderer,
 	dsGfxSurfaceType surfaceType, void* surface, bool read)
@@ -783,9 +781,6 @@ bool dsRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
 	bool success = renderer->drawFunc(renderer, commandBuffer, geometry, drawRange, primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
 }
@@ -841,9 +836,6 @@ bool dsRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
 	bool success = renderer->drawIndexedFunc(renderer, commandBuffer, geometry, drawRange,
 		primitiveType);
 	DS_PROFILE_FUNC_RETURN(success);
@@ -896,9 +888,6 @@ bool dsRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawIndirectFunc(renderer, commandBuffer, geometry, indirectBuffer,
 		offset, count, stride, primitiveType);
@@ -960,9 +949,6 @@ bool dsRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "A shader must be bound for drawing.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
 
 	bool success = renderer->drawIndexedIndirectFunc(renderer, commandBuffer, geometry,
 		indirectBuffer, offset, count, stride, primitiveType);

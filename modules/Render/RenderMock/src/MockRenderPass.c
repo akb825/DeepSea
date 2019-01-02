@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,8 +81,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 		dsRenderSubpassInfo* curSubpass = (dsRenderSubpassInfo*)renderPass->subpasses + i;
 		if (curSubpass->inputAttachmentCount > 0)
 		{
-			curSubpass->inputAttachments = (uint32_t*)dsAllocator_alloc
-				((dsAllocator*)&bufferAllocator, sizeof(uint32_t)*curSubpass->inputAttachmentCount);
+			curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+				uint32_t, curSubpass->inputAttachmentCount);
 			DS_ASSERT(curSubpass->inputAttachments);
 			memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
 				sizeof(uint32_t)*curSubpass->inputAttachmentCount);
@@ -90,9 +90,8 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			curSubpass->colorAttachments = (dsColorAttachmentRef*)dsAllocator_alloc
-				((dsAllocator*)&bufferAllocator,
-				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator,
+				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
 				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
@@ -137,7 +136,7 @@ dsRenderPass* dsMockRenderPass_create(dsRenderer* renderer, dsAllocator* allocat
 bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool indirectCommands)
+	uint32_t clearValueCount)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -150,13 +149,12 @@ bool dsMockRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	DS_UNUSED(viewport);
 	DS_UNUSED(clearValues);
 	DS_UNUSED(clearValueCount);
-	DS_UNUSED(indirectCommands);
 
 	return true;
 }
 
 bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands)
+	const dsRenderPass* renderPass, uint32_t index)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -166,7 +164,6 @@ bool dsMockRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* command
 	DS_UNUSED(renderPass);
 	DS_ASSERT(index < renderPass->subpassCount);
 	DS_UNUSED(index);
-	DS_UNUSED(indirectCommands);
 
 	return true;
 }

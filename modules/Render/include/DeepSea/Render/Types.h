@@ -736,11 +736,6 @@ typedef struct dsCommandBuffer
 	uint32_t activeRenderSubpass;
 
 	/**
-	 * @brief True if only indirect commands are supported.
-	 */
-	bool indirectCommands;
-
-	/**
 	 * @brief The currently bound shader.
 	 */
 	const dsShader* boundShader;
@@ -1157,14 +1152,12 @@ typedef bool (*dsDestroyRenderPassFunction)(dsRenderer* renderer, dsRenderPass* 
  *     cleared.
  * @param clearValueCount The number of clear values. This must either be 0 if clearValues is NULL
  *     or equal to the number of attachments.
- * @param indirectCommands True if the render commands for the first subpass will be provided with
- *     command buffers, false if the render commands will be inlined.
  * @return False if the render pass couldn't be begun.
  */
 typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool indirectCommands);
+	uint32_t clearValueCount);
 
 /**
  * @brief Function for advancing to the next subpass within a render pass.
@@ -1172,12 +1165,10 @@ typedef bool (*dsBeginRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer*
  * @param commandBuffer The command buffer to push the commands on.
  * @param renderPass The render pass to continue.
  * @param index The index of the subpass.
- * @param indirectCommands True if the render commands for the subpass will be provided with command
- *     buffers, false if the render commands will be inlined.
  * @return False if the render pass couldn't be advanced.
  */
 typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands);
+	const dsRenderPass* renderPass, uint32_t index);
 
 /**
  * @brief Function for ending a render pass.

@@ -37,6 +37,7 @@
 #include "VkCommandBufferPool.h"
 #include "VkCommandPoolData.h"
 #include "VkInit.h"
+#include "VkRenderPass.h"
 #include "VkRenderSurface.h"
 #include "VkRenderSurfaceData.h"
 #include "VkResourceList.h"
@@ -987,6 +988,13 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->beginCommandBufferFunc = &dsVkCommandBuffer_begin;
 	baseRenderer->endCommandBufferFunc = &dsVkCommandBuffer_end;
 	baseRenderer->submitCommandBufferFunc = &dsVkCommandBuffer_submit;
+
+	// Render passes
+	baseRenderer->createRenderPassFunc = &dsVkRenderPass_create;
+	baseRenderer->destroyRenderPassFunc = &dsVkRenderPass_destroy;
+	baseRenderer->beginRenderPassFunc = &dsVkRenderPass_begin;
+	baseRenderer->nextRenderSubpassFunc = &dsVkRenderPass_nextSubpass;
+	baseRenderer->endRenderPassFunc = &dsVkRenderPass_end;
 
 	return baseRenderer;
 }

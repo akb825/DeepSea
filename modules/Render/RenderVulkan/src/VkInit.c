@@ -840,6 +840,9 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateRenderPass);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyRenderPass);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginRenderPass);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdNextSubpass);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdEndRenderPass);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateQueryPool);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyQueryPool);

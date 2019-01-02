@@ -495,7 +495,7 @@ TEST_F(TextureTest, CopyData)
 	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 2, textureData,
 		sizeof(textureData)));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsTexture_copyData(texture, commandBuffer, &position, 8, 4, 1, textureData,
 		sizeof(textureData)));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
@@ -610,7 +610,7 @@ TEST_F(TextureTest, Copy)
 		dsGfxMemory_Read, &toInfo, NULL, 0);
 	ASSERT_TRUE(toTexture);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsTexture_copy(commandBuffer, fromTexture, toTexture, &copyRegion, 1));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
@@ -701,7 +701,7 @@ TEST_F(TextureTest, GenerateMipmaps)
 	EXPECT_TRUE(dsTexture_generateMipmaps(texture1, commandBuffer));
 	EXPECT_FALSE(dsTexture_generateMipmaps(texture2, commandBuffer));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsTexture_generateMipmaps(texture1, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 

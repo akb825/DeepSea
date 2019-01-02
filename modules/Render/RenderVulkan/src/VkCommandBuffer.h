@@ -34,6 +34,13 @@ void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer);
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback);
 bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer);
 
+bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
+	VkFramebuffer framebuffer, const VkRect2D* renderArea, const VkClearValue* clearValues,
+	uint32_t clearValueCount);
+bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
+	uint32_t subpass, VkFramebuffer framebuffer);
+void dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
+
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);
 bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,

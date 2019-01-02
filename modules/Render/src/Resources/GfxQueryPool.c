@@ -24,7 +24,6 @@
 #include <DeepSea/Render/Types.h>
 
 extern const char* dsResourceManager_noContextError;
-bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 
 dsGfxQueryPool* dsGfxQueryPool_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxQueryType type, uint32_t count)
@@ -144,9 +143,6 @@ bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* command
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
 	if (!commandBuffer->frameActive)
 	{
 		errno = EPERM;
@@ -185,9 +181,6 @@ bool dsGfxQueryPool_endQuery(dsGfxQueryPool* queries, dsCommandBuffer* commandBu
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to end a query out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!commandBuffer->frameActive)
 	{
@@ -228,9 +221,6 @@ bool dsGfxQueryPool_queryTimestamp(dsGfxQueryPool* queries, dsCommandBuffer* com
 			"Attempting to get the timestamp with a query out of range.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
 
 	if (!commandBuffer->frameActive)
 	{

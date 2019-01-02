@@ -66,17 +66,6 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	else
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	VkImageLayout layout;
-	if (usage == dsRenderbufferUsage_Standard)
-	{
-		if (isDepthStencil)
-			layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		else
-			layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	}
-	else
-		layout = VK_IMAGE_LAYOUT_GENERAL;
-
 	VkImageCreateInfo imageCreateInfo =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -92,7 +81,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		1, &device->queueFamilyIndex,
-		layout
+		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &renderbuffer->image);

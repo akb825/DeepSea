@@ -1316,7 +1316,6 @@ dsGLOtherCommandBuffer* dsGLOtherCommandBuffer_create(dsRenderer* renderer, dsAl
 	baseCommandBuffer->boundFramebuffer = NULL;
 	baseCommandBuffer->boundRenderPass = NULL;
 	baseCommandBuffer->activeRenderSubpass = 0;
-	baseCommandBuffer->indirectCommands = false;
 	baseCommandBuffer->boundShader = NULL;
 	baseCommandBuffer->boundComputeShader = NULL;
 

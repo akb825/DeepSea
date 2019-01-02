@@ -141,6 +141,9 @@ typedef struct dsVkDevice
 
 	PFN_vkCreateRenderPass vkCreateRenderPass;
 	PFN_vkDestroyRenderPass vkDestroyRenderPass;
+	PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+	PFN_vkCmdNextSubpass vkCmdNextSubpass;
+	PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
 
 	PFN_vkCreateQueryPool vkCreateQueryPool;
 	PFN_vkDestroyQueryPool vkDestroyQueryPool;

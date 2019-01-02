@@ -37,7 +37,6 @@
 #include <string.h>
 
 extern const char* dsResourceManager_noContextError;
-bool dsCommandBuffer_isIndirect(const dsCommandBuffer* commandBuffer);
 
 static const dsShaderVariableElement* findShaderVariableElement(const dsMaterialDesc* materialDesc,
 	const char* uniformName, const char* name)
@@ -584,9 +583,6 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->bindShaderFunc(shader->resourceManager, commandBuffer, shader,
 		material, volatileValues, renderStates);
@@ -623,9 +619,6 @@ bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* comm
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
-
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->updateShaderVolatileValuesFunc(shader->resourceManager,
 		commandBuffer, shader, volatileValues);
@@ -657,9 +650,6 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Can only unbind the currently bound shader.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
-
-	if (dsCommandBuffer_isIndirect(commandBuffer))
-		DS_PROFILE_FUNC_RETURN(false);
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->unbindShaderFunc(resourceManager, commandBuffer, shader);

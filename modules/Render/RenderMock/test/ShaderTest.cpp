@@ -385,7 +385,7 @@ TEST_F(ShaderTest, BindAndUpdate)
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 
 	EXPECT_FALSE(dsShader_bind(shader, NULL, material, volatileValues, NULL));
 	EXPECT_FALSE(dsShader_bind(NULL, commandBuffer, material, volatileValues, NULL));
@@ -497,7 +497,7 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		(dsAllocator*)&allocator, DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
 	ASSERT_TRUE(volatileValues);
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 
 	EXPECT_FALSE(dsShader_bind(shader, commandBuffer, material, volatileValues, NULL));
 
@@ -637,12 +637,12 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(volatileValues, "Transform",
 		transformGroup));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 
 	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, NULL));
 
@@ -735,12 +735,12 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(volatileValues, "Transform", buffer1, 0,
 		buffer1->size));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 
 	EXPECT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, volatileValues));
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 
 	EXPECT_TRUE(dsVolatileMaterialValues_removeValueName(volatileValues, "Transform"));
 	EXPECT_FALSE(dsShader_updateComputeVolatileValues(shader, commandBuffer, volatileValues));
@@ -756,10 +756,10 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 	EXPECT_FALSE(dsShader_unbindCompute(shader, NULL));
 	EXPECT_FALSE(dsShader_unbindCompute(NULL, commandBuffer));
 
-	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_FALSE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
 
-	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0, false));
+	EXPECT_TRUE(dsRenderPass_begin(renderPass, commandBuffer, framebuffer, NULL, NULL, 0));
 	EXPECT_FALSE(dsShader_unbindCompute(shader, commandBuffer));
 	EXPECT_TRUE(dsRenderPass_end(renderPass, commandBuffer));
 

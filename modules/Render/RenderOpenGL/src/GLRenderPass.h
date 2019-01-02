@@ -26,9 +26,9 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 bool dsGLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool indirectCommands);
+	uint32_t clearValueCount);
 bool dsGLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands);
+	const dsRenderPass* renderPass, uint32_t index);
 bool dsGLRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 bool dsGLRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);

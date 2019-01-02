@@ -36,7 +36,7 @@ typedef enum SurfaceType
 #define SCOPE_SIZE 256
 
 static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	const dsFramebuffer* framebuffer, bool indirectCommands)
+	const dsFramebuffer* framebuffer)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer || !framebuffer)
@@ -81,12 +81,10 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	commandBuffer->boundFramebuffer = framebuffer;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = 0;
-	commandBuffer->indirectCommands = indirectCommands;
 	return true;
 }
 
-static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	bool indirectCommands)
+static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer)
@@ -115,7 +113,6 @@ static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* co
 	}
 
 	++commandBuffer->activeRenderSubpass;
-	commandBuffer->indirectCommands = indirectCommands;
 
 #if DS_PROFILING_ENABLED
 
@@ -134,14 +131,13 @@ static bool nextSubpassScope(const dsRenderPass* renderPass, dsCommandBuffer* co
 }
 
 static void restorePreviousSubpassScope(const dsRenderPass* renderPass,
-	dsCommandBuffer* commandBuffer, bool indirectCommands)
+	dsCommandBuffer* commandBuffer)
 {
 	if (!renderPass || !commandBuffer || commandBuffer->boundRenderPass != renderPass)
 		return;
 
 	DS_ASSERT(commandBuffer->activeRenderSubpass > 0);
 	--commandBuffer->activeRenderSubpass;
-	commandBuffer->indirectCommands = indirectCommands;
 
 #if DS_PROFILING_ENABLED
 
@@ -165,8 +161,7 @@ static void endRenderPassScope(dsCommandBuffer* commandBuffer)
 	DS_PROFILE_SCOPE_END();
 	commandBuffer->boundFramebuffer = NULL;
 	commandBuffer->boundRenderPass = NULL;
-	commandBuffer->activeRenderSubpass = 0;
-	commandBuffer->indirectCommands = false;
+	commandBuffer->activeRenderSubpass = 0;;
 }
 
 static SurfaceType getSurfaceType(dsGfxSurfaceType surfaceType)
@@ -444,9 +439,9 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 
 bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
-	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount, bool indirectCommands)
+	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
 {
-	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, indirectCommands))
+	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -588,7 +583,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	dsGPUProfileContext_beginSubpass(renderer->_profileContext, commandBuffer,
 		framebuffer->name, renderPass->subpasses[0].name);
 	bool success = renderer->beginRenderPassFunc(renderer, commandBuffer, renderPass, framebuffer,
-		viewport, clearValues, clearValueCount, indirectCommands);
+		viewport, clearValues, clearValueCount);
 	DS_PROFILE_FUNC_END();
 	if (!success)
 	{
@@ -598,12 +593,10 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	return success;
 }
 
-bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	bool indirectCommands)
+bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer)
 {
 	// End the previous scope
-	bool prevIndirectCommands = commandBuffer ? commandBuffer->indirectCommands : false;
-	if (!nextSubpassScope(renderPass, commandBuffer, indirectCommands))
+	if (!nextSubpassScope(renderPass, commandBuffer))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -613,13 +606,13 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_END();
-		restorePreviousSubpassScope(renderPass, commandBuffer, prevIndirectCommands);
+		restorePreviousSubpassScope(renderPass, commandBuffer);
 		return false;
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
 	bool success = renderer->nextRenderSubpassFunc(renderer, commandBuffer, renderPass,
-		commandBuffer->activeRenderSubpass, indirectCommands);
+		commandBuffer->activeRenderSubpass);
 	if (success)
 	{
 		dsGPUProfileContext_nextSubpass(renderer->_profileContext, commandBuffer,
@@ -627,7 +620,7 @@ bool dsRenderPass_nextSubpass(const dsRenderPass* renderPass, dsCommandBuffer* c
 	}
 	DS_PROFILE_FUNC_END();
 	if (!success)
-		restorePreviousSubpassScope(renderPass, commandBuffer, prevIndirectCommands);
+		restorePreviousSubpassScope(renderPass, commandBuffer);
 	return success;
 }
 

@@ -107,7 +107,7 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
@@ -186,7 +186,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,

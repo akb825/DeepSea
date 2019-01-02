@@ -59,7 +59,6 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;
 		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->indirectCommands = false;
 		commandBuffer->boundShader = NULL;
 		commandBuffer->boundComputeShader = NULL;
 	}
@@ -98,7 +97,6 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;
 		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->indirectCommands = false;
 		commandBuffer->boundShader = NULL;
 		commandBuffer->boundComputeShader = NULL;
 	}

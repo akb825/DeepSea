@@ -63,7 +63,6 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 		commandBuffer->boundFramebuffer = NULL;
 		commandBuffer->boundRenderPass = NULL;
 		commandBuffer->activeRenderSubpass = 0;
-		commandBuffer->indirectCommands = false;
 		commandBuffer->boundShader = NULL;
 		commandBuffer->boundComputeShader = NULL;
 		pool->currentBuffers[i] = commandBuffer;
@@ -87,7 +86,6 @@ dsCommandBufferPool* dsMockCommandBufferPool_create(dsRenderer* renderer, dsAllo
 			commandBuffer->boundFramebuffer = NULL;
 			commandBuffer->boundRenderPass = NULL;
 			commandBuffer->activeRenderSubpass = 0;
-			commandBuffer->indirectCommands = false;
 			commandBuffer->boundShader = NULL;
 			commandBuffer->boundComputeShader = NULL;
 			pool->prevBuffers[i] = commandBuffer;

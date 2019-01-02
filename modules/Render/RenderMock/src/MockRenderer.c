@@ -400,7 +400,6 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->mainCommandBuffer->boundFramebuffer = NULL;
 	renderer->mainCommandBuffer->boundRenderPass = NULL;
 	renderer->mainCommandBuffer->activeRenderSubpass = 0;
-	renderer->mainCommandBuffer->indirectCommands = false;
 	renderer->mainCommandBuffer->boundShader = NULL;
 	renderer->mainCommandBuffer->boundComputeShader = NULL;
 

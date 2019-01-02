@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,14 +58,14 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 	if (attachmentCount > 0)
 	{
-		baseRenderPass->attachments = (dsAttachmentInfo*)dsAllocator_alloc(
-			(dsAllocator*)&bufferAlloc, attachmentArraySize);
+		baseRenderPass->attachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			dsAttachmentInfo, attachmentCount);
 		DS_ASSERT(baseRenderPass->attachments);
 		memcpy((void*)baseRenderPass->attachments, attachments, attachmentArraySize);
 
 		// Find the first subpass that cleared attachments appear in.
-		renderPass->clearSubpass = (uint32_t*)dsAllocator_alloc((dsAllocator*)&bufferAlloc,
-			clearSubpassArraySize);
+		renderPass->clearSubpass = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, uint32_t,
+			attachmentCount);
 		memset(renderPass->clearSubpass, 0xFF, clearSubpassArraySize);
 		for (uint32_t i = 0; i < subpassCount; ++i)
 		{
@@ -100,8 +100,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		renderPass->clearSubpass = NULL;
 	}
 
-	dsRenderSubpassInfo* subpassesCopy = (dsRenderSubpassInfo*)dsAllocator_alloc(
-		(dsAllocator*)&bufferAlloc, subpassArraySize);
+	dsRenderSubpassInfo* subpassesCopy = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		dsRenderSubpassInfo, subpassCount);
 	DS_ASSERT(subpassesCopy);
 	memcpy(subpassesCopy, subpasses, subpassArraySize);
 	baseRenderPass->subpasses = subpassesCopy;
@@ -110,8 +110,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		dsRenderSubpassInfo* curSubpass = (dsRenderSubpassInfo*)baseRenderPass->subpasses + i;
 		if (curSubpass->inputAttachmentCount > 0)
 		{
-			curSubpass->inputAttachments = (uint32_t*)dsAllocator_alloc
-				((dsAllocator*)&bufferAlloc, sizeof(uint32_t)*curSubpass->inputAttachmentCount);
+			curSubpass->inputAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+				uint32_t, curSubpass->inputAttachmentCount);
 			DS_ASSERT(curSubpass->inputAttachments);
 			memcpy((void*)curSubpass->inputAttachments, subpasses[i].inputAttachments,
 				sizeof(uint32_t)*curSubpass->inputAttachmentCount);
@@ -119,9 +119,8 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 
 		if (curSubpass->colorAttachmentCount > 0)
 		{
-			curSubpass->colorAttachments = (dsColorAttachmentRef*)dsAllocator_alloc
-				((dsAllocator*)&bufferAlloc,
-				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
+			curSubpass->colorAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+				dsColorAttachmentRef, curSubpass->colorAttachmentCount);
 			DS_ASSERT(curSubpass->colorAttachments);
 			memcpy((void*)curSubpass->colorAttachments, subpasses[i].colorAttachments,
 				sizeof(dsColorAttachmentRef)*curSubpass->colorAttachmentCount);
@@ -141,24 +140,22 @@ dsRenderPass* dsGLRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 bool dsGLRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, const dsFramebuffer* framebuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
-	uint32_t clearValueCount, bool indirectCommands)
+	uint32_t clearValueCount)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(framebuffer);
-	DS_UNUSED(indirectCommands);
 
 	return dsGLCommandBuffer_beginRenderPass(commandBuffer, renderPass, framebuffer, viewport,
 		clearValues, clearValueCount);
 }
 
 bool dsGLRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass, uint32_t index, bool indirectCommands)
+	const dsRenderPass* renderPass, uint32_t index)
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(renderPass);
-	DS_UNUSED(indirectCommands);
 
 	return dsGLCommandBuffer_nextRenderSubpass(commandBuffer, renderPass, index);
 }
