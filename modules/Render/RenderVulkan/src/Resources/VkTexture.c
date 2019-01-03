@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	{
 		initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 		hostUsageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-		texture->needsInitialCopy = true;
 	}
+	texture->needsInitialCopy = true;
 
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = info->dimension == dsTextureDim_3D;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -426,6 +426,43 @@ static bool addBufferCopies(dsVkRenderer* renderer, dsVkGfxBufferData* buffer,
 	return true;
 }
 
+static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
+{
+	dsTexture* baseTexture = (dsTexture*)texture;
+	bool isDepthStencil = dsGfxFormat_isDepthStencil(baseTexture->info.format);
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+
+	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+	if (texture->hostImage)
+	{
+		dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->hostImage, &fullLayout,
+			0, false, true, isDepthStencil, baseTexture->usage | dsTextureUsage_CopyTo,
+			VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	}
+	else
+	{
+		DS_ASSERT(texture->hostImageCount > 0);
+		for (uint32_t i = 0; i < texture->hostImageCount; ++i)
+		{
+			dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->hostImages[i].image,
+				&fullLayout, 0, false, true, isDepthStencil,
+				baseTexture->usage | dsTextureUsage_CopyTo,
+				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+		}
+	}
+
+	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout,
+		0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_GENERAL);
+	if (texture->surfaceImage)
+	{
+		dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->surfaceImage, &fullLayout,
+			0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_GENERAL);
+	}
+}
+
 static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
@@ -438,6 +475,11 @@ static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 
 	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
 		VK_REMAINING_ARRAY_LAYERS};
+
+	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout,
+		0, false, false, false, dsTextureUsage_CopyTo, VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
 	if (texture->hostImage)
 	{
 		uint32_t index = renderer->imageCopyCount;
@@ -566,11 +608,23 @@ static bool addImageCopies(dsVkRenderer* renderer, dsVkTexture* texture)
 
 	// Even non-static images will have a barrier to process the layout conversion.
 	dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->deviceImage, &fullLayout,
-		dsTextureUsage_CopyFrom, false, baseTexture->offscreen,
-		dsGfxFormat_isDepthStencil(info->format), baseTexture->usage, VK_IMAGE_LAYOUT_GENERAL,
-		dsVkTexture_imageLayout(baseTexture));
+		dsTextureUsage_CopyFrom, false, false, false, baseTexture->usage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, dsVkTexture_imageLayout(baseTexture));
 
 	return true;
+}
+
+static void prepareTexture(dsVkRenderer* renderer, dsVkTexture* texture)
+{
+	dsTexture* baseTexture = (dsTexture*)texture;
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+
+	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+
+	dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->deviceImage, &fullLayout,
+		0, false, false, false, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
+		dsVkTexture_imageLayout(baseTexture));
 }
 
 static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceList)
@@ -657,8 +711,6 @@ static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceLi
 	{
 		dsTexture* texture = resourceList->textures[i];
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
-		if (!vkTexture->hostImage && vkTexture->hostImageCount == 0)
-			continue;
 
 		DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
 		// Clear the submit queue now that we're processing it.
@@ -667,7 +719,12 @@ static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceLi
 		if (vkTexture->needsInitialCopy)
 		{
 			doUpload = true;
-			addImageCopies(renderer, vkTexture);
+			if (texture->offscreen)
+				prepareOffscreen(renderer, vkTexture);
+			else if (vkTexture->hostImage || vkTexture->hostImageCount > 0)
+				addImageCopies(renderer, vkTexture);
+			else
+				prepareTexture(renderer, vkTexture);
 			vkTexture->needsInitialCopy = false;
 		}
 
@@ -676,8 +733,9 @@ static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceLi
 		// Queue for re-processing if we still need to delete the host image.
 		if (doUpload || vkTexture->uploadedSubmit > renderer->finishedSubmitCount)
 			dsVkRenderer_processTexture(baseRenderer, texture);
-		else
+		else if (!texture->offscreen)
 		{
+			// Non-offscreens don't need host images to remain.
 			if (vkTexture->hostImage)
 			{
 				DS_ASSERT(vkTexture->hostImageCount == 0);

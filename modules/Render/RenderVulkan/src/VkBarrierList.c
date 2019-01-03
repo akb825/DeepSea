@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,9 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 }
 
 bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
-	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool host, bool offscreen,
-	bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout, VkImageLayout newLayout)
+	const VkImageSubresourceRange* range, dsTextureUsage srcUsage, bool host,
+	bool offscreen, bool depthStencil, dsTextureUsage dstUsage, VkImageLayout oldLayout,
+	VkImageLayout newLayout)
 {
 	uint32_t index = barriers->imageBarrierCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(barriers->allocator, barriers->imageBarriers,
@@ -70,8 +71,10 @@ bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
 	barrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier->pNext = NULL;
 	barrier->srcAccessMask = host ? VK_ACCESS_HOST_WRITE_BIT :
-		dsVkSrcImageAccessFlags(srcUsage, offscreen, depthStencil);
+		dsVkSrcImageAccessFlags(srcUsage, false, false);
 	barrier->dstAccessMask = dsVkDstImageAccessFlags(dstUsage);
+	if (oldLayout != newLayout)
+		barrier->dstAccessMask |= dsVkSrcImageAccessFlags(srcUsage, offscreen, depthStencil);
 	barrier->oldLayout = oldLayout;
 	barrier->newLayout = newLayout;
 	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;

@@ -151,8 +151,7 @@ bool dsGfxQueryPool_beginQuery(dsGfxQueryPool* queries, dsCommandBuffer* command
 	}
 
 	dsResourceManager* resourceManager = queries->resourceManager;
-	bool success = resourceManager->beginQueryFunc(resourceManager, commandBuffer, queries,
-		query);
+	bool success = resourceManager->beginQueryFunc(resourceManager, commandBuffer, queries, query);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
