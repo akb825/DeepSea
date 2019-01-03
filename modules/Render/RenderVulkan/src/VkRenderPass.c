@@ -21,6 +21,7 @@
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkShader.h"
 #include "VkCommandBuffer.h"
+#include "VkRendererInternal.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -129,6 +130,32 @@ static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
 	DS_UNUSED(stage);
 	return VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
 		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+}
+
+static void processFramebufferResources(dsRenderer* renderer, const dsFramebuffer* framebuffer)
+{
+	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
+	{
+		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
+		switch (surface->surfaceType)
+		{
+			case dsGfxSurfaceType_ColorRenderSurface:
+			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+			case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			case dsGfxSurfaceType_DepthRenderSurface:
+			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+			case dsGfxSurfaceType_DepthRenderSurfaceRight:
+				break;
+			case dsGfxSurfaceType_Texture:
+				dsVkRenderer_processTexture(renderer, (dsTexture*)surface->surface);
+				break;
+			case dsGfxSurfaceType_Renderbuffer:
+				dsVkRenderer_processRenderbuffer(renderer, (dsRenderbuffer*)surface->surface);
+				break;
+			default:
+				DS_ASSERT(false);
+		}
+	}
 }
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
@@ -399,6 +426,8 @@ bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 {
 	DS_UNUSED(renderer);
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
+
+	processFramebufferResources(renderer, framebuffer);
 
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
 		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass);

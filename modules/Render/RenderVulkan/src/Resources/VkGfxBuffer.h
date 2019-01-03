@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size);
+void dsVkGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
 
 dsVkGfxBufferData* dsVkGfxBuffer_getData(dsGfxBuffer* buffer, dsCommandBuffer* commandBuffer);

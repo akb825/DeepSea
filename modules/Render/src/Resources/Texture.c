@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -919,6 +919,18 @@ bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	bool success = resourceManager->getTextureDataFunc(result, size, resourceManager, texture,
 		position, width, height);
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+void dsTexture_process(dsTexture* texture)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!texture || !texture->resourceManager || !texture->resourceManager->processTextureFunc)
+		DS_PROFILE_FUNC_RETURN_VOID();
+
+	dsResourceManager* resourceManager = texture->resourceManager;
+	resourceManager->processTextureFunc(resourceManager, texture);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 bool dsTexture_destroy(dsTexture* texture)

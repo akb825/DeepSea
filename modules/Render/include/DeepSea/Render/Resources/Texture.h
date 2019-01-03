@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -230,6 +230,16 @@ DS_RENDER_EXPORT bool dsTexture_generateMipmaps(dsTexture* texture, dsCommandBuf
  */
 DS_RENDER_EXPORT bool dsTexture_getData(void* result, size_t size, dsTexture* texture,
 	const dsTexturePosition* position, uint32_t width, uint32_t height);
+
+/**
+ * @brief Processes a texture to prepare it for rendering.
+ *
+ * This may be used to cause texture processing to be done ealier in order to do the work before
+ * it's used. This is a hint, and there's no guarantee that anything will be done.
+ *
+ * @param texture The texture to process.
+ */
+DS_RENDER_EXPORT void dsTexture_process(dsTexture* texture);
 
 /**
  * @brief Destroys a texture or offscreen.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
@@ -295,6 +296,7 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	if (!bufferData)
 		return false;
 
+	dsVkRenderer_processGfxBuffer(renderer, bufferData);
 	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
 
 	const size_t maxSize = 65536;
@@ -306,6 +308,22 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	}
 
 	return true;
+}
+
+void dsVkGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
+{
+	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
+	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
+
+	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
+	// Make sure it's not destroyed before we can process it.
+	dsLifetime* lifetime = bufferData->lifetime;
+	DS_VERIFY(dsLifetime_acquire(lifetime));
+
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
+
+	dsVkRenderer_processGfxBuffer(resourceManager->renderer, bufferData);
+	dsLifetime_release(lifetime);
 }
 
 bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

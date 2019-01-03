@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,6 +143,16 @@ DS_RENDER_EXPORT bool dsGfxBuffer_copyData(dsGfxBuffer* buffer, dsCommandBuffer*
  */
 DS_RENDER_EXPORT bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
+
+/**
+ * @brief Processes a buffer to prepare it for rendering.
+ *
+ * This may be used to cause buffer processing to be done ealier in order to do the work before
+ * it's used. This is a hint, and there's no guarantee that anything will be done.
+ *
+ * @param buffer The buffer to process.
+ */
+DS_RENDER_EXPORT void dsGfxBuffer_process(dsGfxBuffer* buffer);
 
 /**
  * @brief Destroys a graphics buffer.

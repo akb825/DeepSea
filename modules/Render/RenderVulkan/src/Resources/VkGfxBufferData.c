@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
@@ -44,6 +46,13 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	buffer->scratchAllocator = scratchAllocator;
 	dsVkResource_initialize(&buffer->resource);
 	DS_VERIFY(dsSpinlock_initialize(&buffer->bufferViewLock));
+
+	buffer->lifetime = dsLifetime_create(allocator, buffer);
+	if (!buffer->lifetime)
+	{
+		dsVkGfxBufferData_destroy(buffer);
+		return NULL;
+	}
 
 	// Based on the flags, see what's required both for host and device access.
 	bool needsDeviceMemory, needsHostMemory, keepHostMemory;
@@ -357,6 +366,8 @@ void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer)
 
 	dsVkDevice* device = &((dsVkRenderer*)buffer->resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
+
+	dsLifetime_destroy(buffer->lifetime);
 
 	if (buffer->deviceBuffer)
 	{

@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
@@ -415,6 +416,13 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	baseTexture->offscreen = offscreen;
 	baseTexture->resolve = resolve;
 
+	texture->lifetime = dsLifetime_create(allocator, baseTexture);
+	if (!texture->lifetime)
+	{
+		dsVkTexture_destroyImpl(baseTexture);
+		return NULL;
+	}
+
 	// Base flags determined from the usage flags passed in.
 	VkImageUsageFlags usageFlags = 0;
 	if (usage & dsTextureUsage_Texture)
@@ -562,6 +570,8 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		return false;
 	}
 
+	dsVkRenderer_processTexture(resourceManager->renderer, texture);
+
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
 		copyImage->imageCount, copyImage->imageBarriers);
@@ -603,6 +613,9 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	{
 		return false;
 	}
+
+	dsVkRenderer_processTexture(resourceManager->renderer, srcTexture);
+	dsVkRenderer_processTexture(resourceManager->renderer, dstTexture);
 
 	// 256 regions is ~35 KB of stack space. After that use heap space.
 	bool heapRegions = regionCount > 256;
@@ -759,6 +772,8 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
 		return false;
 
+	dsVkRenderer_processTexture(resourceManager->renderer, texture);
+
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = info->dimension == dsTextureDim_3D;
 	uint32_t totalLayers = is3D ? 1 : info->depth*faceCount;
@@ -888,6 +903,11 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	return true;
 }
 
+void dsVkTexture_process(dsResourceManager* resourceManager, dsTexture* texture)
+{
+	dsVkRenderer_processTexture(resourceManager->renderer, texture);
+}
+
 bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 {
 	dsVkRenderer_deleteTexture(resourceManager->renderer, texture);
@@ -936,6 +956,8 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
 	dsVkDevice* device = &((dsVkRenderer*)texture->resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
+
+	dsLifetime_destroy(vkTexture->lifetime);
 
 	if (vkTexture->deviceImageView)
 	{

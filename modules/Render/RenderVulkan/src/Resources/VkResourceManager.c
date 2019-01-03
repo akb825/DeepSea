@@ -808,6 +808,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->copyTextureFunc = &dsVkTexture_copy;
 	baseResourceManager->generateTextureMipmapsFunc = &dsVkTexture_generateMipmaps;
 	baseResourceManager->getTextureDataFunc = &dsVkTexture_getData;
+	baseResourceManager->processTextureFunc = &dsVkTexture_process;
 
 	// Renderbuffers
 	baseResourceManager->createRenderbufferFunc = &dsVkRenderbuffer_create;

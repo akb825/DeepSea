@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,6 +406,18 @@ bool dsGfxBuffer_copy(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer, si
 	bool success = resourceManager->copyBufferFunc(resourceManager, commandBuffer, srcBuffer,
 		srcOffset, dstBuffer, dstOffset, size);
 	DS_PROFILE_FUNC_RETURN(success);
+}
+
+void dsGfxBuffer_process(dsGfxBuffer* buffer)
+{
+	DS_PROFILE_FUNC_START();
+
+	if (!buffer || !buffer->resourceManager || !buffer->resourceManager->processBufferFunc)
+		DS_PROFILE_FUNC_RETURN_VOID();
+
+	dsResourceManager* resourceManager = buffer->resourceManager;
+	resourceManager->processBufferFunc(resourceManager, buffer);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 bool dsGfxBuffer_destroy(dsGfxBuffer* buffer)

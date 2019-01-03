@@ -25,6 +25,7 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 
 void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
+void dsVkRenderer_processRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);

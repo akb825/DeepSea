@@ -20,7 +20,9 @@
 #include "Resources/VkResourceManager.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
@@ -54,6 +56,15 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	renderbuffer->memory = 0;
 	renderbuffer->image = 0;
 	renderbuffer->imageView = 0;
+	renderbuffer->submitQueue = NULL;
+	renderbuffer->isRenderable = false;
+
+	renderbuffer->lifetime = dsLifetime_create(allocator, renderbuffer);
+	if (!renderbuffer->lifetime)
+	{
+		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);
+		return NULL;
+	}
 
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
@@ -155,6 +166,8 @@ void dsVkRenderbuffer_destroyImpl(dsRenderbuffer* renderbuffer)
 	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 	dsVkDevice* device = &((dsVkRenderer*)renderbuffer->resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
+
+	dsLifetime_destroy(vkRenderbuffer->lifetime);
 
 	if (vkRenderbuffer->imageView)
 	{

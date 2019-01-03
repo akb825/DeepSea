@@ -37,6 +37,7 @@
 #include "VkCommandBufferPool.h"
 #include "VkCommandPoolData.h"
 #include "VkInit.h"
+#include "VkProcessResourceList.h"
 #include "VkRenderPass.h"
 #include "VkRenderSurface.h"
 #include "VkRenderSurfaceData.h"
@@ -46,6 +47,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/ConditionVariable.h>
 #include <DeepSea/Core/Thread/Mutex.h>
@@ -627,7 +629,7 @@ static void prepareTexture(dsVkRenderer* renderer, dsVkTexture* texture)
 		dsVkTexture_imageLayout(baseTexture));
 }
 
-static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceList)
+static void processBuffers(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
@@ -635,9 +637,16 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 
 	for (uint32_t i = 0; i < resourceList->bufferCount; ++i)
 	{
-		dsVkGfxBufferData* buffer = resourceList->buffers[i];
-		if (!buffer->deviceBuffer || !buffer->hostBuffer)
+		dsLifetime* lifetime = resourceList->buffers[i];
+		dsVkGfxBufferData* buffer = dsLifetime_acquire(lifetime);
+		if (!buffer)
 			continue;
+
+		if (!buffer->deviceBuffer || !buffer->hostBuffer)
+		{
+			dsLifetime_release(lifetime);
+			continue;
+		}
 
 		DS_VERIFY(dsSpinlock_lock(&buffer->resource.lock));
 		// Clear the submit queue now that we're processing it.
@@ -647,6 +656,7 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 			// Still mapped, process later.
 			DS_VERIFY(dsSpinlock_unlock(&buffer->resource.lock));
 			dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
+			dsLifetime_release(lifetime);
 			continue;
 		}
 
@@ -698,10 +708,12 @@ static void processBuffers(dsVkRenderer* renderer, dsVkResourceList* resourceLis
 			else
 				dsVkRenderer_processGfxBuffer(baseRenderer, buffer);
 		}
+
+		dsLifetime_release(lifetime);
 	}
 }
 
-static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceList)
+static void processTextures(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
 	dsVkDevice* device = &renderer->device;
@@ -709,7 +721,11 @@ static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceLi
 
 	for (uint32_t i = 0; i < resourceList->textureCount; ++i)
 	{
-		dsTexture* texture = resourceList->textures[i];
+		dsLifetime* lifetime = resourceList->textures[i];
+		dsTexture* texture = (dsTexture*)dsLifetime_acquire(lifetime);
+		if (!texture)
+			continue;
+
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
 
 		DS_VERIFY(dsSpinlock_lock(&vkTexture->resource.lock));
@@ -756,6 +772,48 @@ static void processTextures(dsVkRenderer* renderer, dsVkResourceList* resourceLi
 				instance->allocCallbacksPtr);
 			vkTexture->hostMemory = 0;
 		}
+
+		dsLifetime_release(lifetime);
+	}
+}
+
+static void processRenderbuffers(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
+{
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+
+	for (uint32_t i = 0; i < resourceList->renderbufferCount; ++i)
+	{
+		dsLifetime* lifetime = resourceList->renderbuffers[i];
+		dsRenderbuffer* renderbuffer = (dsRenderbuffer*)dsLifetime_acquire(lifetime);
+		if (!renderbuffer)
+			continue;
+
+		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+
+		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(renderbuffer->format);
+		VkImageSubresourceRange fullLayout = {aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
+			VK_REMAINING_ARRAY_LAYERS};
+		bool isDepthStencil = dsGfxFormat_isDepthStencil(renderbuffer->format);
+		dsTextureUsage usage = 0;
+		if (renderbuffer->usage & dsRenderbufferUsage_BlitFrom)
+			usage |= dsTextureUsage_CopyFrom;
+		if (renderbuffer->usage & dsRenderbufferUsage_BlitTo)
+			usage |= dsTextureUsage_CopyTo;
+
+		DS_VERIFY(dsSpinlock_lock(&vkRenderbuffer->resource.lock));
+		// Clear the submit queue now that we're processing it.
+		vkRenderbuffer->submitQueue = NULL;
+		if (!vkRenderbuffer->isRenderable)
+		{
+			dsVkBarrierList_addImageBarrier(preResourceBarriers, vkRenderbuffer->image, &fullLayout,
+				0, false, true, isDepthStencil, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_GENERAL);
+			vkRenderbuffer->isRenderable = false;
+		}
+
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
+
+		dsLifetime_release(lifetime);
 	}
 }
 
@@ -766,7 +824,8 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	dsVkBarrierList* postResourceBarriers = &renderer->postResourceBarriers;
 
 	DS_VERIFY(dsSpinlock_lock(&renderer->resourceLock));
-	dsVkResourceList* prevResourceList = renderer->pendingResources + renderer->curPendingResources;
+	dsVkProcessResourceList* prevResourceList = renderer->pendingResources +
+		renderer->curPendingResources;
 	renderer->curPendingResources =
 		(renderer->curPendingResources + 1) % DS_PENDING_RESOURCES_ARRAY;
 	DS_VERIFY(dsSpinlock_unlock(&renderer->resourceLock));
@@ -780,6 +839,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 
 	processBuffers(renderer, prevResourceList);
 	processTextures(renderer, prevResourceList);
+	processRenderbuffers(renderer, prevResourceList);
 
 	// Process the uploads.
 	if (preResourceBarriers->bufferBarrierCount > 0)
@@ -813,7 +873,7 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 			postResourceBarriers->imageBarrierCount, postResourceBarriers->imageBarriers);
 	}
 
-	dsVkResourceList_clear(prevResourceList);
+	dsVkProcessResourceList_clear(prevResourceList);
 }
 
 void dsVkRenderer_flush(dsRenderer* renderer)
@@ -851,7 +911,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
 	dsVkBarrierList_shutdown(&vkRenderer->postResourceBarriers);
 	for (unsigned int i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
-		dsVkResourceList_shutdown(&vkRenderer->pendingResources[i]);
+		dsVkProcessResourceList_shutdown(&vkRenderer->pendingResources[i]);
 	for (unsigned int i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 	{
 		dsVkResourceList* deleteResources = vkRenderer->deleteResources + i;
@@ -961,7 +1021,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	dsVkBarrierList_initialize(&renderer->preResourceBarriers, allocator, &renderer->device);
 	dsVkBarrierList_initialize(&renderer->postResourceBarriers, allocator, &renderer->device);
 	for (uint32_t i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
-		dsVkResourceList_initialize(renderer->pendingResources + i, allocator);
+		dsVkProcessResourceList_initialize(renderer->pendingResources + i, allocator);
 	for (uint32_t i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 		dsVkResourceList_initialize(renderer->deleteResources + i, allocator);
 
@@ -1220,7 +1280,8 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 	}
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
-	dsVkResourceList* resourceList = vkRenderer->pendingResources + vkRenderer->curPendingResources;
+	dsVkProcessResourceList* resourceList = vkRenderer->pendingResources +
+		vkRenderer->curPendingResources;
 
 	// Keep track of the submit queue. If it's already on a queue, don't do anything.
 	void* submitQueue;
@@ -1235,7 +1296,7 @@ void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buff
 		return;
 	}
 
-	dsVkResourceList_addBuffer(resourceList, buffer);
+	dsVkProcessResourceList_addBuffer(resourceList, buffer);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 }
 
@@ -1254,7 +1315,8 @@ void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 	}
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
-	dsVkResourceList* resourceList = vkRenderer->pendingResources + vkRenderer->curPendingResources;
+	dsVkProcessResourceList* resourceList = vkRenderer->pendingResources +
+		vkRenderer->curPendingResources;
 
 	// Keep track of the submit queue. If it's already on a queue, don't do anything.
 	void* submitQueue;
@@ -1269,7 +1331,41 @@ void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 		return;
 	}
 
-	dsVkResourceList_addTexture(resourceList, texture);
+	dsVkProcessResourceList_addTexture(resourceList, texture);
+}
+
+void dsVkRenderer_processRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer)
+{
+	DS_ASSERT(renderbuffer);
+	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderbuffer->resource.lock));
+
+	// Make sure this needs to be processed.
+	if (vkRenderbuffer->isRenderable)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
+		return;
+	}
+
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
+	dsVkProcessResourceList* resourceList = vkRenderer->pendingResources +
+		vkRenderer->curPendingResources;
+
+	// Keep track of the submit queue. If it's already on a queue, don't do anything.
+	void* submitQueue;
+	submitQueue = vkRenderbuffer->submitQueue;
+	if (!submitQueue)
+		vkRenderbuffer->submitQueue = resourceList;
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
+
+	if (submitQueue)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
+		return;
+	}
+
+	dsVkProcessResourceList_addRenderbuffer(resourceList, renderbuffer);
 }
 
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1250,6 +1250,13 @@ typedef bool (*dsCopyGfxBufferFunction)(dsResourceManager* resourceManager,
 	dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size);
 
 /**
+ * @brief Function for processing a buffer.
+ * @param resourceManager The resource manager the buffer was created with.
+ * @param buffer The buffer to process.
+ */
+typedef void (*dsProcessGfxBufferFunction)(dsResourceManager* resourceManager, dsGfxBuffer* buffer);
+
+/**
  * @brief Function for creating drawable geometry.
  * @param resourceManager The resource manager to create the geomtry from.
  * @param allocator The allocator to create the geometry with.
@@ -1380,6 +1387,13 @@ typedef bool (*dsGenerateTextureMipmapsFunction)(dsResourceManager* resourceMana
 typedef bool (*dsGetTextureDataFunction)(void* result, size_t size,
 	dsResourceManager* resourceManager, dsTexture* texture, const dsTexturePosition* position,
 	uint32_t width, uint32_t height);
+
+/**
+ * @brief Function for processing a texture.
+ * @param resourceManager The resource manager the texture was created with.
+ * @param texture The texture to process.
+ */
+typedef void (*dsProcessTextureFunction)(dsResourceManager* resourceManager, dsTexture* texture);
 
 /**
  * @brief Function for creeating a framebuffer.
@@ -2123,6 +2137,11 @@ struct dsResourceManager
 	dsCopyGfxBufferFunction copyBufferFunc;
 
 	/**
+	 * @brief Buffer process function.
+	 */
+	dsProcessGfxBufferFunction processBufferFunc;
+
+	/**
 	 * @brief Geometry creation function.
 	 */
 	dsCreateDrawGeometryFunction createGeometryFunc;
@@ -2156,6 +2175,11 @@ struct dsResourceManager
 	 * @brief Texture to texture copying function.
 	 */
 	dsCopyTextureFunction copyTextureFunc;
+
+	/**
+	 * @brief Texture process function.
+	 */
+	dsProcessTextureFunction processTextureFunc;
 
 	/**
 	 * @brief Texture mipmap generation function.

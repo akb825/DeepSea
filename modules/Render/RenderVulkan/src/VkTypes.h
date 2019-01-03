@@ -237,6 +237,7 @@ typedef struct dsVkGfxBufferData
 	dsResourceManager* resourceManager;
 	dsAllocator* allocator;
 	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
 
 	dsVkResource resource;
 
@@ -308,6 +309,7 @@ typedef struct dsVkTexture
 {
 	dsTexture texture;
 	dsVkResource resource;
+	dsLifetime* lifetime;
 
 	VkDeviceMemory deviceMemory;
 	VkImage deviceImage;
@@ -333,10 +335,14 @@ typedef struct dsVkRenderbuffer
 {
 	dsRenderbuffer renderbuffer;
 	dsVkResource resource;
+	dsLifetime* lifetime;
 
 	VkDeviceMemory memory;
 	VkImage image;
 	VkImageView imageView;
+	void* submitQueue;
+
+	bool isRenderable;
 } dsVkRenderbuffer;
 
 typedef struct dsVkRealFramebuffer
@@ -689,6 +695,23 @@ typedef struct dsVkResourceList
 	uint32_t maxCommandPools;
 } dsVkResourceList;
 
+typedef struct dsVkProcessResourceList
+{
+	dsAllocator* allocator;
+
+	dsLifetime** buffers;
+	uint32_t bufferCount;
+	uint32_t maxBuffers;
+
+	dsLifetime** textures;
+	uint32_t textureCount;
+	uint32_t maxTextures;
+
+	dsLifetime** renderbuffers;
+	uint32_t renderbufferCount;
+	uint32_t maxRenderbuffers;
+} dsVkProcessResourceList;
+
 typedef struct dsVkBarrierList
 {
 	dsAllocator* allocator;
@@ -865,7 +888,7 @@ typedef struct dsVkRenderer
 
 	dsVkBarrierList preResourceBarriers;
 	dsVkBarrierList postResourceBarriers;
-	dsVkResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
+	dsVkProcessResourceList pendingResources[DS_PENDING_RESOURCES_ARRAY];
 	dsVkResourceList deleteResources[DS_DELETE_RESOURCES_ARRAY];
 	uint32_t curPendingResources;
 	uint32_t curDeleteResources;

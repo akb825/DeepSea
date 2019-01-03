@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 	dsTexture* texture);
 bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height);
+void dsVkTexture_process(dsResourceManager* resourceManager, dsTexture* texture);
 bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture);
 
 bool dsVkTexture_supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* formatInfo,
