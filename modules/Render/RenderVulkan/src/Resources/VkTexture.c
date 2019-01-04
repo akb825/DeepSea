@@ -260,7 +260,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	VkImageViewType imageViewType, dsVkTexture* texture)
 {
 	dsVkInstance* instance = &device->instance;
-	VkImageUsageFlags usageFlags = 0;
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	if (device->hasLazyAllocation)
 		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	if (dsGfxFormat_isDepthStencil(info->format))
@@ -429,9 +429,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
 	if (usage & dsTextureUsage_Image)
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
-	if (usage & dsTextureUsage_CopyFrom)
+	if (usage & dsTextureUsage_CopyFrom || offscreen)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (usage & dsTextureUsage_CopyTo || data)
+	if (usage & dsTextureUsage_CopyTo || data || resolve)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (offscreen)
 	{
