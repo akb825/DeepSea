@@ -133,6 +133,7 @@ typedef struct dsVkDevice
 	PFN_vkBindImageMemory vkBindImageMemory;
 	PFN_vkCmdCopyImage vkCmdCopyImage;
 	PFN_vkCmdBlitImage vkCmdBlitImage;
+	PFN_vkCmdResolveImage vkCmdResolveImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;
 
@@ -341,6 +342,12 @@ typedef struct dsVkRenderbuffer
 	VkImageView imageView;
 } dsVkRenderbuffer;
 
+typedef struct dsVkFramebufferImageInfo
+{
+	bool isTemp;
+	uint32_t resolveIndex;
+} dsVkFramebufferImageInfo;
+
 typedef struct dsVkRealFramebuffer
 {
 	dsAllocator* allocator;
@@ -350,8 +357,9 @@ typedef struct dsVkRealFramebuffer
 	VkRenderPass renderPass;
 
 	VkImageView* imageViews;
-	bool* imageViewsTemp;
+	dsVkFramebufferImageInfo* imageInfos;
 	uint32_t surfaceCount;
+	uint32_t imageCount;
 } dsVkRealFramebuffer;
 
 typedef struct dsVkFramebuffer
@@ -556,6 +564,7 @@ typedef struct dsVkRenderPass
 	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
 
+	uint32_t fullAttachmentCount;
 	VkRenderPass vkRenderPass;
 
 	dsLifetime** usedShaders;

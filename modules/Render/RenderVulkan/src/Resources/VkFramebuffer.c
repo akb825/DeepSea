@@ -32,9 +32,8 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, uint32_t layers)
 {
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount) +
-		DS_ALIGNED_SIZE(sizeof(VkImageView)*surfaceCount);
+	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkFramebuffer)) +
+		DS_ALIGNED_SIZE(sizeof(dsFramebufferSurface)*surfaceCount);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;

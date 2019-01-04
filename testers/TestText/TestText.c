@@ -1150,7 +1150,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear, renderer->surfaceColorFormat,
 		DS_DEFAULT_ANTIALIAS_SAMPLES};
 
-	dsColorAttachmentRef colorAttachment = {0, false};
+	dsColorAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;
 	dsRenderSubpassInfo subpass =
 	{

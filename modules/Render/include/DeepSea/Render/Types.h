@@ -104,7 +104,8 @@ typedef enum dsAttachmentUsage
 	dsAttachmentUsage_KeepBefore = 0x2, ///< Keep the existing value before rendering begins.
 	dsAttachmentUsage_KeepAfter = 0x4,  ///< Keep the value after rendering ends.
 	/**
-	 * Resolve multisample attachment once the render pass has completed.
+	 * Resolve multisample attachment once the render pass has completed. Note that this may not be
+	 * as optimal as resolving as part of a subpass.
 	 */
 	dsAttachmentUsage_Resolve = 0x8
 } dsAttachmentUsage;
@@ -473,8 +474,12 @@ typedef struct dsColorAttachmentRef
 	/**
 	 * @brief True to resolve a multisampled attachment after the subpass.
 	 *
-	 * This should be set if a multisampled offscreen will be used in a later subpass. If this is
-	 * set, it's best not to set the dsAttachmentUsage_Resolve flag to avoid resolving twice.
+	 * This may be more efficient than using the dsAttachmentUsage_Resolve flag to resolve an
+	 * attachment after the subpasses finish. It also allows the resolved result to be available
+	 * for other subpass inputs.
+	 *
+	 * If this is set, it's best not to set the dsAttachmentUsage_Resolve flag to avoid resolving
+	 * twice.
 	 */
 	bool resolve;
 } dsColorAttachmentRef;
