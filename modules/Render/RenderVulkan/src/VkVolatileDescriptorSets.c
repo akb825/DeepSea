@@ -317,7 +317,6 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		return false;
 	}
 
-	uint32_t bindingIndex = 0;
 	uint32_t imageIndex = 0;
 	uint32_t bufferIndex = 0;
 	uint32_t texelBufferIndex = 0;
@@ -327,7 +326,6 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
-		DS_ASSERT(bindingIndex < bindingCount);
 		VkWriteDescriptorSet* binding = descriptors->bindings + i;
 		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		binding->pNext = NULL;
@@ -366,7 +364,6 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		}
 	}
 
-	DS_ASSERT(bindingIndex == bindingCount);
 	DS_ASSERT(imageIndex == descriptors->imageCount);
 	DS_ASSERT(bufferIndex == descriptors->bufferCount);
 	DS_ASSERT(texelBufferIndex == descriptors->texelBufferCount);
