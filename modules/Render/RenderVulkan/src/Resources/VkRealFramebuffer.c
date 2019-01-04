@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "VkRenderSurface.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <string.h>
 
-bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurface* surfaces,
+static bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurface* surfaces,
 	uint32_t surfaceCount, uint32_t layers, VkImageView* imageViews, bool* imageViewsTemp)
 {
 	dsRenderer* renderer = resourceManager->renderer;
@@ -40,8 +42,12 @@ bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurfac
 			case dsGfxSurfaceType_DepthRenderSurface:
 			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-				// TODO
-				return false;
+			{
+				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
+				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+				imageViews[i] = surfaceData->imageViews[surfaceData->imageIndex];
+				break;
+			}
 			case dsGfxSurfaceType_Texture:
 			{
 				dsOffscreen* offscreen = (dsOffscreen*)surface->surfaceType;
@@ -197,6 +203,33 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManag
 		dsVkRealFramebuffer_destroy(framebuffer);
 
 	return framebuffer;
+}
+
+void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount)
+{
+	for (uint32_t i = 0; i < surfaceCount; ++i)
+	{
+		const dsFramebufferSurface* surface = surfaces + i;
+		switch (surface->surfaceType)
+		{
+			case dsGfxSurfaceType_ColorRenderSurface:
+			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+			case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			case dsGfxSurfaceType_DepthRenderSurface:
+			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+			case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			{
+				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
+				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+				DS_ASSERT(!framebuffer->imageViewsTemp[i]);
+				framebuffer->imageViews[i] = surfaceData->imageViews[surfaceData->imageIndex];
+				break;
+			}
+			default:
+				break;
+		}
+	}
 }
 
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)

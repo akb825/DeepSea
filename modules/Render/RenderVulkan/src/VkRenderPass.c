@@ -132,30 +132,137 @@ static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
 		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 }
 
-static void processFramebufferResources(dsRenderer* renderer, const dsFramebuffer* framebuffer)
+static bool beginFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer)
+{
+	bool hasImages = false;
+	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
+	{
+		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
+		{
+			dsTexture* texture = (dsTexture*)surface->surface;
+			DS_ASSERT(texture->offscreen);
+			dsVkRenderer_processTexture(renderer, texture);
+			if (texture->usage & dsTextureUsage_Image)
+				hasImages = true;
+
+			dsVkTexture* vkTexture = (dsVkTexture*)texture;
+			VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+			if (!imageBarrier)
+				return false;
+
+			VkImageAspectFlags aspectMask = dsVkImageAspectFlags(texture->info.format);
+			bool isDepthStencil = dsGfxFormat_isDepthStencil(texture->info.format);
+			imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageBarrier->pNext = NULL;
+			imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+			if (isDepthStencil)
+			{
+				imageBarrier->srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarrier->newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			}
+			else
+			{
+				imageBarrier->srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			}
+
+			uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+			imageBarrier->image = vkTexture->deviceImage;
+			imageBarrier->subresourceRange.aspectMask = aspectMask;
+			imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
+			imageBarrier->subresourceRange.levelCount = 1;
+			imageBarrier->subresourceRange.baseArrayLayer = surface->layer*faceCount +
+				surface->cubeFace;
+			imageBarrier->subresourceRange.layerCount = framebuffer->layers;
+		}
+	}
+
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkPipelineStageFlags dstStages = srcStages;
+	if (hasImages)
+	{
+		srcStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	}
+	return dsVkCommandBuffer_submitImageBarriers(commandBuffer, srcStages, dstStages);
+}
+
+static bool endFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer)
 {
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
-		switch (surface->surfaceType)
+		if (surface->surfaceType == dsGfxSurfaceType_Texture)
 		{
-			case dsGfxSurfaceType_ColorRenderSurface:
-			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-			case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			case dsGfxSurfaceType_DepthRenderSurface:
-			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-				break;
-			case dsGfxSurfaceType_Texture:
-				dsVkRenderer_processTexture(renderer, (dsTexture*)surface->surface);
-				break;
-			case dsGfxSurfaceType_Renderbuffer:
-				dsVkRenderer_processRenderbuffer(renderer, (dsRenderbuffer*)surface->surface);
-				break;
-			default:
-				DS_ASSERT(false);
+			dsTexture* texture = (dsTexture*)surface->surface;
+			DS_ASSERT(texture->offscreen);
+			dsVkTexture* vkTexture = (dsVkTexture*)texture;
+			VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+			if (!imageBarrier)
+				return false;
+
+			VkImageAspectFlags aspectMask = dsVkImageAspectFlags(texture->info.format);
+			bool isDepthStencil = dsGfxFormat_isDepthStencil(texture->info.format);
+			imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageBarrier->pNext = NULL;
+			imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			if (isDepthStencil)
+			{
+				imageBarrier->srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarrier->oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			}
+			else
+			{
+				imageBarrier->srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarrier->oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			}
+			imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+			uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+			imageBarrier->image = vkTexture->deviceImage;
+			imageBarrier->subresourceRange.aspectMask = aspectMask;
+			imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
+			imageBarrier->subresourceRange.levelCount = 1;
+			imageBarrier->subresourceRange.baseArrayLayer = surface->layer*faceCount +
+				surface->cubeFace;
+			imageBarrier->subresourceRange.layerCount = framebuffer->layers;
 		}
 	}
+
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkPipelineStageFlags dstStages = srcStages | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		dstStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	return dsVkCommandBuffer_submitImageBarriers(commandBuffer, srcStages, dstStages);
 }
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
@@ -254,8 +361,14 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			vkAttachment->stencilStoreOp = vkAttachment->storeOp;
 
-			vkAttachment->initialLayout = VK_IMAGE_LAYOUT_GENERAL;
-			vkAttachment->finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+			VkImageLayout layout;
+			if (dsGfxFormat_isDepthStencil(attachment->format))
+				layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			else
+				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			vkAttachment->initialLayout = layout;
+			vkAttachment->finalLayout = layout;
 		}
 	}
 	else
@@ -348,8 +461,14 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				VkAttachmentReference, curSubpass->inputAttachmentCount);
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
-				inputAttachments[j].attachment = curSubpass->inputAttachments[j];
-				inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+				uint32_t attachment = curSubpass->inputAttachments[j];
+				inputAttachments[j].attachment = attachment;
+				if (attachment == DS_NO_ATTACHMENT)
+					inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+				else if (dsGfxFormat_isDepthStencil(attachments[attachment].format))
+					inputAttachments[j].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				else
+					inputAttachments[j].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
 			vkSubpass->pInputAttachments = inputAttachments;
 		}
@@ -370,13 +489,13 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			{
 				const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
 				colorAttachments[j].attachment = curAttachment->attachmentIndex;
-				colorAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 				if (curAttachment->resolve)
 					resolveAttachments[j].attachment = curAttachment->attachmentIndex;
 				else
 					resolveAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-				colorAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
+				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			}
 
 			vkSubpass->pColorAttachments = colorAttachments;
@@ -387,7 +506,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		{
 			VkAttachmentReference* depthSubpass = DS_ALLOCATE_STACK_OBJECT(VkAttachmentReference);
 			depthSubpass->attachment = curSubpass->depthStencilAttachment;
-			depthSubpass->layout = VK_IMAGE_LAYOUT_GENERAL;
+			depthSubpass->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			vkSubpass->pDepthStencilAttachment = depthSubpass;
 		}
 
@@ -427,10 +546,10 @@ bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	DS_UNUSED(renderer);
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
 
-	processFramebufferResources(renderer, framebuffer);
+	beginFramebuffer(renderer, commandBuffer, framebuffer);
 
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass);
+		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, true);
 	if (!realFramebuffer)
 		return false;
 
@@ -472,7 +591,7 @@ bool dsVkRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBu
 	DS_ASSERT(framebuffer);
 
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass);
+		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, false);
 	if (!realFramebuffer)
 		return false;
 
@@ -483,11 +602,11 @@ bool dsVkRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBu
 bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass)
 {
-	DS_UNUSED(renderer);
 	DS_UNUSED(renderPass);
+	DS_ASSERT(commandBuffer->boundFramebuffer);
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
-	return true;
+	return endFramebuffer(renderer, commandBuffer, commandBuffer->boundFramebuffer);
 }
 
 bool dsVkRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass)

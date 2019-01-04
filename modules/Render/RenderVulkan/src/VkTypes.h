@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -335,14 +335,10 @@ typedef struct dsVkRenderbuffer
 {
 	dsRenderbuffer renderbuffer;
 	dsVkResource resource;
-	dsLifetime* lifetime;
 
 	VkDeviceMemory memory;
 	VkImage image;
 	VkImageView imageView;
-	void* submitQueue;
-
-	bool isRenderable;
 } dsVkRenderbuffer;
 
 typedef struct dsVkRealFramebuffer
@@ -699,17 +695,23 @@ typedef struct dsVkProcessResourceList
 {
 	dsAllocator* allocator;
 
+	// No strict lifetime guarantees with respect to processing.
 	dsLifetime** buffers;
 	uint32_t bufferCount;
 	uint32_t maxBuffers;
 
+	// No strict lifetime guarantees with respect to processing.
 	dsLifetime** textures;
 	uint32_t textureCount;
 	uint32_t maxTextures;
 
-	dsLifetime** renderbuffers;
+	dsRenderbuffer** renderbuffers;
 	uint32_t renderbufferCount;
 	uint32_t maxRenderbuffers;
+
+	dsVkRenderSurfaceData** renderSurfaces;
+	uint32_t renderSurfaceCount;
+	uint32_t maxRenderSurfaces;
 } dsVkProcessResourceList;
 
 typedef struct dsVkBarrierList
@@ -825,11 +827,12 @@ struct dsVkCommandBuffer
 	uint32_t maxRenderSurfaces;
 
 	VkImageMemoryBarrier* imageBarriers;
-	VkImageCopy* imageCopies;
+	uint32_t imageBarrierCount;
 	uint32_t maxImageBarriers;
-	uint32_t maxImageCopies;
 
+	VkImageCopy* imageCopies;
 	uint8_t* pushConstantBytes;
+	uint32_t maxImageCopies;
 	uint32_t maxPushConstantBytes;
 
 	bool fenceSet;

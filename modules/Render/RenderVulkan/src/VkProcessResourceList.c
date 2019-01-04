@@ -66,8 +66,21 @@ bool dsVkProcessResourceList_addRenderbuffer(dsVkProcessResourceList* resources,
 		return false;
 	}
 
-	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
-	resources->renderbuffers[index] = dsLifetime_addRef(vkRenderbuffer->lifetime);
+	resources->renderbuffers[index] = renderbuffer;
+	return true;
+}
+
+bool dsVkProcessResourceList_addRenderSurface(dsVkProcessResourceList* resources,
+	dsVkRenderSurfaceData* surface)
+{
+	uint32_t index = resources->renderSurfaceCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(resources->allocator, resources->renderSurfaces,
+		resources->renderSurfaceCount, resources->maxRenderSurfaces, 1))
+	{
+		return false;
+	}
+
+	resources->renderSurfaces[index] = surface;
 	return true;
 }
 
@@ -81,9 +94,8 @@ void dsVkProcessResourceList_clear(dsVkProcessResourceList* resources)
 		dsLifetime_freeRef(resources->textures[i]);
 	resources->textureCount = 0;
 
-	for (uint32_t i = 0; i < resources->renderbufferCount; ++i)
-		dsLifetime_freeRef(resources->renderbuffers[i]);
 	resources->renderbufferCount = 0;
+	resources->renderSurfaceCount = 0;
 }
 
 void dsVkProcessResourceList_shutdown(dsVkProcessResourceList* resources)
@@ -92,4 +104,5 @@ void dsVkProcessResourceList_shutdown(dsVkProcessResourceList* resources)
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->buffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderbuffers));
+	DS_VERIFY(dsAllocator_free(resources->allocator, resources->renderSurfaces));
 }

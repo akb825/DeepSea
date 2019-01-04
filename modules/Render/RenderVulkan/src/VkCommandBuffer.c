@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -600,6 +600,37 @@ void dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	DS_VK_CALL(device->vkCmdEndRenderPass)(activeCommandBuffer);
 
 	vkCommandBuffer->activeSubpassBuffer = 0;
+}
+
+VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->imageBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageBarriers,
+		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->maxImageBarriers, 1))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->imageBarriers + index;
+}
+
+bool dsVkCommandBuffer_submitImageBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	if (vkCommandBuffer->imageBarrierCount == 0)
+		return true;
+
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStage, dstStage, 0, 0, NULL, 0, NULL,
+		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
+	vkCommandBuffer->imageBarrierCount = 0;
+	return true;
 }
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,4 +25,4 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	VkRenderPass renderPass);
+	VkRenderPass renderPass, bool update);

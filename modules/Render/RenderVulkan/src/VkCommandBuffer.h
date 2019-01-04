@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
 	uint32_t subpass, VkFramebuffer framebuffer);
 void dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
+
+VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer);
+bool dsVkCommandBuffer_submitImageBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);

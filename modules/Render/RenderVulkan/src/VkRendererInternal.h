@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 void dsVkRenderer_processGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_processRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer);
+void dsVkRenderer_processRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface);
+
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer);
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture);
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage);

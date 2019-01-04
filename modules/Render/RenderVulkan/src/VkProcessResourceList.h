@@ -26,6 +26,8 @@ bool dsVkProcessResourceList_addBuffer(dsVkProcessResourceList* resources,
 bool dsVkProcessResourceList_addTexture(dsVkProcessResourceList* resources, dsTexture* texture);
 bool dsVkProcessResourceList_addRenderbuffer(dsVkProcessResourceList* resources,
 	dsRenderbuffer* renderbuffer);
+bool dsVkProcessResourceList_addRenderSurface(dsVkProcessResourceList* resources,
+	dsVkRenderSurfaceData* surface);
 void dsVkProcessResourceList_clear(dsVkProcessResourceList* resources);
 
 void dsVkProcessResourceList_shutdown(dsVkProcessResourceList* resources);

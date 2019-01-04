@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 }
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	VkRenderPass renderPass)
+	VkRenderPass renderPass, bool update)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));
@@ -95,6 +95,11 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
 		if (realFramebuffer->renderPass == renderPass)
 		{
+			if (update)
+			{
+				dsVkRealFramebuffer_updateRenderSurfaceImages(realFramebuffer,
+					framebuffer->surfaces, framebuffer->surfaceCount);
+			}
 			DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 			return realFramebuffer;
 		}

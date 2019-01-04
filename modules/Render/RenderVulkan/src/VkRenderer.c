@@ -461,7 +461,8 @@ static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
 	{
 		dsVkBarrierList_addImageBarrier(preResourceBarriers, texture->surfaceImage, &fullLayout,
 			0, false, true, isDepthStencil, baseTexture->usage, VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_GENERAL);
+			isDepthStencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
 }
 
@@ -783,11 +784,8 @@ static void processRenderbuffers(dsVkRenderer* renderer, dsVkProcessResourceList
 
 	for (uint32_t i = 0; i < resourceList->renderbufferCount; ++i)
 	{
-		dsLifetime* lifetime = resourceList->renderbuffers[i];
-		dsRenderbuffer* renderbuffer = (dsRenderbuffer*)dsLifetime_acquire(lifetime);
-		if (!renderbuffer)
-			continue;
-
+		// Renderbuffers are always queued once, so no need to check if needs processing.
+		dsRenderbuffer* renderbuffer = resourceList->renderbuffers[i];
 		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(renderbuffer->format);
@@ -800,20 +798,45 @@ static void processRenderbuffers(dsVkRenderer* renderer, dsVkProcessResourceList
 		if (renderbuffer->usage & dsRenderbufferUsage_BlitTo)
 			usage |= dsTextureUsage_CopyTo;
 
-		DS_VERIFY(dsSpinlock_lock(&vkRenderbuffer->resource.lock));
-		// Clear the submit queue now that we're processing it.
-		vkRenderbuffer->submitQueue = NULL;
-		if (!vkRenderbuffer->isRenderable)
+		dsVkBarrierList_addImageBarrier(preResourceBarriers, vkRenderbuffer->image, &fullLayout,
+			0, false, true, isDepthStencil, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+			isDepthStencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	}
+}
+
+static void processRenderSurfaces(dsVkRenderer* renderer, dsVkProcessResourceList* resourceList)
+{
+	dsRenderer* baseRenderer = (dsRenderer*)renderer;
+	dsVkBarrierList* preResourceBarriers = &renderer->preResourceBarriers;
+
+	VkImageSubresourceRange fullColorLayout = {VK_IMAGE_ASPECT_COLOR_BIT, 0,
+		VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS};
+
+	VkImageAspectFlags depthAspectMask =
+		dsVkImageAspectFlags(baseRenderer->surfaceDepthStencilFormat);
+	VkImageSubresourceRange fullDepthLayout = {depthAspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+
+	for (uint32_t i = 0; i < resourceList->renderSurfaceCount; ++i)
+	{
+		// Render surfaces are always queued once, so no need to check if needs processing.
+		dsVkRenderSurfaceData* surface = resourceList->renderSurfaces[i];
+
+		dsTextureUsage usage = dsTextureUsage_CopyTo | dsTextureUsage_CopyFrom;
+		if (surface->resolveImage)
 		{
-			dsVkBarrierList_addImageBarrier(preResourceBarriers, vkRenderbuffer->image, &fullLayout,
-				0, false, true, isDepthStencil, usage, VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_IMAGE_LAYOUT_GENERAL);
-			vkRenderbuffer->isRenderable = false;
+			dsVkBarrierList_addImageBarrier(preResourceBarriers, surface->resolveImage,
+				&fullColorLayout, 0, false, true, false, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 		}
 
-		DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
-
-		dsLifetime_release(lifetime);
+		if (surface->depthImage)
+		{
+			dsVkBarrierList_addImageBarrier(preResourceBarriers, surface->depthImage,
+				&fullDepthLayout, 0, false, true, true, usage, VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		}
 	}
 }
 
@@ -835,11 +858,14 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	renderer->bufferCopyInfoCount = 0;
 
 	preResourceBarriers->bufferBarrierCount = 0;
+	preResourceBarriers->imageBarrierCount = 0;
 	postResourceBarriers->bufferBarrierCount = 0;
+	postResourceBarriers->imageBarrierCount = 0;
 
 	processBuffers(renderer, prevResourceList);
 	processTextures(renderer, prevResourceList);
 	processRenderbuffers(renderer, prevResourceList);
+	processRenderSurfaces(renderer, prevResourceList);
 
 	// Process the uploads.
 	if (preResourceBarriers->bufferBarrierCount > 0)
@@ -1332,40 +1358,30 @@ void dsVkRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 	}
 
 	dsVkProcessResourceList_addTexture(resourceList, texture);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 }
 
 void dsVkRenderer_processRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer)
 {
+	// Only queued once during creation, so no need to check if it should be added.
 	DS_ASSERT(renderbuffer);
-	dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
-	DS_VERIFY(dsSpinlock_lock(&vkRenderbuffer->resource.lock));
-
-	// Make sure this needs to be processed.
-	if (vkRenderbuffer->isRenderable)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
-		return;
-	}
-
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
 	dsVkProcessResourceList* resourceList = vkRenderer->pendingResources +
 		vkRenderer->curPendingResources;
-
-	// Keep track of the submit queue. If it's already on a queue, don't do anything.
-	void* submitQueue;
-	submitQueue = vkRenderbuffer->submitQueue;
-	if (!submitQueue)
-		vkRenderbuffer->submitQueue = resourceList;
-	DS_VERIFY(dsSpinlock_unlock(&vkRenderbuffer->resource.lock));
-
-	if (submitQueue)
-	{
-		DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
-		return;
-	}
-
 	dsVkProcessResourceList_addRenderbuffer(resourceList, renderbuffer);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
+}
+
+void dsVkRenderer_processRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface)
+{
+	// Only queued once during creation, so no need to check if it should be added.
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->resourceLock));
+	dsVkProcessResourceList* resourceList = vkRenderer->pendingResources +
+		vkRenderer->curPendingResources;
+	dsVkProcessResourceList_addRenderSurface(resourceList, surface);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->resourceLock));
 }
 
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,68 @@
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+
+static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!commandBuffer)
+		return false;
+
+	VkImageSubresourceRange fullLayout = {VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+
+	VkImageMemoryBarrier imageBarrier =
+	{
+		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		NULL,
+		0,
+		VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		surface->images[surface->imageIndex],
+		fullLayout
+	};
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, NULL,
+		0, NULL, 1, &imageBarrier);
+
+	return true;
+}
+
+static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!commandBuffer)
+		return false;
+
+	VkImageSubresourceRange fullLayout = {VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0,
+		VK_REMAINING_ARRAY_LAYERS};
+
+	VkImageMemoryBarrier imageBarrier =
+	{
+		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		NULL,
+		VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		0,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		surface->images[surface->imageIndex],
+		fullLayout
+	};
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &imageBarrier);
+
+	return true;
+}
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* osHandle, dsRenderSurfaceType type)
@@ -132,10 +194,11 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
 	DS_VERIFY(dsSpinlock_lock(&vkSurface->lock));
 
+	// Only one udpate per frame.
 	if (vkSurface->updatedFrame == renderer->frameNumber)
 	{
 		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-		return true;
+		return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
 	}
 
 	if (vkSurface->surfaceData && vkSurface->surfaceData->vsync == renderer->vsync)
@@ -178,17 +241,17 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	}
 	DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 
-	return success;
+	if (success)
+		return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
+	return false;
 }
 
 bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderSurface* renderSurface)
 {
 	DS_UNUSED(renderer);
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(renderSurface);
-
-	return true;
+	const dsVkRenderSurface* vkSurface = (const dsVkRenderSurface*)renderSurface;
+	return transitionToPresentable(commandBuffer, vkSurface->surfaceData);
 }
 
 bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,

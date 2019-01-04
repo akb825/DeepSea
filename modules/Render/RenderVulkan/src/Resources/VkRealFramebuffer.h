@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,4 +22,6 @@
 dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
 	dsAllocator* allocator, VkRenderPass renderPass, const dsFramebufferSurface* surfaces,
 	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
+void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount);
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer);
