@@ -41,9 +41,14 @@ bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer, VkRenderPass 
 	uint32_t subpass, VkFramebuffer framebuffer);
 void dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
+bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
+	const VkImageMemoryBarrier* barrier);
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer);
-bool dsVkCommandBuffer_submitImageBarriers(dsCommandBuffer* commandBuffer,
-	VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
+VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer);
+bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer,
+	const VkBufferMemoryBarrier* barrier);
+bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);

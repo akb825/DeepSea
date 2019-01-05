@@ -27,6 +27,7 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/VolatileMaterialValues.h>
@@ -49,7 +50,6 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 {
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
-	dsRenderer* renderer = commandBuffer->renderer;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
 	dsVkSamplerList* samplers = NULL;
@@ -95,11 +95,9 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				VkDescriptorImageInfo imageInfo;
 				if (texture)
 				{
-					if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
+					if (!dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 						return false;
 
-					// Make sure the texture is renderable.
-					dsVkRenderer_processTexture(renderer, texture);
 					imageInfo.imageView = vkTexture->deviceImageView;
 					imageInfo.imageLayout = dsVkTexture_imageLayout(texture);
 				}
@@ -143,12 +141,14 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				VkBufferView bufferView = 0;
 				if (buffer)
 				{
+					size_t size = count*dsGfxFormat_size(format);
 					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!bufferData)
+					if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size,
+							commandBuffer))
+					{
 						return false;
+					}
 
-					// Make sure the buffer is renderable.
-					dsVkRenderer_processGfxBuffer(renderer, bufferData);
 					bufferView = dsVkGfxBufferData_getBufferView(bufferData, format, offset, count);
 				}
 
@@ -201,11 +201,12 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				if (buffer)
 				{
 					dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!bufferData)
+					if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData,
+							bufferInfo.offset, bufferInfo.range, commandBuffer))
+					{
 						return false;
+					}
 
-					// Make sure the buffer is renderable.
-					dsVkRenderer_processGfxBuffer(renderer, bufferData);
 					bufferInfo.buffer = dsVkGfxBufferData_getBuffer(bufferData);
 				}
 

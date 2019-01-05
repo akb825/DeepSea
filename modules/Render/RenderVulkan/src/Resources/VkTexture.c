@@ -951,6 +951,49 @@ VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
 	return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
+bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer)
+{
+	dsVkTexture* vkTexture = (dsVkTexture*)texture;
+
+	bool canWrite = texture->offscreen ||
+		texture->usage & (dsTextureUsage_CopyTo | dsTextureUsage_Image);
+	if (canWrite)
+	{
+		VkAccessFlags srcFlags = dsVkSrcImageAccessFlags(texture->usage, texture->offscreen,
+			dsGfxFormat_isDepthStencil(texture->info.format));
+		VkAccessFlags dstFlags = dsVkDstImageAccessFlags(texture->usage);
+		VkImageLayout layout = dsVkTexture_imageLayout(texture);
+		VkImageMemoryBarrier imageBarrier =
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			srcFlags,
+			dstFlags,
+			layout,
+			layout,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			vkTexture->deviceImage,
+			{dsVkImageAspectFlags(texture->info.format), 0, VK_REMAINING_MIP_LEVELS, 0,
+				VK_REMAINING_ARRAY_LAYERS}
+		};
+
+		// If recently added, implies that the following parts have already been done.
+		if (dsVkCommandBuffer_recentlyAddedImageBarrier(commandBuffer, &imageBarrier))
+			return true;
+
+		VkImageMemoryBarrier* addedBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		if (!addedBarrier)
+			return true;
+
+		*addedBarrier = imageBarrier;
+	}
+
+	// Make sure the texture is renderable.
+	dsVkRenderer_processTexture(commandBuffer->renderer, texture);
+	return dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource);
+}
+
 void dsVkTexture_destroyImpl(dsTexture* texture)
 {
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;

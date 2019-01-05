@@ -17,6 +17,8 @@
 #include "Resources/VkGfxBufferData.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "VkCommandBuffer.h"
+#include "VkRendererInternal.h"
 #include "VkShared.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
@@ -345,6 +347,11 @@ VkBufferView dsVkGfxBufferData_getBufferView(dsVkGfxBufferData* buffer, dsGfxFor
 
 VkBuffer dsVkGfxBufferData_getBuffer(const dsVkGfxBufferData* buffer);
 
+bool dsVkGfxBufferData_canMap(const dsVkGfxBufferData* buffer)
+{
+	return (buffer->memoryHints & dsGfxMemory_GPUOnly) == 0 && !buffer->deviceBuffer;
+}
+
 bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 {
 	/*
@@ -357,6 +364,48 @@ bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 	return !(buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_UniformBuffer |
 		dsGfxBufferUsage_MutableImage)) &&
 		((buffer->memoryHints & dsGfxMemory_GPUOnly) || buffer->deviceMemory);
+}
+
+bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
+	VkDeviceSize size, dsCommandBuffer* commandBuffer)
+{
+	bool canMap = dsVkGfxBufferData_canMap(buffer);
+	bool canWrite = buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_MutableImage |
+		dsGfxBufferUsage_UniformBuffer) || canMap;
+	if (canWrite)
+	{
+		VkAccessFlags srcFlags = dsVkSrcBufferAccessFlags(buffer->usage, canMap);
+		VkAccessFlags dstFlags = dsVkDstBufferAccessFlags(buffer->usage);
+		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(buffer);
+		VkBufferMemoryBarrier bufferBarrier =
+		{
+			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+			NULL,
+			srcFlags,
+			dstFlags,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			vkBuffer,
+			offset,
+			size
+		};
+
+		// If recently added, implies that the following parts have already been done.
+		if (dsVkCommandBuffer_recentlyAddedBufferBarrier(commandBuffer, &bufferBarrier))
+			return true;
+
+		VkBufferMemoryBarrier* addedBarrier = dsVkCommandBuffer_addBufferBarrier(commandBuffer);
+		if (!addedBarrier)
+			return false;
+
+		*addedBarrier = bufferBarrier;
+	}
+
+	// Make sure the buffer is renderable.
+	dsVkRenderer_processGfxBuffer(commandBuffer->renderer, buffer);
+
+	// Getting the buffer added to the command buffer resource list.
+	return true;
 }
 
 void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer)

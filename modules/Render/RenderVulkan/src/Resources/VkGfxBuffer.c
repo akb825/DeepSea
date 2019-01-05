@@ -351,8 +351,7 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 
 	if (!dsVkGfxBufferData_isStatic(srcBufferData))
 	{
-		bool canMap = (srcBufferData->memoryHints & dsGfxMemory_GPUOnly) == 0 &&
-			!srcBufferData->deviceBuffer;
+		bool canMap = dsVkGfxBufferData_canMap(srcBufferData);
 		VkBufferMemoryBarrier barrier =
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,

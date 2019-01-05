@@ -158,6 +158,23 @@ static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
 		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 }
 
+static bool submitResourceBarriers(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	VkPipelineStageFlagBits dstStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		dstStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+
+	VkPipelineStageFlags srcStages = dstStages | VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
+}
+
 static bool beginFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsFramebuffer* framebuffer)
 {
@@ -232,7 +249,7 @@ static bool beginFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffe
 		if (renderer->hasGeometryShaders)
 			srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
-	return dsVkCommandBuffer_submitImageBarriers(commandBuffer, srcStages, dstStages);
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
 }
 
 static void setEndImageBarrier(dsTexture* texture, VkImageMemoryBarrier* imageBarrier,
@@ -317,7 +334,7 @@ static bool endFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	}
 	if (renderer->hasGeometryShaders)
 		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-	if (!dsVkCommandBuffer_submitImageBarriers(commandBuffer, srcStages, dstStages))
+	if (!dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages))
 		return false;
 
 	// Resolved images.
@@ -384,7 +401,7 @@ static bool endFramebuffer(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 		imageBarrier->subresourceRange.layerCount = framebuffer->layers;
 	}
 
-	return dsVkCommandBuffer_submitImageBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
 		dstStages);
 }
 
@@ -720,7 +737,11 @@ bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	DS_UNUSED(renderer);
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
 
-	beginFramebuffer(renderer, commandBuffer, framebuffer);
+	if (!submitResourceBarriers(renderer, commandBuffer) ||
+		!beginFramebuffer(renderer, commandBuffer, framebuffer))
+	{
+		return false;
+	}
 
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
 		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, true);

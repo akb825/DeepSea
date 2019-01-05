@@ -25,7 +25,10 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 inline VkBuffer dsVkGfxBufferData_getBuffer(const dsVkGfxBufferData* buffer);
 VkBufferView dsVkGfxBufferData_getBufferView(dsVkGfxBufferData* buffer, dsGfxFormat format,
 	size_t offset, size_t count);
+bool dsVkGfxBufferData_canMap(const dsVkGfxBufferData* buffer);
 bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer);
+bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
+	VkDeviceSize size, dsCommandBuffer* commandBuffer);
 void dsVkGfxBufferData_destroy(dsVkGfxBufferData* buffer);
 
 inline VkBuffer dsVkGfxBufferData_getBuffer(const dsVkGfxBufferData* buffer)

@@ -41,9 +41,10 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	// Need image barriers for the offscreen textures to make sure all writes are finished.
-	uint32_t imageBarrierCount = 0;
+	// This is at the end of the command buffer, so abandon any remaining image barriers.
+	vkCommandBuffer->imageBarrierCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageBarriers,
-		imageBarrierCount, vkCommandBuffer->maxImageBarriers,
+		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->maxImageBarriers,
 		vkCommandBuffer->readbackOffscreenCount))
 	{
 		return false;
@@ -79,7 +80,8 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands,
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
 		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
-		imageBarrierCount, vkCommandBuffer->imageBarriers);
+		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
+	vkCommandBuffer->imageBarrierCount = 0;
 
 	// Copy offscreen texture data to host images that can be read back from.
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
@@ -602,6 +604,31 @@ void dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 	vkCommandBuffer->activeSubpassBuffer = 0;
 }
 
+bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
+	const VkImageMemoryBarrier* barrier)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	// Check recently added barriers for duplicates. Don't check all so it's not O(n^2).
+	uint32_t checkCount = dsMin(DS_RECENTLY_ADDED_SIZE, vkCommandBuffer->imageBarrierCount);
+	for (uint32_t i = vkCommandBuffer->imageBarrierCount - checkCount;
+		i < vkCommandBuffer->imageBarrierCount; ++i)
+	{
+		const VkImageMemoryBarrier* curBarrier = vkCommandBuffer->imageBarriers + i;
+		if (curBarrier->srcAccessMask == barrier->srcAccessMask &&
+			curBarrier->dstAccessMask == barrier->dstAccessMask &&
+			curBarrier->oldLayout == barrier->oldLayout &&
+			curBarrier->newLayout == barrier->newLayout &&  curBarrier->image == barrier->image &&
+			memcmp(&curBarrier->subresourceRange, &barrier->subresourceRange,
+				sizeof(VkImageSubresourceRange)) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer)
 {
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -615,8 +642,44 @@ VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* command
 	return vkCommandBuffer->imageBarriers + index;
 }
 
-bool dsVkCommandBuffer_submitImageBarriers(dsCommandBuffer* commandBuffer,
-	VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer,
+	const VkBufferMemoryBarrier* barrier)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	// Check recently added barriers for duplicates. Don't check all so it's not O(n^2).
+	uint32_t checkCount = dsMin(DS_RECENTLY_ADDED_SIZE, vkCommandBuffer->bufferBarrierCount);
+	for (uint32_t i = vkCommandBuffer->bufferBarrierCount - checkCount;
+		i < vkCommandBuffer->bufferBarrierCount; ++i)
+	{
+		const VkBufferMemoryBarrier* curBarrier = vkCommandBuffer->bufferBarriers + i;
+		if (curBarrier->srcAccessMask == barrier->srcAccessMask &&
+			curBarrier->dstAccessMask == barrier->dstAccessMask &&
+			curBarrier->buffer == barrier->buffer && curBarrier->offset == barrier->offset &&
+			curBarrier->size == barrier->size)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->bufferBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->bufferBarriers,
+		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->maxBufferBarriers, 1))
+	{
+		return NULL;
+	}
+
+	return vkCommandBuffer->bufferBarriers + index;
+}
+
+bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
@@ -627,7 +690,8 @@ bool dsVkCommandBuffer_submitImageBarriers(dsCommandBuffer* commandBuffer,
 	if (!submitBuffer)
 		return false;
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStage, dstStage, 0, 0, NULL, 0, NULL,
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, 0, NULL,
+		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
 		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
 	vkCommandBuffer->imageBarrierCount = 0;
 	return true;
@@ -642,6 +706,16 @@ bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource*
 	}
 
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	// Check recently added resources for duplicates. Don't check all so it's not O(n^2).
+	uint32_t checkCount = dsMin(DS_RECENTLY_ADDED_SIZE, vkCommandBuffer->usedResourceCount);
+	for (uint32_t i = vkCommandBuffer->usedResourceCount - checkCount;
+		i < vkCommandBuffer->usedResourceCount; ++i)
+	{
+		if (vkCommandBuffer->usedResources[i] == resource)
+			return true;
+	}
+
 	uint32_t index = vkCommandBuffer->usedResourceCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->usedResources,
 		vkCommandBuffer->usedResourceCount, vkCommandBuffer->maxUsedResources, 1))
@@ -838,6 +912,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->readbackOffscreens));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->bufferBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));
 	dsVkVolatileDescriptorSets_shutdown(&commandBuffer->volatileDescriptorSets);

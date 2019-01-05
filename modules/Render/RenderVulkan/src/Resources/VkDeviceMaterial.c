@@ -16,8 +16,10 @@
 
 #include "Resources/VkDeviceMaterial.h"
 #include "Resources/VkGfxBuffer.h"
+#include "Resources/VkGfxBufferData.h"
 #include "Resources/VkMaterialDescriptor.h"
 #include "Resources/VkShader.h"
+#include "Resources/VkTexture.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -28,6 +30,7 @@
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <string.h>
@@ -357,17 +360,10 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				DS_ASSERT(textureIndex < material->imageInfoCount);
 				DS_ASSERT(samplers);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
-				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (texture)
+				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 				{
-					if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
-					{
-						DS_VERIFY(dsSpinlock_unlock(&material->lock));
-						return 0;
-					}
-
-					// Make sure the texture is renderable.
-					dsVkRenderer_processTexture(renderer, texture);
+					DS_VERIFY(dsSpinlock_unlock(&material->lock));
+					return 0;
 				}
 
 				material->textures[textureIndex] = texture;
@@ -384,15 +380,14 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 
 				if (buffer)
 				{
+					size_t size = binding->count*dsGfxFormat_size(binding->format);
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
+					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer,
+							binding->offset, size, commandBuffer))
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
-
-					// Make sure the buffer is renderable.
-					dsVkRenderer_processGfxBuffer(renderer, binding->buffer);
 				}
 				else
 				{
@@ -418,14 +413,13 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				if (buffer)
 				{
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
+					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer, 0,
+							buffer->size, commandBuffer))
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
 
-					// Make sure the buffer is renderable.
-					dsVkRenderer_processGfxBuffer(renderer, binding->buffer);
 					binding->offset = 0;
 					binding->size = buffer->size;
 				}
@@ -449,14 +443,12 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				if (buffer)
 				{
 					binding->buffer = dsVkGfxBuffer_getData(buffer, commandBuffer);
-					if (!binding->buffer)
+					if (!binding->buffer || !dsVkGfxBufferData_addMemoryBarrier(binding->buffer,
+							binding->offset, binding->size, commandBuffer))
 					{
 						DS_VERIFY(dsSpinlock_unlock(&material->lock));
 						return 0;
 					}
-
-					// Make sure the buffer is renderable.
-					dsVkRenderer_processGfxBuffer(renderer, binding->buffer);
 				}
 				else
 				{
