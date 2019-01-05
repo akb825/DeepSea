@@ -737,12 +737,6 @@ bool dsVkRenderPass_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	DS_UNUSED(renderer);
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
 
-	if (!submitResourceBarriers(renderer, commandBuffer) ||
-		!beginFramebuffer(renderer, commandBuffer, framebuffer))
-	{
-		return false;
-	}
-
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
 		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, true);
 	if (!realFramebuffer)
@@ -788,18 +782,9 @@ bool dsVkRenderPass_nextSubpass(dsRenderer* renderer, dsCommandBuffer* commandBu
 	const dsRenderPass* renderPass, uint32_t index)
 {
 	DS_UNUSED(renderer);
-	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
-
-	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
-	DS_ASSERT(framebuffer);
-
-	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, false);
-	if (!realFramebuffer)
-		return false;
-
-	return dsVkCommandBuffer_nextSubpass(commandBuffer, vkRenderPass->vkRenderPass,
-		index, realFramebuffer->framebuffer);
+	DS_UNUSED(renderPass);
+	DS_UNUSED(index);
+	return dsVkCommandBuffer_nextSubpass(commandBuffer);
 }
 
 bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
@@ -807,6 +792,24 @@ bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 {
 	DS_UNUSED(renderPass);
 	DS_ASSERT(commandBuffer->boundFramebuffer);
+
+	const dsVkRenderPass* vkRenderPass = (dsVkRenderPass*)renderPass;
+
+	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
+	DS_ASSERT(framebuffer);
+
+	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
+		(dsFramebuffer*)framebuffer, vkRenderPass->vkRenderPass, true);
+	if (!realFramebuffer)
+		return false;
+
+	// Submit resource barriers first so they get cleared before the framebuffer barriers are
+	// processed.
+	if (!submitResourceBarriers(renderer, commandBuffer) ||
+		!beginFramebuffer(renderer, commandBuffer, framebuffer))
+	{
+		return false;
+	}
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
 	return endFramebuffer(renderer, commandBuffer, commandBuffer->boundFramebuffer,

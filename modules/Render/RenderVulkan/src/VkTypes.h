@@ -817,6 +817,14 @@ struct dsVkCommandBuffer
 
 	VkCommandBuffer activeCommandBuffer;
 	VkCommandBuffer activeSubpassBuffer;
+	VkRenderPass activeRenderPass;
+	VkFramebuffer activeFramebuffer;
+	VkRect2D renderArea;
+
+	VkClearValue* clearValues;
+	uint32_t clearValueCount;
+	uint32_t maxClearValues;
+
 	dsVkBarrierList barriers;
 	dsVkVolatileDescriptorSets volatileDescriptorSets;
 
@@ -843,6 +851,10 @@ struct dsVkCommandBuffer
 	VkBufferMemoryBarrier* bufferBarriers;
 	uint32_t bufferBarrierCount;
 	uint32_t maxBufferBarriers;
+
+	VkCommandBuffer* subpassBuffers;
+	uint32_t subpassBufferCount;
+	uint32_t maxSubpassBuffers;
 
 	VkImageCopy* imageCopies;
 	uint8_t* pushConstantBytes;
