@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 #include "Resources/VkPipeline.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "VkRenderPass.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
@@ -55,7 +57,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
-	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
+	dsVkRenderPassData* renderPassData = dsVkRenderPass_getData(renderPass);
 
 	pipeline->allocator = dsAllocator_keepPointer(allocator);
 	dsVkResource_initialize(&pipeline->resource);
@@ -66,7 +68,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	pipeline->defaultAnisotropy = defaultAnisotropy;
 	pipeline->primitiveType = primitiveType;
 	memcpy(pipeline->formats, formats, sizeof(pipeline->formats));
-	pipeline->renderPass = dsLifetime_addRef(vkRenderPass->lifetime);
+	pipeline->renderPass = dsLifetime_addRef(renderPassData->lifetime);
 
 	uint32_t stageCount = 0;
 	VkPipelineShaderStageCreateInfo stages[mslStage_Count];
@@ -164,7 +166,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 		&vkShader->blendInfo,
 		&vkShader->dynamicInfo,
 		vkShader->layout,
-		vkRenderPass->vkRenderPass,
+		renderPassData->vkRenderPass,
 		subpass,
 		existingPipeline,
 		-1

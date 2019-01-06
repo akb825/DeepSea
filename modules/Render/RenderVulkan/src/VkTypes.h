@@ -343,30 +343,25 @@ typedef struct dsVkRenderbuffer
 	VkImageView imageView;
 } dsVkRenderbuffer;
 
-typedef struct dsVkFramebufferImageInfo
-{
-	bool isTemp;
-	uint32_t resolveIndex;
-} dsVkFramebufferImageInfo;
-
 typedef struct dsVkRealFramebuffer
 {
 	dsAllocator* allocator;
 	dsVkDevice* device;
 	dsVkResource resource;
+
 	VkFramebuffer framebuffer;
-	VkRenderPass renderPass;
+	dsLifetime* renderPass;
 
 	VkImageView* imageViews;
-	dsVkFramebufferImageInfo* imageInfos;
+	bool* imageViewTemp;
 	uint32_t surfaceCount;
-	uint32_t imageCount;
 } dsVkRealFramebuffer;
 
 typedef struct dsVkFramebuffer
 {
 	dsFramebuffer framebuffer;
 	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
 	dsSpinlock lock;
 
 	dsVkRealFramebuffer** realFramebuffers;
@@ -558,21 +553,45 @@ typedef struct dsVkShader
 	dsSpinlock samplerLock;
 } dsVkShader;
 
-typedef struct dsVkRenderPass
+typedef struct dsVkRenderPassData
 {
-	dsRenderPass renderPass;
+	dsAllocator* allocator;
 	dsVkResource resource;
-	dsAllocator* scratchAllocator;
+	dsVkDevice* device;
 	dsLifetime* lifetime;
 
-	uint32_t fullAttachmentCount;
+	bool* resolveAttachment;
+	uint32_t resolveAttachmentCount;
+
 	VkRenderPass vkRenderPass;
 
 	dsLifetime** usedShaders;
 	uint32_t usedShaderCount;
 	uint32_t maxUsedShaders;
 
+	dsLifetime** usedFramebuffers;
+	uint32_t usedFramebufferCount;
+	uint32_t maxUsedFramebuffers;
+
 	dsSpinlock shaderLock;
+	dsSpinlock framebufferLock;
+} dsVkRenderPassData;
+
+typedef struct dsVkRenderPass
+{
+	dsRenderPass renderPass;
+	dsAllocator* scratchAllocator;
+
+	VkAttachmentDescription* vkAttachments;
+	VkSubpassDescription* vkSubpasses;
+	VkSubpassDependency* vkDependencies;
+
+	uint64_t lastCheckedFrame;
+	uint32_t defaultSamples;
+	bool usesDefaultSamples;
+
+	dsVkRenderPassData* renderPassData;
+	dsSpinlock lock;
 } dsVkRenderPass;
 
 typedef struct dsVkSurfaceImageData
@@ -589,7 +608,8 @@ typedef struct dsVkRenderSurfaceData
 
 	VkSwapchainKHR swapchain;
 	VkImage* images;
-	VkImageView* imageViews;
+	VkImageView* leftImageViews;
+	VkImageView* rightImageViews;
 	dsVkSurfaceImageData* imageData;
 	uint32_t imageCount;
 
@@ -699,6 +719,10 @@ typedef struct dsVkResourceList
 	dsVkCommandPoolData** commandPools;
 	uint32_t commandPoolCount;
 	uint32_t maxCommandPools;
+
+	dsVkRenderPassData** renderPasses;
+	uint32_t renderPassCount;
+	uint32_t maxRenderPasses;
 } dsVkResourceList;
 
 typedef struct dsVkProcessResourceList

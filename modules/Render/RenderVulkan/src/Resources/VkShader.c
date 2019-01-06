@@ -23,6 +23,7 @@
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkRenderPass.h"
+#include "VkRenderPassData.h"
 #include "VkShared.h"
 #include "VkVolatileDescriptorSets.h"
 
@@ -1108,10 +1109,11 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	for (uint32_t i = 0; i < usedRenderPassCount; ++i)
 	{
-		dsRenderPass* renderPass = (dsRenderPass*)dsLifetime_acquire(usedRenderPasses[i]);
+		dsVkRenderPassData* renderPass =
+			(dsVkRenderPassData*)dsLifetime_acquire(usedRenderPasses[i]);
 		if (renderPass)
 		{
-			dsVkRenderPass_removeShader(renderPass, shader);
+			dsVkRenderPassData_removeShader(renderPass, shader);
 			dsLifetime_release(usedRenderPasses[i]);
 		}
 		dsLifetime_freeRef(usedRenderPasses[i]);
@@ -1121,11 +1123,8 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	dsLifetime_destroy(vkShader->lifetime);
 
-	if (vkShader->samplers)
-		dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
-
-	if (vkShader->computePipeline)
-		dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
+	dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
+	dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
 
 	for (uint32_t i = 0; i < pipelineCount; ++i)
 		dsVkRenderer_deletePipeline(renderer, pipelines[i]);
@@ -1186,7 +1185,7 @@ void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material)
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->materialLock));
 }
 
-void dsVkShader_removeRenderPass(dsShader* shader, dsRenderPass* renderPass)
+void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPass)
 {
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	dsRenderer* renderer = shader->resourceManager->renderer;
@@ -1244,8 +1243,7 @@ dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* co
 		dsVkSamplerList* samplers = vkShader->samplers;
 		if (!samplers || samplers->defaultAnisotropy != renderer->defaultAnisotropy)
 		{
-			if (samplers)
-				dsVkRenderer_deleteSamplerList(renderer, samplers);
+			dsVkRenderer_deleteSamplerList(renderer, samplers);
 			samplers = vkShader->samplers = dsVkSamplerList_create(vkShader->scratchAllocator,
 				shader);
 			if (!samplers)
@@ -1359,6 +1357,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		--vkShader->pipelineCount;
 		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+		return NULL;
 	}
 
 	// Register the render pass.
@@ -1374,6 +1373,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 		}
 	}
 
+	dsVkRenderPassData* renderPassData = NULL;
 	if (!hasRenderPass)
 	{
 		uint32_t passIndex = vkShader->usedRenderPassCount;
@@ -1386,12 +1386,15 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 			return 0;
 		}
 
-		dsVkRenderPass* vkRenderPass = (dsVkRenderPass*)renderPass;
-		vkShader->usedRenderPasses[passIndex] = dsLifetime_addRef(vkRenderPass->lifetime);
+		renderPassData = dsVkRenderPass_getData(renderPass);
+		vkShader->usedRenderPasses[passIndex] = dsLifetime_addRef(renderPassData->lifetime);
 	}
 
 	VkPipeline vkPipeline = vkShader->pipelines[index]->pipeline;
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
+
+	if (renderPassData)
+		dsVkRenderPassData_addShader(renderPassData, shader);
 
 	return vkPipeline;
 }

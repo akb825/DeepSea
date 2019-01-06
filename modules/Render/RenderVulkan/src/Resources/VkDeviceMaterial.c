@@ -293,8 +293,7 @@ void dsVkDeviceMaterial_removeShader(dsDeviceMaterial* material, dsShader* shade
 	}
 	DS_VERIFY(dsSpinlock_unlock(&material->lock));
 
-	if (descriptor)
-		dsVkRenderer_deleteMaterialDescriptor(material->resourceManager->renderer, descriptor);
+	dsVkRenderer_deleteMaterialDescriptor(material->resourceManager->renderer, descriptor);
 }
 
 VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuffer,
@@ -477,8 +476,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 		memcmp(descriptor->texelBuffers, material->texelBuffers,
 			sizeof(dsVkTexelBufferBinding)*material->bufferViewCount) != 0)
 	{
-		if (descriptor)
-			dsVkRenderer_deleteMaterialDescriptor(renderer, descriptor);
+		dsVkRenderer_deleteMaterialDescriptor(renderer, descriptor);
 
 		descriptor = dsVkMaterialDescriptor_create(
 			dsMaterial_getResourceManager(material->material)->renderer, material->scratchAllocator,

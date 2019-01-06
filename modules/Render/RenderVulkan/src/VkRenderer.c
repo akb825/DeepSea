@@ -39,6 +39,7 @@
 #include "VkInit.h"
 #include "VkProcessResourceList.h"
 #include "VkRenderPass.h"
+#include "VkRenderPassData.h"
 #include "VkRenderSurface.h"
 #include "VkRenderSurfaceData.h"
 #include "VkResourceList.h"
@@ -168,6 +169,9 @@ static void freeAllResources(dsVkResourceList* deleteList)
 
 	for (uint32_t i = 0; i < deleteList->commandPoolCount; ++i)
 		dsVkCommandPoolData_destroy(deleteList->commandPools[i]);
+
+	for (uint32_t i = 0; i < deleteList->renderPassCount; ++i)
+		dsVkRenderPassData_destroy(deleteList->renderPasses[i]);
 
 	dsVkResourceList_clear(deleteList);
 }
@@ -373,6 +377,20 @@ static void freeResources(dsVkRenderer* renderer)
 		}
 
 		dsVkCommandPoolData_destroy(pool);
+	}
+
+	for (uint32_t i = 0; i < prevDeleteList->renderPassCount; ++i)
+	{
+		dsVkRenderPassData* renderPass = prevDeleteList->renderPasses[i];
+		DS_ASSERT(renderPass);
+
+		if (dsVkResource_isInUse(&renderPass->resource, baseRenderer))
+		{
+			dsVkRenderer_deleteRenderPass(baseRenderer, renderPass);
+			continue;
+		}
+
+		dsVkRenderPassData_destroy(renderPass);
 	}
 
 	dsVkResourceList_clear(prevDeleteList);
@@ -902,6 +920,36 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	dsVkProcessResourceList_clear(prevResourceList);
 }
 
+bool dsVkRenderer_beginFrame(dsRenderer* renderer)
+{
+	DS_UNUSED(renderer);
+	return true;
+}
+
+bool dsVkRenderer_endFrame(dsRenderer* renderer)
+{
+	dsVkRenderer_flushImpl(renderer, true);
+	return true;
+}
+
+bool dsVkRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
+{
+	renderer->surfaceSamples = dsClamp(samples, 1U, renderer->maxSurfaceSamples);
+	return true;
+}
+
+bool dsVkRenderer_setVsync(dsRenderer* renderer, bool vsync)
+{
+	renderer->vsync = vsync;
+	return true;
+}
+
+bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
+{
+	renderer->defaultAnisotropy = anisotropy;
+	return true;
+}
+
 void dsVkRenderer_flush(dsRenderer* renderer)
 {
 	dsVkRenderer_flushImpl(renderer, true);
@@ -1082,9 +1130,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->surfaceColorFormat = colorFormat;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
-	baseRenderer->surfaceSamples = dsNextPowerOf2(dsMax(options->samples, 1U));
-	baseRenderer->surfaceSamples = dsMin(baseRenderer->surfaceSamples,
-		baseRenderer->maxSurfaceSamples);
+	baseRenderer->surfaceSamples = dsClamp(options->samples, 1U, baseRenderer->maxSurfaceSamples);
 
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
@@ -1139,6 +1185,13 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->beginRenderPassFunc = &dsVkRenderPass_begin;
 	baseRenderer->nextRenderSubpassFunc = &dsVkRenderPass_nextSubpass;
 	baseRenderer->endRenderPassFunc = &dsVkRenderPass_end;
+
+	// Renderer
+	baseRenderer->beginFrameFunc = &dsVkRenderer_beginFrame;
+	baseRenderer->endFrameFunc = &dsVkRenderer_endFrame;
+	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
+	baseRenderer->setVsyncFunc = &dsVkRenderer_setVsync;
+	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
 
 	return baseRenderer;
 }
@@ -1386,7 +1439,8 @@ void dsVkRenderer_processRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceDa
 
 void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffer)
 {
-	DS_ASSERT(buffer);
+	if (!buffer)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1398,7 +1452,8 @@ void dsVkRenderer_deleteGfxBuffer(dsRenderer* renderer, dsVkGfxBufferData* buffe
 
 void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
 {
-	DS_ASSERT(texture);
+	if (!texture)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1410,7 +1465,8 @@ void dsVkRenderer_deleteTexture(dsRenderer* renderer, dsTexture* texture)
 
 void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage)
 {
-	DS_ASSERT(copyImage);
+	if (!copyImage)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1422,7 +1478,8 @@ void dsVkRenderer_deleteCopyImage(dsRenderer* renderer, dsVkCopyImage* copyImage
 
 void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* renderbuffer)
 {
-	DS_ASSERT(renderbuffer);
+	if (!renderbuffer)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1434,7 +1491,8 @@ void dsVkRenderer_deleteRenderbuffer(dsRenderer* renderer, dsRenderbuffer* rende
 
 void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* framebuffer)
 {
-	DS_ASSERT(framebuffer);
+	if (!framebuffer)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1446,7 +1504,8 @@ void dsVkRenderer_deleteFramebuffer(dsRenderer* renderer, dsVkRealFramebuffer* f
 
 void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence)
 {
-	DS_ASSERT(fence);
+	if (!fence)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1458,7 +1517,8 @@ void dsVkRenderer_deleteFence(dsRenderer* renderer, dsGfxFence* fence)
 
 void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries)
 {
-	DS_ASSERT(queries);
+	if (!queries)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1470,7 +1530,8 @@ void dsVkRenderer_deleteQueriePool(dsRenderer* renderer, dsGfxQueryPool* queries
 
 void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer, dsVkMaterialDescriptor* descriptor)
 {
-	DS_ASSERT(descriptor);
+	if (!descriptor)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1482,7 +1543,8 @@ void dsVkRenderer_deleteMaterialDescriptor(dsRenderer* renderer, dsVkMaterialDes
 
 void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* samplers)
 {
-	DS_ASSERT(samplers);
+	if (!samplers)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1494,7 +1556,8 @@ void dsVkRenderer_deleteSamplerList(dsRenderer* renderer, dsVkSamplerList* sampl
 
 void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipeline* pipeline)
 {
-	DS_ASSERT(pipeline);
+	if (!pipeline)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1506,7 +1569,8 @@ void dsVkRenderer_deleteComputePipeline(dsRenderer* renderer, dsVkComputePipelin
 
 void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
 {
-	DS_ASSERT(pipeline);
+	if (!pipeline)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1518,7 +1582,8 @@ void dsVkRenderer_deletePipeline(dsRenderer* renderer, dsVkPipeline* pipeline)
 
 void dsVkRenderer_deleteRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceData* surface)
 {
-	DS_ASSERT(surface);
+	if (!surface)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
@@ -1530,12 +1595,26 @@ void dsVkRenderer_deleteRenderSurface(dsRenderer* renderer, dsVkRenderSurfaceDat
 
 void dsVkRenderer_deleteCommandPool(dsRenderer* renderer, dsVkCommandPoolData* pool)
 {
-	DS_ASSERT(pool);
+	if (!pool)
+		return;
 
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 
 	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
 	dsVkResourceList_addCommandPool(resourceList, pool);
+	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
+}
+
+void dsVkRenderer_deleteRenderPass(dsRenderer* renderer, dsVkRenderPassData* renderPass)
+{
+	if (!renderPass)
+		return;
+
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
+
+	dsVkResourceList* resourceList = vkRenderer->deleteResources + vkRenderer->curDeleteResources;
+	dsVkResourceList_addRenderPass(resourceList, renderPass);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 }

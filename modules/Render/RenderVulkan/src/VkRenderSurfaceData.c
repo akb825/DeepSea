@@ -319,6 +319,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		DS_ALIGNED_SIZE(sizeof(VkImage)*imageCount) +
 		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
 		DS_ALIGNED_SIZE(sizeof(dsVkSurfaceImageData)*imageCount);
+	if (renderer->stereoscopic)
+		fullSize += DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 	{
@@ -345,10 +347,18 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	DS_ASSERT(surfaceData->images);
 	memset(surfaceData->images, 0, sizeof(VkImage)*imageCount);
 
-	surfaceData->imageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+	surfaceData->leftImageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 		VkImageView, imageCount);
-	DS_ASSERT(surfaceData->imageViews);
-	memset(surfaceData->imageViews, 0, sizeof(VkImageView)*imageCount);
+	DS_ASSERT(surfaceData->leftImageViews);
+	memset(surfaceData->leftImageViews, 0, sizeof(VkImageView)*imageCount);
+
+	if (renderer->stereoscopic)
+	{
+		surfaceData->rightImageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkImageView, imageCount);
+		DS_ASSERT(surfaceData->rightImageViews);
+		memset(surfaceData->rightImageViews, 0, sizeof(VkImageView)*imageCount);
+	}
 
 	surfaceData->imageData = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 		dsVkSurfaceImageData, imageCount);
@@ -377,15 +387,27 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 			colorFormat->vkFormat,
 			{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
 				VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
-			{VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}
+			{VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, 1}
 		};
 
 		result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
-			instance->allocCallbacksPtr, surfaceData->imageViews + i);
+			instance->allocCallbacksPtr, surfaceData->leftImageViews + i);
 		if (!dsHandleVkResult(result))
 		{
 			dsVkRenderSurfaceData_destroy(surfaceData);
 			return NULL;
+		}
+
+		if (renderer->stereoscopic)
+		{
+			imageViewCreateInfo.subresourceRange.baseArrayLayer = 1;
+			result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
+				instance->allocCallbacksPtr, surfaceData->rightImageViews + i);
+			if (!dsHandleVkResult(result))
+			{
+				dsVkRenderSurfaceData_destroy(surfaceData);
+				return NULL;
+			}
 		}
 
 		VkSemaphoreCreateInfo semaphoreCreateInfo =
@@ -495,9 +517,15 @@ void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData)
 
 	for (uint32_t i = 0; i < surfaceData->imageCount; ++i)
 	{
-		if (surfaceData->imageViews[i])
+		if (surfaceData->leftImageViews[i])
 		{
-			DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->imageViews[i],
+			DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->leftImageViews[i],
+				instance->allocCallbacksPtr);
+		}
+
+		if (surfaceData->rightImageViews && surfaceData->rightImageViews[i])
+		{
+			DS_VK_CALL(device->vkDestroyImageView)(device->device, surfaceData->rightImageViews[i],
 				instance->allocCallbacksPtr);
 		}
 

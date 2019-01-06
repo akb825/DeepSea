@@ -25,4 +25,6 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* framebuffer);
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	VkRenderPass renderPass, bool update);
+	const dsVkRenderPassData* renderPass, bool update);
+void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
+	const dsVkRenderPassData* renderPass);

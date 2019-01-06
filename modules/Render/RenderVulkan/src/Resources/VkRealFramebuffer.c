@@ -17,24 +17,25 @@
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "VkRenderPassData.h"
 #include "VkRenderSurface.h"
 #include "VkShared.h"
 
-#include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
 static bool getImageViews(dsResourceManager* resourceManager, const dsFramebufferSurface* surfaces,
-	uint32_t surfaceCount, uint32_t layers, VkImageView* imageViews,
-	dsVkFramebufferImageInfo* imageInfos, uint32_t imageCount)
+	uint32_t surfaceCount, uint32_t layers, VkImageView* imageViews, bool* imageViewTemp,
+	uint32_t imageCount)
 {
 	DS_UNUSED(imageCount);
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	uint32_t resolveIndex = surfaceCount;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = surfaces + i;
@@ -46,19 +47,26 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 			{
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+				VkImageView baseImage;
+				if (surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight)
+				{
+					DS_ASSERT(surfaceData->rightImageViews);
+					baseImage = surfaceData->rightImageViews[surfaceData->imageIndex];
+				}
+				else
+					baseImage = surfaceData->leftImageViews[surfaceData->imageIndex];
+
 				if (surfaceData->resolveImage)
 				{
 					DS_ASSERT(renderer->surfaceSamples > 1);
-					DS_ASSERT(resolveIndex < imageCount);
-					imageViews[i] = surfaceData->resolveImageView;
-					imageInfos[i].resolveIndex = resolveIndex;
-					imageViews[resolveIndex] = surfaceData->imageViews[surfaceData->imageIndex];
-					++resolveIndex;
+					imageViews[i*2] = surfaceData->resolveImageView;
+					imageViews[i*2 + 1] = baseImage;
 				}
 				else
 				{
 					DS_ASSERT(renderer->surfaceSamples == 1);
-					imageViews[i] = surfaceData->resolveImageView;
+					imageViews[i*2] = baseImage;
+					imageViews[i*2 + 1] = imageViews[i*2];
 				}
 				break;
 			}
@@ -68,7 +76,8 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 			{
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				imageViews[i] = surfaceData->depthImageView;
+				imageViews[i*2] = surfaceData->depthImageView;
+				imageViews[i*2 + 1] = imageViews[i*2];
 				break;
 			}
 			case dsGfxSurfaceType_Texture:
@@ -76,16 +85,13 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 				dsOffscreen* offscreen = (dsOffscreen*)surface->surfaceType;
 				dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 				const dsTextureInfo* info = &offscreen->info;
-				uint32_t index = i;
+				uint32_t index = i*2;
 				if (offscreen->resolve && !dsGfxFormat_isDepthStencil(info->format))
 				{
 					DS_ASSERT(offscreen->info.samples > 1);
-					DS_ASSERT(resolveIndex < imageCount);
 					DS_ASSERT(vkOffscreen->surfaceImageView);
-					imageViews[i] = vkOffscreen->surfaceImageView;
-					imageInfos[i].resolveIndex = resolveIndex;
-					index = resolveIndex;
-					++resolveIndex;
+					imageViews[i*2] = vkOffscreen->surfaceImageView;
+					index = i*2 + 1;
 				}
 
 				if (info->mipLevels == 1 && info->depth == 0 &&
@@ -148,7 +154,11 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 					if (!dsHandleVkResult(result))
 						return false;
 
-					imageInfos[index].isTemp = true;
+					imageViewTemp[index] = true;
+
+					// Make sure both are set.
+					if (index == i*2)
+						imageViews[i*2 + 1] = imageViews[i*2];
 				}
 				break;
 			}
@@ -164,51 +174,22 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 		}
 	}
 
-	DS_ASSERT(resolveIndex == imageCount);
-
 	return true;
 }
 
 dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, VkRenderPass renderPass, const dsFramebufferSurface* surfaces,
-	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers)
+	dsAllocator* allocator, const dsVkRenderPassData* renderPass,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	uint32_t layers)
 {
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
-	uint32_t imageCount = surfaceCount;
-	for (uint32_t i = 0; i < surfaceCount; ++i)
-	{
-		const dsFramebufferSurface* surface = surfaces + i;
-		switch (surface->surfaceType)
-		{
-			case dsGfxSurfaceType_ColorRenderSurface:
-			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
-			case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			{
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				if (surfaceData->resolveImage)
-					++imageCount;
-				break;
-			}
-			case dsGfxSurfaceType_Texture:
-			{
-				dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
-				DS_ASSERT(offscreen->offscreen);
-				if (offscreen->resolve && !dsGfxFormat_isDepthStencil(offscreen->info.format))
-					++imageCount;
-				break;
-			}
-			default:
-				break;
-		}
-	}
-
+	uint32_t imageCount = surfaceCount*2;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
 		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(dsVkFramebufferImageInfo)*imageCount);
+		DS_ALIGNED_SIZE(sizeof(bool)*imageCount);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -223,7 +204,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManag
 	framebuffer->allocator = dsAllocator_keepPointer(allocator);
 	dsVkResource_initialize(&framebuffer->resource);
 	framebuffer->device = device;
-	framebuffer->renderPass = renderPass;
+	framebuffer->renderPass = dsLifetime_addRef(renderPass->lifetime);
 	framebuffer->framebuffer = 0;
 
 	if (surfaceCount > 0)
@@ -233,17 +214,13 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManag
 		DS_ASSERT(framebuffer->imageViews);
 		memset(framebuffer->imageViews, 0, sizeof(VkImageView)*imageCount);
 
-		framebuffer->imageInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			dsVkFramebufferImageInfo, imageCount);
-		DS_ASSERT(framebuffer->imageInfos);
-		for (uint32_t i = 0; i < imageCount; ++i)
-		{
-			framebuffer->imageInfos[i].isTemp = false;
-			framebuffer->imageInfos[i].resolveIndex = DS_NO_ATTACHMENT;
-		}
+		framebuffer->imageViewTemp = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
+			imageCount);
+		DS_ASSERT(framebuffer->imageViewTemp);
+		memset(framebuffer->imageViewTemp, 0, sizeof(bool)*imageCount);
 
 		if (!getImageViews(resourceManager, surfaces, surfaceCount, layers, framebuffer->imageViews,
-			framebuffer->imageInfos, imageCount))
+			framebuffer->imageViewTemp, surfaceCount))
 		{
 			dsVkRealFramebuffer_destroy(framebuffer);
 			return NULL;
@@ -252,17 +229,16 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManag
 	else
 	{
 		framebuffer->imageViews = NULL;
-		framebuffer->imageInfos = NULL;
+		framebuffer->imageViewTemp = NULL;
 	}
 	framebuffer->surfaceCount = surfaceCount;
-	framebuffer->imageCount = imageCount;
 
 	VkFramebufferCreateInfo createInfo =
 	{
 		VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 		NULL,
 		0,
-		renderPass,
+		renderPass->vkRenderPass,
 		imageCount, framebuffer->imageViews,
 		width,
 		height,
@@ -271,7 +247,10 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManag
 	VkResult result = DS_VK_CALL(device->vkCreateFramebuffer)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &framebuffer->framebuffer);
 	if (!dsHandleVkResult(result))
+	{
 		dsVkRealFramebuffer_destroy(framebuffer);
+		return NULL;
+	}
 
 	return framebuffer;
 }
@@ -280,7 +259,6 @@ void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuf
 	const dsFramebufferSurface* surfaces, uint32_t surfaceCount)
 {
 	VkImageView* imageViews = framebuffer->imageViews;
-	const dsVkFramebufferImageInfo* imageInfos = framebuffer->imageInfos;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = surfaces + i;
@@ -292,15 +270,25 @@ void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuf
 			{
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				if (surfaceData->resolveImage)
+				VkImageView baseImage;
+				if (surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight)
 				{
-					imageViews[i] = surfaceData->resolveImageView;
-					uint32_t resolveIndex = imageInfos[i].resolveIndex;
-					DS_ASSERT(resolveIndex != DS_NO_ATTACHMENT);
-					imageViews[resolveIndex] = surfaceData->imageViews[surfaceData->imageIndex];
+					DS_ASSERT(surfaceData->rightImageViews);
+					baseImage = surfaceData->rightImageViews[surfaceData->imageIndex];
 				}
 				else
-					imageViews[i] = surfaceData->imageViews[surfaceData->imageIndex];
+					baseImage = surfaceData->leftImageViews[surfaceData->imageIndex];
+
+				if (surfaceData->resolveImage)
+				{
+					imageViews[i*2] = surfaceData->resolveImageView;
+					imageViews[i*2 + 1] = baseImage;
+				}
+				else
+				{
+					imageViews[i*2] = baseImage;
+					imageViews[i*2 + 1] = imageViews[i*2];
+				}
 				break;
 			}
 			case dsGfxSurfaceType_DepthRenderSurface:
@@ -309,7 +297,8 @@ void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuf
 			{
 				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				imageViews[i] = surfaceData->depthImageView;
+				imageViews[i*2] = surfaceData->depthImageView;
+				imageViews[i*2 + 1] = surfaceData->depthImageView;
 				break;
 			}
 			default:
@@ -325,9 +314,10 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 
 	dsVkDevice* device = framebuffer->device;
 	dsVkInstance* instance = &device->instance;
-	for (uint32_t i = 0; i < framebuffer->imageCount; ++i)
+	uint32_t imageCount = framebuffer->surfaceCount*2;
+	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		if (framebuffer->imageInfos[i].isTemp)
+		if (framebuffer->imageViewTemp[i])
 		{
 			DS_VK_CALL(device->vkDestroyImageView)(device->device, framebuffer->imageViews[i],
 				instance->allocCallbacksPtr);
@@ -336,6 +326,8 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 
 	DS_VK_CALL(device->vkDestroyFramebuffer)(device->device, framebuffer->framebuffer,
 		instance->allocCallbacksPtr);
+
+	dsLifetime_freeRef(framebuffer->renderPass);
 
 	if (framebuffer->allocator)
 		DS_VERIFY(dsAllocator_free(framebuffer->allocator, framebuffer));

@@ -307,7 +307,7 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 {
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
-	samples = dsMin(samples, (uint8_t)renderer->maxSurfaceSamples);
+	samples = dsClamp(samples, 1U, (uint8_t)renderer->maxSurfaceSamples);
 	if (samples == renderer->surfaceSamples)
 		return true;
 

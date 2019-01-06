@@ -20,8 +20,9 @@
 #include "VkTypes.h"
 
 dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, VkRenderPass renderPass, const dsFramebufferSurface* surfaces,
-	uint32_t surfaceCount, uint32_t width, uint32_t height, uint32_t layers);
+	dsAllocator* allocator, const dsVkRenderPassData* renderPass,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
+	uint32_t layers);
 void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
 	const dsFramebufferSurface* surfaces, uint32_t surfaceCount);
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer);

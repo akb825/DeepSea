@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,5 +33,4 @@ bool dsVkRenderPass_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass);
 bool dsVkRenderPass_destroy(dsRenderer* renderer, dsRenderPass* renderPass);
 
-bool dsVkRenderPass_addShader(dsRenderPass* renderPass, dsShader* shader);
-void dsVkRenderPass_removeShader(dsRenderPass* renderPass, dsShader* shader);
+dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass);
