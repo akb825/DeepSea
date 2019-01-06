@@ -103,11 +103,12 @@ typedef enum dsAttachmentUsage
 	dsAttachmentUsage_Clear = 0x1,      ///< Clear the contents of the attachment before rendering.
 	dsAttachmentUsage_KeepBefore = 0x2, ///< Keep the existing value before rendering begins.
 	dsAttachmentUsage_KeepAfter = 0x4,  ///< Keep the value after rendering ends.
+	dsAttachmentUsage_UseLater = 0x8,   ///< May render with the attachment later.
 	/**
 	 * Resolve multisample attachment once the render pass has completed. Note that this may not be
 	 * as optimal as resolving as part of a subpass.
 	 */
-	dsAttachmentUsage_Resolve = 0x8
+	dsAttachmentUsage_Resolve = 0x10
 } dsAttachmentUsage;
 
 /**

@@ -31,6 +31,34 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
+static bool hasResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
+	uint32_t attachment, uint32_t samples)
+{
+	if (samples == 1)
+		return false;
+
+	// Check to see if this will be resolved.
+	for (uint32_t i = 0; i < subpassCount; ++i)
+	{
+		const dsRenderSubpassInfo* subpass = subpasses + i;
+		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
+		{
+			if (subpass->colorAttachments[j].attachmentIndex == attachment &&
+				subpass->colorAttachments[j].resolve)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+static bool mustKeepMultisampledAttachment(dsAttachmentUsage usage, uint32_t samples)
+{
+	return samples == 1 || (usage & dsAttachmentUsage_Resolve) ||
+		((usage & dsAttachmentUsage_KeepAfter) && (usage & dsAttachmentUsage_UseLater));
+}
+
 static bool needsResolve(uint32_t samples, uint32_t defaultSamples)
 {
 	return (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples > 1) ||
@@ -222,6 +250,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				samples = renderer->surfaceSamples;
 				renderPass->usesDefaultSamples = true;
 			}
+
 			vkAttachment->samples = dsVkSampleCount(samples);
 
 			if (usage & dsAttachmentUsage_Clear)
@@ -232,7 +261,9 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			vkAttachment->stencilLoadOp = vkAttachment->loadOp;
 
-			if (usage & dsAttachmentUsage_KeepAfter)
+			bool alwaysKeep = mustKeepMultisampledAttachment(usage, samples);
+			bool canResolve = hasResolve(subpasses, subpassCount, i, samples);
+			if (alwaysKeep || canResolve)
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			else
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -250,7 +281,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			*vkResolveAttachment = *vkAttachment;
 			vkResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
 			vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			if (usage & dsAttachmentUsage_KeepAfter)
+			if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
 				vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		}
 
@@ -498,8 +529,20 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* curAttachment = renderPass->attachments + i;
-			if (curAttachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
-				vkRenderPass->vkAttachments[i*2].samples = vkSamples;
+			VkAttachmentDescription* vkAttachment = vkRenderPass->vkAttachments + i*2;
+			if (curAttachment->samples != DS_DEFAULT_ANTIALIAS_SAMPLES)
+				break;
+
+			vkAttachment->samples = vkSamples;
+
+			dsAttachmentUsage usage = curAttachment->usage;
+			bool alwaysKeep = mustKeepMultisampledAttachment(usage, samples);
+			bool canResolve = hasResolve(renderPass->subpasses, renderPass->subpassCount, i,
+				samples);
+			if (alwaysKeep || canResolve)
+				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			else
+				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		}
 
 		// May need to change the resolve attachment to enable/disable resolving.
