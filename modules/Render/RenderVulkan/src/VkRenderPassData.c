@@ -175,7 +175,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 			case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			{
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)renderSurface;
+				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
 				if (!surfaceData->resolveImage || !resolveAttachment[i])
 					continue;
@@ -267,7 +267,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 			case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			{
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)renderSurface;
+				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
 				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
 				if (!surfaceData->resolveImage)
 					continue;
@@ -297,7 +297,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				break;
 			}
 			default:
-				break;
+				continue;
 		}
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(format);

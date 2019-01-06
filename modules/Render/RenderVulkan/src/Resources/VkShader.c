@@ -1357,7 +1357,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		--vkShader->pipelineCount;
 		DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
-		return NULL;
+		return 0;
 	}
 
 	// Register the render pass.

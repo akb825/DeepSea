@@ -376,7 +376,7 @@ VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffe
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
 	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)wrapper;
+		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
 		commandBuffer = wrapper->realCommandBuffer;
 	}
 
