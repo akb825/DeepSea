@@ -168,7 +168,7 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 	{
 		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
-		return NULL;
+		return false;
 	}
 
 	VkImageCreateInfo imageCreateInfo =
