@@ -31,31 +31,6 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
-static bool canResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
-	const dsAttachmentInfo* attachments, uint32_t attachment, uint32_t samples)
-{
-	if (samples == 1)
-		return false;
-
-	if (attachments[attachment].usage & dsAttachmentUsage_Resolve)
-		return true;
-
-	// Check to see if this will be resolved.
-	for (uint32_t i = 0; i < subpassCount; ++i)
-	{
-		const dsRenderSubpassInfo* subpass = subpasses + i;
-		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
-		{
-			if (subpass->colorAttachments[j].attachmentIndex == attachment &&
-				subpass->colorAttachments[j].resolve)
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 static bool needsResolve(uint32_t samples, uint32_t defaultSamples)
 {
 	return (samples == DS_DEFAULT_ANTIALIAS_SAMPLES && defaultSamples > 1) ||
@@ -248,7 +223,6 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				renderPass->usesDefaultSamples = true;
 			}
 			vkAttachment->samples = dsVkSampleCount(samples);
-			bool resolve = canResolve(subpasses, subpassCount, attachments, i, samples);
 
 			if (usage & dsAttachmentUsage_Clear)
 				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -258,7 +232,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			vkAttachment->stencilLoadOp = vkAttachment->loadOp;
 
-			if ((usage & dsAttachmentUsage_KeepAfter) && !resolve)
+			if (usage & dsAttachmentUsage_KeepAfter)
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			else
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -418,7 +392,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 					colorAttachments[j].attachment = curAttachment->attachmentIndex*2;
 				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-				if (curAttachment->attachmentIndex != DS_NO_ATTACHMENT &&
+				if (curAttachment->attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(attachments[curAttachment->attachmentIndex].samples,
 						renderer->surfaceSamples))
 				{
@@ -524,20 +498,11 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* curAttachment = renderPass->attachments + i;
-			if (curAttachment->samples != DS_DEFAULT_ANTIALIAS_SAMPLES)
-				continue;
-
-			VkAttachmentDescription* vkAttachment = vkRenderPass->vkAttachments + i*2;
-			bool resolve = canResolve(renderPass->subpasses, renderPass->subpassCount,
-				renderPass->attachments, i, samples);
-			vkRenderPass->vkAttachments[i*2].samples = vkSamples;
-
-			if ((curAttachment->usage & dsAttachmentUsage_KeepAfter) && !resolve)
-				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			else
-				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			if (curAttachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				vkRenderPass->vkAttachments[i*2].samples = vkSamples;
 		}
 
+		// May need to change the resolve attachment to enable/disable resolving.
 		for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
 		{
 			const dsRenderSubpassInfo* curSubpass = renderPass->subpasses + i;
@@ -545,7 +510,7 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
 			{
 				const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
-				if (curAttachment->attachmentIndex == DS_NO_ATTACHMENT)
+				if (curAttachment->attachmentIndex == DS_NO_ATTACHMENT || !curAttachment->resolve)
 					continue;
 
 				VkAttachmentReference* resolveAttachment =
