@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,17 @@
 #pragma once
 
 #include <DeepSea/Core/Config.h>
-#include <DeepSea/Render/Resources/Types.h>
+#include "VkTypes.h"
 
 dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsRenderbufferUsage usage, dsGfxFormat format, uint32_t width, uint32_t height,
 	uint32_t samples);
 bool dsVkRenderbuffer_destroy(dsResourceManager* resourceManager, dsRenderbuffer* renderbuffer);
+
+bool dsVkRenderbuffer_clearColor(dsRenderbuffer* renderbuffer, dsCommandBuffer* commandBuffer,
+	const dsSurfaceColorValue* colorValue);
+bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
+	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue);
 
 void dsVkRenderbuffer_destroyImpl(dsRenderbuffer* renderbuffer);

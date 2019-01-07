@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -832,6 +832,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindImageMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBlitImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearColorImage);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdClearDepthStencilImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdResolveImage);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImageView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyImageView);

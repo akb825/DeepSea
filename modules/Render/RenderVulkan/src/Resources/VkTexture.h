@@ -42,4 +42,8 @@ bool dsVkTexture_supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* for
 bool dsVkTexture_isStatic(const dsTexture* texture);
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture);
 bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer);
+bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
+	const dsSurfaceColorValue* colorValue);
+bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,
+	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue);
 void dsVkTexture_destroyImpl(dsTexture* texture);

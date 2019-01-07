@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -320,6 +320,17 @@ VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format)
 		default:
 			return VK_IMAGE_ASPECT_COLOR_BIT;
 	}
+}
+
+VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
+	dsClearDepthStencil surfaceParts)
+{
+	VkImageAspectFlags aspectFlags = 0;
+	if (surfaceParts & dsClearDepthStencil_Depth)
+		aspectFlags |= VK_IMAGE_ASPECT_DEPTH_BIT;
+	if (surfaceParts & dsClearDepthStencil_Stencil)
+		aspectFlags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+	return aspectFlags & dsVkImageAspectFlags(format);
 }
 
 VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile)

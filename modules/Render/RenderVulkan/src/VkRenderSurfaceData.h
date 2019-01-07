@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,4 +29,11 @@ typedef enum dsVkSurfaceResult
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain);
 dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData);
+
+bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,
+	dsCommandBuffer* commandBuffer, const dsSurfaceColorValue* colorValue);
+bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurface,
+	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue);
+
 void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData);

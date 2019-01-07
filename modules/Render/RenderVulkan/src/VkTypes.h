@@ -134,6 +134,8 @@ typedef struct dsVkDevice
 	PFN_vkBindImageMemory vkBindImageMemory;
 	PFN_vkCmdCopyImage vkCmdCopyImage;
 	PFN_vkCmdBlitImage vkCmdBlitImage;
+	PFN_vkCmdClearColorImage vkCmdClearColorImage;
+	PFN_vkCmdClearDepthStencilImage vkCmdClearDepthStencilImage;
 	PFN_vkCmdResolveImage vkCmdResolveImage;
 	PFN_vkCreateImageView vkCreateImageView;
 	PFN_vkDestroyImageView vkDestroyImageView;

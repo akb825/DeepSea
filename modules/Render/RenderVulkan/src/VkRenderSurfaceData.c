@@ -19,6 +19,7 @@
 #include "Platform/VkPlatform.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
+#include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
 
@@ -104,7 +105,8 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 		1,
 		dsVkSampleCount(renderer->surfaceSamples),
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+			 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
@@ -183,7 +185,8 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		1,
 		dsVkSampleCount(renderer->surfaceSamples),
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		VK_SHARING_MODE_EXCLUSIVE,
 		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
@@ -473,6 +476,125 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 		return dsVkSurfaceResult_Success;
 	else
 		return dsVkSurfaceResult_Error;
+}
+
+bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,
+	dsCommandBuffer* commandBuffer, const dsSurfaceColorValue* colorValue)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderSurface->renderer)->device;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
+	VkImageMemoryBarrier barriers[2];
+	uint32_t barrierCount = 1;
+
+	VkAccessFlags beginAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT |
+		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	// No barrier before rendering to a render surface, so also wait for write on end.
+	VkAccessFlags endAccessMask = beginAccessMask | VK_ACCESS_TRANSFER_READ_BIT |
+		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+	barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barriers[0].pNext = NULL;
+	barriers[0].srcAccessMask = beginAccessMask;
+	barriers[0].dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barriers[0].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barriers[0].image = renderSurface->images[renderSurface->imageIndex];
+	barriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barriers[0].subresourceRange.baseMipLevel = 0;
+	barriers[0].subresourceRange.baseMipLevel = VK_REMAINING_MIP_LEVELS;
+	barriers[0].subresourceRange.baseArrayLayer = rightSurface;
+	barriers[0].subresourceRange.layerCount = 1;
+
+	if (renderSurface->resolveImage)
+	{
+		++barrierCount;
+		barriers[1] = barriers[0];
+		barriers[1].image = renderSurface->resolveImage;
+		barriers[1].subresourceRange.baseArrayLayer = 0;
+	}
+
+	VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, barrierCount, barriers);
+
+	for (uint32_t i = 0; i < barrierCount; ++i)
+	{
+		DS_VK_CALL(device->vkCmdClearColorImage)(vkCommandBuffer, barriers[i].image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearColorValue*)colorValue, 1,
+			&barriers[i].subresourceRange);
+
+		barriers[i].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barriers[i].dstAccessMask = endAccessMask;
+		barriers[i].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barriers[i].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pipelineStages, 0, 0, NULL, 0, NULL, barrierCount, barriers);
+
+	return true;
+}
+
+bool dsVkRenderSurfaceData_clearDepthStencil(dsVkRenderSurfaceData* renderSurface,
+	dsCommandBuffer* commandBuffer, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue)
+{
+	if (!renderSurface->depthImage)
+		return true;
+
+	dsRenderer* renderer = renderSurface->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!vkCommandBuffer)
+		return false;
+
+	VkAccessFlags beginAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT |
+		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	// No barrier before rendering to a render surface, so also wait for write on end.
+	VkAccessFlags endAccessMask = beginAccessMask | VK_ACCESS_TRANSFER_READ_BIT |
+		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
+		renderer->surfaceDepthStencilFormat, surfaceParts);
+
+	VkImageMemoryBarrier barrier =
+	{
+		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		NULL,
+		beginAccessMask,
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		renderSurface->depthImage,
+		{aspectFlags, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}
+	};
+
+	VkPipelineStageFlags pipelineStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+
+	DS_VK_CALL(device->vkCmdClearDepthStencilImage)(vkCommandBuffer, barrier.image,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (const VkClearDepthStencilValue*)depthStencilValue, 1,
+		&barrier.subresourceRange);
+
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = endAccessMask;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	pipelineStages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		pipelineStages, 0, 0, NULL, 0, NULL, 1, &barrier);
+
+	return true;
 }
 
 void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData)

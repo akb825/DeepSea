@@ -20,6 +20,7 @@
 #include "Platform/VkPlatform.h"
 #include "Resources/VkComputePipeline.h"
 #include "Resources/VkCopyImage.h"
+#include "Resources/VkFramebuffer.h"
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
 #include "Resources/VkGfxFence.h"
@@ -950,6 +951,60 @@ bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 	return true;
 }
 
+bool dsVkRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, const dsSurfaceColorValue* colorValue)
+{
+	DS_UNUSED(renderer);
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
+			return dsVkRenderSurfaceData_clearColor(renderSurface->surfaceData,
+				surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight, commandBuffer,
+				colorValue);
+		}
+		case dsGfxSurfaceType_Texture:
+			return dsVkTexture_clearColor((dsOffscreen*)surface->surface, commandBuffer,
+				colorValue);
+		case dsGfxSurfaceType_Renderbuffer:
+			return dsVkRenderbuffer_clearColor((dsRenderbuffer*)surface->surface, commandBuffer,
+				colorValue);
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+}
+
+bool dsVkRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebufferSurface* surface, dsClearDepthStencil surfaceParts,
+	const dsDepthStencilValue* depthStencilValue)
+{
+	DS_UNUSED(renderer);
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
+			return dsVkRenderSurfaceData_clearDepthStencil(renderSurface->surfaceData,
+				commandBuffer, surfaceParts, depthStencilValue);
+		}
+		case dsGfxSurfaceType_Texture:
+			return dsVkTexture_clearDepthStencil((dsOffscreen*)surface->surface, commandBuffer,
+				surfaceParts, depthStencilValue);
+		case dsGfxSurfaceType_Renderbuffer:
+			return dsVkRenderbuffer_clearDepthStencil((dsRenderbuffer*)surface->surface,
+				commandBuffer, surfaceParts, depthStencilValue);
+		default:
+			DS_ASSERT(false);
+			return false;
+	}
+}
+
 void dsVkRenderer_flush(dsRenderer* renderer)
 {
 	dsVkRenderer_flushImpl(renderer, true);
@@ -1192,6 +1247,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setSurfaceSamplesFunc = &dsVkRenderer_setSurfaceSamples;
 	baseRenderer->setVsyncFunc = &dsVkRenderer_setVsync;
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
+	baseRenderer->clearColorSurfaceFunc = &dsVkRenderer_clearColorSurface;
+	baseRenderer->clearDepthStencilSurfaceFunc = &dsVkRenderer_clearDepthStencilSurface;
 
 	return baseRenderer;
 }

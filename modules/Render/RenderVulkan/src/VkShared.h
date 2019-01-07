@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,8 @@ VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen
 VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);
 
 VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
+VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
+	dsClearDepthStencil surfaceParts);
 VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile);
 
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp);
