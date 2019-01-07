@@ -821,8 +821,9 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkBindBufferMemory);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdCopyBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdUpdateBuffer);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBindVertexBuffers);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBindIndexBuffer);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateBufferView);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyBufferView);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateImage);
@@ -893,6 +894,13 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilCompareMask);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilWriteMask);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetStencilReference);
+
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDraw);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDrawIndexed);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDrawIndirect);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDrawIndexedIndirect);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDispatch);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdDispatchIndirect);
 
 	DS_VK_CALL(device->vkGetDeviceQueue)(device->device, device->queueFamilyIndex, 0,
 		&device->queue);

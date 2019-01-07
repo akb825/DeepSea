@@ -124,6 +124,8 @@ typedef struct dsVkDevice
 	PFN_vkBindBufferMemory vkBindBufferMemory;
 	PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
 	PFN_vkCmdUpdateBuffer vkCmdUpdateBuffer;
+	PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
+	PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
 	PFN_vkCreateBufferView vkCreateBufferView;
 	PFN_vkDestroyBufferView vkDestroyBufferView;
 
@@ -195,6 +197,13 @@ typedef struct dsVkDevice
 	PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask;
 	PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
 	PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
+
+	PFN_vkCmdDraw vkCmdDraw;
+	PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+	PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
+	PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
+	PFN_vkCmdDispatch vkCmdDispatch;
+	PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect;
 
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
@@ -846,6 +855,10 @@ struct dsVkCommandBuffer
 	VkRenderPass activeRenderPass;
 	VkFramebuffer activeFramebuffer;
 	VkRect2D renderArea;
+	VkPipeline activePipeline;
+	VkPipeline activeComputePipeline;
+	const dsDrawGeometry* activeVertexGeometry;
+	const dsIndexBuffer* activeIndexBuffer;
 
 	VkClearValue* clearValues;
 	uint32_t clearValueCount;

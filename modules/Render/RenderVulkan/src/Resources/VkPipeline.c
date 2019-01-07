@@ -28,8 +28,6 @@
 #include <DeepSea/Core/Log.h>
 #include <string.h>
 
-#define DS_MAX_TOTAL_ATTRIBUTES (DS_MAX_ALLOWED_VERTEX_ATTRIBS*DS_MAX_GEOMETRY_VERTEX_BUFFERS)
-
 uint32_t dsVkPipeline_hash(uint32_t samples, float defaultAnisotropy,
 	dsPrimitiveType primitiveType, const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
 	const dsRenderPass* renderPass, uint32_t subpass)
@@ -90,7 +88,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	DS_ASSERT(stageCount > 0);
 
 	VkVertexInputBindingDescription vertexBindings[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
-	VkVertexInputAttributeDescription attributes[DS_MAX_TOTAL_ATTRIBUTES];
+	VkVertexInputAttributeDescription attributes[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
 	uint32_t bindingCount = 0;
 	uint32_t attributeCount = 0;
 	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
@@ -121,7 +119,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 			attributes[attributeCount].format = formatInfo->vkFormat;
 			attributes[attributeCount].offset = formats[i].elements[attribute].offset;
 			++attributeCount;
-			DS_ASSERT(attributeCount <= DS_MAX_TOTAL_ATTRIBUTES);
+			DS_ASSERT(attributeCount <= DS_MAX_ALLOWED_VERTEX_ATTRIBS);
 		}
 
 		++bindingCount;

@@ -216,6 +216,19 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	return dsHandleVkResult(result);
 }
 
+static void resetActiveRenderState(dsVkCommandBuffer* commandBuffer)
+{
+	commandBuffer->activePipeline = 0;
+	commandBuffer->activeVertexGeometry = NULL;
+	commandBuffer->activeIndexBuffer = NULL;
+}
+
+static void resetActiveRenderAndComputeState(dsVkCommandBuffer* commandBuffer)
+{
+	resetActiveRenderState(commandBuffer);
+	commandBuffer->activeComputePipeline = 0;
+}
+
 bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
 	dsAllocator* allocator, dsCommandBufferUsage usage)
 {
@@ -366,6 +379,7 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	DS_VK_CALL(device->vkResetCommandPool)(device->device, vkCommandBuffer->commandPool, 0);
 	vkCommandBuffer->activeCommandBuffer = 0;
 	vkCommandBuffer->activeSubpassBuffer = 0;
+	resetActiveRenderAndComputeState(vkCommandBuffer);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->commandBufferData);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->subpassBufferData);
 	dsVkVolatileDescriptorSets_clear(&vkCommandBuffer->volatileDescriptorSets);
@@ -428,6 +442,7 @@ void dsVkCommandBuffer_forceNewCommandBuffer(dsCommandBuffer* commandBuffer)
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	vkCommandBuffer->activeCommandBuffer = 0;
+	resetActiveRenderAndComputeState(vkCommandBuffer);
 }
 
 void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer)
@@ -439,6 +454,7 @@ void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer)
 	if (vkCommandBuffer->activeCommandBuffer)
 		DS_VK_CALL(device->vkEndCommandBuffer)(vkCommandBuffer->activeCommandBuffer);
 	vkCommandBuffer->activeCommandBuffer = 0;
+	resetActiveRenderAndComputeState(vkCommandBuffer);
 }
 
 void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback)
@@ -585,6 +601,7 @@ bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer)
 	DS_VK_CALL(device->vkEndCommandBuffer)(vkCommandBuffer->activeSubpassBuffer);
 	vkCommandBuffer->subpassBuffers[index] = subpassBuffer;
 	vkCommandBuffer->activeSubpassBuffer = subpassBuffer;
+	resetActiveRenderState(vkCommandBuffer);
 	return true;
 }
 
@@ -634,7 +651,32 @@ bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 
 	vkCommandBuffer->activeSubpassBuffer = 0;
 	vkCommandBuffer->subpassBufferCount = 0;
+	resetActiveRenderState(vkCommandBuffer);
 	return true;
+}
+
+void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
+	VkPipeline pipeline)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	if (vkCommandBuffer->activePipeline == pipeline)
+		return;
+
+	DS_VK_CALL(device->vkCmdBindPipeline)(submitBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+	vkCommandBuffer->activePipeline = pipeline;
+}
+
+void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
+	VkCommandBuffer submitBuffer, VkPipeline pipeline)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	if (vkCommandBuffer->activeComputePipeline == pipeline)
+		return;
+
+	DS_VK_CALL(device->vkCmdBindPipeline)(submitBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+	vkCommandBuffer->activeComputePipeline = pipeline;
 }
 
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,

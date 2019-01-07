@@ -40,6 +40,11 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 
+void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
+	VkPipeline pipeline);
+void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
+	VkCommandBuffer submitBuffer, VkPipeline pipeline);
+
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier);
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer);

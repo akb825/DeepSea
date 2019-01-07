@@ -32,6 +32,7 @@
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkSamplerList.h"
+#include "Resources/VkShader.h"
 #include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBuffer.h"
@@ -921,6 +922,107 @@ static void processResources(dsVkRenderer* renderer, VkCommandBuffer commandBuff
 	dsVkProcessResourceList_clear(prevResourceList);
 }
 
+static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+
+	dsVertexFormat vertexFormats[DS_MAX_GEOMETRY_VERTEX_BUFFERS];
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+		vertexFormats[i] = geometry->vertexBuffers[i].format;
+	VkPipeline pipeline = dsVkShader_getPipeline((dsShader*)commandBuffer->boundShader,
+		commandBuffer, primitiveType, vertexFormats);
+	if (!pipeline)
+		return false;
+
+	if (vkCommandBuffer->activeVertexGeometry == geometry)
+		return true;
+
+	dsVkCommandBuffer_bindPipeline(commandBuffer, submitBuffer, pipeline);
+
+	VkBuffer buffers[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+	VkDeviceSize offsets[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
+	uint32_t bindingCount = 0;
+	for (uint32_t i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
+	{
+		const dsVertexBuffer* vertexBuffer = geometry->vertexBuffers + i;
+		dsGfxBuffer* buffer = vertexBuffer->buffer;
+		if (!buffer)
+			continue;
+
+		const dsVertexFormat* format = &vertexBuffer->format;
+		uint32_t formatSize = format->size;
+		dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(buffer, commandBuffer);
+
+		VkDeviceSize offset = vertexBuffer->offset;
+		if (drawRange)
+			offset += drawRange->firstVertex*formatSize;
+
+		VkDeviceSize size;
+		if (drawRange)
+			size = drawRange->vertexCount*formatSize;
+		else
+			size = vertexBuffer->count*formatSize;
+
+		if (!bufferData || !dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size,
+				commandBuffer))
+		{
+			return false;
+		}
+
+		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(bufferData);
+		for (uint32_t curBitmask = format->enabledMask; curBitmask;
+			curBitmask = dsRemoveLastBit(curBitmask), ++bindingCount)
+		{
+			uint32_t i = dsBitmaskIndex(curBitmask);
+			DS_ASSERT(bindingCount < DS_MAX_ALLOWED_VERTEX_ATTRIBS);
+			buffers[bindingCount] = vkBuffer;
+			offsets[bindingCount] = vertexBuffer->offset + format->elements[i].offset;
+		}
+	}
+
+	vkCommandBuffer->activeVertexGeometry = geometry;
+	DS_VK_CALL(device->vkCmdBindVertexBuffers)(submitBuffer, 0, bindingCount, buffers, offsets);
+	return true;
+}
+
+static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	if (!beginDraw(commandBuffer, submitBuffer, geometry, NULL, primitiveType))
+		return false;
+
+	const dsIndexBuffer* indexBuffer = &geometry->indexBuffer;
+	if (vkCommandBuffer->activeIndexBuffer == indexBuffer)
+		return true;;
+
+	dsVkGfxBufferData* bufferData = dsVkGfxBuffer_getData(indexBuffer->buffer, commandBuffer);
+	if (!bufferData)
+		return false;
+
+	uint32_t indexSize = indexBuffer->indexSize;
+	VkDeviceSize offset = indexBuffer->offset;
+	if (drawRange)
+		offset += drawRange->firstIndex*indexSize;
+
+	VkDeviceSize size = indexBuffer->count*indexSize;
+	if (drawRange)
+		size += drawRange->indexCount*indexSize;
+
+	if (!dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size, commandBuffer))
+		return false;
+
+	vkCommandBuffer->activeIndexBuffer = indexBuffer;
+	DS_VK_CALL(device->vkCmdBindIndexBuffer)(submitBuffer,
+		dsVkGfxBufferData_getBuffer(bufferData), indexBuffer->offset,
+		indexSize == sizeof(uint16_t) ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
+	return true;
+}
+
 bool dsVkRenderer_beginFrame(dsRenderer* renderer)
 {
 	DS_UNUSED(renderer);
@@ -1003,6 +1105,87 @@ bool dsVkRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer
 			DS_ASSERT(false);
 			return false;
 	}
+}
+
+bool dsVkRenderer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, drawRange,
+			primitiveType))
+	{
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdDraw)(submitBuffer, drawRange->vertexCount, drawRange->instanceCount,
+		drawRange->firstVertex, drawRange->firstInstance);
+	return true;
+}
+
+bool dsVkRenderer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsDrawIndexedRange* drawRange,
+	dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, drawRange,
+			primitiveType))
+	{
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdDrawIndexed)(submitBuffer, drawRange->indexCount,
+		drawRange->instanceCount, drawRange->firstIndex, drawRange->vertexOffset,
+		drawRange->firstInstance);
+	return true;
+}
+
+bool dsVkRenderer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginDraw(commandBuffer, submitBuffer, geometry, NULL, primitiveType))
+		return false;
+
+	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
+			count*stride, commandBuffer))
+	{
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdDrawIndirect)(submitBuffer,
+		dsVkGfxBufferData_getBuffer(indirectBufferData), offset, count, stride);
+	return true;
+}
+
+bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsDrawGeometry* geometry, const dsGfxBuffer* indirectBuffer, size_t offset,
+	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginIndexedDraw(commandBuffer, submitBuffer, geometry, NULL,
+			primitiveType))
+	{
+		return false;
+	}
+
+	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
+			count*stride, commandBuffer))
+	{
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdDrawIndexedIndirect)(submitBuffer,
+		dsVkGfxBufferData_getBuffer(indirectBufferData), offset, count, stride);
+	return true;
 }
 
 void dsVkRenderer_flush(dsRenderer* renderer)
@@ -1249,6 +1432,10 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setDefaultAnisotropyFunc = &dsVkRenderer_setDefaultAnisotropy;
 	baseRenderer->clearColorSurfaceFunc = &dsVkRenderer_clearColorSurface;
 	baseRenderer->clearDepthStencilSurfaceFunc = &dsVkRenderer_clearDepthStencilSurface;
+	baseRenderer->drawFunc = &dsVkRenderer_draw;
+	baseRenderer->drawIndexedFunc = &dsVkRenderer_drawIndexed;
+	baseRenderer->drawIndirectFunc = &dsVkRenderer_drawIndirect;
+	baseRenderer->drawIndexedIndirectFunc = &dsVkRenderer_drawIndexedIndirect;
 
 	return baseRenderer;
 }

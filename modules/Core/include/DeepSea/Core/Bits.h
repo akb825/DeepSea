@@ -82,6 +82,13 @@ DS_CORE_EXPORT inline uint32_t dsBitmaskIndex(uint32_t x);
  */
 DS_CORE_EXPORT inline uint32_t dsRemoveLastBit(uint32_t x);
 
+/**
+ * @brief Counts the number of bits in a bitmask.
+ * @param x The bitmask.
+ * @return The number of bits.
+ */
+DS_CORE_EXPORT inline uint32_t dsCountBits(uint32_t x);
+
 inline uint32_t dsClz(uint32_t x)
 {
 #if DS_MSC
@@ -122,6 +129,14 @@ inline uint32_t dsBitmaskIndex(uint32_t x)
 inline uint32_t dsRemoveLastBit(uint32_t x)
 {
 	return x & (x - 1);
+}
+
+inline uint32_t dsCountBits(uint32_t x)
+{
+	// https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+	x = x - ((x >> 1) & 0x55555555U);
+	x = (x & 0x33333333U) + ((x >> 2) & 0x33333333U);
+	return (((x + (x >> 4)) & 0x0F0F0F0FU) * 0x01010101U) >> 24;
 }
 
 #ifdef __cplusplus

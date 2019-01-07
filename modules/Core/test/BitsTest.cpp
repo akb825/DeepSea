@@ -53,3 +53,12 @@ TEST(BitsTest, BitmaskIterate)
 	bitmask = dsRemoveLastBit(bitmask);
 	EXPECT_EQ(0U, bitmask);
 }
+
+TEST(BitsTest, Count)
+{
+	EXPECT_EQ(0U, dsCountBits(0U));
+	EXPECT_EQ(1U, dsCountBits(1U));
+	EXPECT_EQ(1U, dsCountBits(0x010U));
+	EXPECT_EQ(17U, dsCountBits(0xAB0CD0EFU));
+	EXPECT_EQ(32U, dsCountBits(0xFFFFFFFF));
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Aaron Barany
+ * Copyright 2016-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 
 	bool hasVertexBuffer = false;
 	uint32_t vertexCount = 0;
+	uint32_t enabledMask = 0;
 	for (unsigned int i = 0; i < DS_MAX_GEOMETRY_VERTEX_BUFFERS; ++i)
 	{
 		if (!vertexBuffers[i])
@@ -89,7 +90,17 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 			DS_PROFILE_FUNC_RETURN(NULL);
 		}
 
-		if (vertexBuffers[i]->format.size == 0)
+		const dsVertexFormat* format = &vertexBuffers[i]->format;
+		if (format->enabledMask & enabledMask)
+		{
+			errno = EINVAL;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+				"Cannot have multiple vertex buffers cannot use the same attribute.");
+			DS_PROFILE_FUNC_RETURN(NULL);
+		}
+		enabledMask |= format->enabledMask;
+
+		if (format->size == 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Offsets and size not calculated for vertex format.");
@@ -97,7 +108,7 @@ dsDrawGeometry* dsDrawGeometry_create(dsResourceManager* resourceManager,
 		}
 
 		if (!DS_IS_BUFFER_RANGE_VALID(vertexBuffers[i]->offset,
-			vertexBuffers[i]->count*vertexBuffers[i]->format.size, vertexBuffers[i]->buffer->size))
+			vertexBuffers[i]->count*format->size, vertexBuffers[i]->buffer->size))
 		{
 			errno = EINDEX;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
