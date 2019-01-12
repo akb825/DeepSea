@@ -347,7 +347,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	bool needsHostMemory = data || (offscreen && (info->samples == 1 || resolve) &&
-		(memoryHints & dsGfxMemory_Read));
+		(usage & dsTextureUsage_CopyFrom) && (memoryHints & dsGfxMemory_Read));
 	if (needsHostMemory && dsGfxFormat_isDepthStencil(info->format))
 	{
 		errno = EINVAL;
@@ -951,6 +951,12 @@ VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
 	return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
+bool dsVkTexture_canReadBack(const dsTexture* texture)
+{
+	return texture->offscreen && (texture->usage & dsTextureUsage_CopyFrom) &&
+		(texture->memoryHints & dsGfxMemory_Read);
+}
+
 bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer)
 {
 	dsVkTexture* vkTexture = (dsVkTexture*)texture;
@@ -1005,6 +1011,11 @@ bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuff
 		return false;
 
 	dsVkRenderer_processTexture(renderer, offscreen);
+	if (dsVkTexture_canReadBack(offscreen) &&
+		!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen))
+	{
+		return false;
+	}
 
 	VkImageMemoryBarrier barriers[2];
 	uint32_t barrierCount = 1;
@@ -1071,6 +1082,11 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 		return false;
 
 	dsVkRenderer_processTexture(renderer, offscreen);
+	if (dsVkTexture_canReadBack(offscreen) &&
+		!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen))
+	{
+		return false;
+	}
 
 	VkImageMemoryBarrier barriers[2];
 	uint32_t barrierCount = 1;

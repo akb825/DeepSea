@@ -20,6 +20,7 @@
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkShader.h"
+#include "Resources/VkTexture.h"
 #include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkShared.h"
@@ -65,6 +66,11 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 		dsTexture* texture = (dsTexture*)surface->surface;
 		DS_ASSERT(texture->offscreen);
 		dsVkRenderer_processTexture(renderer, texture);
+		if (dsVkTexture_canReadBack(texture) &&
+			!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, texture))
+		{
+			return false;
+		}
 
 		// Don't layout transition for resolved depth/stencil images, since you can't resolve
 		// in render subpasses.
