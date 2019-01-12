@@ -507,8 +507,17 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 	}
 
 	dsVkCommandBuffer_endRenderPass(commandBuffer);
-	return endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer,
-		renderPass->resolveAttachment);
+	if (!endFramebuffer(commandBuffer, commandBuffer->boundFramebuffer,
+		renderPass->resolveAttachment))
+	{
+		return false;
+	}
+
+	// Handle if a fence was set during the render pass.
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	if (vkCommandBuffer->fenceSet)
+		dsVkCommandBuffer_submitFence(commandBuffer, false);
+	return true;
 }
 
 bool dsVkRenderPassData_addShader(dsVkRenderPassData* renderPass, dsShader* shader)
