@@ -48,7 +48,7 @@ static bool submitResourceBarriers(dsCommandBuffer* commandBuffer)
 		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 
 	VkPipelineStageFlags srcStages = dstStages | VK_PIPELINE_STAGE_TRANSFER_BIT |
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_HOST_BIT;
 	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
 }
 

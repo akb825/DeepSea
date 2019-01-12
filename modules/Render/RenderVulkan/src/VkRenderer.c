@@ -1023,6 +1023,22 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 	return true;
 }
 
+static bool beginDispatch(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	VkPipelineStageFlagBits srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+}
+
 bool dsVkRenderer_beginFrame(dsRenderer* renderer)
 {
 	DS_UNUSED(renderer);
@@ -1185,6 +1201,39 @@ bool dsVkRenderer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer* com
 
 	DS_VK_CALL(device->vkCmdDrawIndexedIndirect)(submitBuffer,
 		dsVkGfxBufferData_getBuffer(indirectBufferData), offset, count, stride);
+	return true;
+}
+
+bool dsVkRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBuffer, uint32_t x,
+	uint32_t y, uint32_t z)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginDispatch(renderer, commandBuffer))
+		return false;
+
+	DS_VK_CALL(device->vkCmdDispatch)(submitBuffer, x, y, z);
+	return true;
+}
+
+bool dsVkRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxBuffer* indirectBuffer, size_t offset)
+{
+	dsVkGfxBufferData* indirectBufferData = dsVkGfxBuffer_getData((dsGfxBuffer*)indirectBuffer,
+		commandBuffer);
+	if (!indirectBufferData || !dsVkGfxBufferData_addMemoryBarrier(indirectBufferData, offset,
+			sizeof(uint32_t)*3, commandBuffer))
+	{
+		return false;
+	}
+
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer || !beginDispatch(renderer, commandBuffer))
+		return false;
+
+	DS_VK_CALL(device->vkCmdDispatchIndirect)(submitBuffer,
+		dsVkGfxBufferData_getBuffer(indirectBufferData), offset);
 	return true;
 }
 
@@ -1436,6 +1485,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->drawIndexedFunc = &dsVkRenderer_drawIndexed;
 	baseRenderer->drawIndirectFunc = &dsVkRenderer_drawIndirect;
 	baseRenderer->drawIndexedIndirectFunc = &dsVkRenderer_drawIndexedIndirect;
+	baseRenderer->dispatchComputeFunc = &dsVkRenderer_dispatchCompute;
+	baseRenderer->dispatchComputeIndirectFunc = &dsVkRenderer_dispatchComputeIndirect;
 
 	return baseRenderer;
 }
