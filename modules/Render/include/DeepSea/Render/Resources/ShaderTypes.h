@@ -136,11 +136,11 @@ typedef enum dsShaderStage
 	dsShaderStage_Compute,                ///< Compute shader.
 } dsShaderStage;
 
-/// \{
+/// @cond
 typedef struct dsResourceManager dsResourceManager;
 typedef struct mslModule mslModule;
 typedef struct mslPipeline mslPipeline;
-/// \}
+/// @endcond
 
 /**
  * @brief Struct holding a description of a material.

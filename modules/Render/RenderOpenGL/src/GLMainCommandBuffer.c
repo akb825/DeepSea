@@ -718,7 +718,7 @@ bool dsGLMainCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTex
 }
 
 bool dsGLMainCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount)
 {
 	DS_UNUSED(commandBuffer);
 
@@ -1693,7 +1693,7 @@ bool dsGLMainCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuffe
 
 bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
 {
 	dsRenderer* renderer = commandBuffer->renderer;
 

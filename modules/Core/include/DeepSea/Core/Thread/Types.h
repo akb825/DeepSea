@@ -35,14 +35,14 @@ extern "C"
  * @brief Includes all of the types used by the Thread portion of the DeepSea/Coroe library.
  */
 
-/// \{
+/// @cond
 #ifdef _POSIX_C_SOURCE
 #define DS_CUSTOM_SPINLOCK _POSIX_C_SOURCE < 200112L
 #else
 #define DS_CUSTOM_SPINLOCK 1
 #endif
 typedef struct dsAllocator dsAllocator;
-/// \}
+/// @endcond
 
 /**
  * @brief Type for a thread condition variable.

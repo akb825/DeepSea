@@ -41,7 +41,7 @@ extern "C"
 
 #if DS_PROFILING_ENABLED
 
-///\{
+/// @cond Doxygen_Suppress
 #define DS_PROFILE_PUSH_IMPL(type, name, dynamic) \
 	do \
 	{ \
@@ -51,7 +51,7 @@ extern "C"
 	} while(0)
 
 #define DS_PROFILE_POP_IMPL(type) dsProfile_pop(type, __FILE__, __FUNCTION__, __LINE__)
-///\}
+/// @endcond
 
 /**
  * @brief Profiles the start of a function.

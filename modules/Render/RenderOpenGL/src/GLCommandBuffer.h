@@ -31,7 +31,7 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size);
 bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 bool dsGLCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
@@ -108,7 +108,8 @@ bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBu
 	const dsGfxBuffer* indirectBuffer, size_t offset);
 bool dsGLCommandBuffer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount,
+	dsBlitFilter filter);
 
 bool dsGLCommandBuffer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	const char* name);

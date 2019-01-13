@@ -223,7 +223,7 @@ bool dsMockRenderer_dispatchComputeIndirect(dsRenderer* renderer,
 
 bool dsMockRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(srcSurface);

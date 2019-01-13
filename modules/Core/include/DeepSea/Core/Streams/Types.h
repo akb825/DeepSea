@@ -69,9 +69,9 @@ extern "C"
  */
 #define DS_STREAM_INVALID_POS ((uint64_t)-1)
 
-/// \{
+/// @cond Doxygen_Suppress
 typedef struct dsAllocator dsAllocator;
-/// \}
+/// @endcond
 
 /**
  * @brief Structure that defines a stream.

@@ -367,7 +367,8 @@ DS_RENDER_EXPORT bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer,
  */
 DS_RENDER_EXPORT bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount,
+	dsBlitFilter filter);
 
 /**
  * @brief Adds a memory barrier to ensure writes are properly performed before reads.

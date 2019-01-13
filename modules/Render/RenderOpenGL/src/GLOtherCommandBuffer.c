@@ -117,7 +117,7 @@ typedef struct CopyTextureCommand
 	Command command;
 	dsTexture* srcTexture;
 	dsTexture* dstTexture;
-	size_t regionCount;
+	uint32_t regionCount;
 	dsTextureCopyRegion regions[];
 } CopyTextureCommand;
 
@@ -307,7 +307,7 @@ typedef struct BlitSurfaceCommand
 	dsGfxSurfaceType srcSurfaceType;
 	dsGfxSurfaceType dstSurfaceType;
 	dsBlitFilter filter;
-	size_t regionCount;
+	uint32_t regionCount;
 	dsSurfaceBlitRegion regions[];
 } BlitSurfaceCommand;
 
@@ -455,7 +455,7 @@ bool dsGLOtherCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTe
 }
 
 bool dsGLOtherCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount)
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount)
 {
 	size_t commandSize = sizeof(CopyTextureCommand) + sizeof(dsTextureCopyRegion)*regionCount;
 	CopyTextureCommand* command = (CopyTextureCommand*)allocateCommand(commandBuffer,
@@ -911,7 +911,7 @@ bool dsGLOtherCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* commandBuff
 
 bool dsGLOtherCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
 {
 	size_t commandSize = sizeof(BlitSurfaceCommand) + sizeof(dsSurfaceBlitRegion)*regionCount;
 	BlitSurfaceCommand* command = (BlitSurfaceCommand*)allocateCommand(commandBuffer,

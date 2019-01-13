@@ -62,7 +62,7 @@ DS_RENDER_EXPORT dsMaterialType dsMaterialType_matrixColumnType(dsMaterialType t
  * @param type The material type.
  * @return The type of the row, or dsMaterialType_Count if not a matrix type.
  */
-DS_RENDER_EXPORT dsMaterialType dsMaterialType_matrixColumnType(dsMaterialType type);
+DS_RENDER_EXPORT dsMaterialType dsMaterialType_matrixRowType(dsMaterialType type);
 
 /**
  * @brief Gets the size of a material type on the CPU.

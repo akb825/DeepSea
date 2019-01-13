@@ -628,8 +628,6 @@ typedef struct dsVkRenderSurfaceData
 	uint32_t height;
 
 	bool vsync;
-	bool canBlitFrom;
-	bool canBlitTo;
 
 	uint32_t imageIndex;
 	uint32_t imageDataIndex;

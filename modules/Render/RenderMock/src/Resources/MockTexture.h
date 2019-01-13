@@ -37,7 +37,7 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	uint32_t layers, const void* data, size_t size);
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
-	size_t regionCount);
+	uint32_t regionCount);
 bool dsMockTexture_generateMipmaps(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* texture);
 bool dsMockTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

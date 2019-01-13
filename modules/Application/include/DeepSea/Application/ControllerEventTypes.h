@@ -65,9 +65,9 @@ typedef enum dsControllerButton
 	dsControllerButton_Right
 } dsControllerButton;
 
-/// \{
+/// @cond
 typedef struct dsController dsController;
-/// \}
+/// @endcond
 
 /**
  * @brief Struct containing information about connecting a controller.

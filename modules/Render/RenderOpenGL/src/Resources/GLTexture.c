@@ -621,7 +621,7 @@ bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 
 bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
-	size_t regionCount)
+	uint32_t regionCount)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);

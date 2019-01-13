@@ -670,7 +670,6 @@ typedef struct dsCommandBufferPool
 } dsCommandBufferPool;
 
 /// @cond Doxygen_Suppress
-/// \{
 typedef struct dsCommandBufferProfileInfo
 {
 	uint32_t beginSurfaceIndex;
@@ -680,7 +679,6 @@ typedef struct dsCommandBufferProfileInfo
 	uint32_t beginComputeIndex;
 	uint32_t beginComputeSwapCount;
 } dsCommandBufferProfileInfo;
-/// \}
 /// @endcond
 
 /**
@@ -945,9 +943,9 @@ typedef struct dsGfxMemoryBarrier
 	dsGfxAccess readAccess;
 } dsGfxMemoryBarrier;
 
-/// \{
+/// @cond Doxygen_Suppress
 typedef struct dsGPUProfileContext dsGPUProfileContext;
-/// \}
+/// @endcond
 
 /**
  * @brief Function to query whether or not a renderer is supported.
@@ -1354,7 +1352,8 @@ typedef bool (*dsRenderDispatchComputeIndirectFunction)(dsRenderer* renderer,
  */
 typedef bool (*dsBlitSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount,
+	dsBlitFilter filter);
 
 /**
  * @brief Function for adding a memory barrier.

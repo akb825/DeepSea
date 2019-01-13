@@ -598,7 +598,7 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 
 bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
-	size_t regionCount)
+	uint32_t regionCount)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 
@@ -617,41 +617,98 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	dsVkRenderer_processTexture(resourceManager->renderer, srcTexture);
 	dsVkRenderer_processTexture(resourceManager->renderer, dstTexture);
 
-	// 256 regions is ~35 KB of stack space. After that use heap space.
-	bool heapRegions = regionCount > 256;
+	VkImageAspectFlags srcAspectMask = dsVkImageAspectFlags(srcTexture->info.format);
+	uint32_t srcFaceCount = srcTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+	bool srcIs3D = srcTexture->info.dimension == dsTextureDim_3D;
+	bool srcIsDepthStencil = dsGfxFormat_isDepthStencil(srcTexture->info.format);
+	VkAccessFlags srcAccessFlags = dsVkSrcImageAccessFlags(srcTexture->usage, srcTexture->offscreen,
+		srcIsDepthStencil);
+
+	VkImageAspectFlags dstAspectMask = dsVkImageAspectFlags(dstTexture->info.format);
+	uint32_t dstFaceCount = dstTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+	bool dstIs3D = dstTexture->info.dimension == dsTextureDim_3D;
+	bool dstIsDepthStencil = dsGfxFormat_isDepthStencil(dstTexture->info.format);
+	VkAccessFlags dstAccessFlags = dsVkSrcImageAccessFlags(dstTexture->usage, dstTexture->offscreen,
+		dstIsDepthStencil) | dsVkDstImageAccessFlags(dstTexture->usage);
+
+	uint32_t minSrcMipLevel = UINT_MAX;
+	uint32_t maxSrcMipLevel = 0;
+	uint32_t minSrcLayer = UINT_MAX;
+	uint32_t maxSrcLayer = 0;
+	uint32_t minDstMipLevel = UINT_MAX;
+	uint32_t maxDstMipLevel = 0;
+	uint32_t minDstLayer = UINT_MAX;
+	uint32_t maxDstLayer = 0;
+	if (srcIs3D)
+		minSrcLayer = maxSrcLayer = 0;
+	if (dstIs3D)
+		minDstLayer = maxDstLayer = 0;
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
+		minSrcMipLevel = dsMin(minSrcMipLevel, srcPosition->mipLevel);
+		maxSrcMipLevel = dsMin(maxSrcMipLevel, srcPosition->mipLevel);
+		if (!srcIs3D)
+		{
+			uint32_t srcLayer = srcPosition->depth*srcFaceCount + srcPosition->face;
+			minSrcLayer = dsMin(minSrcLayer, srcLayer);
+			maxSrcLayer = dsMax(maxSrcLayer, srcLayer + regions[i].layers - 1);
+		}
+
+		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
+		minDstMipLevel = dsMin(minDstMipLevel, dstPosition->mipLevel);
+		maxDstMipLevel = dsMin(maxDstMipLevel, dstPosition->mipLevel);
+		if (!dstIs3D)
+		{
+			uint32_t dstLayer = dstPosition->depth*dstFaceCount + dstPosition->face;
+			minDstLayer = dsMin(minDstLayer, dstLayer);
+			maxDstLayer = dsMax(maxDstLayer, dstLayer + regions[i].layers - 1);
+		}
+	}
+
+	VkImageMemoryBarrier imageBarriers[2] =
+	{
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			srcAccessFlags,
+			VK_ACCESS_TRANSFER_READ_BIT,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			srcVkTexture->deviceImage,
+			{srcAspectMask, minSrcMipLevel, maxSrcMipLevel - minSrcMipLevel + 1, minSrcLayer,
+				maxSrcLayer - minSrcLayer + 1}
+		},
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			dstAccessFlags,
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			dstVkTexture->deviceImage,
+			{dstAspectMask, minDstMipLevel, maxDstMipLevel - minDstMipLevel + 1, minDstLayer,
+				maxDstLayer - minDstLayer + 1}
+		}
+	};
+
+	// 2048 regions is ~53 KB of stack space. After that use heap space.
+	bool heapRegions = regionCount > 2048;
 	dsAllocator* scratchAllocator = resourceManager->allocator;
 	VkImageCopy* imageCopies;
-	VkImageMemoryBarrier* imageBarriers;
 	if (heapRegions)
 	{
 		imageCopies = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, VkImageCopy, regionCount);
 		if (!imageCopies)
 			return false;
-
-		imageBarriers = DS_ALLOCATE_OBJECT_ARRAY(scratchAllocator, VkImageMemoryBarrier,
-			regionCount);
-		if (!imageBarriers)
-		{
-			DS_VERIFY(dsAllocator_free(scratchAllocator, imageCopies));
-			return false;
-		}
 	}
 	else
-	{
 		imageCopies = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkImageCopy, regionCount);
-		imageBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkImageMemoryBarrier, regionCount);
-	}
 
-	VkImageAspectFlags srcAspectMask = dsVkImageAspectFlags(srcTexture->info.format);
-	VkImageAspectFlags dstAspectMask = dsVkImageAspectFlags(dstTexture->info.format);
-	bool srcIsDepthStencil = dsGfxFormat_isDepthStencil(srcTexture->info.format);
-	bool dstIsDepthStencil = dsGfxFormat_isDepthStencil(dstTexture->info.format);
-	bool srcIs3D = srcTexture->info.dimension == dsTextureDim_3D;
-	bool dstIs3D = dstTexture->info.dimension == dsTextureDim_3D;
-	VkAccessFlags srcAccessFlags = dsVkSrcImageAccessFlags(srcTexture->usage, srcTexture->offscreen,
-		srcIsDepthStencil);
-	uint32_t srcFaceCount = srcTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
-	uint32_t dstFaceCount = dstTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 	for (uint32_t i = 0; i < regionCount; ++i)
 	{
 		const dsTextureCopyRegion* region = regions + i;
@@ -722,31 +779,17 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		imageCopy->extent.width = region->width;
 		imageCopy->extent.height = region->height;
 		imageCopy->extent.depth = depthCount;
-
-		VkImageMemoryBarrier* imageBarrier = imageBarriers + i;
-		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		imageBarrier->pNext = NULL;
-		imageBarrier->srcAccessMask = srcAccessFlags;
-		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-		imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
-		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier->image = srcVkTexture->deviceImage;
-		imageBarrier->subresourceRange.aspectMask = srcAspectMask;
-		imageBarrier->subresourceRange.baseMipLevel = region->srcPosition.mipLevel;
-		imageBarrier->subresourceRange.levelCount = 1;
-		imageBarrier->subresourceRange.baseArrayLayer = srcLayer;
-		imageBarrier->subresourceRange.layerCount = layerCount;
 	}
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
-		dsVkSrcImageStageFlags(srcTexture->usage, srcTexture->offscreen, srcIsDepthStencil),
-		dsVkDstImageStageFlags(dstTexture->usage, dstTexture->offscreen && dstIsDepthStencil &&
-			!dstTexture->resolve), 0, 0, NULL, 0, NULL, (uint32_t)regionCount, imageBarriers);
+	VkPipelineStageFlags dstStageFlags = dsVkDstImageStageFlags(dstTexture->usage,
+		dstTexture->offscreen && dstIsDepthStencil && !dstTexture->resolve);
+	VkPipelineStageFlags srcStageFlags = dsVkSrcImageStageFlags(srcTexture->usage,
+		srcTexture->offscreen, srcIsDepthStencil) | dstStageFlags;
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, srcStageFlags, dstStageFlags, 0, 0,
+		NULL, 0, NULL, 2, imageBarriers);
 	DS_VK_CALL(device->vkCmdCopyImage)(vkCommandBuffer, srcVkTexture->deviceImage,
 		VK_IMAGE_LAYOUT_GENERAL, dstVkTexture->deviceImage, VK_IMAGE_LAYOUT_GENERAL,
-		(uint32_t)regionCount, imageCopies);
+		regionCount, imageCopies);
 
 	if (heapRegions)
 	{
@@ -781,22 +824,37 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 
 	bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
 	VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
-	VkImageMemoryBarrier baseBarrier =
+	VkImageMemoryBarrier baseBarriers[2] =
 	{
-		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		NULL,
-		dsVkSrcImageAccessFlags(texture->usage, texture->offscreen, isDepthStencil),
-		VK_ACCESS_TRANSFER_READ_BIT,
-		VK_IMAGE_LAYOUT_GENERAL,
-		VK_IMAGE_LAYOUT_GENERAL,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		vkTexture->deviceImage,
-		{aspectMask, 0, 1, 0, totalLayers}
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			dsVkSrcImageAccessFlags(texture->usage, texture->offscreen, isDepthStencil) |
+				dsVkDstImageAccessFlags(texture->usage),
+			VK_ACCESS_TRANSFER_READ_BIT,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			vkTexture->deviceImage,
+			{aspectMask, 0, 1, 0, totalLayers}
+		},
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			dsVkDstImageAccessFlags(texture->usage),
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_IMAGE_LAYOUT_GENERAL,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			vkTexture->deviceImage,
+			{aspectMask, 1, VK_REMAINING_MIP_LEVELS, 0, totalLayers}
+		}
 	};
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, dsVkSrcImageStageFlags(texture->usage,
 		texture->offscreen, isDepthStencil), VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
-		1, &baseBarrier);
+		2, baseBarriers);
 
 	uint32_t width = info->width;
 	uint32_t height = info->height;

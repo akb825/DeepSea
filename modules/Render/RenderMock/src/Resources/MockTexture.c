@@ -123,7 +123,7 @@ bool dsMockTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 
 bool dsMockTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
-	size_t regionCount)
+	uint32_t regionCount)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(srcTexture);

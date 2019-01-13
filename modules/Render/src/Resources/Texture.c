@@ -593,7 +593,7 @@ bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* commandBuffer,
 }
 
 bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
-	const dsTextureCopyRegion* regions, size_t regionCount)
+	const dsTextureCopyRegion* regions, uint32_t regionCount)
 {
 	DS_PROFILE_FUNC_START();
 

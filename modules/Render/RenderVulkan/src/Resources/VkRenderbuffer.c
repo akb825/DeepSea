@@ -60,9 +60,11 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 	bool isDepthStencil = dsGfxFormat_isDepthStencil(format);
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	VkImageUsageFlags usageFlags = 0;
 	if (usage & dsRenderbufferUsage_BlitFrom)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (usage & (dsRenderbufferUsage_BlitTo | dsRenderbufferUsage_Clear))
+		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (device->hasLazyAllocation)
 		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	if (isDepthStencil)

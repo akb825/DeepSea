@@ -299,6 +299,25 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	dsVkRenderer_processGfxBuffer(renderer, bufferData);
 	VkBuffer dstBuffer = dsVkGfxBufferData_getBuffer(bufferData);
 
+	bool canMap = dsVkGfxBufferData_canMap(bufferData);
+	VkBufferMemoryBarrier barrier =
+	{
+		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+		NULL,
+		dsVkSrcBufferAccessFlags(bufferData->usage, canMap) |
+			dsVkDstBufferAccessFlags(buffer->usage),
+		VK_ACCESS_TRANSFER_WRITE_BIT,
+		VK_QUEUE_FAMILY_IGNORED,
+		VK_QUEUE_FAMILY_IGNORED,
+		dstBuffer,
+		offset,
+		size
+	};
+	VkPipelineStageFlags stages = dsVkSrcBufferStageFlags(bufferData->usage, canMap) |
+		dsVkDstBufferStageFlags(buffer->usage);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
+
 	const size_t maxSize = 65536;
 	for (size_t block = 0; block < size; block += maxSize)
 	{
@@ -349,25 +368,44 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	VkBuffer srcCopyBuffer = dsVkGfxBufferData_getBuffer(srcBufferData);
 	VkBuffer dstCopyBuffer = dsVkGfxBufferData_getBuffer(dstBufferData);
 
-	if (!dsVkGfxBufferData_isStatic(srcBufferData))
+	bool srcCanMap = dsVkGfxBufferData_canMap(srcBufferData);
+	bool dstCanMap = dsVkGfxBufferData_canMap(dstBufferData);
+	VkBufferMemoryBarrier barriers[2] =
 	{
-		bool canMap = dsVkGfxBufferData_canMap(srcBufferData);
-		VkBufferMemoryBarrier barrier =
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			dsVkSrcBufferAccessFlags(srcBufferData->usage, canMap),
+			dsVkSrcBufferAccessFlags(dstBufferData->usage, dstCanMap) |
+				dsVkDstBufferAccessFlags(dstBuffer->usage),
 			VK_ACCESS_TRANSFER_WRITE_BIT,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			dstCopyBuffer,
+			dstOffset,
+			size
+		},
+		{
+			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+			NULL,
+			dsVkSrcBufferAccessFlags(srcBufferData->usage, srcCanMap),
+			VK_ACCESS_TRANSFER_READ_BIT,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
 			srcCopyBuffer,
 			srcOffset,
 			size
-		};
-		DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer,
-			dsVkSrcBufferStageFlags(srcBufferData->usage, canMap), VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0, 0, NULL, 1, &barrier, 0, NULL);
+		}
+	};
+	uint32_t barrierCount = 1;
+	VkPipelineStageFlags stages = dsVkSrcBufferStageFlags(dstBufferData->usage, dstCanMap) |
+		dsVkDstBufferStageFlags(dstBuffer->usage);
+	if (!dsVkGfxBufferData_isStatic(srcBufferData))
+	{
+		++barrierCount;
+		stages |= dsVkSrcBufferStageFlags(srcBufferData->usage, srcCanMap);
 	}
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, barrierCount, barriers, 0, NULL);
 
 	VkBufferCopy bufferCopy = {srcOffset, dstOffset, size};
 	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,

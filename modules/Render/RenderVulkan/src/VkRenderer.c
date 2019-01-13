@@ -1237,6 +1237,476 @@ bool dsVkRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer*
 	return true;
 }
 
+bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	uint32_t srcFaceCount = 1;
+	bool srcIs3D;
+	if (srcSurfaceType == dsGfxSurfaceType_Texture)
+	{
+		dsTexture* srcTexture = (dsTexture*)srcSurface;
+		if (srcTexture->info.dimension == dsTextureDim_Cube)
+			srcFaceCount = 6;
+		srcIs3D = srcTexture->info.dimension == dsTextureDim_3D;
+	}
+
+	uint32_t dstFaceCount = 1;
+	bool dstIs3D;
+	if (dstSurfaceType == dsGfxSurfaceType_Texture)
+	{
+		dsTexture* dstTexture = (dsTexture*)dstSurface;
+		if (dstTexture->info.dimension == dsTextureDim_Cube)
+			dstFaceCount = 6;
+		dstIs3D = dstTexture->info.dimension == dsTextureDim_3D;
+	}
+
+	uint32_t minSrcMipLevel = UINT_MAX;
+	uint32_t maxSrcMipLevel = 0;
+	uint32_t minSrcLayer = UINT_MAX;
+	uint32_t maxSrcLayer = 0;
+	uint32_t minDstMipLevel = UINT_MAX;
+	uint32_t maxDstMipLevel = 0;
+	uint32_t minDstLayer = UINT_MAX;
+	uint32_t maxDstLayer = 0;
+	if (srcIs3D)
+		minSrcLayer = maxSrcLayer = 0;
+	if (dstIs3D)
+		minDstLayer = maxDstLayer = 0;
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsTexturePosition* srcPosition = &regions[i].srcPosition;
+		minSrcMipLevel = dsMin(minSrcMipLevel, srcPosition->mipLevel);
+		maxSrcMipLevel = dsMin(maxSrcMipLevel, srcPosition->mipLevel);
+		if (!srcIs3D)
+		{
+			uint32_t srcLayer = srcPosition->depth*srcFaceCount + srcPosition->face;
+			minSrcLayer = dsMin(minSrcLayer, srcLayer);
+			maxSrcLayer = dsMax(maxSrcLayer, srcLayer + regions[i].layers - 1);
+		}
+
+		const dsTexturePosition* dstPosition = &regions[i].dstPosition;
+		minDstMipLevel = dsMin(minDstMipLevel, dstPosition->mipLevel);
+		maxDstMipLevel = dsMin(maxDstMipLevel, dstPosition->mipLevel);
+		if (!dstIs3D)
+		{
+			uint32_t dstLayer = dstPosition->depth*dstFaceCount + dstPosition->face;
+			minDstLayer = dsMin(minDstLayer, dstLayer);
+			maxDstLayer = dsMax(maxDstLayer, dstLayer + regions[i].layers - 1);
+		}
+	}
+
+	VkImageMemoryBarrier imageBarriers[2] =
+	{
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			0,
+			VK_ACCESS_TRANSFER_READ_BIT,
+			0,
+			0,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			0,
+			{0, minSrcMipLevel, maxSrcMipLevel - minSrcMipLevel + 1, minSrcLayer,
+				maxSrcLayer - minSrcLayer + 1}
+		},
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			NULL,
+			0,
+			VK_ACCESS_TRANSFER_WRITE_BIT,
+			0,
+			0,
+			VK_QUEUE_FAMILY_IGNORED,
+			VK_QUEUE_FAMILY_IGNORED,
+			0,
+			{0, minDstMipLevel, maxDstMipLevel - minDstMipLevel + 1, minDstLayer,
+				maxDstLayer - minDstLayer + 1}
+		}
+	};
+
+	// Image barriers to prepare for the blit.
+	VkImageAspectFlags srcAspectMask = 0, dstAspectMask = 0;
+	VkPipelineStageFlags stageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	switch (srcSurfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)srcSurface;
+			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			imageBarriers[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[0].image = surfaceData->images[surfaceData->imageIndex];
+			imageBarriers[0].subresourceRange.baseArrayLayer =
+				srcSurfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
+			srcAspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		}
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)srcSurface;
+			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			imageBarriers[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[0].image = surfaceData->depthImage;
+			dstAspectMask = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
+			stageFlags |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		}
+		case dsGfxSurfaceType_Texture:
+		{
+			dsOffscreen* offscreen = (dsOffscreen*)srcSurface;
+			DS_ASSERT(offscreen->offscreen);
+			dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
+			dsVkRenderer_processTexture(renderer, offscreen);
+			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
+			imageBarriers[0].srcAccessMask = dsVkSrcImageStageFlags(offscreen->usage, true,
+				isDepthStencil);
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBarriers[0].image = vkTexture->deviceImage;
+			srcAspectMask = dsVkImageAspectFlags(offscreen->info.format);
+			stageFlags |= dsVkSrcImageStageFlags(offscreen->usage, offscreen->offscreen,
+				isDepthStencil);
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)srcSurface;
+			dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+			imageBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			if (dsGfxFormat_isDepthStencil(renderbuffer->format))
+			{
+				imageBarriers[0].srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else
+			{
+				imageBarriers[0].srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			}
+			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[0].image = vkRenderbuffer->image;
+			srcAspectMask = dsVkImageAspectFlags(renderbuffer->format);
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+	}
+	imageBarriers[0].subresourceRange.aspectMask = srcAspectMask;
+
+	switch (dstSurfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)srcSurface;
+			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			imageBarriers[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			imageBarriers[1].image = surfaceData->images[surfaceData->imageIndex];
+			imageBarriers[1].subresourceRange.baseArrayLayer =
+				srcSurfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
+			dstAspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		}
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+		{
+			dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)srcSurface;
+			dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
+			imageBarriers[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			imageBarriers[1].image = surfaceData->depthImage;
+			dstAspectMask = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
+			stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		}
+		case dsGfxSurfaceType_Texture:
+		{
+			dsOffscreen* offscreen = (dsOffscreen*)srcSurface;
+			DS_ASSERT(offscreen->offscreen);
+			dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
+			dsVkRenderer_processTexture(renderer, offscreen);
+			if (dsVkTexture_canReadBack(offscreen) &&
+				!dsVkCommandBuffer_addReadbackOffscreen(commandBuffer, offscreen))
+			{
+				return false;
+			}
+
+			imageBarriers[1].srcAccessMask = dsVkSrcImageStageFlags(offscreen->usage, true,
+				dsGfxFormat_isDepthStencil(offscreen->info.format)) |
+				dsVkDstImageAccessFlags(offscreen->usage);
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageBarriers[1].image = vkTexture->deviceImage;
+			dstAspectMask = dsVkImageAspectFlags(offscreen->info.format);
+			stageFlags |= dsVkDstImageStageFlags(offscreen->usage, offscreen->offscreen);
+			break;
+		}
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)srcSurface;
+			dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+			imageBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			if (dsGfxFormat_isDepthStencil(renderbuffer->format))
+			{
+				imageBarriers[1].srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else
+			{
+				imageBarriers[1].srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			}
+			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[1].image = vkRenderbuffer->image;
+			dstAspectMask = dsVkImageAspectFlags(renderbuffer->format);
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+	}
+	imageBarriers[1].subresourceRange.aspectMask = dstAspectMask;
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, stageFlags,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, NULL, 0, NULL, 2,
+		imageBarriers);
+
+	// Perform the blit.
+	// 512 regions is ~41 KB of stack space. After that use heap space.
+	bool heapRegions = regionCount > 512;
+	VkImageBlit* imageBlits;
+	if (heapRegions)
+	{
+		imageBlits = DS_ALLOCATE_OBJECT_ARRAY(renderer->allocator, VkImageBlit, regionCount);
+		if (!imageBlits)
+			return false;
+	}
+	else
+		imageBlits = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkImageBlit, regionCount);
+
+	for (uint32_t i = 0; i < regionCount; ++i)
+	{
+		const dsSurfaceBlitRegion* region = regions + i;
+		const dsTexturePosition* srcPosition = &region->srcPosition;
+		const dsTexturePosition* dstPosition = &region->dstPosition;
+		VkImageBlit* imageBlit = imageBlits + i;
+
+		imageBlit->srcSubresource.aspectMask = srcAspectMask;
+		imageBlit->srcSubresource.mipLevel = srcPosition->mipLevel;
+		imageBlit->srcSubresource.baseArrayLayer = srcPosition->depth*srcFaceCount +
+			srcPosition->face;
+		imageBlit->srcSubresource.layerCount = srcIs3D ? 1 : region->layers;
+
+		imageBlit->srcOffsets[0].x = srcPosition->x;
+		imageBlit->srcOffsets[0].y = srcPosition->y;
+		if (srcIs3D)
+			imageBlit->srcOffsets[0].z = srcPosition->depth;
+		else
+			imageBlit->srcOffsets[0].z = 0;
+
+		imageBlit->srcOffsets[1].x = srcPosition->x + region->srcWidth;
+		imageBlit->srcOffsets[1].y = srcPosition->y + region->srcHeight;
+		if (srcIs3D)
+			imageBlit->srcOffsets[1].z = srcPosition->depth + region->layers;
+		else
+			imageBlit->srcOffsets[1].z = 1;
+
+		imageBlit->dstSubresource.aspectMask = dstAspectMask;
+		imageBlit->dstSubresource.mipLevel = dstPosition->mipLevel;
+		imageBlit->dstSubresource.baseArrayLayer = dstPosition->depth*srcFaceCount +
+			dstPosition->face;
+		imageBlit->dstSubresource.layerCount = dstIs3D ? 1 : region->layers;
+
+		imageBlit->dstOffsets[0].x = dstPosition->x;
+		imageBlit->dstOffsets[0].y = dstPosition->y;
+		if (dstIs3D)
+			imageBlit->dstOffsets[0].z = dstPosition->depth;
+		else
+			imageBlit->dstOffsets[0].z = 0;
+
+		imageBlit->dstOffsets[1].x = dstPosition->x + region->dstWidth;
+		imageBlit->dstOffsets[1].y = dstPosition->y + region->dstHeight;
+		if (dstIs3D)
+			imageBlit->dstOffsets[1].z = dstPosition->depth + region->layers;
+		else
+			imageBlit->dstOffsets[1].z = 1;
+	}
+
+	VkFilter vkFilter = filter == dsBlitFilter_Linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+	DS_VK_CALL(device->vkCmdBlitImage)(submitBuffer, imageBarriers[0].image,
+		imageBarriers[0].newLayout, imageBarriers[1].image, imageBarriers[1].newLayout, regionCount,
+		imageBlits, vkFilter);
+
+	if (heapRegions)
+		DS_VERIFY(dsAllocator_free(renderer->allocator, imageBlits));
+
+	// Image barriers to clean up after the blit.
+	uint32_t firstBarrier = 0;
+	uint32_t barrierCount = 0;
+	stageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	imageBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	imageBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	switch (srcSurfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			++barrierCount;
+			imageBarriers[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			++barrierCount;
+			imageBarriers[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		case dsGfxSurfaceType_Texture:
+			++firstBarrier;
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			++barrierCount;
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)srcSurface;
+			imageBarriers[0].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			if (dsGfxFormat_isDepthStencil(renderbuffer->format))
+			{
+				imageBarriers[0].dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else
+			{
+				imageBarriers[0].dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			}
+			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+	}
+
+	switch (dstSurfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			++barrierCount;
+			imageBarriers[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			break;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			++barrierCount;
+			imageBarriers[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			break;
+		case dsGfxSurfaceType_Texture:
+			break;
+		case dsGfxSurfaceType_Renderbuffer:
+		{
+			++barrierCount;
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)srcSurface;
+			imageBarriers[1].dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
+				VK_ACCESS_TRANSFER_WRITE_BIT;
+			if (dsGfxFormat_isDepthStencil(renderbuffer->format))
+			{
+				imageBarriers[1].dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+					VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			}
+			else
+			{
+				imageBarriers[1].dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+					VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+				stageFlags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			}
+			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			break;
+		}
+		default:
+			DS_ASSERT(false);
+	}
+
+	if (barrierCount > 0)
+	{
+		DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, stageFlags,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, NULL, 0, NULL,
+			barrierCount, imageBarriers + firstBarrier);
+	}
+
+	return true;
+}
+
 void dsVkRenderer_flush(dsRenderer* renderer)
 {
 	dsVkRenderer_flushImpl(renderer, true);
@@ -1487,6 +1957,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->drawIndexedIndirectFunc = &dsVkRenderer_drawIndexedIndirect;
 	baseRenderer->dispatchComputeFunc = &dsVkRenderer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsVkRenderer_dispatchComputeIndirect;
+	baseRenderer->blitSurfaceFunc = &dsVkRenderer_blitSurface;
 
 	return baseRenderer;
 }

@@ -269,7 +269,7 @@ typedef bool (*GLCopyTextureDataFunction)(dsCommandBuffer* commandBuffer, dsText
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size);
 typedef bool (*GLCopyTextureFunction)(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 typedef bool (*GLGenerateTextureMipmaps)(dsCommandBuffer* commandBuffer, dsTexture* texture);
 
 typedef bool (*GLSetFenceSyncsFunction)(dsCommandBuffer* commandBuffer, dsGLFenceSyncRef** syncs,
@@ -333,7 +333,8 @@ typedef bool (*GLDispatchComputeIndirectFunction)(dsCommandBuffer* commandBuffer
 	const dsGfxBuffer* indirectBuffer, size_t offset);
 typedef bool (*GLBlitSurfaceFunction)(dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter);
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount,
+	dsBlitFilter filter);
 
 typedef bool (*GLPushDebugGroupFunction)(dsCommandBuffer* commandBuffer, const char* name);
 typedef bool (*GLPopDebugGroupFunction)(dsCommandBuffer* commandBuffer);

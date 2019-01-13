@@ -32,7 +32,7 @@ bool dsGLTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	uint32_t layers, const void* data, size_t size);
 bool dsGLTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
-	size_t regionCount);
+	uint32_t regionCount);
 bool dsGLTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture);
 bool dsGLTexture_getData(void* result, size_t size, dsResourceManager* resourceManager,

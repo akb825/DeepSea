@@ -116,7 +116,12 @@ typedef enum dsRenderbufferUsage
 {
 	dsRenderbufferUsage_Standard = 0x0, ///< Standard usage.
 	dsRenderbufferUsage_BlitFrom = 0x1, ///< Can blit from the renderbuffer to another surface.
-	dsRenderbufferUsage_BlitTo = 0x2    ///< Can blit from another surface to the renderbuffer.
+	dsRenderbufferUsage_BlitTo = 0x2,   ///< Can blit from another surface to the renderbuffer.
+	/**
+	 * Can be cleared explicitly with dsRenderer_clearColorSurface() or
+	 * dsRenderer_clearDepthStencilSurface(). Clearing as part of a render pass is still allowed.
+	 */
+	dsRenderbufferUsage_Clear = 0x4
 } dsRenderbufferUsage;
 
 /**
@@ -398,12 +403,12 @@ typedef enum dsGfxQueryType
 	dsGfxQueryType_Timestamp         ///< The current timestamp on the GPU in ns.
 } dsGfxQueryType;
 
-/// \{
+/// @cond
 typedef struct dsCommandBuffer dsCommandBuffer;
 typedef struct dsRenderer dsRenderer;
 typedef struct dsRenderSurface dsRenderSurface;
 typedef struct mslModule mslModule;
-/// \}
+/// @endcond
 
 /**
  * @brief Manager for graphics resources.
@@ -1361,7 +1366,7 @@ typedef bool (*dsCopyTextureDataFunction)(dsResourceManager* resourceManager,
  */
 typedef bool (*dsCopyTextureFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, dsTexture* srcTexture, dsTexture* dstTexture,
-	const dsTextureCopyRegion* regions, size_t regionCount);
+	const dsTextureCopyRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Function for generating mipmaps for textures.

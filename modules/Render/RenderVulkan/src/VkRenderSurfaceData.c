@@ -275,11 +275,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	if (surfaceInfo.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
-		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (surfaceInfo.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)
-		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	VkSwapchainCreateInfoKHR createInfo =
 	{
@@ -432,10 +429,6 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	}
 
 	surfaceData->vsync = vsync;
-	surfaceData->canBlitFrom =
-		(surfaceInfo.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) != 0;
-	surfaceData->canBlitTo =
-		(surfaceInfo.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) != 0;
 
 	uint32_t width = surfaceInfo.currentExtent.width;
 	uint32_t height = surfaceInfo.currentExtent.height;

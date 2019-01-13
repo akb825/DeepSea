@@ -617,8 +617,19 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to clear a renderbuffer without the clear usage flag set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			valid = !dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
+		}
 		default:
 			DS_ASSERT(false);
 			valid = false;
@@ -704,8 +715,19 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
+		{
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
+			{
+				errno = EINVAL;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Attempting to clear a renderbuffer without the clear usage flag set.");
+				DS_PROFILE_FUNC_RETURN(false);
+			}
+
 			valid = dsGfxFormat_isDepthStencil(((dsRenderbuffer*)surface->surface)->format);
 			break;
+		}
 		default:
 			DS_ASSERT(false);
 			valid = false;
@@ -1054,7 +1076,7 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 
 bool dsRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsGfxSurfaceType srcSurfaceType, void* srcSurface, dsGfxSurfaceType dstSurfaceType,
-	void* dstSurface, const dsSurfaceBlitRegion* regions, size_t regionCount, dsBlitFilter filter)
+	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
 {
 	DS_PROFILE_FUNC_START();
 

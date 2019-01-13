@@ -342,7 +342,7 @@ DS_MATH_EXPORT void dsMatrix33f_makeScale3D(dsMatrix33f* result, float x, float 
 /** @copydoc dsMatrix33f_makeScale3D() */
 DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, double y, double z);
 
-/// \{
+/// @cond
 #define dsMatrix33_determinantImpl(a, i0, i1, i2, j0, j1, j2) \
 	((a).values[i0][j0]*(a).values[i1][j1]*(a).values[i2][j2] + \
 	 (a).values[i1][j0]*(a).values[i2][j1]*(a).values[i0][j2] + \
@@ -350,7 +350,7 @@ DS_MATH_EXPORT void dsMatrix33d_makeScale3D(dsMatrix33d* result, double x, doubl
 	 (a).values[i2][j0]*(a).values[i1][j1]*(a).values[i0][j2] - \
 	 (a).values[i1][j0]*(a).values[i0][j1]*(a).values[i2][j2] - \
 	 (a).values[i0][j0]*(a).values[i2][j1]*(a).values[i1][j2])
-/// \}
+/// @endcond
 
 /** @copydoc dsMatrix33_identity() */
 DS_MATH_EXPORT inline void dsMatrix33f_identity(dsMatrix33f* result)

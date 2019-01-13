@@ -159,20 +159,6 @@ DS_RENDER_EXPORT bool dsShader_unbindCompute(const dsShader* shader,
 	dsCommandBuffer* commandBuffer);
 
 /**
- * @brief Updates the volatile material values for the shader.
- *
- * This will try to only update the values that have changed. This will work both with either
- *
- * @remark errno will be set on failure.
- * @param shader The shader to update the values on.
- * @param commandBuffer The command buffer to queue commands onto.
- * @param volatileValues The volatile values to updte.
- * @return False if the values couldn't be updated.
- */
-DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
-	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
-
-/**
  * @brief Destroys a shader.
  * @remark errno will be set on failure.
  * @param shader The shader to destroy.

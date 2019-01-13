@@ -196,7 +196,7 @@ DS_RENDER_EXPORT bool dsTexture_copyData(dsTexture* texture, dsCommandBuffer* co
  * @return False if the data couldn't be copied.
  */
 DS_RENDER_EXPORT bool dsTexture_copy(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
-	dsTexture* dstTexture, const dsTextureCopyRegion* regions, size_t regionCount);
+	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount);
 
 /**
  * @brief Generates mipmaps for a texture based on the first mip level.
