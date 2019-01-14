@@ -94,6 +94,9 @@ void dsVkBarrierList_clear(dsVkBarrierList* barriers)
 
 void dsVkBarrierList_shutdown(dsVkBarrierList* barriers)
 {
-	dsAllocator_free(barriers->allocator, barriers->bufferBarriers);
-	dsAllocator_free(barriers->allocator, barriers->imageBarriers);
+	if (!barriers->allocator)
+		return;
+
+	DS_VERIFY(dsAllocator_free(barriers->allocator, barriers->bufferBarriers));
+	DS_VERIFY(dsAllocator_free(barriers->allocator, barriers->imageBarriers));
 }

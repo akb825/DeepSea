@@ -969,6 +969,10 @@ uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuff
 void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 {
 	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
+	 // Not initialized.
+	if (!baseCommandBuffer->renderer)
+		return;
+
 	dsVkDevice* device = &((dsVkRenderer*)baseCommandBuffer->renderer)->device;
 	dsVkInstance* instance = &device->instance;
 

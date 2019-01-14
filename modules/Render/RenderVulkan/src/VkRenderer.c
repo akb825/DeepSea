@@ -1848,7 +1848,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 
-	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
+	if (device && device->vkQueueWaitIdle)
+		DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
 
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{

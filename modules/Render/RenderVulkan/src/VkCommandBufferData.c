@@ -99,6 +99,9 @@ void dsVkCommandBufferData_reset(dsVkCommandBufferData* bufferData)
 
 void dsVkCommandBufferData_shutdown(dsVkCommandBufferData* bufferData)
 {
+	if (!bufferData->allocator)
+		return;
+
 	for (uint32_t i = 0; i < bufferData->chunkCount; ++i)
 		DS_VERIFY(dsAllocator_free(bufferData->allocator, bufferData->chunks[i]));
 	DS_VERIFY(dsAllocator_free(bufferData->allocator, bufferData->chunks));

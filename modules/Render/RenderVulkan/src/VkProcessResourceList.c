@@ -100,6 +100,9 @@ void dsVkProcessResourceList_clear(dsVkProcessResourceList* resources)
 
 void dsVkProcessResourceList_shutdown(dsVkProcessResourceList* resources)
 {
+	if (!resources->allocator)
+		return;
+
 	dsVkProcessResourceList_clear(resources);
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->buffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));

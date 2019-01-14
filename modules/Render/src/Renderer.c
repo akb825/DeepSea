@@ -618,7 +618,7 @@ bool dsRenderer_clearColorSurface(dsRenderer* renderer, dsCommandBuffer* command
 		}
 		case dsGfxSurfaceType_Renderbuffer:
 		{
-			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
 			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
 			{
 				errno = EINVAL;
@@ -716,7 +716,7 @@ bool dsRenderer_clearDepthStencilSurface(dsRenderer* renderer, dsCommandBuffer* 
 		}
 		case dsGfxSurfaceType_Renderbuffer:
 		{
-			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface;
+			dsRenderbuffer* renderbuffer = (dsRenderbuffer*)surface->surface;
 			if (!(renderbuffer->usage & dsRenderbufferUsage_Clear))
 			{
 				errno = EINVAL;

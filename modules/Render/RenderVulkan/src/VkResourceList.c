@@ -230,6 +230,9 @@ void dsVkResourceList_clear(dsVkResourceList* resources)
 
 void dsVkResourceList_shutdown(dsVkResourceList* resources)
 {
+	if (!resources->allocator)
+		return;
+
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->buffers));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->textures));
 	DS_VERIFY(dsAllocator_free(resources->allocator, resources->copyImages));

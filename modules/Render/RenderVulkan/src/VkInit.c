@@ -228,7 +228,6 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 
 	uint32_t extensionCount = 0;
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
-	bool hasSwapChain = false;
 	bool hasSurface = false;
 	bool hasDeviceProperties = false;
 	bool hasMemoryCapabilities = false;
@@ -240,9 +239,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	instance->vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, extensions);
 	for (uint32_t i = 0; i < extensionCount; ++i)
 	{
-		if (strcmp(extensions[i].extensionName, swapChainExtensionName) == 0)
-			hasSwapChain = true;
-		else if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
+		if (strcmp(extensions[i].extensionName, surfaceExtensionName) == 0)
 			hasSurface = true;
 		else if (strcmp(extensions[i].extensionName, devicePropertiesExtensionName) == 0)
 			hasDeviceProperties = true;
@@ -261,10 +258,10 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	}
 	free(extensions);
 
-	if (!hasSwapChain || !hasSurface)
+	if (!hasSurface)
 	{
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Vulkan requires swap chain supports.");
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Vulkan requires surface support.");
 		return false;
 	}
 
@@ -774,7 +771,7 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
 
-	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
+	if (instanceExtensions.debug && ((options && options->debug) || DS_PROFILING_ENABLED))
 	{
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginDebugUtilsLabelEXT);
 		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdEndDebugUtilsLabelEXT);
@@ -782,7 +779,6 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSwapchainKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySwapchainKHR);
-	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetSwapchainStatusKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetSwapchainImagesKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkAcquireNextImageKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkQueuePresentKHR);
