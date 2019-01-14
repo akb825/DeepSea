@@ -168,17 +168,14 @@ bool dsVkRenderbuffer_clearColor(dsRenderbuffer* renderbuffer, dsCommandBuffer* 
 	if (!vkCommandBuffer)
 		return false;
 
-	VkAccessFlags beginAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT |
-		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	// No barrier before rendering to a renderbuffer, so also wait for write on end.
-	VkAccessFlags endAccessMask = beginAccessMask | VK_ACCESS_TRANSFER_READ_BIT |
-		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
+		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 	VkImageMemoryBarrier barrier =
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 		NULL,
-		beginAccessMask,
+		accessMask,
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -198,7 +195,7 @@ bool dsVkRenderbuffer_clearColor(dsRenderbuffer* renderbuffer, dsCommandBuffer* 
 		&barrier.subresourceRange);
 
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier.dstAccessMask = endAccessMask;
+	barrier.dstAccessMask = accessMask;
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
@@ -219,11 +216,8 @@ bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
 	if (!vkCommandBuffer)
 		return false;
 
-	VkAccessFlags beginAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT |
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	// No barrier before rendering to a render surface, so also wait for write on end.
-	VkAccessFlags endAccessMask = beginAccessMask | VK_ACCESS_TRANSFER_READ_BIT |
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+	VkAccessFlags accessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT |
+		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
 		renderer->surfaceDepthStencilFormat, surfaceParts);
 
@@ -231,7 +225,7 @@ bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
 	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 		NULL,
-		beginAccessMask,
+		accessMask,
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -251,7 +245,7 @@ bool dsVkRenderbuffer_clearDepthStencil(dsRenderbuffer* renderbuffer,
 		&barrier.subresourceRange);
 
 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	barrier.dstAccessMask = endAccessMask;
+	barrier.dstAccessMask = accessMask;
 	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 

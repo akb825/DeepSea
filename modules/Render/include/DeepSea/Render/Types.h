@@ -166,17 +166,18 @@ typedef enum dsClearDepthStencil
  */
 typedef enum dsGfxAccess
 {
-	dsGfxAccess_IndirectCommand = 0x1,         ///< Indirect draw/compute buffers.
-	dsGfxAccess_Index = 0x2,                   ///< Index buffers.
-	dsGfxAccess_VertexAttribute = 0x4,         ///< Vertex buffers.
-	dsGfxAccess_UniformBlock = 0x8,            ///< Uniform blocks.
-	dsGfxAccess_UniformBuffer = 0x10,          ///< Uniform buffers.
-	dsGfxAccess_InputAttachment = 0x20,        ///< Render pass input attachments.
-	dsGfxAccess_DepthStencilAttachment = 0x40, ///< Depth/stencil attachments.
-	dsGfxAccess_ColorStencilAttachment = 0x80, ///< Color attachments.
-	dsGfxAccess_Copy = 0x100,                  ///< Copy operation.
-	dsGfxAccess_MappedBuffer = 0x200,          ///< Direct access to a mapped buffer.
-	dsGfxAccess_Memory = 0x400                 ///< General memory access.
+	dsGfxAccess_IndirectCommand = 0x1,          ///< Indirect draw/compute buffers.
+	dsGfxAccess_Index = 0x2,                    ///< Index buffers.
+	dsGfxAccess_VertexAttribute = 0x4,          ///< Vertex buffers.
+	dsGfxAccess_UniformBlock = 0x8,             ///< Uniform blocks.
+	dsGfxAccess_UniformBuffer = 0x10,           ///< Uniform buffers.
+	dsGfxAccess_Image = 0x20,                   ///< Image load/store operations.
+	dsGfxAccess_InputAttachment = 0x40,         ///< Render pass input attachments.
+	dsGfxAccess_ColorAttachment = 0x80,         ///< Color attachments.
+	dsGfxAccess_DepthStencilAttachment = 0x100, ///< Depth/stencil attachments.
+	dsGfxAccess_Copy = 0x200,                   ///< Copy operation.
+	dsGfxAccess_MappedBuffer = 0x400,           ///< Direct access to a mapped buffer.
+	dsGfxAccess_Memory = 0x800                  ///< General memory access.
 } dsGfxAccess;
 
 /**
@@ -933,14 +934,14 @@ typedef struct dsSurfaceBlitRegion
 typedef struct dsGfxMemoryBarrier
 {
 	/**
-	 * @brief Access bitmask for what was written.
+	 * @brief Access bitmask for what to wait on before the barrier.
 	 */
-	dsGfxAccess writeAccess;
+	dsGfxAccess beforeAccess;
 
 	/**
-	 * @brief Access bitmask for what will be read.
+	 * @brief Access bitmask for what to delay for after the barrier.
 	 */
-	dsGfxAccess readAccess;
+	dsGfxAccess afterAccess;
 } dsGfxMemoryBarrier;
 
 /// @cond Doxygen_Suppress

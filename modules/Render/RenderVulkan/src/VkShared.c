@@ -157,19 +157,7 @@ VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
 	return VK_SAMPLE_COUNT_64_BIT;
 }
 
-VkAccessFlags dsVkSrcBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
-{
-	VkAccessFlags flags = 0;
-	if (canMap)
-		flags |= VK_ACCESS_HOST_WRITE_BIT;
-	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
-		flags |= VK_ACCESS_SHADER_WRITE_BIT;
-	if (usage & dsGfxBufferUsage_CopyTo)
-		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
-	return flags;
-}
-
-VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage)
+VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage)
 {
 	VkAccessFlags flags = 0;
 	if (usage & dsGfxBufferUsage_Index)
@@ -188,26 +176,19 @@ VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage)
 	return flags;
 }
 
-VkPipelineStageFlags dsVkSrcBufferStageFlags(dsGfxBufferUsage usage, bool canMap)
+VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
 {
-	VkPipelineStageFlags flags = 0;
+	VkAccessFlags flags = 0;
 	if (canMap)
-		flags |= VK_PIPELINE_STAGE_HOST_BIT;
+		flags |= VK_ACCESS_HOST_WRITE_BIT;
 	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
-	{
-		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	}
+		flags |= VK_ACCESS_SHADER_WRITE_BIT;
 	if (usage & dsGfxBufferUsage_CopyTo)
-		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
 	return flags;
 }
 
-VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage)
+VkPipelineStageFlags dsVkReadBufferStageFlags(dsGfxBufferUsage usage)
 {
 	VkAccessFlags flags = 0;
 	if (usage & (dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex))
@@ -231,7 +212,38 @@ VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage)
 	return flags;
 }
 
-VkAccessFlags dsVkSrcImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil)
+VkPipelineStageFlags dsVkWriteBufferStageFlags(dsGfxBufferUsage usage, bool canMap)
+{
+	VkPipelineStageFlags flags = 0;
+	if (canMap)
+		flags |= VK_PIPELINE_STAGE_HOST_BIT;
+	if (usage & (dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_MutableImage))
+	{
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	if (usage & dsGfxBufferUsage_CopyTo)
+		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	return flags;
+}
+
+VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage)
+{
+	VkAccessFlags flags = 0;
+	if (usage & (dsTextureUsage_Image | dsTextureUsage_Texture))
+		flags |= VK_ACCESS_SHADER_READ_BIT;
+	if (usage & dsTextureUsage_SubpassInput)
+		flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	if (usage & dsTextureUsage_CopyFrom)
+		flags |= VK_ACCESS_TRANSFER_READ_BIT;
+	return flags;
+}
+
+VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil)
 {
 	VkAccessFlags flags = 0;
 	if (offscreen)
@@ -248,19 +260,27 @@ VkAccessFlags dsVkSrcImageAccessFlags(dsTextureUsage usage, bool offscreen, bool
 	return flags;
 }
 
-VkAccessFlags dsVkDstImageAccessFlags(dsTextureUsage usage)
+VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment)
 {
 	VkAccessFlags flags = 0;
+	if (depthStencilAttachment)
+		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	if (usage & (dsTextureUsage_Image | dsTextureUsage_Texture))
-		flags |= VK_ACCESS_SHADER_READ_BIT;
-	if (usage & dsTextureUsage_SubpassInput)
-		flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	{
+		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
 	if (usage & dsTextureUsage_CopyFrom)
-		flags |= VK_ACCESS_TRANSFER_READ_BIT;
+		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 	return flags;
 }
 
-VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen, bool depthStencil)
+VkPipelineStageFlags dsVkWriteImageStageFlags(dsTextureUsage usage, bool offscreen,
+	bool depthStencil)
 {
 	VkPipelineStageFlags flags = 0;
 	if (offscreen)
@@ -280,25 +300,6 @@ VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
 	if (usage & dsTextureUsage_CopyTo)
-		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
-	return flags;
-}
-
-VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment)
-{
-	VkAccessFlags flags = 0;
-	if (depthStencilAttachment)
-		flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	if (usage & (dsTextureUsage_Image | dsTextureUsage_Texture))
-	{
-		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	}
-	if (usage & dsTextureUsage_CopyFrom)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 	return flags;
 }

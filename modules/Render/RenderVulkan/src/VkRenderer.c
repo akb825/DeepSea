@@ -1039,6 +1039,96 @@ static bool beginDispatch(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 }
 
+static void addShaderPipelineMask(dsRenderer* renderer, VkPipelineStageFlags* stages)
+{
+	*stages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		*stages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		*stages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+}
+
+static VkAccessFlags getMemoryAccessMask(dsRenderer* renderer, VkPipelineStageFlags* stages,
+	dsGfxAccess access)
+{
+	if (access & dsGfxAccess_Memory)
+	{
+		return getMemoryAccessMask(renderer, stages,
+			(dsGfxAccess)(0xFFFFFFFF & ~(dsGfxAccess_Memory)));
+	}
+
+	VkAccessFlags accessMask = 0;
+	if (access & dsGfxAccess_IndirectCommand)
+	{
+		accessMask |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+		*stages |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+	}
+
+	if (access & dsGfxAccess_Index)
+	{
+		accessMask |= VK_ACCESS_INDEX_READ_BIT;
+		*stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+	}
+
+	if (access & dsGfxAccess_VertexAttribute)
+	{
+		accessMask |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		*stages |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+	}
+
+	if (access & dsGfxAccess_UniformBlock)
+	{
+		accessMask |= VK_ACCESS_UNIFORM_READ_BIT;
+		addShaderPipelineMask(renderer, stages);
+	}
+
+	if (access & (dsGfxAccess_UniformBuffer | dsGfxAccess_Image))
+	{
+		accessMask |= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+		addShaderPipelineMask(renderer, stages);
+	}
+
+	if (access & dsGfxAccess_InputAttachment)
+	{
+		accessMask |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+		*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+
+	if (access & dsGfxAccess_ColorAttachment)
+	{
+		accessMask |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		*stages |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+
+	if (access & dsGfxAccess_DepthStencilAttachment)
+	{
+		accessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+			VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	}
+
+	if (access & dsGfxAccess_Copy)
+	{
+		accessMask |= VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+		*stages |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+
+	if (access & dsGfxAccess_MappedBuffer)
+	{
+		accessMask |= VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT;
+		*stages |= VK_PIPELINE_STAGE_HOST_BIT;
+	}
+
+	return accessMask;
+}
+
 bool dsVkRenderer_beginFrame(dsRenderer* renderer)
 {
 	DS_UNUSED(renderer);
@@ -1377,13 +1467,13 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 			dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
 			dsVkRenderer_processTexture(renderer, offscreen);
 			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
-			imageBarriers[0].srcAccessMask = dsVkSrcImageStageFlags(offscreen->usage, true,
+			imageBarriers[0].srcAccessMask = dsVkWriteImageStageFlags(offscreen->usage, true,
 				isDepthStencil);
 			imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageBarriers[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageBarriers[0].image = vkTexture->deviceImage;
 			srcAspectMask = dsVkImageAspectFlags(offscreen->info.format);
-			stageFlags |= dsVkSrcImageStageFlags(offscreen->usage, offscreen->offscreen,
+			stageFlags |= dsVkWriteImageStageFlags(offscreen->usage, offscreen->offscreen,
 				isDepthStencil);
 			break;
 		}
@@ -1466,14 +1556,15 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 				return false;
 			}
 
-			imageBarriers[1].srcAccessMask = dsVkSrcImageStageFlags(offscreen->usage, true,
-				dsGfxFormat_isDepthStencil(offscreen->info.format)) |
-				dsVkDstImageAccessFlags(offscreen->usage);
+			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
+			imageBarriers[1].srcAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
+				dsVkWriteImageStageFlags(offscreen->usage, true, isDepthStencil);
 			imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageBarriers[1].newLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageBarriers[1].image = vkTexture->deviceImage;
 			dstAspectMask = dsVkImageAspectFlags(offscreen->info.format);
-			stageFlags |= dsVkDstImageStageFlags(offscreen->usage, offscreen->offscreen);
+			stageFlags |= dsVkReadImageStageFlags(offscreen->usage, offscreen->offscreen) |
+				dsVkWriteImageStageFlags(offscreen->usage, true, isDepthStencil);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
@@ -1508,8 +1599,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	imageBarriers[1].subresourceRange.aspectMask = dstAspectMask;
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, stageFlags,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, NULL, 0, NULL, 2,
-		imageBarriers);
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 2, imageBarriers);
 
 	// Perform the blit.
 	// 512 regions is ~41 KB of stack space. After that use heap space.
@@ -1700,10 +1790,37 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	if (barrierCount > 0)
 	{
 		DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, stageFlags,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_BY_REGION_BIT, 0, NULL, 0, NULL,
-			barrierCount, imageBarriers + firstBarrier);
+			VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, barrierCount,
+			imageBarriers + firstBarrier);
 	}
 
+	return true;
+}
+
+bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	VkMemoryBarrier* memoryBarriers = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkMemoryBarrier, barrierCount);
+	VkPipelineStageFlags srcStages = 0;
+	VkPipelineStageFlags dstStages = 0;
+	for (uint32_t i = 0; i < barrierCount; ++i)
+	{
+		memoryBarriers[i].sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+		memoryBarriers[i].pNext = NULL;
+		memoryBarriers[i].srcAccessMask =
+			getMemoryAccessMask(renderer, &srcStages, barriers[i].beforeAccess);
+		memoryBarriers[i].dstAccessMask =
+			getMemoryAccessMask(renderer, &dstStages, barriers[i].afterAccess);
+		memoryBarriers[i].dstAccessMask = 0;
+	}
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, barrierCount,
+		memoryBarriers, 0, NULL, 0, NULL);
 	return true;
 }
 
@@ -1958,6 +2075,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->dispatchComputeFunc = &dsVkRenderer_dispatchCompute;
 	baseRenderer->dispatchComputeIndirectFunc = &dsVkRenderer_dispatchComputeIndirect;
 	baseRenderer->blitSurfaceFunc = &dsVkRenderer_blitSurface;
+	baseRenderer->memoryBarrierFunc = &dsVkRenderer_memoryBarrier;
 
 	return baseRenderer;
 }

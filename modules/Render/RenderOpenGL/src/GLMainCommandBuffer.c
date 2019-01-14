@@ -1807,31 +1807,29 @@ bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	GLbitfield bitmask = 0;
 	for (uint32_t i = 0; i < barrierCount; ++i)
 	{
-		dsGfxAccess readAccess = barriers[i].readAccess;
-		if (readAccess & dsGfxAccess_IndirectCommand)
+		dsGfxAccess combinedAccess = barriers[i].beforeAccess | barriers[i].afterAccess;
+		if (combinedAccess & dsGfxAccess_IndirectCommand)
 			bitmask |= GL_COMMAND_BARRIER_BIT;
-		if (readAccess & dsGfxAccess_Index)
+		if (combinedAccess & dsGfxAccess_Index)
 			bitmask |= GL_ELEMENT_ARRAY_BARRIER_BIT;
-		if (readAccess & dsGfxAccess_VertexAttribute)
+		if (combinedAccess & dsGfxAccess_VertexAttribute)
 			bitmask |= GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-		if (readAccess & dsGfxAccess_UniformBlock)
+		if (combinedAccess & dsGfxAccess_UniformBlock)
 			bitmask |= GL_UNIFORM_BARRIER_BIT;
-		if ((readAccess & dsGfxAccess_UniformBuffer) &&
+		if ((combinedAccess & dsGfxAccess_UniformBuffer) &&
 			(resourceManager->supportedBuffers & dsGfxBufferUsage_UniformBuffer))
 		{
 			bitmask |= GL_SHADER_STORAGE_BARRIER_BIT;
 		}
-		if (readAccess & dsGfxAccess_InputAttachment)
+		if (combinedAccess & (dsGfxAccess_Image | dsGfxAccess_InputAttachment))
 			bitmask |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-		if ((readAccess & dsGfxAccess_DepthStencilAttachment) ||
-			(readAccess & dsGfxAccess_ColorStencilAttachment))
-		{
+		if (combinedAccess & (dsGfxAccess_DepthStencilAttachment | dsGfxAccess_ColorAttachment))
 			bitmask |= GL_FRAMEBUFFER_BARRIER_BIT | GL_PIXEL_BUFFER_BARRIER_BIT;
-		}
-		// No equivalent for dsGfxAccess_Copy
-		if (readAccess & dsGfxAccess_MappedBuffer)
+		if (combinedAccess & dsGfxAccess_Copy)
+			bitmask |= GL_TEXTURE_UPDATE_BARRIER_BIT;
+		if (combinedAccess & dsGfxAccess_MappedBuffer)
 			bitmask |= GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT;
-		if (readAccess & dsGfxAccess_Memory)
+		if (combinedAccess & dsGfxAccess_Memory)
 			bitmask |= GL_ALL_BARRIER_BITS;
 	}
 

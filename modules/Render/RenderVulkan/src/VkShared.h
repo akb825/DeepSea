@@ -43,18 +43,18 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
 
-VkAccessFlags dsVkSrcBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
-VkAccessFlags dsVkDstBufferAccessFlags(dsGfxBufferUsage usage);
+VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage);
+VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
 
-VkPipelineStageFlags dsVkSrcBufferStageFlags(dsGfxBufferUsage usage, bool canMap);
-VkPipelineStageFlags dsVkDstBufferStageFlags(dsGfxBufferUsage usage);
+VkPipelineStageFlags dsVkReadBufferStageFlags(dsGfxBufferUsage usage);
+VkPipelineStageFlags dsVkWriteBufferStageFlags(dsGfxBufferUsage usage, bool canMap);
 
-VkAccessFlags dsVkSrcImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
-VkAccessFlags dsVkDstImageAccessFlags(dsTextureUsage usage);
+VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage);
+VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
 
-VkPipelineStageFlags dsVkSrcImageStageFlags(dsTextureUsage usage, bool offscreen,
+VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);
+VkPipelineStageFlags dsVkWriteImageStageFlags(dsTextureUsage usage, bool offscreen,
 	bool depthStencil);
-VkPipelineStageFlags dsVkDstImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);
 
 VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
 VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,

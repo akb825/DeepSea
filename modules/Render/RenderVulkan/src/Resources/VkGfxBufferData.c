@@ -374,15 +374,15 @@ bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize 
 		dsGfxBufferUsage_UniformBuffer) || canMap;
 	if (canWrite)
 	{
-		VkAccessFlags srcFlags = dsVkSrcBufferAccessFlags(buffer->usage, canMap);
-		VkAccessFlags dstFlags = dsVkDstBufferAccessFlags(buffer->usage);
+		VkAccessFlags accessMask = dsVkReadBufferAccessFlags(buffer->usage) |
+			dsVkWriteBufferAccessFlags(buffer->usage, canMap);
 		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(buffer);
 		VkBufferMemoryBarrier bufferBarrier =
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			srcFlags,
-			dstFlags,
+			accessMask,
+			accessMask,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
 			vkBuffer,

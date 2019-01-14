@@ -304,8 +304,8 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	{
 		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 		NULL,
-		dsVkSrcBufferAccessFlags(bufferData->usage, canMap) |
-			dsVkDstBufferAccessFlags(buffer->usage),
+		dsVkReadBufferAccessFlags(buffer->usage) |
+			dsVkWriteBufferAccessFlags(bufferData->usage, canMap),
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_QUEUE_FAMILY_IGNORED,
 		VK_QUEUE_FAMILY_IGNORED,
@@ -313,8 +313,8 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 		offset,
 		size
 	};
-	VkPipelineStageFlags stages = dsVkSrcBufferStageFlags(bufferData->usage, canMap) |
-		dsVkDstBufferStageFlags(buffer->usage);
+	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(buffer->usage) |
+		dsVkWriteBufferStageFlags(bufferData->usage, canMap);
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 1, &barrier, 0, NULL);
 
@@ -375,8 +375,8 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			dsVkSrcBufferAccessFlags(dstBufferData->usage, dstCanMap) |
-				dsVkDstBufferAccessFlags(dstBuffer->usage),
+			dsVkWriteBufferAccessFlags(dstBufferData->usage, dstCanMap) |
+				dsVkReadBufferAccessFlags(dstBuffer->usage),
 			VK_ACCESS_TRANSFER_WRITE_BIT,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
@@ -387,7 +387,7 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			dsVkSrcBufferAccessFlags(srcBufferData->usage, srcCanMap),
+			dsVkWriteBufferAccessFlags(srcBufferData->usage, srcCanMap),
 			VK_ACCESS_TRANSFER_READ_BIT,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
@@ -397,12 +397,12 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 		}
 	};
 	uint32_t barrierCount = 1;
-	VkPipelineStageFlags stages = dsVkSrcBufferStageFlags(dstBufferData->usage, dstCanMap) |
-		dsVkDstBufferStageFlags(dstBuffer->usage);
+	VkPipelineStageFlags stages = dsVkReadBufferStageFlags(dstBuffer->usage) |
+		dsVkWriteBufferStageFlags(dstBufferData->usage, dstCanMap);
 	if (!dsVkGfxBufferData_isStatic(srcBufferData))
 	{
 		++barrierCount;
-		stages |= dsVkSrcBufferStageFlags(srcBufferData->usage, srcCanMap);
+		stages |= dsVkWriteBufferStageFlags(srcBufferData->usage, srcCanMap);
 	}
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, stages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, barrierCount, barriers, 0, NULL);
