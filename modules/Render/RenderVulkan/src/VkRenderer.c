@@ -1824,9 +1824,21 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 	return true;
 }
 
-void dsVkRenderer_flush(dsRenderer* renderer)
+bool dsVkRenderer_flush(dsRenderer* renderer)
 {
 	dsVkRenderer_flushImpl(renderer, true);
+	return true;
+}
+
+bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
+{
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
+	dsVkRenderer_flushImpl(renderer, true);
+	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
+	// All resources waiting to be freed should now be freeable.
+	freeResources(vkRenderer);
+	return true;
 }
 
 bool dsVkRenderer_destroy(dsRenderer* renderer)
@@ -1881,6 +1893,42 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->imageCopies));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, vkRenderer->imageCopyInfos));
 	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
+	return true;
+}
+
+bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const char* name)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!device->vkCmdBeginDebugUtilsLabelEXT)
+		return true;
+
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	VkDebugUtilsLabelEXT label =
+	{
+		VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		NULL,
+		name,
+		{0.0f, 0.0f, 0.0f, 0.0f}
+	};
+	DS_VK_CALL(device->vkCmdBeginDebugUtilsLabelEXT)(submitBuffer, &label);
+	return true;
+}
+
+bool dsVkRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+{
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	if (!device->vkCmdBeginDebugUtilsLabelEXT)
+		return true;
+
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+		return false;
+
+	DS_VK_CALL(device->vkCmdEndDebugUtilsLabelEXT)(submitBuffer);
 	return true;
 }
 
@@ -2076,6 +2124,10 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->dispatchComputeIndirectFunc = &dsVkRenderer_dispatchComputeIndirect;
 	baseRenderer->blitSurfaceFunc = &dsVkRenderer_blitSurface;
 	baseRenderer->memoryBarrierFunc = &dsVkRenderer_memoryBarrier;
+	baseRenderer->pushDebugGroupFunc = &dsVkRenderer_pushDebugGroup;
+	baseRenderer->popDebugGroupFunc = &dsVkRenderer_popDebugGroup;;
+	baseRenderer->flushFunc = &dsVkRenderer_flush;
+	baseRenderer->waitUntilIdleFunc = &dsVkRenderer_waitUntilIdle;
 
 	return baseRenderer;
 }

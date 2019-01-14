@@ -556,12 +556,6 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
 
-	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
-	{
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
-	}
-
 	if (options && options->debug && instanceExtensions.debug)
 	{
 		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT);
@@ -779,6 +773,12 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
+
+	if (options && options->debug && (instanceExtensions.debug || DS_PROFILING_ENABLED))
+	{
+		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginDebugUtilsLabelEXT);
+		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdEndDebugUtilsLabelEXT);
+	}
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSwapchainKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySwapchainKHR);
