@@ -125,7 +125,7 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 
 	VkMemoryAllocateInfo allocInfo =
 	{
-		VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+		VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		NULL,
 		requirements->size,
 		memoryIndex
