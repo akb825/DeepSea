@@ -175,19 +175,18 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		finalDependencyCount = subpassCount;
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsRenderPass)) +
+	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPass)) +
 		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*finalDependencyCount) +
 		DS_ALIGNED_SIZE(sizeof(VkAttachmentDescription)*fullAttachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(uint32_t)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSubpassDescription)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSubpassDependency)*finalDependencyCount);
+		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*finalDependencyCount) +
+		DS_ALIGNED_SIZE(sizeof(VkSubpassDependency)*finalDependencyCount) +
+		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
+		DS_ALIGNED_SIZE(sizeof(VkSubpassDescription)*subpassCount);
 	for (uint32_t i = 0; i < subpassCount; ++i)
 	{
 		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].inputAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
 			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].colorAttachmentCount*2) +
 			DS_ALIGNED_SIZE(sizeof(uint32_t)*fullAttachmentCount);
 		if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
@@ -221,7 +220,6 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		memcpy((void*)baseRenderPass->attachments, attachments,
 			sizeof(dsAttachmentInfo)*attachmentCount);
 
-		uint32_t resolveIndex = attachmentCount;
 		renderPass->vkAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			VkAttachmentDescription, fullAttachmentCount);
 		DS_ASSERT(renderPass->vkAttachments);
@@ -284,8 +282,6 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
 				vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		}
-
-		DS_ASSERT(resolveIndex == fullAttachmentCount);
 	}
 	else
 	{
