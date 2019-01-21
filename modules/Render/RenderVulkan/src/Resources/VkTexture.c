@@ -107,10 +107,15 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 				{
 					VkSubresourceLayout* imageLayout = &texture->hostImages[index].layout;
 					*imageLayout = baseLayout;
+					VkDeviceSize localOffset;
 					if (is3D)
-						imageLayout->offset += j*baseLayout.depthPitch;
+						localOffset = j*baseLayout.depthPitch;
 					else
-						imageLayout->offset += (j*faceCount + k)*baseLayout.arrayPitch;
+						localOffset = (j*faceCount + k)*baseLayout.arrayPitch;
+					imageLayout->offset += localOffset;
+					imageLayout->size = dsMin(baseLayout.depthPitch,
+						baseLayout.size - localOffset);
+					DS_ASSERT(imageLayout->offset + imageLayout->size <= memoryRequirements.size);
 				}
 			}
 		}
@@ -392,7 +397,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 
 	bool singleHostImage = true;
 	if (needsHostMemory)
-		singleHostImage = dsVkTexture_supportsHostImage(device, formatInfo, imageType, info);
+		singleHostImage = !dsVkTexture_supportsHostImage(device, formatInfo, imageType, info);
 
 	size_t bufferSize = fullAllocSize(info, needsHostMemory);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
@@ -514,7 +519,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		instance->allocCallbacksPtr, &texture->deviceImageView);
 
 	if (needsHostMemory && !createHostImages(device, (dsAllocator*)&bufferAlloc, info, formatInfo,
-		aspectMask, singleHostImage ? &imageCreateInfo : NULL, texture, data))
+		aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;

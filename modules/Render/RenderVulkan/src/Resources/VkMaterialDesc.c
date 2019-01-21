@@ -97,9 +97,14 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			VkDescriptorSetLayoutBinding, bindingCounts[i]);
 		DS_ASSERT(materialDesc->bindings[i]);
 
-		for (uint32_t j = 0, index = 0; j < elementCount; ++j)
+		uint32_t index = 0;
+		for (uint32_t j = 0; j < elementCount; ++j)
 		{
-			VkDescriptorType type = dsVkDescriptorType(elements[i].type, elements[i].isVolatile);
+			bool isVolatile = elements[j].isVolatile != false;
+			if (isVolatile != i)
+				continue;
+
+			VkDescriptorType type = dsVkDescriptorType(elements[j].type, i);
 			if (type == VK_DESCRIPTOR_TYPE_MAX_ENUM)
 				continue;
 
@@ -118,6 +123,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 
 			++index;
 		}
+		DS_ASSERT(index == bindingCounts[i]);
 
 		VkDescriptorSetLayoutCreateInfo createInfo =
 		{

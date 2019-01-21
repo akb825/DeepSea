@@ -66,22 +66,34 @@ static bool needsResolve(uint32_t samples, uint32_t defaultSamples)
 }
 
 static void addPreserveAttachment(uint32_t* outCount, uint32_t* outAttachments, uint32_t attachment,
-	uint32_t attachmentCount, const dsRenderSubpassInfo* subpass)
+	uint32_t attachmentCount, const VkSubpassDescription* subpass)
 {
 	for (uint32_t i = 0; i < subpass->inputAttachmentCount; ++i)
 	{
-		if (subpass->inputAttachments[i] == attachment)
+		if (subpass->pInputAttachments[i].attachment == attachment)
 			return;
 	}
 
 	for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
 	{
-		if (subpass->colorAttachments[i].attachmentIndex == attachment)
+		if (subpass->pColorAttachments[i].attachment == attachment)
 			return;
 	}
 
-	if (subpass->depthStencilAttachment == attachment)
+	if (subpass->pResolveAttachments)
+	{
+		for (uint32_t i = 0; i < subpass->colorAttachmentCount; ++i)
+		{
+			if (subpass->pResolveAttachments[i].attachment == attachment)
+				return;
+		}
+	}
+
+	if (subpass->pDepthStencilAttachment &&
+		subpass->pDepthStencilAttachment->attachment == attachment)
+	{
 		return;
+	}
 
 	DS_UNUSED(attachmentCount);
 	for (uint32_t i = 0; i < *outCount; ++i)
@@ -95,32 +107,46 @@ static void addPreserveAttachment(uint32_t* outCount, uint32_t* outAttachments, 
 }
 
 static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments,
-	uint32_t attachmentCount, const dsRenderSubpassInfo* subpasses,
-	const dsSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass,
+	uint32_t attachmentCount, const VkSubpassDescription* subpasses,
+	const VkSubpassDependency* dependencies, uint32_t dependencyCount, uint32_t curSubpass,
 	uint32_t curDependency)
 {
 	for (uint32_t i = 0; i < dependencyCount; ++i)
 	{
-		const dsSubpassDependency* dependency = dependencies + i;
+		const VkSubpassDependency* dependency = dependencies + i;
 		if (dependency->dstSubpass != curDependency ||
 			dependency->srcSubpass == curSubpass)
+		{
 			continue;
+		}
 
-		const dsRenderSubpassInfo* depSubpass = subpasses + dependency->srcSubpass;
+		const VkSubpassDescription* depSubpass = subpasses + dependency->srcSubpass;
 		for (uint32_t j = 0; j < depSubpass->colorAttachmentCount; ++j)
 		{
-			uint32_t curAttachment = depSubpass->colorAttachments[j].attachmentIndex;
-			if (depSubpass->colorAttachments[j].attachmentIndex == DS_NO_ATTACHMENT)
+			uint32_t curAttachment = depSubpass->pColorAttachments[j].attachment;
+			if (curAttachment == DS_NO_ATTACHMENT)
+				continue;
+
+			addPreserveAttachment(outCount, outAttachments, curAttachment, attachmentCount,
+				subpasses + curSubpass);
+
+			if (!depSubpass->pResolveAttachments)
+				continue;
+
+			curAttachment = depSubpass->pResolveAttachments[j].attachment;
+			if (curAttachment == DS_NO_ATTACHMENT)
 				continue;
 
 			addPreserveAttachment(outCount, outAttachments, curAttachment, attachmentCount,
 				subpasses + curSubpass);
 		}
 
-		if (depSubpass->depthStencilAttachment == DS_NO_ATTACHMENT)
+		if (depSubpass->pDepthStencilAttachment &&
+			depSubpass->pDepthStencilAttachment->attachment != DS_NO_ATTACHMENT)
 		{
-			addPreserveAttachment(outCount, outAttachments, depSubpass->depthStencilAttachment,
-				attachmentCount, subpasses + curSubpass);
+			addPreserveAttachment(outCount, outAttachments,
+				depSubpass->pDepthStencilAttachment->attachment, attachmentCount,
+				subpasses + curSubpass);
 		}
 
 		findPreserveAttachments(outCount, outAttachments, attachmentCount, subpasses, dependencies,
@@ -438,7 +464,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		{
 			VkAttachmentReference* depthSubpass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
 				VkAttachmentReference);
-			depthSubpass->attachment = curSubpass->depthStencilAttachment;
+			depthSubpass->attachment = curSubpass->depthStencilAttachment*2;
 			depthSubpass->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			vkSubpass->pDepthStencilAttachment = depthSubpass;
 		}
@@ -446,7 +472,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		uint32_t* preserveAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			uint32_t, attachmentCount);
 		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
-			attachmentCount, subpasses, baseRenderPass->subpassDependencies,
+			fullAttachmentCount, renderPass->vkSubpasses, renderPass->vkDependencies,
 			baseRenderPass->subpassDependencyCount, i, i);
 	}
 	baseRenderPass->subpassCount = subpassCount;

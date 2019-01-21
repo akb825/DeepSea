@@ -468,7 +468,7 @@ static void setupSpirv(dsShader* shader, dsAllocator* allocator)
 		}
 
 		const void* shaderSpirv = mslModule_shaderData(module, pipeline->shaders[i]);
-		uint32_t shaderSize = mslModule_shaderSize(module, pipelineIndex);
+		uint32_t shaderSize = mslModule_shaderSize(module, pipeline->shaders[i]);
 		vkShader->spirv[i].data = dsAllocator_alloc(allocator, shaderSize);
 		DS_ASSERT(vkShader->spirv[i].data);
 		vkShader->spirv[i].size = shaderSize;
@@ -495,14 +495,8 @@ static void setupSpirv(dsShader* shader, dsAllocator* allocator)
 			if (strcmp(uniform.name, materialDesc->elements[i].name) != 0)
 				continue;
 
-			for (int k = 0; k < mslStage_Count; ++k)
-			{
-				if (!vkShader->spirv[k].data)
-					continue;
-
-				DS_VERIFY(mslModule_setUniformBindingCopy(module, pipelineIndex, i, descriptorSet,
-					binding, vkShader->spirv + k));
-			}
+			DS_VERIFY(mslModule_setUniformBindingCopy(module, pipelineIndex, i, descriptorSet,
+				binding, vkShader->spirv));
 		}
 	}
 }
@@ -821,7 +815,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			continue;
 
 		mslSamplerState sampler;
-		if (!mslModule_samplerState(&sampler, module->module, i, uniform.samplerIndex))
+		if (!mslModule_samplerState(&sampler, module->module, shaderIndex, uniform.samplerIndex))
 		{
 			errno = EINDEX;
 			return NULL;
