@@ -920,7 +920,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	setupCommonStates(baseShader);
 	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
-	if (!createLayout(baseShader) || !setupShaders(baseShader))
+	if (!setupShaders(baseShader) || !createLayout(baseShader))
 	{
 		dsVkShader_destroy(resourceManager, baseShader);
 		return NULL;

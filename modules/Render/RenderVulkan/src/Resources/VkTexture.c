@@ -146,7 +146,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 						VK_IMAGE_TYPE_2D,
 						formatInfo->vkFormat,
 						{width, height, 1},
-						info->mipLevels,
+						1,
 						1,
 						VK_SAMPLE_COUNT_1_BIT,
 						VK_IMAGE_TILING_LINEAR,
@@ -468,7 +468,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
 		1, &device->queueFamilyIndex,
-		VK_IMAGE_LAYOUT_GENERAL
+		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
 		instance->allocCallbacksPtr, &texture->deviceImage);
