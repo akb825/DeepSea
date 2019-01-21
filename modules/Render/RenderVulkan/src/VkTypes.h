@@ -362,7 +362,7 @@ typedef struct dsVkRealFramebuffer
 	dsVkResource resource;
 
 	VkFramebuffer framebuffer;
-	dsLifetime* renderPass;
+	dsLifetime* renderPassData;
 
 	VkImageView* imageViews;
 	bool* imageViewTemp;
@@ -571,6 +571,7 @@ typedef struct dsVkRenderPassData
 	dsVkResource resource;
 	dsVkDevice* device;
 	dsLifetime* lifetime;
+	const dsRenderPass* renderPass;
 
 	bool* resolveAttachment;
 	uint32_t resolveAttachmentCount;
@@ -594,7 +595,9 @@ typedef struct dsVkRenderPass
 	dsRenderPass renderPass;
 	dsAllocator* scratchAllocator;
 
+	uint32_t fullAttachmentCount;
 	VkAttachmentDescription* vkAttachments;
+	uint32_t* resolveIndices;
 	VkSubpassDescription* vkSubpasses;
 	VkSubpassDependency* vkDependencies;
 
@@ -939,6 +942,8 @@ typedef struct dsVkRenderer
 	dsRenderer renderer;
 	dsVkDevice device;
 	dsVkPlatform platform;
+
+	bool colorSurfaceAlpha;
 
 	dsSpinlock resourceLock;
 	dsSpinlock deleteLock;

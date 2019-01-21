@@ -51,9 +51,12 @@ DS_RENDER_EXPORT void dsRenderer_defaultOptions(dsRendererOptions* options,
 /**
  * @brief Gets the color format based on what's defined in the options.
  * @param options The renderer options.
+ * @param bgra Use bgra ordering instead of rgba.
+ * @param requireAlpha Require an alpha channel.
  * @return The color format.
  */
-DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options);
+DS_RENDER_EXPORT dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options,
+	bool bgra, bool requireAlpha);
 
 /**
  * @brief Gets the depth/stencil format based on what's defined in the options.

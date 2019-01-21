@@ -377,15 +377,13 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 }
 
 dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice* device,
-	const dsAttachmentInfo* attachmentInfos, uint32_t attachmentInfoCount,
-	const VkAttachmentDescription* attachments, uint32_t attachmentCount,
-	const VkSubpassDescription* subpasses, uint32_t subpassCount,
-	const VkSubpassDependency* dependencies, uint32_t dependencyCount)
+	const dsRenderPass* renderPass)
 {
+	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
 	dsVkInstance* instance = &device->instance;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPassData)) +
-		DS_ALIGNED_SIZE(sizeof(bool)*attachmentInfoCount);
+		DS_ALIGNED_SIZE(sizeof(bool)*renderPass->attachmentCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -393,36 +391,37 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));
 
-	dsVkRenderPassData* renderPass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+	dsVkRenderPassData* renderPassData = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
 		dsVkRenderPassData);
-	DS_ASSERT(renderPass);
+	DS_ASSERT(renderPassData);
 
-	memset(renderPass, 0, sizeof(*renderPass));
+	memset(renderPassData, 0, sizeof(*renderPassData));
 	DS_ASSERT(allocator->freeFunc);
-	renderPass->allocator = allocator;
-	dsVkResource_initialize(&renderPass->resource);
-	renderPass->device = device;
-	DS_VERIFY(dsSpinlock_initialize(&renderPass->shaderLock));
-	DS_VERIFY(dsSpinlock_initialize(&renderPass->framebufferLock));
+	renderPassData->allocator = allocator;
+	dsVkResource_initialize(&renderPassData->resource);
+	renderPassData->device = device;
+	renderPassData->renderPass = renderPass;
+	DS_VERIFY(dsSpinlock_initialize(&renderPassData->shaderLock));
+	DS_VERIFY(dsSpinlock_initialize(&renderPassData->framebufferLock));
 
-	if (attachmentInfoCount > 0)
+	if (renderPass->attachmentCount > 0)
 	{
-		renderPass->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
-			attachmentInfoCount);
-		DS_ASSERT(renderPass->resolveAttachment);
-		renderPass->resolveAttachmentCount = attachmentCount;
+		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
+			renderPass->attachmentCount);
+		DS_ASSERT(renderPassData->resolveAttachment);
+		renderPassData->resolveAttachmentCount = renderPass->attachmentCount;
 
-		for (uint32_t i = 0; i < attachmentInfoCount; ++i)
+		for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
 		{
-			renderPass->resolveAttachment[i] =
-				(attachmentInfos[i].usage & dsAttachmentUsage_Resolve) != 0;
+			renderPassData->resolveAttachment[i] =
+				(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) != 0;
 		}
 	}
 
-	renderPass->lifetime = dsLifetime_create(allocator, renderPass);
-	if (!renderPass->lifetime)
+	renderPassData->lifetime = dsLifetime_create(allocator, renderPassData);
+	if (!renderPassData->lifetime)
 	{
-		dsVkRenderPassData_destroy(renderPass);
+		dsVkRenderPassData_destroy(renderPassData);
 		return NULL;
 	}
 
@@ -431,20 +430,20 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		NULL,
 		0,
-		attachmentCount, attachments,
-		subpassCount, subpasses,
-		dependencyCount, dependencies
+		vkRenderPass->fullAttachmentCount, vkRenderPass->vkAttachments,
+		renderPass->subpassCount, vkRenderPass->vkSubpasses,
+		renderPass->subpassDependencyCount, vkRenderPass->vkDependencies
 	};
 
 	VkResult result = DS_VK_CALL(device->vkCreateRenderPass)(device->device, &createInfo,
-		instance->allocCallbacksPtr, &renderPass->vkRenderPass);
+		instance->allocCallbacksPtr, &renderPassData->vkRenderPass);
 	if (!dsHandleVkResult(result))
 	{
-		dsVkRenderPassData_destroy(renderPass);
+		dsVkRenderPassData_destroy(renderPassData);
 		return NULL;
 	}
 
-	return renderPass;
+	return renderPassData;
 }
 
 bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,

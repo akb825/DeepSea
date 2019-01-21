@@ -1968,7 +1968,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options);
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
 	if (!dsGfxFormat_isValid(colorFormat))
 	{
 		errno = EPERM;
@@ -2051,6 +2051,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		DS_MAX_ANTIALIAS_SAMPLES);
 	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
 	baseRenderer->surfaceColorFormat = colorFormat;
+	renderer->colorSurfaceAlpha = options->alphaBits > 0;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 	baseRenderer->surfaceSamples = dsClamp(options->samples, 1U, baseRenderer->maxSurfaceSamples);

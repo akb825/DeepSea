@@ -99,11 +99,11 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 	for (uint32_t i = 0; i < framebufferCount; ++i)
 	{
 		dsVkRenderPassData* renderPass =
-			(dsVkRenderPassData*)dsLifetime_acquire(framebuffers[i]->renderPass);
+			(dsVkRenderPassData*)dsLifetime_acquire(framebuffers[i]->renderPassData);
 		if (renderPass)
 		{
 			dsVkRenderPassData_removeFramebuffer(renderPass, framebuffer);
-			dsLifetime_release(framebuffers[i]->renderPass);
+			dsLifetime_release(framebuffers[i]->renderPassData);
 		}
 		dsVkRenderer_deleteFramebuffer(renderer, framebuffers[i]);
 	}
@@ -127,7 +127,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
 	{
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
-		if (dsLifetime_getObject(realFramebuffer->renderPass) == renderPass)
+		if (dsLifetime_getObject(realFramebuffer->renderPassData) == renderPass)
 		{
 			if (update)
 			{
@@ -172,7 +172,8 @@ void dsVkFramebuffer_removeRenderPass(dsFramebuffer* framebuffer,
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
 	{
-		void* usedRenderPass = dsLifetime_getObject(vkFramebuffer->realFramebuffers[i]->renderPass);
+		void* usedRenderPass =
+			dsLifetime_getObject(vkFramebuffer->realFramebuffers[i]->renderPassData);
 		DS_ASSERT(usedRenderPass);
 		if (usedRenderPass == renderPass)
 		{

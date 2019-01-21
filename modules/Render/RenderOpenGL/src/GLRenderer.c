@@ -440,7 +440,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options);
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, false, false);
 	if (!dsGfxFormat_isValid(colorFormat))
 	{
 		errno = EPERM;

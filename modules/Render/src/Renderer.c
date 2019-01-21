@@ -198,6 +198,8 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->alphaBits = 0;
 	options->depthBits = 24;
 	options->stencilBits = 8;
+	options->forcedColorFormat = dsGfxFormat_Unknown;
+	options->forcedDepthStencilFormat = dsGfxFormat_Unknown;
 	options->samples = 4;
 	options->doubleBuffer = true;
 	options->srgb = false;
@@ -213,23 +215,47 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->gfxAPIAllocator = NULL;
 }
 
-dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options)
+dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options, bool bgra,
+	bool requireAlpha)
 {
+	if (options->forcedColorFormat != dsGfxFormat_Unknown)
+		return options->forcedColorFormat;
+
 	if (options->redBits == 8 && options->greenBits == 8 && options->blueBits == 8)
 	{
-		if (options->alphaBits == 8)
+		if (options->alphaBits == 8 || requireAlpha)
 		{
 			if (options->srgb)
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
+			{
+				if (bgra)
+					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB);
+				else
+					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SRGB);
+			}
 			else
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+			{
+				if (bgra)
+					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UNorm);
+				else
+					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+			}
 		}
 		else
 		{
 			if (options->srgb)
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SRGB);
+			{
+				if (bgra)
+					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_SRGB);
+				else
+					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SRGB);
+			}
 			else
-				return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
+			{
+				if (bgra)
+					return dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_UNorm);
+				else
+					return dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
+			}
 		}
 	}
 	else if (options->redBits == 10 && options->greenBits == 10 && options->blueBits == 10 &&

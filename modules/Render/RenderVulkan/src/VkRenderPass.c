@@ -31,6 +31,32 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
+static size_t fullAllocSize(uint32_t attachmentCount, uint32_t fullAttachmentCount,
+	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount, uint32_t dependencyCount)
+{
+	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPass)) +
+		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
+		DS_ALIGNED_SIZE(sizeof(VkAttachmentDescription)*fullAttachmentCount) +
+		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*dependencyCount) +
+		DS_ALIGNED_SIZE(sizeof(VkSubpassDependency)*dependencyCount) +
+		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
+		DS_ALIGNED_SIZE(sizeof(VkSubpassDescription)*subpassCount) +
+		DS_ALIGNED_SIZE(sizeof(uint32_t)*attachmentCount);
+	for (uint32_t i = 0; i < subpassCount; ++i)
+	{
+		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].inputAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
+			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].colorAttachmentCount*2) +
+			DS_ALIGNED_SIZE(sizeof(uint32_t)*fullAttachmentCount);
+
+		if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
+			totalSize += DS_ALIGNED_SIZE(sizeof(VkAttachmentReference));
+	}
+
+	return totalSize;
+}
+
 static bool hasResolve(const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
 	uint32_t attachment, uint32_t samples)
 {
@@ -195,29 +221,26 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
-	uint32_t fullAttachmentCount = attachmentCount*2;
+	uint32_t fullAttachmentCount = attachmentCount;
+	uint32_t resolveAttachmentCount = 0;
+	for (uint32_t i = 0; i < attachmentCount; ++i)
+	{
+		// Don't resolve default samples since we need space for the attachment when multisampling
+		// is disabled in case it's enabled later.
+		if (hasResolve(subpasses, subpassCount, i, attachments[i].samples))
+		{
+			++fullAttachmentCount;
+			++resolveAttachmentCount;
+		}
+	}
+
 	uint32_t finalDependencyCount = dependencyCount;
 	if (dependencyCount == 0)
 		finalDependencyCount = 0;
 	else if (dependencyCount == DS_DEFAULT_SUBPASS_DEPENDENCIES)
 		finalDependencyCount = subpassCount;
-	size_t totalSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPass)) +
-		DS_ALIGNED_SIZE(sizeof(dsAttachmentInfo)*attachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(VkAttachmentDescription)*fullAttachmentCount) +
-		DS_ALIGNED_SIZE(sizeof(dsSubpassDependency)*finalDependencyCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSubpassDependency)*finalDependencyCount) +
-		DS_ALIGNED_SIZE(sizeof(dsRenderSubpassInfo)*subpassCount) +
-		DS_ALIGNED_SIZE(sizeof(VkSubpassDescription)*subpassCount);
-	for (uint32_t i = 0; i < subpassCount; ++i)
-	{
-		totalSize += DS_ALIGNED_SIZE(sizeof(uint32_t)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].inputAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(dsColorAttachmentRef)*subpasses[i].colorAttachmentCount) +
-			DS_ALIGNED_SIZE(sizeof(VkAttachmentReference)*subpasses[i].colorAttachmentCount*2) +
-			DS_ALIGNED_SIZE(sizeof(uint32_t)*fullAttachmentCount);
-		if (subpasses[i].depthStencilAttachment != DS_NO_ATTACHMENT)
-			totalSize += DS_ALIGNED_SIZE(sizeof(VkAttachmentReference));
-	}
+	size_t totalSize = fullAllocSize(attachmentCount, fullAttachmentCount, subpasses, subpassCount,
+		finalDependencyCount);
 	void* buffer = dsAllocator_alloc(allocator, totalSize);
 	if (!buffer)
 		return NULL;
@@ -249,11 +272,16 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		renderPass->vkAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			VkAttachmentDescription, fullAttachmentCount);
 		DS_ASSERT(renderPass->vkAttachments);
+
+		renderPass->resolveIndices = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			uint32_t, attachmentCount);
+		DS_ASSERT(renderPass->resolveIndices);
+
+		uint32_t resolveIndex = 0;
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* attachment = attachments + i;
-			VkAttachmentDescription* vkAttachment = renderPass->vkAttachments + i*2;
-			VkAttachmentDescription* vkResolveAttachment = renderPass->vkAttachments + i*2 + 1;
+			VkAttachmentDescription* vkAttachment = renderPass->vkAttachments + i;
 			dsAttachmentUsage usage = attachment->usage;
 
 			const dsVkFormatInfo* format = dsVkResourceManager_getFormat(renderer->resourceManager,
@@ -286,8 +314,9 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			vkAttachment->stencilLoadOp = vkAttachment->loadOp;
 
 			bool alwaysKeep = mustKeepMultisampledAttachment(usage, samples);
-			bool canResolve = hasResolve(subpasses, subpassCount, i, samples);
-			if (alwaysKeep || canResolve)
+			bool canResolve = hasResolve(subpasses, subpassCount, i, attachment->samples);
+			bool canResolveNow = canResolve && samples > 1;
+			if (alwaysKeep || canResolveNow)
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			else
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -302,19 +331,34 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			vkAttachment->initialLayout = layout;
 			vkAttachment->finalLayout = layout;
 
-			*vkResolveAttachment = *vkAttachment;
-			vkResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
-			vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
-				vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			if (canResolve)
+			{
+				uint32_t resolveAttachmentIndex = attachmentCount + resolveIndex;
+				VkAttachmentDescription* vkResolveAttachment = renderPass->vkAttachments +
+					resolveAttachmentIndex;
+				*vkResolveAttachment = *vkAttachment;
+				vkResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
+				vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
+					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+				renderPass->resolveIndices[i] = resolveAttachmentIndex;
+				++resolveIndex;
+			}
+			else
+				renderPass->resolveIndices[i] = DS_NO_ATTACHMENT;
 		}
+
+		DS_ASSERT(resolveIndex == resolveAttachmentCount);
 	}
 	else
 	{
 		baseRenderPass->attachments = NULL;
 		renderPass->vkAttachments = NULL;
+		renderPass->resolveIndices = NULL;
 	}
 	baseRenderPass->attachmentCount = attachmentCount;
+	renderPass->fullAttachmentCount = fullAttachmentCount;
 
 	if (finalDependencyCount > 0)
 	{
@@ -406,11 +450,17 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			for (uint32_t j = 0; j < vkSubpass->inputAttachmentCount; ++j)
 			{
 				uint32_t attachment = curSubpass->inputAttachments[j];
-				// Use resolved result. If unresolved surface, the pointer will be duplicated.
 				if (attachment == DS_NO_ATTACHMENT)
 					inputAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
 				else
-					inputAttachments[j].attachment = attachment*2 + 1;
+				{
+					// Use resolved result if available.
+					uint32_t resolveAttachment = renderPass->resolveIndices[attachment];
+					if (resolveAttachment == DS_NO_ATTACHMENT)
+						inputAttachments[j].attachment = attachment;
+					else
+						inputAttachments[j].attachment = resolveAttachment;
+				}
 
 				if (attachment == DS_NO_ATTACHMENT)
 					inputAttachments[j].layout = VK_IMAGE_LAYOUT_GENERAL;
@@ -434,22 +484,23 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				(dsAllocator*)&bufferAlloc, VkAttachmentReference,
 				curSubpass->colorAttachmentCount*2);
 			DS_ASSERT(colorAttachments);
+
 			VkAttachmentReference* resolveAttachments = colorAttachments +
 				curSubpass->colorAttachmentCount;
 			for (uint32_t j = 0; j < vkSubpass->colorAttachmentCount; ++j)
 			{
 				const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
-				if (curAttachment->attachmentIndex == DS_NO_ATTACHMENT)
-					colorAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
-				else
-					colorAttachments[j].attachment = curAttachment->attachmentIndex*2;
+				uint32_t attachmentIndex = curAttachment->attachmentIndex;
+				colorAttachments[j].attachment = attachmentIndex;
 				colorAttachments[j].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-				if (curAttachment->attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
+				if (attachmentIndex != DS_NO_ATTACHMENT && curAttachment->resolve &&
 					needsResolve(attachments[curAttachment->attachmentIndex].samples,
 						renderer->surfaceSamples))
 				{
-					resolveAttachments[j].attachment = curAttachment->attachmentIndex*2 + 1;
+					uint32_t resolveAttachment = renderPass->resolveIndices[attachmentIndex];
+					DS_ASSERT(resolveAttachment != DS_NO_ATTACHMENT);
+					resolveAttachments[j].attachment = resolveAttachment;
 				}
 				else
 					resolveAttachments[j].attachment = VK_ATTACHMENT_UNUSED;
@@ -464,13 +515,14 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		{
 			VkAttachmentReference* depthSubpass = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
 				VkAttachmentReference);
-			depthSubpass->attachment = curSubpass->depthStencilAttachment*2;
+			depthSubpass->attachment = curSubpass->depthStencilAttachment;
 			depthSubpass->layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			vkSubpass->pDepthStencilAttachment = depthSubpass;
 		}
 
 		uint32_t* preserveAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			uint32_t, attachmentCount);
+		DS_ASSERT(preserveAttachments);
 		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
 			fullAttachmentCount, renderPass->vkSubpasses, renderPass->vkDependencies,
 			baseRenderPass->subpassDependencyCount, i, i);
@@ -478,8 +530,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	baseRenderPass->subpassCount = subpassCount;
 
 	renderPass->renderPassData = dsVkRenderPassData_create(renderPass->scratchAllocator,
-		device, attachments, attachmentCount, renderPass->vkAttachments, fullAttachmentCount,
-		renderPass->vkSubpasses, subpassCount, renderPass->vkDependencies, finalDependencyCount);
+		device, baseRenderPass);
 	if (!renderPass->renderPassData)
 	{
 		dsVkRenderPass_destroy(renderer, baseRenderPass);
@@ -547,11 +598,10 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 	{
 		// Adjust the sample counts.
 		VkSampleCountFlags vkSamples = dsVkSampleCount(samples);
-		uint32_t fullAttachmentCount = renderPass->attachmentCount*2;
 		for (uint32_t i = 0; i < renderPass->attachmentCount; ++i)
 		{
 			const dsAttachmentInfo* curAttachment = renderPass->attachments + i;
-			VkAttachmentDescription* vkAttachment = vkRenderPass->vkAttachments + i*2;
+			VkAttachmentDescription* vkAttachment = vkRenderPass->vkAttachments + i;
 			if (curAttachment->samples != DS_DEFAULT_ANTIALIAS_SAMPLES)
 				break;
 
@@ -575,15 +625,17 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			for (uint32_t j = 0; j < curSubpass->colorAttachmentCount; ++j)
 			{
 				const dsColorAttachmentRef* curAttachment = curSubpass->colorAttachments + j;
-				if (curAttachment->attachmentIndex == DS_NO_ATTACHMENT || !curAttachment->resolve)
+				uint32_t attachmentIndex = curAttachment->attachmentIndex;
+				if (attachmentIndex == DS_NO_ATTACHMENT || !curAttachment->resolve)
 					continue;
 
 				VkAttachmentReference* resolveAttachment =
 					(VkAttachmentReference*)(vkSubpass->pResolveAttachments + j);
-				if (needsResolve(renderPass->attachments[curAttachment->attachmentIndex].samples,
-						samples))
+				if (needsResolve(renderPass->attachments[attachmentIndex].samples, samples))
 				{
-					resolveAttachment->attachment = curAttachment->attachmentIndex*2 + 1;
+					uint32_t resolveAttachmentIndex = vkRenderPass->resolveIndices[attachmentIndex];
+					DS_ASSERT(resolveAttachmentIndex != DS_NO_ATTACHMENT);
+					resolveAttachment->attachment = resolveAttachmentIndex;
 				}
 				else
 					resolveAttachment->attachment = VK_ATTACHMENT_UNUSED;
@@ -591,10 +643,7 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		}
 
 		dsVkRenderPassData* renderPassData = dsVkRenderPassData_create(
-			vkRenderPass->scratchAllocator, device, renderPass->attachments,
-			renderPass->attachmentCount, vkRenderPass->vkAttachments, fullAttachmentCount,
-			vkRenderPass->vkSubpasses, renderPass->subpassCount, vkRenderPass->vkDependencies,
-			renderPass->subpassDependencyCount);
+			vkRenderPass->scratchAllocator, device, renderPass);
 		if (renderPassData)
 		{
 			dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData);

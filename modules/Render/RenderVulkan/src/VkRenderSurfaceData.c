@@ -39,45 +39,22 @@ typedef struct dsVkFormatMap
 	VkFormat vkReverseFormat;
 } dsVkFormatMap;
 
-static dsVkFormatMap formatMap[] =
-{
-	{dsGfxFormat_R5G6B5 | dsGfxFormat_UNorm, VK_FORMAT_R5G6B5_UNORM_PACK16,
-		VK_FORMAT_B5G6R5_UNORM_PACK16},
-	{dsGfxFormat_B5G6R5 | dsGfxFormat_UNorm, VK_FORMAT_B5G6R5_UNORM_PACK16,
-		VK_FORMAT_R5G6B5_UNORM_PACK16},
-	{dsGfxFormat_R8G8B8 | dsGfxFormat_UNorm, VK_FORMAT_R8G8B8_UNORM, VK_FORMAT_B8G8R8_UNORM},
-	{dsGfxFormat_R8G8B8 | dsGfxFormat_SRGB, VK_FORMAT_R8G8B8_SRGB, VK_FORMAT_B8G8R8_SRGB},
-	{dsGfxFormat_B8G8R8 | dsGfxFormat_UNorm, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM},
-	{dsGfxFormat_B8G8R8 | dsGfxFormat_SRGB, VK_FORMAT_B8G8R8_SRGB, VK_FORMAT_R8G8B8_SRGB},
-	{dsGfxFormat_R8G8B8A8 | dsGfxFormat_UNorm, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM},
-	{dsGfxFormat_R8G8B8A8 | dsGfxFormat_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8A8_SRGB},
-	{dsGfxFormat_B8G8R8A8 | dsGfxFormat_UNorm, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM},
-	{dsGfxFormat_B8G8R8A8 | dsGfxFormat_SRGB, VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB},
-	{dsGfxFormat_A2B10G10R10 | dsGfxFormat_UNorm, VK_FORMAT_A2B10G10R10_UNORM_PACK32,
-		VK_FORMAT_A2R10G10B10_UNORM_PACK32},
-	{dsGfxFormat_A2R10G10B10 | dsGfxFormat_UNorm, VK_FORMAT_A2R10G10B10_UNORM_PACK32,
-		VK_FORMAT_A2B10G10R10_UNORM_PACK32},
-
-	// Fallbacks for RGB to RGBA
-	{dsGfxFormat_R8G8B8 | dsGfxFormat_UNorm, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM},
-	{dsGfxFormat_R8G8B8 | dsGfxFormat_SRGB, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8A8_SRGB},
-	{dsGfxFormat_B8G8R8 | dsGfxFormat_UNorm, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM},
-	{dsGfxFormat_B8G8R8 | dsGfxFormat_SRGB, VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB}
-};
-
 static bool hasFormat(const VkSurfaceFormatKHR* surfaceFormats, uint32_t formatCount,
 	VkFormat format, VkColorSpaceKHR colorSpace)
 {
 	for (uint32_t i = 0; i < formatCount; ++i)
 	{
-		if (surfaceFormats[i].colorSpace == colorSpace && surfaceFormats[i].format == format)
+		if (surfaceFormats[i].colorSpace == colorSpace && (surfaceFormats[i].format == format ||
+			surfaceFormats[i].format == VK_FORMAT_UNDEFINED))
+		{
 			return true;
+		}
 	}
 
 	return false;
 }
 
-static VkFormat findFormat(dsVkDevice* device, VkSurfaceKHR surface, dsGfxFormat format,
+static VkFormat supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat format,
 	VkColorSpaceKHR colorSpace)
 {
 	dsVkInstance* instance = &device->instance;
@@ -92,17 +69,7 @@ static VkFormat findFormat(dsVkDevice* device, VkSurfaceKHR surface, dsGfxFormat
 		formatCount);
 	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, surfaceFormats);
-	for (uint32_t i = 0; i < DS_ARRAY_SIZE(formatMap); ++i)
-	{
-		if (formatMap[i].format != format)
-			continue;
-
-		if (hasFormat(surfaceFormats, formatCount, formatMap[i].vkFormat, colorSpace))
-			return formatMap[i].vkFormat;
-
-		if (hasFormat(surfaceFormats, formatCount, formatMap[i].vkReverseFormat, colorSpace))
-			return formatMap[i].vkReverseFormat;
-	}
+	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
 
 	return 0;
 }
@@ -290,8 +257,19 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, bool vsync, VkSwapchainKHR prevSwapchain)
 {
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
+
+	const dsVkFormatInfo* colorFormat = dsVkResourceManager_getFormat(renderer->resourceManager,
+		renderer->surfaceColorFormat);
+	VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+	if (!colorFormat)
+	{
+		errno = EPERM;
+		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
+		return false;
+	}
 
 	VkBool32 supported = false;
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceSupportKHR)(
@@ -319,9 +297,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkColorSpaceKHR colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-	VkFormat colorFormat = findFormat(device, surface, renderer->surfaceColorFormat, colorSpace);
-	if (!colorFormat)
+	if (!supportsFormat(device, surface, colorFormat->vkFormat, colorSpace))
 	{
 		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
@@ -329,26 +305,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	uint32_t baseFormat = renderer->surfaceColorFormat & dsGfxFormat_StandardMask;
-	bool useAlpha;
-	switch (baseFormat)
-	{
-		case dsGfxFormat_R4G4B4A4:
-		case dsGfxFormat_B4G4R4A4:
-		case dsGfxFormat_R8G8B8A8:
-		case dsGfxFormat_B8G8R8A8:
-		case dsGfxFormat_A8B8G8R8:
-		case dsGfxFormat_A2R10G10B10:
-		case dsGfxFormat_A2B10G10R10:
-			useAlpha = true;
-			break;
-		default:
-			useAlpha = false;
-			break;
-	}
-
 	VkCompositeAlphaFlagBitsKHR alphaFlags = 0;
-	if (useAlpha &&
+	if (vkRenderer->colorSurfaceAlpha &&
 		(surfaceInfo.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR))
 	{
 		alphaFlags = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
@@ -377,7 +335,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		0,
 		surface,
 		2, // double-buffer
-		colorFormat,
+		colorFormat->vkFormat,
 		colorSpace,
 		surfaceInfo.currentExtent,
 		renderer->stereoscopic ? 2 : 1,
@@ -457,6 +415,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	DS_ASSERT(surfaceData->imageData);
 	memset(surfaceData->imageData, 0, sizeof(dsVkSurfaceImageData)*imageCount);
 
+	surfaceData->imageCount = imageCount;
+
 	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
 		surfaceData->images);
 	if (!dsHandleVkResult(result))
@@ -476,7 +436,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 			0,
 			surfaceData->images[i],
 			renderer->stereoscopic ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
-			colorFormat,
+			colorFormat->vkFormat,
 			{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
 				VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
 			{VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, 1}
@@ -524,7 +484,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 	uint32_t width = surfaceInfo.currentExtent.width;
 	uint32_t height = surfaceInfo.currentExtent.height;
-	if (!createResolveImage(surfaceData, colorFormat, width, height) ||
+	if (!createResolveImage(surfaceData, colorFormat->vkFormat, width, height) ||
 		!createDepthImage(surfaceData, width, height))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);

@@ -305,6 +305,20 @@ typedef struct dsRendererOptions
 	uint8_t stencilBits;
 
 	/**
+	 * @brief The color format to force dsRenderer.surfaceColorFormat to be.
+	 *
+	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
+	 */
+	dsGfxFormat forcedColorFormat;
+
+	/**
+	 * @brief The color format to force dsRenderer.surfaceDepthStencilFormat to be.
+	 *
+	 * If dsGfxFormat_Unknown, will derive a format from the bit counts.
+	 */
+	dsGfxFormat forcedDepthStencilFormat;
+
+	/**
 	 * @brief The default number of anti-alias samples.
 	 *
 	 * This may be changed later, but all surfaces must be re-created. It will be clamped to the
@@ -482,6 +496,11 @@ typedef struct dsColorAttachmentRef
 	 *
 	 * If this is set, it's best not to set the dsAttachmentUsage_Resolve flag to avoid resolving
 	 * twice.
+	 *
+	 * @remark When this is used, the framebuffer surface must be resolvable. Unresolvable surfaces
+	 * are renderbuffers and offscreens with the resolve parameter set to false.
+	 *
+	 * @remark This is ignored when the surface doesn't have multisampling.
 	 */
 	bool resolve;
 } dsColorAttachmentRef;

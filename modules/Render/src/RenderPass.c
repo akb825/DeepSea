@@ -237,6 +237,28 @@ static uint32_t getSurfaceSamples(dsRenderer* renderer, const dsFramebufferSurfa
 	}
 }
 
+static bool canResolveSurface(const dsFramebufferSurface* surface)
+{
+	switch (surface->surfaceType)
+	{
+		case dsGfxSurfaceType_ColorRenderSurface:
+		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+		case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			return true;
+		case dsGfxSurfaceType_DepthRenderSurface:
+		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+		case dsGfxSurfaceType_DepthRenderSurfaceRight:
+			return false;
+		case dsGfxSurfaceType_Texture:
+			return ((dsOffscreen*)surface->surface)->resolve;
+		case dsGfxSurfaceType_Renderbuffer:
+			return false;
+		default:
+			DS_ASSERT(false);
+			return true;
+	}
+}
+
 dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	const dsAttachmentInfo* attachments, uint32_t attachmentCount,
 	const dsRenderSubpassInfo* subpasses, uint32_t subpassCount,
@@ -516,34 +538,57 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 
 		if (!renderer->resourceManager->canMixWithRenderSurface)
 		{
+			SurfaceType surfaceTypes = SurfaceType_Unset;
 			for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 			{
-				SurfaceType surfaceTypes = SurfaceType_Unset;
-				for (uint32_t k = 0; k < subpass->colorAttachmentCount; ++k)
+				uint32_t attachment = subpass->colorAttachments[j].attachmentIndex;
+				if (attachment != DS_NO_ATTACHMENT)
 				{
-					uint32_t attachment = subpass->colorAttachments[k].attachmentIndex;
-					if (attachment != DS_NO_ATTACHMENT)
-					{
-						surfaceTypes = (SurfaceType)(surfaceTypes |
-							getSurfaceType(framebuffer->surfaces[attachment].surfaceType));
-					}
+					surfaceTypes = (SurfaceType)(surfaceTypes |
+						getSurfaceType(framebuffer->surfaces[attachment].surfaceType));
 				}
+			}
 
-				if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
-				{
-					surfaceTypes = (SurfaceType)(surfaceTypes | getSurfaceType(
-						framebuffer->surfaces[subpass->depthStencilAttachment].surfaceType));
-				}
+			if (subpass->depthStencilAttachment != DS_NO_ATTACHMENT)
+			{
+				surfaceTypes = (SurfaceType)(surfaceTypes | getSurfaceType(
+					framebuffer->surfaces[subpass->depthStencilAttachment].surfaceType));
+			}
 
-				if (hasMultipleSurfaceTypes(surfaceTypes))
-				{
-					errno = EPERM;
-					DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support mixing the "
-						"main framebuffer and other render surfaces.");
-					DS_PROFILE_FUNC_END();
-					endRenderPassScope(commandBuffer);
-					return false;
-				}
+			if (hasMultipleSurfaceTypes(surfaceTypes))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support mixing the "
+					"main framebuffer and other render surfaces.");
+				DS_PROFILE_FUNC_END();
+				endRenderPassScope(commandBuffer);
+				return false;
+			}
+		}
+
+		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
+		{
+			if (!subpass->colorAttachments[i].resolve)
+				continue;
+
+			uint32_t attachment = subpass->colorAttachments[j].attachmentIndex;
+			if (attachment == DS_NO_ATTACHMENT)
+				continue;
+
+			// Don't check for resolve when no anti-aliasing since offscreens no longer resolve,
+			// which would give a false positive.
+			uint32_t samples = renderPass->attachments[attachment].samples;
+			if (samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				samples = renderer->surfaceSamples;
+
+			if (samples > 1 && !canResolveSurface(framebuffer->surfaces + attachment))
+			{
+				errno = EPERM;
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+					"Color attachment set to resolve used with unresolvable framebuffer surface.");
+				DS_PROFILE_FUNC_END();
+				endRenderPassScope(commandBuffer);
+				return false;
 			}
 		}
 	}

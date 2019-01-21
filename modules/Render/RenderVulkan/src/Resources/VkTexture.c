@@ -396,8 +396,10 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	bool singleHostImage = true;
-	if (needsHostMemory)
-		singleHostImage = !dsVkTexture_supportsHostImage(device, formatInfo, imageType, info);
+	// NOTE: Intel seems to break on this, allocating incorrect sizes. NVidia only supports a single
+	// image as well, so just disable for now. Perhaps this can be used sometime in the future.
+	/*if (needsHostMemory)
+		singleHostImage = !dsVkTexture_supportsHostImage(device, formatInfo, imageType, info);*/
 
 	size_t bufferSize = fullAllocSize(info, needsHostMemory);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);

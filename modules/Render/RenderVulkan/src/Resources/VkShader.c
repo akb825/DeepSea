@@ -602,7 +602,7 @@ static bool createLayout(dsShader* shader)
 static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsMaterial* material, VkShaderStageFlags stages)
 {
-	dsVkDevice* device = &((dsVkRenderer*)&commandBuffer->renderer)->device;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 
@@ -648,7 +648,7 @@ static bool bindPushConstants(dsCommandBuffer* commandBuffer, const dsShader* sh
 static bool bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates)
 {
-	dsVkDevice* device = &((dsVkRenderer*)&commandBuffer->renderer)->device;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
@@ -766,7 +766,7 @@ static bool updateVolatileValues(dsResourceManager* resourceManager, dsCommandBu
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues,
 	VkPipelineBindPoint bindPoint)
 {
-	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
@@ -951,7 +951,7 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	const dsShader* shader, const dsMaterial* material,
 	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
 {
-	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	dsDeviceMaterial* deviceMaterial = dsMaterial_getDeviceMaterial(material);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
@@ -1008,7 +1008,7 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	const dsShader* shader, const dsMaterial* material,
 	const dsVolatileMaterialValues* volatileValues)
 {
-	dsVkDevice* device = &((dsVkRenderer*)&resourceManager->renderer)->device;
+	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
 	dsDeviceMaterial* deviceMaterial = dsMaterial_getDeviceMaterial(material);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
