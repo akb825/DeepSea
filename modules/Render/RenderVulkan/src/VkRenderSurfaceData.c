@@ -494,6 +494,9 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	surfaceData->width = width;
 	surfaceData->height = height;
 
+	// Queue processing immediately.
+	dsVkRenderer_processRenderSurface(renderer, surfaceData);
+
 	return surfaceData;
 }
 

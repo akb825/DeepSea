@@ -936,10 +936,10 @@ static bool beginDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuff
 	if (!pipeline)
 		return false;
 
+	dsVkCommandBuffer_bindPipeline(commandBuffer, submitBuffer, pipeline);
+
 	if (vkCommandBuffer->activeVertexGeometry == geometry)
 		return true;
-
-	dsVkCommandBuffer_bindPipeline(commandBuffer, submitBuffer, pipeline);
 
 	VkBuffer buffers[DS_MAX_ALLOWED_VERTEX_ATTRIBS];
 	VkDeviceSize offsets[DS_MAX_ALLOWED_VERTEX_ATTRIBS];

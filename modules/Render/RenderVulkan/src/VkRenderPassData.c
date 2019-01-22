@@ -461,6 +461,7 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 		return false;
 
 	VkRect2D renderArea;
+	dsVector2f depthRange;
 	if (viewport)
 	{
 		renderArea.offset.x = (int32_t)floorf((float)framebuffer->width*viewport->min.x);
@@ -469,6 +470,8 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 			(viewport->max.x - viewport->min.x));
 		renderArea.extent.height = (uint32_t)ceilf((float)framebuffer->height*
 			(viewport->max.y - viewport->min.y));
+		depthRange.x = viewport->min.x;
+		depthRange.y = viewport->max.x;
 	}
 	else
 	{
@@ -476,11 +479,13 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 		renderArea.offset.y = 0;
 		renderArea.extent.width = framebuffer->width;
 		renderArea.extent.height = framebuffer->height;
+		depthRange.x = 0.0f;
+		depthRange.y = 1.0f;
 	}
 
 	// Same memory layout for dsSurfaceClearValue and VkClearValue
 	return dsVkCommandBuffer_beginRenderPass(commandBuffer, renderPass->vkRenderPass,
-		realFramebuffer->framebuffer, &renderArea, (const VkClearValue*)clearValues,
+		realFramebuffer->framebuffer, &renderArea, &depthRange, (const VkClearValue*)clearValues,
 		clearValueCount);
 }
 

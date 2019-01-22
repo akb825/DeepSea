@@ -35,8 +35,8 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderPass renderPass,
-	VkFramebuffer framebuffer, const VkRect2D* renderArea, const VkClearValue* clearValues,
-	uint32_t clearValueCount);
+	VkFramebuffer framebuffer, const VkRect2D* renderArea, const dsVector2f* depthRange,
+	const VkClearValue* clearValues, uint32_t clearValueCount);
 bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer);
 

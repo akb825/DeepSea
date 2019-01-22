@@ -191,6 +191,8 @@ typedef struct dsVkDevice
 	PFN_vkDestroyPipeline vkDestroyPipeline;
 
 	PFN_vkCmdPushConstants vkCmdPushConstants;
+	PFN_vkCmdSetViewport vkCmdSetViewport;
+	PFN_vkCmdSetScissor vkCmdSetScissor;
 	PFN_vkCmdSetLineWidth vkCmdSetLineWidth;
 	PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
 	PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
@@ -859,6 +861,7 @@ struct dsVkCommandBuffer
 	VkRenderPass activeRenderPass;
 	VkFramebuffer activeFramebuffer;
 	VkRect2D renderArea;
+	dsVector2f depthRange;
 	VkPipeline activePipeline;
 	VkPipeline activeComputePipeline;
 	const dsDrawGeometry* activeVertexGeometry;

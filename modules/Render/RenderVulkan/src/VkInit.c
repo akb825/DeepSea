@@ -884,6 +884,8 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyPipeline);
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdPushConstants);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetViewport);
+	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetScissor);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetLineWidth);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetBlendConstants);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdSetDepthBias);

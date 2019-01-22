@@ -49,7 +49,7 @@ static size_t fullAllocSize(const dsTextureInfo* info, bool needsHost)
 
 static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask,
-	VkImageCreateInfo* baseCreateInfo, dsVkTexture* texture, const void* data)
+	VkImageCreateInfo* baseCreateInfo, dsVkTexture* texture, const void* data, size_t dataSize)
 {
 	dsVkInstance* instance = &device->instance;
 	dsTexture* baseTexture = (dsTexture*)texture;
@@ -213,16 +213,21 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	if (data)
 	{
 		const uint8_t* dataBytes = (uint8_t*)data;
+		const uint8_t* dataEnd = dataBytes + dataSize;
+		DS_UNUSED(dataEnd);
+
 		void* hostData;
 		VkResult result = DS_VK_CALL(device->vkMapMemory)(device->device, texture->hostMemory, 0,
 			VK_WHOLE_SIZE, 0, &hostData);
 		if (!dsHandleVkResult(result))
 			return false;
+
 		uint8_t* hostBytes = (uint8_t*)hostData;
+		uint8_t* hostEnd = hostBytes + memoryRequirements.size;
+		DS_UNUSED(hostEnd);
 
 		unsigned int blockX, blockY;
-		if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))
-			return false;
+		DS_VERIFY(dsGfxFormat_blockDimensions(&blockX, &blockY, info->format));
 		unsigned int formatSize = dsGfxFormat_size(info->format);
 
 		for (uint32_t i = 0, index = 0; i < info->mipLevels; ++i)
@@ -245,10 +250,14 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 					uint8_t* surfaceData = hostBytes + hostImage->offset +
 						(size_t)hostImage->layout.offset;
 					size_t hostPitch = (size_t)hostImage->layout.rowPitch;
+					size_t remainingSize = (size_t)hostImage->layout.size;
 					for (uint32_t y = 0; y < yBlocks; ++y, dataBytes += pitch,
-						surfaceData += hostPitch)
+						surfaceData += hostPitch, remainingSize -= hostPitch)
 					{
-						memcpy(surfaceData, dataBytes, pitch);
+						size_t copySize = dsMin(pitch, remainingSize);
+						DS_ASSERT(dataBytes + copySize <= dataEnd);
+						DS_ASSERT(surfaceData + copySize <= hostEnd);
+						memcpy(surfaceData, dataBytes, copySize);
 					}
 				}
 			}
@@ -521,7 +530,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		instance->allocCallbacksPtr, &texture->deviceImageView);
 
 	if (needsHostMemory && !createHostImages(device, (dsAllocator*)&bufferAlloc, info, formatInfo,
-		aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data))
+		aspectMask, singleHostImage ? NULL : &imageCreateInfo, texture, data, size))
 	{
 		dsVkTexture_destroyImpl(baseTexture);
 		return NULL;
