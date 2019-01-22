@@ -411,6 +411,7 @@ typedef struct dsVkSamplerList
 	dsAllocator* allocator;
 	dsVkResource resource;
 	VkSampler* samplers;
+	VkSampler defaultSampler;
 	uint32_t samplerCount;
 	float defaultAnisotropy;
 } dsVkSamplerList;
@@ -558,6 +559,7 @@ typedef struct dsVkShader
 	dsVkSamplerList* samplers;
 	dsVkSamplerMapping* samplerMapping;
 	uint32_t samplerCount;
+	bool needsDefaultSampler;
 	bool samplersHaveDefaultAnisotropy;
 
 	dsSpinlock materialLock;

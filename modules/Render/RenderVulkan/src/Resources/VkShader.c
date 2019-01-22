@@ -246,7 +246,13 @@ static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlen
 	vkBlendAttachment->dstAlphaBlendFactor = blendFactor(blendAttachment->dstAlphaBlendFactor,
 		VK_BLEND_FACTOR_ONE);
 	vkBlendAttachment->alphaBlendOp = blendOp(blendAttachment->alphaBlendOp);
-	vkBlendAttachment->colorWriteMask = blendAttachment->colorWriteMask;
+	if (blendAttachment->colorWriteMask == mslColorMask_Unset)
+	{
+		vkBlendAttachment->colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+			VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	}
+	else
+		vkBlendAttachment->colorWriteMask = blendAttachment->colorWriteMask;
 }
 
 static size_t fullAllocSize(const mslModule* module, uint32_t pipelineIndex,
@@ -799,6 +805,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	uint32_t samplerCount = 0;
 	bool samplersHaveDefaultAnisotropy = false;
+	bool needsDefaultSampler = false;
 	for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
 	{
 		mslUniform uniform;
@@ -810,10 +817,13 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		if (uniform.uniformType != mslUniformType_SampledImage)
 			continue;
 
-		++samplerCount;
 		if (uniform.samplerIndex == MSL_UNKNOWN)
+		{
+			needsDefaultSampler = true;
 			continue;
+		}
 
+		++samplerCount;
 		mslSamplerState sampler;
 		if (!mslModule_samplerState(&sampler, module->module, shaderIndex, uniform.samplerIndex))
 		{
@@ -898,6 +908,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	else
 		shader->samplerMapping = NULL;
 	shader->samplerCount = samplerCount;
+	shader->needsDefaultSampler = needsDefaultSampler;
 	shader->samplersHaveDefaultAnisotropy = samplersHaveDefaultAnisotropy;
 
 	memset(shader->shaders, 0, sizeof(shader->shaders));
@@ -927,7 +938,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	// If no dependency on default anisotropy, create immediately.
-	if (samplerCount > 0 && !samplersHaveDefaultAnisotropy)
+	if ((samplerCount > 0 || needsDefaultSampler) && !samplersHaveDefaultAnisotropy)
 	{
 		shader->samplers = dsVkSamplerList_create(scratchAllocator, baseShader);
 		if (!shader->samplers)
@@ -1229,7 +1240,7 @@ dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* co
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	dsRenderer* renderer = shader->resourceManager->renderer;
 
-	if (vkShader->samplerCount == 0)
+	if (vkShader->samplerCount == 0 && !vkShader->needsDefaultSampler)
 		return NULL;
 	else if (vkShader->samplersHaveDefaultAnisotropy)
 	{

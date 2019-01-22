@@ -77,7 +77,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 
 		stages[stageCount].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		stages[stageCount].pNext = NULL;
-		stages[stageCount].flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+		stages[stageCount].flags = 0;
 		stages[stageCount].stage = dsVkShaderStage((mslStage)i);
 		stages[stageCount].module = vkShader->shaders[i];
 		stages[stageCount].pName = "main";
@@ -145,6 +145,9 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 			primitiveType == dsPrimitiveType_TriangleFan
 	};
 
+	VkPipelineMultisampleStateCreateInfo multisampleInfo = vkShader->multisampleInfo;
+	multisampleInfo.rasterizationSamples = dsVkSampleCount(samples);
+
 	VkPipelineCreateFlagBits flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 	if (existingPipeline)
 		flags |= VK_PIPELINE_CREATE_DERIVATIVE_BIT;
@@ -159,7 +162,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 		&vkShader->tessellationInfo,
 		&vkShader->viewportInfo,
 		&vkShader->rasterizationInfo,
-		&vkShader->multisampleInfo,
+		&multisampleInfo,
 		&vkShader->depthStencilInfo,
 		&vkShader->blendInfo,
 		&vkShader->dynamicInfo,

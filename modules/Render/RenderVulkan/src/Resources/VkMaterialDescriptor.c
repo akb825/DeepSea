@@ -183,6 +183,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		binding->dstBinding = vkMaterialDesc->elementMappings[i];
 		binding->dstArrayElement = 0;
 		binding->descriptorCount = 1;
+		binding->descriptorType = dsVkDescriptorType(element->type, element->isVolatile);
 		binding->pImageInfo = NULL;
 		binding->pBufferInfo = NULL;
 		binding->pTexelBufferView = NULL;
@@ -202,7 +203,15 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 				uint32_t samplerIndex = vkShader->samplerMapping[i].samplerIndex;
 				if (samplerIndex == DS_MATERIAL_UNKNOWN)
-					imageInfo->sampler = 0;
+				{
+					if (element->type == dsMaterialType_Texture)
+					{
+						DS_ASSERT(samplers && samplers->defaultSampler);
+						imageInfo->sampler = samplers->defaultSampler;
+					}
+					else
+						imageInfo->sampler = 0;
+				}
 				else
 				{
 					DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);

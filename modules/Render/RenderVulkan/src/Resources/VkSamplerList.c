@@ -30,6 +30,7 @@ static VkFilter textureFilter(mslFilter filter)
 	{
 		case mslFilter_Linear:
 			return VK_FILTER_LINEAR;
+		case mslFilter_Nearest:
 		default:
 			return VK_FILTER_NEAREST;
 	}
@@ -42,6 +43,8 @@ static VkSamplerMipmapMode mipFilter(mslMipFilter filter)
 		case mslMipFilter_Linear:
 		case mslMipFilter_Anisotropic:
 			return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		case mslMipFilter_Nearest:
+		case mslMipFilter_None:
 		default:
 			return VK_SAMPLER_MIPMAP_MODE_NEAREST;
 	}
@@ -59,6 +62,7 @@ static VkSamplerAddressMode addressMode(mslAddressMode addressMode)
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 		case mslAddressMode_MirrorOnce:
 			return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+		case mslAddressMode_Repeat:
 		default:
 			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	}
@@ -78,6 +82,7 @@ static VkBorderColor borderColor(mslBorderColor color)
 			return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		case mslBorderColor_OpaqueIntOne:
 			return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+		case mslBorderColor_TransparentBlack:
 		default:
 			return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 	}
@@ -109,10 +114,16 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 
 	samplers->resourceManager = shader->resourceManager;
 	samplers->allocator = allocator;
-	samplers->samplers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkSampler,
-		samplerCount);
-	DS_ASSERT(samplers->samplers);
-	memset(samplers->samplers, 0, sizeof(VkSampler)*samplerCount);
+	if (samplerCount > 0)
+	{
+		samplers->samplers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkSampler,
+			samplerCount);
+		DS_ASSERT(samplers->samplers);
+		memset(samplers->samplers, 0, sizeof(VkSampler)*samplerCount);
+	}
+	else
+		samplers->samplers = NULL;
+	samplers->defaultSampler = 0;
 	samplers->samplerCount = samplerCount;
 	samplers->defaultAnisotropy = shader->resourceManager->renderer->defaultAnisotropy;
 
@@ -176,7 +187,40 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 		};
 
 		VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &createInfo,
-			instance->allocCallbacksPtr, samplers->samplers + samplerMapping[i].uniformIndex);
+			instance->allocCallbacksPtr, samplers->samplers + samplerMapping[i].samplerIndex);
+		if (!dsHandleVkResult(result))
+		{
+			dsVkSamplerList_destroy(samplers);
+			return NULL;
+		}
+	}
+
+	if (vkShader->needsDefaultSampler)
+	{
+		VkSamplerCreateInfo samplerCreateInfo =
+		{
+			VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+			NULL,
+			0,
+			VK_FILTER_NEAREST,
+			VK_FILTER_NEAREST,
+			VK_SAMPLER_MIPMAP_MODE_NEAREST,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			0.0f,
+			false,
+			0.0,
+			false,
+			VK_COMPARE_OP_NEVER,
+			0.0f,
+			1000.0f,
+			VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+			false
+		};
+
+		VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &samplerCreateInfo,
+			instance->allocCallbacksPtr, &samplers->defaultSampler);
 		if (!dsHandleVkResult(result))
 		{
 			dsVkSamplerList_destroy(samplers);
@@ -203,6 +247,12 @@ void dsVkSamplerList_destroy(dsVkSamplerList* samplers)
 			DS_VK_CALL(device->vkDestroySampler)(device->device, samplers->samplers[i],
 				instance->allocCallbacksPtr);
 		}
+	}
+
+	if (samplers->defaultSampler)
+	{
+		DS_VK_CALL(device->vkDestroySampler)(device->device, samplers->defaultSampler,
+			instance->allocCallbacksPtr);
 	}
 
 	dsVkResource_shutdown(&samplers->resource);
