@@ -1337,7 +1337,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 		return false;
 
 	uint32_t srcFaceCount = 1;
-	bool srcIs3D;
+	bool srcIs3D = false;
 	if (srcSurfaceType == dsGfxSurfaceType_Texture)
 	{
 		dsTexture* srcTexture = (dsTexture*)srcSurface;
@@ -1347,7 +1347,7 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	}
 
 	uint32_t dstFaceCount = 1;
-	bool dstIs3D;
+	bool dstIs3D = false;
 	if (dstSurfaceType == dsGfxSurfaceType_Texture)
 	{
 		dsTexture* dstTexture = (dsTexture*)dstSurface;
