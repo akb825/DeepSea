@@ -46,7 +46,7 @@ bool dsVkBarrierList_addBufferBarrier(dsVkBarrierList* barriers, VkBuffer buffer
 	barrier->pNext = NULL;
 	barrier->srcAccessMask = dsVkWriteBufferAccessFlags(srcUsage, canMap);
 	barrier->dstAccessMask = dsVkReadBufferAccessFlags(dstUsage) |
-		dsVkWriteBufferAccessFlags(dstUsage, canMap);
+		dsVkWriteBufferAccessFlags(dstUsage, false);
 	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier->buffer = buffer;
@@ -73,9 +73,8 @@ bool dsVkBarrierList_addImageBarrier(dsVkBarrierList* barriers, VkImage image,
 	barrier->pNext = NULL;
 	barrier->srcAccessMask = host ? VK_ACCESS_HOST_WRITE_BIT :
 		dsVkWriteImageAccessFlags(srcUsage, false, false);
-	barrier->dstAccessMask = dsVkReadImageAccessFlags(dstUsage);
-	if (oldLayout != newLayout)
-		barrier->dstAccessMask |= dsVkWriteImageAccessFlags(srcUsage, offscreen, depthStencil);
+	barrier->dstAccessMask = dsVkReadImageAccessFlags(dstUsage) |
+		dsVkWriteImageAccessFlags(srcUsage, offscreen, depthStencil);
 	barrier->oldLayout = oldLayout;
 	barrier->newLayout = newLayout;
 	barrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;

@@ -223,18 +223,15 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
 	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
-
 	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 	if (!bufferData->keepHost)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
 		return false;
 	}
-
-	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 	VkMappedMemoryRange range =
 	{
@@ -256,12 +253,11 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
 	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
-
 	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 
 	if (!bufferData->keepHost)
 	{
-		DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Buffer memory not accessible to be flushed.");
 		return false;

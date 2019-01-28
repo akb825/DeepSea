@@ -21,6 +21,7 @@
 
 bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* renderer,
 	dsAllocator* allocator, dsCommandBufferUsage usage);
+dsCommandBuffer* dsVkCommandBuffer_get(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsVkCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
@@ -53,6 +54,11 @@ bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer
 	const VkBufferMemoryBarrier* barrier);
 bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages);
+
+VkImageMemoryBarrier* dsVkCommandBuffer_addCopyImageBarrier(dsCommandBuffer* commandBuffer);
+bool dsVkCommandBuffer_submitCopyImageBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages);
+void dsVkCommandBuffer_resetCopyImageBarriers(dsCommandBuffer* commandBuffer);
 
 bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource);
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen);

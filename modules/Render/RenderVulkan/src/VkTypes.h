@@ -345,6 +345,7 @@ typedef struct dsVkTexture
 
 	VkImageAspectFlags aspectMask;
 	bool needsInitialCopy;
+	bool hasSplitLayouts;
 } dsVkTexture;
 
 typedef struct dsVkRenderbuffer
@@ -897,6 +898,10 @@ struct dsVkCommandBuffer
 	VkBufferMemoryBarrier* bufferBarriers;
 	uint32_t bufferBarrierCount;
 	uint32_t maxBufferBarriers;
+
+	VkImageMemoryBarrier* copyImageBarriers;
+	uint32_t copyImageBarrierCount;
+	uint32_t maxCopyImageBarriers;
 
 	VkCommandBuffer* subpassBuffers;
 	uint32_t subpassBufferCount;

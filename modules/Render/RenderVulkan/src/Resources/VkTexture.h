@@ -41,6 +41,7 @@ bool dsVkTexture_supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* for
 	VkImageType imageType, const dsTextureInfo* info);
 bool dsVkTexture_isStatic(const dsTexture* texture);
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture);
+void dsVkTexture_resetSubresourceLayouts(dsTexture* texture);
 bool dsVkTexture_canReadBack(const dsTexture* texture);
 bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer);
 bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuffer,

@@ -90,9 +90,10 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
 		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
-			VK_ACCESS_TRANSFER_WRITE_BIT;
+			VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT |
+			VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageBarrier->oldLayout = dsVkTexture_imageLayout(texture);
 		if (isDepthStencil)
 		{
 			imageBarrier->srcAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
@@ -144,7 +145,7 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	imageBarrier->pNext = NULL;
 	imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT |
-		VK_ACCESS_TRANSFER_WRITE_BIT;
+		VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	if (isDepthStencil)
 	{
@@ -177,7 +178,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
 		switch (surface->surfaceType)
 		{
-			case dsGfxSurfaceType_ColorRenderSurface:      ///< The color portion of a render surface.
+			case dsGfxSurfaceType_ColorRenderSurface:
 			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 			case dsGfxSurfaceType_ColorRenderSurfaceRight:
 			{
@@ -214,7 +215,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 
 					uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
-						vkTexture->deviceImage, VK_IMAGE_LAYOUT_GENERAL,
+						vkTexture->deviceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						surface->layer*faceCount + surface->cubeFace);
 				}
 
@@ -263,10 +264,11 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		if (!resolveAttachment[i])
 			continue;
 
+		dsTextureUsage usage = dsTextureUsage_CopyTo;
 		dsGfxFormat format;
 		uint32_t firstLayer;
 		VkImage multisampleImage, finalImage;
-		VkImageLayout intermediateLayout, finalLayout;
+		VkImageLayout finalLayout;
 		switch (surface->surfaceType)
 		{
 			case dsGfxSurfaceType_ColorRenderSurface:
@@ -282,7 +284,6 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				firstLayer = surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
 				multisampleImage = surfaceData->resolveImage;
 				finalImage = surfaceData->images[surfaceData->imageIndex];
-				intermediateLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 				finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 			}
 			case dsGfxSurfaceType_Texture:
@@ -293,13 +294,13 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				if (!vkTexture->surfaceImage)
 					continue;
 
+				usage |= texture->usage | dsTextureUsage_CopyFrom;
 				format = texture->info.format;
 				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 				firstLayer = surface->layer*faceCount + surface->cubeFace;
 				multisampleImage = vkTexture->surfaceImage;
 				finalImage = vkTexture->deviceImage;
-				intermediateLayout = VK_IMAGE_LAYOUT_GENERAL;
-				finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+				finalLayout = dsVkTexture_imageLayout(texture);
 				break;
 			}
 			default:
@@ -316,7 +317,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 			{framebuffer->width, framebuffer->height, 1}
 		};
 		DS_VK_CALL(device->vkCmdResolveImage)(vkCommandBuffer, multisampleImage,
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, finalImage, intermediateLayout,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, finalImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &imageResolve);
 
 		bool isDepthStencil = dsGfxFormat_isDepthStencil(aspectMask);
@@ -347,29 +348,23 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		imageBarrier->subresourceRange.baseArrayLayer = 0;
 		imageBarrier->subresourceRange.layerCount = framebuffer->layers;
 
-		if (intermediateLayout != finalLayout)
-		{
-			imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-			if (!imageBarrier)
-				return false;
+		imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		if (!imageBarrier)
+			return false;
 
-			imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imageBarrier->pNext = NULL;
-			imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-			imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			if (isDepthStencil)
-				imageBarrier->dstAccessMask |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			else
-				imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			imageBarrier->oldLayout = intermediateLayout;
-			imageBarrier->newLayout = finalLayout;
-			imageBarrier->image = finalImage;
-			imageBarrier->subresourceRange.aspectMask = aspectMask;
-			imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
-			imageBarrier->subresourceRange.levelCount = 1;
-			imageBarrier->subresourceRange.baseArrayLayer = firstLayer;
-			imageBarrier->subresourceRange.layerCount = framebuffer->layers;
-		}
+		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier->pNext = NULL;
+		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imageBarrier->dstAccessMask = dsVkReadImageStageFlags(usage, isDepthStencil),
+			dsVkWriteImageStageFlags(usage, true, isDepthStencil);
+		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imageBarrier->newLayout = finalLayout;
+		imageBarrier->image = finalImage;
+		imageBarrier->subresourceRange.aspectMask = aspectMask;
+		imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
+		imageBarrier->subresourceRange.levelCount = 1;
+		imageBarrier->subresourceRange.baseArrayLayer = firstLayer;
+		imageBarrier->subresourceRange.layerCount = framebuffer->layers;
 	}
 
 	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -524,7 +519,7 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 	}
 
 	// Handle if a fence was set during the render pass.
-	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)dsVkCommandBuffer_get(commandBuffer);
 	if (vkCommandBuffer->fenceSet)
 		dsVkCommandBuffer_submitFence(commandBuffer, false);
 	return true;

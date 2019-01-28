@@ -17,6 +17,7 @@
 #include "VkCommandBuffer.h"
 
 #include "Resources/VkFramebuffer.h"
+#include "Resources/VkTexture.h"
 #include "VkBarrierList.h"
 #include "VkCommandBufferData.h"
 #include "VkRendererInternal.h"
@@ -32,6 +33,54 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
+static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage image,
+	VkImageAspectFlags aspectMask)
+{
+	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+	if (imageBarrier)
+		return false;
+
+	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imageBarrier->pNext = NULL;
+	imageBarrier->srcAccessMask = VK_ACCESS_HOST_READ_BIT;
+	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier->image = image;
+	imageBarrier->subresourceRange.aspectMask = aspectMask;
+	imageBarrier->subresourceRange.baseMipLevel = 0;
+	imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+	imageBarrier->subresourceRange.baseArrayLayer = 0;
+	imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+	return true;
+}
+
+static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage image,
+	VkImageAspectFlags aspectMask)
+{
+	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+	if (imageBarrier)
+		return false;
+
+	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imageBarrier->pNext = NULL;
+	imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	imageBarrier->dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier->image = image;
+	imageBarrier->subresourceRange.aspectMask = aspectMask;
+	imageBarrier->subresourceRange.baseMipLevel = 0;
+	imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+	imageBarrier->subresourceRange.baseArrayLayer = 0;
+	imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+	return true;
+}
+
 static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	VkCommandBuffer renderCommands)
 {
@@ -40,48 +89,69 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
-	// Need image barriers for the offscreen textures to make sure all writes are finished.
-	// This is at the end of the command buffer, so abandon any remaining image barriers.
-	vkCommandBuffer->imageBarrierCount = 0;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageBarriers,
-		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->maxImageBarriers,
-		vkCommandBuffer->readbackOffscreenCount))
-	{
-		return false;
-	}
-
+	dsVkCommandBuffer_resetCopyImageBarriers(commandBuffer);
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
 		dsOffscreen* offscreen = vkCommandBuffer->readbackOffscreens[i];
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
-		VkImageMemoryBarrier* imageBarrier = vkCommandBuffer->imageBarriers + i;
+		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		if (imageBarrier)
+			return false;
 
+		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
+		bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
-		if (dsGfxFormat_isDepthStencil(offscreen->info.format))
-			imageBarrier->srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		else
-			imageBarrier->srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imageBarrier->srcAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
+			dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
 		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-		imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
+		imageBarrier->oldLayout = dsVkTexture_imageLayout(offscreen);
+		imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->image = vkOffscreen->deviceImage;
-		imageBarrier->subresourceRange.aspectMask = dsVkImageAspectFlags(info->format);
+		imageBarrier->subresourceRange.aspectMask = aspectMask;
 		imageBarrier->subresourceRange.baseMipLevel = 0;
 		imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
 		imageBarrier->subresourceRange.baseArrayLayer = 0;
 		imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+		if (vkOffscreen->hostImage)
+		{
+			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
+				return false;
+		}
+		else
+		{
+			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
+			{
+				if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
+					aspectMask))
+				{
+					return false;
+				}
+			}
+		}
 	}
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
-		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
-	vkCommandBuffer->imageBarrierCount = 0;
+	VkPipelineStageFlags stages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	if (renderer->hasTessellationShaders)
+	{
+		stages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+	}
+	if (renderer->hasGeometryShaders)
+		stages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, stages | VK_PIPELINE_STAGE_HOST_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
+		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
+	vkCommandBuffer->copyImageBarrierCount = 0;
 
 	// Copy offscreen texture data to host images that can be read back from.
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
@@ -136,8 +206,9 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 			}
 
 			DS_VK_CALL(device->vkCmdCopyImage)(renderCommands, vkOffscreen->deviceImage,
-				VK_IMAGE_LAYOUT_GENERAL, vkOffscreen->hostImage, VK_IMAGE_LAYOUT_GENERAL,
-				imageCopiesCount, vkCommandBuffer->imageCopies);
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vkOffscreen->hostImage,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, imageCopiesCount,
+				vkCommandBuffer->imageCopies);
 		}
 		else
 		{
@@ -168,16 +239,65 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 						};
 
 						DS_VK_CALL(device->vkCmdCopyImage)(renderCommands, vkOffscreen->deviceImage,
-							VK_IMAGE_LAYOUT_GENERAL, hostImage->image, VK_IMAGE_LAYOUT_GENERAL,
-							1, &imageCopy);
+							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, hostImage->image,
+							VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
 					}
 				}
 			}
 		}
 	}
 
-	// NOTE: Don't need a separate barrier for the host images since a general memory barrier is
-	// used for host readback.
+	dsVkCommandBuffer_resetCopyImageBarriers(commandBuffer);
+	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
+	{
+		dsOffscreen* offscreen = vkCommandBuffer->readbackOffscreens[i];
+		DS_ASSERT(offscreen->offscreen);
+		const dsTextureInfo* info = &offscreen->info;
+		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
+		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		if (imageBarrier)
+			return false;
+
+		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
+		bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
+		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		imageBarrier->pNext = NULL;
+		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imageBarrier->dstAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
+			dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
+		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imageBarrier->newLayout = dsVkTexture_imageLayout(offscreen);
+		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier->image = vkOffscreen->deviceImage;
+		imageBarrier->subresourceRange.aspectMask = aspectMask;
+		imageBarrier->subresourceRange.baseMipLevel = 0;
+		imageBarrier->subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+		imageBarrier->subresourceRange.baseArrayLayer = 0;
+		imageBarrier->subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+
+		if (vkOffscreen->hostImage)
+		{
+			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
+				return false;
+		}
+		else
+		{
+			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
+			{
+				if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
+					aspectMask))
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, stages,
+		VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT, 0, 0, NULL, 0, NULL,
+		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
+	vkCommandBuffer->copyImageBarrierCount = 0;
 
 	return true;
 }
@@ -281,6 +401,17 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	return true;
 }
 
+dsCommandBuffer* dsVkCommandBuffer_get(dsCommandBuffer* commandBuffer)
+{
+	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
+	{
+		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
+		commandBuffer = wrapper->realCommandBuffer;
+	}
+
+	return commandBuffer;
+}
+
 bool dsVkCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
@@ -302,12 +433,7 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 {
 	DS_UNUSED(renderer);
 	DS_ASSERT(submitBuffer != renderer->mainCommandBuffer);
-	if (commandBuffer == renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkCommandBuffer* vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
 
@@ -403,12 +529,7 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer)
 {
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	if (vkCommandBuffer->activeSubpassBuffer)
 		return vkCommandBuffer->activeSubpassBuffer;
@@ -449,6 +570,7 @@ VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffe
 	};
 
 	DS_VK_CALL(device->vkBeginCommandBuffer)(newBuffer, &beginInfo);
+	vkCommandBuffer->activeCommandBuffer = newBuffer;
 	return newBuffer;
 }
 
@@ -538,13 +660,8 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 	VkFramebuffer framebuffer, const VkRect2D* renderArea, const dsVector2f* depthRange,
 	const VkClearValue* clearValues, uint32_t clearValueCount)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	DS_ASSERT(!vkCommandBuffer->activeSubpassBuffer);
 
@@ -589,13 +706,8 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 
 bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	VkCommandBuffer subpassBuffer = dsVkCommandBufferData_getCommandBuffer(
@@ -627,13 +739,8 @@ bool dsVkCommandBuffer_nextSubpass(dsCommandBuffer* commandBuffer)
 
 bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	VkCommandBuffer activeSubpassBuffer = vkCommandBuffer->activeSubpassBuffer;
@@ -682,12 +789,7 @@ bool dsVkCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer)
 void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuffer submitBuffer,
 	VkPipeline pipeline)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	if (vkCommandBuffer->activePipeline == pipeline)
@@ -700,12 +802,7 @@ void dsVkCommandBuffer_bindPipeline(dsCommandBuffer* commandBuffer, VkCommandBuf
 void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
 	VkCommandBuffer submitBuffer, VkPipeline pipeline)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	if (vkCommandBuffer->activeComputePipeline == pipeline)
@@ -718,12 +815,7 @@ void dsVkCommandBuffer_bindComputePipeline(dsCommandBuffer* commandBuffer,
 bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 	const VkImageMemoryBarrier* barrier)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	// Check recently added barriers for duplicates. Don't check all so it's not O(n^2).
@@ -748,12 +840,7 @@ bool dsVkCommandBuffer_recentlyAddedImageBarrier(dsCommandBuffer* commandBuffer,
 
 VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	uint32_t index = vkCommandBuffer->imageBarrierCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->imageBarriers,
@@ -768,12 +855,7 @@ VkImageMemoryBarrier* dsVkCommandBuffer_addImageBarrier(dsCommandBuffer* command
 bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer,
 	const VkBufferMemoryBarrier* barrier)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	// Check recently added barriers for duplicates. Don't check all so it's not O(n^2).
@@ -796,12 +878,7 @@ bool dsVkCommandBuffer_recentlyAddedBufferBarrier(dsCommandBuffer* commandBuffer
 
 VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	uint32_t index = vkCommandBuffer->bufferBarrierCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->bufferBarriers,
@@ -816,12 +893,7 @@ VkBufferMemoryBarrier* dsVkCommandBuffer_addBufferBarrier(dsCommandBuffer* comma
 bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	if (vkCommandBuffer->imageBarrierCount == 0)
@@ -838,14 +910,52 @@ bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)
+VkImageMemoryBarrier* dsVkCommandBuffer_addCopyImageBarrier(dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	uint32_t index = vkCommandBuffer->copyImageBarrierCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->copyImageBarriers,
+		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->maxCopyImageBarriers, 1))
 	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
+		return NULL;
 	}
 
+	return vkCommandBuffer->copyImageBarriers + index;
+}
+
+bool dsVkCommandBuffer_submitCopyImageBarriers(dsCommandBuffer* commandBuffer,
+	VkPipelineStageFlags srcStages, VkPipelineStageFlags dstStages)
+{
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	if (vkCommandBuffer->copyImageBarrierCount == 0)
+		return true;
+
+	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	if (!submitBuffer)
+	{
+		vkCommandBuffer->copyImageBarrierCount = 0;
+		return false;
+	}
+
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, srcStages, dstStages, 0, 0, NULL,
+		0, NULL, vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
+	vkCommandBuffer->copyImageBarrierCount = 0;
+	return true;
+}
+
+void dsVkCommandBuffer_resetCopyImageBarriers(dsCommandBuffer* commandBuffer)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	vkCommandBuffer->copyImageBarrierCount = 0;
+}
+
+bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource* resource)
+{
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	// Check recently added resources for duplicates. Don't check all so it's not O(n^2).
@@ -871,12 +981,7 @@ bool dsVkCommandBuffer_addResource(dsCommandBuffer* commandBuffer, dsVkResource*
 
 bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOffscreen* offscreen)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	for (uint32_t i = 0; i < vkCommandBuffer->readbackOffscreenCount; ++i)
 	{
@@ -900,12 +1005,7 @@ bool dsVkCommandBuffer_addReadbackOffscreen(dsCommandBuffer* commandBuffer, dsOf
 bool dsVkCommandBuffer_addRenderSurface(dsCommandBuffer* commandBuffer,
 	dsVkRenderSurfaceData* surface)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	for (uint32_t i = 0; i < vkCommandBuffer->renderSurfaceCount; ++i)
 	{
@@ -958,7 +1058,7 @@ void dsVkCommandBuffer_submittedResources(dsCommandBuffer* commandBuffer, uint64
 		DS_ATOMIC_FETCH_ADD32(&resource->commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&resource->lock));
 		resource->lastUsedSubmit = submitCount;
-		DS_VERIFY(dsSpinlock_lock(&resource->lock));
+		DS_VERIFY(dsSpinlock_unlock(&resource->lock));
 	}
 
 	vkCommandBuffer->usedResourceCount = 0;
@@ -977,7 +1077,7 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
 		texture->resource.lastUsedSubmit = submitCount;
 		texture->lastDrawSubmit = submitCount;
-		DS_VERIFY(dsSpinlock_lock(&texture->resource.lock));
+		DS_VERIFY(dsSpinlock_unlock(&texture->resource.lock));
 	}
 	vkCommandBuffer->readbackOffscreenCount = 0;
 }
@@ -994,7 +1094,7 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 		DS_ATOMIC_FETCH_ADD32(&surface->resource.commandBufferCount, -1);
 		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
 		surface->resource.lastUsedSubmit = submitCount;
-		DS_VERIFY(dsSpinlock_lock(&surface->resource.lock));
+		DS_VERIFY(dsSpinlock_unlock(&surface->resource.lock));
 	}
 	vkCommandBuffer->renderSurfaceCount = 0;
 }
@@ -1002,24 +1102,14 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 dsVkVolatileDescriptorSets* dsVkCommandBuffer_getVolatileDescriptorSets(
 	dsCommandBuffer* commandBuffer)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	return &vkCommandBuffer->volatileDescriptorSets;
 }
 
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size)
 {
-	if (commandBuffer == commandBuffer->renderer->mainCommandBuffer)
-	{
-		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
-		commandBuffer = wrapper->realCommandBuffer;
-	}
-
+	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 
 	uint32_t count = 0;
@@ -1059,6 +1149,7 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->renderSurfaces));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->bufferBarriers));
+	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->copyImageBarriers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->subpassBuffers));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));

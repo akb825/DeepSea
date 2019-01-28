@@ -210,7 +210,9 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 			if (success)
 				vkSurface->updatedFrame = renderer->frameNumber;
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
-			return success;
+			if (success)
+				return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
+			return false;
 		}
 		else if (result == dsVkSurfaceResult_Error)
 		{
