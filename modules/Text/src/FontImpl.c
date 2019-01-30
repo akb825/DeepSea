@@ -275,22 +275,6 @@ static bool addGlyphLine(dsGlyphGeometry* geometry, const dsVector2f* end)
 	if (distance < EQUAL_EPSILON)
 		return true;
 
-	// Check if we're adding a new edge.
-	DS_ASSERT(geometry->loopCount > 0);
-	dsGlyphLoop* loop = geometry->loops + geometry->loopCount - 1;
-	DS_ASSERT(loop->pointCount > 0);
-	if (loop->pointCount > 1)
-	{
-		const dsVector2f* prevPos = &(start - 1)->position;
-		dsVector2f prevDir;
-		dsVector2_sub(prevDir, start->position, *prevPos);
-		dsVector2f_normalize(&prevDir, &prevDir);
-
-		dsVector2f nextDir;
-		dsVector2_sub(nextDir, *end, start->position);
-		dsVector2f_normalize(&nextDir, &nextDir);
-	}
-
 	return addGlyphPoint(geometry, end);
 }
 
