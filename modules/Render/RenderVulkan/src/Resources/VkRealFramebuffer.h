@@ -19,10 +19,9 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsVkRenderPassData* renderPassData,
-	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
-	uint32_t layers);
-void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
-	const dsFramebufferSurface* surfaces, uint32_t surfaceCount);
+dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
+	dsFramebuffer* framebuffer, const dsVkRenderPassData* renderPassData,
+	const dsVkRenderSurfaceData* renderSurface);
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer);
+
+VkFramebuffer dsVkRealFramebuffer_getFramebuffer(const dsVkRealFramebuffer* framebuffer);

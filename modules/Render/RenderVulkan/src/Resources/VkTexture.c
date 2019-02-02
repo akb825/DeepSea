@@ -1376,7 +1376,7 @@ void dsVkTexture_destroyImpl(dsTexture* texture)
 		dsVkHostImage* hostImage = vkTexture->hostImages + i;
 		if (hostImage->image)
 		{
-			DS_VK_CALL(device->vkDestroyImage)(device->device, vkTexture->deviceImage,
+			DS_VK_CALL(device->vkDestroyImage)(device->device, hostImage->image,
 				instance->allocCallbacksPtr);
 		}
 	}

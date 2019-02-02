@@ -53,6 +53,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 	}
 
 	bool hasColorSurface = false;
+	dsRenderSurface* renderSurface = NULL;
 	for (uint32_t i = 0; i < surfaceCount; ++i)
 	{
 		if (!surfaces[i].surface)
@@ -80,6 +81,15 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 			case dsGfxSurfaceType_ColorRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
+				if (renderSurface && surface != renderSurface)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Cannot use multiple dsRenderSurface instances in a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+				renderSurface = surface;
+
 				surfaceFormat = surface->renderer->surfaceColorFormat;
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;
@@ -100,6 +110,15 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 			case dsGfxSurfaceType_DepthRenderSurface:
 			{
 				dsRenderSurface* surface = (dsRenderSurface*)surfaces[i].surface;
+				if (renderSurface && surface != renderSurface)
+				{
+					errno = EPERM;
+					DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+						"Cannot use multiple dsRenderSurface instances in a framebuffer.");
+					DS_PROFILE_FUNC_RETURN(NULL);
+				}
+				renderSurface = surface;
+
 				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
 				surfaceWidth = surface->width;
 				surfaceHeight = surface->height;

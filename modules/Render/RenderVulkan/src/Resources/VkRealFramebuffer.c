@@ -54,10 +54,10 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 				if (surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight)
 				{
 					DS_ASSERT(surfaceData->rightImageViews);
-					baseImage = surfaceData->rightImageViews[surfaceData->imageIndex];
+					baseImage = surfaceData->rightImageViews[0];
 				}
 				else
-					baseImage = surfaceData->leftImageViews[surfaceData->imageIndex];
+					baseImage = surfaceData->leftImageViews[0];
 
 				if (resolveIndex == DS_NO_ATTACHMENT)
 					imageViews[i] = baseImage;
@@ -180,89 +180,8 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 	return true;
 }
 
-dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsResourceManager* resourceManager,
-	dsAllocator* allocator, const dsVkRenderPassData* renderPassData,
-	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width, uint32_t height,
-	uint32_t layers)
-{
-	dsRenderer* renderer = resourceManager->renderer;
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	dsVkInstance* instance = &device->instance;
-
-	const dsRenderPass* renderPass = renderPassData->renderPass;
-	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
-
-	uint32_t imageCount = vkRenderPass->fullAttachmentCount;
-	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
-		DS_ALIGNED_SIZE(sizeof(bool)*imageCount);
-	void* buffer = dsAllocator_alloc(allocator, bufferSize);
-	if (!buffer)
-		return NULL;
-
-	dsBufferAllocator bufferAlloc;
-	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
-
-	dsVkRealFramebuffer* framebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
-		dsVkRealFramebuffer);
-	DS_ASSERT(framebuffer);
-
-	framebuffer->allocator = dsAllocator_keepPointer(allocator);
-	dsVkResource_initialize(&framebuffer->resource);
-	framebuffer->device = device;
-	framebuffer->renderPassData = dsLifetime_addRef(renderPassData->lifetime);
-	framebuffer->framebuffer = 0;
-
-	if (surfaceCount > 0)
-	{
-		framebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkImageView, imageCount);
-		DS_ASSERT(framebuffer->imageViews);
-		memset(framebuffer->imageViews, 0, sizeof(VkImageView)*imageCount);
-
-		framebuffer->imageViewTemp = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
-			imageCount);
-		DS_ASSERT(framebuffer->imageViewTemp);
-		memset(framebuffer->imageViewTemp, 0, sizeof(bool)*imageCount);
-
-		if (!getImageViews(resourceManager, surfaces, surfaceCount, layers, framebuffer->imageViews,
-			framebuffer->imageViewTemp, surfaceCount, renderPass))
-		{
-			dsVkRealFramebuffer_destroy(framebuffer);
-			return NULL;
-		}
-	}
-	else
-	{
-		framebuffer->imageViews = NULL;
-		framebuffer->imageViewTemp = NULL;
-	}
-	framebuffer->surfaceCount = surfaceCount;
-
-	VkFramebufferCreateInfo createInfo =
-	{
-		VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-		NULL,
-		0,
-		renderPassData->vkRenderPass,
-		imageCount, framebuffer->imageViews,
-		width,
-		height,
-		layers
-	};
-	VkResult result = DS_VK_CALL(device->vkCreateFramebuffer)(device->device, &createInfo,
-		instance->allocCallbacksPtr, &framebuffer->framebuffer);
-	if (!dsHandleVkResult(result))
-	{
-		dsVkRealFramebuffer_destroy(framebuffer);
-		return NULL;
-	}
-
-	return framebuffer;
-}
-
-void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
-	const dsFramebufferSurface* surfaces, uint32_t surfaceCount)
+void updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
+	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t imageIndex)
 {
 	const dsVkRenderPassData* renderPassData =
 		(const dsVkRenderPassData*)dsLifetime_acquire(framebuffer->renderPassData);
@@ -286,10 +205,10 @@ void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuf
 				if (surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight)
 				{
 					DS_ASSERT(surfaceData->rightImageViews);
-					baseImage = surfaceData->rightImageViews[surfaceData->imageIndex];
+					baseImage = surfaceData->rightImageViews[imageIndex];
 				}
 				else
-					baseImage = surfaceData->leftImageViews[surfaceData->imageIndex];
+					baseImage = surfaceData->leftImageViews[imageIndex];
 
 				uint32_t resolveIndex = renderPass->resolveIndices[i];
 				if (resolveIndex == DS_NO_ATTACHMENT)
@@ -304,21 +223,107 @@ void dsVkRealFramebuffer_updateRenderSurfaceImages(dsVkRealFramebuffer* framebuf
 				}
 				break;
 			}
-			case dsGfxSurfaceType_DepthRenderSurface:
-			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
-			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			{
-				dsVkRenderSurface* renderSurface = (dsVkRenderSurface*)surface->surface;
-				dsVkRenderSurfaceData* surfaceData = renderSurface->surfaceData;
-				imageViews[i] = surfaceData->depthImageView;
-				break;
-			}
 			default:
 				break;
 		}
 	}
 
 	dsLifetime_release(framebuffer->renderPassData);
+}
+
+dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
+	dsFramebuffer* framebuffer, const dsVkRenderPassData* renderPassData,
+	const dsVkRenderSurfaceData* renderSurface)
+{
+	dsRenderer* renderer = framebuffer->resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkInstance* instance = &device->instance;
+
+	const dsRenderPass* renderPass = renderPassData->renderPass;
+	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
+	uint32_t framebufferCount = renderSurface ? renderSurface->imageCount : 1;
+
+	uint32_t imageCount = vkRenderPass->fullAttachmentCount;
+	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
+		DS_ALIGNED_SIZE(sizeof(VkFramebuffer)*imageCount) +
+		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
+		DS_ALIGNED_SIZE(sizeof(bool)*imageCount);
+	void* buffer = dsAllocator_alloc(allocator, bufferSize);
+	if (!buffer)
+		return NULL;
+
+	dsBufferAllocator bufferAlloc;
+	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, bufferSize));
+
+	dsVkRealFramebuffer* realFramebuffer = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAlloc,
+		dsVkRealFramebuffer);
+	DS_ASSERT(realFramebuffer);
+
+	realFramebuffer->allocator = dsAllocator_keepPointer(allocator);
+	dsVkResource_initialize(&realFramebuffer->resource);
+	realFramebuffer->device = device;
+	realFramebuffer->renderPassData = dsLifetime_addRef(renderPassData->lifetime);
+	realFramebuffer->renderSurface = renderSurface;
+
+	realFramebuffer->framebuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+		VkFramebuffer, framebufferCount);
+	DS_ASSERT(realFramebuffer->framebuffers);
+	memset(realFramebuffer->framebuffers, 0, sizeof(VkFramebuffer)*framebufferCount);
+
+	if (framebuffer->surfaceCount > 0)
+	{
+		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			VkImageView, imageCount);
+		DS_ASSERT(realFramebuffer->imageViews);
+		memset(realFramebuffer->imageViews, 0, sizeof(VkImageView)*imageCount);
+
+		realFramebuffer->imageViewTemp = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
+			imageCount);
+		DS_ASSERT(realFramebuffer->imageViewTemp);
+		memset(realFramebuffer->imageViewTemp, 0, sizeof(bool)*imageCount);
+
+		if (!getImageViews(framebuffer->resourceManager, framebuffer->surfaces,
+			framebuffer->surfaceCount, framebuffer->layers, realFramebuffer->imageViews,
+			realFramebuffer->imageViewTemp, imageCount, renderPass))
+		{
+			dsVkRealFramebuffer_destroy(realFramebuffer);
+			return NULL;
+		}
+	}
+	else
+	{
+		realFramebuffer->imageViews = NULL;
+		realFramebuffer->imageViewTemp = NULL;
+	}
+	realFramebuffer->imageCount = imageCount;
+	realFramebuffer->framebufferCount = framebufferCount;
+
+	for (uint32_t i = 0; i < framebufferCount; ++i)
+	{
+		updateRenderSurfaceImages(realFramebuffer, framebuffer->surfaces, framebuffer->surfaceCount,
+			i);
+
+		VkFramebufferCreateInfo createInfo =
+		{
+			VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			NULL,
+			0,
+			renderPassData->vkRenderPass,
+			imageCount, realFramebuffer->imageViews,
+			framebuffer->width,
+			framebuffer->height,
+			framebuffer->layers
+		};
+		VkResult result = DS_VK_CALL(device->vkCreateFramebuffer)(device->device, &createInfo,
+			instance->allocCallbacksPtr, realFramebuffer->framebuffers + i);
+		if (!dsHandleVkResult(result))
+		{
+			dsVkRealFramebuffer_destroy(realFramebuffer);
+			return NULL;
+		}
+	}
+
+	return realFramebuffer;
 }
 
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
@@ -328,8 +333,7 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 
 	dsVkDevice* device = framebuffer->device;
 	dsVkInstance* instance = &device->instance;
-	uint32_t imageCount = framebuffer->surfaceCount*2;
-	for (uint32_t i = 0; i < imageCount; ++i)
+	for (uint32_t i = 0; i < framebuffer->imageCount; ++i)
 	{
 		if (framebuffer->imageViewTemp[i])
 		{
@@ -338,11 +342,24 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 		}
 	}
 
-	DS_VK_CALL(device->vkDestroyFramebuffer)(device->device, framebuffer->framebuffer,
-		instance->allocCallbacksPtr);
+	for (uint32_t i = 0; i < framebuffer->framebufferCount; ++i)
+	{
+		if (framebuffer->framebuffers[i])
+		{
+			DS_VK_CALL(device->vkDestroyFramebuffer)(device->device, framebuffer->framebuffers[i],
+				instance->allocCallbacksPtr);
+		}
+	}
 
 	dsLifetime_freeRef(framebuffer->renderPassData);
 
 	if (framebuffer->allocator)
 		DS_VERIFY(dsAllocator_free(framebuffer->allocator, framebuffer));
+}
+
+VkFramebuffer dsVkRealFramebuffer_getFramebuffer(const dsVkRealFramebuffer* framebuffer)
+{
+	if (framebuffer->renderSurface)
+		return framebuffer->framebuffers[framebuffer->renderSurface->imageIndex];
+	return framebuffer->framebuffers[0];
 }

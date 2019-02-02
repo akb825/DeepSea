@@ -31,6 +31,28 @@
 #include <DeepSea/Core/Log.h>
 #include <string.h>
 
+static const dsRenderSurface* getRenderSurface(const dsFramebufferSurface* surfaces,
+	uint32_t surfaceCount)
+{
+	for (uint32_t i = 0; i < surfaceCount; ++i)
+	{
+		switch (surfaces[i].surfaceType)
+		{
+			case dsGfxSurfaceType_ColorRenderSurface:
+			case dsGfxSurfaceType_ColorRenderSurfaceLeft:
+			case dsGfxSurfaceType_ColorRenderSurfaceRight:
+			case dsGfxSurfaceType_DepthRenderSurface:
+			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
+			case dsGfxSurfaceType_DepthRenderSurfaceRight:
+				return (dsRenderSurface*)surfaces->surface;
+			default:
+				continue;
+		}
+	}
+
+	return NULL;
+}
+
 dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	const char* name, const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t width,
 	uint32_t height, uint32_t layers)
@@ -69,6 +91,8 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	framebuffer->realFramebuffers = NULL;
 	framebuffer->framebufferCount = 0;
 	framebuffer->maxFramebuffers = 0;
+
+	framebuffer->renderSurface = getRenderSurface(surfaces, surfaceCount);
 
 	framebuffer->lifetime = dsLifetime_create(allocator, framebuffer);
 	if (!framebuffer->lifetime)
@@ -119,9 +143,13 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 }
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	const dsVkRenderPassData* renderPass, bool update)
+	const dsVkRenderPassData* renderPass)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
+	const dsVkRenderSurfaceData* renderSurface = NULL;
+	if (vkFramebuffer->renderSurface)
+		renderSurface = ((dsVkRenderSurface*)vkFramebuffer->renderSurface)->surfaceData;
+
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));
 
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
@@ -129,10 +157,18 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
 		if (dsLifetime_getObject(realFramebuffer->renderPassData) == renderPass)
 		{
-			if (update)
+			if (realFramebuffer->renderSurface != renderSurface)
 			{
-				dsVkRealFramebuffer_updateRenderSurfaceImages(realFramebuffer,
-					framebuffer->surfaces, framebuffer->surfaceCount);
+				realFramebuffer = dsVkRealFramebuffer_create(vkFramebuffer->scratchAllocator,
+					framebuffer, renderPass, renderSurface);
+				if (realFramebuffer)
+				{
+					dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
+						vkFramebuffer->realFramebuffers[i]);
+					vkFramebuffer->realFramebuffers[i] = realFramebuffer;
+				}
+				else
+					realFramebuffer = NULL;
 			}
 			DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 			return realFramebuffer;
@@ -147,9 +183,8 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 		return NULL;
 	}
 
-	dsVkRealFramebuffer* realFramebuffer = dsVkRealFramebuffer_create(framebuffer->resourceManager,
-		vkFramebuffer->scratchAllocator, renderPass, framebuffer->surfaces,
-		framebuffer->surfaceCount, framebuffer->width, framebuffer->height, framebuffer->layers);
+	dsVkRealFramebuffer* realFramebuffer = dsVkRealFramebuffer_create(
+		vkFramebuffer->scratchAllocator, framebuffer, renderPass, renderSurface);;
 	if (!realFramebuffer)
 	{
 		--vkFramebuffer->framebufferCount;

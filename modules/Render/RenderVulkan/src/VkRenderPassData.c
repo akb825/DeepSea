@@ -17,6 +17,7 @@
 #include "VkRenderPassData.h"
 
 #include "Resources/VkFramebuffer.h"
+#include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkResource.h"
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkShader.h"
@@ -447,7 +448,7 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	uint32_t clearValueCount)
 {
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, renderPass, true);
+		(dsFramebuffer*)framebuffer, renderPass);
 	if (!realFramebuffer)
 		return false;
 
@@ -480,8 +481,8 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 
 	// Same memory layout for dsSurfaceClearValue and VkClearValue
 	return dsVkCommandBuffer_beginRenderPass(commandBuffer, renderPass->vkRenderPass,
-		realFramebuffer->framebuffer, &renderArea, &depthRange, (const VkClearValue*)clearValues,
-		clearValueCount);
+		dsVkRealFramebuffer_getFramebuffer(realFramebuffer), &renderArea, &depthRange,
+		(const VkClearValue*)clearValues, clearValueCount);
 }
 
 bool dsVkRenderPassData_nextSubpass(const dsVkRenderPassData* renderPass,
@@ -497,11 +498,6 @@ bool dsVkRenderPassData_end(const dsVkRenderPassData* renderPass, dsCommandBuffe
 	DS_ASSERT(commandBuffer->boundFramebuffer);
 	const dsFramebuffer* framebuffer = commandBuffer->boundFramebuffer;
 	DS_ASSERT(framebuffer);
-
-	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, renderPass, true);
-	if (!realFramebuffer)
-		return false;
 
 	// Submit resource barriers first so they get cleared before the framebuffer barriers are
 	// processed.

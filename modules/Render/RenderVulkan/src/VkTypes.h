@@ -358,18 +358,22 @@ typedef struct dsVkRenderbuffer
 	VkImageView imageView;
 } dsVkRenderbuffer;
 
+typedef struct dsVkRenderSurfaceData dsVkRenderSurfaceData;
+
 typedef struct dsVkRealFramebuffer
 {
 	dsAllocator* allocator;
 	dsVkDevice* device;
 	dsVkResource resource;
 
-	VkFramebuffer framebuffer;
+	VkFramebuffer* framebuffers;
 	dsLifetime* renderPassData;
+	const dsVkRenderSurfaceData* renderSurface;
 
 	VkImageView* imageViews;
 	bool* imageViewTemp;
-	uint32_t surfaceCount;
+	uint32_t imageCount;
+	uint32_t framebufferCount;
 } dsVkRealFramebuffer;
 
 typedef struct dsVkFramebuffer
@@ -378,6 +382,8 @@ typedef struct dsVkFramebuffer
 	dsAllocator* scratchAllocator;
 	dsLifetime* lifetime;
 	dsSpinlock lock;
+
+	const dsRenderSurface* renderSurface;
 
 	dsVkRealFramebuffer** realFramebuffers;
 	uint32_t framebufferCount;
@@ -620,7 +626,7 @@ typedef struct dsVkSurfaceImageData
 	uint64_t lastUsedSubmit;
 } dsVkSurfaceImageData;
 
-typedef struct dsVkRenderSurfaceData
+struct dsVkRenderSurfaceData
 {
 	dsAllocator* allocator;
 	dsRenderer* renderer;
@@ -648,7 +654,7 @@ typedef struct dsVkRenderSurfaceData
 	VkDeviceMemory depthMemory;
 	VkImage depthImage;
 	VkImageView depthImageView;
-} dsVkRenderSurfaceData;
+};
 
 typedef struct dsVkRenderSurface
 {
