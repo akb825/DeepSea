@@ -448,7 +448,7 @@ bool dsVkRenderPassData_begin(const dsVkRenderPassData* renderPass,
 	uint32_t clearValueCount)
 {
 	dsVkRealFramebuffer* realFramebuffer = dsVkFramebuffer_getRealFramebuffer(
-		(dsFramebuffer*)framebuffer, renderPass);
+		(dsFramebuffer*)framebuffer, commandBuffer, renderPass);
 	if (!realFramebuffer)
 		return false;
 

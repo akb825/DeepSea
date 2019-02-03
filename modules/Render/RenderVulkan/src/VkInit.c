@@ -275,7 +275,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 static void addLayers(const char** layerNames, uint32_t* layerCount,
 	const dsRendererOptions* options)
 {
-	if (options && options->debug && instanceExtensions.debug)
+	if (options && (options->debug || DS_PROFILING_ENABLED) && instanceExtensions.debug)
 		DS_ADD_EXTENSION(layerNames, *layerCount, debugLayerName);
 }
 

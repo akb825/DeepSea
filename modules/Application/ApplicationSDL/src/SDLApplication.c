@@ -643,7 +643,7 @@ int dsSDLApplication_run(dsApplication* application)
 
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 			swapSurfaces[i] = application->windows[i]->surface;
-		DS_VERIFY(dsRenderSurface_swapBuffers(swapSurfaces, application->windowCount));
+		dsRenderSurface_swapBuffers(swapSurfaces, application->windowCount);
 
 		DS_VERIFY(dsRenderer_endFrame(application->renderer));
 	}

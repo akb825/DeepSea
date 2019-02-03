@@ -18,6 +18,7 @@
 
 #include "Resources/VkRealFramebuffer.h"
 #include "Resources/VkResourceManager.h"
+#include "VkCommandBuffer.h"
 #include "VkRendererInternal.h"
 #include "VkRenderPassData.h"
 #include "VkShared.h"
@@ -143,7 +144,7 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 }
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	const dsVkRenderPassData* renderPass)
+	dsCommandBuffer* commandBuffer, const dsVkRenderPassData* renderPass)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
 	const dsVkRenderSurfaceData* renderSurface = NULL;
@@ -170,6 +171,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 				else
 					realFramebuffer = NULL;
 			}
+			dsVkCommandBuffer_addResource(commandBuffer, &realFramebuffer->resource);
 			DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 			return realFramebuffer;
 		}
@@ -193,6 +195,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 	}
 
 	vkFramebuffer->realFramebuffers[index] = realFramebuffer;
+	dsVkCommandBuffer_addResource(commandBuffer, &realFramebuffer->resource);
 
 	DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 

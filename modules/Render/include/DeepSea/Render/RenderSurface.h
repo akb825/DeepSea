@@ -106,7 +106,6 @@ DS_RENDER_EXPORT bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfac
  */
 DS_RENDER_EXPORT bool dsRenderSurface_destroy(dsRenderSurface* renderSurface);
 
-
 #ifdef __cplusplus
 }
 #endif

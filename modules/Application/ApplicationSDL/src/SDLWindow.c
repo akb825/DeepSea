@@ -413,6 +413,10 @@ bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window)
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
+
+	// Guarantee that the render surface is truly destroyed.
+	dsRenderer_waitUntilIdle(application->renderer);
+
 	if (sdlWindow->sdlWindow)
 		SDL_DestroyWindow(sdlWindow->sdlWindow);
 	dsRenderer_restoreGlobalState(application->renderer);
