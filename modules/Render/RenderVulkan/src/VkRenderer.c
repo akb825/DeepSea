@@ -2020,6 +2020,9 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	// convenient)
 	baseRenderer->shaderVersion = deviceProperties->apiVersion;
 
+	if (baseRenderer->deviceName)
+		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);
+
 	VkPhysicalDeviceFeatures deviceFeatures;
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);
 
