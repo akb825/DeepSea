@@ -266,7 +266,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	{
 		errno = EPERM;
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
-		return false;
+		return NULL;
 	}
 
 	VkBool32 supported = false;
@@ -351,7 +351,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	result = DS_VK_CALL(device->vkCreateSwapchainKHR)(device->device, &createInfo,
 		instance->allocCallbacksPtr, &swapchain);
 	if (!dsHandleVkResult(result))
-		return false;
+		return NULL;
 
 	uint32_t imageCount = 0;
 	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
