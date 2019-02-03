@@ -64,7 +64,7 @@ VkSurfaceKHR dsVkPlatformWin32_createSurface(dsVkInstance* instance, void* displ
 
 	VkWin32SurfaceCreateInfoKHR createInfo =
 	{
-		VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+		VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
 		NULL,
 		0,
 		GetModuleHandle(NULL),

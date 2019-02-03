@@ -275,7 +275,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 static void addLayers(const char** layerNames, uint32_t* layerCount,
 	const dsRendererOptions* options)
 {
-	if (options && (options->debug || DS_PROFILING_ENABLED) && instanceExtensions.debug)
+	if (((options && options->debug) || DS_PROFILING_ENABLED) && instanceExtensions.debug)
 		DS_ADD_EXTENSION(layerNames, *layerCount, debugLayerName);
 }
 
@@ -575,6 +575,9 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 		};
 		instance->vkCreateDebugUtilsMessengerEXT(instance->instance, &debugCreateInfo,
 			instance->allocCallbacksPtr, &instance->debugCallback);
+
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
+		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
 	}
 	else
 		instance->debugCallback = 0;
@@ -771,12 +774,6 @@ bool dsCreateVkDevice(dsVkDevice* device, dsAllocator* allocator, const dsRender
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroyDevice);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
-
-	if (instanceExtensions.debug && ((options && options->debug) || DS_PROFILING_ENABLED))
-	{
-		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdBeginDebugUtilsLabelEXT);
-		DS_LOAD_VK_DEVICE_FUNCTION(device, vkCmdEndDebugUtilsLabelEXT);
-	}
 
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkCreateSwapchainKHR);
 	DS_LOAD_VK_DEVICE_FUNCTION(device, vkDestroySwapchainKHR);

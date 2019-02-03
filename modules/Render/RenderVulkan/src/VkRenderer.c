@@ -1879,7 +1879,8 @@ bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandB
 	const char* name)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	if (!device->vkCmdBeginDebugUtilsLabelEXT)
+	dsVkInstance* instance = &device->instance;
+	if (!instance->vkCmdBeginDebugUtilsLabelEXT)
 		return true;
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
@@ -1893,21 +1894,22 @@ bool dsVkRenderer_pushDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandB
 		name,
 		{0.0f, 0.0f, 0.0f, 0.0f}
 	};
-	DS_VK_CALL(device->vkCmdBeginDebugUtilsLabelEXT)(submitBuffer, &label);
+	DS_VK_CALL(instance->vkCmdBeginDebugUtilsLabelEXT)(submitBuffer, &label);
 	return true;
 }
 
 bool dsVkRenderer_popDebugGroup(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
-	if (!device->vkCmdBeginDebugUtilsLabelEXT)
+	dsVkInstance* instance = &device->instance;
+	if (!instance->vkCmdBeginDebugUtilsLabelEXT)
 		return true;
 
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
-	DS_VK_CALL(device->vkCmdEndDebugUtilsLabelEXT)(submitBuffer);
+	DS_VK_CALL(instance->vkCmdEndDebugUtilsLabelEXT)(submitBuffer);
 	return true;
 }
 

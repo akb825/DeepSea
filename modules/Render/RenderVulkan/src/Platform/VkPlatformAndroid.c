@@ -54,7 +54,7 @@ VkSurfaceKHR dsVkPlatformAndroid_createSurface(dsVkInstance* instance, void* dis
 
 	VkAndroidSurfaceCreateInfoKHR createInfo =
 	{
-		VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+		VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
 		NULL,
 		0,
 		(struct ANativeWindow*)window

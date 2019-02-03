@@ -54,7 +54,7 @@ VkSurfaceKHR dsVkPlatformWayland_createSurface(dsVkInstance* instance, void* dis
 
 	VkWaylandSurfaceCreateInfoKHR createInfo =
 	{
-		VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+		VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR,
 		NULL,
 		0,
 		(struct wl_display*)display,
