@@ -257,7 +257,7 @@ bool dsVkRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuf
 bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
 	uint32_t count)
 {
-	VkSemaphore semaphore = dsVkRenderer_flushImpl(renderer, true);
+	VkSemaphore semaphore = dsVkRenderer_flushImpl(renderer, true, true);
 	VkSwapchainKHR* swapchains = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSwapchainKHR, count);
 	uint32_t* imageIndices = DS_ALLOCATE_STACK_OBJECT_ARRAY(uint32_t, count);
 	for (uint32_t i = 0; i < count; ++i)

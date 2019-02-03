@@ -1287,7 +1287,7 @@ bool dsVkRenderer_beginFrame(dsRenderer* renderer)
 
 bool dsVkRenderer_endFrame(dsRenderer* renderer)
 {
-	dsVkRenderer_flushImpl(renderer, true);
+	dsVkRenderer_flushImpl(renderer, true, false);
 	return true;
 }
 
@@ -1698,7 +1698,7 @@ bool dsVkRenderer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* commandBu
 
 bool dsVkRenderer_flush(dsRenderer* renderer)
 {
-	dsVkRenderer_flushImpl(renderer, true);
+	dsVkRenderer_flushImpl(renderer, true, false);
 	return true;
 }
 
@@ -1706,7 +1706,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
-	dsVkRenderer_flushImpl(renderer, true);
+	dsVkRenderer_flushImpl(renderer, true, false);
 	DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
 	// All resources waiting to be freed should now be freeable.
 	freeResources(vkRenderer);
@@ -2006,22 +2006,16 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	return baseRenderer;
 }
 
-VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
+VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool useSemaphore)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
-	// Get the submit queue, waiting if it's not ready.
+	// Get the submit queue,
 	dsVkSubmitInfo* submit = vkRenderer->submits + vkRenderer->curSubmit;
 	dsCommandBuffer* submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
 	DS_ASSERT(vkRenderer->mainCommandBuffer.realCommandBuffer == submitBuffer);
 	dsVkCommandBuffer* vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
-	if (submit->submitIndex != DS_NOT_SUBMITTED)
-	{
-		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
-			DS_DEFAULT_WAIT_TIMEOUT);
-		vkRenderer->finishedSubmitCount = submit->submitIndex;
-	}
 
 	// Free resources that are waiting to be in an unused state.
 	freeResources(vkRenderer);
@@ -2066,16 +2060,17 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 		}
 	}
 
+	VkSemaphore submittedSemaphore = useSemaphore ? submit->semaphore : 0;
+
 	VkSubmitInfo submitInfo =
 	{
 		VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		NULL,
 		vkSubmitBuffer->renderSurfaceCount, waitSemaphores, waitStages,
 		vkSubmitBuffer->submitBufferCount, vkSubmitBuffer->submitBuffers,
-		1, &submit->semaphore
+		useSemaphore ? 1 : 0, &submittedSemaphore
 	};
 	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
-	VkSemaphore submittedSemaphore = submit->semaphore;
 
 	// Clean up the previous command buffer.
 	dsVkCommandBuffer_submittedResources(submitBuffer, vkRenderer->submitCount);
@@ -2087,6 +2082,14 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback)
 	submit = vkRenderer->submits + vkRenderer->curSubmit;
 	submitBuffer = (dsCommandBuffer*)&submit->commandBuffer;
 	vkSubmitBuffer = (dsVkCommandBuffer*)submitBuffer;
+
+	// Wait untile we can use the command buffer.
+	if (submit->submitIndex != DS_NOT_SUBMITTED)
+	{
+		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
+			DS_DEFAULT_WAIT_TIMEOUT);
+		vkRenderer->finishedSubmitCount = submit->submitIndex;
+	}
 
 	vkRenderer->mainCommandBuffer.realCommandBuffer = submitBuffer;
 	dsVkCommandBuffer_prepare(submitBuffer);

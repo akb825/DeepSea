@@ -520,6 +520,7 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	DS_VK_CALL(device->vkResetCommandPool)(device->device, vkCommandBuffer->commandPool, 0);
 	vkCommandBuffer->activeCommandBuffer = 0;
 	vkCommandBuffer->activeSubpassBuffer = 0;
+	vkCommandBuffer->submitBufferCount = 0;
 	resetActiveRenderAndComputeState(vkCommandBuffer);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->commandBufferData);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->subpassBufferData);
@@ -602,7 +603,8 @@ void dsVkCommandBuffer_submitFence(dsCommandBuffer* commandBuffer, bool readback
 	{
 		dsVkCommandBufferWrapper* wrapper = (dsVkCommandBufferWrapper*)commandBuffer;
 		dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)wrapper->realCommandBuffer;
-		dsVkRenderer_flushImpl(commandBuffer->renderer, readback || vkCommandBuffer->fenceReadback);
+		dsVkRenderer_flushImpl(commandBuffer->renderer, readback || vkCommandBuffer->fenceReadback,
+			false);
 		vkCommandBuffer->fenceSet = false;
 		vkCommandBuffer->fenceReadback = false;
 		return;

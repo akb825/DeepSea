@@ -1072,6 +1072,8 @@ bool dsVkShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffe
 bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 {
 	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkInstance* instance = &device->instance;
 	dsVkShader* vkShader = (dsVkShader*)shader;
 
 	// Clear out the array inside the lock, then destroy the objects outside to avoid nested locks
@@ -1128,6 +1130,21 @@ bool dsVkShader_destroy(dsResourceManager* resourceManager, dsShader* shader)
 
 	dsLifetime_destroy(vkShader->lifetime);
 
+	for (int i = 0; i < mslStage_Count; ++i)
+	{
+		if (vkShader->shaders[i])
+		{
+			DS_VK_CALL(device->vkDestroyShaderModule)(device->device, vkShader->shaders[i],
+				instance->allocCallbacksPtr);
+		}
+	}
+
+	if (vkShader->layout)
+	{
+		DS_VK_CALL(device->vkDestroyPipelineLayout)(device->device, vkShader->layout,
+			instance->allocCallbacksPtr);
+	}
+
 	dsVkRenderer_deleteSamplerList(renderer, vkShader->samplers);
 	dsVkRenderer_deleteComputePipeline(renderer, vkShader->computePipeline);
 
@@ -1178,12 +1195,14 @@ void dsVkShader_removeMaterial(dsShader* shader, dsDeviceMaterial* material)
 	DS_VERIFY(dsSpinlock_lock(&vkShader->materialLock));
 	for (uint32_t i = 0; i < vkShader->usedMaterialCount; ++i)
 	{
-		void* usedMaterial = dsLifetime_getObject(vkShader->usedMaterials[i]);
+		dsLifetime* materialLifetime = vkShader->usedMaterials[i];
+		void* usedMaterial = dsLifetime_getObject(materialLifetime);
 		DS_ASSERT(usedMaterial);
 		if (usedMaterial == material)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedMaterials,
 				vkShader->usedMaterialCount, i, 1));
+			dsLifetime_freeRef(materialLifetime);
 			break;
 		}
 	}
@@ -1200,12 +1219,14 @@ void dsVkShader_removeRenderPass(dsShader* shader, dsVkRenderPassData* renderPas
 	bool wasRegistered = false;
 	for (uint32_t i = 0; i < vkShader->usedRenderPassCount; ++i)
 	{
-		void* usedRenderPass = dsLifetime_getObject(vkShader->usedRenderPasses[i]);
+		dsLifetime* renderPassLifetime = vkShader->usedRenderPasses[i];
+		void* usedRenderPass = dsLifetime_getObject(renderPassLifetime);
 		DS_ASSERT(usedRenderPass);
 		if (usedRenderPass == renderPass)
 		{
 			DS_VERIFY(DS_RESIZEABLE_ARRAY_REMOVE(vkShader->usedRenderPasses,
 				vkShader->usedRenderPassCount, i, 1));
+			dsLifetime_freeRef(renderPassLifetime);
 			wasRegistered = true;
 			break;
 		}

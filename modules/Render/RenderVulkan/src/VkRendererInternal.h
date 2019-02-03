@@ -19,7 +19,7 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback);
+VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool useSemaphore);
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,
 	uint64_t timeout);
 
