@@ -663,6 +663,7 @@ typedef struct dsVkRenderSurface
 
 	VkSurfaceKHR surface;
 	dsVkRenderSurfaceData* surfaceData;
+	bool surfaceError;
 	uint64_t updatedFrame;
 	dsSpinlock lock;
 } dsVkRenderSurface;

@@ -147,7 +147,8 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
 
-	if (vkSurface->surfaceData && vkSurface->surfaceData->vsync == renderer->vsync)
+	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
+		vkSurface->surfaceData->vsync == renderer->vsync)
 	{
 		VkSurfaceCapabilitiesKHR surfaceInfo;
 		VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
@@ -173,15 +174,16 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
-	// Swapchain is retired even if creation failed.
-	dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
-	vkSurface->surfaceData = surfaceData;
-
 	if (surfaceData)
 	{
+		dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
+		vkSurface->surfaceData = surfaceData;
+
 		renderSurface->width = vkSurface->surfaceData->width;
 		renderSurface->height = vkSurface->surfaceData->height;
 	}
+	else
+		vkSurface->surfaceError = true;
 	DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 
 	return surfaceData != NULL;
@@ -200,7 +202,8 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 		return transitionToRenderable(commandBuffer, vkSurface->surfaceData);
 	}
 
-	if (vkSurface->surfaceData && vkSurface->surfaceData->vsync == renderer->vsync)
+	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
+		vkSurface->surfaceData->vsync == renderer->vsync)
 	{
 		dsVkSurfaceResult result = dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData);
 		if (result == dsVkSurfaceResult_Success)
@@ -224,13 +227,14 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain);
-	// Swapchain is retired even if creation failed.
-	dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
-	vkSurface->surfaceData = surfaceData;
 
 	bool success = false;
 	if (surfaceData)
 	{
+		dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
+		vkSurface->surfaceData = surfaceData;
+		vkSurface->surfaceError = false;
+
 		if (dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData) == dsVkSurfaceResult_Success)
 		{
 			success = dsVkCommandBuffer_addResource(commandBuffer,
@@ -239,6 +243,8 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 				vkSurface->updatedFrame = renderer->frameNumber;
 		}
 	}
+	else
+		vkSurface->surfaceError = true;
 	DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 
 	if (success)
