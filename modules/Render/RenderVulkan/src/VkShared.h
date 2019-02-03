@@ -61,6 +61,6 @@ VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
 	dsClearDepthStencil surfaceParts);
 VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile);
 
-VkCompareOp dsVkCompareOp(mslCompareOp compareOp);
+VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);
 VkShaderStageFlagBits dsVkShaderStage(mslStage stage);
 VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type);

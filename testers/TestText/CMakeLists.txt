@@ -7,7 +7,6 @@ if (NOT MSLC)
 	return()
 endif()
 
-set(libraries)
 set(shaderConfigs)
 set(source TestText.c Font.msl FontTess.msl Box.msl)
 if (TARGET deepsea_render_opengl)
@@ -18,16 +17,16 @@ if (NOT shaderConfigs)
 	return()
 endif()
 
-if (TARGET deepsea_easy_profiler)
-	list(APPEND libraries deepsea_easy_profiler)
-	list(APPEND defines DS_HAS_EASY_PROFILER=1)
-endif()
-
 ds_add_executable(deepsea_test_text_app WIN32 ${source})
 target_link_libraries(deepsea_test_text_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_text ${libraries})
+	deepsea_application_sdl deepsea_text)
 ds_link_main_lib(deepsea_test_text_app deepsea_application_sdl_main)
-target_compile_definitions(deepsea_test_text_app PRIVATE ${defines})
+target_compile_definitions(deepsea_test_text_app PRIVATE)
+
+if (TARGET deepsea_easy_profiler)
+	target_link_libraries(deepsea_test_text_app PRIVATE deepsea_easy_profiler)
+	target_compile_definitions(deepsea_test_text_app PRIVATE DS_HAS_EASY_PROFILER=1)
+endif()
 
 # Cannot use generator expressions for the custom commands.
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)

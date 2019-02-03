@@ -18,8 +18,6 @@ if (NOT PYTHONINTERP_FOUND)
 	return()
 endif()
 
-set(libraries)
-set(defines)
 set(shaderConfigs)
 set(srgbShaderConfigs)
 set(source TestVectorDraw.c
@@ -34,16 +32,15 @@ if (NOT shaderConfigs)
 	return()
 endif()
 
-if (TARGET deepsea_easy_profiler)
-	list(APPEND libraries deepsea_easy_profiler)
-	list(APPEND defines DS_HAS_EASY_PROFILER=1)
-endif()
-
 ds_add_executable(deepsea_test_vector_draw_app WIN32 ${source})
 target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_render_bootstrap
-	deepsea_application_sdl deepsea_vector_draw ${libraries})
+	deepsea_application_sdl deepsea_vector_draw)
 ds_link_main_lib(deepsea_test_vector_draw_app deepsea_application_sdl_main)
-target_compile_definitions(deepsea_test_vector_draw_app PRIVATE ${defines})
+
+if (TARGET deepsea_easy_profiler)
+	target_link_libraries(deepsea_test_vector_draw_app PRIVATE deepsea_easy_profiler)
+	target_compile_definitions(deepsea_test_vector_draw_app PRIVATE DS_HAS_EASY_PROFILER=1)
+endif()
 
 set(shaderDir ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 set(resourceDir ${CMAKE_CURRENT_BINARY_DIR}/resources)

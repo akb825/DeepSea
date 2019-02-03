@@ -59,6 +59,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
@@ -2008,6 +2009,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool useSemaphore)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 
@@ -2096,7 +2099,7 @@ VkSemaphore dsVkRenderer_flushImpl(dsRenderer* renderer, bool readback, bool use
 
 	submit->resourceCommands = dsVkCommandBuffer_getCommandBuffer(submitBuffer);
 	dsVkCommandBuffer_forceNewCommandBuffer(submitBuffer);
-	return submittedSemaphore;
+	DS_PROFILE_FUNC_RETURN(submittedSemaphore);
 }
 
 dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submitCount,

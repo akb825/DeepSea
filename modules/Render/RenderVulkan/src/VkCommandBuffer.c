@@ -686,7 +686,7 @@ bool dsVkCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer, VkRenderP
 		{
 			return false;
 		}
-		memcpy(vkCommandBuffer->clearValues, clearValues, clearValueCount);
+		memcpy(vkCommandBuffer->clearValues, clearValues, sizeof(VkClearValue)*clearValueCount);
 	}
 
 	vkCommandBuffer->subpassBufferCount = 0;

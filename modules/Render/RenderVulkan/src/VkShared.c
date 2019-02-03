@@ -363,7 +363,7 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile)
 	}
 }
 
-VkCompareOp dsVkCompareOp(mslCompareOp compareOp)
+VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp)
 {
 	switch (compareOp)
 	{
@@ -383,7 +383,7 @@ VkCompareOp dsVkCompareOp(mslCompareOp compareOp)
 			return VK_COMPARE_OP_ALWAYS;
 		case mslCompareOp_Never:
 		default:
-			return VK_COMPARE_OP_NEVER;
+			return defaultOp;
 	}
 }
 

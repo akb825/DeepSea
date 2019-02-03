@@ -178,7 +178,7 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 			samplerState.maxAnisotropy == MSL_UNKNOWN_FLOAT ? samplers->defaultAnisotropy :
 				samplerState.maxAnisotropy,
 			samplerState.compareOp != mslCompareOp_Unset,
-			dsVkCompareOp(samplerState.compareOp),
+			dsVkCompareOp(samplerState.compareOp, VK_COMPARE_OP_LESS),
 			samplerState.minLod == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.minLod,
 			samplerState.mipFilter == mslMipFilter_None ? 0.25f :
 				(samplerState.maxLod == MSL_UNKNOWN_FLOAT ? 1000.0f : samplerState.maxLod),

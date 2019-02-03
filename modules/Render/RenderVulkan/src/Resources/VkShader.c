@@ -72,14 +72,13 @@ static VkCullModeFlags cullMode(mslCullMode mode)
 
 static VkFrontFace frontFace(mslFrontFace face)
 {
-	// NOTE: Swap winding order due to inverted viewport Y coordinate.
 	switch (face)
 	{
 		case mslFrontFace_Clockwise:
-			return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+			return VK_FRONT_FACE_CLOCKWISE;
 		case mslFrontFace_CounterClockwise:
 		default:
-			return VK_FRONT_FACE_CLOCKWISE;
+			return VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	}
 }
 
@@ -226,7 +225,7 @@ static void copyStencilState(VkStencilOpState* vkStencilState,
 	vkStencilState->failOp = stencilOp(stencilState->failOp);
 	vkStencilState->passOp = stencilOp(stencilState->passOp);
 	vkStencilState->depthFailOp = stencilOp(stencilState->depthFailOp);
-	vkStencilState->compareOp = dsVkCompareOp(stencilState->compareOp);
+	vkStencilState->compareOp = dsVkCompareOp(stencilState->compareOp, VK_COMPARE_OP_NEVER);
 	vkStencilState->compareMask = stencilState->compareMask;
 	vkStencilState->writeMask = stencilState->writeMask;
 	vkStencilState->reference = stencilState->reference;
@@ -344,7 +343,8 @@ static void setupCommonStates(dsShader* shader)
 	depthStencilInfo->flags = 0;
 	depthStencilInfo->depthTestEnable = depthStencilState->depthTestEnable == mslBool_True;
 	depthStencilInfo->depthWriteEnable = depthStencilState->depthWriteEnable == mslBool_True;
-	depthStencilInfo->depthCompareOp = dsVkCompareOp(depthStencilState->depthCompareOp);
+	depthStencilInfo->depthCompareOp = dsVkCompareOp(depthStencilState->depthCompareOp,
+		VK_COMPARE_OP_LESS);
 	depthStencilInfo->depthBoundsTestEnable = features->depthBounds &&
 		depthStencilState->depthBoundsTestEnable == mslBool_True;
 	depthStencilInfo->stencilTestEnable = depthStencilState->stencilTestEnable == mslBool_True;
