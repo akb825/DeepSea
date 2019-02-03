@@ -237,8 +237,7 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 
 		if (dsVkRenderSurfaceData_acquireImage(vkSurface->surfaceData) == dsVkSurfaceResult_Success)
 		{
-			success = dsVkCommandBuffer_addResource(commandBuffer,
-				&vkSurface->surfaceData->resource);
+			success = dsVkCommandBuffer_addRenderSurface(commandBuffer, vkSurface->surfaceData);
 			if (success)
 				vkSurface->updatedFrame = renderer->frameNumber;
 		}
