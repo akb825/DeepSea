@@ -163,6 +163,12 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 				return true;
 			}
+			else if (surfaceInfo.currentExtent.width == 0 || surfaceInfo.currentExtent.height == 0)
+			{
+				// Ignore if the size is 0. (e.g. minimized)
+				DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+				return true;
+			}
 		}
 		else if (result != VK_ERROR_OUT_OF_DATE_KHR)
 		{
@@ -222,6 +228,19 @@ bool dsVkRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
 			return false;
 		}
+	}
+
+	// Ignore if the size is 0. (e.g. minimized)
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkInstance* instance = &device->instance;
+	VkSurfaceCapabilitiesKHR surfaceInfo;
+	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
+		device->physicalDevice, vkSurface->surface, &surfaceInfo);
+	if (result == VK_SUCCESS && surfaceInfo.currentExtent.width == 0 &&
+		surfaceInfo.currentExtent.height == 0)
+	{
+		DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+		return true;
 	}
 
 	VkSwapchainKHR prevSwapchain = vkSurface->surfaceData ? vkSurface->surfaceData->swapchain : 0;
