@@ -67,6 +67,7 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 	pipeline->primitiveType = primitiveType;
 	memcpy(pipeline->formats, formats, sizeof(pipeline->formats));
 	pipeline->renderPass = dsLifetime_addRef(renderPassData->lifetime);
+	pipeline->subpass = subpass;
 
 	uint32_t stageCount = 0;
 	VkPipelineShaderStageCreateInfo stages[mslStage_Count];
