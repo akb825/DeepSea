@@ -2130,7 +2130,10 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->flushFunc = &dsVkRenderer_flush;
 	baseRenderer->waitUntilIdleFunc = &dsVkRenderer_waitUntilIdle;
 
-	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
+	// NOTE: Initializing resources sets up the debug context. However, this appears to crash in the
+	// validation layer when doing things like changing the AA samples or vsync while rendering.
+	// Look to re-enable later if/when this gets fixed.
+	//DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
 }
