@@ -74,6 +74,18 @@ static VkFormat supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkForma
 	return 0;
 }
 
+static bool hasPresentMode(const VkPresentModeKHR* presentModes, uint32_t presentModeCount,
+	VkPresentModeKHR mode)
+{
+	for (uint32_t i = 0; i < presentModeCount; ++i)
+	{
+		if (presentModes[i] == mode)
+			return true;
+	}
+
+	return false;
+}
+
 static VkPresentModeKHR getPresentMode(dsVkDevice* device, VkSurfaceKHR surface, bool vsync)
 {
 	dsVkInstance* instance = &device->instance;
@@ -90,10 +102,12 @@ static VkPresentModeKHR getPresentMode(dsVkDevice* device, VkSurfaceKHR surface,
 	if (result != VK_SUCCESS)
 		return VK_PRESENT_MODE_FIFO_KHR;
 
-	for (uint32_t i = 0; i < modeCount; ++i)
+	if (!vsync)
 	{
-		if (!vsync && presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
+		if (hasPresentMode(presentModes, modeCount, VK_PRESENT_MODE_IMMEDIATE_KHR))
 			return VK_PRESENT_MODE_IMMEDIATE_KHR;
+		if (hasPresentMode(presentModes, modeCount, VK_PRESENT_MODE_MAILBOX_KHR))
+			return VK_PRESENT_MODE_MAILBOX_KHR;
 	}
 
 	return VK_PRESENT_MODE_FIFO_KHR;
