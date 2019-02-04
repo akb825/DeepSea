@@ -368,7 +368,7 @@ typedef struct dsVkRealFramebuffer
 
 	VkFramebuffer* framebuffers;
 	dsLifetime* renderPassData;
-	const dsVkRenderSurfaceData* renderSurface;
+	const dsVkRenderSurfaceData* surfaceData;
 
 	VkImageView* imageViews;
 	bool* imageViewTemp;
@@ -383,7 +383,7 @@ typedef struct dsVkFramebuffer
 	dsLifetime* lifetime;
 	dsSpinlock lock;
 
-	const dsRenderSurface* renderSurface;
+	dsLifetime* renderSurface;
 
 	dsVkRealFramebuffer** realFramebuffers;
 	uint32_t framebufferCount;
@@ -660,6 +660,7 @@ typedef struct dsVkRenderSurface
 {
 	dsRenderSurface renderSurface;
 	dsAllocator* scratchAllocator;
+	dsLifetime* lifetime;
 
 	VkSurfaceKHR surface;
 	dsVkRenderSurfaceData* surfaceData;

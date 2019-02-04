@@ -32,7 +32,7 @@
 #include <DeepSea/Core/Log.h>
 #include <string.h>
 
-static const dsRenderSurface* getRenderSurface(const dsFramebufferSurface* surfaces,
+static const dsVkRenderSurface* getRenderSurface(const dsFramebufferSurface* surfaces,
 	uint32_t surfaceCount)
 {
 	for (uint32_t i = 0; i < surfaceCount; ++i)
@@ -45,7 +45,7 @@ static const dsRenderSurface* getRenderSurface(const dsFramebufferSurface* surfa
 			case dsGfxSurfaceType_DepthRenderSurface:
 			case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 			case dsGfxSurfaceType_DepthRenderSurfaceRight:
-				return (dsRenderSurface*)surfaces->surface;
+				return (dsVkRenderSurface*)surfaces->surface;
 			default:
 				continue;
 		}
@@ -93,7 +93,9 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	framebuffer->framebufferCount = 0;
 	framebuffer->maxFramebuffers = 0;
 
-	framebuffer->renderSurface = getRenderSurface(surfaces, surfaceCount);
+	const dsVkRenderSurface* renderSurface = getRenderSurface(surfaces, surfaceCount);
+	if (renderSurface)
+		framebuffer->renderSurface = dsLifetime_addRef(renderSurface->lifetime);
 
 	framebuffer->lifetime = dsLifetime_create(allocator, framebuffer);
 	if (!framebuffer->lifetime)
@@ -109,6 +111,8 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 {
 	dsRenderer* renderer = resourceManager->renderer;
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
+
+	dsLifetime_freeRef(vkFramebuffer->renderSurface);
 
 	// Clear out the array inside the lock, then destroy the objects outside to avoid nested locks
 	// that can deadlock. The lifetime object protects against shaders being destroyed concurrently
@@ -144,24 +148,32 @@ bool dsVkFramebuffer_destroy(dsResourceManager* resourceManager, dsFramebuffer* 
 }
 
 dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuffer,
-	dsCommandBuffer* commandBuffer, const dsVkRenderPassData* renderPass)
+	dsCommandBuffer* commandBuffer, const dsVkRenderPassData* renderPassData)
 {
 	dsVkFramebuffer* vkFramebuffer = (dsVkFramebuffer*)framebuffer;
-	const dsVkRenderSurfaceData* renderSurface = NULL;
+	const dsVkRenderSurfaceData* surfaceData = NULL;
 	if (vkFramebuffer->renderSurface)
-		renderSurface = ((dsVkRenderSurface*)vkFramebuffer->renderSurface)->surfaceData;
+	{
+		const dsVkRenderSurface* renderSurface =
+			(const dsVkRenderSurface*)dsLifetime_acquire(vkFramebuffer->renderSurface);
+		if (!renderSurface)
+			return NULL;
+
+		surfaceData = renderSurface->surfaceData;
+		dsLifetime_release(vkFramebuffer->renderSurface);
+	}
 
 	DS_VERIFY(dsSpinlock_lock(&vkFramebuffer->lock));
 
 	for (uint32_t i = 0; i < vkFramebuffer->framebufferCount; ++i)
 	{
 		dsVkRealFramebuffer* realFramebuffer = vkFramebuffer->realFramebuffers[i];
-		if (dsLifetime_getObject(realFramebuffer->renderPassData) == renderPass)
+		if (dsLifetime_getObject(realFramebuffer->renderPassData) == renderPassData)
 		{
-			if (realFramebuffer->renderSurface != renderSurface)
+			if (realFramebuffer->surfaceData != surfaceData)
 			{
 				realFramebuffer = dsVkRealFramebuffer_create(vkFramebuffer->scratchAllocator,
-					framebuffer, renderPass, renderSurface);
+					framebuffer, renderPassData, surfaceData);
 				if (realFramebuffer)
 				{
 					dsVkRenderer_deleteFramebuffer(framebuffer->resourceManager->renderer,
@@ -186,7 +198,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 	}
 
 	dsVkRealFramebuffer* realFramebuffer = dsVkRealFramebuffer_create(
-		vkFramebuffer->scratchAllocator, framebuffer, renderPass, renderSurface);;
+		vkFramebuffer->scratchAllocator, framebuffer, renderPassData, surfaceData);
 	if (!realFramebuffer)
 	{
 		--vkFramebuffer->framebufferCount;
@@ -199,7 +211,7 @@ dsVkRealFramebuffer* dsVkFramebuffer_getRealFramebuffer(dsFramebuffer* framebuff
 
 	DS_VERIFY(dsSpinlock_unlock(&vkFramebuffer->lock));
 
-	dsVkRenderPassData_addFramebuffer((dsVkRenderPassData*)renderPass, framebuffer);
+	dsVkRenderPassData_addFramebuffer((dsVkRenderPassData*)renderPassData, framebuffer);
 	return realFramebuffer;
 }
 

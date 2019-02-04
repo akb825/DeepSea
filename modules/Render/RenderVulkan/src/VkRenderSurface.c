@@ -23,9 +23,11 @@
 #include "VkShared.h"
 
 #include <DeepSea/Core/Memory/Allocator.h>
+#include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Render/Renderer.h>
 
 static bool transitionToRenderable(dsCommandBuffer* commandBuffer, dsVkRenderSurfaceData* surface)
 {
@@ -121,9 +123,19 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	baseRenderSurface->surfaceType = type;
 
 	renderSurface->scratchAllocator = renderer->allocator;
+	renderSurface->lifetime = NULL;
 	renderSurface->surface = surface;
+	renderSurface->surfaceData = NULL;
+	renderSurface->surfaceError = false;
 	renderSurface->updatedFrame = renderer->frameNumber - 1;
 	DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
+
+	renderSurface->lifetime = dsLifetime_create(allocator, renderSurface);
+	if (!renderSurface->lifetime)
+	{
+		dsVkRenderSurface_destroy(renderer, baseRenderSurface);
+		return NULL;
+	}
 
 	renderSurface->surfaceData = dsVkRenderSurfaceData_create(renderSurface->scratchAllocator,
 		renderer, surface, renderer->vsync, 0);
@@ -317,9 +329,14 @@ bool dsVkRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** rende
 bool dsVkRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface)
 {
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
+	dsLifetime_destroy(vkSurface->lifetime);
+
 	dsVkRenderer_deleteRenderSurface(renderer, vkSurface->surfaceData);
 	dsSpinlock_shutdown(&vkSurface->lock);
 	if (renderSurface->allocator)
 		DS_VERIFY(dsAllocator_free(renderSurface->allocator, renderSurface));
+
+	// Make sure it's fully destroyed.
+	dsRenderer_waitUntilIdle(renderer);
 	return true;
 }

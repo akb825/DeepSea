@@ -416,12 +416,12 @@ bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window)
 	if (!dsRenderSurface_destroy(window->surface))
 		return false;
 
-	// Guarantee that the render surface is truly destroyed.
-	dsRenderer_waitUntilIdle(application->renderer);
-
 	if (sdlWindow->sdlWindow)
 		SDL_DestroyWindow(sdlWindow->sdlWindow);
+
+	// Handle cases like OpenGL where the window could be globally bound.
 	dsRenderer_restoreGlobalState(application->renderer);
+
 	if (window->allocator)
 		DS_VERIFY(dsAllocator_free(window->allocator, window));
 	return true;

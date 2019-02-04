@@ -352,6 +352,8 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	glRenderer->tempCopyFramebuffer = 0;
 	memset(glRenderer->boundAttributes, 0, sizeof(glRenderer->boundAttributes));
 
+	renderer->surfaceSamples = samples;
+
 	return true;
 }
 

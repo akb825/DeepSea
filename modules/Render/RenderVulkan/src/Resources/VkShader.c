@@ -832,7 +832,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		}
 
 		if (sampler.mipFilter == mslMipFilter_Anisotropic &&
-			sampler.maxAnisotropy != MSL_UNKNOWN_FLOAT)
+			sampler.maxAnisotropy == MSL_UNKNOWN_FLOAT)
 		{
 			samplersHaveDefaultAnisotropy = true;
 		}
@@ -1312,6 +1312,10 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	if (!renderPass)
 		return 0;
 
+	dsVkRenderPassData* renderPassData = dsVkRenderPass_getData(renderPass);
+	if (!renderPassData)
+		return 0;
+
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	if (!vkShader->shaders[mslStage_Vertex])
 		return 0;
@@ -1357,7 +1361,7 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		dsVkPipeline* pipeline = vkShader->pipelines[i];
 		if (dsVkPipeline_isEquivalent(pipeline, hash, samples, anisotropy,
-			primitiveType, formats, renderPass, subpassIndex))
+			primitiveType, formats, renderPassData, subpassIndex))
 		{
 			VkPipeline vkPipeline = pipeline->pipeline;
 			if (!dsVkCommandBuffer_addResource(commandBuffer, &pipeline->resource))
@@ -1392,14 +1396,13 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 	{
 		void* usedRenderPass = dsLifetime_getObject(vkShader->usedRenderPasses[i]);
 		DS_ASSERT(usedRenderPass);
-		if (usedRenderPass == renderPass)
+		if (usedRenderPass == renderPassData)
 		{
 			hasRenderPass = true;
 			break;
 		}
 	}
 
-	dsVkRenderPassData* renderPassData = NULL;
 	if (!hasRenderPass)
 	{
 		uint32_t passIndex = vkShader->usedRenderPassCount;
@@ -1412,14 +1415,13 @@ VkPipeline dsVkShader_getPipeline(dsShader* shader, dsCommandBuffer* commandBuff
 			return 0;
 		}
 
-		renderPassData = dsVkRenderPass_getData(renderPass);
 		vkShader->usedRenderPasses[passIndex] = dsLifetime_addRef(renderPassData->lifetime);
 	}
 
 	VkPipeline vkPipeline = vkShader->pipelines[index]->pipeline;
 	DS_VERIFY(dsSpinlock_unlock(&vkShader->pipelineLock));
 
-	if (renderPassData)
+	if (!hasRenderPass)
 		dsVkRenderPassData_addShader(renderPassData, shader);
 
 	return vkPipeline;

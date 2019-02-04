@@ -21,7 +21,7 @@
 
 dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	dsFramebuffer* framebuffer, const dsVkRenderPassData* renderPassData,
-	const dsVkRenderSurfaceData* renderSurface);
+	const dsVkRenderSurfaceData* surfaceData);
 void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer);
 
 VkFramebuffer dsVkRealFramebuffer_getFramebuffer(const dsVkRealFramebuffer* framebuffer);

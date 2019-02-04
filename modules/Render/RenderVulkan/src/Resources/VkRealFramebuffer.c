@@ -233,7 +233,7 @@ void updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
 
 dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	dsFramebuffer* framebuffer, const dsVkRenderPassData* renderPassData,
-	const dsVkRenderSurfaceData* renderSurface)
+	const dsVkRenderSurfaceData* surfaceData)
 {
 	dsRenderer* renderer = framebuffer->resourceManager->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -241,7 +241,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 
 	const dsRenderPass* renderPass = renderPassData->renderPass;
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
-	uint32_t framebufferCount = renderSurface ? renderSurface->imageCount : 1;
+	uint32_t framebufferCount = surfaceData ? surfaceData->imageCount : 1;
 
 	uint32_t imageCount = vkRenderPass->fullAttachmentCount;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
@@ -263,7 +263,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	dsVkResource_initialize(&realFramebuffer->resource);
 	realFramebuffer->device = device;
 	realFramebuffer->renderPassData = dsLifetime_addRef(renderPassData->lifetime);
-	realFramebuffer->renderSurface = renderSurface;
+	realFramebuffer->surfaceData = surfaceData;
 
 	realFramebuffer->framebuffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 		VkFramebuffer, framebufferCount);
@@ -359,7 +359,7 @@ void dsVkRealFramebuffer_destroy(dsVkRealFramebuffer* framebuffer)
 
 VkFramebuffer dsVkRealFramebuffer_getFramebuffer(const dsVkRealFramebuffer* framebuffer)
 {
-	if (framebuffer->renderSurface)
-		return framebuffer->framebuffers[framebuffer->renderSurface->imageIndex];
+	if (framebuffer->surfaceData)
+		return framebuffer->framebuffers[framebuffer->surfaceData->imageIndex];
 	return framebuffer->framebuffers[0];
 }

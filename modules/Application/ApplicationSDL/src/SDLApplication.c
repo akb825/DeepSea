@@ -387,7 +387,9 @@ int dsSDLApplication_run(dsApplication* application)
 					break;
 				case SDL_WINDOWEVENT:
 				{
-					DS_ASSERT(window);
+					if (!window)
+						continue;
+
 					switch (sdlEvent.window.event)
 					{
 						case SDL_WINDOWEVENT_SHOWN:

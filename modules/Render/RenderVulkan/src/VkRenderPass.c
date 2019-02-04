@@ -649,6 +649,8 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			dsVkRenderer_deleteRenderPass(renderer, vkRenderPass->renderPassData);
 			vkRenderPass->renderPassData = renderPassData;
 		}
+
+		vkRenderPass->defaultSamples = samples;
 	}
 
 	vkRenderPass->lastCheckedFrame = frame;

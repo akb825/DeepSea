@@ -58,6 +58,7 @@ typedef struct TestCube
 	dsGfxBuffer* drawBuffer;
 	dsDrawGeometry* geometry;
 
+	uint64_t invalidatedFrame;
 	uint32_t modelViewProjectionElement;
 	float rotation;
 	dsMatrix44f view;
@@ -193,9 +194,8 @@ static bool createFramebuffer(TestCube* testCube)
 static bool processEvent(dsApplication* application, dsWindow* window, const dsEvent* event,
 	void* userData)
 {
-	DS_UNUSED(application);
-
 	TestCube* testCube = (TestCube*)userData;
+	dsRenderer* renderer = application->renderer;
 	DS_ASSERT(!window || window == testCube->window);
 	switch (event->type)
 	{
@@ -204,12 +204,41 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			testCube->window = NULL;
 			return false;
 		case dsEventType_WindowResized:
+		case dsEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testCube))
 				abort();
+			testCube->invalidatedFrame = renderer->frameNumber;
 			return true;
 		case dsEventType_KeyDown:
+			if (event->key.repeat)
+				return false;
+
 			if (event->key.key == dsKeyCode_ACBack)
 				dsApplication_quit(application, 0);
+			else if (event->key.key == dsKeyCode_1)
+			{
+				// The key down will be re-sent when re-creating the window.
+				if (testCube->invalidatedFrame + 2 > renderer->frameNumber)
+					return false;
+
+				uint32_t samples = renderer->surfaceSamples;
+				if (samples == 1)
+					samples = 4;
+				else
+					samples = 1;
+				dsRenderer_setSurfaceSamples(renderer, samples);
+			}
+			else if (event->key.key == dsKeyCode_2)
+				dsRenderer_setVsync(renderer, !renderer->vsync);
+			else if (event->key.key == dsKeyCode_3)
+			{
+				float anisotropy = renderer->defaultAnisotropy;
+				if (anisotropy == 1.0f)
+					anisotropy = 16.0f;
+				else
+					anisotropy = 1.0f;
+				dsRenderer_setDefaultAnisotropy(renderer, anisotropy);
+			}
 			return false;
 		default:
 			return true;
@@ -478,6 +507,9 @@ int dsMain(int argc, const char** argv)
 	}
 
 	DS_LOG_INFO_F("TestCube", "Render using %s", dsRenderBootstrap_rendererName(rendererType));
+	DS_LOG_INFO("TestCube", "Press '1' to toggle anti-aliasing.");
+	DS_LOG_INFO("TestCube", "Press '2' to toggle vsync.");
+	DS_LOG_INFO("TestCube", "Press '3' to toggle anisotropic filtering.");
 
 	dsSystemAllocator renderAllocator;
 	DS_VERIFY(dsSystemAllocator_initialize(&renderAllocator, DS_ALLOCATOR_NO_LIMIT));

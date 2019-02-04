@@ -1400,13 +1400,27 @@ bool dsVkRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 
 bool dsVkRenderer_setVsync(dsRenderer* renderer, bool vsync)
 {
+	if (renderer->vsync == vsync)
+		return true;
+
 	renderer->vsync = vsync;
+
+	// This will require re-creating render surfaces, so make sure to flush any previous resource
+	// changes in order to avoid multiple simultaneous render surface changes.
+	dsRenderer_waitUntilIdle(renderer);
 	return true;
 }
 
 bool dsVkRenderer_setDefaultAnisotropy(dsRenderer* renderer, float anisotropy)
 {
+	if (renderer->defaultAnisotropy == anisotropy)
+		return true;
+
 	renderer->defaultAnisotropy = anisotropy;
+
+	// This will require re-creating render surfaces, so make sure to flush any previous resource
+	// changes in order to avoid multiple simultaneous render surface changes.
+	dsRenderer_waitUntilIdle(renderer);
 	return true;
 }
 
@@ -1826,6 +1840,8 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 
+	dsRenderer_shutdownResources(renderer);
+
 	if (device && device->vkQueueWaitIdle)
 		DS_VK_CALL(device->vkQueueWaitIdle)(device->queue);
 
@@ -2113,6 +2129,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->popDebugGroupFunc = &dsVkRenderer_popDebugGroup;;
 	baseRenderer->flushFunc = &dsVkRenderer_flush;
 	baseRenderer->waitUntilIdleFunc = &dsVkRenderer_waitUntilIdle;
+
+	DS_VERIFY(dsRenderer_initializeResources(baseRenderer));
 
 	return baseRenderer;
 }

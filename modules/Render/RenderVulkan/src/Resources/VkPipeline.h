@@ -29,6 +29,6 @@ dsVkPipeline* dsVkPipeline_create(dsAllocator* allocator, dsShader* shader,
 bool dsVkPipeline_isEquivalent(const dsVkPipeline* pipeline, uint32_t hash,
 	uint32_t samples, float defaultAnisotropy, dsPrimitiveType primitiveType,
 	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS],
-	const dsRenderPass* renderPass, uint32_t subpass);
+	const dsVkRenderPassData* renderPassData, uint32_t subpass);
 void dsVkPipeline_destroy(dsVkPipeline* pipeline);
 
