@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
+#include <DeepSea/Core/Profile.h>
 
 #include <string.h>
 
@@ -514,6 +515,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 
 dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData)
 {
+	DS_PROFILE_FUNC_START();
+
 	dsRenderer* renderer = surfaceData->renderer;
 
 	surfaceData->imageDataIndex = (surfaceData->imageDataIndex + 1) % surfaceData->imageCount;
@@ -523,7 +526,7 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 		dsGfxFenceResult fenceResult = dsVkRenderer_waitForSubmit(renderer,
 			imageData->lastUsedSubmit, DS_DEFAULT_WAIT_TIMEOUT);
 		if (fenceResult == dsGfxFenceResult_Error)
-			return dsVkSurfaceResult_Error;
+			DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Error);
 	}
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
@@ -531,11 +534,11 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 		surfaceData->swapchain, DS_DEFAULT_WAIT_TIMEOUT, imageData->semaphore, 0,
 		&surfaceData->imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
-		return dsVkSurfaceResult_OutOfDate;
+		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_OutOfDate);
 	else if (dsHandleVkResult(result))
-		return dsVkSurfaceResult_Success;
+		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Success);
 	else
-		return dsVkSurfaceResult_Error;
+		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_Error);
 }
 
 bool dsVkRenderSurfaceData_clearColor(dsVkRenderSurfaceData* renderSurface, bool rightSurface,

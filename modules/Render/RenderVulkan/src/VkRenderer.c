@@ -1342,7 +1342,10 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 		vkSubmitBuffer->submitBufferCount, vkSubmitBuffer->submitBuffers,
 		useSemaphore ? 1 : 0, &submittedSemaphore
 	};
+
+	DS_PROFILE_SCOPE_START("vkQueueSubmit");
 	DS_VK_CALL(device->vkQueueSubmit)(device->queue, 1, &submitInfo, submit->fence);
+	DS_PROFILE_SCOPE_END();
 
 	// Clean up the previous command buffer.
 	dsVkCommandBuffer_submittedResources(submitBuffer, vkRenderer->submitCount);
@@ -1365,9 +1368,11 @@ static void postFlush(dsRenderer* renderer)
 	// Wait untile we can use the command buffer.
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
+		DS_PROFILE_WAIT_START("vkWaitForFences");
 		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
 			DS_DEFAULT_WAIT_TIMEOUT);
 		vkRenderer->finishedSubmitCount = submit->submitIndex;
+		DS_PROFILE_WAIT_END();
 	}
 
 	// Free resources that are waiting to be in an unused state.
@@ -1388,7 +1393,7 @@ bool dsVkRenderer_beginFrame(dsRenderer* renderer)
 
 bool dsVkRenderer_endFrame(dsRenderer* renderer)
 {
-	dsVkRenderer_flushImpl(renderer, true, false);
+	DS_UNUSED(renderer);
 	return true;
 }
 

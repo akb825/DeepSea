@@ -27,8 +27,8 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
-#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Core/Assert.h>
+#include <DeepSea/Core/Atomic.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
