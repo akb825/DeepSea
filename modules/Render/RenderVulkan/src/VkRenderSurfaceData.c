@@ -105,10 +105,10 @@ static VkPresentModeKHR getPresentMode(dsVkDevice* device, VkSurfaceKHR surface,
 
 	if (!vsync)
 	{
-		if (hasPresentMode(presentModes, modeCount, VK_PRESENT_MODE_IMMEDIATE_KHR))
-			return VK_PRESENT_MODE_IMMEDIATE_KHR;
 		if (hasPresentMode(presentModes, modeCount, VK_PRESENT_MODE_MAILBOX_KHR))
 			return VK_PRESENT_MODE_MAILBOX_KHR;
+		if (hasPresentMode(presentModes, modeCount, VK_PRESENT_MODE_IMMEDIATE_KHR))
+			return VK_PRESENT_MODE_IMMEDIATE_KHR;
 	}
 
 	return VK_PRESENT_MODE_FIFO_KHR;
