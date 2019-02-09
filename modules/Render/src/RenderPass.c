@@ -568,7 +568,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 
 		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
 		{
-			if (!subpass->colorAttachments[i].resolve)
+			if (!subpass->colorAttachments[j].resolve)
 				continue;
 
 			uint32_t attachment = subpass->colorAttachments[j].attachmentIndex;
