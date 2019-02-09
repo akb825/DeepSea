@@ -501,7 +501,7 @@ static void setupSpirv(dsShader* shader, dsAllocator* allocator)
 			if (strcmp(uniform.name, materialDesc->elements[i].name) != 0)
 				continue;
 
-			DS_VERIFY(mslModule_setUniformBindingCopy(module, pipelineIndex, i, descriptorSet,
+			DS_VERIFY(mslModule_setUniformBindingCopy(module, pipelineIndex, j, descriptorSet,
 				binding, vkShader->spirv));
 		}
 	}

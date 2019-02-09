@@ -83,7 +83,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 			}
 			case dsGfxSurfaceType_Texture:
 			{
-				dsOffscreen* offscreen = (dsOffscreen*)surface->surfaceType;
+				dsOffscreen* offscreen = (dsOffscreen*)surface->surface;
 				dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 				const dsTextureInfo* info = &offscreen->info;
 				uint32_t index = i;

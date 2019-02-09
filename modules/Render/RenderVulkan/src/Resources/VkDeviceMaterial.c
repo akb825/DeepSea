@@ -357,7 +357,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			case dsMaterialType_SubpassInput:
 			{
 				DS_ASSERT(textureIndex < material->imageInfoCount);
-				DS_ASSERT(samplers);
+				DS_ASSERT(element->type == dsMaterialType_SubpassInput || samplers);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
 				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 				{

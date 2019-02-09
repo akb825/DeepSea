@@ -16,9 +16,9 @@
 
 #include <DeepSea/Render/Shaders/VertexAttributes.mslh>
 
-[[fragment]] uniform subpassInput(0) channelR;
-[[fragment]] uniform subpassInput(1) channelG;
-[[fragment]] uniform subpassInput(2) channelB;
+[[fragment]] uniform subpassInput(1) channelR;
+[[fragment]] uniform subpassInput(3) channelG;
+[[fragment]] uniform subpassInput(5) channelB;
 
 [[vertex]] layout(location = DS_POSITION) in vec2 position;
 

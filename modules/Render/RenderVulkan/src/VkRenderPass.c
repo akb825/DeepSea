@@ -523,6 +523,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		uint32_t* preserveAttachments = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			uint32_t, attachmentCount);
 		DS_ASSERT(preserveAttachments);
+		vkSubpass->pPreserveAttachments = preserveAttachments;
 		findPreserveAttachments(&vkSubpass->preserveAttachmentCount, preserveAttachments,
 			fullAttachmentCount, renderPass->vkSubpasses, renderPass->vkDependencies,
 			baseRenderPass->subpassDependencyCount, i, i);

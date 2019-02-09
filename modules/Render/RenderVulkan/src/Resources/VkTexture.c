@@ -315,8 +315,8 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
 		return false;
 
-	texture->deviceMemory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex);
-	if (!texture->deviceMemory)
+	texture->surfaceMemory = dsAllocateVkMemory(device, &surfaceRequirements, surfaceMemoryIndex);
+	if (!texture->surfaceMemory)
 		return false;
 
 	result = DS_VK_CALL(device->vkBindImageMemory)(device->device, texture->surfaceImage,
@@ -445,10 +445,12 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
 	if (usage & dsTextureUsage_Image)
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
-	if (usage & dsTextureUsage_CopyFrom || offscreen)
+	if ((usage & dsTextureUsage_CopyFrom) || offscreen)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (usage & dsTextureUsage_CopyTo || data || resolve || offscreen)
+	if ((usage & dsTextureUsage_CopyTo) || data || resolve || offscreen)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	if (usage & dsTextureUsage_SubpassInput)
+		usageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 	if (offscreen)
 	{
 		if (dsGfxFormat_isDepthStencil(info->format))

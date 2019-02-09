@@ -334,6 +334,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		binding->dstBinding = vkMaterialDesc->elementMappings[i];
 		binding->dstArrayElement = 0;
 		binding->descriptorCount = 1;
+		binding->descriptorType = dsVkDescriptorType(element->type, true);
 		binding->pImageInfo = NULL;
 		binding->pBufferInfo = NULL;
 		binding->pTexelBufferView = NULL;

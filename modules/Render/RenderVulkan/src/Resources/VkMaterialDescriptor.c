@@ -201,22 +201,22 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
 				VkDescriptorImageInfo* imageInfo = deviceMaterial->imageInfos + imageInfoIndex;
 
-				uint32_t samplerIndex = vkShader->samplerMapping[i].samplerIndex;
-				if (samplerIndex == DS_MATERIAL_UNKNOWN)
+				if (element->type == dsMaterialType_Texture)
 				{
-					if (element->type == dsMaterialType_Texture)
+					uint32_t samplerIndex = vkShader->samplerMapping[i].samplerIndex;
+					if (samplerIndex == DS_MATERIAL_UNKNOWN)
 					{
 						DS_ASSERT(samplers && samplers->defaultSampler);
 						imageInfo->sampler = samplers->defaultSampler;
 					}
 					else
-						imageInfo->sampler = 0;
+					{
+						DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);
+						imageInfo->sampler = samplers->samplers[samplerIndex];
+					}
 				}
 				else
-				{
-					DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);
-					imageInfo->sampler = samplers->samplers[samplerIndex];
-				}
+					imageInfo->sampler = 0;
 
 				if (texture)
 				{

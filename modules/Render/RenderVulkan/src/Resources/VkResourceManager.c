@@ -632,8 +632,8 @@ bool dsVkResourceManager_offscreenFormatSupported(const dsResourceManager* resou
 	if (!formatInfo)
 		return false;
 
-	return (formatInfo->properties.linearTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) ||
-		(formatInfo->properties.linearTilingFeatures &
+	return (formatInfo->properties.optimalTilingFeatures & VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT) ||
+		(formatInfo->properties.optimalTilingFeatures &
 			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
