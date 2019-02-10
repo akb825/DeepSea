@@ -197,6 +197,13 @@ static VkPipelineStageFlags getPipelineStages(dsSubpassDependencyStage stage)
 
 static VkAccessFlags getSrcAccessFlags(dsSubpassDependencyStage stage)
 {
+	DS_UNUSED(stage);
+	return VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+}
+
+static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
+{
 	VkAccessFlags flags = VK_ACCESS_UNIFORM_READ_BIT | VK_ACCESS_SHADER_READ_BIT |
 		VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 	if (stage == dsSubpassDependencyStage_Vertex)
@@ -205,13 +212,6 @@ static VkAccessFlags getSrcAccessFlags(dsSubpassDependencyStage stage)
 			VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 	}
 	return flags;
-}
-
-static VkAccessFlags getDstAccessFlags(dsSubpassDependencyStage stage)
-{
-	DS_UNUSED(stage);
-	return VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
-		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 }
 
 dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
