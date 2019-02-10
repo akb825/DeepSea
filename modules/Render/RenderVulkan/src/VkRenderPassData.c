@@ -72,6 +72,9 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 			return false;
 		}
 
+		if (dsVkTexture_onlySubpassInput(texture))
+			continue;
+
 		// Don't layout transition for resolved depth/stencil images, since you can't resolve
 		// in render subpasses.
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
@@ -206,6 +209,8 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
+				if (dsVkTexture_onlySubpassInput(texture))
+					continue;
 
 				VkImageMemoryBarrier* imageBarrier =
 					dsVkCommandBuffer_addImageBarrier(commandBuffer);
@@ -292,7 +297,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (!vkTexture->surfaceImage)
+				if (!vkTexture->surfaceImage || dsVkTexture_onlySubpassInput(texture))
 					continue;
 
 				usage |= texture->usage | dsTextureUsage_CopyFrom;

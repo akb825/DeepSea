@@ -1140,7 +1140,29 @@ bool dsVkTexture_isStatic(const dsTexture* texture)
 		!texture->offscreen;
 }
 
+bool dsVkTexture_onlySubpassInput(const dsTexture* texture)
+{
+	return (texture->usage & dsTextureUsage_SubpassInput) &&
+		!(texture->usage & (dsTextureUsage_Texture | dsTextureUsage_Image));
+}
+
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
+{
+	if (texture->usage & dsTextureUsage_Image)
+		return VK_IMAGE_LAYOUT_GENERAL;
+
+	if (dsVkTexture_onlySubpassInput(texture))
+	{
+		if (dsGfxFormat_isDepthStencil(texture->info.format))
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		else
+			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
+
+	return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+VkImageLayout dsVkTexture_bindImageLayout(const dsTexture* texture)
 {
 	if (texture->usage & dsTextureUsage_Image)
 		return VK_IMAGE_LAYOUT_GENERAL;

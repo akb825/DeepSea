@@ -99,7 +99,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 						return false;
 
 					imageInfo.imageView = vkTexture->deviceImageView;
-					imageInfo.imageLayout = dsVkTexture_imageLayout(texture);
+					imageInfo.imageLayout = dsVkTexture_bindImageLayout(texture);
 				}
 				else
 				{

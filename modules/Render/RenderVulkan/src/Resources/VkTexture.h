@@ -40,7 +40,9 @@ bool dsVkTexture_destroy(dsResourceManager* resourceManager, dsTexture* texture)
 bool dsVkTexture_supportsHostImage(dsVkDevice* device, const dsVkFormatInfo* formatInfo,
 	VkImageType imageType, const dsTextureInfo* info);
 bool dsVkTexture_isStatic(const dsTexture* texture);
+bool dsVkTexture_onlySubpassInput(const dsTexture* texture);
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture);
+VkImageLayout dsVkTexture_bindImageLayout(const dsTexture* texture);
 void dsVkTexture_resetSubresourceLayouts(dsTexture* texture);
 bool dsVkTexture_canReadBack(const dsTexture* texture);
 bool dsVkTexture_addMemoryBarrier(dsTexture* texture, dsCommandBuffer* commandBuffer);

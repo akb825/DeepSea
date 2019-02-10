@@ -221,7 +221,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 				if (texture)
 				{
 					imageInfo->imageView = vkTexture->deviceImageView;
-					imageInfo->imageLayout = dsVkTexture_imageLayout(texture);
+					imageInfo->imageLayout = dsVkTexture_bindImageLayout(texture);
 				}
 				else
 				{
