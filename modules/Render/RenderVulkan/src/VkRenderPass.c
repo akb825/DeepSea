@@ -313,10 +313,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				vkAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			vkAttachment->stencilLoadOp = vkAttachment->loadOp;
 
-			bool alwaysKeep = mustKeepMultisampledAttachment(usage, samples);
-			bool canResolve = hasResolve(subpasses, subpassCount, i, attachment->samples);
-			bool canResolveNow = canResolve && samples > 1;
-			if (alwaysKeep || canResolveNow)
+			if (mustKeepMultisampledAttachment(usage, samples))
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			else
 				vkAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -331,7 +328,7 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			vkAttachment->initialLayout = layout;
 			vkAttachment->finalLayout = layout;
 
-			if (canResolve)
+			if (hasResolve(subpasses, subpassCount, i, attachment->samples))
 			{
 				uint32_t resolveAttachmentIndex = attachmentCount + resolveIndex;
 				VkAttachmentDescription* vkResolveAttachment = renderPass->vkAttachments +
@@ -341,6 +338,8 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
 					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				else
+					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
 				renderPass->resolveIndices[i] = resolveAttachmentIndex;
 				++resolveIndex;
