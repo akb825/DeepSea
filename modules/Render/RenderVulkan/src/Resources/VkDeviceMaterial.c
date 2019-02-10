@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,10 +83,10 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsDeviceMaterial)) +
 		DS_ALIGNED_SIZE(sizeof(VkWriteDescriptorSet)*bindingCount) +
 		DS_ALIGNED_SIZE(sizeof(VkDescriptorImageInfo)*imageInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bufferInfoCount) +
-		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bufferViewCount) +
 		DS_ALIGNED_SIZE(sizeof(dsTexture*)*imageInfoCount) +
+		DS_ALIGNED_SIZE(sizeof(VkDescriptorBufferInfo)*bufferInfoCount) +
 		DS_ALIGNED_SIZE(sizeof(dsVkGfxBufferBinding)*bufferInfoCount) +
+		DS_ALIGNED_SIZE(sizeof(VkBufferView)*bufferViewCount) +
 		DS_ALIGNED_SIZE(sizeof(dsVkTexelBufferBinding)*bufferViewCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
@@ -144,7 +144,7 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	if (bufferInfoCount > 0)
 	{
 		deviceMaterial->bufferInfos = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			VkDescriptorBufferInfo, bufferViewCount);
+			VkDescriptorBufferInfo, bufferInfoCount);
 		DS_ASSERT(deviceMaterial->bufferInfos);
 
 		deviceMaterial->buffers = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
@@ -357,7 +357,6 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 			case dsMaterialType_SubpassInput:
 			{
 				DS_ASSERT(textureIndex < material->imageInfoCount);
-				DS_ASSERT(element->type == dsMaterialType_SubpassInput || samplers);
 				dsTexture* texture = dsMaterial_getTexture(material->material, i);
 				if (texture && !dsVkTexture_addMemoryBarrier(texture, commandBuffer))
 				{

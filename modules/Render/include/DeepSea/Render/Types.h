@@ -1428,7 +1428,6 @@ typedef bool (*dsRenderRestoreGlobalState)(dsRenderer* renderer);
 /** @copydoc dsRenderer */
 struct dsRenderer
 {
-
 	// ----------------------------------- Internal objects ----------------------------------------
 
 	/**

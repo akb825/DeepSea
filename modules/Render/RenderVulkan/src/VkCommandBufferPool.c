@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,11 +76,7 @@ bool dsVkCommandBufferPool_destroy(dsRenderer* renderer, dsCommandBufferPool* po
 	DS_UNUSED(renderer);
 	dsVkCommandBufferPool* vkPool = (dsVkCommandBufferPool*)pool;
 	for (uint32_t i = 0; i < DS_DELAY_FRAMES; ++i)
-	{
-		dsVkCommandPoolData* poolData = vkPool->commandPools[i];
-		if (poolData)
-			dsVkCommandPoolData_destroy(poolData);
-	}
+		dsVkRenderer_deleteCommandPool(renderer, vkPool->commandPools[i]);
 
 	if (pool->allocator)
 		DS_VERIFY(dsAllocator_free(pool->allocator, pool));

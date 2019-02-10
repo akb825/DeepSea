@@ -1,5 +1,5 @@
 /*
-* Copyright 2018 Aaron Barany
+* Copyright 2018-2019 Aaron Barany
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -47,7 +47,8 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		dsVkMaterialDescriptor);
 	DS_ASSERT(descriptor);
 
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 	const dsMaterial* material = deviceMaterial->material;
 	const dsMaterialDesc* materialDesc = dsMaterial_getDescription(material);
@@ -203,12 +204,10 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 
 				if (element->type == dsMaterialType_Texture)
 				{
-					uint32_t samplerIndex = vkShader->samplerMapping[i].samplerIndex;
-					if (samplerIndex == DS_MATERIAL_UNKNOWN)
-					{
-						DS_ASSERT(samplers && samplers->defaultSampler);
-						imageInfo->sampler = samplers->defaultSampler;
-					}
+					uint32_t samplerIndex = samplers ? vkShader->samplerMapping[i].samplerIndex :
+						DS_MATERIAL_UNKNOWN;
+					if (samplerIndex == DS_MATERIAL_UNKNOWN || !samplers)
+						imageInfo->sampler = vkRenderer->defaultSampler;
 					else
 					{
 						DS_ASSERT(samplers && samplerIndex < samplers->samplerCount);

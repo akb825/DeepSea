@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,13 +254,17 @@ static void copyBlendAttachmentState(VkPipelineColorBlendAttachmentState* vkBlen
 		vkBlendAttachment->colorWriteMask = blendAttachment->colorWriteMask;
 }
 
-static size_t fullAllocSize(const mslModule* module, uint32_t pipelineIndex,
+static size_t fullAllocSize(const mslModule* module, const mslPipeline* pipeline,
 	const dsMaterialDesc* materialDesc, uint32_t samplerCount)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkShader)) +
-		(samplerCount > 0 ? DS_ALIGNED_SIZE(sizeof(uint32_t)*materialDesc->elementCount) : 0U);
+		(samplerCount > 0 ?
+			DS_ALIGNED_SIZE(sizeof(dsVkSamplerMapping)*materialDesc->elementCount) : 0U);
 	for (int i = 0; i < mslStage_Count; ++i)
-		fullSize += DS_ALIGNED_SIZE(mslModule_shaderSize(module, pipelineIndex));
+	{
+		if (pipeline->shaders[i] != MSL_UNKNOWN)
+			fullSize += DS_ALIGNED_SIZE(mslModule_shaderSize(module, pipeline->shaders[i]));
+	}
 	return fullSize;
 }
 
@@ -805,7 +809,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 
 	uint32_t samplerCount = 0;
 	bool samplersHaveDefaultAnisotropy = false;
-	bool needsDefaultSampler = false;
 	for (uint32_t i = 0; i < pipeline.uniformCount; ++i)
 	{
 		mslUniform uniform;
@@ -816,12 +819,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		}
 		if (uniform.uniformType != mslUniformType_SampledImage)
 			continue;
-
-		if (uniform.samplerIndex == MSL_UNKNOWN)
-		{
-			needsDefaultSampler = true;
-			continue;
-		}
 
 		++samplerCount;
 		mslSamplerState sampler;
@@ -842,7 +839,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	if (!scratchAllocator->freeFunc)
 		scratchAllocator = resourceManager->allocator;
 
-	size_t fullSize = fullAllocSize(module->module, shaderIndex, materialDesc, samplerCount);
+	size_t fullSize = fullAllocSize(module->module, &pipeline, materialDesc, samplerCount);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
@@ -908,7 +905,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	else
 		shader->samplerMapping = NULL;
 	shader->samplerCount = samplerCount;
-	shader->needsDefaultSampler = needsDefaultSampler;
 	shader->samplersHaveDefaultAnisotropy = samplersHaveDefaultAnisotropy;
 
 	memset(shader->shaders, 0, sizeof(shader->shaders));
@@ -938,7 +934,7 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	}
 
 	// If no dependency on default anisotropy, create immediately.
-	if ((samplerCount > 0 || needsDefaultSampler) && !samplersHaveDefaultAnisotropy)
+	if (samplerCount && !samplersHaveDefaultAnisotropy)
 	{
 		shader->samplers = dsVkSamplerList_create(scratchAllocator, baseShader);
 		if (!shader->samplers)
@@ -1261,7 +1257,7 @@ dsVkSamplerList* dsVkShader_getSamplerList(dsShader* shader, dsCommandBuffer* co
 	dsVkShader* vkShader = (dsVkShader*)shader;
 	dsRenderer* renderer = shader->resourceManager->renderer;
 
-	if (vkShader->samplerCount == 0 && !vkShader->needsDefaultSampler)
+	if (vkShader->samplerCount == 0)
 		return NULL;
 	else if (vkShader->samplersHaveDefaultAnisotropy)
 	{

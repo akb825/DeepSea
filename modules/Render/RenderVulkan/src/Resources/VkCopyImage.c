@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "Resources/VkResourceManager.h"
 #include "Resources/VkTexture.h"
 #include "VkShared.h"
+
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -55,13 +56,15 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 		dimension = dsTextureDim_2D;
 		imageType = VK_IMAGE_TYPE_2D;
 	}
-	dsTextureInfo tempInfo = {info->format, dimension, width, height, layers, 1, 1};
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(texture->resourceManager,
 		info->format);
 	uint32_t imageCount;
+	// NOTE: Intel seems to break on this, allocating incorrect sizes. NVidia only supports a single
+	// image as well, so just disable for now. Perhaps this can be used sometime in the future.
+	/*dsTextureInfo tempInfo = {info->format, dimension, width, height, layers, 1, 1};
 	if (dsVkTexture_supportsHostImage(device, formatInfo, imageType, &tempInfo))
 		imageCount = 1;
-	else
+	else*/
 	{
 		imageCount = layers;
 		imageType = VK_IMAGE_TYPE_2D;
@@ -148,7 +151,7 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 			*image, &imageRequirements);
 		VkDeviceSize alignment = imageRequirements.alignment;
 		memoryRequirements.size =
-			((memoryRequirements.size + (alignment - 1))/alignment)*alignment;
+			((imageRequirements.size + (alignment - 1))/alignment)*alignment;
 		imageSize = (size_t)memoryRequirements.size;
 
 		memoryRequirements.alignment = alignment;
@@ -169,6 +172,18 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 	{
 		dsVkCopyImage_destroy(copyImage);
 		return NULL;
+	}
+
+	for (uint32_t i = 0; i < imageCount; ++i)
+	{
+		VkImage image = copyImage->images[i];
+		VkResult result = DS_VK_CALL(device->vkBindImageMemory)(device->device, image,
+			copyImage->memory, imageSize*i);
+		if (!dsHandleVkResult(result))
+		{
+			dsVkCopyImage_destroy(copyImage);
+			return NULL;
+		}
 	}
 
 	// Populate the data.
@@ -242,6 +257,9 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 		copy->dstOffset.x = position->x;
 		copy->dstOffset.y = position->y;
 		copy->dstOffset.z = is3D ? position->depth + i: 0;
+		copy->extent.width = width;
+		copy->extent.height = height;
+		copy->extent.depth = 1;
 	}
 
 	return copyImage;

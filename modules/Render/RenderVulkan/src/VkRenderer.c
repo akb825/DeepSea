@@ -132,6 +132,40 @@ static bool createCommandBuffers(dsVkRenderer* renderer)
 	return true;
 }
 
+static VkSampler createDefaultSampler(dsVkDevice* device)
+{
+	dsVkInstance* instance = &device->instance;
+	VkSamplerCreateInfo samplerCreateInfo =
+	{
+		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		NULL,
+		0,
+		VK_FILTER_NEAREST,
+		VK_FILTER_NEAREST,
+		VK_SAMPLER_MIPMAP_MODE_NEAREST,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		0.0f,
+		false,
+		0.0,
+		false,
+		VK_COMPARE_OP_NEVER,
+		0.0f,
+		1000.0f,
+		VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
+		false
+	};
+
+	VkSampler sampler;
+	VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &samplerCreateInfo,
+		instance->allocCallbacksPtr, &sampler);
+	if (!dsHandleVkResult(result))
+		return 0;
+
+	return sampler;
+}
+
 static void freeAllResources(dsVkResourceList* deleteList)
 {
 	for (uint32_t i = 0; i < deleteList->bufferCount; ++i)
@@ -1869,6 +1903,12 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 		}
 	}
 
+	if (vkRenderer->defaultSampler)
+	{
+		DS_VK_CALL(device->vkDestroySampler)(device->device, vkRenderer->defaultSampler,
+			instance->allocCallbacksPtr);
+	}
+
 	dsVkBarrierList_shutdown(&vkRenderer->preResourceBarriers);
 	dsVkBarrierList_shutdown(&vkRenderer->postResourceBarriers);
 	for (unsigned int i = 0; i < DS_PENDING_RESOURCES_ARRAY; ++i)
@@ -2083,6 +2123,13 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	}
 
 	if (!createCommandBuffers(renderer))
+	{
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	renderer->defaultSampler = createDefaultSampler(&renderer->device);
+	if (!renderer->defaultSampler)
 	{
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;

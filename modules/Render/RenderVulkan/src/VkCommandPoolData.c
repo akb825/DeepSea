@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ dsVkCommandPoolData* dsVkCommandPoolData_create(dsAllocator* allocator, dsRender
 	dsCommandBufferUsage usage, uint32_t count)
 {
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkCommandPoolData)) +
-		DS_ALIGNED_SIZE(sizeof(dsVkCommandBuffer*)*count) +
+		DS_ALIGNED_SIZE(sizeof(dsVkCommandBuffer)*count) +
 		DS_ALIGNED_SIZE(sizeof(dsCommandBuffer*)*count);
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)

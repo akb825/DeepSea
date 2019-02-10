@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,6 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 	}
 	else
 		samplers->samplers = NULL;
-	samplers->defaultSampler = 0;
 	samplers->samplerCount = samplerCount;
 	samplers->defaultAnisotropy = shader->resourceManager->renderer->defaultAnisotropy;
 
@@ -195,39 +194,6 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 		}
 	}
 
-	if (vkShader->needsDefaultSampler)
-	{
-		VkSamplerCreateInfo samplerCreateInfo =
-		{
-			VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-			NULL,
-			0,
-			VK_FILTER_NEAREST,
-			VK_FILTER_NEAREST,
-			VK_SAMPLER_MIPMAP_MODE_NEAREST,
-			VK_SAMPLER_ADDRESS_MODE_REPEAT,
-			VK_SAMPLER_ADDRESS_MODE_REPEAT,
-			VK_SAMPLER_ADDRESS_MODE_REPEAT,
-			0.0f,
-			false,
-			0.0,
-			false,
-			VK_COMPARE_OP_NEVER,
-			0.0f,
-			1000.0f,
-			VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,
-			false
-		};
-
-		VkResult result = DS_VK_CALL(device->vkCreateSampler)(device->device, &samplerCreateInfo,
-			instance->allocCallbacksPtr, &samplers->defaultSampler);
-		if (!dsHandleVkResult(result))
-		{
-			dsVkSamplerList_destroy(samplers);
-			return NULL;
-		}
-	}
-
 	dsVkResource_initialize(&samplers->resource);
 	return samplers;
 }
@@ -247,12 +213,6 @@ void dsVkSamplerList_destroy(dsVkSamplerList* samplers)
 			DS_VK_CALL(device->vkDestroySampler)(device->device, samplers->samplers[i],
 				instance->allocCallbacksPtr);
 		}
-	}
-
-	if (samplers->defaultSampler)
-	{
-		DS_VK_CALL(device->vkDestroySampler)(device->device, samplers->defaultSampler,
-			instance->allocCallbacksPtr);
 	}
 
 	dsVkResource_shutdown(&samplers->resource);

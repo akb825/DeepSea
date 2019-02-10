@@ -73,7 +73,6 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 		initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
 		hostUsageFlags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	}
-	texture->needsInitialCopy = true;
 
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = info->dimension == dsTextureDim_3D;
@@ -545,10 +544,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
-	// Always need processing for offscreens.
-	if (offscreen)
-		texture->needsInitialCopy = true;
-
+	texture->needsInitialCopy = true;
 	texture->lastDrawSubmit = DS_NOT_SUBMITTED;
 	texture->aspectMask = aspectMask;
 	return baseTexture;

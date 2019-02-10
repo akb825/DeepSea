@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -824,6 +824,7 @@ static bool setupShaders(TestText* testText)
 	{
 		{"SharedInfo", dsMaterialType_VariableGroup, 0, testText->sharedInfoDesc, false, 0},
 		{"position", dsMaterialType_Vec2, 0, NULL, false, 0},
+		{"yMult", dsMaterialType_Float, 0, NULL, false, 0},
 		{"fontTex", dsMaterialType_Texture, 0, NULL, false, 0},
 		{"bounds", dsMaterialType_Vec4, 0, NULL, false, 0}
 	};
@@ -840,6 +841,8 @@ static bool setupShaders(TestText* testText)
 	DS_ASSERT(sharedInfoElement != DS_MATERIAL_UNKNOWN);
 	testText->positionElement = dsMaterialDesc_findElement(testText->materialDesc, "position");
 	DS_ASSERT(testText->positionElement != DS_MATERIAL_UNKNOWN);
+	uint32_t yMultElement = dsMaterialDesc_findElement(testText->materialDesc, "yMult");
+	DS_ASSERT(yMultElement != DS_MATERIAL_UNKNOWN);
 	testText->limitBoundsElement = dsMaterialDesc_findElement(testText->materialDesc, "bounds");
 	DS_ASSERT(testText->limitBoundsElement != DS_MATERIAL_UNKNOWN);
 
@@ -851,6 +854,9 @@ static bool setupShaders(TestText* testText)
 	}
 	DS_VERIFY(dsMaterial_setVariableGroup(testText->material, sharedInfoElement,
 		testText->sharedInfoGroup));
+	float yMult = renderer->clipInvertY ? 1.0f : -1.0f;
+	DS_VERIFY(dsMaterial_setElementData(testText->material, yMultElement, &yMult,
+		dsMaterialType_Float, 0, 1));
 
 	testText->shader = dsShader_createName(resourceManager, allocator, testText->shaderModule,
 		"Font", testText->materialDesc);
@@ -871,6 +877,8 @@ static bool setupShaders(TestText* testText)
 		}
 		DS_VERIFY(dsMaterial_setVariableGroup(testText->tessMaterial, sharedInfoElement,
 			testText->sharedInfoGroup));
+		DS_VERIFY(dsMaterial_setElementData(testText->tessMaterial, yMultElement, &yMult,
+			dsMaterialType_Float, 0, 1));
 
 		testText->tessShader = dsShader_createName(resourceManager, allocator,
 			testText->shaderModule, "FontTess", testText->materialDesc);
