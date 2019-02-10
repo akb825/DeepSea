@@ -57,7 +57,6 @@ static bool submitResourceBarriers(dsCommandBuffer* commandBuffer)
 static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer)
 {
 	dsRenderer* renderer = commandBuffer->renderer;
-	bool hasImages = false;
 	for (uint32_t i = 0; i < framebuffer->surfaceCount; ++i)
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces + i;
@@ -78,9 +77,6 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 		dsVkTexture* vkTexture = (dsVkTexture*)texture;
 		if (vkTexture->surfaceImage && dsGfxFormat_isDepthStencil(texture->info.format))
 			continue;
-
-		if (texture->usage & dsTextureUsage_Image)
-			hasImages = true;
 
 		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 		if (!imageBarrier)
@@ -107,6 +103,8 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 			imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
+		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 		uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
 		imageBarrier->image = vkTexture->deviceImage;
@@ -120,21 +118,16 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 
 	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
 		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	VkPipelineStageFlags dstStages = srcStages;
-	if (hasImages)
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	if (renderer->hasTessellationShaders)
 	{
-		srcStages |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-		if (renderer->hasTessellationShaders)
-		{
-			srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
-		}
-		if (renderer->hasGeometryShaders)
-			srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 	}
-	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
+	if (renderer->hasGeometryShaders)
+		srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages);
 }
 
 static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFramebuffer* framebuffer,
@@ -161,6 +154,8 @@ static void setEndImageBarrier(VkImageMemoryBarrier* imageBarrier, const dsFrame
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 	imageBarrier->newLayout = layout;
+	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 	imageBarrier->image = image;
 	imageBarrier->subresourceRange.aspectMask = aspectMask;
@@ -197,6 +192,11 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				uint32_t layer = surface->surfaceType == dsGfxSurfaceType_ColorRenderSurfaceRight;
 				setEndImageBarrier(imageBarrier, framebuffer, surface, renderer->surfaceColorFormat,
 					surfaceData->images[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, layer);
+
+				imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+				if (!imageBarrier)
+					return false;
+
 				setEndImageBarrier(imageBarrier, framebuffer, surface, renderer->surfaceColorFormat,
 					surfaceData->resolveImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0);
 				break;
@@ -206,30 +206,31 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				// Multisampled depth/stencil images weren't transitioned.
-				if (!vkTexture->surfaceImage || !dsGfxFormat_isDepthStencil(texture->info.format))
-				{
-					VkImageMemoryBarrier* imageBarrier =
-						dsVkCommandBuffer_addImageBarrier(commandBuffer);
-					if (!imageBarrier)
-						return false;
 
-					uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+				VkImageMemoryBarrier* imageBarrier =
+					dsVkCommandBuffer_addImageBarrier(commandBuffer);
+				if (!imageBarrier)
+					return false;
+
+				uint32_t faceCount = texture->info.dimension == dsTextureDim_Cube ? 6 : 1;
+				if (vkTexture->surfaceImage && resolveAttachment[i])
+				{
 					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
 						vkTexture->deviceImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						surface->layer*faceCount + surface->cubeFace);
-				}
 
-				// Manually resolved images.
-				if (vkTexture->surfaceImage && resolveAttachment[i])
-				{
-					VkImageMemoryBarrier* imageBarrier =
-						dsVkCommandBuffer_addImageBarrier(commandBuffer);
+					imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 					if (!imageBarrier)
 						return false;
 
 					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
 						vkTexture->surfaceImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0);
+				}
+				else
+				{
+					setEndImageBarrier(imageBarrier, framebuffer, surface, texture->info.format,
+						vkTexture->deviceImage, dsVkTexture_imageLayout(texture),
+						surface->layer*faceCount + surface->cubeFace);
 				}
 				break;
 			}
@@ -240,17 +241,16 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 
 	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
 		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	VkPipelineStageFlags dstStages = srcStages | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 	if (renderer->hasTessellationShaders)
 	{
-		dstStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+		srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
 			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 	}
 	if (renderer->hasGeometryShaders)
-		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-	if (!dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages))
+		srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	if (!dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, srcStages))
 		return false;
 
 	// Resolved images.
@@ -341,6 +341,8 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 			imageBarrier->dstAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 			imageBarrier->newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
+		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
 		imageBarrier->image = multisampleImage;
 		imageBarrier->subresourceRange.aspectMask = aspectMask;
@@ -361,6 +363,8 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		imageBarrier->newLayout = finalLayout;
 		imageBarrier->image = finalImage;
+		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->subresourceRange.aspectMask = aspectMask;
 		imageBarrier->subresourceRange.baseMipLevel = surface->mipLevel;
 		imageBarrier->subresourceRange.levelCount = 1;
@@ -369,7 +373,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 	}
 
 	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-		dstStages);
+		srcStages);
 }
 
 dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice* device,
@@ -402,8 +406,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 
 	if (renderPass->attachmentCount > 0)
 	{
-		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, bool,
-			renderPass->attachmentCount);
+		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
+			bool,renderPass->attachmentCount);
 		DS_ASSERT(renderPassData->resolveAttachment);
 		renderPassData->resolveAttachmentCount = renderPass->attachmentCount;
 

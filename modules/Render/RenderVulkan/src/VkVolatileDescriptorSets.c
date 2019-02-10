@@ -424,7 +424,7 @@ VkDescriptorSet dsVkVolatileDescriptorSets_createSet(dsVkVolatileDescriptorSets*
 	}
 
 	if (!setDescriptorBindings(descriptors, materialDesc, descriptorSet))
-		return false;
+		return 0;
 
 	descriptors->lastDescriptorSet = descriptorSet;
 	descriptors->lastLayout = layout;
@@ -440,6 +440,8 @@ void dsVkVolatileDescriptorSets_clear(dsVkVolatileDescriptorSets* descriptors)
 		DS_VK_CALL(device->vkResetDescriptorPool)(device->device, descriptors->descriptorPools[i],
 			0);
 	}
+	descriptors->lastLayout = 0;
+	descriptors->lastDescriptorSet = 0;
 }
 
 void dsVkVolatileDescriptorSets_shutdown(dsVkVolatileDescriptorSets* descriptors)

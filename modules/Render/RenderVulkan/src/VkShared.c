@@ -274,6 +274,8 @@ VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthSte
 			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+	if (usage & dsTextureUsage_SubpassInput)
+		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	if (usage & dsTextureUsage_CopyFrom)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 	return flags;

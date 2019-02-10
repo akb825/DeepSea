@@ -524,6 +524,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	dsColorAttachmentRef bColorAttachment = {5, true};
 	uint32_t bDepthStencilAttachment = 6;
 	dsColorAttachmentRef resolveColorAttachment = {0, false};
+	uint32_t inputAttachments[] = {1, 3, 5};
 	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
 	if (dsGfxFormat_surfaceBlitSupported(resourceManager, renderer->surfaceColorFormat,
 		renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
@@ -538,7 +539,8 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		{"R channel", NULL, &rColorAttachment, 0, 1, rDepthStencilAttachment},
 		{"G channel", NULL, &gColorAttachment, 0, 1, gDepthStencilAttachment},
 		{"B channel", NULL, &bColorAttachment, 0, 1, bDepthStencilAttachment},
-		{"Resolve", NULL, &resolveColorAttachment, 0, 1, DS_NO_ATTACHMENT}
+		{"Resolve", inputAttachments, &resolveColorAttachment, DS_ARRAY_SIZE(inputAttachments), 1,
+			DS_NO_ATTACHMENT}
 	};
 	// Resolve subpass is dependent on all previous subpasses.
 	dsSubpassDependency dependencies[] =

@@ -456,7 +456,7 @@ static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
 
 	VkImageSubresourceRange fullLayout = {texture->aspectMask, 0, VK_REMAINING_MIP_LEVELS, 0,
 		VK_REMAINING_ARRAY_LAYERS};
-	if (baseTexture->resolve)
+	if (texture->hostImageCount > 0)
 	{
 		if (texture->hostImage)
 		{
@@ -466,7 +466,6 @@ static void prepareOffscreen(dsVkRenderer* renderer, dsVkTexture* texture)
 		}
 		else
 		{
-			DS_ASSERT(texture->hostImageCount > 0);
 			for (uint32_t i = 0; i < texture->hostImageCount; ++i)
 			{
 				dsVkBarrierList_addImageBarrier(postResourceBarriers, texture->hostImages[i].image,
@@ -1168,7 +1167,8 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			barrier->oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			barrier->image = surfaceData->depthImage;
 			*aspectMask = dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat);
-			*stages |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+			*stages |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			break;
 		}
 		case dsGfxSurfaceType_Texture:
@@ -1178,7 +1178,7 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			dsVkTexture* vkTexture = (dsVkTexture*)offscreen;
 			dsVkRenderer_processTexture(renderer, offscreen);
 			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
-			barrier->srcAccessMask = dsVkWriteImageStageFlags(offscreen->usage, true,
+			barrier->srcAccessMask = dsVkWriteImageAccessFlags(offscreen->usage, true,
 				isDepthStencil);
 			barrier->oldLayout = dsVkTexture_imageLayout(offscreen);
 			barrier->image = vkTexture->deviceImage;
@@ -1247,9 +1247,10 @@ static void setEndBlitSurfaceBarrierInfo(VkImageMemoryBarrier* barrier,
 
 			bool isDepthStencil = dsGfxFormat_isDepthStencil(offscreen->info.format);
 			barrier->dstAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
-				dsVkWriteImageStageFlags(offscreen->usage, true, isDepthStencil);
+				dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
 			barrier->newLayout = dsVkTexture_imageLayout(offscreen);
-			*stages |= dsVkReadImageStageFlags(offscreen->usage, offscreen->offscreen) |
+			*stages |=
+				dsVkReadImageStageFlags(offscreen->usage, offscreen->offscreen && isDepthStencil) |
 				dsVkWriteImageStageFlags(offscreen->usage, true, isDepthStencil);
 			break;
 		}
@@ -1781,10 +1782,10 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 	imageBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	setEndBlitSurfaceBarrierInfo(imageBarriers, dstSurfaceType, dstSurface, &stageFlags);
+	setEndBlitSurfaceBarrierInfo(imageBarriers + 1, dstSurfaceType, dstSurface, &stageFlags);
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, stageFlags,
-		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 2, imageBarriers);
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		stageFlags, 0, 0, NULL, 0, NULL, 2, imageBarriers);
 
 	return true;
 }

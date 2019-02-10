@@ -545,6 +545,10 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		return NULL;
 	}
 
+	// Always need processing for offscreens.
+	if (offscreen)
+		texture->needsInitialCopy = true;
+
 	texture->lastDrawSubmit = DS_NOT_SUBMITTED;
 	texture->aspectMask = aspectMask;
 	return baseTexture;

@@ -659,8 +659,8 @@ bool dsVkResourceManager_surfaceBlitFormatsSupported(const dsResourceManager* re
 	if (!dstFormatInfo)
 		return false;
 
-	if (!(srcFormatInfo->properties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) ||
-		!(dstFormatInfo->properties.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
+	if (!(srcFormatInfo->properties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT) ||
+		!(dstFormatInfo->properties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT))
 	{
 		return false;
 	}

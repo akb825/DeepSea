@@ -33,8 +33,52 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
 
+static VkCommandBuffer getMainCommandBuffer(dsCommandBuffer* commandBuffer)
+{
+	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
+	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
+	if (vkCommandBuffer->activeCommandBuffer)
+		return vkCommandBuffer->activeCommandBuffer;
+
+	uint32_t index = vkCommandBuffer->submitBufferCount;
+	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->submitBuffers,
+		vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers, 1))
+	{
+		return 0;
+	}
+
+	VkCommandBuffer newBuffer = dsVkCommandBufferData_getCommandBuffer(
+		&vkCommandBuffer->commandBufferData);
+	if (!newBuffer)
+	{
+		--vkCommandBuffer->submitBufferCount;
+		return 0;
+	}
+
+	vkCommandBuffer->submitBuffers[index] = newBuffer;
+
+	dsCommandBufferUsage usage = commandBuffer->usage;
+	VkCommandBufferUsageFlags usageFlags = 0;
+	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
+		usageFlags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	if (usage & dsCommandBufferUsage_MultiSubmit)
+		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+
+	VkCommandBufferBeginInfo beginInfo =
+	{
+		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		NULL,
+		usageFlags,
+		NULL
+	};
+
+	DS_VK_CALL(device->vkBeginCommandBuffer)(newBuffer, &beginInfo);
+	vkCommandBuffer->activeCommandBuffer = newBuffer;
+	return newBuffer;
+}
+
 static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask)
+	VkImageAspectFlags aspectMask, VkImageLayout layout)
 {
 	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 	if (imageBarrier)
@@ -44,7 +88,7 @@ static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage
 	imageBarrier->pNext = NULL;
 	imageBarrier->srcAccessMask = VK_ACCESS_HOST_READ_BIT;
 	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageBarrier->oldLayout = layout;
 	imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -58,7 +102,7 @@ static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage
 }
 
 static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask)
+	VkImageAspectFlags aspectMask, VkImageLayout layout)
 {
 	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
 	if (imageBarrier)
@@ -69,7 +113,7 @@ static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage i
 	imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	imageBarrier->dstAccessMask = VK_ACCESS_HOST_READ_BIT;
 	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
+	imageBarrier->newLayout = layout;
 	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->image = image;
@@ -101,13 +145,14 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 			return false;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
+		VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
 		bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
 		imageBarrier->srcAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
 			dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
 		imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->oldLayout = dsVkTexture_imageLayout(offscreen);
+		imageBarrier->oldLayout = layout;
 		imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -120,15 +165,18 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 		if (vkOffscreen->hostImage)
 		{
-			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
+			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask,
+					layout))
+			{
 				return false;
+			}
 		}
 		else
 		{
 			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
 			{
 				if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-					aspectMask))
+						aspectMask, layout))
 				{
 					return false;
 				}
@@ -259,6 +307,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 			return false;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
+		VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
 		bool isDepthStencil = dsGfxFormat_isDepthStencil(info->format);
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
@@ -266,7 +315,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		imageBarrier->dstAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
 			dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		imageBarrier->newLayout = dsVkTexture_imageLayout(offscreen);
+		imageBarrier->newLayout = layout;
 		imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		imageBarrier->image = vkOffscreen->deviceImage;
@@ -278,15 +327,18 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 		if (vkOffscreen->hostImage)
 		{
-			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
+			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask,
+					layout))
+			{
 				return false;
+			}
 		}
 		else
 		{
 			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
 			{
 				if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-					aspectMask))
+						aspectMask, layout))
 				{
 					return false;
 				}
@@ -529,50 +581,12 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 
 VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer)
 {
-	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	if (vkCommandBuffer->activeSubpassBuffer)
 		return vkCommandBuffer->activeSubpassBuffer;
 
-	if (vkCommandBuffer->activeCommandBuffer)
-		return vkCommandBuffer->activeCommandBuffer;
-
-	uint32_t index = vkCommandBuffer->submitBufferCount;
-	if (!DS_RESIZEABLE_ARRAY_ADD(commandBuffer->allocator, vkCommandBuffer->submitBuffers,
-		vkCommandBuffer->submitBufferCount, vkCommandBuffer->maxSubmitBuffers, 1))
-	{
-		return 0;
-	}
-
-	VkCommandBuffer newBuffer = dsVkCommandBufferData_getCommandBuffer(
-		&vkCommandBuffer->commandBufferData);
-	if (!newBuffer)
-	{
-		--vkCommandBuffer->submitBufferCount;
-		return 0;
-	}
-
-	vkCommandBuffer->submitBuffers[index] = newBuffer;
-
-	dsCommandBufferUsage usage = commandBuffer->usage;
-	VkCommandBufferUsageFlags usageFlags = 0;
-	if (!(usage & (dsCommandBufferUsage_MultiSubmit | dsCommandBufferUsage_MultiFrame)))
-		usageFlags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-	if (usage & dsCommandBufferUsage_MultiSubmit)
-		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-
-	VkCommandBufferBeginInfo beginInfo =
-	{
-		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		NULL,
-		usageFlags,
-		NULL
-	};
-
-	DS_VK_CALL(device->vkBeginCommandBuffer)(newBuffer, &beginInfo);
-	vkCommandBuffer->activeCommandBuffer = newBuffer;
-	return newBuffer;
+	return getMainCommandBuffer(commandBuffer);
 }
 
 void dsVkCommandBuffer_forceNewCommandBuffer(dsCommandBuffer* commandBuffer)
@@ -901,7 +915,7 @@ bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	if (vkCommandBuffer->imageBarrierCount == 0)
 		return true;
 
-	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
@@ -935,7 +949,7 @@ bool dsVkCommandBuffer_submitCopyImageBarriers(dsCommandBuffer* commandBuffer,
 	if (vkCommandBuffer->copyImageBarrierCount == 0)
 		return true;
 
-	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
+	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 	{
 		vkCommandBuffer->copyImageBarrierCount = 0;
