@@ -229,11 +229,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static |
-		dsGfxMemory_GPUOnly, &texInfo, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
 	testRenderSubpass->gColor = dsTexture_createOffscreen(resourceManager, allocator,
-		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static |
-		dsGfxMemory_GPUOnly, &texInfo, true);
+		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
+		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
 	testRenderSubpass->bColor = dsTexture_createOffscreen(resourceManager, allocator,
 		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom,
 		dsGfxMemory_Static | dsGfxMemory_GPUOnly, &texInfo, true);
