@@ -84,11 +84,11 @@ dsRendererType dsRenderBootstrap_defaultRenderer(void)
 #endif
 
 #if DS_HAS_RENDER_VULKAN
-	/*if (dsVkRenderer_isSupported())
+	if (dsVkRenderer_isSupported())
 	{
 		defaultRenderer = dsRendererType_Vulkan;
 		return defaultRenderer;
-	}*/
+	}
 #endif
 
 #if DS_HAS_RENDER_OPENGL

@@ -880,12 +880,10 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 		uint32_t index = 0;
 		for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 		{
+			shader->samplerMapping[i].samplerIndex = DS_MATERIAL_UNKNOWN;
+			shader->samplerMapping[i].uniformIndex = DS_MATERIAL_UNKNOWN;
 			if (materialDesc->elements[i].type != dsMaterialType_Texture)
-			{
-				shader->samplerMapping[i].samplerIndex = DS_MATERIAL_UNKNOWN;
-				shader->samplerMapping[i].uniformIndex = DS_MATERIAL_UNKNOWN;
 				continue;
-			}
 
 			for (uint32_t j = 0; j < pipeline.uniformCount; ++j)
 			{

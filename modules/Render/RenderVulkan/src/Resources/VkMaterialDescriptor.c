@@ -226,6 +226,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 				{
 					imageInfo->imageView = 0;
 					imageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+					--index;
 				}
 				binding->pImageInfo = imageInfo;
 				++imageInfoIndex;
@@ -243,7 +244,10 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 						bufferBinding->count);
 				}
 				else
+				{
 					deviceMaterial->bufferViews[bufferViewIndex] = 0;
+					--index;
+				}
 				binding->pTexelBufferView = deviceMaterial->bufferViews + bufferViewIndex;
 				++bufferViewIndex;
 				break;
@@ -260,7 +264,10 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 					bufferInfo->buffer = dsVkGfxBufferData_getBuffer(bufferBinding->buffer);
 				}
 				else
+				{
 					bufferInfo->buffer = 0;
+					--index;
+				}
 				bufferInfo->offset = bufferBinding->offset;
 				bufferInfo->range = bufferBinding->size;
 				binding->pBufferInfo = bufferInfo;
@@ -272,13 +279,17 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		}
 	}
 
-	DS_ASSERT(index == deviceMaterial->bindingCount);
+	uint32_t bindingCount = index;
+	DS_ASSERT(bindingCount <= deviceMaterial->bindingCount);
 	DS_ASSERT(imageInfoIndex == deviceMaterial->imageInfoCount);
 	DS_ASSERT(bufferInfoIndex == deviceMaterial->bufferInfoCount);
 	DS_ASSERT(bufferViewIndex == deviceMaterial->bufferViewCount);
 
-	DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, deviceMaterial->bindingCount,
-		deviceMaterial->bindings, 0, NULL);
+	if (bindingCount > 0)
+	{
+		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingCount,
+			deviceMaterial->bindings, 0, NULL);
+	}
 
 	return descriptor;
 }

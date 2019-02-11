@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,6 +249,17 @@ struct dsVectorTessEvalOutlineMaterialInfo
 /**
  * @brief Default render states for vector text elements.
  */
+#ifdef SPIRV_VERSION
+#define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
+	patch_control_points = 1; \
+	cull_mode = back; \
+	/* Pre-multiply alpha. */ \
+	blend_enable = true; \
+	src_blend_factor = one; \
+	dst_blend_factor = one_minus_src_alpha; \
+	alpha_blend_op = add
+#else
+// Need to flip winding due to flipping the Y coordinate.
 #define DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES \
 	patch_control_points = 1; \
 	cull_mode = front; \
@@ -257,6 +268,7 @@ struct dsVectorTessEvalOutlineMaterialInfo
 	src_blend_factor = one; \
 	dst_blend_factor = one_minus_src_alpha; \
 	alpha_blend_op = add
+#endif
 
 /**
  * @brief Creates the vertex output.

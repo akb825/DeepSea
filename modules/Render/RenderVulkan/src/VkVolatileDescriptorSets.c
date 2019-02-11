@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -318,6 +318,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		return false;
 	}
 
+	uint32_t index = 0;
 	uint32_t imageIndex = 0;
 	uint32_t bufferIndex = 0;
 	uint32_t texelBufferIndex = 0;
@@ -327,7 +328,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
-		VkWriteDescriptorSet* binding = descriptors->bindings + i;
+		VkWriteDescriptorSet* binding = descriptors->bindings + index;
 		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		binding->pNext = NULL;
 		binding->dstSet = descriptorSet;
@@ -338,6 +339,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		binding->pImageInfo = NULL;
 		binding->pBufferInfo = NULL;
 		binding->pTexelBufferView = NULL;
+		++index;
 
 		switch (element->type)
 		{
@@ -345,20 +347,29 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 				DS_ASSERT(imageIndex < descriptors->imageCount);
-				binding->pImageInfo = descriptors->images + imageIndex;
+				if (descriptors->images[imageIndex].imageView)
+					binding->pImageInfo = descriptors->images + imageIndex;
+				else
+					--index;
 				++imageIndex;
 				break;
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_MutableTextureBuffer:
 				DS_ASSERT(texelBufferIndex < descriptors->texelBufferCount);
-				binding->pTexelBufferView = descriptors->texelBuffers + texelBufferIndex;
+				if (descriptors->texelBuffers[texelBufferIndex])
+					binding->pTexelBufferView = descriptors->texelBuffers + texelBufferIndex;
+				else
+					--index;
 				++texelBufferIndex;
 				break;
 			case dsMaterialType_VariableGroup:
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 				DS_ASSERT(bufferIndex < descriptors->bufferCount);
-				binding->pBufferInfo = descriptors->buffers + bufferIndex;
+				if (descriptors->buffers)
+					binding->pBufferInfo = descriptors->buffers + bufferIndex;
+				else
+					--index;
 				++bufferIndex;
 				break;
 			default:
@@ -366,12 +377,17 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		}
 	}
 
+	uint32_t finalBindingCount = index;
+	DS_ASSERT(finalBindingCount <= bindingCount);
 	DS_ASSERT(imageIndex == descriptors->imageCount);
 	DS_ASSERT(bufferIndex == descriptors->bufferCount);
 	DS_ASSERT(texelBufferIndex == descriptors->texelBufferCount);
 
-	DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingCount, descriptors->bindings,
-		0, NULL);
+	if (bindingCount > 0)
+	{
+		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, finalBindingCount,
+			descriptors->bindings, 0, NULL);
+	}
 	return true;
 }
 

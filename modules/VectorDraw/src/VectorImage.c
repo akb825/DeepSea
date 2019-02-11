@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -715,7 +715,7 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UInt);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UScaled);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
@@ -753,7 +753,7 @@ static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UInt);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UScaled);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));

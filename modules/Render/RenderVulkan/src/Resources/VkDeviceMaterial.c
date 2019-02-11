@@ -488,11 +488,12 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 		}
 
 		material->descriptors[index] = descriptor;
-		if (!dsVkCommandBuffer_addResource(commandBuffer, &descriptor->resource))
-		{
-			DS_VERIFY(dsSpinlock_unlock(&material->lock));
-			return 0;
-		}
+	}
+
+	if (!dsVkCommandBuffer_addResource(commandBuffer, &descriptor->resource))
+	{
+		DS_VERIFY(dsSpinlock_unlock(&material->lock));
+		return 0;
 	}
 
 	DS_VERIFY(dsSpinlock_unlock(&material->lock));

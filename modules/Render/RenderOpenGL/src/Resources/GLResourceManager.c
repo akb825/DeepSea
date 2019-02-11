@@ -251,6 +251,65 @@ static void cacheVertexFormats(dsGLResourceManager* resourceManager)
 			GL_UNSIGNED_INT_2_10_10_10_REV, GL_RGBA);
 	}
 
+	// UScaled
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8, dsGfxFormat_UScaled, GL_UNSIGNED_BYTE,
+		1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8, dsGfxFormat_UScaled,
+		GL_UNSIGNED_BYTE, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8Z8, dsGfxFormat_UScaled,
+		GL_UNSIGNED_BYTE, 3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8Z8W8, dsGfxFormat_UScaled,
+		GL_UNSIGNED_BYTE, 4);
+
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16, dsGfxFormat_UScaled,
+		GL_UNSIGNED_SHORT, 1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16, dsGfxFormat_UScaled,
+		GL_UNSIGNED_SHORT, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16Z16, dsGfxFormat_UScaled,
+		GL_UNSIGNED_SHORT, 3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UScaled,
+		GL_UNSIGNED_SHORT, 4);
+
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32, dsGfxFormat_UScaled, GL_UNSIGNED_INT,
+		1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32, dsGfxFormat_UScaled,
+		GL_UNSIGNED_INT, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32Z32, dsGfxFormat_UScaled,
+		GL_UNSIGNED_INT, 3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32Z32W32, dsGfxFormat_UScaled,
+		GL_UNSIGNED_INT, 4);
+
+	if (packedInt)
+	{
+		setStandardVertexFormat(resourceManager, dsGfxFormat_W2Z10Y10X10, dsGfxFormat_UScaled,
+			GL_UNSIGNED_INT_2_10_10_10_REV, 4);
+	}
+
+	// SScaled
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8, dsGfxFormat_SScaled, GL_BYTE, 1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8, dsGfxFormat_SScaled, GL_BYTE, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8Z8, dsGfxFormat_SScaled, GL_BYTE, 3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X8Y8Z8W8, dsGfxFormat_SScaled, GL_BYTE, 4);
+
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16, dsGfxFormat_SScaled, GL_SHORT, 1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16, dsGfxFormat_SScaled, GL_SHORT, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16Z16, dsGfxFormat_SScaled, GL_SHORT,
+		3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X16Y16Z16W16, dsGfxFormat_SScaled,
+		GL_SHORT, 4);
+
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32, dsGfxFormat_SScaled, GL_INT, 1);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32, dsGfxFormat_SScaled, GL_INT, 2);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32Z32, dsGfxFormat_SScaled, GL_INT, 3);
+	setStandardVertexFormat(resourceManager, dsGfxFormat_X32Y32Z32W32, dsGfxFormat_SScaled, GL_INT,
+		4);
+
+	if (packedInt)
+	{
+		setStandardVertexFormat(resourceManager, dsGfxFormat_W2Z10Y10X10, dsGfxFormat_SScaled,
+			GL_INT_2_10_10_10_REV, 4);
+	}
+
 	// UInt
 	setStandardVertexFormat(resourceManager, dsGfxFormat_X8, dsGfxFormat_UInt, GL_UNSIGNED_BYTE,
 		1);

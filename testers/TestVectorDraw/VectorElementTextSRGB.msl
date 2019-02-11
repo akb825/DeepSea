@@ -31,6 +31,17 @@ pipeline dsVectorTextColor
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
 
+pipeline dsVectorTextColorOutline
+{
+	vertex = dsVectorElementText_defaultVertexColor;
+#if HAS_TESSELLATION_STAGES && 0
+	tessellation_control = dsVectorElementText_defaultTessControlColor;
+	tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
+#endif
+	fragment = dsVectorElementText_defaultFragmentColorOutlineSRGB;
+	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
+}
+
 pipeline dsVectorTextGradient
 {
 	vertex = dsVectorElementText_defaultVertexGradient;
@@ -39,5 +50,16 @@ pipeline dsVectorTextGradient
 	tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
 #endif
 	fragment = dsVectorElementText_defaultFragmentGradientSRGB;
+	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
+}
+
+pipeline dsVectorTextGradientOutline
+{
+	vertex = dsVectorElementText_defaultVertexGradient;
+#if HAS_TESSELLATION_STAGES && 0
+	tessellation_control = dsVectorElementText_defaultTessControlGradient;
+	tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+#endif
+	fragment = dsVectorElementText_defaultFragmentGradientOutlineSRGB;
 	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
 }
