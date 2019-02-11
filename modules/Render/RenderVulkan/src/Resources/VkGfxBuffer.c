@@ -325,22 +325,6 @@ bool dsVkGfxBuffer_copyData(dsResourceManager* resourceManager, dsCommandBuffer*
 	return true;
 }
 
-void dsVkGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
-{
-	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
-	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
-
-	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
-	// Make sure it's not destroyed before we can process it.
-	dsLifetime* lifetime = bufferData->lifetime;
-	DS_VERIFY(dsLifetime_acquire(lifetime));
-
-	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
-
-	dsVkRenderer_processGfxBuffer(resourceManager->renderer, bufferData);
-	dsLifetime_release(lifetime);
-}
-
 bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsGfxBuffer* srcBuffer, size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset,
 	size_t size)
@@ -407,6 +391,22 @@ bool dsVkGfxBuffer_copy(dsResourceManager* resourceManager, dsCommandBuffer* com
 	DS_VK_CALL(device->vkCmdCopyBuffer)(vkCommandBuffer, srcCopyBuffer, dstCopyBuffer, 1,
 		&bufferCopy);
 	return true;
+}
+
+void dsVkGfxBuffer_process(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
+{
+	dsVkGfxBuffer* vkBuffer = (dsVkGfxBuffer*)buffer;
+	DS_VERIFY(dsSpinlock_lock(&vkBuffer->lock));
+
+	dsVkGfxBufferData* bufferData = vkBuffer->bufferData;
+	// Make sure it's not destroyed before we can process it.
+	dsLifetime* lifetime = bufferData->lifetime;
+	DS_VERIFY(dsLifetime_acquire(lifetime));
+
+	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
+
+	dsVkRenderer_processGfxBuffer(resourceManager->renderer, bufferData);
+	dsLifetime_release(lifetime);
 }
 
 bool dsVkGfxBuffer_destroy(dsResourceManager* resourceManager, dsGfxBuffer* buffer)
