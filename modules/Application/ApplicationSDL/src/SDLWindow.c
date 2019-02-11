@@ -30,6 +30,8 @@
 #if DS_MAC
 void* dsSDLWindow_getUsableWindowHandle(void* window);
 void dsSDLWindow_releaseUsableWindowHandle(void* handle);
+#elif DS_ANDROID
+#include <android/native_window.h>
 #endif
 
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)
@@ -276,8 +278,17 @@ bool dsSDLWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsApplic
 	const dsWindow* window)
 {
 	DS_UNUSED(application);
+#if DS_ANDEOID
+	// NOTE: SDL on Android doesn't handle resizes (e.g. rotated)
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	DS_VERIFY(SDL_GetWindowWMInfo(sdlWindow->sdlWindow, &info));
+	*outWidth = ANativeWindow_getWidth(info.info.android.window);
+	*outHeight = ANativeWindow_getWidth(info.info.android.window);
+#else
 	SDL_GetWindowSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth,
 		(int*)outHeight);
+#endif
 	return true;
 }
 
