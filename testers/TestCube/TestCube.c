@@ -323,7 +323,8 @@ static bool setup(TestCube* testCube, dsApplication* application, dsAllocator* a
 
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Clear, renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat,
+			DS_DEFAULT_ANTIALIAS_SAMPLES},
 		{dsAttachmentUsage_Clear, renderer->surfaceDepthStencilFormat, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 

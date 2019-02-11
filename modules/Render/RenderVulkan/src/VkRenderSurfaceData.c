@@ -530,9 +530,9 @@ dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surf
 	}
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	// NOTE: Would use default timeout, but warns each frame on Android.
 	VkResult result = DS_VK_CALL(device->vkAcquireNextImageKHR)(device->device,
-		surfaceData->swapchain, DS_DEFAULT_WAIT_TIMEOUT, imageData->semaphore, 0,
-		&surfaceData->imageIndex);
+		surfaceData->swapchain, UINT64_MAX, imageData->semaphore, 0, &surfaceData->imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		DS_PROFILE_FUNC_RETURN(dsVkSurfaceResult_OutOfDate);
 	else if (dsHandleVkResult(result))

@@ -58,6 +58,14 @@ static size_t fullAllocSize(const char* shaderCacheDir)
 	return DS_ALIGNED_SIZE(sizeof(dsVkResourceManager)) + DS_ALIGNED_SIZE(pathLen);
 }
 
+static bool treatScaledAsInt(const char* deviceName)
+{
+	// According to Vulkan, if a shader requires float vertex input, you need to use a "scaled"
+	// format to convert the integer to a float. However, some drivers don't do this, and you must
+	// use the "int" formats instead.
+	return dsVkIsAdreno(deviceName);
+}
+
 static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat format,
 	VkFormat vkFormat)
 {
@@ -74,6 +82,7 @@ static void initializeFormat(dsVkResourceManager* resourceManager, dsGfxFormat f
 static void initializeFormats(dsVkResourceManager* resourceManager)
 {
 	dsVkDevice* device = resourceManager->device;
+	bool noScaled = treatScaledAsInt(((dsResourceManager*)resourceManager)->renderer->deviceName);
 
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R4G4, dsGfxFormat_UNorm),
 		VK_FORMAT_R4G4_UNORM_PACK8);
@@ -97,7 +106,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_SNorm),
 		VK_FORMAT_R8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UScaled),
-		VK_FORMAT_R8_USCALED);
+		noScaled ? VK_FORMAT_R8_UINT : VK_FORMAT_R8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R8_SINT : VK_FORMAT_R8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UInt),
 		VK_FORMAT_R8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_SInt),
@@ -110,7 +121,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8, dsGfxFormat_SNorm),
 		VK_FORMAT_R8G8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8, dsGfxFormat_UScaled),
-		VK_FORMAT_R8G8_USCALED);
+		noScaled ? VK_FORMAT_R8G8_UINT : VK_FORMAT_R8G8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R8G8_SINT : VK_FORMAT_R8G8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8, dsGfxFormat_UInt),
 		VK_FORMAT_R8G8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8, dsGfxFormat_SInt),
@@ -123,7 +136,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SNorm),
 		VK_FORMAT_R8G8B8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UScaled),
-		VK_FORMAT_R8G8B8_USCALED);
+		noScaled ? VK_FORMAT_R8G8B8_UINT : VK_FORMAT_R8G8B8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R8G8B8_SINT : VK_FORMAT_R8G8B8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UInt),
 		VK_FORMAT_R8G8B8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_SInt),
@@ -136,7 +151,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_SNorm),
 		VK_FORMAT_B8G8R8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_UScaled),
-		VK_FORMAT_B8G8R8_USCALED);
+		noScaled ? VK_FORMAT_B8G8R8_UINT : VK_FORMAT_B8G8R8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_B8G8R8_SINT : VK_FORMAT_B8G8R8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_UInt),
 		VK_FORMAT_B8G8R8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8, dsGfxFormat_SInt),
@@ -149,7 +166,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SNorm),
 		VK_FORMAT_R8G8B8A8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
-		dsGfxFormat_UScaled), VK_FORMAT_R8G8B8A8_USCALED);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_R8G8B8A8_UINT : VK_FORMAT_R8G8B8A8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R8G8B8A8_SINT : VK_FORMAT_R8G8B8A8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UInt),
 		VK_FORMAT_R8G8B8A8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_SInt),
@@ -162,7 +183,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SNorm),
 		VK_FORMAT_B8G8R8A8_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8,
-		dsGfxFormat_UScaled), VK_FORMAT_B8G8R8A8_USCALED);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_B8G8R8A8_UINT : VK_FORMAT_B8G8R8A8_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_B8G8R8A8_SINT : VK_FORMAT_B8G8R8A8_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_UInt),
 		VK_FORMAT_B8G8R8A8_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SInt),
@@ -175,7 +200,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A8B8G8R8, dsGfxFormat_SNorm),
 		VK_FORMAT_A8B8G8R8_SNORM_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A8B8G8R8,
-		dsGfxFormat_UScaled), VK_FORMAT_A8B8G8R8_USCALED_PACK32);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_A8B8G8R8_UINT_PACK32 : VK_FORMAT_A8B8G8R8_USCALED_PACK32);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A8B8G8R8,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_A8B8G8R8_SINT_PACK32 : VK_FORMAT_A8B8G8R8_SSCALED_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A8B8G8R8, dsGfxFormat_UInt),
 		VK_FORMAT_A8B8G8R8_UINT_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A8B8G8R8, dsGfxFormat_SInt),
@@ -188,7 +217,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10,
 		dsGfxFormat_SNorm), VK_FORMAT_A2R10G10B10_SNORM_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10,
-		dsGfxFormat_UScaled), VK_FORMAT_A2R10G10B10_USCALED_PACK32);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_A2R10G10B10_UINT_PACK32 : VK_FORMAT_A2R10G10B10_USCALED_PACK32);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_A2R10G10B10_SINT_PACK32 : VK_FORMAT_A2R10G10B10_SSCALED_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10,
 		dsGfxFormat_UInt), VK_FORMAT_A2R10G10B10_UINT_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10,
@@ -199,7 +232,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10,
 		dsGfxFormat_SNorm), VK_FORMAT_A2B10G10R10_SNORM_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10,
-		dsGfxFormat_UScaled), VK_FORMAT_A2B10G10R10_USCALED_PACK32);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_A2B10G10R10_UINT_PACK32 : VK_FORMAT_A2B10G10R10_USCALED_PACK32);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_A2B10G10R10_SINT_PACK32 : VK_FORMAT_A2B10G10R10_SSCALED_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10,
 		dsGfxFormat_UInt), VK_FORMAT_A2B10G10R10_UINT_PACK32);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10,
@@ -210,7 +247,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16, dsGfxFormat_SNorm),
 		VK_FORMAT_R16_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16, dsGfxFormat_UScaled),
-		VK_FORMAT_R16_USCALED);
+		noScaled ? VK_FORMAT_R16_UINT : VK_FORMAT_R16_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R16_SINT : VK_FORMAT_R16_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16, dsGfxFormat_UInt),
 		VK_FORMAT_R16_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16, dsGfxFormat_SInt),
@@ -223,7 +262,9 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16, dsGfxFormat_SNorm),
 		VK_FORMAT_R16G16_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16, dsGfxFormat_UScaled),
-		VK_FORMAT_R16G16_USCALED);
+		noScaled ? VK_FORMAT_R16G16_UINT : VK_FORMAT_R16G16_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16, dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R16G16_SINT : VK_FORMAT_R16G16_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16, dsGfxFormat_UInt),
 		VK_FORMAT_R16G16_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16, dsGfxFormat_SInt),
@@ -236,7 +277,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16,
 		dsGfxFormat_SNorm), VK_FORMAT_R16G16B16_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16,
-		dsGfxFormat_UScaled), VK_FORMAT_R16G16B16_USCALED);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_R16G16B16_UINT : VK_FORMAT_R16G16B16_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R16G16B16_SINT : VK_FORMAT_R16G16B16_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16, dsGfxFormat_UInt),
 		VK_FORMAT_R16G16B16_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16, dsGfxFormat_SInt),
@@ -249,7 +294,11 @@ static void initializeFormats(dsVkResourceManager* resourceManager)
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16,
 		dsGfxFormat_SNorm), VK_FORMAT_R16G16B16A16_SNORM);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16,
-		dsGfxFormat_UScaled), VK_FORMAT_R16G16B16A16_USCALED);
+			dsGfxFormat_UScaled),
+		noScaled ? VK_FORMAT_R16G16B16A16_UINT : VK_FORMAT_R16G16B16A16_USCALED);
+	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16,
+			dsGfxFormat_SScaled),
+		noScaled ? VK_FORMAT_R16G16B16A16_SINT : VK_FORMAT_R16G16B16A16_SSCALED);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16,
 		dsGfxFormat_UInt), VK_FORMAT_R16G16B16A16_UINT);
 	initializeFormat(resourceManager, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16,

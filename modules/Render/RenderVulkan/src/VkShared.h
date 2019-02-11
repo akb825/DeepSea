@@ -64,3 +64,5 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile);
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);
 VkShaderStageFlagBits dsVkShaderStage(mslStage stage);
 VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type);
+
+bool dsVkIsAdreno(const char* deviceName);

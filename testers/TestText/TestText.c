@@ -669,6 +669,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			testText->window = NULL;
 			return false;
 		case dsEventType_WindowResized:
+		case dsEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testText, testText->renderer->mainCommandBuffer))
 				abort();
 			return true;
@@ -1155,8 +1156,8 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	DS_VERIFY(dsWindow_setDrawFunction(testText->window, &draw, testText));
 
-	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear, renderer->surfaceColorFormat,
-		DS_DEFAULT_ANTIALIAS_SAMPLES};
+	dsAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
+		renderer->surfaceColorFormat, DS_DEFAULT_ANTIALIAS_SAMPLES};
 
 	dsColorAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;

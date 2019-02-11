@@ -71,6 +71,16 @@ static size_t fullAllocSize(void)
 		dsConditionVariable_fullAllocSize();
 }
 
+static bool useBGRASurface(const char* deviceName)
+{
+	// Devices that use RGBA surfaces.
+	if (dsVkIsAdreno(deviceName))
+		return false;
+
+	// Most devices use BGRA surfaces.
+	return true;
+}
+
 static bool createCommandBuffers(dsVkRenderer* renderer)
 {
 	dsRenderer* baseRenderer = (dsRenderer*)renderer;
@@ -2010,16 +2020,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options, true, true);
-	if (!dsGfxFormat_isValid(colorFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Invalid color format.");
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
-
 	size_t bufferSize = fullAllocSize();
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
@@ -2084,6 +2084,18 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	if (baseRenderer->deviceName)
 		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);
+
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options,
+			useBGRASurface(baseRenderer->deviceName), true);
+	if (!dsGfxFormat_isValid(colorFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Invalid color format.");
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
 
 	VkPhysicalDeviceFeatures deviceFeatures;
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);

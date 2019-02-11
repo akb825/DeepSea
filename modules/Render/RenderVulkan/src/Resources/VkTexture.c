@@ -493,7 +493,12 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 	VkMemoryRequirements deviceRequirements;
 	DS_VK_CALL(device->vkGetImageMemoryRequirements)(device->device, texture->deviceImage,
 		&deviceRequirements);
-	uint32_t deviceMemoryIndex = dsVkMemoryIndex(device, &deviceRequirements, dsGfxMemory_GPUOnly);
+
+	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	if (dsVkTexture_onlySubpassInput(usage) && device->hasLazyAllocation)
+		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+	uint32_t deviceMemoryIndex = dsVkMemoryIndexImpl(device, &deviceRequirements, memoryFlags,
+		memoryFlags);
 	if (deviceMemoryIndex == DS_INVALID_HEAP)
 	{
 		dsVkTexture_destroyImpl(baseTexture);
@@ -1136,10 +1141,10 @@ bool dsVkTexture_isStatic(const dsTexture* texture)
 		!texture->offscreen;
 }
 
-bool dsVkTexture_onlySubpassInput(const dsTexture* texture)
+bool dsVkTexture_onlySubpassInput(dsTextureUsage usage)
 {
-	return (texture->usage & dsTextureUsage_SubpassInput) &&
-		!(texture->usage & (dsTextureUsage_Texture | dsTextureUsage_Image));
+	return (usage & dsTextureUsage_SubpassInput) &&
+		!(usage & (dsTextureUsage_Texture | dsTextureUsage_Image));
 }
 
 VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
@@ -1147,7 +1152,7 @@ VkImageLayout dsVkTexture_imageLayout(const dsTexture* texture)
 	if (texture->usage & dsTextureUsage_Image)
 		return VK_IMAGE_LAYOUT_GENERAL;
 
-	if (dsVkTexture_onlySubpassInput(texture))
+	if (dsVkTexture_onlySubpassInput(texture->usage))
 	{
 		if (dsGfxFormat_isDepthStencil(texture->info.format))
 			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

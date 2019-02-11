@@ -291,6 +291,10 @@ static void invalidateWindowSurfaces(dsApplication* application)
 		dsRenderSurface_destroy(window->surface);
 		window->surface = NULL;
 		dsSDLWindow_createSurface(window, surfaceName);
+
+		dsEvent event;
+		event.type = dsEventType_SurfaceInvalidated;
+		dsApplication_dispatchEvent(application, window, &event);
 	}
 }
 #endif

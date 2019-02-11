@@ -20,6 +20,7 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
+#include <string.h>
 
 typedef struct LastCallsite
 {
@@ -439,4 +440,10 @@ VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type)
 			DS_ASSERT(false);
 			return 0;
 	}
+}
+
+bool dsVkIsAdreno(const char* deviceName)
+{
+	const char* adrenoName = "Adreno";
+	return strncmp(deviceName, adrenoName, strlen(adrenoName)) == 0;
 }

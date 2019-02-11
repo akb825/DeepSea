@@ -72,7 +72,7 @@ static bool beginFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer
 			return false;
 		}
 
-		if (dsVkTexture_onlySubpassInput(texture))
+		if (dsVkTexture_onlySubpassInput(texture->usage))
 			continue;
 
 		// Don't layout transition for resolved depth/stencil images, since you can't resolve
@@ -209,7 +209,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (dsVkTexture_onlySubpassInput(texture))
+				if (dsVkTexture_onlySubpassInput(texture->usage))
 					continue;
 
 				VkImageMemoryBarrier* imageBarrier =
@@ -297,7 +297,7 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 				dsTexture* texture = (dsTexture*)surface->surface;
 				DS_ASSERT(texture->offscreen);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
-				if (!vkTexture->surfaceImage || dsVkTexture_onlySubpassInput(texture))
+				if (!vkTexture->surfaceImage || dsVkTexture_onlySubpassInput(texture->usage))
 					continue;
 
 				usage |= texture->usage | dsTextureUsage_CopyFrom;

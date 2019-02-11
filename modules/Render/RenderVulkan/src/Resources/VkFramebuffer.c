@@ -96,6 +96,8 @@ dsFramebuffer* dsVkFramebuffer_create(dsResourceManager* resourceManager, dsAllo
 	const dsVkRenderSurface* renderSurface = getRenderSurface(surfaces, surfaceCount);
 	if (renderSurface)
 		framebuffer->renderSurface = dsLifetime_addRef(renderSurface->lifetime);
+	else
+		framebuffer->renderSurface = NULL;
 
 	framebuffer->lifetime = dsLifetime_create(allocator, framebuffer);
 	if (!framebuffer->lifetime)

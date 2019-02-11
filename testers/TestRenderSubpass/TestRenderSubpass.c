@@ -220,13 +220,14 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	DS_VERIFY(dsRenderbuffer_destroy(testRenderSubpass->combinedColor));
 
 	dsAllocator* allocator = testRenderSubpass->allocator;
-	dsResourceManager* resourceManager = testRenderSubpass->renderer->resourceManager;
+	dsRenderer* renderer = testRenderSubpass->renderer;
+	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
 	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
 		depthFormat = dsGfxFormat_D16;
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
-	dsGfxFormat combinedColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
 	testRenderSubpass->rColor = dsTexture_createOffscreen(resourceManager, allocator,
 		dsTextureUsage_SubpassInput | dsTextureUsage_CopyFrom, dsGfxMemory_Static |
 		dsGfxMemory_GPUOnly, &texInfo, true);
@@ -279,12 +280,16 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->gColor},
 		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->gDepth},
 		{dsGfxSurfaceType_Texture, dsCubeFace_None, 0, 0, testRenderSubpass->bColor},
-		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth},
-		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->combinedColor},
+		{dsGfxSurfaceType_Renderbuffer, dsCubeFace_None, 0, 0, testRenderSubpass->bDepth}
 	};
+
+	if (testRenderSubpass->combinedColor)
+	{
+		surfaces[0].surfaceType = dsGfxSurfaceType_Renderbuffer;
+		surfaces[0].surface = testRenderSubpass->combinedColor;
+	}
+
 	uint32_t surfaceCount = DS_ARRAY_SIZE(surfaces);
-	if (!testRenderSubpass->combinedColor)
-		--surfaceCount;
 	testRenderSubpass->framebuffer = dsFramebuffer_create(
 		testRenderSubpass->renderer->resourceManager, testRenderSubpass->allocator, "Main",
 		surfaces, surfaceCount, width, height, 1);
@@ -323,6 +328,7 @@ static bool processEvent(dsApplication* application, dsWindow* window, const dsE
 			testRenderSubpass->window = NULL;
 			return false;
 		case dsEventType_WindowResized:
+		case dsEventType_SurfaceInvalidated:
 			if (!createFramebuffer(testRenderSubpass))
 				abort();
 			return true;
@@ -368,7 +374,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	dsRenderer* renderer = testRenderSubpass->renderer;
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
-	dsSurfaceClearValue clearValues[8];
+	dsSurfaceClearValue clearValues[7];
 	clearValues[0].colorValue.floatValue.r = 0.0f;
 	clearValues[0].colorValue.floatValue.g = 0.0f;
 	clearValues[0].colorValue.floatValue.b = 0.0f;
@@ -384,8 +390,6 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 		clearValues[i*2 + 2].depthStencil.stencil = 0;
 	}
 	uint32_t clearValueCount = DS_ARRAY_SIZE(clearValues);
-	if (!testRenderSubpass->combinedColor)
-		--clearValueCount;
 	DS_VERIFY(dsRenderPass_begin(testRenderSubpass->renderPass, commandBuffer,
 		testRenderSubpass->framebuffer, NULL, clearValues, clearValueCount));
 
@@ -502,18 +506,16 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	dsAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_Standard, renderer->surfaceColorFormat, 1},
-		{dsAttachmentUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
-			SAMPLE_COUNT},
+		{dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat, 1},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
+			dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm), SAMPLE_COUNT},
 		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},
-		{dsAttachmentUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
-			SAMPLE_COUNT},
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
+			dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm), SAMPLE_COUNT},
 		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},
-		{dsAttachmentUsage_Clear, dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm),
-			SAMPLE_COUNT},
-		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},
-		{dsAttachmentUsage_Standard, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
-			1}
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
+			dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm), SAMPLE_COUNT},
+		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
@@ -525,14 +527,6 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	uint32_t bDepthStencilAttachment = 6;
 	dsColorAttachmentRef resolveColorAttachment = {0, false};
 	uint32_t inputAttachments[] = {1, 3, 5};
-	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
-	if (dsGfxFormat_surfaceBlitSupported(resourceManager, renderer->surfaceColorFormat,
-		renderer->surfaceColorFormat, dsBlitFilter_Linear) && !DS_MAC)
-	{
-		resolveColorAttachment.attachmentIndex = 7;
-	}
-	else
-		--attachmentCount;
 
 	dsRenderSubpassInfo subpasses[] =
 	{
