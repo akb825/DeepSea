@@ -26,7 +26,7 @@
  * @param color The color.
  * @return The grayscale value.
  */
-float dsGrayscale(vec3 color)
+lowp float dsGrayscale(lowp vec3 color)
 {
 	// Rec. 709
 	return dot(color, vec3(0.2126, 0.7152, 0.0722));
@@ -166,7 +166,7 @@ vec3 dsHSVFromRGB(vec3 rgb)
 	float cMax = max(max(rgb.r, rgb.g), rgb.b);
 	float cMin = min(min(rgb.r, rgb.g), rgb.b);
 
-	const float epsilon = 1e-6;
+	const float epsilon = 1e-3;
 	float delta = cMax - cMin;
 	if (delta < epsilon)
 		return vec3(0.0, 0.0, cMax);
@@ -225,7 +225,7 @@ vec3 dsHSLFromRGB(vec3 rgb)
 	float cMax = max(max(rgb.r, rgb.g), rgb.b);
 	float cMin = min(min(rgb.r, rgb.g), rgb.b);
 
-	const float epsilon = 1e-6;
+	const float epsilon = 1e-3;
 	float delta = cMax - cMin;
 	float lightness = (cMax + cMin)*0.5;
 	if (delta < epsilon)

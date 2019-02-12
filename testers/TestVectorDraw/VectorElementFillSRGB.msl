@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+[[fragment]] precision mediump float;
+
 #include <DeepSea/VectorDraw/Shaders/VectorElementFill.mslh>
 
 pipeline dsVectorFillColor

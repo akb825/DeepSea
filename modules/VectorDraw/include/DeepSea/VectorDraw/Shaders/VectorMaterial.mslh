@@ -39,7 +39,7 @@ sampler_state dsVectorMaterialInfoTex
 /**
  * @brief Texture holding color information about the vector material.
  */
-uniform sampler2D dsVectorMaterialColorTex;
+lowp uniform sampler2D dsVectorMaterialColorTex;
 sampler_state dsVectorMaterialColorTex
 {
 	address_mode_u = clamp_to_edge;
@@ -112,7 +112,7 @@ dsVectorMaterialInfo dsVectorMaterial_invalidInfo()
 }
 
 [[fragment]]
-vec4 dsVectorMaterial_getSolidColorImpl(float index, sampler2D materialTex, float height)
+vec4 dsVectorMaterial_getSolidColorImpl(float index, lowp sampler2D materialTex, float height)
 {
 	float colorCoord = 0.5/DS_MATERIAL_COLOR_WIDTH;
 	float materialCoord = (index + 0.5)/height;
@@ -133,7 +133,7 @@ vec4 dsVectorMaterial_getSolidColor(float index)
 
 [[fragment]]
 vec4 dsVectorMaterial_getLinearGradientColorImpl(dsVectorMaterialInfo info, vec2 origPosition,
-    vec4 bounds, float index, sampler2D materialTex, float height)
+	vec4 bounds, lowp float index, lowp sampler2D materialTex, float height)
 {
 	vec2 gradientPos;
 	if (info.info0.z == 1.0)
@@ -149,10 +149,10 @@ vec4 dsVectorMaterial_getLinearGradientColorImpl(dsVectorMaterialInfo info, vec2
 
 	vec2 dir = info.info1.zw - info.info1.xy;
 	float invDirLen = 1.0/length(dir);
-	vec2 dirNorm = dir*vec2(invDirLen);
+	lowp vec2 dirNorm = dir*vec2(invDirLen);
 	float gradientT = dot(dirNorm, gradientPos - info.info1.xy)*invDirLen;
 
-	float colorCoord;
+	lowp float colorCoord;
 	if (info.info0.y == 1.0)
 	{
 		// Repeat
@@ -172,7 +172,7 @@ vec4 dsVectorMaterial_getLinearGradientColorImpl(dsVectorMaterialInfo info, vec2
 		colorCoord = gradientT;
 	}
 
-	float materialCoord = (index + 0.5)/height;
+	lowp float materialCoord = (index + 0.5)/height;
 	return texture(materialTex, vec2(colorCoord, materialCoord));
 }
 
@@ -195,7 +195,7 @@ vec4 dsVectorMaterial_getLinearGradientColor(dsVectorMaterialInfo info, vec2 ori
 
 [[fragment]]
 vec4 dsVectorMaterial_getRadialGradientColorImpl(dsVectorMaterialInfo info, vec2 origPosition,
-    vec4 bounds, float index, sampler2D materialTex, float height)
+    vec4 bounds, float index, lowp sampler2D materialTex, float height)
 {
 	vec2 gradientPos;
 	if (info.info0.z == 1.0)

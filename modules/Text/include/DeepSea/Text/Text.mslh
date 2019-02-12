@@ -23,7 +23,7 @@
  * @param mipLevel The mip level that the glyph is stored in.
  * @return The signed distance represented in the range [0, 1].
  */
-float dsComputeTextDistance(sampler2D fontTex, vec3 texCoords)
+lowp float dsComputeTextDistance(lowp sampler2D fontTex, vec3 texCoords)
 {
 	return textureLod(fontTex, texCoords.xy, texCoords.z).r;
 }
@@ -37,11 +37,13 @@ float dsComputeTextDistance(sampler2D fontTex, vec3 texCoords)
  * @param textColor The color of the text.
  * @return The text color. This uses pre-multiplied alpha.
  */
-vec4 dsComputeTextColor(float distance, float embolden, float antiAlias, vec4 textColor)
+lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp float antiAlias,
+	lowp vec4 textColor)
 {
 	textColor *= textColor.a;
-	float insideThreshold = -embolden*0.5 + 0.5;
-	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
+	lowp float insideThreshold = -embolden*0.5 + 0.5;
+	lowp float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias,
+		distance);
 	return textColor*inside;
 }
 
@@ -58,25 +60,26 @@ vec4 dsComputeTextColor(float distance, float embolden, float antiAlias, vec4 te
  * @param outlineColor The color of the text outline.
  * @return The text color. This uses pre-multiplied alpha.
  */
-vec4 dsComputeTextColor(float distance, float embolden, float outlinePosition,
-	float outlineThickness, float antiAlias, vec4 textColor, vec4 outlineColor)
+lowp vec4 dsComputeTextColor(lowp float distance, lowp float embolden, lowp float outlinePosition,
+	lowp float outlineThickness, lowp float antiAlias, lowp vec4 textColor, lowp vec4 outlineColor)
 {
 	textColor.rgb *= textColor.a;
-	float insideThreshold = -embolden*0.5 + 0.5;
-	float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias, distance);
-	vec4 color = textColor;
+	lowp float insideThreshold = -embolden*0.5 + 0.5;
+	lowp float inside = smoothstep(insideThreshold - antiAlias, insideThreshold + antiAlias,
+		distance);
+	lowp vec4 color = textColor;
 
 	if (outlineThickness > 0.0 && outlineColor.a > 0)
 	{
 		outlineColor.rgb *= outlineColor.a;
-		float outlineMinThreshold = 1.0 - outlinePosition - outlineThickness*0.5;
-		float outlineMaxThreshold = 1.0 - outlinePosition + outlineThickness*0.5;
+		lowp float outlineMinThreshold = 1.0 - outlinePosition - outlineThickness*0.5;
+		lowp float outlineMaxThreshold = 1.0 - outlinePosition + outlineThickness*0.5;
 
-		float insideMinOutline = smoothstep(outlineMinThreshold - antiAlias,
+		lowp float insideMinOutline = smoothstep(outlineMinThreshold - antiAlias,
 			outlineMinThreshold + antiAlias, distance);
-		float insideMaxOutline = 1.0 - smoothstep(outlineMaxThreshold - antiAlias,
+		lowp float insideMaxOutline = 1.0 - smoothstep(outlineMaxThreshold - antiAlias,
 			outlineMaxThreshold + antiAlias, distance);
-		float insideOutline = insideMinOutline*insideMaxOutline;
+		lowp float insideOutline = insideMinOutline*insideMaxOutline;
 		color = mix(color, outlineColor, 1.0 - inside);
 		color = mix(color, outlineColor, insideOutline);
 		inside = mix(inside, 1.0, insideOutline);

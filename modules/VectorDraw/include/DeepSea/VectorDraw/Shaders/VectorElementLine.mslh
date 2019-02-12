@@ -205,7 +205,7 @@ vec4 dsVectorElementLine_getMaterialColor()
 		}
 	}
 
-	vec4 color = dsVectorMaterial_getColor(dsVectorVertexMaterialOut,
+	lowp vec4 color = dsVectorMaterial_getColor(dsVectorVertexMaterialOut,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.lineDistancesOpacityMaterialIndex.w);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.lineDistancesOpacityMaterialIndex.z);

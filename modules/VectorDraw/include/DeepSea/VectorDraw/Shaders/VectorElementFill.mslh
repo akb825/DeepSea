@@ -170,7 +170,7 @@ vec4 dsVectorElementFill_getSolidColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 color = dsVectorMaterial_getSolidColor(dsVectorVertexOut.opacityMaterialIndex.y);
+	lowp vec4 color = dsVectorMaterial_getSolidColor(dsVectorVertexOut.opacityMaterialIndex.y);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
 }
 
@@ -183,7 +183,7 @@ vec4 dsVectorElementFill_getLinearGradientColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 color = dsVectorMaterial_getLinearGradientColor(dsVectorVertexMaterialOut,
+	lowp vec4 color = dsVectorMaterial_getLinearGradientColor(dsVectorVertexMaterialOut,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.opacityMaterialIndex.y);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
@@ -198,7 +198,7 @@ vec4 dsVectorElementFill_getRadialGradientColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 color = dsVectorMaterial_getRadialGradientColor(dsVectorVertexMaterialOut,
+	lowp vec4 color = dsVectorMaterial_getRadialGradientColor(dsVectorVertexMaterialOut,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.opacityMaterialIndex.y);
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);

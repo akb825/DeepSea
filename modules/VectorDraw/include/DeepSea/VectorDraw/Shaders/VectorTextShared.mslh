@@ -87,7 +87,7 @@ struct dsVectorVertexOutput
 	/**
 	 * @brief The outline thickness, and anti-alias.
 	 */
-	vec2 outlineAntiAlias;
+	lowp vec2 outlineAntiAlias;
 
 	/**
 	 * @brief The opacities of the fill and outline material, outline thickness, and anti-alias.
@@ -135,7 +135,7 @@ struct dsVectorOutlineMaterialInfo
  * @param offset The offset for the glyph bounds.
  * @param slant The amount to slant the glyph.
  */
-vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, float slant)
+vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, lowp float slant)
 {
 	return position + offset - vec2(offset.y*slant, 0.0);
 }
@@ -175,16 +175,16 @@ vec4 dsVectorElementText_getSolidColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
+	lowp vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
 		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
 		uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
-	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
 
-	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
-	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	lowp float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	lowp float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
 }
 
@@ -197,23 +197,23 @@ vec4 dsVectorElementText_getSolidColorOutline()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
+	lowp vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
 		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
 		uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
 
-	vec4 outlineColor = dsVectorMaterial_getSolidColorImpl(
+	lowp vec4 outlineColor = dsVectorMaterial_getSolidColorImpl(
 		dsVectorVertexOut.materialIndicesOpacities.y, dsVectorTextOutlineMaterialColorTex,
 		uniforms.dsVectorTextureSizes.z);
 	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
-	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
 
-	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
-	float outline = dsVectorVertexOut.outlineAntiAlias.x;
-	float outlinePosition = embolden*0.5 + 0.5;
-	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	lowp float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	lowp float outline = dsVectorVertexOut.outlineAntiAlias.x;
+	lowp float outlinePosition = embolden*0.5 + 0.5;
+	lowp float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
 		fillColor, outlineColor);
 }
@@ -232,17 +232,17 @@ vec4 dsVectorElementText_getMaterialColor()
 	fillInfo.info1 = dsVectorVertexFillMaterialOut.fillInfo1;
 	fillInfo.info2 = dsVectorVertexFillMaterialOut.fillInfo2;
 	fillInfo.info3 = dsVectorVertexFillMaterialOut.fillInfo3;
-	vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
+	lowp vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
 		uniforms.dsVectorTextureSizes.y);
 	fillColor.a *= dsVectorVertexOut.materialIndicesOpacities.z;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
-	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
 
-	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
-	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	lowp float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	lowp float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
 }
 
@@ -260,7 +260,7 @@ vec4 dsVectorElementText_getMaterialColorOutline()
 	fillInfo.info1 = dsVectorVertexFillMaterialOut.fillInfo1;
 	fillInfo.info2 = dsVectorVertexFillMaterialOut.fillInfo2;
 	fillInfo.info3 = dsVectorVertexFillMaterialOut.fillInfo3;
-	vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
+	lowp vec4 fillColor = dsVectorMaterial_getColorImpl(fillInfo,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.materialIndicesOpacities.x, dsVectorMaterialColorTex,
 		uniforms.dsVectorTextureSizes.y);
@@ -271,19 +271,19 @@ vec4 dsVectorElementText_getMaterialColorOutline()
 	outlineInfo.info1 = dsVectorVertexOutlineMaterialOut.outlineInfo1;
 	outlineInfo.info2 = dsVectorVertexOutlineMaterialOut.outlineInfo2;
 	outlineInfo.info3 = dsVectorVertexOutlineMaterialOut.outlineInfo3;
-	vec4 outlineColor = dsVectorMaterial_getColorImpl(outlineInfo,
+	lowp vec4 outlineColor = dsVectorMaterial_getColorImpl(outlineInfo,
 		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
 		dsVectorVertexOut.materialIndicesOpacities.y, dsVectorTextOutlineMaterialColorTex,
 		uniforms.dsVectorTextureSizes.z);
 	outlineColor.a *= dsVectorVertexOut.materialIndicesOpacities.w;
 
 	vec3 texCoords = dsVectorVertexOut.texCoordEmbolden.xyz;
-	float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
 
-	float embolden = dsVectorVertexOut.texCoordEmbolden.w;
-	float outline = dsVectorVertexOut.outlineAntiAlias.x;
-	float outlinePosition = embolden*0.5 + 0.5;
-	float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
+	lowp float embolden = dsVectorVertexOut.texCoordEmbolden.w;
+	lowp float outline = dsVectorVertexOut.outlineAntiAlias.x;
+	lowp float outlinePosition = embolden*0.5 + 0.5;
+	lowp float antiAlias = dsVectorVertexOut.outlineAntiAlias.y;
 	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
 		fillColor, outlineColor);
 }

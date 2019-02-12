@@ -302,8 +302,8 @@ dsVectorVertexOutput dsVectorElementText_processTessellatedVertex(out vec4 outPo
 
 	vec2 offset = mix(dsVectorTessControlOut.geometry.xy, dsVectorTessControlOut.geometry.zw,
 		gl_TessCoord.xy);
-	vec2 texCoords = mix(dsVectorTessControlOut.texCoords.xy, dsVectorTessControlOut.texCoords.zw,
-		gl_TessCoord.xy);
+	vec2 texCoords = mix(dsVectorTessControlOut.texCoords.xy,
+		dsVectorTessControlOut.texCoords.zw, gl_TessCoord.xy);
 
 	dsVectorVertexOutput result;
 	result.position.xy = dsVectorTextShared_finalPosition(gl_in[0].gl_Position.xy, offset,
