@@ -32,7 +32,7 @@ if (DEEPSEA_GPU_PROFILING)
 else()
 	set(gpuProfilingEnabled 0)
 endif()
-ds_target_compile_definitions(deepsea_render PRIVATE
+ds_target_compile_definitions(deepsea_render PUBLIC
 	DS_GPU_PROFILING_ENABLED=${gpuProfilingEnabled})
 
 if (NOT DEEPSEA_SYSTEM_MSL)
