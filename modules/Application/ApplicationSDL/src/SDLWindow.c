@@ -30,6 +30,8 @@
 #if DS_MAC
 void* dsSDLWindow_getUsableWindowHandle(void* window);
 void dsSDLWindow_releaseUsableWindowHandle(void* handle);
+#elif DS_ANDROID
+#include <android/native_window.h>
 #endif
 
 static void getSdlPosition(int* outX, int* outY, const dsVector2i* position, bool center)
@@ -112,6 +114,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	DS_ASSERT(application->displayCount > 0);
 	window->displayMode = application->displays[0].displayModes[
 		application->displays[0].defaultMode];
+
+	dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
 	return true;
 }
 
@@ -276,8 +280,9 @@ bool dsSDLWindow_getSize(uint32_t* outWidth, uint32_t* outHeight, const dsApplic
 	const dsWindow* window)
 {
 	DS_UNUSED(application);
-	SDL_GetWindowSize(((const dsSDLWindow*)window)->sdlWindow, (int*)outWidth,
-		(int*)outHeight);
+	SDL_Window* sdlWindow = ((const dsSDLWindow*)window)->sdlWindow;
+
+	SDL_GetWindowSize(sdlWindow, (int*)outWidth, (int*)outHeight);
 	return true;
 }
 
