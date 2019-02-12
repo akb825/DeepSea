@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-[[fragment]] precision lowp float;
+[[fragment]] precision mediump float;
 
 #include <DeepSea/VectorDraw/Shaders/VectorElementFill.mslh>
 
