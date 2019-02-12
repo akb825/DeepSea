@@ -890,6 +890,7 @@ int dsMain(int argc, const char** argv)
 	dsRenderer_defaultOptions(&rendererOptions, "TestRenderSubpass", 0);
 	rendererOptions.depthBits = 0;
 	rendererOptions.stencilBits = 0;
+	rendererOptions.alphaBits = 8;
 	rendererOptions.samples = 1;
 	dsRenderer* renderer = dsRenderBootstrap_createRenderer(rendererType,
 		(dsAllocator*)&renderAllocator, &rendererOptions);

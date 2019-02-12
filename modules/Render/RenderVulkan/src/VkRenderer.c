@@ -2005,6 +2005,11 @@ bool dsVkRenderer_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDevi
 	return dsQueryVkDevices(outDevices, outDeviceCount);
 }
 
+bool dsVkRenderer_getDefaultDevice(dsRenderDeviceInfo* outDevice)
+{
+	return dsGetDefaultVkDevice(outDevice);
+}
+
 dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions* options)
 {
 	if (!allocator || !options)

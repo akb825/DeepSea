@@ -50,6 +50,14 @@ DS_RENDERVULKAN_EXPORT bool dsVkRenderer_queryDevices(dsRenderDeviceInfo* outDev
 	uint32_t* outDeviceCount);
 
 /**
+ * @brief Gets the default device that will be used with Vulkan.
+ * @remark errno will be set on failure.
+ * @param[out] outDevice Output pointer for the device.
+ * @return False if no device is available.
+ */
+DS_RENDERVULKAN_EXPORT bool dsVkRenderer_getDefaultDevice(dsRenderDeviceInfo* outDevice);
+
+/**
  * @brief Creates a Vulkan renderer.
  * @remark errno will be set on failure.
  * @param allocator The allocator to use.

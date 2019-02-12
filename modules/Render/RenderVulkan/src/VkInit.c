@@ -440,6 +440,24 @@ static uint32_t findQueueFamily(dsVkInstance* instance, VkPhysicalDevice physica
 	return queueFamily;
 }
 
+static bool initializeDeviceList(void)
+{
+	if (physicalDeviceCount > 0)
+		return true;
+
+	dsVkInstance instance;
+	memset(&instance, 0, sizeof(dsVkInstance));
+	if (!dsCreateVkInstance(&instance, NULL, true))
+	{
+		dsDestroyVkInstance(&instance);
+		return false;
+	}
+
+	dsGatherVkPhysicalDevices(&instance);
+	dsDestroyVkInstance(&instance);
+	return true;
+}
+
 bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options,
 	bool handleErrors)
 {
@@ -674,19 +692,8 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 		return false;
 	}
 
-	if (physicalDeviceCount == 0)
-	{
-		dsVkInstance instance;
-		memset(&instance, 0, sizeof(dsVkInstance));
-		if (!dsCreateVkInstance(&instance, NULL, true))
-		{
-			dsDestroyVkInstance(&instance);
-			return false;
-		}
-
-		dsGatherVkPhysicalDevices(&instance);
-		dsDestroyVkInstance(&instance);
-	}
+	if (!initializeDeviceList())
+		return false;
 
 	if (!outDevices)
 	{
@@ -711,6 +718,27 @@ bool dsQueryVkDevices(dsRenderDeviceInfo* outDevices, uint32_t* outDeviceCount)
 		++idx;
 	}
 
+	return true;
+}
+
+bool dsGetDefaultVkDevice(dsRenderDeviceInfo* outDevice)
+{
+	if (!outDevice)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!initializeDeviceList())
+		return false;
+
+	const VkPhysicalDeviceProperties* physicalDevice = physicalDevices + defaultPhysicalDevice;
+	outDevice->name = physicalDevice->deviceName;
+	outDevice->vendorID = physicalDevice->vendorID;
+	outDevice->deviceID = physicalDevice->deviceID;
+	outDevice->deviceType = convertDeviceType(physicalDevice->deviceType);
+	outDevice->isDefault = true;
+	memcpy(outDevice->deviceUUID, extraDeviceInfo->uuid, DS_DEVICE_UUID_SIZE);
 	return true;
 }
 

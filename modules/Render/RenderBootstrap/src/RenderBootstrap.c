@@ -42,6 +42,15 @@ static const char* rendererNames[] =
 	"OpenGL"
 };
 
+#if DS_HAS_RENDER_VULKAN
+// Drivers that have significant issues observed in Vulkan, so blacklist them from default driver
+// detection.
+static const char* blacklistedVulkanDrivers[] =
+{
+	"Adreno"
+};
+#endif
+
 DS_STATIC_ASSERT(DS_ARRAY_SIZE(rendererNames) == (uint32_t)dsRendererType_Default,
 	unexpected_names_size);
 
@@ -86,8 +95,25 @@ dsRendererType dsRenderBootstrap_defaultRenderer(void)
 #if DS_HAS_RENDER_VULKAN
 	if (dsVkRenderer_isSupported())
 	{
-		defaultRenderer = dsRendererType_Vulkan;
-		return defaultRenderer;
+		dsRenderDeviceInfo defaultDevice;
+		DS_VERIFY(dsVkRenderer_getDefaultDevice(&defaultDevice));
+		bool blacklisted = false;
+		for (uint32_t i = 0; i < DS_ARRAY_SIZE(blacklistedVulkanDrivers); ++i)
+		{
+			if (strstr(defaultDevice.name, blacklistedVulkanDrivers[i]))
+			{
+				blacklisted = true;
+				DS_LOG_INFO_F(DS_RENDER_BOOTSTRAP_LOG_TAG,
+					"Vulkan renderer disabled by default for device %s", defaultDevice.name);
+				break;
+			}
+		}
+
+		if (!blacklisted)
+		{
+			defaultRenderer = dsRendererType_Vulkan;
+			return defaultRenderer;
+		}
 	}
 #endif
 
