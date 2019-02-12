@@ -29,8 +29,6 @@ typedef struct dsSDLWindow
 	dsWindow window;
 	SDL_Window* sdlWindow;
 	uint32_t samples;
-	uint32_t curWidth;
-	uint32_t curHeight;
 } dsSDLWindow;
 
 bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,

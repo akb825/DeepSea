@@ -342,20 +342,15 @@ int dsSDLApplication_run(dsApplication* application)
 
 		DS_PROFILE_SCOPE_START("Process Events");
 		// Check if any size has changed.
-		SDL_PumpEvents();
 		bool hasResize = false;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
-			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
-			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
-			if (newWidth != sdlWindow->curWidth || newHeight != sdlWindow->curHeight)
+			uint32_t oldWidth = window->surface->width;
+			uint32_t oldHeight = window->surface->height;
+			dsRenderSurface_update(window->surface);
+			if (window->surface->width != oldWidth || window->surface->height != oldHeight)
 			{
-				dsRenderSurface_update(window->surface);
-				sdlWindow->curWidth = newWidth;
-				sdlWindow->curHeight = newHeight;
-
 				dsEvent event;
 				event.type = dsEventType_WindowResized;
 				event.resize.width = window->surface->width;
