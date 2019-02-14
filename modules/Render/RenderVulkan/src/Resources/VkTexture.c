@@ -307,10 +307,8 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		&surfaceRequirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	if (device->hasLazyAllocation)
-		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
-		memoryFlags);
+		VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
 		return false;
 
@@ -495,10 +493,11 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		&deviceRequirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	VkMemoryPropertyFlags optimalMemoryFlags = 0;
 	if (dsVkTexture_onlySubpassInput(usage) && device->hasLazyAllocation)
-		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+		optimalMemoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t deviceMemoryIndex = dsVkMemoryIndexImpl(device, &deviceRequirements, memoryFlags,
-		memoryFlags);
+		optimalMemoryFlags);
 	if (deviceMemoryIndex == DS_INVALID_HEAP)
 	{
 		dsVkTexture_destroyImpl(baseTexture);

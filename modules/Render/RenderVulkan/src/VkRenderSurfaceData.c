@@ -152,10 +152,8 @@ static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat form
 		&requirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	if (device->hasLazyAllocation)
-		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t memoryIndex = dsVkMemoryIndexImpl(device, &requirements, memoryFlags,
-		memoryFlags);
+		VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 
@@ -232,10 +230,8 @@ static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, uint32_t width,
 		&requirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	if (device->hasLazyAllocation)
-		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t memoryIndex = dsVkMemoryIndexImpl(device, &requirements, memoryFlags,
-		memoryFlags);
+		VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 	if (memoryIndex == DS_INVALID_HEAP)
 		return false;
 

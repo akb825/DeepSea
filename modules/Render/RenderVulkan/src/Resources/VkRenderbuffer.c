@@ -102,10 +102,8 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		&surfaceRequirements);
 
 	VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	if (device->hasLazyAllocation)
-		memoryFlags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 	uint32_t surfaceMemoryIndex = dsVkMemoryIndexImpl(device, &surfaceRequirements, memoryFlags,
-		memoryFlags);
+		VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 	if (surfaceMemoryIndex == DS_INVALID_HEAP)
 	{
 		dsVkRenderbuffer_destroyImpl(baseRenderbuffer);

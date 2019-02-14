@@ -69,6 +69,7 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags)
 {
 	uint32_t memoryIndex = DS_INVALID_HEAP;
+	bool isOptimal = false;
 	VkDeviceSize memorySize = 0;
 
 	const VkPhysicalDeviceMemoryProperties* memoryProperties = &device->memoryProperties;
@@ -85,8 +86,17 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 
 		// Find the largest optimal heap.
 		VkDeviceSize size = memoryProperties->memoryHeaps[memoryType->heapIndex].size;
-		if ((memoryType->propertyFlags & optimalFlags) == optimalFlags && size > memorySize)
-			memoryIndex = i;
+		if (size > memorySize)
+		{
+			if ((memoryType->propertyFlags & optimalFlags) == optimalFlags)
+			{
+				isOptimal = true;
+				memoryIndex = i;
+			}
+			else if (!isOptimal)
+				memoryIndex = i;
+			memorySize = size;
+		}
 	}
 
 	if (memoryIndex == DS_INVALID_HEAP)

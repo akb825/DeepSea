@@ -74,7 +74,7 @@ static size_t fullAllocSize(void)
 static bool useBGRASurface(const char* deviceName)
 {
 	// Devices that use RGBA surfaces.
-	if (dsVkIsAdreno(deviceName))
+	if (DS_ANDROID)
 		return false;
 
 	// Most devices use BGRA surfaces.
