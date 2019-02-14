@@ -199,7 +199,7 @@ VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
 	return flags;
 }
 
-VkPipelineStageFlags dsVkReadBufferStageFlags(dsGfxBufferUsage usage)
+VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage)
 {
 	VkAccessFlags flags = 0;
 	if (usage & (dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex))
@@ -213,17 +213,22 @@ VkPipelineStageFlags dsVkReadBufferStageFlags(dsGfxBufferUsage usage)
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
 	if (usage & dsGfxBufferUsage_CopyFrom)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 	return flags;
 }
 
-VkPipelineStageFlags dsVkWriteBufferStageFlags(dsGfxBufferUsage usage, bool canMap)
+VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
+	bool canMap)
 {
 	VkPipelineStageFlags flags = 0;
 	if (canMap)
@@ -232,10 +237,14 @@ VkPipelineStageFlags dsVkWriteBufferStageFlags(dsGfxBufferUsage usage, bool canM
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
 	if (usage & dsGfxBufferUsage_CopyTo)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;

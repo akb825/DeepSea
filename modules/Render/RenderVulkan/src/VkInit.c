@@ -78,6 +78,7 @@ typedef struct InstanceExtensions
 {
 	bool initialized;
 	bool debug;
+	bool oldDebug;
 	bool deviceInfo;
 	bool hasXlib;
 	bool hasWayland;
@@ -91,14 +92,21 @@ typedef struct ExtraDeviceInfo
 	bool supportsGraphics;
 } ExtraDeviceInfo;
 
+static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
+static const char* threadingValLayerName = "VK_LAYER_GOOGLE_threading";
+static const char* paramValLayerName = "VK_LAYER_LUNARG_parameter_validation";
+static const char* objectValLayerName = "VK_LAYER_LUNARG_object_tracker";
+static const char* coreValLayerName = "VK_LAYER_LUNARG_core_validation";
+static const char* uniqueObjectValLayerName = "VK_LAYER_GOOGLE_unique_objects";
+
 static const char* swapChainExtensionName = "VK_KHR_swapchain";
 static const char* surfaceExtensionName = "VK_KHR_surface";
 static const char* xlibDisplayExtensionName = "VK_KHR_xlib_surface";
 static const char* waylandDisplayExtensionName = "VK_KHR_wayland_surface";
 static const char* win32DisplayExtensionName = "VK_KHR_win32_surface";
 static const char* androidDisplayExtensionName = "VK_KHR_android_surface";
-static const char* debugLayerName = "VK_LAYER_LUNARG_standard_validation";
 static const char* debugExtensionName = "VK_EXT_debug_utils";
+static const char* oldDebugExtensionName = "VK_EXT_debug_report";
 static const char* devicePropertiesExtensionName = "VK_KHR_get_physical_device_properties2";
 static const char* memoryCapabilitiesExtensionName = "VK_KHR_external_memory_capabilities";
 static const char* pvrtcExtensionName = "VK_IMG_format_pvrtc";
@@ -114,7 +122,9 @@ static const char* ignoredMessages[] =
 {
 	"UNASSIGNED-CoreValidation-DevLimit-MissingQueryCount",
 	"UNASSIGNED-CoreValidation-DevLimitCountMismatch",
-	"UNASSIGNED-ObjectTracker-Info"
+	"UNASSIGNED-ObjectTracker-Info",
+	"CREATE",
+	"OBJ_STAT Destroy"
 };
 
 static void* VKAPI_PTR vkAllocFunc(void* pUserData, size_t size, size_t alignment,
@@ -181,6 +191,53 @@ static VkBool32 VKAPI_PTR debugFunc(VkDebugUtilsMessageSeverityFlagBitsEXT messa
 	return false;
 }
 
+static VkBool32 VKAPI_PTR oldDebugFunc(VkDebugReportFlagsEXT flags,
+	VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode,
+	const char* pLayerPrefix, const char* pMessage, void* pUserData)
+{
+	DS_UNUSED(objectType);
+	DS_UNUSED(object);
+	DS_UNUSED(location);
+	DS_UNUSED(messageCode);
+	DS_UNUSED(pUserData);
+
+	uint32_t ignoredCount = DS_ARRAY_SIZE(ignoredMessages);
+	for (uint32_t i = 0; i < ignoredCount; ++i)
+	{
+		if (strstr(pMessage, ignoredMessages[i]))
+			return false;
+	}
+
+	dsLogLevel logLevel = dsLogLevel_Info;
+	if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+		logLevel = dsLogLevel_Error;
+	else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT ||
+		flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+	{
+		logLevel = dsLogLevel_Warning;
+	}
+	else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+		logLevel = dsLogLevel_Info;
+	else if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+		logLevel = dsLogLevel_Debug;
+
+	const char* file = NULL;
+	const char* function = NULL;
+	unsigned int line = 0;
+	dsGetLastVkCallsite(&file, &function, &line);
+	if (!file)
+	{
+		file = "<unknown>";
+		function = "<unknown>";
+		line = 0;
+	}
+	dsLog_messagef(logLevel, DS_RENDER_VULKAN_LOG_TAG, file, line, function, "%s: %s", pLayerPrefix,
+		pMessage);
+
+	// Continue executing the function.
+	return false;
+}
+
 static dsRenderDeviceType convertDeviceType(VkPhysicalDeviceType type)
 {
 	switch (type)
@@ -210,6 +267,7 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 	instance->vkEnumerateInstanceLayerProperties(&layerCount, NULL);
 
 	bool hasDebugLayer = false;
+	bool hasCoreValLayer = false;
 	if (layerCount > 0)
 	{
 		VkLayerProperties* layers =
@@ -222,6 +280,8 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 		{
 			if (strcmp(layers[i].layerName, debugLayerName) == 0)
 				hasDebugLayer = true;
+			else if (strcmp(layers[i].layerName, coreValLayerName) == 0)
+				hasCoreValLayer = true;
 		}
 		free(layers);
 	}
@@ -247,6 +307,8 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 			hasMemoryCapabilities = true;
 		else if (hasDebugLayer && strcmp(extensions[i].extensionName, debugExtensionName) == 0)
 			instanceExtensions.debug = true;
+		else if (hasCoreValLayer && strcmp(extensions[i].extensionName, oldDebugExtensionName) == 0)
+			instanceExtensions.oldDebug = true;
 		else if (strcmp(extensions[i].extensionName, xlibDisplayExtensionName) == 0)
 			instanceExtensions.hasXlib = true;
 		else if (strcmp(extensions[i].extensionName, waylandDisplayExtensionName) == 0)
@@ -275,8 +337,18 @@ static bool queryInstanceExtensions(dsVkInstance* instance)
 static void addLayers(const char** layerNames, uint32_t* layerCount,
 	const dsRendererOptions* options)
 {
-	if (((options && options->debug) || DS_GPU_PROFILING_ENABLED) && instanceExtensions.debug)
+	bool wantDebug = (options && options->debug) || DS_GPU_PROFILING_ENABLED;
+	if (wantDebug && instanceExtensions.debug)
 		DS_ADD_EXTENSION(layerNames, *layerCount, debugLayerName);
+	else if (wantDebug && instanceExtensions.oldDebug)
+	{
+		// Need to add each validation layer individually for older systems. (e.g. Android)
+		DS_ADD_EXTENSION(layerNames, *layerCount, threadingValLayerName);
+		DS_ADD_EXTENSION(layerNames, *layerCount, paramValLayerName);
+		DS_ADD_EXTENSION(layerNames, *layerCount, objectValLayerName);
+		DS_ADD_EXTENSION(layerNames, *layerCount, coreValLayerName);
+		DS_ADD_EXTENSION(layerNames, *layerCount, uniqueObjectValLayerName);
+	}
 }
 
 static void addInstanceExtensions(const char** extensionNames, uint32_t* extensionCount,
@@ -299,8 +371,11 @@ static void addInstanceExtensions(const char** extensionNames, uint32_t* extensi
 	}
 
 	// NOTE: Push groups use the debug utils extension, so use it if profiling is enabled.
-	if (options && (options->debug || DS_GPU_PROFILING_ENABLED) && instanceExtensions.debug)
+	bool wantDebug = options && (options->debug || DS_GPU_PROFILING_ENABLED);
+	if (wantDebug && instanceExtensions.debug)
 		DS_ADD_EXTENSION(extensionNames, *extensionCount, debugExtensionName);
+	else if (wantDebug && instanceExtensions.oldDebug)
+		DS_ADD_EXTENSION(extensionNames, *extensionCount, oldDebugExtensionName);
 }
 
 static void findDeviceExtensions(dsVkDevice* device, dsAllocator* allocator)
@@ -572,33 +647,54 @@ bool dsCreateVkInstance(dsVkInstance* instance, const dsRendererOptions* options
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
 	DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
 
-	if (options && options->debug && instanceExtensions.debug)
+	instance->debugCallback = 0;
+	instance->oldDebugCallback = 0;
+	if (options && options->debug)
 	{
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT);
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugUtilsMessengerEXT);
-
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+		if (instanceExtensions.debug)
 		{
-			VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-			NULL,
-			0,
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-			&debugFunc, NULL
-		};
-		instance->vkCreateDebugUtilsMessengerEXT(instance->instance, &debugCreateInfo,
-			instance->allocCallbacksPtr, &instance->debugCallback);
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT);
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugUtilsMessengerEXT);
 
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
-		DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
+			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+			{
+				VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+				NULL,
+				0,
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+					VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+					VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+					VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+				VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+					VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+					VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+				&debugFunc, NULL
+			};
+			instance->vkCreateDebugUtilsMessengerEXT(instance->instance, &debugCreateInfo,
+				instance->allocCallbacksPtr, &instance->debugCallback);
+
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdBeginDebugUtilsLabelEXT);
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCmdEndDebugUtilsLabelEXT);
+		}
+		else if (instanceExtensions.oldDebug)
+		{
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkCreateDebugReportCallbackEXT);
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDestroyDebugReportCallbackEXT);
+			DS_LOAD_VK_INSTANCE_FUNCTION(instance, vkDebugReportMessageEXT);
+
+			VkDebugReportCallbackCreateInfoEXT debugCreateInfo =
+			{
+				VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+				NULL,
+				VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
+					VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT |
+					VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+				&oldDebugFunc, NULL
+			};
+			instance->vkCreateDebugReportCallbackEXT(instance->instance, &debugCreateInfo,
+				instance->allocCallbacksPtr, &instance->oldDebugCallback);
+		}
 	}
-	else
-		instance->debugCallback = 0;
 
 	return true;
 }
@@ -613,6 +709,11 @@ void dsDestroyVkInstance(dsVkInstance* instance)
 		{
 			instance->vkDestroyDebugUtilsMessengerEXT(instance->instance, instance->debugCallback,
 				instance->allocCallbacksPtr);
+		}
+		if (instance->oldDebugCallback)
+		{
+			instance->vkDestroyDebugReportCallbackEXT(instance->instance,
+				instance->oldDebugCallback, instance->allocCallbacksPtr);
 		}
 		instance->vkDestroyInstance(instance->instance, instance->allocCallbacksPtr);
 		instance->instance = NULL;

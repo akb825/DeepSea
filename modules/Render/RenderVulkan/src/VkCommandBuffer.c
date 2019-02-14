@@ -364,6 +364,9 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 	if (usage & dsCommandBufferUsage_MultiSubmit)
 		usageFlags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
+	VkQueryControlFlags queryControlFlags = 0;
+	if (device->features.inheritedQueries && device->features.occlusionQueryPrecise)
+		queryControlFlags = VK_QUERY_CONTROL_PRECISE_BIT;
 	VkCommandBufferInheritanceInfo inheritanceInfo =
 	{
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
@@ -371,8 +374,8 @@ static bool beginSubpass(dsVkDevice* device, VkCommandBuffer commandBuffer,
 		renderPass,
 		subpass,
 		framebuffer,
-		true,
-		VK_QUERY_CONTROL_PRECISE_BIT,
+		device->features.inheritedQueries,
+		queryControlFlags,
 		0
 	};
 

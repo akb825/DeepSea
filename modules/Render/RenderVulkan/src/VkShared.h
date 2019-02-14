@@ -46,8 +46,9 @@ VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
 VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage);
 VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
 
-VkPipelineStageFlags dsVkReadBufferStageFlags(dsGfxBufferUsage usage);
-VkPipelineStageFlags dsVkWriteBufferStageFlags(dsGfxBufferUsage usage, bool canMap);
+VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage);
+VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
+	bool canMap);
 
 VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage);
 VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);

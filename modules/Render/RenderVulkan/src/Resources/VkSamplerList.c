@@ -173,7 +173,8 @@ dsVkSamplerList* dsVkSamplerList_create(dsAllocator* allocator, dsShader* shader
 			addressMode(samplerState.addressModeV),
 			addressMode(samplerState.addressModeW),
 			samplerState.mipLodBias == MSL_UNKNOWN_FLOAT ? 0.0f : samplerState.mipLodBias,
-			samplerState.mipFilter == mslMipFilter_Anisotropic,
+			samplerState.mipFilter == mslMipFilter_Anisotropic &&
+				device->features.samplerAnisotropy,
 			samplerState.maxAnisotropy == MSL_UNKNOWN_FLOAT ? samplers->defaultAnisotropy :
 				samplerState.maxAnisotropy,
 			samplerState.compareOp != mslCompareOp_Unset,

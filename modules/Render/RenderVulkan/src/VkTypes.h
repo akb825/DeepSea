@@ -68,10 +68,15 @@ typedef struct dsVkInstance
 	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
 	PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT;
 
+	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+	PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+	PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
+
 	PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
 	PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
 
 	VkDebugUtilsMessengerEXT debugCallback;
+	VkDebugReportCallbackEXT oldDebugCallback;
 
 	VkAllocationCallbacks allocCallbacks;
 	const VkAllocationCallbacks* allocCallbacksPtr;
