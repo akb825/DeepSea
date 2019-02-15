@@ -1414,8 +1414,13 @@ static void postFlush(dsRenderer* renderer)
 	if (submit->submitIndex != DS_NOT_SUBMITTED)
 	{
 		DS_PROFILE_WAIT_START("vkWaitForFences");
-		DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence, true,
-			DS_DEFAULT_WAIT_TIMEOUT);
+		VkResult result = DS_VK_CALL(device->vkWaitForFences)(device->device, 1, &submit->fence,
+			true, DS_DEFAULT_WAIT_TIMEOUT);
+		if (result == VK_ERROR_DEVICE_LOST)
+		{
+			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Device was lost.");
+			abort();
+		}
 		vkRenderer->finishedSubmitCount = submit->submitIndex;
 		DS_PROFILE_WAIT_END();
 	}
@@ -2249,8 +2254,14 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 
 	dsVkDevice* device = &vkRenderer->device;
-	VkResult result = DS_VK_CALL(device->vkWaitForFences)(device->device, fenceCount, fences, true,
-		timeout);
+	VkResult result;
+	if (fenceCount > 0)
+	{
+		result = DS_VK_CALL(device->vkWaitForFences)(device->device, fenceCount, fences, true,
+			timeout);
+	}
+	else
+		result = VK_SUCCESS;
 
 	DS_VERIFY(dsMutex_lock(vkRenderer->submitLock));
 	if (--vkRenderer->waitCount == 0)
@@ -2265,7 +2276,11 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 			return dsGfxFenceResult_Success;
 		case VK_TIMEOUT:
 			return dsGfxFenceResult_Timeout;
+		case VK_ERROR_DEVICE_LOST:
+			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Device was lost.");
+			abort();
 		default:
+			dsHandleVkResult(result);
 			return dsGfxFenceResult_Error;
 	}
 }
