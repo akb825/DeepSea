@@ -245,11 +245,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	}
 
 	testRenderSubpass->rDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
 	testRenderSubpass->gDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
 	testRenderSubpass->bDepth = dsRenderbuffer_create(resourceManager, allocator,
-		dsRenderbufferUsage_BlitFrom, depthFormat, width, height, SAMPLE_COUNT);
+		dsRenderbufferUsage_Standard, depthFormat, width, height, SAMPLE_COUNT);
 	if (!testRenderSubpass->rDepth || !testRenderSubpass->gDepth || !testRenderSubpass->bDepth)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create renderbuffer: %s",

@@ -81,11 +81,14 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 		if ((memoryType->propertyFlags & requiredFlags) != requiredFlags)
 			continue;
 
+		VkDeviceSize size = memoryProperties->memoryHeaps[memoryType->heapIndex].size;
 		if (memoryIndex == DS_INVALID_HEAP)
+		{
 			memoryIndex = i;
+			memorySize = size;
+		}
 
 		// Find the largest optimal heap.
-		VkDeviceSize size = memoryProperties->memoryHeaps[memoryType->heapIndex].size;
 		if (size > memorySize)
 		{
 			if ((memoryType->propertyFlags & optimalFlags) == optimalFlags)
@@ -197,6 +200,12 @@ VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap)
 	if (usage & dsGfxBufferUsage_CopyTo)
 		flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
 	return flags;
+}
+
+bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage)
+{
+	return (usage & ~(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT)) == 0;
 }
 
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage)

@@ -65,12 +65,13 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	if (usage & (dsRenderbufferUsage_BlitTo | dsRenderbufferUsage_Clear))
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	if (device->hasLazyAllocation)
-		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 	if (isDepthStencil)
 		usageFlags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	else
 		usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	if (device->hasLazyAllocation && dsVkImageUsageSupportsTransient(usageFlags))
+		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 
 	VkImageCreateInfo imageCreateInfo =
 	{

@@ -27,6 +27,21 @@
 static uint32_t nextWindowResponderId;
 static uint32_t nextEventResponderId;
 
+static void applicationLogWrapper(void* userData, dsLogLevel level, const char* tag,
+	const char* file, unsigned int line, const char* function, const char* message)
+{
+	dsLog_defaultPrint(level, tag, file,  line, function, message);
+
+	if (level == dsLogLevel_Fatal)
+	{
+		const char* name = "Exit";
+		dsApplication* application = (dsApplication*)userData;
+		dsApplication_showMessageBox(application, NULL, dsMessageBoxType_Error, "Fata error",
+			message, &name, 1, 0, DS_MESSAGE_BOX_NO_BUTTON);
+		abort();
+	}
+}
+
 static int compareEventResponders(const void* left, const void* right)
 {
 	return ((dsEventResponder*)left)->priority - ((dsEventResponder*)right)->priority;
@@ -510,6 +525,8 @@ bool dsApplication_initialize(dsApplication* application)
 	}
 
 	memset(application, 0, sizeof(*application));
+	if (!dsLog_getFunction())
+		dsLog_setFunction(application, &applicationLogWrapper);
 	return true;
 }
 
@@ -522,4 +539,7 @@ void dsApplication_shutdown(dsApplication* application)
 	DS_VERIFY(dsAllocator_free(application->allocator, application->eventResponders));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->windows));
 	DS_VERIFY(dsAllocator_free(application->allocator, application->controllers));
+
+	if (dsLog_getFunction() == &applicationLogWrapper)
+		dsLog_clearFunction();
 }

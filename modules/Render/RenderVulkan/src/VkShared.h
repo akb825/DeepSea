@@ -46,6 +46,8 @@ VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount);
 VkAccessFlags dsVkReadBufferAccessFlags(dsGfxBufferUsage usage);
 VkAccessFlags dsVkWriteBufferAccessFlags(dsGfxBufferUsage usage, bool canMap);
 
+bool dsVkImageUsageSupportsTransient(VkImageUsageFlags usage);
+
 VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage);
 VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfxBufferUsage usage,
 	bool canMap);

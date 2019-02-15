@@ -1418,7 +1418,7 @@ static void postFlush(dsRenderer* renderer)
 			true, DS_DEFAULT_WAIT_TIMEOUT);
 		if (result == VK_ERROR_DEVICE_LOST)
 		{
-			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Device was lost.");
+			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Vulkan device was lost.");
 			abort();
 		}
 		vkRenderer->finishedSubmitCount = submit->submitIndex;
@@ -2277,7 +2277,7 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 		case VK_TIMEOUT:
 			return dsGfxFenceResult_Timeout;
 		case VK_ERROR_DEVICE_LOST:
-			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Device was lost.");
+			DS_LOG_FATAL_F(DS_RENDER_VULKAN_LOG_TAG, "Vulkan device was lost.");
 			abort();
 		default:
 			dsHandleVkResult(result);
