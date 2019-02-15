@@ -348,6 +348,18 @@ int dsSDLApplication_run(dsApplication* application)
 		{
 			dsWindow* window = application->windows[i];
 
+			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
+			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
+			bool windowResized = newWidth != sdlWindow->curWidth ||
+				newHeight != sdlWindow->curHeight;
+			if (windowResized && !hasResize)
+			{
+				// Wait until idle before updating the surface to ensure all commands are flushed.
+				dsRenderer_waitUntilIdle(application->renderer);
+				hasResize = true;
+			}
+
 #if DS_ANDROID
 			// NOTE: On Android there's a delay between the window update and render surface update.
 			// This is less effecient, but required to get correct sizes. (e.g. when rotating)
@@ -355,24 +367,24 @@ int dsSDLApplication_run(dsApplication* application)
 			uint32_t oldHeight = window->surface->height;
 			dsRenderSurface_update(window->surface);
 			if (window->surface->width != oldWidth || window->surface->height != oldHeight)
+				windowResized = true;
+#endif
+
+			if (windowResized)
 			{
-#else
-			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-			uint32_t newWidth = sdlWindow->curWidth, newHeight = sdlWindow->curHeight;
-			dsSDLWindow_getSize(&newWidth, &newHeight, application, window);
-			if (newWidth != sdlWindow->curWidth || newHeight != sdlWindow->curHeight)
-			{
+				// Already updated on Android.
+#if !DS_ANDROID
 				dsRenderSurface_update(window->surface);
+#endif
+
 				sdlWindow->curWidth = newWidth;
 				sdlWindow->curHeight = newHeight;
-#endif
 
 				dsEvent event;
 				event.type = dsEventType_WindowResized;
 				event.resize.width = window->surface->width;
 				event.resize.height = window->surface->height;
 				dsApplication_dispatchEvent(application, window, &event);
-				hasResize = true;
 			}
 		}
 
