@@ -458,6 +458,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			usageFlags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	}
 
+	if (device->hasLazyAllocation && dsVkImageUsageSupportsTransient(usageFlags))
+		usageFlags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+
 	VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 
 	// Create device image for general usage.
