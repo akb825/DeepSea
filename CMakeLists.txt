@@ -8,7 +8,7 @@ set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
 set(DEEPSEA_GPU_PROFILING ON CACHE BOOL "Enable profiling of the GPU.")
 set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
 
-if (DEEPSEA_SINGLE_SHARED)
+if (DEEPSEA_SINGLE_SHARED OR BUILD_SHARED_LIBS)
 	set(DEEPSEA_SHARED ON CACHE BOOL "" FORCE)
 endif()
 

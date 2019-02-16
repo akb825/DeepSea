@@ -12,10 +12,15 @@ if (ZLIB_FOUND)
 	set(extraLibraries ${ZLIB_LIBRARIES})
 endif()
 
-file(GLOB_RECURSE sources src/*.c src/*.cpp src/*.h include/*.h include/*.mslh)
+file(GLOB_RECURSE sources src/*.c src/*.h include/*.h include/*.mslh)
 file(GLOB_RECURSE externalSources SheenBidi/Source/*.c SheenBidi/Source/*.h SheenBidi/Headers/*.h)
 ds_add_library(deepsea_text MODULE Text FILES ${sources} EXTERNAL_FILES ${externalSources}
 	DEPENDS deepsea_render)
+
+# Static HarfBuzz library requires C++ linkage
+if (NOT DEEPSEA_SINGLE_SHARED)
+	set_target_properties(deepsea_text PROPERTIES LINKER_LANGUAGE CXX)
+endif()
 
 ds_target_include_directories(deepsea_text PRIVATE
 	${FREETYPE_INCLUDE_DIRS} ${HARFBUZZ_INCLUDE_DIRS} SheenBidi/Headers)
