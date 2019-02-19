@@ -248,8 +248,7 @@ static void updateWindowSamples(dsApplication* application)
 	if (application->renderer->surfaceSamples > 1)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,
-			application->renderer->surfaceSamples);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, application->renderer->surfaceSamples);
 	}
 	else
 	{
