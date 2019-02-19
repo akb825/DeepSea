@@ -39,7 +39,8 @@
 static bool submitResourceBarriers(dsCommandBuffer* commandBuffer)
 {
 	dsRenderer* renderer = commandBuffer->renderer;
-	VkPipelineStageFlagBits dstStages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+	VkPipelineStageFlagBits dstStages = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT |
+		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	if (renderer->hasTessellationShaders)
 	{

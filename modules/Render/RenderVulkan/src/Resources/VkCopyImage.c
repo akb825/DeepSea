@@ -83,7 +83,6 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 	dsVkResource_initialize(&copyImage->resource);
 	copyImage->allocator = dsAllocator_keepPointer(allocator);
 	copyImage->device = device;
-	copyImage->texture = texture;
 	copyImage->memory = 0;
 	copyImage->images = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc, VkImage, imageCount);
 	DS_ASSERT(copyImage->images);

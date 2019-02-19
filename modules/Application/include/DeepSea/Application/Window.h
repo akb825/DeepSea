@@ -57,6 +57,17 @@ DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAl
 	uint32_t height, dsWindowFlags flags);
 
 /**
+ * @brief Creates a surface that was delayed with the dsWindowFlags_DelaySurfaceCreate flag.
+ *
+ * This will do nothing if the surface was already created.
+ *
+ * @remark errno will be set on failure.
+ * @param window The window to create the surface for.
+ * @return False if an error occurred.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_createSurface(dsWindow* window);
+
+/**
  * @brief Sets the draw function for a window.
  * @remark errno will be set on failure.
  * @param window The window.

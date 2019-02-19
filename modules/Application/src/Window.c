@@ -61,6 +61,20 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 	return window;
 }
 
+bool dsWindow_createSurface(dsWindow* window)
+{
+	if (!window || !window->application || !window->application->createWindowSurfaceFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+	else if (window->surface)
+		return true;
+
+	dsApplication* application = window->application;
+	return application->createWindowSurfaceFunc(application, window);
+}
+
 bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData)
 {
 	if (!window)

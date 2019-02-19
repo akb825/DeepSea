@@ -1122,11 +1122,20 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testText->window = dsWindow_create(application, allocator, "Test Text", NULL,
-		NULL, width, height, dsWindowFlags_Resizeable);
+		NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
 	if (!testText->window)
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't create window: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (DS_ANDROID || DS_IOS)
+		dsWindow_setStyle(testText->window, dsWindowStyle_FullScreen);
+
+	if (!dsWindow_createSurface(testText->window))
+	{
+		DS_LOG_ERROR_F("TestCube", "Couldn't create window surface: %s", dsErrorString(errno));
+		return false;
 	}
 
 	// Adjust the text size based on the DPI.

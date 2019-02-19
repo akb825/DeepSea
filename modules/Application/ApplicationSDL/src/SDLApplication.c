@@ -204,12 +204,6 @@ static bool setGLAttributes(dsRenderer* renderer)
 	return true;
 }
 
-static bool shouldSetOpenGL(const dsRenderer* renderer)
-{
-	return renderer->rendererID == DS_GL_RENDERER_TYPE &&
-		renderer->platformID == DS_GLX_RENDERER_PLATFORM_TYPE;
-}
-
 static void updateWindowSamples(dsApplication* application)
 {
 	bool setSamples = false;
@@ -242,11 +236,11 @@ static void updateWindowSamples(dsApplication* application)
 		dsSDLWindow_getPosition(&position, application, window);
 
 		const char* title = window->title;
-		const char* surfaceName = window->surface->name;
+		const char* surfaceName = sdlWindow->surfaceName;
 		dsDisplayMode displayMode = window->displayMode;
 		dsWindowStyle style = window->style;
 
-		unsigned int flags = 0;
+		unsigned int flags = dsWindowFlags_DelaySurfaceCreate;
 		if (dsSDLWindow_getHidden(application, window))
 			flags |= dsWindowFlags_Hidden;
 		if (SDL_GetWindowFlags(sdlWindow->sdlWindow) & SDL_WINDOW_RESIZABLE)
@@ -257,8 +251,6 @@ static void updateWindowSamples(dsApplication* application)
 			flags |= dsWindowFlags_Maximized;
 		if (dsSDLWindow_getGrabbedInput(application, window))
 			flags |= dsWindowFlags_GrabInput;
-		if (shouldSetOpenGL(application->renderer))
-			flags |= SDL_WINDOW_OPENGL;
 		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
 
 		if (!dsSDLWindow_createComponents(window, title, surfaceName, &position, width, height,
@@ -272,6 +264,14 @@ static void updateWindowSamples(dsApplication* application)
 		DS_VERIFY(dsSDLWindow_setDisplayMode(application, window, &displayMode));
 		if (style != dsWindowStyle_Normal)
 			DS_VERIFY(dsSDLWindow_setStyle(application, window, style));
+
+		if (!dsSDLWindow_createSurfaceInternal(window, sdlWindow->surfaceName))
+		{
+			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window surface: %s",
+				dsErrorString(errno));
+			abort();
+		}
+
 		if (hasFocus)
 			dsSDLWindow_raise(application, window);
 
@@ -290,7 +290,7 @@ static void invalidateWindowSurfaces(dsApplication* application)
 		const char* surfaceName = window->surface->name;
 		dsRenderSurface_destroy(window->surface);
 		window->surface = NULL;
-		dsSDLWindow_createSurface(window, surfaceName);
+		dsSDLWindow_createSurfaceInternal(window, surfaceName);
 
 		dsEvent event;
 		event.type = dsEventType_SurfaceInvalidated;
@@ -656,12 +656,12 @@ int dsSDLApplication_run(dsApplication* application)
 		for (uint32_t i = 0; i < application->windowCount; ++i)
 		{
 			dsWindow* window = application->windows[i];
-			if (window->drawFunc)
-			{
-				dsRenderSurface_beginDraw(window->surface, commandBuffer);
-				window->drawFunc(application, window, window->drawUserData);
-				dsRenderSurface_endDraw(window->surface, commandBuffer);
-			}
+			if (!window->drawFunc && !window->surface)
+				continue;
+
+			dsRenderSurface_beginDraw(window->surface, commandBuffer);
+			window->drawFunc(application, window, window->drawUserData);
+			dsRenderSurface_endDraw(window->surface, commandBuffer);
 		}
 		DS_PROFILE_SCOPE_END();
 
@@ -681,9 +681,15 @@ int dsSDLApplication_run(dsApplication* application)
 			abort();
 		}
 
+		uint32_t surfaceCount = 0;
 		for (uint32_t i = 0; i < application->windowCount; ++i)
-			swapSurfaces[i] = application->windows[i]->surface;
-		dsRenderSurface_swapBuffers(swapSurfaces, application->windowCount);
+		{
+			if (!application->windows[i]->surface)
+				continue;
+
+			swapSurfaces[surfaceCount++] = application->windows[i]->surface;
+		}
+		dsRenderSurface_swapBuffers(swapSurfaces, surfaceCount);
 
 		DS_VERIFY(dsRenderer_endFrame(application->renderer));
 	}
@@ -1022,6 +1028,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 
 	baseApplication->createWindowFunc = &dsSDLWindow_create;
 	baseApplication->destroyWindowFunc = &dsSDLWindow_destroy;
+	baseApplication->createWindowSurfaceFunc = &dsSDLWindow_createSurface;
 	baseApplication->getFocusWindowFunc = &dsSDLWindow_getFocusWindow;
 	baseApplication->setWindowTitleFunc = &dsSDLWindow_setTitle;
 	baseApplication->setWindowDisplayModeFunc = &dsSDLWindow_setDisplayMode;

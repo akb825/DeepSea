@@ -281,11 +281,29 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	switch (surfaceType)
 	{
 		case dsRenderSurfaceType_Window:
-			return eglCreateWindowSurface((EGLDisplay)display, configPtr->config,
+		{
+			void* surface = eglCreateWindowSurface((EGLDisplay)display, configPtr->config,
 				(NativeWindowType)handle, attr);
+			// NOTE: Some drivers lie about support for EGL_COLORSPACE.
+			if (!surface && attr && eglGetError() == EGL_BAD_ATTRIBUTE)
+			{
+				surface = eglCreateWindowSurface((EGLDisplay)display, configPtr->config,
+					(NativeWindowType)handle, NULL);
+			}
+			return surface;
+		}
 		case dsRenderSurfaceType_Pixmap:
-			return eglCreatePixmapSurface((EGLDisplay)display, configPtr->config,
+		{
+			void* surface = eglCreatePixmapSurface((EGLDisplay)display, configPtr->config,
 				(NativePixmapType)handle, attr);
+			// NOTE: Some drivers lie about support for EGL_COLORSPACE.
+			if (!surface && attr && eglGetError() == EGL_BAD_ATTRIBUTE)
+			{
+				surface = eglCreatePixmapSurface((EGLDisplay)display, configPtr->config,
+					(NativePixmapType)handle, NULL);
+			}
+			return surface;
+		}
 		default:
 			return handle;
 	}

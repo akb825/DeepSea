@@ -317,7 +317,6 @@ typedef struct dsVkCopyImage
 	dsVkResource resource;
 	dsAllocator* allocator;
 	dsVkDevice* device;
-	dsTexture* texture;
 	VkImage* images;
 	VkImageMemoryBarrier* imageBarriers;
 	VkImageCopy* imageCopies;

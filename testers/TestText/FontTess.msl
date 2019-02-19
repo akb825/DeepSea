@@ -44,69 +44,60 @@ uniform float yMult;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec4 texCoords;
 [[vertex]] layout(location = DS_TEXCOORD1) in vec4 style;
 
-struct VertexOut
+varying(vertex, tessellation_control)
 {
-	vec4 geometry;
-	vec4 textColor;
-	vec4 outlineColor;
-	vec4 texCoords;
-	vec2 mipAntiAlias;
-	vec4 style;
-};
+	vec4 vtcGeometry;
+	vec4 vtcTextColor;
+	vec4 vtcOutlineColor;
+	vec4 vtcTexCoords;
+	vec2 vtcMipAntiAlias;
+	vec4 vtcStyle;
+}
 
-struct TessControlOut
+varying(tessellation_control, tessellation_evaluation)
 {
-	vec4 geometry;
-	vec4 textColor;
-	vec4 outlineColor;
-	vec4 texCoords;
-	vec2 mipAntiAlias;
-	vec4 style;
-};
+	patch vec4 tceGeometry;
+	patch vec4 tceTextColor;
+	patch vec4 tceOutlineColor;
+	patch vec4 tceTexCoords;
+	patch vec2 tceMipAntiAlias;
+	patch vec4 tceStyle;
+}
 
-struct TessEvalOut
+varying(tessellation_evaluation, fragment)
 {
-	vec4 textColor;
-	vec4 outlineColor;
-	vec3 texCoords;
-	vec4 style;
-};
-
-[[vertex]] out VertexOut vertexOut;
+	vec4 tefTextColor;
+	vec4 tefOutlineColor;
+	vec3 tefTexCoords;
+	vec4 tefStyle;
+}
 
 [[tessellation_control]] layout(vertices = 4) out;
-[[tessellation_control]] in VertexOut vertexOut[];
-[[tessellation_control]] patch out TessControlOut tessControlOut;
-
 [[tessellation_evaluation]] layout(quads) in;
-[[tessellation_evaluation]] patch in TessControlOut tessControlOut;
-[[tessellation_evaluation]] out TessEvalOut tessEvalOut;
-
-[[fragment]] in TessEvalOut tessEvalOut;
 [[fragment]] out vec4 color;
 
 [[vertex]]
 void vertexShader()
 {
 	gl_Position = vec4(vertexPos.xy, 0.0, 1.0);
-	vertexOut.geometry = geometry;
-	vertexOut.textColor = textColor;
-	vertexOut.outlineColor = outlineColor;
-	vertexOut.texCoords = texCoords;
-	vertexOut.mipAntiAlias = vertexPos.zw;
-	vertexOut.style = style;
+	vtcGeometry = geometry;
+	vtcTextColor = textColor;
+	vtcOutlineColor = outlineColor;
+	vtcTexCoords = texCoords;
+	vtcMipAntiAlias = vertexPos.zw;
+	vtcStyle = style;
 }
 
 [[tessellation_control]]
 void tessellationControl()
 {
 	gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
-	tessControlOut.geometry = vertexOut[0].geometry;
-	tessControlOut.textColor = vertexOut[0].textColor;
-	tessControlOut.outlineColor = vertexOut[0].outlineColor;
-	tessControlOut.texCoords = vertexOut[0].texCoords;
-	tessControlOut.mipAntiAlias = vertexOut[0].mipAntiAlias;
-	tessControlOut.style = vertexOut[0].style;
+	tceGeometry = vtcGeometry[0];
+	tceTextColor = vtcTextColor[0];
+	tceOutlineColor = vtcOutlineColor[0];
+	tceTexCoords = vtcTexCoords[0];
+	tceMipAntiAlias = vtcMipAntiAlias[0];
+	tceStyle = vtcStyle[0];
 
 	gl_TessLevelOuter[0] = 1.0;
 	gl_TessLevelOuter[1] = 1.0;
@@ -119,16 +110,15 @@ void tessellationControl()
 [[tessellation_evaluation]]
 void tessellationEvaluation()
 {
-	tessEvalOut.textColor = tessControlOut.textColor;
-	tessEvalOut.outlineColor = tessControlOut.outlineColor;
-	tessEvalOut.texCoords.xy = mix(tessControlOut.texCoords.xy, tessControlOut.texCoords.zw,
-		gl_TessCoord.xy);
-	tessEvalOut.texCoords.z = tessControlOut.mipAntiAlias.x;
-	tessEvalOut.style = vec4(tessControlOut.style.yzw, tessControlOut.mipAntiAlias.y);
+	tefTextColor = tceTextColor;
+	tefOutlineColor = tceOutlineColor;
+	tefTexCoords.xy = mix(tceTexCoords.xy, tceTexCoords.zw, gl_TessCoord.xy);
+	tefTexCoords.z = tceMipAntiAlias.x;
+	tefStyle = vec4(tceStyle.yzw, tceMipAntiAlias.y);
 
 	vec2 vertexPos = gl_in[0].gl_Position.xy;
-	vertexPos += mix(tessControlOut.geometry.xy, tessControlOut.geometry.zw, gl_TessCoord.xy);
-	vertexPos.x -= vertexPos.y*tessControlOut.style.x;
+	vertexPos += mix(tceGeometry.xy, tceGeometry.zw, gl_TessCoord.xy);
+	vertexPos.x -= vertexPos.y*tceStyle.x;
 	vec2 normalizedPos = (uniforms.position + vertexPos)/vec2(INSTANCE(sharedInfo).screenSize);
 	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
 	gl_Position.y *= uniforms.yMult;
@@ -137,9 +127,9 @@ void tessellationEvaluation()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = dsComputeTextDistance(fontTex, tessEvalOut.texCoords);
-	color = dsComputeTextColor(distance, tessEvalOut.style.x, tessEvalOut.style.y,
-		tessEvalOut.style.z, tessEvalOut.style.w, tessEvalOut.textColor, tessEvalOut.outlineColor);
+	float distance = dsComputeTextDistance(fontTex, tefTexCoords);
+	color = dsComputeTextColor(distance, tefStyle.x, tefStyle.y, tefStyle.z, tefStyle.w,
+		tefTextColor, tefOutlineColor);
 }
 
 pipeline FontTess

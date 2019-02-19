@@ -915,7 +915,7 @@ bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	if (vkCommandBuffer->imageBarrierCount == 0)
+	if (vkCommandBuffer->imageBarrierCount == 0 && vkCommandBuffer->bufferBarrierCount == 0)
 		return true;
 
 	VkCommandBuffer submitBuffer = getMainCommandBuffer(commandBuffer);
@@ -926,6 +926,7 @@ bool dsVkCommandBuffer_submitMemoryBarriers(dsCommandBuffer* commandBuffer,
 		vkCommandBuffer->bufferBarrierCount, vkCommandBuffer->bufferBarriers,
 		vkCommandBuffer->imageBarrierCount, vkCommandBuffer->imageBarriers);
 	vkCommandBuffer->imageBarrierCount = 0;
+	vkCommandBuffer->bufferBarrierCount = 0;
 	return true;
 }
 

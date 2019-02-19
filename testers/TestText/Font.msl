@@ -41,26 +41,23 @@ uniform float yMult;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec3 texCoords;
 [[vertex]] layout(location = DS_TEXCOORD1) in vec4 style;
 
-struct VertexOut
+varying(vertex, fragment)
 {
-	vec4 textColor;
-	vec4 outlineColor;
-	vec3 texCoords;
-	vec4 style;
-};
+	vec4 vfTextColor;
+	vec4 vfOutlineColor;
+	vec3 vfTexCoords;
+	vec4 vfStyle;
+}
 
-[[vertex]] out VertexOut vertexOut;
-
-[[fragment]] in VertexOut vertexOut;
 [[fragment]] out vec4 color;
 
 [[vertex]]
 void vertexShader()
 {
-	vertexOut.textColor = textColor;
-	vertexOut.outlineColor = outlineColor;
-	vertexOut.texCoords = texCoords;
-	vertexOut.style = style;
+	vfTextColor = textColor;
+	vfOutlineColor = outlineColor;
+	vfTexCoords = texCoords;
+	vfStyle = style;
 
 	vec2 normalizedPos = (uniforms.position + vertexPos)/vec2(INSTANCE(sharedInfo).screenSize);
 	gl_Position = DS_ADJUST_CLIP(vec4(normalizedPos*vec2(2.0) - vec2(1.0), 0.0, 1.0));
@@ -70,9 +67,9 @@ void vertexShader()
 [[fragment]]
 void fragmentShader()
 {
-	float distance = dsComputeTextDistance(fontTex, vertexOut.texCoords);
-	color = dsComputeTextColor(distance, vertexOut.style.x, vertexOut.style.y, vertexOut.style.z,
-		vertexOut.style.w, vertexOut.textColor, vertexOut.outlineColor);
+	float distance = dsComputeTextDistance(fontTex, vfTexCoords);
+	color = dsComputeTextColor(distance, vfStyle.x, vfStyle.y, vfStyle.z,
+		vfStyle.w, vfTextColor, vfOutlineColor);
 }
 
 pipeline Font

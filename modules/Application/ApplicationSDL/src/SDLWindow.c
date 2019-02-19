@@ -99,9 +99,11 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	}
 
 	window->surface = NULL;
-	sdlWindow->samples = application->renderer->surfaceSamples;
+	sdlWindow->surfaceName = surfaceName;
 	sdlWindow->sdlWindow = internalWindow;
-	if (!dsSDLWindow_createSurface(window, surfaceName))
+	sdlWindow->samples = application->renderer->surfaceSamples;
+	if (!(flags & dsWindowFlags_DelaySurfaceCreate) &&
+		!dsSDLWindow_createSurfaceInternal(window, surfaceName))
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
 		SDL_DestroyWindow(internalWindow);
@@ -119,7 +121,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	return true;
 }
 
-bool dsSDLWindow_createSurface(dsWindow* window, const char* surfaceName)
+bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
@@ -199,6 +201,16 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	}
 
 	return baseWindow;
+}
+
+bool dsSDLWindow_createSurface(dsApplication* application, dsWindow* window)
+{
+	DS_UNUSED(application);
+	if (window->surface)
+		return true;
+
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	return dsSDLWindow_createSurfaceInternal(window, sdlWindow->surfaceName);
 }
 
 dsWindow* dsSDLWindow_getFocusWindow(const dsApplication* application)

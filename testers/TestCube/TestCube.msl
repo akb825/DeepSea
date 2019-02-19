@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,10 @@ sampler_state tex
 [[vertex]] layout(location = DS_POSITION) in vec3 position;
 [[vertex]] layout(location = DS_TEXCOORD0) in vec2 texCoord;
 
-struct VertexOut
+varying(vertex, fragment)
 {
-	vec2 texCoord;
-};
-
-[[vertex]] out VertexOut vertexOut;
-[[fragment]] in VertexOut vertexOut;
+	vec2 vfTexCoord;
+}
 
 [[fragment]] out vec4 color;
 
@@ -45,13 +42,13 @@ struct VertexOut
 void vertexShader()
 {
 	gl_Position = DS_ADJUST_CLIP(uniforms.modelViewProjection*vec4(position, 1.0));
-	vertexOut.texCoord = texCoord;
+	vfTexCoord = texCoord;
 }
 
 [[fragment]]
 void fragmentShader()
 {
-	color = texture(tex, vertexOut.texCoord);
+	color = texture(tex, vfTexCoord);
 }
 
 pipeline Default

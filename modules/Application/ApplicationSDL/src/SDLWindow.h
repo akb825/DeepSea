@@ -27,6 +27,7 @@
 typedef struct dsSDLWindow
 {
 	dsWindow window;
+	const char* surfaceName;
 	SDL_Window* sdlWindow;
 	uint32_t samples;
 	uint32_t curWidth;
@@ -35,11 +36,12 @@ typedef struct dsSDLWindow
 
 bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,
 	const dsVector2i* position, uint32_t width, uint32_t height, dsWindowFlags flags);
-bool dsSDLWindow_createSurface(dsWindow* window, const char* surfaceName);
+bool dsSDLWindow_createSurfaceInternal(dsWindow* window, const char* surfaceName);
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags);
+bool dsSDLWindow_createSurface(dsApplication* application, dsWindow* window);
 dsWindow* dsSDLWindow_getFocusWindow(const dsApplication* application);
 bool dsSDLWindow_setTitle(dsApplication* application, dsWindow* window, const char* title);
 bool dsSDLWindow_setDisplayMode(dsApplication* application, dsWindow* window,

@@ -369,20 +369,21 @@ bool dsVkGfxBufferData_isStatic(const dsVkGfxBufferData* buffer)
 bool dsVkGfxBufferData_addMemoryBarrier(dsVkGfxBufferData* buffer, VkDeviceSize offset,
 	VkDeviceSize size, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(DS_IS_BUFFER_RANGE_VALID(offset, size, buffer->size));
 	bool canMap = dsVkGfxBufferData_canMap(buffer);
 	bool canWrite = buffer->usage & (dsGfxBufferUsage_CopyTo | dsGfxBufferUsage_MutableImage |
 		dsGfxBufferUsage_UniformBuffer) || canMap;
 	if (canWrite)
 	{
-		VkAccessFlags accessMask = dsVkReadBufferAccessFlags(buffer->usage) |
-			dsVkWriteBufferAccessFlags(buffer->usage, canMap);
+		VkAccessFlags srcAccessMask = dsVkWriteBufferAccessFlags(buffer->usage, canMap);
+		VkAccessFlags dstAccessMask = dsVkReadBufferAccessFlags(buffer->usage);
 		VkBuffer vkBuffer = dsVkGfxBufferData_getBuffer(buffer);
 		VkBufferMemoryBarrier bufferBarrier =
 		{
 			VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
 			NULL,
-			accessMask,
-			accessMask,
+			srcAccessMask,
+			dstAccessMask,
 			VK_QUEUE_FAMILY_IGNORED,
 			VK_QUEUE_FAMILY_IGNORED,
 			vkBuffer,

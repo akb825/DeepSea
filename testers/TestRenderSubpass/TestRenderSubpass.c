@@ -486,10 +486,19 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 	uint32_t width = dsApplication_adjustWindowSize(application, 0, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, 0, 600);
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, width, height, dsWindowFlags_Resizeable);
+		NULL, NULL, width, height, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));
+		return false;
+	}
+
+	if (DS_ANDROID || DS_IOS)
+		dsWindow_setStyle(testRenderSubpass->window, dsWindowStyle_FullScreen);
+
+	if (!dsWindow_createSurface(testRenderSubpass->window))
+	{
+		DS_LOG_ERROR_F("TestCube", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 

@@ -34,7 +34,10 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	void* glSurface = dsCreateGLSurface(allocator, display, glRenderer->renderConfig, type,
 		osHandle);
 	if (!glSurface)
+	{
+		errno = EPERM;
 		return NULL;
+	}
 
 	dsGLRenderSurface* renderSurface = DS_ALLOCATE_OBJECT(allocator, dsGLRenderSurface);
 	if (!renderSurface)

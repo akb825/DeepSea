@@ -176,51 +176,160 @@ static VkSampler createDefaultSampler(dsVkDevice* device)
 	return sampler;
 }
 
-static void freeAllResources(dsVkResourceList* deleteList)
+static void freeAllResources(dsVkResourceList* deleteList, bool ignoreCommandBufferRefs)
 {
+	uint32_t finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->bufferCount; ++i)
-		dsVkGfxBufferData_destroy(deleteList->buffers[i]);
+	{
+		if (ignoreCommandBufferRefs || deleteList->buffers[i]->resource.commandBufferCount == 0)
+			dsVkGfxBufferData_destroy(deleteList->buffers[i]);
+		else
+			deleteList->buffers[finalCount++] = deleteList->buffers[i];
+	}
+	deleteList->bufferCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->textureCount; ++i)
-		dsVkTexture_destroyImpl(deleteList->textures[i]);
+	{
+		dsTexture* texture = deleteList->textures[i];
+		dsVkTexture* vkTexture = (dsVkTexture*)texture;
+		if (ignoreCommandBufferRefs || vkTexture->resource.commandBufferCount == 0)
+			dsVkTexture_destroyImpl(texture);
+		else
+			deleteList->textures[finalCount++] = texture;
+	}
+	deleteList->textureCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->copyImageCount; ++i)
-		dsVkCopyImage_destroy(deleteList->copyImages[i]);
+	{
+		if (ignoreCommandBufferRefs || deleteList->copyImages[i]->resource.commandBufferCount == 0)
+			dsVkCopyImage_destroy(deleteList->copyImages[i]);
+		else
+			deleteList->copyImages[finalCount++] = deleteList->copyImages[i];
+	}
+	deleteList->copyImageCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderbufferCount; ++i)
-		dsVkRenderbuffer_destroyImpl(deleteList->renderbuffers[i]);
+	{
+		dsRenderbuffer* renderbuffer = deleteList->renderbuffers[i];
+		dsVkRenderbuffer* vkRenderbuffer = (dsVkRenderbuffer*)renderbuffer;
+		if (ignoreCommandBufferRefs || vkRenderbuffer->resource.commandBufferCount == 0)
+			dsVkRenderbuffer_destroyImpl(renderbuffer);
+		else
+			deleteList->renderbuffers[finalCount++] = renderbuffer;
+	}
+	deleteList->renderbufferCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->framebufferCount; ++i)
-		dsVkRealFramebuffer_destroy(deleteList->framebuffers[i]);
+	{
+		dsVkRealFramebuffer* framebuffer =deleteList->framebuffers[i];
+		if (ignoreCommandBufferRefs || framebuffer->resource.commandBufferCount == 0)
+			dsVkRealFramebuffer_destroy(framebuffer);
+		else
+			deleteList->framebuffers[finalCount++] = framebuffer;
+	}
+	deleteList->framebufferCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->fenceCount; ++i)
-		dsVkGfxFence_destroyImpl(deleteList->fences[i]);
+	{
+		dsGfxFence* fence = deleteList->fences[i];
+		dsVkGfxFence* vkFence = (dsVkGfxFence*)fence;
+		if (ignoreCommandBufferRefs || vkFence->resource.commandBufferCount == 0)
+			dsVkGfxFence_destroyImpl(fence);
+		else
+			deleteList->fences[finalCount++] = fence;
+	}
+	deleteList->fenceCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->queryCount; ++i)
-		dsVkGfxQueryPool_destroyImpl(deleteList->queries[i]);
+	{
+		dsGfxQueryPool* queries = deleteList->queries[i];
+		dsVkGfxQueryPool* vkQueries = (dsVkGfxQueryPool*)queries;
+		if (ignoreCommandBufferRefs || vkQueries->resource.commandBufferCount == 0)
+			dsVkGfxQueryPool_destroyImpl(queries);
+		else
+			deleteList->queries[finalCount++] = queries;
+	}
+	deleteList->queryCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->descriptorCount; ++i)
-		dsVkMaterialDescriptor_destroy(deleteList->descriptors[i]);
+	{
+		if (ignoreCommandBufferRefs || deleteList->descriptors[i]->resource.commandBufferCount == 0)
+			dsVkMaterialDescriptor_destroy(deleteList->descriptors[i]);
+		else
+			deleteList->descriptors[finalCount++] = deleteList->descriptors[i];
+	}
+	deleteList->descriptorCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->samplerCount; ++i)
-		dsVkSamplerList_destroy(deleteList->samplers[i]);
+	{
+		if (ignoreCommandBufferRefs || deleteList->samplers[i]->resource.commandBufferCount == 0)
+			dsVkSamplerList_destroy(deleteList->samplers[i]);
+		else
+			deleteList->samplers[finalCount++] = deleteList->samplers[i];
+	}
+	deleteList->samplerCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->computePipelineCount; ++i)
-		dsVkComputePipeline_destroy(deleteList->computePipelines[i]);
+	{
+		dsVkComputePipeline* computePipeline = deleteList->computePipelines[i];
+		if (ignoreCommandBufferRefs || computePipeline->resource.commandBufferCount == 0)
+			dsVkComputePipeline_destroy(computePipeline);
+		else
+			deleteList->computePipelines[finalCount++] = computePipeline;
+	}
+	deleteList->computePipelineCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->pipelineCount; ++i)
-		dsVkPipeline_destroy(deleteList->pipelines[i]);
+	{
+		if (ignoreCommandBufferRefs || deleteList->pipelines[i]->resource.commandBufferCount == 0)
+			dsVkPipeline_destroy(deleteList->pipelines[i]);
+		else
+			deleteList->pipelines[finalCount++] = deleteList->pipelines[i];
+	}
+	deleteList->pipelineCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderSurfaceCount; ++i)
-		dsVkRenderSurfaceData_destroy(deleteList->renderSurfaces[i]);
+	{
+		dsVkRenderSurfaceData* renderSurface = deleteList->renderSurfaces[i];
+		if (ignoreCommandBufferRefs || renderSurface->resource.commandBufferCount == 0)
+			dsVkRenderSurfaceData_destroy(renderSurface);
+		else
+			deleteList->renderSurfaces[finalCount++] = renderSurface;
+	}
+	deleteList->renderSurfaceCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->commandPoolCount; ++i)
-		dsVkCommandPoolData_destroy(deleteList->commandPools[i]);
+	{
+		dsVkCommandPoolData* commandPool = deleteList->commandPools[i];
+		if (ignoreCommandBufferRefs || commandPool->resource.commandBufferCount == 0)
+			dsVkCommandPoolData_destroy(commandPool);
+		else
+			deleteList->commandPools[finalCount++] = commandPool;
+	}
+	deleteList->commandPoolCount = finalCount;
 
+	finalCount = 0;
 	for (uint32_t i = 0; i < deleteList->renderPassCount; ++i)
-		dsVkRenderPassData_destroy(deleteList->renderPasses[i]);
-
-	dsVkResourceList_clear(deleteList);
+	{
+		dsVkRenderPassData* renderPass = deleteList->renderPasses[i];
+		if (ignoreCommandBufferRefs || renderPass->resource.commandBufferCount == 0)
+			dsVkRenderPassData_destroy(renderPass);
+		else
+			deleteList->renderPasses[finalCount++] = renderPass;
+	}
+	deleteList->renderPassCount = finalCount;
 }
 
 static void freeResources(dsVkRenderer* renderer)
@@ -1053,12 +1162,12 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 
 	uint32_t indexSize = indexBuffer->indexSize;
 	VkDeviceSize offset = indexBuffer->offset;
-	if (drawRange)
-		offset += drawRange->firstIndex*indexSize;
-
 	VkDeviceSize size = indexBuffer->count*indexSize;
 	if (drawRange)
-		size += drawRange->indexCount*indexSize;
+	{
+		offset += drawRange->firstIndex*indexSize;
+		size = drawRange->indexCount*indexSize;
+	}
 
 	if (!dsVkGfxBufferData_addMemoryBarrier(bufferData, offset, size, commandBuffer))
 		return false;
@@ -1883,7 +1992,7 @@ bool dsVkRenderer_waitUntilIdle(dsRenderer* renderer)
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderer->deleteLock));
 	for (uint32_t i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
-		freeAllResources(vkRenderer->deleteResources + i);
+		freeAllResources(vkRenderer->deleteResources + i, false);
 	DS_VERIFY(dsSpinlock_unlock(&vkRenderer->deleteLock));
 	return true;
 }
@@ -1931,7 +2040,7 @@ bool dsVkRenderer_destroy(dsRenderer* renderer)
 	for (unsigned int i = 0; i < DS_DELETE_RESOURCES_ARRAY; ++i)
 	{
 		dsVkResourceList* deleteResources = vkRenderer->deleteResources + i;
-		freeAllResources(deleteResources);
+		freeAllResources(deleteResources, true);
 		dsVkResourceList_shutdown(deleteResources);
 	}
 
