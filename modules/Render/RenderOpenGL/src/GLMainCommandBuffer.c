@@ -845,8 +845,16 @@ bool dsGLMainCommandBuffer_setFenceSyncs(dsCommandBuffer* commandBuffer, dsGLFen
 bool dsGLMainCommandBuffer_beginQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
 	uint32_t query)
 {
-	DS_UNUSED(commandBuffer);
+	dsGLRenderer* glRenderer = (dsGLRenderer*)commandBuffer->renderer;
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+
+	// Context re-created.
+	if (glQueries->queryContext != glRenderer->contextCount)
+	{
+		memset(glQueries->queryIds, 0, sizeof(GLint)*queries->count);
+		glQueries->queryContext = glRenderer->contextCount;
+	}
+
 	// Work around garbage drivers being garbage.
 	if (!glQueries->queryIds[query])
 		glGenQueries(1, glQueries->queryIds + query);
@@ -866,8 +874,16 @@ bool dsGLMainCommandBuffer_endQuery(dsCommandBuffer* commandBuffer, dsGfxQueryPo
 bool dsGLMainCommandBuffer_queryTimestamp(dsCommandBuffer* commandBuffer, dsGfxQueryPool* queries,
 	uint32_t query)
 {
-	DS_UNUSED(commandBuffer);
+	dsGLRenderer* glRenderer = (dsGLRenderer*)commandBuffer->renderer;
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+
+	// Context re-created.
+	if (glQueries->queryContext != glRenderer->contextCount)
+	{
+		memset(glQueries->queryIds, 0, sizeof(GLint)*queries->count);
+		glQueries->queryContext = glRenderer->contextCount;
+	}
+
 	// Work around garbage drivers being garbage.
 	if (!glQueries->queryIds[query])
 		glGenQueries(1, glQueries->queryIds + query);
@@ -888,6 +904,9 @@ bool dsGLMainCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfx
 	GLenum requestType = checkAvailability ? GL_QUERY_RESULT_NO_WAIT : GL_QUERY_RESULT;
 	for (uint32_t i = 0; i < count; ++i, offset += stride)
 	{
+		if (!glQueries->queryIds[first + i])
+			continue;
+
 		if (elementSize == sizeof(uint64_t))
 		{
 			glGetQueryObjectui64v(glQueries->queryIds[first + i], requestType, (void*)offset);

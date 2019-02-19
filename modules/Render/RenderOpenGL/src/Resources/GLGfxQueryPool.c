@@ -29,9 +29,9 @@
 dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager, dsAllocator* allocator,
 	dsGfxQueryType type, uint32_t count)
 {
-	DS_ASSERT(resourceManager);
 	DS_ASSERT(allocator);
 
+	dsGLRenderer* glRenderer = (dsGLRenderer*)resourceManager->renderer;
 	dsGLGfxQueryPool* queries = (dsGLGfxQueryPool*)dsAllocator_alloc(allocator,
 		sizeof(dsGLGfxQueryPool) + count*sizeof(GLuint));
 	if (!queries)
@@ -44,6 +44,7 @@ dsGfxQueryPool* dsGLGfxQueryPool_create(dsResourceManager* resourceManager, dsAl
 	baseQueries->count = count;
 
 	dsGLResource_initialize(&queries->resource);
+	queries->queryContext = glRenderer->contextCount;
 
 	//glGenQueries(count, queries->queryIds);
 	// Garbage drivers do garbage things, such return the same IDs for glGenQueries() multiple
@@ -89,14 +90,41 @@ bool dsGLGfxQueryPool_getValues(dsResourceManager* resourceManager, dsGfxQueryPo
 	uint32_t first, uint32_t count, void* data, size_t dataSize, size_t stride, size_t elementSize,
 	bool checkAvailability)
 {
-	DS_UNUSED(resourceManager);
 	DS_UNUSED(dataSize);
 
 	DS_ASSERT(elementSize == sizeof(uint32_t) || elementSize == sizeof(uint64_t));
 	dsGLGfxQueryPool* glQueries = (dsGLGfxQueryPool*)queries;
+
+	// Context re-created.
+	dsGLRenderer* glRenderer = (dsGLRenderer*)resourceManager->renderer;
+	if (glQueries->queryContext != glRenderer->contextCount)
+	{
+		memset(glQueries->queryIds, 0, sizeof(GLint)*queries->count);
+		glQueries->queryContext = glRenderer->contextCount;
+	}
+
 	uint8_t* dataBytes = (uint8_t*)data;
 	for (uint32_t i = 0; i < count; ++i, dataBytes += stride)
 	{
+		// Query needed to be re-allocated. (context destroyed)
+		if (!glQueries->queryIds[first + i])
+		{
+			if (checkAvailability)
+			{
+				uint8_t* availableBytes = dataBytes + elementSize;
+				if (elementSize == sizeof(uint64_t))
+					*(uint64_t*)availableBytes = false;
+				else
+					*(uint32_t*)availableBytes = false;
+			}
+
+			if (elementSize == sizeof(uint64_t))
+				*(uint64_t*)dataBytes = 0;
+			else
+				*(uint32_t*)dataBytes = 0;
+			continue;
+		}
+
 		GLuint ready = true;
 		if (checkAvailability)
 		{

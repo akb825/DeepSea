@@ -87,6 +87,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 	if (sdlWindow->sdlWindow)
 	{
 		SDL_DestroyWindow(sdlWindow->sdlWindow);
+		dsRenderer_restoreGlobalState(application->renderer);
 		sdlWindow->sdlWindow = NULL;
 	}
 

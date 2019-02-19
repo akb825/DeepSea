@@ -346,6 +346,8 @@ bool dsGLRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 	glRenderer->options.samples = (uint8_t)samples;
 	++glRenderer->contextCount;
 
+	renderer->surfaceConfig = dsGetPublicGLConfig(display, glRenderer->renderConfig);
+
 	// These objects were associated with the now destroyed context.
 	clearDestroyedObjects(glRenderer);
 	glRenderer->tempFramebuffer = 0;

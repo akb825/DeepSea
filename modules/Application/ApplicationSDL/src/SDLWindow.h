@@ -32,6 +32,10 @@ typedef struct dsSDLWindow
 	uint32_t samples;
 	uint32_t curWidth;
 	uint32_t curHeight;
+
+	dsVector2i curPosition;
+	dsWindowFlags curFlags;
+	bool hasFocus;
 } dsSDLWindow;
 
 bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const char* surfaceName,

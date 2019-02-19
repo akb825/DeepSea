@@ -137,6 +137,7 @@ typedef struct dsGLGfxQueryPool
 {
 	dsGfxQueryPool queries;
 	dsGLResource resource;
+	uint32_t queryContext;
 	GLuint queryIds[];
 } dsGLGfxQueryPool;
 

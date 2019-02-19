@@ -206,55 +206,92 @@ static bool setGLAttributes(dsRenderer* renderer)
 
 static void updateWindowSamples(dsApplication* application)
 {
+	if (application->windowCount == 0)
+		return;
+
 	bool setSamples = false;
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-		if (sdlWindow->samples == application->renderer->surfaceSamples)
-			continue;
-
-		if (!setSamples)
-		{
-			if (application->renderer->surfaceSamples > 1)
-			{
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,
-					application->renderer->surfaceSamples);
-			}
-			else
-			{
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-			}
+		if (sdlWindow->samples != application->renderer->surfaceSamples)
 			setSamples = true;
-		}
+	}
 
-		uint32_t width, height;
-		dsSDLWindow_getSize(&width, &height, application, window);
-		dsVector2i position;
-		dsSDLWindow_getPosition(&position, application, window);
+	if (!setSamples)
+		return;
+
+	// Cache existing window values.
+	for (unsigned int i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+
+		setSamples = true;
+		dsSDLWindow_getSize(&sdlWindow->curWidth, &sdlWindow->curHeight, application, window);
+		dsSDLWindow_getPosition(&sdlWindow->curPosition, application, window);
+
+		sdlWindow->curFlags = dsWindowFlags_DelaySurfaceCreate;
+		if (dsSDLWindow_getHidden(application, window))
+			sdlWindow->curFlags |= dsWindowFlags_Hidden;
+		if (SDL_GetWindowFlags(sdlWindow->sdlWindow) & SDL_WINDOW_RESIZABLE)
+			sdlWindow->curFlags |= dsWindowFlags_Resizeable;
+		if (dsSDLWindow_getMinimized(application, window))
+			sdlWindow->curFlags |= dsWindowFlags_Minimized;
+		if (dsSDLWindow_getMaximized(application, window))
+			sdlWindow->curFlags |= dsWindowFlags_Maximized;
+		if (dsSDLWindow_getGrabbedInput(application, window))
+			sdlWindow->curFlags |= dsWindowFlags_GrabInput;
+		sdlWindow->hasFocus = dsSDLWindow_getFocusWindow(application) == window;
+	}
+
+	if (application->renderer->surfaceSamples > 1)
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES,
+			application->renderer->surfaceSamples);
+	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+	}
+	setSamples = true;
+
+#if DS_LINUX && !DS_ANDROID
+	dsRenderer* renderer = application->renderer;
+	if (renderer->platform != dsGfxPlatform_Wayland)
+	{
+		// Need to restart video on X11 for new visual ID.
+		SDL_VideoQuit();
+		char visualId[20];
+		snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
+		setenv("SDL_VIDEO_X11_VISUALID", visualId, true);
+		SDL_VideoInit("x11");
+
+		// Windows were destroyed.
+		for (unsigned int i = 0; i < application->windowCount; ++i)
+		{
+			dsWindow* window = application->windows[i];
+			dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+			sdlWindow->sdlWindow = NULL;
+		}
+	}
+#endif
+
+	// Re-create the windows with the new samples.
+	for (unsigned int i = 0; i < application->windowCount; ++i)
+	{
+		dsWindow* window = application->windows[i];
+		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 
 		const char* title = window->title;
 		const char* surfaceName = sdlWindow->surfaceName;
 		dsDisplayMode displayMode = window->displayMode;
 		dsWindowStyle style = window->style;
 
-		unsigned int flags = dsWindowFlags_DelaySurfaceCreate;
-		if (dsSDLWindow_getHidden(application, window))
-			flags |= dsWindowFlags_Hidden;
-		if (SDL_GetWindowFlags(sdlWindow->sdlWindow) & SDL_WINDOW_RESIZABLE)
-			flags |= dsWindowFlags_Resizeable;
-		if (dsSDLWindow_getMinimized(application, window))
-			flags |= dsWindowFlags_Minimized;
-		if (dsSDLWindow_getMaximized(application, window))
-			flags |= dsWindowFlags_Maximized;
-		if (dsSDLWindow_getGrabbedInput(application, window))
-			flags |= dsWindowFlags_GrabInput;
-		bool hasFocus = dsSDLWindow_getFocusWindow(application) == window;
-
-		if (!dsSDLWindow_createComponents(window, title, surfaceName, &position, width, height,
-			flags))
+		if (!dsSDLWindow_createComponents(window, title, surfaceName, &sdlWindow->curPosition,
+			sdlWindow->curWidth, sdlWindow->curHeight, sdlWindow->curFlags))
 		{
 			DS_LOG_FATAL_F(DS_APPLICATION_SDL_LOG_TAG, "Couldn't allocate window: %s",
 				dsErrorString(errno));
@@ -272,7 +309,7 @@ static void updateWindowSamples(dsApplication* application)
 			abort();
 		}
 
-		if (hasFocus)
+		if (sdlWindow->hasFocus)
 			dsSDLWindow_raise(application, window);
 
 		dsEvent event;
