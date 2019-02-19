@@ -259,7 +259,7 @@ static void updateWindowSamples(dsApplication* application)
 
 #if DS_LINUX && !DS_ANDROID
 	dsRenderer* renderer = application->renderer;
-	if (renderer->platform != dsGfxPlatform_Wayland)
+	if (renderer->platform != dsGfxPlatform_Wayland && renderer->rendererID == DS_GL_RENDERER_TYPE)
 	{
 		// Need to restart video on X11 for new visual ID.
 		SDL_VideoQuit();
