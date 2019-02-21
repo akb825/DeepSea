@@ -30,6 +30,7 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
+#include <DeepSea/Math/Core.h>
 
 #include <string.h>
 
@@ -343,7 +344,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		NULL,
 		0,
 		surface,
-		2, // double-buffer
+		dsClamp(2, surfaceInfo.minImageCount, surfaceInfo.maxImageCount), // double-buffer
 		colorFormat->vkFormat,
 		colorSpace,
 		surfaceInfo.currentExtent,

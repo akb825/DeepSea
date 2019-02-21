@@ -899,10 +899,11 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		driver = "wayland";
 	else
 	{
+		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
+		setenv("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0", true);
+
 		if (renderer->surfaceConfig)
 		{
-			setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
-
 			char visualId[20];
 			snprintf(visualId, sizeof(visualId), "%d", (int)(size_t)renderer->surfaceConfig);
 			setenv("SDL_VIDEO_X11_VISUALID", visualId, true);

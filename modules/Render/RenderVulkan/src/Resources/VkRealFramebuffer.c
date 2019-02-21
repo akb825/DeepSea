@@ -245,7 +245,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 
 	uint32_t imageCount = vkRenderPass->fullAttachmentCount;
 	size_t bufferSize = DS_ALIGNED_SIZE(sizeof(dsVkRealFramebuffer)) +
-		DS_ALIGNED_SIZE(sizeof(VkFramebuffer)*imageCount) +
+		DS_ALIGNED_SIZE(sizeof(VkFramebuffer)*framebufferCount) +
 		DS_ALIGNED_SIZE(sizeof(VkImageView)*imageCount) +
 		DS_ALIGNED_SIZE(sizeof(bool)*imageCount);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
@@ -270,7 +270,7 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 	DS_ASSERT(realFramebuffer->framebuffers);
 	memset(realFramebuffer->framebuffers, 0, sizeof(VkFramebuffer)*framebufferCount);
 
-	if (framebuffer->surfaceCount > 0)
+	if (imageCount > 0)
 	{
 		realFramebuffer->imageViews = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
 			VkImageView, imageCount);
