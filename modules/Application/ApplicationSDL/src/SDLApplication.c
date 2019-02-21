@@ -259,7 +259,7 @@ static void updateWindowSamples(dsApplication* application)
 
 #if DS_LINUX && !DS_ANDROID
 	dsRenderer* renderer = application->renderer;
-	if (renderer->platform != dsGfxPlatform_Wayland && renderer->rendererID == DS_GL_RENDERER_TYPE)
+	if (renderer->platform != dsGfxPlatform_Wayland && renderer->surfaceConfig)
 	{
 		// Need to restart video on X11 for new visual ID.
 		SDL_VideoQuit();
@@ -900,6 +900,9 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	else
 	{
 		setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", true);
+
+		// NOTE: Bypassing the compositor can wreck havok. Vulkan on KDE is especially bad, making
+		// the whole system pretty much unusable.
 		setenv("SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "0", true);
 
 		if (renderer->surfaceConfig)
