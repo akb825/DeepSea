@@ -338,13 +338,14 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
+	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
 	VkSwapchainCreateInfoKHR createInfo =
 	{
 		VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		NULL,
 		0,
 		surface,
-		dsClamp(2, surfaceInfo.minImageCount, surfaceInfo.maxImageCount), // double-buffer
+		dsClamp(2, surfaceInfo.minImageCount, maxImageCount), // double-buffer
 		colorFormat->vkFormat,
 		colorSpace,
 		surfaceInfo.currentExtent,
