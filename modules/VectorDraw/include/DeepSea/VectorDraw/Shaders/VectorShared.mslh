@@ -54,7 +54,7 @@ uniform vec3 dsVectorTextureSizes;
  * @param[out] info The element info.
  * @param index The index of the element.
  */
-void dsVectorShared_getElementInfo(out vec4 info[4], float index)
+void dsVectorShared_getElementInfo(out vec4 info[4], int index)
 {
 	float elementCoord = (float(index) + 0.5)/uniforms.dsVectorTextureSizes.x;
 	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));
@@ -67,7 +67,7 @@ void dsVectorShared_getElementInfo(out vec4 info[4], float index)
  * @param[out] info The element info.
  * @param index The index of the element.
  */
-void dsVectorShared_getElementLineInfo(out vec4 info[4], float index)
+void dsVectorShared_getElementLineInfo(out vec4 info[4], int index)
 {
 	float elementCoord = (float(index) + 0.5)/uniforms.dsVectorTextureSizes.x;
 	info[0] = texture(dsVectorInfoTex, vec2(0.125f, elementCoord));

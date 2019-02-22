@@ -104,7 +104,7 @@
  * - z: fill material index
  * - w: outline material index
  */
-[[vertex]] layout(location = DS_TEXCOORD1) in vec4 dsVectorIndices;
+[[vertex]] layout(location = DS_TEXCOORD1) in ivec4 dsVectorIndices;
 
 /**
  * @brief Output from the vertex stage.

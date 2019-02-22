@@ -36,9 +36,6 @@ extern "C"
  * double-buffered, which is useful when submitting command buffers to the GPU in parallel to
  * building up the next set of commands.
  *
- * @remark All command buffer pool operations must be performed on the main thread, though the
- * command buffers themselves may be used on separate threads.
- *
  * @see dsCommandBufferPool
  */
 

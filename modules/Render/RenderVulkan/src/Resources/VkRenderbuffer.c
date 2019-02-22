@@ -87,7 +87,7 @@ dsRenderbuffer* dsVkRenderbuffer_create(dsResourceManager* resourceManager, dsAl
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
-		1, &device->queueFamilyIndex,
+		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,

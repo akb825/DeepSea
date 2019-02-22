@@ -28,7 +28,7 @@
 /**
  * @brief Constant for no material associated with a fill or outline.
  */
-#define DS_NO_VECTOR_MATERIAL 65535.0
+#define DS_NO_VECTOR_MATERIAL -32768
 
 /**
  * @brief Texture holding general information about the text outline material.
@@ -145,7 +145,7 @@ vec2 dsVectorTextShared_finalPosition(vec2 position, vec2 offset, lowp float sla
  * @param index The index of the material.
  * @return The material info.
  */
-dsVectorMaterialInfo dsVectorText_getFillMaterialInfo(float index)
+dsVectorMaterialInfo dsVectorText_getFillMaterialInfo(int index)
 {
 	if (index == DS_NO_VECTOR_MATERIAL)
 		return dsVectorMaterial_invalidInfo();
@@ -158,7 +158,7 @@ dsVectorMaterialInfo dsVectorText_getFillMaterialInfo(float index)
  * @param index The index of the material.
  * @return The material info.
  */
-dsVectorMaterialInfo dsVectorText_getOutlineMaterialInfo(float index)
+dsVectorMaterialInfo dsVectorText_getOutlineMaterialInfo(int index)
 {
 	if (index == DS_NO_VECTOR_MATERIAL)
 		return dsVectorMaterial_invalidInfo();

@@ -37,14 +37,6 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 	if (!allocator)
 		allocator = renderer->allocator;
 
-	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Command buffer pools may only be created on the main thread.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
 	dsCommandBufferPool* pool = renderer->createCommandBufferPoolFunc(renderer, allocator, usage,
 		count);
 	if (!pool)
@@ -76,14 +68,6 @@ bool dsCommandBufferPool_reset(dsCommandBufferPool* pool)
 	}
 
 	dsRenderer* renderer = pool->renderer;
-	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Command buffer pools may only be reset on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	bool success = renderer->resetCommandBufferPoolFunc(renderer, pool);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(success);
@@ -117,14 +101,6 @@ bool dsCommandBufferPool_destroy(dsCommandBufferPool* pool)
 	}
 
 	dsRenderer* renderer = pool->renderer;
-	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Command buffer pools may only be destroyed on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	bool success = renderer->destroyCommandBufferPoolFunc(renderer, pool);
 	DS_PROFILE_FUNC_RETURN(success);
 }

@@ -180,17 +180,22 @@ static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments
 	}
 }
 
-static VkPipelineStageFlags getPipelineStages(dsSubpassDependencyStage stage)
+static VkPipelineStageFlags getPipelineStages(const dsRenderer* renderer,
+	dsSubpassDependencyStage stage)
 {
 	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
 		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	if (stage == dsSubpassDependencyStage_Vertex)
 	{
-		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		flags |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
 	return flags;
 }
@@ -393,8 +398,8 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 			VkSubpassDependency* vkDependency = renderPass->vkDependencies + i;
 			vkDependency->srcSubpass = curDependency->srcSubpass;
 			vkDependency->dstSubpass = curDependency->dstSubpass;
-			vkDependency->srcStageMask = getPipelineStages(curDependency->srcStage);
-			vkDependency->dstStageMask = getPipelineStages(curDependency->dstStage);
+			vkDependency->srcStageMask = getPipelineStages(renderer, curDependency->srcStage);
+			vkDependency->dstStageMask = getPipelineStages(renderer, curDependency->dstStage);
 			vkDependency->srcAccessMask = getSrcAccessFlags(curDependency->srcStage);
 			vkDependency->dstAccessMask = getDstAccessFlags(curDependency->srcStage);
 			if (curDependency->regionDependency)

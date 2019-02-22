@@ -32,14 +32,17 @@
 
 find_package(PkgConfig)
 
-pkg_check_modules(PC_EGL egl)
+if (NOT CMAKE_CROSSCOMPILING)
+	pkg_check_modules(PC_EGL egl)
+endif()
 
 if (PC_EGL_FOUND)
     set(EGL_DEFINITIONS ${PC_EGL_CFLAGS_OTHER})
 endif ()
 
 if (ANDROID)
-    set(ANDROID_INCLUDE_DIRS ${ANDROID_NDK}/sysroot/usr/include NO_DEFAULT_PATH)
+    set(ANDROID_INCLUDE_DIRS ${ANDROID_NDK}/sysroot/usr/include NO_DEFAULT_PATH
+		NO_CMAKE_SYSTEM_PATH)
 else()
     set(ANDROID_INCLUDE_DIRS)
 endif()

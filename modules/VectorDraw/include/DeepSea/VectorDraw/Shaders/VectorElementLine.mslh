@@ -60,7 +60,7 @@
 /**
  * @brief The indices within the material and shape.
  */
-[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in ivec2 dsVectorElementMaterialIndex;
 
 /**
  * @brief Output from the vertex stage.

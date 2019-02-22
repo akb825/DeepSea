@@ -55,9 +55,10 @@ VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfx
 VkAccessFlags dsVkReadImageAccessFlags(dsTextureUsage usage);
 VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bool depthStencil);
 
-VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment);
-VkPipelineStageFlags dsVkWriteImageStageFlags(dsTextureUsage usage, bool offscreen,
-	bool depthStencil);
+VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
+	bool depthStencilAttachment);
+VkPipelineStageFlags dsVkWriteImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
+	bool offscreen, bool depthStencil);
 
 VkImageAspectFlags dsVkImageAspectFlags(dsGfxFormat format);
 VkImageAspectFlags dsVkClearDepthStencilImageAspectFlags(dsGfxFormat format,
@@ -67,5 +68,3 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile);
 VkCompareOp dsVkCompareOp(mslCompareOp compareOp, VkCompareOp defaultOp);
 VkShaderStageFlagBits dsVkShaderStage(mslStage stage);
 VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type);
-
-bool dsVkIsAdreno(const char* deviceName);

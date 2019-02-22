@@ -65,7 +65,7 @@ struct dsVectorMaterialInfo
  */
 #define DS_MATERIAL_COLOR_WIDTH 256.0
 
-dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex, float height)
+dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(int index, sampler2D infoTex, float height)
 {
 	float materialCoord = (float(index) + 0.5)/height;
 	dsVectorMaterialInfo info;
@@ -91,7 +91,7 @@ dsVectorMaterialInfo dsVectorMaterial_getInfoImpl(float index, sampler2D infoTex
  * @param index The index of the material.
  * @return The material info.
  */
-dsVectorMaterialInfo dsVectorMaterial_getInfo(float index)
+dsVectorMaterialInfo dsVectorMaterial_getInfo(int index)
 {
 	return dsVectorMaterial_getInfoImpl(index, dsVectorMaterialInfoTex,
 		uniforms.dsVectorTextureSizes.y);

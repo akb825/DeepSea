@@ -33,10 +33,10 @@ typedef struct TextVertex
 	dsVector2f position;
 	dsVector2f offset;
 	dsVector2f texCoords;
-	uint16_t mipLevel;
-	uint16_t infoIndex;
-	uint16_t fillMaterialIndex;
-	uint16_t outlineMaterialIndex;
+	int16_t mipLevel;
+	int16_t infoIndex;
+	int16_t fillMaterialIndex;
+	int16_t outlineMaterialIndex;
 } TextVertex;
 
 typedef struct TessTextVertex
@@ -44,10 +44,10 @@ typedef struct TessTextVertex
 	dsVector2f position;
 	dsAlignedBox2f geometry;
 	dsAlignedBox2f texCoords;
-	uint16_t mipLevel;
-	uint16_t infoIndex;
-	uint16_t fillMaterialIndex;
-	uint16_t outlineMaterialIndex;
+	int16_t mipLevel;
+	int16_t infoIndex;
+	int16_t fillMaterialIndex;
+	int16_t outlineMaterialIndex;
 } TessTextVertex;
 
 static bool glyphRightToLeft(const dsTextLayout* layout, uint32_t glyphIndex)
@@ -140,10 +140,10 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->offset.y = glyph->geometry.min.y;
 	vertex->texCoords.x = glyph->texCoords.min.x;
 	vertex->texCoords.y = glyph->texCoords.min.y;
-	vertex->mipLevel = (uint16_t)glyph->mipLevel;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
-	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
-	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
+	vertex->mipLevel = (int16_t)glyph->mipLevel;
+	vertex->infoIndex = (int16_t)drawInfo->infoIndex;
+	vertex->fillMaterialIndex = (int16_t)drawInfo->fillMaterial;
+	vertex->outlineMaterialIndex = (int16_t)drawInfo->outlineMaterial;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -151,10 +151,10 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->offset.y = glyph->geometry.max.y;
 	vertex->texCoords.x = glyph->texCoords.min.x;
 	vertex->texCoords.y = glyph->texCoords.max.y;
-	vertex->mipLevel = (uint16_t)glyph->mipLevel;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
-	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
-	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
+	vertex->mipLevel = (int16_t)glyph->mipLevel;
+	vertex->infoIndex = (int16_t)drawInfo->infoIndex;
+	vertex->fillMaterialIndex = (int16_t)drawInfo->fillMaterial;
+	vertex->outlineMaterialIndex = (int16_t)drawInfo->outlineMaterial;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -162,10 +162,10 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->offset.y = glyph->geometry.max.y;
 	vertex->texCoords.x = glyph->texCoords.max.x;
 	vertex->texCoords.y = glyph->texCoords.max.y;
-	vertex->mipLevel = (uint16_t)glyph->mipLevel;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
-	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
-	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
+	vertex->mipLevel = (int16_t)glyph->mipLevel;
+	vertex->infoIndex = (int16_t)drawInfo->infoIndex;
+	vertex->fillMaterialIndex = (int16_t)drawInfo->fillMaterial;
+	vertex->outlineMaterialIndex = (int16_t)drawInfo->outlineMaterial;
 
 	++vertex;
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
@@ -173,10 +173,10 @@ static void textVertexData(void* userData, const dsTextLayout* layout, void* use
 	vertex->offset.y = glyph->geometry.min.y;
 	vertex->texCoords.x = glyph->texCoords.max.x;
 	vertex->texCoords.y = glyph->texCoords.min.y;
-	vertex->mipLevel = (uint16_t)glyph->mipLevel;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
-	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
-	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
+	vertex->mipLevel = (int16_t)glyph->mipLevel;
+	vertex->infoIndex = (int16_t)drawInfo->infoIndex;
+	vertex->fillMaterialIndex = (int16_t)drawInfo->fillMaterial;
+	vertex->outlineMaterialIndex = (int16_t)drawInfo->outlineMaterial;
 }
 
 static void tessTextVertexData(void* userData, const dsTextLayout* layout, void* userLayerData,
@@ -194,10 +194,10 @@ static void tessTextVertexData(void* userData, const dsTextLayout* layout, void*
 	dsVector2_add(vertex->position, glyph->position, drawInfo->offset);
 	vertex->geometry = glyph->geometry;
 	vertex->texCoords = glyph->texCoords;
-	vertex->mipLevel = (uint16_t)glyph->mipLevel;
-	vertex->infoIndex = (uint16_t)drawInfo->infoIndex;
-	vertex->fillMaterialIndex = (uint16_t)drawInfo->fillMaterial;
-	vertex->outlineMaterialIndex = (uint16_t)drawInfo->outlineMaterial;
+	vertex->mipLevel = (int16_t)glyph->mipLevel;
+	vertex->infoIndex = (int16_t)drawInfo->infoIndex;
+	vertex->fillMaterialIndex = (int16_t)drawInfo->fillMaterial;
+	vertex->outlineMaterialIndex = (int16_t)drawInfo->outlineMaterial;
 }
 
 bool dsVectorText_addText(dsVectorScratchData* scratchData, dsCommandBuffer* commandBuffer,
@@ -380,7 +380,7 @@ bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,
 		outVertexFormat->elements[dsVertexAttrib_TexCoord0].format =
 			dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_TexCoord1].format =
-			dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UScaled);
+			dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_SInt);
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_Position0, true));
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_Position1, true));
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_TexCoord0, true));
@@ -404,7 +404,7 @@ bool dsVectorText_createVertexFormat(dsVertexFormat* outVertexFormat,
 		outVertexFormat->elements[dsVertexAttrib_TexCoord0].format =
 			dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 		outVertexFormat->elements[dsVertexAttrib_TexCoord1].format =
-			dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UScaled);
+			dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_SInt);
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_Position, true));
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_TexCoord0, true));
 		DS_VERIFY(dsVertexFormat_setAttribEnabled(outVertexFormat, dsVertexAttrib_TexCoord1, true));

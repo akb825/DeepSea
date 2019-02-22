@@ -86,10 +86,10 @@ struct dsVectorImage
 	dsTextLayout** textLayouts;
 	TextDrawInfo* textDrawInfos;
 	dsGfxBuffer* buffer;
-	uint32_t pieceCount;
-	uint32_t infoTextureCount;
-	uint32_t textLayoutCount;
-	uint32_t textDrawInfoCount;
+	int32_t pieceCount;
+	int32_t infoTextureCount;
+	int32_t textLayoutCount;
+	int32_t textDrawInfoCount;
 	dsVector2f size;
 };
 
@@ -525,7 +525,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	}
 
 	uint32_t infoIndex = scratchData->vectorInfoCount;
-	DS_ASSERT(infoIndex <= USHRT_MAX);
+	DS_ASSERT(infoIndex <= SHRT_MAX);
 	ShapeInfo* curInfo = dsVectorScratchData_addImagePiece(scratchData, transform, image, opacity,
 		bounds);
 	if (!curInfo)
@@ -538,7 +538,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex->position = bounds->min;
 	vertex->texCoordX = 0;
 	vertex->texCoordY = 0;
-	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->shapeIndex = (int16_t)infoIndex;
 	vertex->padding = 0;
 
 	uint32_t upperRight = scratchData->imageVertexCount;
@@ -549,7 +549,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex->position.y = bounds->max.y;
 	vertex->texCoordX = 0;
 	vertex->texCoordY = 1;
-	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->shapeIndex = (int16_t)infoIndex;
 	vertex->padding = 0;
 
 	uint32_t lowerRight = scratchData->imageVertexCount;
@@ -559,7 +559,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex->position = bounds->max;
 	vertex->texCoordX = 1;
 	vertex->texCoordY = 1;
-	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->shapeIndex = (int16_t)infoIndex;
 	vertex->padding = 0;
 
 	uint32_t lowerLeft = scratchData->imageVertexCount;
@@ -570,7 +570,7 @@ static bool addImage(dsVectorScratchData* scratchData, const dsMatrix33f* transf
 	vertex->position.y = bounds->min.y;
 	vertex->texCoordX = 1;
 	vertex->texCoordY = 0;
-	vertex->shapeIndex = (uint16_t)infoIndex;
+	vertex->shapeIndex = (int16_t)infoIndex;
 	vertex->padding = 0;
 
 	// Clockwise in image space, but will be counter-clockwise in clip space.
@@ -715,7 +715,7 @@ static bool createShapeGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32Z32W32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_UScaled);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16, dsGfxFormat_SInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));
@@ -753,7 +753,7 @@ static bool createImageGeometry(dsVectorImage* image, dsVectorScratchData* scrat
 	vertexFormat.elements[dsVertexAttrib_Position].format =
 		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
 	vertexFormat.elements[dsVertexAttrib_TexCoord0].format =
-		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_UScaled);
+		dsGfxFormat_decorate(dsGfxFormat_X16Y16Z16W16, dsGfxFormat_SInt);
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_Position, true));
 	DS_VERIFY(dsVertexFormat_setAttribEnabled(&vertexFormat, dsVertexAttrib_TexCoord0, true));
 	DS_VERIFY(dsVertexFormat_computeOffsetsAndSize(&vertexFormat));

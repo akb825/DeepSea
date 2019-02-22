@@ -69,7 +69,7 @@ sampler_state dsVectorOtherTex
 /**
  * @brief The texture coordinates for the image and element index.
  */
-[[vertex]] layout(location = DS_TEXCOORD0) in vec4 dsVectorTexCoordsElementIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in ivec4 dsVectorTexCoordsElementIndex;
 
 /**
  * @brief Output from the vertex stage.

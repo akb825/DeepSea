@@ -113,7 +113,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			size,
 			createFlags,
 			VK_SHARING_MODE_EXCLUSIVE,
-			1, &device->queueFamilyIndex
+			0, NULL
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->deviceBuffer);
@@ -151,7 +151,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			size,
 			createFlags,
 			VK_SHARING_MODE_EXCLUSIVE,
-			1, &device->queueFamilyIndex
+			0, NULL
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->hostBuffer);
@@ -192,7 +192,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			size,
 			baseCreateFlags,
 			VK_SHARING_MODE_EXCLUSIVE,
-			1, &device->queueFamilyIndex
+			0, NULL
 		};
 		VkResult result = DS_VK_CALL(device->vkCreateBuffer)(device->device, &bufferCreateInfo,
 			instance->allocCallbacksPtr, &buffer->hostBuffer);

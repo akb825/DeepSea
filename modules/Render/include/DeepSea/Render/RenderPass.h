@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,9 @@ extern "C"
  * since it doesn't require the	full offscreen to be resolved while rendering the different portions
  * of the screen. One example where this is useful is for the various passes for deferred lighting.
  *
- * Render passes may only be created and destroyed on the main thread, though they may be used on
- * other threads with different command buffers.
+ * @remark When using the Vulkan implementation on Qualcomm Adreno hardware, you may see a crash in
+ * the driver if you mix resolved and non-resolved color attachments in the same render pass. See
+ * https://developer.qualcomm.com/forum/qdn-forums/software/adreno-gpu-sdk/66663 for more info.
  *
  * @see dsRenderPass
  */

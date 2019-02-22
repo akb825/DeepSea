@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
+#include <DeepSea/Core/Memory/StackAllocator.h>
 #include <DeepSea/Core/Memory/Lifetime.h>
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
@@ -364,8 +365,8 @@ static bool endFramebuffer(dsCommandBuffer* commandBuffer, const dsFramebuffer* 
 		imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		imageBarrier->pNext = NULL;
 		imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		imageBarrier->dstAccessMask = dsVkReadImageStageFlags(usage, isDepthStencil),
-			dsVkWriteImageStageFlags(usage, true, isDepthStencil);
+		imageBarrier->dstAccessMask = dsVkReadImageStageFlags(renderer, usage, isDepthStencil),
+			dsVkWriteImageStageFlags(renderer, usage, true, isDepthStencil);
 		imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		imageBarrier->newLayout = finalLayout;
 		imageBarrier->image = finalImage;
@@ -410,10 +411,16 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	DS_VERIFY(dsSpinlock_initialize(&renderPassData->shaderLock));
 	DS_VERIFY(dsSpinlock_initialize(&renderPassData->framebufferLock));
 
+	VkAttachmentDescription* attachments = NULL;
 	if (renderPass->attachmentCount > 0)
 	{
+		attachments = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkAttachmentDescription,
+			vkRenderPass->fullAttachmentCount);
+		memcpy(attachments, vkRenderPass->vkAttachments,
+			sizeof(VkAttachmentDescription)*vkRenderPass->fullAttachmentCount);
+
 		renderPassData->resolveAttachment = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAlloc,
-			bool,renderPass->attachmentCount);
+			bool, renderPass->attachmentCount);
 		DS_ASSERT(renderPassData->resolveAttachment);
 		renderPassData->resolveAttachmentCount = renderPass->attachmentCount;
 
@@ -421,7 +428,43 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		{
 			renderPassData->resolveAttachment[i] =
 				(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) != 0;
+
+			// Check if it will reference the same attachment, and mark as aliased if so.
+			uint32_t resolveIndex = vkRenderPass->resolveIndices[i];
+			if (resolveIndex != DS_NO_ATTACHMENT &&
+				renderPass->attachments[i].samples == DS_DEFAULT_ANTIALIAS_SAMPLES &&
+				vkRenderPass->defaultSamples == 1)
+			{
+				VkAttachmentDescription* vkAttachment = attachments + i;
+				VkAttachmentDescription* vkResolveAttachment = attachments + resolveIndex;
+
+				vkAttachment->flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+				vkResolveAttachment->flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
+				vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			}
 		}
+	}
+
+	// NOTE: Adreno has a bug with using VK_UNUSED_ATTACHMENT for resolve attachments. Work around
+	// by setting to NULL if all unused.
+	VkSubpassDescription* subpasses = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSubpassDescription,
+		renderPass->subpassCount);
+	memcpy(subpasses, vkRenderPass->vkSubpasses,
+		sizeof(VkSubpassDescription)*renderPass->subpassCount);
+	for (uint32_t i = 0; i < renderPass->subpassCount; ++i)
+	{
+		VkSubpassDescription* subpass = subpasses + i;
+		bool hasResolve = false;
+		for (uint32_t j = 0; j < subpass->colorAttachmentCount; ++j)
+		{
+			if (subpass->pResolveAttachments[j].attachment != VK_ATTACHMENT_UNUSED)
+				hasResolve = true;
+		}
+
+		if (!hasResolve)
+			subpass->pResolveAttachments = NULL;
 	}
 
 	renderPassData->lifetime = dsLifetime_create(allocator, renderPassData);
@@ -436,8 +479,8 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		NULL,
 		0,
-		vkRenderPass->fullAttachmentCount, vkRenderPass->vkAttachments,
-		renderPass->subpassCount, vkRenderPass->vkSubpasses,
+		vkRenderPass->fullAttachmentCount, attachments,
+		renderPass->subpassCount, subpasses,
 		renderPass->subpassDependencyCount, vkRenderPass->vkDependencies
 	};
 

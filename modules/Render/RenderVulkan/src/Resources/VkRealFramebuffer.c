@@ -180,7 +180,7 @@ static bool getImageViews(dsResourceManager* resourceManager, const dsFramebuffe
 	return true;
 }
 
-void updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
+static void updateRenderSurfaceImages(dsVkRealFramebuffer* framebuffer,
 	const dsFramebufferSurface* surfaces, uint32_t surfaceCount, uint32_t imageIndex)
 {
 	const dsVkRenderPassData* renderPassData =

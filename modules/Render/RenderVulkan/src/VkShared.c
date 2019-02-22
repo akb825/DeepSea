@@ -20,7 +20,6 @@
 #include <DeepSea/Core/Bits.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
-#include <string.h>
 
 typedef struct LastCallsite
 {
@@ -226,7 +225,7 @@ VkPipelineStageFlags dsVkReadBufferStageFlags(const dsRenderer* renderer, dsGfxB
 		if (renderer->hasTessellationShaders)
 		{
 			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 		}
 		if (renderer->hasGeometryShaders)
 			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
@@ -250,7 +249,7 @@ VkPipelineStageFlags dsVkWriteBufferStageFlags(const dsRenderer* renderer, dsGfx
 		if (renderer->hasTessellationShaders)
 		{
 			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 		}
 		if (renderer->hasGeometryShaders)
 			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
@@ -289,7 +288,7 @@ VkAccessFlags dsVkWriteImageAccessFlags(dsTextureUsage usage, bool offscreen, bo
 	return flags;
 }
 
-VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthStencilAttachment)
+VkPipelineStageFlags dsVkReadImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage, bool depthStencilAttachment)
 {
 	VkAccessFlags flags = 0;
 	if (depthStencilAttachment)
@@ -298,10 +297,14 @@ VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthSte
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
 	if (usage & dsTextureUsage_SubpassInput)
 		flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -310,8 +313,8 @@ VkPipelineStageFlags dsVkReadImageStageFlags(dsTextureUsage usage, bool depthSte
 	return flags;
 }
 
-VkPipelineStageFlags dsVkWriteImageStageFlags(dsTextureUsage usage, bool offscreen,
-	bool depthStencil)
+VkPipelineStageFlags dsVkWriteImageStageFlags(const dsRenderer* renderer, dsTextureUsage usage,
+	bool offscreen, bool depthStencil)
 {
 	VkPipelineStageFlags flags = 0;
 	if (offscreen)
@@ -325,10 +328,14 @@ VkPipelineStageFlags dsVkWriteImageStageFlags(dsTextureUsage usage, bool offscre
 	{
 		flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
 			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
-			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
-			VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT |
 			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		if (renderer->hasTessellationShaders)
+		{
+			flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+				VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		}
+		if (renderer->hasGeometryShaders)
+			flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 	}
 	if (usage & dsTextureUsage_CopyTo)
 		flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -468,10 +475,4 @@ VkPrimitiveTopology dsVkPrimitiveType(dsPrimitiveType type)
 			DS_ASSERT(false);
 			return 0;
 	}
-}
-
-bool dsVkIsAdreno(const char* deviceName)
-{
-	const char* adrenoName = "Adreno";
-	return strncmp(deviceName, adrenoName, strlen(adrenoName)) == 0;
 }

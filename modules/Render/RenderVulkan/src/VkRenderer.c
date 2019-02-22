@@ -73,6 +73,8 @@ static size_t fullAllocSize(void)
 
 static bool useBGRASurface(const char* deviceName)
 {
+	DS_UNUSED(deviceName);
+
 	// Devices that use RGBA surfaces.
 	if (DS_ANDROID)
 		return false;
@@ -1336,7 +1338,7 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 			barrier->oldLayout = dsVkTexture_imageLayout(offscreen);
 			barrier->image = vkTexture->deviceImage;
 			*aspectMask = dsVkImageAspectFlags(offscreen->info.format);
-			*stages |= dsVkWriteImageStageFlags(offscreen->usage, offscreen->offscreen,
+			*stages |= dsVkWriteImageStageFlags(renderer, offscreen->usage, offscreen->offscreen,
 				isDepthStencil);
 			break;
 		}
@@ -1369,7 +1371,7 @@ static void setBeginBlitSurfaceBarrierInfo(dsRenderer* renderer, VkImageMemoryBa
 	}
 }
 
-static void setEndBlitSurfaceBarrierInfo(VkImageMemoryBarrier* barrier,
+static void setEndBlitSurfaceBarrierInfo(const dsRenderer* renderer, VkImageMemoryBarrier* barrier,
 	dsGfxSurfaceType surfaceType, void* surface, VkPipelineStageFlags* stages)
 {
 	switch (surfaceType)
@@ -1402,9 +1404,9 @@ static void setEndBlitSurfaceBarrierInfo(VkImageMemoryBarrier* barrier,
 			barrier->dstAccessMask = dsVkReadImageAccessFlags(offscreen->usage) |
 				dsVkWriteImageAccessFlags(offscreen->usage, true, isDepthStencil);
 			barrier->newLayout = dsVkTexture_imageLayout(offscreen);
-			*stages |=
-				dsVkReadImageStageFlags(offscreen->usage, offscreen->offscreen && isDepthStencil) |
-				dsVkWriteImageStageFlags(offscreen->usage, true, isDepthStencil);
+			*stages |= dsVkReadImageStageFlags(renderer, offscreen->usage,
+					offscreen->offscreen && isDepthStencil) |
+				dsVkWriteImageStageFlags(renderer, offscreen->usage, true, isDepthStencil);
 			break;
 		}
 		case dsGfxSurfaceType_Renderbuffer:
@@ -1936,11 +1938,12 @@ bool dsVkRenderer_blitSurface(dsRenderer* renderer, dsCommandBuffer* commandBuff
 	stageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	imageBarriers[0].srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	imageBarriers[0].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	setEndBlitSurfaceBarrierInfo(imageBarriers, srcSurfaceType, srcSurface, &stageFlags);
+	setEndBlitSurfaceBarrierInfo(renderer, imageBarriers, srcSurfaceType, srcSurface, &stageFlags);
 
 	imageBarriers[1].srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	imageBarriers[1].oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	setEndBlitSurfaceBarrierInfo(imageBarriers + 1, dstSurfaceType, dstSurface, &stageFlags);
+	setEndBlitSurfaceBarrierInfo(renderer, imageBarriers + 1, dstSurfaceType, dstSurface,
+		&stageFlags);
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(submitBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
 		stageFlags, 0, 0, NULL, 0, NULL, 2, imageBarriers);

@@ -111,7 +111,7 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 		VK_IMAGE_TILING_LINEAR,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 		VK_SHARING_MODE_EXCLUSIVE,
-		1, &device->queueFamilyIndex,
+		0, NULL,
 		VK_IMAGE_LAYOUT_PREINITIALIZED
 	};
 

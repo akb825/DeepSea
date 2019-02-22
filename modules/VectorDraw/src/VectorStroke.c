@@ -55,8 +55,8 @@ static bool addCap(dsVectorScratchData* scratchData, const dsVector2f* position,
 	uint32_t materialIndex, uint32_t shapeIndex, dsLineCap capType, float distance,
 	float totalDistance, float pixelSize, bool start, dsAlignedBox2f* bounds)
 {
-	DS_ASSERT(materialIndex <= USHRT_MAX);
-	DS_ASSERT(shapeIndex <= USHRT_MAX);
+	DS_ASSERT(materialIndex <= SHRT_MAX);
+	DS_ASSERT(shapeIndex <= SHRT_MAX);
 
 	float halfWidth = lineWidth*0.5f;
 	dsVector2f offset = {{direction->y, -direction->x}};
@@ -273,8 +273,8 @@ static bool addSimpleJoin(dsVectorScratchData* scratchData, const dsVector2f* po
 	uint32_t materialIndex, uint32_t shapeIndex, float distance, float totalDistance,
 	dsAlignedBox2f* bounds)
 {
-	DS_ASSERT(materialIndex <= USHRT_MAX);
-	DS_ASSERT(shapeIndex <= USHRT_MAX);
+	DS_ASSERT(materialIndex <= SHRT_MAX);
+	DS_ASSERT(shapeIndex <= SHRT_MAX);
 
 	float halfWidth = lineWidth*0.5f;
 	dsVector2f offset = {{toDirection->y, -toDirection->x}};

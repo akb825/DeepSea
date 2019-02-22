@@ -447,13 +447,6 @@ dsRenderPass* dsRenderPass_create(dsRenderer* renderer, dsAllocator* allocator,
 	if (!allocator)
 		allocator = renderer->allocator;
 
-	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render passes may only be created on the main thread.");
-		DS_PROFILE_FUNC_RETURN(NULL);
-	}
-
 	dsRenderPass* renderPass = renderer->createRenderPassFunc(renderer, allocator, attachments,
 		attachmentCount, subpasses, subpassCount, dependencies, dependencyCount);
 	DS_PROFILE_FUNC_RETURN(renderPass);
@@ -725,14 +718,6 @@ bool dsRenderPass_destroy(dsRenderPass* renderPass)
 	}
 
 	dsRenderer* renderer = renderPass->renderer;
-	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Render passes may only be destroyed on the main thread.");
-		DS_PROFILE_FUNC_RETURN(false);
-	}
-
 	bool destroyed = renderer->destroyRenderPassFunc(renderer, renderPass);
 	DS_PROFILE_FUNC_RETURN(destroyed);
 }

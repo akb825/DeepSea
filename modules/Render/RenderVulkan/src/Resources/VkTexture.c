@@ -151,7 +151,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 						VK_IMAGE_TILING_LINEAR,
 						hostUsageFlags,
 						VK_SHARING_MODE_EXCLUSIVE,
-						1, &device->queueFamilyIndex,
+						0, NULL,
 						initialLayout
 					};
 					VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device,
@@ -296,7 +296,7 @@ static bool createSurfaceImage(dsVkDevice* device, const dsTextureInfo* info,
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
-		1, &device->queueFamilyIndex,
+		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
@@ -444,9 +444,9 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		usageFlags |= VK_IMAGE_USAGE_SAMPLED_BIT;
 	if (usage & dsTextureUsage_Image)
 		usageFlags |= VK_IMAGE_USAGE_STORAGE_BIT;
-	if ((usage & dsTextureUsage_CopyFrom) || offscreen)
+	if ((usage & dsTextureUsage_CopyFrom))
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if ((usage & dsTextureUsage_CopyTo) || data || resolve || offscreen)
+	if ((usage & dsTextureUsage_CopyTo) || data || offscreen)
 		usageFlags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (usage & dsTextureUsage_SubpassInput)
 		usageFlags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
@@ -482,7 +482,7 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
-		1, &device->queueFamilyIndex,
+		0, NULL,
 		VK_IMAGE_LAYOUT_UNDEFINED
 	};
 	VkResult result = DS_VK_CALL(device->vkCreateImage)(device->device, &imageCreateInfo,
@@ -704,7 +704,8 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 	dsTexture* texture, const dsTexturePosition* position, uint32_t width, uint32_t height,
 	uint32_t layers, const void* data, size_t size)
 {
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
@@ -723,7 +724,7 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		return false;
 	}
 
-	dsVkRenderer_processTexture(resourceManager->renderer, texture);
+	dsVkRenderer_processTexture(renderer, texture);
 
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, VK_PIPELINE_STAGE_HOST_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL,
@@ -753,9 +754,9 @@ bool dsVkTexture_copyData(dsResourceManager* resourceManager, dsCommandBuffer* c
 		barrier.subresourceRange.layerCount = layers;
 	}
 
-	VkPipelineStageFlags pipelineStages = dsVkReadImageStageFlags(texture->usage,
-		texture->offscreen && isDepthStencil && !texture->resolve) |
-		dsVkWriteImageStageFlags(texture->usage, texture->offscreen, isDepthStencil);
+	VkPipelineStageFlags pipelineStages = dsVkReadImageStageFlags(renderer, texture->usage,
+			texture->offscreen && isDepthStencil && !texture->resolve) |
+		dsVkWriteImageStageFlags(renderer, texture->usage, texture->offscreen, isDepthStencil);
 	DS_VK_CALL(device->vkCmdPipelineBarrier)(vkCommandBuffer, pipelineStages,
 		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
 
@@ -792,7 +793,8 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	dsTexture* srcTexture, dsTexture* dstTexture, const dsTextureCopyRegion* regions,
 	uint32_t regionCount)
 {
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
@@ -806,8 +808,8 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		return false;
 	}
 
-	dsVkRenderer_processTexture(resourceManager->renderer, srcTexture);
-	dsVkRenderer_processTexture(resourceManager->renderer, dstTexture);
+	dsVkRenderer_processTexture(renderer, srcTexture);
+	dsVkRenderer_processTexture(renderer, dstTexture);
 
 	VkImageAspectFlags srcAspectMask = dsVkImageAspectFlags(srcTexture->info.format);
 	uint32_t srcFaceCount = srcTexture->info.dimension == dsTextureDim_Cube ? 6 : 1;
@@ -909,9 +911,9 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 		imageCopy->extent.depth = depthCount;
 	}
 
-	VkPipelineStageFlags srcStageFlags = dsVkWriteImageStageFlags(srcTexture->usage,
+	VkPipelineStageFlags srcStageFlags = dsVkWriteImageStageFlags(renderer, srcTexture->usage,
 		srcTexture->offscreen, srcIsDepthStencil);
-	VkPipelineStageFlags dstStageFlags = dsVkReadImageStageFlags(dstTexture->usage,
+	VkPipelineStageFlags dstStageFlags = dsVkReadImageStageFlags(renderer, dstTexture->usage,
 		dstTexture->offscreen && dstIsDepthStencil && !dstTexture->resolve);
 	VkPipelineStageFlags stageFlags = srcStageFlags | dstStageFlags;
 	dsVkCommandBuffer_submitCopyImageBarriers(commandBuffer, stageFlags,
@@ -933,7 +935,8 @@ bool dsVkTexture_copy(dsResourceManager* resourceManager, dsCommandBuffer* comma
 bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	dsTexture* texture)
 {
-	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
+	dsRenderer* renderer = resourceManager->renderer;
+	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
 	VkCommandBuffer vkCommandBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
 	if (!vkCommandBuffer)
@@ -945,7 +948,7 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 	if (!dsVkCommandBuffer_addResource(commandBuffer, &vkTexture->resource))
 		return false;
 
-	dsVkRenderer_processTexture(resourceManager->renderer, texture);
+	dsVkRenderer_processTexture(renderer, texture);
 
 	uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
 	bool is3D = info->dimension == dsTextureDim_3D;
@@ -956,9 +959,9 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 	VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
 	VkAccessFlags accessFlags = dsVkReadImageAccessFlags(texture->usage) |
 		dsVkWriteImageAccessFlags(texture->usage, texture->offscreen, isDepthStencil);
-	VkPipelineStageFlags stages = dsVkReadImageStageFlags(texture->usage,
-		texture->offscreen && isDepthStencil) | dsVkWriteImageStageFlags(texture->usage,
-			texture->offscreen, isDepthStencil);
+	VkPipelineStageFlags stages = dsVkReadImageStageFlags(renderer, texture->usage,
+			texture->offscreen && isDepthStencil) |
+		dsVkWriteImageStageFlags(renderer, texture->usage, texture->offscreen, isDepthStencil);
 	VkImageLayout layout = dsVkTexture_imageLayout(texture);
 
 	uint32_t width = info->width;
@@ -1252,8 +1255,8 @@ bool dsVkTexture_clearColor(dsOffscreen* offscreen, dsCommandBuffer* commandBuff
 	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
 	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
 		true, false);
-	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(usage, false) |
-		dsVkWriteImageStageFlags(usage, true, false);
+	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
+		dsVkWriteImageStageFlags(renderer, usage, true, false);
 	VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
 
 	barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1324,8 +1327,8 @@ bool dsVkTexture_clearDepthStencil(dsOffscreen* offscreen, dsCommandBuffer* comm
 	dsTextureUsage usage = offscreen->usage | dsTextureUsage_CopyFrom | dsTextureUsage_CopyTo;
 	VkAccessFlags accessMask = dsVkReadImageAccessFlags(usage) | dsVkWriteImageAccessFlags(usage,
 		true, false);
-	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(usage, false) |
-		dsVkWriteImageStageFlags(usage, true, false);
+	VkPipelineStageFlags stageMask = dsVkReadImageStageFlags(renderer, usage, false) |
+		dsVkWriteImageStageFlags(renderer, usage, true, false);
 	VkImageAspectFlags aspectFlags = dsVkClearDepthStencilImageAspectFlags(
 		renderer->surfaceDepthStencilFormat, surfaceParts);
 	VkImageLayout layout = dsVkTexture_imageLayout(offscreen);
