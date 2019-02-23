@@ -72,12 +72,12 @@ bool dsSDLWindow_createComponents(dsWindow* window, const char* title, const cha
 		sdlFlags |= SDL_WINDOW_MAXIMIZED;
 	if (flags & dsWindowFlags_GrabInput)
 		sdlFlags |= SDL_WINDOW_INPUT_GRABBED;
-	if (application->renderer->platformID == DS_GLX_RENDERER_PLATFORM_TYPE ||
-		application->renderer->platformID == DS_WGL_RENDERER_PLATFORM_TYPE)
+	if (application->renderer->platformID == DS_GLX_RENDERER_PLATFORM_ID ||
+		application->renderer->platformID == DS_WGL_RENDERER_PLATFORM_ID)
 	{
 		sdlFlags |= SDL_WINDOW_OPENGL;
 	}
-	if (application->renderer->platformID == DS_VK_RENDERER_TYPE)
+	if (application->renderer->platformID == DS_VK_RENDERER_ID)
 		sdlFlags |= SDL_WINDOW_VULKAN;
 
 	if (!dsRenderSurface_destroy(window->surface))

@@ -928,8 +928,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	}
 	dsRenderer_restoreGlobalState(renderer);
 
-	if (renderer->rendererID == DS_GL_RENDERER_TYPE ||
-		renderer->rendererID == DS_GLES_RENDERER_TYPE)
+	if (renderer->rendererID == DS_GL_RENDERER_ID ||
+		renderer->rendererID == DS_GLES_RENDERER_ID)
 	{
 		if (!setGLAttributes(renderer))
 		{

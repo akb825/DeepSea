@@ -12,6 +12,9 @@
 
 #define MAX_OPTION_SIZE 32
 
+// Yes, I understand that OpenGL is deprecated. No, I cannot and will not use NSOpenGLView.
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static int dummyValue;
 
 static void addOption(NSOpenGLPixelFormatAttribute* attr, unsigned int* size,
@@ -117,6 +120,7 @@ void dsDestroyGLConfig(void* display, void* config)
 
 void* dsCreateGLContext(dsAllocator* allocator, void* display, void* config, void* shareContext)
 {
+	DS_UNUSED(display);
 	DS_UNUSED(allocator);
 	if (!config)
 		return NULL;
@@ -142,6 +146,7 @@ void* dsCreateDummyGLSurface(dsAllocator* allocator, void* display, void* config
 {
 	DS_UNUSED(allocator);
 	DS_UNUSED(display);
+	DS_UNUSED(config);
 	DS_UNUSED(osSurface);
 
 	return &dummyValue;
@@ -157,6 +162,8 @@ void dsDestroyDummyGLSurface(void* display, void* surface, void* osSurface)
 void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 	dsRenderSurfaceType surfaceType, void* handle)
 {
+	DS_UNUSED(display);
+	DS_UNUSED(config);
 	DS_UNUSED(allocator);
 	switch (surfaceType)
 	{
@@ -171,6 +178,7 @@ void* dsCreateGLSurface(dsAllocator* allocator, void* display, void* config,
 bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	dsRenderSurfaceType surfaceType, void* surface)
 {
+	DS_UNUSED(display);
 	DS_UNUSED(surfaceType);
 	if (!outWidth || !outHeight || !surface)
 		return false;
@@ -179,6 +187,12 @@ bool dsGetGLSurfaceSize(uint32_t* outWidth, uint32_t* outHeight, void* display,
 	NSSize size = [view convertSizeToBacking: view.bounds.size];
 	*outWidth = (uint32_t)size.width;
 	*outHeight = (uint32_t)size.height;
+
+	// Make sure the current size is reflected in the context.
+	NSOpenGLContext* curContext = [NSOpenGLContext currentContext];
+	if (curContext)
+		[curContext update];
+
 	return true;
 }
 
@@ -223,6 +237,7 @@ void dsDestroyGLSurface(void* display, dsRenderSurfaceType surfaceType, void* su
 bool dsBindGLContext(void* display, void* context, void* surface)
 {
 	DS_PROFILE_FUNC_START();
+	DS_UNUSED(display);
 	NSOpenGLContext* nsContext = (__bridge NSOpenGLContext*)context;
 	NSOpenGLContext* curContext = [NSOpenGLContext currentContext];
 	NSView* view = surface == &dummyValue ? NULL : (__bridge NSView*)surface;
