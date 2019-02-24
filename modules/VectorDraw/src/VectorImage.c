@@ -86,10 +86,10 @@ struct dsVectorImage
 	dsTextLayout** textLayouts;
 	TextDrawInfo* textDrawInfos;
 	dsGfxBuffer* buffer;
-	int32_t pieceCount;
-	int32_t infoTextureCount;
-	int32_t textLayoutCount;
-	int32_t textDrawInfoCount;
+	uint32_t pieceCount;
+	uint32_t infoTextureCount;
+	uint32_t textLayoutCount;
+	uint32_t textDrawInfoCount;
 	dsVector2f size;
 };
 

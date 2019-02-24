@@ -51,6 +51,7 @@ static const char* blacklistedVulkanDrivers[] =
 	// down why it crashes. If so, permanently remove blacklist now that render pass issue has been
 	// worked around.
 	// "Adreno"
+	"none" // Satisfy MSVC
 };
 #endif
 
