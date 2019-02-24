@@ -72,7 +72,13 @@
 /**
  * @brief The indices within the material and shape.
  */
+#if SPIRV_VERSION
+// Must be an integer type for Vulkan.
 [[vertex]] layout(location = DS_TEXCOORD0) in ivec2 dsVectorElementMaterialIndex;
+#else
+// Some drivers have issues with integer vertex inputs.
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
+#endif
 
 /**
  * @brief Output from the vertex stage.
@@ -128,7 +134,7 @@ struct dsVectorVertexOutput
 dsVectorVertexOutput dsVectorElementFill_processVertex(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, dsVectorElementMaterialIndex.x);
+	dsVectorShared_getElementInfo(elementInfo, int(dsVectorElementMaterialIndex.x));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	dsVectorVertexOutput result;
@@ -147,7 +153,7 @@ dsVectorVertexOutput dsVectorElementFill_processVertex(out vec4 outPosition)
 void dsVectorElementFill_defaultVertex()
 {
 	dsVectorVertexOut = dsVectorElementFill_processVertex(gl_Position);
-	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(dsVectorElementMaterialIndex.y);
+	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(int(dsVectorElementMaterialIndex.y));
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -170,7 +176,7 @@ vec4 dsVectorElementFill_getSolidColor()
 {
 	dsVectorShared_clip(dsVectorVertexOut.position.zw);
 
-	lowp vec4 color = dsVectorMaterial_getSolidColor(dsVectorVertexOut.opacityMaterialIndex.y);
+	lowp vec4 color = dsVectorMaterial_getSolidColor(int(dsVectorVertexOut.opacityMaterialIndex.y));
 	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
 }
 

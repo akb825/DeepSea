@@ -60,7 +60,13 @@
 /**
  * @brief The indices within the material and shape.
  */
+#if SPIRV_VERSION
+// Must be an integer type for Vulkan.
 [[vertex]] layout(location = DS_TEXCOORD0) in ivec2 dsVectorElementMaterialIndex;
+#else
+// Some drivers have issues with integer vertex inputs.
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
+#endif
 
 /**
  * @brief Output from the vertex stage.
@@ -122,7 +128,7 @@ struct dsVectorVertexOutput
 dsVectorVertexOutput dsVectorElementLine_processVertex(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementLineInfo(elementInfo, dsVectorElementMaterialIndex.x);
+	dsVectorShared_getElementLineInfo(elementInfo, int(dsVectorElementMaterialIndex.x));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	dsVectorVertexOutput result;
@@ -144,7 +150,7 @@ dsVectorVertexOutput dsVectorElementLine_processVertex(out vec4 outPosition)
 void dsVectorElementLine_defaultVertex()
 {
 	dsVectorVertexOut = dsVectorElementLine_processVertex(gl_Position);
-	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(dsVectorElementMaterialIndex.y);
+	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(int(dsVectorElementMaterialIndex.y));
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 

@@ -91,7 +91,13 @@
  * - z: fill material index
  * - w: outline material index
  */
+#if SPIRV_VERSION
+// Must be an integer type for Vulkan.
 [[vertex]] layout(location = DS_TEXCOORD1) in ivec4 dsVectorIndices;
+#else
+// Some drivers have issues with integer vertex inputs.
+[[vertex]] layout(location = DS_TEXCOORD1) in vec4 dsVectorIndices;
+#endif
 
 /**
  * @brief The vertex output.
@@ -125,7 +131,7 @@
 dsVectorVertexOutput dsVectorElementText_processVertex(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementLineInfo(elementInfo, dsVectorIndices.y);
+	dsVectorShared_getElementLineInfo(elementInfo, int(dsVectorIndices.y));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	dsVectorVertexOutput result;
@@ -158,8 +164,9 @@ void dsVectorElementText_defaultVertexGradient()
 {
 	dsVectorVertexOut = dsVectorElementText_processVertex(gl_Position);
 
-	dsVectorMaterialInfo fillMaterial = dsVectorText_getFillMaterialInfo(dsVectorIndices.z);
-	dsVectorMaterialInfo outlineMaterial = dsVectorText_getOutlineMaterialInfo(dsVectorIndices.w);
+	dsVectorMaterialInfo fillMaterial = dsVectorText_getFillMaterialInfo(int(dsVectorIndices.z));
+	dsVectorMaterialInfo outlineMaterial =
+		dsVectorText_getOutlineMaterialInfo(int(dsVectorIndices.w));
 
 	dsVectorVertexFillMaterialOut.fillInfo0 = fillMaterial.info0;
 	dsVectorVertexFillMaterialOut.fillInfo1 = fillMaterial.info1;

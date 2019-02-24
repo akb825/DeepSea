@@ -69,7 +69,13 @@ sampler_state dsVectorOtherTex
 /**
  * @brief The texture coordinates for the image and element index.
  */
+#if SPIRV_VERSION
+// Must be an integer type for Vulkan.
 [[vertex]] layout(location = DS_TEXCOORD0) in ivec4 dsVectorTexCoordsElementIndex;
+#else
+// Some drivers have issues with integer vertex inputs.
+[[vertex]] layout(location = DS_TEXCOORD0) in vec4 dsVectorTexCoordsElementIndex;
+#endif
 
 /**
  * @brief Output from the vertex stage.
@@ -118,7 +124,7 @@ struct dsVectorVertexOutput
 dsVectorVertexOutput dsVectorElementImage_getVectorInfo(out vec4 outPosition)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, dsVectorTexCoordsElementIndex.z);
+	dsVectorShared_getElementInfo(elementInfo, int(dsVectorTexCoordsElementIndex.z));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
 	dsVectorVertexOutput result;
