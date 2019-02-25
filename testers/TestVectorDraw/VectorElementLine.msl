@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-precision mediump float;
-
 #include <DeepSea/VectorDraw/Shaders/VectorElementLine.mslh>
 
 pipeline dsVectorLine

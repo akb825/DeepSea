@@ -47,10 +47,6 @@ static const char* rendererNames[] =
 // detection.
 static const char* blacklistedVulkanDrivers[] =
 {
-	// TODO: Check if vector draw shaders work without input/output structs, or if it can be tracked
-	// down why it crashes. If so, permanently remove blacklist now that render pass issue has been
-	// worked around.
-	// "Adreno"
 	"none" // Satisfy MSVC
 };
 #endif

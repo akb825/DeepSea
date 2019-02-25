@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-precision mediump float;
-
 #if HAS_TESSELLATION_STAGES && 0
 #include <DeepSea/VectorDraw/Shaders/VectorElementTessTextColor.mslh>
 #else
