@@ -29,6 +29,7 @@
 #include <DeepSea/Core/Thread/Spinlock.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Atomic.h>
+#include <DeepSea/Core/Profile.h>
 #include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <string.h>
@@ -568,6 +569,7 @@ bool dsVkCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuff
 
 void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 {
+	DS_PROFILE_FUNC_START();
 	DS_ASSERT(commandBuffer != commandBuffer->renderer->mainCommandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
 	dsVkDevice* device = &((dsVkRenderer*)commandBuffer->renderer)->device;
@@ -580,6 +582,7 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	dsVkCommandBufferData_reset(&vkCommandBuffer->commandBufferData);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->subpassBufferData);
 	dsVkVolatileDescriptorSets_clear(&vkCommandBuffer->volatileDescriptorSets);
+	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
 VkCommandBuffer dsVkCommandBuffer_getCommandBuffer(dsCommandBuffer* commandBuffer)
