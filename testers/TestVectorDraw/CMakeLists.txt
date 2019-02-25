@@ -21,8 +21,10 @@ endif()
 set(shaderConfigs)
 set(srgbShaderConfigs)
 set(source TestVectorDraw.c
-	VectorElementFill.msl VectorElementLine.msl VectorElementImage.msl VectorElementText.msl
-	VectorElementFillSRGB.msl VectorElementLineSRGB.msl VectorElementTextSRGB.msl)
+	VectorElementFill.msl VectorElementLine.msl VectorElementImage.msl VectorElementTextColor.msl
+		 VectorElementTextGradient.msl
+	VectorElementFillSRGB.msl VectorElementLineSRGB.msl VectorElementTextColorSRGB.msl
+		VectorElementTextGradientSRGB.msl)
 if (TARGET deepsea_render_opengl)
 	list(APPEND shaderConfigs glsl-1.1 glsl-1.5 glsl-4.0 glsl-es-1.0 glsl-es-3.0 glsl-es-3.2)
 	list(APPEND srgbShaderConfigs glsl-1.5 glsl-4.0 glsl-es-3.0 glsl-es-3.2)
@@ -63,12 +65,16 @@ set(shaderOptions OUTPUT_DIR ${shaderDir}
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFill.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLine.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementText.msl OUTPUT TestVectorDraw.mslb
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColor.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradient.msl
+	OUTPUT TestVectorDraw.mslb
 	CONFIG ${shaderConfigs} ${shaderOptions})
 ds_compile_shaders(shaders FILE ${CMAKE_CURRENT_SOURCE_DIR}/VectorElementFillSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementLineSRGB.msl
 	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementImage.msl
-	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextSRGB.msl  OUTPUT TestVectorDrawSRGB.mslb
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextColorSRGB.msl
+	${CMAKE_CURRENT_SOURCE_DIR}/VectorElementTextGradientSRGB.msl
+	OUTPUT TestVectorDrawSRGB.mslb
 	CONFIG ${srgbShaderConfigs} ${shaderOptions})
 ds_compile_shaders_target(deepsea_test_vector_draw_app_shaders shaders
 	DEPENDS deepsea_test_vector_draw_app_prepare)

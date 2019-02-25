@@ -1,0 +1,310 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Text/Text.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorTextShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorMaterial.mslh>
+
+/**
+ * @file
+ * @brief Shared code for text with gradients.
+ */
+
+#ifdef DS_TESS_TEXT
+varying(vertex, tessellation_control)
+{
+	/**
+	 * @brief The first fill material info vector.
+	 */
+	vec4 vtcFillInfo0;
+
+	/**
+	 * @brief The second fill material info vector.
+	 */
+	vec4 vtcFillInfo1;
+
+	/**
+	 * @brief The third fill material info vector.
+	 */
+	vec4 vtcFillInfo2;
+
+	/**
+	 * @brief The fourth fill material info vector.
+	 */
+	vec4 vtcFillInfo3;
+
+	/**
+	 * @brief The first outline material info vector.
+	 */
+	vec4 vtcOutlineInfo0;
+
+	/**
+	 * @brief The second outline material info vector.
+	 */
+	vec4 vtcOutlineInfo1;
+
+	/**
+	 * @brief The third outline material info vector.
+	 */
+	vec4 vtcOutlineInfo2;
+
+	/**
+	 * @brief The fourth outline material info vector.
+	 */
+	vec4 vtcOutlineInfo3;
+}
+
+varying(tessellation_control, tessellation_evaluation)
+{
+	/**
+	 * @brief The first fill material info vector.
+	 */
+	patch vec4 tceFillInfo0;
+
+	/**
+	 * @brief The second fill material info vector.
+	 */
+	patch vec4 tceFillInfo1;
+
+	/**
+	 * @brief The third fill material info vector.
+	 */
+	patch vec4 tceFillInfo2;
+
+	/**
+	 * @brief The fourth fill material info vector.
+	 */
+	patch vec4 tceFillInfo3;
+
+	/**
+	 * @brief The first outline material info vector.
+	 */
+	patch vec4 tceOutlineInfo0;
+
+	/**
+	 * @brief The second outline material info vector.
+	 */
+	patch vec4 tceOutlineInfo1;
+
+	/**
+	 * @brief The third outline material info vector.
+	 */
+	patch vec4 tceOutlineInfo2;
+
+	/**
+	 * @brief The fourth outline material info vector.
+	 */
+	patch vec4 tceOutlineInfo3;
+}
+
+varying(tessellation_evaluation, fragment)
+{
+	/**
+	 * @brief The first fill material info vector.
+	 */
+	vec4 vfFillInfo0;
+
+	/**
+	 * @brief The second fill material info vector.
+	 */
+	vec4 vfFillInfo1;
+
+	/**
+	 * @brief The third fill material info vector.
+	 */
+	vec4 vfFillInfo2;
+
+	/**
+	 * @brief The fourth fill material info vector.
+	 */
+	vec4 vfFillInfo3;
+
+	/**
+	 * @brief The first outline material info vector.
+	 */
+	vec4 vfOutlineInfo0;
+
+	/**
+	 * @brief The second outline material info vector.
+	 */
+	vec4 vfOutlineInfo1;
+
+	/**
+	 * @brief The third outline material info vector.
+	 */
+	vec4 vfOutlineInfo2;
+
+	/**
+	 * @brief The fourth outline material info vector.
+	 */
+	vec4 vfOutlineInfo3;
+}
+#else
+varying(vertex, fragment)
+{
+	/**
+	 * @brief The first fill material info vector.
+	 */
+	vec4 vfFillInfo0;
+
+	/**
+	 * @brief The second fill material info vector.
+	 */
+	vec4 vfFillInfo1;
+
+	/**
+	 * @brief The third fill material info vector.
+	 */
+	vec4 vfFillInfo2;
+
+	/**
+	 * @brief The fourth fill material info vector.
+	 */
+	vec4 vfFillInfo3;
+
+	/**
+	 * @brief The first outline material info vector.
+	 */
+	vec4 vfOutlineInfo0;
+
+	/**
+	 * @brief The second outline material info vector.
+	 */
+	vec4 vfOutlineInfo1;
+
+	/**
+	 * @brief The third outline material info vector.
+	 */
+	vec4 vfOutlineInfo2;
+
+	/**
+	 * @brief The fourth outline material info vector.
+	 */
+	vec4 vfOutlineInfo3;
+}
+#endif
+
+/**
+ * @brief Gets the info for a text fill material.
+ * @param[out] info0 The first info vector.
+ * @param[out] info1 The second info vector.
+ * @param[out] info2 The third info vector.
+ * @param[out] info3 The fourth info vector.
+ */
+void dsVectorText_getFillMaterialInfo(out vec4 info0, out vec4 info1, out vec4 info2,
+	out vec4 info3, int index)
+{
+	if (index == DS_NO_VECTOR_MATERIAL)
+		dsVectorMaterial_invalidInfo(info0, info1, info2, info3);
+	else
+	{
+		dsVectorMaterial_getInfoImpl(info0, info1, info2, info3, index, dsVectorMaterialInfoTex,
+			uniforms.dsVectorTextureSizes.y);
+	}
+}
+
+/**
+ * @brief Gets the info for a text outline material.
+ * @param[out] info0 The first info vector.
+ * @param[out] info1 The second info vector.
+ * @param[out] info2 The third info vector.
+ * @param[out] info3 The fourth info vector.
+ */
+void dsVectorText_getOutlineMaterialInfo(out vec4 info0, out vec4 info1, out vec4 info2,
+	out vec4 info3, int index)
+{
+	if (index == DS_NO_VECTOR_MATERIAL)
+		dsVectorMaterial_invalidInfo(info0, info1, info2, info3);
+	else
+	{
+		dsVectorMaterial_getInfoImpl(info0, info1, info2, info3, index,
+			dsVectorTextOutlineMaterialInfoTex, uniforms.dsVectorTextureSizes.z);
+	}
+}
+
+/**
+ * @brief Gets the material color of the text for a solid color.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getSolidColor()
+{
+	dsVectorShared_clip(vfPosition.zw);
+
+	lowp vec4 fillColor = dsVectorMaterial_getSolidColorImpl(vfMaterialIndicesOpacities.x,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= vfMaterialIndicesOpacities.z;
+
+	vec3 texCoords =  vfTexCoordEmbolden.xyz;
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	lowp float embolden = vfTexCoordEmbolden.w;
+	lowp float antiAlias = vfOutlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
+}
+
+/**
+ * @brief Gets the material color of the text for gradients.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getMaterialColor()
+{
+	dsVectorShared_clip(vfPosition.zw);
+
+	lowp vec4 fillColor = dsVectorMaterial_getColorImpl(vfFillInfo0, vfFillInfo1, vfFillInfo2,
+		vfFillInfo3, vfPosition.xy, vfShapeBounds, vfMaterialIndicesOpacities.x,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= vfMaterialIndicesOpacities.z;
+
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, vfTexCoordEmbolden.xyz);
+
+	lowp float embolden = vfTexCoordEmbolden.w;
+	lowp float antiAlias = vfOutlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
+}
+
+/**
+ * @brief Gets the material color of the text for gradients with an outline.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getMaterialColorOutline()
+{
+	dsVectorShared_clip(vfPosition.zw);
+
+	lowp vec4 fillColor = dsVectorMaterial_getColorImpl(vfFillInfo0, vfFillInfo1, vfFillInfo2,
+		vfFillInfo3, vfPosition.xy, vfShapeBounds, vfMaterialIndicesOpacities.x,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= vfMaterialIndicesOpacities.z;
+
+	lowp vec4 outlineColor = dsVectorMaterial_getColorImpl(vfOutlineInfo0, vfOutlineInfo1,
+		vfOutlineInfo2, vfOutlineInfo3, vfPosition.xy, vfShapeBounds,
+		vfMaterialIndicesOpacities.y, dsVectorTextOutlineMaterialColorTex,
+		uniforms.dsVectorTextureSizes.z);
+	outlineColor.a *= vfMaterialIndicesOpacities.w;
+
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, vfTexCoordEmbolden.xyz);
+
+	lowp float embolden = vfTexCoordEmbolden.w;
+	lowp float outline = vfOutlineAntiAlias.x;
+	lowp float outlinePosition = embolden*0.5 + 0.5;
+	lowp float antiAlias = vfOutlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
+		fillColor, outlineColor);
+}

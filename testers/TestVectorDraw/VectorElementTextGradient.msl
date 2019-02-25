@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Aaron Barany
+ * Copyright 2018-2019 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,13 @@
  * limitations under the License.
  */
 
-[[fragment]] precision mediump float;
+precision mediump float;
 
 #if HAS_TESSELLATION_STAGES && 0
-#include <DeepSea/VectorDraw/Shaders/VectorElementTessText.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorElementTessTextGradient.mslh>
 #else
-#include <DeepSea/VectorDraw/Shaders/VectorElementText.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorElementTextGradient.mslh>
 #endif
-
-pipeline dsVectorTextColor
-{
-	vertex = dsVectorElementText_defaultVertexColor;
-#if HAS_TESSELLATION_STAGES && 0
-	tessellation_control = dsVectorElementText_defaultTessControlColor;
-	tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
-#endif
-	fragment = dsVectorElementText_defaultFragmentColor;
-	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
-}
-
-pipeline dsVectorTextColorOutline
-{
-	vertex = dsVectorElementText_defaultVertexColor;
-#if HAS_TESSELLATION_STAGES && 0
-	tessellation_control = dsVectorElementText_defaultTessControlColor;
-	tessellation_evaluation = dsVectorElementText_defaultTessEvalColor;
-#endif
-	fragment = dsVectorElementText_defaultFragmentColorOutline;
-	DS_DEFAULT_VECTOR_ELEMENT_TEXT_RENDER_STATES;
-}
 
 pipeline dsVectorTextGradient
 {

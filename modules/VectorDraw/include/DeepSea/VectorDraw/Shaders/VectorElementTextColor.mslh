@@ -1,0 +1,114 @@
+/*
+ * Copyright 2018-2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Render/Shaders/Color.mslh>
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorTextColorShared.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector text elements not using a tessellation shader.
+ *
+ * This is mutually exclusive to the functions in VectorElementTessText.mslh, which may be used to
+ * for tessellation shaders. The HAS_TESSELLATION_STAGES define may be used to dynamically choose
+ * between the tessellation and non-tessellation variants.
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipeline of the name dsVectorTextColor and dsVectorTextColorOutline. For
+ * example, the following pipeline definition will provide the default implementation:
+ *
+ * ```
+ * pipeline dsVectorTextColor
+ * {
+ *     vertex = dsVectorElementText_defaultVertexColor;
+ *     fragment = dsVectorElementText_defaultFragmentColor;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorTextColorOutline
+ * {
+ *     vertex = dsVectorElementText_defaultVertexColor;
+ *     fragment = dsVectorElementText_defaultFragmentColorOutline;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ * ```
+ *
+ * dsVectorElementText_defaultFragmentColorSRGB is provided to convert the final color to sRGB
+ * space. However, in some situations it's still preferable to leave the color in linear space when
+ * doing sRGB-correct rendering:
+ * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
+ * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
+ *   channel) is used in this case to avoid precision loss.
+ */
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 foColor;
+
+/**
+ * @brief Default vertex shader entry point function.
+ */
+[[vertex]]
+void dsVectorElementText_defaultVertexColor()
+{
+	dsVectorElementText_processVertex(gl_Position);
+	gl_Position = DS_ADJUST_CLIP(gl_Position);
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColor()
+{
+	foColor = dsVectorElementText_getSolidColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors with an outline.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColorOutline()
+{
+	foColor = dsVectorElementText_getSolidColorOutline();
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColorSRGB()
+{
+	foColor = dsVectorElementText_getSolidColor();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for solid colors with outlines that converts
+ * to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentColorOutlineSRGB()
+{
+	foColor = dsVectorElementText_getSolidColorOutline();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
+}

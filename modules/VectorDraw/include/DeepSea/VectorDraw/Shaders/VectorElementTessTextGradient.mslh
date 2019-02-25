@@ -1,0 +1,172 @@
+/*
+ * Copyright 2018-2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#define DS_TESS_TEXT
+
+#include <DeepSea/Render/Shaders/Color.mslh>
+#include <DeepSea/Render/Shaders/VertexAttributes.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorTextGradientShared.mslh>
+
+/**
+ * @file
+ * @brief Shader implementation for vector text elements using a tessellation shader.
+ *
+ * This is mutually exclusive to the functions in VectorElementTessText.mslh, which may be used to
+ * for tessellation shaders. The HAS_TESSELLATION_STAGES define may be used to dynamically choose
+ * between the tessellation and non-tessellation variants.
+ *
+ * These provide the vertex elements, uniforms, and basic vertex and pixel inputs/outputs.
+ * You may write your own functions to incorperate them plus additional functionality, or simply
+ * use the defaults.
+ *
+ * Shaders must provide a pipeline of the name dsVectorTextGradient and dsVectorTextGradientOutline.
+ * For example, the following pipeline definition will provide the default implementation:
+ *
+ * ```
+ * pipeline dsVectorTextGradient
+ * {
+ *     vertex = dsVectorElementText_defaultVertexGradient;
+ *     tessellation_control = dsVectorElementText_defaultTessControlGradient;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+ *     fragment = dsVectorElementText_defaultFragmentGradient;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ *
+ * pipeline dsVectorTextGradientOutline
+ * {
+ *     vertex = dsVectorElementText_defaultVertexGradient;
+ *     tessellation_control = dsVectorElementText_defaultTessControlGradient;
+ *     tessellation_evaluation = dsVectorElementText_defaultTessEvalGradient;
+ *     fragment = dsVectorElementText_defaultFragmentGradientOutline;
+ *     DS_DEFAULT_VECTOR_ELEMENT_SHAPE_RENDER_STATES;
+ * }
+ * ```
+ *
+ * dsVectorElementText_defaultFragmentSRGB is provided to convert the final color to sRGB space.
+ * However, in some situations it's still preferable to leave the color in linear space when doing
+ * sRGB-correct rendering:
+ * - When writing to an sRGB framebuffer, where the hardware will do the conversion.
+ * - When blending with linear framebuffers. It is recommended that high-precision (> 8 bits per
+ *   channel) is used in this case to avoid precision loss.
+ */
+
+/**
+ * @brief The final output color of the shader.
+ */
+[[fragment]] out vec4 foColor;
+
+/**
+ * @brief Default vertex shader entry point function for gradients.
+ */
+[[vertex]]
+void dsVectorElementText_defaultVertexGradient()
+{
+	dsVectorElementText_processVertex(gl_Position);
+
+	dsVectorText_getFillMaterialInfo(vtcFillInfo0, vtcFillInfo1, vtcFillInfo2, vtcFillInfo3,
+		int(viIndices.z));
+	dsVectorText_getOutlineMaterialInfo(vtcOutlineInfo0, vtcOutlineInfo1, vtcOutlineInfo2,
+		vtcOutlineInfo3, int(viIndices.w));
+}
+
+/**
+ * @brief Default tessellation control shader entry point function for gradients.
+ */
+[[tessellation_control]]
+void dsVectorElementText_defaultTessControlGradient()
+{
+	gl_out[gl_InvocationID].gl_Position = gl_in[0].gl_Position;
+	tceGeometry = vtcGeometry[0];
+	tceTexCoords = vtcTexCoords[0];
+	tceIndices = vtcIndices[0];
+
+	tceFillInfo0 = vtcFillInfo0[0];
+	tceFillInfo1 = vtcFillInfo1[0];
+	tceFillInfo2 = vtcFillInfo2[0];
+	tceFillInfo3 = vtcFillInfo3[0];
+
+	tceOutlineInfo0 = vtcOutlineInfo0[0];
+	tceOutlineInfo1 = vtcOutlineInfo1[0];
+	tceOutlineInfo2 = vtcOutlineInfo2[0];
+	tceOutlineInfo3 = vtcOutlineInfo3[0];
+
+	gl_TessLevelOuter[0] = 1.0;
+	gl_TessLevelOuter[1] = 1.0;
+	gl_TessLevelOuter[2] = 1.0;
+	gl_TessLevelOuter[3] = 1.0;
+	gl_TessLevelInner[0] = 1.0;
+	gl_TessLevelInner[1] = 1.0;
+}
+
+/**
+ * @brief Default tessellation evaluation shader entry point function for gradients.
+ */
+[[tessellation_evaluation]]
+void dsVectorElementText_defaultTessEvalGradient()
+{
+	dsVectorElementText_processTessellatedVertex(gl_Position);
+
+	vfFillInfo0 = tceFillInfo0;
+	vfFillInfo1 = tceFillInfo1;
+	vfFillInfo2 = tceFillInfo2;
+	vfFillInfo3 = tceFillInfo3;
+
+	vfOutlineInfo0 = tceOutlineInfo0;
+	vfOutlineInfo1 = tceOutlineInfo1;
+	vfOutlineInfo2 = tceOutlineInfo2;
+	vfOutlineInfo3 = tceOutlineInfo3;
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradient()
+{
+	foColor = dsVectorElementText_getMaterialColor();
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients with outlines.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientOutline()
+{
+	foColor = dsVectorElementText_getMaterialColorOutline();
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients that converts to sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientSRGB()
+{
+	foColor = dsVectorElementText_getMaterialColor();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
+}
+
+/**
+ * @brief Default fragment shader entry point function for gradients with outlines that converts to
+ * sRGB.
+ */
+[[fragment]]
+void dsVectorElementText_defaultFragmentGradientOutlineSRGB()
+{
+	foColor = dsVectorElementText_getMaterialColorOutline();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
+}

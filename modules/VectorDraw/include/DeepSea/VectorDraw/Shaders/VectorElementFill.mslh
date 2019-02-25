@@ -67,52 +67,61 @@
 /**
  * @brief The position of the vertex.
  */
-[[vertex]] layout(location = DS_POSITION) in vec2 dsVectorPosition;
+[[vertex]] layout(location = DS_POSITION) in vec2 viPosition;
 
 /**
  * @brief The indices within the material and shape.
  */
 #if SPIRV_VERSION
 // Must be an integer type for Vulkan.
-[[vertex]] layout(location = DS_TEXCOORD0) in ivec2 dsVectorElementMaterialIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in ivec2 viMaterialIndex;
 #else
 // Some drivers have issues with integer vertex inputs.
-[[vertex]] layout(location = DS_TEXCOORD0) in vec2 dsVectorElementMaterialIndex;
+[[vertex]] layout(location = DS_TEXCOORD0) in vec2 viMaterialIndex;
 #endif
 
-/**
- * @brief Output from the vertex stage.
- */
-struct dsVectorVertexOutput
+varying(vertex, fragment)
 {
 	/**
 	 * @brief The original and image position of the vertex.
 	 */
-	vec4 position;
+	vec4 vfPosition;
 
 	/**
 	 * @brief Opacity and material index.
 	 */
-	vec2 opacityMaterialIndex;
+	vec2 vfOpacityMaterialIndex;
 
 	/**
 	 * @brief The bounds of the shape.
 	 */
-	vec4 shapeBounds;
-};
+	vec4 vfShapeBounds;
 
-/**
- * @brief The vertex output.
- */
-[[vertex]] out dsVectorVertexOutput dsVectorVertexOut;
-[[vertex]] out dsVectorMaterialInfo dsVectorVertexMaterialOut;
-[[fragment]] in dsVectorVertexOutput dsVectorVertexOut;
-[[fragment]] in dsVectorMaterialInfo dsVectorVertexMaterialOut;
+	/**
+	 * @brief The first material info vector.
+	 */
+	vec4 vfMatInfo0;
+
+	/**
+	 * @brief The second material info vector.
+	 */
+	vec4 vfMatInfo1;
+
+	/**
+	 * @brief The third material info vector.
+	 */
+	vec4 vfMatInfo2;
+
+	/**
+	 * @brief The fourth material info vector.
+	 */
+	vec4 vfMatInfo3;
+}
 
 /**
  * @brief The final output color of the shader.
  */
-[[fragment]] out vec4 dsVectorFinalColor;
+[[fragment]] out vec4 foColor;
 
 /**
  * @brief Default render states for vector shape elements.
@@ -127,23 +136,19 @@ struct dsVectorVertexOutput
 
 /**
  * @brief Creates the vertex output.
- * @param[out] outPosition The output position in clip space.
- * @return The vertex output.
+ * @param[out] position The output position in clip space.
  */
 [[vertex]]
-dsVectorVertexOutput dsVectorElementFill_processVertex(out vec4 outPosition)
+void dsVectorElementFill_processVertex(out vec4 position)
 {
 	vec4 elementInfo[4];
-	dsVectorShared_getElementInfo(elementInfo, int(dsVectorElementMaterialIndex.x));
+	dsVectorShared_getElementInfo(elementInfo, int(viMaterialIndex.x));
 	mat3 transform = dsVectorShared_getElementTransform(elementInfo);
 
-	dsVectorVertexOutput result;
-	result.position.xy = dsVectorPosition;
-	outPosition = dsVectorShared_transform(result.position.zw, dsVectorPosition, transform);
-	result.opacityMaterialIndex = vec2(elementInfo[2].z, dsVectorElementMaterialIndex.y);
-	result.shapeBounds = dsVectorShared_getElementBounds(elementInfo);
-
-	return result;
+	vfPosition.xy = viPosition;
+	position = dsVectorShared_transform(vfPosition.zw, viPosition, transform);
+	vfOpacityMaterialIndex = vec2(elementInfo[2].z, viMaterialIndex.y);
+	vfShapeBounds = dsVectorShared_getElementBounds(elementInfo);
 }
 
 /**
@@ -152,8 +157,9 @@ dsVectorVertexOutput dsVectorElementFill_processVertex(out vec4 outPosition)
 [[vertex]]
 void dsVectorElementFill_defaultVertex()
 {
-	dsVectorVertexOut = dsVectorElementFill_processVertex(gl_Position);
-	dsVectorVertexMaterialOut = dsVectorMaterial_getInfo(int(dsVectorElementMaterialIndex.y));
+	dsVectorElementFill_processVertex(gl_Position);
+	dsVectorMaterial_getInfo(vfMatInfo0, vfMatInfo1, vfMatInfo2, vfMatInfo3,
+		int(viMaterialIndex.y));
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -163,7 +169,7 @@ void dsVectorElementFill_defaultVertex()
 [[vertex]]
 void dsVectorElementFill_defaultVertexColor()
 {
-	dsVectorVertexOut = dsVectorElementFill_processVertex(gl_Position);
+	dsVectorElementFill_processVertex(gl_Position);
 	gl_Position = DS_ADJUST_CLIP(gl_Position);
 }
 
@@ -174,10 +180,10 @@ void dsVectorElementFill_defaultVertexColor()
 [[fragment]]
 vec4 dsVectorElementFill_getSolidColor()
 {
-	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+	dsVectorShared_clip(vfPosition.zw);
 
-	lowp vec4 color = dsVectorMaterial_getSolidColor(int(dsVectorVertexOut.opacityMaterialIndex.y));
-	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+	lowp vec4 color = dsVectorMaterial_getSolidColor(int(vfOpacityMaterialIndex.y));
+	return color*vec4(1.0, 1.0, 1.0, vfOpacityMaterialIndex.x);
 }
 
 /**
@@ -187,12 +193,11 @@ vec4 dsVectorElementFill_getSolidColor()
 [[fragment]]
 vec4 dsVectorElementFill_getLinearGradientColor()
 {
-	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+	dsVectorShared_clip(vfPosition.zw);
 
-	lowp vec4 color = dsVectorMaterial_getLinearGradientColor(dsVectorVertexMaterialOut,
-		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
-		dsVectorVertexOut.opacityMaterialIndex.y);
-	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+	lowp vec4 color = dsVectorMaterial_getLinearGradientColor(vfMatInfo0, vfMatInfo1, vfMatInfo2,
+		vfMatInfo3, vfPosition.xy, vfShapeBounds, vfOpacityMaterialIndex.y);
+	return color*vec4(1.0, 1.0, 1.0, vfOpacityMaterialIndex.x);
 }
 
 /**
@@ -202,12 +207,11 @@ vec4 dsVectorElementFill_getLinearGradientColor()
 [[fragment]]
 vec4 dsVectorElementFill_getRadialGradientColor()
 {
-	dsVectorShared_clip(dsVectorVertexOut.position.zw);
+	dsVectorShared_clip(vfPosition.zw);
 
-	lowp vec4 color = dsVectorMaterial_getRadialGradientColor(dsVectorVertexMaterialOut,
-		dsVectorVertexOut.position.xy, dsVectorVertexOut.shapeBounds,
-		dsVectorVertexOut.opacityMaterialIndex.y);
-	return color*vec4(1.0, 1.0, 1.0, dsVectorVertexOut.opacityMaterialIndex.x);
+	lowp vec4 color = dsVectorMaterial_getRadialGradientColor(vfMatInfo0, vfMatInfo1, vfMatInfo2,
+		vfMatInfo3, vfPosition.xy, vfShapeBounds, vfOpacityMaterialIndex.y);
+	return color*vec4(1.0, 1.0, 1.0, vfOpacityMaterialIndex.x);
 }
 
 /**
@@ -216,7 +220,7 @@ vec4 dsVectorElementFill_getRadialGradientColor()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentColor()
 {
-	dsVectorFinalColor = dsVectorElementFill_getSolidColor();
+	foColor = dsVectorElementFill_getSolidColor();
 }
 
 /**
@@ -225,7 +229,7 @@ void dsVectorElementFill_defaultFragmentColor()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentLinearGradient()
 {
-	dsVectorFinalColor = dsVectorElementFill_getLinearGradientColor();
+	foColor = dsVectorElementFill_getLinearGradientColor();
 }
 
 /**
@@ -234,7 +238,7 @@ void dsVectorElementFill_defaultFragmentLinearGradient()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentRadialGradient()
 {
-	dsVectorFinalColor = dsVectorElementFill_getRadialGradientColor();
+	foColor = dsVectorElementFill_getRadialGradientColor();
 }
 
 /**
@@ -243,8 +247,8 @@ void dsVectorElementFill_defaultFragmentRadialGradient()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentColorSRGB()
 {
-	dsVectorFinalColor = dsVectorElementFill_getSolidColor();
-	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+	foColor = dsVectorElementFill_getSolidColor();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
 }
 
 /**
@@ -253,8 +257,8 @@ void dsVectorElementFill_defaultFragmentColorSRGB()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentLinearGradientSRGB()
 {
-	dsVectorFinalColor = dsVectorElementFill_getLinearGradientColor();
-	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+	foColor = dsVectorElementFill_getLinearGradientColor();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
 }
 
 /**
@@ -263,6 +267,6 @@ void dsVectorElementFill_defaultFragmentLinearGradientSRGB()
 [[fragment]]
 void dsVectorElementFill_defaultFragmentRadialGradientSRGB()
 {
-	dsVectorFinalColor = dsVectorElementFill_getRadialGradientColor();
-	dsVectorFinalColor.rgb = dsSRGBFromLinear(dsVectorFinalColor.rgb);
+	foColor = dsVectorElementFill_getRadialGradientColor();
+	foColor.rgb = dsSRGBFromLinear(foColor.rgb);
 }

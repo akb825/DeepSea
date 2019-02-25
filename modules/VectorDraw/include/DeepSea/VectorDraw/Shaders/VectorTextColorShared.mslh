@@ -1,0 +1,76 @@
+/*
+ * Copyright 2019 Aaron Barany
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+
+#include <DeepSea/Text/Text.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorTextShared.mslh>
+#include <DeepSea/VectorDraw/Shaders/VectorMaterial.mslh>
+
+/**
+ * @file
+ * @brief Shared code for text with a solid color.
+ */
+
+/**
+ * @brief Gets the material color of the text for a solid color.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getSolidColor()
+{
+	dsVectorShared_clip(vfPosition.zw);
+
+	lowp vec4 fillColor = dsVectorMaterial_getSolidColorImpl(
+		vfMaterialIndicesOpacities.x, dsVectorMaterialColorTex,
+		uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= vfMaterialIndicesOpacities.z;
+
+	vec3 texCoords = vfTexCoordEmbolden.xyz;
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	lowp float embolden = vfTexCoordEmbolden.w;
+	lowp float antiAlias = vfOutlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, antiAlias, fillColor);
+}
+
+/**
+ * @brief Gets the material color of the text for a solid color with an outline.
+ * @return The material color.
+ */
+[[fragment]]
+vec4 dsVectorElementText_getSolidColorOutline()
+{
+	dsVectorShared_clip(vfPosition.zw);
+
+	lowp vec4 fillColor = dsVectorMaterial_getSolidColorImpl(vfMaterialIndicesOpacities.x,
+		dsVectorMaterialColorTex, uniforms.dsVectorTextureSizes.y);
+	fillColor.a *= vfMaterialIndicesOpacities.z;
+
+	lowp vec4 outlineColor = dsVectorMaterial_getSolidColorImpl(vfMaterialIndicesOpacities.y,
+		dsVectorTextOutlineMaterialColorTex, uniforms.dsVectorTextureSizes.z);
+	outlineColor.a *= vfMaterialIndicesOpacities.w;
+
+	vec3 texCoords = vfTexCoordEmbolden.xyz;
+	lowp float distance = dsComputeTextDistance(dsVectorOtherTex, texCoords);
+
+	lowp float embolden = vfTexCoordEmbolden.w;
+	lowp float outline = vfOutlineAntiAlias.x;
+	lowp float outlinePosition = embolden*0.5 + 0.5;
+	lowp float antiAlias = vfOutlineAntiAlias.y;
+	return dsComputeTextColor(distance, embolden, outlinePosition, outline, antiAlias,
+		fillColor, outlineColor);
+}
