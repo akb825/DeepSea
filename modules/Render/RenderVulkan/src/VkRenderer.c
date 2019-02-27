@@ -2218,6 +2218,9 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	}
 
 	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+	// NOTE: AMD doesn't support D24S8
+	if (baseRenderer->vendorID == DS_VENDOR_ID_AMD && depthFormat == dsGfxFormat_D24S8)
+		depthFormat = dsGfxFormat_D32S8_Float;
 
 	VkPhysicalDeviceFeatures deviceFeatures;
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);

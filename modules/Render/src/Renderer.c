@@ -277,10 +277,22 @@ dsGfxFormat dsRenderer_optionsColorFormat(const dsRendererOptions* options, bool
 
 dsGfxFormat dsRenderer_optionsDepthFormat(const dsRendererOptions* options)
 {
-	if (options->depthBits == 24)
+	if (options->depthBits == 32)
+	{
+		if (options->stencilBits == 8)
+			return dsGfxFormat_D32S8_Float;
+		else if (options->stencilBits == 0)
+			return dsGfxFormat_D32_Float;
+	}
+	else if (options->depthBits == 24)
 		return dsGfxFormat_D24S8;
-	else if (options->depthBits == 16 && options->stencilBits == 0)
-		return dsGfxFormat_D16;
+	else if (options->depthBits == 16)
+	{
+		if (options->stencilBits == 8)
+			return dsGfxFormat_D16S8;
+		else if (options->stencilBits == 0)
+			return dsGfxFormat_D16;
+	}
 
 	return dsGfxFormat_Unknown;
 }

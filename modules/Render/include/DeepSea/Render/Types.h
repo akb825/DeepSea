@@ -78,6 +78,36 @@ extern "C"
 #define DS_DEVICE_UUID_SIZE 16
 
 /**
+ * @brief Vendor ID for AMD GPUs.
+ */
+#define DS_VENDOR_ID_AMD 0x1002
+
+/**
+ * @brief Vendor ID for ImgTec GPUs.
+ */
+#define DS_VENDOR_ID_IMGTEC 0x1010
+
+/**
+ * @brief Vendor ID for NVidia GPUs.
+ */
+#define DS_VENDOR_ID_NVIDIA 0x10DE
+
+/**
+ * @brief Vendor ID for ARM GPUs.
+ */
+#define DS_VENDOR_ID_ARM 0x13B5
+
+/**
+ * @brief Vendor ID for Qualcomm GPUs.
+ */
+#define DS_VENDOR_ID_QUALCOMM 0x5143
+
+ /**
+ * @brief Vendor ID for Intel GPUs.
+ */
+#define DS_VENDOR_ID_INTEL 0x8086
+
+/**
  * @brief Enum for the type of render device.
  *
  * This enum is ordered from most to least desireable.
@@ -220,11 +250,15 @@ typedef struct dsRenderDeviceInfo
 {
 	/**
 	 * @brief The name of the device.
+	 *
+	 * This may be NULL if not known. Either vendorName or vendorID should be set.
 	 */
 	const char* name;
 
 	/**
 	 * @brief ID for the vendor that provides the device.
+	 *
+	 * This may be 0 if not known. Either vendorName or vendorID should be set.
 	 */
 	uint32_t vendorID;
 

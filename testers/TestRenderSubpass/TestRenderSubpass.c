@@ -224,7 +224,11 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsResourceManager* resourceManager = renderer->resourceManager;
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
 	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
-		depthFormat = dsGfxFormat_D16;
+	{
+		depthFormat = dsGfxFormat_D32S8_Float;
+		if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+			depthFormat = dsGfxFormat_D16;
+	}
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, width, height, 0, 1, SAMPLE_COUNT};
 	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
@@ -506,11 +510,17 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	dsGfxFormat depthFormat = dsGfxFormat_D24S8;
 	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
-		depthFormat = dsGfxFormat_D16;
-	if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
 	{
-		DS_LOG_ERROR("TestRenderSubpass", "Depth offscreens not supported.");
-		return false;
+		depthFormat = dsGfxFormat_D32S8_Float;
+		if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+		{
+			depthFormat = dsGfxFormat_D16;
+			if (!dsGfxFormat_offscreenSupported(resourceManager, depthFormat))
+			{
+				DS_LOG_ERROR("TestRenderSubpass", "Depth offscreens not supported.");
+				return false;
+			}
+		}
 	}
 
 	dsAttachmentInfo attachments[] =
