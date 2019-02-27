@@ -341,10 +341,12 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 				*vkResolveAttachment = *vkAttachment;
 				vkResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
 				vkResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkResolveAttachment->stencilLoadOp = vkResolveAttachment->loadOp;
 				if ((usage & dsAttachmentUsage_KeepAfter) && !(usage & dsAttachmentUsage_Resolve))
 					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				else
 					vkResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				vkResolveAttachment->stencilStoreOp = vkResolveAttachment->storeOp;
 
 				renderPass->resolveIndices[i] = resolveAttachmentIndex;
 				++resolveIndex;
