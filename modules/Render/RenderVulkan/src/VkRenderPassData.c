@@ -387,6 +387,7 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 	const dsRenderPass* renderPass)
 {
 	const dsVkRenderPass* vkRenderPass = (const dsVkRenderPass*)renderPass;
+	const dsRenderer* renderer = renderPass->renderer;
 	dsVkInstance* instance = &device->instance;
 
 	size_t fullSize = DS_ALIGNED_SIZE(sizeof(dsVkRenderPassData)) +
@@ -430,8 +431,9 @@ dsVkRenderPassData* dsVkRenderPassData_create(dsAllocator* allocator, dsVkDevice
 				(renderPass->attachments[i].usage & dsAttachmentUsage_Resolve) != 0;
 
 			// Check if it will reference the same attachment, and mark as aliased if so.
+			// NOTE: This breaks on AMD drivers, but they don't care if the MAY_ALIAS bit is set.
 			uint32_t resolveIndex = vkRenderPass->resolveIndices[i];
-			if (resolveIndex != DS_NO_ATTACHMENT &&
+			if (renderer->deviceID != DS_VENDOR_ID_AMD && resolveIndex != DS_NO_ATTACHMENT &&
 				renderPass->attachments[i].samples == DS_DEFAULT_ANTIALIAS_SAMPLES &&
 				vkRenderPass->defaultSamples == 1)
 			{
