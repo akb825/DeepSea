@@ -1134,7 +1134,7 @@ static bool setup(TestText* testText, dsApplication* application, dsAllocator* a
 
 	if (!dsWindow_createSurface(testText->window))
 	{
-		DS_LOG_ERROR_F("TestCube", "Couldn't create window surface: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestText", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 

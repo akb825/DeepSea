@@ -549,7 +549,7 @@ bool dsRenderer_setSurfaceSamples(dsRenderer* renderer, uint32_t samples)
 		return false;
 	}
 
-	bool success = renderer->setSurfaceSamplesFunc(renderer, samples);
+	bool success = renderer->setSurfaceSamplesFunc(renderer, dsMax(samples, 1U));
 	return success;
 }
 

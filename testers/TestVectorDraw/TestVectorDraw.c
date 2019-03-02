@@ -350,11 +350,20 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 
 	uint32_t targetSize = dsApplication_adjustWindowSize(application, 0, TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
-		NULL, targetSize, targetSize, dsWindowFlags_Resizeable);
+		NULL, targetSize, targetSize, dsWindowFlags_Resizeable | dsWindowFlags_DelaySurfaceCreate);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));
 		DS_PROFILE_FUNC_RETURN(false);
+	}
+
+	if (DS_ANDROID || DS_IOS)
+		dsWindow_setStyle(testVectorDraw->window, dsWindowStyle_FullScreen);
+
+	if (!dsWindow_createSurface(testVectorDraw->window))
+	{
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window surface: %s", dsErrorString(errno));
+		return false;
 	}
 
 	DS_VERIFY(dsWindow_setDrawFunction(testVectorDraw->window, &draw, testVectorDraw));

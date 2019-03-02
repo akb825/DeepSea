@@ -502,7 +502,7 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 
 	if (!dsWindow_createSurface(testRenderSubpass->window))
 	{
-		DS_LOG_ERROR_F("TestCube", "Couldn't create window surface: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window surface: %s", dsErrorString(errno));
 		return false;
 	}
 

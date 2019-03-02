@@ -586,8 +586,10 @@ typedef struct dsVkRenderPassData
 	dsLifetime* lifetime;
 	const dsRenderPass* renderPass;
 
+	uint32_t* resolveIndices;
 	bool* resolveAttachment;
-	uint32_t resolveAttachmentCount;
+	uint32_t attachmentCount;
+	uint32_t fullAttachmentCount;
 
 	VkRenderPass vkRenderPass;
 
@@ -608,10 +610,6 @@ typedef struct dsVkRenderPass
 	dsRenderPass renderPass;
 	dsAllocator* scratchAllocator;
 
-	uint32_t fullAttachmentCount;
-	VkAttachmentDescription* vkAttachments;
-	uint32_t* resolveIndices;
-	VkSubpassDescription* vkSubpasses;
 	VkSubpassDependency* vkDependencies;
 
 	uint64_t lastCheckedFrame;
