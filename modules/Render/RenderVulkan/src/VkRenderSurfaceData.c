@@ -338,14 +338,23 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
+	uint32_t imageCount = 2;
+	// From Adreno programming guide for Vulkan:
+	// We recommend using 3 images in the swapchain. Using 2 will reduce memory use, but has the
+	// potential for some jittering.
+	// Jittering has been confirmed in usage.
+	if (renderer->vendorID == DS_VENDOR_ID_QUALCOMM)
+		imageCount = 3;
 	uint32_t maxImageCount = surfaceInfo.maxImageCount ? surfaceInfo.maxImageCount : UINT_MAX;
+	imageCount = dsClamp(imageCount, surfaceInfo.minImageCount, maxImageCount);
+
 	VkSwapchainCreateInfoKHR createInfo =
 	{
 		VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		NULL,
 		0,
 		surface,
-		dsClamp(2, surfaceInfo.minImageCount, maxImageCount), // double-buffer
+		imageCount,
 		colorFormat->vkFormat,
 		colorSpace,
 		surfaceInfo.currentExtent,
@@ -366,7 +375,6 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	if (!dsHandleVkResult(result))
 		return NULL;
 
-	uint32_t imageCount = 0;
 	result = DS_VK_CALL(device->vkGetSwapchainImagesKHR)(device->device, swapchain, &imageCount,
 		NULL);
 	if (!dsHandleVkResult(result))
