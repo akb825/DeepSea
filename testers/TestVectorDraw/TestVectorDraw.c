@@ -362,7 +362,8 @@ static bool setup(TestVectorDraw* testVectorDraw, dsApplication* application,
 
 	if (!dsWindow_createSurface(testVectorDraw->window))
 	{
-		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window surface: %s", dsErrorString(errno));
+		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window surface: %s",
+			dsErrorString(errno));
 		return false;
 	}
 
