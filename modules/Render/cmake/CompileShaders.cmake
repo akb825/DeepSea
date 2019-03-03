@@ -14,11 +14,11 @@
 
 find_program(MSLC_LOCAL mslc PATHS ${DEEPSEA_PREBUILT_TOOLS_DIR}/bin NO_DEFAULT_PATH)
 if (MSLC_LOCAL)
-	set(MSLC ${MSLC_LOCAL})
+	set(MSLC ${MSLC_LOCAL} CACHE FILEPATH "mslc shader compiler tool")
 else()
 	find_program(MSLC_SYSTEM mslc NO_CMAKE_FIND_ROOT_PATH)
 	if (MSLC_SYSTEM)
-		set(MSLC ${MSLC_SYSTEM})
+		set(MSLC ${MSLC_SYSTEM} CACHE FILEPATH "mslc shader compiler tool")
 	else()
 		set(MSLC MSLC-NOTFOUND)
 	endif()
