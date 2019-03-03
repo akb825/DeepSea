@@ -5,7 +5,7 @@ project(DeepSea)
 set(DEEPSEA_SHARED OFF CACHE BOOL "Build DeepSea using shared libraries.")
 set(DEEPSEA_SINGLE_SHARED OFF CACHE BOOL "Build DeepSea as a single shared library for all modules.")
 set(DEEPSEA_PROFILING ON CACHE BOOL "Enable profiling of code.")
-set(DEEPSEA_GPU_PROFILING ON CACHE BOOL "Enable profiling of the GPU.")
+set(DEEPSEA_GPU_PROFILING OFF CACHE BOOL "Enable profiling of the GPU.")
 set(DEEPSEA_SYSTEM_MSL OFF CACHE BOOL "Use the system installed version of MSL.")
 
 if (DEEPSEA_SINGLE_SHARED OR BUILD_SHARED_LIBS)

@@ -81,7 +81,7 @@ Generating Visual Studio projects can either be done through the CMake GUI tool 
 * `-DCMAKE_INSTALL_PREFIX=path`: Sets the path to install to when running make install.
 * `-DDEEPSEA_SHARED=ON|OFF`: Set to `ON` to build with shared libraries, `OFF` to build with static libraries. Default is `OFF`.
 * `-DDEEPSEA_PROFILING=ON|OFF`: Set to `ON` to enable profiling of code, `OFF` to compile out all profiling macros. Default is `ON`.
-* `-DDEEPSEA_GPU_PROFILING=ON|OFF`: Set to `ON` to enable profiling of the GPU, `OFF` to remove all GPU timing instrumentation. This can be used to independently disable GPU profiling while still leaving CPU profiling enabled. If `DEEPSEA_PROFILING` is set to `OFF`, then GPU profiling will also be disabled. Default is `ON`.
+* `-DDEEPSEA_GPU_PROFILING=ON|OFF`: Set to `ON` to enable profiling of the GPU, `OFF` to remove all GPU timing instrumentation. This can be used to independently disable GPU profiling while still leaving CPU profiling enabled. If `DEEPSEA_PROFILING` is set to `OFF`, then GPU profiling will also be disabled. Default is `OFF`.
 * `-DDEEPSEA_SYSTEM_MSL=ON|OFF`: Set to `ON` to use the system installed version of Modular Shader Language, `OFF` to build the embedded submodule. Setting this to `ON` is useful when creating system packages, such as for a Linux distribution, but `OFF` is usually desired when cross-compiling for multiple platforms. When set to `ON`, you may need to have the lib/cmake/MSL directory (relative to the MSL install path) in `CMAKE_PREFIX_PATH`. Default is `OFF`.
 
 ## Enabled Builds
