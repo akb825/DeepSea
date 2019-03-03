@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_program(MSLC mslc)
+find_program(MSLC_LOCAL mslc PATHS ${DEEPSEA_PREBUILT_TOOLS_DIR}/bin NO_DEFAULT_PATH)
+if (MSLC_LOCAL)
+	set(MSLC ${MSLC_LOCAL})
+else()
+	find_program(MSLC_SYSTEM mslc NO_CMAKE_FIND_ROOT_PATH)
+	if (MSLC_SYSTEM)
+		set(MSLC ${MSLC_SYSTEM})
+	else()
+		set(MSLC MSLC-NOTFOUND)
+	endif()
+endif()
 
 # ds_compile_shaders(container
 #                    FILE file1 [file2 ...]

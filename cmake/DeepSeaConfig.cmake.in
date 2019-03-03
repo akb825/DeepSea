@@ -23,9 +23,7 @@ set(DEEPSEA_PYTHON_DIR "${_IMPORT_PREFIX}/share/deepsea/python")
 set(DEEPSEA_INCLUDE_DIR "${_IMPORT_PREFIX}/include")
 
 # Add the tools directory to find the applications.
-if (IS_DIRECTORY ${_IMPORT_PREFIX}/share/deepsea/tools)
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${_IMPORT_PREFIX}/share/deepsea/tools)
-endif()
+set(DEEPSEA_PREBUILT_TOOLS_DIR ${DEEPSEA_SOURCE_DIR}/dependencies/tools)
 
 include(CMakeFindDependencyMacro)
 set(_DeepSea_NOTFOUND_MESSAGE)

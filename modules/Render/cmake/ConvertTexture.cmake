@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_program(CUTTLEFISH cuttlefish)
+find_program(CUTTLEFISH_LOCAL cuttlefish PATHS ${DEEPSEA_PREBUILT_TOOLS_DIR}/bin NO_DEFAULT_PATH)
+if (CUTTLEFISH_LOCAL)
+	set(CUTTLEFISH ${CUTTLEFISH_LOCAL})
+else()
+	find_program(CUTTLEFISH_SYSTEM cuttlefish NO_CMAKE_FIND_ROOT_PATH)
+	if (CUTTLEFISH_SYSTEM)
+		set(CUTTLEFISH ${CUTTLEFISH_SYSTEM})
+	else()
+		set(CUTTLEFISH CUTTLEFISH-NOTFOUND)
+	endif()
+endif()
 
 # ds_convert_texture(container
 #                    OUTPUT output
