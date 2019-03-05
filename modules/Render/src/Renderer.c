@@ -203,7 +203,7 @@ void dsRenderer_defaultOptions(dsRendererOptions* options, const char* applicati
 	options->samples = 4;
 	options->doubleBuffer = true;
 	options->srgb = false;
-	options->preferHalfDepth = false;
+	options->preferHalfDepthRange = false;
 	options->stereoscopic = false;
 #if DS_DEBUG
 	options->debug = true;

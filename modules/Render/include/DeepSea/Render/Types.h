@@ -371,9 +371,12 @@ typedef struct dsRendererOptions
 	bool srgb;
 
 	/**
-	 * @brief True to prefer half-depth range of [0, 1] rather than [-1, 1].
+	 * @brief True to prefer half depth clip range of [0, 1] rather than [-1, 1].
+	 *
+	 * Use this option if you intend to use reversed depth with a floating point depth buffer for
+	 * increased depth precision.
 	 */
-	bool preferHalfDepth;
+	bool preferHalfDepthRange;
 
 	/**
 	 * @brief True to use stereoscopic rendering, false to use a single surface.

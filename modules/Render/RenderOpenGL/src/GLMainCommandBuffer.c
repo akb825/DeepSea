@@ -2051,7 +2051,7 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	if (glRenderer->options.preferHalfDepth && ANYGL_SUPPORTED(glClipControl))
+	if (glRenderer->options.preferHalfDepthRange && ANYGL_SUPPORTED(glClipControl))
 		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 }
 
