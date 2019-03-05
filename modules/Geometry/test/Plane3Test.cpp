@@ -90,22 +90,26 @@ inline void dsPlane3_transformInverseTranspose(dsPlane3d* result, const dsMatrix
 	dsPlane3d_transformInverseTranspose(result, transform, plane);
 }
 
-inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3f* plane, const dsAlignedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3f* plane,
+	const dsAlignedBox3f* box)
 {
 	return dsPlane3f_intersectAlignedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3d* plane, const dsAlignedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectAlignedBox(const dsPlane3d* plane,
+	const dsAlignedBox3d* box)
 {
 	return dsPlane3d_intersectAlignedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3f* plane, const dsOrientedBox3f* box)
+inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3f* plane,
+	const dsOrientedBox3f* box)
 {
 	return dsPlane3f_intersectOrientedBox(plane, box);
 }
 
-inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3d* plane, const dsOrientedBox3d* box)
+inline dsIntersectResult dsPlane3_intersectOrientedBox(const dsPlane3d* plane,
+	const dsOrientedBox3d* box)
 {
 	return dsPlane3d_intersectOrientedBox(plane, box);
 }

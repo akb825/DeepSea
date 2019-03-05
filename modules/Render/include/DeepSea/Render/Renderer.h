@@ -135,7 +135,7 @@ DS_RENDER_EXPORT bool dsRenderer_makeOrtho(dsMatrix44f* result, const dsRenderer
  * @param bottom The bottom plane.
  * @param top The top plane.
  * @param near The near plane.
- * @param far The far plane.
+ * @param far The far plane. This may be INFINITY.
  * @return False if the parameters are invalid.
  */
 DS_RENDER_EXPORT bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRenderer* renderer,
@@ -153,7 +153,7 @@ DS_RENDER_EXPORT bool dsRenderer_makeFrustum(dsMatrix44f* result, const dsRender
  * @param fovy The field of view in the Y direction in radians.
  * @param aspect The aspect ratio as X/Y.
  * @param near The near plane.
- * @param far The far plane.
+ * @param far The far plane. This may be INFINITY.
  * @return False if the parameters are invalid.
  */
 DS_RENDER_EXPORT bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer,

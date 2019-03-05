@@ -480,7 +480,7 @@ DS_MATH_EXPORT void dsMatrix44d_makeOrtho(dsMatrix44d* result, double left, doub
  * @param bottom The bottom plane.
  * @param top The top plane.
  * @param near The near plane.
- * @param far The far plane.
+ * @param far The far plane. This may be INFINITY.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
  *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
  * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.
@@ -498,7 +498,7 @@ DS_MATH_EXPORT void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, do
  * @param fovy The field of view in the Y direction in radians.
  * @param aspect The aspect ratio as X/Y.
  * @param near The near plane.
- * @param far The far plane.
+ * @param far The far plane. This may be INFINITY.
  * @param halfDepth True if the projected depth is in the range [0, 1], false if in the range
  *     [-1, 1]. Examples where this is true include Direct3D, Metal, or Vulkan.
  * @param invertY True to invert the Y coordinate. An example where this is used is Vulkan.

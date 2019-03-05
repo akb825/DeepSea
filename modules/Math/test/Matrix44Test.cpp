@@ -985,6 +985,14 @@ TYPED_TEST(Matrix44Test, MakeFrustum)
 	EXPECT_NEAR(-1, projPoint.y, epsilon);
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, true, false);
+	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(-1), matrix.values[3][2]);
+
+	dsMatrix44_makeFrustum(&matrix, -2, 3, -4, 5, 1, INFINITY, false, false);
+	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
 }
 
 TYPED_TEST(Matrix44Test, MakePerspective)
@@ -1066,6 +1074,14 @@ TYPED_TEST(Matrix44Test, MakePerspective)
 	EXPECT_NEAR(-1, projPoint.y, epsilon);
 	EXPECT_NEAR(1, projPoint.z, epsilon);
 	EXPECT_NEAR(1, projPoint.w, epsilon);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, true, false);
+	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(-1), matrix.values[3][2]);
+
+	dsMatrix44_makePerspective(&matrix, fov, aspect, 1, INFINITY, false, false);
+	EXPECT_EQ(TypeParam(-1), matrix.values[2][2]);
+	EXPECT_EQ(TypeParam(-2), matrix.values[3][2]);
 }
 
 TEST(Matrix44, ConvertFloatToDouble)

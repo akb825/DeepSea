@@ -591,6 +591,7 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	DS_ASSERT(near != far);
 
 	float yMult = invertY ? -1.0f : 1.0f;
+	bool infiniteFar = isinff(far);
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -604,7 +605,9 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 
 	result->values[2][0] = (right + left)/(right - left);
 	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
-	if (halfDepth)
+	if (infiniteFar)
+		result->values[2][2] = -1.0f;
+	else if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -612,10 +615,20 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 
 	result->values[3][0] = 0;
 	result->values[3][1] = 0;
-	if (halfDepth)
-		result->values[3][2] = near*far/(near - far);
+	if (infiniteFar)
+	{
+		if (halfDepth)
+			result->values[3][2] = -near;
+		else
+			result->values[3][2] = -2*near;
+	}
 	else
-		result->values[3][2] = 2*near*far/(near - far);
+	{
+		if (halfDepth)
+			result->values[3][2] = near*far/(near - far);
+		else
+			result->values[3][2] = 2*near*far/(near - far);
+	}
 	result->values[3][3] = 0;
 }
 
@@ -628,6 +641,7 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 	DS_ASSERT(near != far);
 
 	double yMult = invertY ? -1.0 : 1.0;
+	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -641,7 +655,9 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 
 	result->values[2][0] = (right + left)/(right - left);
 	result->values[2][1] = (top + bottom)/(top - bottom)*yMult;
-	if (halfDepth)
+	if (infiniteFar)
+		result->values[2][2] = -1.0;
+	else if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -649,10 +665,20 @@ void dsMatrix44d_makeFrustum(dsMatrix44d* result, double left, double right, dou
 
 	result->values[3][0] = 0;
 	result->values[3][1] = 0;
-	if (halfDepth)
-		result->values[3][2] = near*far/(near - far);
+	if (infiniteFar)
+	{
+		if (halfDepth)
+			result->values[3][2] = -near;
+		else
+			result->values[3][2] = -2*near;
+	}
 	else
-		result->values[3][2] = 2*near*far/(near - far);
+	{
+		if (halfDepth)
+			result->values[3][2] = near*far/(near - far);
+		else
+			result->values[3][2] = 2*near*far/(near - far);
+	}
 	result->values[3][3] = 0;
 }
 
@@ -667,6 +693,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	float height = 1/tanf(fovy/2);
 	float width = height/aspect;
 	float yMult = invertY ? -1.0f : 1.0f;
+	bool infiniteFar = isinff(far);
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
@@ -680,7 +707,9 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 
 	result->values[2][0] = 0;
 	result->values[2][1] = 0;
-	if (halfDepth)
+	if (infiniteFar)
+		result->values[2][2] = -1.0f;
+	else if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -688,10 +717,20 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 
 	result->values[3][0] = 0;
 	result->values[3][1] = 0;
-	if (halfDepth)
-		result->values[3][2] = near*far/(near - far);
+	if (infiniteFar)
+	{
+		if (halfDepth)
+			result->values[3][2] = -near;
+		else
+			result->values[3][2] = -2*near;
+	}
 	else
-		result->values[3][2] = 2*near*far/(near - far);
+	{
+		if (halfDepth)
+			result->values[3][2] = near*far/(near - far);
+		else
+			result->values[3][2] = 2*near*far/(near - far);
+	}
 	result->values[3][3] = 0;
 }
 
@@ -706,6 +745,7 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 	double height = 1/tan(fovy/2);
 	double width = height/aspect;
 	double yMult = invertY ? -1.0 : 1.0;
+	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
@@ -719,7 +759,9 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 	result->values[2][0] = 0;
 	result->values[2][1] = 0;
-	if (halfDepth)
+	if (infiniteFar)
+		result->values[2][2] = -1.0;
+	else if (halfDepth)
 		result->values[2][2] = far/(near - far);
 	else
 		result->values[2][2] = (near + far)/(near - far);
@@ -727,10 +769,20 @@ void dsMatrix44d_makePerspective(dsMatrix44d* result, double fovy, double aspect
 
 	result->values[3][0] = 0;
 	result->values[3][1] = 0;
-	if (halfDepth)
-		result->values[3][2] = near*far/(near - far);
+	if (infiniteFar)
+	{
+		if (halfDepth)
+			result->values[3][2] = -near;
+		else
+			result->values[3][2] = -2*near;
+	}
 	else
-		result->values[3][2] = 2*near*far/(near - far);
+	{
+		if (halfDepth)
+			result->values[3][2] = near*far/(near - far);
+		else
+			result->values[3][2] = 2*near*far/(near - far);
+	}
 	result->values[3][3] = 0;
 }
 
