@@ -2258,6 +2258,11 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	{
 		depthFormat = dsGfxFormat_D32S8_Float;
 	}
+	else if (depthFormat == dsGfxFormat_X8D24 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32_Float;
+	}
 
 	if (depthFormat != dsGfxFormat_Unknown &&
 		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
