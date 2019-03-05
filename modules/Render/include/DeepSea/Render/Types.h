@@ -371,6 +371,11 @@ typedef struct dsRendererOptions
 	bool srgb;
 
 	/**
+	 * @brief True to prefer half-depth range of [0, 1] rather than [-1, 1].
+	 */
+	bool preferHalfDepth;
+
+	/**
 	 * @brief True to use stereoscopic rendering, false to use a single surface.
 	 */
 	bool stereoscopic;

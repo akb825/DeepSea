@@ -1990,6 +1990,8 @@ dsGLMainCommandBuffer* dsGLMainCommandBuffer_create(dsRenderer* renderer, dsAllo
 
 void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 {
+	dsCommandBuffer* baseCommandBuffer = (dsCommandBuffer*)commandBuffer;
+	dsGLRenderer* glRenderer = (dsGLRenderer*)baseCommandBuffer->renderer;
 	dsGLRenderStates_initialize(&commandBuffer->currentState);
 
 	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_depth_clamp)
@@ -2048,6 +2050,9 @@ void dsGLMainCommandBuffer_resetState(dsGLMainCommandBuffer* commandBuffer)
 	if (AnyGL_atLeastVersion(3, 2, false) || AnyGL_ARB_seamless_cube_map)
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	if (glRenderer->options.preferHalfDepth && ANYGL_SUPPORTED(glClipControl))
+		glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 }
 
 bool dsGLMainCommandBuffer_destroy(dsGLMainCommandBuffer* commandBuffer)

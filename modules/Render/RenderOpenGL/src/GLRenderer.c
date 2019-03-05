@@ -666,7 +666,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->doubleBuffer = options->doubleBuffer;
 	baseRenderer->stereoscopic = options->stereoscopic;
 	baseRenderer->vsync = false;
-	baseRenderer->clipHalfDepth = false;
+	baseRenderer->clipHalfDepth = options->preferHalfDepth && ANYGL_SUPPORTED(glClipControl);
 	baseRenderer->clipInvertY = false;
 	baseRenderer->defaultAnisotropy = 1;
 
