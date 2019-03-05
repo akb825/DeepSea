@@ -2207,21 +2207,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (baseRenderer->deviceName)
 		DS_LOG_DEBUG_F(DS_RENDER_VULKAN_LOG_TAG, "Using device: %s", baseRenderer->deviceName);
 
-	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options,
-			useBGRASurface(baseRenderer->deviceName), true);
-	if (!dsGfxFormat_isValid(colorFormat))
-	{
-		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Invalid color format.");
-		dsVkRenderer_destroy(baseRenderer);
-		return NULL;
-	}
-
-	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
-	// NOTE: AMD doesn't support D24S8
-	if (baseRenderer->vendorID == DS_VENDOR_ID_AMD && depthFormat == dsGfxFormat_D24S8)
-		depthFormat = dsGfxFormat_D32S8_Float;
-
 	VkPhysicalDeviceFeatures deviceFeatures;
 	DS_VK_CALL(instance->vkGetPhysicalDeviceFeatures)(device->physicalDevice, &deviceFeatures);
 
@@ -2232,9 +2217,6 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->maxSurfaceSamples = dsMin(baseRenderer->maxSurfaceSamples,
 		DS_MAX_ANTIALIAS_SAMPLES);
 	baseRenderer->maxAnisotropy = limits->maxSamplerAnisotropy;
-	baseRenderer->surfaceColorFormat = colorFormat;
-	renderer->colorSurfaceAlpha = options->alphaBits > 0;
-	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 	baseRenderer->surfaceSamples = dsClamp(options->samples, 1U, baseRenderer->maxSurfaceSamples);
 
@@ -2258,6 +2240,37 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		dsVkRenderer_destroy(baseRenderer);
 		return NULL;
 	}
+
+	dsGfxFormat colorFormat = dsRenderer_optionsColorFormat(options,
+		useBGRASurface(baseRenderer->deviceName), true);
+	if (!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, colorFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface color format.");
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	dsGfxFormat depthFormat = dsRenderer_optionsDepthFormat(options);
+	// AMD doesn't support 24-bit dpeth.
+	if (depthFormat == dsGfxFormat_D24S8 &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		depthFormat = dsGfxFormat_D32S8_Float;
+	}
+
+	if (depthFormat != dsGfxFormat_Unknown &&
+		!dsGfxFormat_offscreenSupported(baseRenderer->resourceManager, depthFormat))
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Can't draw to surface depth format.");
+		dsVkRenderer_destroy(baseRenderer);
+		return NULL;
+	}
+
+	baseRenderer->surfaceColorFormat = colorFormat;
+	renderer->colorSurfaceAlpha = options->alphaBits > 0;
+	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 	if (!createCommandBuffers(renderer))
 	{

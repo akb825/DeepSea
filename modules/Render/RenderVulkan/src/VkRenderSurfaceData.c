@@ -56,7 +56,7 @@ static bool hasFormat(const VkSurfaceFormatKHR* surfaceFormats, uint32_t formatC
 	return false;
 }
 
-static VkFormat supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat format,
+static bool supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkFormat format,
 	VkColorSpaceKHR colorSpace)
 {
 	dsVkInstance* instance = &device->instance;
@@ -65,15 +65,13 @@ static VkFormat supportsFormat(dsVkDevice* device, VkSurfaceKHR surface, VkForma
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, 0);
 	if (!dsHandleVkResult(result))
-		return 0;
+		return false;
 
 	VkSurfaceFormatKHR* surfaceFormats = DS_ALLOCATE_STACK_OBJECT_ARRAY(VkSurfaceFormatKHR,
 		formatCount);
 	result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceFormatsKHR)(
 		device->physicalDevice, surface, &formatCount, surfaceFormats);
 	return hasFormat(surfaceFormats, formatCount, format, colorSpace);
-
-	return 0;
 }
 
 static bool hasPresentMode(const VkPresentModeKHR* presentModes, uint32_t presentModeCount,
