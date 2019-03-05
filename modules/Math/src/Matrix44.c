@@ -591,7 +591,7 @@ void dsMatrix44f_makeFrustum(dsMatrix44f* result, float left, float right, float
 	DS_ASSERT(near != far);
 
 	float yMult = invertY ? -1.0f : 1.0f;
-	bool infiniteFar = isinff(far);
+	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = 2*near/(right - left);
 	result->values[0][1] = 0;
@@ -693,7 +693,7 @@ void dsMatrix44f_makePerspective(dsMatrix44f* result, float fovy, float aspect, 
 	float height = 1/tanf(fovy/2);
 	float width = height/aspect;
 	float yMult = invertY ? -1.0f : 1.0f;
-	bool infiniteFar = isinff(far);
+	bool infiniteFar = isinf(far);
 
 	result->values[0][0] = width;
 	result->values[0][1] = 0;
