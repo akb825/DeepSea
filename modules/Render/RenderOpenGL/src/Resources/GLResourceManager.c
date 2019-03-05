@@ -650,6 +650,9 @@ static void cacheTextureFormats(dsGLResourceManager* resourceManager)
 		setSpecialFormat(resourceManager, dsGfxFormat_X8D24,
 			FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT,
 			GL_UNSIGNED_INT);
+		setSpecialFormat(resourceManager, dsGfxFormat_D32_Float,
+			FormatBit_Texture | FormatBit_Offscreen, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT,
+			GL_FLOAT);
 		setSpecialFormat(resourceManager, dsGfxFormat_S8, FormatBit_Texture | FormatBit_Offscreen,
 			GL_STENCIL_INDEX8, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE);
 		setSpecialFormat(resourceManager, dsGfxFormat_D24S8,
