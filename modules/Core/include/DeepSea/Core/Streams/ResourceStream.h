@@ -51,9 +51,21 @@ DS_CORE_EXPORT bool dsResourceStream_isFile(dsFileResourceType type);
 /**
  * @brief Gets the directory path for a resource type.
  * @param type The resource type.
- * @return The path.
+ * @return The path, or NULL if no directory is used for the given resource type.
  */
 DS_CORE_EXPORT const char* dsResourceStream_getDirectory(dsFileResourceType type);
+
+/**
+ * @brief Gets the path for a resource on the filesystem.
+ * @remark errno will be set on failure.
+ * @param[out] outResult The path for the resource.
+ * @param resultSize The size of the result buffer, including the null terminator.
+ * @param type The resource type.
+ * @param path The path to get the resource path for.
+ * @return False if the parameters are invalid or there isn't enough space in result.
+ */
+DS_CORE_EXPORT bool dsResourceStream_getPath(char* outResult, size_t resultSize,
+	dsFileResourceType type, const char* path);
 
 /**
  * @brief Opens a stream for a resource.

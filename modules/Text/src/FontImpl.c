@@ -1020,7 +1020,7 @@ bool dsFaceGroup_loadFaceResource(dsFaceGroup* group, dsAllocator* allocator,
 	if (dsResourceStream_isFile(type))
 	{
 		char path[DS_PATH_MAX];
-		if (!dsPath_combine(path, sizeof(path), dsResourceStream_getDirectory(type), fileName))
+		if (!dsResourceStream_getPath(path, sizeof(path), type, fileName))
 			return false;
 		return dsFaceGroup_loadFaceFile(group, path, name);
 	}

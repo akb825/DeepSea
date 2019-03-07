@@ -99,13 +99,16 @@ typedef enum dsStreamSeekWay
 
 /**
  * @brief Enum for the type of resource to load for.
+ * @remark Paths for all resource types except for dsFileResourceType_External must be relative
+ * paths.
  * @see FileResource.h
  */
 typedef enum dsFileResourceType
 {
 	dsFileResourceType_Embedded,  ///< Resource embedded with the application package.
 	dsFileResourceType_Installed, ///< Resource installed with the application.
-	dsFileResourceType_Dynamic    ///< Resource created locally.
+	dsFileResourceType_Dynamic,   ///< Resource created locally.
+	dsFileResourceType_External   ///< Resource external to the application.
 } dsFileResourceType;
 
 /**

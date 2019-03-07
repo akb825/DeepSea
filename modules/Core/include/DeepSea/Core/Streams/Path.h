@@ -49,6 +49,12 @@ DS_CORE_EXPORT bool dsPath_combine(char* result, size_t resultSize, const char* 
 	const char* path2);
 
 /**
+ * @brief Returns whether or not a path is absolute.
+ * @return True if the path is absolute, false if it's relative.
+ */
+DS_CORE_EXPORT bool dsPath_isAbsolute(const char* path);
+
+/**
  * @brief Gets the directory name of a path.
  * @remark errno will be set on failure.
  * @param[out] result The result to place the directory name into.

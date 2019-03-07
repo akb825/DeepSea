@@ -88,6 +88,26 @@ bool dsPath_combine(char* result, size_t resultSize, const char* path1, const ch
 	return true;
 }
 
+bool dsPath_isAbsolute(const char* path)
+{
+	if (!path)
+		return false;
+
+	size_t length = strlen(path);
+	if (length == 0)
+		return false;
+
+	if (path[0] == DS_PATH_SEPARATOR || path[0] == DS_PATH_ALT_SEPARATOR)
+		return true;
+
+#if DS_WINDOWS
+	if (path[1] == ':')
+		return true;
+#endif
+
+	return false;
+}
+
 bool dsPath_getDirectoryName(char* result, size_t resultSize, const char* path)
 {
 	if (!result || resultSize == 0 || !path)

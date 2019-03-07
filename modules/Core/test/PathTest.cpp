@@ -73,6 +73,21 @@ TEST(PathTest, Combine)
 	EXPECT_TRUE(dsPath_combine(result, DS_PATH_MAX, result, "combine"));
 }
 
+TEST(PathTest, IsAbsolute)
+{
+	EXPECT_FALSE(dsPath_isAbsolute(nullptr));
+	EXPECT_FALSE(dsPath_isAbsolute(""));
+	EXPECT_FALSE(dsPath_isAbsolute("a"));
+	EXPECT_FALSE(dsPath_isAbsolute("a/relative/path"));
+	EXPECT_TRUE(dsPath_isAbsolute("/absolute/path"));
+
+#if DS_WINDOWS
+	EXPECT_TRUE(dsPath_isAbsolute("\\absolute\\path"));
+	EXPECT_TRUE(dsPath_isAbsolute("C:\\absolute\\path"));
+	EXPECT_TRUE(dsPath_isAbsolute("C:/absolute/path"));
+#endif
+}
+
 TEST(PathTest, GetDirectoryName)
 {
 	char result[DS_PATH_MAX];

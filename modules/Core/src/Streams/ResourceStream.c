@@ -123,6 +123,9 @@ static bool assetClose(dsGenericStream* stream)
 bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 	const char* embeddedDir, const char* localDir, const char* dynamicDir)
 {
+	DS_UNUSED(globalContext);
+	DS_UNUSED(applicationContext);
+
 #if DS_ANDROID
 	if (!gAssetManager)
 	{
@@ -181,6 +184,49 @@ const char* dsResourceStream_getDirectory(dsFileResourceType type)
 	}
 }
 
+bool dsResourceStream_getPath(char* outResult, size_t resultSize, dsFileResourceType type,
+	const char* path)
+{
+	if (!outResult || !path)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (dsPath_isAbsolute(path) && type != dsFileResourceType_External)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_CORE_LOG_TAG,
+			"Only resources of type dsFileResourceType_External may be absolute paths.");
+		return false;
+	}
+
+	switch (type)
+	{
+		case dsFileResourceType_Embedded:
+			return dsPath_combine(outResult, resultSize, gEmbeddedDir, path);
+		case dsFileResourceType_Installed:
+			return dsPath_combine(outResult, resultSize, gLocalDir, path);
+		case dsFileResourceType_Dynamic:
+			return dsPath_combine(outResult, resultSize, gDynamicDir, path);
+		case dsFileResourceType_External:
+		{
+			size_t pathLen = strlen(path);
+			if (pathLen >= resultSize)
+			{
+				errno = ESIZE;
+				return false;
+			}
+
+			strncpy(outResult, path, pathLen + 1);
+			return true;
+		}
+		default:
+			errno = EINVAL;
+			return false;
+	}
+}
+
 bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, const char* path,
 	const char* mode)
 {
@@ -191,6 +237,9 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 	}
 
 	char finalPath[DS_PATH_MAX];
+	if (!dsResourceStream_getPath(finalPath, sizeof(finalPath), type, path))
+		return false;
+
 	switch (type)
 	{
 		case dsFileResourceType_Embedded:
@@ -201,7 +250,6 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				return false;
 			}
 
-			dsPath_combine(finalPath, sizeof(finalPath), gEmbeddedDir, path);
 #if DS_ANDROID
 			if (!gAssetManager)
 			{
@@ -237,10 +285,8 @@ bool dsResourceStream_open(dsResourceStream* stream, dsFileResourceType type, co
 				DS_LOG_ERROR(DS_CORE_LOG_TAG, "Installed assets cannot be written to.");
 				return false;
 			}
-			dsPath_combine(finalPath, sizeof(finalPath), gLocalDir, path);
 			break;
-		case dsFileResourceType_Dynamic:
-			dsPath_combine(finalPath, sizeof(finalPath), gDynamicDir, path);
+		default:
 			break;
 	}
 
