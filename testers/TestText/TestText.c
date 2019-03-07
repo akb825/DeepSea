@@ -1010,7 +1010,7 @@ static bool setupText(TestText* testText, dsTextQuality quality, const char* fon
 	}
 
 #ifdef CHINESE_FONT_PATH
-	if (!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_Embedded,
+	if (!dsFaceGroup_loadFaceResource(testText->faceGroup, allocator, dsFileResourceType_External,
 		CHINESE_FONT_PATH, "Chinese"))
 	{
 		DS_LOG_ERROR_F("TestText", "Couldn't load font face: %s", dsErrorString(errno));
