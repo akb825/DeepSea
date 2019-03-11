@@ -268,7 +268,7 @@ bool dsResourceStream_getPath(char* outResult, size_t resultSize, dsFileResource
 				return false;
 			}
 
-			strncpy(outResult, path, pathLen + 1);
+			strncpy(outResult, path, resultSize);
 			return true;
 		}
 		default:
