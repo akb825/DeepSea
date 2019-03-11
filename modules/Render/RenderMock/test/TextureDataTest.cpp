@@ -36,6 +36,14 @@ public:
 	}
 };
 
+static bool operator==(const dsColor& color1, const dsColor& color2)
+{
+	return color1.r == color2.r && color1.g == color2.g && color1.b == color2.b &&
+		color1.a == color2.a;
+}
+
+#if !DS_ANDROID
+
 struct Color16f
 {
 	dsHalfFloat r;
@@ -43,12 +51,6 @@ struct Color16f
 	dsHalfFloat b;
 	dsHalfFloat a;
 };
-
-static bool operator==(const dsColor& color1, const dsColor& color2)
-{
-	return color1.r == color2.r && color1.g == color2.g && color1.b == color2.b &&
-		color1.a == color2.a;
-}
 
 static bool operator==(const dsColor& color1, const Color16f& color2)
 {
@@ -65,6 +67,8 @@ static bool operator==(const dsColor& color1, uint16_t color2)
 	return color1.r == round(color3f.r*255) && color1.g == round(color3f.g*255) &&
 		color1.b == round(color3f.b*255) && color1.a == 255;
 }
+
+#endif
 
 static bool noSrgbSupported(const dsResourceManager*, dsGfxFormat format)
 {
@@ -96,6 +100,8 @@ TEST_F(TextureDataTest, Create)
 
 	dsTextureData_destroy(textureData);
 }
+
+#if !DS_ANDROID
 
 TEST_F(TextureDataTest, LoadDDSFile_R8G8B8A8)
 {
@@ -1326,10 +1332,68 @@ TEST_F(TextureDataTest, LoadStreamToTexture)
 	EXPECT_TRUE(dsTexture_destroy(texture));
 }
 
+#endif
+
+TEST_F(TextureDataTest, LoadResourceToTexture)
+{
+	EXPECT_FALSE(dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.txt"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read));
+	EXPECT_FALSE(dsTextureData_loadResourceToTexture(NULL, NULL, NULL, dsFileResourceType_Embedded,
+		getRelativePath("texture.r8g8b8a8.dds"), NULL, dsTextureUsage_Texture, dsGfxMemory_Read));
+	EXPECT_FALSE(dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, NULL, NULL, dsTextureUsage_Texture, dsGfxMemory_Read));
+	EXPECT_FALSE(dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, getRelativePath("texture.r8g8b8a8.dds"), NULL,
+		(dsTextureUsage)0, (dsGfxMemory)0));
+
+	dsTexture* texture = dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, getRelativePath("texture.r8g8b8a8.dds"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read);
+	ASSERT_TRUE(texture);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+
+	EXPECT_TRUE(dsTexture_destroy(texture));
+
+	texture = dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, getRelativePath("texture.r8g8b8a8.ktx"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read);
+	ASSERT_TRUE(texture);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+
+	EXPECT_TRUE(dsTexture_destroy(texture));
+
+	texture = dsTextureData_loadResourceToTexture(resourceManager, NULL, NULL,
+		dsFileResourceType_Embedded, getRelativePath("texture.r8g8b8a8.pvr"), NULL,
+		(dsTextureUsage)(dsTextureUsage_Texture | dsTextureUsage_CopyFrom), dsGfxMemory_Read);
+	ASSERT_TRUE(texture);
+
+	EXPECT_EQ(dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm), texture->info.format);
+	EXPECT_EQ(dsTextureDim_2D, texture->info.dimension);
+	EXPECT_EQ(4U, texture->info.width);
+	EXPECT_EQ(4U, texture->info.height);
+	EXPECT_EQ(0U, texture->info.depth);
+	EXPECT_EQ(1U, texture->info.mipLevels);
+
+	EXPECT_TRUE(dsTexture_destroy(texture));
+}
+
 TEST_F(TextureDataTest, CreateTexture)
 {
-	dsTextureData* textureData = dsTextureData_loadPVRFile((dsAllocator*)&allocator,
-		getPath("texture.r8g8b8a8.pvr"));
+	dsTextureData* textureData = dsTextureData_loadPVRResource((dsAllocator*)&allocator,
+		dsFileResourceType_Embedded, getRelativePath("texture.r8g8b8a8.pvr"));
 	ASSERT_TRUE(textureData);
 
 	EXPECT_FALSE(dsTextureData_createTexture(NULL, NULL, textureData, NULL, dsTextureUsage_Texture,

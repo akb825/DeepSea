@@ -66,7 +66,8 @@ public:
 		materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements, elementCount);
 		ASSERT_TRUE(materialDesc);
 
-		shaderModule = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"), "test");
+		shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+			dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 		ASSERT_TRUE(shaderModule);
 
 		shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc);

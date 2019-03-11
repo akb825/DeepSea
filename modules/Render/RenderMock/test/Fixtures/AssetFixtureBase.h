@@ -25,6 +25,7 @@ public:
 	explicit AssetFixtureBase(const char* dir);
 
 	const char* getPath(const char* fileName);
+	const char* getRelativePath(const char* fileName);
 
 private:
 	const char* m_dir;

@@ -15,16 +15,22 @@
  */
 
 #include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <gtest/gtest.h>
 
+char testerDir[DS_PATH_MAX];
 char assetsDir[DS_PATH_MAX];
 
 int main(int argc, char** argv)
 {
 	testing::InitGoogleTest(&argc, argv);
 
-	dsPath_getDirectoryName(assetsDir, DS_PATH_MAX, argv[0]);
-	dsPath_combine(assetsDir, DS_PATH_MAX, assetsDir, "RenderMock-assets");
+#if !DS_ANDROID
+	dsPath_getDirectoryName(testerDir, DS_PATH_MAX, argv[0]);
+	dsResourceStream_setContext(NULL, NULL, testerDir, NULL, NULL);
+#endif
+
+	strncpy(assetsDir, "RenderMock-assets", sizeof(assetsDir));
 
 	return RUN_ALL_TESTS();
 }

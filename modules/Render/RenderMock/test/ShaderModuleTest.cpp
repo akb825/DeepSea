@@ -31,12 +31,14 @@ public:
 	}
 };
 
+#if !DS_ANDROID
 TEST_F(ShaderModuleTest, LoadFile)
 {
 	EXPECT_FALSE(dsShaderModule_loadFile(NULL, NULL, getPath("test.mslb"), "test"));
 	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, NULL, "test"));
 	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"), NULL));
 	EXPECT_FALSE(dsShaderModule_loadFile(resourceManager, NULL, "asdf", "test"));
+
 	dsShaderModule* module = dsShaderModule_loadFile(resourceManager, NULL, getPath("test.mslb"),
 		"test");
 	ASSERT_TRUE(module);
@@ -74,7 +76,7 @@ TEST_F(ShaderModuleTest, LoadStream)
 	EXPECT_EQ(0U, resourceManager->shaderModuleCount);
 }
 
-TEST_F(ShaderModuleTest, LoadDta)
+TEST_F(ShaderModuleTest, LoadData)
 {
 	dsFileStream fileStream;
 	ASSERT_TRUE(dsFileStream_openPath(&fileStream, getPath("test.mslb"), "rb"));
@@ -98,6 +100,32 @@ TEST_F(ShaderModuleTest, LoadDta)
 	ASSERT_TRUE(module);
 	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
 	dsAllocator_free((dsAllocator*)&allocator, data);
+
+	EXPECT_EQ(0U, dsShaderModule_shaderCount(NULL));
+	ASSERT_EQ(1U, dsShaderModule_shaderCount(module));
+	EXPECT_STREQ("Test", dsShaderModule_shaderName(module, 0));
+	EXPECT_FALSE(dsShaderModule_shaderName(module, 1));
+
+	EXPECT_TRUE(dsShaderModule_destroy(module));
+	EXPECT_EQ(0U, resourceManager->shaderModuleCount);
+}
+#endif
+
+TEST_F(ShaderModuleTest, LoadResource)
+{
+	EXPECT_FALSE(dsShaderModule_loadResource(NULL, NULL, dsFileResourceType_Embedded,
+		getRelativePath("test.mslb"), "test"));
+	EXPECT_FALSE(dsShaderModule_loadResource(resourceManager, NULL, dsFileResourceType_Embedded,
+		NULL, "test"));
+	EXPECT_FALSE(dsShaderModule_loadResource(resourceManager, NULL, dsFileResourceType_Embedded,
+		getRelativePath("test.mslb"), NULL));
+	EXPECT_FALSE(dsShaderModule_loadResource(resourceManager, NULL, dsFileResourceType_Embedded,
+		"asdf", "test"));
+
+	dsShaderModule* module = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
+	ASSERT_TRUE(module);
+	EXPECT_EQ(1U, resourceManager->shaderModuleCount);
 
 	EXPECT_EQ(0U, dsShaderModule_shaderCount(NULL));
 	ASSERT_EQ(1U, dsShaderModule_shaderCount(module));

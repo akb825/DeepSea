@@ -68,8 +68,8 @@ TEST_F(ShaderTest, Create)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(NULL, NULL, shaderModule, "Test", materialDesc));
@@ -115,8 +115,8 @@ TEST_F(ShaderTest, CreateNoBuffers)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test-nobuffers.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test-nobuffers.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
@@ -158,8 +158,8 @@ TEST_F(ShaderTest, CreateNoBuffersDuplicateElements)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test-nobuffers.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test-nobuffers.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
@@ -193,8 +193,8 @@ TEST_F(ShaderTest, CreateTypeMismatch)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
@@ -227,8 +227,8 @@ TEST_F(ShaderTest, CreateMissingVariable)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
@@ -262,8 +262,8 @@ TEST_F(ShaderTest, CreateVariableGroupTypeMismatch)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
@@ -298,8 +298,8 @@ TEST_F(ShaderTest, CreateVariableGroupElementMismatch)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	EXPECT_FALSE(dsShader_createName(resourceManager, NULL, shaderModule, "Test", materialDesc));
@@ -344,8 +344,8 @@ TEST_F(ShaderTest, BindAndUpdate)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
@@ -471,8 +471,8 @@ TEST_F(ShaderTest, BindAndUpdateBuffer)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
@@ -573,8 +573,8 @@ TEST_F(ShaderTest, BindAndUpdateCompute)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
@@ -700,8 +700,8 @@ TEST_F(ShaderTest, BindAndUpdateBufferCompute)
 		elementCount);
 	ASSERT_TRUE(materialDesc);
 
-	dsShaderModule* shaderModule = dsShaderModule_loadFile(resourceManager, NULL,
-		getPath("test.mslb"), "test");
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager, NULL,
+		dsFileResourceType_Embedded, getRelativePath("test.mslb"), "test");
 	ASSERT_TRUE(shaderModule);
 
 	dsShader* shader = dsShader_createName(resourceManager, NULL, shaderModule, "Test",
