@@ -127,25 +127,67 @@ bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 	DS_UNUSED(applicationContext);
 
 #if DS_ANDROID
+	if (!globalContext || !applicationContext)
+	{
+		errno = EINVAL;
+		DS_LOG_ERROR(DS_CORE_LOG_TAG, "No contexts provided to get the AAssetManager.");
+		return false;
+	}
+
+	JNIEnv* env = (JNIEnv*)globalContext;
+	jobject activity = (jobject)applicationContext;
+
+	const jint capacity = 16;
+	if ((*env)->PushLocalFrame(env, capacity) < 0)
+	{
+		errno = ENOMEM;
+		return false;
+	}
+
+	jclass activityClass = (*env)->GetObjectClass(env, activity);
+
 	if (!gAssetManager)
 	{
-		if (!globalContext || !applicationContext)
-		{
-			errno = EINVAL;
-			DS_LOG_ERROR(DS_CORE_LOG_TAG, "No contexts provided to get the AAssetManager.");
-			return false;
-		}
-
-		JNIEnv* env = (JNIEnv*)globalContext;
-		jobject activity = (jobject)applicationContext;
-
-		jclass activityClass = (*env)->GetObjectClass(env, activity);
-
 		jmethodID activity_getAssets = (*env)->GetMethodID(env, activityClass, "getAssets",
 			"()Landroid/content/res/AssetManager;");
 		jobject assetManager = (*env)->CallObjectMethod(env, activity, activity_getAssets);
 		jobject assetManagerRef = (*env)->NewGlobalRef(env, assetManager);
 		gAssetManager = AAssetManager_fromJava(env, assetManagerRef);
+	}
+
+	jstring localDirString = NULL;
+	if (!localDir)
+	{
+		// fileObj = context.getFilesDir();
+		jmethodID activity_getFilesDir = (*env)->GetMethodID(env, activityClass, "getFilesDir",
+			"()Ljava/io/File;");
+		jobject fileObject = (*env)->CallObjectMethod(env, activity, activity_getFilesDir);
+		DS_ASSERT(fileObject);
+
+		// path = fileObject.getCanonicalPath();
+		jmethodID file_getCononicalPath = (*env)->GetMethodID(env, (*env)->GetObjectClass(env,
+			fileObject), "getCanonicalPath", "()Ljava/lang/String;");
+		localDirString = (jstring)(*env)->CallObjectMethod(env, fileObject,
+			file_getCononicalPath);
+		localDir = (*env)->GetStringUTFChars(env, localDirString, NULL);
+	}
+
+	jstring dynamicDirString = NULL;
+	if (!dynamicDir)
+	{
+		// fileObj = context.getExternalFilesDir();
+		jmethodID activity_getExternalFilesDir = (*env)->GetMethodID(env, activityClass,
+			"getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;");
+		jobject fileObject = (*env)->CallObjectMethod(env, activity, activity_getExternalFilesDir,
+			NULL);
+		DS_ASSERT(fileObject);
+
+		// path = fileObject.getCanonicalPath();
+		jmethodID file_getCononicalPath = (*env)->GetMethodID(env, (*env)->GetObjectClass(env,
+			fileObject), "getCanonicalPath", "()Ljava/lang/String;");
+		dynamicDirString = (jstring)(*env)->CallObjectMethod(env, fileObject,
+			file_getCononicalPath);
+		dynamicDir = (*env)->GetStringUTFChars(env, dynamicDirString, NULL);
 	}
 #endif
 
@@ -155,6 +197,14 @@ bool dsResourceStream_setContext(void* globalContext, void* applicationContext,
 		strncpy(gLocalDir, localDir, sizeof(gLocalDir) - 1);
 	if (dynamicDir)
 		strncpy(gDynamicDir, dynamicDir, sizeof(gDynamicDir) - 1);
+
+#if DS_ANDROID
+	if (localDirString)
+		(*env)->ReleaseStringUTFChars(env, localDirString, localDir);
+	if (dynamicDirString)
+		(*env)->ReleaseStringUTFChars(env, dynamicDirString, dynamicDir);
+	(*env)->PopLocalFrame(env, NULL);
+#endif
 
 	return true;
 }

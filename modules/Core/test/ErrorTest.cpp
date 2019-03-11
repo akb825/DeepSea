@@ -30,18 +30,25 @@ TEST(ErrorTest, ErrorString)
 	EXPECT_STREQ("Invalid argument", dsErrorString(EINVAL));
 	EXPECT_STREQ("Not enough space", dsErrorString(ENOMEM));
 	EXPECT_STREQ("Result too large", dsErrorString(ERANGE));
+	EXPECT_STREQ("Unknown error", dsErrorString(-1));
+#elif DS_ANDROID
+	EXPECT_STREQ("Success", dsErrorString(0));
+	EXPECT_STREQ("Invalid argument", dsErrorString(EINVAL));
+	EXPECT_STREQ("Out of memory", dsErrorString(ENOMEM));
+	EXPECT_STREQ("Math result not representable", dsErrorString(ERANGE));
+	EXPECT_STREQ("Unknown error -1", dsErrorString(-1));
 #elif defined(_GNU_SOURCE)
 	EXPECT_STREQ("Success", dsErrorString(0));
 	EXPECT_STREQ("Invalid argument", dsErrorString(EINVAL));
 	EXPECT_STREQ("Cannot allocate memory", dsErrorString(ENOMEM));
 	EXPECT_STREQ("Numerical result out of range", dsErrorString(ERANGE));
+	EXPECT_STREQ("Unknown error", dsErrorString(-1));
 #endif
 
 	EXPECT_STREQ("Index out of range", dsErrorString(EINDEX));
 	EXPECT_STREQ("Invalid size", dsErrorString(ESIZE));
 	EXPECT_STREQ("Invalid file format", dsErrorString(EFORMAT));
 	EXPECT_STREQ("Element not found", dsErrorString(ENOTFOUND));
-	EXPECT_STREQ("Unknown error", dsErrorString(-1));
 }
 
 TEST(ErrorTest, Check)

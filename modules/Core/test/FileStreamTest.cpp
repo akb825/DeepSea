@@ -16,6 +16,8 @@
 
 #include "Helpers.h"
 #include <DeepSea/Core/Streams/FileStream.h>
+#include <DeepSea/Core/Streams/Path.h>
+#include <DeepSea/Core/Streams/ResourceStream.h>
 #include <DeepSea/Core/Streams/Stream.h>
 #include <gtest/gtest.h>
 #include <stdlib.h>
@@ -56,7 +58,11 @@ TEST(FileStream, ReadWriteFileFunctions)
 	dsFileStream stream;
 	int32_t dummyData;
 
-	EXPECT_TRUE(dsFileStream_openPath(&stream, "asdf", "w"));
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path),
+		dsResourceStream_getDirectory(dsFileResourceType_Dynamic), "asdf"));
+
+	ASSERT_TRUE(dsFileStream_openPath(&stream, path, "w"));
 	dummyData = 1;
 	EXPECT_EQ(sizeof(dummyData), dsFileStream_write(&stream, &dummyData, sizeof(dummyData)));
 	dummyData = 2;
@@ -76,8 +82,9 @@ TEST(FileStream, ReadWriteFileFunctions)
 
 	EXPECT_TRUE(dsFileStream_close(&stream));
 
-	FILE* file = fopen("asdf", "r");
-	EXPECT_TRUE(dsFileStream_openFile(&stream, file));
+	FILE* file = fopen(path, "r");
+	ASSERT_TRUE(file);
+	ASSERT_TRUE(dsFileStream_openFile(&stream, file));
 	EXPECT_EQ(sizeof(dummyData), dsFileStream_read(&stream, &dummyData, sizeof(dummyData)));
 	EXPECT_EQ(1, dummyData);
 
@@ -89,7 +96,7 @@ TEST(FileStream, ReadWriteFileFunctions)
 	EXPECT_TRUE(dsFileStream_close(&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsFileStream_close(&stream));
 
-	unlink("asdf");
+	unlink(path);
 }
 
 TEST(FileStream, ReadWriteStreamFunctions)
@@ -97,7 +104,11 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	dsFileStream stream;
 	int32_t dummyData;
 
-	EXPECT_TRUE(dsFileStream_openPath(&stream, "asdf", "w"));
+	char path[DS_PATH_MAX];
+	ASSERT_TRUE(dsPath_combine(path, sizeof(path),
+		dsResourceStream_getDirectory(dsFileResourceType_Dynamic), "asdf"));
+
+	ASSERT_TRUE(dsFileStream_openPath(&stream, path, "w"));
 	dummyData = 1;
 	EXPECT_EQ(sizeof(dummyData), dsStream_write((dsStream*)&stream, &dummyData, sizeof(dummyData)));
 	dummyData = 2;
@@ -117,8 +128,8 @@ TEST(FileStream, ReadWriteStreamFunctions)
 
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
 
-	FILE* file = fopen("asdf", "r");
-	EXPECT_TRUE(dsFileStream_openFile(&stream, file));
+	FILE* file = fopen(path, "r");
+	ASSERT_TRUE(dsFileStream_openFile(&stream, file));
 	EXPECT_EQ(sizeof(dummyData), dsStream_read((dsStream*)&stream, &dummyData, sizeof(dummyData)));
 	EXPECT_EQ(1, dummyData);
 
@@ -141,5 +152,5 @@ TEST(FileStream, ReadWriteStreamFunctions)
 	EXPECT_TRUE(dsStream_close((dsStream*)&stream));
 	EXPECT_FALSE_ERRNO(EINVAL, dsStream_close((dsStream*)&stream));
 
-	unlink("asdf");
+	unlink(path);
 }

@@ -214,6 +214,17 @@ macro(ds_add_executable target)
 	endif()
 endmacro()
 
+macro(ds_add_unittest target)
+	if (ANDROID)
+		add_library(${target} SHARED ${ARGN} ${DEEPSEA_SOURCE_DIR}/external/gtest/AndroidMain.cpp)
+	else()
+		add_executable(${target} ${ARGN})
+	endif()
+
+	target_include_directories(${target} PRIVATE ${GTEST_INCLUDE_DIRS})
+	target_link_libraries(${target} PRIVATE ${GTEST_BOTH_LIBRARIES})
+endmacro()
+
 macro(ds_target_link_libraries target)
 	if (DEEPSEA_SINGLE_SHARED)
 		set_property(GLOBAL APPEND PROPERTY DEEPSEA_EXTERNAL_LIBRARIES ${ARGN})

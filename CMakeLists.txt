@@ -46,16 +46,6 @@ set(DEEPSEA_ANDROID_ASSETS_DIR src/main/assets CACHE PATH
 	"Folder relative to project app directory to place assets for Android.")
 set(DEEPSEA_NO_PREBUILT_LIBS OFF CACHE BOOL "Don't use any pre-built library dependencies.")
 
-# Call this function to get the following variables:
-# DEEPSEA_SOURCE_DIR: Root source directory for DeepSea.
-# DEEPSEA_MODULE_DIR: Root directory for the modules of DeepSea.
-# DEEPSEA_MODULES: The list of mudles. These can be used as paths relative to DEEPSEA_MODULE_DIR.
-macro(ds_get_variables)
-	get_property(DEEPSEA_SOURCE_DIR GLOBAL PROPERTY DEEPSEA_SOURCE_DIR)
-	get_property(DEEPSEA_MODULE_DIR GLOBAL PROPERTY DEEPSEA_MODULE_DIR)
-	get_property(DEEPSEA_MODULES GLOBAL PROPERTY DEEPSEA_MODULES)
-endmacro()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (DEEPSEA_SHARED)
@@ -77,8 +67,6 @@ set(DEEPSEA_VERSION ${DEEPSEA_MAJOR_VERSION}.${DEEPSEA_MINOR_VERSION}.${DEEPSEA_
 
 set(DEEPSEA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(DEEPSEA_MODULE_DIR ${DEEPSEA_SOURCE_DIR}/modules)
-set_property(GLOBAL PROPERTY DEEPSEA_SOURCE_DIR ${DEEPSEA_SOURCE_DIR})
-set_property(GLOBAL PROPERTY DEEPSEA_MODULE_DIR ${DEEPSEA_MODULE_DIR})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${DEEPSEA_SOURCE_DIR}/cmake)
 include(cmake/config.cmake)
