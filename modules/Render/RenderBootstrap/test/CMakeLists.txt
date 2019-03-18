@@ -48,8 +48,8 @@ add_custom_target(deepsea_render_bootstrap_assets
 add_dependencies(deepsea_render_bootstrap_test deepsea_render_bootstrap_assets)
 
 ds_set_folder(deepsea_render_bootstrap_test tests/unit)
-ds_set_folder(deepsea_render_bootstrap_test_prepare tests/unit)
-ds_set_folder(deepsea_render_bootstrap_test_shaders tests/unit)
-ds_set_folder(deepsea_render_bootstrap_assets tests/unit)
+ds_set_folder(deepsea_render_bootstrap_test_prepare tests/unit/Resources)
+ds_set_folder(deepsea_render_bootstrap_test_shaders tests/unit/Resources)
+ds_set_folder(deepsea_render_bootstrap_assets tests/unit/Resources)
 
 add_test(NAME DeepSeaRenderBootstrapTest COMMAND deepsea_render_bootstrap_test)
