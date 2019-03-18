@@ -154,13 +154,25 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
 		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
 	};
-	dsMatrix44f projection;
-	ASSERT_TRUE(dsRenderer_makeOrtho(&projection, renderer, -0.16666f, 1.16666f, -0.16666f,
-		1.16666f, 0.0f, 1.0f));
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
 		dsGfxBufferUsage_Vertex, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw), vertices,
 		sizeof(vertices));
 	ASSERT_TRUE(buffer);
+
+	Vertex otherVertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{255, 255, 255, 255}}},
+		{{{1.0f, 0.0f}}, {{0, 255, 255, 255}}},
+		{{{1.0f, 1.0f}}, {{255, 255, 0, 255}}},
+
+		{{{1.0f, 1.0f}}, {{255, 255, 0, 255}}},
+		{{{0.0f, 1.0f}}, {{255, 0, 255, 255}}},
+		{{{0.0f, 0.0f}}, {{255, 255, 255, 255}}}
+	};
+	dsGfxBuffer* otherBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw),
+		otherVertices, sizeof(otherVertices));
+	ASSERT_TRUE(otherBuffer);
 
 	dsVertexFormat format;
 	EXPECT_TRUE(dsVertexFormat_initialize(&format));
@@ -176,12 +188,25 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
 	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
 
-	dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
-	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
-		nullptr, nullptr};
-	dsDrawGeometry* drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
-		vertexBuffers, nullptr);
-	ASSERT_TRUE(drawGeometry);
+	dsDrawGeometry* drawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(drawGeometry);
+	}
+
+	dsDrawGeometry* otherDrawGeometry;
+	{
+		dsVertexBuffer vertexBuffer = {otherBuffer, 0, 6, format};
+		dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+			nullptr, nullptr};
+		otherDrawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+			vertexBuffers, nullptr);
+		ASSERT_TRUE(otherDrawGeometry);
+	}
 
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 1.0f;
@@ -225,6 +250,41 @@ TEST_P(RendererFunctionalTest, ReadFromOffscreen)
 	EXPECT_EQ(0, colors[3].b);
 	EXPECT_EQ(255, colors[3].a);
 
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		&clearValue, 1));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, otherDrawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(0, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	EXPECT_EQ(255, colors[1].r);
+	EXPECT_EQ(255, colors[1].g);
+	EXPECT_EQ(0, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(255, colors[2].r);
+	EXPECT_EQ(255, colors[2].g);
+	EXPECT_EQ(255, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(0, colors[3].r);
+	EXPECT_EQ(255, colors[3].g);
+	EXPECT_EQ(255, colors[3].b);
+	EXPECT_EQ(255, colors[3].a);
+
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsDrawGeometry_destroy(otherDrawGeometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
+	EXPECT_TRUE(dsGfxBuffer_destroy(otherBuffer));
 }

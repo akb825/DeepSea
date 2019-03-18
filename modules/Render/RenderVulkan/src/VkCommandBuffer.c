@@ -79,9 +79,9 @@ static VkCommandBuffer getMainCommandBuffer(dsCommandBuffer* commandBuffer)
 }
 
 static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask, VkImageLayout layout)
+	VkImageAspectFlags aspectMask)
 {
-	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
 	if (!imageBarrier)
 		return false;
 
@@ -89,7 +89,7 @@ static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage
 	imageBarrier->pNext = NULL;
 	imageBarrier->srcAccessMask = VK_ACCESS_HOST_READ_BIT;
 	imageBarrier->dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	imageBarrier->oldLayout = layout;
+	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imageBarrier->newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -103,9 +103,9 @@ static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage
 }
 
 static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage image,
-	VkImageAspectFlags aspectMask, VkImageLayout layout)
+	VkImageAspectFlags aspectMask)
 {
-	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
 	if (!imageBarrier)
 		return false;
 
@@ -114,7 +114,7 @@ static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage i
 	imageBarrier->srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	imageBarrier->dstAccessMask = VK_ACCESS_HOST_READ_BIT;
 	imageBarrier->oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	imageBarrier->newLayout = layout;
+	imageBarrier->newLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imageBarrier->srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	imageBarrier->image = image;
@@ -141,7 +141,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
-		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
 		if (!imageBarrier)
 			return false;
 
@@ -166,18 +166,15 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 		if (vkOffscreen->hostImage)
 		{
-			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask,
-					layout))
-			{
+			if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
 				return false;
-			}
 		}
 		else
 		{
 			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
 			{
 				if (!addOffscreenHostBeginBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-						aspectMask, layout))
+						aspectMask))
 				{
 					return false;
 				}
@@ -185,10 +182,10 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		}
 	}
 
-	VkPipelineStageFlags stages = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
-		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
-		VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	VkPipelineStageFlags stages = VK_PIPELINE_STAGE_TRANSFER_BIT |
+		VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	if (renderer->hasTessellationShaders)
 	{
 		stages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
@@ -303,7 +300,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		DS_ASSERT(offscreen->offscreen);
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
-		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
+		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addCopyImageBarrier(commandBuffer);
 		if (!imageBarrier)
 			return false;
 
@@ -328,18 +325,15 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 
 		if (vkOffscreen->hostImage)
 		{
-			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask,
-					layout))
-			{
+			if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImage, aspectMask))
 				return false;
-			}
 		}
 		else
 		{
 			for (uint32_t i = 0; i < vkOffscreen->hostImageCount; ++i)
 			{
 				if (!addOffscreenHostEndBarrier(commandBuffer, vkOffscreen->hostImages[i].image,
-						aspectMask, layout))
+						aspectMask))
 				{
 					return false;
 				}
@@ -347,8 +341,8 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		}
 	}
 
-	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, stages,
-		VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT, 0, 0, NULL, 0, NULL,
+	DS_VK_CALL(device->vkCmdPipelineBarrier)(renderCommands, VK_PIPELINE_STAGE_TRANSFER_BIT,
+		VK_PIPELINE_STAGE_HOST_BIT | stages, 0, 0, NULL, 0, NULL,
 		vkCommandBuffer->copyImageBarrierCount, vkCommandBuffer->copyImageBarriers);
 	vkCommandBuffer->copyImageBarrierCount = 0;
 
