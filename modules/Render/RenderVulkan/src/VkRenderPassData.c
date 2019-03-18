@@ -121,7 +121,8 @@ static void findPreserveAttachments(uint32_t* outCount, uint32_t* outAttachments
 	{
 		const VkSubpassDependency* dependency = dependencies + i;
 		if (dependency->dstSubpass != curDependency ||
-			dependency->srcSubpass == curSubpass)
+			dependency->srcSubpass == curSubpass ||
+			dependency->srcSubpass == DS_EXTERNAL_SUBPASS)
 		{
 			continue;
 		}

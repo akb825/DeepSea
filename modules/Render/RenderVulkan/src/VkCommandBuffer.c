@@ -82,7 +82,7 @@ static bool addOffscreenHostBeginBarrier(dsCommandBuffer* commandBuffer, VkImage
 	VkImageAspectFlags aspectMask, VkImageLayout layout)
 {
 	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-	if (imageBarrier)
+	if (!imageBarrier)
 		return false;
 
 	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -106,7 +106,7 @@ static bool addOffscreenHostEndBarrier(dsCommandBuffer* commandBuffer, VkImage i
 	VkImageAspectFlags aspectMask, VkImageLayout layout)
 {
 	VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-	if (imageBarrier)
+	if (!imageBarrier)
 		return false;
 
 	imageBarrier->sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -142,7 +142,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-		if (imageBarrier)
+		if (!imageBarrier)
 			return false;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);
@@ -304,7 +304,7 @@ static bool processOffscreenReadbacks(dsCommandBuffer* commandBuffer,
 		const dsTextureInfo* info = &offscreen->info;
 		dsVkTexture* vkOffscreen = (dsVkTexture*)offscreen;
 		VkImageMemoryBarrier* imageBarrier = dsVkCommandBuffer_addImageBarrier(commandBuffer);
-		if (imageBarrier)
+		if (!imageBarrier)
 			return false;
 
 		VkImageAspectFlags aspectMask = dsVkImageAspectFlags(info->format);

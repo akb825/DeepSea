@@ -33,3 +33,5 @@ ds_target_compile_definitions(deepsea_render_bootstrap PUBLIC ${implDefines})
 
 ds_install_library(TARGET deepsea_render_bootstrap MODULE RenderBootstrap
 	DEPENDS Render ${moduleDependencies})
+
+add_subdirectory(test)
