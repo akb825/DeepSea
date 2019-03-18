@@ -82,6 +82,19 @@ android {
             resValue "string", "app_name", "RenderMockUnitTests"
         }
 
+        RenderBootstrapUnitTests {
+            externalNativeBuild {
+                cmake {
+                    targets "deepsea_render_bootstrap_test"
+                }
+            }
+            dimension "unittest"
+
+            applicationIdSuffix ".render_bootstrap"
+            versionNameSuffix "-RenderBootstrap"
+            resValue "string", "app_name", "RenderBootstrapUnitTests"
+        }
+
         TextUnitTests {
             externalNativeBuild {
                 cmake {

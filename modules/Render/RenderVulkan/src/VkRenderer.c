@@ -1504,10 +1504,10 @@ static VkSemaphore preFlush(dsRenderer* renderer, bool readback, bool useSemapho
 	DS_PROFILE_SCOPE_END();
 
 	// Clean up the previous command buffer.
-	dsVkCommandBuffer_submittedResources(submitBuffer, vkRenderer->submitCount);
-	dsVkCommandBuffer_submittedRenderSurfaces(submitBuffer, vkRenderer->submitCount);
+	dsVkCommandBuffer_submittedResources(submitBuffer, submit->submitIndex);
+	dsVkCommandBuffer_submittedRenderSurfaces(submitBuffer, submit->submitIndex);
 	if (readback)
-		dsVkCommandBuffer_submittedReadbackOffscreens(submitBuffer, vkRenderer->submitCount);
+		dsVkCommandBuffer_submittedReadbackOffscreens(submitBuffer, submit->submitIndex);
 
 	return submittedSemaphore;
 }
@@ -2381,8 +2381,11 @@ dsGfxFenceResult dsVkRenderer_waitForSubmit(dsRenderer* renderer, uint64_t submi
 	for (uint32_t i = 0; i < DS_MAX_SUBMITS; ++i)
 	{
 		dsVkSubmitInfo* submit = vkRenderer->submits + i;
-		if (submit->submitIndex < submitCount)
+		if (submit->submitIndex > vkRenderer->finishedSubmitCount &&
+			submit->submitIndex <= submitCount)
+		{
 			fences[fenceCount++] = submit->fence;
+		}
 	}
 	DS_VERIFY(dsMutex_unlock(vkRenderer->submitLock));
 
