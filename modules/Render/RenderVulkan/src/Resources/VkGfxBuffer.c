@@ -116,7 +116,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 
 	bufferData->mappedStart = offset;
 	bufferData->mappedSize = size;
-	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) != 0;
+	bufferData->mappedWrite = (flags & dsGfxBufferMap_Write) != 0 &&
+		(flags & dsGfxBufferMap_Persistent) == 0;
 	uint64_t lastUsedSubmit = bufferData->resource.lastUsedSubmit;
 
 	// Wait for the submitted command to be finished when reading.
@@ -167,6 +168,21 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		return NULL;
 	}
 
+	// Invalidate range for reading if not coherent.
+	if (!bufferData->hostMemoryCoherent && (flags & dsGfxBufferMap_Read) &&
+		!(flags & dsGfxBufferMap_Persistent) && lastUsedSubmit != DS_NOT_SUBMITTED)
+	{
+		VkMappedMemoryRange range =
+		{
+			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+			NULL,
+			bufferData->hostMemory,
+			offset,
+			size
+		};
+		DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
+	}
+
 	DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 	DS_VERIFY(dsSpinlock_unlock(&vkBuffer->lock));
 	return memory;
@@ -193,14 +209,30 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 	}
 
 	// Need to mark the range as dirty to copy to the GPU when next used.
-	if (bufferData->mappedWrite && bufferData->deviceMemory && !bufferData->needsInitialCopy)
+	if (bufferData->mappedWrite && bufferData->deviceMemory)
 	{
-		uint32_t rangeIndex = bufferData->dirtyRangeCount;
-		if (DS_RESIZEABLE_ARRAY_ADD(bufferData->scratchAllocator, bufferData->dirtyRanges,
-			bufferData->dirtyRangeCount, bufferData->maxDirtyRanges, 1))
+		if (!bufferData->needsInitialCopy)
 		{
-			bufferData->dirtyRanges[rangeIndex].start = bufferData->mappedStart;
-			bufferData->dirtyRanges[rangeIndex].size = bufferData->mappedSize;
+			uint32_t rangeIndex = bufferData->dirtyRangeCount;
+			if (DS_RESIZEABLE_ARRAY_ADD(bufferData->scratchAllocator, bufferData->dirtyRanges,
+				bufferData->dirtyRangeCount, bufferData->maxDirtyRanges, 1))
+			{
+				bufferData->dirtyRanges[rangeIndex].start = bufferData->mappedStart;
+				bufferData->dirtyRanges[rangeIndex].size = bufferData->mappedSize;
+			}
+		}
+
+		if (!bufferData->hostMemoryCoherent)
+		{
+			VkMappedMemoryRange range =
+			{
+				VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+				NULL,
+				bufferData->hostMemory,
+				bufferData->mappedStart,
+				bufferData->mappedSize
+			};
+			DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
 		}
 	}
 

@@ -153,6 +153,14 @@ VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	return memory;
 }
 
+bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex)
+{
+	const VkPhysicalDeviceMemoryProperties* memoryProperties = &device->memoryProperties;
+	const VkMemoryType* memoryType = memoryProperties->memoryTypes + memoryIndex;
+	return (memoryProperties->memoryHeaps[memoryType->heapIndex].flags &
+		VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
+}
+
 VkSampleCountFlagBits dsVkSampleCount(uint32_t sampleCount)
 {
 	if (sampleCount <= 1)

@@ -233,6 +233,18 @@ dsVkCopyImage* dsVkCopyImage_create(dsAllocator* allocator, dsVkDevice* device, 
 			memcpy(dstBytes, srcBytes, pitch);
 	}
 
+	if (!dsVkHeapIsCoherent(device, memoryIndex))
+	{
+		VkMappedMemoryRange range =
+		{
+			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+			NULL,
+			copyImage->memory,
+			0,
+			VK_WHOLE_SIZE
+		};
+		DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
+	}
 	DS_VK_CALL(device->vkUnmapMemory)(device->device, copyImage->memory);
 
 	// Create the copy regions.

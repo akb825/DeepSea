@@ -56,6 +56,8 @@ DS_RENDER_EXPORT dsGfxBuffer* dsGfxBuffer_create(dsResourceManager* resourceMana
 
 /**
  * @brief Maps a range of a graphics buffer to memory.
+ * @remark When mapping in persistent mode and the memory type isn't coherent, this will NOT
+ *     implicitly invalidate the mapped range for readback.
  * @remark errno will be set on failure.
  * @param buffer The buffer to map.
  * @param flags The flags describing how to map the memory. This should be a combination of
@@ -71,6 +73,8 @@ DS_RENDER_EXPORT void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags
 
 /**
  * @brief Unmaps previously mapped memory from a graphics buffer.
+ * @remark When mapping in persistent mode and the memory type isn't coherent, this will NOT
+ *     implicitly flush the mapped range for writing.
  * @remark errno will be set on failure.
  * @param buffer The buffer to unmap.
  * @return False if the memory couldn't be unmapped.

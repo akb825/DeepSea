@@ -169,6 +169,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			dsVkGfxBufferData_destroy(buffer);
 			return NULL;
 		}
+
+		buffer->hostMemoryCoherent = dsVkHeapIsCoherent(device, hostMemoryIndex);
 	}
 
 	// Check if the device and host memory are the same. If so, only create a single buffer.
@@ -263,6 +265,18 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 		}
 
 		memcpy(mappedData, data, size);
+		if (!buffer->hostMemoryCoherent)
+		{
+			VkMappedMemoryRange range =
+			{
+				VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+				NULL,
+				buffer->hostMemory,
+				0,
+				VK_WHOLE_SIZE
+			};
+			DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
+		}
 		DS_VK_CALL(device->vkUnmapMemory)(device->device, buffer->hostMemory);
 		buffer->needsInitialCopy = true;
 	}

@@ -188,6 +188,8 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	if (!texture->hostMemory)
 		return false;
 
+	texture->hostMemoryCoherent = dsVkHeapIsCoherent(device, memoryIndex);
+
 	// Share the same block of memory for all host images.
 	if (texture->hostImage)
 	{
@@ -262,6 +264,18 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 			}
 		}
 
+		if (!texture->hostMemoryCoherent)
+		{
+			VkMappedMemoryRange range =
+			{
+				VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+				NULL,
+				texture->hostMemory,
+				0,
+				VK_WHOLE_SIZE
+			};
+			DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
+		}
 		DS_VK_CALL(device->vkUnmapMemory)(device->device, texture->hostMemory);
 	}
 
@@ -1084,6 +1098,21 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 		hostImage->offset + hostImage->layout.offset, hostImage->layout.size, 0, &imageMemory);
 	if (!dsHandleVkResult(vkResult))
 		return false;
+
+	if (!vkTexture->hostMemoryCoherent)
+	{
+		VkMappedMemoryRange range =
+		{
+			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
+			NULL,
+			vkTexture->hostMemory,
+			hostImage->offset + hostImage->layout.offset,
+			hostImage->layout.size
+		};
+		vkResult = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
+		if (!dsHandleVkResult(vkResult))
+			return false;
+	}
 
 	unsigned int blockX, blockY;
 	if (!dsGfxFormat_blockDimensions(&blockX, &blockY, info->format))

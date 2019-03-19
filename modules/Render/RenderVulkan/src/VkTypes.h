@@ -288,6 +288,7 @@ typedef struct dsVkGfxBufferData
 	bool mappedWrite;
 
 	bool keepHost;
+	bool hostMemoryCoherent;
 	bool used;
 	bool needsInitialCopy;
 } dsVkGfxBufferData;
@@ -338,6 +339,7 @@ typedef struct dsVkTexture
 	VkDeviceMemory hostMemory;
 	VkImage hostImage;
 	uint32_t hostImageCount;
+	bool hostMemoryCoherent;
 	dsVkHostImage* hostImages;
 	uint64_t uploadedSubmit;
 	void* submitQueue;
