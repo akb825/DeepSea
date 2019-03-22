@@ -1055,8 +1055,8 @@ bool dsVkTexture_generateMipmaps(dsResourceManager* resourceManager, dsCommandBu
 		{
 			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 			NULL,
-			dsVkReadImageAccessFlags(texture->usage),
 			VK_ACCESS_TRANSFER_WRITE_BIT,
+			accessFlags,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			layout,
 			VK_QUEUE_FAMILY_IGNORED,

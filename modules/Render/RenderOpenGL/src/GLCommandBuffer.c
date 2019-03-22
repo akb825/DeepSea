@@ -363,7 +363,7 @@ bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* sr
 
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
 {
-	DS_ASSERT(insideRenderPass(commandBuffer));
+	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->generateTextureMipmapsFunc(commandBuffer, texture);
 }
