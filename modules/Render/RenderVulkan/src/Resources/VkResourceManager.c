@@ -761,10 +761,10 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->minNonCoherentMappingAlignment = (uint32_t)limits->nonCoherentAtomSize;
 	baseResourceManager->minTextureBufferAlignment =
 		(uint32_t)limits->minTexelBufferOffsetAlignment;
-	baseResourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
-		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_UniformBlock |
-		dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image | dsGfxBufferUsage_MutableImage |
-		dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo);
+	baseResourceManager->supportedBuffers = dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex |
+		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
+		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image |
+		dsGfxBufferUsage_MutableImage | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
 	baseResourceManager->hasTextureBufferSubrange = true;
