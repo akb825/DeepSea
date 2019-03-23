@@ -132,7 +132,7 @@ typedef enum dsGfxBufferMap
 {
 	dsGfxBufferMap_Read = 0x1,       ///< Read data from the buffer.
 	dsGfxBufferMap_Write = 0x2,      ///< Write data to the buffer.
-	dsGfxBufferMap_Invalidate = 0x4, ///< Invalidate the contents of the buffer.
+	dsGfxBufferMap_Orphan = 0x4,     ///< Orphan the contents of the buffer to replace the data.
 	dsGfxBufferMap_Persistent = 0x8  ///< Allow the buffer to remain locked.
 } dsGfxBufferMap;
 
@@ -1799,9 +1799,9 @@ struct dsResourceManager
 	uint32_t minNonCoherentMappingAlignment;
 
 	/**
-	 * @brief The minimum alignment for texture buffers.
+	 * @brief The minimum alignment for image buffers.
 	 */
-	uint32_t minTextureBufferAlignment;
+	uint32_t minImageBufferAlignment;
 
 	/**
 	 * @brief Bitmask for the supported buffer types.
@@ -1819,9 +1819,9 @@ struct dsResourceManager
 	bool canCopyBuffers;
 
 	/**
-	 * @brief Whether or not texture buffers can be a subrange of the buffer.
+	 * @brief Whether or not image buffers can be a subrange of the buffer.
 	 */
-	bool hasTextureBufferSubrange;
+	bool hasImageBufferSubrange;
 
 	/**
 	 * @brief The maximum size for each index in bytes.
@@ -1834,9 +1834,9 @@ struct dsResourceManager
 	size_t maxUniformBlockSize;
 
 	/**
-	 * @brief The maximum number of elements in a texture buffer.
+	 * @brief The maximum number of elements in a image buffer.
 	 */
-	size_t maxTextureBufferElements;
+	size_t maxImageBufferElements;
 
 	/**
 	 * @brief The maximum number of vertex attributes.
@@ -2072,9 +2072,9 @@ struct dsResourceManager
 	dsFormatSupportedFunction offscreenFormatSupportedFunc;
 
 	/**
-	 * @brief Texture buffer format supported function.
+	 * @brief Image buffer format supported function.
 	 */
-	dsFormatSupportedFunction textureBufferFormatSupportedFunc;
+	dsFormatSupportedFunction imageBufferFormatSupportedFunc;
 
 	/**
 	 * @brief Texture mipmap generation validity check function.

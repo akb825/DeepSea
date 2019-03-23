@@ -92,7 +92,7 @@ TEST_F(VolatileMaterialValuesTest, Textures)
 	EXPECT_TRUE(dsTexture_destroy(texture2));
 }
 
-TEST_F(VolatileMaterialValuesTest, TextureBuffers)
+TEST_F(VolatileMaterialValuesTest, ImageBuffers)
 {
 	dsVolatileMaterialValues* values = dsVolatileMaterialValues_create((dsAllocator*)&allocator,
 		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
@@ -114,54 +114,54 @@ TEST_F(VolatileMaterialValuesTest, TextureBuffers)
 	ASSERT_TRUE(buffer3);
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 24,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1, format, 24,
 		256));
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1,
 		dsGfxFormat_BC1_RGB, 0, 256));
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer3,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer3,
 		format, 0, 256));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format,
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1, format,
 		0, 256));
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferId(values, dsHashString("test2"), buffer2,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferId(values, dsHashString("test2"), buffer2,
 		format, 24, 20));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferId(values, dsHashString("test2"), buffer2,
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferId(values, dsHashString("test2"), buffer2,
 		format, 32, 20));
 
 	EXPECT_EQ(2U, dsVolatileMaterialValues_getValueCount(values));
 
 	dsGfxFormat storedFormat;
 	size_t offset, count;
-	EXPECT_EQ(buffer1, dsVolatileMaterialValues_getTextureBufferId(&storedFormat, &offset, &count,
+	EXPECT_EQ(buffer1, dsVolatileMaterialValues_getImageBufferId(&storedFormat, &offset, &count,
 		values, dsHashString("test1")));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(0U, offset);
 	EXPECT_EQ(256U, count);
 
-	EXPECT_EQ(buffer2, dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
+	EXPECT_EQ(buffer2, dsVolatileMaterialValues_getImageBufferName(&storedFormat, &offset, &count,
 		values, "test2"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(32U, offset);
 	EXPECT_EQ(20U, count);
 
-	EXPECT_FALSE(dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
+	EXPECT_FALSE(dsVolatileMaterialValues_getImageBufferName(&storedFormat, &offset, &count,
 		values, "asdf"));
-	EXPECT_FALSE(dsVolatileMaterialValues_getTextureBufferId(&storedFormat, &offset, &count, values,
+	EXPECT_FALSE(dsVolatileMaterialValues_getImageBufferId(&storedFormat, &offset, &count, values,
 		dsHashString("asdf")));
 	EXPECT_FALSE(dsVolatileMaterialValues_getTextureName(values, "test1"));
 	EXPECT_FALSE(dsVolatileMaterialValues_getVariableGroupName(values, "test1"));
 
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer2, format, 32,
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer2, format, 32,
 		96));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test2", buffer1, format, 0,
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferName(values, "test2", buffer1, format, 0,
 		128));
 
-	EXPECT_EQ(buffer2, dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
+	EXPECT_EQ(buffer2, dsVolatileMaterialValues_getImageBufferName(&storedFormat, &offset, &count,
 		values, "test1"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(32U, offset);
 	EXPECT_EQ(96U, count);
 
-	EXPECT_EQ(buffer1, dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset, &count,
+	EXPECT_EQ(buffer1, dsVolatileMaterialValues_getImageBufferName(&storedFormat, &offset, &count,
 		values, "test2"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(0U, offset);
@@ -173,20 +173,20 @@ TEST_F(VolatileMaterialValuesTest, TextureBuffers)
 	EXPECT_FALSE(dsVolatileMaterialValues_removeValueId(values, dsHashString("test2")));
 
 	EXPECT_EQ(0U, dsVolatileMaterialValues_getValueCount(values));
-	EXPECT_FALSE(dsVolatileMaterialValues_getTextureBufferName(NULL, NULL, NULL, values, "test1"));
-	EXPECT_FALSE(dsVolatileMaterialValues_getTextureBufferName(NULL, NULL, NULL, values, "test2"));
+	EXPECT_FALSE(dsVolatileMaterialValues_getImageBufferName(NULL, NULL, NULL, values, "test1"));
+	EXPECT_FALSE(dsVolatileMaterialValues_getImageBufferName(NULL, NULL, NULL, values, "test2"));
 
-	resourceManager->maxTextureBufferElements = 128;
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
+	resourceManager->maxImageBufferElements = 128;
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1, format, 0,
 		256));
 
-	resourceManager->maxTextureBufferElements = 16*1024*1024;
-	resourceManager->hasTextureBufferSubrange = false;
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 4,
+	resourceManager->maxImageBufferElements = 16*1024*1024;
+	resourceManager->hasImageBufferSubrange = false;
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1, format, 4,
 		255));
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "test1", buffer1, format, 0,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "test1", buffer1, format, 0,
 		255));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "test", buffer1, format, 0,
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferName(values, "test", buffer1, format, 0,
 		256));
 
 	dsVolatileMaterialValues_destroy(values);
@@ -340,10 +340,10 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 		&texInfo, NULL, 0);
 	ASSERT_TRUE(texture);
 
-	dsGfxBuffer* textureBuffer = dsGfxBuffer_create(resourceManager, NULL,
+	dsGfxBuffer* imageBuffer = dsGfxBuffer_create(resourceManager, NULL,
 		(dsGfxBufferUsage)(dsGfxBufferUsage_Image | dsGfxBufferUsage_CopyTo), dsGfxMemory_Static,
 		NULL, 1024);
-	ASSERT_TRUE(textureBuffer);
+	ASSERT_TRUE(imageBuffer);
 
 	dsShaderVariableElement elements[] =
 	{
@@ -365,8 +365,8 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 
 	dsGfxFormat format = dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
 	EXPECT_TRUE(dsVolatileMaterialValues_setTextureName(values, "texture", texture));
-	EXPECT_TRUE(dsVolatileMaterialValues_setTextureBufferName(values, "texture buffer",
-		textureBuffer, format, 0, 256));
+	EXPECT_TRUE(dsVolatileMaterialValues_setImageBufferName(values, "image buffer",
+		imageBuffer, format, 0, 256));
 	EXPECT_TRUE(dsVolatileMaterialValues_setVariableGroupName(values, "variable group",
 		variableGroup));
 	EXPECT_TRUE(dsVolatileMaterialValues_setBufferName(values, "buffer", buffer, 0, 128));
@@ -375,8 +375,8 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 	dsGfxFormat storedFormat;
 	size_t offset, size;
 	EXPECT_EQ(texture, dsVolatileMaterialValues_getTextureName(values, "texture"));
-	EXPECT_EQ(textureBuffer, dsVolatileMaterialValues_getTextureBufferName(&storedFormat, &offset,
-		&size, values, "texture buffer"));
+	EXPECT_EQ(imageBuffer, dsVolatileMaterialValues_getImageBufferName(&storedFormat, &offset,
+		&size, values, "image buffer"));
 	EXPECT_EQ(format, storedFormat);
 	EXPECT_EQ(0U, offset);
 	EXPECT_EQ(256U, size);
@@ -387,14 +387,14 @@ TEST_F(VolatileMaterialValuesTest, MixedTypes)
 	EXPECT_EQ(128U, size);
 
 	EXPECT_FALSE(dsVolatileMaterialValues_setTextureName(values, "buffer", texture));
-	EXPECT_FALSE(dsVolatileMaterialValues_setTextureBufferName(values, "texture", textureBuffer,
+	EXPECT_FALSE(dsVolatileMaterialValues_setImageBufferName(values, "texture", imageBuffer,
 		format, 0, 128));
 	EXPECT_FALSE(dsVolatileMaterialValues_setVariableGroupName(values, "buffer", variableGroup));
 	EXPECT_FALSE(dsVolatileMaterialValues_setBufferName(values, "texture", buffer, 0, 128));
 
 	dsVolatileMaterialValues_destroy(values);
 	EXPECT_TRUE(dsTexture_destroy(texture));
-	EXPECT_TRUE(dsGfxBuffer_destroy(textureBuffer));
+	EXPECT_TRUE(dsGfxBuffer_destroy(imageBuffer));
 	EXPECT_TRUE(dsShaderVariableGroup_destroy(variableGroup));
 	EXPECT_TRUE(dsShaderVariableGroupDesc_destroy(desc));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));

@@ -817,8 +817,11 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			errno = EINDEX;
 			return NULL;
 		}
-		if (uniform.uniformType != mslUniformType_SampledImage)
+		if (uniform.uniformType != mslUniformType_SampledImage ||
+			uniform.samplerIndex == MSL_UNKNOWN)
+		{
 			continue;
+		}
 
 		++samplerCount;
 		mslSamplerState sampler;

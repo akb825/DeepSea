@@ -28,11 +28,14 @@ add_custom_target(deepsea_render_bootstrap_test_prepare
 	COMMAND ${CMAKE_COMMAND} -E make_directory ${shaderDir})
 
 set(shaderSourceDir ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
+ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreen.msl
+	OUTPUT WriteOffscreen.mslb CONFIG ${shaderConfigs} ${computeShaderConfigs}
+	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteBuffer.msl
 	OUTPUT WriteBuffer.mslb CONFIG ${computeShaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
-ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreen.msl
-	OUTPUT WriteOffscreen.mslb CONFIG ${shaderConfigs} ${computeShaderConfigs}
+ds_compile_shaders(shaders FILE ${shaderSourceDir}/CopyImageBuffer.msl
+	OUTPUT CopyImageBuffer.mslb CONFIG ${computeShaderConfigs}
 	OUTPUT_DIR ${shaderDir} INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
 ds_compile_shaders_target(deepsea_render_bootstrap_test_shaders shaders
 	DEPENDS deepsea_render_bootstrap_test_prepare)

@@ -29,7 +29,7 @@
 typedef enum Type
 {
 	Type_Texture,
-	Type_TextureBuffer,
+	Type_ImageBuffer,
 	Type_ShaderVariableGroup,
 	Type_Buffer
 } Type;
@@ -112,17 +112,17 @@ static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type typ
 	return true;
 }
 
-static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
+static bool canUseImageBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t offset,
 	size_t count)
 {
 	if (!buffer)
 		return true;
 
 	dsResourceManager* resourceManager = buffer->resourceManager;
-	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
+	if (!dsGfxFormat_imageBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for image buffers.");
 		return false;
 	}
 
@@ -141,29 +141,29 @@ static bool canUseTextureBuffer(dsGfxBuffer* buffer, dsGfxFormat format, size_t 
 		return false;
 	}
 
-	if (!resourceManager->hasTextureBufferSubrange && (offset != 0 ||
+	if (!resourceManager->hasImageBufferSubrange && (offset != 0 ||
 		count*formatSize != buffer->size))
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Current target doesn't support using a subrange of a texture buffer.");
+			"Current target doesn't support using a subrange of a image buffer.");
 		return false;
 	}
 
-	if (resourceManager->minTextureBufferAlignment > 0 &&
-		(offset % resourceManager->minTextureBufferAlignment) != 0)
+	if (resourceManager->minImageBufferAlignment > 0 &&
+		(offset % resourceManager->minImageBufferAlignment) != 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Texture buffer offset doesn't match alignment requirements.");
+			"Image buffer offset doesn't match alignment requirements.");
 		return false;
 	}
 
-	if (count > resourceManager->maxTextureBufferElements)
+	if (count > resourceManager->maxImageBufferElements)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Texture buffer elements exceeds the maximum for the current target.");
+			"Image buffer elements exceeds the maximum for the current target.");
 		return false;
 	}
 
@@ -307,27 +307,27 @@ bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values, uin
 	return setValue(values, nameId, Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferName(dsGfxFormat* outFormat,
+dsGfxBuffer* dsVolatileMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
 	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
 
 	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, dsHashString(name),
-		Type_TextureBuffer);
+		Type_ImageBuffer);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getTextureBufferId(dsGfxFormat* outFormat, size_t* outOffset,
+dsGfxBuffer* dsVolatileMaterialValues_getImageBufferId(dsGfxFormat* outFormat, size_t* outOffset,
 	size_t* outCount, const dsVolatileMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return NULL;
 
 	return (dsGfxBuffer*)getValue(outFormat, outOffset, outCount, values, nameId,
-		Type_TextureBuffer);
+		Type_ImageBuffer);
 }
 
-bool dsVolatileMaterialValues_setTextureBufferName(dsVolatileMaterialValues* values,
+bool dsVolatileMaterialValues_setImageBufferName(dsVolatileMaterialValues* values,
 	const char* name, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values || !name)
@@ -336,13 +336,13 @@ bool dsVolatileMaterialValues_setTextureBufferName(dsVolatileMaterialValues* val
 		return false;
 	}
 
-	if (!canUseTextureBuffer(buffer, format, offset, count))
+	if (!canUseImageBuffer(buffer, format, offset, count))
 		return false;
 
-	return setValue(values, dsHashString(name), Type_TextureBuffer, buffer, format, offset, count);
+	return setValue(values, dsHashString(name), Type_ImageBuffer, buffer, format, offset, count);
 }
 
-bool dsVolatileMaterialValues_setTextureBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsVolatileMaterialValues_setImageBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
 	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values)
@@ -351,10 +351,10 @@ bool dsVolatileMaterialValues_setTextureBufferId(dsVolatileMaterialValues* value
 		return false;
 	}
 
-	if (!canUseTextureBuffer(buffer, format, offset, count))
+	if (!canUseImageBuffer(buffer, format, offset, count))
 		return false;
 
-	return setValue(values, nameId, Type_TextureBuffer, buffer, format, offset, count);
+	return setValue(values, nameId, Type_ImageBuffer, buffer, format, offset, count);
 }
 
 dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(

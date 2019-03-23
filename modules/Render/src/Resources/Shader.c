@@ -282,12 +282,14 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 				typesMatch = element->type == dsMaterialType_UniformBuffer;
 				break;
 			case mslUniformType_Image:
-				typesMatch = element->type == dsMaterialType_Image;
+				typesMatch = element->type == dsMaterialType_Image ||
+					element->type == dsMaterialType_MutableImageBuffer;
 				if (!nativeSubpassInput && element->type == dsMaterialType_SubpassInput)
 					typesMatch = true;
 				break;
 			case mslUniformType_SampledImage:
-				typesMatch = element->type == dsMaterialType_Texture;
+				typesMatch = element->type == dsMaterialType_Texture ||
+					element->type == dsMaterialType_ImageBuffer;
 				if (!nativeSubpassInput && element->type == dsMaterialType_SubpassInput)
 					typesMatch = true;
 				break;

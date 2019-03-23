@@ -54,7 +54,7 @@ bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader
 	const dsDynamicRenderStates* renderStates);
 bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsTexture* texture);
-bool dsGLCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsGLCommandBuffer_setImageBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);

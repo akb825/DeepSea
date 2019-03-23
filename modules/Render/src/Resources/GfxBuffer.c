@@ -141,10 +141,10 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if ((flags & dsGfxBufferMap_Invalidate) && (flags & dsGfxBufferMap_Read))
+	if ((flags & dsGfxBufferMap_Orphan) && (flags & dsGfxBufferMap_Read))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot both read from and invalidate a buffer.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot both read from and orphan a buffer.");
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 

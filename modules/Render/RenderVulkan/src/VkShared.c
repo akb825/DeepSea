@@ -390,9 +390,9 @@ VkDescriptorType dsVkDescriptorType(dsMaterialType type, bool isVolatile)
 			return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		case dsMaterialType_SubpassInput:
 			return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-		case dsMaterialType_TextureBuffer:
+		case dsMaterialType_ImageBuffer:
 			return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-		case dsMaterialType_MutableTextureBuffer:
+		case dsMaterialType_MutableImageBuffer:
 			return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 		case dsMaterialType_VariableGroup:
 			return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

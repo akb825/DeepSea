@@ -288,7 +288,7 @@ typedef bool (*GLBindShaderFunctiion)(dsCommandBuffer* commandBuffer, const dsSh
 	const dsDynamicRenderStates* renderStates);
 typedef bool (*GLSetTextureFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsTexture* texture);
-typedef bool (*GLSetTextureBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
+typedef bool (*GLSetImageBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 typedef bool (*GLSetShaderBufferFunction)(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
@@ -366,7 +366,7 @@ typedef struct CommandBufferFunctionTable
 
 	GLBindShaderFunctiion bindShaderFunc;
 	GLSetTextureFunction setTextureFunc;
-	GLSetTextureBufferFunction setTextureBufferFunc;
+	GLSetImageBufferFunction setImageBufferFunc;
 	GLSetShaderBufferFunction setShaderBufferFunc;
 	GLSetUniformFunction setUniformFunc;
 	GLUnbindShaderFunction unbindShaderFunc;

@@ -92,8 +92,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		return NULL;
 	}
 
-	// Orphan the data if invalidated.
-	if ((flags & dsGfxBufferMap_Invalidate) && bufferData->used)
+	// Orphan the data if requested and not previously used.
+	if ((flags & dsGfxBufferMap_Orphan) && bufferData->used)
 	{
 		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 		dsVkGfxBufferData* newBufferData = dsVkGfxBufferData_create(resourceManager,
@@ -106,7 +106,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		}
 
 		// Delete the previous buffer data and replace with the new one.
-		vkBuffer->bufferData = bufferData = newBufferData;
+		vkBuffer->bufferData = newBufferData;
 		dsVkRenderer_deleteGfxBuffer(renderer, bufferData);
 		bufferData = newBufferData;
 		DS_VERIFY(dsSpinlock_lock(&bufferData->resource.lock));
@@ -120,9 +120,8 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 		(flags & dsGfxBufferMap_Persistent) == 0;
 	uint64_t lastUsedSubmit = bufferData->resource.lastUsedSubmit;
 
-	// Wait for the submitted command to be finished when reading.
-	if ((flags & dsGfxBufferMap_Read) && (buffer->memoryHints & dsGfxMemory_Synchronize) &&
-		lastUsedSubmit != DS_NOT_SUBMITTED)
+	// Wait for the submitted command to be finished when synchronized.
+	if ((buffer->memoryHints & dsGfxMemory_Synchronize) && lastUsedSubmit != DS_NOT_SUBMITTED)
 	{
 		DS_VERIFY(dsSpinlock_unlock(&bufferData->resource.lock));
 

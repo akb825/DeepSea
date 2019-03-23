@@ -507,8 +507,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			case dsMaterialType_Texture:
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_MutableTextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			case dsMaterialType_MutableImageBuffer:
 			{
 				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline, name);
 				if (uniformIndex == MSL_UNKNOWN)

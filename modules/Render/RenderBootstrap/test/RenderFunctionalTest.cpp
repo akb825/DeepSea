@@ -517,6 +517,133 @@ TEST_P(RendererFunctionalTest, WriteToBuffer)
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 }
 
+TEST_P(RendererFunctionalTest, OrphanBuffer)
+{
+	if (resourceManager->bufferMapSupport == dsGfxBufferMapSupport_None)
+	{
+		DS_LOG_INFO("RenderFunctionalTest", "Buffer mapping not supported: skipping test.");
+		return;
+	}
+
+	WriteOffscreenInfo info(*this);
+
+	Vertex vertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}},
+		{{{1.0f, 0.0f}}, {{255, 0, 0, 255}}},
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+
+		{{{1.0f, 1.0f}}, {{0, 0, 255, 255}}},
+		{{{0.0f, 1.0f}}, {{0, 255, 0, 255}}},
+		{{{0.0f, 0.0f}}, {{0, 0, 0, 255}}}
+	};
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Vertex, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_Draw), NULL,
+		sizeof(vertices));
+	ASSERT_TRUE(buffer);
+
+	void* data = dsGfxBuffer_map(buffer,
+		(dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Orphan), 0, buffer->size);
+	ASSERT_TRUE(data);
+	memcpy(data, vertices, sizeof(vertices));
+	DS_ASSERT(dsGfxBuffer_unmap(buffer));
+
+	Vertex otherVertices[] =
+	{
+		{{{0.0f, 0.0f}}, {{255, 255, 255, 255}}},
+		{{{1.0f, 0.0f}}, {{0, 255, 255, 255}}},
+		{{{1.0f, 1.0f}}, {{255, 255, 0, 255}}},
+
+		{{{1.0f, 1.0f}}, {{255, 255, 0, 255}}},
+		{{{0.0f, 1.0f}}, {{255, 0, 255, 255}}},
+		{{{0.0f, 0.0f}}, {{255, 255, 255, 255}}}
+	};
+	static_assert(sizeof(vertices) == sizeof(otherVertices), "Vertex buffer mismatch");
+
+	dsVertexFormat format;
+	EXPECT_TRUE(dsVertexFormat_initialize(&format));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Position, true));
+	EXPECT_TRUE(dsVertexFormat_setAttribEnabled(&format, dsVertexAttrib_Color, true));
+	format.elements[dsVertexAttrib_Position].format =
+		dsGfxFormat_decorate(dsGfxFormat_X32Y32, dsGfxFormat_Float);
+	format.elements[dsVertexAttrib_Color].format =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm);
+	ASSERT_TRUE(dsVertexFormat_computeOffsetsAndSize(&format));
+
+	ASSERT_EQ(sizeof(Vertex), format.size);
+	ASSERT_EQ(offsetof(Vertex, position), format.elements[dsVertexAttrib_Position].offset);
+	ASSERT_EQ(offsetof(Vertex, color), format.elements[dsVertexAttrib_Color].offset);
+
+	dsDrawGeometry* drawGeometry;
+	dsVertexBuffer vertexBuffer = {buffer, 0, 6, format};
+	dsVertexBuffer* vertexBuffers[DS_MAX_GEOMETRY_VERTEX_BUFFERS] = {&vertexBuffer, nullptr,
+		nullptr, nullptr};
+	drawGeometry = dsDrawGeometry_create(resourceManager, (dsAllocator*)&allocator,
+		vertexBuffers, nullptr);
+	ASSERT_TRUE(drawGeometry);
+
+	dsSurfaceClearValue clearValue;
+	clearValue.colorValue.floatValue.r = 1.0f;
+	clearValue.colorValue.floatValue.g = 1.0f;
+	clearValue.colorValue.floatValue.b = 1.0f;
+	clearValue.colorValue.floatValue.a = 1.0f;
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		&clearValue, 1));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	dsDrawRange drawRange = {6, 1, 0, 0};
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	data = dsGfxBuffer_map(buffer, (dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Orphan),
+		0, buffer->size);
+	ASSERT_TRUE(data);
+	memcpy(data, otherVertices, sizeof(otherVertices));
+	DS_ASSERT(dsGfxBuffer_unmap(buffer));
+
+	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
+		&clearValue, 1));
+	ASSERT_TRUE(dsShader_bind(info.shader, commandBuffer, info.material, NULL, NULL));
+
+	ASSERT_TRUE(dsRenderer_draw(renderer, commandBuffer, drawGeometry, &drawRange,
+		dsPrimitiveType_TriangleList));
+
+	EXPECT_TRUE(dsShader_unbind(info.shader, commandBuffer));
+	EXPECT_TRUE(dsRenderPass_end(info.renderPass, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	dsColor colors[4];
+	dsTexturePosition position = {dsCubeFace_None, 0, 0, 0, 0};
+	ASSERT_TRUE(dsTexture_getData(colors, sizeof(colors), info.offscreen, &position, 2, 2));
+	EXPECT_EQ(255, colors[0].r);
+	EXPECT_EQ(0, colors[0].g);
+	EXPECT_EQ(255, colors[0].b);
+	EXPECT_EQ(255, colors[0].a);
+
+	EXPECT_EQ(255, colors[1].r);
+	EXPECT_EQ(255, colors[1].g);
+	EXPECT_EQ(0, colors[1].b);
+	EXPECT_EQ(255, colors[1].a);
+
+	EXPECT_EQ(255, colors[2].r);
+	EXPECT_EQ(255, colors[2].g);
+	EXPECT_EQ(255, colors[2].b);
+	EXPECT_EQ(255, colors[2].a);
+
+	EXPECT_EQ(0, colors[3].r);
+	EXPECT_EQ(255, colors[3].g);
+	EXPECT_EQ(255, colors[3].b);
+	EXPECT_EQ(255, colors[3].a);
+
+	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
+	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
+}
+
 TEST_P(RendererFunctionalTest, PersistentMapping)
 {
 	if (resourceManager->bufferMapSupport != dsGfxBufferMapSupport_Persistent)
@@ -734,7 +861,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 	}
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyFrom),
+		dsGfxBufferUsage_UniformBuffer,
 		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
@@ -777,7 +904,6 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 	ASSERT_TRUE(data);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		EXPECT_EQ(i, data[i]);
-
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	DS_VERIFY(dsShader_destroy(shader));
@@ -797,7 +923,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	}
 
 	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
-		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyFrom),
+		dsGfxBufferUsage_UniformBuffer,
 		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
 		sizeof(uint32_t)*invocationCount);
 	ASSERT_TRUE(buffer);
@@ -846,7 +972,6 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	ASSERT_TRUE(data);
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		EXPECT_EQ(i, data[i]);
-
 	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	DS_VERIFY(dsShader_destroy(shader));
@@ -854,5 +979,103 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 	dsMaterial_destroy(material);
 	DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
 	DS_VERIFY(dsGfxBuffer_destroy(indirectBuffer));
+	DS_VERIFY(dsGfxBuffer_destroy(buffer));
+}
+
+TEST_P(RendererFunctionalTest, ImageBuffer)
+{
+	const uint32_t invocationCount = 10;
+	if (renderer->maxComputeInvocations < invocationCount)
+	{
+		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
+		return;
+	}
+
+	uint32_t values[invocationCount];
+	for (uint32_t i = 0; i < invocationCount; ++i)
+		values[i] = i*2 + 3;
+
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_UniformBuffer,
+		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
+		sizeof(values));
+	ASSERT_TRUE(buffer);
+
+	dsGfxBuffer* imageBuffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		dsGfxBufferUsage_Image, dsGfxMemory_Static, values,
+		sizeof(values));
+	ASSERT_TRUE(buffer);
+
+	dsMaterialElement materialElements[] =
+	{
+		{"image", dsMaterialType_ImageBuffer, 0, NULL, false, 0},
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+	};
+
+	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
+		materialElements, DS_ARRAY_SIZE(materialElements));
+	ASSERT_TRUE(materialDesc);
+
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
+	ASSERT_TRUE(material);
+
+	uint32_t imageIdx = dsMaterialDesc_findElement(materialDesc, "image");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, imageIdx);
+	ASSERT_TRUE(dsMaterial_setImageBuffer(material, imageIdx, imageBuffer,
+		dsGfxFormat_decorate(dsGfxFormat_R32, dsGfxFormat_UInt), 0, invocationCount));
+
+	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, bufferIdx);
+	ASSERT_TRUE(dsMaterial_setBuffer(material, bufferIdx, buffer, 0, buffer->size));
+
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager,
+		(dsAllocator*)&allocator, dsFileResourceType_Embedded,
+		getShaderPath("CopyImageBuffer.mslb"), "CopyImageBuffer");
+	ASSERT_TRUE(shaderModule);
+
+	dsShader* shader = dsShader_createName(resourceManager, (dsAllocator*)&allocator, shaderModule,
+		"CopyImageBuffer", materialDesc);
+	ASSERT_TRUE(shader);
+
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
+	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	auto data = reinterpret_cast<const uint32_t*>(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0,
+		buffer->size));
+	ASSERT_TRUE(data);
+	for (uint32_t i = 0; i < invocationCount; ++i)
+		EXPECT_EQ(values[i], data[i]);
+	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
+
+	auto newData = reinterpret_cast<uint32_t*>(dsGfxBuffer_map(imageBuffer, dsGfxBufferMap_Write, 0,
+		buffer->size));
+	ASSERT_TRUE(newData);
+	for (uint32_t i = 0; i < invocationCount; ++i)
+		newData[i] = values[i] = i*3 + 1;
+	EXPECT_TRUE(dsGfxBuffer_unmap(imageBuffer));
+
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
+	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	data = reinterpret_cast<const uint32_t*>(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0,
+		buffer->size));
+	ASSERT_TRUE(data);
+	for (uint32_t i = 0; i < invocationCount; ++i)
+		EXPECT_EQ(values[i], data[i]);
+	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
+
+	DS_VERIFY(dsShader_destroy(shader));
+	DS_VERIFY(dsShaderModule_destroy(shaderModule));
+	dsMaterial_destroy(material);
+	DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
+	DS_VERIFY(dsGfxBuffer_destroy(imageBuffer));
 	DS_VERIFY(dsGfxBuffer_destroy(buffer));
 }

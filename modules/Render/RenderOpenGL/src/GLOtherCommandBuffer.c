@@ -50,7 +50,7 @@ typedef enum CommandType
 	CommandType_CopyQueryValues,
 	CommandType_BindShader,
 	CommandType_SetTexture,
-	CommandType_SetTextureBuffer,
+	CommandType_SetImageBuffer,
 	CommandType_SetShaderBuffer,
 	CommandType_SetUniform,
 	CommandType_UnbindShader,
@@ -169,7 +169,7 @@ typedef struct SetTextureCommand
 	uint32_t element;
 } SetTextureCommand;
 
-typedef struct SetTextureBufferCommand
+typedef struct SetImageBufferCommand
 {
 	Command command;
 	const dsShader* shader;
@@ -178,7 +178,7 @@ typedef struct SetTextureBufferCommand
 	dsGfxFormat format;
 	size_t offset;
 	size_t count;
-} SetTextureBufferCommand;
+} SetImageBufferCommand;
 
 typedef struct SetShaderBufferCommand
 {
@@ -604,11 +604,11 @@ bool dsGLOtherCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsS
 	return true;
 }
 
-bool dsGLOtherCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsGLOtherCommandBuffer_setImageBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
-	SetTextureBufferCommand* command = (SetTextureBufferCommand*)allocateCommand(commandBuffer,
-		CommandType_SetTextureBuffer, sizeof(SetTextureBufferCommand));
+	SetImageBufferCommand* command = (SetImageBufferCommand*)allocateCommand(commandBuffer,
+		CommandType_SetImageBuffer, sizeof(SetImageBufferCommand));
 	if (!command)
 		return false;
 
@@ -1067,10 +1067,10 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 					thisCommand->element, thisCommand->texture);
 				break;
 			}
-			case CommandType_SetTextureBuffer:
+			case CommandType_SetImageBuffer:
 			{
-				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
-				dsGLCommandBuffer_setTextureBuffer(commandBuffer, thisCommand->shader,
+				SetImageBufferCommand* thisCommand = (SetImageBufferCommand*)command;
+				dsGLCommandBuffer_setImageBuffer(commandBuffer, thisCommand->shader,
 					thisCommand->element, thisCommand->buffer, thisCommand->format,
 					thisCommand->offset, thisCommand->count);
 				break;
@@ -1264,7 +1264,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_copyQueryValues,
 	&dsGLOtherCommandBuffer_bindShader,
 	&dsGLOtherCommandBuffer_setTexture,
-	&dsGLOtherCommandBuffer_setTextureBuffer,
+	&dsGLOtherCommandBuffer_setImageBuffer,
 	&dsGLOtherCommandBuffer_setShaderBuffer,
 	&dsGLOtherCommandBuffer_setUniform,
 	&dsGLOtherCommandBuffer_unbindShader,
@@ -1418,9 +1418,9 @@ void dsGLOtherCommandBuffer_reset(dsGLOtherCommandBuffer* commandBuffer)
 				dsGLTexture_freeInternalRef(thisCommand->texture);
 				break;
 			}
-			case CommandType_SetTextureBuffer:
+			case CommandType_SetImageBuffer:
 			{
-				SetTextureBufferCommand* thisCommand = (SetTextureBufferCommand*)command;
+				SetImageBufferCommand* thisCommand = (SetImageBufferCommand*)command;
 				dsGLShader_freeInternalRef((dsShader*)thisCommand->shader);
 				dsGLGfxBuffer_freeInternalRef(thisCommand->buffer);
 				break;

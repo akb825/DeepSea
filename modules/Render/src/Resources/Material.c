@@ -40,13 +40,13 @@ struct dsMaterial
 	uint32_t* offsets;
 };
 
-typedef struct TextureBufferData
+typedef struct ImageBufferData
 {
 	dsGfxBuffer* buffer;
 	dsGfxFormat format;
 	size_t offset;
 	size_t count;
-} TextureBufferData;
+} ImageBufferData;
 
 typedef struct BufferData
 {
@@ -65,12 +65,12 @@ static size_t addElementSize(size_t* curSize, dsMaterialType type, uint32_t coun
 		*curSize = offset + sizeof(dsTexture*);
 		return offset;
 	}
-	else if (type >= dsMaterialType_TextureBuffer && type <= dsMaterialType_MutableTextureBuffer)
+	else if (type >= dsMaterialType_ImageBuffer && type <= dsMaterialType_MutableImageBuffer)
 	{
 		DS_ASSERT(count == 0);
 		size_t alignment = sizeof(void*);
 		size_t offset = ((*curSize + alignment - 1)/alignment)*alignment;
-		*curSize = offset + sizeof(TextureBufferData);
+		*curSize = offset + sizeof(ImageBufferData);
 		return offset;
 	}
 	else if (type >= dsMaterialType_UniformBlock && type <= dsMaterialType_UniformBuffer)
@@ -400,7 +400,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	return true;
 }
 
-dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffset,
+dsGfxBuffer* dsMaterial_getImageBuffer(dsGfxFormat* outFormat, size_t* outOffset,
 	size_t* outCount, const dsMaterial* material, uint32_t element)
 {
 	if (!material || element >= material->description->elementCount ||
@@ -410,22 +410,22 @@ dsGfxBuffer* dsMaterial_getTextureBuffer(dsGfxFormat* outFormat, size_t* outOffs
 	}
 
 	dsMaterialType type = material->description->elements[element].type;
-	if (type < dsMaterialType_TextureBuffer || type > dsMaterialType_MutableTextureBuffer)
+	if (type < dsMaterialType_ImageBuffer || type > dsMaterialType_MutableImageBuffer)
 		return NULL;
 
-	const TextureBufferData* textureData = (const TextureBufferData*)(material->data +
+	const ImageBufferData* imageData = (const ImageBufferData*)(material->data +
 		material->offsets[element]);
 
 	if (outFormat)
-		*outFormat = textureData->format;
+		*outFormat = imageData->format;
 	if (outOffset)
-		*outOffset = textureData->offset;
+		*outOffset = imageData->offset;
 	if (outCount)
-		*outCount = textureData->count;
-	return textureData->buffer;
+		*outCount = imageData->count;
+	return imageData->buffer;
 }
 
-bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer,
+bool dsMaterial_setImageBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* buffer,
 	dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!material)
@@ -449,18 +449,18 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 	}
 
 	dsResourceManager* resourceManager = material->resourceManager;
-	if (!dsGfxFormat_textureBufferSupported(resourceManager, format))
+	if (!dsGfxFormat_imageBufferSupported(resourceManager, format))
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for texture buffers.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Format not supported for image buffers.");
 		return false;
 	}
 
 	dsMaterialType type = material->description->elements[element].type;
-	if (type < dsMaterialType_TextureBuffer || type > dsMaterialType_MutableTextureBuffer)
+	if (type < dsMaterialType_ImageBuffer || type > dsMaterialType_MutableImageBuffer)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a texture buffer type.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Element type must be a image buffer type.");
 		return false;
 	}
 
@@ -482,39 +482,38 @@ bool dsMaterial_setTextureBuffer(dsMaterial* material, uint32_t element, dsGfxBu
 			return false;
 		}
 
-		if (!resourceManager->hasTextureBufferSubrange && (offset != 0 ||
+		if (!resourceManager->hasImageBufferSubrange && (offset != 0 ||
 			count*formatSize != buffer->size))
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Current target doesn't support using a subrange of a texture buffer.");
+				"Current target doesn't support using a subrange of a image buffer.");
 			return false;
 		}
 
-		if (resourceManager->minTextureBufferAlignment > 0 &&
-			(offset % resourceManager->minTextureBufferAlignment) != 0)
+		if (resourceManager->minImageBufferAlignment > 0 &&
+			(offset % resourceManager->minImageBufferAlignment) != 0)
 		{
 			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Texture buffer offset doesn't match alignment requirements.");
+				"Image buffer offset doesn't match alignment requirements.");
 			return false;
 		}
 
-		if (count > resourceManager->maxTextureBufferElements)
+		if (count > resourceManager->maxImageBufferElements)
 		{
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-				"Texture buffer elements exceeds the maximum for the current target.");
+				"Image buffer elements exceeds the maximum for the current target.");
 			return false;
 		}
 	}
 
-	TextureBufferData* textureData = (TextureBufferData*)(material->data +
-		material->offsets[element]);
-	textureData->buffer = buffer;
-	textureData->format = format;
-	textureData->offset = offset;
-	textureData->count = count;
+	ImageBufferData* imageData = (ImageBufferData*)(material->data + material->offsets[element]);
+	imageData->buffer = buffer;
+	imageData->format = format;
+	imageData->offset = offset;
+	imageData->count = count;
 
 	if (material->deviceMaterial && resourceManager->materialElementChangedFunc)
 	{

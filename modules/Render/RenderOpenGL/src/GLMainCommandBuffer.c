@@ -994,7 +994,7 @@ bool dsGLMainCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsSh
 	return true;
 }
 
-bool dsGLMainCommandBuffer_setTextureBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
+bool dsGLMainCommandBuffer_setImageBuffer(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	uint32_t element, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	DS_UNUSED(commandBuffer);
@@ -1897,7 +1897,7 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_copyQueryValues,
 	&dsGLMainCommandBuffer_bindShader,
 	&dsGLMainCommandBuffer_setTexture,
-	&dsGLMainCommandBuffer_setTextureBuffer,
+	&dsGLMainCommandBuffer_setImageBuffer,
 	&dsGLMainCommandBuffer_setShaderBuffer,
 	&dsGLMainCommandBuffer_setUniform,
 	&dsGLMainCommandBuffer_unbindShader,

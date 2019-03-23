@@ -663,7 +663,7 @@ bool dsVkResourceManager_offscreenFormatSupported(const dsResourceManager* resou
 			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-bool dsVkResourceManager_textureBufferFormatSupported(const dsResourceManager* resourceManager,
+bool dsVkResourceManager_imageBufferFormatSupported(const dsResourceManager* resourceManager,
 	dsGfxFormat format)
 {
 	const dsVkFormatInfo* formatInfo = dsVkResourceManager_getFormat(resourceManager, format);
@@ -759,7 +759,7 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	const VkPhysicalDeviceLimits* limits = &renderer->device.properties.limits;
 	const VkPhysicalDeviceFeatures* features = &renderer->device.features;
 	baseResourceManager->minNonCoherentMappingAlignment = (uint32_t)limits->nonCoherentAtomSize;
-	baseResourceManager->minTextureBufferAlignment =
+	baseResourceManager->minImageBufferAlignment =
 		(uint32_t)limits->minTexelBufferOffsetAlignment;
 	baseResourceManager->supportedBuffers = dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex |
 		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
@@ -767,11 +767,11 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 		dsGfxBufferUsage_MutableImage | dsGfxBufferUsage_CopyFrom | dsGfxBufferUsage_CopyTo;
 	baseResourceManager->bufferMapSupport = dsGfxBufferMapSupport_Persistent;
 	baseResourceManager->canCopyBuffers = true;
-	baseResourceManager->hasTextureBufferSubrange = true;
+	baseResourceManager->hasImageBufferSubrange = true;
 	baseResourceManager->maxIndexSize = features->fullDrawIndexUint32 ? sizeof(uint32_t) :
 		sizeof(uint16_t);
 	baseResourceManager->maxUniformBlockSize = limits->maxUniformBufferRange;
-	baseResourceManager->maxTextureBufferElements = limits->maxTexelBufferElements;
+	baseResourceManager->maxImageBufferElements = limits->maxTexelBufferElements;
 	baseResourceManager->maxVertexAttribs = limits->maxVertexInputAttributes;
 	baseResourceManager->maxSamplers = limits->maxDescriptorSetSamplers;
 	baseResourceManager->maxVertexSamplers = limits->maxDescriptorSetSamplers;
@@ -801,8 +801,8 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->textureFormatSupportedFunc = &dsVkResourceManager_textureFormatSupported;
 	baseResourceManager->offscreenFormatSupportedFunc =
 		&dsVkResourceManager_offscreenFormatSupported;
-	baseResourceManager->textureBufferFormatSupportedFunc =
-		&dsVkResourceManager_textureBufferFormatSupported;
+	baseResourceManager->imageBufferFormatSupportedFunc =
+		&dsVkResourceManager_imageBufferFormatSupported;
 	baseResourceManager->generateMipmapFormatSupportedFunc =
 		&dsVkResourceManager_generateMipmapFormatSupported;
 	baseResourceManager->textureCopyFormatsSupportedFunc =

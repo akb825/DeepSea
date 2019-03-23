@@ -165,7 +165,7 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			access |= GL_MAP_READ_BIT;
 		if (flags & dsGfxBufferMap_Write)
 			access |= GL_MAP_WRITE_BIT;
-		if (flags & dsGfxBufferMap_Invalidate)
+		if (flags & dsGfxBufferMap_Orphan)
 			access |= GL_MAP_INVALIDATE_BUFFER_BIT;
 		if (flags & dsGfxBufferMap_Persistent)
 		{

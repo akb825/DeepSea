@@ -64,8 +64,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 			case dsMaterialType_SubpassInput:
 				++imageInfoCount;
 				break;
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_MutableTextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			case dsMaterialType_MutableImageBuffer:
 				++bufferViewCount;
 				break;
 			case dsMaterialType_VariableGroup:
@@ -213,8 +213,8 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 				binding->pImageInfo = deviceMaterial->imageInfos + imageInfoIndex;
 				++imageInfoIndex;
 				break;
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_MutableTextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			case dsMaterialType_MutableImageBuffer:
 				DS_ASSERT(bufferViewIndex < bufferViewCount);
 				binding->pTexelBufferView = deviceMaterial->bufferViews + bufferViewIndex;
 				++bufferViewIndex;
@@ -368,12 +368,12 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 				++textureIndex;
 				break;
 			}
-			case dsMaterialType_TextureBuffer:
-			case dsMaterialType_MutableTextureBuffer:
+			case dsMaterialType_ImageBuffer:
+			case dsMaterialType_MutableImageBuffer:
 			{
 				DS_ASSERT(texelBufferIndex < material->bufferViewCount);
 				dsVkTexelBufferBinding* binding = material->texelBuffers + texelBufferIndex;
-				dsGfxBuffer* buffer = dsMaterial_getTextureBuffer(&binding->format,
+				dsGfxBuffer* buffer = dsMaterial_getImageBuffer(&binding->format,
 					&binding->offset, &binding->count, material->material, i);
 
 				if (buffer)
