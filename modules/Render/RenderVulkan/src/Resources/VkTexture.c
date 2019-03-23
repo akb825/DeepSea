@@ -1127,7 +1127,7 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 			NULL,
 			vkTexture->hostMemory,
 			offset,
-			mapSize
+			offset + mapSize == vkTexture->hostMemorySize ? VK_WHOLE_SIZE : mapSize
 		};
 		vkResult = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 		if (!dsHandleVkResult(vkResult))
