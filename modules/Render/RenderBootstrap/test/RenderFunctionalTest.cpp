@@ -454,11 +454,11 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 	dsColor color;
 	dsTexturePosition position = {dsCubeFace_None, 0, 1, 0, 2};
 	ASSERT_TRUE(dsTexture_getData(&color, sizeof(color), info.offscreen, &position, 1, 1));
-	EXPECT_LT(120, color.r);
+	EXPECT_LT(90, color.r);
 	EXPECT_GT(180, color.r);
-	EXPECT_LT(120, color.g);
+	EXPECT_LT(90, color.g);
 	EXPECT_GT(180, color.g);
-	EXPECT_LT(120, color.b);
+	EXPECT_LT(90, color.b);
 	EXPECT_GT(180, color.b);
 	EXPECT_EQ(255, color.a);
 

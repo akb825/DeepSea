@@ -242,7 +242,7 @@ bool dsGLRenderer_destroy(dsRenderer* renderer)
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.display;
 	dsDestroyGLContext(display, glRenderer->renderContext);
-	dsDestroyGLContext(display, glRenderer->sharedContext);\
+	dsDestroyGLContext(display, glRenderer->sharedContext);
 	dsDestroyDummyGLSurface(display, glRenderer->dummySurface, glRenderer->dummyOsSurface);
 	dsDestroyGLConfig(display, glRenderer->sharedConfig);
 	dsDestroyGLConfig(display, glRenderer->renderConfig);
