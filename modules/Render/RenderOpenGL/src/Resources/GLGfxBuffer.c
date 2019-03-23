@@ -77,8 +77,7 @@ dsGfxBuffer* dsGLGfxBuffer_create(dsResourceManager* resourceManager, dsAllocato
 
 		if (!(memoryHints & dsGfxMemory_GPUOnly))
 		{
-			if (!noUpdate)
-				flags |= GL_MAP_WRITE_BIT;
+			flags |= GL_MAP_WRITE_BIT;
 			if ((memoryHints & dsGfxMemory_Read))
 				flags |= GL_MAP_READ_BIT;
 
@@ -173,7 +172,7 @@ void* dsGLGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			access |= GL_MAP_PERSISTENT_BIT;
 			if (buffer->memoryHints & dsGfxMemory_Coherent)
 				access |= GL_MAP_COHERENT_BIT;
-			else if (!(flags & dsGfxBufferMap_Write))
+			else if (flags & dsGfxBufferMap_Write)
 				access |= GL_MAP_FLUSH_EXPLICIT_BIT;
 		}
 		if (!(buffer->memoryHints & dsGfxMemory_Synchronize) && !(flags & dsGfxBufferMap_Read))

@@ -43,7 +43,7 @@ bool dsVkGfxFence_set(dsResourceManager* resourceManager, dsCommandBuffer* comma
 	DS_UNUSED(resourceManager);
 	for (uint32_t i = 0; i < fenceCount; ++i)
 	{
-		dsVkGfxFence* vkFence = (dsVkGfxFence*)(fences + i);
+		dsVkGfxFence* vkFence = (dsVkGfxFence*)fences[i];
 		if (!dsVkCommandBuffer_addResource(commandBuffer, &vkFence->resource))
 			return false;
 	}

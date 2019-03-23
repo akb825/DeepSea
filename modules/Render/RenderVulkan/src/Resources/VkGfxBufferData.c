@@ -65,7 +65,7 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 	{
 		needsDeviceMemory = true;
 		needsHostMemory = data != NULL || !(memoryHints & dsGfxMemory_GPUOnly);
-		keepHostMemory = (memoryHints & dsGfxMemory_GPUOnly) != 0;
+		keepHostMemory = (memoryHints & dsGfxMemory_GPUOnly) == 0;
 		deviceHints = dsGfxMemory_GPUOnly;
 	}
 	else
@@ -163,7 +163,15 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 
 		DS_VK_CALL(device->vkGetBufferMemoryRequirements)(device->device, buffer->hostBuffer,
 			&hostRequirements);
-		hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, hostHints);
+		// Check if the device memory index is supported. If so, use it explicitly since
+		// dsVkMemoryIndex() may not return the same value.
+		if (deviceMemoryIndex != DS_INVALID_HEAP &&
+			hostRequirements.memoryTypeBits & (1 << deviceMemoryIndex))
+		{
+			hostMemoryIndex = deviceMemoryIndex;
+		}
+		else
+			hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, hostHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)
 		{
 			dsVkGfxBufferData_destroy(buffer);

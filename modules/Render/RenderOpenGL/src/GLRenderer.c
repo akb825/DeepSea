@@ -200,7 +200,7 @@ static dsPoolAllocator* addPool(dsAllocator* allocator, dsPoolAllocator** pools,
 		return NULL;
 
 	size_t index = *curPools;
-	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, pools, *curPools, *maxPools, 1))
+	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, *pools, *curPools, *maxPools, 1))
 		return NULL;
 
 	DS_ASSERT(index < *maxPools);
