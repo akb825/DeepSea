@@ -118,10 +118,12 @@ static dsGfxBufferUsage getSupportedBuffers(uint32_t shaderVersion)
 
 static dsGfxBufferMapSupport getBufferMapSupport(void)
 {
-	if (!ANYGL_SUPPORTED(glMapBuffer))
-		return dsGfxBufferMapSupport_None;
-	else if (!ANYGL_SUPPORTED(glMapBufferRange))
+	if (!ANYGL_SUPPORTED(glMapBufferRange))
+	{
+		if (!ANYGL_SUPPORTED(glMapBuffer))
+			return dsGfxBufferMapSupport_None;
 		return dsGfxBufferMapSupport_Full;
+	}
 	else if (AnyGL_atLeastVersion(4, 4, true) || AnyGL_ARB_buffer_storage)
 		return dsGfxBufferMapSupport_Persistent;
 

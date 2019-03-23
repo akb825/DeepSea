@@ -913,6 +913,14 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 	DS_VERIFY(dsSpinlock_initialize(&shader->pipelineLock));
 	DS_VERIFY(dsSpinlock_initialize(&shader->samplerLock));
 
+	setupCommonStates(baseShader);
+	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
+	if (!setupShaders(baseShader) || !createLayout(baseShader))
+	{
+		dsVkShader_destroy(resourceManager, baseShader);
+		return NULL;
+	}
+
 	if (shader->shaders[mslStage_Compute])
 	{
 		shader->computePipeline = dsVkComputePipeline_create(allocator, baseShader);
@@ -921,14 +929,6 @@ dsShader* dsVkShader_create(dsResourceManager* resourceManager, dsAllocator* all
 			dsVkShader_destroy(resourceManager, baseShader);
 			return NULL;
 		}
-	}
-
-	setupCommonStates(baseShader);
-	setupSpirv(baseShader, (dsAllocator*)&bufferAlloc);
-	if (!setupShaders(baseShader) || !createLayout(baseShader))
-	{
-		dsVkShader_destroy(resourceManager, baseShader);
-		return NULL;
 	}
 
 	// If no dependency on default anisotropy, create immediately.

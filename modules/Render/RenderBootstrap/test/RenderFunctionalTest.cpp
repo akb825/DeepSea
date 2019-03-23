@@ -366,3 +366,66 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 	EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry));
 	EXPECT_TRUE(dsGfxBuffer_destroy(buffer));
 }
+
+TEST_P(RendererFunctionalTest, BufferReadback)
+{
+	const uint32_t invocationCount = 10;
+	if (renderer->maxComputeInvocations < invocationCount)
+	{
+		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
+		return;
+	}
+
+	dsGfxBuffer* buffer = dsGfxBuffer_create(resourceManager, (dsAllocator*)&allocator,
+		(dsGfxBufferUsage)(dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_CopyFrom),
+		(dsGfxMemory)(dsGfxMemory_Stream | dsGfxMemory_Read | dsGfxMemory_Synchronize), NULL,
+		sizeof(uint32_t)*invocationCount);
+	ASSERT_TRUE(buffer);
+
+	dsMaterialElement materialElements[] =
+	{
+		{"TestBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0}
+	};
+
+	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, (dsAllocator*)&allocator,
+		materialElements, DS_ARRAY_SIZE(materialElements));
+	ASSERT_TRUE(materialDesc);
+
+	dsMaterial* material = dsMaterial_create(resourceManager, (dsAllocator*)&allocator,
+		materialDesc);
+	ASSERT_TRUE(material);
+
+	uint32_t bufferIdx = dsMaterialDesc_findElement(materialDesc, "TestBuffer");
+	ASSERT_NE(DS_MATERIAL_UNKNOWN, bufferIdx);
+	ASSERT_TRUE(dsMaterial_setBuffer(material, bufferIdx, buffer, 0, buffer->size));
+
+	dsShaderModule* shaderModule = dsShaderModule_loadResource(resourceManager,
+		(dsAllocator*)&allocator, dsFileResourceType_Embedded, getShaderPath("WriteBuffer.mslb"),
+		"WriteBuffer");
+	ASSERT_TRUE(shaderModule);
+
+	dsShader* shader = dsShader_createName(resourceManager, (dsAllocator*)&allocator, shaderModule,
+		"WriteBuffer", materialDesc);
+	ASSERT_TRUE(shader);
+
+	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
+	ASSERT_TRUE(dsShader_bindCompute(shader, commandBuffer, material, NULL));
+	ASSERT_TRUE(dsRenderer_dispatchCompute(renderer, commandBuffer, invocationCount, 1, 1));
+	EXPECT_TRUE(dsShader_unbindCompute(shader, commandBuffer));
+
+	EXPECT_TRUE(dsRenderer_flush(renderer));
+
+	auto data = reinterpret_cast<const uint32_t*>(dsGfxBuffer_map(buffer, dsGfxBufferMap_Read, 0,
+		buffer->size));
+	ASSERT_TRUE(data);
+	for (uint32_t i = 0; i < invocationCount; ++i)
+		EXPECT_EQ(i, data[i]);
+
+	EXPECT_TRUE(dsGfxBuffer_unmap(buffer));
+
+	DS_VERIFY(dsShader_destroy(shader));
+	DS_VERIFY(dsShaderModule_destroy(shaderModule));
+	dsMaterial_destroy(material);
+	DS_VERIFY(dsMaterialDesc_destroy(materialDesc));
+	DS_VERIFY(dsGfxBuffer_destroy(buffer));
+}

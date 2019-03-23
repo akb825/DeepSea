@@ -6,7 +6,7 @@ set(shaderConfigs)
 set(computeShaderConfigs)
 if (TARGET deepsea_render_opengl)
 	list(APPEND shaderConfigs glsl-1.1 glsl-es-1.0)
-	list(APPEND computeShaderConfigs glsl-4.1 glsl-es-3.1)
+	list(APPEND computeShaderConfigs glsl-4.3 glsl-es-3.1)
 endif()
 if (TARGET deepsea_render_vulkan)
 	list(APPEND computeShaderConfigs spirv-1.0)
@@ -29,7 +29,7 @@ add_custom_target(deepsea_render_bootstrap_test_prepare
 
 set(shaderSourceDir ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteBuffer.msl
-	OUTPUT Writeuffer.mslb CONFIG ${computeShaderConfigs} OUTPUT_DIR ${shaderDir}
+	OUTPUT WriteBuffer.mslb CONFIG ${computeShaderConfigs} OUTPUT_DIR ${shaderDir}
 	INCLUDE ${DEEPSEA_MODULE_DIR}/Render/include)
 ds_compile_shaders(shaders FILE ${shaderSourceDir}/WriteOffscreen.msl
 	OUTPUT WriteOffscreen.mslb CONFIG ${shaderConfigs} ${computeShaderConfigs}

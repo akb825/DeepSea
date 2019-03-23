@@ -1181,20 +1181,35 @@ static bool beginIndexedDraw(dsCommandBuffer* commandBuffer, VkCommandBuffer sub
 	return true;
 }
 
-static bool beginDispatch(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
+static bool beginDispatch(dsRenderer* renderer, VkCommandBuffer submitBuffer,
+	dsCommandBuffer* commandBuffer)
 {
+	VkPipeline pipeline = dsVkShader_getComputePipeline(
+		(dsShader*)commandBuffer->boundComputeShader, commandBuffer);
+	if (!pipeline)
+		return false;
+
+	dsVkCommandBuffer_bindComputePipeline(commandBuffer, submitBuffer, pipeline);
+
 	VkPipelineStageFlagBits srcStages = VK_PIPELINE_STAGE_TRANSFER_BIT |
 		VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
 		VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	VkPipelineStageFlags dstStages = VK_PIPELINE_STAGE_HOST_BIT |
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+		VK_PIPELINE_STAGE_TRANSFER_BIT;
 	if (renderer->hasTessellationShaders)
 	{
 		srcStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
 			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		dstStages |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+			VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
 	}
 	if (renderer->hasGeometryShaders)
+	{
 		srcStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
-	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages,
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+		dstStages |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+	}
+	return dsVkCommandBuffer_submitMemoryBarriers(commandBuffer, srcStages, dstStages);
 }
 
 static void addShaderPipelineMask(dsRenderer* renderer, VkPipelineStageFlags* stages)
@@ -1730,7 +1745,7 @@ bool dsVkRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* command
 {
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginDispatch(renderer, commandBuffer))
+	if (!submitBuffer || !beginDispatch(renderer, submitBuffer, commandBuffer))
 		return false;
 
 	DS_VK_CALL(device->vkCmdDispatch)(submitBuffer, x, y, z);
@@ -1750,7 +1765,7 @@ bool dsVkRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer*
 
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	VkCommandBuffer submitBuffer = dsVkCommandBuffer_getCommandBuffer(commandBuffer);
-	if (!submitBuffer || !beginDispatch(renderer, commandBuffer))
+	if (!submitBuffer || !beginDispatch(renderer, submitBuffer, commandBuffer))
 		return false;
 
 	DS_VK_CALL(device->vkCmdDispatchIndirect)(submitBuffer,

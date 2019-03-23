@@ -454,6 +454,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 					binding->offset = 0;
 					binding->size = 0;
 				}
+				++bufferIndex;
 				break;
 			}
 			default:

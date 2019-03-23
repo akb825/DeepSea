@@ -501,6 +501,7 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 	char nameBuffer[DS_BUFFER_SIZE];
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
+		const char* name = materialDesc->elements[i].name;
 		switch (materialDesc->elements[i].type)
 		{
 			case dsMaterialType_Texture:
@@ -509,7 +510,6 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			case dsMaterialType_TextureBuffer:
 			case dsMaterialType_MutableTextureBuffer:
 			{
-				const char* name = materialDesc->elements[i].name;
 				uint32_t uniformIndex = findUniform(module, shaderIndex, &shader->pipeline, name);
 				if (uniformIndex == MSL_UNKNOWN)
 				{
@@ -569,10 +569,8 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				break;
 			}
 			case dsMaterialType_UniformBlock:
-			case dsMaterialType_UniformBuffer:
 			{
-				GLint blockIndex = glGetUniformBlockIndex(shader->programId,
-					materialDesc->elements[i].name);
+				GLint blockIndex = glGetUniformBlockIndex(shader->programId, name);
 				if (blockIndex >= 0)
 				{
 					setLocation(shader->uniforms + i, blockBindings);
@@ -584,12 +582,22 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 				++blockBindings;
 				break;
 			}
+			case dsMaterialType_UniformBuffer:
+			{
+				GLint blockIndex = glGetProgramResourceIndex(shader->programId,
+					GL_SHADER_STORAGE_BLOCK, name);
+				if (blockIndex >= 0)
+					setLocation(shader->uniforms + i, blockBindings);
+				else
+					shader->uniforms[i].location = -1;
+				++blockBindings;
+				break;
+			}
 			case dsMaterialType_VariableGroup:
 			{
 				if (useGfxBuffers)
 				{
-					GLint blockIndex = glGetUniformBlockIndex(shader->programId,
-						materialDesc->elements[i].name);
+					GLint blockIndex = glGetUniformBlockIndex(shader->programId, name);
 					if (blockIndex >= 0)
 					{
 						setLocation(shader->uniforms + i, blockBindings);
@@ -626,12 +634,11 @@ static bool hookupBindings(dsGLShader* shader, const dsMaterialDesc* materialDes
 			}
 			default:
 			{
-				int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "uniforms.%s",
-					materialDesc->elements[i].name);
+				int len = snprintf(nameBuffer, DS_BUFFER_SIZE, "uniforms.%s", name);
 				if (len < 0 || len >= DS_BUFFER_SIZE)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG, "Uniform name '%s' is too long.",
-						materialDesc->elements[i].name);
+						name);
 					errno = EINDEX;
 					glUseProgram(prevProgram);
 					return false;
