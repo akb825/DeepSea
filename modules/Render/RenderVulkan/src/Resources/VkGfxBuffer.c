@@ -178,7 +178,7 @@ void* dsVkGfxBuffer_map(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
 			NULL,
 			bufferData->hostMemory,
 			offset,
-			size
+			offset + size == buffer->size ? VK_WHOLE_SIZE : size
 		};
 		DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 	}
@@ -230,7 +230,8 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 				NULL,
 				bufferData->hostMemory,
 				bufferData->mappedStart,
-				bufferData->mappedSize
+				bufferData->mappedSize + bufferData->mappedSize == buffer->size ? VK_WHOLE_SIZE :
+					bufferData->mappedSize
 			};
 			DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
 		}
@@ -271,7 +272,7 @@ bool dsVkGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 		NULL,
 		bufferData->hostMemory,
 		offset,
-		size
+		offset + size == buffer->size ? VK_WHOLE_SIZE : size
 	};
 	VkResult result = DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
 	return dsHandleVkResult(result);
@@ -303,7 +304,7 @@ bool dsVkGfxBuffer_invalidate(dsResourceManager* resourceManager, dsGfxBuffer* b
 		NULL,
 		bufferData->hostMemory,
 		offset,
-		size
+		offset + size == buffer->size ? VK_WHOLE_SIZE : size
 	};
 	VkResult result = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 	return dsHandleVkResult(result);
