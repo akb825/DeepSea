@@ -188,7 +188,7 @@ void* dsGfxBuffer_map(dsGfxBuffer* buffer, dsGfxBufferMap flags, size_t offset, 
 		ptr = buffer->resourceManager->mapBufferFunc(resourceManager, buffer, flags, offset, size);
 		if (!ptr)
 			DS_PROFILE_FUNC_RETURN(NULL);
-		ptr = ((uint8_t*)ptr + rem);
+		ptr = (uint8_t*)ptr + rem;
 	}
 
 	DS_PROFILE_FUNC_RETURN(ptr);

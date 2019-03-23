@@ -337,6 +337,7 @@ typedef struct dsVkTexture
 	VkImageView deviceImageView;
 
 	VkDeviceMemory hostMemory;
+	VkDeviceSize hostMemorySize;
 	VkImage hostImage;
 	uint32_t hostImageCount;
 	bool hostMemoryCoherent;

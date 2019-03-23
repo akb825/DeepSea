@@ -47,6 +47,18 @@ static size_t fullAllocSize(const dsTextureInfo* info, bool needsHost)
 	return size;
 }
 
+inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkDeviceSize* offset,
+	VkDeviceSize* size, size_t* rem)
+{
+	*rem = (size_t)(*offset % alignment);
+	*offset -= *rem;
+	*size += *rem;
+
+	size_t count = (*size + alignment - 1)/alignment;
+	*size = count*alignment;
+	*size = dsMin(*size, totalSize - *offset);
+}
+
 static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const dsTextureInfo* info,
 	const dsVkFormatInfo* formatInfo, VkImageAspectFlags aspectMask,
 	VkImageCreateInfo* baseCreateInfo, dsVkTexture* texture, const void* data, size_t dataSize)
@@ -188,6 +200,7 @@ static bool createHostImages(dsVkDevice* device, dsAllocator* allocator, const d
 	if (!texture->hostMemory)
 		return false;
 
+	texture->hostMemorySize = memoryRequirements.size;
 	texture->hostMemoryCoherent = dsVkHeapIsCoherent(device, memoryIndex);
 
 	// Share the same block of memory for all host images.
@@ -1094,10 +1107,17 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 	dsVkResource_waitUntilNotInUse(&vkTexture->resource, resourceManager->renderer);
 
 	void* imageMemory;
+	VkDeviceSize offset = hostImage->offset + hostImage->layout.offset;
+	VkDeviceSize mapSize = hostImage->layout.size;
+	size_t rem = 0;
+	adjustAlignment(resourceManager->minNonCoherentMappingAlignment, vkTexture->hostMemorySize,
+		&offset, &mapSize, &rem);
 	VkResult vkResult = DS_VK_CALL(device->vkMapMemory)(device->device, vkTexture->hostMemory,
-		hostImage->offset + hostImage->layout.offset, hostImage->layout.size, 0, &imageMemory);
+		offset, mapSize, 0, &imageMemory);
 	if (!dsHandleVkResult(vkResult))
 		return false;
+
+	imageMemory = (uint8_t*)imageMemory + rem;
 
 	if (!vkTexture->hostMemoryCoherent)
 	{
@@ -1106,8 +1126,8 @@ bool dsVkTexture_getData(void* result, size_t size, dsResourceManager* resourceM
 			VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,
 			NULL,
 			vkTexture->hostMemory,
-			hostImage->offset + hostImage->layout.offset,
-			hostImage->layout.size
+			offset,
+			mapSize
 		};
 		vkResult = DS_VK_CALL(device->vkInvalidateMappedMemoryRanges)(device->device, 1, &range);
 		if (!dsHandleVkResult(vkResult))
