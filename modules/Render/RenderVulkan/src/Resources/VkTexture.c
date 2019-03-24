@@ -54,7 +54,7 @@ inline static void adjustAlignment(size_t alignment, VkDeviceSize totalSize, VkD
 	*offset -= *rem;
 	*size += *rem;
 
-	size_t count = (*size + alignment - 1)/alignment;
+	VkDeviceSize count = (*size + alignment - 1)/alignment;
 	*size = count*alignment;
 	*size = dsMin(*size, totalSize - *offset);
 }

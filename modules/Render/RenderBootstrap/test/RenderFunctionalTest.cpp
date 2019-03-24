@@ -991,6 +991,12 @@ TEST_P(RendererFunctionalTest, ImageBuffer)
 		return;
 	}
 
+	if (!(resourceManager->supportedBuffers & dsGfxBufferUsage_Image))
+	{
+		DS_LOG_INFO("RenderFunctionalTest", "Image buffers not supported: skipping test.");
+		return;
+	}
+
 	uint32_t values[invocationCount];
 	for (uint32_t i = 0; i < invocationCount; ++i)
 		values[i] = i*2 + 3;

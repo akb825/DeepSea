@@ -38,6 +38,8 @@ uint32_t dsVkMemoryIndexImpl(const dsVkDevice* device, const VkMemoryRequirement
 	VkMemoryPropertyFlags requiredFlags, VkMemoryPropertyFlags optimalFlags);
 uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* requirements,
 	dsGfxMemory memoryFlags);
+bool dsVkMemoryIndexCompatible(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	dsGfxMemory memoryFlags, uint32_t memoryIndex);
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	const VkMemoryRequirements* requirements, uint32_t memoryIndex);
 bool dsVkHeapIsCoherent(const dsVkDevice* device, uint32_t memoryIndex);

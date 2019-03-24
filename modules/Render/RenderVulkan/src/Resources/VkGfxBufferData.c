@@ -165,11 +165,8 @@ dsVkGfxBufferData* dsVkGfxBufferData_create(dsResourceManager* resourceManager,
 			&hostRequirements);
 		// Check if the device memory index is supported. If so, use it explicitly since
 		// dsVkMemoryIndex() may not return the same value.
-		if (deviceMemoryIndex != DS_INVALID_HEAP &&
-			hostRequirements.memoryTypeBits & (1 << deviceMemoryIndex))
-		{
+		if (dsVkMemoryIndexCompatible(device, &hostRequirements, hostHints, deviceMemoryIndex))
 			hostMemoryIndex = deviceMemoryIndex;
-		}
 		else
 			hostMemoryIndex = dsVkMemoryIndex(device, &hostRequirements, hostHints);
 		if (hostMemoryIndex == DS_INVALID_HEAP)

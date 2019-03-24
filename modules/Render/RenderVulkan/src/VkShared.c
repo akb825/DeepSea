@@ -127,6 +127,23 @@ uint32_t dsVkMemoryIndex(const dsVkDevice* device, const VkMemoryRequirements* r
 	return dsVkMemoryIndexImpl(device, requirements, requiredFlags, optimalFlags);
 }
 
+bool dsVkMemoryIndexCompatible(const dsVkDevice* device, const VkMemoryRequirements* requirements,
+	dsGfxMemory memoryFlags, uint32_t memoryIndex)
+{
+	if (memoryIndex == DS_INVALID_HEAP || !(requirements->memoryTypeBits & (1 << memoryIndex)))
+		return false;
+
+	VkMemoryPropertyFlags requiredFlags = 0;
+	if (!(memoryFlags & dsGfxMemory_GPUOnly))
+		requiredFlags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+	if (memoryFlags & dsGfxMemory_Coherent)
+		requiredFlags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+	const VkPhysicalDeviceMemoryProperties* memoryProperties = &device->memoryProperties;
+	const VkMemoryType* memoryType = memoryProperties->memoryTypes + memoryIndex;
+	return (memoryType->propertyFlags & requiredFlags) == requiredFlags;
+}
+
 VkDeviceMemory dsAllocateVkMemory(const dsVkDevice* device,
 	const VkMemoryRequirements* requirements, uint32_t memoryIndex)
 {

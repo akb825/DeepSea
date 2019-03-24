@@ -53,7 +53,7 @@ void FixtureBase::SetUp()
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(4, 3, 0)},
 		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
-		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 1, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 2, 0)},
 	};
 	const dsShaderVersion* shaderVersion = dsRenderer_chooseShaderVersion(renderer, shaderVersions,
 		DS_ARRAY_SIZE(shaderVersions));
