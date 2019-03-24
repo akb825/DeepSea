@@ -229,7 +229,7 @@ bool dsVkGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffer
 				NULL,
 				bufferData->hostMemory,
 				bufferData->mappedStart,
-				bufferData->mappedSize + bufferData->mappedSize == buffer->size ? VK_WHOLE_SIZE :
+				bufferData->mappedStart + bufferData->mappedSize == buffer->size ? VK_WHOLE_SIZE :
 					bufferData->mappedSize
 			};
 			DS_VK_CALL(device->vkFlushMappedMemoryRanges)(device->device, 1, &range);
