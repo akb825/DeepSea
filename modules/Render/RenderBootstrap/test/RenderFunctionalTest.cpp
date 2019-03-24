@@ -546,7 +546,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 		(dsGfxBufferMap)(dsGfxBufferMap_Write | dsGfxBufferMap_Orphan), 0, buffer->size);
 	ASSERT_TRUE(data);
 	memcpy(data, vertices, sizeof(vertices));
-	DS_ASSERT(dsGfxBuffer_unmap(buffer));
+	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	Vertex otherVertices[] =
 	{
@@ -603,7 +603,7 @@ TEST_P(RendererFunctionalTest, OrphanBuffer)
 		0, buffer->size);
 	ASSERT_TRUE(data);
 	memcpy(data, otherVertices, sizeof(otherVertices));
-	DS_ASSERT(dsGfxBuffer_unmap(buffer));
+	ASSERT_TRUE(dsGfxBuffer_unmap(buffer));
 
 	ASSERT_TRUE(dsRenderPass_begin(info.renderPass, commandBuffer, info.framebuffer, NULL,
 		&clearValue, 1));
