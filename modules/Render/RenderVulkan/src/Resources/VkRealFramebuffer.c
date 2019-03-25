@@ -272,8 +272,8 @@ dsVkRealFramebuffer* dsVkRealFramebuffer_create(dsAllocator* allocator,
 		memset(realFramebuffer->imageViewTemp, 0, sizeof(bool)*imageCount);
 
 		if (!getImageViews(framebuffer->resourceManager, framebuffer->surfaces,
-			framebuffer->surfaceCount, framebuffer->layers, realFramebuffer->imageViews,
-			realFramebuffer->imageViewTemp, imageCount, renderPassData))
+				framebuffer->surfaceCount, framebuffer->layers, realFramebuffer->imageViews,
+				realFramebuffer->imageViewTemp, imageCount, renderPassData))
 		{
 			dsVkRealFramebuffer_destroy(realFramebuffer);
 			return NULL;

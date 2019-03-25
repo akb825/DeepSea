@@ -119,6 +119,9 @@ bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* comm
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
+bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
+	const dsAlignedBox3f* viewport);
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

@@ -35,7 +35,7 @@
 // 10 seconds in nanoseconds
 #define DS_DEFAULT_WAIT_TIMEOUT 10000000000
 #define DS_MAX_DYNAMIC_STATES VK_DYNAMIC_STATE_STENCIL_REFERENCE + 1
-#define DS_COMMAND_BUFFER_CHUNK_SIZE 100
+#define DS_COMMAND_BUFFER_CHUNK_SIZE 20
 #define DS_RECENTLY_ADDED_SIZE 10
 
 typedef struct dsVkInstance
@@ -859,6 +859,24 @@ typedef struct dsVkCommandBufferData
 	bool renderPass;
 } dsVkCommandBufferData;
 
+typedef struct dsVkSubpassBufferRange
+{
+	uint32_t start;
+	uint32_t count;
+} dsVkSubpassBufferRange;
+
+typedef struct dsVkSubpassBuffers
+{
+	dsAllocator* allocator;
+	VkCommandBuffer* commandBuffers;
+	uint32_t commandBufferCount;
+	uint32_t maxCommandBuffers;
+
+	dsVkSubpassBufferRange* subpasses;
+	uint32_t subpassCount;
+	uint32_t maxSubpasses;
+} dsVkSubpassBuffers;
+
 struct dsVkCommandBuffer
 {
 	dsCommandBuffer commandBuffer;
@@ -914,9 +932,7 @@ struct dsVkCommandBuffer
 	uint32_t copyImageBarrierCount;
 	uint32_t maxCopyImageBarriers;
 
-	VkCommandBuffer* subpassBuffers;
-	uint32_t subpassBufferCount;
-	uint32_t maxSubpassBuffers;
+	dsVkSubpassBuffers subpassBuffers;
 
 	VkImageCopy* imageCopies;
 	uint8_t* pushConstantBytes;

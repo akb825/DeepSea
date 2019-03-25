@@ -17,6 +17,7 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 
 #include <DeepSea/Core/Thread/Thread.h>
+#include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Core/Profile.h>
@@ -46,6 +47,7 @@ dsCommandBufferPool* dsCommandBufferPool_create(dsRenderer* renderer, dsAllocato
 	for (uint32_t i = 0; i < pool->count; ++i)
 	{
 		dsCommandBuffer* commandBuffer = pool->currentBuffers[i];
+		DS_ASSERT(commandBuffer->usage == usage);
 		commandBuffer->frameActive = true;
 		commandBuffer->boundSurface = NULL;
 		commandBuffer->boundFramebuffer = NULL;

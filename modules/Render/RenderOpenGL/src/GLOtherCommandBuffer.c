@@ -962,18 +962,6 @@ bool dsGLOtherCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLOtherCommandBuffer_begin(dsCommandBuffer* commandBuffer)
-{
-	DS_UNUSED(commandBuffer);
-	return true;
-}
-
-bool dsGLOtherCommandBuffer_end(dsCommandBuffer* commandBuffer)
-{
-	DS_UNUSED(commandBuffer);
-	return true;
-}
-
 bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	dsGLOtherCommandBuffer* glSubmitBuffer = (dsGLOtherCommandBuffer*)submitBuffer;
@@ -1287,8 +1275,6 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLOtherCommandBuffer_pushDebugGroup,
 	&dsGLOtherCommandBuffer_popDebugGroup,
 	&dsGLOtherCommandBuffer_memoryBarrier,
-	&dsGLOtherCommandBuffer_begin,
-	&dsGLOtherCommandBuffer_end,
 	&dsGLOtherCommandBuffer_submit
 };
 

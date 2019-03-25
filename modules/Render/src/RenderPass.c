@@ -36,7 +36,7 @@ typedef enum SurfaceType
 #define SCOPE_SIZE 256
 
 static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer* commandBuffer,
-	const dsFramebuffer* framebuffer)
+	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport)
 {
 	// Error checking for this will be later.
 	if (!renderPass || !commandBuffer || !framebuffer)
@@ -65,6 +65,15 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 		return false;
 	}
 
+	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||
+		viewport->max.x > framebuffer->width || viewport->max.y > framebuffer->height ||
+		viewport->max.z > 1))
+	{
+		errno = ERANGE;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");
+		return false;
+	}
+
 #if DS_PROFILING_ENABLED
 
 	char buffer[SCOPE_SIZE];
@@ -81,6 +90,17 @@ static bool startRenderPassScope(const dsRenderPass* renderPass, dsCommandBuffer
 	commandBuffer->boundFramebuffer = framebuffer;
 	commandBuffer->boundRenderPass = renderPass;
 	commandBuffer->activeRenderSubpass = 0;
+	if (viewport)
+		commandBuffer->viewport = *viewport;
+	else
+	{
+		commandBuffer->viewport.min.x = 0.0f;
+		commandBuffer->viewport.min.y = 0.0f;
+		commandBuffer->viewport.min.z = 0.0f;
+		commandBuffer->viewport.max.x = (float)framebuffer->width;
+		commandBuffer->viewport.max.y = (float)framebuffer->height;
+		commandBuffer->viewport.max.z = 1.0f;
+	}
 	return true;
 }
 
@@ -456,7 +476,7 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 	const dsFramebuffer* framebuffer, const dsAlignedBox3f* viewport,
 	const dsSurfaceClearValue* clearValues, uint32_t clearValueCount)
 {
-	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer))
+	if (!startRenderPassScope(renderPass, commandBuffer, framebuffer, viewport))
 		return false;
 
 	DS_PROFILE_FUNC_START();
@@ -584,17 +604,6 @@ bool dsRenderPass_begin(const dsRenderPass* renderPass, dsCommandBuffer* command
 				return false;
 			}
 		}
-	}
-
-	if (viewport && (viewport->min.x < 0 || viewport->min.y < 0 || viewport->min.z < 0 ||
-		viewport->max.x > framebuffer->width || viewport->max.y > framebuffer->height ||
-		viewport->max.z > 1))
-	{
-		errno = ERANGE;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Viewport is out of range.");
-		DS_PROFILE_FUNC_END();
-		endRenderPassScope(commandBuffer);
-		return false;
 	}
 
 	if (needsClear && clearValueCount == 0)

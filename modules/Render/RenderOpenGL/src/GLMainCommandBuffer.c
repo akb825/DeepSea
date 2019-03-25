@@ -1856,24 +1856,6 @@ bool dsGLMainCommandBuffer_memoryBarrier(dsCommandBuffer* commandBuffer,
 	return true;
 }
 
-bool dsGLMainCommandBuffer_begin(dsCommandBuffer* commandBuffer)
-{
-	DS_UNUSED(commandBuffer);
-
-	errno = EPERM;
-	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot begin or end the main command buffer.");
-	return false;
-}
-
-bool dsGLMainCommandBuffer_end(dsCommandBuffer* commandBuffer)
-{
-	DS_UNUSED(commandBuffer);
-
-	errno = EPERM;
-	DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "Cannot begin or end the main command buffer.");
-	return false;
-}
-
 bool dsGLMainCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer)
 {
 	DS_UNUSED(commandBuffer);
@@ -1920,8 +1902,6 @@ static CommandBufferFunctionTable functionTable =
 	&dsGLMainCommandBuffer_pushDebugGroup,
 	&dsGLMainCommandBuffer_popDebugGroup,
 	&dsGLMainCommandBuffer_memoryBarrier,
-	&dsGLMainCommandBuffer_begin,
-	&dsGLMainCommandBuffer_end,
 	&dsGLMainCommandBuffer_submit
 };
 

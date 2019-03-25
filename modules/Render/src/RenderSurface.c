@@ -146,6 +146,16 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		return false;
 	}
 
+	if (commandBuffer->usage & dsCommandBufferUsage_Secondary)
+	{
+		errno = EPERM;
+		DS_PROFILE_FUNC_END();
+		endSurfaceScope(renderSurface);
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
+			"Cannot begin drawing to a render surface inside of a secondary command buffer.");
+		return false;
+	}
+
 	if (commandBuffer->boundComputeShader)
 	{
 		errno = EPERM;

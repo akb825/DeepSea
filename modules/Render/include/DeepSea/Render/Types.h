@@ -171,13 +171,14 @@ typedef enum dsRenderSurfaceType
 typedef enum dsCommandBufferUsage
 {
 	dsCommandBufferUsage_Standard = 0,      ///< Standard usage.
-	dsCommandBufferUsage_MultiSubmit = 0x1, ///< Will be submitted multiple times in a frame.
-	dsCommandBufferUsage_MultiFrame = 0x2,  ///< Will be submitted across frames.
+	dsCommandBufferUsage_Secondary = 0x1,   ///< Only used for draw calls within render subpasses.
+	dsCommandBufferUsage_MultiSubmit = 0x2, ///< Will be submitted multiple times in a frame.
+	dsCommandBufferUsage_MultiFrame = 0x4,  ///< Will be submitted across frames.
 	/**
 	 * Double-buffer the command buffers within the pool, allowing for writing to one set of buffers
 	 * in parallel to another set being submitted.
 	 */
-	dsCommandBufferUsage_DoubleBuffer = 0x4
+	dsCommandBufferUsage_DoubleBuffer = 0x8
 } dsCommandBufferUsage;
 
 /**
@@ -802,6 +803,11 @@ typedef struct dsCommandBuffer
 	uint32_t activeRenderSubpass;
 
 	/**
+	 * @brief The currently set viewport for the render pass.
+	 */
+	dsAlignedBox3f viewport;
+
+	/**
 	 * @brief The currently bound shader.
 	 */
 	const dsShader* boundShader;
@@ -1157,6 +1163,20 @@ typedef bool (*dsResetCommandBufferPoolFunction)(dsRenderer* renderer, dsCommand
  * @return False if the command buffer couldn't be begun.
  */
 typedef bool (*dsBeginCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
+
+/**
+ * @brief Function for starting to draw to a secondary command buffer.
+ * @param renderer The renderer that the command buffer will be drawn with.
+ * @param commandBuffer The command buffer to begin.
+ * @param framebuffer The framebuffer being drawn to.
+ * @param renderPass The render pass being drawn to.
+ * @param subpass The subpass within the render pass being drawn to.
+ * @param viewport The viewport to render to.
+ * @return False if the command buffer couldn't be begun.
+ */
+typedef bool (*dsBeginSecondaryCommandBufferFunction)(dsRenderer* renderer,
+	dsCommandBuffer* commandBuffer, const dsFramebuffer* framebuffer,
+	const dsRenderPass* renderPass, uint32_t subpass, const dsAlignedBox3f* viewport);
 
 /**
  * @brief Function for ending drawing to a command buffer.
@@ -1748,6 +1768,11 @@ struct dsRenderer
 	 * @brief Command buffer begin function.
 	 */
 	dsBeginCommandBufferFunction beginCommandBufferFunc;
+
+	/**
+	 * @brief Secondary command buffer begin function.
+	 */
+	dsBeginSecondaryCommandBufferFunction beginSecondaryCommandBufferFunc;
 
 	/**
 	 * @brief Command buffer end function.

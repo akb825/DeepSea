@@ -754,16 +754,32 @@ bool dsGLCommandBuffer_memoryBarrier(dsRenderer* renderer, dsCommandBuffer* comm
 
 bool dsGLCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->beginFunc(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	return true;
+}
+
+bool dsGLCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
+	const dsAlignedBox3f* viewport)
+{
+	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
+	DS_UNUSED(renderer);
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(framebuffer);
+	DS_UNUSED(renderPass);
+	DS_UNUSED(subpass);
+	DS_UNUSED(viewport);
+	return true;
 }
 
 bool dsGLCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
+	DS_ASSERT(commandBuffer != renderer->mainCommandBuffer);
 	DS_UNUSED(renderer);
-	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	return functions->endFunc(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	return true;
 }
 
 bool dsGLCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,

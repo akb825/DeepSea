@@ -436,6 +436,7 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->destroyCommandBufferPoolFunc = &dsMockCommandBufferPool_destroy;
 
 	renderer->beginCommandBufferFunc = &dsMockCommandBuffer_begin;
+	renderer->beginSecondaryCommandBufferFunc = &dsMockCommandBuffer_beginSecondary;
 	renderer->endCommandBufferFunc = &dsMockCommandBuffer_end;
 	renderer->submitCommandBufferFunc = &dsMockCommandBuffer_submit;
 

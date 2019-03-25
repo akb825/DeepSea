@@ -27,6 +27,24 @@ bool dsMockCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuf
 	return true;
 }
 
+bool dsMockCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
+	const dsAlignedBox3f* viewport)
+{
+	DS_ASSERT(renderer);
+	DS_UNUSED(renderer);
+	DS_ASSERT(commandBuffer);
+	DS_UNUSED(commandBuffer);
+	DS_UNUSED(framebuffer);
+	DS_ASSERT(renderPass);
+	DS_UNUSED(renderPass);
+	DS_ASSERT(subpass < renderPass->subpassCount);
+	DS_UNUSED(subpass);
+	DS_UNUSED(viewport);
+
+	return true;
+}
+
 bool dsMockCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer)
 {
 	DS_ASSERT(renderer);

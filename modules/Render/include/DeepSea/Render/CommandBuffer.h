@@ -43,6 +43,32 @@ extern "C"
 DS_RENDER_EXPORT bool dsCommandBuffer_begin(dsCommandBuffer* commandBuffer);
 
 /**
+ * @brief Begins drawing to a secondary command buffer.
+ *
+ * A secondary command buffer is for the draw calls (including shader binds) within a render pass.
+ * As a result, the framebuffer and render subpass being drawn to is required when beginning the
+ * command buffer, which must match the bound state for the command buffer being submitted to with
+ * dsCommandBuffer_submit().
+ *
+ * @remark errno will be set on failure.
+ * @remark either framebuffer or viewport must be non-NULL to know the full view range to render to.
+ * @param commandBuffer The command buffer to begin. This must be from a dsCommandBufferPool created
+ *     with the dsCommandBufferUsage_Secondary flag.
+ * @param framebuffer The framebuffer being drawn to. This may be NULL, but can be faster if
+ *     specified. If this is NULL, then viewport must be non-NULL.
+ * @param renderPass The render pass being drawn to.
+ * @param subpass The subpass within the render pass being drawn to.
+ * @param viewport The viewport to draw to. The x/y values are in pixel space, while the z value is
+ *     in the range [0, 1]. If NULL, the full range is used. This must match the viewport used to
+ *     begin the render pass on the command buffer it will be submitted to. If this is NULL, then
+ *     framebuffer must be non-NULL.
+ * @return False if the command buffer couldn't be begun.
+ */
+DS_RENDER_EXPORT bool dsCommandBuffer_beginSecondary(dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
+	const dsAlignedBox3f* viewport);
+
+/**
  * @brief Ends drawing to a command buffer.
  * @remark errno will be set on failure.
  * @param commandBuffer The command buffer to end. This should not be the main command buffer.

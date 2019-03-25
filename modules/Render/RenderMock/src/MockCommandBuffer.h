@@ -20,6 +20,9 @@
 #include <DeepSea/Render/Types.h>
 
 bool dsMockCommandBuffer_begin(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
+bool dsMockCommandBuffer_beginSecondary(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
+	const dsFramebuffer* framebuffer, const dsRenderPass* renderPass, uint32_t subpass,
+	const dsAlignedBox3f* viewport);
 bool dsMockCommandBuffer_end(dsRenderer* renderer, dsCommandBuffer* commandBuffer);
 bool dsMockCommandBuffer_submit(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);

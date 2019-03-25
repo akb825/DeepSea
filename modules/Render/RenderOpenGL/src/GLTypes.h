@@ -343,8 +343,6 @@ typedef bool (*GLPopDebugGroupFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLGfxMemoryBarrierFunction)(dsCommandBuffer* commandBuffer,
 	const dsGfxMemoryBarrier* barriers, uint32_t barrierCount);
 
-typedef bool (*GLBeginCommandBufferFunction)(dsCommandBuffer* commandBuffer);
-typedef bool (*GLEndCommandBufferFunction)(dsCommandBuffer* commandBuffer);
 typedef bool (*GLSubmitCommandBufferFunction)(dsCommandBuffer* commandBuffer,
 	dsCommandBuffer* submitBuffer);
 
@@ -397,8 +395,6 @@ typedef struct CommandBufferFunctionTable
 
 	GLGfxMemoryBarrierFunction memoryBarrierFunc;
 
-	GLBeginCommandBufferFunction beginFunc;
-	GLEndCommandBufferFunction endFunc;
 	GLSubmitCommandBufferFunction submitFunc;
 } CommandBufferFunctionTable;
 
