@@ -159,6 +159,7 @@ typedef struct BindShaderCommand
 	Command command;
 	const dsShader* shader;
 	dsDynamicRenderStates renderStates;
+	bool hasRenderStates;
 } BindShaderCommand;
 
 typedef struct SetTextureCommand
@@ -584,7 +585,13 @@ bool dsGLOtherCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsS
 
 	dsGLShader_addInternalRef((dsShader*)shader);
 	command->shader = shader;
-	command->renderStates = *renderStates;
+	if (renderStates)
+	{
+		command->renderStates = *renderStates;
+		command->hasRenderStates = true;
+	}
+	else
+		command->hasRenderStates = false;
 	return true;
 }
 
@@ -1045,7 +1052,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 			{
 				BindShaderCommand* thisCommand = (BindShaderCommand*)command;
 				dsGLCommandBuffer_bindShader(commandBuffer, thisCommand->shader,
-					&thisCommand->renderStates);
+					thisCommand->hasRenderStates ? &thisCommand->renderStates : NULL);
 				break;
 			}
 			case CommandType_SetTexture:
@@ -1069,6 +1076,7 @@ bool dsGLOtherCommandBuffer_submit(dsCommandBuffer* commandBuffer, dsCommandBuff
 				dsGLCommandBuffer_setShaderBuffer(commandBuffer, thisCommand->shader,
 					thisCommand->element, thisCommand->buffer, thisCommand->offset,
 					thisCommand->size);
+				break;
 			}
 			case CommandType_SetUniform:
 			{

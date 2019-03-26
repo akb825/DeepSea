@@ -42,8 +42,8 @@ void FixtureBase::SetUp()
 	dsRendererOptions options;
 	dsRenderer_defaultOptions(&options, "deepsea_test_render_bootstrap", 0);
 	options.samples = 0;
-	renderer = dsRenderBootstrap_createRenderer(GetParam(), &allocator.allocator,
-		&options);
+	adjustRendererOptions(options);
+	renderer = dsRenderBootstrap_createRenderer(GetParam(), &allocator.allocator, &options);
 	ASSERT_TRUE(renderer);
 	resourceManager = renderer->resourceManager;
 
@@ -51,8 +51,10 @@ void FixtureBase::SetUp()
 	{
 		{DS_VK_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 1, 0)},
+		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(1, 5, 0)},
 		{DS_GL_RENDERER_ID, DS_ENCODE_VERSION(4, 3, 0)},
 		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(1, 0, 0)},
+		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 0, 0)},
 		{DS_GLES_RENDERER_ID, DS_ENCODE_VERSION(3, 2, 0)},
 	};
 	const dsShaderVersion* shaderVersion = dsRenderer_chooseShaderVersion(renderer, shaderVersions,
@@ -73,6 +75,10 @@ void FixtureBase::TearDown()
 
 	dsRenderer_destroy(renderer);
 	EXPECT_EQ(0U, allocator.allocator.size);
+}
+
+void FixtureBase::adjustRendererOptions(dsRendererOptions&)
+{
 }
 
 const char* FixtureBase::getShaderPath(const char* fileName) const

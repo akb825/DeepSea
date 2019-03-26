@@ -724,9 +724,16 @@ void dsVkCommandBuffer_finishCommandBuffer(dsCommandBuffer* commandBuffer)
 
 	if (vkCommandBuffer->activeCommandBuffer)
 	{
+		DS_ASSERT(!vkCommandBuffer->activeSubpassBuffer);
 		DS_VK_CALL(device->vkEndCommandBuffer)(vkCommandBuffer->activeCommandBuffer);
 		vkCommandBuffer->activeCommandBuffer = 0;
 	}
+	else if ((commandBuffer->usage & dsCommandBufferUsage_Secondary) &&
+		vkCommandBuffer->activeSubpassBuffer)
+	{
+		DS_VK_CALL(device->vkEndCommandBuffer)(vkCommandBuffer->activeSubpassBuffer);
+	}
+
 	resetActiveRenderAndComputeState(vkCommandBuffer);
 }
 
@@ -758,9 +765,13 @@ bool dsVkCommandBuffer_endSubmitCommands(dsCommandBuffer* commandBuffer)
 	dsRenderer* renderer = commandBuffer->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 
-	VkCommandBuffer renderCommands = vkCommandBuffer->activeCommandBuffer;
-	if (!renderCommands)
+	// First submit buffer is always for resource processing.
+	if (vkCommandBuffer->submitBufferCount <= 1)
 		return true;
+
+	VkCommandBuffer renderCommands = getMainCommandBuffer(commandBuffer);
+	if (!renderCommands)
+		return false;
 
 	// Copy the readback offscreens.
 	if (!processOffscreenReadbacks(commandBuffer, renderCommands))

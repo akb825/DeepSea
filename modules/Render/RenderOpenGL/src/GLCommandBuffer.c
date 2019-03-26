@@ -23,14 +23,6 @@
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/VolatileMaterialValues.h>
 
-#if DS_ASSERTS_ENABLED
-static bool insideRenderPass(const dsCommandBuffer* commandBuffer)
-{
-	const dsGLCommandBuffer* glCommandBuffer = (const dsGLCommandBuffer*)commandBuffer;
-	return glCommandBuffer->boundRenderPass;
-}
-#endif
-
 static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
 {
@@ -38,7 +30,6 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(shader);
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(glCommandBuffer->boundShader == shader);
 	if (!volatileValues)
 		return true;
 
@@ -332,8 +323,6 @@ void dsGLCommandBuffer_initialize(dsCommandBuffer* commandBuffer)
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	glCommandBuffer->commitCounts = NULL;
 	glCommandBuffer->commitCountSize = 0;
-	glCommandBuffer->boundRenderPass = NULL;
-	glCommandBuffer->boundShader = NULL;
 	glCommandBuffer->boundSurface = NULL;
 }
 
@@ -348,7 +337,6 @@ void dsGLCommandBuffer_shutdown(dsCommandBuffer* commandBuffer)
 bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffer* buffer,
 	size_t offset, const void* data, size_t size)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyBufferDataFunc(commandBuffer, buffer, offset, data, size);
 }
@@ -356,7 +344,6 @@ bool dsGLCommandBuffer_copyBufferData(dsCommandBuffer* commandBuffer, dsGfxBuffe
 bool dsGLCommandBuffer_copyBuffer(dsCommandBuffer* commandBuffer, dsGfxBuffer* srcBuffer,
 	size_t srcOffset, dsGfxBuffer* dstBuffer, size_t dstOffset, size_t size)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyBufferFunc(commandBuffer, srcBuffer, srcOffset, dstBuffer, dstOffset,
 		size);
@@ -366,7 +353,6 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 	const dsTexturePosition* position, uint32_t width, uint32_t height, uint32_t layers,
 	const void* data, size_t size)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyTextureDataFunc(commandBuffer, texture, position, width, height, layers,
 		data, size);
@@ -375,14 +361,12 @@ bool dsGLCommandBuffer_copyTextureData(dsCommandBuffer* commandBuffer, dsTexture
 bool dsGLCommandBuffer_copyTexture(dsCommandBuffer* commandBuffer, dsTexture* srcTexture,
 	dsTexture* dstTexture, const dsTextureCopyRegion* regions, uint32_t regionCount)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyTextureFunc(commandBuffer, srcTexture, dstTexture, regions, regionCount);
 }
 
 bool dsGLCommandBuffer_generateTextureMipmaps(dsCommandBuffer* commandBuffer, dsTexture* texture)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->generateTextureMipmapsFunc(commandBuffer, texture);
 }
@@ -419,7 +403,6 @@ bool dsGLCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQuer
 	uint32_t first, uint32_t count, dsGfxBuffer* buffer, size_t offset, size_t stride,
 	size_t elementSize, bool checkAvailability)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->copyQueryValuesFunc(commandBuffer, queries, first, count, buffer, offset,
 		stride, elementSize, checkAvailability);
@@ -448,15 +431,9 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates)
 {
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(!glCommandBuffer->boundShader);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->bindShaderFunc(commandBuffer, shader, renderStates))
-		return false;
-
-	glCommandBuffer->boundShader = shader;
-	return true;
+	return functions->bindShaderFunc(commandBuffer, shader, renderStates);
 }
 
 bool dsGLCommandBuffer_setTexture(dsCommandBuffer* commandBuffer, const dsShader* shader,
@@ -491,21 +468,14 @@ bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location
 bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
 {
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
 }
 
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(glCommandBuffer->boundShader == shader);
-
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->unbindShaderFunc(commandBuffer, shader))
-		return false;
-
-	glCommandBuffer->boundShader = NULL;
-	return true;
+	return functions->unbindShaderFunc(commandBuffer, shader);
 }
 
 bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
@@ -531,39 +501,25 @@ bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuff
 bool dsGLCommandBuffer_setComputeVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
 }
 
 bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(!glCommandBuffer->boundShader);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->bindComputeShaderFunc(commandBuffer, shader))
-		return false;
-
-	glCommandBuffer->boundShader = shader;
-	return true;
+	return functions->bindComputeShaderFunc(commandBuffer, shader);
 }
 
 bool dsGLCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
 {
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(glCommandBuffer->boundShader == shader);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
-	if (!functions->unbindComputeShaderFunc(commandBuffer, shader))
-		return false;
-
-	glCommandBuffer->boundShader = NULL;
-	return true;
+	return functions->unbindComputeShaderFunc(commandBuffer, shader);
 }
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
-
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	DS_ASSERT(!glCommandBuffer->boundSurface);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
@@ -576,8 +532,6 @@ bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* 
 
 bool dsGLCommandBuffer_endRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
-
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	DS_ASSERT(glCommandBuffer->boundSurface == glSurface);
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
@@ -593,9 +547,7 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	const dsAlignedBox3f* viewport, const dsSurfaceClearValue* clearValues,
 	uint32_t clearValueCount)
 {
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(!glCommandBuffer->boundShader);
 
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	if (!functions->beginRenderPassFunc(commandBuffer, renderPass, framebuffer, viewport,
@@ -603,35 +555,20 @@ bool dsGLCommandBuffer_beginRenderPass(dsCommandBuffer* commandBuffer,
 	{
 		return false;
 	}
-
-	glCommandBuffer->boundRenderPass = renderPass;
 	return true;
 }
 
 bool dsGLCommandBuffer_nextRenderSubpass(dsCommandBuffer* commandBuffer,
 	const dsRenderPass* renderPass, uint32_t index)
 {
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(glCommandBuffer->boundRenderPass == renderPass);
-	DS_ASSERT(index < renderPass->subpassCount);
-	DS_ASSERT(!glCommandBuffer->boundShader);
-
-	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
+	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->nextRenderSubpassFunc(commandBuffer, renderPass, index);
 }
 
 bool dsGLCommandBuffer_endRenderPass(dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass)
 {
-	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	DS_ASSERT(glCommandBuffer->boundRenderPass == renderPass);
-	DS_ASSERT(!glCommandBuffer->boundShader);
-
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
-	if (!functions->endRenderPassFunc(commandBuffer, renderPass))
-		return false;
-
-	glCommandBuffer->boundRenderPass = NULL;
-	return true;
+	return functions->endRenderPassFunc(commandBuffer, renderPass);
 }
 
 bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
@@ -639,8 +576,6 @@ bool dsGLCommandBuffer_clearColorSurface(dsRenderer* renderer,
 	const dsSurfaceColorValue* colorValue)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(!insideRenderPass(commandBuffer));
-
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	return functions->clearColorSurfaceFunc(commandBuffer, surface, colorValue);
@@ -651,8 +586,6 @@ bool dsGLCommandBuffer_clearDepthStencilSurface(dsRenderer* renderer,
 	dsClearDepthStencil surfaceParts, const dsDepthStencilValue* depthStencilValue)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(!insideRenderPass(commandBuffer));
-
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
 	const CommandBufferFunctionTable* functions = glCommandBuffer->functions;
 	return functions->clearDepthStencilSurfaceFunc(commandBuffer, surface, surfaceParts,
@@ -663,7 +596,6 @@ bool dsGLCommandBuffer_draw(dsRenderer* renderer, dsCommandBuffer* commandBuffer
 	const dsDrawGeometry* geometry, const dsDrawRange* drawRange, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawFunc(commandBuffer, geometry, drawRange, primitiveType);
 }
@@ -673,7 +605,6 @@ bool dsGLCommandBuffer_drawIndexed(dsRenderer* renderer, dsCommandBuffer* comman
 	dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndexedFunc(commandBuffer, geometry, drawRange, primitiveType);
 }
@@ -683,7 +614,6 @@ bool dsGLCommandBuffer_drawIndirect(dsRenderer* renderer, dsCommandBuffer* comma
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
 		stride, primitiveType);
@@ -694,7 +624,6 @@ bool dsGLCommandBuffer_drawIndexedIndirect(dsRenderer* renderer, dsCommandBuffer
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->drawIndirectFunc(commandBuffer, geometry, indirectBuffer, offset, count,
 		stride, primitiveType);
@@ -704,7 +633,6 @@ bool dsGLCommandBuffer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* co
 	uint32_t x, uint32_t y, uint32_t z)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->dispatchComputeFunc(commandBuffer, x, y, z);
 }
@@ -713,7 +641,6 @@ bool dsGLCommandBuffer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBu
 	const dsGfxBuffer* indirectBuffer, size_t offset)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->dispatchComputeIndirectFunc(commandBuffer, indirectBuffer, offset);
 }
@@ -723,7 +650,6 @@ bool dsGLCommandBuffer_blitSurface(dsRenderer* renderer, dsCommandBuffer* comman
 	void* dstSurface, const dsSurfaceBlitRegion* regions, uint32_t regionCount, dsBlitFilter filter)
 {
 	DS_UNUSED(renderer);
-	DS_ASSERT(!insideRenderPass(commandBuffer));
 	const CommandBufferFunctionTable* functions = ((dsGLCommandBuffer*)commandBuffer)->functions;
 	return functions->blitSurfaceFunc(commandBuffer, srcSurfaceType, srcSurface, dstSurfaceType,
 		dstSurface, regions, regionCount, filter);

@@ -2322,6 +2322,7 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	// Command buffers
 	baseRenderer->beginCommandBufferFunc = &dsVkCommandBuffer_begin;
+	baseRenderer->beginSecondaryCommandBufferFunc = &dsVkCommandBuffer_beginSecondary;
 	baseRenderer->endCommandBufferFunc = &dsVkCommandBuffer_end;
 	baseRenderer->submitCommandBufferFunc = &dsVkCommandBuffer_submit;
 

@@ -186,10 +186,14 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	}
 
 	size_t dataSize = getDataSize(description);
-	DS_ASSERT(dataSize > 0);
-	material->data = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator, dataSize);
-	DS_ASSERT(material->data);
-	memset(material->data, 0, dataSize);
+	if (dataSize > 0)
+	{
+		material->data = (uint8_t*)dsAllocator_alloc((dsAllocator*)&bufferAllocator, dataSize);
+		DS_ASSERT(material->data);
+		memset(material->data, 0, dataSize);
+	}
+	else
+		material->data = NULL;
 
 	material->offsets = DS_ALLOCATE_OBJECT_ARRAY((dsAllocator*)&bufferAllocator, uint32_t,
 		description->elementCount);

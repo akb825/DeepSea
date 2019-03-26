@@ -30,6 +30,7 @@ public:
 	void SetUp() override;
 	void TearDown() override;
 
+	virtual void adjustRendererOptions(dsRendererOptions& options);
 	const char* getShaderPath(const char* fileName) const;
 
 	dsSystemAllocator allocator;

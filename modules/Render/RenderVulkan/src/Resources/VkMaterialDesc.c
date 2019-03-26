@@ -114,7 +114,7 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 			VkDescriptorSetLayoutBinding* binding = materialDesc->bindings[i] + index;
 			binding->binding = index;
 			binding->descriptorType = type;
-			binding->descriptorCount = dsMax(1U, elements[i].count);
+			binding->descriptorCount = dsMax(1U, elements[j].count);
 			if (type == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 				binding->stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 			else
