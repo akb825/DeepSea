@@ -120,6 +120,8 @@ dsResourceManager* dsMockResourceManager_create(dsRenderer* renderer, dsAllocato
 	resourceManager->maxResourceContexts = 1;
 	resourceManager->minNonCoherentMappingAlignment = 16;
 	resourceManager->minImageBufferAlignment = 16;
+	resourceManager->minUniformBlockAlignment = 16;
+	resourceManager->minUniformBufferAlignment = 16;
 	resourceManager->supportedBuffers = (dsGfxBufferUsage)(dsGfxBufferUsage_Index |
 		dsGfxBufferUsage_Vertex | dsGfxBufferUsage_IndirectDraw |
 		dsGfxBufferUsage_IndirectDispatch | dsGfxBufferUsage_UniformBlock |

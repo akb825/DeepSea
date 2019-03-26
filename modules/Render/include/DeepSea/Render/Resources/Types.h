@@ -1799,9 +1799,19 @@ struct dsResourceManager
 	uint32_t minNonCoherentMappingAlignment;
 
 	/**
-	 * @brief The minimum alignment for image buffers.
+	 * @brief The minimum alignment for an image buffer offset.
 	 */
 	uint32_t minImageBufferAlignment;
+
+	/**
+	 * @brief The minimum alignment for a uniform block offset.
+	 */
+	uint32_t minUniformBlockAlignment;
+
+	/**
+	* @brief The minimum alignment for a uniform buffer offset.
+	*/
+	uint32_t minUniformBufferAlignment;
 
 	/**
 	 * @brief Bitmask for the supported buffer types.

@@ -761,6 +761,10 @@ dsResourceManager* dsVkResourceManager_create(dsAllocator* allocator, dsVkRender
 	baseResourceManager->minNonCoherentMappingAlignment = (uint32_t)limits->nonCoherentAtomSize;
 	baseResourceManager->minImageBufferAlignment =
 		(uint32_t)limits->minTexelBufferOffsetAlignment;
+	baseResourceManager->minUniformBlockAlignment =
+		(uint32_t)limits->minUniformBufferOffsetAlignment;
+	baseResourceManager->minUniformBufferAlignment =
+		(uint32_t)limits->minStorageBufferOffsetAlignment;
 	baseResourceManager->supportedBuffers = dsGfxBufferUsage_Index | dsGfxBufferUsage_Vertex |
 		dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch |
 		dsGfxBufferUsage_UniformBlock | dsGfxBufferUsage_UniformBuffer | dsGfxBufferUsage_Image |

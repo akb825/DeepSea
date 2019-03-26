@@ -1216,6 +1216,16 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 		glGetIntegerv(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT,
 			(GLint*)&baseResourceManager->minImageBufferAlignment);
 	}
+	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
+	{
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT,
+			(GLint*)&baseResourceManager->minUniformBlockAlignment);
+	}
+	if (baseResourceManager->supportedBuffers & dsGfxBufferUsage_UniformBlock)
+	{
+		glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT,
+			(GLint*)&baseResourceManager->minUniformBufferAlignment);
+	}
 
 	if (AnyGL_atLeastVersion(1, 0, false) || AnyGL_atLeastVersion(3, 0, true) ||
 		AnyGL_OES_element_index_uint)

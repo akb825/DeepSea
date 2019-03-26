@@ -669,6 +669,16 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 			return false;
 		}
 
+		dsResourceManager* resourceManager = buffer->resourceManager;
+		uint32_t alignment = type == dsMaterialType_UniformBlock ?
+			resourceManager->minUniformBlockAlignment : resourceManager->minUniformBufferAlignment;
+		if (alignment > 0 && (offset % alignment) != 0)
+		{
+			errno = EPERM;
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer offset doesn't match alignment requirements.");
+			return false;
+		}
+
 		if (type == dsMaterialType_UniformBlock &&
 			size > buffer->resourceManager->maxUniformBlockSize)
 		{

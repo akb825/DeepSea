@@ -33,7 +33,10 @@
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/Render/Renderer.h>
+
+#include <algorithm>
 #include <thread>
+#include <vector>
 
 namespace
 {
@@ -179,16 +182,21 @@ struct RenderInfo
 			{0.55f, 0.0f, 0.0f, 1.0f}
 		}};
 
+		uint32_t transformSize = std::max(static_cast<uint32_t>(sizeof(dsMatrix44f)),
+			resourceManager->minUniformBlockAlignment);
+		std::vector<uint8_t> transformData(transformSize*2);
+
 		dsMatrix44f projection;
 		ASSERT_TRUE(dsRenderer_makeOrtho(&projection, renderer, -0.1f, 1.1f, -0.1f, 1.1f, 0.0f,
 			1.0f));
 
-		dsMatrix44f transforms[2];
-		dsMatrix44_mul(transforms[0], projection, leftMatrix);
-		dsMatrix44_mul(transforms[1], projection, rightMatrix);
+		dsMatrix44f* transforms[2] = {reinterpret_cast<dsMatrix44f*>(transformData.data()),
+			reinterpret_cast<dsMatrix44f*>(transformData.data() + transformSize)};
+		dsMatrix44_mul(*transforms[0], projection, leftMatrix);
+		dsMatrix44_mul(*transforms[1], projection, rightMatrix);
 		transformBuffer = dsGfxBuffer_create(resourceManager, allocator,
 			dsGfxBufferUsage_UniformBlock, (dsGfxMemory)(dsGfxMemory_Static | dsGfxMemory_GPUOnly),
-			transforms, sizeof(transforms));
+			transformData.data(), transformData.size());
 		ASSERT_TRUE(transformBuffer);
 
 		primaryCommands = dsCommandBufferPool_create(renderer, allocator,
@@ -285,6 +293,8 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 	else
 		info.load(*this);
 
+	uint32_t transformSize = std::max(static_cast<uint32_t>(sizeof(dsMatrix44f)),
+		resourceManager->minUniformBlockAlignment);
 	dsSurfaceClearValue clearValue;
 	clearValue.colorValue.floatValue.r = 1.0f;
 	clearValue.colorValue.floatValue.g = 1.0f;
@@ -308,7 +318,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 						&drawRange, dsPrimitiveType_TriangleList));
 
 					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
-						info.transformId, info.transformBuffer, sizeof(dsMatrix44f),
+						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 					ASSERT_TRUE(dsShader_updateVolatileValues(info.shader, secondaryCommands,
 						info.volatileValues[0]));
@@ -387,7 +397,7 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
 						info.renderPass, 0, NULL));
 					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
-						info.transformId, info.transformBuffer, sizeof(dsMatrix44f),
+						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands0, info.material,

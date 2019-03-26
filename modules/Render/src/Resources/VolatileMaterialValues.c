@@ -23,6 +23,7 @@
 #include <DeepSea/Core/Memory/PoolAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Error.h>
+#include <DeepSea/Math/Core.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Types.h>
 
@@ -186,6 +187,19 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 	{
 		errno = EINDEX;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Attempting to bind outside of buffer range.");
+		return false;
+	}
+
+	dsResourceManager* resourceManager = buffer->resourceManager;
+	uint32_t alignment = 0;
+	if (buffer->usage & dsGfxBufferUsage_UniformBlock)
+		alignment = resourceManager->minUniformBlockAlignment;
+	if (buffer->usage & dsGfxBufferUsage_UniformBuffer)
+		alignment = dsMax(alignment, resourceManager->minUniformBufferAlignment);
+	if (alignment > 0 && (offset % alignment) != 0)
+	{
+		errno = EPERM;
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Buffer offset doesn't match alignment requirements.");
 		return false;
 	}
 
