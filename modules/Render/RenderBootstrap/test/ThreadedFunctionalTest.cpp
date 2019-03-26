@@ -176,7 +176,7 @@ struct RenderInfo
 			{0.5f, 0.0f, 0.0f, 0.0f},
 			{0.0f, 1.0f, 0.0f, 0.0f},
 			{0.0f, 0.0f, 1.0f, 0.0f},
-			{0.5f, 0.0f, 0.0f, 1.0f}
+			{0.55f, 0.0f, 0.0f, 1.0f}
 		}};
 
 		dsMatrix44f projection;
