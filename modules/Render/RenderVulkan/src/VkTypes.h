@@ -809,6 +809,12 @@ typedef struct dsVkImageCopyInfo
 	uint32_t rangeCount;
 } dsVkImageCopyInfo;
 
+typedef struct dsVkVolatileBindingInfo
+{
+	VkDescriptorType type;
+	uint32_t resourceIndex;
+} dsVkVolatileBindingInfo;
+
 typedef struct dsVkVolatileDescriptorSets
 {
 	dsAllocator* allocator;
@@ -831,6 +837,10 @@ typedef struct dsVkVolatileDescriptorSets
 	VkBufferView* texelBuffers;
 	uint32_t texelBufferCount;
 	uint32_t maxTexelBuffers;
+
+	dsVkVolatileBindingInfo* bindingInfos;
+	uint32_t bindingInfoCount;
+	uint32_t maxBindingInfos;
 
 	VkWriteDescriptorSet* bindings;
 	uint32_t maxbindingCount;

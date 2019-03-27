@@ -67,21 +67,28 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 	uint32_t prevImageCount = descriptors->imageCount;
 	uint32_t prevBufferCount = descriptors->bufferCount;
 	uint32_t prevTexelBufferCount = descriptors->texelBufferCount;
+	uint32_t prevBindingInfoCount = descriptors->bindingInfoCount;
 
 	descriptors->imageCount = 0;
 	descriptors->bufferCount = 0;
 	descriptors->texelBufferCount = 0;
 	descriptors->offsetCount = 0;
+	descriptors->bindingInfoCount = 0;
 
 	// Clear out the last layout now so if an error occurs it won't try to use the last descriptor
 	// set. It will be re-assigned on success.
 	descriptors->lastLayout = 0;
 
+	uint32_t bindingIndex = 0;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
 		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
+
+		bool hasBinding = true;
+		VkDescriptorType type = dsVkDescriptorType(element->type, true);
+		uint32_t resourceIndex = 0;
 
 		switch (element->type)
 		{
@@ -105,6 +112,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				{
 					imageInfo.imageView = 0;
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+					hasBinding = false;
 				}
 
 				uint32_t samplerIndex = vkShader->samplerMapping[i].samplerIndex;
@@ -112,6 +120,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				imageInfo.sampler = samplers->samplers[samplerIndex];
 
 				uint32_t index = descriptors->imageCount;
+				resourceIndex = index;
 				if (index >= prevImageCount ||
 					descriptors->images[index].sampler != imageInfo.sampler ||
 					descriptors->images[index].imageView != imageInfo.imageView ||
@@ -121,7 +130,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				}
 
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->images,
-					descriptors->imageCount, descriptors->maxImages, 1))
+						descriptors->imageCount, descriptors->maxImages, 1))
 				{
 					return false;
 				}
@@ -151,13 +160,19 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 
 					bufferView = dsVkGfxBufferData_getBufferView(bufferData, format, offset, count);
 				}
+				else
+				{
+					hasBinding = false;
+					--bindingIndex;
+				}
 
 				uint32_t index = descriptors->texelBufferCount;
+				resourceIndex = index;
 				if (index >= prevTexelBufferCount || descriptors->texelBuffers[index] != bufferView)
 					*outIsEqual = false;
 
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->texelBuffers,
-					descriptors->texelBufferCount, descriptors->maxTexelBuffers, 1))
+						descriptors->texelBufferCount, descriptors->maxTexelBuffers, 1))
 				{
 					return false;
 				}
@@ -185,7 +200,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				{
 					uint32_t offsetIndex = descriptors->offsetCount;
 					if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->offsets,
-						descriptors->offsetCount, descriptors->maxOffsets, 1))
+							descriptors->offsetCount, descriptors->maxOffsets, 1))
 					{
 						return false;
 					}
@@ -209,9 +224,15 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 
 					bufferInfo.buffer = dsVkGfxBufferData_getBuffer(bufferData);
 				}
+				else
+				{
+					hasBinding = false;
+					--bindingIndex;
+				}
 
 				// Offset is allowed to change.
 				uint32_t index = descriptors->bufferCount;
+				resourceIndex = index;
 				if (index >= prevBufferCount ||
 					descriptors->buffers[index].buffer != bufferInfo.buffer ||
 					descriptors->buffers[index].range != bufferInfo.range)
@@ -220,7 +241,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				}
 
 				if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->buffers,
-					descriptors->bufferCount, descriptors->maxBuffers, 1))
+						descriptors->bufferCount, descriptors->maxBuffers, 1))
 				{
 					return false;
 				}
@@ -231,13 +252,33 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 			default:
 				DS_ASSERT(false);
 		}
+
+		if (hasBinding)
+		{
+			if (bindingIndex >= prevBindingInfoCount || descriptors->bindingInfos[i].type != type ||
+				descriptors->bindingInfos[i].resourceIndex != resourceIndex)
+			{
+				*outIsEqual = false;
+			}
+
+			uint32_t index = descriptors->bindingInfoCount;
+			if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->bindingInfos,
+					descriptors->bindingInfoCount, descriptors->maxBindingInfos, 1))
+			{
+				return false;
+			}
+
+			descriptors->bindingInfos[index].type = type;
+			descriptors->bindingInfos[index].resourceIndex = resourceIndex;
+		}
 	}
 
 	if (descriptors->imageCount != prevImageCount ||
 		descriptors->bufferCount != prevBufferCount ||
-		descriptors->texelBufferCount != prevTexelBufferCount)
+		descriptors->texelBufferCount != prevTexelBufferCount ||
+		descriptors->bindingInfoCount != prevBindingInfoCount)
 	{
-		outIsEqual = false;
+		*outIsEqual = false;
 	}
 
 	return true;
@@ -312,8 +353,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 
 	uint32_t bindingCount = 0;
 	if (!DS_RESIZEABLE_ARRAY_ADD(descriptors->allocator, descriptors->bindings, bindingCount,
-		descriptors->maxTexelBuffers, descriptors->imageCount + descriptors->bufferCount +
-		descriptors->texelBufferCount))
+			descriptors->maxTexelBuffers, descriptors->bindingInfoCount))
 	{
 		return false;
 	}
@@ -328,19 +368,9 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
-		VkWriteDescriptorSet* binding = descriptors->bindings + index;
-		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		binding->pNext = NULL;
-		binding->dstSet = descriptorSet;
-		binding->dstBinding = vkMaterialDesc->elementMappings[i];
-		binding->dstArrayElement = 0;
-		binding->descriptorCount = 1;
-		binding->descriptorType = dsVkDescriptorType(element->type, true);
-		binding->pImageInfo = NULL;
-		binding->pBufferInfo = NULL;
-		binding->pTexelBufferView = NULL;
-		++index;
-
+		VkDescriptorImageInfo* pImageInfo = NULL;
+		VkBufferView* pTexelBufferView = NULL;
+		VkDescriptorBufferInfo* pBufferInfo = NULL;
 		switch (element->type)
 		{
 			case dsMaterialType_Texture:
@@ -348,44 +378,57 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 			case dsMaterialType_SubpassInput:
 				DS_ASSERT(imageIndex < descriptors->imageCount);
 				if (descriptors->images[imageIndex].imageView)
-					binding->pImageInfo = descriptors->images + imageIndex;
-				else
-					--index;
+					pImageInfo = descriptors->images + imageIndex;
 				++imageIndex;
+				if (!pImageInfo)
+					continue;
 				break;
 			case dsMaterialType_ImageBuffer:
 			case dsMaterialType_MutableImageBuffer:
 				DS_ASSERT(texelBufferIndex < descriptors->texelBufferCount);
 				if (descriptors->texelBuffers[texelBufferIndex])
-					binding->pTexelBufferView = descriptors->texelBuffers + texelBufferIndex;
-				else
-					--index;
+					pTexelBufferView = descriptors->texelBuffers + texelBufferIndex;
 				++texelBufferIndex;
+				if (!pTexelBufferView)
+					continue;
 				break;
 			case dsMaterialType_VariableGroup:
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 				DS_ASSERT(bufferIndex < descriptors->bufferCount);
-				if (descriptors->buffers)
-					binding->pBufferInfo = descriptors->buffers + bufferIndex;
-				else
-					--index;
+				if (descriptors->buffers[bufferIndex].buffer)
+					pBufferInfo = descriptors->buffers + bufferIndex;
 				++bufferIndex;
+				if (!pBufferInfo)
+					continue;
 				break;
 			default:
 				DS_ASSERT(false);
 		}
+
+		DS_ASSERT(index < bindingCount);
+		VkWriteDescriptorSet* binding = descriptors->bindings + index;
+		binding->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		binding->pNext = NULL;
+		binding->dstSet = descriptorSet;
+		binding->dstBinding = vkMaterialDesc->elementMappings[i];
+		binding->dstArrayElement = 0;
+		binding->descriptorCount = 1;
+		binding->descriptorType = descriptors->bindingInfos[index].type;
+		binding->pImageInfo = pImageInfo;
+		binding->pBufferInfo = pBufferInfo;
+		binding->pTexelBufferView = pTexelBufferView;
+		++index;
 	}
 
-	uint32_t finalBindingCount = index;
-	DS_ASSERT(finalBindingCount <= bindingCount);
+	DS_ASSERT(index == bindingCount);
 	DS_ASSERT(imageIndex == descriptors->imageCount);
 	DS_ASSERT(bufferIndex == descriptors->bufferCount);
 	DS_ASSERT(texelBufferIndex == descriptors->texelBufferCount);
 
 	if (bindingCount > 0)
 	{
-		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, finalBindingCount,
+		DS_VK_CALL(device->vkUpdateDescriptorSets)(device->device, bindingCount,
 			descriptors->bindings, 0, NULL);
 	}
 	return true;
@@ -473,6 +516,7 @@ void dsVkVolatileDescriptorSets_shutdown(dsVkVolatileDescriptorSets* descriptors
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->images));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->buffers));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->texelBuffers));
+	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->bindingInfos));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->bindings));
 	DS_VERIFY(dsAllocator_free(descriptors->allocator, descriptors->offsets));
 }
