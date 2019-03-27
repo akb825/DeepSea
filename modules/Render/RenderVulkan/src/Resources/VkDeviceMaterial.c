@@ -54,7 +54,7 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		switch (element->type)
@@ -187,7 +187,7 @@ dsDeviceMaterial* dsVkDeviceMaterial_create(dsResourceManager* resourceManager,
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		DS_ASSERT(index < bindingCount);
@@ -347,7 +347,7 @@ VkDescriptorSet dsVkDeviceMaterial_getDescriptorSet(dsCommandBuffer* commandBuff
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		switch (element->type)

@@ -149,7 +149,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(dsVectorImage* vectorImage,
  * @param shaders The shaders to draw with.
  * @param material The material created from the shader module.
  * @param modelViewProjection The model/view/projection materis for this image.
- * @param volatileValues The volatile material values. This is only required if custom shaders are
+ * @param sharedValues The shared material values. This is only required if custom shaders are
  *     used that require them.
  * @param renderStates The dynamic render states. This is only required if custom shaders are used
  *     that require them.
@@ -157,7 +157,7 @@ DS_VECTORDRAW_EXPORT bool dsVectorImage_updateText(dsVectorImage* vectorImage,
  */
 DS_VECTORDRAW_EXPORT bool dsVectorImage_draw(const dsVectorImage* vectorImage,
 	dsCommandBuffer* commandBuffer, const dsVectorShaders* shaders, dsMaterial* material,
-	const dsMatrix44f* modelViewProjection, const dsVolatileMaterialValues* volatileValues,
+	const dsMatrix44f* modelViewProjection, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates);
 
 /**

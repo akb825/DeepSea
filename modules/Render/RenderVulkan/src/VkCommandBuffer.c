@@ -25,7 +25,7 @@
 #include "VkRenderPass.h"
 #include "VkShared.h"
 #include "VkSubpassBuffers.h"
-#include "VkVolatileDescriptorSets.h"
+#include "VkSharedDescriptorSets.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -451,7 +451,7 @@ bool dsVkCommandBuffer_initialize(dsVkCommandBuffer* commandBuffer, dsRenderer* 
 	dsVkCommandBufferData_initialize(&commandBuffer->subpassBufferData, allocator, device,
 		commandBuffer->commandPool, true);
 	dsVkBarrierList_initialize(&commandBuffer->barriers, allocator, &vkRenderer->device);
-	dsVkVolatileDescriptorSets_initialize(&commandBuffer->volatileDescriptorSets, allocator,
+	dsVkSharedDescriptorSets_initialize(&commandBuffer->sharedDescriptorSets, allocator,
 		&vkRenderer->device);
 	dsVkSubpassBuffers_initialize(&commandBuffer->subpassBuffers, allocator);
 
@@ -662,7 +662,7 @@ void dsVkCommandBuffer_prepare(dsCommandBuffer* commandBuffer)
 	resetActiveRenderAndComputeState(vkCommandBuffer);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->commandBufferData);
 	dsVkCommandBufferData_reset(&vkCommandBuffer->subpassBufferData);
-	dsVkVolatileDescriptorSets_clear(&vkCommandBuffer->volatileDescriptorSets);
+	dsVkSharedDescriptorSets_clear(&vkCommandBuffer->sharedDescriptorSets);
 	DS_PROFILE_FUNC_RETURN_VOID();
 }
 
@@ -1219,12 +1219,12 @@ void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	vkCommandBuffer->renderSurfaceCount = 0;
 }
 
-dsVkVolatileDescriptorSets* dsVkCommandBuffer_getVolatileDescriptorSets(
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getSharedDescriptorSets(
 	dsCommandBuffer* commandBuffer)
 {
 	commandBuffer = dsVkCommandBuffer_get(commandBuffer);
 	dsVkCommandBuffer* vkCommandBuffer = (dsVkCommandBuffer*)commandBuffer;
-	return &vkCommandBuffer->volatileDescriptorSets;
+	return &vkCommandBuffer->sharedDescriptorSets;
 }
 
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size)
@@ -1273,5 +1273,5 @@ void dsVkCommandBuffer_shutdown(dsVkCommandBuffer* commandBuffer)
 	dsVkSubpassBuffers_shutdown(&commandBuffer->subpassBuffers);
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->imageCopies));
 	DS_VERIFY(dsAllocator_free(baseCommandBuffer->allocator, commandBuffer->pushConstantBytes));
-	dsVkVolatileDescriptorSets_shutdown(&commandBuffer->volatileDescriptorSets);
+	dsVkSharedDescriptorSets_shutdown(&commandBuffer->sharedDescriptorSets);
 }

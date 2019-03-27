@@ -90,7 +90,7 @@ static size_t getDataSize(const dsMaterialDesc* description)
 	size_t dataSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		if (description->elements[i].isVolatile)
+		if (description->elements[i].isShared)
 			continue;
 
 		addElementSize(&dataSize, description->elements[i].type, description->elements[i].count);
@@ -201,7 +201,7 @@ dsMaterial* dsMaterial_create(dsResourceManager* resourceManager, dsAllocator* a
 	size_t curSize = 0;
 	for (uint32_t i = 0; i < description->elementCount; ++i)
 	{
-		if (description->elements[i].isVolatile)
+		if (description->elements[i].isShared)
 			material->offsets[i] = DS_MATERIAL_UNKNOWN;
 		else
 		{
@@ -264,7 +264,7 @@ bool dsMaterial_getElementData(void* outData, const dsMaterial* material, uint32
 	if (!validateGetSetElement(material, element, outData, type, firstIndex, count))
 		return false;
 
-	// Only volatile elements should have no offset, and only non-primitives should be volatile.
+	// Only shared elements should have no offset, and only non-primitives should be shared.
 	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(outData, material->data + material->offsets[element] + firstIndex*stride, count*stride);
@@ -293,7 +293,7 @@ const void* dsMaterial_getRawElementData(const dsMaterial* material, uint32_t el
 		return NULL;
 	}
 
-	// Only volatile elements should have no offset, and only non-primitives should be volatile.
+	// Only shared elements should have no offset, and only non-primitives should be shared.
 	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	return material->data + material->offsets[element];
 }
@@ -304,7 +304,7 @@ bool dsMaterial_setElementData(dsMaterial* material, uint32_t element, const voi
 	if (!validateGetSetElement(material, element, data, type, firstIndex, count))
 		return false;
 
-	// Only volatile elements should have no offset, and only non-primitives should be volatile.
+	// Only shared elements should have no offset, and only non-primitives should be shared.
 	DS_ASSERT(material->offsets[element] != DS_MATERIAL_UNKNOWN);
 	uint16_t stride = dsMaterialType_cpuSize(type);
 	memcpy(material->data + material->offsets[element] + firstIndex*stride, data, count*stride);
@@ -352,7 +352,7 @@ bool dsMaterial_setTexture(dsMaterial* material, uint32_t element, dsTexture* te
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shared elements cannot be set on a material.");
 		return false;
 	}
 
@@ -448,7 +448,7 @@ bool dsMaterial_setImageBuffer(dsMaterial* material, uint32_t element, dsGfxBuff
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shared elements cannot be set on a material.");
 		return false;
 	}
 
@@ -559,7 +559,7 @@ bool dsMaterial_setVariableGroup(dsMaterial* material, uint32_t element,
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shared elements cannot be set on a material.");
 		return false;
 	}
 
@@ -631,7 +631,7 @@ bool dsMaterial_setBuffer(dsMaterial* material, uint32_t element, dsGfxBuffer* b
 	if (material->offsets[element] == DS_MATERIAL_UNKNOWN)
 	{
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Volatile elements cannot be set on a material.");
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Shared elements cannot be set on a material.");
 		return false;
 	}
 

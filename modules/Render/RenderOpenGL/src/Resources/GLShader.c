@@ -954,26 +954,26 @@ bool dsGLShader_isUniformInternal(dsResourceManager* resourceManager, const char
 
 bool dsGLShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 	DS_ASSERT(material);
 
-	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, volatileValues,
+	return dsGLCommandBuffer_bindShaderAndMaterial(commandBuffer, shader, material, sharedValues,
 		renderStates);
 }
 
-bool dsGLShader_updateVolatileValues(dsResourceManager* resourceManager,
+bool dsGLShader_updateSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 
-	return dsGLCommandBuffer_setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+	return dsGLCommandBuffer_setSharedMaterialValues(commandBuffer, shader, sharedValues);
 }
 
 bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
@@ -988,7 +988,7 @@ bool dsGLShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* comm
 
 bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(resourceManager);
 	DS_ASSERT(commandBuffer);
@@ -996,19 +996,19 @@ bool dsGLShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	DS_ASSERT(material);
 
 	return dsGLCommandBuffer_bindComputeShaderAndMaterial(commandBuffer, shader, material,
-		volatileValues);
+		sharedValues);
 }
 
-bool dsGLShader_updateComputeVolatileValues(dsResourceManager* resourceManager,
+bool dsGLShader_updateComputeSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_UNUSED(resourceManager);
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 
-	return dsGLCommandBuffer_setComputeVolatileMaterialValues(commandBuffer, shader,
-		volatileValues);
+	return dsGLCommandBuffer_setComputeSharedMaterialValues(commandBuffer, shader,
+		sharedValues);
 }
 
 bool dsGLShader_unbindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,

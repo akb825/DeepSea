@@ -293,7 +293,7 @@ typedef struct dsMaterialElement
 	const dsShaderVariableGroupDesc* shaderVariableGroupDesc;
 
 	/**
-	 * @brief Whether or not the variable is volatile, able to change across draw calls.
+	 * @brief Whether or not the variable is shared, able to change across draw calls.
 	 *
 	 * This may only be used for shader variables of type:
 	 * - dsMaterialType_Texture
@@ -302,7 +302,7 @@ typedef struct dsMaterialElement
 	 * - dsMaterialType_UniformBlock
 	 * - dsMaterialType_UniformBuffer
 	 */
-	bool isVolatile;
+	bool isShared;
 
 	/**
 	 * @brief The hash value for the name.
@@ -446,13 +446,13 @@ struct dsShaderVariableGroupDesc
 typedef struct dsShaderVariableGroup dsShaderVariableGroup;
 
 /**
- * @brief Struct holding the material values that are marked as volatile.
+ * @brief Struct holding the material values that are marked as shared.
  *
  * This type is opaque and implemented by the core Render library.
  *
- * @see VolatileMaterialValues.h
+ * @see SharedMaterialValues.h
  */
-typedef struct dsVolatileMaterialValues dsVolatileMaterialValues;
+typedef struct dsSharedMaterialValues dsSharedMaterialValues;
 
 /**
  * @brief Structure holding render states that can be changed dynamically when binding a shader.

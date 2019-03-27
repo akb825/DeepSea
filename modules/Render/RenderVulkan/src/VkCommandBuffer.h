@@ -74,7 +74,7 @@ void dsVkCommandBuffer_submittedReadbackOffscreens(dsCommandBuffer* commandBuffe
 void dsVkCommandBuffer_submittedRenderSurfaces(dsCommandBuffer* commandBuffer,
 	uint64_t submitCount);
 
-dsVkVolatileDescriptorSets* dsVkCommandBuffer_getVolatileDescriptorSets(
+dsVkSharedDescriptorSets* dsVkCommandBuffer_getSharedDescriptorSets(
 	dsCommandBuffer* commandBuffer);
 uint8_t* dsVkCommandBuffer_allocatePushConstantData(dsCommandBuffer* commandBuffer, uint32_t size);
 

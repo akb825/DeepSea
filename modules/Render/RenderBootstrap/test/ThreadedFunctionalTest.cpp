@@ -28,7 +28,7 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/CommandBuffer.h>
 #include <DeepSea/Render/CommandBufferPool.h>
 #include <DeepSea/Render/RenderPass.h>
@@ -163,7 +163,7 @@ struct RenderInfo
 				vertexBuffers, nullptr);
 			ASSERT_TRUE(drawGeometry[i]);
 
-			volatileValues[i] = dsVolatileMaterialValues_create(allocator, 1);
+			sharedValues[i] = dsSharedMaterialValues_create(allocator, 1);
 		}
 
 		dsMatrix44f leftMatrix =
@@ -226,7 +226,7 @@ struct RenderInfo
 		EXPECT_TRUE(dsGfxBuffer_destroy(transformBuffer));
 		for (uint32_t i = 0; i < 2; ++i)
 		{
-			dsVolatileMaterialValues_destroy(volatileValues[i]);
+			dsSharedMaterialValues_destroy(sharedValues[i]);
 			EXPECT_TRUE(dsDrawGeometry_destroy(drawGeometry[i]));
 		}
 		EXPECT_TRUE(dsGfxBuffer_destroy(vertexBuffer));
@@ -253,7 +253,7 @@ struct RenderInfo
 	dsRenderPass* renderPass = nullptr;
 	dsGfxBuffer* vertexBuffer = nullptr;
 	dsDrawGeometry* drawGeometry[2] = {nullptr, nullptr};
-	dsVolatileMaterialValues* volatileValues[2] = {nullptr, nullptr};
+	dsSharedMaterialValues* sharedValues[2] = {nullptr, nullptr};
 	dsGfxBuffer* transformBuffer = nullptr;
 	dsCommandBufferPool* primaryCommands = nullptr;
 	dsCommandBufferPool* secondaryCommands = nullptr;
@@ -309,19 +309,19 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.sharedValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands, info.material,
-						info.volatileValues[0], NULL));
+						info.sharedValues[0], NULL));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands, info.drawGeometry[0],
 						&drawRange, dsPrimitiveType_TriangleList));
 
-					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.sharedValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
-					ASSERT_TRUE(dsShader_updateVolatileValues(info.shader, secondaryCommands,
-						info.volatileValues[0]));
+					ASSERT_TRUE(dsShader_updateSharedValues(info.shader, secondaryCommands,
+						info.sharedValues[0]));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands, info.drawGeometry[1],
 						&drawRange, dsPrimitiveType_TriangleList));
 
@@ -396,12 +396,12 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands0, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.sharedValues[0],
 						info.transformId, info.transformBuffer, transformSize,
 						sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands0, info.material,
-						info.volatileValues[0], NULL));
+						info.sharedValues[0], NULL));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands0, info.drawGeometry[0],
 						&drawRange, dsPrimitiveType_TriangleList));
 
@@ -419,11 +419,11 @@ TEST_P(ThreadedFunctionalTest, RenderMultithreaded)
 				{
 					ASSERT_TRUE(dsCommandBuffer_beginSecondary(secondaryCommands1, info.framebuffer,
 						info.renderPass, 0, NULL));
-					ASSERT_TRUE(dsVolatileMaterialValues_setBufferId(info.volatileValues[0],
+					ASSERT_TRUE(dsSharedMaterialValues_setBufferId(info.sharedValues[0],
 						info.transformId, info.transformBuffer, 0, sizeof(dsMatrix44f)));
 
 					ASSERT_TRUE(dsShader_bind(info.shader, secondaryCommands1, info.material,
-						info.volatileValues[0], NULL));
+						info.sharedValues[0], NULL));
 					ASSERT_TRUE(dsRenderer_draw(renderer, secondaryCommands1, info.drawGeometry[1],
 						&drawRange, dsPrimitiveType_TriangleList));
 

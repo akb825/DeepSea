@@ -56,7 +56,7 @@ dsShader* dsMockShader_create(dsResourceManager* resourceManager, dsAllocator* a
 }
 
 bool dsMockShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsShader* shader, const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(resourceManager);
@@ -67,15 +67,15 @@ bool dsMockShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comm
 	DS_UNUSED(shader);
 	DS_ASSERT(material);
 	DS_UNUSED(material);
-	DS_UNUSED(volatileValues);
+	DS_UNUSED(sharedValues);
 	DS_UNUSED(renderStates);
 
 	return true;
 }
 
-bool dsMockShader_updateVolatileValues(dsResourceManager* resourceManager,
+bool dsMockShader_updateSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(resourceManager);
 	DS_UNUSED(resourceManager);
@@ -83,7 +83,7 @@ bool dsMockShader_updateVolatileValues(dsResourceManager* resourceManager,
 	DS_UNUSED(commandBuffer);
 	DS_ASSERT(shader);
 	DS_UNUSED(shader);
-	DS_UNUSED(volatileValues);
+	DS_UNUSED(sharedValues);
 
 	return true;
 }
@@ -103,7 +103,7 @@ bool dsMockShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* co
 
 bool dsMockShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(resourceManager);
 	DS_UNUSED(resourceManager);
@@ -113,7 +113,7 @@ bool dsMockShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffe
 	DS_UNUSED(shader);
 	DS_ASSERT(material);
 	DS_UNUSED(material);
-	DS_UNUSED(volatileValues);
+	DS_UNUSED(sharedValues);
 
 	return true;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 
 #include <DeepSea/Core/Containers/Hash.h>
 #include <DeepSea/Core/Containers/HashTable.h>
@@ -46,7 +46,7 @@ typedef struct Entry
 	void* value;
 } Entry;
 
-struct dsVolatileMaterialValues
+struct dsSharedMaterialValues
 {
 	dsAllocator* allocator;
 	dsPoolAllocator entryPool;
@@ -65,7 +65,7 @@ static unsigned int getTableSize(unsigned int maxValues)
 }
 
 static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize,
-	const dsVolatileMaterialValues* values, uint32_t nameId, Type type)
+	const dsSharedMaterialValues* values, uint32_t nameId, Type type)
 {
 	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameId);
 	if (!entry || entry->type != type)
@@ -80,7 +80,7 @@ static void* getValue(dsGfxFormat* outFormat, size_t* outOffset, size_t* outSize
 	return entry->value;
 }
 
-static bool setValue(dsVolatileMaterialValues* values, uint32_t nameId, Type type, void* value,
+static bool setValue(dsSharedMaterialValues* values, uint32_t nameId, Type type, void* value,
 	dsGfxFormat format, size_t offset, size_t size)
 {
 	Entry* entry = (Entry*)dsHashTable_find(values->hashTable, &nameId);
@@ -215,19 +215,19 @@ static bool canUseBuffer(dsGfxBuffer* buffer, size_t offset, size_t size)
 	return true;
 }
 
-size_t dsVolatileMaterialValues_sizeof(void)
+size_t dsSharedMaterialValues_sizeof(void)
 {
-	return sizeof(dsVolatileMaterialValues);
+	return sizeof(dsSharedMaterialValues);
 }
 
-size_t dsVolatileMaterialValues_fullAllocSize(unsigned int maxValues)
+size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxValues)
 {
-	return DS_ALIGNED_SIZE(sizeof(dsVolatileMaterialValues)) +
+	return DS_ALIGNED_SIZE(sizeof(dsSharedMaterialValues)) +
 		DS_ALIGNED_SIZE(dsPoolAllocator_bufferSize(sizeof(Entry), maxValues)) +
 		dsHashTable_fullAllocSize(getTableSize(maxValues));
 }
 
-dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator,
+dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	unsigned int maxValues)
 {
 	if (!allocator || !maxValues)
@@ -236,7 +236,7 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 		return NULL;
 	}
 
-	size_t bufferSize = dsVolatileMaterialValues_fullAllocSize(maxValues);
+	size_t bufferSize = dsSharedMaterialValues_fullAllocSize(maxValues);
 	void* buffer = dsAllocator_alloc(allocator, bufferSize);
 	if (!buffer)
 		return NULL;
@@ -244,8 +244,8 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 	dsBufferAllocator bufferAllocator;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAllocator, buffer, bufferSize));
 
-	dsVolatileMaterialValues* materialValues = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
-		dsVolatileMaterialValues);
+	dsSharedMaterialValues* materialValues = DS_ALLOCATE_OBJECT((dsAllocator*)&bufferAllocator,
+		dsSharedMaterialValues);
 	DS_ASSERT(materialValues);
 	materialValues->allocator = dsAllocator_keepPointer(allocator);
 
@@ -263,7 +263,7 @@ dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator
 	return materialValues;
 }
 
-unsigned int dsVolatileMaterialValues_getValueCount(const dsVolatileMaterialValues* values)
+unsigned int dsSharedMaterialValues_getValueCount(const dsSharedMaterialValues* values)
 {
 	if (!values)
 		return 0;
@@ -271,7 +271,7 @@ unsigned int dsVolatileMaterialValues_getValueCount(const dsVolatileMaterialValu
 	return (unsigned int)values->hashTable->list.length;
 }
 
-unsigned int dsVolatileMaterialValues_getMaxValueCount(const dsVolatileMaterialValues* values)
+unsigned int dsSharedMaterialValues_getMaxValueCount(const dsSharedMaterialValues* values)
 {
 	if (!values)
 		return 0;
@@ -279,7 +279,7 @@ unsigned int dsVolatileMaterialValues_getMaxValueCount(const dsVolatileMaterialV
 	return (unsigned int)values->entryPool.chunkCount;
 }
 
-dsTexture* dsVolatileMaterialValues_getTextureName(const dsVolatileMaterialValues* values,
+dsTexture* dsSharedMaterialValues_getTextureName(const dsSharedMaterialValues* values,
 	const char* name)
 {
 	if (!values || !name)
@@ -288,7 +288,7 @@ dsTexture* dsVolatileMaterialValues_getTextureName(const dsVolatileMaterialValue
 	return (dsTexture*)getValue(NULL, NULL, NULL, values, dsHashString(name), Type_Texture);
 }
 
-dsTexture* dsVolatileMaterialValues_getTextureId(const dsVolatileMaterialValues* values,
+dsTexture* dsSharedMaterialValues_getTextureId(const dsSharedMaterialValues* values,
 	uint32_t nameId)
 {
 	if (!values)
@@ -297,7 +297,7 @@ dsTexture* dsVolatileMaterialValues_getTextureId(const dsVolatileMaterialValues*
 	return (dsTexture*)getValue(NULL, NULL, NULL, values, nameId, Type_Texture);
 }
 
-bool dsVolatileMaterialValues_setTextureName(dsVolatileMaterialValues* values, const char* name,
+bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValues* values, const char* name,
 	dsTexture* texture)
 {
 	if (!values || !name)
@@ -309,7 +309,7 @@ bool dsVolatileMaterialValues_setTextureName(dsVolatileMaterialValues* values, c
 	return setValue(values, dsHashString(name), Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values, uint32_t nameId,
 	dsTexture* texture)
 {
 	if (!values)
@@ -321,8 +321,8 @@ bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values, uin
 	return setValue(values, nameId, Type_Texture, texture, dsGfxFormat_Unknown, 0, 0);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
-	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, const char* name)
+dsGfxBuffer* dsSharedMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
@@ -331,8 +331,8 @@ dsGfxBuffer* dsVolatileMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
 		Type_ImageBuffer);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getImageBufferId(dsGfxFormat* outFormat, size_t* outOffset,
-	size_t* outCount, const dsVolatileMaterialValues* values, uint32_t nameId)
+dsGfxBuffer* dsSharedMaterialValues_getImageBufferId(dsGfxFormat* outFormat, size_t* outOffset,
+	size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return NULL;
@@ -341,7 +341,7 @@ dsGfxBuffer* dsVolatileMaterialValues_getImageBufferId(dsGfxFormat* outFormat, s
 		Type_ImageBuffer);
 }
 
-bool dsVolatileMaterialValues_setImageBufferName(dsVolatileMaterialValues* values,
+bool dsSharedMaterialValues_setImageBufferName(dsSharedMaterialValues* values,
 	const char* name, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values || !name)
@@ -356,7 +356,7 @@ bool dsVolatileMaterialValues_setImageBufferName(dsVolatileMaterialValues* value
 	return setValue(values, dsHashString(name), Type_ImageBuffer, buffer, format, offset, count);
 }
 
-bool dsVolatileMaterialValues_setImageBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsSharedMaterialValues_setImageBufferId(dsSharedMaterialValues* values, uint32_t nameId,
 	dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
 	if (!values)
@@ -371,8 +371,8 @@ bool dsVolatileMaterialValues_setImageBufferId(dsVolatileMaterialValues* values,
 	return setValue(values, nameId, Type_ImageBuffer, buffer, format, offset, count);
 }
 
-dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(
-	const dsVolatileMaterialValues* values, const char* name)
+dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupName(
+	const dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
@@ -381,8 +381,8 @@ dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(
 		Type_ShaderVariableGroup);
 }
 
-dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupId(
-	const dsVolatileMaterialValues* values, uint32_t nameId)
+dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupId(
+	const dsSharedMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return NULL;
@@ -391,7 +391,7 @@ dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupId(
 		Type_ShaderVariableGroup);
 }
 
-bool dsVolatileMaterialValues_setVariableGroupName(dsVolatileMaterialValues* values,
+bool dsSharedMaterialValues_setVariableGroupName(dsSharedMaterialValues* values,
 	const char* name, dsShaderVariableGroup* group)
 {
 	if (!values || !name)
@@ -401,7 +401,7 @@ bool dsVolatileMaterialValues_setVariableGroupName(dsVolatileMaterialValues* val
 		dsGfxFormat_Unknown, 0, 0);
 }
 
-bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMaterialValues* values,
+bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsShaderVariableGroup* group)
 {
 	if (!values)
@@ -410,8 +410,8 @@ bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMaterialValues* value
 	return setValue(values, nameId, Type_ShaderVariableGroup, group, dsGfxFormat_Unknown, 0, 0);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset, size_t* outSize,
-	const dsVolatileMaterialValues* values, const char* name)
+dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOffset, size_t* outSize,
+	const dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return NULL;
@@ -420,8 +420,8 @@ dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset, size_t* o
 		Type_Buffer);
 }
 
-dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset, size_t* outSize,
-	const dsVolatileMaterialValues* values, uint32_t nameId)
+dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset, size_t* outSize,
+	const dsSharedMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return NULL;
@@ -429,7 +429,7 @@ dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset, size_t* out
 	return (dsGfxBuffer*)getValue(NULL, outOffset, outSize, values, nameId, Type_Buffer);
 }
 
-bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values, const char* name,
+bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValues* values, const char* name,
 	dsGfxBuffer* buffer, size_t offset, size_t size)
 {
 	if (!values || !name)
@@ -445,7 +445,7 @@ bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values, co
 		size);
 }
 
-bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values, uint32_t nameId,
+bool dsSharedMaterialValues_setBufferId(dsSharedMaterialValues* values, uint32_t nameId,
 	dsGfxBuffer* buffer, size_t offset, size_t size)
 {
 	if (!values)
@@ -460,15 +460,15 @@ bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values, uint
 	return setValue(values, nameId, Type_Buffer, buffer, dsGfxFormat_Unknown, offset, size);
 }
 
-bool dsVolatileMaterialValues_removeValueName(dsVolatileMaterialValues* values, const char* name)
+bool dsSharedMaterialValues_removeValueName(dsSharedMaterialValues* values, const char* name)
 {
 	if (!values || !name)
 		return false;
 
-	return dsVolatileMaterialValues_removeValueId(values, dsHashString(name));
+	return dsSharedMaterialValues_removeValueId(values, dsHashString(name));
 }
 
-bool dsVolatileMaterialValues_removeValueId(dsVolatileMaterialValues* values, uint32_t nameId)
+bool dsSharedMaterialValues_removeValueId(dsSharedMaterialValues* values, uint32_t nameId)
 {
 	if (!values)
 		return false;
@@ -481,7 +481,7 @@ bool dsVolatileMaterialValues_removeValueId(dsVolatileMaterialValues* values, ui
 	return true;
 }
 
-bool dsVolatileMaterialValues_clear(dsVolatileMaterialValues* values)
+bool dsSharedMaterialValues_clear(dsSharedMaterialValues* values)
 {
 	if (!values)
 	{
@@ -494,7 +494,7 @@ bool dsVolatileMaterialValues_clear(dsVolatileMaterialValues* values)
 	return true;
 }
 
-void dsVolatileMaterialValues_destroy(dsVolatileMaterialValues* values)
+void dsSharedMaterialValues_destroy(dsSharedMaterialValues* values)
 {
 	if (!values)
 		return;

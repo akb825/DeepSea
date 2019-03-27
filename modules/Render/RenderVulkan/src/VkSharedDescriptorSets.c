@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "VkVolatileDescriptorSets.h"
+#include "VkSharedDescriptorSets.h"
 
 #include "Resources/VkGfxBuffer.h"
 #include "Resources/VkGfxBufferData.h"
@@ -30,7 +30,7 @@
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <string.h>
 
 // Arbitrary max values for each pool.
@@ -44,9 +44,9 @@
 #define DS_MAX_DYNAMIC_UNIFORM_BUFFERS 200
 #define DS_MAX_DYNAMIC_STORAGE_BUFFERS 100
 
-static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descriptors,
+static bool setupElements(bool* outIsEqual, dsVkSharedDescriptorSets* descriptors,
 	dsCommandBuffer* commandBuffer, dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues, VkDescriptorSetLayout layout)
+	const dsSharedMaterialValues* sharedValues, VkDescriptorSetLayout layout)
 {
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
@@ -83,7 +83,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (!element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		bool hasBinding = true;
@@ -96,7 +96,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsVolatileMaterialValues_getTextureId(volatileValues,
+				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
 					element->nameId);
 				dsVkTexture* vkTexture = (dsVkTexture*)texture;
 				VkDescriptorImageInfo imageInfo;
@@ -144,8 +144,8 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				dsGfxFormat format;
 				size_t offset;
 				size_t count;
-				dsGfxBuffer* buffer = dsVolatileMaterialValues_getImageBufferId(&format, &offset,
-					&count, volatileValues, element->nameId);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getImageBufferId(&format, &offset,
+					&count, sharedValues, element->nameId);
 
 				VkBufferView bufferView = 0;
 				if (buffer)
@@ -188,8 +188,8 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 				dsGfxBuffer* buffer = NULL;
 				if (element->type == dsMaterialType_VariableGroup)
 				{
-					dsShaderVariableGroup* group = dsVolatileMaterialValues_getVariableGroupId(
-						volatileValues, element->nameId);
+					dsShaderVariableGroup* group = dsSharedMaterialValues_getVariableGroupId(
+						sharedValues, element->nameId);
 					if (group)
 					{
 						buffer = dsShaderVariableGroup_getGfxBuffer(group);
@@ -207,7 +207,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 
 					size_t offset = 0;
 					size_t size = 0;
-					buffer = dsVolatileMaterialValues_getBufferId(&offset, &size, volatileValues,
+					buffer = dsSharedMaterialValues_getBufferId(&offset, &size, sharedValues,
 						element->nameId);
 					descriptors->offsets[offsetIndex] = (uint32_t)offset;
 					bufferInfo.range = size;
@@ -284,7 +284,7 @@ static bool setupElements(bool* outIsEqual, dsVkVolatileDescriptorSets* descript
 	return true;
 }
 
-static bool createDescriptorPool(dsVkVolatileDescriptorSets* descriptors)
+static bool createDescriptorPool(dsVkSharedDescriptorSets* descriptors)
 {
 	dsVkDevice* device = descriptors->device;
 	dsVkInstance* instance = &device->instance;
@@ -329,7 +329,7 @@ static bool createDescriptorPool(dsVkVolatileDescriptorSets* descriptors)
 }
 
 static VkResult createSetFromPool(VkDescriptorSet* outDescriptorSet,
-	dsVkVolatileDescriptorSets* descriptors, VkDescriptorPool pool, VkDescriptorSetLayout layout)
+	dsVkSharedDescriptorSets* descriptors, VkDescriptorPool pool, VkDescriptorSetLayout layout)
 {
 	dsVkDevice* device = descriptors->device;
 
@@ -345,7 +345,7 @@ static VkResult createSetFromPool(VkDescriptorSet* outDescriptorSet,
 		outDescriptorSet);
 }
 
-static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
+static bool setDescriptorBindings(dsVkSharedDescriptorSets* descriptors,
 	const dsMaterialDesc* materialDesc, VkDescriptorSet descriptorSet)
 {
 	dsVkDevice* device = descriptors->device;
@@ -365,7 +365,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (!element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (!element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		VkDescriptorImageInfo* pImageInfo = NULL;
@@ -434,7 +434,7 @@ static bool setDescriptorBindings(dsVkVolatileDescriptorSets* descriptors,
 	return true;
 }
 
-void dsVkVolatileDescriptorSets_initialize(dsVkVolatileDescriptorSets* descriptors,
+void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsAllocator* allocator, dsVkDevice* device)
 {
 	memset(descriptors, 0, sizeof(*descriptors));
@@ -442,15 +442,15 @@ void dsVkVolatileDescriptorSets_initialize(dsVkVolatileDescriptorSets* descripto
 	descriptors->device = device;
 }
 
-VkDescriptorSet dsVkVolatileDescriptorSets_createSet(dsVkVolatileDescriptorSets* descriptors,
+VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
 	dsCommandBuffer* commandBuffer, dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	const dsVkMaterialDesc* vkMaterialDesc = (const dsVkMaterialDesc*)materialDesc;
 	VkDescriptorSetLayout layout = vkMaterialDesc->descriptorSets[1];
 	bool isEqual = false;
-	if (!setupElements(&isEqual, descriptors, commandBuffer, shader, volatileValues, layout))
+	if (!setupElements(&isEqual, descriptors, commandBuffer, shader, sharedValues, layout))
 		return 0;
 
 	if (isEqual)
@@ -491,7 +491,7 @@ VkDescriptorSet dsVkVolatileDescriptorSets_createSet(dsVkVolatileDescriptorSets*
 	return descriptorSet;
 }
 
-void dsVkVolatileDescriptorSets_clear(dsVkVolatileDescriptorSets* descriptors)
+void dsVkSharedDescriptorSets_clear(dsVkSharedDescriptorSets* descriptors)
 {
 	dsVkDevice* device = descriptors->device;
 	for (uint32_t i = 0; i < descriptors->descriptorPoolCount; ++i)
@@ -503,7 +503,7 @@ void dsVkVolatileDescriptorSets_clear(dsVkVolatileDescriptorSets* descriptors)
 	descriptors->lastDescriptorSet = 0;
 }
 
-void dsVkVolatileDescriptorSets_shutdown(dsVkVolatileDescriptorSets* descriptors)
+void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors)
 {
 	dsVkDevice* device = descriptors->device;
 	dsVkInstance* instance = &device->instance;

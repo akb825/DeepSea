@@ -1360,11 +1360,11 @@ dsGLResourceManager* dsGLResourceManager_create(dsAllocator* allocator, dsGLRend
 	baseResourceManager->createShaderFunc = &dsGLShader_create;
 	baseResourceManager->destroyShaderFunc = &dsGLShader_destroy;
 	baseResourceManager->bindShaderFunc = &dsGLShader_bind;
-	baseResourceManager->updateShaderVolatileValuesFunc = &dsGLShader_updateVolatileValues;
+	baseResourceManager->updateShaderSharedValuesFunc = &dsGLShader_updateSharedValues;
 	baseResourceManager->unbindShaderFunc = &dsGLShader_unbind;
 	baseResourceManager->bindComputeShaderFunc = &dsGLShader_bindCompute;
-	baseResourceManager->updateComputeShaderVolatileValuesFunc =
-		&dsGLShader_updateComputeVolatileValues;
+	baseResourceManager->updateComputeShaderSharedValuesFunc =
+		&dsGLShader_updateComputeSharedValues;
 	baseResourceManager->unbindComputeShaderFunc = &dsGLShader_unbindCompute;
 
 	return resourceManager;

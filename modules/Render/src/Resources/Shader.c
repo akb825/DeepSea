@@ -30,7 +30,7 @@
 #include <DeepSea/Render/Resources/ShaderModule.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroupDesc.h>
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Types.h>
 
 #include <MSL/Client/ModuleC.h>
@@ -311,17 +311,17 @@ static bool isMaterialDescCompatible(dsResourceManager* resourceManager, const m
 	return success;
 }
 
-static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
-	const dsVolatileMaterialValues* volatileValues)
+static bool verifySharedMaterialValues(const dsMaterialDesc* materialDesc,
+	const dsSharedMaterialValues* sharedValues)
 {
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (!materialDesc->elements[i].isVolatile)
+		if (!materialDesc->elements[i].isShared)
 			continue;
 
-		if (!volatileValues)
+		if (!sharedValues)
 		{
-			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses volatile values, but no volatile values "
+			DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Material uses shared values, but no shared values "
 				"provided during shader bind.");
 			return false;
 		}
@@ -332,11 +332,11 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_Image:
 			case dsMaterialType_SubpassInput:
 			{
-				dsTexture* texture = dsVolatileMaterialValues_getTextureId(volatileValues,
+				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues,
 					materialDesc->elements[i].nameId);
 				if (!texture)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile texture '%s' not found.",
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared texture '%s' not found.",
 						materialDesc->elements[i].name);
 					return false;
 				}
@@ -371,11 +371,11 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				dsShaderVariableGroup* variableGroup = dsVolatileMaterialValues_getVariableGroupId(
-					volatileValues, materialDesc->elements[i].nameId);
+				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
+					sharedValues, materialDesc->elements[i].nameId);
 				if (!variableGroup)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile variable group '%s' not found.",
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group '%s' not found.",
 						materialDesc->elements[i].name);
 					return false;
 				}
@@ -383,7 +383,7 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 				if (dsShaderVariableGroup_getDescription(variableGroup) !=
 					materialDesc->elements[i].shaderVariableGroupDesc)
 				{
-					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Volatile variable group description for "
+					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Shared variable group description for "
 						"'%s' doesn't match description set on material element.",
 						materialDesc->elements[i].name);
 					return false;
@@ -393,8 +393,8 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 			case dsMaterialType_UniformBlock:
 			case dsMaterialType_UniformBuffer:
 			{
-				dsGfxBuffer* buffer = dsVolatileMaterialValues_getBufferId(NULL, NULL,
-					volatileValues, materialDesc->elements[i].nameId);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(NULL, NULL,
+					sharedValues, materialDesc->elements[i].nameId);
 				if (!buffer)
 				{
 					DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Buffer '%s' not found.",
@@ -422,7 +422,7 @@ static bool verifyVolatileMaterialValues(const dsMaterialDesc* materialDesc,
 				break;
 			}
 			default:
-				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid volatile material type.");
+				DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Invalid shared material type.");
 				return false;
 		}
 	}
@@ -537,7 +537,7 @@ bool dsShader_hasStage(const dsShader* shader, dsShaderStage stage)
 }
 
 bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates)
 {
 	DS_PROFILE_FUNC_START();
@@ -564,7 +564,7 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -587,7 +587,7 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	bool success = resourceManager->bindShaderFunc(shader->resourceManager, commandBuffer, shader,
-		material, volatileValues, renderStates);
+		material, sharedValues, renderStates);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(success);
 
@@ -595,19 +595,19 @@ bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsVolatileMaterialValues* volatileValues)
+bool dsShader_updateSharedValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_PROFILE_FUNC_START();
 
 	if (!commandBuffer || !shader || !shader->resourceManager ||
-		!shader->resourceManager->updateShaderVolatileValuesFunc)
+		!shader->resourceManager->updateShaderSharedValuesFunc)
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -617,13 +617,13 @@ bool dsShader_updateVolatileValues(const dsShader* shader, dsCommandBuffer* comm
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Can only update volatile values for the currently bound shader.");
+			"Can only update shared values for the currently bound shader.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	dsResourceManager* resourceManager = shader->resourceManager;
-	bool success = resourceManager->updateShaderVolatileValuesFunc(shader->resourceManager,
-		commandBuffer, shader, volatileValues);
+	bool success = resourceManager->updateShaderSharedValuesFunc(shader->resourceManager,
+		commandBuffer, shader, sharedValues);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
@@ -663,7 +663,7 @@ bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* commandBuffer)
 }
 
 bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues)
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -698,7 +698,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -729,7 +729,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 	}
 
 	bool success = resourceManager->bindComputeShaderFunc(shader->resourceManager, commandBuffer,
-		shader, material, volatileValues);
+		shader, material, sharedValues);
 	if (!success)
 		DS_PROFILE_FUNC_RETURN(success);
 
@@ -737,8 +737,8 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 	DS_PROFILE_FUNC_RETURN(success);
 }
 
-bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsVolatileMaterialValues* volatileValues)
+bool dsShader_updateComputeSharedValues(const dsShader* shader, dsCommandBuffer* commandBuffer,
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -749,7 +749,7 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 	}
 
 	dsResourceManager* resourceManager = shader->resourceManager;
-	if (!resourceManager->updateComputeShaderVolatileValuesFunc ||
+	if (!resourceManager->updateComputeShaderSharedValuesFunc ||
 		resourceManager->renderer->maxComputeInvocations == 0)
 	{
 		errno = EPERM;
@@ -757,7 +757,7 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!verifyVolatileMaterialValues(shader->materialDesc, volatileValues))
+	if (!verifySharedMaterialValues(shader->materialDesc, sharedValues))
 	{
 		errno = EINVAL;
 		DS_PROFILE_FUNC_RETURN(false);
@@ -767,12 +767,12 @@ bool dsShader_updateComputeVolatileValues(const dsShader* shader, dsCommandBuffe
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
-			"Can only update compute volatile values for the currently bound compute shader.");
+			"Can only update compute shared values for the currently bound compute shader.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool success = resourceManager->updateComputeShaderVolatileValuesFunc(shader->resourceManager,
-		commandBuffer, shader, volatileValues);
+	bool success = resourceManager->updateComputeShaderSharedValuesFunc(shader->resourceManager,
+		commandBuffer, shader, sharedValues);
 	DS_PROFILE_FUNC_RETURN(success);
 }
 

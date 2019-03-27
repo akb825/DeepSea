@@ -206,10 +206,10 @@ dsMaterialDesc* dsMaterialDesc_create(dsResourceManager* resourceManager,
 			elementsValid = false;
 		}
 
-		if (elements[i].isVolatile && elements[i].type < dsMaterialType_Texture)
+		if (elements[i].isShared && elements[i].type < dsMaterialType_Texture)
 		{
 			DS_LOG_ERROR_F(DS_RENDER_LOG_TAG, "Primitive, vector, and matrix material elements "
-				"cannot be volatile for element '%s'.", elements[i].name);
+				"cannot be shared for element '%s'.", elements[i].name);
 			elementsValid = false;
 		}
 

@@ -111,7 +111,7 @@ DS_RENDER_EXPORT bool dsShaderVariableGroup_setElementData(dsShaderVariableGroup
  * If uniform blocks are supported, this will perform the actual copy to the GPU buffer. If uniform
  * blocks aren't supported, this increments the commit count. Render implementations can keep track
  * of the commit count to avoid uploading all uniforms when updating a dsShaderVariableGRoup used
- * as part of dsVolatileMaterialValues.
+ * as part of dsSharedMaterialValues.
  *
  * @remark This must be called outside of a render pass.
  * @remark errno will be set on failure.

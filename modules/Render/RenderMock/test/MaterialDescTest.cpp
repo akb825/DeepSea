@@ -66,7 +66,7 @@ TEST_F(MaterialDescTest, CreateDuplicateName)
 	EXPECT_FALSE(dsMaterialDesc_create(resourceManager, NULL, elements, elementCount));
 }
 
-TEST_F(MaterialDescTest, CreateVolatilePrimitive)
+TEST_F(MaterialDescTest, CreateSharedPrimitive)
 {
 	dsMaterialElement elements[] =
 	{

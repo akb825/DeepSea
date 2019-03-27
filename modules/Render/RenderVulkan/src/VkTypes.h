@@ -416,7 +416,7 @@ typedef struct dsVkMaterialDesc
 	uint32_t* elementMappings;
 
 	// Index 0 for static material values.
-	// Index 1 for volatile material values.
+	// Index 1 for shared material values.
 	VkDescriptorSetLayoutBinding* bindings[2];
 	VkDescriptorSetLayout descriptorSets[2];
 } dsVkMaterialDesc;
@@ -809,13 +809,13 @@ typedef struct dsVkImageCopyInfo
 	uint32_t rangeCount;
 } dsVkImageCopyInfo;
 
-typedef struct dsVkVolatileBindingInfo
+typedef struct dsVkSharedBindingInfo
 {
 	VkDescriptorType type;
 	uint32_t resourceIndex;
-} dsVkVolatileBindingInfo;
+} dsVkSharedBindingInfo;
 
-typedef struct dsVkVolatileDescriptorSets
+typedef struct dsVkSharedDescriptorSets
 {
 	dsAllocator* allocator;
 	dsVkDevice* device;
@@ -838,7 +838,7 @@ typedef struct dsVkVolatileDescriptorSets
 	uint32_t texelBufferCount;
 	uint32_t maxTexelBuffers;
 
-	dsVkVolatileBindingInfo* bindingInfos;
+	dsVkSharedBindingInfo* bindingInfos;
 	uint32_t bindingInfoCount;
 	uint32_t maxBindingInfos;
 
@@ -848,7 +848,7 @@ typedef struct dsVkVolatileDescriptorSets
 	uint32_t* offsets;
 	uint32_t offsetCount;
 	uint32_t maxOffsets;
-} dsVkVolatileDescriptorSets;
+} dsVkSharedDescriptorSets;
 
 typedef struct dsVkCommandBufferChunk
 {
@@ -912,7 +912,7 @@ struct dsVkCommandBuffer
 	uint32_t maxClearValues;
 
 	dsVkBarrierList barriers;
-	dsVkVolatileDescriptorSets volatileDescriptorSets;
+	dsVkSharedDescriptorSets sharedDescriptorSets;
 
 	VkCommandBuffer* submitBuffers;
 	uint32_t submitBufferCount;

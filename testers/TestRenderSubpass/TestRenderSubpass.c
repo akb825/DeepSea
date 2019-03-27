@@ -39,7 +39,7 @@
 #include <DeepSea/Render/Resources/Texture.h>
 #include <DeepSea/Render/Resources/TextureData.h>
 #include <DeepSea/Render/Resources/VertexFormat.h>
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderPass.h>
 #include <DeepSea/RenderBootstrap/RenderBootstrap.h>
@@ -63,7 +63,7 @@ typedef struct TestRenderSubpass
 	dsMaterialDesc* resolveMaterialDesc;
 
 	dsShaderVariableGroup* transformGroup;
-	dsVolatileMaterialValues* volatileValues;
+	dsSharedMaterialValues* sharedValues;
 	dsMaterial* rMaterial;
 	dsMaterial* gMaterial;
 	dsMaterial* bMaterial;
@@ -400,7 +400,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 	// Draw red channel
 	dsDrawIndexedRange drawRange = {testRenderSubpass->cubeGeometry->indexBuffer.count, 1, 0, 0, 0};
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
-		testRenderSubpass->rMaterial, testRenderSubpass->volatileValues, NULL));
+		testRenderSubpass->rMaterial, testRenderSubpass->sharedValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
@@ -409,7 +409,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	// Draw green channel
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
-		testRenderSubpass->gMaterial, testRenderSubpass->volatileValues, NULL));
+		testRenderSubpass->gMaterial, testRenderSubpass->sharedValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
@@ -418,7 +418,7 @@ static void draw(dsApplication* application, dsWindow* window, void* userData)
 
 	// Draw blue channel
 	DS_VERIFY(dsShader_bind(testRenderSubpass->cubeShader, commandBuffer,
-		testRenderSubpass->bMaterial, testRenderSubpass->volatileValues, NULL));
+		testRenderSubpass->bMaterial, testRenderSubpass->sharedValues, NULL));
 	DS_VERIFY(dsRenderer_drawIndexed(renderer, commandBuffer, testRenderSubpass->cubeGeometry,
 		&drawRange, dsPrimitiveType_TriangleList));
 	DS_VERIFY(dsShader_unbind(testRenderSubpass->cubeShader, commandBuffer));
@@ -643,15 +643,15 @@ static bool setup(TestRenderSubpass* testRenderSubpass, dsApplication* applicati
 		return false;
 	}
 
-	testRenderSubpass->volatileValues = dsVolatileMaterialValues_create(allocator,
+	testRenderSubpass->sharedValues = dsSharedMaterialValues_create(allocator,
 		DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES);
-	if (!testRenderSubpass->volatileValues)
+	if (!testRenderSubpass->sharedValues)
 	{
-		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create volatile material values: %s",
+		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create shared material values: %s",
 			dsErrorString(errno));
 		return false;
 	}
-	DS_VERIFY(dsVolatileMaterialValues_setVariableGroupName(testRenderSubpass->volatileValues,
+	DS_VERIFY(dsSharedMaterialValues_setVariableGroupName(testRenderSubpass->sharedValues,
 		"Transform", testRenderSubpass->transformGroup));
 
 	testRenderSubpass->rMaterial = dsMaterial_create(resourceManager, allocator,
@@ -850,7 +850,7 @@ static void shutdown(TestRenderSubpass* testRenderSubpass)
 	dsMaterial_destroy(testRenderSubpass->bMaterial);
 	dsMaterial_destroy(testRenderSubpass->gMaterial);
 	dsMaterial_destroy(testRenderSubpass->rMaterial);
-	dsVolatileMaterialValues_destroy(testRenderSubpass->volatileValues);
+	dsSharedMaterialValues_destroy(testRenderSubpass->sharedValues);
 	DS_VERIFY(dsShaderVariableGroup_destroy(testRenderSubpass->transformGroup));
 	DS_VERIFY(dsMaterialDesc_destroy(testRenderSubpass->resolveMaterialDesc));
 	DS_VERIFY(dsShaderVariableGroupDesc_destroy(testRenderSubpass->transformGroupDesc));

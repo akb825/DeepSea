@@ -107,7 +107,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		VkDescriptorType type = dsVkDescriptorType(element->type, false);
@@ -173,7 +173,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
 		const dsMaterialElement* element = materialDesc->elements + i;
-		if (element->isVolatile || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
+		if (element->isShared || vkMaterialDesc->elementMappings[i] == DS_MATERIAL_UNKNOWN)
 			continue;
 
 		DS_ASSERT(index < deviceMaterial->bindingCount);
@@ -184,7 +184,7 @@ dsVkMaterialDescriptor* dsVkMaterialDescriptor_create(dsRenderer* renderer, dsAl
 		binding->dstBinding = vkMaterialDesc->elementMappings[i];
 		binding->dstArrayElement = 0;
 		binding->descriptorCount = 1;
-		binding->descriptorType = dsVkDescriptorType(element->type, element->isVolatile);
+		binding->descriptorType = dsVkDescriptorType(element->type, element->isShared);
 		binding->pImageInfo = NULL;
 		binding->pBufferInfo = NULL;
 		binding->pTexelBufferView = NULL;

@@ -27,14 +27,19 @@ extern "C"
 
 /**
  * @file
- * @brief Functions for creating and using volatile material values.
+ * @brief Functions for creating and using shared material values.
  *
- * This holds a set of values to be used for volatile material elements indexed by name. Volatile
- * material values are texture, image, and buffer material values declared as volatile within
+ * This holds a set of values to be used for shared material elements indexed by name. Shared
+ * material values are texture, image, and buffer material values declared as shared within
  * dsMaterialDesc. This allows values for the current rendering state to be stored separately from
  * the material properties. Separate instances can be used for different render passes, draw
- * threads, etc. to remain independent between multible uses of the material, and the values stored
+ * threads, etc. to remain independent between multiple uses of the material, and the values stored
  * in this may be changed in-between draw calls.
+ *
+ * The cost of updating a value is dependent on the underlying graphics API and driver. In the case
+ * of Vulkan, which is the most explicit in how shader variables are managed, the cheapest change is
+ * to update the offset for a uniform block or uniform buffer while keeping the underlying buffer
+ * the same. When possible, this is the best update to change in-between draw calls.
  *
  * Lookups into this will be frequent, so as a result the index is done by pre-hashing the name. You
  * may either access the elements by name or by the ID, which is the hash of the name. (by calling
@@ -44,93 +49,93 @@ extern "C"
  * In this case, errno will be set to EPERM. errno will be set to ENOMEM if the maximum number of
  * values is exceeded.
  *
- * @see dsVolatileMaterialValues
+ * @see dsSharedMaterialValues
  */
 
 /**
- * @brief The default maximum number of volatile material values.
+ * @brief The default maximum number of shared material values.
  */
 #define DS_DEFAULT_MAX_VOLATILE_MATERIAL_VALUES 100U
 
 /**
- * @brief Gets the size of dsVolatileMaterialValues.
- * @return The size of dsVolatileMaterialValues.
+ * @brief Gets the size of dsSharedMaterialValues.
+ * @return The size of dsSharedMaterialValues.
  */
-DS_RENDER_EXPORT size_t dsVolatileMaterialValues_sizeof(void);
+DS_RENDER_EXPORT size_t dsSharedMaterialValues_sizeof(void);
 
 /**
- * @brief Gets the full allocated size of dsVolatileMaterialValues.
+ * @brief Gets the full allocated size of dsSharedMaterialValues.
  * @param maxValues The maximum number of values that can be stored.
- * @return The full allocated size of dsVolatileMaterialValues.
+ * @return The full allocated size of dsSharedMaterialValues.
  */
-DS_RENDER_EXPORT size_t dsVolatileMaterialValues_fullAllocSize(unsigned int maxValues);
+DS_RENDER_EXPORT size_t dsSharedMaterialValues_fullAllocSize(unsigned int maxValues);
 
 /**
- * @brief Creates a volatile material values instance.
+ * @brief Creates a shared material values instance.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the volatile material values with.
+ * @param allocator The allocator to create the shared material values with.
  * @param maxValues The maximum number of values to use.
  */
-DS_RENDER_EXPORT dsVolatileMaterialValues* dsVolatileMaterialValues_create(dsAllocator* allocator,
+DS_RENDER_EXPORT dsSharedMaterialValues* dsSharedMaterialValues_create(dsAllocator* allocator,
 	unsigned int maxValues);
 
 /**
- * @brief Gets the number of values stored in a volatile material values instance.
- * @param values The volatile material values.
+ * @brief Gets the number of values stored in a shared material values instance.
+ * @param values The shared material values.
  * @return The number of values.
  */
-DS_RENDER_EXPORT unsigned int dsVolatileMaterialValues_getValueCount(
-	const dsVolatileMaterialValues* values);
+DS_RENDER_EXPORT unsigned int dsSharedMaterialValues_getValueCount(
+	const dsSharedMaterialValues* values);
 
 /**
- * @brief Gets the maximum number of values that can be stored in a volatile material values
+ * @brief Gets the maximum number of values that can be stored in a shared material values
  *     instance.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @return The maximum number of values.
  */
-DS_RENDER_EXPORT unsigned int dsVolatileMaterialValues_getMaxValueCount(
-	const dsVolatileMaterialValues* values);
+DS_RENDER_EXPORT unsigned int dsSharedMaterialValues_getMaxValueCount(
+	const dsSharedMaterialValues* values);
 
 /**
  * @brief Gets a texture value by name.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the texture.
  * @return The texture, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsTexture* dsVolatileMaterialValues_getTextureName(
-	const dsVolatileMaterialValues* values, const char* name);
+DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureName(
+	const dsSharedMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a texture value by ID.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the texture name.
  * @return The texture, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsTexture* dsVolatileMaterialValues_getTextureId(
-	const dsVolatileMaterialValues* values, uint32_t nameId);
+DS_RENDER_EXPORT dsTexture* dsSharedMaterialValues_getTextureId(
+	const dsSharedMaterialValues* values, uint32_t nameId);
 
 /**
  * @brief Sets a texture value by name.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the texture.
  * @param texture The texture to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureName(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureName(dsSharedMaterialValues* values,
 	const char* name, dsTexture* texture);
 
 /**
  * @brief Sets a texture value by ID.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the texture name.
  * @param texture The texture to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a texture.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setTextureId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsTexture* texture);
 
 /**
@@ -138,29 +143,29 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setTextureId(dsVolatileMaterialVa
  * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outCount The number of texels for the buffer. This may be NULL.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the buffer.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
-	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, const char* name);
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferName(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a image buffer value by ID.
  * @param[out] outFormat The texture format to interpret the buffer data. This may be NULL.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outCount The number of texels for the buffer. This may be NULL.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getImageBufferId(dsGfxFormat* outFormat,
-	size_t* outOffset, size_t* outCount, const dsVolatileMaterialValues* values, uint32_t nameId);
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getImageBufferId(dsGfxFormat* outFormat,
+	size_t* outOffset, size_t* outCount, const dsSharedMaterialValues* values, uint32_t nameId);
 
 /**
  * @brief Sets a image buffer value by name.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the buffer.
  * @param buffer The buffer to set.
  * @param format The texture format to interpret the buffer data.
@@ -169,14 +174,14 @@ DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getImageBufferId(dsGfxFor
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setImageBufferName(
-	dsVolatileMaterialValues* values, const char* name, dsGfxBuffer* buffer, dsGfxFormat format,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setImageBufferName(
+	dsSharedMaterialValues* values, const char* name, dsGfxBuffer* buffer, dsGfxFormat format,
 	size_t offset, size_t count);
 
 /**
  * @brief Sets a image buffer value by ID.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the buffer name.
  * @param buffer The buffer to set.
  * @param format The texture format to interpret the buffer data.
@@ -185,77 +190,77 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setImageBufferName(
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setImageBufferId(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setImageBufferId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsGfxBuffer* buffer, dsGfxFormat format, size_t offset, size_t count);
 
 /**
  * @brief Gets a shader variable group value by name.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the shader variable group.
  * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupName(
-	const dsVolatileMaterialValues* values, const char* name);
+DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupName(
+	const dsSharedMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a shader variable group value by ID.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the shader variable group name.
  * @return The shader variable group, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsShaderVariableGroup* dsVolatileMaterialValues_getVariableGroupId(
-	const dsVolatileMaterialValues* values, uint32_t nameId);
+DS_RENDER_EXPORT dsShaderVariableGroup* dsSharedMaterialValues_getVariableGroupId(
+	const dsSharedMaterialValues* values, uint32_t nameId);
 
 /**
  * @brief Sets a shader variable group value by name.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the shader variable group.
  * @param group The shader variable group to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setVariableGroupName(
-	dsVolatileMaterialValues* values, const char* name, dsShaderVariableGroup* group);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupName(
+	dsSharedMaterialValues* values, const char* name, dsShaderVariableGroup* group);
 
 /**
  * @brief Sets a shader variable group value by ID.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the shader variable group name.
  * @param group The shader variable group to set.
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a shader variable group.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setVariableGroupId(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setVariableGroupId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsShaderVariableGroup* group);
 
 /**
  * @brief Gets a buffer value by name.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outSize The size to use within the buffer. This may be NULL.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the buffer.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferName(size_t* outOffset,
-	size_t* outSize, const dsVolatileMaterialValues* values, const char* name);
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferName(size_t* outOffset,
+	size_t* outSize, const dsSharedMaterialValues* values, const char* name);
 
 /**
  * @brief Gets a buffer value by ID.
  * @param[out] outOffset The offset into the buffer. This may be NULL.
  * @param[out] outSize The size to use within the buffer. This may be NULL.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the buffer name.
  * @return The buffer, or NULL if not found or unset.
  */
-DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOffset,
-	size_t* outSize, const dsVolatileMaterialValues* values, uint32_t nameId);
+DS_RENDER_EXPORT dsGfxBuffer* dsSharedMaterialValues_getBufferId(size_t* outOffset,
+	size_t* outSize, const dsSharedMaterialValues* values, uint32_t nameId);
 
 /**
  * @brief Sets a buffer value by name.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param name The name of the buffer.
  * @param buffer The buffer to set.
  * @param offset The offset into the buffer.
@@ -263,13 +268,13 @@ DS_RENDER_EXPORT dsGfxBuffer* dsVolatileMaterialValues_getBufferId(size_t* outOf
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferName(dsSharedMaterialValues* values,
 	const char* name, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
  * @brief Sets a buffer value by ID.
  * @remark errno will be set on failure.
- * @param values The volatile material values.
+ * @param values The shared material values.
  * @param nameId The hash of the buffer name.
  * @param buffer The buffer to set.
  * @param offset The offset into the buffer.
@@ -277,40 +282,40 @@ DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferName(dsVolatileMaterialV
  * @return False if the parameters are invalid, there isn't space available, or a value with the
  *     name is set that isn't a buffer.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_setBufferId(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_setBufferId(dsSharedMaterialValues* values,
 	uint32_t nameId, dsGfxBuffer* buffer, size_t offset, size_t size);
 
 /**
- * @brief Removes a volatile material value by name.
- * @param values The volatile material values.
+ * @brief Removes a shared material value by name.
+ * @param values The shared material values.
  * @param name The name of the value to remvoe.
  * @return True if the value was removed.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_removeValueName(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueName(dsSharedMaterialValues* values,
 	const char* name);
 
 /**
- * @brief Removes a volatile material value by ID.
- * @param values The volatile material values.
+ * @brief Removes a shared material value by ID.
+ * @param values The shared material values.
  * @param nameId The hash of the name of the value to remvoe.
  * @return True if the value was removed.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_removeValueId(dsVolatileMaterialValues* values,
+DS_RENDER_EXPORT bool dsSharedMaterialValues_removeValueId(dsSharedMaterialValues* values,
 	uint32_t nameId);
 
 /**
- * @brief Clears the volatile material values.
+ * @brief Clears the shared material values.
  * @remark errno will be set on failure.
- * @param values The volatile material values to clear.
+ * @param values The shared material values to clear.
  * @return False if values is NULL.
  */
-DS_RENDER_EXPORT bool dsVolatileMaterialValues_clear(dsVolatileMaterialValues* values);
+DS_RENDER_EXPORT bool dsSharedMaterialValues_clear(dsSharedMaterialValues* values);
 
 /**
- * @brief Destroys a volatile material values instance.
- * @param values The volatile material values to destroy.
+ * @brief Destroys a shared material values instance.
+ * @param values The shared material values to destroy.
  */
-DS_RENDER_EXPORT void dsVolatileMaterialValues_destroy(dsVolatileMaterialValues* values);
+DS_RENDER_EXPORT void dsSharedMaterialValues_destroy(dsSharedMaterialValues* values);
 
 #ifdef __cplusplus
 }

@@ -19,10 +19,10 @@
 #include <DeepSea/Core/Config.h>
 #include "VkTypes.h"
 
-void dsVkVolatileDescriptorSets_initialize(dsVkVolatileDescriptorSets* descriptors,
+void dsVkSharedDescriptorSets_initialize(dsVkSharedDescriptorSets* descriptors,
 	dsAllocator* allocator, dsVkDevice* device);
-VkDescriptorSet dsVkVolatileDescriptorSets_createSet(dsVkVolatileDescriptorSets* descriptors,
+VkDescriptorSet dsVkSharedDescriptorSets_createSet(dsVkSharedDescriptorSets* descriptors,
 	dsCommandBuffer* commandBuffer, dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues);
-void dsVkVolatileDescriptorSets_clear(dsVkVolatileDescriptorSets* descriptors);
-void dsVkVolatileDescriptorSets_shutdown(dsVkVolatileDescriptorSets* descriptors);
+	const dsSharedMaterialValues* sharedValues);
+void dsVkSharedDescriptorSets_clear(dsVkSharedDescriptorSets* descriptors);
+void dsVkSharedDescriptorSets_shutdown(dsVkSharedDescriptorSets* descriptors);

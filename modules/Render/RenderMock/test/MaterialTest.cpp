@@ -247,7 +247,7 @@ TEST_F(MaterialTest, Textures)
 		{"image", dsMaterialType_Image, 0, NULL, false, 0},
 		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
 		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-		{"volatileTexture", dsMaterialType_Texture, 0, NULL, true, 0}
+		{"sharedTexture", dsMaterialType_Texture, 0, NULL, true, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -324,7 +324,7 @@ TEST_F(MaterialTest, ImageBuffers)
 		{"mutableTexture", dsMaterialType_MutableImageBuffer, 0, NULL, false, 0},
 		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0},
 		{"subpassInput", dsMaterialType_SubpassInput, 0, NULL, false, 0},
-		{"volatileTexture", dsMaterialType_ImageBuffer, 0, NULL, true, 0}
+		{"sharedTexture", dsMaterialType_ImageBuffer, 0, NULL, true, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -417,7 +417,7 @@ TEST_F(MaterialTest, ShaderVariableGroups)
 		{"float", dsMaterialType_Float, 0, NULL, false, 0},
 		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc1, false, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
-		{"volatileVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc2, true, 0},
+		{"sharedVariableGroup", dsMaterialType_VariableGroup, 0, groupDesc2, true, 0},
 		{"buffer", dsMaterialType_UniformBlock, 0, NULL, false, 0}
 	};
 
@@ -475,7 +475,7 @@ TEST_F(MaterialTest, Buffers)
 		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
 		{"uniformBuffer", dsMaterialType_UniformBuffer, 0, NULL, false, 0},
 		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0},
-		{"volatileBuffer", dsMaterialType_UniformBlock, 0, NULL, true, 0}
+		{"sharedBuffer", dsMaterialType_UniformBlock, 0, NULL, true, 0}
 	};
 
 	dsMaterialDesc* materialDesc = dsMaterialDesc_create(resourceManager, NULL, elements,
@@ -546,7 +546,7 @@ TEST_F(MaterialTest, MixedTypes)
 	dsMaterialElement elements[] =
 	{
 		{"float", dsMaterialType_Float, 0, NULL, false, 0},
-		{"volatileTexture", dsMaterialType_Texture, 0, NULL, true, 0},
+		{"sharedTexture", dsMaterialType_Texture, 0, NULL, true, 0},
 		{"texture", dsMaterialType_Texture, 0, NULL, false, 0},
 		{"uniformBlock", dsMaterialType_UniformBlock, 0, NULL, false, 0},
 		{"variableGroup", dsMaterialType_VariableGroup, 0, groupDesc, false, 0}

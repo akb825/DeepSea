@@ -25,7 +25,7 @@
 #include "VkRenderPass.h"
 #include "VkRenderPassData.h"
 #include "VkShared.h"
-#include "VkVolatileDescriptorSets.h"
+#include "VkSharedDescriptorSets.h"
 
 #include <DeepSea/Core/Containers/ResizeableArray.h>
 #include <DeepSea/Core/Memory/Allocator.h>
@@ -497,7 +497,7 @@ static void setupSpirv(dsShader* shader, dsAllocator* allocator)
 		if (!vkMaterialDesc->descriptorSets[0])
 			descriptorSet = 0;
 		else
-			descriptorSet = materialDesc->elements[i].isVolatile != false;
+			descriptorSet = materialDesc->elements[i].isShared != false;
 		for (uint32_t j = 0; j < pipeline->uniformCount; ++j)
 		{
 			mslUniform uniform;
@@ -772,8 +772,8 @@ static bool bindShaderStates(dsCommandBuffer* commandBuffer, const dsShader* sha
 	return true;
 }
 
-static bool updateVolatileValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues,
+static bool updateSharedValues(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues,
 	VkPipelineBindPoint bindPoint)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
@@ -787,10 +787,10 @@ static bool updateVolatileValues(dsResourceManager* resourceManager, dsCommandBu
 	if (!vkCommandBuffer)
 		return false;
 
-	dsVkVolatileDescriptorSets* descriptors = dsVkCommandBuffer_getVolatileDescriptorSets(
+	dsVkSharedDescriptorSets* descriptors = dsVkCommandBuffer_getSharedDescriptorSets(
 		commandBuffer);
-	VkDescriptorSet descriptorSet = dsVkVolatileDescriptorSets_createSet(descriptors, commandBuffer,
-		(dsShader*)shader, volatileValues);
+	VkDescriptorSet descriptorSet = dsVkSharedDescriptorSets_createSet(descriptors, commandBuffer,
+		(dsShader*)shader, sharedValues);
 	if (!descriptorSet)
 		return false;
 
@@ -957,7 +957,7 @@ bool dsVkShader_isUniformInternal(dsResourceManager* resourceManager, const char
 
 bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates)
+	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
@@ -986,8 +986,8 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 			VK_PIPELINE_BIND_POINT_GRAPHICS, vkShader->layout, 0, 1, &descriptorSet, 0, NULL);
 	}
 
-	if (volatileValues && !dsVkShader_updateVolatileValues(resourceManager, commandBuffer, shader,
-		volatileValues))
+	if (sharedValues && !dsVkShader_updateSharedValues(resourceManager, commandBuffer, shader,
+		sharedValues))
 	{
 		return false;
 	}
@@ -995,11 +995,11 @@ bool dsVkShader_bind(dsResourceManager* resourceManager, dsCommandBuffer* comman
 	return true;
 }
 
-bool dsVkShader_updateVolatileValues(dsResourceManager* resourceManager,
+bool dsVkShader_updateSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
-	return updateVolatileValues(resourceManager, commandBuffer, shader, volatileValues,
+	return updateSharedValues(resourceManager, commandBuffer, shader, sharedValues,
 		VK_PIPELINE_BIND_POINT_GRAPHICS);
 }
 
@@ -1014,7 +1014,7 @@ bool dsVkShader_unbind(dsResourceManager* resourceManager, dsCommandBuffer* comm
 
 bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
 	const dsVkShader* vkShader = (const dsVkShader*)shader;
@@ -1040,8 +1040,8 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 			vkShader->layout, 0, 1, &descriptorSet, 0, NULL);
 	}
 
-	if (volatileValues && !dsVkShader_updateComputeVolatileValues(resourceManager, commandBuffer,
-		shader, volatileValues))
+	if (sharedValues && !dsVkShader_updateComputeSharedValues(resourceManager, commandBuffer,
+		shader, sharedValues))
 	{
 		return false;
 	}
@@ -1049,11 +1049,11 @@ bool dsVkShader_bindCompute(dsResourceManager* resourceManager, dsCommandBuffer*
 	return true;
 }
 
-bool dsVkShader_updateComputeVolatileValues(dsResourceManager* resourceManager,
+bool dsVkShader_updateComputeSharedValues(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
-	return updateVolatileValues(resourceManager, commandBuffer, shader, volatileValues,
+	return updateSharedValues(resourceManager, commandBuffer, shader, sharedValues,
 		VK_PIPELINE_BIND_POINT_COMPUTE);
 }
 

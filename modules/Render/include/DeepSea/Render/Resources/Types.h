@@ -1725,29 +1725,29 @@ typedef bool (*dsIsShaderUniformInternalFunction)(dsResourceManager* resourceMan
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
  * @param material The material values to apply to the shader.
- * @param volatileValues The volatile values to apply to the shader.
+ * @param sharedValues The shared values to apply to the shader.
  * @param renderStates The dynamic render states to apply. This may be NULL to use the default
  *     values.
  * @return False if the values couldn't be bound.
  */
 typedef bool (*dsBindShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues, const dsDynamicRenderStates* renderStates);
+	const dsSharedMaterialValues* sharedValues, const dsDynamicRenderStates* renderStates);
 
 /**
- * @brief Function for updating the volatile material values used for the currently bound shader.
+ * @brief Function for updating the shared material values used for the currently bound shader.
  *
  * The implementation should attempt to only update the values that have changed.
  *
  * @param resourceManager The resource manager the shader was created with.
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to update the values on.
- * @param volatileValues The volatile values to updte.
+ * @param sharedValues The shared values to updte.
  * @return False if the values couldn't be updated.
  */
-typedef bool (*dsUpdateShaderVolatileValuesFunction)(dsResourceManager* resourceManager,
+typedef bool (*dsUpdateShaderSharedValuesFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsVolatileMaterialValues* volatileValues);
+	const dsSharedMaterialValues* sharedValues);
 
 /**
  * @brief Function for un-binding the currently bound shader.
@@ -1764,12 +1764,12 @@ typedef bool (*dsUnbindShaderFunction)(dsResourceManager* resourceManager,
  * @param commandBuffer The command buffer to queue commands onto.
  * @param shader The shader to draw with.
  * @param material The material values to apply to the shader.
- * @param volatileValues The volatile values to apply to the shader.
+ * @param sharedValues The shared values to apply to the shader.
  * @return False if the values couldn't be bound.
  */
 typedef bool (*dsBindComputeShaderFunction)(dsResourceManager* resourceManager,
 	dsCommandBuffer* commandBuffer, const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues);
+	const dsSharedMaterialValues* sharedValues);
 
 /** @copydoc dsResourceManager */
 struct dsResourceManager
@@ -2357,9 +2357,9 @@ struct dsResourceManager
 	dsBindShaderFunction bindShaderFunc;
 
 	/**
-	 * @brief Shader volatile value update function.
+	 * @brief Shader shared value update function.
 	 */
-	dsUpdateShaderVolatileValuesFunction updateShaderVolatileValuesFunc;
+	dsUpdateShaderSharedValuesFunction updateShaderSharedValuesFunc;
 
 	/**
 	 * @brief Shader unbinding function.
@@ -2372,9 +2372,9 @@ struct dsResourceManager
 	dsBindComputeShaderFunction bindComputeShaderFunc;
 
 	/**
-	 * @brief Compute shader volatile value update function.
+	 * @brief Compute shader shared value update function.
 	 */
-	dsUpdateShaderVolatileValuesFunction updateComputeShaderVolatileValuesFunc;
+	dsUpdateShaderSharedValuesFunction updateComputeShaderSharedValuesFunc;
 
 	/**
 	 * @brief Compute shader unbinding function.

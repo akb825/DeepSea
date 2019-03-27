@@ -83,18 +83,18 @@ DS_RENDER_EXPORT bool dsShader_hasStage(const dsShader* shader, dsShaderStage st
  * @param shader The shader to draw with.
  * @param commandBuffer The command buffer to queue commands onto.
  * @param material The material values to apply to the shader.
- * @param volatileValues The volatile values to apply to the shader. This may be NULL if the
- *     material description doesn't use volatile values.
+ * @param sharedValues The shared values to apply to the shader. This may be NULL if the
+ *     material description doesn't use shared values.
  * @param renderStates The dynamic render states to apply. This may be NULL to use the default
  *     values.
  * @return False if the values couldn't be bound.
  */
 DS_RENDER_EXPORT bool dsShader_bind(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates);
 
 /**
- * @brief Updates the volatile material values for the shader.
+ * @brief Updates the shared material values for the shader.
  *
  * This will try to only update the values that have changed.
  *
@@ -102,11 +102,11 @@ DS_RENDER_EXPORT bool dsShader_bind(const dsShader* shader, dsCommandBuffer* com
  * @remark errno will be set on failure.
  * @param shader The shader to update the values on.
  * @param commandBuffer The command buffer to queue commands onto.
- * @param volatileValues The volatile values to updte.
+ * @param sharedValues The shared values to updte.
  * @return False if the values couldn't be updated.
  */
-DS_RENDER_EXPORT bool dsShader_updateVolatileValues(const dsShader* shader,
-	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
+DS_RENDER_EXPORT bool dsShader_updateSharedValues(const dsShader* shader,
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* sharedValues);
 
 /**
  * @brief Un-binds a shader that was previously bound.
@@ -125,15 +125,15 @@ DS_RENDER_EXPORT bool dsShader_unbind(const dsShader* shader, dsCommandBuffer* c
  * @param shader The shader to draw with.
  * @param commandBuffer The command buffer to queue commands onto.
  * @param material The material values to apply to the shader.
- * @param volatileValues The volatile values to apply to the shader. This may be NULL if the
- *     material description doesn't use volatile values.
+ * @param sharedValues The shared values to apply to the shader. This may be NULL if the
+ *     material description doesn't use shared values.
  * @return False if the values couldn't be bound.
  */
 DS_RENDER_EXPORT bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues);
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues);
 
 /**
- * @brief Updates the volatile material values for the compute shader.
+ * @brief Updates the shared material values for the compute shader.
  *
  * This will try to only update the values that have changed.
  *
@@ -141,11 +141,11 @@ DS_RENDER_EXPORT bool dsShader_bindCompute(const dsShader* shader, dsCommandBuff
  * @remark errno will be set on failure.
  * @param shader The shader to update the values on.
  * @param commandBuffer The command buffer to queue commands onto.
- * @param volatileValues The volatile values to updte.
+ * @param sharedValues The shared values to updte.
  * @return False if the values couldn't be updated.
  */
-DS_RENDER_EXPORT bool dsShader_updateComputeVolatileValues(const dsShader* shader,
-	dsCommandBuffer* commandBuffer, const dsVolatileMaterialValues* volatileValues);
+DS_RENDER_EXPORT bool dsShader_updateComputeSharedValues(const dsShader* shader,
+	dsCommandBuffer* commandBuffer, const dsSharedMaterialValues* sharedValues);
 
 /**
  * @brief Un-binds a compute shader that was previously bound.

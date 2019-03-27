@@ -48,7 +48,7 @@ bool dsGLCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQuer
 	size_t elementSize, bool checkAvailability);
 
 bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates);
 bool dsGLCommandBuffer_bindShader(dsCommandBuffer* commandBuffer, const dsShader* shader,
 	const dsDynamicRenderStates* renderStates);
@@ -60,16 +60,16 @@ bool dsGLCommandBuffer_setShaderBuffer(dsCommandBuffer* commandBuffer, const dsS
 	uint32_t element, dsGfxBuffer* buffer, size_t offset, size_t size);
 bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location,
 	dsMaterialType type, uint32_t count, const void* data);
-bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
+bool dsGLCommandBuffer_setSharedMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues);
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues);
+	const dsSharedMaterialValues* sharedValues);
 bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
-bool dsGLCommandBuffer_setComputeVolatileMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues);
+bool dsGLCommandBuffer_setComputeSharedMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues);
 bool dsGLCommandBuffer_unbindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader);
 
 bool dsGLCommandBuffer_beginRenderSurface(dsCommandBuffer* commandBuffer, void* glSurface);

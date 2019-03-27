@@ -34,7 +34,7 @@ extern "C"
  * Materials directly store the values that are declared as individual uniforms in the shaders.
  * The rest are handled by dsShaderVariableGroup or manual uniform blocks or buffers.
  * dsShaderVariableGroup, uniform blocks or buffers, and textures may optionally be set by
- * dsVolatileMaterialValues instead for values that control the rendering rather than properties
+ * dsSharedMaterialValues instead for values that control the rendering rather than properties
  * of the material.
  *
  * @see dsMaterial
@@ -212,7 +212,7 @@ DS_RENDER_EXPORT bool dsMaterial_setBuffer(dsMaterial* material, uint32_t elemen
  * called, changes may not be applied.
  *
  * @remark This shouldn't be used across multiple threads. If different values are required across
- * threads, consider dsVolatileMaterialValues.
+ * threads, consider dsSharedMaterialValues.
  *
  * @remark errno will be set on failure.
  * @param material The material to commit the changes for.

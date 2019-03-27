@@ -27,7 +27,7 @@
 typedef struct DescriptorSetInfo
 {
 	VkDescriptorType type;
-	bool isVolatile;
+	bool isShared;
 	uint32_t count;
 } DescriptorSetInfo;
 
@@ -38,9 +38,9 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 	for (uint32_t i = 0; i < elementCount; ++i)
 	{
 		// Guarantee it's 0 or 1.
-		bool isVolatile = elements[i].isVolatile != false;
-		if (dsVkDescriptorType(elements[i].type, isVolatile) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
-			++bindingCounts[isVolatile];
+		bool isShared = elements[i].isShared != false;
+		if (dsVkDescriptorType(elements[i].type, isShared) != VK_DESCRIPTOR_TYPE_MAX_ENUM)
+			++bindingCounts[isShared];
 	}
 
 	dsVkDevice* device = &((dsVkRenderer*)resourceManager->renderer)->device;
@@ -100,8 +100,8 @@ dsMaterialDesc* dsVkMaterialDesc_create(dsResourceManager* resourceManager, dsAl
 		uint32_t index = 0;
 		for (uint32_t j = 0; j < elementCount; ++j)
 		{
-			bool isVolatile = elements[j].isVolatile != false;
-			if (isVolatile != i)
+			bool isShared = elements[j].isShared != false;
+			if (isShared != i)
 				continue;
 
 			VkDescriptorType type = dsVkDescriptorType(elements[j].type, i);

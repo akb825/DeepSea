@@ -21,16 +21,16 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/Material.h>
 #include <DeepSea/Render/Resources/ShaderVariableGroup.h>
-#include <DeepSea/Render/Resources/VolatileMaterialValues.h>
+#include <DeepSea/Render/Resources/SharedMaterialValues.h>
 
-static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+static bool setSharedMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
 
 	dsGLCommandBuffer* glCommandBuffer = (dsGLCommandBuffer*)commandBuffer;
-	if (!volatileValues)
+	if (!sharedValues)
 		return true;
 
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
@@ -39,7 +39,7 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 	DS_ASSERT(useGfxBuffers || glCommandBuffer->commitCountSize >= materialDesc->elementCount);
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (!materialDesc->elements[i].isVolatile)
+		if (!materialDesc->elements[i].isShared)
 			continue;
 
 		uint32_t nameId = materialDesc->elements[i].nameId;
@@ -52,7 +52,7 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 				if (glShader->uniforms[i].location < 0)
 					continue;
 
-				dsTexture* texture = dsVolatileMaterialValues_getTextureId(volatileValues, nameId);
+				dsTexture* texture = dsSharedMaterialValues_getTextureId(sharedValues, nameId);
 				if (texture)
 					dsGLCommandBuffer_setTexture(commandBuffer, shader, i, texture);
 				else
@@ -67,8 +67,8 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 
 				dsGfxFormat format;
 				size_t offset, count;
-				dsGfxBuffer* buffer = dsVolatileMaterialValues_getImageBufferId(&format,
-					&offset, &count, volatileValues, i);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getImageBufferId(&format,
+					&offset, &count, sharedValues, i);
 				if (buffer)
 				{
 					dsGLCommandBuffer_setImageBuffer(commandBuffer, shader, i, buffer,
@@ -85,13 +85,13 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 					continue;
 
 				size_t offset, size;
-				dsGfxBuffer* buffer = dsVolatileMaterialValues_getBufferId(&offset, &size,
-					volatileValues, nameId);
+				dsGfxBuffer* buffer = dsSharedMaterialValues_getBufferId(&offset, &size,
+					sharedValues, nameId);
 				if (!buffer)
 				{
 					errno = EPERM;
 					DS_LOG_ERROR_F(DS_RENDER_OPENGL_LOG_TAG,
-						"No buffer set for volatile material value '%s'",
+						"No buffer set for shared material value '%s'",
 						materialDesc->elements[i].name);
 					dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 					return false;
@@ -101,8 +101,8 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 			}
 			case dsMaterialType_VariableGroup:
 			{
-				dsShaderVariableGroup* variableGroup = dsVolatileMaterialValues_getVariableGroupId(
-					volatileValues, nameId);
+				dsShaderVariableGroup* variableGroup = dsSharedMaterialValues_getVariableGroupId(
+					sharedValues, nameId);
 				if (!variableGroup)
 				{
 					errno = EPERM;
@@ -162,14 +162,14 @@ static bool setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
 }
 
 static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues)
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues)
 {
 	dsGLShader* glShader = (dsGLShader*)shader;
 	bool useGfxBuffers = dsShaderVariableGroup_useGfxBuffer(shader->resourceManager);
 	const dsMaterialDesc* materialDesc = shader->materialDesc;
 	for (uint32_t i = 0; i < materialDesc->elementCount; ++i)
 	{
-		if (materialDesc->elements[i].isVolatile)
+		if (materialDesc->elements[i].isShared)
 			continue;
 
 		switch (materialDesc->elements[i].type)
@@ -309,7 +309,7 @@ static bool bindMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
 		}
 	}
 
-	if (!setVolatileMaterialValues(commandBuffer, shader, volatileValues))
+	if (!setSharedMaterialValues(commandBuffer, shader, sharedValues))
 		return false;
 
 	return true;
@@ -409,7 +409,7 @@ bool dsGLCommandBuffer_copyQueryValues(dsCommandBuffer* commandBuffer, dsGfxQuer
 }
 
 bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, const dsShader* shader,
-	const dsMaterial* material, const dsVolatileMaterialValues* volatileValues,
+	const dsMaterial* material, const dsSharedMaterialValues* sharedValues,
 	const dsDynamicRenderStates* renderStates)
 {
 	DS_ASSERT(commandBuffer);
@@ -419,7 +419,7 @@ bool dsGLCommandBuffer_bindShaderAndMaterial(dsCommandBuffer* commandBuffer, con
 	if (!dsGLCommandBuffer_bindShader(commandBuffer, shader, renderStates))
 		return false;
 
-	if (!bindMaterial(commandBuffer, shader, material, volatileValues))
+	if (!bindMaterial(commandBuffer, shader, material, sharedValues))
 	{
 		dsGLCommandBuffer_unbindShader(commandBuffer, shader);
 		return false;
@@ -465,10 +465,10 @@ bool dsGLCommandBuffer_setUniform(dsCommandBuffer* commandBuffer, GLint location
 	return functions->setUniformFunc(commandBuffer, location, type, count, data);
 }
 
-bool dsGLCommandBuffer_setVolatileMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+bool dsGLCommandBuffer_setSharedMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
 {
-	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+	return setSharedMaterialValues(commandBuffer, shader, sharedValues);
 }
 
 bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
@@ -480,7 +480,7 @@ bool dsGLCommandBuffer_unbindShader(dsCommandBuffer* commandBuffer, const dsShad
 
 bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuffer,
 	const dsShader* shader, const dsMaterial* material,
-	const dsVolatileMaterialValues* volatileValues)
+	const dsSharedMaterialValues* sharedValues)
 {
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(shader);
@@ -489,7 +489,7 @@ bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuff
 	if (!dsGLCommandBuffer_bindComputeShader(commandBuffer, shader))
 		return false;
 
-	if (!bindMaterial(commandBuffer, shader, material, volatileValues))
+	if (!bindMaterial(commandBuffer, shader, material, sharedValues))
 	{
 		dsGLCommandBuffer_unbindComputeShader(commandBuffer, shader);
 		return false;
@@ -498,10 +498,10 @@ bool dsGLCommandBuffer_bindComputeShaderAndMaterial(dsCommandBuffer* commandBuff
 	return true;
 }
 
-bool dsGLCommandBuffer_setComputeVolatileMaterialValues(dsCommandBuffer* commandBuffer,
-	const dsShader* shader, const dsVolatileMaterialValues* volatileValues)
+bool dsGLCommandBuffer_setComputeSharedMaterialValues(dsCommandBuffer* commandBuffer,
+	const dsShader* shader, const dsSharedMaterialValues* sharedValues)
 {
-	return setVolatileMaterialValues(commandBuffer, shader, volatileValues);
+	return setSharedMaterialValues(commandBuffer, shader, sharedValues);
 }
 
 bool dsGLCommandBuffer_bindComputeShader(dsCommandBuffer* commandBuffer, const dsShader* shader)
