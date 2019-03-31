@@ -22,6 +22,7 @@ set(DEEPSEA_BUILD_RENDER ON CACHE BOOL "Build rendering libraries.")
 set(DEEPSEA_BUILD_RENDER_MOCK ON CACHE BOOL "Build mock rendering implementation, used by tests.")
 set(DEEPSEA_BUILD_RENDER_OPENGL ON CACHE BOOL "Build OpenGL rendering implementation.")
 set(DEEPSEA_BUILD_RENDER_VULKAN ON CACHE BOOL "Build Vulkan rendering implementation.")
+set(DEEPSEA_BUILD_RENDER_METAL ON CACHE BOOL "Build Metal rendering implementation.")
 
 set(DEEPSEA_BUILD_TEXT ON CACHE BOOL "Build text rendering library.")
 set(DEEPSEA_BUILD_VECTOR_DRAW ON CACHE BOOL "Build vector draw library.")

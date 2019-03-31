@@ -26,6 +26,10 @@
 #include <DeepSea/RenderVulkan/RendererIDs.h>
 #endif
 
+#if DS_HAS_RENDER_METAL
+#include <DeepSea/RenderMetal/RendererIDs.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -87,6 +91,18 @@ extern "C"
  * @brief Constant for the renderer platform type ID of Win32.
  */
 #define DS_VK_WIN32_RENDERER_PLATFORM_ID DS_FOURCC('W', 'I', 'N', 0)
+#endif
+
+#if !DS_HAS_RENDER_METAL
+/**
+ * @brief Log tag for the RenderMetal library.
+ */
+#define DS_RENDER_METAL_LOG_TAG "metal"
+
+/**
+ * @brief Constant for the renderer type ID of the Metal renderer.
+ */
+#define DS_MTL_RENDERER_ID DS_FOURCC('M', 'T', 'L', 0)
 #endif
 
 #ifdef __cplusplus

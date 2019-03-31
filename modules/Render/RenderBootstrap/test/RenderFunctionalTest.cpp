@@ -854,7 +854,7 @@ TEST_P(RendererFunctionalTest, GenerateMipmaps)
 TEST_P(RendererFunctionalTest, BufferReadback)
 {
 	const uint32_t invocationCount = 10;
-	if (renderer->maxComputeInvocations < invocationCount)
+	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
 		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;
@@ -916,7 +916,7 @@ TEST_P(RendererFunctionalTest, BufferReadback)
 TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 {
 	const uint32_t invocationCount = 10;
-	if (renderer->maxComputeInvocations < invocationCount)
+	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
 		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;
@@ -985,7 +985,7 @@ TEST_P(RendererFunctionalTest, ComputeShaderIndirect)
 TEST_P(RendererFunctionalTest, ImageBuffer)
 {
 	const uint32_t invocationCount = 10;
-	if (renderer->maxComputeInvocations < invocationCount)
+	if (renderer->maxComputeWorkGroupSize[0] < invocationCount)
 	{
 		DS_LOG_INFO("RenderFunctionalTest", "Compute shaders not supported: skipping test.");
 		return;

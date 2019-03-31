@@ -1,5 +1,5 @@
 if (APPLE)
-	message("Skipping RenderVulkan for Apple platforms.")
+	message(STATUS "Skipping RenderVulkan for Apple platforms.")
 	return()
 endif()
 

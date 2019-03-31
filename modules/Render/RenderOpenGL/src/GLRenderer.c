@@ -679,12 +679,13 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if ((ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 1, 0)) ||
 		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(4, 3, 0)))
 	{
-		GLint maxInvocations = 0;
-		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &maxInvocations);
-		baseRenderer->maxComputeInvocations = maxInvocations;
+		GLint maxSize = 0;
+		for (int i = 0; i < 3; ++i)
+		{
+			glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, i, &maxSize);
+			baseRenderer->maxComputeWorkGroupSize[i] = maxSize;
+		}
 	}
-	else
-		baseRenderer->maxComputeInvocations = 0;
 	baseRenderer->hasNativeMultidraw = ANYGL_SUPPORTED(glMultiDrawArrays);
 	baseRenderer->supportsInstancedDrawing = ANYGL_SUPPORTED(glDrawArraysInstanced);
 	baseRenderer->supportsStartInstance = ANYGL_SUPPORTED(glDrawArraysInstancedBaseInstance);

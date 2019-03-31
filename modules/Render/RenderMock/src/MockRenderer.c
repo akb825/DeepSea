@@ -417,7 +417,9 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->clipInvertY = false;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
-	renderer->maxComputeInvocations = 128;
+	renderer->maxComputeWorkGroupSize[0] = 256;
+	renderer->maxComputeWorkGroupSize[1] = 256;
+	renderer->maxComputeWorkGroupSize[2] = 256;
 	renderer->hasNativeMultidraw = true;
 	renderer->supportsInstancedDrawing = true;
 	renderer->supportsStartInstance = true;

@@ -1675,12 +1675,11 @@ struct dsRenderer
 	bool hasTessellationShaders;
 
 	/**
-	 * @brief The maximum number of invocations per compute dispatch.
+	 * @brief The maximum size of the workgroup in each dimension.
 	 *
-	 * This is the product between the X, Y, and Z dimensions. If 0, compute shaders aren't
-	 * supported.
+	 * If 0, compute shaders aren't supported.
 	 */
-	uint32_t maxComputeInvocations;
+	uint32_t maxComputeWorkGroupSize[3];
 
 	/**
 	 * @brief True if indirect draws with a count > 1 will use a single graphics API call.

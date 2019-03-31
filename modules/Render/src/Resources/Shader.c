@@ -507,7 +507,8 @@ dsShader* dsShader_createIndex(dsResourceManager* resourceManager, dsAllocator* 
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
-	if (pipeline.shaders[mslStage_Compute] != MSL_UNKNOWN && renderer->maxComputeInvocations == 0)
+	if (pipeline.shaders[mslStage_Compute] != MSL_UNKNOWN &&
+		renderer->maxComputeWorkGroupSize[0] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
@@ -683,7 +684,7 @@ bool dsShader_bindCompute(const dsShader* shader, dsCommandBuffer* commandBuffer
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	if (!resourceManager->bindComputeShaderFunc || !resourceManager->unbindComputeShaderFunc ||
-		resourceManager->renderer->maxComputeInvocations == 0)
+		resourceManager->renderer->maxComputeWorkGroupSize[0] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
@@ -750,7 +751,7 @@ bool dsShader_updateComputeSharedValues(const dsShader* shader, dsCommandBuffer*
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	if (!resourceManager->updateComputeShaderSharedValuesFunc ||
-		resourceManager->renderer->maxComputeInvocations == 0)
+		resourceManager->renderer->maxComputeWorkGroupSize[0] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
@@ -788,7 +789,7 @@ bool dsShader_unbindCompute(const dsShader* shader, dsCommandBuffer* commandBuff
 
 	dsResourceManager* resourceManager = shader->resourceManager;
 	if (!resourceManager->unbindComputeShaderFunc ||
-		resourceManager->renderer->maxComputeInvocations == 0)
+		resourceManager->renderer->maxComputeWorkGroupSize[0] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");

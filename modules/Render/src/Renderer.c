@@ -1032,14 +1032,16 @@ bool dsRenderer_dispatchCompute(dsRenderer* renderer, dsCommandBuffer* commandBu
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->dispatchComputeFunc || renderer->maxComputeInvocations == 0)
+	if (!renderer->dispatchComputeFunc || renderer->maxComputeWorkGroupSize[0] == 0 ||
+		renderer->maxComputeWorkGroupSize[1] == 0 || renderer->maxComputeWorkGroupSize[2] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (x*y*z > renderer->maxComputeInvocations)
+	if (x > renderer->maxComputeWorkGroupSize[0] || y > renderer->maxComputeWorkGroupSize[1] ||
+		z > renderer->maxComputeWorkGroupSize[2])
 	{
 		errno = EINVAL;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Too many compute shader invocations.");
@@ -1073,7 +1075,8 @@ bool dsRenderer_dispatchComputeIndirect(dsRenderer* renderer, dsCommandBuffer* c
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	if (!renderer->dispatchComputeIndirectFunc || renderer->maxComputeInvocations == 0)
+	if (!renderer->dispatchComputeFunc || renderer->maxComputeWorkGroupSize[0] == 0 ||
+		renderer->maxComputeWorkGroupSize[1] == 0 || renderer->maxComputeWorkGroupSize[2] == 0)
 	{
 		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support compute shaders.");

@@ -93,6 +93,7 @@ Generating Visual Studio projects can either be done through the CMake GUI tool 
 * `-DDEEPSEA_BUILD_RENDER_MOCK=ON|OFF`: Set to `ON` to build the mock render implementation, used for the renderer unit tests. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_OPENGL=ON|OFF`: Set to `ON` to build the OpenGL render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_RENDER_VULKAN=ON|OFF`: Set to `ON` to build the Vulkan render implementation. Defaults to `ON`.
+* `-DDEEPSEA_BUILD_RENDER_METAL=ON|OFF`: Set to `ON` to build the Metal render implementation. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_TEXT=ON|OFF`: Set to `ON` to build the text rendering library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_VECTOR_DRAW=ON|OFF`: Set to `ON` to build the vector draw library. Defaults to `ON`.
 * `-DDEEPSEA_BUILD_APPLICATION=ON|OFF`: Set to `ON` to build the application framework. Defaults to `ON`.

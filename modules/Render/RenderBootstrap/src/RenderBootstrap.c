@@ -27,6 +27,10 @@
 #include <DeepSea/RenderVulkan/VkRenderer.h>
 #endif
 
+#if DS_HAS_RENDER_METAL
+#include <DeepSea/RenderMetal/MTLRenderer.h>
+#endif
+
 #include <string.h>
 
 #if DS_WINDOWS
@@ -85,11 +89,11 @@ dsRendererType dsRenderBootstrap_defaultRenderer(void)
 		return defaultRenderer;
 
 #if DS_HAS_RENDER_METAL
-	if (dsMetalRenderer_isSupported())
+	/*if (dsMTLRenderer_isSupported())
 	{
 		defaultRenderer = dsRendererType_Metal;
 		return defaultRenderer;
-	}
+	}*/
 #endif
 
 #if DS_HAS_RENDER_VULKAN
@@ -137,7 +141,7 @@ bool dsRenderBootstrap_isSupported(dsRendererType type)
 	{
 		case dsRendererType_Metal:
 #if DS_HAS_RENDER_METAL
-			return false;
+			return false; // return dsMTLRenderer_isSupported();
 #else
 			return false;
 #endif
@@ -170,7 +174,7 @@ bool dsRenderBootstrap_queryDevices(dsRenderDeviceInfo* outDevices, uint32_t* ou
 	{
 		case dsRendererType_Metal:
 #if DS_HAS_RENDER_METAL
-			return dsMetalRenderer_queryDevices(outDevices, outDeviceCount);
+			return dsMTLRenderer_queryDevices(outDevices, outDeviceCount);
 #else
 			errno = EPERM;
 			DS_LOG_ERROR(DS_RENDER_BOOTSTRAP_LOG_TAG,
