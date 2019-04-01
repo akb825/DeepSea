@@ -17,6 +17,7 @@
 #include <DeepSea/RenderMetal/MTLRenderer.h>
 #include "MTLRendererInternal.h"
 
+#include "Resources/MTLResourceManager.h"
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
@@ -24,42 +25,65 @@
 #include <DeepSea/Core/Log.h>
 #include <DeepSea/Render/Resources/GfxFormat.h>
 
-#include <Metal/MTLDevice.h>
-#include <Metal/MTLSampler.h>
 #include <string.h>
 
-static dsMTLFeature mtlFeatures[] =
+#if defined(IPHONE_OS_VERSION_MIN_REQUIRED) && IPHONE_OS_VERSION_MIN_REQUIRED < 80000
+#error iPhone target version must be >= 8.0 to support metal.
+#endif
+
+#if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 101100
+#error macOS target version must be >= 10.11 to support metal.
+#endif
+
+static MTLFeatureSet mtlFeatures[] =
 {
-#if DS_IOS
-	dsMTLFeature_iOS_GPUFamily1_v1,
-	dsMTLFeature_iOS_GPUFamily2_v1,
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+	MTLFeatureSet_iOS_GPUFamily1_v1,
+	MTLFeatureSet_iOS_GPUFamily2_v1,
+#endif
 
-	dsMTLFeature_iOS_GPUFamily1_v2,
-	dsMTLFeature_iOS_GPUFamily2_v2,
-	dsMTLFeature_iOS_GPUFamily3_v1,
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	MTLFeatureSet_iOS_GPUFamily1_v2,
+	MTLFeatureSet_iOS_GPUFamily2_v2,
+	MTLFeatureSet_iOS_GPUFamily3_v1,
+#endif
 
-	dsMTLFeature_iOS_GPUFamily1_v3,
-	dsMTLFeature_iOS_GPUFamily2_v3,
-	dsMTLFeature_iOS_GPUFamily3_v2,
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+	MTLFeatureSet_iOS_GPUFamily1_v3,
+	MTLFeatureSet_iOS_GPUFamily2_v3,
+	MTLFeatureSet_iOS_GPUFamily3_v2,
+#endif
 
-	dsMTLFeature_iOS_GPUFamily1_v4,
-	dsMTLFeature_iOS_GPUFamily2_v4,
-	dsMTLFeature_iOS_GPUFamily3_v3,
-	dsMTLFeature_iOS_GPUFamily4_v1,
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+	MTLFeatureSet_iOS_GPUFamily1_v4,
+	MTLFeatureSet_iOS_GPUFamily2_v4,
+	MTLFeatureSet_iOS_GPUFamily3_v3,
+	MTLFeatureSet_iOS_GPUFamily4_v1,
+#endif
 
-	dsMTLFeature_iOS_GPUFamily1_v5,
-	dsMTLFeature_iOS_GPUFamily2_v5,
-	dsMTLFeature_iOS_GPUFamily3_v4,
-	dsMTLFeature_iOS_GPUFamily4_v2,
-#else
-	dsMTLFeature_macOS_GPUFamily1_v1,
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+	MTLFeatureSet_iOS_GPUFamily1_v5,
+	MTLFeatureSet_iOS_GPUFamily2_v5,
+	MTLFeatureSet_iOS_GPUFamily3_v4,
+	MTLFeatureSet_iOS_GPUFamily4_v2,
+	MTLFeatureSet_iOS_GPUFamily5_v1,
+#endif
 
-	dsMTLFeature_macOS_GPUFamily1_v2,
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
+	MTLFeatureSet_macOS_GPUFamily1_v1,
+#endif
 
-	dsMTLFeature_macOS_GPUFamily1_v3,
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+	MTLFeatureSet_macOS_GPUFamily1_v2,
+#endif
 
-	dsMTLFeature_macOS_GPUFamily1_v4,
-	dsMTLFeature_macOS_GPUFamily2_v1,
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	MTLFeatureSet_macOS_GPUFamily1_v3,
+#endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	MTLFeatureSet_macOS_GPUFamily1_v4,
+	MTLFeatureSet_macOS_GPUFamily2_v1,
 #endif
 };
 
@@ -68,55 +92,94 @@ static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 	return DS_ALIGNED_SIZE(sizeof(dsMTLRenderer)) + DS_ALIGNED_SIZE(deviceNameLen + 1);
 }
 
-static uint32_t getShaderVersion(dsMTLFeature feature)
+static uint32_t getShaderVersion(MTLFeatureSet feature)
 {
 	switch (feature)
 	{
-		case dsMTLFeature_iOS_GPUFamily1_v1:
-		case dsMTLFeature_iOS_GPUFamily2_v1:
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+		case MTLFeatureSet_iOS_GPUFamily1_v1:
+		case MTLFeatureSet_iOS_GPUFamily2_v1:
 			return DS_ENCODE_VERSION(1, 0, 0);
-		case dsMTLFeature_iOS_GPUFamily1_v2:
-		case dsMTLFeature_iOS_GPUFamily2_v2:
-		case dsMTLFeature_iOS_GPUFamily3_v1:
+#endif
+
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		case MTLFeatureSet_iOS_GPUFamily1_v2:
+		case MTLFeatureSet_iOS_GPUFamily2_v2:
+		case MTLFeatureSet_iOS_GPUFamily3_v1:
 			return DS_ENCODE_VERSION(1, 1, 0);
-		case dsMTLFeature_iOS_GPUFamily1_v3:
-		case dsMTLFeature_iOS_GPUFamily2_v3:
-		case dsMTLFeature_iOS_GPUFamily3_v2:
+#endif
+
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+		case MTLFeatureSet_iOS_GPUFamily1_v3:
+		case MTLFeatureSet_iOS_GPUFamily2_v3:
+		case MTLFeatureSet_iOS_GPUFamily3_v2:
 			return DS_ENCODE_VERSION(1, 2, 0);
-		case dsMTLFeature_iOS_GPUFamily1_v4:
-		case dsMTLFeature_iOS_GPUFamily2_v4:
-		case dsMTLFeature_iOS_GPUFamily3_v3:
-		case dsMTLFeature_iOS_GPUFamily4_v1:
+#endif
+
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		case MTLFeatureSet_iOS_GPUFamily1_v4:
+		case MTLFeatureSet_iOS_GPUFamily2_v4:
+		case MTLFeatureSet_iOS_GPUFamily3_v3:
+		case MTLFeatureSet_iOS_GPUFamily4_v1:
 			return DS_ENCODE_VERSION(2, 0, 0);
-		case dsMTLFeature_iOS_GPUFamily1_v5:
-		case dsMTLFeature_iOS_GPUFamily2_v5:
-		case dsMTLFeature_iOS_GPUFamily3_v4:
-		case dsMTLFeature_iOS_GPUFamily4_v2:
+#endif
+
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+		case MTLFeatureSet_iOS_GPUFamily1_v5:
+		case MTLFeatureSet_iOS_GPUFamily2_v5:
+		case MTLFeatureSet_iOS_GPUFamily3_v4:
+		case MTLFeatureSet_iOS_GPUFamily4_v2:
+		case MTLFeatureSet_iOS_GPUFamily5_v1:
 			return DS_ENCODE_VERSION(2, 1, 0);
-		case dsMTLFeature_macOS_GPUFamily1_v1:
+#endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
+		case MTLFeatureSet_macOS_GPUFamily1_v1:
 			return DS_ENCODE_VERSION(1, 1, 0);
-		case dsMTLFeature_macOS_GPUFamily1_v2:
+#endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+		case MTLFeatureSet_macOS_GPUFamily1_v2:
 			return DS_ENCODE_VERSION(1, 2, 0);
-		case dsMTLFeature_macOS_GPUFamily1_v3:
+#endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+		case MTLFeatureSet_macOS_GPUFamily1_v3:
 			return DS_ENCODE_VERSION(2, 0, 0);
-		case dsMTLFeature_macOS_GPUFamily1_v4:
-		case dsMTLFeature_macOS_GPUFamily2_v1:
+#endif
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+		case MTLFeatureSet_macOS_GPUFamily1_v4:
+		case MTLFeatureSet_macOS_GPUFamily2_v1:
 			return DS_ENCODE_VERSION(2, 1, 0);
+#endif
+
+		default:
+			DS_ASSERT(false);
+			return 0;
 	}
-	DS_ASSERT(false);
-	return 0;
 }
 
-static uint32_t getMaxColorAttachments(dsMTLFeature feature)
+static uint32_t getMaxColorAttachments(MTLFeatureSet feature)
 {
 	switch (feature)
 	{
-		case dsMTLFeature_iOS_GPUFamily1_v1:
-		case dsMTLFeature_iOS_GPUFamily1_v2:
-		case dsMTLFeature_iOS_GPUFamily1_v3:
-		case dsMTLFeature_iOS_GPUFamily1_v4:
-		case dsMTLFeature_iOS_GPUFamily1_v5:
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+		case MTLFeatureSet_iOS_GPUFamily1_v1:
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		case MTLFeatureSet_iOS_GPUFamily1_v2:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+		case MTLFeatureSet_iOS_GPUFamily1_v3:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		case MTLFeatureSet_iOS_GPUFamily1_v4:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+		case MTLFeatureSet_iOS_GPUFamily1_v5:
+#endif
 			return 4;
+#endif
 		default:
 			return 8;
 	}
@@ -129,26 +192,46 @@ static uint32_t getMaxSurfaceSamples(id<MTLDevice> device)
 	return 4;
 }
 
-static uint32_t hasTessellationShaders(dsMTLFeature feature)
+static uint32_t hasTessellationShaders(MTLFeatureSet feature)
 {
 	switch (feature)
 	{
-		case dsMTLFeature_iOS_GPUFamily1_v1:
-		case dsMTLFeature_iOS_GPUFamily2_v1:
-		case dsMTLFeature_iOS_GPUFamily1_v2:
-		case dsMTLFeature_iOS_GPUFamily2_v2:
-		case dsMTLFeature_iOS_GPUFamily3_v1:
-		case dsMTLFeature_iOS_GPUFamily1_v3:
-		case dsMTLFeature_iOS_GPUFamily2_v3:
-		case dsMTLFeature_iOS_GPUFamily1_v4:
-		case dsMTLFeature_iOS_GPUFamily2_v4:
-		case dsMTLFeature_iOS_GPUFamily1_v5:
-		case dsMTLFeature_iOS_GPUFamily2_v5:
-		case dsMTLFeature_macOS_GPUFamily1_v1:
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+		case MTLFeatureSet_iOS_GPUFamily1_v1:
+		case MTLFeatureSet_iOS_GPUFamily2_v1:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+		case MTLFeatureSet_iOS_GPUFamily1_v2:
+		case MTLFeatureSet_iOS_GPUFamily2_v2:
+		case MTLFeatureSet_iOS_GPUFamily3_v1:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
+		case MTLFeatureSet_iOS_GPUFamily1_v3:
+		case MTLFeatureSet_iOS_GPUFamily2_v3:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+		case MTLFeatureSet_iOS_GPUFamily1_v4:
+		case MTLFeatureSet_iOS_GPUFamily2_v4:
+#endif
+#if IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
+		case MTLFeatureSet_iOS_GPUFamily1_v5:
+		case MTLFeatureSet_iOS_GPUFamily2_v5:
+#endif
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
+		case MTLFeatureSet_macOS_GPUFamily1_v1:
+#endif
 			return false;
 		default:
 			return true;
 	}
+}
+
+bool dsMTLRenderer_destroy(dsRenderer* renderer)
+{
+	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	CFRelease(mtlRenderer->mtlDevice);
+	DS_VERIFY(dsAllocator_free(renderer->allocator, renderer));
+	return true;
 }
 
 bool dsMTLRenderer_isSupported(void)
@@ -221,12 +304,11 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	renderer->mtlDevice = CFBridgingRetain(device);
 	for (uint32_t i = 0; i < DS_ARRAY_SIZE(mtlFeatures); ++i)
 	{
-		if ([device supportsFeatureSet:(MTLFeatureSet)mtlFeatures[i]])
+		if ([device supportsFeatureSet: mtlFeatures[i]])
 			renderer->featureSet = mtlFeatures[i];
 	}
 
-	baseRenderer->allocator = allocator;
-	//baseRenderer->resourceManager = ...;
+	baseRenderer->allocator = dsAllocator_keepPointer(allocator);
 	//baseRenderer->mainCommandBuffer = ...;
 
 	baseRenderer->platform = dsGfxPlatform_Default;
@@ -272,6 +354,14 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 	baseRenderer->supportsStartInstance = true;
 	baseRenderer->defaultAnisotropy = 1.0f;
 
-	return baseRenderer;
+	baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
+	if (!baseRenderer->resourceManager)
+	{
+		dsMTLRenderer_destroy(baseRenderer);
+		return NULL;
+	}
 
+	baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
+
+	return baseRenderer;
 }
